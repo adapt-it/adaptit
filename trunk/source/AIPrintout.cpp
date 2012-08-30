@@ -250,9 +250,12 @@ bool AIPrintout::OnPrintPage(int page)
     wxDC *pDC = GetDC();
 
 #if defined(__WXGTK__)
-    // required, because the wxPostScriptDC is ill-behaved - it won't handle drawing which is not
-    // top-down and leftwards , or top-down and rightwards; violation of those constraints wipes
-    // out the data on the page. The code below for the __WXGTK__ build is a workaround so that
+    // Required, because the wxPostScriptDC is ill-behaved, or more likely, wxGnomeprinter
+    // framework is broken - the device context won't handle drawing which is not top-down
+    // and leftwards , or top-down and rightwards; violation of those constraints wipes
+    // out the data on the page. And wx functions from the framework return bogus values,
+    // in particular, the y coord of the origin offset - I need to do my own calculation.
+    // The code below for the __WXGTK__ build is a workaround for the DC problems so that
     // the free translation strips are printed by interleaving one line's worth between the
     // printing of each pair of strips.
     if (pDC)
@@ -265,19 +268,19 @@ bool AIPrintout::OnPrintPage(int page)
         int i;
         wxString ftStr;
 
-	bool bRTLLayout;
-	bRTLLayout = FALSE; // default, for ANSI build
+		bool bRTLLayout;
+		bRTLLayout = FALSE; // default, for ANSI build
 #ifdef _RTL_FLAGS
-	if (m_pApp->m_bTgtRTL)
-	{
-		// free translation has to be RTL & aligned RIGHT
-		bRTLLayout = TRUE;
-	}
-	else
-	{
-		// free translation has to be LTR & aligned LEFT
-		bRTLLayout = FALSE;
-	}
+		if (m_pApp->m_bTgtRTL)
+		{
+			// free translation has to be RTL & aligned RIGHT
+			bRTLLayout = TRUE;
+		}
+		else
+		{
+			// free translation has to be LTR & aligned LEFT
+			bRTLLayout = FALSE;
+		}
 #endif
 
         // pass these in to the aggregation function - they are used early in the composition of
@@ -398,24 +401,26 @@ bool AIPrintout::OnPrintPage(int page)
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
 
 #if defined(Print_failure) && defined(__WXDEBUG__)
-//		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
-//			fitRect.x, fitRect.y );
+		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
+			fitRect.x, fitRect.y );
 #endif
 
         // SetLogicalOrigin is only documented as a method of wxPrintout, but it is also
         // available for wxDC. Since the "Strips" that will be drawn in OnDraw() below
         // store their logical coordinates based on their position in the whole virtual
         // document, we need to set the logical origin so that strips will start drawing
-        // from the top of our printout/preview page.
+        // from the top of our printout/preview page. (Unfortunately, in the Linux build
+		// this generates bogus values - a further tweak is done just a little further down)
 		pDC->SetLogicalOrigin(0,pOffsets->nTop);
 
 #if defined(Print_failure) && defined(__WXDEBUG__)
-//		wxLogDebug(_T("pDC->SetLogicalOrigin(),    x %d  y %d   m_bIsPrinting = %d"), 0, pOffsets->nTop, pApp->m_bIsPrinting);
+		wxLogDebug(_T("pDC->SetLogicalOrigin(),   x %d  y %d (Linux y-value is unreliable),  m_bIsPrinting = %d"),
+			0, pOffsets->nTop, pApp->m_bIsPrinting);
 #endif
 
-    // a simple solution to get data printed at the right device offset on pages 2 and higher
+    // A simple solution to get data printed at the right device offset on pages 2 and higher
     // - it overrides some of the above settings (which don't generate correct values)
-    //if (!IsPreview())
+    // if (!IsPreview()) <<-- the old test, prior to 29Aug12
     // BEW changed 29Aug12 to the test below: the OR followed by the preview test ANDed with
     // the gbIsBeingPreviewed flag ( which remains FALSE whenever a Print Preview button click
     // is done, because it's set TRUE only for a Print Preview menu item choice - the latter's
@@ -427,7 +432,7 @@ bool AIPrintout::OnPrintPage(int page)
     // page shown in print preview frame's window, and subsequent pages all being blank except
     // for the footer. Apparently, the wrong offset was in effect, and the tweak was needed to
     // get it right. Then everything became normal. A nice bit of serendipity, as I wasn't
-    // expecting such a trivial solution to Kim's reported bug!
+    // expecting such a trivial solution to Kim's reported bug of 17July12!
     if (!IsPreview()
         ||
         (IsPreview() && !gbIsBeingPreviewed)
@@ -446,7 +451,8 @@ bool AIPrintout::OnPrintPage(int page)
                                           // the latter's left margin setting intact, and so the margin
                                           // setting remains correct
 #if defined(Print_failure) && defined(__WXDEBUG__)
-        wxLogDebug(_T("Linux solution's Logical Origin setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d  for Page %d"), 0, Yoffset, page);
+        wxLogDebug(_T("Linux solution's Logical Origin corrected setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d  for Page %d"),
+			0, Yoffset, page);
 #endif
     }
 
@@ -536,7 +542,7 @@ bool AIPrintout::OnPrintPage(int page)
             }
         }
 
-        // if we didn't find an anchor pile, skip looking for the free trans end
+        // If we didn't find an anchor pile, skip looking for the free trans end
         if (pFirstPile != NULL)
         {
             // we have the first anchor pile which potentially has material on the
@@ -591,7 +597,7 @@ bool AIPrintout::OnPrintPage(int page)
                 }
             }
         }
-    } // end of TRUE block for test: if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing) etc
+    } // end of TRUE block for test: if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing ... etc
 
 #if defined(Print_failure) && defined(__WXDEBUG__)
     {
@@ -623,7 +629,7 @@ bool AIPrintout::OnPrintPage(int page)
     // than from within pView->OnDraw(pDC) -- probably because doing this below I
     // didn't have bogus pDC->Clear() involved - that was part of the problem. However
     // although I've removed the clipping calls, that didn't make the legacy code
-    // functional in the Linux build. So this __WXGTK__ block really is needed.
+    // functional in the Linux build. So the conditional __WXGTK__ block is needed.
     CPile* aPilePtr = NULL;
     for (index = nFirstStrip; index <= nLastStrip; index++)
     {
@@ -653,7 +659,8 @@ bool AIPrintout::OnPrintPage(int page)
         // the wxPostScriptDC seems to demand before it will behave... it works!
         // But call the function only if not previewing, and the user has requested that
         // free translations be drawn, and that there actually are some on the page to
-        // be drawn
+        // be drawn; or when previewing due to a click on the Print Preview button in
+		// the native Linux Print dialog (gbIsBeingPreviewed is FALSE in the latter case)
         //if (!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !arrFTElementsArrays.IsEmpty())
         if ((!pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !arrFTElementsArrays.IsEmpty())
             ||
@@ -672,7 +679,7 @@ bool AIPrintout::OnPrintPage(int page)
     }
     // Print Previewing (which uses a memoryDC which draws to a bitmap, works fine with
     // the legacy code for drawing of the free translations on preview pages - so we'll
-    // continue to use it; for real pages however, this fails to print any free translations
+    // continue to use it; for real pages however, it fails to print any free translations
 
     if ((gbCheckInclFreeTransText && pApp->m_bIsPrintPreviewing && gbIsBeingPreviewed) // for previewing by File > Print Preview menu item
        )
@@ -707,30 +714,33 @@ bool AIPrintout::OnPrintPage(int page)
     }
 
 #if defined(__WXDEBUG__) && defined(Print_failure)
-    wxLogDebug(_T("AIPrintout OnPrintPage() line 537 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
+    wxLogDebug(_T("AIPrintout OnPrintPage() __WXGTK__ block, at its end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 
-        // do here the cleanup of the temporary arrays for printing strips, and free
+        // Do here the cleanup of the temporary arrays for printing strips, and free
         // translation
-        if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing)
+        if (gbCheckInclFreeTransText)
         {
-            int count = arrFTElementsArrays.GetCount();
-            int index;
-            for (index = 0; index < count; index++)
-            {
-                wxArrayPtrVoid* pAPV = (wxArrayPtrVoid*)arrFTElementsArrays.Item(index);
-                int index2;
-                int count2 = pAPV->GetCount();
-                for (index2 = 0; index2 < count2; index2++)
-                {
-                    FreeTrElement* pElement = (FreeTrElement*)pAPV->Item(index2);
- 					if (pElement != NULL) // whm 11Jun12 added NULL test
-	                   delete pElement;
-                }
-                pAPV->Clear();
-				if (pAPV != NULL) // whm 11Jun12 added NULL test
-	                delete pAPV;
+			if (!arrFTElementsArrays.IsEmpty())
+			{
+				int count = arrFTElementsArrays.GetCount();
+				int index;
+				for (index = 0; index < count; index++)
+				{
+					wxArrayPtrVoid* pAPV = (wxArrayPtrVoid*)arrFTElementsArrays.Item(index);
+					int index2;
+					int count2 = pAPV->GetCount();
+					for (index2 = 0; index2 < count2; index2++)
+					{
+						FreeTrElement* pElement = (FreeTrElement*)pAPV->Item(index2);
+ 						if (pElement != NULL) // whm 11Jun12 added NULL test
+						   delete pElement;
+					}
+					pAPV->Clear();
+					if (pAPV != NULL) // whm 11Jun12 added NULL test
+						delete pAPV;
+				}
             }
             // arrFTElementsArrays is local to the OnPrintPage() function, and will be destroyed
             // by it's destructor automatically
@@ -745,8 +755,6 @@ bool AIPrintout::OnPrintPage(int page)
  				if (pAS != NULL) // whm 11Jun12 added NULL test
 	               delete pAS;
             }
-            // arrFTSubstringsArrays is local to the OnPrintPage() function, and will be destroyed
-            // by it's destructor automatically
         }
 
 		pApp->m_bPagePrintInProgress = FALSE; // BEW 28Oct11 added
