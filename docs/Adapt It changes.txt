@@ -1,8 +1,8 @@
 ----------------------------------------------
-Version 6.2.3 release 24 August 2012
+Version 6.3.0 release ?? September 2012
 ----------------------------------------------
 ----------------------------------------------
-Feature changes and new features in 6.2.3
+Feature changes and new features in 6.3.0
 ----------------------------------------------
 * Added code to ensure that the "Choose How You Want To Work
 With This Project" dialog stays on top of the start up wizard
@@ -53,6 +53,11 @@ or Clear Book Name" will open - you can accept the suggested
 name shown there, or type one of your own in any language. If
 a book name is not appropriate for the document, an option in
 the dialog allows you to suppress supplying a book name.
+A bookname, if one is defined, is stored in the document, and
+is saved in the <Settings> of the xml form of the document on
+disk. It is therefore available every time the document is
+subsequently opened for further work. A bookname is appropriate
+even if the document only contains a small part of the book.
 * Placement of end markers (such as \f*, or \x* and others), when
 the placement could be done either side of punctuation characters
 during an export, is handled by a dialog which opens when it 
