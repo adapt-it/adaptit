@@ -46,13 +46,16 @@ WX_DEFINE_OBJARRAY(SPArray);
 // To see the old and new arrays of CSourcePhrase instances with wxLogDebug,
 // uncomment out the #define ShowConversionItems just preceding the helpers.cpp function
 // void ConvertSPList2SPArray(SPList* pList, SPArray* pArray), at about line 8772
-//#define myLogDebugCalls
-//#define myMilestoneDebugCalls
-//#define LOOPINDEX
-//#define MERGE_Recursively
-//#define _RECURSE_
-//#define LEFTRIGHT // displays results of extending in-common matches to left or right
 
+/* If you don't know what you need to look at for debugging, turn on the first five below...
+#define myLogDebugCalls       // probably the most useful one overall, and for counting spans & their deletions
+#define myMilestoneDebugCalls // useful for outer loop and MergeRecursively() calls
+#define LOOPINDEX             // this one gives the loop indices at the start of each iteration
+#define MERGE_Recursively     // use this one and the next to look at the tuple processing
+#define _RECURSE_			  // gives useful information when recursion takes place in merging matched spans
+#define LEFTRIGHT			  // displays results of extending in-common matches to left or right 
+							  //(this one has limited usefulness, only use if extending issues are your focus)
+*/
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
@@ -1988,13 +1991,13 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 		pOldChunkInfo->verse = pOldChunk->nStartingVerse;
 		pOldChunkInfo->chapter = pOldChunk->nChapter;
 		pOldChunkInfo->indexRef = pOldChunk->startsAt; // indexes into arrOld
-		pOldChunkInfo->bIsComplex = FALSE; // default, but check and make TRUE in required by the
+		pOldChunkInfo->bIsComplex = FALSE; // default, but check and make TRUE if required by the
 										   // tests in the following lines
 		if (pOldChunk->nStartingVerse != pOldChunk->nEndingVerse || 
 			pOldChunk->charStartingVerseSuffix != _T('\0') || 
 			pOldChunk->charEndingVerseSuffix != _T('\0'))
 		{
-			pOldChunkInfo->bIsComplex = FALSE;
+			pOldChunkInfo->bIsComplex = TRUE;
 		}
 		// now store this struct
 		arrOldChunkInfos.Add(pOldChunkInfo);
@@ -2528,8 +2531,8 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	// tuple[0] and tuple[1] struct pointers will be NULL. Tuple[3] will have the whole
 	// extent of both oldSPArray and newSPArray.
 #if defined(__WXDEBUG__) && defined(_RECURSE_)
-	wxLogDebug(_T("\n###  ENTERED MergeRecursively: howToProcess = %d (0 is 'processStartToEnd') oldChunkIndexKickoff = %d"),
-				howToProcess, oldChunkIndexKickoff, newChunkIndexKickoff);
+	wxLogDebug(_T("\n###  ENTERED & at start of MergeRecursively: howToProcess = %d (0 is 'processStartToEnd') oldChunkIndexKickoff = %d, limit=%d"),
+				howToProcess, oldChunkIndexKickoff, newChunkIndexKickoff, limit);
 #endif
 	// get a pointer to the CFreeTrans module so we can use it's functions that support
 	// the Import Edited Source Text feature, and PT collaboration feature
