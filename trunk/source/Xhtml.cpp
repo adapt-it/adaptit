@@ -920,27 +920,17 @@ int Xhtml::ParseFXRefFe(wxString& buffer, wxString& mkr, wxString& endMkr, wxStr
 CBString Xhtml::ToUtf8(const wxString& str)
 {
 	// converts UTF-16 strings to UTF-8
-	// whm 21Aug12 modified. No need for the #ifdef _UNICODE and #else
+	// whm 21Aug12 modified. No need for #ifdef _UNICODE and #else
 	// define blocks which won't compile in ANSI (Debug or Release) builds
-//#ifdef _UNICODE
 	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
 	return CBString(tempBuf);
-//#else
-//	return str;
-//#endif
 }
 wxString Xhtml::ToUtf16(CBString& bstr)
 {
-	// whm 21Aug12 modified. No need for the #ifdef _UNICODE and #else
+	// whm 21Aug12 modified. No need for #ifdef _UNICODE and #else
 	// define blocks which won't compile in ANSI (Debug or Release) builds
-//#ifdef _UNICODE
 	wxWCharBuffer buf(wxConvUTF8.cMB2WC(bstr.GetBuffer()));
-//	if(!buf.data())
-//		return buf;
 	return wxString(buf);
-//#else
-//	return bstr;
-//#endif
 }
 
 CBString Xhtml::GetExporterID()
