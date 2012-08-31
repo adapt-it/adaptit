@@ -260,7 +260,7 @@ bool	GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunksArray,
 						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk, 
 						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes, 
-						wxArrayInt& arrPairingOld, wxArrayInt& arrPairingNew);
+						wxArrayInt& arrPairingOld);
 bool	GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 bool	GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
@@ -296,7 +296,7 @@ void	MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 void	MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
 						int initialSequNum, wxArrayPtrVoid* pChunksOld, 
 						wxArrayPtrVoid* pChunksNew, enum ProcessHow howToProcess,
-						wxArrayInt& arrPairingOld, wxArrayInt& arrPairingNew,
+						wxArrayInt& arrPairingOld,
 						SPArray& arrOldFull, SPArray& arrNewFull,
 						int oldChunkIndexKickoff, int newChunkIndexKickoff);
 void	MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedList, int limit);
@@ -312,8 +312,6 @@ void	ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 void	RemoveAll(SPArray* pSPArray);
 bool	SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[],
 						int limit);
-//void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt, int& oldEndAt,
-//					  int& newEndAt, int limit, bool bClosedEnd); <<-- not needed yet
 void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limit); // overload
 bool	TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,  
 						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);

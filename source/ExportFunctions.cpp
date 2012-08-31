@@ -1619,7 +1619,8 @@ wxString ChangeTildeToNonBreakingSpace(wxString text)
 #if defined(_UNICODE)
 	wxChar nbsp = (wxChar)0x00A0;
 #else
-	wxChar nbsp = (wxChar)0xA0;
+	unsigned char ch = 0xA0; // doing it this way avoids a compiler truncation warning
+	wxChar nbsp = ch;
 #endif
 	size_t count = text.Len();
 	size_t index;
