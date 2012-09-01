@@ -34,6 +34,9 @@
 #include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
+#include <wx/wfstream.h>
+#include <wx/txtstrm.h>
+#include <wx/dir.h>
 
 // BEW removed 15Jun11 until we support OXES
 // BEW reinstated 19May12, for OXES v1 support
@@ -118,6 +121,7 @@ extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this 
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
+
 
 // Moved here for Version 3.
 // We could use a CMap used as a dictionary associating the style "keys" with their "values."
@@ -1012,64 +1016,138 @@ void DoExportAsType(enum ExportType exportType)
 				}
 				// update the path for the next export
 				gpApp->m_lastPathwayOutputPath = defaultDir;
-                 // Call PathwayB.exe on the exported XHTML.
-                 // The full command line should look something like this:
-                 //    PathwayB.exe -d "D:\Project2" -if xhtml -f * -c "project.css" -i "Scripture" -n "SEN" -s
-                 // (A description of the PathwayB parameters can be found by calling PathwayB.exe
-                 // from the command prompt without any parameters.)
-                 wxString aMsg = _T("Pathway export - call Pathway on XHTML");
-                 gpApp->LogUserAction(aMsg);
-
-				 // sanity checks -- make sure the .xhtml and .css files got exported correctly
-				 wxFile fTmp;
-				 if (!fTmp.Exists(defaultDir + gpApp->PathSeparator + exportFilename))
-				 {
+                // Call PathwayB.exe on the exported XHTML.
+                // The full command line should look something like this:
+                //    PathwayB.exe -d "D:\Project2" -if xhtml -f * -c "project.css" -i "Scripture" -n "SEN" -s
+                // (A description of the PathwayB parameters can be found by calling PathwayB.exe
+                // from the command prompt without any parameters.)
+				// sanity checks -- make sure the .xhtml and .css files got exported correctly
+				wxFile fTmp;
+				if (!fTmp.Exists(defaultDir + gpApp->PathSeparator + exportFilename))
+				{
 					wxString msg;
 					msg = msg.Format(_("Missing intermediate XHTML file: %s.\nThe Pathway export cannot be completed without this file."),
 						exportFilename.c_str());
 					gpApp->LogUserAction(msg);
 					wxMessageBox(msg,_T("Error: Intermediate XHTML file missing"),wxICON_EXCLAMATION | wxOK);
 					return;
-				 }
-				 if (!fTmp.Exists(defaultDir + gpApp->PathSeparator + exportCSS))
-				 {
+				}
+				if (!fTmp.Exists(defaultDir + gpApp->PathSeparator + exportCSS))
+				{
 					wxString msg;
 					msg = msg.Format(_("Missing Stylesheet file: %s.\nThe Pathway export cannot be completed without this file."),
 						exportCSS.c_str());
 					gpApp->LogUserAction(msg);
 					wxMessageBox(msg,_T("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
 					return;
-				 }
+				}
 
-                 wxArrayString textIOArray, errorsIOArray;
-                 wxString commandLine;
-                 // full path to PathwayB executable
-                 wxString PWBatchFilename = gpApp->m_PathwayInstallDirPath + gpApp->PathSeparator + _T("PathwayB.exe");
-                 commandLine = _T("\"") + PWBatchFilename + _T("\" -d \"") + defaultDir;
-				 commandLine += _T("\" -if xhtml -f \"") + defaultDir + gpApp->PathSeparator + exportFilename;
-				 commandLine += _T("\" -c \"") + defaultDir + gpApp->PathSeparator + exportCSS;
-                 commandLine += _T("\" -i \"Scripture\" -n \"");
-                 // if there is a language code specified, pass it along; if not, use a generic "MP1"
-                 commandLine += ((gpApp->m_targetLanguageCode.IsEmpty()) ? _T("MP1") : gpApp->m_targetLanguageCode);
-                 // show the dialog to let the user choose the format (TODO: do we want this, or just
-                 // take the defaults set up by the admin?)
-                 commandLine += _T("\" -s");
-                 int code = wxExecute(commandLine, wxEXEC_SYNC);
-				 if (code != 0)
-				 {
-					 // Pathway command line returned an error -- return
-					 aMsg = aMsg.Format(_T("Error: Pathway export returned with an error code:\n%d"), code);
-					 wxMessageBox(aMsg,_T("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
-					 aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error code %d."), commandLine.c_str(), code);
-					 gpApp->LogUserAction(aMsg);
-				 }
-				 else 
-				 {
-					 // Pathway didn't complain. Tell the user.
-					 aMsg = aMsg.Format(_T("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir.c_str());
-					 wxMessageBox(aMsg,sadlg.GetTitle(),wxICON_INFORMATION | wxOK);
-				 }
-                 return;
+                wxArrayString textIOArray, errorsIOArray;
+                wxString commandLine;
+                // full path to PathwayB executable
+                wxString PWBatchFilename = gpApp->m_PathwayInstallDirPath + gpApp->PathSeparator + _T("PathwayB.exe");
+                commandLine = _T("\"") + PWBatchFilename + _T("\" -d \"") + defaultDir;
+				commandLine += _T("\" -if xhtml -f \"") + defaultDir + gpApp->PathSeparator + exportFilename;
+				commandLine += _T("\" -c \"") + defaultDir + gpApp->PathSeparator + exportCSS;
+                commandLine += _T("\" -i \"Scripture\" -n \"");
+                // if there is a language code specified, pass it along; if not, use a generic "MP1"
+                commandLine += ((gpApp->m_targetLanguageCode.IsEmpty()) ? _T("MP1") : gpApp->m_targetLanguageCode);
+                // show the dialog to let the user choose the format (TODO: do we want this, or just
+                // take the defaults set up by the admin?)
+                commandLine += _T("\" -s");
+
+				// EDB 31 Aug 2012: HACK. This is a bit convoluted:
+				// Problem: Pathway doesn't always return an error code when the export process fails.
+				// Instead, the results of the export are returned through stdOut (and sometimes stdErr). BUT,
+				// because Pathway has a UI, we can't run in wxEXEC_SYNC AND pipe the stdOut / stdErr results --
+				// wxWidgets just freezes on Windows.
+				// So... this option writes the command (including the stdout / stderr redirection) to a batch file
+				// and runs it. It returns synchronously, and also gives us the stdout / stderr separate files marked
+				// with the date/time stamped on them. We can then trace any Pathway export problems by poking around
+				// in those files. Messy, but it seems to work.
+
+				// get the current file count in the output directory
+				wxArrayString aryFiles;
+				wxDir::GetAllFiles(defaultDir, &aryFiles);
+				int nCountBeforePathway = aryFiles.Count();
+				// build the filenames for the stdout, stderr and batch files.
+				wxString incStr;
+				incStr = GetDateTimeNow(adaptItDT);
+				incStr.Replace(_T(":"),_T("_"),TRUE); // TRUE - replace all
+				incStr.Replace(_T("-"),_T("_"),TRUE); // TRUE - replace all
+				wxString outFile = defaultDir + gpApp->PathSeparator + _T("out") + incStr + _T(".txt");
+				wxString errFile = defaultDir + gpApp->PathSeparator + _T("err") + incStr + _T(".txt");
+				wxString batchFile = defaultDir + gpApp->PathSeparator + _T("bat") + incStr + _T(".bat");
+				// add the redirection to the Pathway command line
+				commandLine += _T(" 1>\"") + outFile + _T("\"");
+				commandLine += _T(" 2>\"") + errFile + _T("\"");
+				// write out the batch file containing the one command (PathwayB.exe ... that we just created)
+				wxFileOutputStream fos(batchFile);
+				wxTextOutputStream cout(fos);
+				cout << commandLine;
+				fos.Close();
+				// log what our Pathway command
+				wxString aMsg = aMsg.Format(_("Pathway export - call Pathway on XHTML: %s"), commandLine.c_str());
+				gpApp->LogUserAction(aMsg);
+
+				// TODO: Linux
+				// run the batch file
+                int code = wxExecute(batchFile, wxEXEC_SYNC);
+
+				// clean up
+				wxRemoveFile(batchFile);
+				// Check 1: was any error reported in the stderr file?
+				wxFile fErr;
+				if (fErr.Exists(errFile))
+				{
+					fErr.Open(errFile);
+					if (fErr.Length() > 0)
+					{
+						// read the stderr file
+						wxString errMsg;
+						wxFileInputStream fis(errFile);
+						wxTextInputStream cin(fis);
+						cin >> errMsg;
+						aMsg = aMsg.Format(_T("Error: Pathway export returned an error:\n%s"), errMsg.c_str());
+						wxMessageBox(aMsg,_T("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
+						aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error."), commandLine.c_str());
+						gpApp->LogUserAction(aMsg);
+						return;
+					}
+				}
+				// Check 2: did Pathway actually produce any files?
+				aryFiles.clear();
+				wxDir::GetAllFiles(defaultDir, &aryFiles);
+				if ((int)aryFiles.Count() <= (nCountBeforePathway + 2)) // include the stdout and stderr files
+				{
+					// read the stdout file (it might contain a clue as to what happened)
+					wxString errMsg;
+					wxFileInputStream fis(outFile);
+					wxTextInputStream cin(fis);
+					while(fis.IsOk() && !fis.Eof())
+					{
+						errMsg += cin.ReadLine();
+					}
+					if (errMsg.IsEmpty()) 
+					{
+						// No output from stdout -- the user likely clicked Cancel
+						aMsg = _T("Pathway export did not create any files. If you clicked Cancel on the Export through Pathway dialog, this is expected.");
+					}
+					else
+					{
+						// There _is_ some output -- list it
+						aMsg = aMsg.Format(_T("Pathway export did not create any files.\nOutput from the Pathway command follows:\n\n%s"), errMsg.c_str());
+					}
+					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+					aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error."), commandLine.c_str());
+					gpApp->LogUserAction(aMsg);
+					return;
+				}
+				
+				// Pathway didn't complain, and produced a file of some sort (this may or may not be a good output). Tell the user where to look for the files.
+				aMsg = aMsg.Format(_T("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir.c_str());
+				wxMessageBox(aMsg,sadlg.GetTitle(),wxICON_INFORMATION | wxOK);
+				return;
             }
             else // xhtml output
             {
