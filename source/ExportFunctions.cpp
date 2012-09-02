@@ -37,6 +37,7 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/dir.h>
+#include <wx/longlong.h>
 
 // BEW removed 15Jun11 until we support OXES
 // BEW reinstated 19May12, for OXES v1 support
@@ -1117,6 +1118,7 @@ void DoExportAsType(enum ExportType exportType)
 				}
 				// Check 2: did Pathway actually produce any files?
 				aryFiles.clear();
+				const wxLongLong minVal(10000);
 				wxDir::GetAllFiles(defaultDir, &aryFiles);
 				if ((int)aryFiles.Count() <= (nCountBeforePathway + 2)) // include the stdout and stderr files
 				{
@@ -1130,7 +1132,18 @@ void DoExportAsType(enum ExportType exportType)
 					}
 					if (errMsg.IsEmpty()) 
 					{
-						// No output from stdout -- the user likely clicked Cancel
+						wxLongLong free; 
+						wxGetDiskSpace(defaultDir, NULL, &free);
+
+						if (free < minVal)
+						{
+							// No output AND low disk space -- tell the user (this might have been the cause)
+							aMsg = aMsg.Format(_T("Pathway did not create any files. This could be due to low disk space.\nYou currently have %s bytes of free disk space."), free.ToString().c_str());
+							wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+							gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
+							return;
+						}
+						// No output from stdout, and there is disk space -- the user likely clicked Cancel
 						aMsg = _T("Pathway export did not create any files. If you clicked Cancel on the Export through Pathway dialog, this is expected.");
 					}
 					else
@@ -1141,6 +1154,18 @@ void DoExportAsType(enum ExportType exportType)
 					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error."), commandLine.c_str());
 					gpApp->LogUserAction(aMsg);
+					return;
+				}
+
+				// Check 3: are we running low on disk space?
+				wxLongLong free; 
+				wxGetDiskSpace(defaultDir, NULL, &free);
+				if (free < minVal)
+				{
+					// Pathway succeeded (maybe?), but we have low disk space -- tell the user
+					aMsg = aMsg.Format(_T("Pathway export returned with no reported errors. \nOutput can be found in the following directory:\n%s\n\nNote that you are running low on disk space; you currently have %s bytes of free disk space left."), defaultDir.c_str(), free.ToString().c_str());
+					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+					gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
 					return;
 				}
 				
