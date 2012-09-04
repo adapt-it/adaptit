@@ -82,7 +82,7 @@ bool CAdapt_ItApp::PathwayIsInstalled()
 	}
 #endif
 #ifdef __WXGTK__ // linux -- just look for the files in /usr/lib/Paratext/
-    wxString strPWRegistryDir = _T("~/.mono/registry/CurrentUser/software/sil/pathway");
+    wxString strPWRegistryDir = _T("/etc/mono/registry/LocalMachine/software/sil/pathway/");
 
     if (::wxDirExists(strPWRegistryDir))
     {
@@ -138,8 +138,7 @@ wxString CAdapt_ItApp::GetPathwayInstallDirPath()
 	}
 #endif
 #ifdef __WXGTK__ // linux -- check mono directory for values.xml file
-    wxString strRegPath = wxGetenv(_T("HOME"));
-    strRegPath += _T("/.mono/registry/CurrentUser/software/sil/pathway");
+    wxString strRegPath = _T("/etc/mono/registry/LocalMachine/software/sil/pathway/");
     if (::wxDirExists(strRegPath))
     {
         // MONO_REGISTRY_PATH exists -- see if we can get the projects dir our of the values.xml
@@ -181,80 +180,3 @@ wxString CAdapt_ItApp::GetPathwayInstallDirPath()
 
 	return path;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-/// \remarks
-/// Called from: the File / Export Through Pathway menu handler().
-/// Takes the USFM from the current project and calls Pathway's command line to convert it
-/// to the desired output format.
-//////////////////////////////////////////////////////////////////////////////////////////
-/*
-void CAdapt_ItApp::OnExportThroughPathway(wxCommandEvent& WXUNUSED(event))
-{
-	gpApp->LogUserAction(_T("Export Through Pathway"));
-	// Step 1: export the target to USFM
-	wxString usfmText = RebuildText_For_Collaboration(gpApp->GetSourcePhraseList(), targetTextExport, TRUE);
-	wxTextFile usfmFile((gpApp->m_targetOutputsFolderPath + gpApp->PathSeparator + _T("ai_pw.sfm")));
-	if (usfmFile.Exists())
-	{
-		usfmFile.Open();
-		usfmFile.Clear();
-	}
-	else
-	{
-		usfmFile.Create();
-	}
-	usfmFile.AddLine(usfmText);
-	usfmFile.Write();
-	usfmFile.Close();
-
-	// Step 2: Call PathwayB.exe on the exported USFM.
-	// The full command line should look something like this:
-	//    PathwayB.exe -d "D:\Project2" -if usfm -f * -i "Scripture" -n "SEN" -s
-	// (A description of the PathwayB parameters can be found by calling PathwayB.exe
-	// from the command prompt without any parameters.)
-	wxArrayString textIOArray, errorsIOArray;
-	wxString commandLine;
-	// full path to PathwayB executable
-	wxString PWBatchFilename = m_PathwayInstallDirPath + gpApp->PathSeparator + _T("PathwayB.exe");
-	commandLine = _T("\"") + PWBatchFilename + _T("\" -d \"") + gpApp->m_targetOutputsFolderPath;
-	commandLine += _T("\" -if usfm -f * -i \"Scripture\" -n \"");
-	// if there is a language code specified, pass it along; if not, use a generic "MP1"
-	commandLine += ((gpApp->m_targetLanguageCode.IsEmpty()) ? _T("MP1") : gpApp->m_targetLanguageCode);
-	// show the dialog to let the user choose the format (TODO: do we want this, or just
-	// take the defaults set up by the admin?)
-	commandLine += _T("\" -s"); 
-	int code = wxExecute(commandLine, wxEXEC_SYNC);
-	//int code = wxExecute(commandLine,textIOArray,errorsIOArray);
-	//int code = wxShell(commandLine);
-	wxLogStatus(_T("Shell command '%s' terminated with exit code %d."),
-                commandLine.c_str(), code);
-}
-*/
-
-////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the menu is about
-///                         to be displayed
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-/// and before the menu is displayed.
-/// When Pathway and Paratext are installed the "Export Through Pathway" menu
-//  command is enabled, otherwise it is disabled. 
-////////////////////////////////////////////////////////////////////////////////////////
-/*
-void CAdapt_ItApp::OnUpdateExportThroughPathway(wxUpdateUIEvent& event)
-{
-	if (m_bReadOnlyAccess)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	// Pathway and Paratext have to be installed (PT is used by Pathway for the USFM conversion)
-	// AND we need to be working on a project.
-	if (!m_PathwayInstallDirPath.IsEmpty() && !m_ParatextInstallDirPath.IsEmpty())
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
-}
-*/
