@@ -1063,6 +1063,9 @@ void DoExportAsType(enum ExportType exportType)
 				wxDir::GetAllFiles(defaultDir, &aryFiles);
 				int nCountBeforePathway = aryFiles.Count();
 				int nExpectedDifference = 0;
+				// Even the file counts can be off if an existing file gets overwritten by Pathway (i.e., if the user
+				// exports to a file format they've used before). Note the current date/time to catch this condition.
+				wxDateTime startDT = wxDateTime::Now();
 
 #ifdef __WXMSW__
 				// EDB 31 Aug 2012: Windows hack. This is a bit convoluted:
@@ -1156,38 +1159,88 @@ void DoExportAsType(enum ExportType exportType)
                 
 				// Check 2: did Pathway actually produce any files?
 				aryFiles.clear();
+				const wxLongLong minVal(10000);
 				wxDir::GetAllFiles(defaultDir, &aryFiles);
 				if ((int)aryFiles.Count() <= (nCountBeforePathway + nExpectedDifference)) // include the stdout and stderr files if on Windows
 				{
-					// stdout might contain a clue as to what happened
+					// No change in file count. Pathway might have overwritten an existing file (not an error) OR
+					// it didn't actually produce a file. Check the timestamps of the files.
+					bool bOverwroteExisting = false;
+					// loop through the directory and see if there is at least one newer file that Pathway created / overwrote
+					wxDateTime fileDT;
+					for (int nIndex=0; nIndex < (int)aryFiles.Count(); nIndex++)
+					{
+						fileDT.Set(wxFileModificationTime(aryFiles[nIndex]));
+						if (fileDT.IsLaterThan(startDT))
+						{
+							wxFileName fileName(aryFiles[nIndex]);
+							wxString ext = fileName.GetExt();
+							if ((ext == _T("txt")) || (ext == _T("xhtml")) || (ext == _T("css")))
+							{
+								// these are artifacts of our process, not items created by Pathway -- skip them
+								continue;
+							}
+							// If we got here, we've found something with a later date that is probably a Pathway output (yeah!)
+							bOverwroteExisting = true;
+							break;
+						}
+					}
+
+					if (!bOverwroteExisting)
+					{
+						// stdout might contain a clue as to what happened
 #ifdef __WXGTK__
-                    // for GTK, stdout is held in a string array from the wxExecute call
-                    for (int nIndex = 0; nIndex < textIOArray.Count(); nIndex++)
-                    {
-                        errMsg += textIOArray[nIndex];
-                    }
+	                    // for GTK, stdout is held in a string array from the wxExecute call
+		                for (nIndex = 0; nIndex < textIOArray.Count(); nIndex++)
+			            {
+				            errMsg += textIOArray[nIndex];
+					    }
 #endif
 #ifdef __WXMSW__
-                    // for Windows, open up the stdout file we created
-					wxFileInputStream fis(outFile);
-					wxTextInputStream cin(fis);
-					while(fis.IsOk() && !fis.Eof())
-					{
-						errMsg += cin.ReadLine();
-					}
+	                    // for Windows, open up the stdout file we created
+						wxFileInputStream fis(outFile);
+						wxTextInputStream cin(fis);
+						while(fis.IsOk() && !fis.Eof())
+						{
+							errMsg += cin.ReadLine();
+						}
 #endif
-					if (errMsg.IsEmpty())
-					{
-						// No output from stdout -- the user likely clicked Cancel
-						aMsg = _T("Pathway export did not create any files. If you clicked Cancel on the Export through Pathway dialog, this is expected.");
+						if (errMsg.IsEmpty())
+						{
+							wxLongLong free;
+							wxGetDiskSpace(defaultDir, NULL, &free);
+	
+							if (free < minVal)
+							{
+								// No output AND low disk space -- tell the user (this might have been the cause)
+								aMsg = aMsg.Format(_T("Pathway did not create any files. This could be due to low disk space.\nYou currently have %s bytes of free disk space."), free.ToString().c_str());
+								wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+								gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
+								return;
+							}
+							// No output from stdout -- the user likely clicked Cancel
+							aMsg = _T("Pathway export did not create any files. If you clicked Cancel on the Export through Pathway dialog, this is expected.");
+						}
+						else
+						{
+							// There _is_ some output -- list it
+							aMsg = aMsg.Format(_T("Pathway export did not create any files.\nOutput from the Pathway command follows:\n\n%s"), errMsg.c_str());
+						}
+						wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+						gpApp->LogUserAction(aMsg);
+						return;
 					}
-					else
-					{
-						// There _is_ some output -- list it
-						aMsg = aMsg.Format(_T("Pathway export did not create any files.\nOutput from the Pathway command follows:\n\n%s"), errMsg.c_str());
-					}
+				} // Check 2
+
+				// Check 3: are we running low on disk space?
+				wxLongLong free;
+				wxGetDiskSpace(defaultDir, NULL, &free);
+				if (free < minVal)
+				{
+					// Pathway succeeded (maybe?), but we have low disk space -- tell the user
+					aMsg = aMsg.Format(_T("Pathway export returned with no reported errors. \nOutput can be found in the following directory:\n%s\n\nNote that you are running low on disk space; you currently have %s bytes of free disk space left."), defaultDir.c_str(), free.ToString().c_str());
 					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
-					gpApp->LogUserAction(aMsg);
+					gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
 					return;
 				}
 
