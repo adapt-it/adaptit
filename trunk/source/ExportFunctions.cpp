@@ -986,8 +986,7 @@ void DoExportAsType(enum ExportType exportType)
 			gpApp->LogUserAction(aMsg);
 			// make a suitable default output filename for the export function
 			exportFilename.Remove(len-3,3); // remove the extension
-            wxString exportCSS = exportFilename + _T("css");
-			exportFilename += _T("xhtml"); // make it a *.txt file type
+			exportFilename += _T("xhtml"); // make it a *.xhtml file type
             // Prepare a unique filename from the exportFilename. This unique filename and
             // path is used when the export is nav protected or when the user has ticked
             // the checkbox at the bottom of the ExportSaveAsDlg to indicate that a
@@ -998,6 +997,8 @@ void DoExportAsType(enum ExportType exportType)
 			// prepare for getting a file Save As dialog for whatever Text type is to be
 			// used for the xhtml output
 			filter = _("Exported XHTML Documents (*.xhtml)|*.xhtml||");
+			wxString exportCSS = exportFilename.Left(exportFilename.Length()-5);
+			exportCSS += _T("css"); // make it a .css file type
 
             if (sadlg.GetSaveAsType() == ExportSaveAsPathway)
             {
@@ -1241,6 +1242,34 @@ void DoExportAsType(enum ExportType exportType)
 					aMsg = aMsg.Format(_T("Pathway export returned with no reported errors. \nOutput can be found in the following directory:\n%s\n\nNote that you are running low on disk space; you currently have %s bytes of free disk space left."), defaultDir.c_str(), free.ToString().c_str());
 					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
+					return;
+				}
+
+				// Check 4: did Pathway clean up after itself?
+				// Pathway normally creates some temporary files during processing that are cleaned up after a successful export.
+				// If for some reason Pathway aborts, it can leave behind these files. 
+				bool bFoundTempFiles = false;
+				for (int nItem=0; nItem < (int)aryFiles.Count(); nItem++)
+				{
+					wxFileName fileName(aryFiles[nItem]);
+					wxString ext = fileName.GetExt();
+					if (ext == _T("tmp"))
+					{
+						// Pathway didn't clean up, which likely means that the export failed
+						// (one scenario I've come across is if there's a lock open on a file in Pathway's working directory)
+						// These errors _usually_ are reported by Pathway.
+						bFoundTempFiles = true;
+						// clean this file up ourselves, so that it doesn't get flagged in a subsequent run
+						wxRemoveFile(aryFiles[nItem]);
+					}
+				}
+				if (bFoundTempFiles)
+				{
+					// In the off chance that they didn't get an earlier message, let them know that 
+					// we've found some weird results and that they might want to verify the export.
+					aMsg = _T("Pathway did not clean up temporary files in the output directory. This might be due to an earlier error in the Pathway export.");
+					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+					gpApp->LogUserAction(aMsg);
 					return;
 				}
 
