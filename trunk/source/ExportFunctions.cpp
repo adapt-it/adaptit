@@ -1168,9 +1168,10 @@ void DoExportAsType(enum ExportType exportType)
 					// No change in file count. Pathway might have overwritten an existing file (not an error) OR
 					// it didn't actually produce a file. Check the timestamps of the files.
 					bool bOverwroteExisting = false;
+					int nIndex = 0;
 					// loop through the directory and see if there is at least one newer file that Pathway created / overwrote
 					wxDateTime fileDT;
-					for (int nIndex=0; nIndex < (int)aryFiles.Count(); nIndex++)
+					for (nIndex=0; nIndex < (int)aryFiles.Count(); nIndex++)
 					{
 						fileDT.Set(wxFileModificationTime(aryFiles[nIndex]));
 						if (fileDT.IsLaterThan(startDT))
