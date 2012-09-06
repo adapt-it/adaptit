@@ -51,14 +51,10 @@
 							  // whm Note: Since the wx version only reads xml data we are 100%
 							  // compatible with the MFC version number scheme for version 4.
 
-// BEW 3May10: kbVersion 2 will have a version number in the xml file(attribute
+// BEW 3May10: kbVersion 2 will have a version number in the xml file-- attribute
 // kbVersion="2" in the <KB element, replacing the docVersion attribute there - which is
-// not good design, we want KB and Doc to be independently versionable), will include a
-// unique uuid for each unique CTargetUnit, but since the CTargetUnits are not saved as
-// such, each uuid will appear in one or more <TU> elements with a new attribute
-// uuid="theUuid", the uuids are in subfields of length 8,4,4,4,12, hyphen separated, as
-// required by LIFT format, and there will be a standoff markup file as well, with
-// metadata, linked by the uuids. Prior to 3May10, the KB was not versioned.
+// not good design, we want KB and Doc to be independently versionable). 
+// Prior to 3May10, the KB was not versioned.
 
 #define KB_VERSION3			3	// adding new fields for source and target language codes
 #define KB_VERSION2			2	// to coincide with the introduction of docVersion 5 (at 5.3.0?)
