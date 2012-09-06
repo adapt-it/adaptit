@@ -1067,6 +1067,7 @@ void DoExportAsType(enum ExportType exportType)
 				// Even the file counts can be off if an existing file gets overwritten by Pathway (i.e., if the user
 				// exports to a file format they've used before). Note the current date/time to catch this condition.
 				wxDateTime startDT = wxDateTime::Now();
+                long code;
 
 #ifdef __WXMSW__
 				// EDB 31 Aug 2012: Windows hack. This is a bit convoluted:
@@ -1101,12 +1102,12 @@ void DoExportAsType(enum ExportType exportType)
 				gpApp->LogUserAction(aMsg);
 
 				// run the batch file
-                long code = wxExecute(batchFile, wxEXEC_SYNC);
+                code = wxExecute(batchFile, wxEXEC_SYNC);
 #endif
 #ifdef __WXGTK__
                 // for linux, collecting the command line stdout and stderr doesn't
                 // seem to be an issue in sync mode.
-				long code = wxExecute(commandLine,textIOArray,errorsIOArray);
+				code = wxExecute(commandLine,textIOArray,errorsIOArray);
 
 #endif
 
