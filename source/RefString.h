@@ -47,7 +47,8 @@ public:
 	wxString		m_translation;
 	int				m_refCount; // keep track of how many times it is referenced
 								// the AddRef / Release mechanism looks too complex for my needs
-	CTargetUnit*	m_pTgtUnit; // is this needed?? Yes, it's needed for support of standoff markup file
+	CTargetUnit*	m_pTgtUnit; // is this needed? Yes, currently used in two places to get
+								// the owning CTargetUnit instance
 
 	// helpers
 	bool			operator==(const CRefString& rs); // equality operator overload
@@ -65,7 +66,8 @@ protected:
 
 private:
 	// class attributes
-	bool					m_bDeleted; // & the standoff data will have the dateTime for the deletion
+	bool					m_bDeleted; // & the CRefStringMetadata instance will have the 
+										// dateTime for the deletion
 	CRefStringMetadata*		m_pRefStringMetadata;
 
 	DECLARE_DYNAMIC_CLASS(CRefString) 
