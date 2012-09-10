@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.3.0 release ?? September 2012
+Version 6.3.0 release 10 September 2012
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.3.0
@@ -72,7 +72,7 @@ location will show the Placement dialog again and you can then
 choose a different placement.
 
 ----------------------------------------------
-Bug fixes in 6.2.3
+Bug fixes in 6.3.0
 ----------------------------------------------
 * The Import Edited Source Text feature sometimes would not
 work correctly - especially if a lot of new data was added at
