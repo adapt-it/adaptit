@@ -708,7 +708,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(wxCommandEvent& WX
 			// the status of the books.
 			wxString msg = _("The following books in the \"%s\" project do not yet have any verse content:\n\n%s\n\nAdapt It will store its translations in these books as adaptation work proceeds.");
 			msg = msg.Format(msg,m_TempCollabProjectForTargetExports.c_str(),emptyBooks.c_str());
-			wxString msgTitle = _("Some books in this project have exiting translations!");
+			wxString msgTitle = _("Some books in this project have existing translations!");
 			wxString msg2 = _T("\n\n");
 			msg2 += _("Please note that the following books in the \"%s\" project already have translations:\n\n%s\n\nAdapt It will overwrite any existing translations with new translations if you adapt all the text in books such as these that already have translations.");
 			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str(),booksWithContent.c_str());
@@ -897,7 +897,7 @@ void CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj(wxCommandEvent&
 			// the status of the books.
 			wxString msg = _("The following books in the \"%s\" project do not yet have any verse content:\n\n%s\n\nAdapt It will store its free translations in these books as adaptation work proceeds.");
 			msg = msg.Format(msg,m_TempCollabProjectForFreeTransExports.c_str(),emptyBooks.c_str());
-			wxString msgTitle = _("Some books in this project have exiting free translations!");
+			wxString msgTitle = _("Some books in this project have existing free translations!");
 			wxString msg2 = _T("\n\n");
 			msg2 += _("Please note that the following books in the \"%s\" project already have free translations:\n\n%s\n\nAdapt It will overwrite any existing free translations with new free translations if you adapt all the text in books such as these that already have free translations.");
 			msg2 = msg2.Format(msg2,m_TempCollaborationEditor.c_str(),booksWithContent.c_str());
