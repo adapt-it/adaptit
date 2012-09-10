@@ -134,13 +134,13 @@ class NavProtectNewDoc; // for user navigation protection feature
 // 8. Various docs folder files including: Adapt It changes.txt, Readme.txt,
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 #define VERSION_MAJOR_PART 6
-#define VERSION_MINOR_PART 2
-#define VERSION_BUILD_PART 3
+#define VERSION_MINOR_PART 3
+#define VERSION_BUILD_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 24
-#define VERSION_DATE_MONTH 8
+#define VERSION_DATE_DAY 10
+#define VERSION_DATE_MONTH 9
 #define VERSION_DATE_YEAR 2012
-const wxString appVerStr(_T("6.2.3"));
+const wxString appVerStr(_T("6.3.0"));
 
 //#define Print_failure
 

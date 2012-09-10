@@ -3225,7 +3225,7 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item6 = new wxStaticBox( parent, -1, _("Description") );
     wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_LBLEXPORTTYPEDESCRIPTION, _("lblDescription"), wxDefaultPosition, wxSize(425,-1), 0 );
+    wxStaticText *item7 = new wxStaticText( parent, ID_LBLEXPORTTYPEDESCRIPTION, wxT("lblDescription"), wxDefaultPosition, wxSize(425,-1), 0 );
     item7->SetName( wxT("lblExportTypeDescription") );
     item5->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -9037,7 +9037,7 @@ wxSizer *BookNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxVERTICAL );
 
     wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_BOOKNAME, wxT(""), wxDefaultPosition, wxSize(-1,28), 0 );
-    item14->SetToolTip( _("Type here the name of the book for which the docoument is a part o r the whole.") );
+    item14->SetToolTip( _("Type here the name of the book for which the docoument is a part or the whole.") );
     item12->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item4->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
