@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Adapt It WX"
-#define MyAppVersion "6.2.2"
+#define MyAppVersion "6.3.0"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It.exe"
 #define MyAppShortName "Adapt It"
@@ -23,21 +23,21 @@ DefaultDirName={pf}\Adapt It WX
 DefaultGroupName=Adapt It WX
 LicenseFile={#SvnBase}\setup Regular - Minimal\LICENSING.txt
 InfoBeforeFile={#SvnBase}\setup Regular - Minimal\Readme.txt
-OutputBaseFilename=Adapt_It_WX_6_2_2_Regular_Minimal
+OutputBaseFilename=Adapt_It_WX_6_3_0_Regular_Minimal
 SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2012 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX
-VersionInfoProductVersion=6.2.2
+VersionInfoProductVersion=6.3.0
 WizardImageFile="{#SvnBase}\res\AIWX.bmp"
 WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2012 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=none
 DirExistsWarning=no
-VersionInfoVersion=6.2.2
+VersionInfoVersion=6.3.0
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX
 UsePreviousGroup=false
