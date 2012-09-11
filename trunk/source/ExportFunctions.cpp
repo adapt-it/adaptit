@@ -407,7 +407,7 @@ bool DoExportAsXhtml(enum ExportType exportType, bool bBypassFileDialog_Protecte
 	{
 		return bResult; // the user has seen a warning of the failure
 	}
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 	XhtmlExport_DebuggingSupport();
 #endif
 	bResult = true; // as far as we know, everything went okay
@@ -679,7 +679,7 @@ bool WriteXHTML_To_File(wxString exportPath, CBString& myxml, bool bShowMessageI
 	wxFile f;
 	if( !f.Open( exportPath, wxFile::write))
 	{
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 		wxLogDebug(_T("Unable to open export target text file for XHTML export\n"));
 		#endif
 		wxString msg;
@@ -719,7 +719,7 @@ bool WriteXHTML_To_File(wxString exportPath, CBString& myxml, bool bShowMessageI
 	return TRUE;
 }
 
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 void XhtmlExport_DebuggingSupport()
 {
 	// ***************************  NOTE!  ***************************************************
@@ -744,7 +744,7 @@ void XhtmlExport_DebuggingSupport()
 	// do not have the next one turned on unless DO_INDENT is also turned on
 	//#define XHTML_PRETTY  // comment out when unpretty but valid indenting of xhtml is wanted
 
-	#if defined(__WXDEBUG__)
+	#if defined(_DEBUG)
 	#if defined(DO_INDENT) && defined (XHTML_PRETTY)
 		gpApp->m_pXhtml->Indent_Etc_XHTML();
 	#endif
@@ -1637,14 +1637,14 @@ void DoExportAsType(enum ExportType exportType)
 		switch (exportType)
 		{
 		case sourceTextExport:
-			#ifdef __WXDEBUG__
+			#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export source text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the source text with path:\n%s"),exportPath.c_str());
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			break;
 		case glossesTextExport:
-			#ifdef __WXDEBUG__
+			#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export glosses text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the glosses text with path:\n%s"),exportPath.c_str());
@@ -1652,7 +1652,7 @@ void DoExportAsType(enum ExportType exportType)
 
 			break;
 		case freeTransTextExport:
-			#ifdef __WXDEBUG__
+			#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export free translation text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the free translation text with path:\n%s"),exportPath.c_str());
@@ -1660,7 +1660,7 @@ void DoExportAsType(enum ExportType exportType)
 			break;
 		default:
 		case targetTextExport:
-			#ifdef __WXDEBUG__
+			#ifdef _DEBUG
 			wxLogDebug(_T("Unable to open export target text file\n"));
 			#endif
 			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),exportPath.c_str());
@@ -2416,7 +2416,7 @@ void DoExportInterlinearRTF()
 
 	if( !f.Open( exportPath, wxFile::write))
 	{
-	   #ifdef __WXDEBUG__
+	   #ifdef _DEBUG
 		  wxLogError(_("Unable to open export file.\n"));
 		  wxMessageBox(_("Unable to open export file."),_T(""),wxICON_EXCLAMATION | wxOK);
 	   #endif
@@ -7312,7 +7312,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 
 	if( !f.Open( exportPath, wxFile::write))
 	{
-	   #ifdef __WXDEBUG__
+	   #ifdef _DEBUG
 		  wxLogDebug(_T("Unable to open export source text file\n"));
 		  wxMessageBox(_("Unable to open export source text file"),_T(""),wxICON_EXCLAMATION | wxOK);
 	   #endif
@@ -15553,7 +15553,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 //		if (pSrcPhrase->m_nSequNumber >= 1297)
 //		{
 //			wxString strSrcPhrase = pSrcPhrase->m_srcPhrase;
@@ -16878,7 +16878,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != 0);
 
-//#if defined(__WXDEBUG__)
+//#if defined(_DEBUG)
 //		if (pSrcPhrase->m_nSequNumber == 4223)
 //		{
 //			int break_here = 1;
@@ -18335,7 +18335,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 		savePos = pos; // savePos is what we return to the caller
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		if (pSrcPhrase->m_nSequNumber == 367)
 		{
 			int halt_here = 1;

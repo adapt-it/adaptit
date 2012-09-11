@@ -438,7 +438,7 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 
 	// debugging -- display what we got for left side & right side too
 	/*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	if (side == leftSide)
 	{
 		size_t foldersCount = leftFoldersArray.GetCount();

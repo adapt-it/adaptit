@@ -246,7 +246,7 @@ public:
     // file, using the <div> and </div> tags - to make it more human readable; it gives a
     // file dlg, I select the file, it loads it and does the indents, and then I save it
     // somewhere again using the file dialog
-#if defined (__WXDEBUG__)
+#if defined (_DEBUG)
 	void Indent_Etc_XHTML();
 	// also not for proper xhtml output, for use by IndentXHTML()
 	CBString BuildIndent(CBString& atab, int level);
@@ -352,7 +352,7 @@ private:
 	wxString wordsOfChristEndMkr;
 	CBString m_convertedData; // for storing m_data after converting to 
 							  // UTF-8 and replacing entities
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 	//****************** to help with debugging, we don't otherwise use these two
 	wxString m_curChapter;
 	wxString m_curVerse;	

@@ -195,7 +195,7 @@ AIPrintout::~AIPrintout()
 	CAdapt_ItApp* pApp = &wxGetApp();
 
 #ifdef Print_failure
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("AIPrintout ~AIPrintout() line 199 before DoPrintCleanup(): gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -213,7 +213,7 @@ AIPrintout::~AIPrintout()
         // is called when m_pOffsets is NULL, it will immediately return without doing
         // anything
 #ifdef Print_failure
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("AIPrintout ~AIPrintout() line 217 after DoPrintCleanup(): gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -237,7 +237,7 @@ bool AIPrintout::OnPrintPage(int page)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 #ifdef Print_failure
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
 //    wxLogDebug(_T("\n\n************************\nAIPrintout OnPrintPage() line 240 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
 //               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -379,7 +379,7 @@ bool AIPrintout::OnPrintPage(int page)
 		this->SetLogicalOrigin(0,0);
 		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
 
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
 		int internalDC_Y;
 		internalDC_Y = pDC->DeviceToLogicalY(0);
 		//wxLogDebug(_T("*****  PAGE = %d   ********   DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
@@ -400,7 +400,7 @@ bool AIPrintout::OnPrintPage(int page)
         // in the paper "device".
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
 
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
 		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
 			fitRect.x, fitRect.y );
 #endif
@@ -413,7 +413,7 @@ bool AIPrintout::OnPrintPage(int page)
 		// this generates bogus values - a further tweak is done just a little further down)
 		pDC->SetLogicalOrigin(0,pOffsets->nTop);
 
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
 		wxLogDebug(_T("pDC->SetLogicalOrigin(),   x %d  y %d (Linux y-value is unreliable),  m_bIsPrinting = %d"),
 			0, pOffsets->nTop, pApp->m_bIsPrinting);
 #endif
@@ -450,7 +450,7 @@ bool AIPrintout::OnPrintPage(int page)
         pDC->SetLogicalOrigin(0,Yoffset); // doing it outside of the wxPrintout subclass presumably leaves
                                           // the latter's left margin setting intact, and so the margin
                                           // setting remains correct
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
         wxLogDebug(_T("Linux solution's Logical Origin corrected setting: pDC->SetLogicalOrigin(0,Yoffset)  x %d  y %d  for Page %d"),
 			0, Yoffset, page);
 #endif
@@ -599,7 +599,7 @@ bool AIPrintout::OnPrintPage(int page)
         }
     } // end of TRUE block for test: if (gbCheckInclFreeTransText && !pApp->m_bIsPrintPreviewing ... etc
 
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
     {
     int i;
     int cnt;
@@ -649,7 +649,7 @@ bool AIPrintout::OnPrintPage(int page)
             // and draws a gloss only if the pile has one to be drawn
             pApp->GetFreeTrans()->DrawOneGloss(pDC, aPilePtr, bRTLLayout);
         }
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
         wxLogDebug(_T("OnPrintPage(): just printed strip  %d  for page  %d  ; nFirstStrip = %d   nLastStrip = %d  "),
                    index, page , nFirstStrip, nLastStrip);
 #endif
@@ -667,7 +667,7 @@ bool AIPrintout::OnPrintPage(int page)
             (pApp->m_bIsPrintPreviewing && gbCheckInclFreeTransText && !gbIsBeingPreviewed && !arrFTElementsArrays.IsEmpty())
             )
         {
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
         wxLogDebug(_T("OnPrintPage(): about to draw free translations: passing in currentStrip = %d , nStripsOffset  %d  arrFTElementsArrays count = %d  arrFTSubstringsArrays count = %d"),
                    index, nStripsOffset, arrFTElementsArrays.GetCount(), arrFTSubstringsArrays.GetCount());
 #endif
@@ -713,7 +713,7 @@ bool AIPrintout::OnPrintPage(int page)
         pView->PrintFooter(pDC,paperTopLeft, paperBottomRight, paperDimensions, logicalUnitsFactor, page);
     }
 
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
     wxLogDebug(_T("AIPrintout OnPrintPage() __WXGTK__ block, at its end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -874,7 +874,7 @@ bool AIPrintout::OnPrintPage(int page)
 		this->SetLogicalOrigin(0,0);
 		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
 
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
 		wxLogDebug(_T("fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
 			fitRect.x, fitRect.y, fitRect.width, fitRect.height);
 #endif
@@ -914,7 +914,7 @@ bool AIPrintout::OnPrintPage(int page)
         // in the paper "device".
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
 
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
 		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
 			fitRect.x, fitRect.y );
 #endif
@@ -991,7 +991,7 @@ bool AIPrintout::HasPage(int pageNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 #ifdef Print_failure
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
 //    wxLogDebug(_T("AIPrintout HasPage() line 968 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
 //               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -1080,7 +1080,7 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 
 	}
 #ifdef Print_failure
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
 //    wxLogDebug(_T("AIPrintout GetPageInfo() line 1057 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
 //               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -1116,7 +1116,7 @@ void AIPrintout::OnPreparePrinting()
 	//CAdapt_ItView* pView = pApp->GetView();
 
 #ifdef Print_failure
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
 //    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 712 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
 //               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -1196,7 +1196,7 @@ void AIPrintout::OnPreparePrinting()
     //wxLogDebug(_T("OnPreparePrint() END"));
 
 #ifdef Print_failure
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
 //    wxLogDebug(_T("AIPrintout OnPreparePrinting() line 793 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
 //               (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)m_pApp->m_bFreeTranslationMode);
 #endif

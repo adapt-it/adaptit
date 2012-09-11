@@ -1199,7 +1199,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 
 			// for debugging
 //#ifdef _ENTRY_DUP_BUG
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //			int anOffset1 = line.Find(_T("the"));
 //			int anOffset2 = line.Find(_T("jHN"));
 //			if  (anOffset1 != wxNOT_FOUND || anOffset2 != wxNOT_FOUND)

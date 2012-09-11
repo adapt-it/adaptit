@@ -4968,7 +4968,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	GetRemainingMd5VerseLines(fromEditorMd5Arr, fromEditorStart, fromEditorVerseArr);
 
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	// display up to the next 10 verse lines -- that should be enough for a safe matchup
 	int i;
 	int countOfVersesPostEd = postEditVerseArr.GetCount();
@@ -5152,7 +5152,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 				// chapterNumber = chapterNumber matchup)
 				bSuccessful = TRUE;
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				wxLogDebug(_T(" Delineate...()  !!!! Successful match of postEditVerseArr_VerseStr %s  with fromEditorVerseArr_VerseStr  %s"),
 					postEditVerseArr_VerseStr, fromEditorVerseArr_VerseStr);
 #endif
@@ -5164,7 +5164,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
                 // look for a matchup of postEditVerseArr_VerseStr, in the other array at a
                 // forwards location within fromEditorVerseArr
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				wxLogDebug(_T(" Delineate...()  Have postEditVerseArr verse %s and chapterStr = %s ; Searching for match in: fromEditorVerseArr"),
 					postEditVerseArr_VerseStr, postEditVInf->chapterStr);
 #endif
@@ -5185,7 +5185,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 					// that failed, so try searching for fromEditorVerseArr_VerseStr matchup
 					// somewhere forwards in postEditVerseArr
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 					wxLogDebug(_T(" Delineate...()  Have fromEditorVerseArr verse %s and chapterStr = %s ;  Searching for match in: postEditVerseArr"),
 						fromEditorVerseArr_VerseStr, fromEditorVInf->chapterStr);
 #endif
@@ -5331,7 +5331,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 															// verseline within fromEditorMd5Arr
 		}
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		wxLogDebug(_T(" Delineate...()  SUCCESS: matched index within postEditMd5Arr is verseline at %d , matched index within fromEditorMd5Arr is verseline at %d "),
 				postEditEnd, fromEditorEnd);
 #endif
@@ -5346,7 +5346,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 		postEditEnd = postEditArrCount;
 		fromEditorEnd = fromEditorArrCount;
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		wxLogDebug(_T(" Delineate...()  NO success: use ending index from postEditMd5Arr = %d , use ending index from fromEditorMd5Arr = %d   Started from [%d,%d]"),
 				postEditEnd, fromEditorEnd, postEditStart, fromEditorStart);
 #endif
@@ -5392,7 +5392,7 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 			{
 				// we matched \v verse numbers or ranges
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			wxLogDebug(_T("      ======= index %d  Successful match of verse %s   with  %s  from VerseInf"),
 						index, verseNum, aVerseNum);
 #endif
@@ -5404,7 +5404,7 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 			{
                 // chapterStr is not empty, and chapter numbers match
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			wxLogDebug(_T("      ======= index %d  Successful match of chapter %s   with  %s  from VerseInf"),
 						index, chapterStr, viPtr->chapterStr);
 #endif
@@ -5415,7 +5415,7 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 			{
 				// no match of chapterStr (we don't expect this)
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			wxLogDebug(_T("      ------- index %d  Mismatched chapter numbers %s   and Discarding  %s  from VerseInf"),
 						index, chapterStr, viPtr->chapterStr);
 
@@ -5425,7 +5425,7 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 			}
 		} // end of TRUE block for test: if (aVerseNum == verseNum)
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		else
 		{
 			if (chapterStr.IsEmpty())
@@ -5632,7 +5632,7 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 	FormatMarkerBufferForOutput(text, targetTextExport);
 	text = RemoveMultipleSpaces(text);
 
-	#if defined(__WXDEBUG__)
+	#if defined(_DEBUG)
 	// last verse adaptation loss bug: get the last 200 chars and wxLogDebug them
 	wxString str;
 	int length = text.Len();
@@ -5659,7 +5659,7 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 	FormatMarkerBufferForOutput(text, freeTransTextExport);
 	text = RemoveMultipleSpaces(text);
 
-	#if defined(__WXDEBUG__)
+	#if defined(_DEBUG)
 	// last verse free trans loss bug: get the last 200 chars and wxLogDebug them
 	wxString str;
 	int length = text.Len();
@@ -6123,7 +6123,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
 
-	#if defined(__WXDEBUG__) && defined(WXGTK)
+	#if defined(_DEBUG) && defined(WXGTK)
 	// in this block, wxLogDebug the last 5 Md5Arr lines for the postEditText from the array
 	{
         size_t count = postEditMd5Arr.GetCount();
@@ -6151,7 +6151,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	postEditOffsetsArr.Alloc(countPost); // pre-allocate sufficient space
 	MapMd5ArrayToItsText(postEditText, postEditOffsetsArr, postEditMd5Arr);
 
-	#if defined(__WXDEBUG__) && defined(WXGTK)
+	#if defined(_DEBUG) && defined(WXGTK)
 	// in this block, wxLogDebug the last 5 offsets into postEditText , and display
 	// the first 16 characters at each offset
 	{
@@ -6200,7 +6200,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// something's different, so do the more complex algorithm
 
 #ifdef SHOW_INDICES_RANGE
-#if defined(__WXDEBUG__) && defined(WXGTK)
+#if defined(_DEBUG) && defined(WXGTK)
 	//int ct;
 	//for (ct = 0; ct < (int)UsfmStructureAndExtentArray.GetCount(); ct++)
 	//{
@@ -6257,7 +6257,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
 					postEditOffsetsArr, fromEditorOffsetsArr);
 
-    #if defined(__WXDEBUG__) && defined(WXGTK)
+    #if defined(_DEBUG) && defined(WXGTK)
     {
         // show the last 240 characters that are in the returned text wxString
         int length = text.Len();
@@ -6440,7 +6440,7 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	// comment out next line when the wxLogDebug() calls are no longer needed
 //#define FIRST_250
 #ifdef FIRST_250
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	wxString twofifty = text.Left(250);
 	wxLogDebug(_T("MapMd5ArrayToItsText(), first 250 wxChars:\n%s"),twofifty.c_str());
 #endif
@@ -6466,7 +6466,7 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	int mkrCount = 0;
 	size_t charOffset = 0;
 #ifdef FIRST_250
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	wxChar* pStrBegin = NULL;
 #endif
 #endif
@@ -6487,7 +6487,7 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		wxASSERT(wholeMkr == mkrFromMD5Line);
 		charOffset = (size_t)(ptr - pStart);
 #ifdef FIRST_250
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		pStrBegin = ptr;
 #endif
 #endif
@@ -6528,7 +6528,7 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		charOffset = (size_t)(ptr - pStart);
 		pMapStruct->endOffset = charOffset;
 #ifdef FIRST_250
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		// show what the subspan of text is
 		unsigned int nSpan = (unsigned int)((pStart + pMapStruct->endOffset) - pStrBegin);
 		wxString str = wxString(pStrBegin, nSpan);
@@ -6671,7 +6671,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	//int nGranularity = 10;
 
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		wxLogDebug(_T("\n\n $$$$$$$$$$$   GetUpdatedText_UsfmsChanged() loop  $$$$$$$$$$$$$$$$$\n\n"));
 
 #endif
@@ -6689,7 +6689,7 @@ wxString GetUpdatedText_UsfmsChanged(
 		// comment out next line when this debug output is no longer needed
 
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		wxLogDebug(_T("postEditArr_Index  %d    fromEditorArr_Index  %d    postEdit line:  %s   fromEditor line:  %s"),
 				postEditArr_Index, fromEditorArr_Index, postEditMd5Line, fromEditorMd5Line);
 #endif
@@ -6718,7 +6718,7 @@ wxString GetUpdatedText_UsfmsChanged(
 		if (postEditLineMkr != fromEditorLineMkr)
 		{
 #ifdef OUT_OF_SYNC_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			wxLogDebug(_T("      MARKER_MISMATCH   %s  %s   postEditArr_AfterChunkIndex: %d  fromEditorArr_AfterChunkIndex: %d    newText length: %d"),
 						postEditLineMkr, fromEditorLineMkr, postEditArr_AfterChunkIndex,
 						fromEditorArr_AfterChunkIndex, newText.Len());

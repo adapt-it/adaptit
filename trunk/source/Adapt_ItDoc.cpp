@@ -580,7 +580,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			bUseSourceDataFolderOnly = FALSE;
 		}
 		bool bUserNavProtectionInForce = FALSE;
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		// un-comment out the next line to have navigation protection for loading source
 		// text files turned on when debugging only provided the administrator menu is not
 		// showing - this is the way it is in the distributed application, that is, even
@@ -1858,7 +1858,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 	// comment out the #define when a wxLogDebug listing of the updated text is not wanted
 //#define _HAVE_A_LOOK
 #ifdef _HAVE_A_LOOK
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	// have a look at what we got
 	wxLogDebug(_T("\n *** OnFileSave(): updatedText to transfer to PT or BE when collaborating ***\n"));
 	// wxLogDebug refuses to show updatedText, so maybe text is too long, so try
@@ -1972,7 +1972,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 			wxString updatedFreeTransText = MakeUpdatedTextForExternalEditor(gpApp->m_pSourcePhrases,
 											makeFreeTransText, postEditFreeTransText);
 #ifdef _HAVE_A_LOOK
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			// have a look at what we got
 			wxLogDebug(_T("\n *** OnFileSave(): updatedFreeTransText to transfer to PT or BE when collaborating ***\n"));
 			//wxLogDebug(_T("%s\n"), updatedFreeTransText.c_str());
@@ -4639,7 +4639,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 // adjustments in order to not foul up the state of AI's data structures.
 //
 // Here below is the contents of the MFC base class CDocument::OnOpenDocument()
-// method (minus __WXDEBUG__ statements):
+// method (minus _DEBUG statements):
 //BOOL CDocument::OnOpenDocument(LPCTSTR lpszPathName)
 //{
 //	CFileException fe;
@@ -4929,7 +4929,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
     // what they should be
 	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = pApp->GetView();
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("OnOpenDocument at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
 
@@ -5373,7 +5373,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletio
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),
 				//pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
 #endif
@@ -5399,7 +5399,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 
 //#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	// In collaboration mode, one or more CSourcePhrase instances are being prematurely
 	// deleted, and so when DeleteSingleSrcPhrase() is called on such ones (eg. as when
 	// shutting down the app with the X button at top of window, which causes
@@ -5477,7 +5477,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				wxString msg;
 				msg = msg.Format(_T("Deleting    %s    at sequ num =  %d"),
 					pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
@@ -5495,7 +5495,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 		}
 	}
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxString msg;
 		msg = msg.Format(_T("Cleared  m_pSourcePhrases at end of DeleteSourcePhrases()"));
@@ -6132,7 +6132,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	bool bDoCount = FALSE;
 	bool bCountInTargetText = FALSE;
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 	//int halt_here = 0;
 	//if (pSrcPhrase->m_nSequNumber >= 1921) // was 397 when [Apos was in the \x ... \x* xref
 	//if (pSrcPhrase->m_nSequNumber >= 397) // was 1921 when debugging for the heap corruption bug
@@ -6205,7 +6205,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	srcPhrase.Trim(TRUE); // trim right end
 	srcPhrase.Trim(FALSE); // trim left end
 	numElements = pView->TokenizeTextString(pNewList, srcPhrase,  pSrcPhrase->m_nSequNumber);
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 	//if (halt_here == 1)
 	//{
 	//	wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5145  numElements = %d "),numElements);
@@ -6292,7 +6292,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 			// bother of making the adjustments to eliminate the redundant transfers)
 			TransferFixedSpaceInfo(pSrcPhrase, pNewSrcPhrase);
 		}
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 		//if (halt_here == 1)
 		//{
 		//	wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5532  NORMAL situation, return TRUE "));
@@ -6307,7 +6307,7 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 		// accept pSrcPhrase unchanged, add a ref to fixesStr in the caller, and return
 		// FALSE to ensure that happens. (Caller cleans up pNewList, so can just return
 		// here without any prior cleanup.)
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 		//if (halt_here == 1)
 		//{
 		//	wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5247  In the numElements > 1 BLOCK in the loop, before returning FALSE "));
@@ -6460,7 +6460,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 			SPList::Node* oldPos = pos;
 			pSrcPhrase = (CSourcePhrase*)pos->GetData(); // just gets the pSrcPhrase
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 			//wxString theWord;
 			//wxLogDebug(_T("* Unfiltering *: At sequNum = %d  m_srcPhrase =  %s"),pSrcPhrase->m_nSequNumber,pSrcPhrase->m_srcPhrase);
 //#endif
@@ -7362,7 +7362,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
             // check now for this special case, and any m_filteredInfo content there has to
             // be carried forward.... the next line of code does it
 			strFilteredStuffToCarryForward = pSrcPhrase->GetFilteredInfo(); // could be empty
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				//if (pSrcPhrase->m_nSequNumber >= 27)
 				//{
 				//	wxString theSrcPhrase = pSrcPhrase->m_srcPhrase;
@@ -9116,7 +9116,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
                 // FinishOffConjoinedWordsParse() if called from the latter
     }
 	// p should now be pointing at an * if nEndMkrsCount is not zero
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	if (nEndMkrsCount > 0)
 	{
 		wxASSERT(*p == _T('*'));
@@ -9178,7 +9178,7 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 	wxString theReversedWord(p, pEnd);
 	wordProper = MakeReverse(theReversedWord);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	int wordLen = wordProper.Len();
 	int storedRevertedPunctsLen = wordBuildersForPostWordLoc.Len();
 	wxASSERT( bindingEndMkrsLen + wordLen + punctsLen1 + punctsLen2 +
@@ -10229,7 +10229,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wholeMkr = gSFescapechar + bareMkr;
 		wholeMkrPlusSpace = wholeMkr + aSpace;
 		wxASSERT(inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND);
-#ifndef __WXDEBUG__
+#ifndef _DEBUG
 		inlineNonbindingMrks.IsEmpty(); // does nothing, but avoids compiler warning
 #endif
 		itemLen = wholeMkr.Len();
@@ -14739,7 +14739,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
 				ptr += itemLen; // advance ptr past its following whitespace
 
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 		// Import Edited Source Text is loosing an empty 2:10 in Titus test data, after an
 		// empty 2:9 which it parses correctly; 2:11 has source text & is okay
 		//if (sequNumber >= 106) // 104 is at end of 2:8 "ya."
@@ -17258,7 +17258,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 
 //#define BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
 #ifdef BOGUS_PREDELETE_OF_CSOURCEPHRASE_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	// In collaboration mode, one or more CSourcePhrase instances are being prematurely
 	// deleted, and so when DeleteSingleSrcPhrase() is called on such ones (eg. as when
 	// shutting down the app with the X button at top of window, which causes
@@ -19262,7 +19262,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 	// instance in the else block where ReconstituteOneAfterPunctuationChange() is called)
 	if (pSrcPhrase->m_nSrcWords > 1 && !IsFixedSpaceSymbolWithin(pSrcPhrase))
 	{
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //		wxLogDebug(_T("  ReconsistuteAfterPunctuationChange: 17,734 For Merger:  pSrcPhrase sn = %d  m_srcPhrase = %s"),
 //					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 //#endif
@@ -19534,7 +19534,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView,
 		bool bWasOK = ReconstituteOneAfterPunctuationChange(
 						pView,pList,pos,pSrcPhrase,fixesStr,pResultList,FALSE);
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //		wxLogDebug(_T("  17950 After ...One..., RETURNED bWasOK = %d  ,  pSrcPhrase sn = %d  m_srcPhrase = %s"),
 //					bWasOK, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 //#endif
@@ -22109,7 +22109,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			bDeleted = FALSE;
 			bDeleted_OnOrig = FALSE;
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			if (pSrcPhrase->m_nSequNumber == 78)
 			{
 				int break_location = 1;

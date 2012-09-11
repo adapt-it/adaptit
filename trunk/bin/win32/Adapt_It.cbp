@@ -20,7 +20,6 @@
 					<Add option="/DWIN32" />
 					<Add option="/D_DEBUG" />
 					<Add option="/D__WXMSW__" />
-					<Add option="/D__WXDEBUG__" />
 					<Add option="/D_WINDOWS" />
 					<Add option="/DNOPCH" />
 					<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
@@ -44,10 +43,10 @@
 					<Add option="/DEBUG" />
 					<Add option="/MACHINE:I386" />
 					<Add option="/pdb:.\Debug\Adapt_It.pdb" />
-					<Add library="wxmsw28d_adv" />
-					<Add library="wxmsw28d_html" />
-					<Add library="wxmsw28d_core" />
-					<Add library="wxbase28d" />
+					<Add library="wxmsw$(WXVER)d_adv" />
+					<Add library="wxmsw$(WXVER)d_html" />
+					<Add library="wxmsw$(WXVER)d_core" />
+					<Add library="wxbase$(WXVER)d" />
 					<Add library="wxtiffd" />
 					<Add library="wxjpegd" />
 					<Add library="wxpngd" />
@@ -114,10 +113,10 @@
 					<Add option="/MACHINE:I386" />
 					<Add option="/INCREMENTAL:NO" />
 					<Add option="/pdb:.\Release\Adapt_It.pdb" />
-					<Add library="wxmsw28_adv" />
-					<Add library="wxmsw28_html" />
-					<Add library="wxmsw28_core" />
-					<Add library="wxbase28" />
+					<Add library="wxmsw$(WXVER)_adv" />
+					<Add library="wxmsw$(WXVER)_html" />
+					<Add library="wxmsw$(WXVER)_core" />
+					<Add library="wxbase$(WXVER)" />
 					<Add library="wxtiff" />
 					<Add library="wxjpeg" />
 					<Add library="wxpng" />
@@ -162,7 +161,6 @@
 					<Add option="/DWIN32" />
 					<Add option="/D_DEBUG" />
 					<Add option="/D__WXMSW__" />
-					<Add option="/D__WXDEBUG__" />
 					<Add option="/D_WINDOWS" />
 					<Add option="/DNOPCH" />
 					<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
@@ -186,10 +184,10 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/DEBUG" />
-					<Add library="wxmsw28ud_adv" />
-					<Add library="wxmsw28ud_html" />
-					<Add library="wxmsw28ud_core" />
-					<Add library="wxbase28ud" />
+					<Add library="wxmsw$(WXVER)ud_adv" />
+					<Add library="wxmsw$(WXVER)ud_html" />
+					<Add library="wxmsw$(WXVER)ud_core" />
+					<Add library="wxbase$(WXVER)ud" />
 					<Add library="wxtiffd" />
 					<Add library="wxjpegd" />
 					<Add library="wxpngd" />
@@ -250,10 +248,10 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/INCREMENTAL:NO" />
-					<Add library="wxmsw28u_adv" />
-					<Add library="wxmsw28u_html" />
-					<Add library="wxmsw28u_core" />
-					<Add library="wxbase28u" />
+					<Add library="wxmsw$(WXVER)u_adv" />
+					<Add library="wxmsw$(WXVER)u_html" />
+					<Add library="wxmsw$(WXVER)u_core" />
+					<Add library="wxbase$(WXVER)u" />
 					<Add library="wxtiff" />
 					<Add library="wxjpeg" />
 					<Add library="wxpng" />
@@ -331,6 +329,8 @@
 		<Unit filename="..\..\source\AutoSavingPage.h" />
 		<Unit filename="..\..\source\BString.cpp" />
 		<Unit filename="..\..\source\BString.h" />
+		<Unit filename="..\..\source\BookNameDlg.cpp" />
+		<Unit filename="..\..\source\BookNameDlg.h" />
 		<Unit filename="..\..\source\CCModule.cpp" />
 		<Unit filename="..\..\source\CCModule.h" />
 		<Unit filename="..\..\source\CCTabbedDialog.cpp" />

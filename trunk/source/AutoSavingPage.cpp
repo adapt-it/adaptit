@@ -151,7 +151,7 @@ void CAutoSavingPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	tempNoAutoSave = pApp->m_bNoAutoSave;
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 		if (tempNoAutoSave)
 		{
 		wxLogDebug(_T("m_bNoAutoSave  in InitDialog() of AutoSavingPage.cpp; tempNoAutoSave is TRUE and value transferred to checkbox control"));
@@ -372,14 +372,14 @@ void CAutoSavingPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	// Transfer values from controls to vars and save new values back on the App
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 		wxLogDebug(_T("m_bNoAutoSave  in OnOK() of AutoSavingPage.cpp; checkbox has value %d"), (int)m_pCheckNoAutoSave->IsChecked());
 	#endif
 #endif
 	pApp->m_bNoAutoSave = m_pCheckNoAutoSave->IsChecked();
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	if (pApp->m_bNoAutoSave)
 		wxLogDebug(_T("m_bNoAutoSave  in OnOK() of AutoSavingPage.cpp; value saved to m_pNoAutoSave in Adapt_It.cpp was TRUE"));
 	else

@@ -7391,7 +7391,7 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 //    m_pConfig->Write(_T("ui_language_path"), currLocalizationInfo.curr_localizationPath);
 //#endif
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	wxLogDebug(_T(
 "Writing to m_pConfig:\n   curr_UI_Language = %d\n   curr_shortName = %s\n   curr_fullName = %s"), //\n   curr_localizationPath = %s"),
 		currLocalizationInfo.curr_UI_Language,
@@ -13586,7 +13586,7 @@ bool CAdapt_ItApp::ParatextIsRunning()
 	// also redirects the output and suppresses the dos console window during execution.
 	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
 	wxCHECK_MSG(result != -1, FALSE, _T("ParatextIsRunning() returned -1 (failure) for ::wxExecute() call, line 12252"));
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	int testCt;
 	for (testCt = 0; testCt < (int)outputMsg.GetCount(); testCt++)
 	{
@@ -13631,7 +13631,7 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	// also redirects the output and suppresses the dos console window during execution.
 	result = ::wxExecute(commandLine,outputMsg,errorsMsg);
 	wxCHECK_MSG(result != -1, FALSE, _T("BibleditIsRunning() returned -1 (failure) for ::wxExecute() call, line 11598"));
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	int testCt;
 	for (testCt = 0; testCt < (int)outputMsg.GetCount(); testCt++)
 	{
@@ -15154,7 +15154,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 		wxLogDebug(_T("m_bNoAutoSave  in OnInit()  is set TRUE"));
 	#endif
 #endif
@@ -19667,7 +19667,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm 28Jul11 moved the initialization of m_bShowAdministratorMenu here before the
 	// call to MakeMenuInitializationsAndPlatformAdjustments().
 	m_bShowAdministratorMenu = FALSE; // on launch, Administrator menu should be hidden
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
 #endif
 
@@ -19828,7 +19828,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Retain the initial USFM filter marker string as "Factory default"
 	gFactoryFilterMarkersStr = UsfmFilterMarkersStr;
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	ShowFilterMarkers(1); // location 1
 #endif
 	gFactorySfmSet = UsfmOnly;
@@ -20357,7 +20357,7 @@ int ii = 1;
 // BEW Mar2012, only problem is, I can't find any way to get it to show! So I'll reinstitute this for my present debugging job
 // ******* BEW 29Aug2012, In Code::Blocks, the Debugger (debug) log window is added to the Logs bar by choosing
 // Settings > Compiler & Debugger > Debugger Settings > Display Debugger's Log *******
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     // we need a Debug Log window created (put a forward declaration for class wxLogDebug in Adapt_It.h too)
 	wxFrame* pLogFrame;
 	wxLogWindow* m_pLogWindow = new wxLogWindow(GetMainFrame()->canvas,wxT("Debug Log"),true,true);
@@ -20370,7 +20370,7 @@ int ii = 1;
 */
 
 	// support Mike's testing of DVCS work (inspired by Chorus) (TEST_DVCS is #defined at line 25 of Adapt_It.h)
-#if defined(TEST_DVCS) && defined(__WXDEBUG__)
+#if defined(TEST_DVCS) && defined(_DEBUG)
 
 	wxMenuBar* pAIMenuBar = NULL;
 	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
@@ -27635,7 +27635,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	if (m_bNoAutoSave)
 		wxLogDebug(_T("m_bNoAutoSave  in WriteBasicSettingsConfiguration()  was just set to TRUE"));
 	else
@@ -29338,7 +29338,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			num = wxAtoi(strValue);
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration()  was just read in as %d"), num);
 	#endif
 #endif
@@ -29347,7 +29347,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 				num = 0; // auto save
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration()  BAD VALUE, so set to FALSE"));
 	#endif
 #endif
@@ -29358,7 +29358,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 				m_bNoAutoSave = FALSE;
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	if (num == 1)
 		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration() (after test) was set to TRUE"));
 	else
@@ -29918,7 +29918,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 						   // sets up the wiz page's control value from it
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	if (m_bNoAutoSave)
 		wxLogDebug(_T("m_bNoAutoSave  in SetDefaults() was set to TRUE"));
 	else
@@ -35901,7 +35901,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	PngInLineMarkersStr.Empty();
 	UsfmAndPngInLineMarkersStr.Empty();
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	ShowFilterMarkers(2); // location 2
 #endif
 	UsfmFilterMarkersStr.Empty();
@@ -35915,7 +35915,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	wxString key;
 	MapSfmToUSFMAnalysisStruct::iterator iter;
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	ShowFilterMarkers(3); // location 3
 #endif
 
@@ -35950,7 +35950,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 		}
 	}
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	ShowFilterMarkers(4); // location 4
 #endif
 
@@ -36023,7 +36023,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	case UsfmAndPng: gCurrentFilterMarkers = UsfmAndPngFilterMarkersStr; break;
 	default: gCurrentFilterMarkers = UsfmFilterMarkersStr;
 	}
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	ShowFilterMarkers(5); // location 5
 #endif
 
@@ -43323,7 +43323,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	gpApp->LogUserAction(_T("Export operation successful"));
 }
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 {
 	refNum = refNum; // avoid compiler warning

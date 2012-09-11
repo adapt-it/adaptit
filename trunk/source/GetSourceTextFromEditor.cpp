@@ -1072,7 +1072,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// debugging purposes
 //#define _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED
 #ifdef _DO_NO_MERGER_BUT_INSTEAD_LEAVE_m_pSourcePhrases_UNCHANGED
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				bDoMerger = FALSE;
 				m_bUsfmStructureChanged = m_bUsfmStructureChanged; // avoid compiler warning
 #endif

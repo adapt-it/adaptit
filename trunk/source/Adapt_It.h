@@ -36,7 +36,7 @@
 // WARNING: This define should be set only for debugging the Setup Collaboration
 // dialog. It will not enable any fetching or saving of documents, so it should
 // not be defined when the GetSourceTextFromEditor dialog is called!!
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
 
@@ -170,9 +170,11 @@ const wxString appVerStr(_T("6.3.0"));
 // uncomment to turn on wxLogDebug tracking of gnBeginInsertionsSequNum & gnEndInsertionsSequNum
 //#define Highlighting_Bug
 
-// In the Windows port, the __WXDEBUG__ and _DEBUG symbols are defined automatically when doing a debug build,
-// however, on Linux and the Mac only __WXDEBUG__ is defined, therefore it is best to only use the
-// __WXDEBUG__ symbol for including debug code.
+// Note: The _DEBUG symbol is the only symbol defined that indicates a debug
+// build in the application. It should be used to define code blocks
+// that execute only in Debug or Unicode Debug configurations within all
+// IDEs that are used to build Adapt It. Do not use __WXDEBUG__ for
+// that purpose.
 
 // The following define is for testing the wxSplitterWindow on the wx version.
 // To add the splitter window uncomment the line below and rebuild. (It may be buggy.
@@ -292,7 +294,7 @@ class Guesser;
 // forward for Admin Help
 class CHtmlFileViewer;
 
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
 // forward reference that ties a Log Debug (normal) window, always on top, to the wx logging output
 // because CodeBlocks lacks any way of gathering and displaying wxLogDebug() output, so this does it
 // -- see the end of the OnInit() function for the code which creates the window and ties it to the
@@ -3519,7 +3521,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 				EthnologueCodePair* pCodePair);
 	bool	GetEthnologueLangCodePairsForAIProjects(wxArrayPtrVoid* pCodePairsArray);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	// a debugging helper to send contents of UsfmFilterMarkersStr to debug window
 	void	ShowFilterMarkers(int refNum); // refNum is any number I want to pass in, it is shown too
 #endif

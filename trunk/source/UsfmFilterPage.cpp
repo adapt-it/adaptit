@@ -574,7 +574,7 @@ void CUsfmFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gCurrentFilterMarkers
 				tempFilterMarkersAfterEditDoc = gpApp->gCurrentFilterMarkers;
 			}
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(6); // location 6
 #endif
 
@@ -602,7 +602,7 @@ void CUsfmFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gCurrentFilterMarkers
 				tempFilterMarkersAfterEditDoc = gpApp->gCurrentFilterMarkers;
 			}
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(7); // location 7
 #endif
 
@@ -742,7 +742,7 @@ void CUsfmFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gProjectFilterMarkersForConfig
 				tempFilterMarkersAfterEditProj = gpApp->gProjectFilterMarkersForConfig;
 			}
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(8); // location 8
 #endif
 
@@ -770,7 +770,7 @@ void CUsfmFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 				// the list of filter markers in gProjectFilterMarkersForConfig
 				tempFilterMarkersAfterEditProj = gpApp->gProjectFilterMarkersForConfig;
 			}
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(9); // location 9
 #endif
 
@@ -1704,7 +1704,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 			&m_filterFlagsDoc,
 			&m_userCanSetFilterFlagsDoc);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	//gpApp->ShowFilterMarkers(10); // location 10
 #endif
 
@@ -1719,7 +1719,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 				&m_SfmMarkerAndDescriptionsDoc, 2,
 				&m_userCanSetFilterFlagsDoc);
  
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 //	gpApp->ShowFilterMarkers(17); // location 17
 #endif
 
@@ -1748,7 +1748,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 		// selected in prefs
 		LoadDocSFMListBox(LoadInitialDefaults);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	//gpApp->ShowFilterMarkers(18); // location 18
 #endif
 
@@ -1810,7 +1810,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 			&m_filterFlagsDoc,
 			&m_userCanSetFilterFlagsDoc);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	//gpApp->ShowFilterMarkers(11); // location 11
 #endif
 
@@ -1821,7 +1821,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 				&m_SfmMarkerAndDescriptionsDoc, 2,
 				&m_userCanSetFilterFlagsDoc);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	//gpApp->ShowFilterMarkers(19); // location 19
 #endif
 
@@ -1846,7 +1846,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 		// established above.
 		tempFilterMarkersAfterEditDoc = tempFilterMarkersBeforeEditDoc;
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	//gpApp->ShowFilterMarkers(20); // location 20
 #endif
 
@@ -2595,7 +2595,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 			&m_filterFlagsProj,
 			&m_userCanSetFilterFlagsProj);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(12); // location 12
 #endif
 
@@ -2603,7 +2603,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 				&m_SfmMarkerAndDescriptionsProj, 2,
 				&m_userCanSetFilterFlagsProj);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(13); // location 13
 #endif
 
@@ -2696,7 +2696,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 			&m_filterFlagsProj,
 			&m_userCanSetFilterFlagsProj);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(14); // location 14
 #endif
 
@@ -2704,7 +2704,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 				&m_SfmMarkerAndDescriptionsProj, 2,
 				&m_userCanSetFilterFlagsProj);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(15); // location 15
 #endif
 
@@ -2734,7 +2734,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 	}
 	UpdateButtons();
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	gpApp->ShowFilterMarkers(16); // location 16
 #endif
 

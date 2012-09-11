@@ -4015,7 +4015,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	wxFile f;
 	if( !f.Open( reportPath, wxFile::write)) 
 	{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		wxLogError(_("Unable to open report file.\n")); 
 		wxMessageBox(_("Unable to open report file."),_T(""), wxICON_EXCLAMATION | wxOK);
 #endif

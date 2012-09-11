@@ -2303,7 +2303,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 	wxSize canvasViewSize;
 	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize();
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	// Here's sample code for alternative 1:
 //	// save a copy of the initial grectViewClient values for use below (alternative 2 changes grectViewClient)
 //	wxRect testRectViewClient = rectClient;
@@ -2315,7 +2315,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 	//rectClient.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
 	//rectClient.y = yOrigin * yScrollUnits;
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	//wx version uses CalcUnscrolledPosition
 //	int newXPos,newYPos;
 //	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
@@ -2323,7 +2323,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 //	wxASSERT(newYPos == rectClient.y); //rectClient.y = newYPos;
 //#endif
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	//dc.DPtoLP(&rectClient); // this is like the MFC method
 //	int x = dc.DeviceToLogicalX(testRectViewClient.x);// get the device X (width) coord converted to logical coord
 //	int y = dc.DeviceToLogicalY(testRectViewClient.y); // get the device Y (height) coord converted to logical coord
@@ -2805,7 +2805,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CPile* pClickedPile = pCell->GetPile();
 	wxASSERT(pClickedPile);
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
 
@@ -2853,7 +2853,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			bNoError = pApp->GetDocument()->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
 		}
 	}
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),2,pApp->m_nActiveSequNum);
 //#endif
 
@@ -2899,7 +2899,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
             // BEW changed 27Jun05, for free translation support - added test for selector
             // == 3 selector values 0 and 3 are the only ones which permit saving the old
             // location's text to the KB
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3,pApp->m_nActiveSequNum);
 //#endif
 			if (selector == 0 || selector == 3)
@@ -2960,7 +2960,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					{
 						bOK = pApp->m_pTargetBox->DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
 					}
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),4,pApp->m_nActiveSequNum);
 //#endif
 				} // end block for test !pApp->m_targetPhrase.IsEmpty() == TRUE
@@ -2980,7 +2980,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						gSaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),5,pApp->m_nActiveSequNum);
 //#endif
 						return;
@@ -3002,7 +3002,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// bNoActiveLocationCalculation is TRUE to suppress the wide gap calculation
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase,TRUE);
 	}
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),6,pApp->m_nActiveSequNum);
 //#endif
 
@@ -3013,7 +3013,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 
 	// remove any existing selection
 	RemoveSelection();
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),7,pApp->m_nActiveSequNum);
 //#endif
 
@@ -3064,7 +3064,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),8,pApp->m_nActiveSequNum);
 //#endif
 
@@ -3100,7 +3100,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// - these conditions are guaranteed by code above in this function (360 lines up)
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
 							// value that it sets in the active pile's m_nWidth member
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),9,pApp->m_nActiveSequNum);
 //#endif
 		goto a;
@@ -3131,7 +3131,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// - these conditions are guaranteed by code above in this function (360 lines up)
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
 							// value that it sets in the active pile's m_nWidth member
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),10,pApp->m_nActiveSequNum);
 //#endif
 		goto a;
@@ -3173,7 +3173,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
     // location
 	DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
 										bHasNothing, bNoValidText, bSomethingIsCopied);
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),11,pApp->m_nActiveSequNum);
 //#endif
 
@@ -3259,7 +3259,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // the view's Invalidate() call is made below (Note: later, we can replace this
     // RecalcLayout() call with a call to the faster AdjustForUserEdits(), which also
     // likewise calls ResetPartnerPileWidth() - for the same reason as given above)
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),12,pApp->m_nActiveSequNum);
 //#endif
 #ifdef _NEW_LAYOUT
@@ -3279,7 +3279,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	{
 		pDoc->ResetPartnerPileWidth(pSPhr);
 	}
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),13,pApp->m_nActiveSequNum);
 //#endif
 
@@ -3297,7 +3297,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
 	}
 	gbCompletedMergeAndMove = FALSE;
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
 //#endif
 
@@ -5630,7 +5630,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 
 	/*
 	{
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 		wxLogTrace(_T("\nTrace 0 - Within ResizeBox - before OnPrepareDC call"));
 		wxString str;
 		str = str.Format("rectBox -- Logical coords: T= %d, L= %d, B= %d, R= %d\n",
@@ -5656,7 +5656,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// we leave the width and height the same
 
 	// Below are alternates for calculating scrolled position
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	// The device coords can be found by subtracting the logical coords of the upper left corner as
 //	// reported by GetViewStart, from rectBox's upper left corner coords. This doesn't change the
 //	// width and height of a wxRect; the width and height were established in the wxRect rectBox()
@@ -5669,7 +5669,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 //#endif
 
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	//aDC.LPtoDP(&rectBox);
 //	// whm Note: The following LogicalToDeviceXRel and LogicalToDeviceYRel and their non-Rel functions
 //	// adjust the logical position of rectBox after scrolling down from the zero scroll position
@@ -5872,7 +5872,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		{
 			// don't show it if the user cancelled prefs
 			pApp->m_bShowAdministratorMenu = FALSE;
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			pApp->m_bShowAdministratorMenu = TRUE; // for debugging convenience
 #endif
 		}
@@ -7097,7 +7097,7 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 	{
 		// insertion is wanted, preceding posMaster location
 ins:	;
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 		//SPList::Node* posDebug = pMasterList->GetFirst();
 		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		//{
@@ -7133,7 +7133,7 @@ ins:	;
 			if (pReplaceSrcPhrase == NULL)
 				break;
 		}
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 		//posDebug = pMasterList->GetFirst();
 		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		//{
@@ -9929,7 +9929,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 
 //#define MP_MM_BUG
 #ifdef MP_MM_BUG
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	// In collaboration mode, mergers are getting 3 empty <MP mp=""/> added to xml for the
 	// CSourcePhrase and also 6 empty <MM mm=""/> added too. No idea why. Every extra word
 	// merged adds an extra 3 & 6 as above, so seems like a merger bug. This block of code
@@ -15851,7 +15851,7 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 		{
 			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
 			{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef FINDNXT
 				//wxLogDebug(_T("Found free translation: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
@@ -15867,7 +15867,7 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
 				// found location where a note is stored
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef FINDNXT
 				//wxLogDebug(_T("Found note: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
@@ -15882,7 +15882,7 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 		{
 			if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
 			{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef FINDNXT
 				//wxLogDebug(_T("Found back trans: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
@@ -15905,7 +15905,7 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 													 // \btv \bth and so forth
 					if (nFound >= 0)
 					{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef FINDNXT
 						//wxLogDebug(_T("Found bt-derived marker in m_filteredInfo: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
@@ -15941,7 +15941,7 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 					bool bSame = IsSameMarker(len,nFound,sfm,filteredInfo);
 					if (bSame)
 					{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef FINDNXT
 						//wxLogDebug(_T("Found chosen filterable marker in m_filteredInfo: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
@@ -15973,7 +15973,7 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 			}
 			else
 			{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef FINDNXT
 				//wxLogDebug(_T("Found the chosen marker in m_markers: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
@@ -16002,7 +16002,7 @@ b:			if (pSrcPhrase->m_nSrcWords > 1)
 							bool bSame = IsSameMarker(len,nFound,sfm,markers);
 							if (bSame)
 							{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef FINDNXT
 								//wxLogDebug(_T("Found the marker among medial markers: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
 #endif
@@ -23387,7 +23387,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 			posInsert = pDestinationList->Append(pNewOne);
 		}
 	}
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		SPList::Node* testpos = pOriginalList->GetFirst();
 		//int ct = 0;
 		while (testpos)
@@ -24722,7 +24722,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 										&pRec->modificationsSpan_SrcPhraseList,
 										pRec->nStartingSequNum, pRec->nEndingSequNum);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		SPList::Node* testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		//int ct = 0;
 		while (testpos)
@@ -24735,7 +24735,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			//ct++, pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		testpos = pTempList->GetFirst();
 		//ct = 0;
 		while (testpos)
@@ -24767,7 +24767,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			pApp->LogUserAction(_T("Error from CopyCSourcePhrasesToExtendSpan() in OnEditSourceText()"));
 		}
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		//ct = 0;
 		while (testpos)

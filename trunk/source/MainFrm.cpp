@@ -1164,7 +1164,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 
 	idleCount = 0;
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //	m_bShowScrollData = TRUE; // shows scroll parameters and client size in status bar
 //#else
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
@@ -1691,7 +1691,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_pStatusBar = GetStatusBar();
 
 	// wx version displays some scrolling data on the statusbar. m_bShowScrollData is
-	// only true when __WXDEBUG__ is defined, so it will not appear in release versions.
+	// only true when _DEBUG is defined, so it will not appear in release versions.
 	// Here we make room for it by making the second field width larger.
 	if (m_bShowScrollData)
 	{
@@ -3618,7 +3618,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	}
 
     // wx version: Display some scrolling data on the statusbar. m_bShowScrollData is only
-    // true when __WXDEBUG__ is defined, so it will not appear in release versions.
+    // true when _DEBUG is defined, so it will not appear in release versions.
 	if (m_bShowScrollData && this->m_pStatusBar->IsShown())
 	{
 		static size_t pgSize, scrPos, scrMax;

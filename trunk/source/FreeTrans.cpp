@@ -877,7 +877,7 @@ void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtr
     while (pPile != pPileEndingFTSection)
     {
         arrPileSet.Add(pPile);
-#if defined(__WXDEBUG__) && defined(_V6PRINT)
+#if defined(_DEBUG) && defined(_V6PRINT)
 	{
 		wxLogDebug(_T("GetFreeTransPileSetForOneFreeTrans()  strip index = %d  ,  m_srcPhrase = %s , pile's Left = %d , pile's Top = %d"),
 					pPile->GetStripIndex(), pPile->GetSrcPhrase()->m_srcPhrase.c_str(), pPile->Left(), pPile->Top());
@@ -889,7 +889,7 @@ void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtr
     // Add() the ending pile to the array
     arrPileSet.Add(pPileEndingFTSection);
 
-#if defined(__WXDEBUG__) && defined(_V6PRINT)
+#if defined(_DEBUG) && defined(_V6PRINT)
 	{
 		wxLogDebug(_T("GetFreeTransPileSetForOneFreeTrans()  strip index = %d  ,  m_srcPhrase = %s , pile's Left = %d , pile's Top = %d"),
 					pPileEndingFTSection->GetStripIndex(), pPileEndingFTSection->GetSrcPhrase()->m_srcPhrase.c_str(), pPileEndingFTSection->Left(), pPileEndingFTSection->Top());
@@ -950,7 +950,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 	int nIndexOfLastStrip = pLayout->m_pOffsets->nLastStrip;
 
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("\nGetFreeTransPileSetsForPage(),  nIndexOfFirstStrip = %d  ,  nIndexOfLastStrip = %d"),
 					nIndexOfFirstStrip, nIndexOfLastStrip);
@@ -1112,7 +1112,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 		pPileSetArray->Add(pPileEndingFTSection);
 
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("GetFreeTransPileSetsForPage(),  do loop iter: Piles in section = %d  ,  free translation = %s"),
 			pPileSetArray->GetCount(), strFreeTrans.c_str());
@@ -1161,7 +1161,7 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 					// set, and iterate the outer loop
 					pAnchorPile = pPile;
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{ // confine their scope to this conditional block
 		CSourcePhrase* pSP = pPile->GetSrcPhrase();
 		wxLogDebug(_T("GetFreeTransPileSetsForPage(),  looping: next anchor sn = %d  ,  m_key = %s"),
@@ -1241,7 +1241,7 @@ void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPi
     pileSetCount = arrPileSet.GetCount();
     wxASSERT(pileSetCount >= 1); // must be at least one pile in a free trans section
 
- #if defined(_V6PRINT) && defined(__WXDEBUG__)
+ #if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("BuildFreeTransDisplayRectsForOneFreeTrans(),  pileSetCount = %d"), pileSetCount);
 	}
@@ -1395,7 +1395,7 @@ void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPi
                 pElement->subRect = rect;
                 pElement->horizExtent = rect.GetWidth();
                 arrRectsForOneFreeTrans.Add(pElement);
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("BuildFreeTransDisplayRectsForOneFreeTrans(), HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
@@ -1421,7 +1421,7 @@ void CFreeTrans::BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPi
                     pElement->horizExtent = rect.GetWidth();
                     arrRectsForOneFreeTrans.Add(pElement);
 
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("BuildFreeTransDisplayRectsForOneFreeTrans(), Closing off a trip: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
@@ -1556,7 +1556,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 											// end of DrawFreeTranslationsForPrinting()
 
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("\nBuildFreeTransDisplayRects(),  ftSectionsIndex = %d  pileSetCount = %d"),
 			ftSectionsIndex, pileSetCount);
@@ -1717,7 +1717,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 					pElement->horizExtent = rect.GetWidth();
 					pFreeTrElementsSet->Add(pElement);
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("BuildFreeTransDisplayRects(), Last: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
@@ -1745,7 +1745,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 						pFreeTrElementsSet->Add(pElement);
 
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("BuildFreeTransDisplayRects(), Closing Strip: HorizExtent %d , {L %d, T %d, W %d, H %d}  stripIndex = %d , pElement = %x , curPileCount_for_strip %d"),
 			pElement->horizExtent, pElement->subRect.GetX(), pElement->subRect.GetY(), pElement->subRect.GetWidth(),
@@ -1882,7 +1882,7 @@ void CFreeTrans::DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStri
     int itemIndex = currentStrip - nStripsOffset; // calc of index for which stored array to grab
     int totalPrintableFreeTransLines;
     totalPrintableFreeTransLines = arrFTElementsArrays.GetCount();
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
         wxLogDebug(_T("           DrawFreeTransForOneStrip(): currentStrip = %d   calculated itemIndex = %d    totalPrintableFreeTransLines = %d   "),
                     currentStrip, itemIndex, totalPrintableFreeTransLines);
 
@@ -1917,7 +1917,7 @@ void CFreeTrans::DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStri
     // (sub)strings, and print them
     wxArrayPtrVoid* pElementsArray = (wxArrayPtrVoid*)arrFTElementsArrays.Item(itemIndex);
     wxArrayString* pSubstringsArray = (wxArrayString*)arrFTSubstringsArrays.Item(itemIndex);
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
         wxLogDebug(_T("           DrawFreeTransForOneStrip(): WHAT'S IN IT?  "));
         {
         int i;
@@ -1934,7 +1934,7 @@ void CFreeTrans::DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStri
     // if there is nothing to draw, return
     if (pElementsArray->IsEmpty())
     {
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
         wxLogDebug(_T("           DrawFreeTransForOneStrip(): Returning because array is empty, for strip with index = %d  "), currentStrip);
 #endif
         return;
@@ -1979,7 +1979,7 @@ void CFreeTrans::DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStri
         else
         {
             pDC->DrawText(ftStr, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
-#if defined(Print_failure) && defined(__WXDEBUG__)
+#if defined(Print_failure) && defined(_DEBUG)
             wxLogDebug(_T("           DrawFreeTransForOneStrip(): currentStrip = %d   substring index = %d    DrawText() for =  %s"),
                     currentStrip, anIndex, ftStr.c_str());
 #endif
@@ -2140,7 +2140,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
         // nothing to print, so return
         return;
     }
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() -- BEFORE segmenting, ftElementsCount %d , nTotalHorizExtent %d ,  ftStr = %s length (char count) %d ,  first strip indx %d , last strip indx %d"),
 			rectsCount, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip);
@@ -2212,7 +2212,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                     pSubstrArr->Add(ftStr);
                     arrFTSubstringsArrays.Add(pSubstrArr);
                     bFTElementsExist = TRUE;
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("AggregateFreeTranslationsByStrip() SINGLE rect ACCEPTED, strip %d , string = [ %s ] ADDED ARRAY, (ft's exist), curElementsCount %d  curItemIndex %d"),
                         pElement->nStripIndex, ftStr.c_str(), curElementsCount, curItemIndex);
@@ -2232,7 +2232,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                     // arrFTSubstringsArrays
                     wxArrayString* pSubstrArr = (wxArrayString*)arrFTSubstringsArrays.Item(curItemIndex);
                     pSubstrArr->Add(ftStr);
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("AggregateFreeTranslationsByStrip() SINGLE rect ACCEPTED, strip %d , string = [ %s ] ARRAY EXISTS, (ft's exist), curElementsCount %d  curItemIndex %d"),
                         pElement->nStripIndex, ftStr.c_str(),curElementsCount, curItemIndex);
@@ -2270,7 +2270,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                 pStrArr->Add(ftStr);
                 arrFTSubstringsArrays.Add(pStrArr);
                 bFTElementsExist = TRUE;
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() SINGLE rect ACCEPTED, strip %d , string = [ %s ]  ADDING ARRAY in loop, (no ft's yet), curElementsCount %d  curItemIndex %d"),
                         pElement->nStripIndex, ftStr.c_str(), curElementsCount, curItemIndex);
@@ -2283,7 +2283,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
             // it's rejected, so must be deleted now, because otherwise we'll get a memory leak,
             // because the cleanup code in OnPrintPage() only deletes what is retained within
             // arrFTElementsArrays and arrFTSubstringsArrays
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() SINGLE rect REJECTED, strip %d , string = [ %s ]  NOT IN PAGE  curElementsCount %d curItemIndex %d"),
                         pElement->nStripIndex, ftStr.c_str(), curElementsCount, curItemIndex);
@@ -2368,7 +2368,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                         pSubstrArr->Add(s);
                         arrFTSubstringsArrays.Add(pSubstrArr);
                         bFTElementsExist = TRUE;
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect ACCEPTED, strip %d , substring = [ %s ] ADDING ARRAY, (ft's exist) curElementsCount %d  curItemIndex %d"),
                         pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
@@ -2388,7 +2388,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                         // arrFTSubstringsArrays
                         wxArrayString* pSubstrArr = (wxArrayString*)arrFTSubstringsArrays.Item(curItemIndex);
                         pSubstrArr->Add(s);
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect ACCEPTED, strip %d , substring = [ %s ] ARRAY EXISTS, (ft's exist) curElementsCount %d  curItemIndex %d"),
                         pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
@@ -2426,7 +2426,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                     pStrArr->Add(s);
                     arrFTSubstringsArrays.Add(pStrArr);
                     bFTElementsExist = TRUE;
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect ACCEPTED, strip %d , substring = [ %s ] ADDING ARRAY, (no ft's yet) curElementsCount %d  curItemIndex %d"),
                         pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
@@ -2439,7 +2439,7 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                 // it's rejected, so must be deleted now, because otherwise we'll get a memory leak,
                 // because the cleanup code in OnPrintPage() only deletes what is retained within
                 // arrFTElementsArrays and arrFTSubstringsArrays
-#if defined(_V6PRINT) && defined(__WXDEBUG__)
+#if defined(_V6PRINT) && defined(_DEBUG)
 	{
 		wxLogDebug(_T("\nAggregateFreeTranslationsByStrip() MULTIPLES! 1 rect REJECTED, strip %d , substring = [ %s ]  NOT IN PAGE curElementsCount %d  curItemIndex %d"),
                         pElement->nStripIndex, s.c_str(), curElementsCount, curItemIndex);
@@ -2581,7 +2581,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 			continue;
 		}
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{ // confine their scope to this conditional block
 		wxLogDebug(_T("\nDrawFreeTransStringsInDisplayRects(), ftCount %d , ftIndex %d , ftElements (count) %d , nTotalHorizExtent %d  ftStr = %s length (char count) %d ,  first strip indx %d , last strip indx %d"),
 			ftCount, ftIndex, ftElements, nTotalHorizExtent, ftStr.c_str(), length, nIndexOfFirstStrip, nIndexOfLastStrip);
@@ -2651,7 +2651,7 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 				else
 				{
 #ifdef _V6PRINT
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("\nDrawFreeTransStringsInDisplayRects(), Drawing:    %s   , at TopLeft: [Left = %d , Top = %d]   pDC->IsOk() = %d"),
                     ftStr.c_str(), pElement->subRect.GetLeft(), pElement->subRect.GetTop(),  (int)pDC->IsOk());
@@ -2836,7 +2836,7 @@ void CFreeTrans::AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLay
 void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 {
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("FreeTrans.cpp line 1621, at start            *** DrawFreeTranslationsForPrinting entered ***  "));
 #endif
 #endif
@@ -2900,7 +2900,7 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 	if (m_pFreeTransSetsArray != NULL) // whm 11Jun12 added NULL test
 		delete m_pFreeTransSetsArray;
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("FreeTrans.cpp line 1682, at end, m_pFreeTransSetsArray's count: is %d      *** DrawFreeTranslationsForPrinting now exiting ***  "), count);
 #endif
 #endif
@@ -3406,7 +3406,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 	// get it's CSourcePhrase instance
 	pSrcPhrase = pPile->GetSrcPhrase(); // its pointed at sourcephrase
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 #ifdef _Trace_DrawFreeTrans
 	wxLogDebug(_T("\nDrawFreeTrans: starting pile sn = %d  srcPhrase = %s"),
 		pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
@@ -3482,7 +3482,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCa
 	//  STARTING FROM A PRECEDING OFFSCREEN CPile INSTANCE, BEGINS HERE
 
 	#ifdef _Trace_DrawFreeTrans
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	wxLogDebug(_T("\n BEGIN - Loop About To Start in DrawFreeTranslations()\n"));
 	#endif
 	#endif
@@ -3544,7 +3544,7 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 		pPile = m_pView->GetNextPile(pPile);
 
 		#ifdef _Trace_DrawFreeTrans
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 		if (pPile)
 		{
 			wxLogDebug(_T("while   sn = %d  ,  word =  %s"), pPile->GetSrcPhrase()->m_nSequNumber,
@@ -3570,7 +3570,7 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 		int nStripTop = pStrip->Top();
 
 		#ifdef _Trace_DrawFreeTrans
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 		wxLogDebug(_T(" a: scan in visible part: srcPhrase %s , sequ num %d, strip index %d , nStripTop (logical) %d \n              grectViewClient bottom %d logicalViewClientBottom %d"),
 			pPile->GetSrcPhrase()->m_srcPhrase, pPile->GetSrcPhrase()->m_nSequNumber, pPile->GetStripIndex(),
 			nStripTop,grectViewClient.GetBottom(),logicalViewClientBottom);
@@ -3585,7 +3585,7 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 			DestroyElements(m_pFreeTransArray); // don't leak memory
 
 			#ifdef _Trace_DrawFreeTrans
-			#ifdef __WXDEBUG__
+			#ifdef _DEBUG
 			wxLogDebug(_T(" a: RETURNING because OFF WINDOW now;  nStripTop  %d ,  logicalViewClientBottom  %d"),
 				nStripTop, logicalViewClientBottom);
 			#endif
@@ -3598,7 +3598,7 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 ed:	if (pPile == NULL)
 	{
 		#ifdef _Trace_DrawFreeTrans
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 		wxLogDebug(_T("** EXITING due to null pile while scanning ahead **\n"));
 		#endif
 		#endif
@@ -3633,7 +3633,7 @@ ed:	if (pPile == NULL)
 	bSectionIntersects = FALSE; // TRUE when the section being laid out intersects
 								// the window's client area
 	#ifdef _Trace_DrawFreeTrans
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	wxLogDebug(_T("curPileIndex  %d  , curStripIndex  %d  , curPileCount %d  "),
 				curPileIndex,curStripIndex,curPileCount);
 	#endif
@@ -3927,7 +3927,7 @@ b:	if (!bSectionIntersects)
 		if (pElement->subRect.GetTop() > logicalViewClientBottom)
 		{
 			#ifdef _Trace_DrawFreeTrans
-			#ifdef __WXDEBUG__
+			#ifdef _DEBUG
 			wxLogDebug(_T("No intersection, *** and below bottom of client rect, so return ***"));
 			#endif
 			#endif
@@ -3941,7 +3941,7 @@ b:	if (!bSectionIntersects)
 		else
 		{
 			#ifdef _Trace_DrawFreeTrans
-			#ifdef __WXDEBUG__
+			#ifdef _DEBUG
 			wxLogDebug(_T(" NO INTERSECTION block:  top is still above grectViewClient's bottom, so goto c: then to a: and iterate"));
 			//wxLogDebug(_T("No intersection, so iterating loop..."));
 			#endif
@@ -3970,7 +3970,7 @@ b:	if (!bSectionIntersects)
 #endif
 
 	#ifdef _Trace_DrawFreeTrans
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	wxLogDebug(_T("(Line 40726)Sequ Num  %d  ,  Free Trans:  %s "), pSrcPhrase->m_nSequNumber, ftStr.c_str());
 	#endif
 	#endif
@@ -4049,7 +4049,7 @@ b:	if (!bSectionIntersects)
         // segment), truncating the last segment if not all the ftStr data can be fitted
         // into the available drawing rectangles
 		#ifdef _Trace_DrawFreeTrans
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 		wxLogDebug(_T("call  ** SegmentFreeTranslation() **  Free Trans:  %s "), ftStr.c_str());
 		#endif
 		#endif
@@ -4058,7 +4058,7 @@ b:	if (!bSectionIntersects)
 								m_pFreeTransArray,&subStrings,totalRects);
 
 		#ifdef _Trace_DrawFreeTrans
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 			wxLogDebug(_T("returned from:  SegmentFreeTranslation() *** MultiStrip Draw *** "));
 		#endif
 		#endif
@@ -4105,7 +4105,7 @@ b:	if (!bSectionIntersects)
 
 		subStrings.Clear(); // clear the array ready for the next iteration
 		#ifdef _Trace_DrawFreeTrans
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 			wxLogDebug(_T("subStrings drawn - finished them "));
 		#endif
 		#endif
@@ -4130,7 +4130,7 @@ c:	pPile = m_pView->GetNextPile(pPile);
 				pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
 		#endif
 		#ifdef _Trace_DrawFreeTrans
-		#ifdef __WXDEBUG__
+		#ifdef _DEBUG
 			wxLogDebug(_T(" At c: next pPile is --  srcphrase %s, sn = %d, going now to a:"),
 				pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
 		#endif
@@ -4206,7 +4206,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 	// get it's CSourcePhrase instance
 	pSrcPhrase = pPile->GetSrcPhrase(); // its pointed at sourcephrase
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 	wxLogDebug(_T("\n\n\n  DrawFreeTrans: starting pile sn = %d  srcPhrase = %s"),
 		pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 #endif
@@ -4262,7 +4262,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 	canvasSize = m_pApp->GetMainFrame()->GetCanvasClientSize();
 	int logicalViewClientBottom = nThumbPosition_InPixels + canvasSize.GetHeight();
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 	wxLogDebug(_T("  BEGIN loop: nThumbPosition_InPixels %d, logicalViewClientBottom %d "),
 		nThumbPosition_InPixels, logicalViewClientBottom);
 #endif
@@ -4294,7 +4294,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			CStrip* pStrip = pPile->GetStrip();
 			int nStripTop = pStrip->Top();
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 			wxLogDebug(_T(" outer loop - SCANNING: srcPhrase %s , sequ num %d, strip index %d , nStripTop (logical) %d logicalViewClientBottom %d"),
 				pPile->GetSrcPhrase()->m_srcPhrase, pPile->GetSrcPhrase()->m_nSequNumber, pPile->GetStripIndex(),
 				nStripTop, logicalViewClientBottom);
@@ -4305,7 +4305,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 				// the strip is below the bottom of the view rectangle, stop searching forward
 				DestroyElements(m_pFreeTransArray); // don't leak memory
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 				wxLogDebug(_T(" outer loop, RETURNING because pile is OFF-WINDOW;  nStripTop  %d ,  logicalViewClientBottom  %d"),
 					nStripTop, logicalViewClientBottom);
 #endif
@@ -4316,7 +4316,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		// return if we didn't find a pile
 		if (pPile == NULL)
 		{
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 			wxLogDebug(_T("** EXITING due to NULL PILE while scanning ahead **\n"));
 #endif
 			// there are as yet no free translations in this doc, or we've come to its end
@@ -4325,7 +4325,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		}
 		pSrcPhrase = pPile->GetSrcPhrase();
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 		wxLogDebug(_T("outer loop: at next anchor, scanning ahead: srcPhrase %s , sequ num %d, active sn %d  nThumbPosition_InPixels = %d"),
 			pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, m_pApp->m_nActiveSequNum, nThumbPosition_InPixels);
 #endif
@@ -4346,7 +4346,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 										   // and reduce as required below
 		nTotalHorizExtent = 0;
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 		wxLogDebug(_T("Creating rectangles: curPileIndex  %d  , curStripIndex  %d  , curPileCount %d  "),
 					curPileIndex,curStripIndex,curPileCount);
 #endif
@@ -4474,7 +4474,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			// used abs to make sure is this pile the ending pile for the free translation
 			// section?
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 			wxLogDebug(_T(" LTR block: strip RECT: Left %d , TOP %d, WIDTH %d , Height %d  (logical coords)"),
 				rect.x, rect.y, rect.width, rect.height);
 #endif
@@ -4484,7 +4484,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 				if (pSrcPhrase->m_bEndFreeTrans)
 				{
-//#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+//#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 //					wxLogDebug(_T(" LTR block:  At end of free trans section"));
 //#endif
 					// whether we make the right boundary of rect be the end of the pile's
@@ -4511,7 +4511,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 						wxLogDebug(_T(" Break from inner loop (this section is done)"));
 #endif
 					break; // exit the inner loop for constructing the drawing rectangles
@@ -4587,7 +4587,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		ftStr = pSrcPhrase->GetFreeTrans();
 		length = ftStr.Len();
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 		wxLogDebug(_T("DRAWING Free Trans =  %s   obtained from SN = %d"), ftStr.c_str(), pSrcPhrase->m_nSequNumber);
 #endif
 		// whm changed 24Aug06 when called from OnEnChangedEditBox, we need to be able to allow
@@ -4608,7 +4608,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 				pSrcPhrase = pPile->GetSrcPhrase();
 			DestroyElements(m_pFreeTransArray);
 
-//#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+//#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 //			wxLogDebug(_T(" At middle, next pPile is --  srcphrase %s, sn = %d, iterate outer loop"),
 //				pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
 //#endif
@@ -4636,7 +4636,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 			if (bRTLLayout)
 			{
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //			 wxSize trueSz;
 //			 pDC->GetTextExtent(ftStr,&trueSz.x,&trueSz.y);
 //			 wxLogDebug(_T("RTL DrawText sub.l=%d + sub.w=%d -
@@ -4650,7 +4650,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			else
 			{
 
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 				wxLogDebug(_T(" *** Drawing ftSstr:  %s    At:  Left  %d   Top  %d  These are logical coords."),
 					ftStr, pElement->subRect.GetLeft(), pElement->subRect.GetTop());
 				//wxLogDebug(_T(" *** Drawing ftSstr: m_pFirstPile's Logical Rect x= %d  y= %d  width= %d  height= %d   PileHeight+2: %d"),
@@ -4667,7 +4667,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			// passed in frStr cut up into appropriately sized segments (whole words in each
 			// segment), truncating the last segment if not all the ftStr data can be fitted
 			// into the available drawing rectangles
-#if defined(_Trace_DrawFreeTrans) && defined(__WXDEBUG__)
+#if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 			wxLogDebug(_T("calling  ** SegmentFreeTranslation() **  Free Trans:  %s "), ftStr.c_str());
 #endif
 			SegmentFreeTranslation(pDC,ftStr,ellipsis,extent.GetWidth(),nTotalHorizExtent,
@@ -4686,7 +4686,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 				if (bRTLLayout)
 				{
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //		         wxSize trueSz;
 //			     pDC->GetTextExtent(s,&trueSz.x,&trueSz.y);
 //			     wxLogDebug(_T("RTL DrawText sub.l=%d + sub.w=%d - sExt.x=%d, x=%d, y=%d of %s"),
@@ -5044,7 +5044,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch)
 {
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     if (ftModeSwitch == ftModeON)
     {
         wxLogDebug(_T("FreeTrans.cpp line 3991                      *** SwitchScreenFreeTranslationMode called ***  with ftModeSwitch = ftModeON"));
@@ -5665,7 +5665,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		// phrase box is not defined, no active location is valid, so return
 		return;
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 //	wxLogDebug(_T("\nActive SN passed in: %d"),activeSequNum);
 #endif
 	m_pApp->m_pActivePile = m_pView->GetPile(activeSequNum); // has to be set here, because at
@@ -5701,7 +5701,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			// store this pile in the global array
 			m_pCurFreeTransSectionPileArray->Add(pile);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 //			wxLogDebug(_T("Storing sequ num %d in m_pCurFreeTransSectionPileArray, count = %d"),
 //				pile->GetSrcPhrase()->m_nSequNumber, m_pCurFreeTransSectionPileArray->GetCount());
 #endif
@@ -5771,7 +5771,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			// store this pile in the private array
 			m_pCurFreeTransSectionPileArray->Add(pile);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 //			wxLogDebug(_T("Empty area:  Storing sequ num %d in m_pCurFreeTransSectionPileArray, count = %d"),
 //				pile->GetSrcPhrase()->m_nSequNumber, m_pCurFreeTransSectionPileArray->GetCount());
 #endif
