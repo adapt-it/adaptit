@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+	 Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file.
+	 Instead, use NotePad or WordPad. -->
+<AdaptItDoc>
+	<Settings docVersion="5" sizex="1091" sizey="147" specialcolor="255"
+	retranscolor="32896" navcolor="6447616" curchap="1:" srcname="X" tgtname="Y"
+	others="@#@#:F:-1:0:\pro \ca \_footnote_caller \_notes_base \efm \xot \_unknown_para_style \_annotation_text \h1 \__normal \_nav_lang_interlinear \rem \_table_grid \_hdr_ftr_interlinear \_horiz_rule \xt \_dft_para_font \xnt \_peripherals_base \xq \note \cp \mr \ef \_body_text \ib \_header \ide \_double_boxed_para \h3 \_unknown_char_style \fig \vp \_hidden_note \h2 \_tgt_lang_interlinear \restore \_src_lang_interlinear \_list_base \cl \_annotation_ref \_gls_lang_interlinear \ie \free \va \xk \x \r \_intro_base \_small_para_break \_footer \h \xo \_heading_base \_single_boxed_para \lit \sts \rq \bt \_vernacular_base \xdc \_normal_table :\y=0 :"/>
+	<S s="JHN
+" k="JHN
+" t="JHN" a="JHN"
+	f="0000000000000000111001" sn="0" w="1" ty="11"
+	i="id"
+	m="\id ">
+	</S>
+	<S s="A" k="A" t="A" a="A"
+	f="0000001000000000011001" sn="1" w="1" ty="3"
+	i="sect head L1"
+	m="\c 1  \s1 ">
+	</S>
+	<S s="[" k="" t="["
+	f="0000000000000000000000" sn="2" w="1" ty="1"
+	pp="[">
+	</S>
+	<S s="willy" k="willy" t="willy" a="willy"
+	f="0000000000000000000001" sn="3" w="1" ty="1">
+	</S>
+	<S s="nilly" k="nilly" t="nilly" a="nilly"
+	f="0000000000000000000001" sn="4" w="1" ty="1">
+	</S>
+	<S s="]" k="" t="]"
+	f="0000000000000000000000" sn="5" w="1" ty="1"
+	fp="]">
+	</S>
+	<S s="subheading
+" k="subheading
+" t="subheading
+" a="subheading"
+	f="0000000000000000000001" sn="6" w="1" ty="1">
+	</S>
+	<S s="[" k="" t="["
+	f="0000000000000000100000" sn="7" w="1" ty="1"
+	pp="[">
+	</S>
+	<S s="The" k="The" t="The" a="The"
+	f="0000010000000000010001" sn="8" w="1" ty="1"
+	c="1:1"
+	m="\v 1 ">
+	</S>
+	<S s="example" k="example" t="example" a="example"
+	f="0000000000000000000001" sn="9" w="1" ty="1">
+	</S>
+	<S s="according" k="according" t="according" a="according"
+	f="0000000000000000000001" sn="10" w="1" ty="1">
+	</S>
+	<S s="to" k="to" t="to" a="to"
+	f="0000000000000000000001" sn="11" w="1" ty="1">
+	</S>
+	<S s="Nobody." k="Nobody" t="Nobody." a="Nobody"
+	f="0000000000000000100001" sn="12" w="1" ty="1"
+	fp="."
+	iBM="\w " iBEM="\w*">
+	</S>
+	<S s="]" k="" t="]"
+	f="0000000000000000100000" sn="13" w="1" ty="1"
+	fp="]">
+	</S>
+	<S s="Then" k="Then" t="Then" a="Then"
+	f="0000010000000000010001" sn="14" w="1" ty="1"
+	c="1:2"
+	m="\v 2 ">
+	</S>
+	<S s="Jesus" k="Jesus" t="Jesus" a="Jesus"
+	f="0000000000000000000001" sn="15" w="1" ty="1">
+	</S>
+	<S s="said," k="said" t="said," a="said"
+	f="0000000000000000000001" sn="16" w="1" ty="1"
+	fp=",">
+	</S>
+	<S s="“Verily," k="Verily" t="“Verily," a="Verily"
+	f="0000000000000000000001" sn="17" w="1" ty="1"
+	pp="“" fp=","
+	iBM="\k " iBEM="\k*">
+	</S>
+	<S s="verily" k="verily" t="verily" a="verily"
+	f="0000000000000000000001" sn="18" w="1" ty="1">
+	</S>
+	<S s="I" k="I" t="I" a="I"
+	f="0000000000000000000001" sn="19" w="1" ty="1">
+	</S>
+	<S s="say," k="say" t="say," a="say"
+	f="0000000000000000000001" sn="20" w="1" ty="1"
+	fp=",">
+	</S>
+	<S s="the" k="the" t="the" a="the"
+	f="0000000000000000000001" sn="21" w="1" ty="1">
+	</S>
+	<S s="‘Son" k="Son" t="‘Son" a="Son"
+	f="0000000000000000000001" sn="22" w="1" ty="1"
+	pp="‘"
+	iNM="\qt ">
+	</S>
+	<S s="of" k="of" t="of" a="of"
+	f="0000000000000000000001" sn="23" w="1" ty="1">
+	</S>
+	<S s="Man’.”" k="Man" t="Man’.”" a="Man"
+	f="0000000000000000100001" sn="24" w="1" ty="1"
+	fp="’.”"
+	iNEM="\wj*">
+	</S>
+	<S s="Make" k="Make" t="Make" a="Make"
+	f="0000010000000000010001" sn="25" w="1" ty="1"
+	c="1:3"
+	m="\v 3 ">
+	</S>
+	<S s="another" k="another" t="another" a="another"
+	f="0000000000000000000001" sn="26" w="1" ty="1">
+	</S>
+	<S s="footie" k="footie" t="footie" a="footie"
+	f="0000000000000000100001" sn="27" w="1" ty="1">
+	</S>
+	<S s="+" k="+" t="+" a="+"
+	f="0010000000000000111001" sn="28" w="1" ty="9"
+	i="footnote"
+	m="\f ">
+	</S>
+	<S s="1:12" k="1:12" t="1:12" a="1:12"
+	f="0000000000000000111001" sn="29" w="1" ty="9"
+	m="\fr ">
+	</S>
+	<S s="The" k="The" t="The" a="The"
+	f="0000000000000000011001" sn="30" w="1" ty="9"
+	m="\ft ">
+	</S>
+	<S s="word" k="word" t="word" a="word"
+	f="0000000000000000101001" sn="31" w="1" ty="9">
+	</S>
+	<S s="redeem" k="redeem" t="redeem" a="redeem"
+	f="0000000000000000111001" sn="32" w="1" ty="9"
+	m="\fk ">
+	</S>
+	<S s="is" k="is" t="is" a="is"
+	f="0000000000000000011001" sn="33" w="1" ty="9"
+	m="\ft ">
+	</S>
+	<S s="a" k="a" t="a" a="a"
+	f="0000000000000000001001" sn="34" w="1" ty="9">
+	</S>
+	<S s="keyword." k="keyword" t="keyword." a="keyword"
+	f="0000000000000000101001" sn="35" w="1" ty="9"
+	fp=".">
+	</S>
+	<S s="Verse" k="Verse" t="Verse" a="Verse"
+	f="0000000000000000001001" sn="36" w="1" ty="9">
+	</S>
+	<S s="4" k="4" t="4" a="4"
+	f="0000000000000000001001" sn="37" w="1" ty="9"
+	m="\fv ">
+	</S>
+	<S s="is" k="is" t="is" a="is"
+	f="0000000000000000001001" sn="38" w="1" ty="9">
+	</S>
+	<S s="referred" k="referred" t="referred" a="referred"
+	f="0000000000000000001001" sn="39" w="1" ty="9">
+	</S>
+	<S s="to," k="to" t="to," a="to"
+	f="0000000000000000001001" sn="40" w="1" ty="9"
+	fp=",">
+	</S>
+	<S s="punctuation" k="punctuation" t="punctuation" a="punctuation"
+	f="0000000000000000001001" sn="41" w="1" ty="9">
+	</S>
+	<S s="is~internal" k="is~internal" t="is~internal" a="is~internal"
+	f="0000000000000000101001" sn="42" w="2" ty="9"
+	iBM="\k " iBEM="\it*">
+		<S s="is" k="is"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		iBM="\k " iBEM="\k*">
+		</S>
+		<S s="internal" k="internal"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		iBM="\it " iBEM="\it*">
+		</S>
+	</S>
+	<S s="before" k="before" t="before" a="before"
+	f="0000000000000000011001" sn="43" w="1" ty="9"
+	m="\fq ">
+	</S>
+	<S s="the" k="the" t="the" a="the"
+	f="0000000000000000001001" sn="44" w="1" ty="9">
+	</S>
+	<S s="endmarkers.!" k="endmarkers" t="endmarkers.!" a="endmarkers"
+	f="0100000000000000101001" sn="45" w="1" ty="9"
+	fp="." fop="!"
+	em="\f*">
+	</S>
+	<S s="and" k="and" t="and" a="and"
+	f="0000000000000000010001" sn="46" w="1" ty="1">
+	</S>
+	<S s="afterwards" k="afterwards" t="afterwards" a="afterwards"
+	f="0000000000000000000001" sn="47" w="1" ty="1">
+	</S>
+	<S s="also," k="also" t="as well," a="as well"
+	f="0000000000000000000001" sn="48" w="1" ty="1"
+	fp=",">
+	</S>
+	<S s="‘teachings’~“from?”" k="teachings~from" t="‘teachings’~“from?”" a="teachings~from"
+	f="0000000000000000100001" sn="49" w="2" ty="1"
+	pp="‘" fp="?”"
+	iNM="\wj ">
+		<S s="‘teachings’" k="teachings"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="‘" fp="’">
+		</S>
+		<S s="“from?”" k="from"
+		f="0000000000000000100000" sn="0" w="1" ty="1"
+		pp="“" fp="?”">
+		</S>
+	</S>
+	<S s="Jesus" k="Jesus" t="Jesus" a="Jesus"
+	f="0000000000000000000001" sn="50" w="1" ty="1">
+	</S>
+	<S s="start" k="start" t="start" a="start"
+	f="0000000000000000000001" sn="51" w="1" ty="1">
+	</S>
+	<S s="here." k="here" t="local." a="local"
+	f="0000000000000000100001" sn="52" w="1" ty="1"
+	fp=".">
+	</S>
+	<S s="+" k="+" t="+" a="+"
+	f="0010000000000000111001" sn="53" w="1" ty="9"
+	i="footnote"
+	m="\f ">
+	</S>
+	<S s="Not" k="Not" t="Not" a="Not"
+	f="0000000000000000011001" sn="54" w="1" ty="9"
+	m="\ft ">
+	</S>
+	<S s="some" k="some" t="some" a="some"
+	f="0000000000000000001001" sn="55" w="1" ty="9">
+	</S>
+	<S s="other" k="other" t="other" a="other"
+	f="0000000000000000001001" sn="56" w="1" ty="9">
+	</S>
+	<S s="place." k="place" t="place." a="place"
+	f="0100000000000000101001" sn="57" w="1" ty="9"
+	fp="."
+	em="\f*">
+	</S>
+	<S s="Fixed" k="Fixed" t="Fixed" a="Fixed"
+	f="0000010000000000010001" sn="58" w="1" ty="1"
+	c="1:4"
+	m="\v 4 ">
+	</S>
+	<S s="space~“ ‘Inner" k="space~Inner" t="space~“ ‘Inner" a="space~Inner"
+	f="0000000000000000000001" sn="59" w="2" ty="1">
+		<S s="space" k="space"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+		<S s="“ ‘Inner" k="Inner"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘">
+		</S>
+	</S>
+	<S s="quotation’" k="quotation" t="quotation’" a="quotation"
+	f="0000000000000000100001" sn="60" w="1" ty="1"
+	fp="’">
+	</S>
+	<S s="he" k="he" t="he" a="he"
+	f="0000000000000000000001" sn="61" w="1" ty="1">
+	</S>
+	<S s="said.”" k="said" t="said.”" a="said"
+	f="0000000000000000100001" sn="62" w="1" ty="1"
+	fp=".”">
+	</S>
+	<S s="The" k="The" t="The" a="The"
+	f="0000010000000000010001" sn="63" w="1" ty="1"
+	c="1:5"
+	m="\v 5 ">
+	</S>
+	<S s="Son" k="Son" t="Son" a="Son"
+	f="0000000000000000000001" sn="64" w="1" ty="1">
+	</S>
+	<S s="of" k="of" t="of" a="of"
+	f="0000000000000000000001" sn="65" w="1" ty="1">
+	</S>
+	<S s="God." k="God" t="God." a="God"
+	f="0000000000000000100001" sn="66" w="1" ty="1"
+	fp=".">
+	</S>
+	<S s="+" k="+" t="+" a="+"
+	f="0010000000000000111001" sn="67" w="1" ty="9"
+	i="footnote"
+	m="\f ">
+	</S>
+	<S s="1.1:" k="1.1" t="1.1:" a="1.1"
+	f="0000000000000000111001" sn="68" w="1" ty="9"
+	fp=":"
+	m="\fr ">
+	</S>
+	<S s="Some" k="Some" t="Some" a="Some"
+	f="0000000000000000011001" sn="69" w="1" ty="9"
+	m="\ft ">
+	</S>
+	<S s="lack" k="lack" t="lack" a="lack"
+	f="0000000000000000101001" sn="70" w="1" ty="9">
+	</S>
+	<S s="the" k="the" t="the" a="the"
+	f="0000000000000000011001" sn="71" w="1" ty="9"
+	m="\fq ">
+	</S>
+	<S s="Son" k="Son" t="Son" a="Son"
+	f="0000000000000000001001" sn="72" w="1" ty="9">
+	</S>
+	<S s="of" k="of" t="of" a="of"
+	f="0000000000000000001001" sn="73" w="1" ty="9">
+	</S>
+	<S s="God." k="God" t="God." a="God"
+	f="0100000000000000101001" sn="74" w="1" ty="9"
+	fp="."
+	em="\f*">
+	</S>
+	<S s="Selah." k="Selah" t="Selah." a="Selah"
+	f="0000000000000000110001" sn="75" w="1" ty="1"
+	fp=".">
+	</S>
+	<S s="Verse" k="Verse" t="Verse" a="Verse"
+	f="0000010000000000010001" sn="76" w="1" ty="1"
+	c="1:6"
+	m="\v 6  "
+	fi="\~FILTER \x - \xo 1:5: \xk Son \xt Luk 1.5; \xot Dan 3.6\xot*\xnt Jhn 15.20\xnt*\x* \~FILTER*">
+	</S>
+	<S s="six." k="six" t="six." a="six"
+	f="0000000000000000100001" sn="77" w="1" ty="1"
+	fp=".">
+	</S>
+	<S s="He" k="He" t="He" a="He"
+	f="0000010000000000010001" sn="78" w="1" ty="1"
+	c="1:7"
+	m="\v 7 ">
+	</S>
+	<S s="said," k="said" t="said," a="said"
+	f="0000000000000000000001" sn="79" w="1" ty="1"
+	fp=",">
+	</S>
+	<S s="“Behold," k="Behold" t="“Behold," a="Behold"
+	f="0000000000000000000001" sn="80" w="1" ty="1"
+	pp="“" fp=",">
+	</S>
+	<S s="they" k="they" t="they" a="they"
+	f="0000000000000000000001" sn="81" w="1" ty="1">
+	</S>
+	<S s="said" k="said" t="said" a="said"
+	f="0000000000000000000001" sn="82" w="1" ty="1">
+	</S>
+	<S s="‘It" k="It" t="‘It" a="It"
+	f="0000000000000000000001" sn="83" w="1" ty="1"
+	pp="‘">
+	</S>
+	<S s="might" k="might" t="might" a="might"
+	f="0000000000000000000001" sn="84" w="1" ty="1">
+	</S>
+	<S s="work!" k="work" t="labour!" a="labour"
+	f="0000000000000000100001" sn="85" w="1" ty="1"
+	fp="!">
+	</S>
+	<S s="-" k="-" t="-" a="-"
+	f="0010000000000000111001" sn="86" w="1" ty="9"
+	i="footnote"
+	m="\f ">
+	</S>
+	<S s="1.7:" k="1.7" t="1.7:" a="1.7"
+	f="0000000000000000111001" sn="87" w="1" ty="9"
+	fp=":"
+	m="\fr ">
+	</S>
+	<S s="Testing" k="Testing" t="Testing" a="Testing"
+	f="0000000000000000011001" sn="88" w="1" ty="9"
+	m="\ft ">
+	</S>
+	<S s="testing?’" k="testing" t="testing?’" a="testing"
+	f="0100000000000000101001" sn="89" w="1" ty="9"
+	fp="?" fop="’"
+	em="\f*" iNEM="\wj*">
+	</S>
+	<S s="end" k="end" t="end" a="end"
+	f="0000000000000000010001" sn="90" w="1" ty="1">
+	</S>
+	<S s="verse" k="verse" t="verse" a="verse"
+	f="0000000000000000000001" sn="91" w="1" ty="1">
+	</S>
+	<S s="seven." k="seven" t="seven." a="seven"
+	f="0000000000000000100001" sn="92" w="1" ty="1"
+	fp=".">
+	</S>
+	<S s="Down" k="Down" t="Down" a="Down"
+	f="0000010000000000010001" sn="93" w="1" ty="1"
+	c="1:8"
+	m="\v 8 ">
+	</S>
+	<S s="“ ‘Jerusalem’ ”" k="Jerusalem" t="“ ‘Jerusalem’ ”" a="Jerusalem"
+	f="0000000000000000100001" sn="94" w="1" ty="1"
+	pp="“ ‘" fp="’ ”"
+	iBM="\k " iBEM="\k*">
+	</S>
+	<S s="&quot; ‘way.’ &quot; " k="way" t="&quot; ‘way.’ &quot;" a="way"
+	f="0000000000000000100001" sn="95" w="1" ty="1"
+	pp="&quot; ‘" fp=".’ &quot;">
+	</S>
+	<S s="Did" k="Did" t="Did" a="Did"
+	f="0000000000000000000001" sn="96" w="1" ty="1">
+	</S>
+	<S s="both" k="both" t="both" a="both"
+	f="0000000000000000000001" sn="97" w="1" ty="1">
+	</S>
+	<S s="straight" k="straight" t="straight" a="straight"
+	f="0000000000000000000001" sn="98" w="1" ty="1">
+	</S>
+	<S s="“quotes”" k="quotes" t="“quotes”" a="quotes"
+	f="0000000000000000100001" sn="99" w="1" ty="1"
+	pp="“" fp="”"
+	iNM="\qt " iNEM="\qt*">
+	</S>
+	<S s="get" k="get" t="get" a="get"
+	f="0000000000000000000001" sn="100" w="1" ty="1">
+	</S>
+	<S s="stored" k="stored" t="stored" a="stored"
+	f="0000000000000000000001" sn="101" w="1" ty="1">
+	</S>
+	<S s="on" k="on" t="on" a="on"
+	f="0000000000000000000001" sn="102" w="1" ty="1">
+	</S>
+	<S s="the" k="the" t="the" a="the"
+	f="0000000000000000000001" sn="103" w="1" ty="1">
+	</S>
+	<S s="one" k="one" t="one" a="one"
+	f="0000000000000000000001" sn="104" w="1" ty="1">
+	</S>
+	<S s="source" k="source" t="source" a="source"
+	f="0000000000000000000001" sn="105" w="1" ty="1">
+	</S>
+	<S s="phrase?" k="phrase" t="phrase?" a="phrase"
+	f="0000000000000000100001" sn="106" w="1" ty="1"
+	fp="?">
+	</S>
+	<S s="Here" k="Here" t="Here" a="Here"
+	f="0000000000000000011001" sn="107" w="1" ty="0"
+	i="?\y? "
+	m="\y ">
+	</S>
+	<S s="be" k="be" t="be" a="be"
+	f="0000000000000000001001" sn="108" w="1" ty="0">
+	</S>
+	<S s="an" k="an" t="an" a="an"
+	f="0000000000000000001001" sn="109" w="1" ty="0">
+	</S>
+	<S s="unknown" k="unknown" t="unknown" a="unknown"
+	f="0000000000000000001001" sn="110" w="1" ty="0">
+	</S>
+	<S s="marker." k="marker" t="marker." a="marker"
+	f="0000000000000000101001" sn="111" w="1" ty="0"
+	fp=".">
+	</S>
+	<S s="Jesus" k="Jesus" t="Jesus" a="Jesus"
+	f="0000010000000000010001" sn="112" w="1" ty="1"
+	c="1:9"
+	m="\v 9 ">
+	</S>
+	<S s="said" k="said" t="said" a="said"
+	f="0000000000000000100001" sn="113" w="1" ty="1">
+	</S>
+	<S s="+" k="+" t="+" a="+"
+	f="0010000000000000111001" sn="114" w="1" ty="9"
+	i="footnote"
+	m="\f ">
+	</S>
+	<S s="profound" k="profound" t="profound" a="profound"
+	f="0000000000000000011001" sn="115" w="1" ty="9"
+	m="\ft " iBM="\w " iBEM="\w*">
+	</S>
+	<S s="things.." k="things" t="things.." a="things"
+	f="0100000000000000101001" sn="116" w="1" ty="9"
+	fp="." fop="."
+	em="\f*">
+	</S>
+	<S s="He" k="He" t="He" a="He"
+	f="0000000000000000010001" sn="117" w="1" ty="1">
+	</S>
+	<S s="spoke" k="spoke" t="spoke" a="spoke"
+	f="0000000000000000000001" sn="118" w="1" ty="1">
+	</S>
+	<S s="of" k="of" t="of" a="of"
+	f="0000000000000000000001" sn="119" w="1" ty="1">
+	</S>
+	<S s="salvation" k="salvation" t="salvation" a="salvation"
+	f="0000000000000000000001" sn="120" w="1" ty="1"
+	iBM="\k \w " iBEM="\w*\k*">
+	</S>
+	<S s="and" k="and" t="and" a="and"
+	f="0000000000000000000001" sn="121" w="1" ty="1">
+	</S>
+	<S s="heaven" k="heaven" t="heaven" a="heaven"
+	f="0000000000000000100001" sn="122" w="1" ty="1"
+	iBM="\bd \it " iBEM="\it*\bd*">
+	</S>
+	<S s="+" k="+" t="+" a="+"
+	f="0010000000000000111001" sn="123" w="1" ty="9"
+	i="footnote"
+	m="\f ">
+	</S>
+	<S s="With" k="With" t="With" a="With"
+	f="0000000000000000011001" sn="124" w="1" ty="9"
+	m="\ft ">
+	</S>
+	<S s="deletable" k="deletable" t="deletable" a="deletable"
+	f="0000000000000000001001" sn="125" w="1" ty="9">
+	</S>
+	<S s="space~between" k="space~between" t="space~between" a="space~between"
+	f="0000000000000000001001" sn="126" w="2" ty="9">
+		<S s="space" k="space"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+		<S s="between" k="between"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+	</S>
+	<S s="endmarkers." k="endmarkers" t="endmarkers." a="endmarkers"
+	f="0100000000000000101001" sn="127" w="1" ty="9"
+	fp="."
+	em="\f*">
+	</S>
+	<S s="at" k="at" t="at" a="at"
+	f="0000000000000000010001" sn="128" w="1" ty="1">
+	</S>
+	<S s="the" k="the" t="the" a="the"
+	f="0000000000000000000001" sn="129" w="1" ty="1">
+	</S>
+	<S s="end." k="end" t="end." a="end"
+	f="0000000000000000100001" sn="130" w="1" ty="1"
+	fp=".">
+	</S>
+	<S s="Reordering" k="Reordering" t="Reordering" a="Reordering"
+	f="0000010000000000010001" sn="131" w="1" ty="1"
+	c="1:10"
+	m="\v 10 ">
+	</S>
+	<S s="punctuation!" k="punctuation" t="punctuation!" a="punctuation"
+	f="0000000000000000100001" sn="132" w="1" ty="1"
+	fp="!"
+	iBM="\w " iBEM="\w*">
+	</S>
+	<S s="on" k="on" t="on" a="on"
+	f="0000000000000000000001" sn="133" w="1" ty="1">
+	</S>
+	<S s="export" k="export" t="export" a="export"
+	f="0000000000000000000001" sn="134" w="1" ty="1">
+	</S>
+	<S s="“ ‘is’ ”~eminently" k="is~eminently" t="“ ‘is’ ”~eminently" a="is~eminently"
+	f="0000000000000000000001" sn="135" w="2" ty="1"
+	pp="“ ‘">
+		<S s="“ ‘is’ ”" k="is"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘" fp="’ ”">
+		</S>
+		<S s="eminently" k="eminently"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+	</S>
+	<S s="sensible" k="sensible" t="sensible" a="sensible"
+	f="0000000000000000000001" sn="136" w="1" ty="1">
+	</S>
+	<S s="to" k="to" t="to" a="to"
+	f="0000000000000000000001" sn="137" w="1" ty="1">
+	</S>
+	<S s="all" k="all" t="all" a="all"
+	f="0000000000000000000001" sn="138" w="1" ty="1">
+	</S>
+	<S s="and" k="and" t="and" a="and"
+	f="0000000000000000000001" sn="139" w="1" ty="1">
+	</S>
+	<S s="“ ‘sundry’ ”~“diverse”" k="sundry~diverse" t="“ ‘sundry’ ”~“diverse”" a="sundry~diverse"
+	f="0000000000000000100001" sn="140" w="2" ty="1"
+	pp="“ ‘" fp="”">
+		<S s="“ ‘sundry’ ”" k="sundry"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘" fp="’ ”">
+		</S>
+		<S s="“diverse”" k="diverse"
+		f="0000000000000000100000" sn="0" w="1" ty="1"
+		pp="“" fp="”">
+		</S>
+	</S>
+	<S s="people." k="people" t="people." a="people"
+	f="0000000000000000100001" sn="141" w="1" ty="1"
+	fp=".">
+	</S>
+	<S s="What" k="What" t="What" a="What"
+	f="0000010000000000010001" sn="142" w="1" ty="1"
+	c="1:11"
+	m="\v 11 ">
+	</S>
+	<S s="?now?" k="now" t="?now?" a="now"
+	f="0000000000000000100001" sn="143" w="1" ty="1"
+	pp="?" fp="?">
+	</S>
+	<S s="-" k="-" t="-" a="-"
+	f="0010000000000000111001" sn="144" w="1" ty="9"
+	i="footnote"
+	m="\f ">
+	</S>
+	<S s="At" k="At" t="At" a="At"
+	f="0000000000000000011001" sn="145" w="1" ty="9"
+	m="\ft ">
+	</S>
+	<S s="end" k="end" t="end" a="end"
+	f="0000000000000000001001" sn="146" w="1" ty="9">
+	</S>
+	<S s="footnote!" k="footnote" t="footnote!" a="footnote"
+	f="0100000000000000101001" sn="147" w="1" ty="9"
+	fp="!"
+	em="\f*">
+	</S>
+</AdaptItDoc>
