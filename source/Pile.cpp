@@ -193,7 +193,7 @@ CPile::CPile(const CPile& pile)
 		m_pCell[i] = new CCell(*(pile.m_pCell[i]));
 	}
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	int nDebugIndex = 4;
 	wxLogDebug(_T("DebugIndex = %d  CPile, copy creator, CPile pointer  %x"),
 				nDebugIndex,this);
@@ -827,7 +827,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				}
 
 #ifdef _SHOW_CHAP_VERSE
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				// the wxString Len() value counts the bogus extra characters if they are
 				// "there", so the wxLogDebug will display the error if the kludge above
 				// is commented out

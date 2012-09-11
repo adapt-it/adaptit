@@ -696,7 +696,7 @@ wxString ExtractSubstring(const wxString& str, int first, int last)
 	wxString outStr; outStr.Empty();
 	if (last > first)
 	{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		wxASSERT(FALSE);
 #endif
 		return outStr;
@@ -704,7 +704,7 @@ wxString ExtractSubstring(const wxString& str, int first, int last)
 	int length = str.Len();
 	if (first > length -1)
 	{
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		wxASSERT(FALSE);
 #endif
 		return outStr;
@@ -8777,7 +8777,7 @@ void ConvertSPList2SPArray(SPList* pList, SPArray* pArray)
 		CSourcePhrase* pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
 		pArray->Add(pSrcPhrase);
-#if defined(ShowConversionItems) && defined(__WXDEBUG__)
+#if defined(ShowConversionItems) && defined(_DEBUG)
 		wxLogDebug(_T("from SPList:  m_chapterVerse: %s   sequNum: %d   m_srcPhrase: %s"),
 			pSrcPhrase->m_chapterVerse.c_str(), pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 #endif
@@ -8809,7 +8809,7 @@ void ExtractSubarray(SPArray* pInputArray, int nStartAt, int nEndAt, SPArray* pS
 void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 									bool bSuppressWarningOnStoreKBFailure)
 {
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 
 //#else
     // BEW 6July10, code added for handling situation when the phrase box location has just
@@ -8925,7 +8925,7 @@ void UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 // NOTE: oldLabel and newLabel must be single-line strings, it won't work if they are not
 int CalcLabelWidthDifference(wxString& oldLabel, wxString& newLabel, wxWindow* pWindow)
 {
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	int offset1 = -1;
 	int offset2 = -1;
 	offset1 = oldLabel.Find(_T('\n'));

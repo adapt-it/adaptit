@@ -349,7 +349,7 @@ void KBEditSearch::PopulateMatchedList(wxArrayString* pMatchStrArray,
 void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					CKB* pKB, KBMatchRecordArray* pMatchRecordArray, bool* pbIsGlossing)
 {
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	wxLogDebug(_T("Start SetupMatchArray()\n"));
 	int anItemsCount = 0;
 	#endif
@@ -406,7 +406,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 			do {
 				testStr.Empty(); // make ready for a new value
 				key = iter->first; // the source text (or gloss if bIsGlossing is TRUE) 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				//int offset = wxNOT_FOUND;
 				//if ( (offset = key.Find(_T("downcase"))) != wxNOT_FOUND)
 				//{
@@ -455,18 +455,18 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					if (!pRefStr->GetDeletedFlag() && !testStr.IsEmpty() )
 					{
 						// check this entry out for a match, it's not deleted nor empty
-						#ifdef __WXDEBUG__
+						#ifdef _DEBUG
 						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
 						anItemsCount++;
-						#endif //__WXDEBUG__
+						#endif //_DEBUG
 
 						bool bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
 						if (bSuccessfulMatch)
 						{
 							pMatchRec = new KBMatchRecord;
-							#ifdef __WXDEBUG__
+							#ifdef _DEBUG
 							wxLogDebug(_T("Matched:  %s"),testStr.c_str());
-							#endif //__WXDEBUG__
+							#endif //_DEBUG
 
 							// fill it out
 							pMatchRec->strOriginal = testStr; // adaptation, or gloss
@@ -506,18 +506,18 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						if (!pRefStr->GetDeletedFlag() && !testStr.IsEmpty() )
 						{
 							// check this entry out for a match, it's not deleted nor empty
-							#ifdef __WXDEBUG__
+							#ifdef _DEBUG
 							wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
 							anItemsCount++;
-							#endif //__WXDEBUG__
+							#endif //_DEBUG
 
 							int bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
 							if (bSuccessfulMatch)
 							{
 								pMatchRec = new KBMatchRecord;
-								#ifdef __WXDEBUG__
+								#ifdef _DEBUG
 								wxLogDebug(_T("Matched:  %s"),testStr.c_str());
-								#endif //__WXDEBUG__
+								#endif //_DEBUG
 								// fill it out
 								pMatchRec->strOriginal = testStr; // adaptation, or gloss
 								pMatchRec->pUpdateRecord = NULL; // as yet, undefined
@@ -555,7 +555,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 		EnableFindNextButton(TRUE);
 	}
 
-	#ifdef __WXDEBUG__
+	#ifdef _DEBUG
 	wxLogDebug(_T("Items count:   %d"), anItemsCount);
 	wxLogDebug(_T("End SetupMatchArray()\n"));
 	#endif

@@ -63,7 +63,7 @@ wxString	GetTheLanguageDirectionality(ExportType exportType);
 wxString	GetCleanExportedUSFMBaseText(ExportType exportType);
 wxString	ApplyNormalizingFiltersToTheUSFMText(wxString text);
 bool		WriteXHTML_To_File(wxString exportPath, CBString& text, bool bShowMessageIfSucceeded);
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 void		XhtmlExport_DebuggingSupport(); // use only in debug mode -- and 
 					// internally has a few #defines to specify what to do
 #endif

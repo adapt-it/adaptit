@@ -60,7 +60,7 @@ CAIPrintPreviewFrame::CAIPrintPreviewFrame(
 	bHideGlossesOnClose = FALSE;
 	bHideFreeTranslationsOnClose = FALSE;
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("AIPrintPreviewFrame  createor AIPrintPreviewFrame() line 59 at creation: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d,\n           bHideFreeTranslationsOnClose = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -70,7 +70,7 @@ CAIPrintPreviewFrame::CAIPrintPreviewFrame(
 CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
 {
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("AIPrintPreviewFrame  ~AIPrintPreviewFrame() line 62 before SwitchScreenFreeTranslationMode() is called: \n                  gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -88,7 +88,7 @@ CAIPrintPreviewFrame::~CAIPrintPreviewFrame(void)
     gbCheckInclFreeTransText = FALSE; // restore default OFF
     gbCheckInclGlossesText = FALSE; // restore default OFF
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("AIPrintPreviewFrame  ~AIPrintPreviewFrame() line 80 after SwitchScreenFreeTranslationMode() is called: \n                  gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode, (int)pApp->m_bFreeTranslationMode);
 #endif

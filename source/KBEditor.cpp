@@ -755,7 +755,7 @@ void CKBEditor::DoRetain()
 					  bStoreEmptyStringsToo);
 	numSearchStrings = numSearchStrings; // avoid compiler warning
 	// check what we got
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	long index;
 	wxLogDebug(_T("\n"));
 	for (index = 0; index < numSearchStrings; index++)

@@ -203,7 +203,7 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 	CAdapt_ItApp* pApp = &wxGetApp();
 
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 205 at start: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -226,7 +226,7 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
     gbCheckInclGlossesText = FALSE; // restore default OFF
 
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("PrintOptionsDlg  ~CPrintOptionsDlg() line 228 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d ,\n        bHideFreeTranslationsOnClose = %d, m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)bHideFreeTranslationsOnClose, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -246,7 +246,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//InitDialog() is not virtual, no call needed to a base class
 	//wxLogDebug(_T("InitDialog() START"));
 	CAdapt_ItApp* pApp = &wxGetApp();
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
     wxLogDebug(_T("InitDialog() on entry, m_selectionLine = %d , m_bPrintingSelection %d    (at line 250)"),
                pApp->m_selectionLine, pApp->m_bPrintingSelection);
 #endif
@@ -372,7 +372,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
         gbCheckInclGlossesText = FALSE;
 	}
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("PrintOptionsDlg  InitDialog() line 356: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d, m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
@@ -402,7 +402,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
         pApp->ClearSavedSelection();
     }
 
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
     wxLogDebug(_T("InitDialog() before LayoutAndPaginate(), m_selectionLine = %d , m_bPrintingSelection %d    (at line 376)"),
                pApp->m_selectionLine, pApp->m_bPrintingSelection);
 #endif
@@ -427,7 +427,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		::wxBell(); // we can still sound the bell, to let the user (or developer!) know something went bad
 		return;
 	}
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
     wxLogDebug(_T("InitDialog() after LayoutAndPaginate(), m_selectionLine = %d , m_bPrintingSelection %d    (at line 401)"),
                pApp->m_selectionLine, pApp->m_bPrintingSelection);
 #endif
@@ -551,7 +551,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
         }
     }
     */
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
     wxLogDebug(_T("InitDialog() before setting buttons, m_selectionLine = %d , m_bPrintingSelection %d    (at line 513)"),
                pApp->m_selectionLine, pApp->m_bPrintingSelection);
 #endif
@@ -687,7 +687,7 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
 #if defined(Print_failure)
-#if defined(__WXDEBUG__) && defined(__WXGTK__)
+#if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("PrintOptionsDlg  OnOK() line 626 at end: gbCheckInclFreeTransText = %d , gbCheckInclGlossesText = %d , m_bFreeTranslationMode = %d"),
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif

@@ -138,7 +138,7 @@ void CStrip::Draw(wxDC* pDC)
 
 // declaration of Print_failure is at top of file (there's another in Adapt_It.h near top
 // which can be used to turn on logging in many files which use that symbol)
-#if defined(__WXDEBUG__) && defined(Print_failure)
+#if defined(_DEBUG) && defined(Print_failure)
 	if (m_pLayout->m_pApp->m_bIsPrinting && m_pLayout->m_pApp->m_bPagePrintInProgress)
 	{
 		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d BUT THIS DRAW DOES NOTHING IN LINUX (by design)"),
@@ -177,7 +177,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 
 	// lay out the piles
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	SPList* pSrcPhrases = m_pLayout->m_pApp->m_pSourcePhrases;
 	SPList::Node* posDebug = pSrcPhrases->GetFirst();
 	int index = 0;
@@ -467,7 +467,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	int numPlaced = 0;
 	int pileIndex = nInitialPileIndex;
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("0.		CreateStrip: Remaining to be placed:  %d"),nEndPileIndex - nInitialPileIndex + 1);
 	}
@@ -515,7 +515,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	m_nFree -= pileWidth; // reduce the free space accordingly
 	pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("1.		CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d"),
 					this->m_nStrip,pileIndex_InStrip,pileWidth,nHorzOffset_FromLeft,m_nFree);
@@ -527,7 +527,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		// we've just placed the last pile to be placed, so return numPlaced and set m_bValid
 		// to TRUE, and let the caller work out if it should instead by set to FALSE
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("1.1		CreateStrip: Early exit: pileIndex > nEndPileIndex is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
@@ -545,7 +545,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	{
 		// no more piles available for placement, so return
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("1.2		CreateStrip: Early exit: pos == NULL is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
@@ -561,7 +561,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	if (m_nFree <= 0)
 	{
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("1.3		CreateStrip: Early exit: m_nFree <= 0 is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
@@ -591,7 +591,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 				// if we need to wrap, discontinue assigning piles to this strip (the
 				// nPileIndex_InList value is already correct for returning to caller)
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("1.4		CreateStrip: Exit due to WRAP condition satisfied,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
 	}
@@ -633,7 +633,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// set the pile's m_pOwningStrip member
 			pPile->m_pOwningStrip = this;
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
 		wxLogDebug(_T("2. inloop	CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d, numPlaced %d srcPhrase %s"),
@@ -647,7 +647,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// this pile won't fit, so the strip is full - declare it full and return
 			// the pile list's index for use in the next strip's creation
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
 		wxLogDebug(_T("2.1	inloop	CreateStrip:  nCurrentSpan <= m_nFree is TRUE so return,  pile[%d] Placed %d , nCurrentSpan %d m_nFree %d srcPhrase %s"),
@@ -668,7 +668,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// to TRUE, and let the caller work out if it should instead by set to FALSE
 			m_bValid = TRUE;
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
 		wxLogDebug(_T("2.2	inloop	CreateStrip: pileIndex > nEndPileIndex is TRUE, so return,  pile[%d] Placed %d srcPhrase %s"),
@@ -687,7 +687,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// advance the iterator for the CLayout's m_pileList list of pile pointers
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		if (pos != NULL)
 		{
@@ -707,7 +707,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
 			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
 /*
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	{
 		wxLogDebug(_T("	inloop	CreateStrip: ** Iterate Loop Now **, for next pile, nHorzOffset_FromLeft is %d"), nHorzOffset_FromLeft);
 	}

@@ -624,7 +624,7 @@ int Xhtml::ParseMarker_Content_Endmarker(wxString& buffer, wxString& mkr,
 	{
 		// build the chapter span's production & store in m_chapterNumSpan
 		numberStr = GetVerseOrChapterString(dataStr);
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 		// next line is for debugging
 		m_curChapter = numberStr;
 #endif
@@ -642,7 +642,7 @@ int Xhtml::ParseMarker_Content_Endmarker(wxString& buffer, wxString& mkr,
 	{
 		// build the verse span's production & store in m_verseNumSpan
 		numberStr = GetVerseOrChapterString(dataStr);
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 		// next line is for debugging
 		m_curVerse = numberStr;
 #endif
@@ -1214,7 +1214,7 @@ CBString Xhtml::BuildTitleInfo(wxString*& pText)
 		// are we at the end of the \mt* markers?
 		} while (m_nextMkr == mtMkr || m_nextMkr == mt1Mkr || m_nextMkr == mt2Mkr || m_nextMkr == mt3Mkr);
 	}
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	wxString s = ToUtf16(out);
 	wxLogDebug(_T("BuildTitleInfo():   %s"), s.c_str());
 #endif
@@ -1354,7 +1354,7 @@ CBString Xhtml::BuildCrossReferenceParts(XhtmlTagEnum key, CBString uuid, wxStri
 	int itemLen = 0;
 	wxChar* pContent = NULL; // use this for the start of span of text being parsed over
 
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 	//if (m_curChapter == _T("17") && m_curVerse == _T("35"))
 //	if (m_curChapter == _T("1") && m_curVerse == _T("5"))
 //	{
@@ -1857,7 +1857,7 @@ CBString Xhtml::BuildFootnoteOrEndnoteParts(XhtmlTagEnum key, CBString uuid, wxS
 	int itemLen = 0;
 	wxChar* pContent = NULL; // use this for the start of span of text being parsed over
 
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 	//if (m_curChapter == _T("17") && m_curVerse == _T("35"))
 //	if (m_curChapter == _T("1") && m_curVerse == _T("5"))
 //	{
@@ -3440,7 +3440,7 @@ CBString Xhtml::ConstructPictureID(wxString bookID, int nPictureNum)
 // will be lined up under the last one -- but remember, only when debugging in order to see
 // the structure.)
 // By using #defines, I can purpose this function for different kinds of analysis of the xhtml
-#if defined(__WXDEBUG__) && (defined(DO_CLASS_NAMES) || defined(DO_INDENT))
+#if defined(_DEBUG) && (defined(DO_CLASS_NAMES) || defined(DO_INDENT))
 void Xhtml::Indent_Etc_XHTML() // pinched from my commented out encoding converter code
 						 // in OnInit() and repurposed
 {
@@ -3498,7 +3498,7 @@ void Xhtml::Indent_Etc_XHTML() // pinched from my commented out encoding convert
 			CBString threeEndDivs = "</div></div></div>"; // test for these at end 
 				// (4 actually, but three is sufficient for the test's uniqueness)
 
-#if defined( XHTML_PRETTY ) && defined (__WXDEBUG__)
+#if defined( XHTML_PRETTY ) && defined (_DEBUG)
 			int indentPrettyLen;
 			CBString indentPrettyStr;
 			CBString spantag = "<span ";
@@ -3670,7 +3670,7 @@ void Xhtml::Indent_Etc_XHTML() // pinched from my commented out encoding convert
 					*pOut = *ptr;
 					// for keeping watch on last 128 chars when debugging
 /*
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 					char* pFurtherIn;
 					int aSpan = (int)(pOut - pOutStart);
 					if ( (int)((aSpan/128)* 128) == aSpan )
@@ -3683,7 +3683,7 @@ void Xhtml::Indent_Etc_XHTML() // pinched from my commented out encoding convert
 					ptr += 1;
 				}
 #endif
-#if defined( XHTML_PRETTY ) && defined (__WXDEBUG__)
+#if defined( XHTML_PRETTY ) && defined (_DEBUG)
 
 				else if (strncmp(ptr, pSpantag, 6) == 0
 						 ||

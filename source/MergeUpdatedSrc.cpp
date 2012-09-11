@@ -69,7 +69,7 @@ wxString rangeOrPsalmMkrs;
 wxString majorOrSeriesMkrs;
 wxString parallelPassageHeadMkrs;
 
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 // for debugging memory leaks
 int countBeforeSpans = 0;
 int countCommonSpans = 0;
@@ -623,7 +623,7 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 	// the return value can be zero of course, but it would be rare (e.g. a single source
 	// text's CSourcePhrase instance is in the arrOld's subspan here, and that
 	// CSourcePhrase instance just happens to be a placeholder)
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 	if (oldUniqueWordsCount > 0)
 		wxLogDebug(_T("oldUniqueWordsCount = %d ,  oldUniqueSrcWords:  %s"), oldUniqueWordsCount, oldUniqueSrcWords.c_str());
 	else
@@ -634,7 +634,7 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 	// compare the initial words from the arrNew array of CSourcePhrase instances with
 	// those in oldUniqueSrcWords
 	int commonsCount = GetWordsInCommon(arrNew, pSubspan, oldUniqueSrcWords, strArray, limit);
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 /*
 	if (commonsCount > 0)
 	{
@@ -819,7 +819,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	if (newSPCount == 0)
 		return;
 
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 	wxLogDebug(_T("\n\nMergeUpdatedSrcTextCore passed in: arrOld count = %d   arrNew count = %d"),
 		oldSPCount, newSPCount);
 #endif
@@ -871,7 +871,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	bSuccessful_New =  AnalyseSPArrayChunks(&arrNew, pChunksNew); // analyse arrNew
 	int countOldChunks = pChunksOld->GetCount();
 	int countNewChunks = pChunksNew->GetCount();
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 	wxLogDebug(_T("MergeUpdatedSrcTextCore  countOldChunks = %d   countNewChunks = %d"),
 		countOldChunks, countNewChunks);
 #endif
@@ -898,7 +898,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	//wxArrayInt arrPairingNew;
 
 	// get a wxLogDebug() display of the chunks and their types and ranges
-#if defined(__WXDEBUG__) && defined( myMilestoneDebugCalls)
+#if defined(_DEBUG) && defined( myMilestoneDebugCalls)
 	wxString unStr = _T("unknownChunkType");
 	wxString biStr = _T("bookInitialChunk");
 	wxString inStr = _T("introductionChunk");
@@ -1036,7 +1036,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
 				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 				arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() 2 book-initial chunks: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt, defaultLimit, nStartingSequNum);
 #endif
@@ -1093,7 +1093,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, 
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() 2 introduction chunks: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt, -1, nStartingSequNum);
 #endif
@@ -1153,7 +1153,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, 
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() a preFirstChapterChunk: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt, -1, nStartingSequNum);
 #endif
@@ -1220,7 +1220,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                   // carefully placed tests at the loop end below.
 		while(oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
 		{
-#if defined(__WXDEBUG__) && defined(LOOPINDEX)
+#if defined(_DEBUG) && defined(LOOPINDEX)
 			wxLogDebug(_T("while loop indices: oldChunkIndex %d   newChunkIndex %d"),oldChunkIndex,newChunkIndex);
 			if (newChunkIndex >= 10)
 			{
@@ -1266,7 +1266,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
 						pChunksOld, pChunksNew, processPerMilestone, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, paired: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
 #endif
@@ -1302,7 +1302,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
 						pChunksOld, pChunksNew, processPerMilestone, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, not paired, a super-chunk: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
 #endif
@@ -1317,7 +1317,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						pNewChunk = (SfmChunk*)pChunksNew->Item(newLastChunkIndex + 1);
 						pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMaxIndex);
 						CopyToList(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, pMergedList);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("CopyToList() milestoned, newLastChunkIndex < newMaxIndex: NEW [ %d : %d] copied"),
 				pNewChunk->startsAt, pEndChunkNew->endsAt);
 #endif
@@ -1435,7 +1435,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, disparate super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, defaultLimit, nStartingSequNum);
 #endif
@@ -1468,7 +1468,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() milestoned, disparate super-chunk -- at end: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pEndChunkOld->startsAt, pEndChunkOld->endsAt, pEndChunkNew->startsAt, pEndChunkNew->endsAt, -1, nStartingSequNum);
 #endif
@@ -1550,7 +1550,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                             // disparate chunks - with a large limit value too
 							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
 								((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("CopyToList() disparate sizes, oldChunkIndex == oldMatchedChunk && newChunkIndex < newMatchedChunk: NEW [ %d : %d]"),
 				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
 				((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt);
@@ -1584,7 +1584,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                             // needed
 							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
 								((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("CopyToList() NOT disparate sizes, oldChunkIndex == oldMatchedChunk && newChunkIndex < newMatchedChunk: NEW [ %d : %d]"),
 				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
 				((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt);
@@ -1619,7 +1619,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 							pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
 							pEndChunkOld = pOldChunk;
 							pEndChunkNew = pNewChunk;
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 							wxLogDebug(_T("Removing some OLD: disparate sizes, oldChunkIndex < oldMatchedChunk && newChunkIndex == newMatchedChunk: old word count %d  new word count %d, uses max"),
 								oldCountOfWords, newCountOfWords);
 #endif
@@ -1652,7 +1652,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
 						pEndChunkOld = pOldChunk;
 						pEndChunkNew = pNewChunk;
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 							wxLogDebug(_T("no aggregation yet: but disparate sizes, oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk: old word count %d  new word count %d, uses max"),
 								oldCountOfWords, newCountOfWords);
 #endif
@@ -1680,7 +1680,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						pNewChunk = (SfmChunk*)pChunksNew->Item(newChunkIndex);
 						pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldMatchedChunk - 1);
 						pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMatchedChunk - 1);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 							wxLogDebug(_T("recursion needed: NOT disparate sizes, a mess of unpaired chunks to aggregate & merge: old word count %d  new word count %d, uses max"),
 								oldCountOfWords, newCountOfWords);
 #endif
@@ -1705,7 +1705,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					pNewChunk = (SfmChunk*)pChunksNew->Item(newLastChunkIndex + 1);
 					pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldMaxIndex);
 					pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMaxIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 							wxLogDebug(_T("at end of the arrays without a pairing: old word count %d  new word count %d, uses max"),
 								oldCountOfWords, newCountOfWords);
 #endif
@@ -1726,7 +1726,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					MergeRecursively(subArrOld, subArrNew, pMergedList, dynamicLimit, nStartingSequNum, 
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() the messy aggregates: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
 				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, dynamicLimit, nStartingSequNum);
 #endif
@@ -1753,7 +1753,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// sized pair at oldMatchedChunk and newMatchedChunk
 					oldChunkIndex = oldMatchedChunk + 1;
 					newChunkIndex = newMatchedChunk + 1;
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 					wxLogDebug(_T("Kick-off indices for next iteration:  Disparate Sizes: oldChunkIndex %d  newChunkIndex %d  Loop Iterates Now"),
 					oldChunkIndex, newChunkIndex);
 #endif
@@ -1766,7 +1766,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// new arrays, that's what !bDoingToTheEnd tells us 
 					oldChunkIndex = oldMatchedChunk;
 					newChunkIndex = newMatchedChunk;
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 					wxLogDebug(_T("Kick-off indices for next iteration:  Normal Sizes: oldChunkIndex %d  newChunkIndex %d  Loop Iterates Now"),
 					oldChunkIndex, newChunkIndex);
 #endif
@@ -1794,7 +1794,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// copy the rest from arrNew to pMergedList
 			CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
 				((SfmChunk*)pChunksNew->Item(newMaxIndex))->endsAt, pMergedList);
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("CopyToList() AFTER LOOP, newChunkIndex <= newMaxIndex: NEW [ %d : %d] where newChunkIndex was %d"),
 				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
 				((SfmChunk*)pChunksNew->Item(newMaxIndex))->endsAt, newChunkIndex);
@@ -1837,7 +1837,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		// others, and any other unlikely combinations are best handled by simply calling
 		// MergeRecursively() with a limit value of -1, which gives the safest merge in a
 		// non- or partly-milestoned situation
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("else block, AFTER LOOP, special cases 1 23 or 3  -- we don't expect to enter either of these two blocks"));
 #endif		
 		if (arrOld.IsEmpty())
@@ -1917,7 +1917,7 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 	int first = (int)DISPARATE_SIZES_DENOMINATOR * maxWords;
 	if (first >  second)
 	{
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 		wxLogDebug(_T("AreSizesDisparate() is TRUE for pOldChunk %s:%s  OLD chunk: [starts,ends] = [ %d , %d ]  NEW chunk: [ %d , %d ] "),
 			pOldChunk->strChapter.c_str(), pOldChunk->strStartingVerse.c_str(), pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
 #endif
@@ -1926,7 +1926,7 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 	else
 	{
 //#ifdef myMilestoneDebugCalls
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 		wxLogDebug(_T("AreSizesDisparate() is FALSE, matched simple-verse chunks: for pOldChunk %s:%s  OLD = [ %d , %d ]  NEW = [ %d , %d ] "),
 			pOldChunk->strChapter.c_str(), pOldChunk->strStartingVerse.c_str(), pOldChunk->startsAt, pOldChunk->endsAt, pNewChunk->startsAt, pNewChunk->endsAt);
 #endif
@@ -2137,7 +2137,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 				SfmChunk* anOldChunkPtr = (SfmChunk*)pOldChunks->Item(oldMatchedChunk);
 				SfmChunk* aNewChunkPtr = (SfmChunk*)pNewChunks->Item(newMatchedChunk);
 				bDisparateSizes = AreSizesDisparate(arrOld, arrNew, anOldChunkPtr, aNewChunkPtr);
-#if defined(__WXDEBUG__) && defined(myMilestoneDebugCalls)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 				wxLogDebug(_T("FindClosestSafeMatchup() Matched: OLD SfmChunk %d  chap %d verse %d , NEW SfmChunk %d  chap %d verse %d , in arrOld at %d , & in arrNew at %d  bIsComplex %d , bDisparateSizes %d"),
 					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->associatedSfmChunk,
 					((ChunkInfo*)arrOldChunkInfos.Item(oldFoundAt))->chapter,
@@ -2267,7 +2267,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 	int newIndex = newStartChunk;
 	int oldChunkCount = pOldChunksArray->GetCount();
 	int newChunkCount = pNewChunksArray->GetCount();
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 	wxLogDebug(_T("GetMaxInSyncChunksPairing() before loop, oldChunkCount %d   newChunkCount %d"),
 		oldChunkCount, newChunkCount);
 #endif
@@ -2285,7 +2285,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			// far, and then do a special collection of the not-in-sync material etc
 			oldEndChunk = oldIndex - 1; // points to part of the last matched pair
 			newEndChunk = newIndex - 1; // points to the other part of the last matched pair
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() in loop: last matched pairs, oldEndChunk index: %d newEndChunk index: %d  Returning FALSE"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2301,7 +2301,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			// don't want to return index values that assume previous chunks exist
 			oldEndChunk = oldIndex;
 			newEndChunk = newIndex;
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() in loop: DISPARATE SIZES (current indices), oldEndChunk index: %d newEndChunk index: %d  Returning FALSE"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2316,7 +2316,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			arrPairingOld.Add(oldIndex);
 			//arrPairingNew.Add(newIndex);
 			
-#if defined( myMilestoneDebugCalls) && defined( __WXDEBUG__)
+#if defined( myMilestoneDebugCalls) && defined( _DEBUG)
 			// log the pair we've just accepted
 			SfmChunk* pAnOldChunk = (SfmChunk*)pOldChunksArray->Item(oldIndex);	
 			SfmChunk* pANewChunk = (SfmChunk*)pNewChunksArray->Item(newIndex);	
@@ -2331,7 +2331,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 				// return TRUE, and with the last paired SfmChunk instances' indices set
 				oldEndChunk = oldIndex - 1;
 				newEndChunk = newIndex - 1;
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 				wxLogDebug(_T("GetMaxInSyncChunksPairing() ELSE block, returns TRUE (oldIndex >= oldChunkCount) last pairing: oldEndChunk index: %d newEndChunk index: %d"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2342,7 +2342,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 				// return TRUE, and with the last paired SfmChunk instances' indices set
 				oldEndChunk = oldIndex - 1;
 				newEndChunk = newIndex - 1;
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 				wxLogDebug(_T("GetMaxInSyncChunksPairing() ELSE block, returns TRUE (newIndex >= newChunkCount) last pairing: oldEndChunk index: %d newEndChunk index: %d"),
 			oldEndChunk, newEndChunk);
 #endif
@@ -2350,7 +2350,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			}
 			// if control reaches here, neither index is at the end of its array, so the
 			// chunks can be accessed for testing on next iteration
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() 'neither index is at end of its array', oldIndex: %d  newIndex index: %d  will iterate"),
 			oldIndex, newIndex);
 #endif
@@ -2364,7 +2364,7 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 	// control should never get to here, but just in case
 	oldEndChunk = oldIndex - 1;
 	newEndChunk = newIndex - 1;
-#if defined(myMilestoneDebugCalls) && defined(__WXDEBUG__)
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
 	wxLogDebug(_T("GetMaxInSyncChunksPairing() end 'control should not get here' returns TRUE, oldEndChunk index: %d  newEndChunk index: %d"),
 			oldIndex, newIndex);
 #endif
@@ -2523,7 +2523,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	// set up the top level tuple, beforeSpan and commonSpan will be empty (that is, the
 	// tuple[0] and tuple[1] struct pointers will be NULL. Tuple[3] will have the whole
 	// extent of both oldSPArray and newSPArray.
-#if defined(__WXDEBUG__) && defined(_RECURSE_)
+#if defined(_DEBUG) && defined(_RECURSE_)
 	wxLogDebug(_T("\n###  ENTERED & at start of MergeRecursively: howToProcess = %d (0 is 'processStartToEnd') oldChunkIndexKickoff = %d, limit=%d"),
 				howToProcess, oldChunkIndexKickoff, newChunkIndexKickoff, limit);
 #endif
@@ -2551,7 +2551,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 		tuple[0] = NULL;
 		tuple[1] = NULL;
 		Subspan* pSubspan = new Subspan;
-#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+#if defined (myLogDebugCalls) && defined (_DEBUG)
 		countAfterSpans++;
 #endif
 		tuple[2] = pSubspan;
@@ -2573,7 +2573,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 		// process on a per-milestoned pairing basis - it's safer if the user added a lot
 		// of extra words in a big group at one location in the source text
 		int pairingsCount = arrPairingsOld.GetCount();
-#if defined(__WXDEBUG__) && defined (myLogDebugCalls)
+#if defined(_DEBUG) && defined (myLogDebugCalls)
 		{
 		int anIndex;
 		// list the pairings
@@ -2631,7 +2631,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 				// probably an empty CSourcePhrase instance with \v and verse number in
 				// m_markers, from the old array's data, and same for the new data;
 				// just keep the old one
-#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+#if defined (myLogDebugCalls) && defined (_DEBUG)
 				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d DO NOTHING, both empty"),
 				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
 #endif
@@ -2642,7 +2642,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 			{
                 // the CSourcePhrase instance from the old data's array is an empty one,
                 // but the equivalent from the newly edited data's array is not empty
-#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+#if defined (myLogDebugCalls) && defined (_DEBUG)
 				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d\n REPLACE EMPTY OLD with NEW content, %d words"),
 				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse, newSPCount);
 #endif
@@ -2654,7 +2654,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
                 // empty one, but the equivalent from the old data's array is not empty
                 // so just copy the new CSourcePhrase instance to pMergedList, effectively
                 // removing the old array's chunk in the process
-#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+#if defined (myLogDebugCalls) && defined (_DEBUG)
 				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d\n REMOVE OLD %d SrcPhrases, REPLACE with 1 empty NEW"),
 				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse, oldSPCount);
 #endif
@@ -2664,7 +2664,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 			else
 			{
 				// neither are empty, we should be safe for a recursive merger
-#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+#if defined (myLogDebugCalls) && defined (_DEBUG)
 				wxLogDebug(_T("\n*** pairingIndex = %d  In MergeRecursively() per-Milestone; pairings LOOP: OLD [ %d : %d ] NEW [ %d : %d ]  (new) Verse = %d\n RECURSING..."),
 				pairingsIndex, indexOldStart, indexOldEnd, indexNewStart, indexNewEnd, pPairedChunkNew->nStartingVerse);
 #endif
@@ -2672,12 +2672,12 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 				tuple[0] = NULL;
 				tuple[1] = NULL;
 				Subspan* pSubspan = new Subspan;
-#if defined (myLogDebugCalls) && defined (__WXDEBUG__)
+#if defined (myLogDebugCalls) && defined (_DEBUG)
 				countAfterSpans++;
 #endif
 				tuple[2] = pSubspan;
 
-#if defined(__WXDEBUG__) && defined(_RECURSE_)
+#if defined(_DEBUG) && defined(_RECURSE_)
 				if (pairingsIndex == 2) // this correspondes to chapter 1 verse 3, which has 23 old and 24 new words
 				{
 				//	int break_here = 1;
@@ -2699,7 +2699,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 
 	// Clean up...
 	
-#if defined(__WXDEBUG__) && defined(_RECURSE_)
+#if defined(_DEBUG) && defined(_RECURSE_)
 	wxLogDebug(_T("in MergeRecursively() RecursiveTupleProcessor() after top level call, returned: pMergedList->GetCount() = %d ; initial sequnum = %d"),
 		pMergedList->GetCount(), initialSequNum);
 #endif
@@ -2718,7 +2718,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
         // back to the last non-placeholder instance
 		EraseAdaptationsFromRetranslationTruncations(pMergedList);
 	}
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 	wxLogDebug(_T("in MergeRecursively() after EraseAdaptationsFromRetranslationTruncations(pMergedList): pMergedList->GetCount() = %d"),
 		pMergedList->GetCount());
 #endif
@@ -2733,7 +2733,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 		pFreeTrans->EraseMalformedFreeTransSections(&arrMerged);
 		RemoveAll(&arrMerged); // internally calls Detach() in a loop
 	}
-#if defined(__WXDEBUG__) && defined(MERGE_Recursively)
+#if defined(_DEBUG) && defined(MERGE_Recursively)
 	wxLogDebug(_T("in MergeRecursively() after EraseMalformedFreeTransSections(&arrMerged): pMergedList->GetCount() = %d"),
 		pMergedList->GetCount());
 #endif
@@ -3258,7 +3258,7 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
     int newEndAt = newIndex + pTo->m_nSrcWords - 1;
 
 	//int newCount = arrNew.GetCount();
-#if defined( __WXDEBUG__)
+#if defined( _DEBUG)
 	int newRange = newEndAt - newStartAt + 1;
 	int oldRange = pTo->m_nSrcWords;
 	wxASSERT(oldRange == newRange);
@@ -3737,7 +3737,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 	{
 		// we are earlier than the parent's left bound, so can't widen to the left any
 		// further
-#if defined( LEFTRIGHT) && defined( __WXDEBUG__)
+#if defined( LEFTRIGHT) && defined( _DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at ONE"));
 #endif
 		return FALSE;
@@ -3764,7 +3764,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			{
 				// a non-match means that the left bound for the commonSpan has been
 				// reached
-#if defined( LEFTRIGHT) && defined( __WXDEBUG__)
+#if defined( LEFTRIGHT) && defined( _DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at TWO -- the single-single mismatch"));
 #endif
 				return FALSE;
@@ -3829,7 +3829,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 						else
 						{
 							// no match
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at THREE"));
 #endif
 							return FALSE;
@@ -3838,7 +3838,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					else
 					{
 						// not enough words available, so no match is possible
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
 #endif
 						return FALSE;
@@ -3863,7 +3863,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 				else
 				{
 					// no match, so return FALSE
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at THREE - the merger-sequence mismatch"));
 #endif
 					return FALSE;
@@ -3981,7 +3981,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							{
 								// all the one or more placeholders belong in beforeSpan,
 								// so return oldCount = 0, newCount = 0, and FALSE
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
 #endif
 								return FALSE;
@@ -4009,7 +4009,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 									oldCount++; // counts the placeholder at oldIndex
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at FIVE"));
 #endif
 									return FALSE; // tell the caller not to try another leftwards widening
@@ -4019,14 +4019,14 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 									// it/they are left-associated, so keep it/them with
 									// what precedes it/them, which means that it/they
 									// belong in beforeSpan, and we can't widen any further
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at SIX"));
 #endif
 									return FALSE; // (oldCount and newCount both returned as zero)
 								}
 								// neither left nor right associated, so handle the
 								// same as left-associated
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at SEVEN"));
 #endif
 								return FALSE;
@@ -4057,7 +4057,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							else
 							{
 								// no match
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at EIGHT"));
 #endif
 								return FALSE;
@@ -4066,7 +4066,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 						else
 						{
 							// not enough words available
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at NINE"));
 #endif
 							return FALSE;
@@ -4108,7 +4108,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					oldCount++; // counts the placeholder at oldIndex
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at TEN"));
 #endif
 					return FALSE; // tell the caller not to try another leftwards widening
@@ -4118,14 +4118,14 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                     // it/they are left-associated, so keep it/them with
                     // what precedes it/them, which means that it/they
                     // belong in beforeSpan, and we can't widen any further
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at ELEVEN"));
 #endif
                     return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
 				// same as left-associated
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at TWELVE"));
 #endif
 				return FALSE;
@@ -4134,7 +4134,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		} // end of TRUE block for test: if (pOldSrcPhrase->m_bNullSourcePhrase)
 
 	} // end of TRUE block for test: if (oldIndex > oldStartAt && newIndex > newStartAt)
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Leftwards ONCE: exiting at THE_END (THIRTEEN)"));
 #endif
 	return FALSE;
@@ -4253,7 +4253,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 	if (oldStartingPos > oldEndAt || newStartingPos > newEndAt)
 	{
 		// we are past the parent's right bound, so can't widen to the right any further
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at ONE"));
 #endif
 		return FALSE;
@@ -4265,7 +4265,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 		pOldSrcPhrase = arrOld.Item(oldIndex);
 		pNewSrcPhrase = arrNew.Item(newIndex);
 
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 		if (oldIndex == 42)
 		{
 //			int break_point = 1;
@@ -4289,7 +4289,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 			{
 				// a non-match means that the right bound for the commonSpan has been
 				// reached
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at TWO -- the single-single mismatch"));
 #endif
 				return FALSE;
@@ -4354,7 +4354,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						else
 						{
 							// no match
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at THREE - the merger-sequence mismatch"));
 #endif
 							return FALSE;
@@ -4363,7 +4363,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					else
 					{
 						// not enough words available, so no match is possible
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at FOUR"));
 #endif
 						return FALSE;
@@ -4390,7 +4390,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					else
 					{
 						// didn't match match, so we are at the end of commonSpan
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at FIVE"));
 #endif
 						return FALSE;
@@ -4399,7 +4399,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 				else
 				{
 					// not enough words for a match, so return FALSE
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at SIX"));
 #endif
 					return FALSE;
@@ -4503,7 +4503,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 								oldCount++; // counts the placeholder at oldIndex
 								oldCount += nExtraCount; // adds the count of the extra ones traversed
 								//newCount is unchanged (still zero)
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at SEVEN"));
 #endif
 								return FALSE;
@@ -4531,7 +4531,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 									oldCount++; // counts the placeholder at oldIndex
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at EIGHT"));
 #endif
 									return FALSE; // tell the caller not to try another leftwards widening
@@ -4542,14 +4542,14 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                                     // what follows it/them, which means that it/they
                                     // belong in at the start of afterSpan, and we can't
                                     // widen commonSpan any further
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at NINE"));
 #endif
 									return FALSE; // (oldCount and newCount both returned as zero)
 								}
 								// neither left nor right associated, so handle the
 								// same as right-associated
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at TEN"));
 #endif
 								return FALSE;
@@ -4582,7 +4582,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 							else
 							{
 								// no match
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at ELEVEN"));
 #endif
 								return FALSE;
@@ -4591,7 +4591,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						else
 						{
 							// not enough words available
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at TWELVE"));
 #endif
 							return FALSE;
@@ -4633,7 +4633,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					oldCount++; // counts the placeholder at oldIndex
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at THIRTEEN"));
 #endif
 					return FALSE; // tell the caller not to try another leftwards widening
@@ -4644,14 +4644,14 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                     // what follows it/them, which means that it/they
                     // belong in at the start of afterSpan, and we can't
                     // widen commonSpan any further
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at FOURTEEN"));
 #endif
 					return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
 				// same as right-associated
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at FIFTEEN"));
 #endif
 				return FALSE;
@@ -4660,7 +4660,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 		} // end of TRUE block for test: if (pOldSrcPhrase->m_bNullSourcePhrase)
 
 	} // end of TRUE block for test: if (oldIndex < oldEndAt && newIndex < newEndAt)
-#if defined( LEFTRIGHT) && defined(__WXDEBUG__)
+#if defined( LEFTRIGHT) && defined(_DEBUG)
 		wxLogDebug(_T("Rightwards ONCE: exiting at THE_END (SIXTEEN)"));
 #endif
 	return FALSE; // we didn't make any matches, so widening must halt
@@ -4720,14 +4720,14 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 		// and return the max one to the caller in pMaxInCommonSubspan, clear the arrays
 		int widthsCount = arrWidths.GetCount();
 		int maxWidth = arrWidths.Item(0); // initialize to composite width of the first
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 		wxLogDebug(_T("Composite WIDTH =  %d  for index value  %d"),maxWidth, 0); 
 #endif
 		int lastIndexForMax = 0; // initialize 
 		int i;
 		for (i = 1; i < widthsCount; i++)
 		{
-#if defined(__WXDEBUG__) && defined(_RECURSE_) 
+#if defined(_DEBUG) && defined(_RECURSE_) 
 			Subspan* pSub = (Subspan*)arrSubspans.Item(i);
 			wxLogDebug(_T("GetMaxInCommonSubspan(), loop index %d, Composite WIDTH  %d  for Subspan: (%d,%d) <-> (%d,%d)"),
 						i, arrWidths.Item(i), pSub->oldStartPos, pSub->oldEndPos, pSub->newStartPos, pSub->newEndPos);
@@ -4742,7 +4742,7 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 			}
 		}
 		Subspan* pMaxInCommonSubspan = (Subspan*)arrSubspans.Item(lastIndexForMax);
-#if defined(__WXDEBUG__) && defined(_RECURSE_) 
+#if defined(_DEBUG) && defined(_RECURSE_) 
 		wxLogDebug(_T("index chosen for Max in-common span = %d  for Subspan:  (%d,%d) <-> (%d,%d)"), 
 			lastIndexForMax, pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos, 
 			pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos ); 
@@ -4757,7 +4757,7 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 			{
 				if ((Subspan*)arrSubspans.Item(i) != NULL) // whm 11Jun12 added NULL test
 				{
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls) 
+#if defined(_DEBUG) && defined(myLogDebugCalls) 
 					countCommonSpanDeletions++; // because there are many made & rejected, the counts for these are large
 #endif
 					delete (Subspan*)arrSubspans.Item(i);
@@ -5213,7 +5213,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 	}
 	newLastIndex = newMatchIndex; // ensure newLastIndex value advances for the caller
 
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 	wxLogDebug(_T("GetNextMatchup(): word = %s , oldStartFrom = %d , newStartFrom = %d, oldMatchIndex = %d, newMatchIndex = %d "),
 		word.c_str(), oldStartFrom, newStartFrom, oldMatchIndex, newMatchIndex);
 #endif
@@ -5918,7 +5918,7 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 		// create a new commonSpan type of Subspan instance & set up the index values within
 		// pSubspan, and recall that commonSpans are always bClosedEnd = TRUE
 		pSubspan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 	countCommonSpans++;
 #endif
 		InitializeSubspan(pSubspan, commonSpan, oldLeftBdryIndex, oldRightBdryIndex, 
@@ -6858,7 +6858,7 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 	CAdapt_ItView* pView = gpApp->GetView();
 	CSourcePhrase* pOldSP = arrOld.Item(oldIndex);
 	CSourcePhrase* pNewSP = arrNew.Item(newIndex);
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 	wxLogDebug(_T("singleton: <old key>  %s , at oldIndex = %d ; <new key>  %s , at newIndex = %d"),
 		pOldSP->m_key.c_str(), oldIndex, pNewSP->m_key.c_str(), newIndex);
 #endif
@@ -7020,7 +7020,7 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 		}
 	}
 	// delete the Subspan instance 
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls) 
+#if defined(_DEBUG) && defined(myLogDebugCalls) 
 	if (pSubspan->spanType == commonSpan)
 	{
 		wxString typeStr = _T("commonSpan");
@@ -7046,7 +7046,7 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 #endif
 	if (pSubspan != NULL) // whm 11Jun12 added NULL test
 	{
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 		if (pSubspan->spanType == commonSpan)
 		{
 			countCommonSpanDeletions++;
@@ -7064,7 +7064,7 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 	}
 	pSubspan = NULL;
 
-#if defined(__WXDEBUG__) && defined(myMilestoneDebugCalls)
+#if defined(_DEBUG) && defined(myMilestoneDebugCalls)
 	// track progress in populating the pMergedList
 	wxLogDebug(_T("in MergeOldAndNew(): pMergedList progressive count:  %d  ( from arrOld count = %d , and arrNew count = %d )"),
 		pMergedList->GetCount(), arrOld.Count(), arrNew.Count());
@@ -7149,7 +7149,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 	// afterSpan, in either case we need to find it's maximum in-common matched pair of
 	// subspans
 	Subspan* pCommonSubspan = GetMaxInCommonSubspan(arrOld, arrNew, pParentSubspan, limit);
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 /*
 	// get a log display in the Output window to see what we got for the longest in-common
 	// Subspan instance
@@ -7266,7 +7266,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 			if (parentNewStartAt < pCommonSubspan->newStartPos)
 			{
 				pBeforeSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 				countBeforeSpans++;
 #endif
                 // there is content from both arrOld and arrNew for this pBeforeSpan (that
@@ -7278,7 +7278,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
 						pCommonSubspan->oldStartPos - 1, parentNewStartAt, 
 						pCommonSubspan->newStartPos - 1, TRUE);
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 				wxString typeStr = _T("beforeSpan");
 				wxLogDebug(_T("   ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
@@ -7288,7 +7288,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 			else
 			{
 				pBeforeSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 				countBeforeSpans++;
 #endif
                 // There is no content from arrNew to match what is in arrOld here, in that
@@ -7299,7 +7299,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // ignored and nothing from this pBeforeSpan goes into pMergedList)
 				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
 						pCommonSubspan->oldStartPos - 1, -1, -1, TRUE);
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 				wxString typeStr = _T("beforeSpan");
 				wxLogDebug(_T("    ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
@@ -7313,7 +7313,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 			if (parentNewStartAt < pCommonSubspan->newStartPos)
 			{
 				pBeforeSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 				countBeforeSpans++;
 #endif
                 // when there is no content for beforeSpan in arrOld, set pBeforeSpan's
@@ -7323,7 +7323,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // they appear in arrNew, so we must add them to pMergedList later)
 				InitializeSubspan(pBeforeSpan, beforeSpan, -1, -1, parentNewStartAt,
 					pCommonSubspan->newStartPos - 1, TRUE);
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 				wxString typeStr = _T("beforeSpan");
 				wxLogDebug(_T("     ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
@@ -7360,7 +7360,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				if (parentNewEndAt > pCommonSubspan->newEndPos)
 				{
 					pAfterSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
@@ -7375,7 +7375,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				else
 				{
  					pAfterSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
@@ -7399,7 +7399,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				if (parentNewEndAt > pCommonSubspan->newEndPos)
 				{
 					pAfterSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
@@ -7451,7 +7451,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				else
 				{
  					pAfterSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 					countAfterSpans++;
 #endif
 					pAfterSpan->oldStartPos = oldStartAt; // invalid, but we'll correct it below
@@ -7489,7 +7489,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				if (newStartAt > newMaxIndex)
 				{
 					pAfterSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
@@ -7514,7 +7514,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 				else
 				{
 					pAfterSpan = new Subspan;
-#if defined( myLogDebugCalls) && defined(__WXDEBUG__)
+#if defined( myLogDebugCalls) && defined(_DEBUG)
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
@@ -7561,7 +7561,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	bool bMadeChildTuple = FALSE;
 	bool bIsClosedEnd = TRUE; // default, but can be changed below
 
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 	wxString allOldSrcWords; // for debugging displays in Output window using
 	wxString allNewSrcWords; // wxLogDebug() calls that are below
 #endif
@@ -7591,7 +7591,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				wxASSERT(bIsClosedEnd == pParent->bClosedEnd);
 				bIsClosedEnd = bIsClosedEnd; // avoid warning
 
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 				{
 				// The GetKeysAsAString_KeepDuplicates() calls are not needed, but useful initially for
 				// debugging purposes -- comment them out later on
@@ -7605,7 +7605,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				wxLogDebug(_T("tupleIndex = %d; commonSpan newWordCount = %d ,  allNewSrcWords:  %s"), tupleIndex, newWordCount, allNewSrcWords.c_str());
 				}
 #endif
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 					//SubspanType type = pParent->spanType;
 					if (type == beforeSpan)
 					{
@@ -7650,7 +7650,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// where 'it' is either a beforeSpan or an afterSpan
 			pParent = tuple[tupleIndex];
 
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 			{
 			// The GetKeysAsAString_KeepDuplicates() calls are not needed, but useful initially for
 			// debugging purposes -- comment them out later on
@@ -7666,7 +7666,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 #endif
 
 
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 			type = pParent->spanType;
 			bIsClosedEnd = pParent->bClosedEnd; // only the rightmost afterSpan at
 						// any given nesting level will be FALSE, other afterSpans at
@@ -7707,7 +7707,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			if (bMadeChildTuple)
 			{
 				
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 				if (pParent != NULL)
 				{
 					wxLogDebug(_T("**** RECURSING to process TUPLE made from parent Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
@@ -7720,7 +7720,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// should be deleted here
 				if (pParent->spanType == beforeSpan)
 				{
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 					wxString typeStr = _T("beforeSpan");
 					wxLogDebug(_T("   **(on return) DELETING  the parent subspan which is a  %s : { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
@@ -7729,14 +7729,14 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					if (pParent != NULL) // whm 11Jun12 added NULL test
 					{
 						delete pParent;
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 						countBeforeSpanDeletions++;
 #endif
 					}
 				}
 				else if (pParent->spanType == afterSpan)
 				{
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 					wxString typeStr = _T("afterSpan");
 					wxLogDebug(_T("   **(on return) DELETING  the parent subspan which is a  %s : { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
@@ -7745,7 +7745,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					if (pParent != NULL) // whm 11Jun12 added NULL test
 					{
 						delete pParent;
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 						countAfterSpanDeletions++;
 #endif
 					}
@@ -7758,7 +7758,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// instance that pParent points at
 				if (pParent != NULL)
 				{
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 					SubspanType type = pParent->spanType;
 					if (type == beforeSpan)
 					{
@@ -7789,7 +7789,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 
 	} // end of for loop: for (tupleIndex = 0; tupleIndex < tupleSize; tupleIndex++)
 
-#if defined(__WXDEBUG__) && defined(myLogDebugCalls)
+#if defined(_DEBUG) && defined(myLogDebugCalls)
  	// logDebug the counts for each span type 
 	wxLogDebug(_T("\nTUPLE DONE  *** Count of beforeSpan: %d"),countBeforeSpans);
 	wxLogDebug(_T("TUPLE DONE  Count of commonSpan: %d"),countCommonSpans);
@@ -9372,7 +9372,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 		//bHasChapterPlusVerseChunk = FALSE;
 		//bHasSubheadingPlusVerseChunk = FALSE;
 		//bHasVerseChunk = FALSE;
-#if defined(__WXDEBUG__)
+#if defined(_DEBUG)
 //		if (lastSuccessfulEndsAt == 71)
 //		{
 			// do one empty one, at 72 for verse 13, and then at 73 find out why it makes

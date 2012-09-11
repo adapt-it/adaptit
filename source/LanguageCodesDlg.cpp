@@ -313,8 +313,8 @@ void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
 	unsigned int index;
 	bool bFound = FALSE;
 	wxString strLabel = _T("");
-	// do a little benchmark test of search times in __WXDEBUG__
-#ifdef __WXDEBUG__
+	// do a little benchmark test of search times in _DEBUG
+#ifdef _DEBUG
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
@@ -345,7 +345,7 @@ void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
 	if (!bFound)
 		::wxBell();
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
 		wxLogDebug(_T("Find Code executed in %s ms"), 
@@ -379,8 +379,8 @@ void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
 	unsigned int index;
 	bool bFound = FALSE;
 	wxString strLabel = _T("");
-	// do a little benchmark test of search times in __WXDEBUG__
-#ifdef __WXDEBUG__
+	// do a little benchmark test of search times in _DEBUG
+#ifdef _DEBUG
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
@@ -411,7 +411,7 @@ void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
 	if (!bFound)
 		::wxBell();
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
 		wxLogDebug(_T("Find Language executed in %s ms"), 
@@ -439,8 +439,8 @@ void CLanguageCodesDlg::OnEnterInSearchBox(wxCommandEvent& WXUNUSED(event))
 	bool bFound = FALSE;
 	wxString strLabel = _T("");
 
-	// do a little benchmark test of search times in __WXDEBUG__
-#ifdef __WXDEBUG__
+	// do a little benchmark test of search times in _DEBUG
+#ifdef _DEBUG
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
@@ -466,7 +466,7 @@ void CLanguageCodesDlg::OnEnterInSearchBox(wxCommandEvent& WXUNUSED(event))
 	if (!bFound)
 		::wxBell();
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
 		wxLogDebug(_T("Search executed in %s ms"), 

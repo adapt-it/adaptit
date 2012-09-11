@@ -5342,7 +5342,7 @@ bool AtLIFTTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// delete it if we later find that it already is on the heap)
 		gpRefStr = new CRefString; // also creates and initializes an owned CRefStringMetadata
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
 		wxLogDebug(_T("in <sense> AtLIFTTag gKeyStr= %s , new gpRefstr= %x , gpTU= %x"),
@@ -5405,7 +5405,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				// it's ready, so store it in the map
 				(*gpMap)[gKeyStr] = gpTU;
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose"));
 				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, stored gpTU = %x ; with gpRefStr = %x"),
 							gpTU,gpRefStr);
@@ -5426,7 +5426,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 				// deleted, it won't then matter
 				gpTU = new CTargetUnit;
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				wxLogDebug(_T("Block 1 in AtLIFTEmptyElemClose, replaced with gpTU = %x ; and gpRefStr = %x  before leaving block"),
 							gpTU,gpRefStr);
 #endif
@@ -5463,7 +5463,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 					gpTU_From_Map->m_pTranslations->Append(gpRefStr); // the map entry now manages
 																	  // this CRefString instance
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 					wxLogDebug(_T("Block 2 in AtLIFTEmptyElemClose"));
 					wxLogDebug(_T("Block 2 in AtLIFTEmptyElemClose, appended gpRefStr = %x ; to map's gpTU_FROM_MAP = %x"),
 								gpRefStr,gpTU_From_Map);
@@ -5478,7 +5478,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 					// that don't have to be deleted from the heap)
 					gpRefStr = new CRefString; 
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %x ; unchanged gpTU = %x"),gpRefStr,gpTU);
 #endif
 #endif
@@ -5512,7 +5512,7 @@ bool AtLIFTEmptyElemClose(CBString& tag, CStack*& pStack)
 					// gpRefStr to NULL) as the deletions will be done in AtLIFTEndTag()
 					;
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 					wxLogDebug(_T("Block 3 in AtLIFTEmptyElemClose"));
 					wxLogDebug(_T("Block 3 in AtLIFTEmptyElemClose, already in map, DO NOTHING"));
 #endif
@@ -5585,7 +5585,7 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpApp->m_LIFT_definitionsArray.Clear();
 
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
 		wxLogDebug(_T("in </sense> AtLIFTEndTag gKeyStr= %s , gpRefstr= %x , gpTU= %x  [[ deleting that ref string ]]"),
@@ -5604,7 +5604,7 @@ bool AtLIFTEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		gpApp->m_LIFT_formsArray.Clear();
 
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
 		wxLogDebug(_T("in </entry> AtLIFTEndTag gKeyStr= %s , gpRefstr= %x , gpTU= %x"),
@@ -5670,7 +5670,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 #else
 			aKeyStr = pcdata.GetBuffer();
 #endif
-#if defined(_debugLIFT_) && defined(__WXDEBUG__)
+#if defined(_debugLIFT_) && defined(_DEBUG)
 			// temporary, for debugging
 			gKeyStr = aKeyStr; // so the wxLogDebug() call below can grab the untokenized string
 #endif
@@ -5706,7 +5706,7 @@ bool AtLIFTPCDATA(CBString& tag,CBString& pcdata, CStack*& pStack)
 			count_str = SmartTokenize(gpApp->m_LIFT_subfield_delimiters, textStr,
 										gpApp->m_LIFT_glossesArray);
 			count_str = count_str; // avoid warning
-#if defined(_debugLIFT_) && defined(__WXDEBUG__)
+#if defined(_debugLIFT_) && defined(_DEBUG)
 			if (gbIsGlossing)
 			{
 				wxLogDebug(_T("AtLIFTPCDATA() from gloss entries: doing %d , lang code = %s , src = %s , adaptit_gloss = %s"),
@@ -5791,7 +5791,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 		//}
 
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 		void* refstrPtr = (void*)gpRefStr;
 		void* tuPtr = (void*)gpTU;
 		if (gpKB->IsThisAGlossingKB())
@@ -5824,7 +5824,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 			// get it if so, else return NULL
 			gpTU_From_Map = gpKB->GetTargetUnit(numWords, gKeyStr); // does an AutoCapsLookup()
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			wxLogDebug(_T("within <sense> AtLIFTPCDATA numWords= %d , gKeyStr= %s , gpTU_From_Map= %x"),
 						numWords, gKeyStr.c_str(), gpTU_From_Map);
 #endif
@@ -5837,7 +5837,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 			// a <gloss> tag
 
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 			void* refstrPtr = (void*)gpRefStr;
 			void* tuPtr = (void*)gpTU;
 			wxLogDebug(_T("in <sense> AtLIFTPCDATA gKeyStr= %s , gpRefstr= %x , gpTU= %x, adaptation= %s"),
@@ -5866,7 +5866,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 				// it's ready, so store it in the map
 				(*gpMap)[gKeyStr] = gpTU;
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				wxLogDebug(_T("Block 1"));
 				wxLogDebug(_T("Block 1, stored gpTU = %x ; with gpRefStr = %x"),gpTU,gpRefStr);
 #endif
@@ -5886,7 +5886,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 				// deleted, it won't then matter
 				gpTU = new CTargetUnit;
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 				wxLogDebug(_T("Block 1, replaced with gpTU = %x ; and gpRefStr = %x  before leaving block"),
 							gpTU,gpRefStr);
 #endif
@@ -5923,7 +5923,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 					gpTU_From_Map->m_pTranslations->Append(gpRefStr); // the map entry now manages
 																	  // this CRefString instance
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 					wxLogDebug(_T("Block 2"));
 					wxLogDebug(_T("Block 2, appended gpRefStr = %x ; to map's gpTU_FROM_MAP = %x"),
 								gpRefStr,gpTU_From_Map);
@@ -5938,7 +5938,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
 					// that don't have to be deleted from the heap)
 					gpRefStr = new CRefString; 
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 					wxLogDebug(_T("Block 2, replaced old gpRefStr with: = %x ; unchanged gpTU = %x"),
 								gpRefStr,gpTU);
 #endif
@@ -5982,7 +5982,7 @@ void ProcessLIFT_PCDATA(wxArrayString& arrForms, wxArrayString& arrMeanings)
                     // up by a later callback as above
 					nAdaptationsUnchanged++;
 #ifdef _debugLIFT_
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 					wxLogDebug(_T("Block 3"));
 					wxLogDebug(_T("Block 3, already in map, DO NOTHING"));
 #endif
@@ -7361,7 +7361,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 			pFollSrcPhrase = pos->GetData();
 		else
 			pFollSrcPhrase = NULL;
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //			wxLogDebug(_T("Sequ Num =  %d   m_srcPhrase:  %s    Total =  %d"),pSrcPhrase->m_nSequNumber,
 //				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhraseList->GetCount());
 //#endif
@@ -7616,7 +7616,7 @@ void MurderTheDocV4Orphans(SPList* pSrcPhraseList)
 			pFollSrcPhrase = pos->GetData();
 		else
 			pFollSrcPhrase = NULL;
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 //			wxLogDebug(_T("Sequ Num =  %d   m_srcPhrase:  %s    Total =  %d"),pSrcPhrase->m_nSequNumber,
 //				pSrcPhrase->m_srcPhrase.c_str(), pSrcPhraseList->GetCount());
 //#endif

@@ -275,7 +275,7 @@ void CScrollView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
 {
 	ASSERT_VALID(pDC);
 
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
 	if (m_nMapMode == MM_NONE)
 	{
 		TRACE(traceAppMsg, 0, "Error: must call SetScrollSizes() or SetScaleToFitSize()");
@@ -283,7 +283,7 @@ void CScrollView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
 		ASSERT(FALSE);
 		return;
 	}
-#endif //__WXDEBUG__
+#endif //_DEBUG
 	ASSERT(m_totalDev.cx >= 0 && m_totalDev.cy >= 0);
 	switch (m_nMapMode)
 	{
@@ -2087,7 +2087,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 // ------------------------------------------------------------------------------------------
 
 
-//#if defined(_FT_ADJUST) && defined(__WXDEBUG__)
+//#if defined(_FT_ADJUST) && defined(_DEBUG)
 	if (!pApp->m_bFreeTranslationMode)
 	{
 //#endif
@@ -2428,13 +2428,13 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		}
 	}
 
-//#if defined(_FT_ADJUST) && defined(__WXDEBUG__)
+//#if defined(_FT_ADJUST) && defined(_DEBUG)
 	}
 //#endif
 
 // ------------------------------------------------------------------------------------------------------
 
-//#if defined(_FT_ADJUST) && defined(__WXDEBUG__)
+//#if defined(_FT_ADJUST) && defined(_DEBUG)
 	else
 	{
 //#endif
@@ -2580,7 +2580,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	}
 
 
-//#if defined(_FT_ADJUST) && defined(__WXDEBUG__)
+//#if defined(_FT_ADJUST) && defined(_DEBUG)
 	}
 //#endif
 

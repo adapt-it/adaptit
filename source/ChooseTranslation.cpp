@@ -450,7 +450,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
         // documentation comment for SetClientData() in wxControlWithItems. "...it is an
         // error to call this function if any typed client data pointers had been
         // associated with the control items before"
-		//#ifdef __WXDEBUG__
+		//#ifdef _DEBUG
 		//	int index;
 		//	for (index = 0; index < count; index++)
 		//	{

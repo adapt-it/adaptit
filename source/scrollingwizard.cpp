@@ -137,7 +137,7 @@ wxSize wxScrollingWizardSizer::CalcMin()
 
 wxSize wxScrollingWizardSizer::GetMaxChildSize()
 {
-#if !defined(__WXDEBUG__)
+#if !defined(_DEBUG)
     if ( m_childSize.IsFullySpecified() )
         return m_childSize;
 #endif
@@ -155,7 +155,7 @@ wxSize wxScrollingWizardSizer::GetMaxChildSize()
 
     // No longer applicable since we may change sizes when size adaptation is done
 #if 0
-#ifdef __WXDEBUG__
+#ifdef _DEBUG
     if ( m_childSize.IsFullySpecified() && m_childSize != maxOfMin )
     {
         wxFAIL_MSG( _T("Size changed in wxWizard::GetPageAreaSizer()")
@@ -165,7 +165,7 @@ wxSize wxScrollingWizardSizer::GetMaxChildSize()
 
         return m_childSize;
     }
-#endif // __WXDEBUG__
+#endif // _DEBUG
 #endif
 
     if ( m_owner->m_started )

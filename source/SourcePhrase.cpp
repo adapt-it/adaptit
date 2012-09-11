@@ -163,7 +163,7 @@ CSourcePhrase::CSourcePhrase()
 	m_glossMkrPattern = _T("");
 	m_punctsPattern = _T("");
 
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 // Leave this stuff here, commented out -- see comment in destructor for why
 //	wxLogDebug(_T("Creator: address = %x  first array = %x  second array = %x  SPList = %x"),
 //		(unsigned int)this, (unsigned int)this->m_pMedialMarkers, (unsigned int)this->m_pMedialPuncts,
@@ -173,7 +173,7 @@ CSourcePhrase::CSourcePhrase()
 
 CSourcePhrase::~CSourcePhrase()
 {
-//#ifdef __WXDEBUG__
+//#ifdef _DEBUG
 	// Don't remove this, just comment it out when not wanted, it is potentially valuable
 	// because if anyone has a memory lapse and codes "delete pSrcPhrase;" somewhere,
 	// instead of the correct "DeleteSingleSrcPhrase(pSrcPhrase);", then the former will
