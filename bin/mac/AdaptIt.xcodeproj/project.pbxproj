@@ -1085,7 +1085,7 @@
 				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
 				WXTOOLKIT = carbon;
 				WXTOOLKITUPPER = CARBON;
-				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=1";
+				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
 				ZERO_LINK = NO;
 			};
 			name = CarbonDebugWX2.9;
@@ -1255,7 +1255,7 @@
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
-				WX_PREPROCESSOR_DEFINITIONS = "__WXDEBUG__=1";
+				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
 				ZERO_LINK = NO;
 			};
 			name = UnicodeDebugWX2.8;
