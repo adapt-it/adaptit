@@ -6,7 +6,7 @@
 /// \date_revised	18 February 2012
 /// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CChooseCollabOptionsDlg class. 
+/// \description	This is the implementation file for the CChooseCollabOptionsDlg class.
 /// The CChooseCollabOptionsDlg class implements a 3-radio button dialog that allows the user to
 /// choose to Turn Collaboration ON, Turn Collaboration OFF, or Turn Read-Only Mode ON. This
 /// dialog is called from the ProjectPage of the Start Working wizard if the project just
@@ -14,11 +14,11 @@
 /// \derivation		The CChooseCollabOptionsDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in ChooseCollabOptionsDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -46,7 +46,7 @@
 #include "CollabUtilities.h"
 
 /// This global is defined in Adapt_It.cpp.
-extern CChooseCollabOptionsDlg* pChooseCollabOptionsDlg; 
+extern CChooseCollabOptionsDlg* pChooseCollabOptionsDlg;
 
 // event handler table
 BEGIN_EVENT_TABLE(CChooseCollabOptionsDlg, AIModalDialog)
@@ -69,11 +69,11 @@ CChooseCollabOptionsDlg::CChooseCollabOptionsDlg(wxWindow* parent) // dialog con
 	// size dialog.
 	pChooseCollabOptionsDlgSizer = ChooseCollabOptionsDlgFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 	// color used for read-only text controls displaying static text info button face color
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-	
+
 	pRadioTurnCollabON = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_TURN_COLLAB_ON);
 	wxASSERT(pRadioTurnCollabON != NULL);
 
@@ -108,11 +108,11 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
-	
+
 	// whm added 13Jul12 so that the StartWorkingWizard can detect when the
 	// ChooseCollabOptionsDlg is active
 	pChooseCollabOptionsDlg = this;
-	
+
 	// substitute "Paratext" or "Bibledit" for the %s in the first radio button
 	wxString tempStr;
 	tempStr = pRadioTurnCollabON->GetLabel();
@@ -129,7 +129,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	tempStr = pRadioTurnCollabOFF->GetLabel();
 	tempStr = tempStr.Format(tempStr,m_pApp->m_collaborationEditor.c_str());
 	pRadioTurnCollabOFF->SetLabel(tempStr);
-	
+
 	// Start with the text control for error messages hidden
 	pStaticAsTextCtrlNotInstalledErrorMsg->Hide();
 
@@ -151,29 +151,29 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	// defined collaboration with Paratext/Bibledit, it is possible that the
 	// Paratext/Bibledit project used in that project have not yet been created
 	// on the receiving computer.
-	// 
+	//
 	// Do some sanity checks to ensure that the Paratext/Bibledit projects are
 	// properly setup for collaboration. We do the same checks here that are done
 	// within the CSetupEditorCollaboration class's "Select from List" button
 	// handlers, which call CollabProjectHasAtLeastOneBook() for PT/BE projects
 	// that are defined in the project config file. If that function returns FALSE
-	// for any of the PT/BE projects we disable the "Turn Collaboration ON" button 
-	// and change "Note:" text to indicate why it is disabled, i.e., "Target 
+	// for any of the PT/BE projects we disable the "Turn Collaboration ON" button
+	// and change "Note:" text to indicate why it is disabled, i.e., "Target
 	// project (%s) does not have any books created in it.", etc.
-	
+
 	// The caller of the ChooseCollabOptionsDlg should have ensured that the source
 	// and target projects were defined
 	wxASSERT(!m_pApp->m_CollabProjectForSourceInputs.IsEmpty());
 	wxASSERT(!m_pApp->m_CollabProjectForTargetExports.IsEmpty());
-	
+
 	// whm 5Mar12 Note: Check for a valid PT/BE projects for obtaining source texts,
 	// for storing translations, and (optionally) for storing free translations.
-	// We check to see if that project does not have any books created, in which case, 
-	// we disable the "Turn Collaboration ON" button, and display a message that 
+	// We check to see if that project does not have any books created, in which case,
+	// we disable the "Turn Collaboration ON" button, and display a message that
 	// indicates the reason for the error.
 	wxString errorStr = _T("");
 	wxString errProj = _T("");
-	if (!CollabProjectsAreValid(m_pApp->m_CollabProjectForSourceInputs, m_pApp->m_CollabProjectForTargetExports, 
+	if (!CollabProjectsAreValid(m_pApp->m_CollabProjectForSourceInputs, m_pApp->m_CollabProjectForTargetExports,
 							m_pApp->m_CollabProjectForFreeTransExports, m_pApp->m_collaborationEditor, errorStr, errProj))
 	{
 		pStaticAsTextCtrlNotInstalledErrorMsg->Show(TRUE); // make it visible
@@ -181,7 +181,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		msg = _("COLLABORATION DISABLED! - invalid %s projects detected. Ask your administrator for help:%s");
 		msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),errorStr.c_str());
 		// Note: the returned errProj string is unused here
-		
+
 		// set the default to collaboratin OFF
 		pRadioTurnCollabON->SetValue(FALSE);
 		pRadioTurnCollabOFF->SetValue(TRUE);
@@ -196,13 +196,13 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		// SetupEditorCollaboration dialog.
 	}
 
-	// Initialize the radio buttons with the collaboration setting last used which 
+	// Initialize the radio buttons with the collaboration setting last used which
 	// is in the App's m_bCollaboratingWithParatext or m_bCollaboratingWithBibledit
 	// members (kept in the project config file which was read before invoking this
 	// dialog). If no collaboration editor is installed, force the ON radio button
 	// to be unselected and disabled
-	
-	
+
+
 	if (m_bEditorIsAvailable)
 	{
 		// PT/BE is installed so allow set the radio button appropriately
@@ -226,7 +226,7 @@ void CChooseCollabOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 		m_bRadioSelectCollabON = FALSE;
 		m_bRadioSelectCollabOFF = TRUE;
 		pRadioTurnCollabON->Disable();
-		
+
 	}
 	// Always initialize the read-only button to false
 	m_bRadioSelectReadOnlyON = FALSE; // the read-only radio button always starts OFF/FALSE
@@ -294,7 +294,7 @@ void CChooseCollabOptionsDlg::OnCancel(wxCommandEvent& event)
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-void CChooseCollabOptionsDlg::OnOK(wxCommandEvent& event) 
+void CChooseCollabOptionsDlg::OnOK(wxCommandEvent& event)
 {
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -307,8 +307,6 @@ void CChooseCollabOptionsDlg::OnBtnTellMeMore(wxCommandEvent& WXUNUSED(event))
 	msg = msg.Format(msg,m_pApp->m_collaborationEditor.c_str(),m_aiProjName.c_str(),
 					m_pApp->m_collaborationEditor.c_str(),m_aiProjName.c_str(),m_pApp->m_collaborationEditor.c_str(),m_pApp->m_collaborationEditor.c_str(),
 					m_aiProjName.c_str());
-	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+
+	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK, this);     // mrh - we make this the parent so the wxMessageBox comes up on top in Linux
 }
-
-
-
