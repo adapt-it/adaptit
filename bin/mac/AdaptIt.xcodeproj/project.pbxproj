@@ -1245,10 +1245,11 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx10.4;
 				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
+				VALID_ARCHS = "i386 x86_64";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -1311,11 +1312,12 @@
 					"-lcurl",
 				);
 				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx10.5;
+				SDKROOT = macosx10.4;
 				UNSTRIPPED_PRODUCT = NO;
 				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
+				VALID_ARCHS = "i386 x86_64";
 				VERSIONING_SYSTEM = "apple-generic";
 				WARNING_CFLAGS = (
 					"-Wmost",
