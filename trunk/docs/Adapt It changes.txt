@@ -22,11 +22,12 @@ This allows Adapt It to advise the administrator if any
 selected projects are not properly setup within Paratext or
 Bibledit before configuring them for collaboration with Adapt
 It. 
-* The Unicode version of Adapt It on Windows and the Mac is 
-now based on the 2.9.x version of the wxWidgets library. On 
-Linux this change will only take effect when the Linux 
-distributions contain the newer 2.9.x version of the wxWidgets 
-library.
+* The Unicode version of Adapt It on Windows is now based on 
+the 2.9.x version of the wxWidgets library. On Linux this 
+change will only take effect when the Linux distributions 
+contain the newer 2.9.x version of the wxWidgets library. The
+upgrade to wxWidgets 2.9.x on the Mac will probably be delayed
+until the next version update (6.4.0).
 * Additional exports are supported. Export to Pathway - provided
 Pathway is installed on the computer. Also, export as an xhtml
 file - this is the format which Pathway requires for its import
@@ -96,7 +97,7 @@ time Adapt It is run and the collaboration project is selected
 the administrator's collaboration settings will have been lost
 from the project configuration file, and collaboration would
 not be possible until the administrator sets up collaboration
-again from the Administrator menu. This problem is not fixed.
+again from the Administrator menu. This problem is now fixed.
 * Modified the "USFM and Filtering" tab of the Preferences
 dialog to filter or unfilter the \x ... \x* (cross reference),
 \f ... \f* (footnote) and \fe ... \fe* (endnote) markers 
