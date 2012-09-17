@@ -1,4 +1,19 @@
 ----------------------------------------------
+Version 6.3.1 release 17 September 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.3.1
+----------------------------------------------
+* No new features for this release.
+----------------------------------------------
+Bug fixes in 6.3.1
+----------------------------------------------
+* Fixed a UI resizing error in the Consistency Check
+dialog that was causing a crash when the dialog was 
+displayed.
+* Fixed UI behavior for the Setup Collaboration dialog
+under Linux.
+----------------------------------------------
 Version 6.3.0 release 10 September 2012
 ----------------------------------------------
 ----------------------------------------------
