@@ -8,8 +8,8 @@ adaptit ICON "../../res/ai_32.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 6,3,0,0
- PRODUCTVERSION 6,3,0,0
+ FILEVERSION 6,3,1,0
+ PRODUCTVERSION 6,3,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -25,12 +25,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "Adapt It WX Application"
-            VALUE "FileVersion", "6, 3, 0, 0"
+            VALUE "FileVersion", "6, 3, 1, 0"
             VALUE "InternalName", "Adapt_It"
             VALUE "LegalCopyright", "Copyright (C) SIL International, Bruce Waters, Bill Martin"
             VALUE "OriginalFilename", "Adapt_It.EXE"
             VALUE "ProductName", "Adapt It WX Application"
-            VALUE "ProductVersion", "6, 3, 0, 0"
+            VALUE "ProductVersion", "6, 3, 1, 0"
         END
     END
     BLOCK "VarFileInfo"
