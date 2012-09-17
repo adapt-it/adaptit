@@ -3767,7 +3767,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item3->AddGrowableCol( 1 );
 
-    item3->AddGrowableRow( 1 );
+    item3->AddGrowableRow( 0 );
 
     item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
@@ -3880,7 +3880,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item20->AddGrowableCol( 1 );
 
-    item20->AddGrowableRow( 1 );
+    item20->AddGrowableRow( 0 );
 
     item1->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
