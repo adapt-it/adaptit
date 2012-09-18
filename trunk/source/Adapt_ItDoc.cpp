@@ -22108,14 +22108,14 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			pRefStr_OnOrig = NULL;
 			bDeleted = FALSE;
 			bDeleted_OnOrig = FALSE;
-//*
+/*
 #ifdef _DEBUG
 			if (pSrcPhrase->m_nSequNumber == 26)
 			{
 				int break_location = 1;
 			}
 #endif
-//*/
+*/
 			// Does key have an entry (that is, a ptr to CTargetUnit, and a CRefString
 			// within it which has a non-deleted string in its m_translation member which
 			// matches the passed in adaption parameter's contents) in the copied adaptation
