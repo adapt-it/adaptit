@@ -258,11 +258,10 @@ void CExportSaveAsDlg::SetExportTypeDescription(ExportSaveAsType newType)
             newString = _("Export a Rich Text Format file that can be loaded into a Word processor like MS Word. Adapt It will format the file using the Word Scripture Template, so that you can print it in a publishable format.");
             break;
         case ExportSaveAsXHTML:
-            newString = _T("Export an XHTML file that can be viewed using a current web browser.");
+            newString = _("Export an XHTML file that can be viewed using a current web browser.");
             break;
         case ExportSaveAsPathway:
-            newString = _T("Export through SIL Pathway to produce a file in other formats, such as cell phones or e-book readers.");
-            // TODO: check if pathway is installed; if not, notify the user.
+            newString = _("Export through SIL Pathway to produce a file in other formats, such as cell phones or e-book readers.");
             break;
         case ExportSaveAsTXT:
         default:
@@ -322,8 +321,8 @@ bool CExportSaveAsDlg::Validate()
 	{
 		// Pathway isn't installed, but the user chose it. Disable Pathway, set the current
 		// output type to xhtml and tell the user they need to install Pathway.
-		wxString aMsg = _T("In order to use the Pathway export option, Pathway must installed on this computer./nPlease download and install Pathway from http://pathway.sil.org/download/latest-sprint-downloads/ and retry this operation.");
-		wxMessageBox(aMsg,_T("Pathway Not Installed"),wxICON_HAND | wxOK);
+		wxString aMsg = _("In order to use the Pathway export option, Pathway must installed on this computer./nPlease download and install Pathway from http://pathway.sil.org/download/latest-sprint-downloads/ and retry this operation.");
+		wxMessageBox(aMsg,_("Pathway Not Installed"),wxICON_HAND | wxOK);
 		btnExportToPathway->Disable();
 		wxCommandEvent evt;
 		OnbtnExportToXhtmlClick(evt);
