@@ -3859,20 +3859,26 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item38->SetToolTip( _("Click OK to continue with the consistency check") );
     item37->Add( item38, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    item37->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item37->Add( 28, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item39 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item39->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
-    item37->Add( item39, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    wxButton *item39 = new wxButton( parent, ID_BUTTON_IGNORE_IT, _("Ignore it (do nothing)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->SetToolTip( _("Do nothing here, I will fix this later") );
+    item37->Add( item39, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item35->Add( item37, 0, wxALIGN_CENTER, 0 );
+    item37->Add( 24, 16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item40 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
+    item37->Add( item40, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    item35->Add( item37, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     item34->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item26->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item40, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
+    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item41, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     item20->Add( item26, 1, wxGROW|wxALL, 0 );
 
@@ -8212,10 +8218,10 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Source text:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PHRASE_1, wxT(""), wxDefaultPosition, wxSize(400,24), 0 );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PHRASE_1, wxT(""), wxDefaultPosition, wxSize(400,30), 0 );
     item1->Add( item3, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -8297,22 +8303,22 @@ wxSizer *ConsistencyCheck_ExistsNoTU_DlgFunc( wxWindow *parent, bool call_fit, b
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Source text:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PHRASE_2, wxT(""), wxDefaultPosition, wxSize(400,24), 0 );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PHRASE_2, wxT(""), wxDefaultPosition, wxSize(400,30), 0 );
     item1->Add( item3, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
-    item4->Add( 4, 12, 0, wxALIGN_CENTER|wxALL, 0 );
+    item4->Add( 6, 12, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Adaptation text:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_TARGET_PHRASE_2, wxT(""), wxDefaultPosition, wxSize(400,24), 0 );
+    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_TARGET_PHRASE_2, wxT(""), wxDefaultPosition, wxSize(400,30), 0 );
     item4->Add( item6, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
