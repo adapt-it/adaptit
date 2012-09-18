@@ -137,7 +137,11 @@ class NavProtectNewDoc; // for user navigation protection feature
 #define VERSION_MINOR_PART 3
 #define VERSION_BUILD_PART 1
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+<<<<<<< .mine
+#define VERSION_DATE_DAY 18
+=======
 #define VERSION_DATE_DAY 17
+>>>>>>> .r2668
 #define VERSION_DATE_MONTH 9
 #define VERSION_DATE_YEAR 2012
 const wxString appVerStr(_T("6.3.1"));
