@@ -272,7 +272,7 @@ extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
 
-bool	gbIgnoreIt = FALSE; // used when "Ignore it, I will fix it later" button was hit
+bool	gbIgnoreIt = FALSE; // used when "Ignore it (do nothing)" button was hit
 							// in consistency check dlg
 
 // whm added 6Apr05 for support of export filtering of sfms and RTF output of the same in
@@ -22110,7 +22110,14 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			bDeleted_OnOrig = FALSE;
 /*
 #ifdef _DEBUG
-			if (pSrcPhrase->m_nSequNumber == 26)
+			//if (pSrcPhrase->m_nSequNumber == 26)
+			if ((pSrcPhrase->m_key == _T("yesu") || pSrcPhrase->m_key == _T("Yesu"))
+				&& (pSrcPhrase->m_nSequNumber == 1075 ||
+					pSrcPhrase->m_nSequNumber == 1137 ||
+					pSrcPhrase->m_nSequNumber == 1163 ||
+					pSrcPhrase->m_nSequNumber == 1190 ||
+					pSrcPhrase->m_nSequNumber == 1244)
+				)
 			{
 				int break_location = 1;
 			}
@@ -22496,7 +22503,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					/* see the one after this, we prefer the "split adaptation" support, rather than this one
 					// keep this in case we later change our mind...
 
-					if (pTU != NULL && pRefStr == NULL && pSrcPhrase->m_adaption.IsEmpty() &&
+					if (pTU != NULL && pRefStr != NULL && pSrcPhrase->m_adaption.IsEmpty() &&
 						pSrcPhrase->m_bHasKBEntry && bDeleted)
 					{
 						bFoundTgtUnit = TRUE;
@@ -22504,7 +22511,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						bFoundTgtUnit_OnOrig = TRUE;
 
 						// This is an inconsistency. The CTargetUnit and CRefString exist, and
-						// pRefStr returns NULL but the latter's m_bDeleted flag is TRUE, -
+						// pRefStr returns non-NULL but the latter's m_bDeleted flag is TRUE, -
 						// which shouldn't be the case if the doc's m_bHasKBEntry flag is TRUE.
 						// There are 3 possibilies,
 						// a) it should be a <no adaptation> entry (so undelete it), or
@@ -22537,7 +22544,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						bFoundTgtUnit = TRUE;
 
 						// This is an inconsistency. The CTargetUnit and CRefString exist, and
-						// pRefStr returns NULL but the latter's m_bDeleted flag is TRUE, -
+						// pRefStr is non-NULL but the latter's m_bDeleted flag is TRUE, -
 						// which shouldn't be the case if the doc's m_bHasKBEntry flag is
 						// TRUE, and the adaptation is an empty string.
 						// There are 4 possibilies,
@@ -22547,7 +22554,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// c) this src text shouldn't ever have a KB entry (it should be a
 						// <Not In KB> entry, or
 						// d) the user wants to "split" an empty adaptation to be different in
-						// some locations in the dialog (ie. non-empty)
+						// some locations in the document (ie. non-empty)
 
 						// NOTE -- supporting d) is incompatible with supporting b) and c) if
 						// we stick with just 3 dialogs; if we supported b) and c) we'd use
@@ -22583,11 +22590,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					{
 						bFoundTgtUnit = TRUE;
 
-						// this is the 'split adaptation' case - the only options are to
-						// undelete, or to give a different (contextually defined by the user
-						// eye-balling the document to figure out what other adaptation is
-						// appropriate at the active location rather than the one shown in the
-						// phrase box)
+                        // this is the 'split adaptation' case - the only options are to
+                        // undelete, or to give a different adaptation (contextually
+                        // defined by the user eye-balling the document to figure out what
+                        // other adaptation is appropriate at the active location rather
+                        // than the one shown in the phrase box), or type something
+                        // different or do an edit of something shown in the list of
+                        // adaptations, or ignore the location entirely.
 						bInconsistency = TRUE;
 						inconsistencyType = member_exists_flag_on_PTUexists_deleted_Refstr;
 						pAutoFixRec = new AutoFixRecord;
@@ -23319,6 +23328,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// put up the dialog
 						if (dlg.ShowModal() == wxID_OK)
 						{
+							if (gbIgnoreIt)
+							{
+								gbIgnoreIt = FALSE;
+								// skip rest of this block, don't change KB, don't change doc
+							}
+							else
+							{
 							// get and store the FixItAction (all 3 possibilities are storage
 							// actions: store_nonempty_meaning, store_empty_meaning, or
 							// restore_meaning_to_doc); also get the user's final string
@@ -23422,7 +23438,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 							} // end of else block for test: if (tempStr != pApp->m_strNotInKB)
-
+							} // end of else block for test: if (gbIgnoreIt)
 						} // end of TRUE block for test of ShowModal() == wxID_OK
 						else
 						{

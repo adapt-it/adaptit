@@ -100,6 +100,7 @@ protected:
 	void OnRadioChangeInstead(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditTypeNew(wxCommandEvent& event);
+	void OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event));
 private:
 	void EnableAdaptOrGlossBox(bool bEnable);
 	void EnableSourceBox(bool bEnable);

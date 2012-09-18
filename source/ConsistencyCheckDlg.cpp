@@ -65,8 +65,8 @@ extern bool gbGlossingUsesNavFont;
 
 //extern bool gbRemovePunctuationFromGlosses;
 
-extern bool gbIgnoreIt; // used in CAdapt_ItView::DoConsistencyCheck
-						// when the "Ignore it, I will fix it later" button was hit in the dialog
+extern bool gbIgnoreIt; // used in CAdapt_ItDoc::DoConsistencyCheck
+						// when the "Ignore it (do nothing)" button was hit in the dialog
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -79,6 +79,7 @@ BEGIN_EVENT_TABLE(CConsistencyCheckDlg, AIModalDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_CHANGE_INSTEAD, CConsistencyCheckDlg::OnRadioChangeInstead)
 	EVT_LISTBOX(IDC_LIST_TRANSLATIONS, CConsistencyCheckDlg::OnSelchangeListTranslations)
 	//EVT_TEXT(IDC_EDIT_TYPE_NEW, CConsistencyCheckDlg::OnUpdateEditTypeNew)
+	EVT_BUTTON(ID_BUTTON_IGNORE_IT, CConsistencyCheckDlg::OnButtonIgnoreIt)
 END_EVENT_TABLE()
 
 
@@ -705,6 +706,20 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 	}
 	m_finalAdaptation = m_adaptationStr;
 	event.Skip();
+}
+
+void CConsistencyCheckDlg::OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event)) 
+{
+	//TransferDataFromWindow(); // make sure m_bDoAutoFix is updated correctly
+	m_bDoAutoFix = m_pCheckAutoFix->GetValue();
+	m_chVerse = m_pEditCtrlChVerse->GetValue();
+	m_adaptationStr = m_pEditCtrlAdaptation->GetValue();
+	m_keyStr = m_pEditCtrlKey->GetValue();
+	gbIgnoreIt = TRUE;
+	//m_finalAdaptation = m_adaptationStr; // dangerous, user may have edited then hit the button
+	// whm updated 12Jan09 - the parameter sent to EndModal() below needs to be wxID_OK in order for
+	// ShowModal() in the calling routine to return that value
+	EndModal(wxID_OK); //EndModal(0); 
 }
 
 void CConsistencyCheckDlg::OnRadioAcceptHere(wxCommandEvent& WXUNUSED(event)) 
