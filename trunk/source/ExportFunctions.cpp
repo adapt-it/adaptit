@@ -1040,7 +1040,7 @@ void DoExportAsType(enum ExportType exportType)
 					msg = msg.Format(_("Missing Stylesheet file: %s.\nThe Pathway export cannot be completed without this file."),
 						exportCSS.c_str());
 					gpApp->LogUserAction(msg);
-					wxMessageBox(msg,_T("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
+					wxMessageBox(msg,_("Error: CSS file missing"),wxICON_EXCLAMATION | wxOK);
 					return;
 				}
 
@@ -1098,7 +1098,7 @@ void DoExportAsType(enum ExportType exportType)
 				cout << commandLine;
 				fos.Close();
 				// log what our Pathway command
-				wxString aMsg = aMsg.Format(_("Pathway export - call Pathway on XHTML: %s"), commandLine.c_str());
+				wxString aMsg = aMsg.Format(_T("Pathway export - call Pathway on XHTML: %s"), commandLine.c_str());
 				gpApp->LogUserAction(aMsg);
 
 				// run the batch file
@@ -1113,8 +1113,8 @@ void DoExportAsType(enum ExportType exportType)
 
                 if (code)
                 {
-					aMsg = _T("Error: Pathway export could not be started,");
-					wxMessageBox(aMsg,_T("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
+					aMsg = _("Error: Pathway export could not be started,");
+					wxMessageBox(aMsg,_("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error."), commandLine.c_str());
 					gpApp->LogUserAction(aMsg);
 					return;
@@ -1152,8 +1152,8 @@ void DoExportAsType(enum ExportType exportType)
 #endif
                 if (!errMsg.IsEmpty())
                 {
-   						aMsg = aMsg.Format(_T("Error: Pathway export returned an error:\n%s"), errMsg.c_str());
-						wxMessageBox(aMsg,_T("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
+   						aMsg = aMsg.Format(_("Error: Pathway export returned an error:\n%s"), errMsg.c_str());
+						wxMessageBox(aMsg,_("Error: Pathway Export"),wxICON_EXCLAMATION | wxOK);
 						aMsg = aMsg.Format(_T("Pathway export - Shell command '%s' terminated with error."), commandLine.c_str());
 						gpApp->LogUserAction(aMsg);
 						return;
@@ -1216,20 +1216,20 @@ void DoExportAsType(enum ExportType exportType)
 							if (free < minVal)
 							{
 								// No output AND low disk space -- tell the user (this might have been the cause)
-								aMsg = aMsg.Format(_T("Pathway did not create any files. This could be due to low disk space.\nYou currently have %s bytes of free disk space."), free.ToString().c_str());
-								wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+								aMsg = aMsg.Format(_("Pathway did not create any files. This could be due to low disk space.\nYou currently have %s bytes of free disk space."), free.ToString().c_str());
+								wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 								gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
 								return;
 							}
 							// No output from stdout -- the user likely clicked Cancel
-							aMsg = _T("Pathway export did not create any files. If you clicked Cancel on the Export through Pathway dialog, this is expected.");
+							aMsg = _("Pathway export did not create any files. If you clicked Cancel on the Export through Pathway dialog, this is expected.");
 						}
 						else
 						{
 							// There _is_ some output -- list it
-							aMsg = aMsg.Format(_T("Pathway export did not create any files.\nOutput from the Pathway command follows:\n\n%s"), errMsg.c_str());
+							aMsg = aMsg.Format(_("Pathway export did not create any files.\nOutput from the Pathway command follows:\n\n%s"), errMsg.c_str());
 						}
-						wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+						wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 						gpApp->LogUserAction(aMsg);
 						return;
 					}
@@ -1241,8 +1241,8 @@ void DoExportAsType(enum ExportType exportType)
 				if (free < minVal)
 				{
 					// Pathway succeeded (maybe?), but we have low disk space -- tell the user
-					aMsg = aMsg.Format(_T("Pathway export returned with no reported errors. \nOutput can be found in the following directory:\n%s\n\nNote that you are running low on disk space; you currently have %s bytes of free disk space left."), defaultDir.c_str(), free.ToString().c_str());
-					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+					aMsg = aMsg.Format(_("Pathway export returned with no reported errors. \nOutput can be found in the following directory:\n%s\n\nNote that you are running low on disk space; you currently have %s bytes of free disk space left."), defaultDir.c_str(), free.ToString().c_str());
+					wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					gpApp->LogUserAction(aMsg); // note that this log might fail (low on disk space)...
 					return;
 				}
@@ -1269,14 +1269,14 @@ void DoExportAsType(enum ExportType exportType)
 				{
 					// In the off chance that they didn't get an earlier message, let them know that 
 					// we've found some weird results and that they might want to verify the export.
-					aMsg = _T("Pathway did not clean up temporary files in the output directory. This might be due to an earlier error in the Pathway export.");
-					wxMessageBox(aMsg,_T("Pathway Export"),wxICON_EXCLAMATION | wxOK);
+					aMsg = _("Pathway did not clean up temporary files in the output directory. This might be due to an earlier error in the Pathway export.");
+					wxMessageBox(aMsg,_("Pathway Export"),wxICON_EXCLAMATION | wxOK);
 					gpApp->LogUserAction(aMsg);
 					return;
 				}
 
 				// Pathway didn't complain, and produced a file of some sort (this may or may not be a good output). Tell the user where to look for the files.
-				aMsg = aMsg.Format(_T("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir.c_str());
+				aMsg = aMsg.Format(_("Pathway export returned with no reported errors.\nOutput can be found in the following directory:\n%s"), defaultDir.c_str());
 				wxMessageBox(aMsg,sadlg.GetTitle(),wxICON_INFORMATION | wxOK);
 				return;
             }
