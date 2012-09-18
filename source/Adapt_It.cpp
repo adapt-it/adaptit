@@ -7349,7 +7349,9 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 	{
         // For our default English locale we don't need a loaded string catalog table, we
         // just use the program strings, so don't check m_pLocale->IsLoaded() for English.
-		; // do nothing
+		// whm added 18Sep12. An English localization is always
+		// available by default
+		bLoadOK = TRUE;
 	}
 	else
 	{
