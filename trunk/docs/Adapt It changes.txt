@@ -15,6 +15,7 @@ inconsistency.
 ----------------------------------------------
 Bug fixes in 6.3.1
 ----------------------------------------------
+* If the document was scripture without standard format \v and \c markers, and a SFM export of the source text was done, and USFM markers added to the exported source text, and then the exported source text with the USFM markup was merged back into the document with the Import Edited Source Text... command, the source text and markers appeared in the document but all the adaptations were lost. This is now fixed. The USFM markup goes into the document correctly now, and all the adaptations are retained.
 * Fixed a UI resizing error in the Consistency Check
 dialog that was causing a crash when the dialog was 
 displayed.

@@ -2524,7 +2524,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	// tuple[0] and tuple[1] struct pointers will be NULL. Tuple[3] will have the whole
 	// extent of both oldSPArray and newSPArray.
 #if defined(_DEBUG) && defined(_RECURSE_)
-	wxLogDebug(_T("\n###  ENTERED & at start of MergeRecursively: howToProcess = %d (0 is 'processStartToEnd') oldChunkIndexKickoff = %d, limit=%d"),
+	wxLogDebug(_T("\n###  ENTERED & at start of MergeRecursively: howToProcess = %d (0 is 'processStartToEnd') oldChunkIndexKickoff = %d, newChunkIndexKickoff = %d,limit=%d"),
 				howToProcess, oldChunkIndexKickoff, newChunkIndexKickoff, limit);
 #endif
 	// get a pointer to the CFreeTrans module so we can use it's functions that support
@@ -8360,11 +8360,12 @@ bool GetIntroductionChunk(SPArray* arrP, int& startsAt, int& endsAt)
 
 // Check if the start of arr contains material belonging to stuff which is after any
 // book-initial and or introduction material, but before the first chapter marker, or if
-// none, then before the first verse.
-// Return the index values for the CSourcePhrase instances which lie at the start and end
-// of such a span and return TRUE; but if we do not succeed in delineating any
-// such span, return FALSE (and in that case, startsAt and endsAt values are undefined -
-// I'll probably set them to -1 whenever FALSE is returned)
+// none, then before the first verse. Return the index values for the CSourcePhrase
+// instances which lie at the start and end of such a span and return TRUE; return FALSE if
+// there was an error (and in that case, startsAt and endsAt values are undefined - set
+// them to -1 whenever FALSE is returned); and if we run to the end of the text because
+// there are no chapter or verse markers, we must return the index of the last word in
+// endsAt, and return TRUE, since that is a successful result in such a circumstance.
 bool GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt)
 {
 	int count = arrP->GetCount();
@@ -8429,6 +8430,12 @@ bool GetPreFirstChapterChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		}
 	} // end of loop:	while (index <= endIndex)
 
+	// if index gets past endIndex, then there were no \v or \c markers, and so we must
+	// return the whole lot as a successful match
+	if (index > endIndex)
+	{
+		endsAt = endIndex;
+	}
 	return TRUE;
 }
 
@@ -9303,7 +9310,11 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 	}
 
 	// now check in case there is some other material (eg. a \ms section) prior to the
-	// first chapter (or verse, if there is no chapter marker in the data)
+	// first chapter (or verse, if there is no chapter marker in the data); note, if there
+	// are no verse or chapter markers in the source text, then this scan for a chapter
+	// marker etc will run to the end of the source text -- we must test for that and if
+	// so, make sure the nEndsAt is set to the word count less 1, and other variables in
+	// agreement with this
 	bool bHasPreFirstChapterChunk = GetPreFirstChapterChunk(pInputArray, nStartsAt, nEndsAt);
 	if (bHasPreFirstChapterChunk)
 	{
