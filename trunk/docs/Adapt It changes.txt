@@ -10,7 +10,7 @@ were being cut off.
 * The main Consistency Check dialog has lacked an "Ignore it"
 option. Added a button "Ignore it (do nothing)" which, at the
 currently halted at location, makes no change to the KB nor the
-document, but just sendss the checking forwards to the next
+document, but just sends the checking forwards to the next
 inconsistency.
 ----------------------------------------------
 Bug fixes in 6.3.1
@@ -30,7 +30,7 @@ displayed.
 * Fixed UI behavior for the Setup Collaboration dialog
 under Linux.
 * English localization other than to the USA locale was causing
-an message about a missing locale to be shown at every session
+a message about a missing locale to be shown at every session
 startup. This no longer happens.
 ----------------------------------------------
 Version 6.3.0 release 10 September 2012
