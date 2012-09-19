@@ -272,7 +272,7 @@ extern wxChar gcharNonSrcUC;
 extern wxChar gcharSrcLC;
 extern wxChar gcharSrcUC;
 
-bool	gbIgnoreIt = FALSE; // used when "Ignore it (do nothing)" button was hit
+//bool	gbIgnoreIt = FALSE; // used when "Ignore it (do nothing)" button was hit
 							// in consistency check dlg
 
 // whm added 6Apr05 for support of export filtering of sfms and RTF output of the same in
@@ -23328,10 +23328,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// put up the dialog
 						if (dlg.ShowModal() == wxID_OK)
 						{
-							if (gbIgnoreIt)
+							if (dlg.m_bIgnoreIt)
 							{
-								gbIgnoreIt = FALSE;
 								// skip rest of this block, don't change KB, don't change doc
+								;
 							}
 							else
 							{
@@ -23438,7 +23438,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								ListBothArrays(arrSetNotInKB, arrRemoveNotInKB);
 #endif
 							} // end of else block for test: if (tempStr != pApp->m_strNotInKB)
-							} // end of else block for test: if (gbIgnoreIt)
+							} // end of else block for test: if (dlg.m_bIgnoreIt)
 						} // end of TRUE block for test of ShowModal() == wxID_OK
 						else
 						{
@@ -24319,6 +24319,13 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						// put up the dialog
 						if (dlg.ShowModal() == wxID_OK)
 						{
+							if (dlg.m_bIgnoreIt)
+							{
+								// skip rest of this block, don't change KB, don't change doc
+								;
+							}
+							else
+							{
 							// get and store the FixItAction (all 3 possibilities are storage
 							// actions: store_nonempty_meaning, store_empty_meaning, or
 							// restore_meaning_to_doc); also get the user's final string
@@ -24383,7 +24390,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 								} // end of TRUE block for test: if (gbAutoCaps)
 								*/
 							} // end of else block for test: if (tempStr.IsEmpty())
-
+							} // end of else block for test: if (dlg.m_bIgnoreIt)
 						} // end of TRUE block for test of ShowModal() == wxID_OK
 						else
 						{

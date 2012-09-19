@@ -73,6 +73,7 @@ public:
 	CSourcePhrase*  m_pSrcPhrase;
 	wxPoint			m_ptBoxTopLeft;
 	int				m_nTwoLineDepth;
+	bool			m_bIgnoreIt;
 
 	// new members for the new dialog format
 	int difference; // final (max) of the various aDifference values
