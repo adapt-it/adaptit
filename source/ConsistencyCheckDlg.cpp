@@ -65,7 +65,7 @@ extern bool gbGlossingUsesNavFont;
 
 //extern bool gbRemovePunctuationFromGlosses;
 
-extern bool gbIgnoreIt; // used in CAdapt_ItDoc::DoConsistencyCheck
+//extern bool gbIgnoreIt; // used in CAdapt_ItDoc::DoConsistencyCheck
 						// when the "Ignore it (do nothing)" button was hit in the dialog
 
 /// This global is defined in Adapt_It.cpp.
@@ -196,7 +196,7 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		s = _("<no adaptation>");
 	}
-	gbIgnoreIt = FALSE; // default
+	m_bIgnoreIt = FALSE; // default
 
 	// first, use the current source and target language fonts for the list box
 	// and edit boxes (in case there are special characters)
@@ -676,7 +676,7 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 						// the variable to the control when the dialog is initialized, and 
 						// transfer data from the control to the associated variable when 
 						// the dialog is dismissed with OnOK() 
-	gbIgnoreIt = FALSE;
+	m_bIgnoreIt = FALSE;
 
 	// update m_adaptationStr from whatever is in the text box now
 	//TransferDataFromWindow(); // whm removed 21Nov11
@@ -715,7 +715,7 @@ void CConsistencyCheckDlg::OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event))
 	m_chVerse = m_pEditCtrlChVerse->GetValue();
 	m_adaptationStr = m_pEditCtrlAdaptation->GetValue();
 	m_keyStr = m_pEditCtrlKey->GetValue();
-	gbIgnoreIt = TRUE;
+	m_bIgnoreIt = TRUE;
 	//m_finalAdaptation = m_adaptationStr; // dangerous, user may have edited then hit the button
 	// whm updated 12Jan09 - the parameter sent to EndModal() below needs to be wxID_OK in order for
 	// ShowModal() in the calling routine to return that value
