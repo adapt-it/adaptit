@@ -3080,6 +3080,10 @@ public:
 	// mrh added 2May12, likewise to suppress the warning when we're re-opening a document that's
 	// been changed externally.
 	bool		m_bDocReopeningInProgress;
+	
+	// mrh added 20Sep12, to control whether a progress dialog should come up when opening a document.
+	//  Default is TRUE.
+	bool		m_bShowProgress;
 
     // flag for skipping USFM fixed space "~" (tilde) when parsing source text (if TRUE,
     // then skip, if FALSE then don't check for its presence) used in the ParseWord()

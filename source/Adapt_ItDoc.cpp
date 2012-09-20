@@ -4828,9 +4828,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 	// add 1 chunk to insure that we have enough after int division above
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
-	// Only show the progress dialog when there is at lease one chunk of data
-	// Only create the progress dialog if we have data to progress
-	if (nTotal > 0)
+	
+	// Only show the progress dialog when there is at lease one chunk of data, AND we're wanting
+	//  to show progress dialogs just now.
+
+	if (nTotal > 0 && gpApp->m_bShowProgress)
 	{
 		progMsg = _("Reading file %s - part %d of %d");
 		wxFileName fn(filename);
@@ -21347,6 +21349,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	wxString pathName = savedCurOutputPath;
 	wxString docName = savedCurOutputFilename;
 
+	gpApp->m_bShowProgress = FALSE;			// progress dialogs get in the way of all this
+	
 	// Put up the Choose Consistency Check Type dialog
 	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
 	if (ccDlg.ShowModal() == wxID_OK)
@@ -21374,6 +21378,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                     // current working directory has not changed, so no need here to reset
                     // it before return.
 					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
+					gpApp->m_bShowProgress = TRUE;			// restore normal default
 					return;
 				}
 
@@ -21432,6 +21437,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // current working directory has not changed, so no need here to reset
                 // it before return.
 				pApp->LogUserAction(_T("User asked for current doc consistency check without a document being open."));
+				gpApp->m_bShowProgress = TRUE;			// restore normal default
 				return;
 			} // end of else block for test: if (!bDocIsClosed)
 		} // end of TRUE block for test: if (ccDlg.m_bCheckOpenDocOnly)
@@ -21470,6 +21476,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						{
 							RemoveAutoFixList(afList);
 						}
+						gpApp->m_bShowProgress = TRUE;			// restore normal default
 						return;
 					}
 
@@ -21640,6 +21647,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						{
 							RemoveAutoFixList(afList);
 						}
+						gpApp->m_bShowProgress = TRUE;			// restore normal default
 						return;
 					}
 					if (!pApp->m_acceptedFilesList.IsEmpty())
@@ -21687,6 +21695,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
         // working directory has not changed, so no need here to reset it before
         // return.
 		pApp->LogUserAction(_T("Cancelled OnEditConsistencyCheck()"));
+		gpApp->m_bShowProgress = TRUE;			// restore normal default
 		return;
 	}
 	// erase the copied CKB which is no longer needed
@@ -21716,6 +21725,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		nCumulativeTotal, nFileCount);
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
+	gpApp->m_bShowProgress = TRUE;			// restore normal default
 }
 
 // Allow "Change Punctuation or Markers Placement" while document is open, but only if the
@@ -21961,8 +21971,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 {
 	wxASSERT(pKB->IsThisAGlossingKB() == FALSE); // must be an adaptation kb for this fn version
 
-	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
-									  // initially when OnOpenDocument() is called
+	gbConsistencyCheckCurrent = TRUE;	// turn on Flag to inhibit placement of phrase box
+										// initially when OnOpenDocument() is called
+										//  like when doing a consistency check.
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pApp != NULL);
 	wxArrayString* pList = &pApp->m_acceptedFilesList;
@@ -21975,7 +21986,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
         // many of which may have no files in them yet. So we must allow for GetCount() to
         // return 0 and if so we return silently, and the loop will go on to the next
         // folder
-		gbConsistencyCheckCurrent = FALSE;
+		gbConsistencyCheckCurrent = FALSE;	// restore normal default
+
 		return TRUE;
 	}
 	wxASSERT(nCount > 0);
@@ -23663,8 +23675,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
 
-	// make sure the global flag is cleared
-	gbConsistencyCheckCurrent = FALSE;
+	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 	return TRUE;
@@ -23681,8 +23692,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 
 	wxASSERT(pKB->IsThisAGlossingKB() == TRUE); // must be a glossing kb for this fn version
 
-	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
-									  // initially when OnOpenDocument() is called
+	gbConsistencyCheckCurrent = TRUE;	// turn on Flag to inhibit placement of phrase box
+										// initially when OnOpenDocument() is called
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pApp != NULL);
 	wxArrayString* pList = &pApp->m_acceptedFilesList;
@@ -23693,7 +23704,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
         // many of which may have no files in them yet. So we must allow for GetCount() to
         // return 0 and if so we return silently, and the loop will go on to the next
         // folder
-		gbConsistencyCheckCurrent = FALSE;
+		gbConsistencyCheckCurrent = FALSE;	// restore normal default
+
 		return TRUE;
 	}
 	wxASSERT(nCount > 0);
@@ -24460,8 +24472,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
 
-	// make sure the global flag is cleared
-	gbConsistencyCheckCurrent = FALSE;
+	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 	return TRUE;
