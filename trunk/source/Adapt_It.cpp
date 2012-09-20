@@ -14584,7 +14584,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
-	m_trialRevNum = -1;		// negative means no trial going on - the normal case
+	m_trialRevNum = -1;			// negative means no trial going on - the normal case
+	
+	m_bShowProgress = TRUE;		// normal default
 
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
