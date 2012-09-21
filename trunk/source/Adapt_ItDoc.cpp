@@ -1404,6 +1404,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 /// BEW 28Jul11, added some initial support for collaboration scenario's tranfer of data to
 /// external editor
 ///////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 {
 	// whm 26Aug11 Open a wxProgressDialog instance here for save operations.
@@ -1413,13 +1414,16 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	// be changed after the dialog is created. So any routine that gets passed the
 	// pProgDlg pointer, must make sure that value in its Update() function does not
 	// exceed the same maximum value (nTotal).
+
 	wxString msgDisplayed;
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
 	wxString progMsg = _("Saving File %s  - %d of %d Total words and phrases");
 	wxFileName fn(gpApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
+	wxProgressDialog* pProgDlg = NULL;
+	
+	if (gpApp->m_bShowProgress)			// mrh Sep12 - now we can suppress progress dialogs with this flag
+		pProgDlg = gpApp->OpenNewProgressDialog (_("Saving File"), msgDisplayed, nTotal, 500);
 
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
@@ -1440,9 +1444,10 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 		// no collaboration - do a normal protected save
 
 		// we are not interested in the returned boolean from the following call
-		DoFileSave_Protected(TRUE,pProgDlg); // // TRUE means - show wait/progress dialog
+		DoFileSave_Protected (gpApp->m_bShowProgress, pProgDlg); // only show wait/progress dialog if flag is TRUE
 	}
-	pProgDlg->Destroy();
+	if (pProgDlg)
+		pProgDlg->Destroy();
 }
 
 
@@ -21094,8 +21099,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
-	bUserCancelled = FALSE; // this is a global boolean
-	wxArrayString arrSetNotInKB; // list of src words and phrases for being
+	bUserCancelled = FALSE;			// this is a global boolean
+	wxArrayString arrSetNotInKB;	// list of src words and phrases for being
 				// made <Not In KB> in KB
 	wxArrayString arrRemoveNotInKB; // list of src words and phrases for
 				// restoring normal saving after being <Not In KB> in KB
@@ -21355,6 +21360,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
 	if (ccDlg.ShowModal() == wxID_OK)
 	{
+		wxBusyCursor  busyCursor1;		// change cursor to "busy" while in scope
+		
 		// handle user's choice of consistency check type
 		if (ccDlg.m_bCheckOpenDocOnly)
 		{
@@ -21455,7 +21462,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					// both the glossing and adapting KBs)
 					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
 					// protection against data loss in the event of a failure
-					bool fsOK = DoFileSave_Protected(TRUE,NULL); // TRUE - show the wait/progress dialog
+					bool fsOK = DoFileSave_Protected (gpApp->m_bShowProgress, NULL);	// show the wait/progress dialog if needed
 					if (!fsOK)
 					{
 						// something's real wrong!
