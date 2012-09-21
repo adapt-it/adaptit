@@ -4761,6 +4761,9 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	// turn calls other functions that thselves put up progress dialogs that overlay
 	// the original one from OnFileRestoreKb(). These include the OnOpenDocument()
 	// function, and the KB saving routines.
+	
+	// mrh Sept12 note: the caller will have set m_bShowProgress to FALSE if we don't want
+	//  these progress dialogs, so we check that.
 
 	// variables below added by whm 27Apr09 for reporting errors in docs used for KB
 	// restore 
@@ -4821,8 +4824,8 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 			continue; 
 		
 		// whm 25Aug11 Note: I removed the progress dialog Update call from this function
-		// because each document has a difference number of m_pSourcePhrases, and a
-		// sincle instance of a wxProgressDialog cannot handle more than one range of
+		// because each document has a different number of m_pSourcePhrases, and a
+		// single instance of a wxProgressDialog cannot handle more than one range of
 		// values, hence we cannot use the pointer of a single instance of wxProgressDialog
 		// to track the progress of documents of varied numbers of m_pSourcePhrases.
 		nCumulativeTotal += m_pApp->m_pSourcePhrases->GetCount();
