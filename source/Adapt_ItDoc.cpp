@@ -21085,6 +21085,7 @@ bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
 // the resport from c: instead) Also removed legacy DoConsistencyCheck(), and added an int
 // nCumulativeTotal 4th param to the signature of its overloaded version, which now is the
 // only version; and restored a stats dialog for when all is done
+
 void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
@@ -21378,6 +21379,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				if (!fsOK)
 				{
 					// something's real wrong!
+					wxEndBusyCursor();				// show normal cursor while dialog is up
 					wxMessageBox(_(
 					"Could not save the current document. Consistency Check Command aborted."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
@@ -21466,6 +21468,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					if (!fsOK)
 					{
 						// something's real wrong!
+						wxEndBusyCursor();				// show normal cursor while dialog is up
 						wxMessageBox(_(
 						"Could not save the current document. Consistency Check Command aborted."),
 						_T(""), wxICON_EXCLAMATION | wxOK);
@@ -21520,6 +21523,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// restore the current settings when the loop completes. Though we may not
 				// need to, we'll also save and afterwards restore m_curOutputPath,
 				// m_curOutputFilename and m_curOutputBackupFilename.
+				
 				wxString save_currentOutputPath = pApp->m_curOutputPath;
 				wxString save_currentOutputFilename = pApp->m_curOutputFilename;
 				wxString save_currentOutputBackupFilename = pApp->m_curOutputBackupFilename;
@@ -21619,6 +21623,10 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // Enumerate the doc files and do the consistency check
                 // whm note: EnumerateDocFiles() has the side effect of changing the current
                 // work directory to the passed in dirPath.
+
+				if (wxIsBusy())
+					wxEndBusyCursor();			// show normal cursor while dialog is up
+	
 				bOK = pApp->EnumerateDocFiles(this, dirPath);
 				if (bOK)
 				{
@@ -21657,6 +21665,9 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						gpApp->m_bShowProgress = TRUE;			// restore normal default
 						return;
 					}
+					
+					wxBeginBusyCursor(wxHOURGLASS_CURSOR);		// back to busy cursor while we do the work
+					
 					if (!pApp->m_acceptedFilesList.IsEmpty())
 					{
 						nFileCount += pApp->m_acceptedFilesList.GetCount();
@@ -21972,6 +21983,7 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // IN THE SAME KB (ie. in pKBCopy). Therefore, we maintain
 // pTU, and pRefStr, as pertaining only to the pKBCopy knowledge base instance
 // but pTU_OnOrig, and pRefStr_OnOrig, for pKB's knowledge base instance
+
 bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB,
 						wxArrayString& arrRemoveNotInKB)
@@ -23062,6 +23074,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// no match, so this is has to be handled with user intervention via
 					// the dialogs
 
+					wxEndBusyCursor();				// show normal cursor while dialogs are up
+
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
                     // the dialog, return ptr to the phrase box's cell in the view
@@ -23242,6 +23256,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
+						if (wxIsBusy())
+							wxEndBusyCursor();
+	
 						if (dlg.ShowModal() == wxID_OK)
 						{
 							// get and store the FixItAction
@@ -23344,9 +23361,14 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
-						// put up the dialog
+						// put up the dialog, first ensuring cursor is normal
+						if (wxIsBusy())
+							wxEndBusyCursor();			// cursor may or may not be busy at this point
+	
 						if (dlg.ShowModal() == wxID_OK)
 						{
+							wxBeginBusyCursor(wxHOURGLASS_CURSOR);
+	
 							if (dlg.m_bIgnoreIt)
 							{
 								// skip rest of this block, don't change KB, don't change doc
@@ -23616,6 +23638,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				}  // end of else block for test: if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 
 			} // end of TRUE block for test: if (bInconsistency)
+			
+			wxBeginBusyCursor (wxHOURGLASS_CURSOR);		// cursor back to busy
 
 #ifdef CONSCHK
 				wxString aKey = _T("a");
@@ -24230,8 +24254,12 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
+						if (wxIsBusy())
+							wxEndBusyCursor();				// show normal cursor while dialog is up
+
 						if (dlg.ShowModal() == wxID_OK)
 						{
+							wxBeginBusyCursor(wxHOURGLASS_CURSOR);		// cursor back to busy
 							// get and store the FixItAction
 							pAutoFixGRec->fixAction = dlg.actionTaken;
 							// pAutoFixGRec->finalGloss is already set to the empty
@@ -24336,6 +24364,9 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
 
 						// put up the dialog
+						if (wxIsBusy())
+							wxEndBusyCursor();
+						
 						if (dlg.ShowModal() == wxID_OK)
 						{
 							if (dlg.m_bIgnoreIt)
@@ -24345,11 +24376,12 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							}
 							else
 							{
+								wxBeginBusyCursor(wxHOURGLASS_CURSOR);
 							// get and store the FixItAction (all 3 possibilities are storage
 							// actions: store_nonempty_meaning, store_empty_meaning, or
 							// restore_meaning_to_doc); also get the user's final string
-							pAutoFixGRec->fixAction = dlg.actionTaken;
-							pAutoFixGRec->finalGloss = dlg.m_finalAdaptation;
+								pAutoFixGRec->fixAction = dlg.actionTaken;
+								pAutoFixGRec->finalGloss = dlg.m_finalAdaptation;
 
 							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
 							// subsequent use
