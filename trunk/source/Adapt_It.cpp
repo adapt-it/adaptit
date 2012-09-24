@@ -25093,10 +25093,13 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 /// a remote project (it must not be possible to initiate a KB restoration on the remote
 /// user's machine; that could lose some of his data. He must do it locally.)
 ////////////////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 {
-//	event.Enable(TRUE);		// mrh TEMP TEST ONLY
-//	return;
+#ifdef _DEBUG
+	event.Enable(TRUE);		// mrh - on the Mac, need to force item to be enabled, for some reason
+	return;
+#endif
 	
 	if (m_bReadOnlyAccess)
 	{
@@ -25768,6 +25771,7 @@ BOOL CWinApp::OnOpenRecentFile(UINT nID)
 /// time been turned on)
 /// BEW 19Mar10, fixed faulty logic in the book folders loop
 ////////////////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 {
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
