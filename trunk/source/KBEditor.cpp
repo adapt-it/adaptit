@@ -425,15 +425,16 @@ void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event)
 void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event)) 
 {
     // This OnUpdateEditOrAdd is called every time SetValue() is called which happens
-    // anytime the user selects a marker from the list box, even though he makes no changes
-    // to the associated text in the control. That is a difference between the EVT_TEXT
-    // event macro design and MFC's ON_EN_TEXT macro design. Therefore we need to add the
-    // enclosing if block with a IsModified() test to the wx version. Enable the Update
-    // button if the text is dirty and the text is different from the selected item in
-    // existing translations
-	wxString testStrTransBox,testStrListBox;
-	testStrTransBox = m_pEditOrAddTranslationBox->GetValue();
-	testStrListBox = m_pListBoxExistingTranslations->GetStringSelection();
+    // anytime the user selects a string from the list box, even though he makes no changes
+    // to the associated text in the text control. That is a difference between the
+    // EVT_TEXT event macro design and MFC's ON_EN_TEXT macro design. Therefore, in the
+    // UpdateButtons() function we need to have tests which include a IsModified() test,
+    // for the wx version. We enable the Update button if the text is dirty and the text is
+    // different from the selected item in existing translations, make similar test for the
+    // other buttons.
+	//wxString testStrTransBox,testStrListBox;
+	//testStrTransBox = m_pEditOrAddTranslationBox->GetValue();
+	//testStrListBox = m_pListBoxExistingTranslations->GetStringSelection();
 	UpdateButtons();
 }
 
@@ -516,31 +517,130 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(nFound != wxNOT_FOUND);
 	pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nFound);
 	wxASSERT(pCurRefString != NULL);
-	pCurRefString->m_translation = newText; // could be an empty string
-	pCurRefString->m_refCount = 1;
+
+    // BEW changed 24Sep12, to not modify "in place", but rather to clone a copy, the copy
+    // then gets the modified datetime, and the new adaptation (or gloss) text, and is
+    // shown in the translations list on the edit page, while the old pCurRefString merely
+    // gets it's m_deleted flag set TRUE, and a deletion datetime, and is removed from the
+    // edit page's list -- this is in anticipation of kbserver support, which will work
+    // correctly (ie. the uploaded deletions will cause deletions in the other connected
+    // clients, and the new entry will result in a new kbserver pair with the edited
+    // adaptation or gloss text as the second member of the pair.
+    
+	// clone the pCurRefString, the clone will become the new entry, pCurRefString will
+	// become the deleted CRefString instance (eventually)
+	CRefString* pEditedRefString = new CRefString(*pCurRefString, pCurTgtUnit); // CRefStringMetadata
+																	// is copy-created automatically
+	// add the new data values to it
+	pEditedRefString->m_translation = newText; // could be an empty string
+	pEditedRefString->m_refCount = 1; // give it a minimal legal ref count value
+	// the old creation date should be left unchanged, but change the modification
+	// datetime; the old WhoCreated value should also be updated for this edited copy
 	// BEW 25Jun10, additions for kbVersion 2 specifically (two lines of code added)
-	pCurRefString->GetRefStringMetadata()->SetModifiedDateTime(GetDateTimeNow());
-	pCurRefString->GetRefStringMetadata()->SetWhoCreated(SetWho());
+	wxString nowStr = GetDateTimeNow();
+	pEditedRefString->GetRefStringMetadata()->SetModifiedDateTime(nowStr);
+	pEditedRefString->GetRefStringMetadata()->SetWhoCreated(SetWho());
+
+	// The CTargetUnit which stores pCurRefString may have some "deleted" (and therefore
+	// unshown in the dialog's page) CRefString instances preceding the pCurRefString one,
+	// and so the nSel index won't necessarily be the right value for where pCurRefString
+	// is located in the pCurTgtUnit's list. So Find() the appropriate index - search for
+	// the pCurRefString ptr value.
+	int actualIndex = pCurTgtUnit->m_pTranslations->IndexOf(pCurRefString);
+	wxASSERT(actualIndex != wxNOT_FOUND);
+	
+	// Insert the pEditedRefString instance at the actualIndex location in pCurTgtUnit, we
+	// don't need the returned iterator value, so ignore it
+	pCurTgtUnit->m_pTranslations->Insert(actualIndex, pEditedRefString);
+
+	// Now adjust the pCurRefString instance to be a deleted one - we leave it in
+	// pCurTgtUnit of course, but further below we must remove it from the page's 
+	// wxListBox list
+	pCurRefString->GetRefStringMetadata()->SetDeletedDateTime(nowStr);
+	pCurRefString->SetDeletedFlag(TRUE);
+
+	// That completes what's needed for updating the CTargetUnit instance. The stuff below
+	// is to get the page's translations (or glosses) list to comply with the edit done
+
+	// set m_edTransStr to the new adaptation (or gloss) - this will be used below
+	// for updating the contents of m_pEditOrAddTranslationBox wxTextCtrl so that the
+	// control value will persist
 	m_edTransStr = newText;
+
+	// Handle an empty adaptation (or gloss), so that the list will have the appropriate
+	// string visible - (This inserts an extra line before the selection, so we need to
+	// then delete the following old value's line and renew the selection, etc)
 	if (newText.IsEmpty())
 		newText = s; // cause list box to show "<no adaptation>"
 	m_pListBoxExistingTranslations->Insert(newText,nSel);
-	// now remove the original entry before which just inserted
+
+	// find the original entry before which we just inserted the edited one, so as to
+	// delete it from the list
 	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText, 
 														caseSensitive, exactString);
 	wxASSERT(nOldLoc != wxNOT_FOUND); // -1
 	m_pListBoxExistingTranslations->Delete(nOldLoc);
+
+	// re-find the index for the newly edited entry in the list, select it and set it's
+	// clientData member in the relevant wxListBox's node, and set it's m_refCount to 1
+	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText, 
+														caseSensitive, exactString);
+	m_pListBoxExistingTranslations->SetSelection(nLocation,TRUE);
+	m_pListBoxExistingTranslations->SetClientData(nLocation, pEditedRefString);
+	m_refCount = 1;
+
+	// update the dialog page to agree with what we've done
+	m_refCountStr = _T("1");
+	m_pEditRefCount->ChangeValue(m_refCountStr);
+	m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
+
+/*  retain legacy code temporarily -- for about a year from Sept 2012
+	// set the new form of the adaptation (or gloss) into the m_translation member
+	// of pCurRefString
+	pCurRefString->m_translation = newText; // could be an empty string
+	pCurRefString->m_refCount = 1; // give it a minimal legal ref count value
+
+	// BEW 25Jun10, additions for kbVersion 2 specifically (two lines of code added)
+	pCurRefString->GetRefStringMetadata()->SetModifiedDateTime(GetDateTimeNow());
+	pCurRefString->GetRefStringMetadata()->SetWhoCreated(SetWho());
+
+	// set m_edTransStr to the new adaptation (or gloss) - this will be used below
+	// for updating the contents of m_pEditOrAddTranslationBox wxTextCtrl so that the
+	// control value will persist
+	m_edTransStr = newText;
+
+	// handle an empty adaptation (or gloss), so that the list will have something visible
+	if (newText.IsEmpty())
+		newText = s; // cause list box to show "<no adaptation>"
+	m_pListBoxExistingTranslations->Insert(newText,nSel);
+
+	// find the original entry before which we just inserted the edited one, so as to
+	// delete it from the list
+	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText, 
+														caseSensitive, exactString);
+	wxASSERT(nOldLoc != wxNOT_FOUND); // -1
+	m_pListBoxExistingTranslations->Delete(nOldLoc);
+
+	// re-find the index for the newly edited entry in the list, select it and set it's
+	// clientData member in the relevant wxListBox's node, and set it's m_refCount to 1
 	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText, 
 														caseSensitive, exactString);
 	m_pListBoxExistingTranslations->SetSelection(nLocation,TRUE);
 	m_pListBoxExistingTranslations->SetClientData(nLocation,pCurRefString);
 	m_refCount = 1;
+
+	// update the dialog page to agree with what we've done
 	m_refCountStr = _T("1");
 	m_pEditRefCount->ChangeValue(m_refCountStr);
 	m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
+*/
 
+	// make the state of the various buttons etc in the page agree with the new state
 	UpdateButtons();
-	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save button enabled
+
+	// we'll also make the doc dirty to ensure that the File > Save is enabled, and the
+	// save button on the toolbar is also enabled
+	gpApp->GetDocument()->Modify(TRUE);
 }
 
 // BEW 25Jun10, changes needed for support of kbVersion 2
