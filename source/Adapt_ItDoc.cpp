@@ -21744,6 +21744,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
 	gpApp->m_bShowProgress = TRUE;			// restore normal default
+
+	while (wxIsBusy())
+	{
+		// the wait cursor calls can be nested; get rid of all of them
+		wxEndBusyCursor();			// cursor may or may not be busy at this point
+	}
 }
 
 // Allow "Change Punctuation or Markers Placement" while document is open, but only if the
@@ -23706,6 +23712,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
 
+	if (wxIsBusy())
+		wxEndBusyCursor();			// cursor may or may not be busy at this point
+
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
@@ -24510,6 +24519,9 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
+
+	if (wxIsBusy())
+		wxEndBusyCursor();			// cursor may or may not be busy at this point
 
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
