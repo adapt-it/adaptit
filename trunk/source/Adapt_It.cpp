@@ -43793,7 +43793,13 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 								// wxDir must call .Open() before enumerating files!
 	if (!bOK)
 	{
-		// TODO: error
+		// The ::wxSetWorkingDirectory() or finder.Open() functions
+		// failed for some reason. Just log the error and return the 
+		// empty list.
+		wxString msg = _T("In GetListOfBEProjects() wxSetWorkingDirectory() or finder.Open() failed with the path: %s Empty list of BE projects returned.");
+		msg = msg.Format(msg,BE_ProjectsDirPath.c_str());
+		this->LogUserAction(msg);
+		return tempListOfBEProjects; // will be empty
 	}
 
 	wxString str;
