@@ -53,7 +53,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 #define LOOPINDEX             // this one gives the loop indices at the start of each iteration
 #define MERGE_Recursively     // use this one and the next to look at the tuple processing
 #define _RECURSE_			  // gives useful information when recursion takes place in merging matched spans
-#define LEFTRIGHT			  // displays results of extending in-common matches to left or right 
+//#define LEFTRIGHT			  // displays results of extending in-common matches to left or right 
 							  //(this one has limited usefulness, only use if extending issues are your focus)
 */
 /// This global is defined in Adapt_It.cpp.
@@ -1220,13 +1220,15 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                   // carefully placed tests at the loop end below.
 		while(oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
 		{
+/*
 #if defined(_DEBUG) && defined(LOOPINDEX)
 			wxLogDebug(_T("while loop indices: oldChunkIndex %d   newChunkIndex %d"),oldChunkIndex,newChunkIndex);
-			if (newChunkIndex >= 10)
+			if (newChunkIndex >= 22)
 			{
-//				int break_here = 1;
+				int break_here = 1;
 			}
 #endif
+*/
 			// we still have chunks that potentially can be matched up to each other
 			pOldChunk = (SfmChunk*)pChunksOld->Item(oldChunkIndex);
 			pNewChunk = (SfmChunk*)pChunksNew->Item(newChunkIndex);
@@ -1329,6 +1331,11 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                             // nStartingSequNum value to start from
 							gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
 						}
+                        // BEW added 26Sep12, we have to make sure the block of code after
+                        // the loop isn't entered, because we've completed the merge now;
+                        // we can do this simply by resetting newLastChunkIndex to
+                        // newMaxIndex
+						newLastChunkIndex = newMaxIndex;
 					}
 					break;
 
@@ -1740,7 +1747,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						// we need a correct value for newLastChunkIndex here, so that when we
 						// break from the loop, the code following the loop will behave
 						// correctly
-						newLastChunkIndex = pEndChunkNew->endsAt;
+						newLastChunkIndex = newMaxIndex;
 					}
 				}
 				// update the iterators & iterate (the kick-off point depends on
@@ -2401,10 +2408,24 @@ bool GetNextSimpleVerseChunkInfo(wxArrayPtrVoid* pChunkInfos, int startFrom, int
 // dissimilar types also return FALSE regardless of what the verse and chapter info is,
 // for example, one is introductionChunk the other is chapterPlusVerseChunk; or one is
 // subheadinglusVerseChunk and the other is verseChunk, etc
+// BEW changed 26Sep12, because the user may have old data like this:
+// \c 2
+// \v 12 <words>
+// and the new data may be the fuller chapter or whole book, and look like:
+// \c 2  ... other fields, like \p
+// \v 1 .. other verses....
+// \v 12 <words>
+// and so just testing for identity in the two chunks' types gives chapterPlussVerseChunk for the old chunk,
+// but the matching verse 12 in the new is a verseChunk, and therefore a FALSE result, and
+// returning FALSE as a consequence would mess up what essentially is a valid pairing. The
+// two verses match - and we can leave it to the code which updates the sfms to remove the
+// old \c 2 and put a new \c 2 earlier at the m_markers of the first word of verse 1 in
+// chapter 2. So I'm making the test smarter, and putting it AFTER the tests for matching
+// verse numbers and suffix part differences. We need the above situation to return TRUE. 
 bool AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk)
 {
-	if (pOldChunk->type != pNewChunk->type)
-		return FALSE;
+	//if (pOldChunk->type != pNewChunk->type)
+	//	return FALSE;
 	if (pOldChunk->strStartingVerse != pNewChunk->strStartingVerse)
 		return FALSE;
 	else if (pOldChunk->strEndingVerse != pNewChunk->strEndingVerse)
@@ -2425,6 +2446,34 @@ bool AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk)
 	{
 		return FALSE;
 	}
+	// now check the chunk types - disparate types should return FALSE, except that we
+	// must allow for fluidity in where the chapter number may occur; so one may be a
+	// chapterPlusVerseChunk and the other may be a verseChunk - and if so, we'll allow
+	// such combinations as legitimate
+	if (	
+		 (pOldChunk->type == chapterPlusVerseChunk && pNewChunk->type == verseChunk)
+		 ||
+		 (pOldChunk->type == verseChunk && pNewChunk->type == chapterPlusVerseChunk)
+		)
+	{
+		// those two are allowable as valid matchups, so return TRUE
+		return TRUE;
+	}
+	else if (
+		 (pOldChunk->type == subheadingPlusVerseChunk && pNewChunk->type == verseChunk)
+		 ||
+		 (pOldChunk->type == verseChunk && pNewChunk->type == subheadingPlusVerseChunk)
+		)
+	{
+		// those two also are allowable as valid matchups, so return TRUE
+		return TRUE;
+	}
+	else if (pOldChunk->type != pNewChunk->type)
+	{
+		// other mismatch combinations are not valid as "same reference" matchups
+		return FALSE;
+	}
+	// if control gets to here, the two chunks are the same type
 	return TRUE;
 }
 
