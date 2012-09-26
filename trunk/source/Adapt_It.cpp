@@ -5678,10 +5678,20 @@ wxString szTargetLanguageCode = _T("TargetLanguageCode");
 wxString szGlossesLanguageCode = _T("GlossesLanguageCode");
 
 // BEW added 25Jul12
-/// The label that identifies the following string as the project's "FreeTranslationLanguageCode".
-/// This value is written in the "ProjectSettings" part of the project & basic configuration files.
-/// Adapt It stores this string in the App's m_freeTransLanguageCode member variable.
+/// The label that identifies the following string as the project's
+/// "FreeTranslationLanguageCode". This value is written in the "ProjectSettings" part of
+/// the project & basic configuration files. Adapt It stores this string in the App's
+/// m_freeTransLanguageCode member variable.
 wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
+
+#if defined (_KBSERVER)
+// BEW added 25Sep12
+/// The label that identifies the whether or not the project is associated with a KBServer.
+/// This value is written in the "ProjectSettings" part of the project configuration file.
+/// Adapt It stores this string in the App's m_bIsKBServerProject member variable. Default
+/// is FALSE.
+wxString szIsKBServerProject = _T("IsKBServerProject");
+#endif
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
 /// This value is written in the "Settings" part of the basic configuration file. After
@@ -14582,6 +14592,17 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+#if defined(_KBSERVER)
+	m_bIsKBServerProject = FALSE; // initialise
+	m_kbServerURL.Empty();
+	m_kbServerUsername.Empty();
+	m_kbServerPassword.Empty(); 
+	m_kbServerSrcRFC5646Code.Empty();
+	m_kbServerTgtRFC5646Code.Empty();
+	m_kbServerGlossesRFC5646Code.Empty();
+	m_kbServerLastSync.Empty();
+	m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
+#endif
 	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
 	m_trialRevNum = -1;			// negative means no trial going on - the normal case
@@ -25096,7 +25117,7 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 {
-#ifdef _DEBUG
+#if defined (_DEBUG) && defined (__WXOSX__)
 	event.Enable(TRUE);		// mrh - on the Mac, need to force item to be enabled, for some reason
 	return;
 #endif
@@ -30659,6 +30680,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szFreeTransLanguageCode << tab << m_freeTransLanguageCode;
 	pf->AddLine(data);
 
+#if defined (_KBSERVER)
+	data.Empty();
+	data << szIsKBServerProject << tab << (int)m_bIsKBServerProject;
+	pf->AddLine(data);
+#endif
 	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
 
 	/*
@@ -31431,7 +31457,19 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_freeTransLanguageCode = strValue;
 		}
-
+#if defined (_KBSERVER)
+		else if (name == szIsKBServerProject)
+		{
+			if (strValue == _T("1"))
+			{
+				m_bIsKBServerProject = TRUE;
+			}
+			else
+			{
+				m_bIsKBServerProject = FALSE;
+			}
+		}
+#endif
 		// whm 17Feb12 added the following two from the basic config file. They are
 		// used in collaboration operations too.
 		else if (name == szCurProjectName)
@@ -45029,5 +45067,4 @@ void CAdapt_ItApp::ClearSavedSelection()
 	m_savedSelectionAnchorIndex = -1;
 	m_savedSelectionCount = -1;
 } // only makes the above 3 ints have the value -1
-
 
