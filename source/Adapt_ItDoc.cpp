@@ -21360,9 +21360,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	// Put up the Choose Consistency Check Type dialog
 	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
 	if (ccDlg.ShowModal() == wxID_OK)
-	{
-		wxBusyCursor  busyCursor1;		// change cursor to "busy" while in scope
-		
+	{		
 		// handle user's choice of consistency check type
 		if (ccDlg.m_bCheckOpenDocOnly)
 		{
@@ -21379,7 +21377,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				if (!fsOK)
 				{
 					// something's real wrong!
-					wxEndBusyCursor();				// show normal cursor while dialog is up
 					wxMessageBox(_(
 					"Could not save the current document. Consistency Check Command aborted."),
 					_T(""), wxICON_EXCLAMATION | wxOK);
@@ -21468,7 +21465,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					if (!fsOK)
 					{
 						// something's real wrong!
-						wxEndBusyCursor();				// show normal cursor while dialog is up
 						wxMessageBox(_(
 						"Could not save the current document. Consistency Check Command aborted."),
 						_T(""), wxICON_EXCLAMATION | wxOK);
@@ -21623,9 +21619,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // Enumerate the doc files and do the consistency check
                 // whm note: EnumerateDocFiles() has the side effect of changing the current
                 // work directory to the passed in dirPath.
-
-				if (wxIsBusy())
-					wxEndBusyCursor();			// show normal cursor while dialog is up
 	
 				bOK = pApp->EnumerateDocFiles(this, dirPath);
 				if (bOK)
@@ -21665,9 +21658,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						gpApp->m_bShowProgress = TRUE;			// restore normal default
 						return;
 					}
-					
-					wxBeginBusyCursor(wxHOURGLASS_CURSOR);		// back to busy cursor while we do the work
-					
+
 					if (!pApp->m_acceptedFilesList.IsEmpty())
 					{
 						nFileCount += pApp->m_acceptedFilesList.GetCount();
@@ -21746,12 +21737,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
 	gpApp->m_bShowProgress = TRUE;			// restore normal default
-
-	while (wxIsBusy())
-	{
-		// the wait cursor calls can be nested; get rid of all of them
-		wxEndBusyCursor();			// cursor may or may not be busy at this point
-	}
 }
 
 // Allow "Change Punctuation or Markers Placement" while document is open, but only if the
@@ -23082,8 +23067,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 					// no match, so this is has to be handled with user intervention via
 					// the dialogs
 
-					wxEndBusyCursor();				// show normal cursor while dialogs are up
-
                     // update the view to show the location where this source pile is, and
                     // put the phrase box there ready to accept user input indirectly from
                     // the dialog, return ptr to the phrase box's cell in the view
@@ -23263,9 +23246,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// location
 						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
-
-						if (wxIsBusy())
-							wxEndBusyCursor();
 	
 						if (dlg.ShowModal() == wxID_OK)
 						{
@@ -23369,14 +23349,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
-						// put up the dialog, first ensuring cursor is normal
-						if (wxIsBusy())
-							wxEndBusyCursor();			// cursor may or may not be busy at this point
+						// put up the dialog
 	
 						if (dlg.ShowModal() == wxID_OK)
-						{
-							wxBeginBusyCursor(wxHOURGLASS_CURSOR);
-	
+						{	
 							if (dlg.m_bIgnoreIt)
 							{
 								// skip rest of this block, don't change KB, don't change doc
@@ -23646,8 +23622,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				}  // end of else block for test: if (MatchAutoFixItem(&afList, pSrcPhrase, pAFRecord))
 
 			} // end of TRUE block for test: if (bInconsistency)
-			
-			wxBeginBusyCursor (wxHOURGLASS_CURSOR);		// cursor back to busy
 
 #ifdef CONSCHK
 				wxString aKey = _T("a");
@@ -23713,9 +23687,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
-
-	if (wxIsBusy())
-		wxEndBusyCursor();			// cursor may or may not be busy at this point
 
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
@@ -24265,12 +24236,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
-						if (wxIsBusy())
-							wxEndBusyCursor();				// show normal cursor while dialog is up
-
 						if (dlg.ShowModal() == wxID_OK)
 						{
-							wxBeginBusyCursor(wxHOURGLASS_CURSOR);		// cursor back to busy
 							// get and store the FixItAction
 							pAutoFixGRec->fixAction = dlg.actionTaken;
 							// pAutoFixGRec->finalGloss is already set to the empty
@@ -24375,9 +24342,6 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							dlg.m_nTwoLineDepth += pLayout->GetNavTextHeight();
 
 						// put up the dialog
-						if (wxIsBusy())
-							wxEndBusyCursor();
-						
 						if (dlg.ShowModal() == wxID_OK)
 						{
 							if (dlg.m_bIgnoreIt)
@@ -24387,7 +24351,6 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							}
 							else
 							{
-								wxBeginBusyCursor(wxHOURGLASS_CURSOR);
 							// get and store the FixItAction (all 3 possibilities are storage
 							// actions: store_nonempty_meaning, store_empty_meaning, or
 							// restore_meaning_to_doc); also get the user's final string
@@ -24521,9 +24484,6 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
-
-	if (wxIsBusy())
-		wxEndBusyCursor();			// cursor may or may not be busy at this point
 
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
