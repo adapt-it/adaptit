@@ -25929,8 +25929,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 // cursor to "busy".  It will go back to normal automatically when this function ends.
 	
 	gpApp->m_bShowProgress = FALSE;
-	wxBusyCursor  busyCursor2;
-
 	
 	// Update for step 1 Creating a temporary KB backup for restoring the KB later
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
@@ -26007,9 +26005,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     // directory to the passed in m_curAdaptionsPath.
 	//
 	// Dialog should be suppressed for profile == 1 : klb 3/2011
-	
-	wxEndBusyCursor();				// show normal cursor while dialog is up
-	
+
 	if (m_nWorkflowProfile == 1)
 	{
 		bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath, TRUE);
@@ -26022,9 +26018,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 								// Bible book folders only)
 	nDocCount += nCount;
 	wxASSERT(nCount >= 0);
-	
-	wxBeginBusyCursor (wxHOURGLASS_CURSOR);		// cursor back to busy
-	
+		
 	if (bOK)
 	{
 		// if there are no documents yet, a restore or other operation requiring one of more
@@ -26319,8 +26313,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	pProgDlg->Update(7,msgDisplayed);
 	//::wxSafeYield();
 
-	wxEndBusyCursor();				// show normal cursor while next dialog is up
-
 	// inform user of success and some statistics
 	wxString stats;
 	// IDS_RESTORE_KB_STATS
@@ -26329,8 +26321,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	nCumulativeTotal,nDocCount);
 	wxMessageBox(stats,_T("Restore Knowledge Base..."),wxICON_INFORMATION | wxOK);
 	LogUserAction(stats);
-
-	wxBeginBusyCursor (wxHOURGLASS_CURSOR);		// cursor back to busy
 
 	// clean up the list
 	m_acceptedFilesList.Clear();
