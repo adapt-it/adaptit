@@ -680,6 +680,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KBServer.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.cpp"
 				>
 			</File>

@@ -40,6 +40,10 @@
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
 
+// support for incremental building of KB Server client code
+#define _KBSERVER
+
+
 // a temporary #define for Mike to use when working on DVCS:
 #define TEST_DVCS
 
@@ -2650,6 +2654,30 @@ public:
 	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
 	wxString	m_freeTransLanguageCode; // the 2- or 3-letter code for free translation language
 
+#if defined (_KBSERVER)
+	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
+	// For testing the development of the code, url, username and password are stored in
+	// the project folder in credentials.txt, one per line. And in the same folder,
+	// lastsync.txt stores the date & time. These two files will be abandoned once we get a 
+	// GUI built. Some metadata will also be (most likely) stored in a hidden file,
+	// .kbserver in the project folder, probably a JSON encoded data.
+	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
+									  // sharing kb data between clients in the same AI project
+	// access credentials, KB type (1 or 2, 1 is adapting KB, 2 is glossing KB), and lastsync
+	// date&time from the following members:
+	wxString	m_kbServerURL; // we'll keep this in the Project config file too (eventually)
+	wxString	m_kbServerUsername; // we'll keep this in the Project config file too (eventually)
+	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
+	// the iso639 2-letter or 3-letter codes are stored (already) in m_sourceLanguageCode,
+	// m_targetLanguageCode, and m_glossesLanguageCode; so we use those. The RFC codes
+	// below, if empty, are not used; but if not empty and contain validated RFC5646
+	// language codes, they are used instead of the previously mentioned ones
+	wxString	m_kbServerSrcRFC5646Code;
+	wxString	m_kbServerTgtRFC5646Code;
+	wxString	m_kbServerGlossesRFC5646Code;
+	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
+#endif
 	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
 	// (these are used for getting a target text entry, if the import is redone in
 	// glossing mode in order to populate the glossing KB, these are wiped out and
@@ -3698,14 +3726,25 @@ private:
 	wxString m_targetTextBuffer_PreEdit;
 	wxString m_freeTransTextBuffer_PreEdit;
 public:
-	void StoreTargetText_PreEdit(wxString s);
-	void StoreFreeTransText_PreEdit(wxString s);
+	void     StoreTargetText_PreEdit(wxString s);
+	void     StoreFreeTransText_PreEdit(wxString s);
 	wxString GetStoredTargetText_PreEdit();
 	wxString GetStoredFreeTransText_PreEdit();
-
-
 	// end of collaboration declarations
-	
+
+#if defined(_KBSERVER)
+	// Functions for kbserver support
+	// Setup is typically done
+	bool     SetupForKBServer();
+	int		 GetKBTypeForServer();
+
+
+
+
+
+	// end of Functions for kbserver support
+#endif
+
 	// BEW added 6Aug2012 for maintaining a book name (user defined, although a suggestion
 	// is offered) in each document that has a valid bookID. This is needed for XHTML and
 	// Pathway exports (we support only the scripture canon, not the deuterocanon)
