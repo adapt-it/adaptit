@@ -21684,6 +21684,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					}
 					if (!bConsCheckDone)
 					{
+						bDocForcedToClose = TRUE;	// EDB 26 Sept 2012: DoConsistencyCheck calls ClobberDocument(); 
+													// if the user cancelled, we need to reopen the current document
 						bUserCancelled = TRUE; // from within one of the dialogs shown
 											   // during DoConsistencyCheck()
 					}
@@ -23718,7 +23720,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
-	return TRUE;
+	return (!bUserCancelled); // edb 26 Sept 2012 -- wasn't returning whether the operation cancelled
 }
 
 // the "glossing mode is on" variant
