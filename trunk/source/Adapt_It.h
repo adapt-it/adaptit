@@ -3752,6 +3752,8 @@ public:
 	wxString GetLastSyncDateTime();
 	bool	 GetCredentials(wxString& url, wxString& username, wxString& password);
 	bool	 ReleaseKBServer();
+	bool	 SetLastSyncDateTime(wxString datetime);
+	bool	 StoreLastSyncDateTime();
 
 
 	// end of Functions for kbserver support

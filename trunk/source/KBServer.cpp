@@ -132,6 +132,31 @@ bool CAdapt_ItApp::ReleaseKBServer()
 	// m_kbServerLastSync is written to to persistent storage. That may be to a hidden
 	// file later on, but for new we overwrite the single line in lastsync.txt stored in
 	// the project folder
+	bool bOK = StoreLastSyncDateTime();
+
+	
+
+// *** TODO *** more of the permanent GUI code if needed in this function
+
+	return bOK;
+}
+
+// Takes the kbserver's datetime supplied with downloaded data, and stores it in the app
+// wxString member variable m_kbServerLastSync. Return TRUE if no error, FALSE otherwise.
+bool CAdapt_ItApp::SetLastSyncDateTime(wxString datetime)
+{
+	// *** TODO *** add code when we get downloads from kbserver working
+
+	datetime.Empty(); // do nothing useful, avoid compiler warning
+
+	return TRUE;
+}
+
+// return TRUE if all went well, FALSE if unsuccessful (and show a message for developer);
+// use this to send the current datetime in m_kbServerLastSync member to permanent storage
+// on disk -- for our testing code, this will be the file lastsync.txt in the project folder
+bool CAdapt_ItApp::StoreLastSyncDateTime()
+{
 	wxString dateTimeStr; dateTimeStr.Empty();
 
 	// temporary code starts
