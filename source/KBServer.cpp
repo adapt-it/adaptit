@@ -147,9 +147,11 @@ wxString CAdapt_ItApp::GetLastSyncDateTime()
 		// warn developer that the wxTextFile is empty
 		wxString msg = _T("GetTextFileOpened()called in SetupForKBServer(): The lastsync.txt file is empty");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		f.Close();
 		return dateTimeStr; // it's empty still
 	}
 	dateTimeStr = f.GetLine(0); // whew, finally, we have the lastsync datetime string
+	f.Close();
 	// end temporary code
 	
 // **** TODO ****  - the permanent GUI implementation for this goes here - comment out the above
