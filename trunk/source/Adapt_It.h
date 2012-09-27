@@ -3737,7 +3737,8 @@ public:
 	// Setup is typically done
 	bool     SetupForKBServer();
 	int		 GetKBTypeForServer();
-
+	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
+	wxString GetLastSyncDateTime();
 
 
 
