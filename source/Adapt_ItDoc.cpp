@@ -2804,10 +2804,8 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 	wxString progMsg = _("Saving File %s  - %d of %d Total words and phrases");
 	wxFileName fn(gpApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
 
-	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled, pProgDlg);
+	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled, NULL);
 	if (bSuccess)
 	{
 		if (bOutputFileExists && bCopiedSuccessfully)
@@ -2971,8 +2969,6 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	m_bDocRenameRequestedForSaveAs = FALSE; // restore default
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
