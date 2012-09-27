@@ -14597,9 +14597,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_kbServerURL.Empty();
 	m_kbServerUsername.Empty();
 	m_kbServerPassword.Empty(); 
-	m_kbServerSrcRFC5646Code.Empty();
-	m_kbServerTgtRFC5646Code.Empty();
-	m_kbServerGlossesRFC5646Code.Empty();
+	//m_kbServerSrcRFC5646Code.Empty();
+	//m_kbServerTgtRFC5646Code.Empty();
+	//m_kbServerGlossesRFC5646Code.Empty();
 	m_kbServerLastSync.Empty();
 	m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
 #endif
