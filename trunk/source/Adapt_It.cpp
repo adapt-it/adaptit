@@ -13827,22 +13827,15 @@ int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgTy
 
 wxProgressDialog* CAdapt_ItApp::OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed,
 		const int nTotal,
-		const int width)
+		const int width,
+		int style /* = wxPD_APP_MODAL | wxPD_AUTO_HIDE */)
 {
 	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 	pProgDlg = new wxProgressDialog(progTitle,
 					msgDisplayed,
 					nTotal,    // range
 					gpApp->GetMainFrame(),   // parent
-					//wxPD_CAN_ABORT |
-					//wxPD_CAN_SKIP |
-					wxPD_APP_MODAL |
-					wxPD_AUTO_HIDE //| -- try this as well
-					//wxPD_ELAPSED_TIME |
-					//wxPD_ESTIMATED_TIME |
-					//wxPD_REMAINING_TIME
-					//| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-	);
+					style);
 	wxASSERT(pProgDlg != NULL);
 	pProgDlg->SetSize(width,pProgDlg->GetSize().GetHeight());
 	pProgDlg->CenterOnParent();
