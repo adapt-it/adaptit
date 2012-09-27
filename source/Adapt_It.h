@@ -2655,6 +2655,7 @@ public:
 	wxString	m_freeTransLanguageCode; // the 2- or 3-letter code for free translation language
 
 #if defined (_KBSERVER)
+
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
@@ -2668,16 +2669,26 @@ public:
 	wxString	m_kbServerURL; // we'll keep this in the Project config file too (eventually)
 	wxString	m_kbServerUsername; // we'll keep this in the Project config file too (eventually)
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
+	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
 	// the iso639 2-letter or 3-letter codes are stored (already) in m_sourceLanguageCode,
 	// m_targetLanguageCode, and m_glossesLanguageCode; so we use those. The RFC codes
 	// below, if empty, are not used; but if not empty and contain validated RFC5646
-	// language codes, they are used instead of the previously mentioned ones
-	wxString	m_kbServerSrcRFC5646Code;
-	wxString	m_kbServerTgtRFC5646Code;
-	wxString	m_kbServerGlossesRFC5646Code;
-	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
-	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
-#endif
+	// language codes, they are used instead of the previously mentioned ones.
+	// 
+	// Jonathan thinks we should only have a single text box for each language, which can
+	// have an iso639 code, or an RFC5646 code if necessary (eg. when otherwise source and
+	// target dialects would have the same code) - if we use that design, then separate
+	// boxes are not required, and we can programmatically extra the iso639 code for LIFT
+	// or XHTML or Pathway exports if any of the boxes has more than the iso639 code, so
+	// comment out the following 3 members until such time as we determine they really are
+	// needed.
+	//wxString	m_kbServerSrcRFC5646Code;
+	//wxString	m_kbServerTgtRFC5646Code;
+	//wxString	m_kbServerGlossesRFC5646Code;
+	
+#endif // for _KBSERVER
+
 	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
 	// (these are used for getting a target text entry, if the import is redone in
 	// glossing mode in order to populate the glossing KB, these are wiped out and
@@ -3739,8 +3750,8 @@ public:
 	int		 GetKBTypeForServer();
 	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
 	wxString GetLastSyncDateTime();
-
-
+	bool	 GetCredentials(wxString& url, wxString& username, wxString& password);
+	bool	 ReleaseKBServer();
 
 
 	// end of Functions for kbserver support
