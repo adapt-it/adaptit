@@ -95,7 +95,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
 	JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBExportImportOptionsDlg.$(OBJEXT) KBEditor.$(OBJEXT) \
-	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
+	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KBServer.$(OBJEXT) \
 	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
 	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
 	MainFrm.$(OBJEXT) md5.$(OBJEXT) MergeUpdatedSrc.$(OBJEXT) \
@@ -439,6 +439,7 @@ adaptit_SOURCES = \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
+	../../source/KBServer.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
 	../../source/MergeUpdatedSrc.cpp \
@@ -615,6 +616,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBExportImportOptionsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBPage.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguageCodesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguagesPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Layout.Po@am__quote@
@@ -1539,6 +1541,20 @@ KBPage.obj: ../../source/KBPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBPage.cpp' object='KBPage.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBPage.obj `if test -f '../../source/KBPage.cpp'; then $(CYGPATH_W) '../../source/KBPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBPage.cpp'; fi`
+
+KBServer.o: ../../source/KBServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBServer.o -MD -MP -MF $(DEPDIR)/KBServer.Tpo -c -o KBServer.o `test -f '../../source/KBServer.cpp' || echo '$(srcdir)/'`../../source/KBServer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBServer.Tpo $(DEPDIR)/KBServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBServer.cpp' object='KBServer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBServer.o `test -f '../../source/KBServer.cpp' || echo '$(srcdir)/'`../../source/KBServer.cpp
+
+KBServer.obj: ../../source/KBServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBServer.obj -MD -MP -MF $(DEPDIR)/KBServer.Tpo -c -o KBServer.obj `if test -f '../../source/KBServer.cpp'; then $(CYGPATH_W) '../../source/KBServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBServer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBServer.Tpo $(DEPDIR)/KBServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBServer.cpp' object='KBServer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBServer.obj `if test -f '../../source/KBServer.cpp'; then $(CYGPATH_W) '../../source/KBServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBServer.cpp'; fi`
 
 LanguageCodesDlg.o: ../../source/LanguageCodesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguageCodesDlg.o -MD -MP -MF $(DEPDIR)/LanguageCodesDlg.Tpo -c -o LanguageCodesDlg.o `test -f '../../source/LanguageCodesDlg.cpp' || echo '$(srcdir)/'`../../source/LanguageCodesDlg.cpp
