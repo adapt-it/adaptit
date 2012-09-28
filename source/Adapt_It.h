@@ -3755,6 +3755,8 @@ public:
 	bool	 ReleaseKBServer();
 	bool	 SetLastSyncDateTime(wxString datetime);
 	bool	 StoreLastSyncDateTime();
+	bool	 CheckForLanguageCodes(bool bRequireGlossesLanguageCode = FALSE);
+	bool	 IsGlossingKBPopulatedOrGlossingModeON();
 
 
 	// end of Functions for kbserver support
