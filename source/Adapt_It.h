@@ -3757,7 +3757,7 @@ public:
 	bool	 StoreLastSyncDateTime();
 	bool	 CheckForLanguageCodes(bool bRequireGlossesLanguageCode = FALSE);
 	bool	 IsGlossingKBPopulatedOrGlossingModeON();
-
+	wxString GetKBServerPassword();
 
 	// end of Functions for kbserver support
 #endif

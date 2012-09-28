@@ -6213,26 +6213,11 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		pApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 	}
 	*/
-
-	// then delete each KB and make the app unable to use either further
-	gbJustClosedProject = TRUE;
-	if (pApp->m_pKB != NULL)
-	{
-		pDoc->EraseKB(pApp->m_pKB);
-		pApp->m_bKBReady = FALSE;
-		pApp->m_pKB = (CKB*)NULL; // done in EraseKB too
-	}
-	// now the glossing KB and flags
-	if (pApp->m_pGlossingKB != NULL)
-	{
-		pDoc->EraseKB(pApp->m_pGlossingKB);
-		pApp->m_bGlossingKBReady = FALSE;
-		pApp->m_pGlossingKB = (CKB*)NULL; // done in EraseKB too
-	}
-
-	// BEW added 22Jan10, clear the KB search string arrays
-	pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
-	pApp->m_arrOldSearches.Clear(); // old search strings accumulated while in this project
+	// BEW 28Sep12, moved the KB erasures to be after the writing of the config file,
+	// because ReleaseKBServer(), if called, needs to be called after the config file is
+	// written (so that the latter stores correct m_bKBServerProject flag value), and the
+	// in-memory KBs are still there in case ReleaseKBServer() needs to do any final
+	// updating of the local KBs
 
 	// update status bar with project name
 	wxString message;
@@ -6296,10 +6281,42 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		// fails, and keep on processing
 		if (!bOK)
 		{
-			wxMessageBox(_T("In OnFileCloseProject() WriteConfigurationFile() failed for project config file or admin project config file.")); 
-			pApp->LogUserAction(_T("In OnFileCloseProject() WriteConfigurationFile() failed for project config file or admin project config file."));
+			wxString msg = _T("In OnFileCloseProject() WriteConfigurationFile() failed for project config file or admin project config file.");
+			wxMessageBox(msg); 
+			pApp->LogUserAction(msg);
 		}
 	}
+#if defined(_KBSERVER)
+	// BEW 28Sep12, clean up and make persistent any volatile data, if kbserver
+	// support is active
+	if (pApp->m_bIsKBServerProject)
+	{
+		pApp->ReleaseKBServer();
+		pApp->LogUserAction(_T("ReleaseKBServer() called in OnFileCloseProject()"));
+	}
+#endif
+	// BEW 28Sep12 moved KB erasure code to be here -- see not above
+	// Delete each KB and make the app unable to use either further
+	gbJustClosedProject = TRUE;
+	if (pApp->m_pKB != NULL)
+	{
+		pDoc->EraseKB(pApp->m_pKB);
+		pApp->m_bKBReady = FALSE;
+		pApp->m_pKB = (CKB*)NULL; // done in EraseKB too
+	}
+	// now the glossing KB and flags
+	if (pApp->m_pGlossingKB != NULL)
+	{
+		pDoc->EraseKB(pApp->m_pGlossingKB);
+		pApp->m_bGlossingKBReady = FALSE;
+		pApp->m_pGlossingKB = (CKB*)NULL; // done in EraseKB too
+	}
+
+	// BEW added 22Jan10, clear the KB search string arrays
+	pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
+	pApp->m_arrOldSearches.Clear(); // old search strings accumulated while in this project
+
+ 
 	// whm added 27Apr12. When the project is closed the m_curProjectPath should be an empty string.
 	pApp->m_curProjectPath.Empty();
 }

@@ -199,11 +199,36 @@ bool CAdapt_ItApp::ReleaseKBServer()
 	// the project folder
 	bool bOK = StoreLastSyncDateTime();
 
+	// now make sure that nonsense values are in the holding variables, so that any switch
+	// to a different project doesn't carry with it valid kbserver parameters
+	m_kbTypeForServer = -1; // only 1 or 2 are valid values
+	m_bIsKBServerProject = FALSE;
+	m_kbServerURL.Empty();
+	m_kbServerUsername.Empty();
+	m_kbServerPassword.Empty(); 
+	m_kbServerLastSync.Empty();
 	
-
 // *** TODO *** more of the permanent GUI code if needed in this function
 
+	// ************ NOTE NOTE NOTE *******************
+	// If we find we need to do any last minute kbserver accesses to get any pending
+	// uploads and/or downloads done before release (since EraseKB() is typically called
+	// after ReleaseKBServer() returns, and EraseKB() doesn't update the KB on disk before
+	// it does it's erasure of the in-memory copy of the KB), so we should do those final
+	// things here and put code to SAVE THE KB which is active RIGHT HERE!
 	return bOK;
+}
+
+// Prompt the user to type in the appropriate kbserver password, and return it. It will be
+// stored in the app's m_kbServerPassword wxString member during the adapting session, and
+// then that member is cleared by ReleaseKBServer() on exit from the project session or
+// from the app.
+wxString CAdapt_ItApp::GetKBServerPassword()
+{
+    // temporarily, just get it from m_kbServerPassword and return it so the caller can put
+    // it back there. Later on, replace this code with a dialog for getting the password.
+	wxString myPassword = m_kbServerPassword;
+	return myPassword;
 }
 
 /// Takes the kbserver's datetime supplied with downloaded data, and stores it in the app

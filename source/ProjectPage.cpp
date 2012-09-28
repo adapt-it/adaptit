@@ -1196,12 +1196,36 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				}
 			}
 
+#if defined(_KBSERVER)
+            // BEW 28Sep12, this seems to be the appropriate place, if this project has
+            // been designated as one for support of KB sharing, to put the
+            // SetupForKBServer() call to get basic credentials, and the lastsync datetime
+            // into the appropriate holding variables defined in the CAdapt_ItApp class
+			if (pApp->m_bIsKBServerProject)
+			{
+				pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
+				if (!pApp->SetupForKBServer())
+				{
+					// an error message will have been shown, so just log the failure
+					gpApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+				}
+#if defined(_DEBUG)
+				// for test purposes, see what we have setup -- just test here as this is
+				// the usual way we enter a project to do more work
+				wxLogDebug(_T("m_kbServerURL :  %s"), pApp->m_kbServerURL.c_str());
+				wxLogDebug(_T("m_kbServerUsername :  %s"), pApp->m_kbServerUsername.c_str());
+				wxLogDebug(_T("m_kbServerPassword :  %s"), pApp->m_kbServerPassword.c_str());
+				wxLogDebug(_T("m_kbServerLastSync :  %s"), pApp->m_kbServerLastSync.c_str());
+				wxLogDebug(_T("m_kbTypeForServer :  %d"), pApp->m_kbTypeForServer);
+#endif
+			}
+#endif
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;
 			pDocPage->InitDialog(idevent);
 
-		}
+		} // end of else block (it's for entering an existing project)
         // whm added 12Jun11. Ensure the inputs and outputs directories are created.
         // SetupDirectories() normally takes care of this for a new project, but we also
         // want existing projects created before version 6 to have these directories too.
