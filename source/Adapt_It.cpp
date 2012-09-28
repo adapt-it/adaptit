@@ -29213,7 +29213,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
-				num = 0;
+				num = 1; // whm modified 28Sep12 to make the value TRUE if num is out-of-range or missing
 			if (num == 1)
 				m_bCollabByChapterOnly = TRUE;
 			else
@@ -32042,7 +32042,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
-				num = 0;
+				num = 1; // whm modified 28Sep12 to make the value TRUE if num is out-of-range or missing
 			if (num == 1)
 				m_bCollabByChapterOnly = TRUE;
 			else
