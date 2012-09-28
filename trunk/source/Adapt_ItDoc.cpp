@@ -2852,7 +2852,12 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			//pFrame->SetTitle(fname + _T(" - ") + typeName);
 			SetTitle(fname + _T(" - ") + typeName); // use the doc's call, not frame's
 			SetFilename(gpApp->m_curOutputPath,TRUE); // TRUE = notify all views
-
+			// whm added 28Sep12. Call the main frame's SetTitle()
+			// also as this seems to be required on Linux for the
+			// title name to change properly.
+			CMainFrame* pFrame;
+			pFrame = gpApp->GetMainFrame();
+			pFrame->SetTitle(fname + _T(" - ") + typeName); // use the frame's SetTitle too as this seems to be required on Linux
 			// a refresh of the status bar info would be appropriate here too
 			gpApp->RefreshStatusBarInfo();
 		}
@@ -19822,6 +19827,12 @@ void CAdapt_ItDoc::SetDocumentWindowTitle(wxString title, wxString& nameMinusExt
 		#endif
 	}
 	this->SetTitle(title + typeName);
+	// whm added 28Sep12. Call the main frame's SetTitle()
+	// also as this seems to be required on Linux for the
+	// title name to change properly.
+	CMainFrame* pFrame;
+	pFrame = gpApp->GetMainFrame();
+	pFrame->SetTitle(title + typeName); // use the frame's SetTitle too as this seems to be required on Linux
 }
 
 ///////////////////////////////////////////////////////////////////////////////
