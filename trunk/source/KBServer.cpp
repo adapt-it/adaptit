@@ -33,6 +33,7 @@
 
 #include "Adapt_It.h"
 #include "TargetUnit.h"
+#include "KB.h"
 #include "AdaptitConstants.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
@@ -40,12 +41,38 @@
 
 extern bool		gbIsGlossing;
 
+/// A Note on the placement of SetupForKBServer(), and the protective wrapping boolean
+/// m_bIsKBServerProject, defaulting to FALSE initially and then possibly set to TRUE by
+/// reading the project configuration file.
+/// Since the KBs must be loaded before SetupForKBServer() is called, and the function for
+/// setting them up is CreateAndLoadKBs(), it may appear that at the end of the latter
+/// would be an appropriate place, within the TRUE block of an if (m_bIsKBServerProject)
+/// test. However, looking at which functionalities, at a higher level, call
+/// CreateAndLoadKBs(), many of these are too early for any association of a project with
+/// a kbserver to have been set up already. Therefore, possibly after a read of the
+/// project configuration file may be appropriate -
+/// since it's that configuration file which sets or clears the m_bIsKBServerProject app
+/// member boolean.This is so: there are 5 contexts where the project config file is read:
+/// in OnOpenDocument() for a MRU open which bypasses the ProjectPage of the wizard; in
+/// DoUnpackDocument(), in HookUpToExistingProject() for setting up a collaboration, in
+/// the OpenExistingProjectDlg.cpp file, associated with the "Access an existing
+/// adaptation project" feature (for transforming adaptations to glosses); and most
+/// importantly, in the frequently called OnWizardPageChanging() function of
+/// ProjectPage.cpp. These are all appropriate places for calling SetupForKBServer() late
+/// in such functions, in an if TRUE test block using m_bIsKBServerProject. (There is no
+/// need, however, to call it in OpenExistingProjectDlg() because the project being opened
+/// is not changed in the process, and since it's adaptations are being transformed to
+/// glosses, it would not be appropriate to assume that the being-constructed new project
+/// should be, from it's inception, a kb sharing one. The user can later make it one if he
+/// so desires.)
+
 #if defined(_KBSERVER)
 
-// Call SetupForKBServer() when opening a project which has been designated as associating
-// with a kbserver (ie. m_bKBServerProject is TRUE), or when the user, in the GUI,
-// designates the current project as being a kb sharing one. Return TRUE for a successful
-// setup, FALSE if something was not right and in that case don't perform a setup.
+/// Call SetupForKBServer() when re-opening a project which has been designated earlier as
+/// associating with a kbserver (ie. m_bKBServerProject is TRUE after the project's
+/// configuration file has been read), or when the user, in the GUI, designates the current
+/// project as being a kb sharing one. Return TRUE for a successful setup, FALSE if
+/// something was not right and in that case don't perform a setup.
 bool CAdapt_ItApp::SetupForKBServer()
 {
 	int aType = GetKBTypeForServer();
@@ -85,8 +112,16 @@ bool CAdapt_ItApp::SetupForKBServer()
 	{
 		return FALSE;
 	}
+	// all's well
+	return TRUE;
+}
 
-
+/// Return TRUE of the required codes are defined - there will be at least two required
+/// (for source and target languages), and if bRequireGlossesLanguageCode is TRUE (it is
+/// default FALSE) then a third must have been defined - the code for the glossing
+/// language. Return FALSE if these conditions are not met.
+bool CAdapt_ItApp::CheckForLanguageCodes(bool bRequireGlossesLanguageCode)
+{
 	// Test that m_sourceLanguageCodeand m_targetLanguageCode contain values - we will
 	// assume that they are correct if non-empty, for the present (later, we need to
 	// validate them against the iso639 codes). If one or both are empty, instruct user to
@@ -105,19 +140,19 @@ bool CAdapt_ItApp::SetupForKBServer()
     // A code for m_glossesLanguageCode is unnecessary if KB sharing is not required for
     // glossing mode, or if glossing mode is not ever going to be used. It would be
     // annoying to warn user that kbserver support won't work in glossing mode if no code
-    // is set, at every entry to the project. So we'll not do any check here - but we will
-    // check here if glossing mode is currently on when SetupForKBServer() is called.
-    // Otherwise, such a test can wait until the user actually enters glossing mode in a kb
-    // sharing project and the code finds that m_glossesLanguageCode is empty.
-	if (gbIsGlossing)
+    // is set, at every entry to the project. So we will check hereonly when the param is TRUE.
+	// The caller will need to test for whether or not kbserver support is wanted for the
+	// glossing KB - a good test would be to check if the glossing KB has data, and if it
+	// does, then pass in TRUE. (Use IsGlossingKBPopulated() to make the aforementioned test.)
+	if (bRequireGlossesLanguageCode)
 	{
-		// glossing mode is ON, so assume sharing of glossing data is wanted - test a code
-		// is set, warn if not and exit FALSE
+		// assume sharing of glossing data is wanted - test if a language code for glosses
+		// language is set, warn if not and exit FALSE
 		if (m_glossesLanguageCode.IsEmpty())
 		{
 			// warn, and return FALSE
 			wxString msg = 
-_("Glossing mode is currently turned on, so the glossing KB is currently the active KB.\nKB server support will not work for the glossing KB if a valid language code is not defined, which is the case at present.\n The Backups and Misc page of Preferences allows you to set up the needed code. Do so now, and then try again.");
+_("The glosses knowledge base contains data, so a language code for that data should be defined.\nKB server support will not work for the glossing KB if a valid language code is not defined, which is the case at present.\n The Backups and Misc page of Preferences allows you to set up the needed code. Do so now, and then try again.");
 			LogUserAction(msg);
 			wxMessageBox(msg, _("Error in support for kbserver"), wxICON_ERROR | wxOK);
 			return FALSE;
@@ -126,6 +161,36 @@ _("Glossing mode is currently turned on, so the glossing KB is currently the act
 	return TRUE;
 }
 
+/// Return TRUE if the first map in the glossing KB has at least one entry, or if glossing
+/// mode is currently turned on, FALSE otherwise. (The other nine maps are less likely to
+/// have data, so testing the first is sufficient for the glossing KB.) Pass this
+/// function's return value, when when TRUE is returned, as the argument to the call
+/// CheckForLanguageCodes(bool bRequireGlossesLanguageCode), because the latter function
+/// must check that a language code exists for the glossing KB before any kbserver API
+/// functions try access the server when doing glossing, so as to block the access attempt
+/// when the required parameters are not all defined.
+bool CAdapt_ItApp::IsGlossingKBPopulatedOrGlossingModeON()
+{
+	if (gbIsGlossing)
+	{
+		return TRUE;
+	}
+	if (m_pGlossingKB == NULL)
+	{
+		// this is unlikely, so an Engish message will suffice to warn the developer to
+		// fix the problem pronto - when in an AI project, m_pKB and m_pGlossingKB should
+		// never be NULL
+		wxString msg = _T("In IsGlossingKBPopulalted(), m_pGlossingKB is NULL for the current Adapt It project. Fix immediately, or doing glossing will crash the app.");
+		wxMessageBox(msg, _T("Error in kbserver support"), wxICON_ERROR);
+		return FALSE;
+	}
+	return m_pGlossingKB->m_pMap[0]->size() > 0; // map[0] always has most data, if it's empty, assume the rest are too
+}
+
+/// Return TRUE if there was no error, FALSE otherwise. The function is used for doing
+/// cleanup, and any needed making of data persistent between adapting sessions within a
+/// project which is a KB sharing project, when the user exits the project or Adapt It is
+/// shut down.
 bool CAdapt_ItApp::ReleaseKBServer()
 {
 	// the only task at present is to make sure that the datetime value in
@@ -141,8 +206,8 @@ bool CAdapt_ItApp::ReleaseKBServer()
 	return bOK;
 }
 
-// Takes the kbserver's datetime supplied with downloaded data, and stores it in the app
-// wxString member variable m_kbServerLastSync. Return TRUE if no error, FALSE otherwise.
+/// Takes the kbserver's datetime supplied with downloaded data, and stores it in the app
+/// wxString member variable m_kbServerLastSync. Return TRUE if no error, FALSE otherwise.
 bool CAdapt_ItApp::SetLastSyncDateTime(wxString datetime)
 {
 	// *** TODO *** add code when we get downloads from kbserver working
@@ -152,9 +217,10 @@ bool CAdapt_ItApp::SetLastSyncDateTime(wxString datetime)
 	return TRUE;
 }
 
-// return TRUE if all went well, FALSE if unsuccessful (and show a message for developer);
-// use this to send the current datetime in m_kbServerLastSync member to permanent storage
-// on disk -- for our testing code, this will be the file lastsync.txt in the project folder
+/// Return TRUE if all went well, FALSE if unsuccessful (and show a message for developer);
+/// use this to send the current datetime in m_kbServerLastSync member to permanent storage
+/// on disk -- for our testing code, this will be the file lastsync.txt in the project
+/// folder, but for a release version it will probably be to a hidden file in the same place
 bool CAdapt_ItApp::StoreLastSyncDateTime()
 {
 	wxString dateTimeStr; dateTimeStr.Empty();
@@ -194,9 +260,12 @@ bool CAdapt_ItApp::StoreLastSyncDateTime()
 }
 
 
-// Ff the parent function is misplaced, preceding LoadKB() and LoadGlossingKB() calls,
-// then return -1 plus give the developer a message to fix this; otherwise return 1 for an
-// adapting KB, 2 for a glossing KB.
+/// If the parent function, SetupForKBServer(), is misplaced so that it is located
+/// somewhere preceding LoadKB() and LoadGlossingKB() calls, then return -1 plus give the
+/// developer a message to fix this; otherwise return 1 for an adapting KB, 2 for a
+/// glossing KB. If the loads have not been done, m_pKB and m_pGlossingKB will be still
+/// NULL, and m_bKBReady and m_bGlossingKBReady will both be FALSE - the latter two
+/// conditions are how we test for bad placement.
 int CAdapt_ItApp::GetKBTypeForServer()
 {
 	int type = 1; // default is to assume adapting KB is wanted
@@ -219,9 +288,10 @@ int CAdapt_ItApp::GetKBTypeForServer()
 	return type;
 }
 
-// Return the dateTime value last returned from the kbserver and stored at the client;
-// temporarily this storage is a file called lastsync.txt located in the project folder,
-// but later something more permanent will be used (a hidden file for such metadata?)
+/// Return the dateTime value last returned from the kbserver and stored in the client.
+/// Temporarily this storage is a file called lastsync.txt located in the project folder,
+/// but later something more permanent will be used (a hidden file in the project folder?)
+/// The app class has a wxString member, m_kbServerLastSync to store the returned value.
 wxString CAdapt_ItApp::GetLastSyncDateTime()
 {
 	wxString dateTimeStr; dateTimeStr.Empty();
@@ -266,12 +336,12 @@ wxString CAdapt_ItApp::GetLastSyncDateTime()
 	return dateTimeStr;
 }
 
-// Return TRUE, and the url and username credentials (and while doing testing, also the
-// kbserver password) to be stored in the app class. Temporarily this data is storedin a
-// file called credentials.txt located in the project folder and contains url, username,
-// password, one string per line. But later something more permanent will be used, and the
-// kbserver password will never be stored in the app once a releasable version of kbserver
-// support has been built (use a hidden file for url and username?)
+/// Return TRUE, and the url and username credentials (and while doing testing, also the
+/// kbserver password) to be stored in the app class. Temporarily this data is storedin a
+/// file called credentials.txt located in the project folder and contains url, username,
+/// password, one string per line. But later something more permanent will be used, and the
+/// kbserver password will never be stored in the app once a releasable version of kbserver
+/// support has been built (use a hidden file for url and username in the project folder?)
 bool CAdapt_ItApp::GetCredentials(wxString& url, wxString& username, wxString& password)
 {
 	bool bSuccess = FALSE;
