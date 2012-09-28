@@ -181,22 +181,11 @@ void CSetupEditorCollaboration::InitDialog(wxInitDialogEvent& WXUNUSED(event)) /
 {
 	//InitDialog() is not virtual, no call needed to a base class
 
-	//if (m_pApp->IsAIProjectOpen())
-	//{
-	//	// whm Note: for the following block we use the App's m_collaborationEditor value instead of
-	//	// our local m_TempCollaborationEditor which below this block is initialized to a null string.
-	//	wxASSERT(!m_pApp->m_collaborationEditor.IsEmpty());
-	//	CAdapt_ItView* pView = m_pApp->GetView();
-	//	if (pView != NULL)
-	//	{
-	//		wxString msg = _("Adapt It needs to close the currently open project (%s) in order to set up collaboration with %s.");
-	//		msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(),m_pApp->m_collaborationEditor.c_str());
-	//		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
-	//		m_pApp->GetView()->CloseProject();
-	//	}
-	//}
+	// whm Note: The App's OnSetupEditorCollaboration() handler
+	// ensures that no project is open when this
+	// SetupEditorCollaboration dialog is shown to the user.
 
-	// These m_Save... values are used for holding the App's original
+	// These m_Save... and m_bSave... values are used for holding the App's original
 	// collaboration settings upon entry to the SetupEditorCollaboration dialog.
 	// They are then used to restore those App values before closing the dialog. This
 	// is designed to provide a safety net to help prevent the unintended
@@ -1689,7 +1678,7 @@ void CSetupEditorCollaboration::OnCreateNewAIProject(wxCommandEvent& WXUNUSED(ev
 			msg = msg.Format(msg,m_pApp->m_curProjectName.c_str(), m_TempCollaborationEditor.c_str());
 			wxMessageBox(msg,_("New Adapt It project created"),wxICON_INFORMATION | wxOK);
 			DoSetControlsFromConfigFileCollabData(TRUE); // Sets all Temp collab values as read from project config file TRUE = we're creating a new project
-			// Override the AI Proj Name related Temp values with the new AI project's name (from above)
+			 // Override the AI Proj Name related Temp values with the new AI project's name (from above)
 			this->m_TempCollabSourceProjLangName = newProjDlg.pTextCtrlSrcLangName->GetValue();
 			this->m_TempCollabTargetProjLangName = newProjDlg.pTextCtrlTgtLangName->GetValue();
 			this->m_TempCollabAIProjectName = newProjDlg.pTextCtrlNewAIProjName->GetValue(); // this read-only wxTestCtrl composes the AI project name on the fly
@@ -1840,6 +1829,8 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 	}
 
 	// Store collab settings in the App's members
+	m_pApp->m_bCollaboratingWithParatext = FALSE; // Start with this project's newly set collaboration set to OFF
+	m_pApp->m_bCollaboratingWithBibledit = FALSE; // Start with this project's newly set collaboration set to OFF
 	m_pApp->m_CollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_pApp->m_CollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
 	m_pApp->m_CollabProjectForFreeTransExports = m_TempCollabProjectForFreeTransExports;
@@ -1936,6 +1927,8 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	// This is similar to the save routine that is found in the OnSaveSetupForThisProjNow() handler,
 	// except that we are saving blank values for the collab settings into the project config
 	// file.
+	m_pApp->m_bCollaboratingWithParatext = FALSE; // whm added 27Sep12
+	m_pApp->m_bCollaboratingWithBibledit = FALSE; // whm added 27Sep12
 	m_pApp->m_CollabProjectForSourceInputs = _T("");
 	m_pApp->m_CollabProjectForTargetExports = _T("");
 	m_pApp->m_CollabProjectForFreeTransExports = _T("");

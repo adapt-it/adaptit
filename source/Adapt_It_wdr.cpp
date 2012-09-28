@@ -9216,7 +9216,7 @@ wxMenuBar *AIMenuBarFunc()
     wxMenu* item9 = new wxMenu;
     item9->Append( ID_MENU_HELP_FOR_ADMINISTRATORS, _("&Help for Administrators (HTML)"), _("Step-by-step procedures to help administrators set up Adapt It to use the features on this menu.") );
     item9->AppendSeparator();
-    item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup Collaboration..."), _("Configure Adapt It to use a Paratext or Bibledit project for its input (source) texts, and a different project for exporting its (target) texts") );
+    item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup or Remove Collaboration..."), _("Configure Adapt It to use a Paratext or Bibledit project for its input (source) texts, and a different project for exporting its (target) texts") );
     item9->AppendSeparator();
     item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item9->Append( ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, _("&Turn OFF the current user profile temporarily"), _("When ticked no user profiles will be in effect until program restart or until unticked; and all menus will be accessible"), wxITEM_CHECK );
