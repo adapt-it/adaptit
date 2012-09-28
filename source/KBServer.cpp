@@ -181,7 +181,7 @@ bool CAdapt_ItApp::IsGlossingKBPopulatedOrGlossingModeON()
 		// fix the problem pronto - when in an AI project, m_pKB and m_pGlossingKB should
 		// never be NULL
 		wxString msg = _T("In IsGlossingKBPopulalted(), m_pGlossingKB is NULL for the current Adapt It project. Fix immediately, or doing glossing will crash the app.");
-		wxMessageBox(msg, _T("Error in kbserver support"), wxICON_ERROR);
+		wxMessageBox(msg, _T("Error in kbserver support"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
 	return m_pGlossingKB->m_pMap[0]->size() > 0; // map[0] always has most data, if it's empty, assume the rest are too
