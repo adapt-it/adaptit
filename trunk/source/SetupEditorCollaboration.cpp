@@ -1041,10 +1041,10 @@ void CSetupEditorCollaboration::DoSetControlsFromConfigFileCollabData(bool bCrea
 				this->m_TempCollabBookSelected = collabItemStr;
 			else if (collabLabelStr == szCollabByChapterOnly)
 			{
-				if (collabItemStr == _T("1"))
-					this->m_bTempCollabByChapterOnly = TRUE;
-				else
+				if (collabItemStr == _T("0"))
 					this->m_bTempCollabByChapterOnly = FALSE;
+				else
+					this->m_bTempCollabByChapterOnly = TRUE;
 			}
 			else if (collabLabelStr == szCollabChapterSelected)
 				this->m_TempCollabChapterSelected = collabItemStr;
