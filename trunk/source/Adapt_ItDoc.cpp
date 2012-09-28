@@ -5041,13 +5041,28 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			int nSaveIndex = gpApp->m_nBookIndex;
             // the next call may clobber user's possible earlier choice of mode and index,
             // so restore these after the call (project config file is not updated until
-            // project exitted, and so the user could have changed the mode or the book
+            // project exited, and so the user could have changed the mode or the book
             // folder from what is in the config file)
 			gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // ensure gbSfmOnlyAfterNewlines
 															   // is set to what it should be,
 															   // and same for gSFescapechar
 			gpApp->m_bBookMode = bSaveFlag;
 			gpApp->m_nBookIndex = nSaveIndex;
+
+			// the MRU open may have changed the AI project, and this one may be a KB
+			// sharing one, and if so we should call SetupForKBServer() here provided the
+			// above reading of the project config file has set m_bIsKBServerProject to TRUE
+#if defined(_KBSERVER)
+			if (gpApp->m_bIsKBServerProject)
+			{
+				gpApp->LogUserAction(_T("SetupForKBServer() called in the block for a MRU file open, in OnOpenDocument()"));
+				if (!gpApp->SetupForKBServer())
+				{
+					// an error message will have been shown, so just log the failure
+					gpApp->LogUserAction(_T("SetupForKBServer() failed in the block for a MRU file open, in OnOpenDocument()"));
+				}
+			}
+#endif
 		}
 		gbAbortMRUOpen = FALSE; // make sure the flag has its default setting again
 		gbViaMostRecentFileList = FALSE; // clear it to default setting
@@ -17323,7 +17338,46 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	}
 #endif
 #endif
-
+	// BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer() here before
+	// the KBs are clobbered (App closure by File > Exit, or the X checkbox at top right
+	// of the frame window, causes control to go thru here - so we need to save the
+	// kbserver params - particularly the m_kbServerLastSync datetime value. A preceding
+	// WriteProjectConfiguration() all is really needed too, so that we ensure the
+	// m_bIsKBServerProject flag's value is made persistent for the current AI project
+	bool bOK;
+	if (!pApp->m_curProjectPath.IsEmpty())
+	{
+		if (pApp->m_bUseCustomWorkFolderPath && !pApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the
+			// custom location.
+			if (pApp->m_bLockedCustomWorkFolderPath)
+				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = pApp->WriteConfigurationFile(szAdminProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		// we don't expect a write error, but tell the developer or user if the write
+		// fails, and keep on processing
+		if (!bOK)
+		{
+			wxString msg = _T("In OnCloseDocument() WriteConfigurationFile() failed for project config file or admin project config file.");
+			wxMessageBox(msg); 
+			pApp->LogUserAction(msg);
+		}
+	}
+#if defined(_KBSERVER)
+	if (pApp->m_bIsKBServerProject)
+	{
+		pApp->ReleaseKBServer();
+		pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
+	}
+#endif
 	// the EraseKB() call will also try to remove any read-only protection
 	EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
 	pApp->m_pKB = (CKB*)NULL; // whm added
@@ -20609,6 +20663,9 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
                     // window blank (the user can instead use wizard to get a doc open)
 					::wxBell();
 				}
+				//BEW 28Sep12, since we don't call ReleaseKBServer() in a pack document,
+				//the project's kbserver-related variables should be intact, and so there
+				//should be no need here to call SetupForKBServer()
 			}
 			return FALSE;
 		}
@@ -20748,6 +20805,10 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // set up for the xml form of KB i/o.
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as
 															// noted in comments above
+	// BEW 28Sep12, if this project is a KB sharing one, then the project configuration
+	// read should have set m_bIsKBServerProject to TRUE, so once we have the KB's loaded,
+	// we can call SetupForKBServer() below.
+	
 	gpApp->SetupKBPathsEtc();
 
     // now we can save the xml document file to the destination folder (either Adaptations
@@ -20799,6 +20860,17 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
         // what is in it. A normal Open command can also be tried too.
 		gpApp->LogUserAction(thismsg);
 	}
+#if defined(_KBSERVER)
+	if (bGotItOK && gpApp->m_bIsKBServerProject)
+	{
+		gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
+		if (!gpApp->SetupForKBServer())
+		{
+			// an error message will have been shown, so just log the failure
+			gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
+		}
+	}
+#endif
 	return TRUE;
 }
 

@@ -23414,6 +23414,22 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 	// the document when one is unsure if such a pointer exists.
 	CAdapt_ItDoc* pDoc = GetDocument();
 	wxASSERT(pDoc != NULL);
+#if defined(_KBSERVER)
+	// BEW 28Sep12, the still-open KBs might be for a kb sharing project, so to be safe,
+	// we should call ReleaseKBServer() here (this will reset m_bIsKBServerProject to
+	// FALSE, but a higher level call, coming after CreateAndLoadKBs() returns, should
+	// call GetProjectConfiguration() and so restore that flag value to what it should be)
+	if (pDoc != NULL && (m_pKB != NULL || m_pGlossingKB != NULL))
+	{
+		// clean up and make persistent any volatile kbserver-related data, if kbserver
+		// support is active
+		if (m_bIsKBServerProject)
+		{
+			ReleaseKBServer();
+			LogUserAction(_T("ReleaseKBServer() called in CreateAndLoadKBs()"));
+		}
+	}
+#endif
 	if (pDoc != NULL && m_pKB != NULL)
 	{
 		// delete the adapting one we successfully loaded
