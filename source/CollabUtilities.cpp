@@ -81,7 +81,7 @@ extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 //extern bool gbForceUTF8; // not used within CollabUtilities.cpp
 extern int  gnOldSequNum;
-extern bool gbTryingMRUOpen;
+//extern bool gbTryingMRUOpen; // whm 1Oct12 removed
 extern bool gbConsistencyCheckCurrent;
 extern bool gbDoingInitialSetup;
 
@@ -2528,7 +2528,9 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		wxBell();
 		return TRUE;
 	}
-	wxASSERT(!gbTryingMRUOpen); // must not be trying to open from MRU list
+	// whm 1Oct12 removed MRU code
+	//wxASSERT(!gbTryingMRUOpen); // must not be trying to open from
+	//MRU list 
 	wxASSERT(!gbConsistencyCheckCurrent); // must not be doing a consistency check
 	wxASSERT(pApp->m_pKB != NULL); // KBs must be loaded
 	// set the path for saving

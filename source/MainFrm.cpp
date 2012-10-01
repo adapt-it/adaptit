@@ -192,11 +192,11 @@ extern	bool	bUserCancelled;
 /// This global is defined in Adapt_It.cpp.
 extern	bool	gbSuppressSetup;
 
-/// This global is defined in Adapt_It.cpp.
-extern bool		gbTryingMRUOpen;
+// This global is defined in Adapt_It.cpp.
+//extern bool		gbTryingMRUOpen; // whm 1Oct12 removed
 
-/// This global is defined in Adapt_It.cpp.
-extern	bool	gbViaMostRecentFileList;
+// This global is defined in Adapt_It.cpp.
+//extern	bool	gbViaMostRecentFileList; // whm removed 1Oct12
 
 /// This global is defined in Adapt_It.cpp.
 extern  bool	gbUpdateDocTitleNeeded;
@@ -330,7 +330,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(wxID_ABOUT, CMainFrame::OnAppAbout) // MFC handles this in CAdapt_ItApp, wxWidgets' doc/view here
 	EVT_SIZE(CMainFrame::OnSize)
 	EVT_CLOSE(CMainFrame::OnClose)
-	EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CMainFrame::OnMRUFile)
+	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CMainFrame::OnMRUFile) // whm removed 1Oct12
 #ifdef __WXMSW__
 	// wx version doesn't use an event handling macro for handling broadcast Windows messages;
 	// instead we first override the MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
@@ -1978,6 +1978,8 @@ void CMainFrame::OnAppAbout(wxCommandEvent& WXUNUSED(event))
     dlg.ShowModal();
 }
 
+// whm 1Oct12 removed all MRU operations
+/*
 void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRecentFile(UINT nID)
 // wx Note: I renamed this MFC handler OnMRUFile which is its virtual function name in wx's doc/view
 // framework. It also does not return a bool nor does it use the UINT nID parameter, but the usual
@@ -2092,6 +2094,7 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 	gbTryingMRUOpen = FALSE; // restore default value
 	return;
 }
+*/
 
 //void CMainFrame::OnHelp(wxHelpEvent& WXUNUSED(event))
 //{
@@ -2846,7 +2849,7 @@ void CMainFrame::OnViewAdminMenu(wxCommandEvent& WXUNUSED(event))
 	}
 	// Call the App's MakeMenuInitializationsAndPlatformAdjustments() to made the
 	// Administrator menu visible/hidden and verify its toggle state
-	pApp->MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
+	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 }
 
 

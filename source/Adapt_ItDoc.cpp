@@ -153,8 +153,8 @@ bool gbDoingSplitOrJoin = FALSE; // TRUE during one of these 3 operations
 /// This global is defined in DocPage.cpp.
 extern bool gbMismatchedBookCode; // BEW added 21Mar07
 
-/// This global is defined in Adapt_It.cpp.
-extern bool	gbTryingMRUOpen; // see Adapt_It.cpp globals list for an explanation
+// This global is defined in Adapt_It.cpp.
+//extern bool	gbTryingMRUOpen; // whm 1Oct12 removed
 
 /// This global is defined in MainFrm.cpp.
 extern bool gbIgnoreScriptureReference_Receive;
@@ -234,8 +234,8 @@ extern	wxString	translation;
 /// Indicates if the user has cancelled an operation.
 bool	bUserCancelled = FALSE;
 
-/// This global is defined in Adapt_It.cpp.
-extern	bool	gbViaMostRecentFileList;
+// This global is defined in Adapt_It.cpp.
+//extern	bool	gbViaMostRecentFileList; // whm removed 1Oct12
 
 /// This global is defined in Adapt_ItView.cpp.
 extern	bool	gbConsistencyCheckCurrent;
@@ -243,8 +243,8 @@ extern	bool	gbConsistencyCheckCurrent;
 /// This global is defined in Adapt_ItView.cpp.
 extern	int		gnOldSequNum;
 
-/// This global is defined in Adapt_It.cpp.
-extern	bool	gbAbortMRUOpen;
+// This global is defined in Adapt_It.cpp.
+//extern	bool	gbAbortMRUOpen; // whm 1Oct12 removed
 
 /// This global is defined in Adapt_It.cpp.
 extern bool		gbPassedAppInitialization;
@@ -1312,6 +1312,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 		}
 	}
 
+	// whm 1Oct12 removed MRU code
+	/*
 	// Note: On initial program startup OnNewDocument() is executed from OnInit()
 	// to get a temporary doc and view. pApp->m_curOutputPath will be empty in
 	// that case, so only call AddFileToHistory() when it's not empty.
@@ -1327,6 +1329,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
 		fileHistory->RemoveFileFromHistory(0); //
 	}
+	*/
 
     // BEW added 13Nov09, for setting or denying ownership for writing permission. This is
     // something we want to do each time a doc is created (or opened) - if the local user
@@ -4035,7 +4038,9 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 	bool bSameProject = (curSourceName == gpApp->m_sourceName) && (curTargetName == gpApp->m_targetName);
     // BEW added 27Nov05 to keep settings straight when doc may have been pasted here in
     // Win Explorer but was created and stored in another project
-	if (!bSameProject && !gbTryingMRUOpen)
+	
+	// whm 1Oct12 removed  && !gbTryingMRUOpen test from if block below
+	if (!bSameProject)
 	{
         // bSameProject being FALSE may be because we opened a doc created and saved in a
         // different project and it was a legacy *adt doc and so m_sourceName and
@@ -4080,6 +4085,8 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 					break;
 			case 1: // book mode field
 				{
+					// whm 1Oct12 removed MRU related code
+					/*
                     // BEW modified 27Nov05 to only use the T or F values when doing an MRU
                     // open; since for an Open done by a wizard selection in the Document
                     // page, the doc is accessed either in Adaptations folder or a book
@@ -4105,10 +4112,13 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 						else
 							goto t;
 					}
+					*/
 					break;
 				}
 			case 2: // book index field
 				{
+					// whm 1Oct12 removed MRU related code
+					/*
 					// see comments above about MRU
 					if (gbTryingMRUOpen)
 					{
@@ -4129,6 +4139,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 							gpApp->m_bibleBooksFolderPath.Empty();
 						}
 					}
+					*/
 					break;
 				}
 			case 3: // gCurrentSfmSet field
@@ -4264,16 +4275,19 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 	else
 	{
 		// BEW changed 27Nov05, because we only let doc settings be used when MRU was being tried
-t:		if (gbTryingMRUOpen /* && !bSameProject */)
-		{
-			// case 1 above
-			// assume we have legacy source text data - for this there was no such thing
-			// as book mode in those legacy application versions, so we can have book mode off
-			gpApp->m_bBookMode = FALSE;
-			gpApp->m_nBookIndex = -1;
-			gpApp->m_pCurrBookNamePair = NULL;
-			gpApp->m_bibleBooksFolderPath.Empty();
-		}
+t:		
+		;
+		// whm 1Oct12 removed MRU related code
+		//if (gbTryingMRUOpen /* && !bSameProject */)
+		//{
+		//	// case 1 above
+		//	// assume we have legacy source text data - for this there was no such thing
+		//	// as book mode in those legacy application versions, so we can have book mode off
+		//	gpApp->m_bBookMode = FALSE;
+		//	gpApp->m_nBookIndex = -1;
+		//	gpApp->m_pCurrBookNamePair = NULL;
+		//	gpApp->m_bibleBooksFolderPath.Empty();
+		//}
 	}
 
 	// whm ammended 6Jul05 below in support of USFM and SFM Filtering
@@ -4444,7 +4458,7 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if currently opened document was successfully saved; FALSE otherwise
 /// \remarks
-/// Called from: the Doc's OnFileClose() and CMainFrame's OnMRUFile().
+/// Called from: the Doc's OnFileClose().
 /// Takes care of saving a modified document, saving the project configuration file, and
 /// other housekeeping tasks related to file saves.
 /// BEW modified 13Nov09: if local user has read-only access to a remote project
@@ -4753,7 +4767,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 /// Called from: the App's DoKBRestore() and DiscardDocChanges(), the Doc's
 /// LoadSourcePhraseListFromFile() and DoUnpackDocument(), the View's OnEditConsistencyCheck(),
 /// DoConsistencyCheck() and DoRetranslationReport(), the DocPage's OnWizardFinish(), and
-/// CMainFrame's SyncScrollReceive() and OnMRUFile().
+/// CMainFrame's SyncScrollReceive().
 /// Opens the document at filename and does the necessary housekeeping and initialization of
 /// KB data structures for an open document.
 /// [see also notes within in the function]
@@ -4869,6 +4883,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		if (!bReadOK)
 		{
 			wxString s;
+			// whm 1Oct12 removed MRU code
+			/*
 			if (gbTryingMRUOpen)
 			{
 				// a nice warm & comfy message about the file perhaps not actually existing
@@ -4886,13 +4902,14 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			}
 			else
 			{
+			*/
 				// uglier message because we expect a good read, but we allow the user to continue
 				// IDS_XML_READ_ERR
-				s = _(
+			s = _(
 "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-				gpApp->LogUserAction(s);
-			}
+			wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+			gpApp->LogUserAction(s);
+			//}
 			if (pProgDlg != NULL)
 				pProgDlg->Destroy();
 			return TRUE; // return TRUE to allow the user another go at it
@@ -4994,6 +5011,19 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
 	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
 
+    // whm added 1Oct12. After removing the MRU stuff from
+    // OnOpenDocument(), I've retained the initial test, i.e., if
+    // (pApp->m_pKB == NULL), and if that test passes, then there may
+    // be something more that needs to be accounted for in the removal
+	// of the MRU material. I'll signal that with a "Probable Programming
+	// Error..." message
+	if (pApp->m_pKB == NULL)
+	{
+		wxASSERT_MSG(FALSE,_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
+		pApp->LogUserAction(_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
+	}
+    // whm 1Oct12 removed MRU code
+	/*
 	// if we get here by having chosen a document file from the Recent_File_List, then it is
 	// possible to in that way to choose a file from a different project; so the app will crash
 	// unless we here set up the required directory structures and load the document's KB
@@ -5076,6 +5106,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		pApp->m_commitCount = savedCommitCount;
 		pApp->m_revisionDate = savedRevisionDate;
 	}
+	*/
 
 	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc
 
@@ -5172,6 +5203,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		}
 	}
 
+	// whm 1Oct12 removed MRU code
+	/*
 	// wx version addition:
 	// Add the file to the file history MRU
 	// BEW added 12Nov09, m_bAutoExport test to suppress history update when export is
@@ -5190,6 +5223,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
 		fileHistory->RemoveFileFromHistory(0); //
 	}
+	*/
 
 	// BEW added 12Nov09, do the auto-export here, if asked for, and shut
 	// down the app before returning; otherwise, continue for normal user
@@ -5347,7 +5381,7 @@ bool CAdapt_ItDoc::IsModified() const // from wxWidgets mdi sample
 /// ClobberDocument(), OnAdvancedRemoveFilteredFreeTranslations(), OnButtonDeleteAllNotes(),
 /// OnAdvancedRemoveFilteredBacktranslations(), the DocPage's OnWizardFinish(), the CKBEditor's
 /// OnButtonUpdate(), OnButtonAdd(), OnButtonRemove(), OnButtonMoveUp(), OnButtonMoveDown(),
-/// the CMainFrame's OnMRUFile(), the CNoteDlg's OnBnClickedNextBtn(), OnBnClickedPrevBtn(),
+/// the CNoteDlg's OnBnClickedNextBtn(), OnBnClickedPrevBtn(),
 /// OnBnClickedFirstBtn(), OnBnClickedLastBtn(), OnBnClickedFindNextBtn(), the CPhraseBox's
 /// OnPhraseBoxChanged(), CViewFilteredMaterialDlg's UpdateContentOnRemove(), OnOK(),
 /// OnBnClickedRemoveBtn().
@@ -8073,7 +8107,7 @@ bool CAdapt_ItDoc::IsPreviousTextTypeWanted(wxChar* pChar,USFMAnalysis* pAnalysi
 /// ChangeDocUnderlyingFileDetailsInPlace(), the Doc's OnNewDocument(), OnFileClose(),
 /// DoFileSave(), SetDocumentWindowTitle(), DoUnpackDocument(), the View's
 /// OnEditConsistencyCheck(), DoConsistencyCheck(), DoRetranslationReport(), the DocPage's
-/// OnWizardFinish(), CMainFrame's SyncScrollReceive() and OnMRUFile().
+/// OnWizardFinish(), and CMainFrame's SyncScrollReceive().
 /// Sets the file name associated internally with the current document.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::SetFilename(const wxString& filename, bool notifyViews)

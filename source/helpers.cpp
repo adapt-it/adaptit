@@ -74,7 +74,7 @@ extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;
 extern bool gbForceUTF8;
 extern int  gnOldSequNum;
-extern bool gbTryingMRUOpen;
+//extern bool gbTryingMRUOpen; // whm 1Oct12 removed
 extern bool gbConsistencyCheckCurrent;
 extern bool gbInhibitMakeTargetStringCall;
 

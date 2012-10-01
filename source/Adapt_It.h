@@ -986,17 +986,17 @@ enum AiProjectCollabStatus
 	collabProjNotConfigured,
 };
 
-/// An enum for specifying the program mode for use in the
-/// MakeMenuInitializationsAdnPlatformAdjustments(). Values can
-/// be one of the following: collabIndeterminate, collabAvailableTurnedOn,
-/// collabAvailableTurnedOff, or collabAvailableReadOnlyOn.
-enum ProgramMenuMode
-{
-	collabIndeterminate,
-	collabAvailableTurnedOn,
-	collabAvailableTurnedOff,
-	collabAvailableReadOnlyOn
-};
+// An enum for specifying the program mode for use in the
+// MakeMenuInitializationsAdnPlatformAdjustments(). Values can
+// be one of the following: collabIndeterminate, collabAvailableTurnedOn,
+// collabAvailableTurnedOff, or collabAvailableReadOnlyOn.
+//enum ProgramMenuMode
+//{
+//	collabIndeterminate,
+//	collabAvailableTurnedOn,
+//	collabAvailableTurnedOff,
+//	collabAvailableReadOnlyOn
+//};
 
 /// An enum for specifying the general style type of a standard format marker. Can be one
 /// of the following: paragraph, character, table_type, footnote_caller, footnote_text,
@@ -1864,9 +1864,7 @@ class CAdapt_ItApp : public wxApp
 
     /// The application's m_pDocManager member is one of the main players in the
     /// document-view framework as implemented in wxWidgets. It is created in OnInit() and
-    /// mostly it takes care of itself, but we do use it explicitly to manage the file
-    /// history and MRU lists by invoking its FileHistoryUseMenu(), FileHistoryLoad(),
-    /// FileHistorySave(), GetFileHistory(), and RemoveFileFromHistory() methods. It is
+    /// mostly it takes care of itself. It is
     /// also referenced in the creation of our pDocTemplate and m_pMainFrame which
     /// participate in doc-view matters. We force our application to be of the "Single
     /// Document Interface (SDI)" type by calling the doc manager's SetMaxDocsOpen(1)
@@ -3599,7 +3597,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	ConfigureWizardForUserProfile();
 	void	RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer);
 	void	RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar);
-	void	MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMenuMode progMenuMode);
+	void	MakeMenuInitializationsAndPlatformAdjustments(); //(enum ProgramMenuMode progMenuMode);
 	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
 	bool	ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);

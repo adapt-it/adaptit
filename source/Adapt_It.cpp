@@ -370,15 +370,15 @@ extern bool gbReachedDocPage; // BEW added 10Nov05  (see DocPage.cpp, & OnInitDi
 /// This global is defined in PhraseBox.cpp.
 extern bool gbCameToEnd; // see PhraseBox.cpp
 
-/// This global boolean is used to inform functions involved in opening documents whether
-/// the file is being opened via the OnMRUFile() function, i.e., due to the user attempting
-/// to open the file from the MRU list. If the file no longer exists and is an XML one, we
-/// use the bool TRUE value to give the user a nice informative message and avoid ugly
-/// error messages, and allow him to try again. TRUE if while the OnMRUFile() function is
-/// active due to the user attempting to open a file from the MRU list (if the file no
-/// longer exists and is an XML one, we use the bool TRUE value to give the user a nice
-/// informative message and avoid ugly error messages, and allow him to try again.
-bool gbTryingMRUOpen = FALSE;
+// This global boolean is used to inform functions involved in opening documents whether
+// the file is being opened via the OnMRUFile() function, i.e., due to the user attempting
+// to open the file from the MRU list. If the file no longer exists and is an XML one, we
+// use the bool TRUE value to give the user a nice informative message and avoid ugly
+// error messages, and allow him to try again. TRUE if while the OnMRUFile() function is
+// active due to the user attempting to open a file from the MRU list (if the file no
+// longer exists and is an XML one, we use the bool TRUE value to give the user a nice
+// informative message and avoid ugly error messages, and allow him to try again.
+//bool gbTryingMRUOpen = FALSE; // whm removed 1Oct12
 
 /// This global is defined in SplitDialog.cpp. (It has nothing to do with window
 /// splitting, but is for splitting the document's list of source phrase instances into
@@ -643,18 +643,18 @@ CUsfmFilterPagePrefs* pUsfmFilterPageInPrefs = (CUsfmFilterPagePrefs*)NULL;
 /// turned off.
 int nSequNumForLastAutoSave;
 
-/// Indicates whether a document is being opened via the MRU list. Its value is set to TRUE
-/// in the main frame's OnMRUFile() function.
-bool gbViaMostRecentFileList = FALSE;
+// Indicates whether a document is being opened via the MRU list. Its value is set to TRUE
+// in the main frame's OnMRUFile() function.
+//bool gbViaMostRecentFileList = FALSE; // whm removed 1Oct12
 
 /// This global is defined in PhraseBox.cpp.
 extern int nCurrentSequNum;
 
-/// A global that indicates whether it is possible to open a file from the MRU list. It is
-/// set TRUE if m_bDisableBookMode is TRUE when SetupDirectories() is called (the post MRU
-/// file click is the time when this is significant, because there is not enough info to
-/// recreate the folder path if books.xml failed on input or parse).
-bool gbAbortMRUOpen = FALSE;
+// A global that indicates whether it is possible to open a file from the MRU list. It is
+// set TRUE if m_bDisableBookMode is TRUE when SetupDirectories() is called (the post MRU
+// file click is the time when this is significant, because there is not enough info to
+// recreate the folder path if books.xml failed on input or parse).
+//bool gbAbortMRUOpen = FALSE; // whm 1Oct12 removed
 
 // Bible books folders support - folder name defaults for when there is no "books.XML" file
 // in work folder. NT and OT book name string constants, for GUI - especially setting up a
@@ -5336,8 +5336,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
 	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnFileExportKb)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnUpdateFileExportKb)
-	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)// renamed to
-	    //OnMRUFile and moved to CMainFrame
+	//whm removed 1Oct12
+	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)
 
     // We must not associate OnExit with wxID_EXIT. If we do, OnExit() executes immediately
     // upon selection of File|Exit causing all sorts of problems. Rather we must allow
@@ -8012,6 +8012,10 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 	// already been "set" into the main frame via the SetMenuBar() function, leads to some
 	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load
 	// the file history from our m_pConfig.
+	// [whm 1Oct12 Note: All MRU code is now removed from the 
+	// application, so a FileHistoryLoad() call would no 
+	// longer be a problem for a direct delete call on 
+	// pMenuBar]
 	// Later, I attempted to try adding menu items one-by-one to individual top level
 	// menus and tidying up any menu separators that need to be added or removed for
 	// the resulting menu bar. That approach also proved problematic as I could not
@@ -8068,7 +8072,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 			// We must establish a new index for the pMenuBar, which won't necessarily be the
 			// same as the ct index we use into the top level menus in the default m_pAIMenuStructure.
 			int mbCt;
-			int numFileHistoryItems = 0;
+			//int numFileHistoryItems = 0; // whm 1Oct12 removed
 			mbCt = pMenuBar_Current->FindMenu(mainMenuLabel_DefaultStructure);
 			pMainMenuItem_CurrentMenuBar = pMenuBar_Current->GetMenu(mbCt);
 			if (pMainMenuItem_CurrentMenuBar != NULL)
@@ -8094,6 +8098,9 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 						pNode = menuItemListForThisMainMenu.Item(miCt);
 						mItem = pNode->GetData();
 						wxASSERT(mItem != NULL);
+
+						// whm 1Oct12 removed MRU code
+						/*
 						// Don't remove File History items which are menu items that start with a digit (1
 						// through 9) followed by a space, followed by the full path name. We assume we can
 						// skip all menu items that start with a digit and a space.
@@ -8110,6 +8117,8 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 							continue;
 						}
 						//wxLogDebug(_T("Menu Item deleted = %s"),mItem->GetLabel().c_str());
+						*/
+
 						if (mItem->GetItemLabelText() == _("See Glosses")) //if (mItem->GetLabel() == _("See Glosses"))
 						{
 							// TODO: Check the following assumption: We should unilaterally disable Glossing here.
@@ -8130,10 +8139,14 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 				}
 			}
 
+			/*
+			// whm 1Oct12 removed MRU code
 			// Note: The File at this point is empty of normal menu items, but may have
 			// from 1 to 9 file history items. We don't want to append menu items below
 			// the group of file history items, but rather we must insert the menu items at
 			// GetMenuItemCount() - numFileHistoryItems.
+			*/
+
 			int insertAtIndex = 0;
 			// add menu items to this top level menu (pMainMenuItem_CurrentMenuBar)
 			wxArrayPtrVoid pArrayOfSubMenuItemsToAdd;
@@ -8152,7 +8165,7 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 					// In the line below the numFileHistoryItems will be zero for top level menus except for
 					// the File menu. We normally insert at the GetMenuItemCount() index, i.e., after the last
 					// item in the menu, but insert before any file history items.
-					insertAtIndex = pMainMenuItem_CurrentMenuBar->GetMenuItemCount() - numFileHistoryItems;
+					insertAtIndex = pMainMenuItem_CurrentMenuBar->GetMenuItemCount(); // - numFileHistoryItems; // whm 1Oct12 removed
 					wxASSERT(insertAtIndex >= 0);
 					int menuItemId;
 					menuItemId = GetSubMenuItemIdFromAIMenuBar(mainMenuLabel_DefaultStructure,pSubMenuItem->subMenuLabel,pTempMenuBar);
@@ -8799,15 +8812,13 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 /// This function also sets the initial checked/unchecked state of menu items which are
 /// checkable.
 //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMenuMode progMenuMode)
+void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum ProgramMenuMode progMenuMode)
 {
 	CMainFrame* pMainFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pMainFrame->GetMenuBar();
 	// Get the File Menu
 	wxMenu* pFileMenu;
 	pFileMenu = GetTopLevelMenuFromAIMenuBar(fileMenu);
-	// Note: The FileHistoryLoad() call is done in OnInit() before the first
-	// call of MakeMenuInitializationsAndPlatformAdjustments.
 
 	// Make adjustments on the Windows platform for when Paratext or Bibledit
 	// collaboration is in effect. We modify the labels for Open... and Save...
@@ -8820,6 +8831,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMen
 	// i.e., Linux or the Mac.
 	if (pFileMenu != NULL)
 	{
+		// whm 1Oct12 removed all MRU code
+		/*
 		// whm added 29Mar12. Remove file history when collaborating with PT/BE. Also remove
 		// any _Collab... files from history when collaborating was explicitly turned OFF
 		// from the ChooseCollabOptionsDlg. Use the ProgMenuMode enum for possible modes.
@@ -8872,7 +8885,8 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments(enum ProgramMen
 		{
 			; // do nothing any MRU file history is eligible for selection
 		}
-
+		*/
+		
 		// The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
 		// the new label, otherwise everything that comes after the tab will be displaced to the right side
 		// of the File menu (right aligned).
@@ -15304,7 +15318,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_nDefaultBookIndex = 39;
 	m_nTotalBooks = 67;
 	m_bDisableBookMode = FALSE; // start off enabled
-	gbAbortMRUOpen = FALSE;
+	//gbAbortMRUOpen = FALSE; whm 1Oct12 removed
 
 	// !!! whm added 19Jan05 AI_USFM.xml file processing and USFM Filtering
 	m_bUsingDefaultUsfmStyles = FALSE;
@@ -17075,9 +17089,44 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pDocManager = new wxDocManager; // must delete m_pDocManager in OnExit()
 	wxASSERT(m_pDocManager != NULL);
 
-	//LoadStdProfileSettings(9);  // Load standard INI file options (including MRU) - MFC version
-	// Set things up for file history (MRU) list
-	// File History is loaded below after Main Menu is created
+	// whm 1Oct12 removed MRU code.
+	// As of AI version 6.3.1 and following we do not store
+	// [Recent_File_List_Unicode] nor [Recent_File_List] values in the
+	// m_pConfig external file. Existing AI users, however, will still
+	// have values for those settings in their .Adapt_It_WX or
+	// Adapt_It_WX.ini file. We should clear out those old values
+	// which are no longer used.
+	{ // do in restricted scope block
+		wxLogNull logNo; // eliminates spurious message from the system
+		// Get rid of both Unicode and ANSI app's file history (both
+		// could exist in the external settings file).
+		// Note: These DeleteGroup() calls will also remove extraneous
+		// groups that may have gotten assigned names such as
+		// [Recent_File_List_Unicode/wxHtmlWindow], etc. If the user
+		// has viewed the HTML help via the help viewer the size and
+		// position settings for the wxHtmlWindow will also be removed
+		// as a side effect of the way they were stored previously.
+		// The deleting of the "/Recent_FILE_LIST..." groups will only
+		// happen once and never again afterwards.
+		if (m_pConfig->HasGroup(_T("/Recent_File_List_Unicode")))
+		{
+			// whm Note: wxConfig::DeleteGroup() deletes the group and all
+			// subgroups 
+			m_pConfig->DeleteGroup(_T("/Recent_File_List_Unicode"));
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
+		}
+		if (m_pConfig->HasGroup(_T("/Recent_File_List")))
+		{
+			// whm Note: wxConfig::DeleteGroup() deletes the group and all
+			// subgroups 
+			m_pConfig->DeleteGroup(_T("/Recent_File_List"));
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
+		}
+		// The most likely 
+	}
+
+	// whm 1Oct12 removed all MRU code
+	/*
 	wxString strOldPath = m_pConfig->GetPath();// store old wxFileConfig path in case we need it
     // whm Note: Recently used files (MRU) that get recorded in the settings file are not
     // really compatible between Unicode and Ansi versions. It may well be the case that
@@ -17097,6 +17146,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // "Path" for wxFileConfig::SetPath(Path) set as _T("/Recent_File_List"). Whenever we
     // change a setting other than an item under Recent_File_List, we'll save the oldPath
     // and restore it after doing the other setting.
+    */
 
 	// Create doc template to manage doc/view framework.
 	// Since wxWidgets data files probably won't be compatible with those produced
@@ -17119,11 +17169,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxHelpProvider::Set(provider);
 
 	// Get/Set Help info (window size etc) in the config object.
-    // Help window settings are saved in the registry/.Settings folder that stays the
-    // default and is called "Recent_File_List". There are 10 settings in that folder plus
-    // UseConfig() creates a subfolder within "Recent_File_List" called "wxHtmlWindow"
-    // which contains another 10 help font settings.
-	m_pHelpController->UseConfig(m_pConfig);
+    // UseConfig() creates a [HtmlHelpController] section in the 
+    // .Adapt_It_WX (or Adapt_It_WX.ini) external settings file. 
+	// It contains help window position info. It also saves borders
+	// and font information about the help window in an additional
+	// section named [HtmlHelpController/wxHtmlWindow]. These settings
+	// are updated when the m_pConfig member is destroyed in the App's
+	// OnExit() funtion.
+	m_pHelpController->UseConfig(m_pConfig,_T("/HtmlHelpControler"));
 
 	// Required for images in the online documentation
     wxInitAllImageHandlers(); // the help sample program does this, although it is not
@@ -19720,10 +19773,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// File Menu, and Load the File History (MRU) to it
 	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
 	wxASSERT(pFileMenu != NULL);
+	
+	// whm 1Oct12 removed MRU code
+	/*
 	m_pDocManager->FileHistoryUseMenu(pFileMenu);
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU)
 												// list from *m_pConfig
+	*/
 
 	// whm 29Feb12 removed the sanity checks that check for an installed
 	// collaboration editor (Paratext or Bibledit) along with the routines that
@@ -19760,7 +19817,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// according to the m_bShowAdministratorMenu flag set above.
 	// whm Note: The following MakeMenuInitializationsAndPlatformAdjustments() need to occur
 	// within OnInit() after the above m_collaborationEditor string has been assigned.
- 	MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
+ 	MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 
 	// whm 28Mar11 TESTING BELOW !!!
 	// Test results. The ParatextShared.dll is a managed .NET dll and as such cannot be
@@ -20573,7 +20630,7 @@ int CAdapt_ItApp::OnExit(void)
 						 // ~AIRIOP-machinename-username.lock while the owning user
 						 // has a project folder open (on this or a remote machine)
 
-	m_pDocManager->FileHistorySave(* m_pConfig);
+	//m_pDocManager->FileHistorySave(* m_pConfig); // whm 1Oct12 removed
 
 	// whm 31Jan12 initialized bOK to TRUE and added else if test for content in
 	// m_curProjectPath. If on first run of the app, user cancels out of wizard and
@@ -21777,7 +21834,9 @@ bool CAdapt_ItApp::SetupDirectories()
 		{
 			// language-specific work folder already exists, so don't create it
 			bLangWorkFolderExists = TRUE;
-			if (!gbViaMostRecentFileList && pStartWorkingWizard == NULL)
+			// whm 1Oct12 removed the !gbViaMostRecentFileList && test
+			// from if test below.
+			if (pStartWorkingWizard == NULL)
 			{
                 // if we are not in the startup wizard, then to set up same project
                 // again would likely be an error made by a novice user, thinking he
@@ -21966,8 +22025,9 @@ bool CAdapt_ItApp::SetupDirectories()
 	{
 		m_bibleBooksFolderPath.Empty();
 		m_pCurrBookNamePair = NULL;
-		if (m_bDisableBookMode)
-			gbAbortMRUOpen = TRUE;
+		// whm 1Oct12 removed MRU related flags
+		//if (m_bDisableBookMode)
+		//	gbAbortMRUOpen = TRUE;
 	}
 
 	//Now we need to get a KB initialized and stored in the languages-specific folder.
@@ -24530,7 +24590,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 				m_bStartWorkUsingCollaboration = FALSE;
 				// Set the File > Open and File > Save menu items back to their normal
 				// state - without the parenthetical information in the labels.
-				MakeMenuInitializationsAndPlatformAdjustments(collabAvailableTurnedOff);
+				MakeMenuInitializationsAndPlatformAdjustments(); //(collabAvailableTurnedOff);
 				// Save the changes to the above collab values to the project config file.
 				bool bOK;
 				bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
@@ -25798,12 +25858,6 @@ BOOL CWinApp::OnOpenRecentFile(UINT nID)
 }
 */
 /////////////////////////////////////////////////////////////////////////////
-
-//BOOL CAdapt_ItApp::OnOpenRecentFile(UINT nID)
-// wx version Note: The wx doc/view framework uses OnMRUFile() as a virtual method of
-// wxDocParentFrame. It is now a handler in CMainFrame, renamed to OnMRUFile(), and is a
-// void function.
-//bool CAdapt_ItApp::OnOpenRecentFile(wxCommandEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -40258,7 +40312,7 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
 		ConfigureInterfaceForUserProfile(); // sets the profile to the value in m_nWorkflowProfile
 		// Toggle the check state of the menu item to unticked.
 		m_bTemporarilyRestoreProfilesToDefaults = FALSE;
-		MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
+		MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
 		// change was temporary.
 		// Compare the code in this block with that in the if (m_bTemporarilyRestoreProfilesToDefaults)
@@ -40275,7 +40329,7 @@ void CAdapt_ItApp::OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event))
 		ConfigureInterfaceForUserProfile();  // sets the profile to the value in m_nWorkflowProfile
 		// Toggle the check state of the menu item to ticked.
 		m_bTemporarilyRestoreProfilesToDefaults = TRUE;
-		MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
+		MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
 		// change is goin to be temporary.
 	}
@@ -40345,7 +40399,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 		ConfigureInterfaceForUserProfile(); // sets the profile to the value in m_nWorkflowProfile
 		// Toggle the check state of the menu item to unticked.
 		m_bTemporarilyRestoreProfilesToDefaults = FALSE;
-		MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
+		MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 		// Note: we don't call SaveUserProfilesMergingDataToXMLFile() here because the profile
 		// change was temporary.
 	}
@@ -40362,7 +40416,7 @@ void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event
 			// profile selection/changes which are now stored in m_nWorkflowProfile
 			// and m_pUserProfiles.
 			ConfigureInterfaceForUserProfile();
-			MakeMenuInitializationsAndPlatformAdjustments(collabIndeterminate);
+			MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 			// Also, save the changes to the AI_UserProfiles.xml file
 			SaveUserProfilesMergingDataToXMLFile(m_userProfileFileWorkFolderPath);
 		}
