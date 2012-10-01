@@ -9100,7 +9100,6 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
-    item1->AppendSeparator();
     item0->Append( item1, _("&File") );
     
     wxMenu* item2 = new wxMenu;

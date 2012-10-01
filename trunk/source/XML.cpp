@@ -99,8 +99,8 @@ extern CAdapt_ItApp* gpApp; // for rapid access to the app class
 /// This global is defined in Adapt_It.cpp.
 extern BookNamePair* gpBookNamePair;
 
-/// This global is defined in Adapt_It.cpp.
-extern bool gbTryingMRUOpen;
+// This global is defined in Adapt_It.cpp.
+//extern bool gbTryingMRUOpen; // whm 1Oct12 removed
 
 // parsing Adapt It documents
 static CAdapt_ItDoc* gpDoc = NULL;
@@ -1022,6 +1022,8 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 	else
 	{
 		// the stream was not opened, so tell the user 
+		
+		/* // whm 1Oct12 removed MRU code
 		// BEW modified 08Nov05 so that the user did not get the message if the read was
 		// attempted from a MRU list file choice by the user - these often no longer exist
 		// and so when that happens we let the document class's OnOpenDocument() give a
@@ -1031,6 +1033,8 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 			delete[] pBuff; // whm added 15Sep10 to prevent memory leak when returning prematurely
 			return FALSE; // return with no message here
 		}
+		*/
+
 		// otherwise, we have a more serious problem and the user will need to get a cause
 		// to report to us if he can't solve the problem himself
 		wxString errStr;
@@ -3158,21 +3162,29 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				}
 				else if (attrName == xml_srcname)
 				{
+					;
+					// whm 1Oct12 removed MRU code
+					/*
 					// BEW modified 27Nov05; only use the doc values for restoring when doing an MRU open,
 					// because otherwise the doc could have been copied from another person's project and
 					// would give invalid names which would then find their way into the project config
 					// file and end up fouling things up
 					if (gbTryingMRUOpen)
 						gpApp->m_sourceName = attrValue;
+					*/
 				}
 				else if (attrName == xml_tgtname)
 				{
+					;
+					// whm 1Oct12 removed MRU code
+					/*
 					// BEW modified 27Nov05; only use the doc values for restoring when doing an MRU open,
 					// because otherwise the doc could have been copied from another person's project and
 					// would give invalid names which would then find their way into the project config
 					// file and end up fouling things up
 					if (gbTryingMRUOpen)
 						gpApp->m_targetName = attrValue;
+					*/
 				}
 			
 			// mrh June 2012 -- docVersion 8 adds source and target language codes.  At present we only use these if we don't already

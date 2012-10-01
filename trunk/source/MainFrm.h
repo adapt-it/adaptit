@@ -233,7 +233,7 @@ class CMainFrame : public wxDocParentFrame
     void RecreateToolBar();
 	AIToolBar* GetToolBar();
 	void DoCreateStatusBar();
-	void OnMRUFile(wxCommandEvent& event);
+	//void OnMRUFile(wxCommandEvent& event); //whm removed 1Oct12
 
   private:
 	//wxHelpController		m_help;
