@@ -1185,6 +1185,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KbServer.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.h"
 				>
 			</File>

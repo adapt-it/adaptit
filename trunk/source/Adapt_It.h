@@ -93,6 +93,10 @@ class AIPrintout;
 //#define Test_m_bNoAutoSave
 
 class NavProtectNewDoc; // for user navigation protection feature
+// for support of the  m_pKbServer public member (pointer to the current instance of
+// KbServer class - which is non_NULL only when kbserver support is instantiated for an
+// adaptation project designated as one which is to support KB sharing
+class KbServer;
 
 /////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
@@ -2657,6 +2661,19 @@ public:
 
 #if defined (_KBSERVER)
 
+	// BEW 1Oct12
+	// Pointer to the one and only instantiation of a KbServer class; the pointer is NULL
+	// everywhere except in a project designated for KB sharing, and that project is
+	// currently active (creation and destruction are handled within SetupForKBServer()
+	// and ReleaseKBServer(), respectively) See KBServer.cpp, and KbServer.h (Yes, the
+	// latter is not a typo, the KBServer.cpp file contains, but is not limited to, the
+	// implementation code for the header KbServer.h)
+private:
+	KbServer* m_pKbServer;
+public:
+	KbServer* GetKbServer(); // getter for m_pKbServer
+	void SetKbServer(KbServer* pKbServer); //setter for m_pKbServer
+
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
@@ -2666,12 +2683,15 @@ public:
 	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
 									  // sharing kb data between clients in the same AI project
 	// access credentials, KB type (1 or 2, 1 is adapting KB, 2 is glossing KB), and lastsync
-	// date&time from the following members:
-	wxString	m_kbServerURL; // we'll keep this in the Project config file too (eventually)
-	wxString	m_kbServerUsername; // we'll keep this in the Project config file too (eventually)
+	// date&time from the following members: 
+	// 
+	// (*** TODO **** remove the following five later when KbServer class is coded)
+	
+	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
+	wxString	m_kbServerURL;
+	wxString	m_kbServerUsername;
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
-	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
 	// the iso639 2-letter or 3-letter codes are stored (already) in m_sourceLanguageCode,
 	// m_targetLanguageCode, and m_glossesLanguageCode; so we use those. The RFC codes
 	// below, if empty, are not used; but if not empty and contain validated RFC5646

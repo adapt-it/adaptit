@@ -14572,6 +14572,26 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 	return codeToReturn;
 }
 
+// getter for m_pKbServer
+KbServer* CAdapt_ItApp::GetKbServer()
+{
+	if (m_pKbServer == NULL)
+	{
+		// warn the developer
+		wxMessageBox(_T("Logic error: GetKbServer() called, but m_pKbServer is still NULL. Fix it!"));
+		return (KbServer*)NULL;
+	}
+	return m_pKbServer;
+}
+
+// setter for m_pKbServer; the pKbServer param may be (a) new KbServer(this),
+// or (b) NULL. It's not likely to be a pointer to an existing KbServer instantiation.
+void CAdapt_ItApp::SetKbServer(KbServer* pKbServer)
+{
+	m_pKbServer = pKbServer;
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all goes well, FALSE if there was something that causes premature exit
 /// \remarks
@@ -14586,15 +14606,19 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 #if defined(_KBSERVER)
+
+	SetKbServer(NULL); // always NULL, except when a KB sharing project is active
 	m_bIsKBServerProject = FALSE; // initialise
+
+	// **** TODO **** the following 5 CAdapt_ItApp members will become private members of
+	// KbServer once the latter is coded suficiently, then these can be removed, as can
+	// the global functions in KBServer.cpp which set them
+	m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
 	m_kbServerURL.Empty();
 	m_kbServerUsername.Empty();
 	m_kbServerPassword.Empty(); 
-	//m_kbServerSrcRFC5646Code.Empty();
-	//m_kbServerTgtRFC5646Code.Empty();
-	//m_kbServerGlossesRFC5646Code.Empty();
 	m_kbServerLastSync.Empty();
-	m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
+
 #endif
 	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
