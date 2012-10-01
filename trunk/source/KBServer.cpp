@@ -408,7 +408,7 @@ bool CAdapt_ItApp::GetCredentials(wxString& url, wxString& username, wxString& p
 	url = f.GetLine(0);
 	username = f.GetLine(1);
 	password = f.GetLine(2);
-	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"), url, username, password);
+	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"), url.c_str(), username.c_str(), password.c_str());
 	f.Close();
 	// end temporary code
 	
