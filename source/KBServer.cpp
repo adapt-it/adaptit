@@ -11,9 +11,12 @@
 /// extension to the Adapt_It.cpp class.
 /////////////////////////////////////////////////////////////////////////////
 
+
+
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "TargetUnit.h"
+    #pragma implementation "KbServer.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
@@ -31,13 +34,17 @@
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
 #include <wx/textfile.h> // for wxTextFile
 
-#include "Adapt_It.h"
+#include "Adapt_It.h" // has to be here, since _KBSERVER symbol is defined there
+#if defined(_KBSERVER)
+
+
 #include "TargetUnit.h"
 #include "KB.h"
 #include "AdaptitConstants.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
 #include "helpers.h"
+#include "KbServer.h"
 
 extern bool		gbIsGlossing;
 
@@ -66,8 +73,6 @@ extern bool		gbIsGlossing;
 /// should be, from it's inception, a kb sharing one. The user can later make it one if he
 /// so desires.)
 
-#if defined(_KBSERVER)
-
 /// Call SetupForKBServer() when re-opening a project which has been designated earlier as
 /// associating with a kbserver (ie. m_bKBServerProject is TRUE after the project's
 /// configuration file has been read), or when the user, in the GUI, designates the current
@@ -75,6 +80,14 @@ extern bool		gbIsGlossing;
 /// something was not right and in that case don't perform a setup.
 bool CAdapt_ItApp::SetupForKBServer()
 {
+	// As per Jonathan's suggestion that our implementation be OOP, instantiate the
+	// KbServer class here.
+	SetKbServer(new KbServer(this));
+
+
+
+    // *** TODO *** The global functions further below can be removed shortly once the 
+    // KbServer class is functional
 	int aType = GetKBTypeForServer();
 	if (aType == -1)
 	{
@@ -115,6 +128,51 @@ bool CAdapt_ItApp::SetupForKBServer()
 	// all's well
 	return TRUE;
 }
+
+/// Return TRUE if there was no error, FALSE otherwise. The function is used for doing
+/// cleanup, and any needed making of data persistent between adapting sessions within a
+/// project which is a KB sharing project, when the user exits the project or Adapt It is
+/// shut down.
+bool CAdapt_ItApp::ReleaseKBServer()
+{
+	KbServer* pKbSvr = GetKbServer(); // beware, may return NULL
+	if (pKbSvr != NULL)
+	{
+		pKbSvr->~KbServer(); // do cleanup in the destructor, and especially, making
+								// the lastsync datetime value received from the kbserver
+								// persistent
+		SetKbServer(NULL);
+	}
+
+
+	// *** TODO *** the following can be removed once the KbServer class is functional
+	
+	// the only task at present is to make sure that the datetime value in
+	// m_kbServerLastSync is written to to persistent storage. That may be to a hidden
+	// file later on, but for new we overwrite the single line in lastsync.txt stored in
+	// the project folder
+	bool bOK = StoreLastSyncDateTime();
+
+	// now make sure that nonsense values are in the holding variables, so that any switch
+	// to a different project doesn't carry with it valid kbserver parameters
+	m_kbTypeForServer = -1; // only 1 or 2 are valid values
+	m_bIsKBServerProject = FALSE;
+	m_kbServerURL.Empty();
+	m_kbServerUsername.Empty();
+	m_kbServerPassword.Empty(); 
+	m_kbServerLastSync.Empty();
+	
+// *** TODO *** more of the permanent GUI code if needed in this function
+
+	// ************ NOTE NOTE NOTE *******************
+	// If we find we need to do any last minute kbserver accesses to get any pending
+	// uploads and/or downloads done before release (since EraseKB() is typically called
+	// after ReleaseKBServer() returns, and EraseKB() doesn't update the KB on disk before
+	// it does it's erasure of the in-memory copy of the KB), so we should do those final
+	// things here and put code to SAVE THE KB which is active RIGHT HERE!
+	return bOK;
+}
+
 
 /// Return TRUE of the required codes are defined - there will be at least two required
 /// (for source and target languages), and if bRequireGlossesLanguageCode is TRUE (it is
@@ -185,38 +243,6 @@ bool CAdapt_ItApp::IsGlossingKBPopulatedOrGlossingModeON()
 		return FALSE;
 	}
 	return m_pGlossingKB->m_pMap[0]->size() > 0; // map[0] always has most data, if it's empty, assume the rest are too
-}
-
-/// Return TRUE if there was no error, FALSE otherwise. The function is used for doing
-/// cleanup, and any needed making of data persistent between adapting sessions within a
-/// project which is a KB sharing project, when the user exits the project or Adapt It is
-/// shut down.
-bool CAdapt_ItApp::ReleaseKBServer()
-{
-	// the only task at present is to make sure that the datetime value in
-	// m_kbServerLastSync is written to to persistent storage. That may be to a hidden
-	// file later on, but for new we overwrite the single line in lastsync.txt stored in
-	// the project folder
-	bool bOK = StoreLastSyncDateTime();
-
-	// now make sure that nonsense values are in the holding variables, so that any switch
-	// to a different project doesn't carry with it valid kbserver parameters
-	m_kbTypeForServer = -1; // only 1 or 2 are valid values
-	m_bIsKBServerProject = FALSE;
-	m_kbServerURL.Empty();
-	m_kbServerUsername.Empty();
-	m_kbServerPassword.Empty(); 
-	m_kbServerLastSync.Empty();
-	
-// *** TODO *** more of the permanent GUI code if needed in this function
-
-	// ************ NOTE NOTE NOTE *******************
-	// If we find we need to do any last minute kbserver accesses to get any pending
-	// uploads and/or downloads done before release (since EraseKB() is typically called
-	// after ReleaseKBServer() returns, and EraseKB() doesn't update the KB on disk before
-	// it does it's erasure of the in-memory copy of the KB), so we should do those final
-	// things here and put code to SAVE THE KB which is active RIGHT HERE!
-	return bOK;
 }
 
 // Prompt the user to type in the appropriate kbserver password, and return it. It will be
@@ -436,9 +462,57 @@ bool CAdapt_ItApp::GetTextFileOpened(wxTextFile* pf, wxString& path)
 
 
 
+//=============================== KbServer class ===================================
 
-// more functions...
+IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
+KbServer::KbServer()
+{
+	CAdapt_ItApp* m_pApp = &wxGetApp();
+	m_pApp = m_pApp; // avoid compiler warning
+	// set up pointer copies for the current project's m_pKB and m_pGlossingKB CKB* pointers
+	m_pMyKB = SetKB(adaptingKB);
+	m_pMyGlossingKB = SetKB(glossingKB);
+}
+
+KbServer::KbServer(CAdapt_ItApp* pApp)
+{
+	CAdapt_ItApp* m_pApp = pApp;
+	m_pApp = m_pApp; // avoid compiler warning
+	// set up pointer copies for the current project's m_pKB and m_pGlossingKB CKB* pointers
+	// set up pointer copies for the current project's m_pKB and m_pGlossingKB CKB* pointers
+	m_pMyKB = SetKB(adaptingKB);
+	m_pMyGlossingKB = SetKB(glossingKB);
+}
+
+KbServer::~KbServer()
+{
+	; // nothing to do as yet
+}
+
+CKB* KbServer::SetKB(enum KBType currentKBType)
+{
+	if (currentKBType == adaptingKB)
+	{
+		return m_pApp->m_pKB;
+	}
+	else
+	{
+		return m_pApp->m_pGlossingKB;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+//=============================== end of KbServer class ============================
 
 #endif // for _KBSERVER
 
