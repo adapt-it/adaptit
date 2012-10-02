@@ -41,8 +41,9 @@
 #endif
 
 // support for incremental building of KB Server client code
+#if defined(_DEBUG)
 #define _KBSERVER
-
+#endif
 
 // a temporary #define for Mike to use when working on DVCS:
 #define TEST_DVCS
