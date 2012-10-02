@@ -28,6 +28,8 @@
 
 #if defined(_KBSERVER)
 
+#include <curl/curl.h>
+
 // forward references (we'll probably need these at some time)
 class CTargetUnit;
 class CRefStringMetadata;
@@ -40,7 +42,8 @@ enum KBType
     glossingKB
 };
 
-
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 /// The CRefString class stores the target text adaptation typed
 /// by the user for a given source word or phrase. It also keeps
@@ -60,10 +63,8 @@ public:
 	// attributes
 public:
 
-
-
-
 	// getters & setters
+	wxString LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
 
 
 protected:
@@ -76,7 +77,7 @@ private:
 	CAdapt_ItApp* m_pApp;
 	CKB* m_pMyKB;
 	CKB* m_pMyGlossingKB;
-
+	
 	// the following 5 are used for setting up the https transport of data to/from the kbserver
 	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
 	wxString	m_kbServerURL;
@@ -87,9 +88,17 @@ private:
 
 	// private member functions
 	CKB* SetKB(enum KBType currentKBType);
+	wxString GetServerURL();
+	wxString GetServerUsername();
+	wxString GetServerPassword();
+	wxString GetServerLastSync();
+	wxString GetSourceLanguageCode();
+	wxString GetTargetLanguageCode();
+	int		 GetKBTypeForServer();
 
+	bool     SetKBTypeForServer();
 
-	DECLARE_DYNAMIC_CLASS(KbServer)
+	DECLARE_DYNAMIC_CLASS(KbServer) 
 
 };
 #endif // for _KBSERVER
