@@ -1124,7 +1124,7 @@ void DoExportAsType(enum ExportType exportType)
                 wxString errMsg;
 #ifdef __WXGTK__
                 // for GTK, stderr is held in a string array from the wxExecute call
-                for (int nIndex = 0; nIndex < errorsIOArray.Count(); nIndex++)
+                for (int nIndex = 0; nIndex < (int)errorsIOArray.Count(); nIndex++)
                 {
                     errMsg += errorsIOArray[nIndex];
                 }
@@ -1194,7 +1194,7 @@ void DoExportAsType(enum ExportType exportType)
 						// stdout might contain a clue as to what happened
 #ifdef __WXGTK__
 	                    // for GTK, stdout is held in a string array from the wxExecute call
-		                for (nIndex = 0; nIndex < textIOArray.Count(); nIndex++)
+		                for (nIndex = 0; nIndex < (int)textIOArray.Count(); nIndex++)
 			            {
 				            errMsg += textIOArray[nIndex];
 					    }
