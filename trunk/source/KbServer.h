@@ -18,7 +18,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "RefString.h"
+    #pragma interface "KbServer.h"
 #endif
 
 // temporarily, while we need #if defined(_KBSERVER) from Adapt_It.h, #includle the latter
