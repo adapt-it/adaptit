@@ -486,7 +486,15 @@ KbServer::KbServer()
 {
 	m_pApp = &wxGetApp();
 
-	KbServer::KbServer( m_pApp );
+	// set up pointer copies for the current project's m_pKB and m_pGlossingKB CKB* pointers
+	m_pMyKB = SetKB(adaptingKB);
+	m_pMyGlossingKB = SetKB(glossingKB);
+
+	if (!SetKBTypeForServer())
+	{
+		delete this;
+		return;
+	}
 }
 
 KbServer::KbServer(CAdapt_ItApp* pApp)
@@ -502,10 +510,12 @@ KbServer::KbServer(CAdapt_ItApp* pApp)
 		return;
 	}
 
-	/* Initial Testing 
-	m_kbServerURL = "https://kbserver.jmarsden.org/entry";
-	m_kbServerUsername = "kevin_bradford@sil.org";
-	m_kbServerPassword = "Password";
+	// Initial Testing 
+	/*
+	m_kbServerURLBase = _T("https://kbserver.jmarsden.org/entry");
+	m_kbServerUsername = _T("kevin_bradford@sil.org");
+	m_kbServerPassword = _T("password");
+	m_kbTypeForServer = 1;
 	*/
 }
 
@@ -527,7 +537,7 @@ CKB* KbServer::SetKB(enum KBType currentKBType)
 }
 wxString KbServer::GetServerURL()
 {
-	return m_kbServerURL;
+	return KbServer::m_kbServerURLBase;
 }
 wxString KbServer::GetServerUsername()
 {
@@ -544,12 +554,10 @@ wxString KbServer::GetServerLastSync()
 wxString KbServer::GetSourceLanguageCode()
 {
 	return gpApp->m_sourceLanguageCode;
-	//return "to";
-}
+	}
 wxString KbServer::GetTargetLanguageCode()
 {
 	return gpApp->m_targetLanguageCode;
-	//return "ilb";
 }
 int	KbServer::GetKBTypeForServer()
 {

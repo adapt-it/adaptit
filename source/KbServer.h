@@ -66,7 +66,6 @@ public:
 	// getters & setters
 	wxString LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
 
-
 protected:
 
 	// helpers
@@ -80,7 +79,7 @@ private:
 	
 	// the following 5 are used for setting up the https transport of data to/from the kbserver
 	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
-	wxString	m_kbServerURL;
+	wxString	m_kbServerURLBase;
 	wxString	m_kbServerUsername;
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
