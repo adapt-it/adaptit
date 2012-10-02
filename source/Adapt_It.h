@@ -2672,6 +2672,7 @@ private:
 public:
 	KbServer* GetKbServer(); // getter for m_pKbServer
 	void SetKbServer(KbServer* pKbServer); //setter for m_pKbServer
+	void DeleteKbServer();
 
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in

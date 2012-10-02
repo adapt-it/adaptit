@@ -219,6 +219,7 @@
 #include "GetSourceTextFromEditor.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
+#include "KbServer.h"
 
 #if wxCHECK_VERSION(2,9,1)
 // Use the built-in wxConvAuto from <wx/version.h>
@@ -14586,6 +14587,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 	return codeToReturn;
 }
 
+#if defined(_KBSERVER)
 // getter for m_pKbServer
 KbServer* CAdapt_ItApp::GetKbServer()
 {
@@ -14605,6 +14607,17 @@ void CAdapt_ItApp::SetKbServer(KbServer* pKbServer)
 	m_pKbServer = pKbServer;
 }
 
+// deletes the instantiated KbServer class, and sets the pointer to its instance to NULL
+void CAdapt_ItApp::DeleteKbServer()
+{
+	if (m_pKbServer != NULL)
+	{
+		delete m_pKbServer;
+	}
+	m_pKbServer = NULL;
+}
+
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all goes well, FALSE if there was something that causes premature exit
