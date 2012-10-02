@@ -89,8 +89,8 @@ private:
 	CKB* SetKB(enum KBType currentKBType);
 
 
+	DECLARE_DYNAMIC_CLASS(KbServer)
 
-	DECLARE_DYNAMIC_CLASS(KbServer) 
 };
 #endif // for _KBSERVER
 
