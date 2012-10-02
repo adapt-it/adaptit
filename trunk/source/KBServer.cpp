@@ -80,14 +80,27 @@ extern bool		gbIsGlossing;
 /// something was not right and in that case don't perform a setup.
 bool CAdapt_ItApp::SetupForKBServer()
 {
-	// As per Jonathan's suggestion that our implementation be OOP, instantiate the
-	// KbServer class here.
-	SetKbServer(new KbServer(this));
+	// check we don't have a KbServer instantiated, if so, delete it
+	DeleteKbServer();
+	// instantiate a KbServer only if the needed langauge codes are not empty;
+	// if the param returns TRUE, then gbIsGlossing is TRUE, or the glossingKB has data in
+	// it - in either circumstance we also require a language code for the glossing
+	// language be set; if it returns FALSE, then we only require src and tgt language codes
+	bool bCodesExist = CheckForLanguageCodes(IsGlossingKBPopulatedOrGlossingModeON());
+	if (bCodesExist)
+	{
+		// allow instantiation of the KbServer class
+		SetKbServer(new KbServer(this));
+	}
+	else
+	{
+		// a message has been seen, so make sure m_pKbServer is NULL
+		SetKbServer(NULL);
+	}
 
 
-
-    // *** TODO *** The global functions further below can be removed shortly once the 
-    // KbServer class is functional
+    // *** TODO *** The global functions further below can be
+	// removed shortly once the KbServer class is functional
 	int aType = GetKBTypeForServer();
 	if (aType == -1)
 	{
