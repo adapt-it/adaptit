@@ -19779,6 +19779,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
 #endif
 
+	// whm 1Oct12 removed MRU code
+	/*
 	// whm Note: We should associate the file history with the File menu, and load
 	// the File History AFTER calling ConfigureInterfaceForUserProfile() above.
 	//
@@ -19787,8 +19789,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
 	wxASSERT(pFileMenu != NULL);
 	
-	// whm 1Oct12 removed MRU code
-	/*
 	m_pDocManager->FileHistoryUseMenu(pFileMenu);
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU)
