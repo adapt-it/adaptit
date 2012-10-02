@@ -47,6 +47,7 @@
 #include "KbServer.h"
 
 extern bool		gbIsGlossing;
+static int		totalBytesSent = 0;
 
 /// A Note on the placement of SetupForKBServer(), and the protective wrapping boolean
 /// m_bIsKBServerProject, defaulting to FALSE initially and then possibly set to TRUE by
@@ -477,25 +478,35 @@ bool CAdapt_ItApp::GetTextFileOpened(wxTextFile* pf, wxString& path)
 
 //=============================== KbServer class ===================================
 
+std::string str_CURLbuffer;
+
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
 {
-	CAdapt_ItApp* m_pApp = &wxGetApp();
-	m_pApp = m_pApp; // avoid compiler warning
-	// set up pointer copies for the current project's m_pKB and m_pGlossingKB CKB* pointers
-	m_pMyKB = SetKB(adaptingKB);
-	m_pMyGlossingKB = SetKB(glossingKB);
+	m_pApp = &wxGetApp();
+
+	KbServer::KbServer( m_pApp );
 }
 
 KbServer::KbServer(CAdapt_ItApp* pApp)
-{
-	CAdapt_ItApp* m_pApp = pApp;
-	m_pApp = m_pApp; // avoid compiler warning
-	// set up pointer copies for the current project's m_pKB and m_pGlossingKB CKB* pointers
+{	
+	m_pApp = pApp; // avoid compiler warning
 	// set up pointer copies for the current project's m_pKB and m_pGlossingKB CKB* pointers
 	m_pMyKB = SetKB(adaptingKB);
 	m_pMyGlossingKB = SetKB(glossingKB);
+
+	if (!SetKBTypeForServer())
+	{
+		delete this;
+		return;
+	}
+
+	/* Initial Testing 
+	m_kbServerURL = "https://kbserver.jmarsden.org/entry";
+	m_kbServerUsername = "kevin_bradford@sil.org";
+	m_kbServerPassword = "Password";
+	*/
 }
 
 KbServer::~KbServer()
@@ -514,16 +525,115 @@ CKB* KbServer::SetKB(enum KBType currentKBType)
 		return m_pApp->m_pGlossingKB;
 	}
 }
+wxString KbServer::GetServerURL()
+{
+	return m_kbServerURL;
+}
+wxString KbServer::GetServerUsername()
+{
+	return m_kbServerUsername;
+}
+wxString KbServer::GetServerPassword()
+{
+	return m_kbServerPassword;
+}
+wxString KbServer::GetServerLastSync()
+{
+	return m_kbServerLastSync;
+}
+wxString KbServer::GetSourceLanguageCode()
+{
+	return gpApp->m_sourceLanguageCode;
+	//return "to";
+}
+wxString KbServer::GetTargetLanguageCode()
+{
+	return gpApp->m_targetLanguageCode;
+	//return "ilb";
+}
+int	KbServer::GetKBTypeForServer()
+{
+	return m_kbTypeForServer;
+}
+/// If KBs have not been loaded, return false. If the loads have not been done, m_pKB and m_pGlossingKB will be still
+/// NULL, and m_bKBReady and m_bGlossingKBReady will both be FALSE - the latter two
+/// conditions are how we test for bad placement.
+bool KbServer::SetKBTypeForServer()
+{
+	//note: similar code above can be removed when this is tested
+	m_kbTypeForServer = 1; // default is to assume adapting KB is wanted
 
+	// the two KBs must have been successfully loaded
+	if (gpApp->m_bKBReady && gpApp->m_bGlossingKBReady)
+	{
+		if (gbIsGlossing)
+		{
+			m_kbTypeForServer = 2;
+		}
+	}
+	else
+	{
+		// warn developer that the logic is wrong
+		wxString msg = _T("GetKBTypeForServer()called in SetupForKBServer(): Logic error, m_bKBReady and m_bGlossingKBReady are not both TRUE yet. Fix this!");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		return false;
+	}
+	
+	return true;
+	
+}
 
+// callback function for curl  
+size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userdata) 
+{
+	ptr = ptr; // avoid "unreferenced formal parameter" warning
+	userdata = userdata; // avoid "unreferenced formal parameter" warning
+    
+	//wxString msg;
+	//msg = msg.Format(_T("In curl_read_data_callback: sending %s bytes."),(size*nmemb));
+	//wxLogDebug(msg);
+    	
+	str_CURLbuffer.append((char*)ptr, size*nmemb);
+	return size*nmemb;
+}
 
+wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
+{
+	CURL *curl;
+	CURLcode result;
+	char charUrl[1024];
+	char charUserpwd[511];
 
+	wxString wxStr_URL = GetServerURL() + '/' + GetSourceLanguageCode() + '/' + GetTargetLanguageCode() + '/' + 
+		wxString::Format(_T("%d"), GetKBTypeForServer()) + '/' + wxStr_SourceEntry; 
+	strncpy( charUrl , wxStr_URL.c_str() , 1024 );
 
+	wxString wxStr_Authentication = GetServerUsername() + ':' + GetServerPassword();
+	strncpy( charUserpwd , wxStr_Authentication.c_str() , 511 );	
+		
+	curl_global_init(CURL_GLOBAL_ALL); 
+	curl = curl_easy_init(); 
+	
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback); 
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer);
 
+		result = curl_easy_perform(curl);
 
+		if (result) {
+			printf("Result code: %d\n", result);
+		} 
+		curl_global_cleanup();
+	}
 
+	return str_CURLbuffer;
 
-
+}
 
 //=============================== end of KbServer class ============================
 
