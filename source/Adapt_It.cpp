@@ -219,7 +219,10 @@
 #include "GetSourceTextFromEditor.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
+
+#if defined (_KBSERVER)
 #include "KbServer.h"
+#endif
 
 #if wxCHECK_VERSION(2,9,1)
 // Use the built-in wxConvAuto from <wx/version.h>
