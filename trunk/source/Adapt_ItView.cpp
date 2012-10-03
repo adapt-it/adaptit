@@ -56,8 +56,6 @@
 #include <wx/event.h> // for GetCapturedWindow()
 #include <wx/tokenzr.h>
 #include <wx/textfile.h> // to get EOL info
-#include "Adapt_ItCanvas.h"
-#include "Adapt_It_Resources.h"
 #include <wx/dir.h> // for wxDir
 #include <wx/propdlg.h>
 #include <wx/progdlg.h> // for wxProgressDialog
@@ -72,13 +70,14 @@
 #endif
 
 // includes below uncomment as implemented
+#include "Adapt_ItCanvas.h"
+#include "Adapt_It_Resources.h"
 #include "Adapt_It.h"
 #include "ReadOnlyProtection.h"
 #include "Adapt_ItDoc.h"
 #include "AIPrintPreviewFrame.h"
 #include "helpers.h"
 #include "CollabUtilities.h"
-#include "BString.h"
 #include "XML.h"
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling dialog features available in wxWidgets  2.9.x

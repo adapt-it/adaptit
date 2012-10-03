@@ -36,7 +36,7 @@
 
 //#include "stdafx.h"
 #include "Adapt_It.h"
-#include "BString.h"
+//#include "BString.h"
 
 // the following typedefs allow my Palm OS integer types to be used unchanged
 typedef short unsigned int UInt16;
@@ -338,6 +338,28 @@ CBString::CBString(const char* s)
 	if(pstr)
 	{
 		strcpy(pstr,s);
+	}
+	else
+	{
+		len = 0;
+		pstr = NULL;
+	}
+}
+
+/*********************************************
+*
+* Construct CBString from a char
+*
+**********************************************/
+
+CBString::CBString(const char ch)
+{
+	len = 1;
+	pstr = new char[len + 1];
+	memset(pstr,0,len + 1);
+	if(pstr)
+	{
+		*pstr = ch;
 	}
 	else
 	{
@@ -1447,7 +1469,7 @@ CBString& CBString::operator=(const char* s)
 * Assignment operator: char to CBString
 *
 **********************************************/
-
+/*
 CBString& CBString::operator=(const char& ch)
 {
 	if (pstr != NULL)
@@ -1457,6 +1479,30 @@ CBString& CBString::operator=(const char& ch)
 	pStr[0] = ch;
 	len = 1;
 	pstr = pStr;
+	return *this;
+}
+*/
+
+/*********************************************
+*
+* operator=(const char ch)
+*
+* Returns: reference a CBString initialized with the 
+* char ch assigned to it
+*
+**********************************************/
+
+CBString& CBString::operator=(char ch)
+{
+	int newLen = 1;
+	char* pStr = new char[newLen + 1];
+	memset(pStr,0,newLen + 1);
+	
+	pStr[0] = ch;
+	pStr[newLen] = '\0'; // append a null
+	delete[] pstr;
+	pstr = pStr;
+	len = newLen;
 	return *this;
 }
 
@@ -1538,6 +1584,7 @@ CBString& CBString::operator+=(char ch)
 	len = newLen;
 	return *this;
 }
+
 
 /*********************************************
 *

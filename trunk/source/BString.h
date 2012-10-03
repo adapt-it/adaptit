@@ -50,6 +50,12 @@
 /// characters and so the implementation will be simpler than on the Dana. And error
 /// checking will be almost nothing, and no error messages, to keep it as concise as possible.s
 /// \derivation The BString class is not a derived class.
+/// 
+/// BEW 3Oct12, modified to add CBString(const char ch) constructor, for supporting the syntax
+/// CString str('c'); and so by implicit conversion it also supports the syntax
+/// CString str = 'c';
+/// Also removed CBString& operator=(const char& ch) (not so far used in our code); and
+/// replaced it with CBString& operator=(const char ch);
 class CBString
 {
 	private:
@@ -60,9 +66,11 @@ class CBString
 	public:
 	
 	// constructors
-	CBString();							// default constructor
-	CBString(const char* s);				// constructor initialized from C string
-	CBString(const CBString& s);			// copy constructor
+	CBString();						// default constructor
+	CBString(const char* s);		// constructor initialized from C string
+	CBString(const char ch);		// constructor initialized from a char 
+			// NOTE; CBString aStr = 'c'; also uses the latter, where c is a char literal
+	CBString(const CBString& s);	// copy constructor
 
 
 	// implementation
@@ -105,7 +113,8 @@ class CBString
 	// overrides and operators
 	CBString& 		operator=(const CBString& s);
 	CBString& 		operator=(const char* s);
-	CBString& 		operator=(const char& ch);
+	CBString&		operator=(const char ch);	
+//	CBString& 		operator=(const char& ch);
 	CBString& 		operator+=(const CBString& s);
 	CBString& 		operator+=(const char* s);
 	CBString& 		operator+=(char ch);

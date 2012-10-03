@@ -40,10 +40,11 @@
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
 
-// support for incremental building of KB Server client code
-#if defined(_DEBUG)
-#define _KBSERVER
-#endif
+// support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
+// preprocessor symbol in the Debug build!!
+//#if defined(_DEBUG)
+//#define _KBSERVER
+//#endif
 
 // a temporary #define for Mike to use when working on DVCS:
 #define TEST_DVCS
@@ -258,7 +259,6 @@ class CUsfmFilterPageCommon;
 class CStdioFile;
 class CPrintingDlg;
 class CStdioFileEx;
-class CBString;
 
 // forward references added when moved data structures from the View to the App
 class CSourceBundle;
@@ -303,6 +303,8 @@ class Xhtml;
 class Guesser;
 // forward for Admin Help
 class CHtmlFileViewer;
+
+#include "BString.h"
 
 #if defined(_DEBUG) && defined(__WXGTK__)
 // forward reference that ties a Log Debug (normal) window, always on top, to the wx logging output
@@ -2688,10 +2690,17 @@ public:
 	// (*** TODO **** remove the following five later when KbServer class is coded)
 	
 	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
+	// BEW 3Oct12, change to using CBString instead of wxString
+	CBString	m_kbServerURL;
+	CBString	m_kbServerUsername;
+	CBString	m_kbServerPassword; // we never store this, the user has to remember it 
+	CBString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	/*
 	wxString	m_kbServerURL;
 	wxString	m_kbServerUsername;
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	*/
 	// the iso639 2-letter or 3-letter codes are stored (already) in m_sourceLanguageCode,
 	// m_targetLanguageCode, and m_glossesLanguageCode; so we use those. The RFC codes
 	// below, if empty, are not used; but if not empty and contain validated RFC5646
@@ -3767,17 +3776,22 @@ public:
 #if defined(_KBSERVER)
 	// Functions for kbserver support
 	// Setup is typically done
+	// BEW 3Oct12, changed to use CBString rather than wxString
 	bool     SetupForKBServer();
 	int		 GetKBTypeForServer();
 	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
-	wxString GetLastSyncDateTime();
-	bool	 GetCredentials(wxString& url, wxString& username, wxString& password);
+	//wxString GetLastSyncDateTime();
+	CBString GetLastSyncDateTime();
+	//bool	 GetCredentials(wxString& url, wxString& username, wxString& password);
+	bool	 GetCredentials(CBString& url, CBString& username, CBString& password);
 	bool	 ReleaseKBServer();
-	bool	 SetLastSyncDateTime(wxString datetime);
+	//bool	 SetLastSyncDateTime(wxString datetime);
+	bool	 SetLastSyncDateTime(CBString datetime);
 	bool	 StoreLastSyncDateTime();
 	bool	 CheckForLanguageCodes(bool bRequireGlossesLanguageCode = FALSE);
 	bool	 IsGlossingKBPopulatedOrGlossingModeON();
-	wxString GetKBServerPassword();
+	//wxString GetKBServerPassword();
+	CBString GetKBServerPassword();
 
 	// end of Functions for kbserver support
 #endif

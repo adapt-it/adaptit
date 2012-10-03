@@ -41,7 +41,6 @@
 #include "RefString.h" // needed here???
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
-#include "BString.h"
 #include "XML.h"
 
 #include <wx/wfstream.h> // for wxFileInputStream and wxFileOutputStream

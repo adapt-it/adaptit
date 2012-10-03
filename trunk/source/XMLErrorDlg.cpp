@@ -42,7 +42,6 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include "Adapt_It.h"
 #include "helpers.h"
-#include "BString.h" // needs to be included before "XMLErrorDlg.h"
 #include "XMLErrorDlg.h"
 
 /// This global is defined in Adapt_It.cpp.
