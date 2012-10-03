@@ -5,7 +5,7 @@
 #                 of distro names to build for, e.g. "lucid maverick"
 #
 # Author: Jonathan Marsden <jmarsden@fastmail.fm>
-# Date: 2012-09-23
+# Date: 2012-10-02
 
 PBUILDFOLDER=${PBUILDFOLDER:-~/pbuilder}
 OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal sid"}
@@ -116,12 +116,11 @@ EOF
 # Install pbuilder hook to add a distro suffix to package versions
 if [ ! -f ${PBUILDFOLDER}/hooks/A05suffix ]; then
   cat >${PBUILDFOLDER}/hooks/A05suffix <<"EOF"
-#!/bin/bash                                                                                                                 
-
-# pbuilder hook for adding distro name to package version                                                                   
-#                                                                                                                           
-# Neil Mayhew - 2010-12-08                                                                                                  
-# Jonathan Marsden - 2012-09-23 Added sed and changed build location                                                        
+#!/bin/bash
+# pbuilder hook for adding distro name to package version
+#
+# Neil Mayhew - 2010-12-08
+# Jonathan Marsden - 2012-09-23 Added sed and changed build location
 
 TYPE=$(lsb_release -si)
 DIST=$(lsb_release -sc)
@@ -153,7 +152,7 @@ svn -q checkout http://adaptit.googlecode.com/svn/tags/adaptit-${RELEASE} adapti
 
 # Export the release, ready for creating a source tarball
 cd adaptit
-svn export . ../adaptit-${RELEASE} || exit 2
+svn export --force . ../adaptit-${RELEASE} || exit 2
 cd ..
 
 # Delete unwanted non-source files here using find
@@ -194,7 +193,7 @@ for i in $OSRELEASES; do
   mkdir -p adaptit-debs-${RELEASE}
   #  cp -p ${PBUILDFOLDER}/${i}_result/adaptit*${RELEASE}*.deb adaptit-debs-${RELEASE}/
   #  cp -p ${PBUILDFOLDER}/${i}-i386_result/adaptit*${RELEASE}*.deb adaptit-debs-${RELEASE}/
-  mv -v $(find /home/jonathan/pbuilder/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
+  mv -v $(find ${PBUILDFOLDER}/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
 
 done
 
