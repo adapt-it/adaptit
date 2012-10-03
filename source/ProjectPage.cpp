@@ -1209,6 +1209,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					// an error message will have been shown, so just log the failure
 					gpApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
 				}
+/* no longer needed now that the holding variables are not in CAdapt_ItApp instance
 #if defined(_DEBUG)
 				// for test purposes, see what we have setup -- just test here as this is
 				// the usual way we enter a project to do more work
@@ -1218,6 +1219,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				wxLogDebug(_T("m_kbServerLastSync :  %s"), pApp->Convert8to16(pApp->m_kbServerLastSync).c_str());
 				wxLogDebug(_T("m_kbTypeForServer :  %d"), pApp->m_kbTypeForServer);
 #endif
+*/
 			}
 #endif
 			// The pDocPage's InitDialog need to be called here just before going to it

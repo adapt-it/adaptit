@@ -76,6 +76,23 @@ static int		totalBytesSent = 0;
 /// should be, from it's inception, a kb sharing one. The user can later make it one if he
 /// so desires.)
 
+// Return FALSE if pf not successfully opened, in which case the parent does not need to
+// close pf; otherwise, return TRUE for a successful open & parent must close it when done
+bool CAdapt_ItApp::GetTextFileOpened(wxTextFile* pf, wxString& path)
+{
+	bool bSuccess = FALSE;
+	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
+	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
+#ifndef _UNICODE
+		// ANSI
+		bSuccess = pf->Open(path); // read ANSI file into memory
+#else
+		// UNICODE
+		bSuccess = pf->Open(path, wxConvUTF8); // read UNICODE file into memory
+#endif
+	return bSuccess;
+}
+
 /// Call SetupForKBServer() when re-opening a project which has been designated earlier as
 /// associating with a kbserver (ie. m_bKBServerProject is TRUE after the project's
 /// configuration file has been read), or when the user, in the GUI, designates the current
@@ -100,20 +117,24 @@ bool CAdapt_ItApp::SetupForKBServer()
 	{
 		// a message has been seen, so make sure m_pKbServer is NULL
 		SetKbServer(NULL);
+		return FALSE;
 	}
 
 
     // *** TODO *** The global functions further below can be
 	// removed shortly once the KbServer class is functional
 	// BEW 3Oct12, changed to use CBString not wxString
+	/*
 	int aType = GetKBTypeForServer();
 	if (aType == -1)
 	{
 		return FALSE;
 	}
 	m_kbTypeForServer = aType; // the value is good, either 1 or 2
+	*/
 
 	// Get the last sync datetime from where it is stored
+	/* not required now that it's in KbServer itself
 	if (m_kbServerLastSync.IsEmpty())
 	{
         // no kbserver exists before this date (my 65th birthday), so it will always result
@@ -134,16 +155,8 @@ bool CAdapt_ItApp::SetupForKBServer()
 		}
 		// if control gets to here, what's in m_kbServerLastSync should be a valid datetime
 	}
+	*/
 
-	// Get the url, username, and (for the development code only) password credentials;
-	// the function call empties the credentials strings, and resets them from the
-	// credentials.txt file; if there is any error, then all three are url, username, and
-	// password are returned empty ( and a message to the developer will have been seen)
-	bool bGotCredentials = GetCredentials(m_kbServerURL, m_kbServerUsername, m_kbServerPassword);
-	if (!bGotCredentials)
-	{
-		return FALSE;
-	}
 	// all's well
 	return TRUE;
 }
@@ -172,14 +185,16 @@ bool CAdapt_ItApp::ReleaseKBServer()
 	// the project folder
 	bool bOK = StoreLastSyncDateTime();
 
+	/* no longer needed now that the holding variables are no longer in CAdapt_ItApp
 	// now make sure that nonsense values are in the holding variables, so that any switch
 	// to a different project doesn't carry with it valid kbserver parameters
 	m_kbTypeForServer = -1; // only 1 or 2 are valid values
 	m_bIsKBServerProject = FALSE;
 	m_kbServerURL.Empty();
 	m_kbServerUsername.Empty();
-	m_kbServerPassword.Empty(); 
+	m_kbServerPassword.Empty();
 	m_kbServerLastSync.Empty();
+	*/
 	
 // *** TODO *** more of the permanent GUI code if needed in this function
 
@@ -272,10 +287,9 @@ bool CAdapt_ItApp::IsGlossingKBPopulatedOrGlossingModeON()
 //wxString CAdapt_ItApp::GetKBServerPassword()
  CBString CAdapt_ItApp::GetKBServerPassword()
 {
-    // temporarily, just get it from m_kbServerPassword and return it so the caller can put
-    // it back there. Later on, replace this code with a dialog for getting the password.
-	//wxString myPassword = m_kbServerPassword;
-	CBString myPassword = m_kbServerPassword;
+    // temporarily, do nothing. Later on, replace this code with a dialog for getting the password.
+	CBString myPassword;
+	myPassword.Empty();
 	return myPassword;
 }
 
@@ -323,7 +337,10 @@ bool CAdapt_ItApp::StoreLastSyncDateTime()
 		return FALSE;
 	}
 	f.Clear(); // chuck earlier value
-	f.AddLine(Convert8to16(m_kbServerLastSync)); // BEW 3Oct12, this param, in Adapt_It.h is a CBString already
+	// uncomment-out next line when this function is transferred to KbServer as protected
+	// ExportLastSyncDateTime() member
+	//f.AddLine(Convert8to16(m_kbServerLastSync)); // BEW 3Oct12, this param, in Adapt_It.h is a CBString already
+
 	f.Close();
 	// temporary code ends
 	
@@ -333,13 +350,13 @@ bool CAdapt_ItApp::StoreLastSyncDateTime()
 	return TRUE;
 }
 
-
-/// If the parent function, SetupForKBServer(), is misplaced so that it is located
-/// somewhere preceding LoadKB() and LoadGlossingKB() calls, then return -1 plus give the
-/// developer a message to fix this; otherwise return 1 for an adapting KB, 2 for a
-/// glossing KB. If the loads have not been done, m_pKB and m_pGlossingKB will be still
-/// NULL, and m_bKBReady and m_bGlossingKBReady will both be FALSE - the latter two
-/// conditions are how we test for bad placement.
+/*
+// If the parent function, SetupForKBServer(), is misplaced so that it is located
+// somewhere preceding LoadKB() and LoadGlossingKB() calls, then return -1 plus give the
+// developer a message to fix this; otherwise return 1 for an adapting KB, 2 for a
+// glossing KB. If the loads have not been done, m_pKB and m_pGlossingKB will be still
+// NULL, and m_bKBReady and m_bGlossingKBReady will both be FALSE - the latter two
+// conditions are how we test for bad placement.
 int CAdapt_ItApp::GetKBTypeForServer()
 {
 	int type = 1; // default is to assume adapting KB is wanted
@@ -361,6 +378,7 @@ int CAdapt_ItApp::GetKBTypeForServer()
 	}
 	return type;
 }
+*/
 
 /// Return the dateTime value last returned from the kbserver and stored in the client.
 /// Temporarily this storage is a file called lastsync.txt located in the project folder,
@@ -368,6 +386,7 @@ int CAdapt_ItApp::GetKBTypeForServer()
 /// The app class has a wxString member, m_kbServerLastSync to store the returned value.
 /// BEW 3Oct12 changed to return CBString rather than wxString
 //wxString CAdapt_ItApp::GetLastSyncDateTime()
+/* it's now built into KbServer, under the name ImportLastSyncDateTime()
 CBString CAdapt_ItApp::GetLastSyncDateTime()
 {
 	//wxString dateTimeStr; dateTimeStr.Empty();
@@ -414,88 +433,8 @@ CBString CAdapt_ItApp::GetLastSyncDateTime()
 
 	return dateTimeStr;
 }
+*/
 
-/// Return TRUE, and the url and username credentials (and while doing testing, also the
-/// kbserver password) to be stored in the app class. Temporarily this data is storedin a
-/// file called credentials.txt located in the project folder and contains url, username,
-/// password, one string per line. But later something more permanent will be used, and the
-/// kbserver password will never be stored in the app (so a permanent version of this code
-/// will only have the first two params in its signature) once a releasable version of kbserver
-/// support has been built (use a hidden file for url and username in the project folder?)
-/// BEW 3Oct12 changed to return CBString rather than wxString
-//bool CAdapt_ItApp::GetCredentials(wxString& url, wxString& username, wxString& password)
-bool CAdapt_ItApp::GetCredentials(CBString& url, CBString& username, CBString& password)
-{
-	bool bSuccess = FALSE;
-	url.Empty(); username.Empty(); password.Empty();
-
-	// temporary code starts
-	wxString filename = _T("credentials.txt");
-	wxString path = m_curProjectPath + PathSeparator + filename;
-	bool bCredentialsFileExists = ::wxFileExists(path);
-	if (!bCredentialsFileExists)
-	{
-		// couldn't find credentials.txt file in project folder
-		wxString msg = _T("wxFileExists() called in SetupForKBServer(): The credentials.txt file does not exist");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		return FALSE; // signature params are empty still
-	}
-	wxTextFile f;
-	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
-	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
-	bSuccess = GetTextFileOpened(&f, path);
-	if (!bSuccess)
-	{
-		// warn developer that the wxTextFile could not be opened
-		wxString msg = _T("GetTextFileOpened()called in SetupForKBServer(): The wxTextFile, taking path to credentials.txt, could not be opened");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		return FALSE; // signature params are empty still
-	}
-	size_t numLines = f.GetLineCount();
-	if (numLines < 3)
-	{
-		// warn developer that the wxTextFile lackes expected 3 lines: url, username, password
-		wxString msg;
-		msg = msg.Format(_T("GetTextFileOpened()called in SetupForKBServer(): The credentials.txt file lacks one or more lines, it has %d of expected 3 (url,username,password)"),
-			numLines);
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		f.Close();
-		return FALSE; // signature params are empty still
-	}
-	/*
-	url = f.GetLine(0);
-	username = f.GetLine(1);
-	password = f.GetLine(2);
-	*/
-	url = Convert16to8(f.GetLine(0));
-	username = Convert16to8(f.GetLine(1));
-	password = Convert16to8(f.GetLine(2));
-	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"), 
-		Convert8to16(url).c_str(), Convert8to16(username).c_str(), Convert8to16(password).c_str());
-	f.Close();
-	// end temporary code
-	
-// **** TODO ****  - the permanent GUI implementation for this goes here - comment out the above
-
-	return TRUE;
-}
-
-// Return FALSE if pf not successfully opened, in which case the parent does not need to
-// close pf; otherwise, return TRUE for a successful open & parent must close it when done
-bool CAdapt_ItApp::GetTextFileOpened(wxTextFile* pf, wxString& path)
-{
-	bool bSuccess = FALSE;
-	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
-	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
-#ifndef _UNICODE
-		// ANSI
-		bSuccess = pf->Open(path); // read ANSI file into memory
-#else
-		// UNICODE
-		bSuccess = pf->Open(path, wxConvUTF8); // read UNICODE file into memory
-#endif
-	return bSuccess;
-}
 
 
 
@@ -505,6 +444,7 @@ std::string str_CURLbuffer;
 
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
+// the default constructor, probably will never be used
 KbServer::KbServer()
 {
 	m_pApp = &wxGetApp();
@@ -516,8 +456,31 @@ KbServer::KbServer()
 	if (!SetKBTypeForServer())
 	{
 		delete this;
+		m_pApp->SetKbServer(NULL);
 		return;
 	}
+
+	// Get the url, username, and (for the development code only) password credentials;
+	// the function call empties the credentials strings, and resets them from the
+	// credentials.txt file; if there is any error, then all three are url, username, and
+	// password are returned empty ( and a message to the developer will have been seen)
+	if(!GetCredentials(m_kbServerURLBase, m_kbServerUsername, m_kbServerPassword))
+	{
+		delete this;
+		m_pApp->SetKbServer(NULL);
+		return;
+	}
+
+	// Get the lastsync datetime string (as a CBString) from persistent storage (which
+	// temporarily is the single-line file lastsync.txt in the project folder)
+	m_kbServerLastSync = ImportLastSyncDateTime();
+	if (m_kbServerLastSync.IsEmpty())
+	{
+		delete this;
+		m_pApp->SetKbServer(NULL);
+		return;
+	}
+
 }
 
 KbServer::KbServer(CAdapt_ItApp* pApp)
@@ -540,6 +503,27 @@ KbServer::KbServer(CAdapt_ItApp* pApp)
 	m_kbServerPassword = _T("password");
 	m_kbTypeForServer = 1;
 	*/
+
+	// Get the url, username, and (for the development code only) password credentials;
+	// the function call empties the credentials strings, and resets them from the
+	// credentials.txt file; if there is any error, then all three are url, username, and
+	// password are returned empty ( and a message to the developer will have been seen)
+	if(!GetCredentials(m_kbServerURLBase, m_kbServerUsername, m_kbServerPassword))
+	{
+		delete this;
+		m_pApp->SetKbServer(NULL);
+		return;
+	}
+
+	// Get the lastsync datetime string (as a CBString) from persistent storage (which
+	// temporarily is the single-line file lastsync.txt in the project folder)
+	m_kbServerLastSync = ImportLastSyncDateTime();
+	if (m_kbServerLastSync.IsEmpty())
+	{
+		delete this;
+		m_pApp->SetKbServer(NULL);
+		return;
+	}
 }
 
 KbServer::~KbServer()
@@ -558,6 +542,12 @@ CKB* KbServer::SetKB(enum KBType currentKBType)
 		return m_pApp->m_pGlossingKB;
 	}
 }
+
+void KbServer::ErasePassword()
+{
+	m_kbServerPassword.Empty();
+}
+
 /*
 wxString KbServer::GetServerURL()
 {
@@ -643,6 +633,126 @@ bool KbServer::SetKBTypeForServer()
 	
 	return true;
 	
+}
+
+/// Return TRUE, and the url and username credentials (and while doing testing, also the
+/// kbserver password) to be stored in the app class. Temporarily this data is storedin a
+/// file called credentials.txt located in the project folder and contains url, username,
+/// password, one string per line. But later something more permanent will be used, and the
+/// kbserver password will never be stored in the app (so a permanent version of this code
+/// will only have the first two params in its signature) once a releasable version of kbserver
+/// support has been built (use a hidden file for url and username in the project folder?)
+/// BEW 3Oct12 changed to return CBString rather than wxString
+//bool CAdapt_ItApp::GetCredentials(wxString& url, wxString& username, wxString& password)
+bool KbServer::GetCredentials(CBString& url, CBString& username, CBString& password)
+{
+	bool bSuccess = FALSE;
+	url.Empty(); username.Empty(); password.Empty();
+
+	// temporary code starts
+	wxString filename = _T("credentials.txt");
+	wxString path = m_pApp->m_curProjectPath + m_pApp->PathSeparator + filename;
+	bool bCredentialsFileExists = ::wxFileExists(path);
+	if (!bCredentialsFileExists)
+	{
+		// couldn't find credentials.txt file in project folder
+		wxString msg = _T("wxFileExists() called in KbServer::GetCredentials(): The credentials.txt file does not exist");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		return FALSE; // signature params are empty still
+	}
+	wxTextFile f;
+	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
+	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
+	bSuccess = m_pApp->GetTextFileOpened(&f, path);
+	if (!bSuccess)
+	{
+		// warn developer that the wxTextFile could not be opened
+		wxString msg = _T("GetTextFileOpened()called in GetCredentials(): The wxTextFile could not be opened");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		return FALSE; // signature params are empty still
+	}
+	size_t numLines = f.GetLineCount();
+	if (numLines < 3)
+	{
+		// warn developer that the wxTextFile lackes expected 3 lines: url, username,
+		// password -- NOTE: password is only a TEMPORARY PARAMETER
+		wxString msg;
+		msg = msg.Format(_T("GetTextFileOpened()called in GetCredentials(): The credentials.txt file lacks one or more lines, it has %d of expected 3 (url,username,password)"),
+			numLines);
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		f.Close();
+		return FALSE; // signature params are empty still
+	}
+	/*
+	url = f.GetLine(0);
+	username = f.GetLine(1);
+	password = f.GetLine(2);
+	*/
+	url = m_pApp->Convert16to8(f.GetLine(0));
+	username = m_pApp->Convert16to8(f.GetLine(1));
+	password = m_pApp->Convert16to8(f.GetLine(2));
+
+	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"), 
+		m_pApp->Convert8to16(url).c_str(), m_pApp->Convert8to16(username).c_str(), m_pApp->Convert8to16(password).c_str());
+
+	f.Close();
+	// end temporary code
+	
+// **** TODO ****  - the permanent GUI implementation for this goes here - comment out the above
+
+	return TRUE;
+}
+
+// Get and return the dateTime value last stored in persistent (i.e. on disk) storage.
+// Temporarily this storage is a file called lastsync.txt located in the project folder,
+// but later something more permanent will be used (a hidden file in the project folder?)
+// KbServer class has a private CBString member, m_kbServerLastSync to store the 
+// returned value. (May be called more than once in the life of a KbServer instance)
+// BEW 3Oct12 changed to return CBString rather than wxString
+CBString KbServer::ImportLastSyncDateTime()
+{
+	CBString dateTimeStr; dateTimeStr.Empty();
+	// temporary code starts
+	wxString filename = _T("lastsync.txt");
+	wxString path = m_pApp->m_curProjectPath + m_pApp->PathSeparator + filename;
+	bool bLastSyncFileExists = ::wxFileExists(path);
+	if (!bLastSyncFileExists)
+	{
+		// couldn't find lastsync.txt file in project folder
+		wxString msg = _T("wxFileExists()called in ImportLastSyncDateTime(): The wxTextFile, taking path to lastsync.txt, does not exist");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		return dateTimeStr; // it's empty still
+	}
+	wxTextFile f;
+	bool bSuccess = FALSE;
+	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
+	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
+	bSuccess = m_pApp->GetTextFileOpened(&f, path);
+	if (!bSuccess)
+	{
+		// warn developer that the wxTextFile could not be opened
+		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncDateTime(): The wxTextFile could not be opened");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		return dateTimeStr; // it's empty still
+	}
+	size_t numLines = f.GetLineCount();
+	if (numLines == 0)
+	{
+		// warn developer that the wxTextFile is empty
+		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncDateTime(): The lastsync.txt file is empty");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		f.Close();
+		return dateTimeStr; // it's empty still
+	}
+	// whew, finally, we have the lastsync datetime string
+	//dateTimeStr = f.GetLine(0); 
+	dateTimeStr = m_pApp->Convert16to8(f.GetLine(0)); // return a CBString
+	f.Close();
+	// end temporary code
+	
+// **** TODO ****  - the permanent GUI implementation for this goes here - comment out the above
+
+	return dateTimeStr;
 }
 
 // callback function for curl  
