@@ -71,7 +71,11 @@ public:
 protected:
 
 	// helpers
-
+	
+	// the following getters temporarily access data in creditials.txt and lastsync.txt files
+	bool GetCredentials(CBString& url, CBString& username, CBString& password); // *** TODO *** later, remove 3rd param
+	CBString ImportLastSyncDateTime(); // imports the datetime ascii string literal 
+									   // in lastsync.txt file & returns it as CBString
 
 private:
 	// class variables
@@ -95,6 +99,9 @@ private:
 
 
 	// private member functions
+	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
+
+
 	CKB* SetKB(enum KBType currentKBType);
 	CBString GetServerURL();
 	CBString GetServerUsername();

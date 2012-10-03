@@ -2689,12 +2689,12 @@ public:
 	// 
 	// (*** TODO **** remove the following five later when KbServer class is coded)
 	
-	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
+	//int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
 	// BEW 3Oct12, change to using CBString instead of wxString
-	CBString	m_kbServerURL;
-	CBString	m_kbServerUsername;
-	CBString	m_kbServerPassword; // we never store this, the user has to remember it 
-	CBString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	//CBString	m_kbServerURL;
+	//CBString	m_kbServerUsername;
+	//CBString	m_kbServerPassword; // we never store this, the user has to remember it 
+	//CBString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
 	/*
 	wxString	m_kbServerURL;
 	wxString	m_kbServerUsername;
@@ -3778,12 +3778,12 @@ public:
 	// Setup is typically done
 	// BEW 3Oct12, changed to use CBString rather than wxString
 	bool     SetupForKBServer();
-	int		 GetKBTypeForServer();
+	//int		 GetKBTypeForServer();
 	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
 	//wxString GetLastSyncDateTime();
-	CBString GetLastSyncDateTime();
+	//CBString GetLastSyncDateTime();
 	//bool	 GetCredentials(wxString& url, wxString& username, wxString& password);
-	bool	 GetCredentials(CBString& url, CBString& username, CBString& password);
+	
 	bool	 ReleaseKBServer();
 	//bool	 SetLastSyncDateTime(wxString datetime);
 	bool	 SetLastSyncDateTime(CBString datetime);

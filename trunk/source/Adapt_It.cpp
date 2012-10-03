@@ -14640,11 +14640,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// **** TODO **** the following 5 CAdapt_ItApp members will become private members of
 	// KbServer once the latter is coded suficiently, then these can be removed, as can
 	// the global functions in KBServer.cpp which set them
-	m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
-	m_kbServerURL.Empty();
-	m_kbServerUsername.Empty();
-	m_kbServerPassword.Empty(); 
-	m_kbServerLastSync.Empty();
+	//m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
+	//m_kbServerURL.Empty();
+	//m_kbServerUsername.Empty();
+	//m_kbServerPassword.Empty(); 
+	//m_kbServerLastSync.Empty();
 
 #endif
 	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
