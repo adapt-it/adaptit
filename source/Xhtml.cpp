@@ -79,7 +79,6 @@
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
-#include "BString.h"
 #include "XML.h"
 #include "Xhtml.h"
 

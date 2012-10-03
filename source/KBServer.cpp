@@ -40,10 +40,12 @@
 
 #include "TargetUnit.h"
 #include "KB.h"
-#include "AdaptitConstants.h"
+//#include "AdaptitConstants.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
 #include "helpers.h"
+//#include "BString.h"
+#include "Xhtml.h"
 #include "KbServer.h"
 
 extern bool		gbIsGlossing;
@@ -79,11 +81,12 @@ static int		totalBytesSent = 0;
 /// configuration file has been read), or when the user, in the GUI, designates the current
 /// project as being a kb sharing one. Return TRUE for a successful setup, FALSE if
 /// something was not right and in that case don't perform a setup.
+/// BEW 3Oct12, changed from using wxString to using CBString
 bool CAdapt_ItApp::SetupForKBServer()
 {
 	// check we don't have a KbServer instantiated, if so, delete it
 	DeleteKbServer();
-	// instantiate a KbServer only if the needed langauge codes are not empty;
+	// instantiate a KbServer only if the needed language codes are not empty;
 	// if the param returns TRUE, then gbIsGlossing is TRUE, or the glossingKB has data in
 	// it - in either circumstance we also require a language code for the glossing
 	// language be set; if it returns FALSE, then we only require src and tgt language codes
@@ -102,6 +105,7 @@ bool CAdapt_ItApp::SetupForKBServer()
 
     // *** TODO *** The global functions further below can be
 	// removed shortly once the KbServer class is functional
+	// BEW 3Oct12, changed to use CBString not wxString
 	int aType = GetKBTypeForServer();
 	if (aType == -1)
 	{
@@ -114,7 +118,8 @@ bool CAdapt_ItApp::SetupForKBServer()
 	{
         // no kbserver exists before this date (my 65th birthday), so it will always result
         // in an all-records download once the connection is established
-		m_kbServerLastSync = _T("2012-05-22 00:00:00"); 
+		//m_kbServerLastSync = _T("2012-05-22 00:00:00"); 
+		m_kbServerLastSync = "2012-05-22 00:00:00"; 
 	}
 	else
 	{
@@ -152,9 +157,9 @@ bool CAdapt_ItApp::ReleaseKBServer()
 	KbServer* pKbSvr = GetKbServer(); // beware, may return NULL
 	if (pKbSvr != NULL)
 	{
-		pKbSvr->~KbServer(); // do cleanup in the destructor, and especially, making
-								// the lastsync datetime value received from the kbserver
-								// persistent
+		DeleteKbServer(); // do cleanup in the destructor, and especially, making
+						  // the lastsync datetime value received from the kbserver
+						  // persistent
 		SetKbServer(NULL);
 	}
 
@@ -263,17 +268,22 @@ bool CAdapt_ItApp::IsGlossingKBPopulatedOrGlossingModeON()
 // stored in the app's m_kbServerPassword wxString member during the adapting session, and
 // then that member is cleared by ReleaseKBServer() on exit from the project session or
 // from the app.
-wxString CAdapt_ItApp::GetKBServerPassword()
+// BEW 3Oct12, changed to use CBString rather than wxString
+//wxString CAdapt_ItApp::GetKBServerPassword()
+ CBString CAdapt_ItApp::GetKBServerPassword()
 {
     // temporarily, just get it from m_kbServerPassword and return it so the caller can put
     // it back there. Later on, replace this code with a dialog for getting the password.
-	wxString myPassword = m_kbServerPassword;
+	//wxString myPassword = m_kbServerPassword;
+	CBString myPassword = m_kbServerPassword;
 	return myPassword;
 }
 
 /// Takes the kbserver's datetime supplied with downloaded data, and stores it in the app
 /// wxString member variable m_kbServerLastSync. Return TRUE if no error, FALSE otherwise.
-bool CAdapt_ItApp::SetLastSyncDateTime(wxString datetime)
+/// BEW 3Oct12, changed to use CBString rather than wxString
+//bool CAdapt_ItApp::SetLastSyncDateTime(wxString datetime)
+bool CAdapt_ItApp::SetLastSyncDateTime(CBString datetime)
 {
 	// *** TODO *** add code when we get downloads from kbserver working
 
@@ -286,10 +296,9 @@ bool CAdapt_ItApp::SetLastSyncDateTime(wxString datetime)
 /// use this to send the current datetime in m_kbServerLastSync member to permanent storage
 /// on disk -- for our testing code, this will be the file lastsync.txt in the project
 /// folder, but for a release version it will probably be to a hidden file in the same place
+/// BEW 3Oct12, changed to use CBString rather than wxString
 bool CAdapt_ItApp::StoreLastSyncDateTime()
 {
-	wxString dateTimeStr; dateTimeStr.Empty();
-
 	// temporary code starts
 	wxString filename = _T("lastsync.txt");
 	wxString path = m_curProjectPath + PathSeparator + filename;
@@ -314,7 +323,7 @@ bool CAdapt_ItApp::StoreLastSyncDateTime()
 		return FALSE;
 	}
 	f.Clear(); // chuck earlier value
-	f.AddLine(m_kbServerLastSync);
+	f.AddLine(Convert8to16(m_kbServerLastSync)); // BEW 3Oct12, this param, in Adapt_It.h is a CBString already
 	f.Close();
 	// temporary code ends
 	
@@ -357,9 +366,12 @@ int CAdapt_ItApp::GetKBTypeForServer()
 /// Temporarily this storage is a file called lastsync.txt located in the project folder,
 /// but later something more permanent will be used (a hidden file in the project folder?)
 /// The app class has a wxString member, m_kbServerLastSync to store the returned value.
-wxString CAdapt_ItApp::GetLastSyncDateTime()
+/// BEW 3Oct12 changed to return CBString rather than wxString
+//wxString CAdapt_ItApp::GetLastSyncDateTime()
+CBString CAdapt_ItApp::GetLastSyncDateTime()
 {
-	wxString dateTimeStr; dateTimeStr.Empty();
+	//wxString dateTimeStr; dateTimeStr.Empty();
+	CBString dateTimeStr; dateTimeStr.Empty();
 	// temporary code starts
 	wxString filename = _T("lastsync.txt");
 	wxString path = m_curProjectPath + PathSeparator + filename;
@@ -392,7 +404,9 @@ wxString CAdapt_ItApp::GetLastSyncDateTime()
 		f.Close();
 		return dateTimeStr; // it's empty still
 	}
-	dateTimeStr = f.GetLine(0); // whew, finally, we have the lastsync datetime string
+	// whew, finally, we have the lastsync datetime string
+	//dateTimeStr = f.GetLine(0); 
+	dateTimeStr = Convert16to8(f.GetLine(0)); // return CBString
 	f.Close();
 	// end temporary code
 	
@@ -405,9 +419,12 @@ wxString CAdapt_ItApp::GetLastSyncDateTime()
 /// kbserver password) to be stored in the app class. Temporarily this data is storedin a
 /// file called credentials.txt located in the project folder and contains url, username,
 /// password, one string per line. But later something more permanent will be used, and the
-/// kbserver password will never be stored in the app once a releasable version of kbserver
+/// kbserver password will never be stored in the app (so a permanent version of this code
+/// will only have the first two params in its signature) once a releasable version of kbserver
 /// support has been built (use a hidden file for url and username in the project folder?)
-bool CAdapt_ItApp::GetCredentials(wxString& url, wxString& username, wxString& password)
+/// BEW 3Oct12 changed to return CBString rather than wxString
+//bool CAdapt_ItApp::GetCredentials(wxString& url, wxString& username, wxString& password)
+bool CAdapt_ItApp::GetCredentials(CBString& url, CBString& username, CBString& password)
 {
 	bool bSuccess = FALSE;
 	url.Empty(); username.Empty(); password.Empty();
@@ -445,10 +462,16 @@ bool CAdapt_ItApp::GetCredentials(wxString& url, wxString& username, wxString& p
 		f.Close();
 		return FALSE; // signature params are empty still
 	}
+	/*
 	url = f.GetLine(0);
 	username = f.GetLine(1);
 	password = f.GetLine(2);
-	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"), url.c_str(), username.c_str(), password.c_str());
+	*/
+	url = Convert16to8(f.GetLine(0));
+	username = Convert16to8(f.GetLine(1));
+	password = Convert16to8(f.GetLine(2));
+	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"), 
+		Convert8to16(url).c_str(), Convert8to16(username).c_str(), Convert8to16(password).c_str());
 	f.Close();
 	// end temporary code
 	
@@ -535,6 +558,7 @@ CKB* KbServer::SetKB(enum KBType currentKBType)
 		return m_pApp->m_pGlossingKB;
 	}
 }
+/*
 wxString KbServer::GetServerURL()
 {
 	return KbServer::m_kbServerURLBase;
@@ -553,16 +577,46 @@ wxString KbServer::GetServerLastSync()
 }
 wxString KbServer::GetSourceLanguageCode()
 {
-	return gpApp->m_sourceLanguageCode;
+	return m_pApp->m_sourceLanguageCode;
 	}
 wxString KbServer::GetTargetLanguageCode()
 {
-	return gpApp->m_targetLanguageCode;
+	return m_pApp->m_targetLanguageCode;
 }
+*/
 int	KbServer::GetKBTypeForServer()
 {
 	return m_kbTypeForServer;
 }
+
+// these return CBString
+CBString KbServer::GetServerURL()
+{
+	return KbServer::m_kbServerURLBase;
+}
+CBString KbServer::GetServerUsername()
+{
+	return m_kbServerUsername;
+}
+CBString KbServer::GetServerPassword()
+{
+	return m_kbServerPassword;
+}
+CBString KbServer::GetServerLastSync()
+{
+	return m_kbServerLastSync;
+}
+
+CBString KbServer::GetSourceLanguageCode()
+{
+	return m_pApp->Convert16to8(m_pApp->m_sourceLanguageCode);
+}
+CBString KbServer::GetTargetLanguageCode()
+{
+	return m_pApp->Convert16to8(m_pApp->m_targetLanguageCode);
+}
+
+
 /// If KBs have not been loaded, return false. If the loads have not been done, m_pKB and m_pGlossingKB will be still
 /// NULL, and m_bKBReady and m_bGlossingKBReady will both be FALSE - the latter two
 /// conditions are how we test for bad placement.
@@ -572,7 +626,7 @@ bool KbServer::SetKBTypeForServer()
 	m_kbTypeForServer = 1; // default is to assume adapting KB is wanted
 
 	// the two KBs must have been successfully loaded
-	if (gpApp->m_bKBReady && gpApp->m_bGlossingKBReady)
+	if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
 	{
 		if (gbIsGlossing)
 		{
@@ -594,7 +648,8 @@ bool KbServer::SetKBTypeForServer()
 // callback function for curl  
 size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userdata) 
 {
-	ptr = ptr; // avoid "unreferenced formal parameter" warning
+	//
+	//ptr = ptr; // avoid "unreferenced formal parameter" warning
 	userdata = userdata; // avoid "unreferenced formal parameter" warning
     
 	//wxString msg;
@@ -604,7 +659,7 @@ size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userd
 	str_CURLbuffer.append((char*)ptr, size*nmemb);
 	return size*nmemb;
 }
-
+/*
 wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 {
 	CURL *curl;
@@ -642,6 +697,46 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	return str_CURLbuffer;
 
 }
+*/
+wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
+{
+	CURL *curl;
+	CURLcode result;
+	CBString charUrl;
+	CBString charUserpwd;
+
+	CBString slash('/'); // the same CBString constructor also supports the syntax
+	CBString colon(':'); // CBString slash = '/'; by means of C++ implicit conversion
+	CBString kbType;
+	wxItoa(GetKBTypeForServer(),kbType);
+
+	charUrl = GetServerURL() + slash + GetSourceLanguageCode() + slash + GetTargetLanguageCode() +
+					slash + kbType + slash + m_pApp->Convert16to8(wxStr_SourceEntry); 
+	charUserpwd = GetServerUsername() + colon + GetServerPassword();
+	
+	curl_global_init(CURL_GLOBAL_ALL); 
+	curl = curl_easy_init(); 
+	
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback); 
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer);
+
+		result = curl_easy_perform(curl);
+
+		if (result) {
+			printf("Result code: %d\n", result);
+		} 
+		curl_global_cleanup();
+	}
+
+	return str_CURLbuffer;
+}
+
 
 //=============================== end of KbServer class ============================
 

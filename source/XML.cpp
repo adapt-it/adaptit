@@ -47,7 +47,6 @@
 #include <wx/filename.h> // for wxFileName
 #include <wx/busyinfo.h>
 
-#include "XML.h"
 
 // AdaptItDana's XML support (unvalidated, & only elements and attributes)
 #include "Stack.h"
@@ -55,7 +54,6 @@
 #include "helpers.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItDoc.h"
-#include "BString.h" // this needs to be included before "XMLErrorDlg.h"
 #include "ChooseLanguageCode.h"
 #include "XMLErrorDlg.h"
 #include "SourcePhrase.h"
@@ -66,6 +64,7 @@
 #include "MainFrm.h"
 #include "WaitDlg.h"
 #include "Adapt_ItView.h"
+#include "XML.h"
 //#include "XML_UserProfiles.h"
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF

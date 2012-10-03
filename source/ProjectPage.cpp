@@ -1212,10 +1212,10 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 #if defined(_DEBUG)
 				// for test purposes, see what we have setup -- just test here as this is
 				// the usual way we enter a project to do more work
-				wxLogDebug(_T("m_kbServerURL :  %s"), pApp->m_kbServerURL.c_str());
-				wxLogDebug(_T("m_kbServerUsername :  %s"), pApp->m_kbServerUsername.c_str());
-				wxLogDebug(_T("m_kbServerPassword :  %s"), pApp->m_kbServerPassword.c_str());
-				wxLogDebug(_T("m_kbServerLastSync :  %s"), pApp->m_kbServerLastSync.c_str());
+				wxLogDebug(_T("m_kbServerURL :  %s"), pApp->Convert8to16(pApp->m_kbServerURL).c_str());
+				wxLogDebug(_T("m_kbServerUsername :  %s"), pApp->Convert8to16(pApp->m_kbServerUsername).c_str());
+				wxLogDebug(_T("m_kbServerPassword :  %s"), pApp->Convert8to16(pApp->m_kbServerPassword).c_str());
+				wxLogDebug(_T("m_kbServerLastSync :  %s"), pApp->Convert8to16(pApp->m_kbServerLastSync).c_str());
 				wxLogDebug(_T("m_kbTypeForServer :  %d"), pApp->m_kbTypeForServer);
 #endif
 			}

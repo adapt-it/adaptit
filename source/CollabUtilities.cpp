@@ -45,7 +45,6 @@
 #include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "MainFrm.h"
-#include "BString.h"
 #include "WaitDlg.h"
 #include "XML.h"
 #include "SplitDialog.h"

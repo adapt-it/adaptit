@@ -34,7 +34,7 @@
 class CTargetUnit;
 class CRefStringMetadata;
 class CRefString;
-//class CAdapt_ItApp;
+class CBString;
 
 enum KBType
 {
@@ -63,8 +63,10 @@ public:
 	// attributes
 public:
 
-	// getters & setters
+	// The API which we expose
 	wxString LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
+
+	// public getters & setters (there may not ever be any)
 
 protected:
 
@@ -79,20 +81,36 @@ private:
 	
 	// the following 5 are used for setting up the https transport of data to/from the kbserver
 	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
+	CBString	m_kbServerURLBase;
+	CBString	m_kbServerUsername;
+	CBString	m_kbServerPassword; // we never store this, the user has to remember it 
+	CBString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	// since we use ASCII for the curl calls, it makes sense to store with CBString not wxString
+	/*
 	wxString	m_kbServerURLBase;
 	wxString	m_kbServerUsername;
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	*/
 
 
 	// private member functions
 	CKB* SetKB(enum KBType currentKBType);
+	CBString GetServerURL();
+	CBString GetServerUsername();
+	CBString GetServerPassword();
+	CBString GetServerLastSync();
+	CBString GetSourceLanguageCode();
+	CBString GetTargetLanguageCode();
+	// since we use ASCII for the curl calls, it makes sense to return a CBString not a wxString
+	/*
 	wxString GetServerURL();
 	wxString GetServerUsername();
 	wxString GetServerPassword();
 	wxString GetServerLastSync();
 	wxString GetSourceLanguageCode();
 	wxString GetTargetLanguageCode();
+	*/
 	int		 GetKBTypeForServer();
 
 	bool     SetKBTypeForServer();

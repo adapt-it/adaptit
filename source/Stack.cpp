@@ -34,9 +34,8 @@
 #include <wx/wx.h>
 #endif
 
-#include "Stack.h"
 #include "Adapt_It.h"
-#include "BString.h"
+#include "Stack.h"
 
 CStack::CStack()
 {

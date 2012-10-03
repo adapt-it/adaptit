@@ -42,7 +42,6 @@
 
 //#define _ENTRY_DUP_BUG
 
-
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
 //#include "Adapt_ItCanvas.h"
@@ -58,7 +57,6 @@
 #include "RefStringMetadata.h"
 #include "RefString.h"
 #include "LanguageCodesDlg.h"
-#include "BString.h"
 #include "XML.h"
 #include "WaitDlg.h"
 #include <wx/textfile.h>
