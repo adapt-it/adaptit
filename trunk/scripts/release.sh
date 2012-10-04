@@ -5,7 +5,7 @@
 #                 of distro names to build for, e.g. "lucid maverick"
 #
 # Author: Jonathan Marsden <jmarsden@fastmail.fm>
-# Date: 2012-10-02
+# Date: 2012-10-03
 
 PBUILDFOLDER=${PBUILDFOLDER:-~/pbuilder}
 OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal sid"}
@@ -114,6 +114,7 @@ fi
 EOF
 
 # Install pbuilder hook to add a distro suffix to package versions
+mkdir -p ${PBUILDFOLDER}/hooks
 if [ ! -f ${PBUILDFOLDER}/hooks/A05suffix ]; then
   cat >${PBUILDFOLDER}/hooks/A05suffix <<"EOF"
 #!/bin/bash
