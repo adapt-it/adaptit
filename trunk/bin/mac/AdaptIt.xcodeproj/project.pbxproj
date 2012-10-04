@@ -12,6 +12,7 @@
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
 		03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C7004915D4351800FAB605 /* Pathway.cpp */; };
+		03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03CFAA09161DE73400B82F58 /* StatusBar.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
@@ -167,6 +168,8 @@
 		0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RefStringMetadata.cpp; path = ../../source/RefStringMetadata.cpp; sourceTree = SOURCE_ROOT; };
 		0396BFC811BEA67600100CC4 /* RefStringMetadata.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RefStringMetadata.h; path = ../../source/RefStringMetadata.h; sourceTree = SOURCE_ROOT; };
 		03C7004915D4351800FAB605 /* Pathway.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Pathway.cpp; path = ../../source/Pathway.cpp; sourceTree = SOURCE_ROOT; };
+		03CFAA09161DE73400B82F58 /* StatusBar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StatusBar.cpp; path = ../../source/StatusBar.cpp; sourceTree = SOURCE_ROOT; };
+		03CFAA0A161DE73400B82F58 /* StatusBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = StatusBar.h; path = ../../source/StatusBar.h; sourceTree = SOURCE_ROOT; };
 		03D7A717112A2601004F6D39 /* Notes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Notes.h; path = ../../source/Notes.h; sourceTree = "<group>"; };
 		03D7A718112A2601004F6D39 /* Notes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Notes.cpp; path = ../../source/Notes.cpp; sourceTree = "<group>"; };
 		03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PeekAtFile.cpp; path = ../../source/PeekAtFile.cpp; sourceTree = SOURCE_ROOT; };
@@ -480,6 +483,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				03CFAA09161DE73400B82F58 /* StatusBar.cpp */,
+				03CFAA0A161DE73400B82F58 /* StatusBar.h */,
 				273A30841619A853002B8AA0 /* KbServer.h */,
 				2791678516195D4D00744DF8 /* KBServer.cpp */,
 				03C7004915D4351800FAB605 /* Pathway.cpp */,
@@ -1023,6 +1028,7 @@
 				C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */,
 				03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */,
 				2791678616195D4D00744DF8 /* KBServer.cpp in Sources */,
+				03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
