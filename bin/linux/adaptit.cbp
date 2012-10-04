@@ -314,7 +314,7 @@
 		<Unit filename="../../source/KBExportImportOptionsDlg.h" />
 		<Unit filename="../../source/KBPage.cpp" />
 		<Unit filename="../../source/KBPage.h" />
-		<Unit filename="../../source/KBServer.cpp" />
+		<Unit filename="../../source/KbServer.cpp" />
 		<Unit filename="../../source/KbServer.h" />
 		<Unit filename="../../source/LanguageCodesDlg.cpp" />
 		<Unit filename="../../source/LanguageCodesDlg.h" />
