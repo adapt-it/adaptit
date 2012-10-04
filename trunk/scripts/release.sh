@@ -191,10 +191,7 @@ for i in $OSRELEASES; do
 
   # Copy the resulting .deb files to a results folder under the current directory
   mkdir -p adaptit-debs-${RELEASE}
-  #  cp -p ${PBUILDFOLDER}/${i}_result/adaptit*${RELEASE}*.deb adaptit-debs-${RELEASE}/
-  #  cp -p ${PBUILDFOLDER}/${i}-i386_result/adaptit*${RELEASE}*.deb adaptit-debs-${RELEASE}/
   mv -v $(find ${PBUILDFOLDER}/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
-
 done
 
-echo "$0: Completed.  Files are in ~/adaptit-debs-${RELEASE}/"
+echo "$0: Completed.  Files are in $(pwd)/adaptit-debs-${RELEASE}/"
