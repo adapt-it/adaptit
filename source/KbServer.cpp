@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			KBServer.cpp
+/// \file			KbServer.cpp
 /// \author			Kevin Bradford, Bruce Waters
 /// \date_created	26 September 20012
 /// \date_revised	
@@ -47,6 +47,10 @@
 //#include "BString.h"
 #include "Xhtml.h"
 #include "KbServer.h"
+
+#include "jsonreader.h"
+#include "jsonwriter.h"
+#include "jsonval.h"
 
 extern bool		gbIsGlossing;
 static int		totalBytesSent = 0;
