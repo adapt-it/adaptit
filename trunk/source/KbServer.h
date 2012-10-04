@@ -66,22 +66,27 @@ public:
 	// The API which we expose
 	wxString LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
 
-	// public getters & setters (there may not ever be any)
+	// public getters & setters
+	CBString ImportLastSyncDateTime(); // imports the datetime ascii string literal 
+									   // in lastsync.txt file & returns it as CBString
+	bool	 ExportLastSyncDateTime(); // exports it, temporarily, to lastsync.txt file
+									   // as an ascii string literal
 
 protected:
 
 	// helpers
 	
-	// the following getters temporarily access data in creditials.txt and lastsync.txt files
-	bool GetCredentials(CBString& url, CBString& username, CBString& password); // *** TODO *** later, remove 3rd param
-	CBString ImportLastSyncDateTime(); // imports the datetime ascii string literal 
-									   // in lastsync.txt file & returns it as CBString
+	// the following getters temporarily access data in creditials.txt and lastsync.txt
+	// files; they will remain in the final version but their internals will access
+	// whatever we decide should be the permanent server-related info storage
+	bool     GetCredentials(CBString& url, CBString& username, CBString& password); // *** TODO *** later, remove 3rd param
+	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
 
 private:
 	// class variables
 	CAdapt_ItApp* m_pApp;
-	CKB* m_pMyKB;
-	CKB* m_pMyGlossingKB;
+	//CKB* m_pMyKB;
+	//CKB* m_pMyGlossingKB;
 	
 	// the following 5 are used for setting up the https transport of data to/from the kbserver
 	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
@@ -102,13 +107,14 @@ private:
 	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
 
 
-	CKB* SetKB(enum KBType currentKBType);
+	//CKB* SetKB(enum KBType currentKBType);
 	CBString GetServerURL();
 	CBString GetServerUsername();
 	CBString GetServerPassword();
 	CBString GetServerLastSync();
 	CBString GetSourceLanguageCode();
 	CBString GetTargetLanguageCode();
+	CBString GetKBServerPassword(); // currently just a stub
 	// since we use ASCII for the curl calls, it makes sense to return a CBString not a wxString
 	/*
 	wxString GetServerURL();
