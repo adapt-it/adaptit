@@ -24,8 +24,11 @@
 #include <wx/stattext.h>
 #include <wx/dynarray.h>
 
-// CProgressItem -- represents one currently-running progress bar task.
-// The CStatusBar has an array of these that 
+/////////////////////////////////////////////////////////////////////////////
+// CProgressItem -- represents a single currently-running progress bar task.
+// The CStatusBar holds an array of these that it combines to give the overall progress bar
+// indicator.
+/////////////////////////////////////////////////////////////////////////////
 class CProgressItem
 {
 public:
@@ -41,14 +44,17 @@ public:
 	inline int GetRange() { return m_maxValue;}
 	inline void SetRange(int newValue) {m_maxValue = newValue;}
 private:
-	wxString m_title;
-	wxString m_message;
-	int m_curValue;
-	int m_maxValue;
+	wxString m_title;	// Title of the long-running task (e.g., "Saving KB")
+	wxString m_message;	// Detailed message (e.g., "Opening project -- 3 out of 25 files")
+	int m_curValue;		// Current value on the progress bar -- needs to be < m_maxValue
+	int m_maxValue;		// Maximum value on the progress bar for this item
 };
 
 WX_DECLARE_OBJARRAY(CProgressItem*, PIArray);
 
+/////////////////////////////////////////////////////////////////////////////
+// CStatusBar -- wxStatusBar-derived class that 
+/////////////////////////////////////////////////////////////////////////////
 class CStatusBar : public wxStatusBar
 {
 public:
@@ -61,8 +67,6 @@ public:
 	void StartProgress(const wxString& title, const wxString& message, int maximum = 100);
 	bool UpdateProgress(const wxString& title, int value, const wxString& newmsg = wxEmptyString);
 	void FinishProgress(const wxString& title);
-	void SetProgressMessage(const wxString& title, const wxString& message);
-	inline PIArray GetProgressItems() { return m_items; }
 
 private:
 	int FindProgressItem(const wxString& title); 
