@@ -35,12 +35,12 @@
 
 #include <wx/hashmap.h>
 #include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
-#include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/filename.h>
 
 //#define _ENTRY_DUP_BUG
+
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -60,6 +60,8 @@
 #include "XML.h"
 #include "WaitDlg.h"
 #include <wx/textfile.h>
+#include "MainFrm.h"
+#include "StatusBar.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -1041,6 +1043,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	wxString modDT = s1 + _T("mdt");
 	wxString delDT = s1 + _T("ddt");
 	wxString whoCr = s1 + _T("wc");
+	CStatusBar* pStatusBar = NULL;
 
 	if (kbImportFileOfType == KBImportFileOfLIFT_XML)
 	{
@@ -1058,7 +1061,6 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		// exceed the same maximum value (nTotal).
 		wxString msgDisplayed;
 		wxString progMsg;
-		wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 		// add 1 chunk to insure that we have enough after int division above
 		const int nTotal = m_pApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
 		// Only show the progress dialog when there is at lease one chunk of data
@@ -1068,7 +1070,8 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			progMsg = _("Reading file %s - part %d of %d");
 			wxFileName fn(pathName);
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-			pProgDlg = m_pApp->OpenNewProgressDialog(_("Importing LIFT Records to the Knowledge Base"),msgDisplayed,nTotal,500);
+			pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+			pStatusBar->StartProgress(_("Importing LIFT Records to the Knowledge Base"), msgDisplayed, nTotal);
 		}
 
 		if( !f.Open( pathName, wxFile::read))
@@ -1076,9 +1079,9 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			wxMessageBox(_("Unable to open import file for reading."),
 		  _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(_T("Unable to open import file for reading."));
-			if (pProgDlg != NULL)
+			if (nTotal > 0)
 			{
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(_("Importing LIFT Records to the Knowledge Base"));
 			}
 			return;
 		}
@@ -1092,27 +1095,26 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		bool bReadOK;
 		if (m_bGlossingKB)
 		{
-			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pGlossingKB,pProgDlg,nTotal);
+			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pGlossingKB,(nTotal > 0) ? _("Importing LIFT Records to the Knowledge Base") : _T(""),nTotal);
 		}
 		else
 		{
-			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB,pProgDlg,nTotal);
+			bReadOK = ReadLIFT_XML(pathName,m_pApp->m_pKB,(nTotal > 0) ? _("Importing LIFT Records to the Knowledge Base") : _T(""),nTotal);
 		}
 		if (!bReadOK)
 		{
 			f.Close();
-			if (pProgDlg != NULL)
+			if (nTotal > 0)
 			{
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(_("Importing LIFT Records to the Knowledge Base"));
 			}
 		}
 		wxCHECK_RET(bReadOK, _T("DoKBImport(): ReadLIFT_XML() returned FALSE, line 10,97 or 1101 in KB.cpp, KB LIFT import was not done"));
 		f.Close();
 		// remove the progress dialog
-		if (pProgDlg != NULL)
+		if (nTotal > 0)
 		{
-			pProgDlg->Destroy();
-			//::wxSafeYield();
+			pStatusBar->FinishProgress(_("Importing LIFT Records to the Knowledge Base"));
 		}
 	}
 	else
@@ -1157,8 +1159,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		wxString progMsg = _("%s  - %d of %d Total Input Lines");
 		wxFileName fn(pathName);
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),0,nTotal);
-		wxProgressDialog* pProgDlg;
-		pProgDlg = m_pApp->OpenNewProgressDialog(_("Importing SFM Records to the Knowledge Base"),msgDisplayed,nTotal,500);
+		pStatusBar->StartProgress(_("Importing SFM Records to the Knowledge Base"), msgDisplayed, nTotal);
 
 		// For SFM import we are using wxTextFile which has already loaded its entire contents
 		// into memory with the Open call in OnImportToKb() above. wxTextFile knows how to
@@ -1191,8 +1192,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			if (ct % 20 == 0)
 			{
 				msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ct,nTotal);
-				pProgDlg->Update(ct,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(_("Importing SFM Records to the Knowledge Base"), ct, msgDisplayed);
 			}
 
 			// for debugging
@@ -1590,10 +1590,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			} // end of else block for test that line has a \lx marker
 		} // end of loop over all lines
 		file.Close();
-		if (pProgDlg != NULL)
-		{
-			pProgDlg->Destroy();
-		}
+		pStatusBar->FinishProgress(_("Importing SFM Records to the Knowledge Base"));
 
 		// provide the user with a statistics summary
 		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
@@ -1962,8 +1959,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	wxString progMsg = _("Exporting KB %s  - %d of %d Total entries and senses");
 	wxFileName fn(fileNamePath);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = m_pApp->OpenNewProgressDialog(titleStr,msgDisplayed,nTotal,500);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(titleStr, msgDisplayed, nTotal);
 
 	bool bSuppressDeletionsInSFMexport = FALSE; // default is to export everything for SFM export
 	if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
@@ -2271,8 +2269,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					if (counter % 200 == 0)
 					{
 						msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
-						pProgDlg->Update(counter,msgDisplayed);
-						//::wxSafeYield();
+						pStatusBar->UpdateProgress(titleStr, counter, msgDisplayed);
 					}
 				} // end of inner loop for looping over CRefString instances
 
@@ -2348,8 +2345,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				if (counter % 200 == 0)
 				{
 					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
-					pProgDlg->Update(counter,msgDisplayed);
-					//::wxSafeYield();
+					pStatusBar->UpdateProgress(titleStr, counter, msgDisplayed);
 				}
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
 				// completeness has been obtained in traversing the map 
@@ -2367,7 +2363,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	}
 
 	// remove the progress indicator window
-	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(titleStr);
 }
 
 // looks up the knowledge base to find if there is an entry in the map with index
@@ -4231,7 +4227,7 @@ CBString CKB::MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel)
 /// as "0" (FALSE). CTargetUnit has no changes, so the <TU> tag's attributes are unchanged
 /// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
-void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
+void CKB::DoKBSaveAsXML(wxFile& f, const wxString& progressItem, int nTotal)
 {
  	// Setup some local pointers
 	CBString aStr;
@@ -4472,11 +4468,11 @@ void CKB::DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal)
 					{
 						if (counter % 200 == 0)
 						{
-							if (pProgDlg != NULL)
+							if (!progressItem.IsEmpty())
 							{
 								msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
-								pProgDlg->Update(counter,msgDisplayed);
-								//::wxSafeYield();
+								CStatusBar *pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+								pStatusBar->UpdateProgress(progressItem, counter, msgDisplayed);
 							}
 						}
 						counter++;

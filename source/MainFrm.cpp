@@ -82,6 +82,7 @@
 #include "XML.h"
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 #include "FreeTrans.h"
+#include "StatusBar.h" // EDB added 2Oct12
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
 #else
@@ -1685,24 +1686,23 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 #endif
 
 	// Create the StatusBar for the app
-	CreateStatusBar(2);
-	// Adjust the fields in the StatusBar
-	// TODO: Implement indicators for statusBar. See MFC OnCreate() lines 68, 108-109
-	m_pStatusBar = GetStatusBar();
+	m_pStatusBar = new CStatusBar(this);
+	SetStatusBar(m_pStatusBar);
 
 	// wx version displays some scrolling data on the statusbar. m_bShowScrollData is
 	// only true when _DEBUG is defined, so it will not appear in release versions.
 	// Here we make room for it by making the second field width larger.
 	if (m_bShowScrollData)
 	{
-		int fieldWidths[] = {0,1000};
-		m_pStatusBar->SetStatusWidths(2, fieldWidths);
+		int fieldWidths[] = {0, 1000, 100};
+		m_pStatusBar->SetStatusWidths(3, fieldWidths);
 	}
 	else
 	{
-		int fieldWidths[] = {-1, 100};
-		m_pStatusBar->SetStatusWidths(2, fieldWidths);
+		int fieldWidths[] = {-1, 100, 100};
+		m_pStatusBar->SetStatusWidths(3, fieldWidths);
 	}
+	m_pStatusBar->Update(); 
 
 	wxSize statusBarSize;
 	statusBarSize = m_pStatusBar->GetSize();

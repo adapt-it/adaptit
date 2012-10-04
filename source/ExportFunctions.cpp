@@ -31,7 +31,6 @@
 
 #include "BString.h"
 #include <wx/list.h>
-#include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/tokenzr.h>
 #include <wx/filename.h>
 #include <wx/wfstream.h>
@@ -59,6 +58,7 @@
 #include "WaitDlg.h"
 #include "Stack.h"
 #include "XML.h"
+#include "StatusBar.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -3492,8 +3492,9 @@ void DoExportInterlinearRTF()
 	wxString progMsg = _("%s  - %d of %d Total words and phrases");
 	wxFileName fn(exportFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Export to Interlinear RTF"),msgDisplayed,nTotal,500);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Export to Interlinear RTF"), msgDisplayed, nTotal);
 	int counter = 0;	
 	// Build final style tag strings - enclosed in {}
 	// Style information is used in three ways in our RTF output:
@@ -4522,7 +4523,7 @@ void DoExportInterlinearRTF()
 	// to delete font objects and prevent memory leaks
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 	{	
-		pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 		return;
 	}
 
@@ -4691,8 +4692,7 @@ void DoExportInterlinearRTF()
 		if (counter % 200 == 0)
 		{
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
-			pProgDlg->Update(counter,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(_("Export to Interlinear RTF"), counter, msgDisplayed);
 		}
 
 		//savePos = pos;
@@ -6077,7 +6077,7 @@ a:
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6086,7 +6086,7 @@ a:
 				hstr = CellDimsNav;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6105,7 +6105,7 @@ a:
 				+ gpApp->m_eolStr;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 
@@ -6121,7 +6121,7 @@ a:
 					wxString testStr = navList.Item(count);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,testStr))	// Nav text string
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 					// whm 8Nov07 note: Unlike the case with source, target and gloss text lists,
@@ -6133,7 +6133,7 @@ a:
 					// Note: \cell delimiter follows cell contents for each cell in row
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))					// \cell delimiter
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 				}
@@ -6144,7 +6144,7 @@ a:
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 			}// end of if (bInclNavLangRow && !NavProcessed)
@@ -6166,7 +6166,7 @@ a:
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6175,7 +6175,7 @@ a:
 				hstr = CellDimsSrc;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6196,7 +6196,7 @@ a:
 				+gpApp->m_eolStr;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 
@@ -6205,12 +6205,12 @@ a:
 				{
 					if (!WriteOutputString(f,gpApp->m_srcEncoding,srcList.Item(count))) // Src text string
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 				}
@@ -6221,7 +6221,7 @@ a:
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 			}// end of if (bInclSrcLangRow && !SrcProcessed)
@@ -6248,7 +6248,7 @@ a:
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 					
@@ -6264,7 +6264,7 @@ a:
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 
@@ -6283,7 +6283,7 @@ a:
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 
@@ -6296,12 +6296,12 @@ a:
 							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls text string
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 						}
@@ -6312,12 +6312,12 @@ a:
 						{
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls uses Tgt encoding
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 						}
@@ -6329,7 +6329,7 @@ a:
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 				}// end of if (bInclGlsLangRow && !GlsProcessed)
@@ -6349,7 +6349,7 @@ a:
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 					
@@ -6358,7 +6358,7 @@ a:
 					hstr = CellDimsTgt;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 					
@@ -6377,7 +6377,7 @@ a:
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 
@@ -6386,12 +6386,12 @@ a:
 					{
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count))) // Tgt text string
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 					}
@@ -6402,7 +6402,7 @@ a:
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 				}// end of if (bInclTgtLangRow && !TgtProcessed)
@@ -6423,7 +6423,7 @@ a:
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6439,7 +6439,7 @@ a:
 				}
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6461,7 +6461,7 @@ a:
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 
@@ -6470,12 +6470,12 @@ a:
 					{
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count))) // Tgt text string
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 					}
@@ -6486,7 +6486,7 @@ a:
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 				}// end of if (bInclTgtLangRow && !TgtProcessed)
@@ -6506,7 +6506,7 @@ a:
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 
@@ -6522,7 +6522,7 @@ a:
 					}
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 
@@ -6541,7 +6541,7 @@ a:
 					+gpApp->m_eolStr;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 
@@ -6556,12 +6556,12 @@ a:
 							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls text string
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 						}
@@ -6572,12 +6572,12 @@ a:
 						{
 							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count))) // Gls uses Tgt encoding
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
 							{	
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 								return;
 							}
 						}
@@ -6589,7 +6589,7 @@ a:
 					+PardPlain;
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 					{	
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 						return;
 					}
 				}// end of if (bInclGlsLangRow && !GlsProcessed)
@@ -6614,7 +6614,7 @@ a:
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6623,7 +6623,7 @@ a:
 				hstr = cellDimsFree;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 
@@ -6643,7 +6643,7 @@ a:
 				+SintblFree;						// Free Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 
@@ -6669,7 +6669,7 @@ a:
 					{
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 					}
@@ -6742,7 +6742,7 @@ a:
 						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,FreeTransFitsInRowStr))
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 					}
@@ -6755,7 +6755,7 @@ a:
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 			}
@@ -6779,7 +6779,7 @@ a:
 
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6788,7 +6788,7 @@ a:
 				hstr = cellDimsBack;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 				
@@ -6808,7 +6808,7 @@ a:
 				+SintblBack;							// Back Trans Style
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 
@@ -6834,7 +6834,7 @@ a:
 					{
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 					}
@@ -6906,7 +6906,7 @@ a:
 						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,BackTransFitsInRowStr))
 						{	
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 							return;
 						}
 					}
@@ -6919,7 +6919,7 @@ a:
 				+PardPlain;
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 				{	
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 					return;
 				}
 			}
@@ -6930,7 +6930,7 @@ a:
 			hstr = _T("\\pard ") + gpApp->m_eolStr + Sindoc__normal +gpApp->m_eolStr+ _T("{\\par }"+gpApp->m_eolStr); // paragraph between tables
 			if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 			{	
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 				return;
 			}
 
@@ -7198,12 +7198,12 @@ b:						// b: is exit point to write the last columns of data
 	hstr = _T('}');
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
 	{	
-		pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 		return;
 	}
 	
 	// remove the progress indicator window
-	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
 
 	srcList.Clear();
 	tgtList.Clear();
@@ -8255,8 +8255,9 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	wxString progMsg = _("Exporting File %s  - %d of %d Total words and phrases");
 	wxFileName fn(exportName);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Exporting To Rich Text Format"),msgDisplayed,nTotal,500);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Exporting To Rich Text Format"), msgDisplayed, nTotal);
 	int counter = 0;
 	// Scan through Buffer
 	while (ptr < pEnd)
@@ -8266,8 +8267,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 									// so pick a large number for updating the progress dialog
 		{
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),ptr - beginPtr,nTotal);
-			pProgDlg->Update(ptr - beginPtr,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(_("Exporting To Rich Text Format"), ptr - beginPtr, msgDisplayed);
 		}
 
 		//bHitMarker = FALSE;
@@ -8287,7 +8287,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 			//CountTotalCurlyBraces(WhiteSpace,nOpeningBraces,nClosingBraces);
 			if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
 			{
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 				return;
 			}
 
@@ -8315,7 +8315,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 			//CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
 			if (!WriteOutputString(f,gpApp->m_systemEncoding,VernacText))
 			{
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 				return;
 			}
 			ptr += itemLen;
@@ -8346,7 +8346,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 					
@@ -8380,7 +8380,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -8403,7 +8403,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 				{
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
 				bProcessingEndlessCharMarker = FALSE;	// code below will turn this flag on if the current
@@ -8506,7 +8506,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(paraTagStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,paraTagStr))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						LastParaStyle = Sindoc_Paragraph_key;	// we just changed it from Section Head to Paragraph
@@ -8529,7 +8529,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -8549,7 +8549,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						//CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no braces possible here
 						if (!WriteOutputString(f,EncodingSrcOrTgt,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -8568,7 +8568,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// RTF tags use gpApp->m_systemEncoding
@@ -8576,7 +8576,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces); // no braces possible here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -8592,7 +8592,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				CountTotalCurlyBraces(numStr,nOpeningBraces,nClosingBraces); // no braces likely here
 				if (!WriteOutputString(f,EncodingSrcOrTgt,numStr))
 				{
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
 				// add RTF non-breaking space and closing brace to close Verse Num char style group
@@ -8600,7 +8600,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 				{
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
 				ptr += itemLen;	// point past verse number
@@ -8648,7 +8648,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 2 opening & 2 closing curly braces here
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 				}
@@ -8690,7 +8690,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -8699,7 +8699,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					CountTotalCurlyBraces(tempLabel,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,EncodingSrcOrTgt,tempLabel))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 
@@ -8732,7 +8732,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
 								{
-									pProgDlg->Destroy();
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 									return;
 								}
 							}
@@ -8747,7 +8747,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(temp,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,EncodingSrcOrTgt,temp))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// no additional parsing needed here
@@ -8768,7 +8768,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -8776,7 +8776,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// no additional parsing needed here
@@ -8876,7 +8876,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -8900,7 +8900,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace here
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -8910,7 +8910,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -8919,7 +8919,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					CountTotalCurlyBraces(unkMarker,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,unkMarker))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 
@@ -9011,7 +9011,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
 						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -9028,7 +9028,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						wxString spFollowingDestText = _T(' ');
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -9086,7 +9086,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						bIsAtEnd, endnoteDest, rtfTagsMap, pDoc, parseError, callerType,
 						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -9103,7 +9103,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						wxString spFollowingDestText = _T(' ');
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -9156,7 +9156,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						bIsAtEnd, crossrefDest, rtfTagsMap, pDoc, parseError, callerType,
 						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -9173,7 +9173,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						wxString spFollowingDestText = _T(' ');
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -9209,7 +9209,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -9225,7 +9225,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -9708,7 +9708,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -9727,7 +9727,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 							
@@ -9738,7 +9738,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -9773,7 +9773,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
 							single_border,pDoc))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// We have output the current \bt material at a succeeding \bt point, so
@@ -9840,7 +9840,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// next output the \cs style tags for _annotation_ref
@@ -9853,7 +9853,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -9862,7 +9862,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 open, 2 close braces added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// output the _annotation_text paragraph style tags
@@ -9875,7 +9875,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(annotTextTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotTextTags))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -9884,7 +9884,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open brace here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// next output the \cs style tags for _annotation_ref
@@ -9897,7 +9897,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -9905,7 +9905,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open one closed added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// now output the actual note string
@@ -9914,14 +9914,14 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						// the use of the \uN\'f3 RTF Unicode chars format.
 						if (!WriteOutputString(f,gpApp->m_tgtEncoding,noteStr)) // use m_tgtEncoding here
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						MiscRTF = _T("}}}"); // closing braces for note (annotation)
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 closing curly braces here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// update LastStyle only when doing boxed paragraph
@@ -9963,7 +9963,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
 							callerStr, FALSE, nullStr)) // FALSE because there is no free trans to suffix to a note
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
@@ -9994,7 +9994,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
 							double_border,pDoc))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// We have output the current \free material at a succeeding \free point, so
@@ -10057,7 +10057,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 						// if the previous marker was a small break paragraph, we need to propagate
@@ -10079,7 +10079,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								CountTotalCurlyBraces(lastNBParaStyle,nOpeningBraces,nClosingBraces);
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,lastNBParaStyle))
 								{
-									pProgDlg->Destroy();
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 									return;
 								}
 							}
@@ -10116,7 +10116,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
 								{
-									pProgDlg->Destroy();
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 									return;
 								}
 							}
@@ -10275,7 +10275,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 									parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
 									single_border,pDoc))
 								{
-									pProgDlg->Destroy();
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 									return;
 								}
 								// Note: when OutputAnyBTorFreeMaterial is called it calls btAssocStr.Empty()
@@ -10327,7 +10327,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 									parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
 									double_border,pDoc))
 								{
-									pProgDlg->Destroy();
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 									return;
 								}
 								// Note: When OutputAnyBTorFreeMaterial is called it calls freeAssocStr.Empty()
@@ -10359,7 +10359,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -10379,7 +10379,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
-							pProgDlg->Destroy();
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
 					}
@@ -10401,7 +10401,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace added here
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 								{
-									pProgDlg->Destroy();
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 									return;
 								}
 								
@@ -10412,7 +10412,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 							if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
 							{
-								pProgDlg->Destroy();
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 								return;
 							}
 						}
@@ -10456,7 +10456,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					}
 					if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 				}
@@ -10493,7 +10493,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					CountTotalCurlyBraces(lastStyTags,nOpeningBraces,nClosingBraces);
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTags))
 					{
-						pProgDlg->Destroy();
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 						return;
 					}
 				}
@@ -10562,7 +10562,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				wxASSERT(VernacText != _T(""));
 				if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
 				{
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
 				goto b; // check for another marker
@@ -10588,7 +10588,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
 				if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
 				{
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
 				ptr += itemLen;
@@ -10602,7 +10602,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 				CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces); // no curly braces added here
 				if (!WriteOutputStringConvertingAngleBrackets(f,EncodingSrcOrTgt,VernacText,ptr))
 				{
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
 				ptr += itemLen;
@@ -10613,7 +10613,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 d: // exit point for if ptr == pEnd
 
 	// remove the progress indicator window
-	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 
 	// if a set of USFM table markers (\tr, \th1, \th2...\tc1, \tc2... etc) comes at the end of
 	// the document there will not be a following marker to signal the processing of the last
@@ -10624,7 +10624,7 @@ d: // exit point for if ptr == pEnd
 		CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly braces added here
 		if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 		{
-			pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 			return;
 		}
 		
@@ -10666,7 +10666,7 @@ d: // exit point for if ptr == pEnd
 				CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
 				if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
 				{
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
 			}
@@ -10785,7 +10785,7 @@ d: // exit point for if ptr == pEnd
 			parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
 			single_border,pDoc))
 		{
-			pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 			return;
 		}
 	}
@@ -10800,7 +10800,7 @@ d: // exit point for if ptr == pEnd
 			parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
 			double_border,pDoc))
 		{
-			pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 			return;
 		}
 	}
@@ -10811,7 +10811,7 @@ d: // exit point for if ptr == pEnd
 	CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace added here
 	if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 	{
-		pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 		return;
 	}
 
@@ -10837,13 +10837,13 @@ d: // exit point for if ptr == pEnd
 			MiscRTF += _T('}');
 			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 			{
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 				return;
 			}
 		}
 	}
 	// remove the progress dialog
-	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 
 	// close the file
 	f.Close();

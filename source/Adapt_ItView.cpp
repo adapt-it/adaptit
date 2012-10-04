@@ -58,7 +58,6 @@
 #include <wx/textfile.h> // to get EOL info
 #include <wx/dir.h> // for wxDir
 #include <wx/propdlg.h>
-#include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/busyinfo.h>
 #include <wx/print.h>
 #include <wx/dynlib.h> // for wxDynamicLibrary

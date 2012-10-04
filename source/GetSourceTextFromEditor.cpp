@@ -55,6 +55,7 @@
 #include "CollabUtilities.h"
 #include "WaitDlg.h"
 #include "GetSourceTextFromEditor.h"
+#include "StatusBar.h"
 //#include "ChangeCollabProjectsDlg.h"
 
 extern const wxString createNewProjectInstead;
@@ -580,17 +581,17 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		progMsg = _("Getting the book and laying out the document... step %d of %d");
 	}
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Getting Document for Collaboration"),msgDisplayed,nTotal,500);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Getting Document for Collaboration"), msgDisplayed, nTotal);
 	
 	// Update for step 1 Creating a temporary KB backup for restoring the KB later
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-	pProgDlg->Update(nStep,msgDisplayed);
-	//::wxSafeYield();
+	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 
 	nStep = 1;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-	pProgDlg->Update(nStep,msgDisplayed);
+	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 	//::wxSafeYield();
 
 	// check the KBs are clobbered, if not so, do so
@@ -691,8 +692,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	{
 		nStep = 2;
 		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-		pProgDlg->Update(nStep,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
 		// get the single-chapter file; the Transfer...Editor() function does all the work
 		// of generating the filename, path, commandLine, getting the text, & saving in
@@ -730,7 +730,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			pListCtrlChapterNumberAndStatus->DeleteAllItems(); 
 			pStaticTextCtrlNote->ChangeValue(_T(""));
 			m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
-			pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 			return;
 		}
 	} // end of TRUE block for test: if (m_pApp->m_bCollabByChapterOnly)
@@ -820,8 +820,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	nStep = 3;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-	pProgDlg->Update(nStep,msgDisplayed);
-	//::wxSafeYield();
+	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 	
 	wxString bookCode;
 	bookCode = m_pApp->GetBookCodeFromBookName(m_pApp->m_CollabBookSelected);
@@ -971,8 +970,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
         
 		nStep = 4;
 		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-		pProgDlg->Update(nStep,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
 		// first, get the project hooked up
 		wxASSERT(!aiMatchedProjectFolder.IsEmpty());
@@ -1024,8 +1022,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				
 				nStep = 5;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-				pProgDlg->Update(nStep,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
                 // set the private booleans which tell us whether or not the Usfm structure
                 // has changed, and whether or not the text and/or puncts have changed. The
@@ -1088,8 +1085,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 #endif
 				nStep = 6;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-				pProgDlg->Update(nStep,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 				
 				m_pApp->maxProgDialogValue = 9; // temporary hack while calling OpenDocWithMerger() below
 		
@@ -1141,8 +1137,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				
 				nStep = 7;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-				pProgDlg->Update(nStep,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
 				bool bMovedOK;
 				if (m_bTempCollabByChapterOnly)
@@ -1170,8 +1165,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			{
 				nStep = 5;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-				pProgDlg->Update(nStep,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
 				// it doesn't exist, so we have to tokenize the source text coming from PT
 				// or BE, create the document, save it and lay it out in the view window...
@@ -1210,8 +1204,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 					nStep = 6;
 					msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-					pProgDlg->Update(nStep,msgDisplayed);
-					//::wxSafeYield();
+					pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
 					SetupLayoutAndView(m_pApp, docTitle);
 				}
@@ -1224,14 +1217,13 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
 					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 					m_pApp->LogUserAction(msg);
-					pProgDlg->Destroy();
+					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 					return;
 				}
 
  				nStep = 7;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-				pProgDlg->Update(nStep,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
                // 5. Copy the just-grabbed chapter or book source text from the .temp
                 // folder over to the Project's __SOURCE_INPUTS folder (creating the
@@ -1280,7 +1272,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			msg = _T("Collaboration: a highly unexpected failure to hook up to the identified pre-existing Adapt It adaptation project has happened.\nYou should Cancel from the current collaboration attempt.\nThen carefully check that the Adapt It project's source language and target language names exactly match the language names you supplied within Paratext or Bibledit.\n Fix the Adapt It project folder's language names to be spelled the same, then try again.");
 			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
 			m_pApp->LogUserAction(msg);
-			pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 			return;
 		}
 	} // end of TRUE block for test: if (bCollaborationUsingExistingAIProject)
@@ -1290,7 +1282,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		wxString msg = _T("The Adapt It project \"%s\" at the following path:\n\n%s\n\nunexpectedly went missing!\n\nYou should Cancel from the current collaboration attempt.\nThen carefully check that the Adapt It project folder exists - restoring it from backups if necessary, then try again.");
 		msg = msg.Format(msg,m_pApp->m_CollabAIProjectName.c_str(), m_pApp->m_curProjectPath.c_str());
 		m_pApp->LogUserAction(msg);
-		pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 		return;
 	}
 	/*
@@ -1515,8 +1507,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 
 	nStep = 8;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-	pProgDlg->Update(nStep,msgDisplayed);
-	//::wxSafeYield();
+	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 		
     // store the "pre-edit" version of the document's adaptation text in a member on the
     // app class, and if free translation is wanted for tranfer to PT or BE as well, get
@@ -1560,11 +1551,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	
 	nStep = 9;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-	pProgDlg->Update(nStep,msgDisplayed);
-	//::wxSafeYield();
+	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
 
 	// remove the progress dialog
-	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 		
     // Note: we will store the post-edit free translation, if working with such as wanted
     // in collaboration mode, not in _FREETRANS_OUTPUTS, but rather in a local variable

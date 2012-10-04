@@ -25,8 +25,6 @@
 #include "Adapt_It.h"
 #include "helpers.h"
 
-class wxProgressDialog;
-
 // This createNewProjectInstead is used in GetAIProjectFolderForCollab(),
 // GetSourceTextFromEditor.cpp, and SetupEditorCollaboration.cpp.
 const wxString createNewProjectInstead = _("<Create a new project instead>");

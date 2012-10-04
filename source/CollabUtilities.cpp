@@ -63,6 +63,7 @@
 #include "tellenc.h"	// needed for check_ucs_bom() in MoveTextToFolderAndSave()
 #include "md5.h"
 #include "CollabUtilities.h"
+#include "StatusBar.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -687,18 +688,18 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 	// Set up a progress dialog
 	wxString msgDisplayed;
 	wxString progMsg;
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 	wxString progressTitle = _("Analyzing the %s project: %s");
 	progressTitle = progressTitle.Format(progressTitle,editor.c_str(),compositeProjName.c_str());
 	wxString firstBookName = booksPresentArray.Item(0);
 	const int nTotal = nBooksToCheck;
 	// Only create the progress dialog if we have data to progress
+	CStatusBar* pStatusBar = NULL;
 	if (nTotal > 0)
 	{
 		progMsg = _("Analyzing book %s");
 		msgDisplayed = progMsg.Format(progMsg,firstBookName.c_str());
-		pProgDlg = gpApp->OpenNewProgressDialog(progressTitle,msgDisplayed,nTotal,500);
-		wxASSERT(pProgDlg != NULL);
+		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+		pStatusBar->StartProgress(progressTitle, msgDisplayed, nTotal);
 	}
 
 	// Loop through all existing books existing in the project
@@ -861,10 +862,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 			}
 			msg = msg.Format(msg,concatMsgs.c_str());
 			errorMsg = msg; // return the error message to the caller
-			if (pProgDlg != NULL)
+			if (nTotal > 0)
 			{
-				pProgDlg->Refresh();
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(progressTitle);
 			}
 			return processingError;
 		}
@@ -896,10 +896,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		// UsfmStructureAndExtentArrays.
 		if (usfmStructureAndExtentArray.GetCount() == 0)
 		{
-			if (pProgDlg != NULL)
+			if (nTotal > 0)
 			{
-				pProgDlg->Refresh();
-				pProgDlg->Destroy();
+				pStatusBar->FinishProgress(progressTitle);
 			}
 			return projHasNoBooks;
 		}
@@ -960,7 +959,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		}
 		
 		msgDisplayed = progMsg.Format(progMsg,booksPresentArray.Item(nBookCount).c_str());
-		pProgDlg->Update(nBookCount,msgDisplayed);
+		pStatusBar->UpdateProgress(progressTitle, nBookCount, msgDisplayed);
 	} // end of for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
 
 	if (booksWithContent.IsEmpty())
@@ -985,10 +984,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		editorProjVerseContent = projHasVerseTextInAllBooks;
 	}
 	
-	if (pProgDlg != NULL)
+	if (nTotal > 0)
 	{
-		pProgDlg->Refresh();
-		pProgDlg->Destroy();
+		pStatusBar->FinishProgress(progressTitle);
 	}
 	
 	// For Testing only!!!
@@ -2566,6 +2564,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	CAdapt_ItView* pView = pApp->GetView();
+	CStatusBar* pStatusBar = NULL;
 
 	if (extension == _T(".xml"))
 	{
@@ -2591,7 +2590,6 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// exceed the same maximum value (nTotal).
 		wxString msgDisplayed;
 		wxString progMsg;
-		wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 		// add 1 chunk to insure that we have enough after int division above
 		const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
 		// Only show the progress dialog when there is at lease one chunk of data
@@ -2601,10 +2599,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			progMsg = _("Opening %s and merging with current document");
 			wxFileName fn(fullFileName);
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str());
-			pProgDlg = gpApp->OpenNewProgressDialog(_("Opening Document and Merging With Current Document"),msgDisplayed,nTotal,500);
+			pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+			pStatusBar->StartProgress(_("Opening Document and Merging With Current Document"), msgDisplayed, nTotal);
 		}
 
-		bool bReadOK = ReadDoc_XML(thePath, pDoc, pProgDlg, nTotal); // defined in XML.cpp
+		bool bReadOK = ReadDoc_XML(thePath, pDoc, (nTotal > 0) ? _("Opening Document and Merging With Current Document") : _T(""), nTotal); // defined in XML.cpp
 		if (!bReadOK)
 		{
 			wxString s;
@@ -2612,13 +2611,17 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 				s = _(
 "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
 				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-			if (pProgDlg != NULL)
-				pProgDlg->Destroy();
+			if (nTotal > 0)
+			{
+				pStatusBar->FinishProgress(_("Opening Document and Merging With Current Document"));
+			}
 			return TRUE; // return TRUE to allow the user another go at it
 		}
 		// remove the ReadDoc_XML() specific progress dialog
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		if (nTotal > 0)
+		{
+			pStatusBar->FinishProgress(_("Opening Document and Merging With Current Document"));
+		}
 
 		// app's m_pSourcePhrases list has been populated with CSourcePhrase instances
 	}
@@ -2640,8 +2643,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	const int nTotal = 10; // we will do up to 10 Steps
 	wxString progMsg = _("Merging Documents - Step %d of %d");
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Merging Documents..."),msgDisplayed,nTotal,500);
+	pStatusBar->StartProgress(_("Merging Documents..."), msgDisplayed, nTotal);
 
 	if (bDoMerger)
 	{
@@ -2668,8 +2670,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// Update for step 1 ChangeParatextPrivatesToCustomMarkers()
 		msgDisplayed = progMsg.Format(progMsg,1,nTotal);
-		pProgDlg->Update(1,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->UpdateProgress(_("Merging Documents..."), 1, msgDisplayed);
 
 		// The code below is copied from CAdapt_ItView::OnImportEditedSourceText(),
 		// comments have been removed to save space, the original code is fully commented
@@ -2678,16 +2679,14 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// Update for step 2 OverwriteUSFMFixedSpaces()
 		msgDisplayed = progMsg.Format(progMsg,2,nTotal);
-		pProgDlg->Update(2,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->UpdateProgress(_("Merging Documents..."), 2, msgDisplayed);
 
 		if (pApp->m_bChangeFixedSpaceToRegularSpace)
 			pDoc->OverwriteUSFMFixedSpaces(pBuffer);
 
 		// Update for step 3 OverwriteUSFMDiscretionaryLineBreaks()
 		msgDisplayed = progMsg.Format(progMsg,3,nTotal);
-		pProgDlg->Update(3,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->UpdateProgress(_("Merging Documents..."), 3, msgDisplayed);
 
 		pDoc->OverwriteUSFMDiscretionaryLineBreaks(pBuffer);
 #ifndef __WXMSW__
@@ -2698,8 +2697,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 #endif
 		// Update for step 4 TokenizeTextString()
 		msgDisplayed = progMsg.Format(progMsg,4,nTotal);
-		pProgDlg->Update(4,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->UpdateProgress(_("Merging Documents..."), 4, msgDisplayed);
 
 		// parse the new source text data into a list of CSourcePhrase instances
 		int nHowMany;
@@ -2709,8 +2707,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// Update for step 5 MergeUpdatedSourceText(), etc.
 		msgDisplayed = progMsg.Format(progMsg,5,nTotal);
-		pProgDlg->Update(5,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->UpdateProgress(_("Merging Documents..."), 5, msgDisplayed);
 
 		if (nHowMany > 0)
 		{
@@ -2720,8 +2717,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 			// Update for step 6 loop of DeleteSingleSrcPhrase()
 			msgDisplayed = progMsg.Format(progMsg,6,nTotal);
-			pProgDlg->Update(6,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(_("Merging Documents..."), 6, msgDisplayed);
 
 			SPList::Node* posCur = pApp->m_pSourcePhrases->GetFirst();
 			while (posCur != NULL)
@@ -2738,8 +2734,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 			// Update for step 7 loop of DeepCopy(), etc.
 			msgDisplayed = progMsg.Format(progMsg,7,nTotal);
-			pProgDlg->Update(7,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(_("Merging Documents..."), 7, msgDisplayed);
 
 			// make deep copies of the pMergedList instances and add them to the emptied
 			// m_pSourcePhrases list, and delete the instance in pMergedList each time
@@ -2762,8 +2757,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 			// Update for step 8 loop of DeleteSingleSrcPhrase(), etc.
 			msgDisplayed = progMsg.Format(progMsg,8,nTotal);
-			pProgDlg->Update(8,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(_("Merging Documents..."), 8, msgDisplayed);
 
 			// now delete the list formed from the imported new version of the source text
 			SPList::Node* pos = pSourcePhrases->GetFirst();
@@ -2784,15 +2778,13 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	// text
 	if (!bDoLayout)
 	{
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Merging Documents..."));
 		return TRUE;
 	}
 
 	// Update for step 9 loop of bDoLayout(), etc.
 	msgDisplayed = progMsg.Format(progMsg,9,nTotal);
-	pProgDlg->Update(9,msgDisplayed);
-	//::wxSafeYield();
+	pStatusBar->UpdateProgress(_("Merging Documents..."), 9, msgDisplayed);
 
 	// get the layout built, view window set up, phrase box placed etc, if wanted
 	if (bDoLayout)
@@ -2862,8 +2854,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OpenDocWithMerger()"),
 			_T(""), wxICON_STOP);
 			wxASSERT(FALSE);
-			if (pProgDlg != NULL)
-				pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Merging Documents..."));
 			wxExit();
 		}
 
@@ -2914,12 +2905,10 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 	// Update for step 10 finished.
 	msgDisplayed = progMsg.Format(progMsg,10,nTotal);
-	pProgDlg->Update(10,msgDisplayed);
-	//::wxSafeYield();
+	pStatusBar->UpdateProgress(_("Merging Documents..."), 10, msgDisplayed);
 
 	// remove the progress dialog
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
+	pStatusBar->FinishProgress(_("Merging Documents..."));
 
 	return TRUE;
 }
