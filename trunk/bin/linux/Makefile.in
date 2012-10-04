@@ -95,7 +95,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
 	JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBExportImportOptionsDlg.$(OBJEXT) KBEditor.$(OBJEXT) \
-	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KBServer.$(OBJEXT) \
+	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KbServer.$(OBJEXT) \
 	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
 	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
 	MainFrm.$(OBJEXT) md5.$(OBJEXT) MergeUpdatedSrc.$(OBJEXT) \
@@ -115,8 +115,8 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	SetupEditorCollaboration.$(OBJEXT) \
 	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
-	StartWorkingWizard.$(OBJEXT) Strip.$(OBJEXT) \
-	TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
+	StartWorkingWizard.$(OBJEXT) StatusBar.$(OBJEXT) \
+	Strip.$(OBJEXT) TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) UsfmFilterPage.$(OBJEXT) \
 	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
@@ -439,7 +439,7 @@ adaptit_SOURCES = \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
-	../../source/KBServer.cpp \
+	../../source/KbServer.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
 	../../source/MergeUpdatedSrc.cpp \
@@ -457,7 +457,8 @@ adaptit_SOURCES = \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
 	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
-	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
+	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
+	../../source/Strip.cpp ../../source/TargetUnit.cpp \
 	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp \
 	../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
@@ -616,7 +617,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBExportImportOptionsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBPage.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KbServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguageCodesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguagesPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Layout.Po@am__quote@
@@ -655,6 +656,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SplitDialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Stack.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StartWorkingWizard.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatusBar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
@@ -1542,19 +1544,19 @@ KBPage.obj: ../../source/KBPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBPage.obj `if test -f '../../source/KBPage.cpp'; then $(CYGPATH_W) '../../source/KBPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBPage.cpp'; fi`
 
-KBServer.o: ../../source/KBServer.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBServer.o -MD -MP -MF $(DEPDIR)/KBServer.Tpo -c -o KBServer.o `test -f '../../source/KBServer.cpp' || echo '$(srcdir)/'`../../source/KBServer.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBServer.Tpo $(DEPDIR)/KBServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBServer.cpp' object='KBServer.o' libtool=no @AMDEPBACKSLASH@
+KbServer.o: ../../source/KbServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KbServer.o -MD -MP -MF $(DEPDIR)/KbServer.Tpo -c -o KbServer.o `test -f '../../source/KbServer.cpp' || echo '$(srcdir)/'`../../source/KbServer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KbServer.Tpo $(DEPDIR)/KbServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KbServer.cpp' object='KbServer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBServer.o `test -f '../../source/KBServer.cpp' || echo '$(srcdir)/'`../../source/KBServer.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KbServer.o `test -f '../../source/KbServer.cpp' || echo '$(srcdir)/'`../../source/KbServer.cpp
 
-KBServer.obj: ../../source/KBServer.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBServer.obj -MD -MP -MF $(DEPDIR)/KBServer.Tpo -c -o KBServer.obj `if test -f '../../source/KBServer.cpp'; then $(CYGPATH_W) '../../source/KBServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBServer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBServer.Tpo $(DEPDIR)/KBServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBServer.cpp' object='KBServer.obj' libtool=no @AMDEPBACKSLASH@
+KbServer.obj: ../../source/KbServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KbServer.obj -MD -MP -MF $(DEPDIR)/KbServer.Tpo -c -o KbServer.obj `if test -f '../../source/KbServer.cpp'; then $(CYGPATH_W) '../../source/KbServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KbServer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KbServer.Tpo $(DEPDIR)/KbServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KbServer.cpp' object='KbServer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBServer.obj `if test -f '../../source/KBServer.cpp'; then $(CYGPATH_W) '../../source/KBServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBServer.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KbServer.obj `if test -f '../../source/KbServer.cpp'; then $(CYGPATH_W) '../../source/KbServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KbServer.cpp'; fi`
 
 LanguageCodesDlg.o: ../../source/LanguageCodesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguageCodesDlg.o -MD -MP -MF $(DEPDIR)/LanguageCodesDlg.Tpo -c -o LanguageCodesDlg.o `test -f '../../source/LanguageCodesDlg.cpp' || echo '$(srcdir)/'`../../source/LanguageCodesDlg.cpp
@@ -2129,6 +2131,20 @@ StartWorkingWizard.obj: ../../source/StartWorkingWizard.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/StartWorkingWizard.cpp' object='StartWorkingWizard.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o StartWorkingWizard.obj `if test -f '../../source/StartWorkingWizard.cpp'; then $(CYGPATH_W) '../../source/StartWorkingWizard.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/StartWorkingWizard.cpp'; fi`
+
+StatusBar.o: ../../source/StatusBar.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT StatusBar.o -MD -MP -MF $(DEPDIR)/StatusBar.Tpo -c -o StatusBar.o `test -f '../../source/StatusBar.cpp' || echo '$(srcdir)/'`../../source/StatusBar.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/StatusBar.Tpo $(DEPDIR)/StatusBar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/StatusBar.cpp' object='StatusBar.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o StatusBar.o `test -f '../../source/StatusBar.cpp' || echo '$(srcdir)/'`../../source/StatusBar.cpp
+
+StatusBar.obj: ../../source/StatusBar.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT StatusBar.obj -MD -MP -MF $(DEPDIR)/StatusBar.Tpo -c -o StatusBar.obj `if test -f '../../source/StatusBar.cpp'; then $(CYGPATH_W) '../../source/StatusBar.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/StatusBar.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/StatusBar.Tpo $(DEPDIR)/StatusBar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/StatusBar.cpp' object='StatusBar.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o StatusBar.obj `if test -f '../../source/StatusBar.cpp'; then $(CYGPATH_W) '../../source/StatusBar.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/StatusBar.cpp'; fi`
 
 Strip.o: ../../source/Strip.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Strip.o -MD -MP -MF $(DEPDIR)/Strip.Tpo -c -o Strip.o `test -f '../../source/Strip.cpp' || echo '$(srcdir)/'`../../source/Strip.cpp
