@@ -43,10 +43,10 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/file.h>
-#include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/filename.h> // for wxFileName
 #include <wx/busyinfo.h>
 
+#include "XML.h"
 
 // AdaptItDana's XML support (unvalidated, & only elements and attributes)
 #include "Stack.h"
@@ -64,7 +64,7 @@
 #include "MainFrm.h"
 #include "WaitDlg.h"
 #include "Adapt_ItView.h"
-#include "XML.h"
+#include "StatusBar.h"
 //#include "XML_UserProfiles.h"
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -890,7 +890,7 @@ bool WriteDoc_XML(CBString& path)
 *
 * Parameters:
 * -> path -- absolute path to the file on an expansion card.
-* <-> pProgDlg -- pointer to the caller's wxProgressDialog (may be NULL)
+* <-> pProgDlg -- ProgressItem title for the embedded progress bar (see StatusBar.h for details)
 * ->  nProgMax -- the maximum range value for wxProgressDialog (may be 0)
 * (*pAtTag) -- callback function for At...Tag()
 * (*pAtEmptyElementClose) -- callback function for At...EmptyElementClose()
@@ -907,7 +907,7 @@ bool WriteDoc_XML(CBString& path)
 *
 *********************************************************************/
 
-bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // whm Note: pProgDlg can be NULL
+bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 		bool (*pAtTag)(CBString& tag,CStack*& pStack),
 		bool (*pAtEmptyElementClose)(CBString& tag,CStack*& pStack),
 		bool (*pAtAttr)(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& pStack),
@@ -915,6 +915,7 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 		bool (*pAtPCDATA)(CBString& tag,CBString& pcdata,CStack*& pStack))
 {
 	bool bReadAll = FALSE;
+	CStatusBar *pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 
 	// make a 40KB locked work buffer in dynamic heap for storing next 
 	// part of the stream which is due for parsing
@@ -981,10 +982,10 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 		wxFileName fn(path);
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),nCurrChunk,nTotal);
 		// whm 25Aug11 added nProgMax
-		if (pProgDlg != NULL && nCurrChunk < nProgMax)
+		CStatusBar *pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+		if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 		{
-			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 		}
 		
 		if (fileSize % TwentyKB > 0) ++nChunks;
@@ -1012,10 +1013,9 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 		}
 		nCurrChunk++;
 		// whm 25Aug11 added nProgMax
-		if (pProgDlg != NULL && nCurrChunk < nProgMax)
+		if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 		{
-			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 		}
 	}
 	else
@@ -1141,10 +1141,9 @@ bool ParseXML(wxString& path, wxProgressDialog* pProgDlg, wxUint32 nProgMax, // 
 		pEnd = (char*)(pBuff + fileSize);
 		//::wxSafeYield();
 		// whm 25Aug11 added nProgMax
-		if (pProgDlg != NULL && nCurrChunk < nProgMax)
+		if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 		{
-			pProgDlg->Update(nCurrChunk,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 		}
 	}
 	else
@@ -1248,10 +1247,9 @@ r:		comp = strncmp(pPos,comment,4);
 		{
 			//::wxSafeYield();
 			// whm 25Aug11 added nProgMax
-			if (pProgDlg != NULL && nCurrChunk < nProgMax)
+			if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 			{
-				pProgDlg->Update(nCurrChunk,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 			}
 			continue; // no more data to transfer
 		}
@@ -1292,10 +1290,9 @@ r:		comp = strncmp(pPos,comment,4);
 			nCurrChunk++;
 			//::wxSafeYield();
 			// whm 25Aug11 added nProgMax
-			if (pProgDlg != NULL && nCurrChunk < nProgMax)
+			if (!progressTitle.IsEmpty() && nCurrChunk < nProgMax)
 			{
-				pProgDlg->Update(nCurrChunk,msgDisplayed);
-				//::wxSafeYield();
+				pStatusBar->UpdateProgress(progressTitle, nCurrChunk, msgDisplayed);
 			}
 		}
 	} while (!stack.IsEmpty() && (pPos < pEnd));
@@ -6966,9 +6963,9 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 *
 *******************************************************************/
 
-bool ReadBooks_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadBooks_XML(wxString& path, const wxString& progressItem, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtBooksTag,AtBooksEmptyElemClose,AtBooksAttr,
+	bool bXMLok = ParseXML(path,progressItem,nProgMax,AtBooksTag,AtBooksEmptyElemClose,AtBooksAttr,
 							AtBooksEndTag,AtBooksPCDATA);
 	return bXMLok;
 }	
@@ -6989,9 +6986,9 @@ bool ReadBooks_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 *
 *******************************************************************/
 
-bool ReadSFM_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadSFM_XML(wxString& path, const wxString& progressItem, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtSFMTag,AtSFMEmptyElemClose,AtSFMAttr,
+	bool bXMLok = ParseXML(path,progressItem,nProgMax,AtSFMTag,AtSFMEmptyElemClose,AtSFMAttr,
 							AtSFMEndTag,AtSFMPCDATA);
 	return bXMLok;
 }
@@ -7012,9 +7009,9 @@ bool ReadSFM_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
 *
 *******************************************************************/
 
-bool ReadPROFILES_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadPROFILES_XML(wxString& path, const wxString& progressItem, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
+	bool bXMLok = ParseXML(path,progressItem,nProgMax,AtPROFILETag,AtPROFILEEmptyElemClose,AtPROFILEAttr,
 							AtPROFILEEndTag,AtPROFILEPCDATA);
 	return bXMLok;
 }
@@ -7035,9 +7032,9 @@ bool ReadPROFILES_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgM
 *
 *******************************************************************/
 
-bool ReadEMAIL_REPORT_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadEMAIL_REPORT_XML(wxString& path, const wxString& progressItem, wxUint32 nProgMax)
 {
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtEMAILRptTag,AtEMAILRptEmptyElemClose,AtEMAILRptAttr,
+	bool bXMLok = ParseXML(path,progressItem,nProgMax,AtEMAILRptTag,AtEMAILRptEmptyElemClose,AtEMAILRptAttr,
 							AtEMAILRptEndTag,AtEMAILRptPCDATA);
 	return bXMLok;
 }
@@ -7058,7 +7055,7 @@ bool ReadEMAIL_REPORT_XML(wxString& path,wxProgressDialog* pProgDlg, wxUint32 nP
 *
 *******************************************************************/
 
-bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressItem, wxUint32 nProgMax)
 {
 	// BEW modified 07Nov05 to set gpDoc here, not in AtDocTag()
 	// set the static document pointer used only for parsing the XML document
@@ -7069,7 +7066,7 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg,
 	// receives a pointer pProgDlg to that progress dialog so it can
 	// call Update where needed to give some feedback on the progress.
 
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtDocTag,AtDocEmptyElemClose,AtDocAttr,
+	bool bXMLok = ParseXML(path,progressItem,nProgMax,AtDocTag,AtDocEmptyElemClose,AtDocAttr,
 							AtDocEndTag,AtDocPCDATA);
 
 	// whm Note: the progress indicator window gets destroyed when it
@@ -7094,11 +7091,11 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, wxProgressDialog* pProgDlg,
 *
 *******************************************************************/
 
-bool ReadKB_XML(wxString& path, CKB* pKB,wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadKB_XML(wxString& path, CKB* pKB, const wxString& progressTitle, wxUint32 nProgMax)
 {
 	wxASSERT(pKB);
 	gpKB = pKB; // set the global gpKB used by the callback functions
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
+	bool bXMLok = ParseXML(path,progressTitle,nProgMax,AtKBTag,AtKBEmptyElemClose,AtKBAttr,
 							AtKBEndTag,AtKBPCDATA);
 	return bXMLok;
 }	
@@ -7120,7 +7117,7 @@ bool ReadKB_XML(wxString& path, CKB* pKB,wxProgressDialog* pProgDlg, wxUint32 nP
 * LIFT file
 *******************************************************************/
 
-bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32 nProgMax)
+bool ReadLIFT_XML(wxString& path, CKB* pKB, const wxString& progressItem, wxUint32 nProgMax)
 {
 	// Because of the possibility of multilanguage entries in the LIFT file,
 	// preprocessing is necessary - and if there is ambiguity for the choice
@@ -7196,7 +7193,7 @@ bool ReadLIFT_XML(wxString& path, CKB* pKB, wxProgressDialog* pProgDlg, wxUint32
 	gKeyStr.Empty();
 	gpTU = NULL;
 	gpRefStr = NULL;
-	bool bXMLok = ParseXML(path,pProgDlg,nProgMax,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
+	bool bXMLok = ParseXML(path,progressItem,nProgMax,AtLIFTTag,AtLIFTEmptyElemClose,AtLIFTAttr,
 							AtLIFTEndTag,AtLIFTPCDATA);
 	if (bXMLok)
 	{

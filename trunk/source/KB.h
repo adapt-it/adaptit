@@ -29,7 +29,6 @@
 class CTargetUnit;
 class CKB; // needed for the macro below which must reside outside the class declaration
 class CRefString;
-class wxProgressDialog;
 
 enum UseForLookup
 {
@@ -117,7 +116,7 @@ public:
 	wxString		AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
 	void			DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
 	void			DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType);
-	void			DoKBSaveAsXML(wxFile& f, wxProgressDialog* pProgDlg, int nTotal);
+	void			DoKBSaveAsXML(wxFile& f, const wxString& progressTitle, int nTotal);
 	void			DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice = TRUE);
 	bool			FindMatchInKB(int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);
 	void			Fix_NotInKB_WronglyEditedOut(CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()

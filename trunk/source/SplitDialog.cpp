@@ -244,8 +244,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
 			// whm 24Aug11 Note. I don't think a wait dialog is really needed for
 			// the split operation since it is likely to go quickly
-			wxProgressDialog* pProgDlg = NULL;
-			d->DoFileSave_Protected(FALSE,pProgDlg); // TRUE - show wait/progress dialog
+			d->DoFileSave_Protected(FALSE,_T("")); // TRUE - show wait/progress dialog
 		}
 	}
 
@@ -458,8 +457,7 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
 			// whm 24Aug11 Note. I don't think a wait dialog is really needed for
 			// the split operation since it is likely to go quickly
-			wxProgressDialog* pProgDlg = NULL;
-			d->DoFileSave_Protected(FALSE,pProgDlg); // TRUE - show wait/progress dialog
+			d->DoFileSave_Protected(FALSE,_T("")); // TRUE - show wait/progress dialog
 		}
 	}
 

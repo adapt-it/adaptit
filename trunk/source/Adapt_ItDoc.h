@@ -35,7 +35,6 @@ class CAdapt_ItDoc;
 class CLayout;
 class CFreeTrans;
 class CNotes;
-class wxProgressDialog;
 struct AutoFixRecord;
 struct AutoFixRecordG;
 
@@ -274,11 +273,11 @@ public:
 										   // but does not delete each partner pile (use DestroyPiles()
 										   // defined in CLayout for that)
 	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
-	bool			DoFileSave_Protected(bool bShowWaitDlg,wxProgressDialog* pProgDlg); // whm added pProgDlg 24Aug11
+	bool			DoFileSave_Protected(bool bShowWaitDlg, const wxString& progressTitle); 
 	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* pRenamedFilename,
 								bool& bUserCancelled, // BEW added bUserCancelled 20Aaug10
-								wxProgressDialog* pProgDlg); // whm added pProgDlg 24Aug11
-	bool			DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDisplayed); // whm added 17Jan12
+								const wxString& progressTitle);
+	bool			DoCollabFileSave(const wxString& progressTitle,wxString msgDisplayed); // whm added 17Jan12
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDialog = TRUE);

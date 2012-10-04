@@ -395,6 +395,8 @@
 		<Unit filename="../../source/Stack.h" />
 		<Unit filename="../../source/StartWorkingWizard.cpp" />
 		<Unit filename="../../source/StartWorkingWizard.h" />
+		<Unit filename="../../source/StatusBar.cpp" />
+		<Unit filename="../../source/StatusBar.h" />
 		<Unit filename="../../source/Strip.cpp" />
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />

@@ -99,6 +99,7 @@
 #include "ConsChk_Empty_noTU_Dlg.h"
 #include "conschk_exists_notu_dlg.h"
 #include "DVCS.h"
+#include "StatusBar.h"
 
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
 void init_utf8_char_table();
@@ -1423,10 +1424,12 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	wxString progMsg = _("Saving File %s  - %d of %d Total words and phrases");
 	wxFileName fn(gpApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg = NULL;
-	
-	if (gpApp->m_bShowProgress)			// mrh Sep12 - now we can suppress progress dialogs with this flag
-		pProgDlg = gpApp->OpenNewProgressDialog (_("Saving File"), msgDisplayed, nTotal, 500);
+	CStatusBar *pStatusBar = NULL;
+	if (gpApp->m_bShowProgress)
+	{
+		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+		pStatusBar->StartProgress(_("Saving File"), msgDisplayed, nTotal);
+	}
 
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
@@ -1440,17 +1443,19 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 		// no use of the bool value that is returned - although the code probably 
 		// should.
 		// 2. DoCollabFilesave() also calls DoFileSave_Protected(TRUE,pProgDlg)
-		DoCollabFileSave(pProgDlg,msgDisplayed);
+		DoCollabFileSave((gpApp->m_bShowProgress) ? _("Saving File") : _T(""), msgDisplayed);
 	}
 	else
 	{
 		// no collaboration - do a normal protected save
 
 		// we are not interested in the returned boolean from the following call
-		DoFileSave_Protected (gpApp->m_bShowProgress, pProgDlg); // only show wait/progress dialog if flag is TRUE
+		DoFileSave_Protected (gpApp->m_bShowProgress, (gpApp->m_bShowProgress) ? _("Saving File") : _T("")); // only show wait/progress dialog if flag is TRUE
 	}
-	if (pProgDlg)
-		pProgDlg->Destroy();
+	if (gpApp->m_bShowProgress)
+	{
+		pStatusBar->FinishProgress(_("Saving File"));
+	}
 }
 
 
@@ -1660,7 +1665,7 @@ void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 // DoConsistencyCheck(), and SplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 // DoSplitIntoChapters(). Created 29Apr10.
 // whm added pProgDlg 24Aug11
-bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pProgDlg)
+bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progressItem)
 {
 	wxString pathToSaveFolder;
 	wxULongLong originalSize = 0;
@@ -1719,7 +1724,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
     // returned values
 	wxString renamedFilename; renamedFilename.Empty();
 	bool bUserCancelled = FALSE;
-	bool bSuccess = DoFileSave(bShowWaitDlg,normal_save,&renamedFilename,bUserCancelled,pProgDlg);
+	bool bSuccess = DoFileSave(bShowWaitDlg,normal_save,&renamedFilename,bUserCancelled,progressItem);
 	if (bSuccess)
 	{
 		if (bOutputFileExists && bCopiedSuccessfully)
@@ -1834,7 +1839,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, wxProgressDialog* pPr
 	return FALSE;
 }
 
-bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDisplayed) // whm added 17Jan12
+bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDisplayed) // whm added 17Jan12
 {
     // For testing purposes, assume it's target text, and a single-chapter
     // document...actually, there's nothing in the MakeUpdatedTextForExternalEditor()
@@ -1904,8 +1909,6 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 		{
 			msgDisplayed = _("Please wait while the translation is sent to Bibledit...");
 		}
-		//::wxSafeYield();
-		pProgDlg->Pulse(msgDisplayed);
 
 		// whm 21Sep11 modified. For chapter sized transfers back to the external editor
 		// we need to remove the \id XXX line from the updatedText string.
@@ -1924,7 +1927,6 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 		if (!bMovedTextOK)
 		{
 			wxMessageBox(_T("Adapt_ItDoc.cpp, OnFileSave()'s call of MoveTextToTempFolderAndSave() failed, at line 1472. Processing continues, but you should immediately shut down WITHOUT saving, and then relaunch the application"));
-			pProgDlg->Destroy();
 			return FALSE;
 		}
 		resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
@@ -1960,7 +1962,6 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 				gpApp->LogUserAction(temp);
 				wxLogDebug(temp);
 			}
-			pProgDlg->Destroy();
 			return FALSE;
 		} // end of TRUE block for test: if (resultTgt != 0)
 
@@ -2018,8 +2019,6 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 				{
 					msgDisplayed = _("Please wait while the free translation is sent to Bibledit...");
 				}
-				//::wxSafeYield();
-				pProgDlg->Pulse(msgDisplayed);
 
 				bMovedTextOK = MoveTextToTempFolderAndSave(collab_freeTrans_text, updatedFreeTransText);
 				resultFreeTrans = -1;  outputFreeTrans.Clear(); errorsFreeTrans.Clear();
@@ -2054,7 +2053,6 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 						gpApp->LogUserAction(temp);
 						wxLogDebug(temp);
 					}
-					pProgDlg->Destroy();
 					return FALSE;
 				} // end of TRUE block for test: if (resultFreeTrans != 0)
 
@@ -2067,7 +2065,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 		}
 
 		// and then also do a local normal protected save to AI's native storage;
-		DoFileSave_Protected(TRUE, pProgDlg); // // TRUE means - show wait/progress dialog
+		DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
 	}
 	else
 	{
@@ -2076,8 +2074,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
         // just beep but still do the protected local save - the word done should never
         // be lost
 		wxBell();
-		DoFileSave_Protected(TRUE, pProgDlg); // // TRUE means - show wait/progress dialog
-		pProgDlg->Destroy();
+		DoFileSave_Protected(TRUE, progressItem); // // TRUE means - show wait/progress dialog
 		// whm added 11Mar12. This situation occurrs if the user attempted to save while
 		// Paratext is running, and instead of closing down Paratext, clicks the Cancel
 		// button of the message prompt. The local AI doc gets saved by the DoFileSave_Protected()
@@ -2131,7 +2128,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(wxProgressDialog* pProgDlg,wxString msgDispl
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 							  wxString* pRenamedFilename, bool& bUserCancelled,
-							  wxProgressDialog* pProgDlg)
+							  const wxString& progressItem)
 {
 	bUserCancelled = FALSE;
 
@@ -2499,13 +2496,14 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	wxString progMsg = _("Saving File %s  - %d of %d Total words and phrases");
 	wxFileName fn(gpApp->m_curOutputFilename);
 	wxString msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),0,nTotal);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 	// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
 	// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
 	// wxProgressDialog(). Therefore we must test for NULL here.
-	if (pProgDlg != NULL && bShowWaitDlg) // whm 10Aug12 added && bShowWaitDlg test
+	if (!progressItem.IsEmpty() && bShowWaitDlg) // whm 10Aug12 added && bShowWaitDlg test
 	{
-		pProgDlg->Update(1,msgDisplayed);
-		//::wxSafeYield();
+		pStatusBar->StartProgress(progressItem, msgDisplayed, nTotal);
 	}
 	// whm 24Aug11 moved the progress dialog to the top level OnFileSave() function. This
 	// function (DoFileSave) receives a wxProgressDialog* pProgDlg pointer passed along
@@ -2539,10 +2537,9 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 					// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
 					// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
 					// wxProgressDialog(). Therefore we must test for NULL here.
-					if (pProgDlg != NULL)
+					if (bShowWaitDlg)
 					{
-						pProgDlg->Update(counter,msgDisplayed);
-						//::wxSafeYield();
+						pStatusBar->UpdateProgress(progressItem, counter, msgDisplayed);
 					}
 				}
 			}
@@ -2591,10 +2588,9 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 					// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
 					// DoFileSave() are called from DoAutoSaveDoc() which does not set up a
 					// wxProgressDialog(). Therefore we must test for NULL here.
-					if (pProgDlg != NULL)
+					if (bShowWaitDlg)
 					{
-						pProgDlg->Update(counter,msgDisplayed);
-						//::wxSafeYield();
+						pStatusBar->UpdateProgress(progressItem, counter, msgDisplayed);
 					}
 				}
 			}
@@ -2808,7 +2804,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 	wxFileName fn(gpApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 
-	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled, NULL);
+	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled, _T(""));
 	if (bSuccess)
 	{
 		if (bOutputFileExists && bCopiedSuccessfully)
@@ -3160,7 +3156,7 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	wxString progMsg;
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	CStatusBar *pStatusBar = NULL;
 	// add 1 chunk to insure that we have enough after int division above
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
 	// Only show the progress dialog when there is at lease one chunk of data
@@ -3170,21 +3166,22 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 		progMsg = _("Reading file %s - part %d of %d");
 		//wxFileName fn(fullFileName); done above
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-		pProgDlg = gpApp->OpenNewProgressDialog(_("Opening Document In Another Project"),msgDisplayed,nTotal,500);
+		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+		pStatusBar->StartProgress(_("Opening Document In Another Project"), msgDisplayed, nTotal);
 	}
 
 	if (extension == _T(".xml"))
 	{
 		// we have to input an xml document
-		bool bReadOK = ReadDoc_XML(thePath,this,pProgDlg,nTotal); // pProgDlg can be NULL
+		bool bReadOK = ReadDoc_XML(thePath,this,_("Opening Document In Another Project"),nTotal); // pProgDlg can be NULL
 		if (!bReadOK)
 		{
 			wxString s;
 			s = _(
 "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
 			wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-			if (pProgDlg != NULL)
-				pProgDlg->Destroy();
+			if (nTotal > 0)
+				pStatusBar->FinishProgress(_("Opening Document In Another Project"));
 			return FALSE; // return FALSE to tell caller we failed
 		}
 	}
@@ -3193,12 +3190,12 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 		wxMessageBox(_(
 		"Sorry, the wxWidgets version of Adapt It does not read legacy .adt document format; it only reads the .xml format.")
 		,fullFileName,wxICON_EXCLAMATION | wxOK);
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		if (nTotal > 0)
+			pStatusBar->FinishProgress(_("Opening Document In Another Project"));
 		return FALSE;
 	}
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
+	if (nTotal > 0)
+		pStatusBar->FinishProgress(_("Opening Document In Another Project"));
 	return TRUE;
 }
 
@@ -4562,8 +4559,9 @@ bool CAdapt_ItDoc::OnSaveModified()
 		wxString progMsg = _("Saving file %s - %d of %d Total words and phrases");
 		wxFileName fn(gpApp->m_curOutputFilename);
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-		wxProgressDialog* pProgDlg;
-		pProgDlg = gpApp->OpenNewProgressDialog(_("Saving File"),msgDisplayed,nTotal,500);
+		CStatusBar* pStatusBar = NULL;
+		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+		pStatusBar->StartProgress(_("Saving File"), msgDisplayed, nTotal);
 
 		// whm added 17Jan12 code block below which is parallel to OnFileSave() to
 		// save the collab files and do the DoFileSave_Protected() call too for AI's
@@ -4579,23 +4577,21 @@ bool CAdapt_ItDoc::OnSaveModified()
 			// 1. DoCollabFileSave() returns a bool as does DoFileSave_Protected() 
 			// and DoFileSave().
 			// 2. DoCollabFilesave() also calls DoFileSave_Protected(TRUE,pProgDlg)
-			bUserSavedDoc = DoCollabFileSave(pProgDlg,msgDisplayed);
+			bUserSavedDoc = DoCollabFileSave(_("Saving File"),msgDisplayed);
 		}
 		else
 		{
 			// Collaboration is OFF
-			bUserSavedDoc = DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show wait/progress dialog
+			bUserSavedDoc = DoFileSave_Protected(TRUE, _("Saving File")); // TRUE - show wait/progress dialog
 		}
 		if (!bUserSavedDoc)
 		{
 			wxMessageBox(_("Warning: document save failed for some reason.\n"),
 							_T(""), wxICON_EXCLAMATION | wxOK);
-			if (pProgDlg != NULL)
-				pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Saving File"));
 			return FALSE;       // don't continue
 		}
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Saving File"));
 		break;
 		}
 
@@ -4845,19 +4841,20 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// exceed the same maximum value (nTotal).
 	wxString msgDisplayed;
 	wxString progMsg;
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 	// add 1 chunk to insure that we have enough after int division above
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
 	
 	// Only show the progress dialog when there is at lease one chunk of data, AND we're wanting
 	//  to show progress dialogs just now.
 
+	CStatusBar* pStatusBar = NULL;
 	if (nTotal > 0 && gpApp->m_bShowProgress)
 	{
 		progMsg = _("Reading file %s - part %d of %d");
 		wxFileName fn(filename);
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-		pProgDlg = gpApp->OpenNewProgressDialog(_("Opening the Document"),msgDisplayed,nTotal,500);
+		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+		pStatusBar->StartProgress(_("Opening the Document"), msgDisplayed, nTotal);
 	}
 
 	// force m_bookName_Current to be empty -- it will stay empty unless set from what is
@@ -4879,7 +4876,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		wxFileName fn(thePath);
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
-		bool bReadOK = ReadDoc_XML(thePath,this, pProgDlg, nTotal); // pProgDlg can be NULL
+		bool bReadOK = ReadDoc_XML(thePath,this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
 		if (!bReadOK)
 		{
 			wxString s;
@@ -4896,8 +4893,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				gpApp->LogUserAction(s);
 				wxCommandEvent dummyevent;
 				OnFileOpen(dummyevent); // have another go, via the Start Working wizard
-				if (pProgDlg != NULL)
-					pProgDlg->Destroy();
+				if (nTotal > 0 && gpApp->m_bShowProgress)
+				{
+					pStatusBar->FinishProgress(_("Opening the Document"));
+				}
 				return TRUE;
 			}
 			else
@@ -4907,11 +4906,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				// IDS_XML_READ_ERR
 			s = _(
 "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-			wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-			gpApp->LogUserAction(s);
+				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+				gpApp->LogUserAction(s);
 			//}
-			if (pProgDlg != NULL)
-				pProgDlg->Destroy();
+			if (nTotal > 0 && gpApp->m_bShowProgress)
+			{
+				pStatusBar->FinishProgress(_("Opening the Document"));
+			}
 			return TRUE; // return TRUE to allow the user another go at it
 		}
 	}
@@ -4924,8 +4925,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
         // we are wanting is the list of CSourcePhrase instances.
 		gpApp->LogUserAction(_T("Return TRUE early from OnOpenDocument() m_bWantSourcePhrasesOnly"));
 		ValidateNoteStorage();
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		if (nTotal > 0 && gpApp->m_bShowProgress)
+		{
+			pStatusBar->FinishProgress(_("Opening the Document"));
+		}
 		return TRUE; // Added by JF.
 	}
 
@@ -4982,8 +4985,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		_T(""),wxICON_STOP);
 		wxASSERT(FALSE);
 		gpApp->LogUserAction(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"));
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		if (nTotal > 0 && gpApp->m_bShowProgress)
+		{
+			pStatusBar->FinishProgress(_("Opening the Document"));
+		}
 		wxExit();
 	}
 
@@ -4995,8 +5000,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),
 		fn.GetFullName(), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."));
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		if (nTotal > 0 && gpApp->m_bShowProgress)
+		{
+			pStatusBar->FinishProgress(_("Opening the Document"));
+		}
 		return FALSE;
 	}
 	pApp->m_pActivePile = GetPile(0); // a safe default for starters....
@@ -5068,8 +5075,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."),
 				_T(""), wxICON_EXCLAMATION | wxOK);
 				pApp->LogUserAction(_T("Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."));
-				if (pProgDlg != NULL)
-					pProgDlg->Destroy();
+				if (nTotal > 0 && gpApp->m_bShowProgress)
+				{
+					pStatusBar->FinishProgress(_("Opening the Document"));
+				}
 				return FALSE;
 			}
 			bool bSaveFlag = gpApp->m_bBookMode;
@@ -5259,8 +5268,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),pApp->m_curOutputPath.c_str());
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(msg);
-			if (pProgDlg != NULL)
-				pProgDlg->Destroy();
+			if (nTotal > 0 && gpApp->m_bShowProgress)
+			{
+				pStatusBar->FinishProgress(_("Opening the Document"));
+			}
 			pApp->OnExit();
 			return FALSE;
 		}
@@ -5277,8 +5288,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		enum wxKillError killErr;
 		int rv = ::wxKill(pid,wxSIGTERM,&killErr); // makes OnExit() be called
 		rv  = rv; // prevent compiler warning
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		if (nTotal > 0 && gpApp->m_bShowProgress)
+		{
+			pStatusBar->FinishProgress(_("Opening the Document"));
+		}
 
 		return FALSE;
 	}
@@ -5320,8 +5333,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		}
 	}
 
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
+	if (nTotal > 0 && gpApp->m_bShowProgress)
+	{
+		pStatusBar->FinishProgress(_("Opening the Document"));
+	}
 	return TRUE;
 }
 
@@ -6433,8 +6448,9 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
 	wxString progMsg = _("Pass 1 - %d of %d Total words and phrases");
 	msgDisplayed = progMsg.Format(progMsg,1,nOldTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = gpApp->OpenNewProgressDialog(_("Processing Filtering Change(s)"),msgDisplayed,nTotal,500);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Processing Filtering Change(s)"), msgDisplayed, nTotal);
 
 	// BEW added 29Jul09, turn off CLayout Draw() while strips and piles could get
 	// inconsistent with each other
@@ -7203,12 +7219,7 @@ h:						bool bIsInitial = TRUE;
 			++nOldCount;
 			if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
-				if (pProgDlg != NULL)
-				{
-					msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
-					pProgDlg->Update(nOldCount,msgDisplayed);
-					//::wxSafeYield();
-				}
+				pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
 			}
 
 			endingMkrsStr.Empty();
@@ -7252,19 +7263,14 @@ h:						bool bIsInitial = TRUE;
 			if (pSublist != NULL) // whm 11Jun12 added NULL test
 				delete pSublist;
 			pSublist = NULL;
-			if (pProgDlg != NULL)
-				pProgDlg->Destroy();
+			pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
 			return FALSE;
 		}
 		nOldCount = 0;
 
-		if (pProgDlg != NULL)
-		{
-			progMsg = _("Pass 2 - %d of %d Total words and phrases");
-			msgDisplayed = progMsg.Format(progMsg,1,nOldTotal);
-			pProgDlg->Update(nOldCount,msgDisplayed);
-			//::wxSafeYield();
-		}
+		progMsg = _("Pass 2 - %d of %d Total words and phrases");
+		msgDisplayed = progMsg.Format(progMsg,1,nOldTotal);
+		pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
 
         // the following variables are for tracking how the active sequence number has to
         // be updated after each span of material designated for filtering is filtered out
@@ -7352,12 +7358,8 @@ h:						bool bIsInitial = TRUE;
 				++nOldCount;
 				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 				{
-					if (pProgDlg != NULL)
-					{
-						msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
-							pProgDlg->Update(nOldCount,msgDisplayed);
-						//::wxSafeYield();
-					}
+					msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
+					pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
 				}
 
 				continue;
@@ -7386,12 +7388,8 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 				++nOldCount;
 				if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 				{
-					if (pProgDlg != NULL)
-					{
-						msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
-							pProgDlg->Update(nOldCount,msgDisplayed);
-						//::wxSafeYield();
-					}
+					msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
+					pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
 				}
 
 				continue;
@@ -8000,18 +7998,13 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			++nOldCount;
 			if (nOldCount % 200 == 0) //if (20 * (nOldCount / 20) == nOldCount)
 			{
-				if (pProgDlg != NULL)
-				{
-					msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
-						pProgDlg->Update(nOldCount,msgDisplayed);
-					//::wxSafeYield();
-				}
+				msgDisplayed = progMsg.Format(progMsg,nOldCount,nOldTotal);
+				pStatusBar->UpdateProgress(_("Processing Filtering Change(s)"), nOldCount, msgDisplayed);
 			}
 		} // end of loop for scanning contents of successive pSrcPhrase instances
 
 		// remove the progress indicator window
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Processing Filtering Change(s)"));
 
         // prepare for update of view... locate the phrase box approximately where it was,
         // but if that is not a valid location then put it at the end of the doc
@@ -8042,9 +8035,6 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 	// BEW added 29Jul09, turn back on CLayout Draw() so drawing of the view
 	// can now be done
 	GetLayout()->m_bInhibitDraw = FALSE;
-
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
 
 	return bSuccessful;
 }
@@ -16174,16 +16164,9 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	wxString progMsg = _("%s  - %d of %d Total words and phrases");
 	wxFileName fn(gpApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = (wxProgressDialog*)NULL;
-	if (gpApp->m_bProtectPackedInputsAndOutputsFolder)
-	{
-		// whm added 10Aug12. Put up progress dialog only when the packed inputs/outputs folder
-		// is protected, i.e., don't put up the progress dialog when a file dialog will appear
-		// because the progress dialog would generally overlay the file dialog. We want the file
-		// dialog to be unobscured.
-		pProgDlg = gpApp->OpenNewProgressDialog(_("Packing Document"),msgDisplayed,nTotal,500);
-	}
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Packing Document"), msgDisplayed, nTotal);
 
     // first character needs to be a 1 for the regular app doing the pack, or a 2 for the
     // Unicode app (as resulting from sizeof(wxChar) ) and the unpacking app will have to
@@ -16277,8 +16260,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		"Writing out the configuration file failed in OnFilePackDoc, command aborted\n"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("Writing out the configuration file failed in OnFilePackDoc, command aborted"));
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Packing Document"));
 		return FALSE;
 	}
 
@@ -16298,8 +16280,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	"Getting the configuration file's size failed in OnFilePackDoc, command aborted\n"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("Getting the configuration file's size failed in OnFilePackDoc, command aborted"));
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Packing Document"));
 		return FALSE;
 	}
 	f.Close(); // needed because in wx we opened the file
@@ -16312,7 +16293,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// due to a processing error.
 	if (!gpApp->m_bReadOnlyAccess)
 	{
-		bSavedOK = DoFileSave_Protected(FALSE, pProgDlg); // FALSE - don't show another wait/progress dialog
+		bSavedOK = DoFileSave_Protected(FALSE, _("Packing Document")); // FALSE - don't show another wait/progress dialog
 		// English error message will have been seen in the call, so just prevent the pack
 		// from proceeding further; but we don't expect a failure in DoFileSave_Protected()
 		if (!bSavedOK)
@@ -16351,8 +16332,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	"Getting the document file's size failed in OnFilePackDoc, command aborted\n"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("Getting the document file's size failed in OnFilePackDoc, command aborted"));
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Packing Document"));
 		return FALSE;
 	}
 	f.Close(); // needed for wx version which opened the file to determine its size
@@ -16387,8 +16367,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		gpApp->m_curProjectPath.c_str());
 		wxMessageBox(s,_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(s);
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Packing Document"));
 		return FALSE;
 	}
 	int nFileLength = nConfigFileSize; // our files won't require more than
@@ -16406,8 +16385,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		"Project file read was short, some data missed so abort the command\n"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("Project file read was short, some data missed so abort the command"));
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Packing Document"));
 		return FALSE;
 	}
 	f.Close(); // assume no errors
@@ -16430,8 +16408,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		docPath.c_str());
 		wxMessageBox(s,_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(s);
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Packing Document"));
 		return FALSE;
 	}
 	nFileLength = nDocFileSize; // our files won't require more than an int for the length
@@ -16444,8 +16421,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		"Document file read was short, some data missed so abort the command\n"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("Document file read was short, some data missed so abort the command"));
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
+		pStatusBar->FinishProgress(_("Packing Document"));
 		return FALSE;
 	}
 	f.Close(); // assume no errors
@@ -16566,10 +16542,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 			// user cancelled file dialog so return to what user was doing previously, because
 			// this means he doesn't want the Pack Document... command to go ahead
 			gpApp->LogUserAction(_T("Cancelled from DoPackDocument() at wxFileDialog()"));
-			if (pProgDlg != NULL)
-			{
-				pProgDlg->Destroy();
-			}
+			pStatusBar->FinishProgress(_("Packing Document"));
 			return FALSE;
 		}
 
@@ -16649,9 +16622,8 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 		// whm 20Aug11 note: no need to log success after "initiating" log entry in caller
 	}
 	// remove the progress dialog
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
-   return TRUE;
+	pStatusBar->FinishProgress(_("Packing Document"));
+	return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -21486,7 +21458,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // both the glossing and adapting KBs)
 				// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
 				// protection against data loss in the event of a failure
-				bool fsOK = DoFileSave_Protected(TRUE,NULL); // TRUE - show the wait/progress dialog
+				bool fsOK = DoFileSave_Protected(TRUE,_T("")); // TRUE - show the wait/progress dialog
 				if (!fsOK)
 				{
 					// something's real wrong!
@@ -21574,7 +21546,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					// both the glossing and adapting KBs)
 					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
 					// protection against data loss in the event of a failure
-					bool fsOK = DoFileSave_Protected (gpApp->m_bShowProgress, NULL);	// show the wait/progress dialog if needed
+					bool fsOK = DoFileSave_Protected (gpApp->m_bShowProgress, _T(""));	// show the wait/progress dialog if needed
 					if (!fsOK)
 					{
 						// something's real wrong!
@@ -23783,7 +23755,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
         // loop, as we don't want time wasted for a progress dialog for what are probably a
         // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
         // each doc file that we check in the currently accessed folder
-		bool bSavedOK = DoFileSave_Protected(FALSE,NULL); // FALSE - dodn't show wait/progress dialog
+		bool bSavedOK = DoFileSave_Protected(FALSE,_T("")); // FALSE - dodn't show wait/progress dialog
 		if (!bSavedOK)
 		{
 			wxMessageBox(_("Warning: failure on document save operation."),
@@ -24580,7 +24552,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
         // loop, as we don't want time wasted for a progress dialog for what are probably a
         // lot of short files. DoFileSave_Protected() computes pApp->m_curOutputPath for
         // each doc file that we check in the currently accessed folder
-		bool bSavedOK = DoFileSave_Protected(FALSE,NULL); // FALSE - dodn't show wait/progress dialog
+		bool bSavedOK = DoFileSave_Protected(FALSE,_T("")); // FALSE - dodn't show wait/progress dialog
 		if (!bSavedOK)
 		{
 			wxMessageBox(_("Warning: failure on document save operation."),

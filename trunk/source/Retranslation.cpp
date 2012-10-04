@@ -51,7 +51,6 @@
 #include "Adapt_It_Resources.h"
 #include <wx/dir.h> // for wxDir
 #include <wx/propdlg.h>
-#include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/busyinfo.h>
 #include <wx/print.h>
 #include <wx/dynlib.h> // for wxDynamicLibrary
@@ -76,6 +75,7 @@
 #include "Placeholder.h"
 #include "KB.h"
 #include "RetranslationDlg.h"
+#include "StatusBar.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // External globals
@@ -253,8 +253,9 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	wxString progMsg = _("%s  - %d of %d Total words and phrases");
 	wxFileName fn(m_pApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = m_pApp->OpenNewProgressDialog(_("Generating Retranslation Report..."),msgDisplayed,nTotal,500);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Generating Retranslation Report..."), msgDisplayed, nTotal);
 	
 	wxLogNull logNo; // avoid spurious messages from the system
 
@@ -267,8 +268,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	
 	progMsg = _("%s  - %d of %d Total words and phrases");
 	msgDisplayed = progMsg.Format(progMsg,name.c_str(),1,nTotal);
-	pProgDlg->Update(count,msgDisplayed);
-	//::wxSafeYield();
+	pStatusBar->UpdateProgress(_("Generating Retranslation Report..."), count, msgDisplayed);
 	
 	// whm 24Aug11 Note: The progress dialog is created on the heap back in
 	// the OnRetranslationReport(), and its pointer is pass along through
@@ -383,8 +383,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 		if (counter % 1000 == 0) 
 		{
 			msgDisplayed = progMsg.Format(progMsg,name.c_str(),counter,nTotal);
-			pProgDlg->Update(counter,msgDisplayed);
-			//::wxSafeYield();
+			pStatusBar->UpdateProgress(_("Generating Retranslation Report..."), counter, msgDisplayed);
 		}
 		
 		if (bStartOver)
@@ -392,7 +391,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	}
 	
 	// remove the progress indicator window
-	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(_("Generating Retranslation Report..."));
 	
 	if (count == 0)
 	{
@@ -483,7 +482,7 @@ void CRetranslation::AccumulateText(SPList* pList,wxString& strSource,wxString& 
 void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc, 
 										   wxString& name, wxArrayString* pFileList, 
 										   SPList* pList, wxFile* pFile,
-										   wxProgressDialog* pProgDlg)
+										   const wxString& progressItem)
 {
 	// whm 24Aug11 Note: This function received a pointer to the original
 	// wxProgressDialog created in the caller OnRetranslationReport(). It
@@ -581,9 +580,10 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 		// allow the view to respond again to updates
 		m_pApp->GetMainFrame()->canvas->Thaw();
 	}
+	// EDB 3 Oct 2012 -- commented this out; DoTranslationReport doesn't create the progress bar; should it be destroying it?
 	// remove the top level progress dialog
-	if (pProgDlg != NULL)
-		pProgDlg->Destroy();
+	//if (pProgDlg != NULL)
+	//	pProgDlg->Destroy();
 }
 
 
@@ -3959,8 +3959,9 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	wxString progMsg = _("%s  - %d of %d Total words and phrases");
 	wxFileName fn(m_pApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg;
-	pProgDlg = m_pApp->OpenNewProgressDialog(_("Generating Retranslation Report..."),msgDisplayed,nTotal,500);
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Generating Retranslation Report..."), msgDisplayed, nTotal);
 		
 	// whm 24Aug11 Note: A pointer to the wxProgressDialog created here on the heap
 	// gets passed to DoFileSave_Protected() and the DoRetranslationReport() functions
@@ -3974,7 +3975,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
         // bThisDocOnly is TRUE because the scanning loop in that case expects the doc to
         // be open
 		bDocForcedToClose = TRUE;
-		bool fsOK = pDoc->DoFileSave_Protected(TRUE, pProgDlg); // TRUE - show the wait/progress dialog
+		bool fsOK = pDoc->DoFileSave_Protected(TRUE, _("Generating Retranslation Report...")); // TRUE - show the wait/progress dialog
 		if (!fsOK)
 		{
 			// something's real wrong!
@@ -4073,7 +4074,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pFileList->IsEmpty()); // must be empty, 
 		// DoRetranslationReport() uses this as a flag
 		m_pApp->LogUserAction(_T("Executing DoRetranslationReport() on open doc"));
-		DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f,pProgDlg);
+		DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f,_("Generating Retranslation Report..."));
 	}
 	else
 	{
@@ -4124,7 +4125,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			}
 			// because of prior EnumerateDocFiles call, pFileList will have
 			// document filenames in it
-			DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f,pProgDlg);
+			DoRetranslationReport(pDoc,docName,pFileList,m_pApp->m_pSourcePhrases,&f,_("Generating Retranslation Report..."));
 		}
 		
 		// now do the book folders, if there are any
@@ -4241,7 +4242,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 							// There are files to be processed. TRUE parameter suppresses 
 							// the statistics dialog.
 							DoRetranslationReport(pDoc,docName,pFileList,
-												  m_pApp->m_pSourcePhrases,&f,pProgDlg);
+												  m_pApp->m_pSourcePhrases,&f, _("Generating Retranslation Report..."));
 							// restore parent folder as current
 							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptionsPath);
 							// the wxASSERT() is a problem when using Freeze() and Thaw()
@@ -4273,7 +4274,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	}
 	
 	// remove the progress dialog
-	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(_("Generating Retranslation Report..."));
 	// close the file
 	f.Close();
 	

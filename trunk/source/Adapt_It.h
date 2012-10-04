@@ -220,7 +220,6 @@ const wxString appVerStr(_T("6.3.1"));
 #include <wx/file.h>
 #include <wx/ffile.h>
 #include <wx/mstream.h> // edb 08June2012 - add for embedded .png support
-#include <wx/progdlg.h> // for wxProgressDialog style #defines
 
 // Does wxWidgets recognize/utilize these clipboard defines???
 #ifdef _UNICODE
@@ -3759,13 +3758,7 @@ public:
 	bool RestoreSelection(bool bRestoreCCellsFlagToo = FALSE);
 	void ClearSavedSelection(); // only makes the above 3 ints have the value -1
 
-	// for wxProgressDialog support
 	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);
-	wxProgressDialog* OpenNewProgressDialog(wxString progTitle,wxString msgDisplayed,
-		const int nTotal,
-		const int width,
-		int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE);
-
 	// for localization support
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist();

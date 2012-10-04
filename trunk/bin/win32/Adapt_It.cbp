@@ -43,6 +43,7 @@
 					<Add option="/DEBUG" />
 					<Add option="/MACHINE:I386" />
 					<Add option="/pdb:.\Debug\Adapt_It.pdb" />
+					<Add library="wxmsw$(WXVER)d_aui" />
 					<Add library="wxmsw$(WXVER)d_adv" />
 					<Add library="wxmsw$(WXVER)d_html" />
 					<Add library="wxmsw$(WXVER)d_core" />
@@ -113,6 +114,7 @@
 					<Add option="/MACHINE:I386" />
 					<Add option="/INCREMENTAL:NO" />
 					<Add option="/pdb:.\Release\Adapt_It.pdb" />
+					<Add library="wxmsw$(WXVER)_aui" />
 					<Add library="wxmsw$(WXVER)_adv" />
 					<Add library="wxmsw$(WXVER)_html" />
 					<Add library="wxmsw$(WXVER)_core" />
@@ -184,6 +186,7 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/DEBUG" />
+					<Add library="wxmsw$(WXVER)ud_aui" />
 					<Add library="wxmsw$(WXVER)ud_adv" />
 					<Add library="wxmsw$(WXVER)ud_html" />
 					<Add library="wxmsw$(WXVER)ud_core" />
@@ -248,6 +251,7 @@
 				</ResourceCompiler>
 				<Linker>
 					<Add option="/INCREMENTAL:NO" />
+					<Add library="wxmsw$(WXVER)u_aui" />
 					<Add library="wxmsw$(WXVER)u_adv" />
 					<Add library="wxmsw$(WXVER)u_html" />
 					<Add library="wxmsw$(WXVER)u_core" />
@@ -499,6 +503,8 @@
 		<Unit filename="..\..\source\Stack.h" />
 		<Unit filename="..\..\source\StartWorkingWizard.cpp" />
 		<Unit filename="..\..\source\StartWorkingWizard.h" />
+		<Unit filename="..\..\source\StatusBar.cpp" />
+		<Unit filename="..\..\source\StatusBar.h" />
 		<Unit filename="..\..\source\Strip.cpp" />
 		<Unit filename="..\..\source\Strip.h" />
 		<Unit filename="..\..\source\TargetUnit.cpp" />
