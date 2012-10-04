@@ -10,7 +10,20 @@
 /// \description	This is the implementation file for the CStatusBar class.
 /// The CStatusBar class extends the wxStatusBar and provides support for a
 /// progress bar in the status bar area along with the status texts.
-/// \derivation		wxStstusBar
+/// The progress bar represents the total progress of ALL long-running tasks;
+/// this allows for multiple items to be worked on at once without getting
+/// in the way of dialogs, etc.
+/// Use the following methods to control the CStatusBar:
+/// 1. StartProgress(): adds a long-running task to the internal list; if the
+///					progress bar isn't visible, this call will display it.
+/// 2. UpdateProgress(): updates the current value and message for the specified
+///					task. 
+/// 3. FinishProgress(): completes work on the specified task. If the task is
+///					the last one being worked on, the internal progress bar counters
+///					are reset and the progress bar is hidden; if not, the
+///					progress bar values are adjusted to reflect the task's 
+///					completion and the task is removed from the internal list.
+/// \derivation		wxStatusBar
 /////////////////////////////////////////////////////////////////////////////
 
 // For compilers that support precompilation, includes "wx.h".
@@ -43,6 +56,11 @@ END_EVENT_TABLE()
 // CProgressItem
 // ----------------------------------------------------------------------------
 
+///////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Constructor (CProgressItem destructor is in the the header - StatusBar.h)
+///////////////////////////////////////////////////////////////////////////////////////
 CProgressItem::CProgressItem(const wxString& title, const wxString& message, int maximum)
 {
 	m_title = title;
@@ -55,6 +73,11 @@ CProgressItem::CProgressItem(const wxString& title, const wxString& message, int
 // CStatusBar
 // ----------------------------------------------------------------------------
 
+///////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Constructor
+///////////////////////////////////////////////////////////////////////////////////////
 CStatusBar::CStatusBar(wxWindow *parent)
            : wxStatusBar(parent, wxID_ANY)
 {
@@ -67,6 +90,11 @@ CStatusBar::CStatusBar(wxWindow *parent)
 	m_Gauge->Hide(); // hide the gauge initially
 }
 
+///////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Destructor
+///////////////////////////////////////////////////////////////////////////////////////
 CStatusBar::~CStatusBar()
 {
 }
@@ -78,7 +106,8 @@ CStatusBar::~CStatusBar()
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Resize event handler
+/// Resize event handler. Redraws the progress bar (m_Gauge) at the far right field 
+/// of the status bar.
 ///////////////////////////////////////////////////////////////////////////////////////
 void CStatusBar::OnSize(wxSizeEvent& event)
 {
@@ -101,7 +130,6 @@ void CStatusBar::OnSize(wxSizeEvent& event)
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: lots of places
 /// Adds a long-running task (a ProgressItem object) to the internal PIArray. This 
 /// ProgressItem object contains a similar set of data as the wxProgressDialog -- title,
 /// current status message, current value and maximum value (or range).
@@ -132,7 +160,7 @@ void CStatusBar::StartProgress(const wxString& title, const wxString& message, i
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     true if succeeded
 /// \remarks
-/// Update the progress on the item specified by const wxString& title. If found, the
+/// Updates the progress on the item specified by const wxString& title. If found, the
 /// ProgressItem is updated, as is the embedded Progress Bar. Note that UpdateProgress
 /// DOES NOT clear out the ProgressItem (or the Progress Bar) if the value has reached
 /// its maximum. Callers need to make a separate call to FinishProgress() to clean up
@@ -196,23 +224,6 @@ void CStatusBar::FinishProgress(const wxString& title)
 	}
 	// refresh the UI
 	Update();
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \remarks
-/// Updates the progress message of the specified item, as well as the tooltip text
-/// for the embedded progress bar.
-///////////////////////////////////////////////////////////////////////////////////////
-void CStatusBar::SetProgressMessage(const wxString& title, const wxString& message)
-{
-	int index = FindProgressItem(title);
-	if (index >= 0)
-	{
-		m_items.Item(index)->SetMessage(message);
-		// update the progress bar
-		m_Gauge->SetToolTip(message);
-	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
