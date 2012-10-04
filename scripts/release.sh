@@ -181,8 +181,8 @@ for i in $OSRELEASES; do
   [ -f ${PBUILDFOLDER}/$i-i386-base.tgz ] || pbuilder-$i-i386 create
 
   # Update and clean pbuilder chroots, add extra packages so A05suffix hook works
-  pbuilder-$i update --extrapackages '"lsb-release devscripts"'
-  pbuilder-$i-i386 update --extrapackages '"lsb-release devscripts"'
+  pbuilder-$i update --extrapackages "lsb-release devscripts"
+  pbuilder-$i-i386 update --extrapackages "lsb-release devscripts"
   pbuilder-$i clean
   pbuilder-$i-i386 clean
 
