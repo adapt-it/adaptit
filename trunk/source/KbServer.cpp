@@ -48,6 +48,7 @@
 #include "Xhtml.h"
 #include "KbServer.h"
 
+#include "json_defs.h"
 #include "jsonreader.h"
 #include "jsonwriter.h"
 #include "jsonval.h"
