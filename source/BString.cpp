@@ -36,7 +36,7 @@
 
 //#include "stdafx.h"
 #include "Adapt_It.h"
-//#include "BString.h"
+#include "BString.h"
 
 // the following typedefs allow my Palm OS integer types to be used unchanged
 typedef short unsigned int UInt16;

@@ -304,7 +304,7 @@ class Guesser;
 // forward for Admin Help
 class CHtmlFileViewer;
 
-#include "BString.h"
+//#include "BString.h"
 
 #if defined(_DEBUG) && defined(__WXGTK__)
 // forward reference that ties a Log Debug (normal) window, always on top, to the wx logging output
@@ -2673,8 +2673,10 @@ private:
 	KbServer* m_pKbServer;
 public:
 	KbServer* GetKbServer(); // getter for m_pKbServer
-	void SetKbServer(KbServer* pKbServer); //setter for m_pKbServer
-	void DeleteKbServer();
+	void	  SetKbServer(KbServer* pKbServer); //setter for m_pKbServer
+	void	  DeleteKbServer();
+	bool	  SetupForKBServer();
+	bool	  ReleaseKBServer();
 
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
@@ -2684,38 +2686,6 @@ public:
 	// .kbserver in the project folder, probably a JSON encoded data.
 	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
 									  // sharing kb data between clients in the same AI project
-	// access credentials, KB type (1 or 2, 1 is adapting KB, 2 is glossing KB), and lastsync
-	// date&time from the following members: 
-	// 
-	// (*** TODO **** remove the following five later when KbServer class is coded)
-	
-	//int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
-	// BEW 3Oct12, change to using CBString instead of wxString
-	//CBString	m_kbServerURL;
-	//CBString	m_kbServerUsername;
-	//CBString	m_kbServerPassword; // we never store this, the user has to remember it 
-	//CBString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
-	/*
-	wxString	m_kbServerURL;
-	wxString	m_kbServerUsername;
-	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
-	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
-	*/
-	// the iso639 2-letter or 3-letter codes are stored (already) in m_sourceLanguageCode,
-	// m_targetLanguageCode, and m_glossesLanguageCode; so we use those. The RFC codes
-	// below, if empty, are not used; but if not empty and contain validated RFC5646
-	// language codes, they are used instead of the previously mentioned ones.
-	// 
-	// Jonathan thinks we should only have a single text box for each language, which can
-	// have an iso639 code, or an RFC5646 code if necessary (eg. when otherwise source and
-	// target dialects would have the same code) - if we use that design, then separate
-	// boxes are not required, and we can programmatically extra the iso639 code for LIFT
-	// or XHTML or Pathway exports if any of the boxes has more than the iso639 code, so
-	// comment out the following 3 members until such time as we determine they really are
-	// needed.
-	//wxString	m_kbServerSrcRFC5646Code;
-	//wxString	m_kbServerTgtRFC5646Code;
-	//wxString	m_kbServerGlossesRFC5646Code;
 	
 #endif // for _KBSERVER
 
@@ -3772,29 +3742,6 @@ public:
 	wxString GetStoredTargetText_PreEdit();
 	wxString GetStoredFreeTransText_PreEdit();
 	// end of collaboration declarations
-
-#if defined(_KBSERVER)
-	// Functions for kbserver support
-	// Setup is typically done
-	// BEW 3Oct12, changed to use CBString rather than wxString
-	bool     SetupForKBServer();
-	//int		 GetKBTypeForServer();
-	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
-	//wxString GetLastSyncDateTime();
-	//CBString GetLastSyncDateTime();
-	//bool	 GetCredentials(wxString& url, wxString& username, wxString& password);
-	
-	bool	 ReleaseKBServer();
-	//bool	 SetLastSyncDateTime(wxString datetime);
-	bool	 SetLastSyncDateTime(CBString datetime);
-	bool	 StoreLastSyncDateTime();
-	bool	 CheckForLanguageCodes(bool bRequireGlossesLanguageCode = FALSE);
-	bool	 IsGlossingKBPopulatedOrGlossingModeON();
-	//wxString GetKBServerPassword();
-	CBString GetKBServerPassword();
-
-	// end of Functions for kbserver support
-#endif
 
 	// BEW added 6Aug2012 for maintaining a book name (user defined, although a suggestion
 	// is offered) in each document that has a valid bookID. This is needed for XHTML and

@@ -14620,7 +14620,58 @@ void CAdapt_ItApp::DeleteKbServer()
 	m_pKbServer = NULL;
 }
 
-#endif
+// Call SetupForKBServer() when re-opening a project which has been designated earlier as
+// associating with a kbserver (ie. m_bKBServerProject is TRUE after the project's
+// configuration file has been read), or when the user, in the GUI, designates the current
+// project as being a kb sharing one. Return TRUE for a successful setup, FALSE if
+// something was not right and in that case don't perform a setup.
+// BEW 3Oct12, changed from using wxString to using CBString
+bool CAdapt_ItApp::SetupForKBServer()
+{
+	// instantiate the KbServer class
+	SetKbServer(new KbServer(this));
+
+	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
+	if (GetKbServer() == NULL)
+	{
+		// a message has been seen
+		return FALSE;
+	}
+	// all's well
+	return TRUE;
+}
+
+// Return TRUE if there was no error, FALSE otherwise. The function is used for doing
+// cleanup, and any needed making of data persistent between adapting sessions within a
+// project which is a KB sharing project, when the user exits the project or Adapt It is
+// shut down.
+bool CAdapt_ItApp::ReleaseKBServer()
+{
+	KbServer* pKbSvr = GetKbServer(); // beware, may return NULL
+
+	// ensure the m_kbServerLastSync datetime value is stored to permanent storage (which
+	// temporarily is in lastsync.txt in the project folder)
+	bool bOK = pKbSvr->ExportLastSyncDateTime();
+
+	if (pKbSvr != NULL)
+	{
+		DeleteKbServer(); // do cleanup in the destructor, and especially, making
+						  // the lastsync datetime value received from the kbserver
+						  // persistent
+		SetKbServer(NULL);
+	}
+
+	// ************ NOTE NOTE NOTE *******************
+	// If we find we need to do any last minute kbserver accesses to get any pending
+	// uploads and/or downloads done before release (since EraseKB() is typically called
+	// after ReleaseKBServer() returns, and EraseKB() doesn't update the KB on disk before
+	// it does it's erasure of the in-memory copy of the KB), so we should do those final
+	// things above and put code to SAVE THE KB which is active RIGHT HERE!
+	return bOK;
+}
+
+
+#endif // for _KBSERVER
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all goes well, FALSE if there was something that causes premature exit
