@@ -24,7 +24,7 @@
 // temporarily, while we need #if defined(_KBSERVER) from Adapt_It.h, #includle the latter
 // here, and when we don't need the conditional compilation, remove the next line and
 // uncomment out the forward declaration class CAdapt_ItApp a little further down
-#include "Adapt_It.h"
+#include "Adapt_It.h" // this #includes json_defs.h
 
 #if defined(_KBSERVER)
 
@@ -36,11 +36,11 @@ class CRefStringMetadata;
 class CRefString;
 class CBString;
 
-enum KBType
-{
-    adaptingKB,
-    glossingKB
-};
+//enum KBType
+//{
+//    adaptingKB,
+//    glossingKB
+//};
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast

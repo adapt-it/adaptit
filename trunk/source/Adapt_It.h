@@ -237,6 +237,11 @@ const wxString appVerStr(_T("6.3.1"));
 #include "scrollingdialog.h"
 #endif
 
+#if defined(_KBSERVER)
+// for wxJson support
+#include "json_defs.h"
+#endif
+
 #include "PhraseBox.h"
 #include "FindReplace.h"
 #include "Retranslation.h"
