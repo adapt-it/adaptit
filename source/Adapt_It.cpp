@@ -219,7 +219,6 @@
 #include "GetSourceTextFromEditor.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
-#include "DVCS.h"
 
 #if defined (_KBSERVER)
 #include "KbServer.h"
@@ -14689,9 +14688,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_trialRevNum = -1;			// negative means no trial going on - the normal case
 	
 	m_bShowProgress = TRUE;		// normal default
-	
-	m_pDVCS = new (DVCS);		// instantiate the single DVCS object, giving access to the
-								//  various DVCS operations
 
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
@@ -20001,9 +19997,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// test KbServer API functions
 	m_pKbServer = new KbServer(this);
+	wxString srcText2 = _T("niuspepa");
 	wxString srcText = _T("giaman");
 	wxString tgtText = _T("untrue");
-	m_pKbServer->LookupEntryForSourcePhrase( srcText );
+	m_pKbServer->LookupEntryForSourcePhrase( srcText2 );
+	//m_pKbServer->LookupEntryForSourcePhrase( srcText );
 	int result = m_pKbServer->SendEntry(srcText,tgtText);
 	delete m_pKbServer;
 
