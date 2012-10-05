@@ -496,9 +496,11 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	CBString colon(':'); // CBString slash = '/'; by means of C++ implicit conversion
 	CBString kbType;
 	wxItoa(SetKBTypeForServer(),kbType);
+	CBString tblname = "entry";
 
-	charUrl = GetServerURL() + slash + GetSourceLanguageCode() + slash + GetTargetLanguageCode() +
-					slash + kbType + slash + m_pApp->Convert16to8(wxStr_SourceEntry); 
+	charUrl = GetServerURL() + slash + tblname + slash+ GetSourceLanguageCode() + 
+					slash + GetTargetLanguageCode() + slash + kbType + slash + 
+					m_pApp->Convert16to8(wxStr_SourceEntry); 
 	charUserpwd = GetServerUsername() + colon + GetServerPassword();
 	
 	// curl_global_init(CURL_GLOBAL_ALL); BEW moved this to KbServer creator, only needs to be called once
