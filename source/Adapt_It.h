@@ -73,6 +73,7 @@ enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY,
 		DVCS_LATEST_REVISION, DVCS_PREV_REVISION };
 				// More to be added as they come up
 
+class DVCS;		// class of the object giving access to the DVCS operations
 
 
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
@@ -2138,6 +2139,9 @@ public:
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
 										// m_owner and m_AIuser must match before a commit is allowed,
 										// unless either is "no owner".
+	
+	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
+
 
 	/////////////////////////////////////////////////////////////////////////////////
     // Variable declarations moved here from the View because the wxWidgets doc/view

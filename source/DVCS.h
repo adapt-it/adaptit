@@ -16,9 +16,47 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "DocPage.h"
+    #pragma interface "DVCS.h"
 #endif
 
-int  CallDVCS ( int action, int parm );
+/*	As of Oct 2012 we're trying to make the project as nicely OOP as we can, so although the
+	DVCS stuff is very simple conceptually and doesn't need to maintain state between calls,
+	we'll make it a class, which should only have one object.
+*/
+
+class DVCS : public wxObject
+{
+public:
+	DVCS (void);		// constructor
+	~DVCS (void);		// destructor
+
+	int DoDVCS ( int action, int parm );		// all DVCS operations are done via this function
+
+private:		// class variables
+	CAdapt_ItApp*	m_pApp;
+	wxString		hg_command, hg_options, hg_arguments;
+	wxArrayString	hg_output;
+	int				hg_count, hg_lineNumber;
+
+
+
+protected:		// internal functions
+
+	int  call_hg ( bool bDisplayOutput );
+	int  init_repository ();
+	int  add_file (wxString fileName);
+	int  add_all_files();
+	int  remove_file (wxString fileName);
+	int  remove_project();
+	int  get_prev_revision ( bool bFirstTime, wxString fileName );
+	bool  commit_valid();
+	int  commit_file (wxString fileName);
+	int  commit_project();
+	int  log_file (wxString fileName);
+	int  log_project();
+	int  revert_to_revision ( int revision );
+
+};
+
 
 #endif /* DVCS_h */
