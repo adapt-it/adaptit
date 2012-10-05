@@ -19999,6 +19999,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// **** test code fragments here ****
 
+	// test KbServer API functions
+	m_pKbServer = new KbServer(this);
+	wxString srcText = _T("giaman");
+	wxString tgtText = _T("untrue");
+	m_pKbServer->LookupEntryForSourcePhrase( srcText );
+	int result = m_pKbServer->SendEntry(srcText,tgtText);
+	delete m_pKbServer;
+
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes

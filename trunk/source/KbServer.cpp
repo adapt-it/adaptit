@@ -126,6 +126,10 @@ KbServer::KbServer()
 		return;
 	}
 
+	// initialize curl (the second bit flag only has an effect on Windows plaform - so
+	// sockets will work correctly)
+	curl_global_init(CURL_GLOBAL_ALL | CURL_GLOBAL_WIN32);
+
 }
 
 KbServer::KbServer(CAdapt_ItApp* pApp)
@@ -197,10 +201,10 @@ void KbServer::ErasePassword()
 	m_kbServerPassword.Empty();
 }
 
-int	KbServer::GetKBTypeForServer()
-{
-	return m_kbTypeForServer;
-}
+//int	KbServer::GetKBTypeForServer()
+//{
+//	return m_kbTypeForServer;
+//}
 
 // these return CBString
 CBString KbServer::GetServerURL()
@@ -230,35 +234,16 @@ CBString KbServer::GetTargetLanguageCode()
 }
 
 
-/// If KBs have not been loaded, return false. If the loads have not been done, m_pKB and m_pGlossingKB will be still
-/// NULL, and m_bKBReady and m_bGlossingKBReady will both be FALSE - the latter two
-/// conditions are how we test for bad placement.
-bool KbServer::SetKBTypeForServer()
+/// Returns 1 if user is in adapting mode (the KB which is active is the adapting KB), or
+/// 2 if in glossing mode (the glossing KB is then active)
+int KbServer::SetKBTypeForServer()
 {
-	//note: similar code above can be removed when this is tested
-	m_kbTypeForServer = 1; // default is to assume adapting KB is wanted
+	// default is to assume adapting KB is wanted
 	if (gbIsGlossing)
 	{
-		m_kbTypeForServer = 2;
+		return 2; // for glossingKB
 	}
-/*
-	// the two KBs must have been successfully loaded
-	if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
-	{
-		if (gbIsGlossing)
-		{
-			m_kbTypeForServer = 2;
-		}
-	}
-	else
-	{
-		// warn developer that the logic is wrong
-		wxString msg = _T("GetKBTypeForServer()called in SetupForKBServer(): Logic error, m_bKBReady and m_bGlossingKBReady are not both TRUE yet. Fix this!");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		return false;
-	}
-*/	
-	return true;	
+	return 1; // for adaptingKB
 }
 
 // Return FALSE if pf not successfully opened, in which case the parent does not need to
@@ -510,13 +495,13 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	CBString slash('/'); // the same CBString constructor also supports the syntax
 	CBString colon(':'); // CBString slash = '/'; by means of C++ implicit conversion
 	CBString kbType;
-	wxItoa(GetKBTypeForServer(),kbType);
+	wxItoa(SetKBTypeForServer(),kbType);
 
 	charUrl = GetServerURL() + slash + GetSourceLanguageCode() + slash + GetTargetLanguageCode() +
 					slash + kbType + slash + m_pApp->Convert16to8(wxStr_SourceEntry); 
 	charUserpwd = GetServerUsername() + colon + GetServerPassword();
 	
-	curl_global_init(CURL_GLOBAL_ALL); 
+	// curl_global_init(CURL_GLOBAL_ALL); BEW moved this to KbServer creator, only needs to be called once
 	curl = curl_easy_init(); 
 	
 	if (curl) {
@@ -538,6 +523,79 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 
 	return str_CURLbuffer;
 }
+
+int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
+{
+	CURL *curl;
+	CURLcode result; // result code
+	CBString charUrl;
+	CBString charUserpwd;
+	struct curl_slist* headers = NULL;
+	CBString slash('/');
+	CBString colon(':');
+	CBString kbType;
+	wxItoa(SetKBTypeForServer(),kbType);
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store utf-8 form of the jsonval object
+	CBString tblname = "entry";
+
+	charUserpwd = GetServerUsername() + colon + GetServerPassword();
+
+	// populate the JSON object (encoded as utf-8)
+	char mystr[] = "";
+	strcpy(mystr,(char*)GetSourceLanguageCode());
+	jsonval[_T("sourcylanguage")] = mystr;
+	jsonval[_T("sourcelanguage")].Append((char*)GetSourceLanguageCode());
+	jsonval[_T("target")] = "mytarget";
+
+	jsonval[_T("targetlanguage")].Append((char*)GetTargetLanguageCode());
+
+	/*
+	jsonval[_T("targetlanguage")] = (char*)GetTargetLanguageCode();
+	jsonval[_T("source")] = (char*)m_pApp->Convert16to8(srcPhrase);
+	jsonval[_T("target")] = (char*)m_pApp->Convert16to8(tgtPhrase);
+	jsonval[_T("user")] = (char*)GetServerUsername();
+	jsonval[_T("type")] = (char*)kbType;
+	*/
+	// convert it to string form
+	wxJSONWriter writer; wxString str;
+	writer.Write(jsonval, str);
+	// convert it to utf-8 stored in CBString
+	strVal = m_pApp->Convert16to8(str);
+
+	charUrl = GetServerURL() + slash + tblname + slash; 
+	
+	// prepare curl
+	curl = curl_easy_init(); 
+	
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		headers = curl_slist_append(headers, "Accept: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L); 
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+
+		result = curl_easy_perform(curl);
+
+		if (result) {
+			printf("Result code: %d\n", result);
+		} 
+		curl_easy_cleanup(curl);
+	}
+
+	return 0;
+}
+
+
+
 
 
 //=============================== end of KbServer class ============================
