@@ -19994,17 +19994,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedAppInitialization = TRUE;
 
 	// **** test code fragments here ****
-
+/*
 	// test KbServer API functions
 	m_pKbServer = new KbServer(this);
 	wxString srcText2 = _T("niuspepa");
 	wxString srcText = _T("giaman");
 	wxString tgtText = _T("untrue");
-	m_pKbServer->LookupEntryForSourcePhrase( srcText2 );
-	//m_pKbServer->LookupEntryForSourcePhrase( srcText );
-	int result = m_pKbServer->SendEntry(srcText,tgtText);
+	//m_pKbServer->LookupEntryForSourcePhrase( srcText2 ); // works
+	//m_pKbServer->LookupEntryForSourcePhrase( srcText ); // returns english error message in str_CURLbuffer
+	int result = m_pKbServer->SendEntry(srcText,tgtText); // wxJson not behaving yet
 	delete m_pKbServer;
-
+*/
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes

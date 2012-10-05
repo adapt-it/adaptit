@@ -43,7 +43,7 @@ class CBString;
 //};
 
 /// This global is defined in Adapt_It.cpp.
-extern CAdapt_ItApp* gpApp; // if we want to access it fast
+//extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
 /// The CRefString class stores the target text adaptation typed
 /// by the user for a given source word or phrase. It also keeps
@@ -68,7 +68,7 @@ public:
 	int			SendEntry(wxString srcPhrase, wxString tgtPhrase); // srcPhrase & tgtPhrase are often each just a single word
 
 	// public getters & setters
-	CBString ImportLastSyncDateTime(); // imports the datetime ascii string literal 
+	wxString ImportLastSyncDateTime(); // imports the datetime ascii string literal 
 									   // in lastsync.txt file & returns it as CBString
 	bool	 ExportLastSyncDateTime(); // exports it, temporarily, to lastsync.txt file
 									   // as an ascii string literal
@@ -80,52 +80,34 @@ protected:
 	// the following getters temporarily access data in creditials.txt and lastsync.txt
 	// files; they will remain in the final version but their internals will access
 	// whatever we decide should be the permanent server-related info storage
-	bool     GetCredentials(CBString& url, CBString& username, CBString& password); // *** TODO *** later, remove 3rd param
+	bool     GetCredentials(wxString& url, wxString& username, wxString& password); // *** TODO *** later, remove 3rd param
 	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
+
+	// two useful utilities for string encoding conversions (Xhtml.h & .cpp has the same)
+	CBString ToUtf8(const wxString& str);
+	wxString ToUtf16(CBString& bstr);
+
 
 private:
 	// class variables
 	CAdapt_ItApp* m_pApp;
-	//CKB* m_pMyKB;
-	//CKB* m_pMyGlossingKB;
 	
 	// the following 5 are used for setting up the https transport of data to/from the kbserver
-	//int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
-	CBString	m_kbServerURLBase;
-	CBString	m_kbServerUsername;
-	CBString	m_kbServerPassword; // we never store this, the user has to remember it 
-	CBString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
-	// since we use ASCII for the curl calls, it makes sense to store with CBString not wxString
-	/*
 	wxString	m_kbServerURLBase;
 	wxString	m_kbServerUsername;
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
-	*/
-
 
 	// private member functions
 	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
 
-
-	//CKB* SetKB(enum KBType currentKBType);
-	CBString GetServerURL();
-	CBString GetServerUsername();
-	CBString GetServerPassword();
-	CBString GetServerLastSync();
-	CBString GetSourceLanguageCode();
-	CBString GetTargetLanguageCode();
-	CBString GetKBServerPassword(); // currently just a stub
-	// since we use ASCII for the curl calls, it makes sense to return a CBString not a wxString
-	/*
 	wxString GetServerURL();
 	wxString GetServerUsername();
 	wxString GetServerPassword();
 	wxString GetServerLastSync();
 	wxString GetSourceLanguageCode();
 	wxString GetTargetLanguageCode();
-	*/
-	//int		 GetKBTypeForServer();
+	wxString GetKBServerPassword(); // currently just a stub
 
 	int     SetKBTypeForServer(); // returns 1 or 2
 
