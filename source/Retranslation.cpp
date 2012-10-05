@@ -255,7 +255,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	CStatusBar* pStatusBar = NULL;
 	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
-	pStatusBar->StartProgress(_("Generating Retranslation Report..."), msgDisplayed, nTotal);
+	pStatusBar->StartProgress(_("Generating Report..."), msgDisplayed, nTotal);
 	
 	wxLogNull logNo; // avoid spurious messages from the system
 
@@ -268,7 +268,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	
 	progMsg = _("%s  - %d of %d Total words and phrases");
 	msgDisplayed = progMsg.Format(progMsg,name.c_str(),1,nTotal);
-	pStatusBar->UpdateProgress(_("Generating Retranslation Report..."), count, msgDisplayed);
+	pStatusBar->UpdateProgress(_("Generating Report..."), count, msgDisplayed);
 	
 	// whm 24Aug11 Note: The progress dialog is created on the heap back in
 	// the OnRetranslationReport(), and its pointer is pass along through
@@ -383,7 +383,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 		if (counter % 1000 == 0) 
 		{
 			msgDisplayed = progMsg.Format(progMsg,name.c_str(),counter,nTotal);
-			pStatusBar->UpdateProgress(_("Generating Retranslation Report..."), counter, msgDisplayed);
+			pStatusBar->UpdateProgress(_("Generating Report..."), counter, msgDisplayed);
 		}
 		
 		if (bStartOver)
@@ -391,7 +391,7 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	}
 	
 	// remove the progress indicator window
-	pStatusBar->FinishProgress(_("Generating Retranslation Report..."));
+	pStatusBar->FinishProgress(_("Generating Report..."));
 	
 	if (count == 0)
 	{
@@ -484,9 +484,7 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 										   SPList* pList, wxFile* pFile,
 										   const wxString& progressItem)
 {
-	// whm 24Aug11 Note: This function received a pointer to the original
-	// wxProgressDialog created in the caller OnRetranslationReport(). It
-	// passes the pointer along to the DoOneDocReport() calls below.
+	CStatusBar* pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
 	if (pFileList->IsEmpty())
 	{
 		
@@ -575,15 +573,15 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 					m_pApp->m_pBuffer = NULL;
 				}
 			}
+			// update the progress bar
+			pStatusBar->UpdateProgress(progressItem,(i + 1));
 		}
 		
 		// allow the view to respond again to updates
 		m_pApp->GetMainFrame()->canvas->Thaw();
 	}
-	// EDB 3 Oct 2012 -- commented this out; DoTranslationReport doesn't create the progress bar; should it be destroying it?
 	// remove the top level progress dialog
-	//if (pProgDlg != NULL)
-	//	pProgDlg->Destroy();
+	pStatusBar->FinishProgress(progressItem);
 }
 
 
@@ -3962,11 +3960,6 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	CStatusBar* pStatusBar = NULL;
 	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
 	pStatusBar->StartProgress(_("Generating Retranslation Report..."), msgDisplayed, nTotal);
-		
-	// whm 24Aug11 Note: A pointer to the wxProgressDialog created here on the heap
-	// gets passed to DoFileSave_Protected() and the DoRetranslationReport() functions
-	// below. The progress dialog is only destroyed at the end of this 
-	// OnRetranslationReport() function.
 	
 	bool bDocForcedToClose = FALSE;
 	if ((!m_pApp->m_pSourcePhrases->GetCount() == 0) && !bThisDocOnly)
@@ -3993,6 +3986,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			}
 			m_pApp->m_bRetransReportInProgress = FALSE;
 			m_pApp->GetMainFrame()->canvas->Thaw();
+			pStatusBar->FinishProgress(_("Generating Retranslation Report..."));
 			return;
 		}
 
@@ -4033,6 +4027,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		}
 		m_pApp->m_bRetransReportInProgress = FALSE;
 		m_pApp->GetMainFrame()->canvas->Thaw();
+		pStatusBar->FinishProgress(_("Generating Retranslation Report..."));
 		return; // just return since it is not a fatal error
 	}
 	
@@ -4121,6 +4116,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				}
 				m_pApp->m_bRetransReportInProgress = FALSE;
 				m_pApp->GetMainFrame()->canvas->Thaw();
+				pStatusBar->FinishProgress(_("Generating Retranslation Report..."));
 				return;
 			}
 			// because of prior EnumerateDocFiles call, pFileList will have
@@ -4164,6 +4160,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				}
 				m_pApp->m_bRetransReportInProgress = FALSE;
 				m_pApp->GetMainFrame()->canvas->Thaw();
+				pStatusBar->FinishProgress(_("Generating Retranslation Report..."));
 				return;
 			}
 			else
