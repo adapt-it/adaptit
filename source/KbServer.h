@@ -64,7 +64,8 @@ public:
 public:
 
 	// The API which we expose
-	wxString LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
+	wxString	LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
+	int			SendEntry(wxString srcPhrase, wxString tgtPhrase); // srcPhrase & tgtPhrase are often each just a single word
 
 	// public getters & setters
 	CBString ImportLastSyncDateTime(); // imports the datetime ascii string literal 
@@ -89,7 +90,7 @@ private:
 	//CKB* m_pMyGlossingKB;
 	
 	// the following 5 are used for setting up the https transport of data to/from the kbserver
-	int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
+	//int			m_kbTypeForServer; // 1 for an adaptations KB, 2 for a glosses KB
 	CBString	m_kbServerURLBase;
 	CBString	m_kbServerUsername;
 	CBString	m_kbServerPassword; // we never store this, the user has to remember it 
@@ -124,9 +125,9 @@ private:
 	wxString GetSourceLanguageCode();
 	wxString GetTargetLanguageCode();
 	*/
-	int		 GetKBTypeForServer();
+	//int		 GetKBTypeForServer();
 
-	bool     SetKBTypeForServer();
+	int     SetKBTypeForServer(); // returns 1 or 2
 
 	DECLARE_DYNAMIC_CLASS(KbServer) 
 
