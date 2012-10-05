@@ -1551,7 +1551,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 
 	OnFileSave (dummy);							// save the file, ready to commit
 
-	commit_result = CallDVCS (DVCS_COMMIT_FILE, 0);
+	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
 
 	if (commit_result) 
 	{
@@ -1598,14 +1598,14 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 
 		if (DoSaveAndCommit())  return;			// bail out on error - message should be already displayed
 
-		gpApp->m_latestRevNum = CallDVCS (DVCS_LATEST_REVISION, 0);		// also reads the log, and hangs on to it
+		gpApp->m_latestRevNum = gpApp->m_pDVCS->DoDVCS (DVCS_LATEST_REVISION, 0);		// also reads the log, and hangs on to it
 		test = gpApp->m_latestRevNum;
 				// this is what we just committed - we need to hang on to it so we can come back if needed,
 				//  and the following DVCS call will give us the next version back
 		 test = test; // whm added 13Aug12 to suppress gcc warning "set but not used"
 	}
 
-	trialRevNum = CallDVCS (DVCS_PREV_REVISION, 0);			// looks at the log to get the previous revision number
+	trialRevNum = gpApp->m_pDVCS->DoDVCS (DVCS_PREV_REVISION, 0);			// looks at the log to get the previous revision number
 
 	if (trialRevNum == -2)  return;				// bail out on error - message should already be displayed
 
@@ -1616,12 +1616,12 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	commit_result = CallDVCS (DVCS_REVERT_FILE, trialRevNum);
+	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_REVERT_FILE, trialRevNum);
 
 	if (!commit_result) 
 	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
 			// ReadOnlyProtection sees that m_trialRevNum is non-negative.  We skip this
-			//  if CallDVCS() returned an error, and leave m_trialRevNum alone.
+			//  if gpApp->m_pDVCS->DoDVCS() returned an error, and leave m_trialRevNum alone.
 		gpApp->m_trialRevNum = trialRevNum;
 		DocChangedExternally();
 	}
@@ -1650,7 +1650,7 @@ void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	commit_result = CallDVCS (DVCS_REVERT_FILE, gpApp->m_latestRevNum);
+	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_REVERT_FILE, gpApp->m_latestRevNum);
 
 	if (commit_result)  return;			// bail out on error - message should have been displayed
 	
