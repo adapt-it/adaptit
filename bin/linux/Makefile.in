@@ -93,6 +93,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
+	jsonreader.$(OBJEXT) jsonval.$(OBJEXT) jsonwriter.$(OBJEXT) \
 	JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBExportImportOptionsDlg.$(OBJEXT) KBEditor.$(OBJEXT) \
 	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KbServer.$(OBJEXT) \
@@ -141,6 +142,15 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(adaptit_SOURCES)
 DIST_SOURCES = $(adaptit_SOURCES)
@@ -437,6 +447,9 @@ adaptit_SOURCES = \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
 	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
+	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h" \
+	../../source/jsonval.cpp ../../source/jsonval.h \
+	../../source/jsonwriter.cpp ../../source/jsonwriter.h" \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/KbServer.cpp \
@@ -678,6 +691,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/conschk_exists_notu_dlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convauto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jsonreader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jsonval.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jsonwriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingdialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingwizard.Po@am__quote@
@@ -1459,6 +1475,48 @@ HtmlFileViewer.obj: ../../source/HtmlFileViewer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/HtmlFileViewer.cpp' object='HtmlFileViewer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o HtmlFileViewer.obj `if test -f '../../source/HtmlFileViewer.cpp'; then $(CYGPATH_W) '../../source/HtmlFileViewer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/HtmlFileViewer.cpp'; fi`
+
+jsonreader.o: ../../source/jsonreader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jsonreader.o -MD -MP -MF $(DEPDIR)/jsonreader.Tpo -c -o jsonreader.o `test -f '../../source/jsonreader.cpp' || echo '$(srcdir)/'`../../source/jsonreader.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jsonreader.Tpo $(DEPDIR)/jsonreader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/jsonreader.cpp' object='jsonreader.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jsonreader.o `test -f '../../source/jsonreader.cpp' || echo '$(srcdir)/'`../../source/jsonreader.cpp
+
+jsonreader.obj: ../../source/jsonreader.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jsonreader.obj -MD -MP -MF $(DEPDIR)/jsonreader.Tpo -c -o jsonreader.obj `if test -f '../../source/jsonreader.cpp'; then $(CYGPATH_W) '../../source/jsonreader.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/jsonreader.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jsonreader.Tpo $(DEPDIR)/jsonreader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/jsonreader.cpp' object='jsonreader.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jsonreader.obj `if test -f '../../source/jsonreader.cpp'; then $(CYGPATH_W) '../../source/jsonreader.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/jsonreader.cpp'; fi`
+
+jsonval.o: ../../source/jsonval.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jsonval.o -MD -MP -MF $(DEPDIR)/jsonval.Tpo -c -o jsonval.o `test -f '../../source/jsonval.cpp' || echo '$(srcdir)/'`../../source/jsonval.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jsonval.Tpo $(DEPDIR)/jsonval.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/jsonval.cpp' object='jsonval.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jsonval.o `test -f '../../source/jsonval.cpp' || echo '$(srcdir)/'`../../source/jsonval.cpp
+
+jsonval.obj: ../../source/jsonval.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jsonval.obj -MD -MP -MF $(DEPDIR)/jsonval.Tpo -c -o jsonval.obj `if test -f '../../source/jsonval.cpp'; then $(CYGPATH_W) '../../source/jsonval.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/jsonval.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jsonval.Tpo $(DEPDIR)/jsonval.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/jsonval.cpp' object='jsonval.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jsonval.obj `if test -f '../../source/jsonval.cpp'; then $(CYGPATH_W) '../../source/jsonval.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/jsonval.cpp'; fi`
+
+jsonwriter.o: ../../source/jsonwriter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jsonwriter.o -MD -MP -MF $(DEPDIR)/jsonwriter.Tpo -c -o jsonwriter.o `test -f '../../source/jsonwriter.cpp' || echo '$(srcdir)/'`../../source/jsonwriter.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jsonwriter.Tpo $(DEPDIR)/jsonwriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/jsonwriter.cpp' object='jsonwriter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jsonwriter.o `test -f '../../source/jsonwriter.cpp' || echo '$(srcdir)/'`../../source/jsonwriter.cpp
+
+jsonwriter.obj: ../../source/jsonwriter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jsonwriter.obj -MD -MP -MF $(DEPDIR)/jsonwriter.Tpo -c -o jsonwriter.obj `if test -f '../../source/jsonwriter.cpp'; then $(CYGPATH_W) '../../source/jsonwriter.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/jsonwriter.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jsonwriter.Tpo $(DEPDIR)/jsonwriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/jsonwriter.cpp' object='jsonwriter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jsonwriter.obj `if test -f '../../source/jsonwriter.cpp'; then $(CYGPATH_W) '../../source/jsonwriter.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/jsonwriter.cpp'; fi`
 
 JoinDialog.o: ../../source/JoinDialog.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT JoinDialog.o -MD -MP -MF $(DEPDIR)/JoinDialog.Tpo -c -o JoinDialog.o `test -f '../../source/JoinDialog.cpp' || echo '$(srcdir)/'`../../source/JoinDialog.cpp
