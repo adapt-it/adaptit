@@ -19995,6 +19995,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// **** test code fragments here ****
 /*
+#if defined (_KBSERVER)
 	// test KbServer API functions
 	m_pKbServer = new KbServer(this);
 	wxString srcText2 = _T("niuspepa");
@@ -20004,6 +20005,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//m_pKbServer->LookupEntryForSourcePhrase( srcText ); // returns english error message in str_CURLbuffer
 	int result = m_pKbServer->SendEntry(srcText,tgtText); // wxJson not behaving yet
 	delete m_pKbServer;
+#endif
 */
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes

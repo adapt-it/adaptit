@@ -471,8 +471,7 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	wxString tblname = _T("entry");
 
 	aUrl = GetServerURL() + slash + tblname + slash+ GetSourceLanguageCode() + 
-					slash + GetTargetLanguageCode() + slash + kbType + slash + 
-					m_pApp->Convert16to8(wxStr_SourceEntry);
+			slash + GetTargetLanguageCode() + slash + kbType + slash + wxStr_SourceEntry;
 	charUrl = ToUtf8(aUrl);
 	aPwd = GetServerUsername() + colon + GetServerPassword();
 	charUserpwd = ToUtf8(aPwd);

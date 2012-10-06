@@ -2666,7 +2666,7 @@ public:
 	wxString	m_sourceLanguageCode; // 3-letter code for the source language
 	wxString	m_targetLanguageCode; // 3-letter code for the target language
 	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
-	wxString	m_freeTransLanguageCode; // the 2- or 3-letter code for free translation language
+	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
 
 #if defined (_KBSERVER)
 
