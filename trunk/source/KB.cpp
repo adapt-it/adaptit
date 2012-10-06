@@ -3410,7 +3410,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// if something went wrong, just save as if gbAutoCaps was FALSE
 			pRefString->m_translation = tgtPhrase;
 		}
-
+#if defined(_KBSERVER)
 		// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
 		// since both the key and the translation (both possibly with a case adjustment
 		// for the first letter) are defined
@@ -3419,7 +3419,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
 			m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
 		}
-
+#endif
 		// continue with the store to the local KB
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
@@ -3553,7 +3553,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				pRefString->m_translation = tgtPhrase;
 			}
-
+#if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined
@@ -3562,7 +3562,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
 				m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
 			}
-
+#endif
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -3799,7 +3799,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					{
 						pRefString->m_translation = tgtPhrase;
 					}
-
+#if defined(_KBSERVER)
                     // BEW added 5Oct12, here is a suitable place for kbserver support of
                     // SendEntry(), since both the key and the translation (both possibly
                     // with a case adjustment for the first letter) are defined
@@ -3808,7 +3808,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
 						m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
 					}
-
+#endif
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
