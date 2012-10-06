@@ -49,6 +49,7 @@
 #include "SourcePhrase.h"
 #include "helpers.h"
 #include "Adapt_ItDoc.h"
+#include "KbServer.h"
 #include "KB.h"
 #include "AdaptitConstants.h" 
 #include "Pile.h"
@@ -3409,6 +3410,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// if something went wrong, just save as if gbAutoCaps was FALSE
 			pRefString->m_translation = tgtPhrase;
 		}
+
+		// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
+		// since both the key and the translation (both possibly with a case adjustment
+		// for the first letter) are defined
+		if (m_pApp->GetKbServer() != NULL && m_pApp->m_bIsKBServerProject)
+		{
+			// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
+			m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+		}
+
+		// continue with the store to the local KB
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
 		{
@@ -3541,6 +3553,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				pRefString->m_translation = tgtPhrase;
 			}
+
+			// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
+			// since both the key and the translation (both possibly with a case adjustment
+			// for the first letter) are defined
+			if (m_pApp->GetKbServer() != NULL && m_pApp->m_bIsKBServerProject)
+			{
+				// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
+				m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+			}
+
+			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
 			{
@@ -3650,6 +3673,15 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
+						
+
+
+
+// TODO  how for kbserver do we undelete? ask Jonathan -- need a new client
+
+
+
+
 					}
 					else
 					{
@@ -3767,6 +3799,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					{
 						pRefString->m_translation = tgtPhrase;
 					}
+
+                    // BEW added 5Oct12, here is a suitable place for kbserver support of
+                    // SendEntry(), since both the key and the translation (both possibly
+                    // with a case adjustment for the first letter) are defined
+					if (m_pApp->GetKbServer() != NULL && m_pApp->m_bIsKBServerProject)
+					{
+						// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
+						m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+					}
+
+					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
 					{
