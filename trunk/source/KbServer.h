@@ -64,7 +64,7 @@ public:
 public:
 
 	// The API which we expose
-	wxString	LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
+	std::string	LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
 	int			SendEntry(wxString srcPhrase, wxString tgtPhrase); // srcPhrase & tgtPhrase are often each just a single word
 
 	// public getters & setters

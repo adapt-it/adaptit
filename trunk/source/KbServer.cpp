@@ -34,6 +34,8 @@
 #include "Adapt_It.h" // has to be here, since _KBSERVER symbol is defined there
 #if defined(_KBSERVER)
 
+using namespace std;
+#include <string>
 
 #include "TargetUnit.h"
 #include "KB.h"
@@ -454,7 +456,7 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 
 }
 */
-wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
+std::string KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 {
 	CURL *curl;
 	CURLcode result;
