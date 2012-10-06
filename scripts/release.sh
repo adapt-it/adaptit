@@ -191,8 +191,9 @@ for i in $OSRELEASES; do
   pbuilder-$i-i386 build adaptit_${RELEASE}-1.dsc
 
   # Copy the resulting .deb files to a results folder under the current directory
-  mkdir -p adaptit-debs-${RELEASE}
-  mv -v $(find ${PBUILDFOLDER}/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
+  # No longer done 2012-10-05 JM
+  #mkdir -p adaptit-debs-${RELEASE}
+  #mv -v $(find ${PBUILDFOLDER}/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
 done
 
-echo "$0: Completed.  Files are in $(pwd)/adaptit-debs-${RELEASE}/"
+echo "$0: Completed.  Adaptit version ${RELEASE} package files are in " ${PBUILDFOLDER}/*_result
