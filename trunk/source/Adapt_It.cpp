@@ -102,10 +102,10 @@
 // Moulding, but the features of version 2.0 were implemented by
 // Arkadiy Shapkin. It is used under the GNU General Public License
 // version 2 (GPLv2).
-// 
+//
 // Note: The Visual Leak Detector (vld) and how it works are found at:
 // http://vld.codeplex.com/
-// 
+//
 // Note: Vld's code is not compiled into the program in release
 // versions, and vld.h need only be included when memory leaks are
 // detected by the debugger's Output report and it is not obvious what
@@ -118,9 +118,9 @@
 // way, you will need to log out and log back in for the addition to
 // the PATH to take effect. vld.dll and dbghelp.dll, from the bin
 // directory need to be available on the system path.
-// 
+//
 // 2. Make sure the Visual C++ project is in Debug mode.
-// 
+//
 // 3. Add the VLD include paths (C:\Program Files (x86)\Visual Leak
 // Detector\include) and (C:\Program Files\Visual Leak
 // Detector\include) to the Include Directories of the project. Both
@@ -128,7 +128,7 @@
 // Visual Studio's Include Directories even though only one will be
 // found. This makes the Visual Studio's project file work on either
 // 64-bit or 32-bit Windows OS.
-// 
+//
 // 4. Add the VLD lib path (C:\Program Files (x86)\Visual Leak
 // Detector\lib) and (C:\Program Files\Visual Leak Detector\lib) to the
 // Additional Library Directories of the project. Both the "Program
@@ -136,14 +136,14 @@
 // Linker Directories even though only one will be found. This makes
 // the Visual Studio's project file work on either 64-bit or 32-bit
 // Windows OS.
-// 
+//
 // 5. Add #include <vld.h> to any of the C++ source files in the
 // project. This header will bring in vld.lib during the linking stage.
-// 
+//
 // 6. Rebuild the project and execute the compiled program in Debug
 // mode. On program exit, VLD will print out the memory leak
 // information it detected in the Output window.
-// 
+//
 // If Visual Studio reports "memory leaks detected" and the source of
 // leak is unclear, uncomment the following include, recompile, run and
 // exit the program for a more detailed report of the memory leaks:
@@ -3602,7 +3602,7 @@ void CAdapt_ItApp::SetupDefaultMenuStructure(AI_MenuStructure*& pMenuStructure, 
 
 	MapMenuLabelStrToIdInt::iterator iter;
 	//m_mapMenuLabelStrToIdInt.clear(); // don't call .clear() here because we've already populated the map
-	// with the untranslated menu label string-to-int associations via the earlier call of 
+	// with the untranslated menu label string-to-int associations via the earlier call of
 	// SetupUnTranslatedMapMenuLabelStrToIdInt() in OnInit(). Here below we further populate the map
 	// with the translated menu label strings associating them with their ID ints.
 
@@ -8016,9 +8016,9 @@ void CAdapt_ItApp::ConfigureMenuBarForUserProfile()
 	// already been "set" into the main frame via the SetMenuBar() function, leads to some
 	// memory leaks due to the wxDocManager::FileHistoryLoad() call that is done to load
 	// the file history from our m_pConfig.
-	// [whm 1Oct12 Note: All MRU code is now removed from the 
-	// application, so a FileHistoryLoad() call would no 
-	// longer be a problem for a direct delete call on 
+	// [whm 1Oct12 Note: All MRU code is now removed from the
+	// application, so a FileHistoryLoad() call would no
+	// longer be a problem for a direct delete call on
 	// pMenuBar]
 	// Later, I attempted to try adding menu items one-by-one to individual top level
 	// menus and tidying up any menu separators that need to be added or removed for
@@ -8790,7 +8790,7 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      progMenuMode -> an enum which can be: collabNotAvailableNormal, collabAvailableTurnedOn, 
+/// \param      progMenuMode -> an enum which can be: collabNotAvailableNormal, collabAvailableTurnedOn,
 ///                             collabAvailableTurnedOff, or collabAvailableReadOnlyOn
 /// \remarks
 /// Called from: the App's OnInit(), OnEditUserMenuSettingsProfiles(), and from the
@@ -8890,7 +8890,7 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
 			; // do nothing any MRU file history is eligible for selection
 		}
 		*/
-		
+
 		// The Open... and Save... commands have a tabbed hot key which we have to move to the right end of
 		// the new label, otherwise everything that comes after the tab will be displaced to the right side
 		// of the File menu (right aligned).
@@ -11381,7 +11381,7 @@ void CAdapt_ItApp::RemoveCollabSettingsFromFailSafeStorageFile()
 	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_chapter_selected"), TRUE);
 	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_src_lang_name"), TRUE);
 	bDelOK = m_pConfig->DeleteEntry(_T("pt_collab_tgt_lang_name"), TRUE);
-	
+
 	bDelOK = m_pConfig->DeleteEntry(_T("be_collaboration"), TRUE);
 	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_src_proj"), TRUE);
 	bDelOK = m_pConfig->DeleteEntry(_T("be_collab_tgt_proj"), TRUE);
@@ -12272,15 +12272,15 @@ bool CAdapt_ItApp::IsAIProjectOpen()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the Adaptations folder of the m_projectName has one or more AI 
-///                         documents within it that have a "_Collab" prefixed on the name(s). 
+/// \return     TRUE if the Adaptations folder of the m_projectName has one or more AI
+///                         documents within it that have a "_Collab" prefixed on the name(s).
 ///                         FALSE if no documents within the Adaptations folder have the
 ///                         "_Collab" prefix.
 /// \param      m_projectName  -> a wxString containing the project name to check
 /// \remarks
 /// Called from CProjectPage::OnWizardPageChanging().
 /// Scans the Adaptations sub-folder of the m_projectName folder looking for AI document
-/// files whose names begin with "_Collab...". If any are found the function immediately 
+/// files whose names begin with "_Collab...". If any are found the function immediately
 /// returns TRUE. If none are found the function returns FALSE.
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AIProjectHasCollabDocs(wxString m_projectName)
@@ -12297,7 +12297,7 @@ bool CAdapt_ItApp::AIProjectHasCollabDocs(wxString m_projectName)
 		workOrCustomFolderPath = m_customWorkFolderPath;
 	}
 	wxString path2Adaptations = workOrCustomFolderPath + PathSeparator + m_projectName + PathSeparator + m_adaptionsFolder;
-    
+
 	wxString saveCurWorkingDir = ::wxGetCwd();
 	// Scan the files in the Adaptations folder for any that start with a "_Collab" substring.
 	wxDir finder;
@@ -12334,7 +12334,7 @@ bool CAdapt_ItApp::AIProjectHasCollabDocs(wxString m_projectName)
 /// configuration file into the App's variables which might have undesirable side effects.
 /// Note: This function does not validate the collaboration settings. All such validation
 /// and consistency checking is done in the CProjectPage's call of GetAIProjectCollabStatus().
-/// Here we only check for the existence of three of the collaboration settings: 
+/// Here we only check for the existence of three of the collaboration settings:
 /// "CollabProjectForSourceInputs", "CollabProjectForTargetExports" and "CollabAIProjectName".
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
@@ -12446,8 +12446,8 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 		// file is done in which the user is prevented from advancing away from the
 		// ProjectPage if the project config file cannot be opened. We only get to the
 		// DocPage - where this function is called - if the project config file was
-		// successfully read back in the ProjectPage. Therefore, it is highly unlikely 
-		// that something could go wrong in the split second between the ProjectPage 
+		// successfully read back in the ProjectPage. Therefore, it is highly unlikely
+		// that something could go wrong in the split second between the ProjectPage
 		// and the DocPage. But, to cover the bases we will check whether this project's
 		// Adaptations folder contains any _Collab... documents within it. If so we will
 		// set isCollabProject to TRUE. If the Adaptations folder has no _Collab... docs
@@ -12474,8 +12474,8 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// \return     returns an enum of type AiProjectCollabStatus which can be one of 
-///             collabProjExistsAndIsValid, collabProjExistsButIsInvalid,  
+/// \return     returns an enum of type AiProjectCollabStatus which can be one of
+///             collabProjExistsAndIsValid, collabProjExistsButIsInvalid,
 ///             collabProjNotConfigured, projConfigFileMissing, or
 ///             projConfigFileUnableToOpen
 /// \param      m_projectName  -> a wxString containing the project name to check (which
@@ -12487,23 +12487,23 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 /// Called from CProjectPage::OnWizardPageChanging().
 /// Opens the AI-ProjectConfiguration.aic file associated with the m_projectName in a
 /// wxTextFile and scans through the project config file (in memory) and collects data about
-/// the "Collab..." settings. This function also performs a number of sanity checks and 
-/// corrects irregularities in the collaboration settings where possible - to correct 
-/// manually edited typos or missing collab setting fields which can be deduced from other 
-/// collab settings. The names of Paratext or Bibledit projects are checked against the 
-/// currently installed Paratext or Bibledit projects. If the collaboration settings are 
-/// undefined in the project config file the function returns collabProjNotConfigured. 
-/// We don't use the normal GetProjectConfiguration() mechanism here for "reading" the 
-/// project config file, so as to not set the App's project settings prematurely by reading 
-/// the project configuration file into the App's variables which might have undesirable side 
+/// the "Collab..." settings. This function also performs a number of sanity checks and
+/// corrects irregularities in the collaboration settings where possible - to correct
+/// manually edited typos or missing collab setting fields which can be deduced from other
+/// collab settings. The names of Paratext or Bibledit projects are checked against the
+/// currently installed Paratext or Bibledit projects. If the collaboration settings are
+/// undefined in the project config file the function returns collabProjNotConfigured.
+/// We don't use the normal GetProjectConfiguration() mechanism here for "reading" the
+/// project config file, so as to not set the App's project settings prematurely by reading
+/// the project configuration file into the App's variables which might have undesirable side
 /// effects.
 //////////////////////////////////////////////////////////////////////////////////////////
-enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr, 
+enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_projectName, wxString& errorStr,
 											bool& bChangeMadeToCollabSettings, wxString& errorProjects)
 {
 	// whm 20Apr12 created to return an enum of states and expanded sanity
 	// checking of the collab values stored in the project config file.
-	// Also returns an wxString errorStr and a bool bChangeMadeToCollabSettings 
+	// Also returns an wxString errorStr and a bool bChangeMadeToCollabSettings
 	// which are returned to the caller by reference, to inform the caller of
 	// errors and any changes made to the collab settings (which can then be saved
 	// by the caller to the project config file).
@@ -12553,14 +12553,14 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		//   "CollabSourceLangName"
 		//   "CollabTargetLangName"
 		// If all six of these config labels are followed by string values and the strings
-		// are consistent/valid, we can safely assume that collaboration has been established 
-		// for this project. 
-		// Note: We also collect any collab setting for 
+		// are consistent/valid, we can safely assume that collaboration has been established
+		// for this project.
+		// Note: We also collect any collab setting for
 		//   "CollabProjectForFreeTransExports"
 		//   "CollabExpectsFreeTrans"
 		// The CollabProjectForFreeTransExports is an optional setting for collaboration, but
 		// the CollabExpectsFreeTrans must be TRUE or FALSE depending on whether CollabProjectForFreeTransExports
-		// has content or not. If CollabProjectForFreeTransExports has a string value we need to check for 
+		// has content or not. If CollabProjectForFreeTransExports has a string value we need to check for
 		// validity in the CollabProjectsAreValid() call farther below and that CollabProjectForFreeTransExports
 		// and CollabExpectsFreeTrans are in sync.
 		wxString tab = _T("\t");
@@ -12568,7 +12568,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		bool bFoundCollabSrcProj = FALSE;
 		bool bFoundCollabTgtProj = FALSE;
 		bool bFoundCollabFreeTransProj = FALSE; // (optional)
-		bool bFoundCollabExpectsFreeTrans = FALSE; 
+		bool bFoundCollabExpectsFreeTrans = FALSE;
 		bool bFoundCollabAiProj = FALSE;
 		bool bFoundCollabEditor = FALSE;
 		bool bFoundCollabSrcLangName = FALSE;
@@ -12685,10 +12685,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// Do some sanity checks to ensure that the crucial strings are consistent and
 		// represent valid projects (guarding against corruption or erroneous editing of the
 		// project config file):
-		// 
+		//
 		// The first 6 are checks for when the CollabAIProjectName field has a string entry:
 		// 1. Ensure that the CollaborationEditor field is set to either "Paratext" or "Bibledit".
-		// 2. Check that the string stored in the "CollabAIProjectName" is identical to the 
+		// 2. Check that the string stored in the "CollabAIProjectName" is identical to the
 		// m_projectName incoming parameter.
 		// 3. Check for existence of the CollabSourceLangName field. If it is missing parse the source
 		// lang name from the CollabAIProjectName and assign that name to CollabSourceLangName.
@@ -12698,7 +12698,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// lang name from the CollabAIProjectName and assign that name to CollabTargetLangName.
 		// 6. If the CollabTargetLangName exists, check whether it agrees with the parsed target lang
 		// name from the CollabAIProjectName string. If not just log the fact that it differs.
-		// 
+		//
 		// The next 5 checks are for when the CollabAIProjectName field is missing/empty:
 		// 7. If the other 5 collab settings are present, construct a potential CollabAIProjectName
 		// field entry from the CollabSourceLangName and CollabTargetLangName fields. If the
@@ -12707,69 +12707,69 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// 8. If the constructed project name in 7 is not the same as the currently selected
 		// project name, force the CollabAIProjectName, the CollabSourceLangName and the
 		// CollabTargetLangName fields to agree with the currently selected AI project name.
-		// 9. If all of the other 4 collab settings (not counting CollaborationEditor) are also 
-		// missing/empty, that is the normal situation for projects that have not been 
+		// 9. If all of the other 4 collab settings (not counting CollaborationEditor) are also
+		// missing/empty, that is the normal situation for projects that have not been
 		// configured for collaboration by the administrator.
-		// 10. If the bFoundCollabSrcProj and bFoundCollabTgtProj were TRUE, but bFoundCollabAiProj was 
-		// FALSE, and either bFoundCollabSrcLangName or bFoundCollabTgtLangName or both were FALSE we 
+		// 10. If the bFoundCollabSrcProj and bFoundCollabTgtProj were TRUE, but bFoundCollabAiProj was
+		// FALSE, and either bFoundCollabSrcLangName or bFoundCollabTgtLangName or both were FALSE we
 		// can construct the AI project names from the currently selected project (m_projectName).
 		// 11. If any of the collab settings (mentioned in 9 above) are present, it is a mixed
 		// bag. We just log information about the irregular settings, and consider the project
 		// status is collabProjNotConfigured.
-		// 
+		//
 		// The next checks are for validating the PT/BE collaboraion projects:
-		// 12. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is 
-		// missing/empty from the config file, pass an error message back to the caller 
+		// 12. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is
+		// missing/empty from the config file, pass an error message back to the caller
 		// saying that the setting for the PT/BE project(s) is missing from the config
 		// file, and return the collab status as collabProjMissingFromEditorList. The
 		// caller (ProjectPage) will allow the user to select from available PT/BE projects
 		// which, if the PT/BE projects prove valid will allow the user to continue collab
 		// work.
-		// 13. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is 
+		// 13. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is
 		// missing/empty from the config file, BUT a free trans project was designated in
-		// the CollabProjectForFreeTransExports string setting, AND that PT/BE project 
+		// the CollabProjectForFreeTransExports string setting, AND that PT/BE project
 		// tests out to be INVALID, process that invalid project problem here with the
 		// missing CollabProjectForSourceInputs/CollabProjectForTargetExports problem,
-		// and pass it also as part of the error message back to the caller saying that 
+		// and pass it also as part of the error message back to the caller saying that
 		// the setting for the PT/BE project(s) is missing from the config
-		// file (or invalid in the case of the free trans proj). We still return the collab 
-		// status as collabProjMissingFromEditorList. The caller (ProjectPage) will allow 
-		// the user to select from available PT/BE projects which, if the PT/BE projects 
+		// file (or invalid in the case of the free trans proj). We still return the collab
+		// status as collabProjMissingFromEditorList. The caller (ProjectPage) will allow
+		// the user to select from available PT/BE projects which, if the PT/BE projects
 		// prove valid will allow the user to continue collab work.
 		// 14. If the CollabProjectForSourceInputs or CollabProjectForTargetExports fields
 		// are present in the config file, check to ensure that they are also listed in the
 		// PT/BE projList of current editor projects. If not pass an error message back to
 		// the caller saying that the setting for the PT/BE project(s) could not be found
-		// as a %s [external editor] project, and return the collab status as 
-		// collabProjMissingFromEditorList. The caller (ProjectPage) will allow the user to 
+		// as a %s [external editor] project, and return the collab status as
+		// collabProjMissingFromEditorList. The caller (ProjectPage) will allow the user to
 		// select from available PT/BE projects which, if the PT/BE projects prove valid,
 		// will allow the user to continue collab work.
 		// 15. If both the CollabProjectForSourceInputs and CollabProjectForTargetExports fields
-		// are present, and they exist in projList as Editor projects (see above checks), call the 
-		// CollabProjectsAreValid() function on them (and the CollabProjectForFreeTransExports value). 
-		// If the CollabProjectsAreValid() returns FALSE - along with an errStr message, return the 
+		// are present, and they exist in projList as Editor projects (see above checks), call the
+		// CollabProjectsAreValid() function on them (and the CollabProjectForFreeTransExports value).
+		// If the CollabProjectsAreValid() returns FALSE - along with an errStr message, return the
 		// errorStr message to the caller and return the collab status as collabProjExistsButIsInvalid.
-		// The caller (ProjectPage) will allow the user to select from available PT/BE projects which, 
+		// The caller (ProjectPage) will allow the user to select from available PT/BE projects which,
 		// if the PT/BE projects prove valid, will allow the user to continue collab work.
-		// 16. If the GetAIProjectCollabStatus() function has not returned a state value by 
-		// time control reaches this point, just return the collab status as 
+		// 16. If the GetAIProjectCollabStatus() function has not returned a state value by
+		// time control reaches this point, just return the collab status as
 		// collabProjNotConfigured.
 		// 17. If the project config file could not be opened successfully, return an error
 		// message to that fact and return the collab status as projConfigFileUnableToOpen.
 
 		// 1. Ensure that the CollaborationEditor field is set to either "Paratext" or "Bibledit".
-		// 
+		//
 		// First do sanity test for the bFoundCollabEditor and ensure it is specified properly
 		// whm 2May12 added this sanity test for a valid external editor for collaboration. It is
 		// possible that a project could be copied (including the project config file) between a
 		// Linux machine and a Windows machine. In such cases the CollaborationEditor field may
-		// no longer refer to an existing external edditor. If the machine receiving the data does 
-		// have a different external Scripture editor installed, we can adjust the value of 
-		// CollaborationEditor to point to that existing external editor. If no external editor is 
+		// no longer refer to an existing external edditor. If the machine receiving the data does
+		// have a different external Scripture editor installed, we can adjust the value of
+		// CollaborationEditor to point to that existing external editor. If no external editor is
 		// installed/available we need to prevent ...
-		// 
-		// If the values for CollabAiProjStrFound, CollabSrcLangNameStrFound, and 
-		// CollabTgtLangNameStrFound are not empty, we can assume that the project was at some 
+		//
+		// If the values for CollabAiProjStrFound, CollabSrcLangNameStrFound, and
+		// CollabTgtLangNameStrFound are not empty, we can assume that the project was at some
 		// point configured by an administrator as a collaboration project.
 		// Check whether there is an actual installation of Paratext or Bibledit on the user's
 		// machine. If not we must return collabProjExistsButEditorNotInstalled.
@@ -12785,10 +12785,10 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			errorStr = msg;
 			return collabProjExistsButEditorNotInstalled;
 		}
-		
+
 		// If we get here either Paratext or Bibledit is installed on the user's machine.
 		// If there is an external editor designated in the project config file, ensure that
-		// the designated editor is actually the one that is installed. If not assign 
+		// the designated editor is actually the one that is installed. If not assign
 		// m_collaborationEditor to point to the one that is installed.
 		if (bFoundCollabEditor)
 		{
@@ -12809,7 +12809,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			{
 				// The collaboration editor designated in the project config file is not installed
 				// on this machine. Check to see if the other editor choice is installed on this
-				// machine (might happen if config files are copied between Windows and Linux 
+				// machine (might happen if config files are copied between Windows and Linux
 				// machines).
 				if (m_collaborationEditor == _T("Paratext") && m_bBibleditIsInstalled)
 				{
@@ -12850,18 +12850,18 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			msg = msg.Format(msg,CollabEditorStrFound.c_str(),editorStr.c_str());
 			this->LogUserAction(msg);
 		}
-		
+
 		// Next do sanity test for the AI Project settings (CollabAIProjectName field)
 		wxString srcNameStr;
 		wxString tgtNameStr;
 		GetSrcAndTgtLanguageNamesFromProjectName(m_projectName, srcNameStr, tgtNameStr);
 		if (bFoundCollabAiProj)
 		{
-			// 2. Check that the string stored in the "CollabAIProjectName" is identcial to the 
+			// 2. Check that the string stored in the "CollabAIProjectName" is identcial to the
 			// m_projectName incoming parameter.
 			//
 			// A CollabAIProjectName string is stored in the config file. Do some sanity tests.
-			// Test if the found string differs from the currently selected project in 
+			// Test if the found string differs from the currently selected project in
 			// m_projectName. If so fix it.
 			if (CollabAiProjStrFound != m_projectName)
 			{
@@ -12882,12 +12882,12 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			}
 			// Note: The ai project name now must necessarily exists as an AI project on the
 			// user's machine (after all, the user just selected it from the project page's list).
-			// 
+			//
 			// 3. Check for existence of the CollabSourceLangName field. If it is missing parse the source
 			// lang name from the CollabAIProjectName and assign that name to CollabSourceLangName.
 			if (!bFoundCollabSrcLangName)
 			{
-				// The CollabSourceLangName was empty in the config file. We can supply the 
+				// The CollabSourceLangName was empty in the config file. We can supply the
 				// lang name(s) by assigning it from the parsed ai project name taking the first part.
 				if (CollabSrcLangNameStrFound.IsEmpty())
 				{
@@ -12908,7 +12908,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 				// 4. If the CollabSourceLangName exists, check whether it agrees with the parsed source lang
 				// name from the CollabAIProjectName string. If not just log the fact that it differs.
 				//
-				// At this point we know that a source lang name exists, now compare it with the 
+				// At this point we know that a source lang name exists, now compare it with the
 				// source lang part of the ai project name, and put an entry in the user log if the
 				// source lang name in the config file differs from the source language name parsed
 				// from the AI project name.
@@ -12919,13 +12919,13 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 					this->LogUserAction(msg);
 					// Continue on with other validation checks for this project.
 				}
-				
+
 			}
 			// 5. Check for existence of the CollabTargetLangName field. If it is missing parse the target
 			// lang name from the CollabAIProjectName and assign that name to CollabTargetLangName.
 			if (!bFoundCollabTgtLangName)
 			{
-				// The CollabTargetLangName was empty in the config file. We can supply the 
+				// The CollabTargetLangName was empty in the config file. We can supply the
 				// lang name(s) by assigning it from the parsed ai project name taking the second part.
 				if (CollabTgtLangNameStrFound.IsEmpty())
 				{
@@ -12945,8 +12945,8 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			{
 				// 6. If the CollabTargetLangName exists, check whether it agrees with the parsed target lang
 				// name from the CollabAIProjectName string. If not just log the fact that it differs.
-				// 
-				// At this point we know that a target lang name exists, now compare it with the 
+				//
+				// At this point we know that a target lang name exists, now compare it with the
 				// target lang part of the ai project name, and put an entry in the user log if the
 				// source lang name in the config file differs from the source language name parsed
 				// from the AI project name.
@@ -12961,13 +12961,13 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		}
 		else
 		{
-			// The "CollabAIProjectName" in the config file was empty. If the bFoundCollabSrcProj, 
-			// the bFoundCollabTgtProj, the bFoundCollabEditor, the bFoundCollabSrcLangName, 
-			// and the bFoundCollabTgtLangName flags are TRUE we can confidently reconstruct the 
+			// The "CollabAIProjectName" in the config file was empty. If the bFoundCollabSrcProj,
+			// the bFoundCollabTgtProj, the bFoundCollabEditor, the bFoundCollabSrcLangName,
+			// and the bFoundCollabTgtLangName flags are TRUE we can confidently reconstruct the
 			// CollabAIProjectName from the two Lang Name fields and ensure that the reconstructed string
-			// is consistent with the currently selected AI project. If so we can supply the string for the 
-			// CollabAIProjectName field. Otherwise, if either one or both of the PT/BE project fields, or 
-			// either one or both of the two Lang Name fields are empty, we presume that the project is not 
+			// is consistent with the currently selected AI project. If so we can supply the string for the
+			// CollabAIProjectName field. Otherwise, if either one or both of the PT/BE project fields, or
+			// either one or both of the two Lang Name fields are empty, we presume that the project is not
 			// a configured/valid collaboration project.
 			if (bFoundCollabSrcProj && bFoundCollabTgtProj && bFoundCollabSrcLangName && bFoundCollabTgtLangName && bFoundCollabEditor)
 			{
@@ -12975,13 +12975,13 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 				// field entry from the CollabSourceLangName and CollabTargetLangName fields. If the
 				// constructed name agrees with the currently selected AI project, go ahead and assign
 				// the name of the currently selected project to the CollabAIProjectName field.
-				// 
-				// All the critical collab fields except for the CollabAIProjectName field were present in 
+				//
+				// All the critical collab fields except for the CollabAIProjectName field were present in
 				// the config file, so the CollabAIProjectName field must have been lost or corrupted from
 				// manual editing. We can reconstruct the potential ai project name from the Lang Names present.
 				wxString constructedAIProjName = CollabSrcLangNameStrFound + _T(" to ") + CollabTgtLangNameStrFound + _T(" adaptations");
 				// Check if it is consistent with the currently selected project name. If so, we can assign
-				// the constructedAIProjName to the CollabAIProjectName. If not, we have no other recourse 
+				// the constructedAIProjName to the CollabAIProjectName. If not, we have no other recourse
 				// in reconstructing the complete collab settings and we must force it to be the same, and log
 				// that fact.
 				if (constructedAIProjName == m_projectName)
@@ -13001,14 +13001,14 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 					// 8. If the constructed project name in 7 is not the same as the currently selected
 					// project name, force the CollabAIProjectName, the CollabSourceLangName and the
 					// CollabTargetLangName fields to agree with the currently selected AI project name.
-					// 
-					// The constructed project name is not the same as the currenly selected project's 
+					//
+					// The constructed project name is not the same as the currenly selected project's
 					// name, so we cannot really proceed with a collaboration session unless we force the
-					// collab AI Project Name and the Lang Names to agree with the currently selected 
+					// collab AI Project Name and the Lang Names to agree with the currently selected
 					// project. We will do that and log the actions that we have to take to make the
 					// collaboration settings consistent with the currently selected project.
-					// Note: Tests show that the check in 2 above and 10 below and other internal checks 
-					// should remedy the issue here in 8. without the need for this test, but 8 is an 
+					// Note: Tests show that the check in 2 above and 10 below and other internal checks
+					// should remedy the issue here in 8. without the need for this test, but 8 is an
 					// additional fail-safe mechanism.
 					wxString msg = _T("In GetAIProjectCollabStatus() the CollabAIProjectName was empty and the CollabSourceLangName and CollabTargetLangName fields are inconsistent with the currently selected project (%s). All three were changed to agree with a %s project.");
 					msg = msg.Format(msg, m_projectName.c_str(),m_projectName.c_str());
@@ -13028,26 +13028,26 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			else
 			{
 				// The "CollabAIProjectName" in the config file was empty, and one or more (perhaps all)
-				// of the other four important collab values were not defined as strings in the config 
-				// file. The obvious case is when all five values are empty - indicating the normal state 
-				// for an AI project that has not been configured for collaboration by an administrator. 
-				// We do not include the bFoundCollabEditor in the test because it should always be 
+				// of the other four important collab values were not defined as strings in the config
+				// file. The obvious case is when all five values are empty - indicating the normal state
+				// for an AI project that has not been configured for collaboration by an administrator.
+				// We do not include the bFoundCollabEditor in the test because it should always be
 				// defined at this point (see above).
-				// 
-				// 9. If all of the other 4 collab settings (not counting CollaborationEditor) are also 
-				// missing/empty, which is the normal situation for projects that have not been 
+				//
+				// 9. If all of the other 4 collab settings (not counting CollaborationEditor) are also
+				// missing/empty, which is the normal situation for projects that have not been
 				// configured for collaboration by the administrator.
-				// 
+				//
 				if (!bFoundCollabSrcProj && !bFoundCollabTgtProj && !bFoundCollabSrcLangName && !bFoundCollabTgtLangName)
 				{
-					// This is the normal exit point for a project which has not been configured for 
+					// This is the normal exit point for a project which has not been configured for
 					// collaboration with PT/BE.
 					return collabProjNotConfigured;
 				}
 				else if (!bFoundCollabSrcLangName || !bFoundCollabTgtLangName)
 				{
-					// 10. If the bFoundCollabSrcProj and bFoundCollabTgtProj were TRUE, but bFoundCollabAiProj was 
-					// FALSE, and either bFoundCollabSrcLangName or bFoundCollabTgtLangName or both were FALSE we 
+					// 10. If the bFoundCollabSrcProj and bFoundCollabTgtProj were TRUE, but bFoundCollabAiProj was
+					// FALSE, and either bFoundCollabSrcLangName or bFoundCollabTgtLangName or both were FALSE we
 					// can construct the AI project names from the currently selected project (m_projectName).
 					wxString msg = _T("In GetAIProjectCollabStatus() the CollabAIProjectName is missing and one or both of the CollabSourceLangName or CollabTargetLangName are missing, so AI parsed %s and assigned the names to those 3 config file entries.");
 					msg = msg.Format(msg,m_projectName.c_str());
@@ -13068,9 +13068,9 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 					// bag. We just log information about the irregular settings, and consider the project
 					// status is collabProjNotConfigured.
 					//
-					// If any of the above four flags are TRUE (indicating the presence of a collab setting), just 
+					// If any of the above four flags are TRUE (indicating the presence of a collab setting), just
 					// log that fact as an irregularity, but with the CollabAIProjectName empty and at least one of
-					// the other collab settings also empty, we judge that the project was not configured, or 
+					// the other collab settings also empty, we judge that the project was not configured, or
 					// partially corrupted in any case. We could empty any partial settings, but probably it is
 					// better to leave them present so an advisor or administrator can inspect the project config
 					// file if desired.
@@ -13103,7 +13103,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 						msg = msg.Format(msg,tempStr.c_str());
 						this->LogUserAction(msg);
 					}
-					// This is the exit point for a project that is not configured for collaboration, but 
+					// This is the exit point for a project that is not configured for collaboration, but
 					// has some partial collaboration setting(s) which are now in the user log.
 					return collabProjNotConfigured;
 				}
@@ -13112,14 +13112,14 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 
 		// At this point, we've completed the above sanity tests, and the AI Collab Project should exist.
 		wxASSERT(!m_CollabAIProjectName.IsEmpty());
-		
+
 		// Finally, do sanity tests for the indicated PT/BE collab projects. Do they exist and do they
-		// have the necessary empty chapter and verse markers? The tests for the presence of empty 
+		// have the necessary empty chapter and verse markers? The tests for the presence of empty
 		// chapter and verse markers that has been previously just done in the GetSourceTextFromEditor
-		// dialog is also being done here (called from the wizard), earlier in the collaboration process 
-		// at a point where incorrect settings are easier to handle and an advisor or administrator is 
+		// dialog is also being done here (called from the wizard), earlier in the collaboration process
+		// at a point where incorrect settings are easier to handle and an advisor or administrator is
 		// more likely to see the problem and handle the situation.
-		
+
 		// Get a list of the current PT/BE projects in projList.
 		wxArrayString projList;
 		projList.Clear();
@@ -13134,9 +13134,9 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 
 		// If either the source or target PT/BE project name(s) are missing, we cannot proceed with
 		// collaboration
-		// 
-		// 12. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is 
-		// missing/empty from the config file, pass an error message back to the caller 
+		//
+		// 12. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is
+		// missing/empty from the config file, pass an error message back to the caller
 		// saying that the setting for the PT/BE project(s) is missing from the config
 		// file, and return the collab status as collabProjMissingFromEditorList. The
 		// caller (ProjectPage) will allow the user to select from available PT/BE projects
@@ -13165,21 +13165,21 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 					projects += _T(':');
 				projects += _T("target");
 			}
-			// 13. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is 
+			// 13. If the CollabProjectForSourceInputs or CollabProjectForTargetExports is
 			// missing/empty from the config file, BUT a free trans project was designated in
-			// the CollabProjectForFreeTransExports string setting, AND that PT/BE project 
+			// the CollabProjectForFreeTransExports string setting, AND that PT/BE project
 			// tests out to be INVALID, process that invalid project problem here with the
 			// missing CollabProjectForSourceInputs/CollabProjectForTargetExports problem,
-			// and pass it also as part of the error message back to the caller saying that 
+			// and pass it also as part of the error message back to the caller saying that
 			// the setting for the PT/BE project(s) is missing from the config
-			// file (or invalid in the case of the free trans proj). We still return the collab 
-			// status as collabProjMissingFromEditorList. The caller (ProjectPage) will allow 
-			// the user to select from available PT/BE projects which, if the PT/BE projects 
+			// file (or invalid in the case of the free trans proj). We still return the collab
+			// status as collabProjMissingFromEditorList. The caller (ProjectPage) will allow
+			// the user to select from available PT/BE projects which, if the PT/BE projects
 			// prove valid will allow the user to continue collab work.
-			// 
-			// Note: It could be that the source or target project (or both) are missing from the 
+			//
+			// Note: It could be that the source or target project (or both) are missing from the
 			// config file, and yet a free trans project string is present, but it might not be
-			// a valid PT/BE project. If that is the case we should have the problem re the free 
+			// a valid PT/BE project. If that is the case we should have the problem re the free
 			// trans project included with the above message - so that in the ProjectPage the user
 			// can select a correct PT/BE project for the free trans.
 			if (bFoundCollabFreeTransProj)
@@ -13197,7 +13197,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 					}
 					else if ((bFoundCollabSrcProj && !bFoundCollabTgtProj) || (bFoundCollabTgtProj && !bFoundCollabSrcProj))
 					{
-						// the src or tgt was found but not both getting item 1; free trans is item 2. 
+						// the src or tgt was found but not both getting item 1; free trans is item 2.
 						msgAdd = _T("\n2. ") + msgAdd;
 					}
 					else
@@ -13213,8 +13213,8 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			}
 
 			errorStr = msg; // return the errorStr to the caller by reference
-			errorProjects += projects; // return the project type ("source", "target" or "freetrans"). 
-			// This is the exit point for a project whose config file is missing its 
+			errorProjects += projects; // return the project type ("source", "target" or "freetrans").
+			// This is the exit point for a project whose config file is missing its
 			// CollabProjectForSourceInputs or CollabProjectForTargetExports string value.
 			return collabProjMissingFromConfigFile;
 		}
@@ -13224,23 +13224,23 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			// are present in the config file, check to ensure that they are also listed in the
 			// PT/BE projList of current editor projects. If not pass an error message back to
 			// the caller saying that the setting for the PT/BE project(s) could not be found
-			// as a %s [external editor] project, and return the collab status as 
-			// collabProjMissingFromEditorList. The caller (ProjectPage) will allow the user to 
+			// as a %s [external editor] project, and return the collab status as
+			// collabProjMissingFromEditorList. The caller (ProjectPage) will allow the user to
 			// select from available PT/BE projects which, if the PT/BE projects prove valid,
 			// will allow the user to continue collab work.
-			// 			
+			//
 			// both bFoundCollabSrcProj and bFoundBollabTgtProj are TRUE, so the project config file
-			// contains strings for both. Now test that they exist in the inventory of current PT/BE 
+			// contains strings for both. Now test that they exist in the inventory of current PT/BE
 			// projects (in projList) by calling CollabProjectFoundInListOfEditorProjects() on each
 			// PT/BE project name that appears in the project config file.
 			wxString foundSrcProjString = _T("");
 			wxString foundTgtProjString = _T("");
 			wxString foundFreeTransProjString = _T("");
-			// In the CollabProjectFoundInListOfEditorProjects() function calls below the short name 
-			// of the project is used (in PT) to match an existing PT/BE project (in projList). If 
-			// the returned value is FALSE, no project was found, if the returned value is TRUE the 
-			// project was found and the returned by reference foundProjString parameter will contain 
-			// the actual composed string of the project - this is used to correct any typos in the 
+			// In the CollabProjectFoundInListOfEditorProjects() function calls below the short name
+			// of the project is used (in PT) to match an existing PT/BE project (in projList). If
+			// the returned value is FALSE, no project was found, if the returned value is TRUE the
+			// project was found and the returned by reference foundProjString parameter will contain
+			// the actual composed string of the project - this is used to correct any typos in the
 			// full name part of a PT composite project id string.
 			wxString msg = _T("");
 			wxString projects = _T("");
@@ -13265,13 +13265,13 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			{
 				// The project was found in the PT/BE editor's list of current projects.
 				wxASSERT(!foundSrcProjString.IsEmpty());
-				// Ensure the spelling of of full project name part in the config file is 
+				// Ensure the spelling of of full project name part in the config file is
 				// correct as used within the actual editor's full project name (user could
 				// have changed it in PT).
 				if (CollabSrcProjStrFound != foundSrcProjString)
 				{
 					// There was an irregularity in spelling of a token in the 2nd through 4th fields of the
-					// composite project string. Fix the App's value and set flag to save the project config 
+					// composite project string. Fix the App's value and set flag to save the project config
 					// file changes.
 					this->m_CollabProjectForSourceInputs = foundSrcProjString;
 					bChangeMadeToCollabSettings = TRUE;
@@ -13302,13 +13302,13 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			{
 				// The project was found in the PT/BE editor's list of current projects.
 				wxASSERT(!foundTgtProjString.IsEmpty());
-				// Ensure the spelling of of full project name part in the config file is 
+				// Ensure the spelling of of full project name part in the config file is
 				// correct as used within the actual editor's full project name (user could
 				// have changed it in PT).
 				if (CollabTgtProjStrFound != foundTgtProjString)
 				{
 					// There was an irregularity in spelling of a token in the 2nd through 4th fields of the
-					// composite project string. Fix the App's value and set flag to save the project config 
+					// composite project string. Fix the App's value and set flag to save the project config
 					// file changes.
 					this->m_CollabProjectForTargetExports = foundTgtProjString;
 					bChangeMadeToCollabSettings = TRUE;
@@ -13357,13 +13357,13 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			{
 				// The project was found in the PT/BE editor's list of current projects.
 				wxASSERT(!foundFreeTransProjString.IsEmpty());
-				// Ensure the spelling of of full project name part in the config file is 
+				// Ensure the spelling of of full project name part in the config file is
 				// correct as used within the actual editor's full project name (user could
 				// have changed it in PT).
 				if (CollabFreeTransProjStrFound != foundFreeTransProjString)
 				{
 					// There was an irregularity in spelling of a token in the 2nd through 4th fields of the
-					// composite project string. Fix the App's value and set flag to save the project config 
+					// composite project string. Fix the App's value and set flag to save the project config
 					// file changes.
 					this->m_CollabProjectForFreeTransExports = foundFreeTransProjString;
 					bChangeMadeToCollabSettings = TRUE;
@@ -13378,7 +13378,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 				this->m_bCollaborationExpectsFreeTrans = !CollabFreeTransProjStrFound.IsEmpty();
 				bChangeMadeToCollabSettings = TRUE;
 			}
-			
+
 			if (!srcProjFoundInEditor || !tgtProjFoundInEditor || (!CollabFreeTransProjStrFound.IsEmpty() && !freeTransProjFoundInEditor))
 			{
 				errorStr = msg; // return the errorStr to the caller by reference
@@ -13397,24 +13397,24 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		}
 
 		// 15. If both the CollabProjectForSourceInputs and CollabProjectForTargetExports fields
-		// are present, and they exist in projList as Editor projects (see above checks), call the 
-		// CollabProjectsAreValid() function on them (and the CollabProjectForFreeTransExports value). 
-		// If the CollabProjectsAreValid() returns FALSE - along with an errStr message, return the 
+		// are present, and they exist in projList as Editor projects (see above checks), call the
+		// CollabProjectsAreValid() function on them (and the CollabProjectForFreeTransExports value).
+		// If the CollabProjectsAreValid() returns FALSE - along with an errStr message, return the
 		// errorStr message to the caller and return the collab status as collabProjExistsButIsInvalid.
-		// The caller (ProjectPage) will allow the user to select from available PT/BE projects which, 
+		// The caller (ProjectPage) will allow the user to select from available PT/BE projects which,
 		// if the PT/BE projects prove valid, will allow the user to continue collab work.
 		if (bFoundCollabSrcProj && bFoundCollabTgtProj)
 		{
 			// Check the validity of the PT/BE projects. They are valid if they are not
 			// empty and calls to CollabProjectHasAtLeastOneBook() indicate that the
 			// projects have at least one book defined.
-			// 
+			//
 			// Note: This CollabProjectsAreValid() call is also done within the 3-button
-			// ChooseCollabOptionsDlg's InitDialog() method using the App's stored values 
+			// ChooseCollabOptionsDlg's InitDialog() method using the App's stored values
 			// for the PT/BE projects' (composite) strings.
 			wxString errStr = _T("");
 			wxString errProj = _T("");
-			if (!CollabProjectsAreValid(CollabSrcProjStrFound, CollabTgtProjStrFound, 
+			if (!CollabProjectsAreValid(CollabSrcProjStrFound, CollabTgtProjStrFound,
 									CollabFreeTransProjStrFound, m_collaborationEditor,
 									errStr, errProj))
 			{
@@ -13425,11 +13425,11 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			// If we get here the projects are valid according to CollabProjectsAreValid() above.
 			return collabProjExistsAndIsValid;
 		}
-		// 16. If the GetAIProjectCollabStatus() function has not returned a state value by 
-		// time control reaches this point, just return the collab status as 
+		// 16. If the GetAIProjectCollabStatus() function has not returned a state value by
+		// time control reaches this point, just return the collab status as
 		// collabProjNotConfigured.
-		// 
-		// If we get here most if not all of the valid collab states have been bled off, so we can 
+		//
+		// If we get here most if not all of the valid collab states have been bled off, so we can
 		// return collabProjNotConfigured for safety sake.
 		return collabProjNotConfigured;
 	} // end of if (bOpenedOK)
@@ -13437,7 +13437,7 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 	{
 		// 17. If the project config file could not be opened successfully, return an error
 		// message to that fact and return the collab status as projConfigFileUnableToOpen.
-		// 
+		//
 		// The f.Open() call failed for some reason.
 		// This is the exit point for an AI project whose config file is present in
 		// the project's folder but could not be opened/read.
@@ -14679,14 +14679,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
 	//m_kbServerURL.Empty();
 	//m_kbServerUsername.Empty();
-	//m_kbServerPassword.Empty(); 
+	//m_kbServerPassword.Empty();
 	//m_kbServerLastSync.Empty();
 
 #endif
 	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
 	m_trialRevNum = -1;			// negative means no trial going on - the normal case
-	
+
 	m_bShowProgress = TRUE;		// normal default
 
 	// initialize Printing support members
@@ -15400,27 +15400,27 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// edb added 7Aug12 for Pathway export support
 	m_bPathwayIsInstalled = PathwayIsInstalled();
 	m_PathwayInstallDirPath = GetPathwayInstallDirPath();
-	
+
 	// whm 4Apr12 modification:
 	// As of version 6.2.1 the App's m_collaborationEditor variable is stored in
 	// the project config file with the other collaboration settings. Therefore
-	// we allow the reading of a project config file to set the string value of 
-	// m_collaborationEditor, overriding whatever is set here based solely on what 
+	// we allow the reading of a project config file to set the string value of
+	// m_collaborationEditor, overriding whatever is set here based solely on what
 	// editor is installed. If more than one editor is installed, the administrator
-	// can select the external Scripture editor of choice in the 
+	// can select the external Scripture editor of choice in the
 	// SetupEditorCollaboration dialog by choosing the appropriate radio box button.
 	// If Paratext or Bibledit is currently installed we set a default editor name
-	// here, giving Paratext preference if it is installed. We set it here because 
+	// here, giving Paratext preference if it is installed. We set it here because
 	// when the SetupEditorCollaboration dialog is invoked, no project will be open
 	// and we won't know initially what editor may be preferred for a given AI project
 	// until the administrator selects an AI project at Step 1 in the dialog. This
 	// default assigned here will at least provide something other than %s for the
 	// string substitutions in the dialog's controls when it first appears and before
 	// the administrator selects an existing AI project.
-	// 
-	// If neither Paratext nor Bibledit are installed, the m_collaborationEditor is 
-	// an empty string. Since m_collaborationEditor can be an empty string, code should 
-	// call wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string 
+	//
+	// If neither Paratext nor Bibledit are installed, the m_collaborationEditor is
+	// an empty string. Since m_collaborationEditor can be an empty string, code should
+	// call wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
 	// substitutions.
 	if (m_bParatextIsInstalled)
 	{
@@ -17160,18 +17160,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		if (m_pConfig->HasGroup(_T("/Recent_File_List_Unicode")))
 		{
 			// whm Note: wxConfig::DeleteGroup() deletes the group and all
-			// subgroups 
+			// subgroups
 			m_pConfig->DeleteGroup(_T("/Recent_File_List_Unicode"));
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 		}
 		if (m_pConfig->HasGroup(_T("/Recent_File_List")))
 		{
 			// whm Note: wxConfig::DeleteGroup() deletes the group and all
-			// subgroups 
+			// subgroups
 			m_pConfig->DeleteGroup(_T("/Recent_File_List"));
 			m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
 		}
-		// The most likely 
+		// The most likely
 	}
 
 	// whm 1Oct12 removed all MRU code
@@ -17218,8 +17218,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxHelpProvider::Set(provider);
 
 	// Get/Set Help info (window size etc) in the config object.
-    // UseConfig() creates a [HtmlHelpController] section in the 
-    // .Adapt_It_WX (or Adapt_It_WX.ini) external settings file. 
+    // UseConfig() creates a [HtmlHelpController] section in the
+    // .Adapt_It_WX (or Adapt_It_WX.ini) external settings file.
 	// It contains help window position info. It also saves borders
 	// and font information about the help window in an additional
 	// section named [HtmlHelpController/wxHtmlWindow]. These settings
@@ -19824,7 +19824,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// File Menu, and Load the File History (MRU) to it
 	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
 	wxASSERT(pFileMenu != NULL);
-	
+
 	m_pDocManager->FileHistoryUseMenu(pFileMenu);
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU)
@@ -21923,7 +21923,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				// access, so suppress these too
 				// mrh 2May12 - yes, another one.  If a doc is changed externally and we
 				// need to re-open it, we need to suppress the warning.
-		
+
 				if (!m_bUnpacking && !m_bAutoExport && !m_bRetransReportInProgress && !m_bDocReopeningInProgress)
 				{
 					wxString str;
@@ -23023,18 +23023,18 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
     // tempSfmSetAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gCurrentSfmSet = pUsfmFilterPageCommon->tempSfmSetAfterEditDoc;
-	
+
 	// whm added 7Jul12 for debugging
 	//wxLogDebug(_T("gCurrentFilterMarkers (before edit) = %s"),gpApp->gCurrentFilterMarkers.c_str());
-	
+
 	// Update the App's gCurrentFilterMarkers with the USFM and Filtering page's
 	// tempFilterMarkersAfterEditDoc
 	if (pUsfmFilterPageCommon != NULL)
 		gpApp->gCurrentFilterMarkers = pUsfmFilterPageCommon->tempFilterMarkersAfterEditDoc;
-	
+
 	// whm added 7Jul12 for debugging
 	//wxLogDebug(_T("gCurrentFilterMarkers (after edit) = %s"),gpApp->gCurrentFilterMarkers.c_str());
-	
+
 	// Update the global for the project sfm set with the USFM and Filtering page's
 	// tempSfmSetAfterEditProj
 	if (pUsfmFilterPageCommon != NULL)
@@ -24239,7 +24239,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bShowWaitDlg, bool bAutoBackup)
 	wxString progMsg = _("Saving KB %s - %d of %d Total entries and senses");
 	wxFileName fn(m_curGlossingKBPath);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	
+
 	if (bShowWaitDlg)
 	{
 		((CStatusBar*)m_pMainFrame->m_pStatusBar)->StartProgress(_("Saving the Glossing KB"),msgDisplayed,nTotal);
@@ -24673,7 +24673,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		else if (dlgResult == wxID_ABORT) // whm added 19Apr12
 		{
 			// the GetSourceTextFromEditor dialog had to abort due to a the external editor either having
-			// less than two projects, or from the project config file's collaboration settings having 
+			// less than two projects, or from the project config file's collaboration settings having
 			// specified PT/BE projects that cannot be found in the list of the external editor's projects.
 			wxString msg = _("Adapt It cannot collaborate with this project (%s). There is a problem with the project's settings.\nPlease ask your administrator for help.");
 			msg = msg.Format(msg,dlg.m_TempCollabAIProjectName.c_str());
@@ -25281,7 +25281,7 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 	event.Enable(TRUE);		// mrh - on the Mac, need to force item to be enabled, for some reason
 	return;
 #endif
-	
+
 	if (m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
@@ -26077,9 +26077,9 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 // mrh Sept2012 -- here we suppress progress dialogs for opening the various files, and also change the
 // cursor to "busy".  It will go back to normal automatically when this function ends.
-	
+
 	gpApp->m_bShowProgress = FALSE;
-	
+
 	// Update for step 1 Creating a temporary KB backup for restoring the KB later
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
 	((CStatusBar*)m_pMainFrame->m_pStatusBar)->UpdateProgress(_("Restoring Knowledge Base..."), 1, msgDisplayed);
@@ -26168,7 +26168,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 								// Bible book folders only)
 	nDocCount += nCount;
 	wxASSERT(nCount >= 0);
-		
+
 	if (bOK)
 	{
 		// if there are no documents yet, a restore or other operation requiring one of more
@@ -32398,16 +32398,16 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			if (!strValue.IsEmpty())
 			{
 				gProjectFilterMarkersForConfig = strValue;
-				// whm added 9Jul12. It is possible that some Project configuration files have 
-				// been saved before we corrected the filtering and unfiltering of \x, \f and 
+				// whm added 9Jul12. It is possible that some Project configuration files have
+				// been saved before we corrected the filtering and unfiltering of \x, \f and
 				// \fe markers, in which case this gProjectFilterMarkersForConfig could have o
-				// rphaned content markers \xo ... etc without a parent \x, and \ft .... etc 
-				// without parent \f or \fe. We should clean up any orphaned content markers so 
-				// that they won't make for problems in marker filtering during the session. We 
-				// can assume that if \x if present in the filtered markers string field, that 
-				// its content markers should also be present. If \x is absent the content 
-				// markers associated with \x should also be absent. Same story for the \f and 
-				// \fe markers and their associated content markers. I've written a function 
+				// rphaned content markers \xo ... etc without a parent \x, and \ft .... etc
+				// without parent \f or \fe. We should clean up any orphaned content markers so
+				// that they won't make for problems in marker filtering during the session. We
+				// can assume that if \x if present in the filtered markers string field, that
+				// its content markers should also be present. If \x is absent the content
+				// markers associated with \x should also be absent. Same story for the \f and
+				// \fe markers and their associated content markers. I've written a function
 				// called CleanupFilterMarkerOrphansInString() to do the job.
 				gProjectFilterMarkersForConfig = CleanupFilterMarkerOrphansInString(gProjectFilterMarkersForConfig);
 			}
@@ -33287,7 +33287,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 		configType = _("basic");
 	else if (configFType == projectConfigFile)
 		configType = _("project");
-		
+
 	// open the config file for reading
     // wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
     // Note: Need to check if file exists, otherwise if Open fails wxWidgets' wxTextFile
@@ -37385,10 +37385,10 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		// protection to avoid a crash
 		if (!(GetBookIDFromDoc()).IsEmpty() && !m_bookName_Current.IsEmpty())
 		{
-			message += _T(" "); 
+			message += _T(" ");
 			message += _("from Book: ");
 			message += m_bookName_Current;
-			message += _T(" "); 
+			message += _T(" ");
 		}
 	}
 	//message = message.Format(rscStr,gpApp->m_curProjectName.c_str());
@@ -38899,7 +38899,7 @@ int CAdapt_ItApp::FindArrayString(const wxString& findStr, wxArrayString* strArr
 /// This function does a brute force linear search through strArray looking for subStr at
 /// the atPos index in each string element of the array (typically 0 for the first position
 /// in the string element). Whitespace is removed from left end of the array string so that
-/// position 0 will be the start of non-whitespace text. If found (array element at atPosn == 
+/// position 0 will be the start of non-whitespace text. If found (array element at atPosn ==
 /// subStr exactly) it returns the found element's index in the array, otherwise it returns -1.
 ////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::FindArrayStringUsingSubString(const wxString& subStr, wxArrayString* strArray, int atPosn)
@@ -38925,8 +38925,8 @@ wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMark
 	bool bCrossRefMkrExists = markerStr.Find(_T("\\x ")) != wxNOT_FOUND;
 	bool bFootNoteMkrExists = markerStr.Find(_T("\\f ")) != wxNOT_FOUND;
 	bool bEndNoteMkrExists = markerStr.Find(_T("\\fe ")) != wxNOT_FOUND;
-	// Add or remove markers as necessary to achieve consistency between 
-	// the \x, \f, and \fe parent markers and their associated content 
+	// Add or remove markers as necessary to achieve consistency between
+	// the \x, \f, and \fe parent markers and their associated content
 	// markers.
 	if (bCrossRefMkrExists)
 	{
@@ -40331,7 +40331,7 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 			pView->CloseProject(); // calls View's OnFileCloseProject()
 		}
 	}
-	
+
 	CSetupEditorCollaboration dlg(GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -40634,7 +40634,7 @@ void CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& eve
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (m_bAdminMenuRemoved)
 	{
 		// can't do it if the menu is not attached
@@ -43908,10 +43908,10 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
 	wxArrayString tempListOfBEProjects;
 	tempListOfBEProjects.Clear();
-	tempListOfBEProjects.Add(_T("Nyindrou"));	
+	tempListOfBEProjects.Add(_T("Nyindrou"));
 	tempListOfBEProjects.Add(_T("Tok Pisin"));
 	// Comment out the next one to test with Bibledit having just two projects
-	tempListOfBEProjects.Add(_T("Free Trans"));	
+	tempListOfBEProjects.Add(_T("Free Trans"));
 	return tempListOfBEProjects;
 #else
 
@@ -43945,7 +43945,7 @@ wxArrayString CAdapt_ItApp::GetListOfBEProjects()
 	if (!bOK)
 	{
 		// The ::wxSetWorkingDirectory() or finder.Open() functions
-		// failed for some reason. Just log the error and return the 
+		// failed for some reason. Just log the error and return the
 		// empty list.
 		wxString msg = _T("In GetListOfBEProjects() wxSetWorkingDirectory() or finder.Open() failed with the path: %s Empty list of BE projects returned.");
 		msg = msg.Format(msg,BE_ProjectsDirPath.c_str());
@@ -44429,12 +44429,12 @@ wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		       the full Scripture book name (English, or something else 
-///                    if localized); or an empty string if no code matches the 
+/// \return		       the full Scripture book name (English, or something else
+///                    if localized); or an empty string if no code matches the
 ///                    passed in code
 /// \param bookCode -> a wxString representing the 3-letter USFM book code for bookName
 /// \remarks
-/// Called from: 
+/// Called from:
 /// Finds the bookCode in the App's AllBookIds[] array and uses the found index as an
 /// index into the parallel AllBookNames[] array, extracting the corresponding full
 /// book name which it then returns.
@@ -44444,7 +44444,7 @@ wxString CAdapt_ItApp::GetBookCodeFromBookName(wxString bookName)
 wxString CAdapt_ItApp::GetBookNameFromBookCode(wxString bookCode)
 {
 	// The Paratext list of book codes (3-letter Ids) is located in the App's array of
-	// wxStrings called AllBookIds. The Paratext list of full book names, localizable 
+	// wxStrings called AllBookIds. The Paratext list of full book names, localizable
 	// (English) names, is located in the App's array of wxStrings called AllBookNames.
 	wxString bookName;
 	bookName.Empty();

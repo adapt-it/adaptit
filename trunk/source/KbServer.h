@@ -3,10 +3,10 @@
 /// \file			KbServer.h
 /// \author			Bruce Waters
 /// \date_created	1 October 2012
-/// \date_revised	
+/// \date_revised
 /// \copyright		2012 Kevin Bradford, Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the KbServer class. 
+/// \description	This is the header file for the KbServer class.
 /// The KbServer class encapsulates the transport mechanism and client API functions for
 /// communicating with a kbserver located on a lan, a remote server on the web, or on a
 /// networked computer.
@@ -55,7 +55,7 @@ class KbServer : public wxObject
 public:
 
 	// creation & destruction
-	
+
 	KbServer(void); // constructor
 	KbServer(CAdapt_ItApp* pApp); // the constructor we'll use, it lets us get m_pKB and m_pGlossingKB easily
 	virtual	~KbServer(void); // destructor (should be virtual)
@@ -64,19 +64,19 @@ public:
 public:
 
 	// The API which we expose
-	std::string	LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
-	int			SendEntry(wxString srcPhrase, wxString tgtPhrase); // srcPhrase & tgtPhrase are often each just a single word
+	int	  LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
+	int		  SendEntry(wxString srcPhrase, wxString tgtPhrase); // srcPhrase & tgtPhrase are often each just a single word
 
 	// public getters & setters
-	wxString ImportLastSyncDateTime(); // imports the datetime ascii string literal 
+	wxString  ImportLastSyncDateTime(); // imports the datetime ascii string literal
 									   // in lastsync.txt file & returns it as CBString
-	bool	 ExportLastSyncDateTime(); // exports it, temporarily, to lastsync.txt file
+	bool	  ExportLastSyncDateTime(); // exports it, temporarily, to lastsync.txt file
 									   // as an ascii string literal
 
 protected:
 
 	// helpers
-	
+
 	// the following getters temporarily access data in creditials.txt and lastsync.txt
 	// files; they will remain in the final version but their internals will access
 	// whatever we decide should be the permanent server-related info storage
@@ -84,6 +84,8 @@ protected:
 	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
 
 	// two useful utilities for string encoding conversions (Xhtml.h & .cpp has the same)
+	// but we could use wxString::ToUtf8() and wxString::FromUtf8() instead, but the first
+	// would give us a bit more work to do to use with CBString
 	CBString ToUtf8(const wxString& str);
 	wxString ToUtf16(CBString& bstr);
 
@@ -91,11 +93,11 @@ protected:
 private:
 	// class variables
 	CAdapt_ItApp* m_pApp;
-	
+
 	// the following 5 are used for setting up the https transport of data to/from the kbserver
 	wxString	m_kbServerURLBase;
 	wxString	m_kbServerUsername;
-	wxString	m_kbServerPassword; // we never store this, the user has to remember it 
+	wxString	m_kbServerPassword; // we never store this, the user has to remember it
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
 
 	// private member functions
@@ -111,7 +113,7 @@ private:
 
 	int     SetKBTypeForServer(); // returns 1 or 2
 
-	DECLARE_DYNAMIC_CLASS(KbServer) 
+	DECLARE_DYNAMIC_CLASS(KbServer)
 
 };
 #endif // for _KBSERVER
