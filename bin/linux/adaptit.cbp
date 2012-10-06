@@ -440,6 +440,13 @@
 		<Unit filename="../../source/ecdriver.h" />
 		<Unit filename="../../source/helpers.cpp" />
 		<Unit filename="../../source/helpers.h" />
+		<Unit filename="../../source/json_defs.h" />
+		<Unit filename="../../source/jsonreader.cpp" />
+		<Unit filename="../../source/jsonreader.h" />
+		<Unit filename="../../source/jsonval.cpp" />
+		<Unit filename="../../source/jsonval.h" />
+		<Unit filename="../../source/jsonwriter.cpp" />
+		<Unit filename="../../source/jsonwriter.h" />
 		<Unit filename="../../source/md5.cpp" />
 		<Unit filename="../../source/md5.h" />
 		<Unit filename="../../source/scrollingdialog.cpp" />

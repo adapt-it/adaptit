@@ -298,7 +298,7 @@ class CPlaceholder;
 // forward reference for read-only support
 class ReadOnlyProtection;
 
-// forward reference for Oxes export support 
+// forward reference for Oxes export support
 // BEW removed 15Jun11 until we provide OXES support
 // BEW reinstated 19May12, for OXES v1 support
 //class Oxes;
@@ -1810,7 +1810,7 @@ typedef struct
 // Use the built-in wxConvAuto from <wx/version.h>
 class AIModalDialog : public wxDialog
 #else
-// The wxWidgets library being used is pre-2.9.x, so use our own 
+// The wxWidgets library being used is pre-2.9.x, so use our own
 // wxScrollingDialog located in scrollingdialog.h
 class AIModalDialog : public wxScrollingDialog
 #endif
@@ -2079,7 +2079,7 @@ public:
     wxString m_poetryMkrs; // USFM ones
 	wxArrayString m_unknownMarkers; // array of unknown whole markers -
 									// no end markers stored here
-	
+
 	// whm added these two string arrays 8Jul12 which are initialized in Adapt_It.cpp::OnInit()
 	wxArrayString m_crossRefMarkerSet;
 	wxArrayString m_footnoteMarkerSet;
@@ -2121,7 +2121,7 @@ public:
 	//  opens the document, it will come up read-only.
 
 #define  NOOWNER	_T("****")			// a real user can't have asterisks, and must have "@"
-#define  NOCODE		_T("qqq")			// no language code defined.  qaa - qtz are defined in ISO 639-2 
+#define  NOCODE		_T("qqq")			// no language code defined.  qaa - qtz are defined in ISO 639-2
 										//  as being for private use, so this can never be a real language code
 
 	wxString	m_AIuser;				// e.g. joe bloggs@joesMachine
@@ -2139,7 +2139,7 @@ public:
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
 										// m_owner and m_AIuser must match before a commit is allowed,
 										// unless either is "no owner".
-	
+
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
 
 
@@ -2689,12 +2689,12 @@ public:
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
-	// lastsync.txt stores the date & time. These two files will be abandoned once we get a 
+	// lastsync.txt stores the date & time. These two files will be abandoned once we get a
 	// GUI built. Some metadata will also be (most likely) stored in a hidden file,
 	// .kbserver in the project folder, probably a JSON encoded data.
 	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
 									  // sharing kb data between clients in the same AI project
-	
+
 #endif // for _KBSERVER
 
 	// BEW added 2Dec2011 for supporting LIFT multilanguage glosses or definitions
@@ -3127,7 +3127,7 @@ public:
 	// mrh added 2May12, likewise to suppress the warning when we're re-opening a document that's
 	// been changed externally.
 	bool		m_bDocReopeningInProgress;
-	
+
 	// mrh added 20Sep12, to control whether a progress dialog should come up when opening a document.
 	//  Default is TRUE.
 	bool		m_bShowProgress;
@@ -4070,7 +4070,7 @@ public:
 	wxString m_strGlossText; // Gloss text
 	wxString m_consCheck_msg1; // An adaptation exists. A knowledge base entry is expected, but is absent
 	wxString m_consCheck_msg2; // The knowledge base entry is %s, the document does not agree
- 
+
 	bool m_bXhtmlExportInProgress; // BEW 9Jun12
 
 	bool m_bUsePrefixExportTypeOnFilename; // whm 9Dec11 added flag to include/exclude prefixing an
