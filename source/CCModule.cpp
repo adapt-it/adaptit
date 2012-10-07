@@ -65,6 +65,8 @@
 // at least gcc 4.2 in current builds.
 #if defined(__GNUG__)
 	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
