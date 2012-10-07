@@ -58,6 +58,8 @@
 
 // whm added 12Aug12 for builds using gcc turn off deprecated warnings since
 // the old CC code has many that can't be fixed without a major rewrite.
+// whm added 7Oct12 two additional pragma declarations to turn off
+// "sign-compare" and "write-strings" warnings.
 // Note: This pragma should only apply to CCModule.cpp and versions of
 // gcc >= 4.2, but the wxCHECK_GCC_VERSION(4, 2) macro produces compile
 // errors on either the Mac or Linux for some unknown reason. The remaining
