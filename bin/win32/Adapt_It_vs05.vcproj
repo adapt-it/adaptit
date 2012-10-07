@@ -848,6 +848,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\StatusBar.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Strip.cpp"
 				>
 			</File>
@@ -1338,6 +1342,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\StartWorkingWizard.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\StatusBar.h"
 				>
 			</File>
 			<File
