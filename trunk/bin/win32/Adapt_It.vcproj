@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswd&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswd&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;;lib\silconverters"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -83,7 +83,7 @@
 				Version="6.3.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -150,7 +150,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)/include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\msw&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)/include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\msw&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;lib\silconverters"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;__WINDOWS__;__WXMSW__;__WIN95__;__WIN32__;WINVER=0x0400;STRICT;CURL_STATICLIB"
 				StringPooling="false"
 				RuntimeLibrary="0"
@@ -183,7 +183,7 @@
 				Version="6.3.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
 				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile=".\Release/Adapt_It.pdb"
 				SubSystem="2"
@@ -240,7 +240,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;;lib\silconverters"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_KBSERVER"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -269,7 +269,7 @@
 				Version="6.3.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\lib\Win64&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\lib\Win64&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;lib\silconverters"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -328,7 +328,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswu&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswu&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;lib\silconverters"
 				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -357,7 +357,7 @@
 				Version="6.3.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="false"
 				SubSystem="2"
@@ -1102,10 +1102,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\EarlierTranslationDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\ecdriver.h"
 				>
 			</File>
 			<File

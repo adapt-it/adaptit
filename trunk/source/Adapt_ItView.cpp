@@ -121,7 +121,7 @@
 #include "ConsistentChanger.h"
 #include "SilConverterSelectDlg.h"
 #ifdef USE_SIL_CONVERTERS
-#include "ECDriver.h"
+#include "ecdriver.h"
 #endif
 #include "FreeTrans.h"
 #include "Adapt_ItView.h"

@@ -30,6 +30,7 @@
 					<Add directory="$(BOOST)" />
 					<Add directory="$(LIBCURL)\include" />
 					<Add directory="$(OPENSSL)\include" />
+					<Add directory="lib\silconverters" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(WXWIN)\include" />
@@ -99,6 +100,7 @@
 					<Add directory="$(BOOST)" />
 					<Add directory="$(LIBCURL)\include" />
 					<Add directory="$(OPENSSL)\include" />
+					<Add directory="lib\silconverters" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(WXWIN)\include" />
@@ -175,6 +177,7 @@
 					<Add directory="$(BOOST)" />
 					<Add directory="$(LIBCURL)\include" />
 					<Add directory="$(OPENSSL)\include" />
+					<Add directory="lib\silconverters" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(WXWIN)\include" />
@@ -212,7 +215,7 @@
 					<Add directory="$(WXWIN)\lib\vc_lib" />
 					<Add directory="$(LIBCURL)\lib\Debug" />
 					<Add directory="$(OPENSSL)\lib" />
-					<Add directory="..\..\source" />
+					<Add directory="lib\silconverters" />
 				</Linker>
 			</Target>
 			<Target title="Unicode Release Win32">
@@ -240,6 +243,7 @@
 					<Add directory="$(BOOST)" />
 					<Add directory="$(LIBCURL)\include" />
 					<Add directory="$(OPENSSL)\include" />
+					<Add directory="lib\silconverters" />
 				</Compiler>
 				<ResourceCompiler>
 					<Add directory="$(WXWIN)\include" />
@@ -277,7 +281,7 @@
 					<Add directory="$(WXWIN)\lib\vc_lib" />
 					<Add directory="$(LIBCURL)\lib\Release" />
 					<Add directory="$(OPENSSL)\lib" />
-					<Add directory="..\..\source" />
+					<Add directory="lib\silconverters" />
 				</Linker>
 				<ExtraCommands>
 					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot; /Y' />
@@ -423,6 +427,8 @@
 		<Unit filename="..\..\source\KBExportImportOptionsDlg.h" />
 		<Unit filename="..\..\source\KBPage.cpp" />
 		<Unit filename="..\..\source\KBPage.h" />
+		<Unit filename="..\..\source\KbServer.cpp" />
+		<Unit filename="..\..\source\KbServer.h" />
 		<Unit filename="..\..\source\LanguageCodesDlg.cpp" />
 		<Unit filename="..\..\source\LanguageCodesDlg.h" />
 		<Unit filename="..\..\source\LanguagesPage.cpp" />
@@ -547,6 +553,13 @@
 		<Unit filename="..\..\source\convauto.h" />
 		<Unit filename="..\..\source\helpers.cpp" />
 		<Unit filename="..\..\source\helpers.h" />
+		<Unit filename="..\..\source\json_defs.h" />
+		<Unit filename="..\..\source\jsonreader.cpp" />
+		<Unit filename="..\..\source\jsonreader.h" />
+		<Unit filename="..\..\source\jsonval.cpp" />
+		<Unit filename="..\..\source\jsonval.h" />
+		<Unit filename="..\..\source\jsonwriter.cpp" />
+		<Unit filename="..\..\source\jsonwriter.h" />
 		<Unit filename="..\..\source\md5.cpp" />
 		<Unit filename="..\..\source\md5.h" />
 		<Unit filename="..\..\source\scrollingdialog.cpp" />
