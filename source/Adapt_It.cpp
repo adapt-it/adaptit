@@ -19992,11 +19992,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// curl needs to be initialized just once per run of the application
 #if defined(__WXMSW__)
-	curl_global_init(CURL_GLOBAL_ALL);
+	CURLcode returnedCode = curl_global_init(CURL_GLOBAL_ALL);
 #else
-	curl_global_init(CURL_GLOBAL_SSL);
+	CURLcode returnedCode = curl_global_init(CURL_GLOBAL_SSL);
 #endif
-
+	returnedCode = returnedCode; // prevent compiler warning, and permit easy inspection of value
 
 	// **** test code fragments here ****
 /*
