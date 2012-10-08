@@ -219,6 +219,7 @@
 #include "GetSourceTextFromEditor.h"
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
+#include "DVCS.h"
 
 #if defined (_KBSERVER)
 #include "KbServer.h"
@@ -14688,6 +14689,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_trialRevNum = -1;			// negative means no trial going on - the normal case
 
 	m_bShowProgress = TRUE;		// normal default
+	
+	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
 
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
