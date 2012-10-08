@@ -14577,13 +14577,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 // getter for m_pKbServer
 KbServer* CAdapt_ItApp::GetKbServer()
 {
-	if (m_pKbServer == NULL)
-	{
-		// warn the developer
-		wxMessageBox(_T("Logic error: GetKbServer() called, but m_pKbServer is still NULL. Fix it!"));
-		return (KbServer*)NULL;
-	}
-	return m_pKbServer;
+	return m_pKbServer; // remember, it may be NULL, so caller should test
 }
 
 // setter for m_pKbServer; the pKbServer param may be (a) new KbServer(this),
@@ -20004,7 +19998,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString srcText2 = _T("niuspepa");
 	wxString srcText = _T("giaman");
 	wxString tgtText = _T("untrue");
-	//m_pKbServer->LookupEntryForSourcePhrase( srcText2 ); // works
+	m_pKbServer->LookupEntryForSourcePhrase( srcText2 ); // works
 	//m_pKbServer->LookupEntryForSourcePhrase( srcText ); // returns english error message in str_CURLbuffer
 	int result = m_pKbServer->SendEntry(srcText,tgtText); // wxJson not behaving yet
 	delete m_pKbServer;
