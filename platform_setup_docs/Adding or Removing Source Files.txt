@@ -1,0 +1,81 @@
+Document: Adding or Removing Source Files from the Adapt It project
+Author: Bill Martin
+Date: 7 October 2012
+Purpose: This file describes how to add or remove source files from the various build environments used in the Adapt It cross-platform project. 
+
+Contents:
+   The Linux Command Line Environment
+   The CodeBlocks IDE
+   The Visual Studio IDE
+   The Xcode IDE
+
+** The Linux Command Line Environment: **
+
+The Makefile.am is where to indicate which source files are to be built in command line Linux builds. The Makefile.am file for the adaptit project is located at:
+
+adaptit/bin/linux/Makefile.am
+
+To add or remove source files from the Linux command line build system, just edit the Makefile.am file – you can use gedit or your favorite editor. 
+
+The Makefile.am is structured so that it automatically includes all header (*.h) files via the following lines at the top of the file:
+
+# these are the headers for your project
+noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
+
+Therefore, you only need to add the cpp file which is done by editing the long 
+
+adaptit_SOURCES = 
+
+line farther down in the file. 
+
+Note: Each cpp file is given with its relative path (relative to the adaptit/bin/linux directory where the Makefile.am is located). Use the backslash \ character to indicate soft line breaks in the long line, and to keep some semblance of alphabetical ordering to the list of sources in the long line. You can insert new cpp source filess into the list – just separate the new entries from the others by a space and ensure that each line after editing has the backslash character as the last character in each line once editing is complete. Sources can be removed from the long adaptit_SOURCES = line in the same way.
+
+After saving the Makefile.am with new content, you need to rebuild the project at the command line, of course, for the changes to be built into the app. See the "Building Adapt It from the Command Line.txt" section above. In most cases you only need to call the make command to rebuild after editing Makefile.am. In some rare cases, or if there is a build error, you may need to execute the autogen.sh script from within the adaptit/bin/linux/ directory followed by the usual ../configure and make calls from within the adaptit/bin/linux/build/ directory. The build process will automatically create an updated Makefile.in file.
+
+Remember to commit the changed Makefile.am and Makefile.in files to the repository using the svn client. Open a Terminal and execute the following commands to first display any changed files, and then commit the appropriate ones to the external svn repository:
+
+cd ~/subversion/adaptit
+svn st
+
+Look at the list of changed files (which have a M at the left of their relative path). If you want to commit all changed files (marked with an M), you can simply invoke svn as follows:
+
+svn commit -m"Comment about the commit"
+
+If, however, you only want to specify certain changed files you can do so using wild cards or by including path/filename path/filename … on the command line, as shown in the following examples:
+
+svn commit source/Adapt_It* -m"Comment about the commit"
+svn commit source/Adapt_It.cpp source/helpers.h -m"Comment about the commit"
+
+
+** The CodeBlocks IDE **
+
+Adding or Removing Source Files from the CodeBlocks Project is done from within the CodeBlocks IDE.
+
+Occasionally, new source files need to be added to the CodeBlocks adaptit project, or existing source files need to be removed from the project to keep the Linux CodeBlocks project in sync with the other development environments. The inventory of files can get out of sync if a developer adds or removes source files in one of the other developer tools (on a different platform) and that developer is not able for some reason to update the project’s files that are included in the Linux CodeBlocks project).
+
+1. To add new source files to the CodeBlocks adaptit project, select Project > Add files… and navigate to the adaptit/source folder. Select the files to be added and click on the Open button. In the Multiple Selection dialog verify that both Debug and Release have ticks in their check boxes and click OK. The source files are now part of the CodeBlocks adaptit project. 
+
+2. To remove existing source files from the CodeBlocks adaptit project, the preferred (and safest) way is to select the Projects tab of the Management window. Open the Sources > source tree and remove the appropriate cpp source file by right-clicking on the file name and selecting “Remove file from project.” Similarly, open the Headers > source tree and remove the corresponding .h file by right-clicking on the file name and selecting “Remove file from project.” 
+
+If you need to remove many files at once you can do so utilizing the Project > Remove files.. menu selection. But beware – this Multiple selection dialog is dangerous! All files in the entire project are selected by default! Before you click on the OK button, you will need to first click on the “Deselect All” button, then use the “Wildcard select” button and select the files that are to be deleted by entering a wild card, or just scroll through the lengthy list and manually selecting the files to be removed by ticking the appropriate check boxes. 
+
+3. Remember to commit the changed Makefile.am and Makefile.in files to the repository using the svn client. Open a Terminal and execute the following commands to first display any changed files, and then commit the appropriate ones to the external svn repository:
+
+cd ~/subversion/adaptit
+svn st
+
+Look at the list of changed files (which have a M at the left of their relative path). If you want to commit all changed files (marked with an M), you can simply invoke svn as follows:
+
+svn commit -m"Comment about the commit"
+
+If, however, you only want to specify certain changed files you can do so using wild cards or by including path/filename path/filename … on the command line, as shown in the following examples:
+
+svn commit source/Adapt_It* -m"Comment about the commit"
+svn commit source/Adapt_It.cpp source/helpers.h -m"Comment about the commit"
+
+Note: I most often build AI and run it from the command-line on Linux, so I sometimes forget to add any new source files to the CodeBlocks project (that may have been added to adaptit/source by myself or other developers), and commit the updated adaptit.cbp project file to the svn repository. If CodeBlocks generates a compile error about a missing function or symbol, that might be the reason. New source files can be added to the CodeBlocks adaptit project via CodeBlocks’ Project > Add Files menu, and within the “Add files to project…” dialog, navigating to the adaptit/source folder and selecting any new source files from the list that need to be part of the project, then try the Build again (Ctrl+F9).
+
+** The Visual Studio IDE **
+
+
+** The Xcode IDE **
