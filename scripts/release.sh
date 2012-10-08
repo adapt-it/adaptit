@@ -157,9 +157,9 @@ svn export --force . ../adaptit-${RELEASE} || exit 2
 cd ..
 
 # Delete unwanted non-source files here using find
-#find ../adaptit-${RELEASE} -type f -iname "*.hhc" -delete
-find ../adaptit-${RELEASE} -type f -iname "*.dll" -delete
-find ../adaptit-${RELEASE} -type f -iname "*.exe" -delete
+#find adaptit-${RELEASE} -type f -iname "*.hhc" -delete
+find adaptit-${RELEASE} -type f -iname "*.dll" -delete
+find adaptit-${RELEASE} -type f -iname "*.exe" -delete
 
 # Tar it up and create symlink for .orig.bz2
 tar jcf adaptit-${RELEASE}.tar.bz2 adaptit-${RELEASE} || exit 3
