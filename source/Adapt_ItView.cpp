@@ -6090,9 +6090,6 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	wxASSERT(pApp);
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
-	// whm Note: Only log user action when user explicitly closes
-	// the project from the File menu, not when other funtions call
-	// the handler.
 	if (event.GetId() == ID_FILE_CLOSEKB)
 	{
 		pApp->LogUserAction(_T("User initiated Close Project"));
@@ -6115,7 +6112,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		wxString msg = _T("Doc == NULL, returned early from OnFileCloseProject(): m_curProjectPath = %s [not reset/emptied in OnFileCloseProject()]");
 		msg = msg.Format(msg,pApp->m_curProjectPath.c_str());
 		pApp->LogUserAction(msg);
-		return; // do nothin because no doc instance exists yet, so prevent crash
+		return; // do nothing because no doc instance exists yet, so prevent crash
 	}
 
 	// whm added 28Feb12
@@ -6197,20 +6194,6 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		GetDocument()->OnAdvancedSendSynchronizedScrollingMessages(uevent); //toggle it to TRUE
 	}
 
-	/* unneeded, EraseKB() (called twice below) will do this internally
-	if (!pApp->m_curProjectPath.IsEmpty())
-	{
-		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
-		if (bRemoved)
-		{
-			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
-		}
-		// we are leaving this folder, so the local process must have m_bReadOnlyAccess unilaterally
-		// returned to a FALSE value - whether or not a ~AIROP-*.lock file remains in the folder
-		pApp->m_bReadOnlyAccess = FALSE;
-		pApp->GetView()->canvas->Refresh(); // force color change back to normal white background
-	}
-	*/
 	// BEW 28Sep12, moved the KB erasures to be after the writing of the config file,
 	// because ReleaseKBServer(), if called, needs to be called after the config file is
 	// written (so that the latter stores correct m_bKBServerProject flag value), and the
@@ -6293,7 +6276,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		pApp->LogUserAction(_T("ReleaseKBServer() called in OnFileCloseProject()"));
 	}
 #endif
-	// BEW 28Sep12 moved KB erasure code to be here -- see not above
+	// BEW 28Sep12 moved KB erasure code to be here -- see note above
 	// Delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
 	if (pApp->m_pKB != NULL)

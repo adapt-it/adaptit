@@ -3414,10 +3414,25 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
 		// since both the key and the translation (both possibly with a case adjustment
 		// for the first letter) are defined
-		if (m_pApp->GetKbServer() != NULL && m_pApp->m_bIsKBServerProject)
+		if (m_pApp->m_bIsKBServerProject)
 		{
 			// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-			m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+			if (m_pApp->GetKbServer() != NULL)
+			{
+				int responseCode = m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+				if (responseCode != CURLE_OK)
+				{
+					// TODO a function to show the error code and a meaningful explanation
+					;
+
+				}
+			}
+			else
+			{
+				// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
+				wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
+
+			}
 		}
 #endif
 		// continue with the store to the local KB
@@ -3557,10 +3572,25 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined
-			if (m_pApp->GetKbServer() != NULL && m_pApp->m_bIsKBServerProject)
+			if (m_pApp->m_bIsKBServerProject)
 			{
 				// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-				m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+				if (m_pApp->GetKbServer() != NULL)
+				{
+					int responseCode = m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+					if (responseCode != CURLE_OK)
+					{
+						// TODO a function to show the error code and a meaningful explanation
+						;
+	
+					}
+				}
+				else
+				{
+					// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
+					wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
+	
+				}
 			}
 #endif
 			// continue with the store to the local KB
@@ -3803,10 +3833,25 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
                     // BEW added 5Oct12, here is a suitable place for kbserver support of
                     // SendEntry(), since both the key and the translation (both possibly
                     // with a case adjustment for the first letter) are defined
-					if (m_pApp->GetKbServer() != NULL && m_pApp->m_bIsKBServerProject)
+					if (m_pApp->m_bIsKBServerProject)
 					{
 						// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-						m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+						if (m_pApp->GetKbServer() != NULL)
+						{
+							int responseCode = m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+							if (responseCode != CURLE_OK)
+							{
+								// TODO a function to show the error code and a meaningful explanation
+								;
+			
+							}
+						}
+						else
+						{
+							// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
+							wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
+			
+						}
 					}
 #endif
 					// continue with the store to the local KB
