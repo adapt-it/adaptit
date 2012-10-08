@@ -225,6 +225,9 @@
 #include "KbServer.h"
 #endif
 
+// whm added 8Oct12
+#include <curl/curl.h>
+
 #if wxCHECK_VERSION(2,9,1)
 // Use the built-in wxConvAuto from <wx/version.h>
 #include <wx/version.h>
@@ -19991,12 +19994,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedAppInitialization = TRUE;
 
 	// curl needs to be initialized just once per run of the application
+#if defined (_KBSERVER)
 #if defined(__WXMSW__)
 	CURLcode returnedCode = curl_global_init(CURL_GLOBAL_ALL);
 #else
 	CURLcode returnedCode = curl_global_init(CURL_GLOBAL_SSL);
 #endif
 	returnedCode = returnedCode; // prevent compiler warning, and permit easy inspection of value
+#else
+#if defined(__WXMSW__)
+	curl_global_init(CURL_GLOBAL_ALL);
+#else
+	curl_global_init(CURL_GLOBAL_SSL);
+#endif
+#endif
 
 	// **** test code fragments here ****
 /*
