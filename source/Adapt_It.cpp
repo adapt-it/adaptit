@@ -19990,6 +19990,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // out the project config file once the user's setting for book mode is in place
 	gbPassedAppInitialization = TRUE;
 
+	// curl needs to be initialized just once per run of the application
+#if defined(__WXMSW__)
+	curl_global_init(CURL_GLOBAL_ALL);
+#else
+	curl_global_init(CURL_GLOBAL_SSL);
+#endif
+
+
 	// **** test code fragments here ****
 /*
 #if defined (_KBSERVER)
