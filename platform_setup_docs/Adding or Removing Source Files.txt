@@ -59,7 +59,7 @@ Occasionally, new source files need to be added to the CodeBlocks adaptit projec
 
 If you need to remove many files at once you can do so utilizing the Project > Remove files.. menu selection. But beware – this Multiple selection dialog is dangerous! All files in the entire project are selected by default! Before you click on the OK button, you will need to first click on the “Deselect All” button, then use the “Wildcard select” button and select the files that are to be deleted by entering a wild card, or just scroll through the lengthy list and manually selecting the files to be removed by ticking the appropriate check boxes. 
 
-3. Remember to commit the changed Makefile.am and Makefile.in files to the repository using the svn client. Open a Terminal and execute the following commands to first display any changed files, and then commit the appropriate ones to the external svn repository:
+3. Remember to commit the changed adaptit.cbp file to the repository using the svn client. Open a Terminal and execute the following commands to first display any changed files, and then commit the appropriate ones to the external svn repository:
 
 cd ~/subversion/adaptit
 svn st
