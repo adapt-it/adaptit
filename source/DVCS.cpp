@@ -74,20 +74,21 @@
 /*	Implementation notes:
 
 	Our DVCS engine is Mercurial (hg).  It uses a command-line interface.  So our job here is to create the command line, then
-	send it to hg using wxExecute(), then handle the return results.  We do this in the main function gpApp->m_pDVCS->DoDVCS().
+	send it to hg using wxExecute(), then handle the return results.  
+ 
+	This is conceptually very simple, so originally I just wrote procedural code.  But now that we want everything to be as OOP as
+	possible, we have a DVCS class which just has one object, gpApp->m_pDVCS, instantiated in the application's OnInit() function.
+ 
+	All DVCS calls from the application are made via the function gpApp->m_pDVCS->DoDVCS().  This function takes two int parms,
+	action and parm.  action is a code telling us what to do, and parm is used for various things depending on the action.
 
-	The command line has the form
+	Now the hg command line has the form
 
 		hg <command> <options> <arguments>
 
-	So we use 3 wxStrings, hg_command, hg_options and hg_arguments.  These are global to this file, so that we can easily
-	set them up with separate functions depending on the actual command we want to perform, before calling wxExecute in the
-	main function.
-
-	Another approach would have been to set up a class with these wxStrings as members, and the different functions as methods.
-	This would have been a bit of overkill since we don't currently need to hang on to any state from one call to the next, and
-	we'd only need a single object of this class.  So instead we'll keep it simple and only bring in the heavy machinery if
-	we need to later.
+	So we use 3 wxStrings, which are members (instance variables) of the DVCS class, hg_command, hg_options and hg_arguments.
+	We set them up with separate functions depending on the actual command we want to perform, before calling wxExecute in the
+	main function which does the work, call_hg().
 
 	The hg man says we can use wildcards in paths.  In practice this only works in the current directory or the immediate
 	parent.  Therefore, whenever our main function is called, the first thing we do is cd to the Adaptations directory which
