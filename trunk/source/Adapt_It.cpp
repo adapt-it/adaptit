@@ -14683,7 +14683,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_trialRevNum = -1;			// negative means no trial going on - the normal case
 
 	m_bShowProgress = TRUE;		// normal default
-	
+
 	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
 
 	// initialize Printing support members
@@ -20006,9 +20006,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString srcText2 = _T("niuspepa");
 	wxString srcText = _T("giaman");
 	wxString tgtText = _T("untrue");
-	m_pKbServer->LookupEntryForSourcePhrase( srcText2 ); // works
-	//m_pKbServer->LookupEntryForSourcePhrase( srcText ); // returns english error message in str_CURLbuffer
-	int result = m_pKbServer->SendEntry(srcText,tgtText); // wxJson not behaving yet
+	//m_pKbServer->LookupEntryForSourcePhrase( srcText2 );
+	int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
+	int result = m_pKbServer->SendEntry(srcText,tgtText);
+
 	delete m_pKbServer;
 #endif
 */
