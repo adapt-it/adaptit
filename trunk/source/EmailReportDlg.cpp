@@ -543,7 +543,11 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 
 		wxLogDebug(wxT("OnSend"));
 
-		curl_global_init(CURL_GLOBAL_ALL);
+		// BEW 8Oct12, moved this call to OnInit() since KbServer will need curl to have
+		// been initialized; and in OnInit() I used a conditional define to just leave out
+		// CURL_GLOBAL_WIN32 which is included inthe "_ALL" parameter, and just used
+		// CURL_GLOBAL_SSL for OS X and Linux 
+		//curl_global_init(CURL_GLOBAL_ALL);
 
 		CBString tempStr;
 

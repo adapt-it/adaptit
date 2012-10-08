@@ -115,11 +115,6 @@ KbServer::KbServer()
 		m_pApp->SetKbServer(NULL);
 		return;
 	}
-
-	// initialize curl (the second bit flag only has an effect on Windows plaform - so
-	// sockets will work correctly there - Bill's use of curl may have done this already)
-	// This call need only be done once per app session
-	curl_global_init(CURL_GLOBAL_ALL | CURL_GLOBAL_WIN32);
 }
 
 KbServer::KbServer(CAdapt_ItApp* pApp)
