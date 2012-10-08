@@ -97,6 +97,23 @@ CStatusBar::CStatusBar(wxWindow *parent)
 ///////////////////////////////////////////////////////////////////////////////////////
 CStatusBar::~CStatusBar()
 {
+	// clean up any open CProgressItems (they should be taken care of in FinishProgress(),
+	// but just in case...)
+	int count = (int)m_items.GetCount();
+	CProgressItem *pi = NULL;
+	if (count > 0)
+	{
+		for (int i=(count - 1); i>=0; i--)
+		{
+			// delete all the items in the list
+			pi = m_items.Item(i);
+			if (pi != NULL)
+				delete pi;
+		}
+		m_items.Clear();
+	}
+	if (m_Gauge != NULL)
+		delete m_Gauge;
 }
 
 // ----------------------------------------------------------------------------
@@ -219,7 +236,8 @@ void CStatusBar::FinishProgress(const wxString& title)
 			m_Gauge->SetRange(m_Gauge->GetRange() - pi->GetRange());
 			m_Gauge->SetToolTip(m_items.Last()->GetMessage());
 		}
-		// delete the item
+		// delete the item and clean up memory allocation
+		delete pi;
 		m_items.RemoveAt(index);
 	}
 	// refresh the UI
