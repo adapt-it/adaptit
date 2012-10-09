@@ -351,6 +351,8 @@ CAdapt_ItDoc::CAdapt_ItDoc()
 	m_bHasPrecedingStraightQuote = FALSE; // this one needs to be initialized to
 										  // FALSE every time a doc is recreated
 	m_bLegacyDocVersionForSaveAs = FALSE; // whm added 14Jan11
+	m_bPreserveKBsWhenClosingDocument = FALSE;	// mrh Oct12 - normal default
+
 	// WX Note: All Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
 	// **** ONLY INITIALIZATIONS OF DOCUMENT'S PRIVATE MEMBERS SHOULD      ****
@@ -1481,7 +1483,6 @@ void CAdapt_ItDoc::DocChangedExternally()
 																			//  use the value we read in.  Change if necessary.
 	int				savedTrialRevNum = gpApp->m_trialRevNum;
 	wxString		dirPath;
-//	int				test;
 
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		dirPath = gpApp->m_bibleBooksFolderPath;
@@ -1492,8 +1493,11 @@ void CAdapt_ItDoc::DocChangedExternally()
 
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	bOK = bOK; // whm added 13Aug12 to suppress gcc warning "set but not used"
-	OnCloseDocument();
 	
+	m_bPreserveKBsWhenClosingDocument = TRUE;	// to prevent KB being clobbered -- we want only the doc closed
+	OnCloseDocument();
+	m_bPreserveKBsWhenClosingDocument = FALSE;	// restore normal default
+
 	gpApp->m_bDocReopeningInProgress = TRUE;	// suppresses warning message about project folder with same name
 
 	bOK = ReOpenDocument (	gpApp,
@@ -1510,7 +1514,6 @@ void CAdapt_ItDoc::DocChangedExternally()
 	
 	gpApp->m_bDocReopeningInProgress = FALSE;
 	gpApp->m_commitCount = savedCommitCount;
-//	test = gpApp->m_commitCount;
 	gpApp->m_trialRevNum = savedTrialRevNum;
 }
 
@@ -4772,6 +4775,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 /// or READ-ONLY access (if TRUE is returned). (Also added to LoadKB() and OnNewDocument()
 /// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 {
 	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
@@ -5034,6 +5038,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// if we get here by having chosen a document file from the Recent_File_List, then it is
 	// possible to in that way to choose a file from a different project; so the app will crash
 	// unless we here set up the required directory structures and load the document's KB
+
 	if (pApp->m_pKB == NULL)
 	{
         //ensure we have the right KB & project (the parameters SetupDirectories() needs
@@ -5061,6 +5066,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		wxDateTime	savedRevisionDate = pApp->m_revisionDate;
 		
 		pApp->SetupDirectories(); // also sets KB paths and loads KBs & Guesser
+
 		if (gbViaMostRecentFileList)
 		{
 			// test for the ability to get the needed information from the document - we can't get
@@ -5110,7 +5116,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		}
 		gbAbortMRUOpen = FALSE; // make sure the flag has its default setting again
 		gbViaMostRecentFileList = FALSE; // clear it to default setting
-		
+
 		pApp->m_owner = savedOwner;					// restore saved quantities
 		pApp->m_commitCount = savedCommitCount;
 		pApp->m_revisionDate = savedRevisionDate;
@@ -17158,6 +17164,7 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 /// not call the base class wxDocument::OnCloseDocument(), but does some document
 /// housekeeping and calls DeleteContents() and finally sets Modify(FALSE).
 ///////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItDoc::OnCloseDocument()
 // MFC Note: This function just closes the doc down, with no saving, and clears out
 // the KBs from memory with no saving of them either (presumably, they were saved
@@ -17382,19 +17389,27 @@ bool CAdapt_ItDoc::OnCloseDocument()
 			pApp->LogUserAction(msg);
 		}
 	}
-#if defined(_KBSERVER)
-	if (pApp->m_bIsKBServerProject)
+	
+// mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve the current KB, so we now have
+//  a private flag to indicate this.
+
+	if (!m_bPreserveKBsWhenClosingDocument) 
 	{
-		pApp->ReleaseKBServer();
-		pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
+		
+	#if defined(_KBSERVER)
+		if (pApp->m_bIsKBServerProject)
+		{
+			pApp->ReleaseKBServer();
+			pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
+		}
+	#endif
+		// the EraseKB() call will also try to remove any read-only protection
+		EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
+		pApp->m_pKB = (CKB*)NULL; // whm added
+		EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory -
+									  // EraseKB in the App in wx
+		pApp->m_pGlossingKB = (CKB*)NULL; // whm added
 	}
-#endif
-	// the EraseKB() call will also try to remove any read-only protection
-	EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
-	pApp->m_pKB = (CKB*)NULL; // whm added
-	EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory -
-								  // EraseKB in the App in wx
-	pApp->m_pGlossingKB = (CKB*)NULL; // whm added
 
 // GDLC 2010-03-27 pFreeTrans is now unused in this function
 //	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
@@ -21065,6 +21080,7 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& e
 // little while before), FALSE if some internal call failed
 // BEW created 24Aug11
 // Used in OnFileRestoreKb(), and in OnRetranslationReport() as well
+
 bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
     wxString savedWorkFolderPath,			// for setting current working directory
 	wxString curOutputPath,					// includes filename

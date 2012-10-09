@@ -21035,6 +21035,13 @@ int CAdapt_ItApp::OnExit(void)
 			delete m_pDocManager; // deleting this
 		m_pDocManager = (wxDocManager*)NULL;
 	}
+	
+	// mrh Oct12 - delete the DVCS object:
+	if (m_pDVCS != NULL)
+	{
+		delete m_pDVCS;
+		m_pDVCS = (DVCS*)NULL; 
+	}
 
 	return 0;
 }
