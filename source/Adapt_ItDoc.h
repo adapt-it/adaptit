@@ -497,6 +497,7 @@ private:
 	void	RemoveAutoFixList(AFList& afList); // for adaptating data
 	void	RemoveAutoFixGList(AFGList& afgList); // for glossing data
 	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
+	bool	m_bPreserveKBsWhenClosingDocument;		// default FALSE - set true when we're going to reopen the doc
 
 	DECLARE_EVENT_TABLE()
 };
