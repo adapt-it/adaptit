@@ -2686,6 +2686,13 @@ public:
 	bool	  SetupForKBServer();
 	bool	  ReleaseKBServer();
 
+	int		  GetKBTypeForServer(); // returns 1 or 2
+	bool	  GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password);
+
+
+
+
+
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,

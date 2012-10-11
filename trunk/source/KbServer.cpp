@@ -90,37 +90,8 @@ std::string str_CURLbuffer;
 
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
-// the default constructor, probably will never be used
 KbServer::KbServer()
 {
-	m_pApp = &wxGetApp();
-
-	// Get the url, username, and (for the development code only) password credentials;
-	// the function call empties the credentials strings, and resets them from the
-	// credentials.txt file; if there is any error, then all three are url, username, and
-	// password are returned empty ( and a message to the developer will have been seen)
-	if(!GetCredentials(m_kbServerURLBase, m_kbServerUsername, m_kbServerPassword))
-	{
-		delete this;
-		m_pApp->SetKbServer(NULL);
-		return;
-	}
-
-	// Get the lastsync datetime string (as a CBString) from persistent storage (which
-	// temporarily is the single-line file lastsync.txt in the project folder)
-	m_kbServerLastSync = ImportLastSyncDateTime();
-	if (m_kbServerLastSync.IsEmpty())
-	{
-		delete this;
-		m_pApp->SetKbServer(NULL);
-		return;
-	}
-}
-
-KbServer::KbServer(CAdapt_ItApp* pApp)
-{
-	m_pApp = pApp; // avoid compiler warning
-
 	// Initial Testing
 	/*
 	m_kbServerURLBase = _T("https://kbserver.jmarsden.org/entry");
@@ -128,27 +99,6 @@ KbServer::KbServer(CAdapt_ItApp* pApp)
 	m_kbServerPassword = _T("password");
 	m_kbTypeForServer = 1;
 	*/
-
-	// Get the url, username, and (for the development code only) password credentials;
-	// the function call empties the credentials strings, and resets them from the
-	// credentials.txt file; if there is any error, then all three are url, username, and
-	// password are returned empty ( and a message to the developer will have been seen)
-	if(!GetCredentials(m_kbServerURLBase, m_kbServerUsername, m_kbServerPassword))
-	{
-		delete this;
-		m_pApp->SetKbServer(NULL);
-		return;
-	}
-
-	// Get the lastsync datetime string (as a CBString) from persistent storage (which
-	// temporarily is the single-line file lastsync.txt in the project folder)
-	m_kbServerLastSync = ImportLastSyncDateTime();
-	if (m_kbServerLastSync.IsEmpty())
-	{
-		delete this;
-		m_pApp->SetKbServer(NULL);
-		return;
-	}
 }
 
 KbServer::~KbServer()
@@ -177,44 +127,128 @@ wxString KbServer::ToUtf16(CBString& bstr)
 	return wxString(buf);
 }
 
-wxString KbServer::GetServerURL()
+// the private getters
+
+int KbServer::GetKBServerType()
+{
+	return m_kbServerType;
+}
+
+wxString KbServer::GetKBServerURL()
 {
 	return m_kbServerURLBase;
 }
-wxString KbServer::GetServerUsername()
+wxString KbServer::GetKBServerUsername()
 {
 	return m_kbServerUsername;
 }
-wxString KbServer::GetServerPassword()
+wxString KbServer::GetKBServerPassword()
 {
 	return m_kbServerPassword;
 }
-wxString KbServer::GetServerLastSync()
+wxString KbServer::GetKBServerLastSync()
 {
 	return m_kbServerLastSync;
 }
 
 wxString KbServer::GetSourceLanguageCode()
 {
-	return m_pApp->m_sourceLanguageCode;
+	return m_kbSourceLanguageCode;
 }
+
 wxString KbServer::GetTargetLanguageCode()
 {
-	return m_pApp->m_targetLanguageCode;
+	return m_kbTargetLanguageCode;
 }
 
-
-/// Returns 1 if user is in adapting mode (the KB which is active is the adapting KB), or
-/// 2 if in glossing mode (the glossing KB is then active)
-int KbServer::SetKBTypeForServer()
+wxString KbServer::GetGlossLanguageCode()
 {
-	// default is to assume adapting KB is wanted
-	if (gbIsGlossing)
-	{
-		return 2; // for glossingKB
-	}
-	return 1; // for adaptingKB
+	return m_kbGlossLanguageCode;
 }
+
+wxString KbServer::GetPathToPersistentDataStore()
+{
+	return m_pathToPersistentDataStore;
+}
+
+wxString KbServer::GetPathSeparator()
+{
+	return m_pathSeparator;
+}
+
+wxString KbServer::GetCredentialsFilename()
+{
+	return m_credentialsFilename;
+}
+
+wxString KbServer::GetLastSyncFilename()
+{
+	return m_lastSyncFilename;
+}
+
+
+// the public setters
+// 
+void KbServer::SetKBServerType(int type)
+{
+	m_kbServerType = type;
+}
+
+void KbServer::SetKBServerURL(wxString url)
+{
+	m_kbServerURLBase = url;
+}
+
+void KbServer::SetKBServerUsername(wxString username)
+{
+	m_kbServerUsername = username;
+}
+
+void KbServer::SetKBServerPassword(wxString pw)
+{
+	m_kbServerPassword = pw;
+}
+
+void KbServer::SetKBServerLastSync(wxString lastSyncDateTime)
+{
+	m_kbServerLastSync = lastSyncDateTime;
+}
+
+void KbServer::SetSourceLanguageCode(wxString sourceCode)
+{
+	m_kbSourceLanguageCode = sourceCode;
+}
+
+void KbServer::SetTargetLanguageCode(wxString targetCode)
+{
+	m_kbTargetLanguageCode = targetCode;
+}
+
+void KbServer::SetGlossLanguageCode(wxString glossCode)
+{
+	m_kbGlossLanguageCode = glossCode;
+}
+
+void KbServer::SetPathToPersistentDataStore(wxString metadataPath)
+{
+	m_pathToPersistentDataStore = metadataPath;
+}
+
+void KbServer::SetPathSeparator(wxString separatorStr)
+{
+	m_pathSeparator = separatorStr;
+}
+
+void KbServer::SetCredentialsFilename(wxString credentialsFName)
+{
+	m_credentialsFilename = credentialsFName;
+}
+void KbServer::SetLastSyncFilename(wxString lastSyncFName)
+{
+	m_lastSyncFilename = lastSyncFName;
+}
+
+
 
 // Return FALSE if pf not successfully opened, in which case the parent does not need to
 // close pf; otherwise, return TRUE for a successful open & parent must close it when done
@@ -234,65 +268,6 @@ bool KbServer::GetTextFileOpened(wxTextFile* pf, wxString& path)
 }
 
 
-/// Return TRUE, and the url and username credentials (and while doing testing, also the
-/// kbserver password) to be stored in the app class. Temporarily this data is storedin a
-/// file called credentials.txt located in the project folder and contains url, username,
-/// password, one string per line. But later something more permanent will be used, and the
-/// kbserver password will never be stored in the app (so a permanent version of this code
-/// will only have the first two params in its signature) once a releasable version of kbserver
-/// support has been built (use a hidden file for url and username in the project folder?)
-bool KbServer::GetCredentials(wxString& url, wxString& username, wxString& password)
-{
-	bool bSuccess = FALSE;
-	url.Empty(); username.Empty(); password.Empty();
-
-	wxString filename = _T("credentials.txt");
-	wxString path = m_pApp->m_curProjectPath + m_pApp->PathSeparator + filename;
-	bool bCredentialsFileExists = ::wxFileExists(path);
-	if (!bCredentialsFileExists)
-	{
-		// couldn't find credentials.txt file in project folder
-		wxString msg = _T("wxFileExists() called in KbServer::GetCredentials(): The credentials.txt file does not exist");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		return FALSE; // signature params are empty still
-	}
-	wxTextFile f;
-	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
-	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
-	bSuccess = GetTextFileOpened(&f, path);
-	if (!bSuccess)
-	{
-		// warn developer that the wxTextFile could not be opened
-		wxString msg = _T("GetTextFileOpened()called in GetCredentials(): The wxTextFile could not be opened");
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		return FALSE; // signature params are empty still
-	}
-	size_t numLines = f.GetLineCount();
-	if (numLines < 3)
-	{
-		// warn developer that the wxTextFile lackes expected 3 lines: url, username,
-		// password -- NOTE: password is only a TEMPORARY PARAMETER
-		wxString msg;
-		msg = msg.Format(_T("GetTextFileOpened()called in GetCredentials(): The credentials.txt file lacks one or more lines, it has %d of expected 3 (url,username,password)"),
-			numLines);
-		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		f.Close();
-		return FALSE; // signature params are empty still
-	}
-	url = f.GetLine(0);
-	username = f.GetLine(1);
-	password = f.GetLine(2);
-
-	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"),
-		url.c_str(), username.c_str(), password.c_str());
-
-	f.Close();
-
-
-// *** TODO *** the permanent code -- alter the above
-
-	return TRUE;
-}
 
 // Get and return the dateTime value last stored in persistent (i.e. on disk) storage.
 // Temporarily this storage is a file called lastsync.txt located in the project folder,
@@ -304,8 +279,7 @@ wxString KbServer::ImportLastSyncDateTime()
 {
 	wxString dateTimeStr; dateTimeStr.Empty();
 
-	wxString filename = _T("lastsync.txt");
-	wxString path = m_pApp->m_curProjectPath + m_pApp->PathSeparator + filename;
+	wxString path = GetPathToPersistentDataStore() + GetPathSeparator() + GetLastSyncFilename();
 	bool bLastSyncFileExists = ::wxFileExists(path);
 	if (!bLastSyncFileExists)
 	{
@@ -340,7 +314,7 @@ wxString KbServer::ImportLastSyncDateTime()
 	f.Close();
 
 
-// *** TODO *** the permanent code -- alter the above
+// *** TODO *** the permanent code -- alter the above if necessary
 
 	return dateTimeStr;
 }
@@ -350,8 +324,7 @@ wxString KbServer::ImportLastSyncDateTime()
 // located in the AI project folder) Return TRUE if no error, FALSE otherwise.
 bool KbServer::ExportLastSyncDateTime()
 {
-	wxString filename = _T("lastsync.txt");
-	wxString path = m_pApp->m_curProjectPath + m_pApp->PathSeparator + filename;
+	wxString path = GetPathToPersistentDataStore() + GetPathSeparator() + GetLastSyncFilename();
 	bool bLastSyncFileExists = ::wxFileExists(path);
 	if (!bLastSyncFileExists)
 	{
@@ -374,29 +347,13 @@ bool KbServer::ExportLastSyncDateTime()
 		return FALSE;
 	}
 	f.Clear(); // chuck earlier value
-	f.AddLine(m_kbServerLastSync);
+	f.AddLine(GetKBServerLastSync());
 	f.Close();
-
 
 // *** TODO *** the permanent code -- alter the above
 
 	return TRUE;
 }
-
-// Prompt the user to type in the appropriate kbserver password, and return it. It will be
-// stored in the app's m_kbServerPassword CBString member for a short time until no longer needed, and
-// then that member is cleared by calling ErasePassword()
-// BEW 3Oct12, changed to use CBString rather than wxString
-wxString KbServer::GetKBServerPassword()
-{
-	// temporarily, do nothing. Later on, replace this code with a dialog for getting the
-	// password, etc - if that fails,or if user cancels, then return a null string so that
-	// the caller can clobber the KbServer instance
-	wxString myPassword;
-	myPassword.Empty();
-	return myPassword;
-}
-
 
 // callback function for curl
 size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
@@ -411,6 +368,16 @@ size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userd
 	str_CURLbuffer.append((char*)ptr, size*nmemb);
 	return size*nmemb;
 }
+
+size_t curl_update_callback(void* ptr, size_t size, size_t nitems, void* userp)
+{
+	// userp will be the pointer to Kevin's std:string object, strCURLbuffer
+	size = 1;
+	nitems = (*((std::string*)userp)).length();
+	ptr = (void*)(*((std::string*)userp)).c_str();
+	return nitems; // strictly speaking, nitems*size, but size is 1
+}
+
 /*
 wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 {
@@ -464,13 +431,13 @@ int KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
-	wxItoa(SetKBTypeForServer(),kbType);
-	wxString tblname = _T("entry");
+	wxItoa(GetKBServerType(),kbType);
+	wxString container = _T("entry");
 
-	aUrl = GetServerURL() + slash + tblname + slash+ GetSourceLanguageCode() +
+	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
 			slash + GetTargetLanguageCode() + slash + kbType + slash + wxStr_SourceEntry;
 	charUrl = ToUtf8(aUrl);
-	aPwd = GetServerUsername() + colon + GetServerPassword();
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
 	// curl_global_init(CURL_GLOBAL_ALL); BEW moved this to KbServer creator, only needs to be called once
@@ -505,16 +472,16 @@ int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
-	wxItoa(SetKBTypeForServer(),kbType);
+	wxItoa(GetKBServerType(),kbType);
 	wxJSONValue jsonval; // construct JSON object
 	CBString strVal; // to store wxString form of the jsonval object, for curl
-	wxString tblname = _T("entry");
+	wxString container = _T("entry");
 	wxString aUrl, aPwd;
 
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
 
-	aPwd = GetServerUsername() + colon + GetServerPassword();
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
 	// populate the JSON object
@@ -522,7 +489,7 @@ int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
 	jsonval[_T("targetlanguage")] = GetTargetLanguageCode();
 	jsonval[_T("source")] = srcPhrase;
 	jsonval[_T("target")] = tgtPhrase;
-	jsonval[_T("user")] = GetServerUsername();
+	jsonval[_T("user")] = GetKBServerUsername();
 	jsonval[_T("type")] = kbType;
 
 	// convert it to string form
@@ -531,7 +498,7 @@ int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 
-	aUrl = GetServerURL() + slash + tblname + slash;
+	aUrl = GetKBServerURL() + slash + container + slash;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -564,8 +531,95 @@ int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
 	return 0;
 }
 
+int KbServer::GetEntryID(wxString srcPhrase, wxString tgtPhrase, int* entryID)
+{
+	int myEntryID = *entryID;
+
+// TODO
 
 
+	return 0; // the CURLcode CURLE_OK
+}
+
+int KbServer::PseudoDeleteEntry(int entryID)
+{
+
+
+	/*
+	CURL *curl;
+	CURLcode result; // result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString kbType;
+	wxItoa(GetKBServerType(),kbType);
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("entry");
+	wxString aUrl, aPwd;
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	// populate the JSON object
+	jsonval[_T("deleted")] = 1;
+
+	// convert it to string form
+	wxJSONWriter writer; wxString str;
+	writer.Write(jsonval, str);
+	// convert it to utf-8 stored in CBString
+	strVal = ToUtf8(str);
+
+	// put the json string in the global str_CURLbuffer string
+	str_CURLbuffer.clear();
+	str_CURLbuffer.assign((char*)strVal);
+
+	// get the data's length (CURLOPT_INFILESIZE requires type long)
+	//long dataLen = (long)strVal.GetLength();
+
+	aUrl = GetKBServerURL() + slash + container + slash + GetSourceLanguageCode() +
+			slash + GetTargetLanguageCode() + slash + kbType;
+	charUrl = ToUtf8(aUrl);
+
+	// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		//headers = curl_slist_append(headers, "Accept: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		//curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+		//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+		curl_easy_setopt(curl, CURLOPT_READFUNCTION, &curl_update_callback);
+		curl_easy_setopt(curl, CURLOPT_READDATA, &str_CURLbuffer);
+		//curl_easy_setopt(curl, CURLOPT_INFILESIZE, dataLen); 
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+		result = curl_easy_perform(curl);
+
+		curl_slist_free_all(headers);
+		if (result) {
+			printf("SendEntry() result code: %d\n", result);
+			return result;
+		}
+		curl_easy_cleanup(curl);
+	}
+*/
+	return 0;
+}
 
 
 //=============================== end of KbServer class ============================

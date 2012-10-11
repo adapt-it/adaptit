@@ -63,13 +63,30 @@ public:
 	// attributes
 public:
 
-	// The API which we expose
-	int	  LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
-	int		  SendEntry(wxString srcPhrase, wxString tgtPhrase); // srcPhrase & tgtPhrase are often each just a single word
+	// The API which we expose (note:  srcPhrase & tgtPhrase are often each
+	// just a single word
+	int		  LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
+	int		  SendEntry(wxString srcPhrase, wxString tgtPhrase);
+	int		  GetEntryID(wxString srcPhrase, wxString tgtPhrase, int* entryID);
+	int		  PseudoDeleteEntry(int entryID);
 
-	// public getters & setters
+	// public setters
+	void	 SetKBServerType(int type);
+	void	 SetKBServerURL(wxString url);
+	void	 SetKBServerUsername(wxString username);
+	void	 SetKBServerPassword(wxString pw);
+	void	 SetKBServerLastSync(wxString lastSyncDateTime);
+	void	 SetSourceLanguageCode(wxString sourceCode);
+	void	 SetTargetLanguageCode(wxString targetCode);
+	void	 SetGlossLanguageCode(wxString glossCode);
+	void	 SetPathToPersistentDataStore(wxString metadataPath);
+	void	 SetPathSeparator(wxString separatorStr);
+	void	 SetCredentialsFilename(wxString credentialsFName);
+	void	 SetLastSyncFilename(wxString lastSyncFName);
+
+
 	wxString  ImportLastSyncDateTime(); // imports the datetime ascii string literal
-									   // in lastsync.txt file & returns it as CBString
+									   // in lastsync.txt file & returns it as wxString
 	bool	  ExportLastSyncDateTime(); // exports it, temporarily, to lastsync.txt file
 									   // as an ascii string literal
 
@@ -77,10 +94,8 @@ protected:
 
 	// helpers
 
-	// the following getters temporarily access data in creditials.txt and lastsync.txt
-	// files; they will remain in the final version but their internals will access
-	// whatever we decide should be the permanent server-related info storage
-	bool     GetCredentials(wxString& url, wxString& username, wxString& password); // *** TODO *** later, remove 3rd param
+	// the following is used for opening a wxTextFile - it supports line-based read and
+	// write, and [i] indexing
 	bool	 GetTextFileOpened(wxTextFile* pf, wxString& path);
 
 	// two useful utilities for string encoding conversions (Xhtml.h & .cpp has the same)
@@ -94,24 +109,40 @@ private:
 	// class variables
 	CAdapt_ItApp* m_pApp;
 
-	// the following 5 are used for setting up the https transport of data to/from the kbserver
+	// the following 8 are used for setting up the https transport of data to/from the
+	// kbserver for a given KB type (their getters are further below)
 	wxString	m_kbServerURLBase;
-	wxString	m_kbServerUsername;
+	wxString	m_kbServerUsername; // typically the email address of the user, or other unique identifier
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	int			m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
+	wxString	m_kbSourceLanguageCode;
+	wxString	m_kbTargetLanguageCode;
+	wxString	m_kbGlossLanguageCode;
+	wxString	m_pathToPersistentDataStore; // should be m_curProjectPath
+	wxString	m_pathSeparator;
+
+	wxString	m_credentialsFilename;
+	wxString	m_lastSyncFilename;
 
 	// private member functions
 	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
 
-	wxString GetServerURL();
-	wxString GetServerUsername();
-	wxString GetServerPassword();
-	wxString GetServerLastSync();
+	// getters for the private member variables above
+	wxString GetKBServerURL();
+	wxString GetKBServerUsername();
+	wxString GetKBServerPassword();
+	wxString GetKBServerLastSync();
 	wxString GetSourceLanguageCode();
 	wxString GetTargetLanguageCode();
-	wxString GetKBServerPassword(); // currently just a stub
+	wxString GetGlossLanguageCode();
+	int		 GetKBServerType();
+	wxString GetPathToPersistentDataStore();
+	wxString GetPathSeparator();
+	wxString GetCredentialsFilename();
+	wxString GetLastSyncFilename();
 
-	int     SetKBTypeForServer(); // returns 1 or 2
+	
 
 	DECLARE_DYNAMIC_CLASS(KbServer)
 
