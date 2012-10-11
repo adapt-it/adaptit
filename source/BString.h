@@ -22,9 +22,11 @@
 /// \derivation The BString class is not a derived class.
 /////////////////////////////////////////////////////////////////////////////
 
+#ifdef __WXMS__
 #if _MSC_VER > 1000
 #pragma once
 #endif // _MSC_VER > 1000
+#endif
 
 #ifndef _CBSTRING_H_
 #define _CBSTRING_H_
@@ -50,7 +52,7 @@
 /// characters and so the implementation will be simpler than on the Dana. And error
 /// checking will be almost nothing, and no error messages, to keep it as concise as possible.s
 /// \derivation The BString class is not a derived class.
-/// 
+///
 /// BEW 3Oct12, modified to add CBString(const char ch) constructor, for supporting the syntax
 /// CString str('c'); and so by implicit conversion it also supports the syntax
 /// CString str = 'c';
@@ -59,16 +61,16 @@
 class CBString
 {
 	private:
-	
+
 	char* 	pstr; 	// pointer to the C string
 	int		len;  	// length, excluding terminating null byte
 
 	public:
-	
+
 	// constructors
 	CBString();						// default constructor
 	CBString(const char* s);		// constructor initialized from C string
-	CBString(const char ch);		// constructor initialized from a char 
+	CBString(const char ch);		// constructor initialized from a char
 			// NOTE; CBString aStr = 'c'; also uses the latter, where c is a char literal
 	CBString(const CBString& s);	// copy constructor
 
@@ -84,52 +86,52 @@ class CBString
 	//void			Format(unsigned int ID, ...); // ID is a string resource ID
 	char 		GetAt(int nIndex);
 	int			GetLength() const;
-	int 		Insert(int nIndex, const char* pStr);	
-	int 		Insert(int nIndex, const CBString s);	
-	int 		Insert(int nIndex, char ch);	
+	int 		Insert(int nIndex, const char* pStr);
+	int 		Insert(int nIndex, const CBString s);
+	int 		Insert(int nIndex, char ch);
 	bool 		IsEmpty();
-	CBString 	Left(int n);	
+	CBString 	Left(int n);
 	CBString& 	MakeReverse();
 	CBString 	Mid(const int nStart, const int nCount = -1);
 	int 			Remove(char ch);
 	CBString 	Right(int n);
 	CBString 	Right(const char* pLoc);
 	void			SetAt(int nIndex, char ch);
-	CBString 	SpanIncluding(CBString subStr,CBString* pRemainder=NULL); 
-	CBString 	SpanIncluding(const char* pSubStr,CBString* pRemainder=NULL); 
-	CBString 	SpanExcluding(CBString subStr,CBString* pRemainder=NULL); 
+	CBString 	SpanIncluding(CBString subStr,CBString* pRemainder=NULL);
+	CBString 	SpanIncluding(const char* pSubStr,CBString* pRemainder=NULL);
+	CBString 	SpanExcluding(CBString subStr,CBString* pRemainder=NULL);
 	CBString 	SpanExcluding(const char* pSubStr,CBString* pRemainder=NULL);
-	void			Truncate(int nBytes); 
+	void			Truncate(int nBytes);
 	wxString	Convert8To16();
-	
+
 	char* 		FindToPtr(const char* pSubStr,int nStart=0);
-	char* 		GetBuffer();	
+	char* 		GetBuffer();
 	char*		GetBuffer(int nMinBufferLength);
 	void		ReleaseBuffer(int nNewLength = -1);
 	operator 	char*();
 	//operator	const char*();
 
-			
+
 	// overrides and operators
 	CBString& 		operator=(const CBString& s);
 	CBString& 		operator=(const char* s);
-	CBString&		operator=(const char ch);	
+	CBString&		operator=(const char ch);
 //	CBString& 		operator=(const char& ch);
 	CBString& 		operator+=(const CBString& s);
 	CBString& 		operator+=(const char* s);
 	CBString& 		operator+=(char ch);
 	char operator 	[](int nIndex) const;
-	
-	
+
+
 	// the following works if s is a char* (ie. C-string) due to
 	// the compiler doing an implicit conversion (this returns a
 	// copy, and leaves this constant)
 	CBString 		operator+(const CBString& s);
-	
+
 	// friends
 	friend CBString 	operator+(const CBString& s1, char ch);
 	friend CBString 	operator+(char ch, const CBString& s2);
-	
+
 	// The next is required to handle s1 being a C-string
 	friend CBString	operator+(char* s1,const CBString& s2);
 
@@ -140,14 +142,14 @@ class CBString
 	friend bool 	operator>(const CBString& s1, const CBString& s2);
 	friend bool 	operator==(const CBString& s1, const CBString& s2);
 	friend bool 	operator!=(const CBString& s1, const CBString& s2);
-	
+
 	// The next group will work if s2 is a C-string
 	friend int 		Compare(const CBString& s1, const char* s2);
 	friend bool 	operator<(const CBString& s1, const char* s2);
 	friend bool 	operator>(const CBString& s1, const char* s2);
 	friend bool 	operator==(const CBString& s1, const char* s2);
 	friend bool 	operator!=(const CBString& s1, const char* s2);
-	
+
 	// destructor
 	virtual 		~CBString();
 };

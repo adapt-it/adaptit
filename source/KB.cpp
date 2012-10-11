@@ -3423,7 +3423,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				if (responseCode != CURLE_OK)
 				{
 					// TODO a function to show the error code and a meaningful explanation
-					;
+                    wxString msg;
+                    msg = msg.Format(_T("Failure! responseCode = %d"), responseCode);
+                    wxMessageBox(msg, _T("Ouch! SendEntry() error again!"), wxICON_EXCLAMATION | wxOK);
 
 				}
 			}
@@ -3581,15 +3583,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					if (responseCode != CURLE_OK)
 					{
 						// TODO a function to show the error code and a meaningful explanation
-						;
-	
+						wxString msg;
+						msg = msg.Format(_T("Failure! responseCode = %d"), responseCode);
+						wxMessageBox(msg, _T("Oh dear! Not again!"), wxICON_EXCLAMATION | wxOK);
+
 					}
 				}
 				else
 				{
 					// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
 					wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
-	
+
 				}
 			}
 #endif
@@ -3842,15 +3846,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							if (responseCode != CURLE_OK)
 							{
 								// TODO a function to show the error code and a meaningful explanation
-								;
-			
+                                wxString msg;
+                                msg = msg.Format(_T("Failure! responseCode = %d"), responseCode);
+                                wxMessageBox(msg, _T("Oh dear! Not again!"), wxICON_EXCLAMATION | wxOK);
+
 							}
 						}
 						else
 						{
 							// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
 							wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
-			
+
 						}
 					}
 #endif

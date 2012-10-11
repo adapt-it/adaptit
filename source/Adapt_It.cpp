@@ -16105,7 +16105,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// I only need to convert upper and lower case velar n, for Takia data. And I only
 	// need do this on each Takia NT book - therefore 27 times. So having it here is enough.
 	/*
-	//CBString inStr = "Þai ýieg abag ari gup tamol aýal san maýau ýipiteýanaý a."; // test string, hacked ANSI legacy Takia text
+	//CBString inStr = "Ãai Ã½ieg abag ari gup tamol aÃ½al san maÃ½au Ã½ipiteÃ½anaÃ½ a."; // test string, hacked ANSI legacy Takia text
 	// get a file dialog to file in the wanted Takia sfm text file to inStr
 	wxString fullPath = _T("");
 	wxString takia_message = _T("Select Takia SFM file for conversion");
@@ -20127,24 +20127,25 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 
 	// **** test code fragments here ****
-/*
+//*
 #if defined (_KBSERVER)
 	// test KbServer API functions
-	m_pKbServer = new KbServer();
-	wxString srcText2 = _T("niuspepa");
+    SetupForKBServer();
+    //wxString srcText2 = _T("niuspepa");
+	//wxString srcText2 = _T("i toksave");
 	wxString srcText = _T("giaman");
 	wxString tgtText = _T("untrue");
 	//m_pKbServer->LookupEntryForSourcePhrase( srcText2 );
-	//int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
+	int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
 	//int result = m_pKbServer->SendEntry(srcText,tgtText);
-	int result = 0;
-	int entryID = 0;
-	result = m_pKbServer->GetEntryID(srcText, tgtText, &entryID);
-	result = m_pKbServer->PseudoDeleteEntry(entryID);
-	result = result;
+	//int result = 0;
+	//int entryID = 0;
+	//result = m_pKbServer->GetEntryID(srcText, tgtText, &entryID);
+	//result = m_pKbServer->PseudoDeleteEntry(entryID);
+	//result = result;
 	delete m_pKbServer;
 #endif
-*/
+//*/
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes
@@ -20503,8 +20504,8 @@ int ii = 1;
 //bool bIsLoadable = IsLoadableFile(aPath);
 //bIsLoadable = bIsLoadable;
 
-//wxString testStr =  _T("“ ‘First?! second, third’: ” fourth?");
-//wxString testStr = _T("“ ‘First?;~second’: ”"); // test fixedSpace symbol
+//wxString testStr =  _T("â âFirst?! second, thirdâ: â fourth?");
+//wxString testStr = _T("â âFirst?;~secondâ: â"); // test fixedSpace symbol
 //GetView()->RemovePunctuation(GetDocument(),&testStr,1);
 
 
@@ -20696,7 +20697,7 @@ int ii = 1;
 	// end of code for supporting Mike's DVCS work
 /* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)
 	wxString sss;
-	sss = _T("\\f*�");
+	sss = _T("\\f*");
 	bool bOKay;
 	const wxChar* pConstBuff = sss.GetData();
 	wxChar* ptr = (wxChar*)pConstBuff;
@@ -21156,12 +21157,12 @@ int CAdapt_ItApp::OnExit(void)
 			delete m_pDocManager; // deleting this
 		m_pDocManager = (wxDocManager*)NULL;
 	}
-	
+
 	// mrh Oct12 - delete the DVCS object:
 	if (m_pDVCS != NULL)
 	{
 		delete m_pDVCS;
-		m_pDVCS = (DVCS*)NULL; 
+		m_pDVCS = (DVCS*)NULL;
 	}
 
 	return 0;
