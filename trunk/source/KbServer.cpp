@@ -188,7 +188,7 @@ wxString KbServer::GetLastSyncFilename()
 
 
 // the public setters
-// 
+//
 void KbServer::SetKBServerType(int type)
 {
 	m_kbServerType = type;
@@ -454,6 +454,12 @@ int KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 
 		result = curl_easy_perform(curl);
 
+#if defined (_DEBUG) && defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+
 		if (result) {
 			printf("LookupEntryForSourcePhrase() result code: %d\n", result);
 			return (int)result;
@@ -605,7 +611,7 @@ int KbServer::PseudoDeleteEntry(int entryID)
 		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 		curl_easy_setopt(curl, CURLOPT_READFUNCTION, &curl_update_callback);
 		curl_easy_setopt(curl, CURLOPT_READDATA, &str_CURLbuffer);
-		//curl_easy_setopt(curl, CURLOPT_INFILESIZE, dataLen); 
+		//curl_easy_setopt(curl, CURLOPT_INFILESIZE, dataLen);
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
 		result = curl_easy_perform(curl);
