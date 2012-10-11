@@ -98,6 +98,10 @@
 #include <wx/dcprint.h> // for wxPrinterDC
 #endif
 
+// libcurl
+#include <curl/curl.h>
+
+
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
 // Arkadiy Shapkin. It is used under the GNU General Public License
@@ -14577,6 +14581,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 }
 
 #if defined(_KBSERVER)
+
 // getter for m_pKbServer
 KbServer* CAdapt_ItApp::GetKbServer()
 {
@@ -14609,14 +14614,45 @@ void CAdapt_ItApp::DeleteKbServer()
 bool CAdapt_ItApp::SetupForKBServer()
 {
 	// instantiate the KbServer class
-	SetKbServer(new KbServer(this));
+	SetKbServer(new KbServer());
 
 	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
 	if (GetKbServer() == NULL)
 	{
-		// a message has been seen
+		// warn developer, message does not need to be localizable
+		wxMessageBox(_T("Error: SetupForKBServer() - could not instantiate KbServer class; setup aborted"),
+					_T("KbServer error"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
+	// pass in needed data
+	m_pKbServer->SetKBServerType(GetKBTypeForServer()); //  1 = adapting KB,  2 = glossing KB
+
+	wxString credsfilename = _T("credentials.txt"); // temporary
+	wxString syncfilename = _T("lastsync.txt"); //  temporary
+	wxString url; url.Empty();
+	wxString username; username.Empty();
+	wxString password; password.Empty();
+	bool bOpenedOK = GetCredentials(credsfilename, url, username, password);
+	if (!bOpenedOK)
+	{
+		// warn developer, message does not need to be localizable
+		wxMessageBox(_T("Error: SetupForKBServer() - could not get the credentials from credentials.txt; setup aborted"),
+					_T("KbServer error"), wxICON_ERROR | wxOK);
+		delete GetKbServer();
+		return FALSE;
+	}
+	GetKbServer()->SetKBServerType(GetKBTypeForServer());
+	GetKbServer()->SetSourceLanguageCode(m_sourceLanguageCode);
+	GetKbServer()->SetTargetLanguageCode(m_targetLanguageCode);
+	GetKbServer()->SetGlossLanguageCode(m_glossesLanguageCode);
+	GetKbServer()->SetKBServerURL(url);
+	GetKbServer()->SetKBServerUsername(username);
+	GetKbServer()->SetKBServerPassword(password);
+	GetKbServer()->SetPathSeparator(PathSeparator);
+	GetKbServer()->SetPathToPersistentDataStore(m_curProjectPath);
+	GetKbServer()->SetLastSyncFilename(syncfilename);
+	GetKbServer()->SetKBServerLastSync(GetKbServer()->ImportLastSyncDateTime());
+
 	// all's well
 	return TRUE;
 }
@@ -14649,6 +14685,88 @@ bool CAdapt_ItApp::ReleaseKBServer()
 	// things above and put code to SAVE THE KB which is active RIGHT HERE!
 	return bOK;
 }
+
+/// Returns 1 if user is in adapting mode (the KB which is active is the adapting KB), or
+/// 2 if in glossing mode (the glossing KB is then active)
+int CAdapt_ItApp::GetKBTypeForServer()
+{
+	// default is to assume adapting KB is wanted
+	if (gbIsGlossing)
+	{
+		return 2; // for glossingKB
+	}
+	return 1; // for adaptingKB
+}
+
+/// Return TRUE, and the url and username credentials (and while doing testing, also the
+/// kbserver password) to be stored in the app class. Temporarily this data is storedin a
+/// file called credentials.txt located in the project folder and contains url, username,
+/// password, one string per line. But later something more permanent will be used, and the
+/// kbserver password will never be stored in the app (so a permanent version of this code
+/// will only have the first two params in its signature) once a releasable version of kbserver
+/// support has been built (use a hidden file for url and username in the project folder?)
+bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password)
+{
+	bool bSuccess = FALSE;
+	url.Empty(); username.Empty(); password.Empty();
+
+	wxString path = m_curProjectPath + PathSeparator + filename;
+	bool bCredentialsFileExists = ::wxFileExists(path);
+	if (!bCredentialsFileExists)
+	{
+		// couldn't find credentials.txt file in project folder
+		wxString msg = _T("wxFileExists() called in KbServer::GetCredentials(): The credentials.txt file does not exist");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		return FALSE; // signature params are empty still
+	}
+	wxTextFile f;
+	// for 2.9.4 builds, the conditional compile isn't needed I think, and for Linux and
+	// Mac builds which are Unicode only, it isn't needed either but I'll keep it for now
+#ifndef _UNICODE
+		// ANSI
+		bSuccess = pf->Open(path); // read ANSI file into memory
+#else
+		// UNICODE
+		bSuccess = f.Open(path, wxConvUTF8); // read UNICODE file into memory
+#endif
+
+	if (!bSuccess)
+	{
+		// warn developer that the wxTextFile could not be opened
+		wxString msg = _T("GetTextFileOpened()called in GetCredentials(): The wxTextFile could not be opened");
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		return FALSE; // signature params are empty still
+	}
+	size_t numLines = f.GetLineCount();
+	if (numLines < 3)
+	{
+		// warn developer that the wxTextFile lackes expected 3 lines: url, username,
+		// password -- NOTE: password is only a TEMPORARY PARAMETER
+		wxString msg;
+		msg = msg.Format(_T("GetTextFileOpened()called in GetCredentials(): The credentials.txt file lacks one or more lines, it has %d of expected 3 (url,username,password)"),
+			numLines);
+		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
+		f.Close();
+		return FALSE; // signature params are empty still
+	}
+	url = f.GetLine(0);
+	username = f.GetLine(1);
+	password = f.GetLine(2);
+
+	wxLogDebug(_T("GetCredentials(): url = %s  ,  username = %s , password = %s"),
+		url.c_str(), username.c_str(), password.c_str());
+
+	f.Close();
+
+
+// *** TODO *** the permanent code -- alter the above if necessary
+
+	return TRUE;
+}
+
+
+
+
 
 
 #endif // for _KBSERVER
@@ -19996,11 +20114,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// curl needs to be initialized just once per run of the application
 #if defined (_KBSERVER)
 #if defined(__WXMSW__)
-	CURLcode returnedCode = curl_global_init(CURL_GLOBAL_ALL);
+	curl_global_init(CURL_GLOBAL_ALL);
 #else
-	CURLcode returnedCode = curl_global_init(CURL_GLOBAL_SSL);
+	curl_global_init(CURL_GLOBAL_SSL);
 #endif
-	returnedCode = returnedCode; // prevent compiler warning, and permit easy inspection of value
 #else
 #if defined(__WXMSW__)
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -20013,14 +20130,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 /*
 #if defined (_KBSERVER)
 	// test KbServer API functions
-	m_pKbServer = new KbServer(this);
+	m_pKbServer = new KbServer();
 	wxString srcText2 = _T("niuspepa");
 	wxString srcText = _T("giaman");
 	wxString tgtText = _T("untrue");
 	//m_pKbServer->LookupEntryForSourcePhrase( srcText2 );
-	int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
-	int result = m_pKbServer->SendEntry(srcText,tgtText);
-
+	//int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
+	//int result = m_pKbServer->SendEntry(srcText,tgtText);
+	int result = 0;
+	int entryID = 0;
+	result = m_pKbServer->GetEntryID(srcText, tgtText, &entryID);
+	result = m_pKbServer->PseudoDeleteEntry(entryID);
+	result = result;
 	delete m_pKbServer;
 #endif
 */
