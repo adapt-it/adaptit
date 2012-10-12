@@ -22,12 +22,6 @@
 /// \derivation The BString class is not a derived class.
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef __WXMS__
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-#endif
-
 #ifndef _CBSTRING_H_
 #define _CBSTRING_H_
 

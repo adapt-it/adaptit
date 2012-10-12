@@ -101,6 +101,9 @@
 // libcurl
 #include <curl/curl.h>
 
+#if defined(_KBSERVER)
+extern std::string str_CURLbuffer;
+#endif
 
 // The following include was originally Copyright (c) 2005 by Dan
 // Moulding, but the features of version 2.0 were implemented by
@@ -20127,25 +20130,33 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 
 	// **** test code fragments here ****
-//*
+/*
 #if defined (_KBSERVER)
 	// test KbServer API functions
     SetupForKBServer();
-    //wxString srcText2 = _T("niuspepa");
+    wxString srcText2 = _T("niuspepa");
 	//wxString srcText2 = _T("i toksave");
-	wxString srcText = _T("giaman");
-	wxString tgtText = _T("untrue");
+	wxString tgtText2 = _T("mazazine");
+	wxString tgtText21 = _T("newspaper");
+	wxString tgtText22 = _T("brochure");
+	wxString tgtText23 = _T("tabloid");
+	//wxString srcText = _T("giaman");
+	//wxString tgtText = _T("untrue");
 	//m_pKbServer->LookupEntryForSourcePhrase( srcText2 );
-	int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
+	//int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
 	//int result = m_pKbServer->SendEntry(srcText,tgtText);
-	//int result = 0;
-	//int entryID = 0;
-	//result = m_pKbServer->GetEntryID(srcText, tgtText, &entryID);
-	//result = m_pKbServer->PseudoDeleteEntry(entryID);
-	//result = result;
+	int result = 0;
+	int entryID = 0;
+	bool bDeleted = TRUE;
+	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText2, bDeleted);
+	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText21, bDeleted);
+	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText22, bDeleted);
+	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText23, bDeleted);
+	result = m_pKbServer->PseudoDeleteEntry(srcText2, tgtText2);
+	result = result;
 	delete m_pKbServer;
 #endif
-//*/
+*/
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes
