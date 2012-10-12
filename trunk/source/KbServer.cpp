@@ -537,21 +537,64 @@ int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
 	return 0;
 }
 
-int KbServer::GetEntryID(wxString srcPhrase, wxString tgtPhrase, int* entryID)
+// Returns the entryID, or -1 if there was an error. filter defaults to onlyUndeletedPairs;
+// this is a filtering flag, when it equals onlyUndeletedPairs the lookup only considers
+// (pseudo) undeleted src/tgt pairs as candidates for a successful lookup; if
+// onlyDeletePairs is the value, only (pseudo) deleted pairs are considered; finally,
+// allPairs considers all possibilities and will return the index of any pair which
+// matches, but this is unlikely to be helpful because no information regarding deletion
+// state is returned.
+int KbServer::LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted)
 {
-	int myEntryID = *entryID;
-
-// TODO
-
-
-	return 0; // the CURLcode CURLE_OK
+	int entryID = -1;
+	bDeleted = 0;
+	int curlcode = LookupEntryForSourcePhrase(srcPhrase);
+	if (curlcode == CURLE_OK)
+	{
+		if (!str_CURLbuffer.empty())
+		{
+			wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str());
+			wxJSONValue jsonval;
+			wxJSONReader reader;
+			int numErrors = reader.Parse(myList, &jsonval);
+			if (numErrors > 0)
+			{
+				wxMessageBox(_T("LookupEntryID(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+					_T("kbserver error"), wxICON_ERROR | wxOK);
+				return -1;
+			}
+			int listSize = jsonval.Size();
+			int index;
+			for (index = 0; index < listSize; index++)
+			{
+				// we need to get the deleted flag's value
+				entryID = jsonval[index][_T("id")].AsInt();
+				int deletedFlag = jsonval[index][_T("deleted")].AsInt();
+				bDeleted = deletedFlag == 1 ? TRUE : FALSE;
+				wxString aTgtPhrase = jsonval[index][_T("target")].AsString();
+				if (aTgtPhrase == tgtPhrase)
+				{
+					return entryID;
+				}
+			}
+		}
+	}
+	// not found
+	return -1;
 }
 
-int KbServer::PseudoDeleteEntry(int entryID)
+int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
 {
-
-
-	/*
+	int entryID = wxNOT_FOUND; // -1
+	bool bDeleted =FALSE; // initialize variable
+	entryID = LookupEntryID(srcPhrase, tgtPhrase, bDeleted);
+	// if it is already deleted, just return
+	if (bDeleted)
+	{
+		return CURLE_OK;
+	}
+	wxString entryIDStr;
+	wxItoa(entryID, entryIDStr);
 	CURL *curl;
 	CURLcode result; // result code
 	struct curl_slist* headers = NULL;
@@ -579,15 +622,7 @@ int KbServer::PseudoDeleteEntry(int entryID)
 	// convert it to utf-8 stored in CBString
 	strVal = ToUtf8(str);
 
-	// put the json string in the global str_CURLbuffer string
-	str_CURLbuffer.clear();
-	str_CURLbuffer.assign((char*)strVal);
-
-	// get the data's length (CURLOPT_INFILESIZE requires type long)
-	//long dataLen = (long)strVal.GetLength();
-
-	aUrl = GetKBServerURL() + slash + container + slash + GetSourceLanguageCode() +
-			slash + GetTargetLanguageCode() + slash + kbType;
+	aUrl = GetKBServerURL() + slash + container + slash + entryIDStr;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
@@ -597,7 +632,7 @@ int KbServer::PseudoDeleteEntry(int entryID)
 	{
 		// add headers
 		headers = curl_slist_append(headers, "Content-Type: application/json");
-		//headers = curl_slist_append(headers, "Accept: application/json");
+		headers = curl_slist_append(headers, "Accept: application/json");
 		// set data
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
@@ -605,28 +640,28 @@ int KbServer::PseudoDeleteEntry(int entryID)
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
-		//curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
-		//curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
-		curl_easy_setopt(curl, CURLOPT_PUT, 1L);
-		curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-		curl_easy_setopt(curl, CURLOPT_READFUNCTION, &curl_update_callback);
-		curl_easy_setopt(curl, CURLOPT_READDATA, &str_CURLbuffer);
-		//curl_easy_setopt(curl, CURLOPT_INFILESIZE, dataLen);
-		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT"); // this way avoids turning on file processing
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
 
 		result = curl_easy_perform(curl);
 
 		curl_slist_free_all(headers);
 		if (result) {
-			printf("SendEntry() result code: %d\n", result);
+			printf("PseudoDeleteEntry() result code: %d\n", result);
 			return result;
 		}
 		curl_easy_cleanup(curl);
 	}
-*/
 	return 0;
 }
 
+int KbServer::LookupEntryField(wxString source, wxString target, wxString& field)
+{
+	int result = 0;
+
+
+	return result;
+}
 
 //=============================== end of KbServer class ============================
 

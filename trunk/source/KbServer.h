@@ -36,10 +36,13 @@ class CRefStringMetadata;
 class CRefString;
 class CBString;
 
-//enum KBType
+// nope, it's better to return the deleted flag's value by the signature
+// in LookupEntryID()
+//enum PairsFilter
 //{
-//    adaptingKB,
-//    glossingKB
+//    onlyUndeletedPairs,
+//    onlyDeletedPairs,
+//	allPairs
 //};
 
 /// This global is defined in Adapt_It.cpp.
@@ -67,8 +70,10 @@ public:
 	// just a single word
 	int		  LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
 	int		  SendEntry(wxString srcPhrase, wxString tgtPhrase);
-	int		  GetEntryID(wxString srcPhrase, wxString tgtPhrase, int* entryID);
-	int		  PseudoDeleteEntry(int entryID);
+	int		  LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted);
+	int		  LookupEntryField(wxString source, wxString target, wxString& field);
+	//int		  PseudoDeleteEntry(int entryID);
+	int		  PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase);
 
 	// public setters
 	void	 SetKBServerType(int type);

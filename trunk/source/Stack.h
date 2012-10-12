@@ -22,10 +22,6 @@
 /// \derivation		The CStack class is not a derived class.
 /////////////////////////////////////////////////////////////////////////////
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
-
 // #pragma once makes the following unnecessary, but no harm leaving it there
 #ifndef STACK_H_
 #define STACK_H_
