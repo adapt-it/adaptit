@@ -134,7 +134,7 @@ class KbServer;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 143).
+// 1. The appVerStr const defined below (about line 154).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
@@ -149,7 +149,7 @@ class KbServer;
 #define VERSION_BUILD_PART 1
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define VERSION_DATE_DAY 17
-#define VERSION_DATE_MONTH 9
+#define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2012
 const wxString appVerStr(_T("6.3.1"));
 
