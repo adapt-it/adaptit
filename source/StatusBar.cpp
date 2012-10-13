@@ -173,6 +173,8 @@ void CStatusBar::StartProgress(const wxString& title, const wxString& message, i
 	m_Gauge->SetToolTip(message);
 	SetStatusText(message);
 	m_Gauge->Show();
+	// refresh the UI
+	Update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
