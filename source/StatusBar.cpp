@@ -171,6 +171,7 @@ void CStatusBar::StartProgress(const wxString& title, const wxString& message, i
 		m_Gauge->SetRange(m_Gauge->GetRange() + maximum);
 	}
 	m_Gauge->SetToolTip(message);
+	SetStatusText(message);
 	m_Gauge->Show();
 }
 
@@ -190,16 +191,17 @@ bool CStatusBar::UpdateProgress(const wxString& title, int value, const wxString
 	{
 		CProgressItem *pi = m_items.Item(index);
 		// figure out how much we're changing the value by
-		int delta = ((pi->GetRange() > value) ? pi->GetRange() : value) - pi->GetValue();
+		int delta = ((pi->GetRange() < value) ? pi->GetRange() : value) - pi->GetValue();
 		// set the new value, unless it's bigger than the range (in which case just take the range value)
 		// Note that we're not removing any progress items until FinishProgress() is called, even if they
 		// meet / exceed their range
-		pi->SetValue((pi->GetRange() > value) ? pi->GetRange() : value);
+		pi->SetValue((pi->GetRange() < value) ? pi->GetRange() : value);
 		// also set the new message
 		pi->SetMessage(newmsg);
 		// update the progress bar
 		m_Gauge->SetValue(m_Gauge->GetValue() + delta);
 		m_Gauge->SetToolTip(newmsg);
+		SetStatusText(newmsg);
 	}
 	// refresh the UI
 	Update();
@@ -241,6 +243,7 @@ void CStatusBar::FinishProgress(const wxString& title)
 		m_items.RemoveAt(index);
 	}
 	// refresh the UI
+	SetStatusText(_T(""));
 	Update();
 }
 

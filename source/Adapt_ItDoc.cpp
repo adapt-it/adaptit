@@ -2506,7 +2506,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// wxProgressDialog(). Therefore we must test for NULL here.
 	if (!progressItem.IsEmpty() && bShowWaitDlg) // whm 10Aug12 added && bShowWaitDlg test
 	{
-		pStatusBar->StartProgress(progressItem, msgDisplayed, nTotal);
+		pStatusBar->UpdateProgress(progressItem, 1, msgDisplayed);
 	}
 	// whm 24Aug11 moved the progress dialog to the top level OnFileSave() function. This
 	// function (DoFileSave) receives a wxProgressDialog* pProgDlg pointer passed along
