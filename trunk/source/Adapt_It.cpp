@@ -26359,6 +26359,10 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			pView->canvas->Thaw();
 			// remove this task (failed, but we don't want to track it anymore)
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
+			
+			// whm 13Oct12 added. Restore the default value of m_bShowProgress
+			// to TRUE.
+			gpApp->m_bShowProgress = TRUE;
 			return;
 		}
 
@@ -26419,6 +26423,10 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// let the view respond again to updates
 		pView->canvas->Thaw();
 		((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
+			
+		// whm 13Oct12 added. Restore the default value of m_bShowProgress
+		// to TRUE.
+		gpApp->m_bShowProgress = TRUE;
 		return;
 	}
 
@@ -26459,6 +26467,10 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			// let the view respond again to updates
 			pView->canvas->Thaw();
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
+			
+			// whm 13Oct12 added. Restore the default value of m_bShowProgress
+			// to TRUE.
+			gpApp->m_bShowProgress = TRUE;
 			return;
 		}
 		else
@@ -26684,6 +26696,9 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// done -- update the embedded progress bar
 	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
 
+	// whm 13Oct12 added. Restore the default value of m_bShowProgress
+	// to TRUE.
+	gpApp->m_bShowProgress = TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
