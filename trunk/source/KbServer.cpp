@@ -393,7 +393,7 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	wxString wxStr_Authentication = GetServerUsername() + ':' + GetServerPassword();
 	strncpy( charUserpwd , wxStr_Authentication.c_str() , 511 );
 
-	curl_global_init(CURL_GLOBAL_ALL);
+	//curl_global_init(CURL_GLOBAL_ALL); whm 13Oct12 removed
 	curl = curl_easy_init();
 
 	if (curl) {
@@ -410,7 +410,10 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 		if (result) {
 			printf("Result code: %d\n", result);
 		}
-		curl_global_cleanup();
+		// whm 13Oct12 modified. Changed the following cleanup call to
+		// use the _easy_ version rather than the _global_ version.
+		// See the similar code in EmailReportDlg.cpp about line 758.
+		curl_easy_cleanup(curl); //curl_global_cleanup();
 	}
 
 	return str_CURLbuffer;
@@ -440,7 +443,7 @@ int KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
-	// curl_global_init(CURL_GLOBAL_ALL); BEW moved this to KbServer creator, only needs to be called once
+	// curl_global_init(CURL_GLOBAL_ALL); BEW only needs to be called once
 	curl = curl_easy_init();
 
 	if (curl) {
@@ -464,7 +467,10 @@ int KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 			printf("LookupEntryForSourcePhrase() result code: %d\n", result);
 			return (int)result;
 		}
-		curl_global_cleanup();
+		// whm 13Oct12 modified. Changed the following cleanup call to
+		// use the _easy_ version rather than the _global_ version.
+		// See the similar code in EmailReportDlg.cpp about line 758.
+		curl_easy_cleanup(curl); //curl_global_cleanup();
 	}
 
 	return 0;
