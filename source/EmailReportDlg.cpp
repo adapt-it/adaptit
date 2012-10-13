@@ -769,7 +769,10 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(_T("The curl utility could not be initialized"),_T(""),wxICON_INFORMATION | wxOK);
 			pApp->LogUserAction(_T("The curl utility could not be initialized"));
 		}
-		curl_global_cleanup(); // whm added 8May12 to see if it avoids memory leaks. No, but it should be called here.
+		// whm 13Oct12 moved the following curl_global_cleanup()
+		// function to the App's OnExit() function, since the
+		// curl_global_init() function is now in the App's OnInit().
+		//curl_global_cleanup();
 	}
 	else
 	{

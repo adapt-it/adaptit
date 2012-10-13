@@ -21070,6 +21070,12 @@ int CAdapt_ItApp::OnExit(void)
 	if (m_pEmailReportData != NULL)
 		delete m_pEmailReportData;
 
+	// whm 13Oct12 moved from EmailReportDlg.cpp and KbServer.cpp here
+	// to OnExit() where it must be called now due to the fact that
+	// curl_global_init() was moved to the App's OnInit(). If not
+	// called here over 2,900 memory leaks occur at program shut down.
+	curl_global_cleanup();
+
 	DestroyMenuStructure(m_pAI_MenuStructure);
 
 	if (m_userLogFile != NULL)
