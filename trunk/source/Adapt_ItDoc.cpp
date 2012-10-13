@@ -21456,8 +21456,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	wxString pathName = savedCurOutputPath;
 	wxString docName = savedCurOutputFilename;
 
-	gpApp->m_bShowProgress = FALSE;			// progress dialogs get in the way of all this
-	
 	// Put up the Choose Consistency Check Type dialog
 	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
 	if (ccDlg.ShowModal() == wxID_OK)
@@ -21485,7 +21483,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                     // current working directory has not changed, so no need here to reset
                     // it before return.
 					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
-					gpApp->m_bShowProgress = TRUE;			// restore normal default
 					return;
 				}
 
@@ -21507,6 +21504,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
 				// do the consistency check on the doc
 				nFileCount++;
+				// temporarily turn the progress bar on
 				if (gbIsGlossing)
 				{
 					bConsCheckDone = DoConsistencyCheckG(pApp, pKB, pKBCopy, afgList,
@@ -21544,7 +21542,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // current working directory has not changed, so no need here to reset
                 // it before return.
 				pApp->LogUserAction(_T("User asked for current doc consistency check without a document being open."));
-				gpApp->m_bShowProgress = TRUE;			// restore normal default
 				return;
 			} // end of else block for test: if (!bDocIsClosed)
 		} // end of TRUE block for test: if (ccDlg.m_bCheckOpenDocOnly)
@@ -21583,7 +21580,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						{
 							RemoveAutoFixList(afList);
 						}
-						gpApp->m_bShowProgress = TRUE;			// restore normal default
 						return;
 					}
 
@@ -21756,7 +21752,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						{
 							RemoveAutoFixList(afList);
 						}
-						gpApp->m_bShowProgress = TRUE;			// restore normal default
 						return;
 					}
 
@@ -21807,7 +21802,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
         // working directory has not changed, so no need here to reset it before
         // return.
 		pApp->LogUserAction(_T("Cancelled OnEditConsistencyCheck()"));
-		gpApp->m_bShowProgress = TRUE;			// restore normal default
 		return;
 	}
 	// erase the copied CKB which is no longer needed
@@ -21837,7 +21831,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		nCumulativeTotal, nFileCount);
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
-	gpApp->m_bShowProgress = TRUE;			// restore normal default
 }
 
 // Allow "Change Punctuation or Markers Placement" while document is open, but only if the
