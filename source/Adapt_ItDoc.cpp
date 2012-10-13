@@ -21207,6 +21207,10 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	wxArrayString arrRemoveNotInKB; // list of src words and phrases for
 				// restoring normal saving after being <Not In KB> in KB
 
+	// "grand total" progress bar indicator for the consistency check
+	CStatusBar *pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Performing Consistency Check"), _("Performing Consistency Check"), 4);
 
 	/*
 	// test dialogs
@@ -21483,8 +21487,11 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                     // current working directory has not changed, so no need here to reset
                     // it before return.
 					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
+					pStatusBar->FinishProgress(_("Performing Consistency Check"));
 					return;
 				}
+				pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Checking current document"));
+
 
                 // BEW added 01Aug06, ensure the current document's contents are removed,
                 // otherwise we will get a doubling of the doc data when OnOpenDocument()
@@ -21542,8 +21549,11 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // current working directory has not changed, so no need here to reset
                 // it before return.
 				pApp->LogUserAction(_T("User asked for current doc consistency check without a document being open."));
+				pStatusBar->FinishProgress(_("Performing Consistency Check"));
 				return;
 			} // end of else block for test: if (!bDocIsClosed)
+			pStatusBar->UpdateProgress(_("Performing Consistency Check"), 2, _("Checking current document"));
+
 		} // end of TRUE block for test: if (ccDlg.m_bCheckOpenDocOnly)
 		else
 		{
@@ -21559,6 +21569,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					// both the glossing and adapting KBs)
 					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
 					// protection against data loss in the event of a failure
+					pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Saving Current Document"));
 					bool fsOK = DoFileSave_Protected (gpApp->m_bShowProgress, _T(""));	// show the wait/progress dialog if needed
 					if (!fsOK)
 					{
@@ -21580,6 +21591,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						{
 							RemoveAutoFixList(afList);
 						}
+						pStatusBar->FinishProgress(_("Performing Consistency Check"));
 						return;
 					}
 
@@ -21636,8 +21648,12 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				pKBCopy->Copy(*pKB);
 
 				// loop over the Bible book folders
+				pStatusBar->StartProgress(_("Checking Book"), _("Checking Book"), nMaxBookFolders);
 				for (bookIndex = 0; bookIndex < nMaxBookFolders; bookIndex++)
 				{
+					wxString msg;
+					msg = msg.Format(_T("Checking Book: %d of %d"), bookIndex, nMaxBookFolders); 
+					pStatusBar->UpdateProgress(_("Performing Consistency Check"), bookIndex, msg);
 					pBookNamePair = ((BookNamePair*)(*pApp->m_pBibleBooks)[bookIndex]);
 					folderPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + pBookNamePair->dirName;
 					// setting the index, book name pair, and bibleBooksFolderPath on the
@@ -21678,6 +21694,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						break;
 					}
 				} // end of for loop
+				pStatusBar->FinishProgress(_("Checking Book"));
 
 				// restore path and bible book folders variables to be what they were
 				// before we looped across all the book folders
@@ -21717,6 +21734,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // whm note: EnumerateDocFiles() has the side effect of changing the current
                 // work directory to the passed in dirPath.
 	
+				pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Starting Consistency Check"));
 				bOK = pApp->EnumerateDocFiles(this, dirPath);
 				if (bOK)
 				{
@@ -21752,9 +21770,11 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						{
 							RemoveAutoFixList(afList);
 						}
+						pStatusBar->FinishProgress(_("Performing Consistency Check"));
 						return;
 					}
 
+					pStatusBar->UpdateProgress(_("Performing Consistency Check"), 2, _("Starting Consistency Check"));
 					if (!pApp->m_acceptedFilesList.IsEmpty())
 					{
 						nFileCount += pApp->m_acceptedFilesList.GetCount();
@@ -21768,6 +21788,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					{
 						bConsCheckDone = DoConsistencyCheck(pApp, pKB, pKBCopy, afList,
 								nCumulativeTotal, arrSetNotInKB, arrRemoveNotInKB); // for adapting mode
+						bDocForcedToClose = TRUE;	// reopen the current document
 					}
 					if (!bConsCheckDone)
 					{
@@ -21802,8 +21823,10 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
         // working directory has not changed, so no need here to reset it before
         // return.
 		pApp->LogUserAction(_T("Cancelled OnEditConsistencyCheck()"));
+		pStatusBar->FinishProgress(_("Performing Consistency Check"));
 		return;
 	}
+	pStatusBar->UpdateProgress(_("Performing Consistency Check"), 3, _("Cleaning up..."));
 	// erase the copied CKB which is no longer needed
 	if (pKBCopy != NULL)
 	{
@@ -21820,6 +21843,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
 	}
 
+	pStatusBar->UpdateProgress(_("Performing Consistency Check"), 4, _("Finishing Consistency Check"));
 	// show stats
 	if (!bUserCancelled)
 	{
@@ -21831,6 +21855,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		nCumulativeTotal, nFileCount);
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
+	pStatusBar->FinishProgress(_("Performing Consistency Check"));
 }
 
 // Allow "Change Punctuation or Markers Placement" while document is open, but only if the
@@ -22096,6 +22121,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 
 		return TRUE;
 	}
+	CStatusBar *pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Consistency Check"), _("Starting Consistency Check"), nCount);
+
 	wxASSERT(nCount > 0);
 	int nTotal = 0;
 
@@ -22122,6 +22151,12 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()
 		wxCHECK_MSG(bOK, FALSE, _T("DoConsistencyCheck(): OnOpenDocument() failed, line 21,746 in Adapt_itDoc.cpp, so check was aborted"));
+
+		// update the progress bar
+		wxString msg;
+		msg = msg.Format(_("Checking: %s (file %d of %d)"), newName.c_str(), i, nCount);
+		pStatusBar->UpdateProgress(_("Consistency Check"), i, msg);
+
 		SetFilename(newName,TRUE);
 		nTotal = pApp->m_pSourcePhrases->GetCount();
 		if (nTotal == 0)
@@ -23781,6 +23816,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
+	pStatusBar->FinishProgress(_("Consistency Check"));
 
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default
 
