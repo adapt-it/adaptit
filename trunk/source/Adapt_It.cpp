@@ -20152,7 +20152,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText21, bDeleted);
 	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText22, bDeleted);
 	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText23, bDeleted);
-	result = m_pKbServer->PseudoDeleteEntry(srcText2, tgtText2);
+	//result = m_pKbServer->PseudoDeleteEntry(srcText2, tgtText2);
+	result = m_pKbServer->LookupEntryForSrcTgtPair(srcText2, tgtText23);
 	result = result;
 	delete m_pKbServer;
 #endif

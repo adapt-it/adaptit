@@ -39,8 +39,16 @@ source text and markers appeared in the document but all the
 adaptations were lost. This is now fixed. The USFM markup goes 
 into the document correctly now, and all the adaptations are 
 retained.
-* Fixed a UI resizing error in the Consistency Check dialog that 
-was causing a crash when the dialog was displayed.
+* When collaborating with Paratext, if a number of additional
+verses were added to the Paratext project for the source text
+then the merger of that extra information lost many of the
+verses and would repeat the last section but with losses in
+that as well. This is fixed - it's now safe to add verses.
+* Fixed a UI resizing error in the Consistency Check
+dialog that was causing a crash when the dialog was 
+displayed.
+* The Linux version, if previewing a chapter/verse range, would
+show only the first page of the preview. Now fixed.
 * Fixed UI behavior for the Setup Collaboration dialog under 
 Linux. The "Tell me more about these options" button would pop
 up behind other open windows on Linux.

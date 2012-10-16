@@ -68,12 +68,13 @@ public:
 
 	// The API which we expose (note:  srcPhrase & tgtPhrase are often each
 	// just a single word
-	int		  LookupEntryForSourcePhrase( wxString wxStr_SourceEntry );
-	int		  SendEntry(wxString srcPhrase, wxString tgtPhrase);
-	int		  LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted);
-	int		  LookupEntryField(wxString source, wxString target, wxString& field);
+	int		  LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry );
+	int		  LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
+	int		  CreateEntry(wxString srcPhrase, wxString tgtPhrase);  // was SendEntry()
+	//int		  LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted);
+	//int		  LookupEntryField(wxString source, wxString target, wxString& field);
 	//int		  PseudoDeleteEntry(int entryID);
-	int		  PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase);
+	//int		  PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase);
 
 	// public setters
 	void	 SetKBServerType(int type);
@@ -94,6 +95,19 @@ public:
 									   // in lastsync.txt file & returns it as wxString
 	bool	  ExportLastSyncDateTime(); // exports it, temporarily, to lastsync.txt file
 									   // as an ascii string literal
+	// accessors for the private arrays
+	wxArrayInt*		GetIDsArray();
+	wxArrayInt*		GetDeletedArray();
+	wxArrayString*	GetTimestampArray();
+	wxArrayString*	GetSourceArray();
+	wxArrayString*	GetTargetArray();
+	wxArrayString*	GetUsernameArray();
+
+	// public helpers
+	void			ClearAllPrivateStorageArrays();
+	void			ClearOneIntArray(wxArrayInt* pArray);
+	void			ClearOneStringArray(wxArrayString* pArray);
+	void			ClearStrCURLbuffer();
 
 protected:
 
@@ -146,6 +160,21 @@ private:
 	wxString GetPathSeparator();
 	wxString GetCredentialsFilename();
 	wxString GetLastSyncFilename();
+
+    // Private storage arrays (they are wxArrayString, but deleted flag and id will use
+    // wxArrayInt) for entries data returned from the server, and for uploads too),
+	// access to these arrays is by an int iterator, and the data values pertain to a
+	// single kbserver entry across the arrays for a given iterator value.
+	// Note: we don't provide storage here for source language code, target language code,
+	// and kbtype - these are constant for any given instance of KbServer, and their
+	// values are determinate from member variables m_kbSourceLanguageCode,
+	// m_kbTargetLanguageCode, and m_kbServerType, respectively.
+	wxArrayInt		m_arrID;
+	wxArrayInt		m_arrDeleted;
+	wxArrayString	m_arrTimestamp;
+	wxArrayString	m_arrSource;
+	wxArrayString	m_arrTarget;
+	wxArrayString	m_arrUsername;
 
 	
 

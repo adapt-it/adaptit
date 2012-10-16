@@ -3419,7 +3419,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
 			if (m_pApp->GetKbServer() != NULL)
 			{
-				int responseCode = m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+				int responseCode = m_pApp->GetKbServer()->CreateEntry(key, pRefString->m_translation);
 				if (responseCode != CURLE_OK)
 				{
 					// TODO a function to show the error code and a meaningful explanation
@@ -3579,7 +3579,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
 				if (m_pApp->GetKbServer() != NULL)
 				{
-					int responseCode = m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+					int responseCode = m_pApp->GetKbServer()->CreateEntry(key, pRefString->m_translation);
 					if (responseCode != CURLE_OK)
 					{
 						// TODO a function to show the error code and a meaningful explanation
@@ -3842,7 +3842,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
 						if (m_pApp->GetKbServer() != NULL)
 						{
-							int responseCode = m_pApp->GetKbServer()->SendEntry(key, pRefString->m_translation);
+							int responseCode = m_pApp->GetKbServer()->CreateEntry(key, pRefString->m_translation);
 							if (responseCode != CURLE_OK)
 							{
 								// TODO a function to show the error code and a meaningful explanation
