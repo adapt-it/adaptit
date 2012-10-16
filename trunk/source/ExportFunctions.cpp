@@ -704,12 +704,15 @@ bool WriteXHTML_To_File(wxString exportPath, CBString& myxml, bool bShowMessageI
 	// a random path, we should inform the user at this point of the 
 	// successful completion of the export, and indicate the file name 
 	// that was used and its outputs folder name and location.
+	// whm 16Oct12 modified fn2() below to use the exportPath string
+	// rather than the exportFilename string.
 	wxFileName fn(exportPath);
 	wxString fileNameAndExtOnly = fn.GetFullName();
-	wxString pathOnly = fn.GetPath();
+	//wxString pathOnly = fn.GetPath(); // whm 16Oct12 modified to
+	//make xhtml exports report the whole path as do the other exports.
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
-	msg = msg.Format(msg,fileNameAndExtOnly.c_str(), pathOnly.c_str());
+	msg = msg.Format(msg,fileNameAndExtOnly.c_str(), exportPath.c_str());
 	if (bShowMessageIfSucceeded == true)
 	{
 		wxMessageBox(msg,_("XHTML export operation successful"),wxICON_INFORMATION | wxOK);
@@ -1616,7 +1619,9 @@ void DoExportAsType(enum ExportType exportType)
 		// a random path, we should inform the user at this point of the 
 		// successful completion of the export, and indicate the file name 
 		// that was used and its outputs folder name and location.
-		wxFileName fn(exportFilename);
+		// whm 16Oct12 modified fn2() below to use the exportPath string
+		// rather than the exportFilename string.
+		wxFileName fn(exportPath);
 		wxString fileNameAndExtOnly = fn.GetFullName();
 
 		wxString msg;
@@ -1761,7 +1766,9 @@ void DoExportAsType(enum ExportType exportType)
 	// a random path, we should inform the user at this point of the 
 	// successful completion of the export, and indicate the file name 
 	// that was used and its outputs folder name and location.
-	wxFileName fn(exportFilename);
+	// whm 16Oct12 modified fn2() below to use the exportPath string
+	// rather than the exportFilename string.
+	wxFileName fn(exportPath);
 	wxString fileNameAndExtOnly = fn.GetFullName();
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
@@ -7267,7 +7274,9 @@ b:						// b: is exit point to write the last columns of data
 	// a random path, we should inform the user at this point of the 
 	// successful completion of the export, and indicate the file name 
 	// that was used and its outputs folder name and location.
-	wxFileName fn2(exportFilename);
+	// whm 16Oct12 modified fn2() below to use the exportPath string
+	// rather than the exportFilename string.
+	wxFileName fn2(exportPath);
 	wxString fileNameAndExtOnly = fn2.GetFullName();
 
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
