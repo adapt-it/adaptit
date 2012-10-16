@@ -102,6 +102,7 @@
 DVCS::DVCS(void)
 {
 	m_pApp = &wxGetApp();
+	m_user = m_pApp->m_AIuser;
 }
 
 // destructor:
@@ -111,12 +112,6 @@ DVCS::~DVCS(void)
 	m_pApp->m_pDVCS = NULL;
 }
 
-
-
-
-//wxString		hg_command, hg_options, hg_arguments;
-//wxArrayString	hg_output;
-//int				hg_count, hg_lineNumber;
 
 
 /*	call_hg is the function that actually calls hg.
@@ -327,14 +322,12 @@ int  DVCS::get_prev_revision ( bool bFirstTime, wxString fileName )
 
 bool  DVCS::commit_valid()
 {
-	CAdapt_ItApp*	pApp = &wxGetApp();
+	if (m_user == NOOWNER || m_pApp->m_owner == NOOWNER)  return TRUE;
 
-	if (pApp->m_AIuser == NOOWNER || pApp->m_owner == NOOWNER)  return TRUE;
-
-	if (pApp->m_AIuser != pApp->m_owner)
+	if (m_user != m_pApp->m_owner)
 	{
-		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + pApp->m_owner
-					  + _T(" but the currently logged in user is ") + pApp->m_AIuser
+		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + m_pApp->m_owner
+					  + _T(" but the currently logged in user is ") + m_user
 					  + _T(".  Only the document's owner can commit changes to it.") );
 		return FALSE;
 	}
@@ -344,9 +337,8 @@ bool  DVCS::commit_valid()
 
 int  DVCS::commit_file (wxString fileName)
 {
-	CAdapt_ItApp*	pApp = &wxGetApp();
-	wxString		local_owner = pApp->m_owner;
-	int				commitCount = pApp->m_commitCount;
+	wxString		local_owner = m_pApp->m_owner;
+	int				commitCount = m_pApp->m_commitCount;
 
 	if (!commit_valid()) return -1;
 
@@ -398,8 +390,7 @@ int  DVCS::log_project()
 
 int  DVCS::revert_to_revision ( int revision )
 {
-	CAdapt_ItApp*	pApp = &wxGetApp();
-	wxString		fileName = pApp->m_curOutputFilename;
+	wxString		fileName = m_pApp->m_curOutputFilename;
 	wxString		strRevision = wxString::Format	(_T("%i"), revision);
 
 	hg_command = _T("revert");
@@ -419,7 +410,6 @@ int  DVCS::revert_to_revision ( int revision )
 int  DVCS::DoDVCS ( int action, int parm )
 {
 	wxString		str;
-	CAdapt_ItApp*	pApp = &wxGetApp();
 	int				result;
 	bool			bResult;
     wxString		saveWorkDir = wxGetCwd();			// save the current working directory
@@ -428,7 +418,7 @@ int  DVCS::DoDVCS ( int action, int parm )
 
 // Next we cd into our repository.  We use wxSetWorkingDirectory() and spaces in pathnames are OK.
 
-	str = pApp->m_curAdaptionsPath;
+	str = m_pApp->m_curAdaptionsPath;
 	bResult = ::wxSetWorkingDirectory (str);
 
 	if (!bResult)
@@ -449,19 +439,19 @@ int  DVCS::DoDVCS ( int action, int parm )
 
 		case DVCS_INIT_REPOSITORY:	result = init_repository();							break;
 
-		case DVCS_ADD_FILE:			result = add_file (pApp->m_curOutputFilename);		break;
+		case DVCS_ADD_FILE:			result = add_file (m_pApp->m_curOutputFilename);	break;
 		case DVCS_ADD_ALL_FILES:	result = add_all_files();							break;
 
-		case DVCS_REMOVE_FILE:		result = remove_file(pApp->m_curOutputFilename);	break;
+		case DVCS_REMOVE_FILE:		result = remove_file(m_pApp->m_curOutputFilename);	break;
 		case DVCS_REMOVE_PROJECT:	result = remove_project();							break;
 
-		case DVCS_COMMIT_FILE:		result = commit_file (pApp->m_curOutputFilename);	break;
+		case DVCS_COMMIT_FILE:		result = commit_file (m_pApp->m_curOutputFilename);	break;
 		case DVCS_REVERT_FILE:		result = revert_to_revision (parm);					break;
 
-		case DVCS_LOG_FILE:			result = log_file (pApp->m_curOutputFilename);		break;
+		case DVCS_LOG_FILE:			result = log_file (m_pApp->m_curOutputFilename);	break;
 		case DVCS_LOG_PROJECT:		result = log_project();								break;
-		case DVCS_LATEST_REVISION:	result = get_prev_revision (TRUE, pApp->m_curOutputFilename);		break;
-		case DVCS_PREV_REVISION:	result = get_prev_revision (FALSE, pApp->m_curOutputFilename);		break;
+		case DVCS_LATEST_REVISION:	result = get_prev_revision (TRUE, m_pApp->m_curOutputFilename);		break;
+		case DVCS_PREV_REVISION:	result = get_prev_revision (FALSE, m_pApp->m_curOutputFilename);	break;
 
 		default:
 			wxMessageBox (_T("Internal error - illegal DVCS command"));
