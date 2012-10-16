@@ -1010,7 +1010,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // later for what the config file gave for the last active location, and jump there
         // if not at sequence number 0
 		pApp->m_nActiveSequNum = 0; 
-		bool bOK = pDoc->OnOpenDocument(docPath);
+		bool bOK = pDoc->OnOpenDocument(docPath, true);
 		if (!bOK)
 		{
 			// IDS_LOAD_DOC_FAILURE

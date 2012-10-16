@@ -4776,7 +4776,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 /// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
 
-bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
+bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /* = true */)
 {
 	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
 	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
@@ -4852,7 +4852,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	//  to show progress dialogs just now.
 
 	CStatusBar* pStatusBar = NULL;
-	if (nTotal > 0 && gpApp->m_bShowProgress)
+	if (nTotal > 0 && bShowProgress)
 	{
 		progMsg = _("Reading file %s - part %d of %d");
 		wxFileName fn(filename);
@@ -4897,7 +4897,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				gpApp->LogUserAction(s);
 				wxCommandEvent dummyevent;
 				OnFileOpen(dummyevent); // have another go, via the Start Working wizard
-				if (nTotal > 0 && gpApp->m_bShowProgress)
+				if (nTotal > 0 && bShowProgress)
 				{
 					pStatusBar->FinishProgress(_("Opening the Document"));
 				}
@@ -4913,7 +4913,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
 				gpApp->LogUserAction(s);
 			//}
-			if (nTotal > 0 && gpApp->m_bShowProgress)
+			if (nTotal > 0 && bShowProgress)
 			{
 				pStatusBar->FinishProgress(_("Opening the Document"));
 			}
@@ -4929,7 +4929,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
         // we are wanting is the list of CSourcePhrase instances.
 		gpApp->LogUserAction(_T("Return TRUE early from OnOpenDocument() m_bWantSourcePhrasesOnly"));
 		ValidateNoteStorage();
-		if (nTotal > 0 && gpApp->m_bShowProgress)
+		if (nTotal > 0 && bShowProgress)
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
@@ -4989,7 +4989,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		_T(""),wxICON_STOP);
 		wxASSERT(FALSE);
 		gpApp->LogUserAction(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"));
-		if (nTotal > 0 && gpApp->m_bShowProgress)
+		if (nTotal > 0 && bShowProgress)
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
@@ -5004,7 +5004,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),
 		fn.GetFullName(), wxICON_EXCLAMATION | wxOK);
 		gpApp->LogUserAction(_T("There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."));
-		if (nTotal > 0 && gpApp->m_bShowProgress)
+		if (nTotal > 0 && bShowProgress)
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
@@ -5081,7 +5081,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."),
 				_T(""), wxICON_EXCLAMATION | wxOK);
 				pApp->LogUserAction(_T("Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."));
-				if (nTotal > 0 && gpApp->m_bShowProgress)
+				if (nTotal > 0 && bShowProgress)
 				{
 					pStatusBar->FinishProgress(_("Opening the Document"));
 				}
@@ -5165,9 +5165,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		// so just use the value -1
 		gnOldSequNum = -1;
 	}
-
-	// update status bar with project name
-	gpApp->RefreshStatusBarInfo();
 
 	// determine m_curOutputPath, so it can be saved to config files as m_lastDocPath
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
@@ -5274,7 +5271,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),pApp->m_curOutputPath.c_str());
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			pApp->LogUserAction(msg);
-			if (nTotal > 0 && gpApp->m_bShowProgress)
+			if (nTotal > 0 && bShowProgress)
 			{
 				pStatusBar->FinishProgress(_("Opening the Document"));
 			}
@@ -5294,7 +5291,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		enum wxKillError killErr;
 		int rv = ::wxKill(pid,wxSIGTERM,&killErr); // makes OnExit() be called
 		rv  = rv; // prevent compiler warning
-		if (nTotal > 0 && gpApp->m_bShowProgress)
+		if (nTotal > 0 && bShowProgress)
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));
 		}
@@ -5339,11 +5336,14 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		}
 	}
 
-	if (nTotal > 0 && gpApp->m_bShowProgress)
+	if (nTotal > 0 && bShowProgress)
 	{
 		pStatusBar->FinishProgress(_("Opening the Document"));
 	}
 	return TRUE;
+
+	// update status bar with project name
+	gpApp->RefreshStatusBarInfo();
 }
 
 CLayout* CAdapt_ItDoc::GetLayout()
@@ -20019,7 +20019,7 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
     // pointers are now saved in the temp SPList, so clear the list on the App to be ready
     // to receive the new list within OnOpenDocument()
 	gpApp->m_pSourcePhrases->Clear();
-	d.OnOpenDocument(FilePath); // OnOpenDocument loads source phrases into
+	d.OnOpenDocument(FilePath, true); // OnOpenDocument loads source phrases into
 								// m_pSourcePhrases on the App
 	gpApp->m_bWantSourcePhrasesOnly = false;
 	// copy the pointers to the list we are returning from LoadSourcePhraseListFromFile
@@ -20688,7 +20688,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 			{
                 // m_curOutputPath is a valid path to a doc in a project's Adaptations or
                 // book folder so open it again - the project is still in effect
-				bool bGotItOK = OnOpenDocument(gpApp->m_curOutputPath);
+				bool bGotItOK = OnOpenDocument(gpApp->m_curOutputPath, true);
 				if (!bGotItOK)
 				{
                     // some kind of error -- don't warn except for a beep, just leave the
@@ -20879,7 +20879,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	packByteStr.Empty();
 
 	// now parse in the xml document file, setting up the view etc
-	bool bGotItOK = OnOpenDocument(gpApp->m_curOutputPath);
+	bool bGotItOK = OnOpenDocument(gpApp->m_curOutputPath, true);
 	if (!bGotItOK)
 	{
 		// some kind of error --warn user (this shouldn't happen)
@@ -21135,7 +21135,7 @@ bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
 	*/
 
 	pApp->m_nActiveSequNum = curSequNum;
-	bOK = OnOpenDocument(curOutputPath);
+	bOK = OnOpenDocument(curOutputPath, false);
 	SetFilename(curOutputPath,TRUE); // get the window Title set
 	if (curSequNum == -1)
 	{
@@ -21570,7 +21570,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
 					// protection against data loss in the event of a failure
 					pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Saving Current Document"));
-					bool fsOK = DoFileSave_Protected (gpApp->m_bShowProgress, _T(""));	// show the wait/progress dialog if needed
+					bool fsOK = DoFileSave_Protected (false, _T("")); // don't show progress on this task
 					if (!fsOK)
 					{
 						// something's real wrong!
@@ -22146,7 +22146,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
         // OnFileClose() is done in the caller before DoConsistencyCheck() is called
 		// int piles = pApp->m_pSourcePhrases->GetCount();
 		bool bOK;
-		bOK = OnOpenDocument(newName); // passing in just a filename, so we are relying
+		bOK = OnOpenDocument(newName, false); // passing in just a filename, so we are relying
 									   // on the working directory having previously
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()
@@ -23870,7 +23870,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 		// int piles = pApp->m_pSourcePhrases->GetCount();
 
 		bool bOK;
-		bOK = OnOpenDocument(newName); // passing in just a filename, so we are relying
+		bOK = OnOpenDocument(newName, false); // passing in just a filename, so we are relying
 									   // on the working directory having previously
 									   // being set in the caller at the call of
 									   // EnumerateDocFiles()

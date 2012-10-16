@@ -183,7 +183,7 @@ public:
 	virtual bool DeleteContents(); // virtual void in MFC and virtual bool in wx but not documented in wx
 	virtual bool OnCloseDocument(); // virtual void type in MFC
     //virtual bool OnSaveDocument(const wxString& filename);// OnSaveDocument not used in the MFC version
-    virtual bool OnOpenDocument(const wxString& filename);
+    virtual bool OnOpenDocument(const wxString& filename, bool bShowProgress = true);
     virtual bool IsModified() const;
     virtual void Modify(bool mod);
 
