@@ -32,8 +32,9 @@ public:
 
 	int DoDVCS ( int action, int parm );		// all DVCS operations are done via this function
 
-private:		// class variables
+private:		// instance variables
 	CAdapt_ItApp*	m_pApp;
+	wxString		m_user;
 	wxString		hg_command, hg_options, hg_arguments;
 	wxArrayString	hg_output;
 	int				hg_count, hg_lineNumber;
