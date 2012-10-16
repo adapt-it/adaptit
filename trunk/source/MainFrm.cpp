@@ -826,7 +826,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 
 					// copy & tweak code from DocPage.cpp for getting the document open and view set up
 					// with the phrase box at the wanted sequence number
-					bOK = pDoc->OnOpenDocument(foundDocWithReferenceFilePathAndName);
+					bOK = pDoc->OnOpenDocument(foundDocWithReferenceFilePathAndName, false);
 					if (!bOK)
 					{
 						// IDS_LOAD_DOC_FAILURE

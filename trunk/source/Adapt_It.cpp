@@ -14806,8 +14806,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
 	m_trialRevNum = -1;			// negative means no trial going on - the normal case
 
-	m_bShowProgress = TRUE;		// normal default
-
 	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
 
 	// initialize Printing support members
@@ -20595,7 +20593,7 @@ int ii = 1;
 
 		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
-		GetDocument()->OnOpenDocument(fullPath);
+		GetDocument()->OnOpenDocument(fullPath, true);
 	}
 	m_bControlIsWithinOnInit = FALSE;
 
@@ -26238,11 +26236,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	wxString progMsg = _("Restoring the KB - Step %d of %d");
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
 	((CStatusBar*)m_pMainFrame->m_pStatusBar)->StartProgress(_("Restoring Knowledge Base..."),msgDisplayed,nTotal);
-
-// mrh Sept2012 -- here we suppress progress dialogs for opening the various files, and also change the
-// cursor to "busy".  It will go back to normal automatically when this function ends.
-
-	gpApp->m_bShowProgress = FALSE;
 
 	// Update for step 1 Creating a temporary KB backup for restoring the KB later
 	msgDisplayed = progMsg.Format(progMsg,1,nTotal);
@@ -37935,7 +37928,7 @@ void CAdapt_ItApp::DiscardDocChanges()
 	pView->ClobberDocument();
 	wxString reversionPath = m_curOutputPath;
 	wxASSERT(!reversionPath.IsEmpty());
-	bool bOK = pDoc->OnOpenDocument(reversionPath);
+	bool bOK = pDoc->OnOpenDocument(reversionPath, true);
 	// we should get it open safely every time, but just in case...
 	if (!bOK)
 	{

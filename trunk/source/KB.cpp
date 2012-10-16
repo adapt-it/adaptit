@@ -4850,9 +4850,6 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	// the original one from OnFileRestoreKb(). These include the OnOpenDocument()
 	// function, and the KB saving routines.
 
-	// mrh Sept12 note: the caller will have set m_bShowProgress to FALSE if we don't want
-	//  these progress dialogs, so we check that.
-
 	// variables below added by whm 27Apr09 for reporting errors in docs used for KB
 	// restore
 	bool bAnyDocChanged;
@@ -4887,7 +4884,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		wxASSERT(!newName.IsEmpty());
 
 		bool bOK;
-		bOK = pDoc->OnOpenDocument(newName);
+		bOK = pDoc->OnOpenDocument(newName, false);
 		wxCHECK_RET(bOK, _T("DoKBRestore(): OnOpenDocument() failed, line 4760 in KB.cpp, the KB restoration was abandoned"));
 
 		// The docview sample has a routine called SetFileName() that it uses to override

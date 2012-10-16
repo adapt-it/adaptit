@@ -188,6 +188,13 @@ void CStatusBar::StartProgress(const wxString& title, const wxString& message, i
 ///////////////////////////////////////////////////////////////////////////////////////
 bool CStatusBar::UpdateProgress(const wxString& title, int value, const wxString& newmsg)
 {
+	// is this a real progress item?
+	if (title.IsEmpty())
+	{
+		// blank progress item -- just return
+		return false;
+	}
+	// look for the progress item
 	int index = FindProgressItem(title);
 	if (index >= 0)
 	{

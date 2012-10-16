@@ -537,7 +537,7 @@ void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 			// deallocations of stuff not needed to do the report - things that are done in 
 			// preparation for displaying and laying out a View (that is not needed here). 
 			bool bOK;
-			bOK = pDoc->OnOpenDocument(newName);
+			bOK = pDoc->OnOpenDocument(newName, false);
 			wxCHECK_RET(bOK, _T("DoRetranslationReport(): OnOpenDocument() failed, line 544 in Retranslation.cpp"));
 			
 			pDoc->SetFilename(newName,TRUE);
