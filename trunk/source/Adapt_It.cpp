@@ -24556,7 +24556,7 @@ bool CAdapt_ItApp::StoreKB(bool bShowWaitDlg, bool bAutoBackup)
 /// BEW modified 13Nov09, don't permit saving of a remote KB if the local instance only
 /// has read-only access to the remote project
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
+bool CAdapt_ItApp::SaveKB(bool bAutoBackup, bool bShowProgress /* = true */)
 {
 	if (m_bReadOnlyAccess)
 		return TRUE; // not an error, just suppression of a remote save
@@ -24581,7 +24581,7 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 		}
 		// no removal needed if there is not a backup present
 	}
-	bool bOK = StoreKB (gpApp->m_bShowProgress, bAutoBackup);	// show progress dialog only if needed
+	bool bOK = StoreKB (bShowProgress, bAutoBackup);	// show progress dialog only if needed
 
 	return bOK;
 }
@@ -25360,7 +25360,7 @@ void CAdapt_ItApp::DoKBBackup()
 {
     // NOTE: wxWidgets version: SaveKB returns bool value which is ignored here. I've added
     // an error message in SaveKB() in case it fails.
-	SaveKB(TRUE); // resaves the KB and makes a backup which is a copy,
+	SaveKB(TRUE, TRUE); // resaves the KB and makes a backup which is a copy,
 				  // after deleting old one
 }
 
@@ -26353,10 +26353,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			pView->canvas->Thaw();
 			// remove this task (failed, but we don't want to track it anymore)
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
-			
-			// whm 13Oct12 added. Restore the default value of m_bShowProgress
-			// to TRUE.
-			gpApp->m_bShowProgress = TRUE;
 			return;
 		}
 
@@ -26417,10 +26413,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// let the view respond again to updates
 		pView->canvas->Thaw();
 		((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
-			
-		// whm 13Oct12 added. Restore the default value of m_bShowProgress
-		// to TRUE.
-		gpApp->m_bShowProgress = TRUE;
 		return;
 	}
 
@@ -26461,10 +26453,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			// let the view respond again to updates
 			pView->canvas->Thaw();
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
-			
-			// whm 13Oct12 added. Restore the default value of m_bShowProgress
-			// to TRUE.
-			gpApp->m_bShowProgress = TRUE;
 			return;
 		}
 		else
@@ -26689,10 +26677,6 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 
 	// done -- update the embedded progress bar
 	((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Restoring Knowledge Base..."));
-
-	// whm 13Oct12 added. Restore the default value of m_bShowProgress
-	// to TRUE.
-	gpApp->m_bShowProgress = TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

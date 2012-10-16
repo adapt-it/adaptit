@@ -774,6 +774,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						{
 							// we need to save it - don't ask the user
 							wxCommandEvent uevent;
+							gpApp->m_bShowProgress = false;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 							pDoc->OnFileSave(uevent);
 						}
 						// make sure free translation mode is off

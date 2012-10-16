@@ -937,7 +937,7 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 				}
 				else
 				{
-					bOK = gpApp->SaveKB(FALSE); // don't want backup produced
+					bOK = gpApp->SaveKB(FALSE, TRUE); // don't want backup produced
 				}
 				if (!bOK)
 				{
