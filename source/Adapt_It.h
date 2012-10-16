@@ -3885,7 +3885,7 @@ public:
 	wxUint32 m_nCodePage;
 
 	bool	DealWithThePossibilityOfACustomWorkFolderLocation(); // BEW added 12Oct09
-	bool	SaveKB(bool bAutoBackup);
+	bool	SaveKB(bool bAutoBackup, bool bShowProgress = true);
 	bool	SaveGlossingKB(bool bAutoBackup);
 	void	SetDefaultCaseEquivalences();
 	void	SetPageOrientation(bool bIsPortrait);

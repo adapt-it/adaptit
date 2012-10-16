@@ -6025,7 +6025,7 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& event)
 	//}
 	//else
 	//{
-	bOK2 = pApp->SaveKB(FALSE); // don't want backup produced
+	bOK2 = pApp->SaveKB(FALSE, TRUE); // don't want backup produced
 	if (!bOK2)
 	{
 		mess = _("Failure when trying to save the knowledge base. ");
@@ -14320,7 +14320,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		if (gbIsGlossing)
 			pApp->SaveGlossingKB(FALSE);
 		else
-			pApp->SaveKB(FALSE);
+			pApp->SaveKB(FALSE, TRUE);
 
 	}
 
@@ -21418,6 +21418,7 @@ bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nSta
 "FindIndex() failed in ExtendEditSourceTextSelection(), pos value is NULL. Saving document & cancelling this editing attempt..."),
 		 _T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -21633,6 +21634,7 @@ bool CAdapt_ItView::IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& 
 "FindIndex() failed in IsAdaptationInformationInThisSpan(), pos value is NULL. Saving the document. Exiting the edit process."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -21695,6 +21697,7 @@ bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStar
 "FindIndex() failed in IsGlossInformationInThisSpan(), pos value is NULL. Saving the document. Exiting the edit process."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -21788,6 +21791,7 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases,
 "FindIndex() failed in GetEditSourceTextFreeTranslationSpan(), pos value is NULL. Saving document. Abandoning edit."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -21848,6 +21852,7 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases,
 "FindIndex() failed in GetEditSourceTextFreeTranslationSpan(), pos value is NULL, for index nEndingSN. Saving document. Abandoning edit."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -22094,6 +22099,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 "FindIndex() failed in GetEditSourceTextBackTranslationSpan(), pos value is NULL. Saving document. Abandoning edit."),
 		 _T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -23316,6 +23322,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 		BailOutFromEditProcess(pApp->m_pSourcePhrases, &gEditRecord); // restore
 														// original document state
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -23330,6 +23337,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 		BailOutFromEditProcess(pApp->m_pSourcePhrases, &gEditRecord); // restore
 														// original document state
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -23735,6 +23743,7 @@ bool CAdapt_ItView::ExtendEditableSpanForFiltering(
 "FindIndex() failed in ExtendEditableSpanForFiltering(), pos value is NULL. Saving and restoring document. Abandoning edit."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		wxCommandEvent evt;
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		pApp->GetDocument()->OnFileSave(evt);
 		return FALSE;
 	}
@@ -24528,6 +24537,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 										// gbVerticalEditInProgress flag when done
 			wxCommandEvent evt;
+			pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 			pApp->GetDocument()->OnFileSave(evt);
 		}
 		pApp->LogUserAction(_T("Error from ExtendEditSourceTextSelection() in OnEditSourceText()"));

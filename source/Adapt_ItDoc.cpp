@@ -1552,6 +1552,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	
 	gpApp->m_owner = gpApp->m_AIuser;			// owner must be assigned on a commit
 
+	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
 
 	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
@@ -1564,6 +1565,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 		gpApp->m_commitCount -= 1;
 		gpApp->m_owner = origOwner;
 		
+		gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		OnFileSave (dummy);
 		return -2;
 	}
@@ -2585,7 +2587,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			if (bShowWaitDlg)
 			{
 				counter++;
-				if (counter % 1000 == 0)
+				if (counter % 100 == 0)
 				{
 					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 					// whm 28Aug11 Note: pProgDlg can be NULL when DoFileSave_Protected() and
@@ -16299,7 +16301,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// due to a processing error.
 	if (!gpApp->m_bReadOnlyAccess)
 	{
-		bSavedOK = DoFileSave_Protected(FALSE, _("Packing Document")); // FALSE - don't show another wait/progress dialog
+		bSavedOK = DoFileSave_Protected(TRUE, _("Packing Document")); 
 		// English error message will have been seen in the call, so just prevent the pack
 		// from proceeding further; but we don't expect a failure in DoFileSave_Protected()
 		if (!bSavedOK)

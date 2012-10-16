@@ -301,7 +301,7 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 			pApp->m_targetName = tempTgtName;
 			pApp->m_pKB->m_sourceLanguageName = tempSrcName;
 			pApp->m_pKB->m_targetLanguageName = tempTgtName;
-			pApp->SaveKB(FALSE); // don't do backup
+			pApp->SaveKB(FALSE, TRUE); // don't do backup
 		}
 	}
 	// get any final edits of lang codes from edit boxes

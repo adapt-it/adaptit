@@ -4949,6 +4949,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 			bAnyDocChanged = TRUE;
 			// Save the current document before proceeding
 			wxCommandEvent evt;
+			m_pApp->m_bShowProgress = false;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 			pDoc->OnFileSave(evt);
 		}
 		else
@@ -4974,7 +4975,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		if (m_bGlossingKB)
 			bSavedOK = m_pApp->SaveGlossingKB(FALSE);
 		else
-			bSavedOK = m_pApp->SaveKB(FALSE);
+			bSavedOK = m_pApp->SaveKB(FALSE, FALSE);
 		if (!bSavedOK)
 		{
 			wxMessageBox(_("Warning: something went wrong doing a save of the KB"),
