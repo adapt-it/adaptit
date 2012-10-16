@@ -355,6 +355,37 @@ bool KbServer::ExportLastSyncDateTime()
 	return TRUE;
 }
 
+// accessors for the private arrays
+wxArrayInt*		 KbServer::GetIDsArray()
+{
+	return &m_arrID;
+}
+
+wxArrayInt*		 KbServer::GetDeletedArray()
+{
+	return &m_arrDeleted;
+}
+
+wxArrayString*	 KbServer::GetTimestampArray()
+{
+	return &m_arrTimestamp;
+}
+
+wxArrayString*	 KbServer::GetSourceArray()
+{
+	return &m_arrSource;
+}
+
+wxArrayString*	 KbServer::GetTargetArray()
+{
+	return &m_arrTarget;
+}
+
+wxArrayString*	 KbServer::GetUsernameArray()
+{
+	return &m_arrUsername;
+}
+
 // callback function for curl
 size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
@@ -421,7 +452,11 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 }
 */
 // return the CURLcode value
-int KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
+// Note: normally before calling LookupEntriesForSourcePhrase() the storage arrays should
+// be cleared with a call of ClearAllPrivateStorageArrays(); we'll leave the caller to
+// decide whether or not to do this; if not done, downloaded entries data is appended to
+// what is already in the arrays
+int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 {
 	CURL *curl;
 	CURLcode result;
@@ -443,7 +478,6 @@ int KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
-	// curl_global_init(CURL_GLOBAL_ALL); BEW only needs to be called once
 	curl = curl_easy_init();
 
 	if (curl) {
@@ -464,19 +498,157 @@ int KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 #endif
 
 		if (result) {
-			printf("LookupEntryForSourcePhrase() result code: %d\n", result);
+			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n", 
+				result, curl_easy_strerror(result));
+			curl_easy_cleanup(curl);
 			return (int)result;
 		}
-		// whm 13Oct12 modified. Changed the following cleanup call to
-		// use the _easy_ version rather than the _global_ version.
-		// See the similar code in EmailReportDlg.cpp about line 758.
-		curl_easy_cleanup(curl); //curl_global_cleanup();
+	}
+	curl_easy_cleanup(curl);
+
+	//  make the json data accessible (result is CURLE_OK if control gets to here)
+	if (!str_CURLbuffer.empty())
+	{
+		// Note: normally before calling LookupEntriesForSourcePhrase() the storage arrays
+		// should be cleared with a call of ClearAllPrivateStorageArrays()
+		wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxJSONValue jsonval;
+		wxJSONReader reader;
+		int numErrors = reader.Parse(myList, &jsonval);
+		if (numErrors > 0)
+		{
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxMessageBox(_T("LookupEntriesForSourcePhrase(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+				_T("kbserver error"), wxICON_ERROR | wxOK);
+			return -1;
+		}
+		int listSize = jsonval.Size();
+		int index;
+		for (index = 0; index < listSize; index++)
+		{
+			// we extract id, source phrase, target phrase, deleted flag value, username,
+			// and timestamp string; EACH must be extracted for every index value, in order
+			// to keep the storage arrays' items in sync with each other
+			m_arrID.Add(jsonval[index][_T("id")].AsInt());
+			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
+			m_arrSource.Add(jsonval[index][_T("source")].AsString());
+			m_arrTarget.Add(jsonval[index][_T("target")].AsString());
+			m_arrUsername.Add(jsonval[index][_T("user")].AsString());
+			m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
+		}
 	}
 
 	return 0;
 }
 
-int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
+void KbServer::ClearStrCURLbuffer()
+{
+	str_CURLbuffer.clear();
+}
+
+void KbServer::ClearAllPrivateStorageArrays()
+{
+	m_arrID.clear();
+	m_arrDeleted.clear();
+	m_arrSource.clear();
+	m_arrTarget.clear();
+	m_arrUsername.clear();
+	m_arrTimestamp.clear();
+}
+
+void KbServer::ClearOneIntArray(wxArrayInt* pArray)
+{
+	pArray->clear();
+}
+
+void KbServer::ClearOneStringArray(wxArrayString* pArray)
+{
+	pArray->clear();
+}
+
+// Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
+// also the storage arrays should be cleared with a call of ClearAllPrivateStorageArrays()
+int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
+{
+	CURL *curl;
+	CURLcode result;
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString kbType;
+	wxItoa(GetKBServerType(),kbType);
+	wxString container = _T("entry");
+
+	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
+			slash + GetTargetLanguageCode() + slash + kbType + slash + sourcePhrase +
+			slash + targetPhrase;
+	charUrl = ToUtf8(aUrl);
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+
+		if (result) {
+			printf("LookupEntryFields() result code: %d, Error: %s\n", 
+				result, curl_easy_strerror(result));
+			curl_easy_cleanup(curl);
+			return (int)result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+	//  make the json data accessible (result is CURLE_OK if control gets to here)
+	if (!str_CURLbuffer.empty())
+	{
+		// Note: normally before calling LookupEntryForSrcTgtPair() the storage arrays
+		// should be cleared with a call of ClearAllPrivateStorageArrays()
+		wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxJSONValue jsonval;
+		wxJSONReader reader;
+		int numErrors = reader.Parse(myObject, &jsonval);
+		if (numErrors > 0)
+		{
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxMessageBox(_T("LookupEntryForSrcTgtPair(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+				_T("kbserver error"), wxICON_ERROR | wxOK);
+			return -1;
+		}
+		// we extract id, source phrase, target phrase, deleted flag value, username,
+		// and timestamp string; for index value 0 only (there should only be one json
+		// object)
+		m_arrID.Add(jsonval[_T("id")].AsInt());
+		m_arrDeleted.Add(jsonval[_T("deleted")].AsInt());
+		m_arrSource.Add(jsonval[_T("source")].AsString());
+		m_arrTarget.Add(jsonval[_T("target")].AsString());
+		m_arrUsername.Add(jsonval[_T("user")].AsString());
+		m_arrTimestamp.Add(jsonval[_T("timestamp")].AsString());
+	}
+
+	return 0;
+}
+
+int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase) // was SendEntry()
 {
 	CURL *curl;
 	CURLcode result; // result code
@@ -533,12 +705,15 @@ int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
 
 		result = curl_easy_perform(curl);
 
+		curl_slist_free_all(headers);
 		if (result) {
-			printf("SendEntry() result code: %d\n", result);
+			printf("CreateEntry() result code: %d Error: %s\n", 
+				result, curl_easy_strerror(result));
+			curl_easy_cleanup(curl);
 			return result;
 		}
-		curl_easy_cleanup(curl);
 	}
+	curl_easy_cleanup(curl);
 
 	return 0;
 }
@@ -550,11 +725,12 @@ int KbServer::SendEntry(wxString srcPhrase, wxString tgtPhrase)
 // allPairs considers all possibilities and will return the index of any pair which
 // matches, but this is unlikely to be helpful because no information regarding deletion
 // state is returned.
+/* deprecated
 int KbServer::LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted)
 {
 	int entryID = -1;
 	bDeleted = 0;
-	int curlcode = LookupEntryForSourcePhrase(srcPhrase);
+	int curlcode = LookupEntriesForSourcePhrase(srcPhrase);
 	if (curlcode == CURLE_OK)
 	{
 		if (!str_CURLbuffer.empty())
@@ -588,7 +764,8 @@ int KbServer::LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDelet
 	// not found
 	return -1;
 }
-
+*/
+/* deprecated
 int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
 {
 	int entryID = wxNOT_FOUND; // -1
@@ -654,13 +831,15 @@ int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
 		curl_slist_free_all(headers);
 		if (result) {
 			printf("PseudoDeleteEntry() result code: %d\n", result);
+			curl_easy_cleanup(curl);
 			return result;
 		}
-		curl_easy_cleanup(curl);
 	}
+	curl_easy_cleanup(curl);
 	return 0;
 }
-
+*/
+/* deprecated - probably, LookupEntryFields() does them all for one entry
 int KbServer::LookupEntryField(wxString source, wxString target, wxString& field)
 {
 	int result = 0;
@@ -668,6 +847,11 @@ int KbServer::LookupEntryField(wxString source, wxString target, wxString& field
 
 	return result;
 }
+*/
+
+
+
+
 
 //=============================== end of KbServer class ============================
 
