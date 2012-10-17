@@ -14654,7 +14654,7 @@ bool CAdapt_ItApp::SetupForKBServer()
 	GetKbServer()->SetPathSeparator(PathSeparator);
 	GetKbServer()->SetPathToPersistentDataStore(m_curProjectPath);
 	GetKbServer()->SetLastSyncFilename(syncfilename);
-	GetKbServer()->SetKBServerLastSync(GetKbServer()->ImportLastSyncDateTime());
+	GetKbServer()->SetKBServerLastSync(GetKbServer()->ImportLastSyncTimestamp());
 
 	// all's well
 	return TRUE;
@@ -14668,9 +14668,9 @@ bool CAdapt_ItApp::ReleaseKBServer()
 {
 	KbServer* pKbSvr = GetKbServer(); // beware, may return NULL
 
-	// ensure the m_kbServerLastSync datetime value is stored to permanent storage (which
+	// ensure the m_kbServerLastSync timestamp value is stored to permanent storage (which
 	// temporarily is in lastsync.txt in the project folder)
-	bool bOK = pKbSvr->ExportLastSyncDateTime();
+	bool bOK = pKbSvr->ExportLastSyncTimestamp();
 
 	if (pKbSvr != NULL)
 	{
@@ -20151,7 +20151,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText22, bDeleted);
 	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText23, bDeleted);
 	//result = m_pKbServer->PseudoDeleteEntry(srcText2, tgtText2);
-	result = m_pKbServer->LookupEntryForSrcTgtPair(srcText2, tgtText23);
+	result = m_pKbServer->LookupEntryFields(srcText2, tgtText23);
 	result = result;
 	delete m_pKbServer;
 #endif

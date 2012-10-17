@@ -248,7 +248,81 @@ void KbServer::SetLastSyncFilename(wxString lastSyncFName)
 	m_lastSyncFilename = lastSyncFName;
 }
 
+void KbServer::UpdateLastSyncTimestamp()
+{
+	m_kbServerLastSync.Empty();
+	m_kbServerLastSync = m_kbServerLastTimestampReceived;
+	m_kbServerLastTimestampReceived.Empty();
+	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
+}
 
+// This function MUST be called, for any GET operation, before the material in
+// str_CURLbuffer is parsed as a JSON string; failure to do so will leave the headers data
+// in the string, and cause the json parse to fail.
+// Returns the input string, s, after timestamp extraction, as just the json data material
+// at the end of the received data stream from the GET request
+std::string KbServer::ExtractTimestampThenRemoveHeaders(std::string s, wxString& timestamp)
+{
+	// make the standard string into a wxString
+	timestamp.Empty(); // initialize
+	CBString cbstr(str_CURLbuffer.c_str());
+	wxString buffer(ToUtf16(cbstr));
+	wxString srchStr = _T("X-MySQL-Date: ");
+	int length = srchStr.Len();
+	int offset = buffer.Find(srchStr);
+	if (offset == wxNOT_FOUND)
+	{
+		s.clear(); // this should force a failure downstream
+		return s;
+	}
+	else
+	{
+		// throw away everything preceding the matched string
+		buffer = buffer.Mid(offset + length);
+		// buffer now commences with the timestamp we want to extract - extract everything
+		// up to the next '\r' or '\n' - whichever comes first
+		int offset_to_CR = buffer.Find(_T('\r'));
+		int offset_to_LF = buffer.Find(_T('\n'));
+		offset = wxMin(offset_to_CR, offset_to_LF);
+		if (offset > 0)
+		{
+			timestamp = buffer.Left(offset);
+
+			// now we have extracted the timestamp, find where the json starts; we search for
+			// "Content-Type: application/json", and then jump any following carriage
+			// returns and or newlines, and then we are at the start of the json payload
+			wxString cont_type = _T("Content-Type: application/json");
+			offset = buffer.Find(cont_type);
+			if (offset == wxNOT_FOUND)
+			{
+				s.clear(); // this should force a failure downstream
+				timestamp.Empty();
+				return s;
+			}
+			else
+			{
+				// remove what proceeds the matched string, up to its end
+				length = cont_type.Len();
+				buffer = buffer.Mid(offset + length);
+				// now we've some line ends to skip over
+				wxChar CR = _T('\r');
+				wxChar LF = _T('\n');
+				while (buffer[0] == CR || buffer[0] == LF)
+				{
+					buffer = buffer.Mid(1);
+				}
+				// okay, now the json material commences at the first wxChar of buffer
+			}
+		}
+		else
+		{
+			s.clear(); // this should force a failure downstream
+			return s;
+		}
+	}
+	s = (char*)ToUtf8(buffer);
+	return s;
+}
 
 // Return FALSE if pf not successfully opened, in which case the parent does not need to
 // close pf; otherwise, return TRUE for a successful open & parent must close it when done
@@ -269,13 +343,13 @@ bool KbServer::GetTextFileOpened(wxTextFile* pf, wxString& path)
 
 
 
-// Get and return the dateTime value last stored in persistent (i.e. on disk) storage.
+// Get and return the timestamp value last stored in persistent (i.e. on disk) storage.
 // Temporarily this storage is a file called lastsync.txt located in the project folder,
 // but later something more permanent will be used (a hidden file in the project folder?)
 // KbServer class has a private CBString member, m_kbServerLastSync to store the
 // returned value. (May be called more than once in the life of a KbServer instance)
 
-wxString KbServer::ImportLastSyncDateTime()
+wxString KbServer::ImportLastSyncTimestamp()
 {
 	wxString dateTimeStr; dateTimeStr.Empty();
 
@@ -284,7 +358,7 @@ wxString KbServer::ImportLastSyncDateTime()
 	if (!bLastSyncFileExists)
 	{
 		// couldn't find lastsync.txt file in project folder
-		wxString msg = _T("wxFileExists()called in ImportLastSyncDateTime(): The wxTextFile, taking path to lastsync.txt, does not exist");
+		wxString msg = _T("wxFileExists()called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync.txt, does not exist");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return dateTimeStr; // it's empty still
 	}
@@ -296,7 +370,7 @@ wxString KbServer::ImportLastSyncDateTime()
 	if (!bSuccess)
 	{
 		// warn developer that the wxTextFile could not be opened
-		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncDateTime(): The wxTextFile could not be opened");
+		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The wxTextFile could not be opened");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return dateTimeStr; // it's empty still
 	}
@@ -304,7 +378,7 @@ wxString KbServer::ImportLastSyncDateTime()
 	if (numLines == 0)
 	{
 		// warn developer that the wxTextFile is empty
-		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncDateTime(): The lastsync.txt file is empty");
+		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The lastsync.txt file is empty");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		f.Close();
 		return dateTimeStr; // it's empty still
@@ -312,7 +386,6 @@ wxString KbServer::ImportLastSyncDateTime()
 	// whew, finally, we have the lastsync datetime string
 	dateTimeStr = f.GetLine(0);
 	f.Close();
-
 
 // *** TODO *** the permanent code -- alter the above if necessary
 
@@ -322,14 +395,14 @@ wxString KbServer::ImportLastSyncDateTime()
 // Takes the kbserver's datetime supplied with downloaded data, as stored in the
 // m_kbServerLastSync member, and stores it on disk (temporarily in the file lastsync.txt
 // located in the AI project folder) Return TRUE if no error, FALSE otherwise.
-bool KbServer::ExportLastSyncDateTime()
+bool KbServer::ExportLastSyncTimestamp()
 {
 	wxString path = GetPathToPersistentDataStore() + GetPathSeparator() + GetLastSyncFilename();
 	bool bLastSyncFileExists = ::wxFileExists(path);
 	if (!bLastSyncFileExists)
 	{
 		// couldn't find lastsync.txt file in project folder - tell developer
-		wxString msg = _T("wxFileExists()called in ExportLastSyncDateTime(): The wxTextFile, taking path to lastsync.txt, does not exist");
+		wxString msg = _T("wxFileExists()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync.txt, does not exist");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
@@ -342,7 +415,7 @@ bool KbServer::ExportLastSyncDateTime()
 	if (!bSuccess)
 	{
 		// warn developer that the wxTextFile could not be opened
-		wxString msg = _T("GetTextFileOpened()called in ExportLastSyncDateTime(): The wxTextFile, taking path to lastsync.txt, could not be opened");
+		wxString msg = _T("GetTextFileOpened()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync.txt, could not be opened");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
@@ -356,32 +429,32 @@ bool KbServer::ExportLastSyncDateTime()
 }
 
 // accessors for the private arrays
-wxArrayInt*		 KbServer::GetIDsArray()
+wxArrayInt* KbServer::GetIDsArray()
 {
 	return &m_arrID;
 }
 
-wxArrayInt*		 KbServer::GetDeletedArray()
+wxArrayInt*	KbServer::GetDeletedArray()
 {
 	return &m_arrDeleted;
 }
 
-wxArrayString*	 KbServer::GetTimestampArray()
+wxArrayString* KbServer::GetTimestampArray()
 {
 	return &m_arrTimestamp;
 }
 
-wxArrayString*	 KbServer::GetSourceArray()
+wxArrayString* KbServer::GetSourceArray()
 {
 	return &m_arrSource;
 }
 
-wxArrayString*	 KbServer::GetTargetArray()
+wxArrayString* KbServer::GetTargetArray()
 {
 	return &m_arrTarget;
 }
 
-wxArrayString*	 KbServer::GetUsernameArray()
+wxArrayString* KbServer::GetUsernameArray()
 {
 	return &m_arrUsername;
 }
@@ -600,13 +673,14 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) //&& defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
-        wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+        wxLogDebug(_T("Returned to str_CURLbuffer: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
 #endif
 
 		if (result) {
@@ -617,6 +691,15 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		}
 	}
 	curl_easy_cleanup(curl);
+
+	// extract the timestamp, and remove the headers, leaving only the json data
+	str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+        CBString ss(str_CURLbuffer.c_str());
+        wxString sshowit = ToUtf16(ss);
+        wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
+#endif
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
