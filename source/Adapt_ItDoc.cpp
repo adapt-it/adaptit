@@ -5342,10 +5342,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	{
 		pStatusBar->FinishProgress(_("Opening the Document"));
 	}
-	return TRUE;
 
 	// update status bar with project name
 	gpApp->RefreshStatusBarInfo();
+
+	return TRUE;
 }
 
 CLayout* CAdapt_ItDoc::GetLayout()
