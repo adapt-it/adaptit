@@ -91,9 +91,9 @@ public:
 	void	 SetLastSyncFilename(wxString lastSyncFName);
 
 
-	wxString  ImportLastSyncDateTime(); // imports the datetime ascii string literal
+	wxString  ImportLastSyncTimestamp(); // imports the datetime ascii string literal
 									   // in lastsync.txt file & returns it as wxString
-	bool	  ExportLastSyncDateTime(); // exports it, temporarily, to lastsync.txt file
+	bool	  ExportLastSyncTimestamp(); // exports it, temporarily, to lastsync.txt file
 									   // as an ascii string literal
 	// accessors for the private arrays
 	wxArrayInt*		GetIDsArray();
@@ -108,6 +108,7 @@ public:
 	void			ClearOneIntArray(wxArrayInt* pArray);
 	void			ClearOneStringArray(wxArrayString* pArray);
 	void			ClearStrCURLbuffer();
+	void			UpdateLastSyncTimestamp();
 
 protected:
 
@@ -122,6 +123,12 @@ protected:
 	// would give us a bit more work to do to use with CBString
 	CBString ToUtf8(const wxString& str);
 	wxString ToUtf16(CBString& bstr);
+	// a utility for getting the download's UTC timestamp which comes in the X-MySQL-Date
+	// header; all the headers precede the json payload, so after removing the pre-payload
+	// material, what's left is returned to be assigned back to the global str_CURLbuffer
+	// in the caller; the extracted timestamp is returned as a wxString which should be
+	// stored in the m_kbServerLastTimestampReceived member
+	std::string ExtractTimestampThenRemoveHeaders(std::string s, wxString& timestamp);
 
 
 private:
@@ -134,6 +141,11 @@ private:
 	wxString	m_kbServerUsername; // typically the email address of the user, or other unique identifier
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
+	wxString	m_kbServerLastTimestampReceived; // store UTC date & time in above format received from server
+					// NOTE: m_kbServerLastTimestampReceived value replaces m_kbServerLastSync
+					// value only after a successful receipt of downloaded data, hence the
+					// two variables (m_kbServerLastSync might be needed for more than one
+					// GET request before success is achieved)
 	int			m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
 	wxString	m_kbSourceLanguageCode;
 	wxString	m_kbTargetLanguageCode;
