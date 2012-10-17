@@ -321,7 +321,7 @@ bool CExportSaveAsDlg::Validate()
 	{
 		// Pathway isn't installed, but the user chose it. Disable Pathway, set the current
 		// output type to xhtml and tell the user they need to install Pathway.
-		wxString aMsg = _("In order to use the Pathway export option, Pathway must installed on this computer./nPlease download and install Pathway from http://pathway.sil.org/download/latest-sprint-downloads/ and retry this operation.");
+		wxString aMsg = _("In order to use the Pathway export option, Pathway must installed on this computer.\nPlease download and install Pathway from http://pathway.sil.org/download/latest-sprint-downloads/ and retry this operation.");
 		wxMessageBox(aMsg,_("Pathway Not Installed"),wxICON_HAND | wxOK);
 		btnExportToPathway->Disable();
 		wxCommandEvent evt;

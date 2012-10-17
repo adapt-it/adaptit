@@ -55,6 +55,9 @@ up behind other open windows on Linux.
 * English localization other than to the USA locale was causing
 a message about a missing locale to be shown at every session
 startup. This no longer happens.
+* When an export is done and a summary dialog appears it now 
+correctly shows the file name in the event that the user changes
+the file name at the file dialog before the export.
 ----------------------------------------------
 Version 6.3.0 release 10 September 2012
 ----------------------------------------------
