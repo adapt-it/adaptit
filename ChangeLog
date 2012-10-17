@@ -1,4 +1,64 @@
 ----------------------------------------------
+Version 6.3.1 release 17 October 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.3.1
+----------------------------------------------
+* Two dialogs in the Consistency Check functionality had their
+text boxes increased in size vertically because text descenders
+were being cut off.
+* The main Consistency Check dialog has lacked an "Ignore it"
+option. Added a button "Ignore it (do nothing)" which, at the
+currently halted at location, makes no change to the KB nor the
+document, but just sends the checking forwards to the next
+inconsistency.
+* Adapt It's progress dialogs would sometimes obscure any 
+secondary dialogs that might pop up during potentially long 
+processes like consistency checking and restoring of the
+knowledge base. The progress indicators are now shown within
+the status bar at the bottom of the Adapt It main window frame.
+* The File Menu no longer displays the most recently opened
+documents. The feature had some long standing problems and in
+any case, documents are best opened from the "Select a Document"
+page in the start up wizard or, in when collaborating with
+Paratext or Bibledit, by selecting the appropriate chapter/book
+to be worked on.
+* The "Setup Collaboration..." menu item on the Administrator
+menu has been changed to "Setup or Remove Collaboration..." to
+more accurately indicate the services that the resulting dialog 
+is designed to provide.
+----------------------------------------------
+Bug fixes in 6.3.1
+----------------------------------------------
+* If the document was scripture without standard format \v and 
+\c markers, and a SFM export of the source text was done, and 
+USFM markers added to the exported source text, and then the 
+exported source text with the USFM markup was merged back into 
+the document with the Import Edited Source Text... command, the 
+source text and markers appeared in the document but all the 
+adaptations were lost. This is now fixed. The USFM markup goes 
+into the document correctly now, and all the adaptations are 
+retained.
+* When collaborating with Paratext, if a number of additional
+verses were added to the Paratext project for the source text
+then the merger of that extra information lost many of the
+verses and would repeat the last section but with losses in
+that as well. This is fixed - it's now safe to add verses.
+* Fixed a UI resizing error in the Consistency Check
+dialog that was causing a crash when the dialog was 
+displayed.
+* The Linux version, if previewing a chapter/verse range, would
+show only the first page of the preview. Now fixed.
+* Fixed UI behavior for the Setup Collaboration dialog under 
+Linux. The "Tell me more about these options" button would pop
+up behind other open windows on Linux.
+* English localization other than to the USA locale was causing
+a message about a missing locale to be shown at every session
+startup. This no longer happens.
+* When an export is done and a summary dialog appears it now 
+correctly shows the file name in the event that the user changes
+the file name at the file dialog before the export.
+----------------------------------------------
 Version 6.3.0 release 10 September 2012
 ----------------------------------------------
 ----------------------------------------------
@@ -22,11 +82,12 @@ This allows Adapt It to advise the administrator if any
 selected projects are not properly setup within Paratext or
 Bibledit before configuring them for collaboration with Adapt
 It. 
-* The Unicode version of Adapt It on Windows and the Mac is 
-now based on the 2.9.x version of the wxWidgets library. On 
-Linux this change will only take effect when the Linux 
-distributions contain the newer 2.9.x version of the wxWidgets 
-library.
+* The Unicode version of Adapt It on Windows is now based on 
+the 2.9.x version of the wxWidgets library. On Linux this 
+change will only take effect when the Linux distributions 
+contain the newer 2.9.x version of the wxWidgets library. The
+upgrade to wxWidgets 2.9.x on the Mac will probably be delayed
+until the next version update (6.4.0).
 * Additional exports are supported. Export to Pathway - provided
 Pathway is installed on the computer. Also, export as an xhtml
 file - this is the format which Pathway requires for its import
@@ -96,7 +157,7 @@ time Adapt It is run and the collaboration project is selected
 the administrator's collaboration settings will have been lost
 from the project configuration file, and collaboration would
 not be possible until the administrator sets up collaboration
-again from the Administrator menu. This problem is not fixed.
+again from the Administrator menu. This problem is now fixed.
 * Modified the "USFM and Filtering" tab of the Preferences
 dialog to filter or unfilter the \x ... \x* (cross reference),
 \f ... \f* (footnote) and \fe ... \fe* (endnote) markers 
