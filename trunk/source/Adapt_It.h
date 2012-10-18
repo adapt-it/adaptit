@@ -2671,20 +2671,27 @@ public:
 #if defined (_KBSERVER)
 
 	// BEW 1Oct12
-	// Pointer to the one and only instantiation of a KbServer class; the pointer is NULL
+	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
+	// m_pKB and m_pGlossingKB, so that the are created and destroyed when the adapting
+	// CKB instances are created and destroyed, respectively, is deliberate. There are
+	// times when local KBs are instantiated for processes that are best handled without
+	// an active connection to a remote kbserver database - for instance, transferring
+	// adaptations to glosses in a new project; KB restoration via the File > Restore
+	// Knowledge Base command; reconstituting a CKB from a mercurial repository, and maybe
+	// others. So we'll instantiate KbServer instances only when appropriate.
+
+	// m_pKbServer is an array of two pointers to KbServer instances. Each is NULL
 	// everywhere except in a project designated for KB sharing, and that project is
 	// currently active (creation and destruction are handled within SetupForKBServer()
-	// and ReleaseKBServer(), respectively) See KBServer.cpp, and KbServer.h (Yes, the
-	// latter is not a typo, the KBServer.cpp file contains, but is not limited to, the
-	// implementation code for the header KbServer.h)
+	// and ReleaseKBServer(), respectively) See KbServer.cpp, and KbServer.h. The first is
+	// for an adapting KB, the second for a glossing KB.
 private:
-	KbServer* m_pKbServer;
+	KbServer* m_pKbServer[2]; // [0] one for adapting, [1] one for glossing
 public:
-	KbServer* GetKbServer(); // getter for m_pKbServer
-	void	  SetKbServer(KbServer* pKbServer); //setter for m_pKbServer
-	void	  DeleteKbServer();
-	bool	  SetupForKBServer();
-	bool	  ReleaseKBServer();
+	KbServer* GetKbServer(int whichType); // getter for whichever m_pKbServer is current, adapting or glossing
+	void	  DeleteKbServer(int whichType);
+	bool	  SetupForKBServer(int whichType);
+	bool	  ReleaseKBServer(int whichType);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
 	bool	  GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password);

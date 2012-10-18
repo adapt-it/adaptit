@@ -101,6 +101,13 @@ KbServer::KbServer()
 	*/
 }
 
+KbServer::KbServer(int whichType)
+{
+	wxASSERT(whichType == 1 || whichType == 2);
+	m_kbServerType = whichType;
+}
+
+
 KbServer::~KbServer()
 {
 	; // nothing to do as yet
@@ -560,11 +567,13 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
-		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer);
+		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer); // <-- not needed
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when header info is
+													  //not needed in the download
 
 		result = curl_easy_perform(curl);
 
-#if defined (_DEBUG) && defined (__WXGTK__)
+#if defined (_DEBUG) // && defined (__WXGTK__)
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
@@ -578,6 +587,17 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		}
 	}
 	curl_easy_cleanup(curl);
+
+	// uncomment out only for "changed since" downloads, and also uncomment out the
+	// CURLOPT_HEADER, 1L line above, so that header info is inserted in the data stream
+	// Extract the timestamp, and remove the headers, leaving only the json data
+	//str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+        //CBString ss(str_CURLbuffer.c_str());
+        //wxString sshowit = ToUtf16(ss);
+        //wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
+#endif
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
@@ -673,8 +693,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
-		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
-
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when header info is
+													  //not needed in the download
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) //&& defined (__WXGTK__)
@@ -692,13 +712,15 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	}
 	curl_easy_cleanup(curl);
 
-	// extract the timestamp, and remove the headers, leaving only the json data
-	str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
+	// uncomment out only for "changed since" downloads, and also uncomment out the
+	// CURLOPT_HEADER, 1L line above, so that header info is inserted in the data stream
+	// Extract the timestamp, and remove the headers, leaving only the json data
+	//str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
 
 #if defined (_DEBUG) //&& defined (__WXGTK__)
-        CBString ss(str_CURLbuffer.c_str());
-        wxString sshowit = ToUtf16(ss);
-        wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
+        //CBString ss(str_CURLbuffer.c_str());
+        //wxString sshowit = ToUtf16(ss);
+        //wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
 #endif
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
@@ -848,17 +870,10 @@ int KbServer::LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDelet
 	return -1;
 }
 */
-/* deprecated
-int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
+
+// Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
+int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
 {
-	int entryID = wxNOT_FOUND; // -1
-	bool bDeleted =FALSE; // initialize variable
-	entryID = LookupEntryID(srcPhrase, tgtPhrase, bDeleted);
-	// if it is already deleted, just return
-	if (bDeleted)
-	{
-		return CURLE_OK;
-	}
 	wxString entryIDStr;
 	wxItoa(entryID, entryIDStr);
 	CURL *curl;
@@ -880,7 +895,16 @@ int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
 	charUserpwd = ToUtf8(aPwd);
 
 	// populate the JSON object
-	jsonval[_T("deleted")] = 1;
+	switch ( op )
+	{
+	case doDelete:
+	default:
+		jsonval[_T("deleted")] = 1;
+		break;
+	case doUndelete:
+		jsonval[_T("deleted")] = 0;
+		break;
+	}
 
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
@@ -897,8 +921,8 @@ int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
 	if (curl)
 	{
 		// add headers
-		headers = curl_slist_append(headers, "Content-Type: application/json");
 		headers = curl_slist_append(headers, "Accept: application/json");
+		headers = curl_slist_append(headers, "Content-Type: application/json");
 		// set data
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
@@ -908,12 +932,13 @@ int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT"); // this way avoids turning on file processing
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
 		result = curl_easy_perform(curl);
 
 		curl_slist_free_all(headers);
 		if (result) {
-			printf("PseudoDeleteEntry() result code: %d\n", result);
+			printf("PseudoDeleteOrUndeleteEntry() result code: %d\n", result);
 			curl_easy_cleanup(curl);
 			return result;
 		}
@@ -921,16 +946,6 @@ int KbServer::PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase)
 	curl_easy_cleanup(curl);
 	return 0;
 }
-*/
-/* deprecated - probably, LookupEntryFields() does them all for one entry
-int KbServer::LookupEntryField(wxString source, wxString target, wxString& field)
-{
-	int result = 0;
-
-
-	return result;
-}
-*/
 
 
 

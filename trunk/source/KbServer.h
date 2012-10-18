@@ -36,14 +36,11 @@ class CRefStringMetadata;
 class CRefString;
 class CBString;
 
-// nope, it's better to return the deleted flag's value by the signature
-// in LookupEntryID()
-//enum PairsFilter
-//{
-//    onlyUndeletedPairs,
-//    onlyDeletedPairs,
-//	allPairs
-//};
+enum DeleteOrUndeleteEnum
+{
+    doDelete,
+    doUndelete
+};
 
 /// This global is defined in Adapt_It.cpp.
 //extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -59,8 +56,8 @@ public:
 
 	// creation & destruction
 
-	KbServer(void); // constructor
-	KbServer(CAdapt_ItApp* pApp); // the constructor we'll use, it lets us get m_pKB and m_pGlossingKB easily
+	KbServer(void); // default constructor
+	KbServer(int whichType); // the constructor we'll use, pass 1 for adapting KB, 2 for glossingKB
 	virtual	~KbServer(void); // destructor (should be virtual)
 
 	// attributes
@@ -72,9 +69,7 @@ public:
 	int		  LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		  CreateEntry(wxString srcPhrase, wxString tgtPhrase);  // was SendEntry()
 	//int		  LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted);
-	//int		  LookupEntryField(wxString source, wxString target, wxString& field);
-	//int		  PseudoDeleteEntry(int entryID);
-	//int		  PseudoDeleteEntry(wxString srcPhrase, wxString tgtPhrase);
+	int		  PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 
 	// public setters
 	void	 SetKBServerType(int type);
@@ -133,7 +128,7 @@ protected:
 
 private:
 	// class variables
-	CAdapt_ItApp* m_pApp;
+	//CAdapt_ItApp* m_pApp;
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)

@@ -3411,29 +3411,59 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pRefString->m_translation = tgtPhrase;
 		}
 #if defined(_KBSERVER)
-		// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
+		// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 		// since both the key and the translation (both possibly with a case adjustment
-		// for the first letter) are defined
+		// for the first letter) are defined.
+		// Note: we can't reliably assume that the newly typed translation or gloss has
+		// not be independently by some other use added to the kbserver already, and also
+		// subsequently deleted by him before the present; therefore we must test for the
+		// absence of this src/tgt pair and only upload if the entry really is going to be
+		// a new one.
 		if (m_pApp->m_bIsKBServerProject)
 		{
+			KbServer* pKBSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 			// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-			if (m_pApp->GetKbServer() != NULL)
+			if (pKBSvr != NULL)
 			{
-				int responseCode = m_pApp->GetKbServer()->CreateEntry(key, pRefString->m_translation);
-				if (responseCode != CURLE_OK)
+				pKBSvr->ClearAllPrivateStorageArrays();
+				int responseCode = pKBSvr->LookupEntryFields(key, pRefString->m_translation);
+				if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
 				{
-					// TODO a function to show the error code and a meaningful explanation
-                    wxString msg;
-                    msg = msg.Format(_T("Failure! responseCode = %d"), responseCode);
-                    wxMessageBox(msg, _T("Ouch! SendEntry() error again!"), wxICON_EXCLAMATION | wxOK);
-
+					//  POST the new entry to the kbserver
+					responseCode = pKBSvr->CreateEntry(key, pRefString->m_translation);
+					if (responseCode != CURLE_OK)
+					{
+						// TODO a function to show the error code and a meaningful
+						// explanation
+						wxString msg;
+						msg = msg.Format(_T(" CreateEntry(): Failure! responseCode = %d"), responseCode);
+						wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
+					}
+				}
+				else if (responseCode == CURLE_OK)
+				{
+					// An entry for the src/tgt pair is in the kbserver, but it may be
+					// pseudo-deleted, or it may be undeleted. If the former, then we must
+					// now undelete it. If the latter, we refrain from further action.
+					if ((*pKBSvr->GetDeletedArray())[0] == 1) 
+					{
+						// it's currently pseudo-deleted, so do a PUT to undelete it
+						responseCode = pKBSvr->PseudoDeleteOrUndeleteEntry((*pKBSvr->GetIDsArray())[0], doUndelete);
+						if (responseCode != CURLE_OK)
+						{
+							// TODO a function to show the error code and a meaningful
+							// explanation
+							wxString msg;
+							msg = msg.Format(_T(" PseudoDeleteOrUndeleteEntry(): Failure for doUndelete! responseCode = %d"), responseCode);
+							wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
+						}
+					}
 				}
 			}
 			else
 			{
 				// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-				wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
-
+				wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
 			}
 		}
 #endif
@@ -3571,29 +3601,41 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pRefString->m_translation = tgtPhrase;
 			}
 #if defined(_KBSERVER)
-			// BEW added 5Oct12, here is a suitable place for kbserver support of SendEntry(),
+			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
-			// for the first letter) are defined
+			// for the first letter) are defined.
+			// Note: we can't reliably assume that the newly typed translation or gloss has
+			// not be independently by some other use added to the kbserver already, and also
+			// subsequently deleted by him before the present; therefore we must test for the
+			// absence of this src/tgt pair and only upload if the entry really is going to be
+			// a new one.
 			if (m_pApp->m_bIsKBServerProject)
 			{
+				KbServer* pKBSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 				// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-				if (m_pApp->GetKbServer() != NULL)
+				if (pKBSvr != NULL)
 				{
-					int responseCode = m_pApp->GetKbServer()->CreateEntry(key, pRefString->m_translation);
-					if (responseCode != CURLE_OK)
+					pKBSvr->ClearAllPrivateStorageArrays();
+					int responseCode = pKBSvr->LookupEntryFields(key, pRefString->m_translation);
+					if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
 					{
-						// TODO a function to show the error code and a meaningful explanation
-						wxString msg;
-						msg = msg.Format(_T("Failure! responseCode = %d"), responseCode);
-						wxMessageBox(msg, _T("Oh dear! Not again!"), wxICON_EXCLAMATION | wxOK);
+						//  POST the new entry to the kbserver
+						responseCode = pKBSvr->CreateEntry(key, pRefString->m_translation);
+						if (responseCode != CURLE_OK)
+						{
+							// TODO a function to show the error code and a meaningful
+							// explanation, what's here is temporary
+							wxString msg;
+							msg = msg.Format(_T(" CreateEntry(): Failure! responseCode = %d"), responseCode);
+							wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
 
+						}
 					}
 				}
 				else
 				{
 					// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-					wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
-
+					wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
 				}
 			}
 #endif
@@ -3834,29 +3876,41 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefString->m_translation = tgtPhrase;
 					}
 #if defined(_KBSERVER)
-                    // BEW added 5Oct12, here is a suitable place for kbserver support of
-                    // SendEntry(), since both the key and the translation (both possibly
-                    // with a case adjustment for the first letter) are defined
+					// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
+					// since both the key and the translation (both possibly with a case adjustment
+					// for the first letter) are defined.
+					// Note: we can't reliably assume that the newly typed translation or gloss has
+					// not be independently by some other use added to the kbserver already, and also
+					// subsequently deleted by him before the present; therefore we must test for the
+					// absence of this src/tgt pair and only upload if the entry really is going to be
+					// a new one.
 					if (m_pApp->m_bIsKBServerProject)
 					{
+						KbServer* pKBSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 						// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-						if (m_pApp->GetKbServer() != NULL)
+						if (pKBSvr != NULL)
 						{
-							int responseCode = m_pApp->GetKbServer()->CreateEntry(key, pRefString->m_translation);
-							if (responseCode != CURLE_OK)
+							pKBSvr->ClearAllPrivateStorageArrays();
+							int responseCode = pKBSvr->LookupEntryFields(key, pRefString->m_translation);
+							if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
 							{
-								// TODO a function to show the error code and a meaningful explanation
-                                wxString msg;
-                                msg = msg.Format(_T("Failure! responseCode = %d"), responseCode);
-                                wxMessageBox(msg, _T("Oh dear! Not again!"), wxICON_EXCLAMATION | wxOK);
+								//  POST the new entry to the kbserver
+								responseCode = pKBSvr->CreateEntry(key, pRefString->m_translation);
+								if (responseCode != CURLE_OK)
+								{
+									// TODO a function to show the error code and a meaningful
+									// explanation, what's here is temporary
+									wxString msg;
+									msg = msg.Format(_T(" CreateEntry(): Failure! responseCode = %d"), responseCode);
+									wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
 
+								}
 							}
 						}
 						else
 						{
 							// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-							wxMessageBox(_T("CKB::StoreText(), SendEntry() not called because m_pKbServer is NULL"));
-
+							wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
 						}
 					}
 #endif
