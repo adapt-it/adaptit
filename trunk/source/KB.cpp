@@ -3421,50 +3421,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// a new one.
 		if (m_pApp->m_bIsKBServerProject)
 		{
-			KbServer* pKBSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
-			// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-			if (pKBSvr != NULL)
-			{
-				pKBSvr->ClearAllPrivateStorageArrays();
-				int responseCode = pKBSvr->LookupEntryFields(key, pRefString->m_translation);
-				if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
-				{
-					//  POST the new entry to the kbserver
-					responseCode = pKBSvr->CreateEntry(key, pRefString->m_translation);
-					if (responseCode != CURLE_OK)
-					{
-						// TODO a function to show the error code and a meaningful
-						// explanation
-						wxString msg;
-						msg = msg.Format(_T(" CreateEntry(): Failure! responseCode = %d"), responseCode);
-						wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
-					}
-				}
-				else if (responseCode == CURLE_OK)
-				{
-					// An entry for the src/tgt pair is in the kbserver, but it may be
-					// pseudo-deleted, or it may be undeleted. If the former, then we must
-					// now undelete it. If the latter, we refrain from further action.
-					if ((*pKBSvr->GetDeletedArray())[0] == 1) 
-					{
-						// it's currently pseudo-deleted, so do a PUT to undelete it
-						responseCode = pKBSvr->PseudoDeleteOrUndeleteEntry((*pKBSvr->GetIDsArray())[0], doUndelete);
-						if (responseCode != CURLE_OK)
-						{
-							// TODO a function to show the error code and a meaningful
-							// explanation
-							wxString msg;
-							msg = msg.Format(_T(" PseudoDeleteOrUndeleteEntry(): Failure for doUndelete! responseCode = %d"), responseCode);
-							wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
-						}
-					}
-				}
-			}
-			else
-			{
-				// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-				wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
-			}
+			bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+
+			// I've not yet decided what to do with the return value, at present we'll
+			// just ignore it even if FALSE (an internally generated message would have
+			// been seen anyway in that event)
+			bHandledOK = bHandledOK; // avoid compiler warning
 		}
 #endif
 		// continue with the store to the local KB
@@ -3611,32 +3573,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// a new one.
 			if (m_pApp->m_bIsKBServerProject)
 			{
-				KbServer* pKBSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
-				// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-				if (pKBSvr != NULL)
-				{
-					pKBSvr->ClearAllPrivateStorageArrays();
-					int responseCode = pKBSvr->LookupEntryFields(key, pRefString->m_translation);
-					if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
-					{
-						//  POST the new entry to the kbserver
-						responseCode = pKBSvr->CreateEntry(key, pRefString->m_translation);
-						if (responseCode != CURLE_OK)
-						{
-							// TODO a function to show the error code and a meaningful
-							// explanation, what's here is temporary
-							wxString msg;
-							msg = msg.Format(_T(" CreateEntry(): Failure! responseCode = %d"), responseCode);
-							wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
+				bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
-						}
-					}
-				}
-				else
-				{
-					// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-					wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
-				}
+				// I've not yet decided what to do with the return value, at present we'll
+				// just ignore it even if FALSE (an internally generated message would have
+				// been seen anyway in that event)
+				bHandledOK = bHandledOK; // avoid compiler warning
 			}
 #endif
 			// continue with the store to the local KB
@@ -3886,32 +3828,12 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					// a new one.
 					if (m_pApp->m_bIsKBServerProject)
 					{
-						KbServer* pKBSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
-						// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
-						if (pKBSvr != NULL)
-						{
-							pKBSvr->ClearAllPrivateStorageArrays();
-							int responseCode = pKBSvr->LookupEntryFields(key, pRefString->m_translation);
-							if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
-							{
-								//  POST the new entry to the kbserver
-								responseCode = pKBSvr->CreateEntry(key, pRefString->m_translation);
-								if (responseCode != CURLE_OK)
-								{
-									// TODO a function to show the error code and a meaningful
-									// explanation, what's here is temporary
-									wxString msg;
-									msg = msg.Format(_T(" CreateEntry(): Failure! responseCode = %d"), responseCode);
-									wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
+						bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
-								}
-							}
-						}
-						else
-						{
-							// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-							wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
-						}
+						// I've not yet decided what to do with the return value, at present we'll
+						// just ignore it even if FALSE (an internally generated message would have
+						// been seen anyway in that event)
+						bHandledOK = bHandledOK; // avoid compiler warning
 					}
 #endif
 					// continue with the store to the local KB
@@ -5076,4 +4998,81 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	errors.Clear(); // clear the array
 }
 
+#if defined(_KBSERVER)
 
+// Return TRUE if there was no error, FALSE otherwise
+// Use for phrasebox typed adaptations or glosses, and for KBEditor's Add button
+bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString translation)
+{
+	bool rv = TRUE;
+	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
+	// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
+	if (pKBSvr != NULL)
+	{
+		pKBSvr->ClearAllPrivateStorageArrays();
+		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
+		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
+		{
+			//  POST the new entry to the kbserver
+			responseCode = pKBSvr->CreateEntry(srcKey, translation);
+			if (responseCode != CURLE_OK)
+			{
+				// TODO a function to show the error code and a meaningful
+				// explanation
+				wxString msg;
+				msg = msg.Format(_T("HandleNewPairTyped(), CreateEntry(): Failure! responseCode = %d"), responseCode);
+				wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
+				rv = FALSE; // but don't abort
+			}
+		}
+		else if (responseCode == CURLE_OK)
+		{
+			// An entry for the src/tgt pair is in the kbserver, but it may be
+			// pseudo-deleted, or it may be undeleted. If the former, then we must
+			// now undelete it. If the latter, we refrain from further action.
+			if ((*pKBSvr->GetDeletedArray())[0] == 1) 
+			{
+				// It's currently pseudo-deleted, so do a PUT to undelete it. 
+				// The first param is the kbserver database's entryID value gleaned from
+				// the id field in the entry returned by the LookupEntryFields() call above)
+				responseCode = pKBSvr->PseudoDeleteOrUndeleteEntry((*pKBSvr->GetIDsArray())[0], doUndelete);
+				if (responseCode != CURLE_OK)
+				{
+					// TODO a function to show the error code and a meaningful
+					// explanation
+					wxString msg;
+					msg = msg.Format(_T("HandleNewPairTyped(), PseudoDeleteOrUndeleteEntry(): Failure for doUndelete! responseCode = %d"), responseCode);
+					wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
+					rv = FALSE; // but don't abort
+				}
+			}
+		}
+	}
+	else
+	{
+		// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
+		wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
+		rv = FALSE; // but don't abort
+	}
+	return rv;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif // for _KBSERVER

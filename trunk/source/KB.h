@@ -153,6 +153,27 @@ public:
 	int				GetCurrentKBVersion();
 	void			SetCurrentKBVersion();
 
+	// KbServer support
+	// Note: the pointers to the KbServer instances are stored in the app class; this is
+	// deliberate, because CKB operations sometimes are done manually, or automatically,
+	// quite often and may involve loading and unloading of CKB instances - and we want to
+	// keep such actions from forcing unwanted KbServer instances being created and
+	// destroyed on the fly at such times
+#if defined (_KBSERVER)
+
+	// use next for phrasebox typed adaptations or glosses, and for KBEditor's Add button
+	bool			HandleNewPairTyped(int kbServerType, wxString srcKey, wxString translation); 
+														  
+
+
+
+
+
+
+
+
+#endif // for _KBSERVER
+
   private:
 
 	CAdapt_ItApp*	m_pApp;
