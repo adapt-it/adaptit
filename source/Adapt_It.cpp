@@ -14585,51 +14585,49 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 
 #if defined(_KBSERVER)
 
-// getter for m_pKbServer
-KbServer* CAdapt_ItApp::GetKbServer()
+// getter for m_pKbServer; pass in 1 for the adaptations KbServer instance, and 2 for the
+// glossing one
+KbServer* CAdapt_ItApp::GetKbServer(int whichType)
 {
-	return m_pKbServer; // remember, it may be NULL, so caller should test
-}
-
-// setter for m_pKbServer; the pKbServer param may be (a) new KbServer(this),
-// or (b) NULL. It's not likely to be a pointer to an existing KbServer instantiation.
-void CAdapt_ItApp::SetKbServer(KbServer* pKbServer)
-{
-	m_pKbServer = pKbServer;
+	wxASSERT(whichType == 1 || whichType == 2);
+	return m_pKbServer[whichType - 1]; // remember, it may be NULL, so caller should test
 }
 
 // deletes the instantiated KbServer class, and sets the pointer to its instance to NULL
-void CAdapt_ItApp::DeleteKbServer()
+void CAdapt_ItApp::DeleteKbServer(int whichType)
 {
-	if (m_pKbServer != NULL)
+	wxASSERT(whichType == 1 || whichType == 2);
+	if (m_pKbServer[whichType - 1] != NULL)
 	{
-		delete m_pKbServer;
+		delete[] m_pKbServer[whichType - 1];
 	}
-	m_pKbServer = NULL;
+	m_pKbServer[whichType - 1] = NULL;
 }
 
-// Call SetupForKBServer() when re-opening a project which has been designated earlier as
-// associating with a kbserver (ie. m_bKBServerProject is TRUE after the project's
-// configuration file has been read), or when the user, in the GUI, designates the current
-// project as being a kb sharing one. Return TRUE for a successful setup, FALSE if
-// something was not right and in that case don't perform a setup.
+// Call SetupForKBServer() twice (once for an adapting KB, the second for a glossing KB)
+// when re-opening a project which has been designated earlier as associating with a
+// kbserver (ie. m_bKBServerProject is TRUE after the project's configuration file has been
+// read), or when the user, in the GUI, designates the current project as being a kb
+// sharing one. Return TRUE for a successful setup, FALSE if something was not right and in
+// that case don't perform a setup.
 // BEW 3Oct12, changed from using wxString to using CBString
-bool CAdapt_ItApp::SetupForKBServer()
+bool CAdapt_ItApp::SetupForKBServer(int whichType)
 {
 	// instantiate the KbServer class
-	SetKbServer(new KbServer());
+	KbServer* pKbSvr = GetKbServer(whichType); // get the pointer
+	wxASSERT(pKbSvr == NULL);
+	pKbSvr = new KbServer(whichType);
 
 	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
-	if (GetKbServer() == NULL)
+	if (pKbSvr == NULL)
 	{
 		// warn developer, message does not need to be localizable
-		wxMessageBox(_T("Error: SetupForKBServer() - could not instantiate KbServer class; setup aborted"),
-					_T("KbServer error"), wxICON_ERROR | wxOK);
+		wxString msg;
+		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not instantiate KbServer class; setup aborted"),
+			whichType);
+		wxMessageBox(msg, _T("KbServer error"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
-	// pass in needed data
-	m_pKbServer->SetKBServerType(GetKBTypeForServer()); //  1 = adapting KB,  2 = glossing KB
-
 	wxString credsfilename = _T("credentials.txt"); // temporary
 	wxString syncfilename = _T("lastsync.txt"); //  temporary
 	wxString url; url.Empty();
@@ -14639,22 +14637,23 @@ bool CAdapt_ItApp::SetupForKBServer()
 	if (!bOpenedOK)
 	{
 		// warn developer, message does not need to be localizable
-		wxMessageBox(_T("Error: SetupForKBServer() - could not get the credentials from credentials.txt; setup aborted"),
-					_T("KbServer error"), wxICON_ERROR | wxOK);
-		delete GetKbServer();
+		wxString msg;
+		msg = msg.Format(_T("Error: SetupForKBServer(), kbType = %d - could not get the credentials from credentials.txt; setup aborted"),
+			whichType);
+		wxMessageBox(msg, _T("KbServer error"), wxICON_ERROR | wxOK);
+		DeleteKbServer(whichType);
 		return FALSE;
 	}
-	GetKbServer()->SetKBServerType(GetKBTypeForServer());
-	GetKbServer()->SetSourceLanguageCode(m_sourceLanguageCode);
-	GetKbServer()->SetTargetLanguageCode(m_targetLanguageCode);
-	GetKbServer()->SetGlossLanguageCode(m_glossesLanguageCode);
-	GetKbServer()->SetKBServerURL(url);
-	GetKbServer()->SetKBServerUsername(username);
-	GetKbServer()->SetKBServerPassword(password);
-	GetKbServer()->SetPathSeparator(PathSeparator);
-	GetKbServer()->SetPathToPersistentDataStore(m_curProjectPath);
-	GetKbServer()->SetLastSyncFilename(syncfilename);
-	GetKbServer()->SetKBServerLastSync(GetKbServer()->ImportLastSyncTimestamp());
+	GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
+	GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
+	GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
+	GetKbServer(whichType)->SetKBServerURL(url);
+	GetKbServer(whichType)->SetKBServerUsername(username);
+	GetKbServer(whichType)->SetKBServerPassword(password);
+	GetKbServer(whichType)->SetPathSeparator(PathSeparator);
+	GetKbServer(whichType)->SetPathToPersistentDataStore(m_curProjectPath);
+	GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
+	GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
 	// all's well
 	return TRUE;
@@ -14664,9 +14663,10 @@ bool CAdapt_ItApp::SetupForKBServer()
 // cleanup, and any needed making of data persistent between adapting sessions within a
 // project which is a KB sharing project, when the user exits the project or Adapt It is
 // shut down.
-bool CAdapt_ItApp::ReleaseKBServer()
+bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 {
-	KbServer* pKbSvr = GetKbServer(); // beware, may return NULL
+	wxASSERT(whichType == 1 || whichType == 2);
+	KbServer* pKbSvr = GetKbServer(whichType); // beware, may return NULL
 
 	// ensure the m_kbServerLastSync timestamp value is stored to permanent storage (which
 	// temporarily is in lastsync.txt in the project folder)
@@ -14674,10 +14674,10 @@ bool CAdapt_ItApp::ReleaseKBServer()
 
 	if (pKbSvr != NULL)
 	{
-		DeleteKbServer(); // do cleanup in the destructor, and especially, making
-						  // the lastsync datetime value received from the kbserver
-						  // persistent
-		SetKbServer(NULL);
+        // do cleanup in the destructor, and especially, making the lastsync datetime value
+        // received from the kbserver persistent; deletes and sets m_pKbServer[whichType-1]
+        // to NULL
+		DeleteKbServer(whichType); 
 	}
 
 	// ************ NOTE NOTE NOTE *******************
@@ -14789,7 +14789,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 #if defined(_KBSERVER)
 
-	SetKbServer(NULL); // always NULL, except when a KB sharing project is active
+	m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
+	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
 	m_bIsKBServerProject = FALSE; // initialise
 
 	// **** TODO **** the following 5 CAdapt_ItApp members will become private members of
@@ -20131,7 +20132,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 /*
 #if defined (_KBSERVER)
 	// test KbServer API functions
-    SetupForKBServer();
+    SetupForKBServer(1);
     wxString srcText2 = _T("niuspepa");
 	//wxString srcText2 = _T("i toksave");
 	wxString tgtText2 = _T("mazazine");
@@ -20140,20 +20141,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString tgtText23 = _T("tabloid");
 	//wxString srcText = _T("giaman");
 	//wxString tgtText = _T("untrue");
-	//m_pKbServer->LookupEntryForSourcePhrase( srcText2 );
-	//int aresult = m_pKbServer->LookupEntryForSourcePhrase( srcText );
-	//int result = m_pKbServer->SendEntry(srcText,tgtText);
+	//m_pKbServer[0]->LookupEntryForSourcePhrase( srcText2 );
+	//int aresult = m_pKbServer[0]->LookupEntryForSourcePhrase( srcText );
+	//int result = m_pKbServer[0]->SendEntry(srcText,tgtText);
 	int result = 0;
 	int entryID = 0;
 	bool bDeleted = TRUE;
-	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText2, bDeleted);
-	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText21, bDeleted);
-	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText22, bDeleted);
-	//entryID = m_pKbServer->LookupEntryID(srcText2, tgtText23, bDeleted);
-	//result = m_pKbServer->PseudoDeleteEntry(srcText2, tgtText2);
-	result = m_pKbServer->LookupEntryFields(srcText2, tgtText23);
+	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText2, bDeleted);
+	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText21, bDeleted);
+	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText22, bDeleted);
+	//entryID = m_pKbServer[0]->LookupEntryID(srcText2, tgtText23, bDeleted);
+	//result = m_pKbServer[0]->PseudoDeleteEntry(srcText2, tgtText2);
+	result = m_pKbServer[0]->LookupEntryFields(srcText2, tgtText23);
 	result = result;
-	delete m_pKbServer;
+	delete m_pKbServer[0];
 #endif
 */
 	/* last test: March 9, 2011
@@ -23735,7 +23736,8 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		// support is active
 		if (m_bIsKBServerProject)
 		{
-			ReleaseKBServer();
+			ReleaseKBServer(1); // the adaptations one
+			ReleaseKBServer(2); // the glossings one
 			LogUserAction(_T("ReleaseKBServer() called in CreateAndLoadKBs()"));
 		}
 	}

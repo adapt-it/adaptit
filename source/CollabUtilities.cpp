@@ -1866,13 +1866,13 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	pApp->GetProjectConfiguration(pApp->m_curProjectPath); // get the project's configuration settings
 	// BEW 28Sep12 note: each doc closure in collaboration mode is treated like an exit
 	// from the project - in case the user actually does exit; and so UnloadKBs() will
-	// call ReleaseKBServer() on every collab doc closure. The KB server flag value is
+	// call ReleaseKBServer() twice on every collab doc closure. The KB server flag value is
 	// therefore cleared to FALSE. The day is saved by the fact that if the user opens the
 	// next (external editor's) collaboration document for the same src, & tgt projects,
 	// then the same AI project is hooked up to, and the above line will therefore restore
 	// the m_bIsKBServerProject value to what it was before the last doc was closed in AI.
 	// Then further below, if that flag was reset TRUE, SetupForKBServer() is called anew
-	// and everything is ready to go for continuing to use the kbserver in the collab session.
+	// twice and everything is ready to go for continuing KB sharing in the collab session.
 
 	pApp->SetupKBPathsEtc(); //  get the project's(adapting, and glossing) KB paths set
 	// get the colours from the project config file's settings just read in
@@ -1962,7 +1962,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	if (pApp->m_bIsKBServerProject)
 	{
 		pApp->LogUserAction(_T("SetupForKBServer() called in HookUpToExistingAIProject()"));
-		if (!pApp->SetupForKBServer())
+		if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2))
 		{
 			// an error message will have been shown, so just log the failure
 			gpApp->LogUserAction(_T("SetupForKBServer() failed in HookUpToExistingAIProject()"));
@@ -2916,17 +2916,18 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 void UnloadKBs(CAdapt_ItApp* pApp)
 {
 #if defined(_KBSERVER)
-	// BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer() here before
-	// the KBs are clobbered; since UnloadKBs is called on every document closure in
-	// collaboration mode, and in the wizard, and OnFileClose() and CreateNewAIProject().
-	// HookupToExistingAIProject() does call GetProjectConfiguration() early, for each
-	// document load, and so if staying in the same AI project, kbserver support will be
-	// restored because SetupForKBServer() is called at the end of HookupTo.... and the
-	// m_bIsKBServerProject flag's value will have been restored by the
-	// GetProjectConfiguration() call.
+    // BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer()twice here
+    // before the KBs are clobbered; since UnloadKBs is called on every document closure in
+    // collaboration mode, and in the wizard, and OnFileClose() and CreateNewAIProject().
+    // HookupToExistingAIProject() does call GetProjectConfiguration() early, for each
+    // document load, and so if staying in the same AI project, kbserver support will be
+    // restored because SetupForKBServer() is called twice at the end of HookupTo.... and
+    // the m_bIsKBServerProject flag's value will have been restored by the
+    // GetProjectConfiguration() call.
 	if (pApp->m_bIsKBServerProject)
 	{
-		pApp->ReleaseKBServer();
+		pApp->ReleaseKBServer(1); // the adaptations one
+		pApp->ReleaseKBServer(2); // the glossings one
 		pApp->LogUserAction(_T("ReleaseKBServer() called in UnloadKBs()"));
 	}
 #endif

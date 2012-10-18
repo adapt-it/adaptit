@@ -6272,7 +6272,8 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	// support is active
 	if (pApp->m_bIsKBServerProject)
 	{
-		pApp->ReleaseKBServer();
+		pApp->ReleaseKBServer(1); // the adaptations one
+		pApp->ReleaseKBServer(2); // the glossings one
 		pApp->LogUserAction(_T("ReleaseKBServer() called in OnFileCloseProject()"));
 	}
 #endif

@@ -5102,13 +5102,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			gpApp->m_nBookIndex = nSaveIndex;
 
 			// the MRU open may have changed the AI project, and this one may be a KB
-			// sharing one, and if so we should call SetupForKBServer() here provided the
+			// sharing one, and if so we should call SetupForKBServer() twice here provided the
 			// above reading of the project config file has set m_bIsKBServerProject to TRUE
 #if defined(_KBSERVER)
 			if (gpApp->m_bIsKBServerProject)
 			{
 				gpApp->LogUserAction(_T("SetupForKBServer() called in the block for a MRU file open, in OnOpenDocument()"));
-				if (!gpApp->SetupForKBServer())
+				if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
 				{
 					// an error message will have been shown, so just log the failure
 					gpApp->LogUserAction(_T("SetupForKBServer() failed in the block for a MRU file open, in OnOpenDocument()"));
@@ -17359,12 +17359,13 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	}
 #endif
 #endif
-	// BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer() here before
-	// the KBs are clobbered (App closure by File > Exit, or the X checkbox at top right
-	// of the frame window, causes control to go thru here - so we need to save the
-	// kbserver params - particularly the m_kbServerLastSync datetime value. A preceding
-	// WriteProjectConfiguration() all is really needed too, so that we ensure the
-	// m_bIsKBServerProject flag's value is made persistent for the current AI project
+	// BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer() for each
+    // kbType here before the KBs are clobbered (App closure by File > Exit, or the X
+    // checkbox at top right of the frame window, causes control to go thru here - so we
+    // need to save the kbserver params - particularly the m_kbServerLastSync datetime
+    // value. A preceding WriteProjectConfiguration() all is really needed too, so that we
+    // ensure the m_bIsKBServerProject flag's value is made persistent for the current AI
+    // project
 	bool bOK;
 	if (!pApp->m_curProjectPath.IsEmpty())
 	{
@@ -17402,7 +17403,8 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
-			pApp->ReleaseKBServer();
+			pApp->ReleaseKBServer(1); // the adaptations one
+			pApp->ReleaseKBServer(2); // the glossings one
 			pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
 		}
 	#endif
@@ -20842,7 +20844,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 															// noted in comments above
 	// BEW 28Sep12, if this project is a KB sharing one, then the project configuration
 	// read should have set m_bIsKBServerProject to TRUE, so once we have the KB's loaded,
-	// we can call SetupForKBServer() below.
+	// we can call SetupForKBServer() twice below.
 	
 	gpApp->SetupKBPathsEtc();
 
@@ -20899,7 +20901,8 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
 	{
 		gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
-		if (!gpApp->SetupForKBServer())
+		// instantiate both adapting and glossing KbServer class instances
+		if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
 		{
 			// an error message will have been shown, so just log the failure
 			gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
