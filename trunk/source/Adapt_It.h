@@ -148,7 +148,7 @@ class KbServer;
 #define VERSION_MINOR_PART 3
 #define VERSION_BUILD_PART 1
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 17
+#define VERSION_DATE_DAY 19
 #define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2012
 const wxString appVerStr(_T("6.3.1"));
