@@ -1590,6 +1590,12 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 		wxMessageBox (_T("This document hasn't been put under version control yet!") );
 		return;
 	}
+
+	if (gpApp->m_commitCount == 0) 
+	{
+		wxMessageBox (_T("This document hasn't been committed yet!") );
+		return;
+	}
 	
 	if (trialRevNum == 0) 
 	{
