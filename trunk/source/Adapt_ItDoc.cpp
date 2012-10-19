@@ -1427,9 +1427,9 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	wxFileName fn(gpApp->m_curOutputFilename);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	CStatusBar *pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 	if (gpApp->m_bShowProgress)
 	{
-		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 		pStatusBar->StartProgress(_("Saving File"), msgDisplayed, nTotal);
 	}
 
