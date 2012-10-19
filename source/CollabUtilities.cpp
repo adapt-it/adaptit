@@ -694,11 +694,11 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 	const int nTotal = nBooksToCheck;
 	// Only create the progress dialog if we have data to progress
 	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 	if (nTotal > 0)
 	{
 		progMsg = _("Analyzing book %s");
 		msgDisplayed = progMsg.Format(progMsg,firstBookName.c_str());
-		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 		pStatusBar->StartProgress(progressTitle, msgDisplayed, nTotal);
 	}
 
@@ -2565,6 +2565,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	CAdapt_ItView* pView = pApp->GetView();
 	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 
 	if (extension == _T(".xml"))
 	{
@@ -2599,7 +2600,6 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			progMsg = _("Opening %s and merging with current document");
 			wxFileName fn(fullFileName);
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str());
-			pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 			pStatusBar->StartProgress(_("Opening Document and Merging With Current Document"), msgDisplayed, nTotal);
 		}
 

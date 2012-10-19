@@ -1045,6 +1045,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 	wxString delDT = s1 + _T("ddt");
 	wxString whoCr = s1 + _T("wc");
 	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
 
 	if (kbImportFileOfType == KBImportFileOfLIFT_XML)
 	{
@@ -1071,7 +1072,6 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 			progMsg = _("Reading file %s - part %d of %d");
 			wxFileName fn(pathName);
 			msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-			pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
 			pStatusBar->StartProgress(_("Importing LIFT Records to the Knowledge Base"), msgDisplayed, nTotal);
 		}
 

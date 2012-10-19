@@ -4854,12 +4854,12 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	//  to show progress dialogs just now.
 
 	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 	if (nTotal > 0 && bShowProgress)
 	{
 		progMsg = _("Reading file %s - part %d of %d");
 		wxFileName fn(filename);
 		msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-		pStatusBar = (CStatusBar*)gpApp->GetMainFrame()->m_pStatusBar;
 		pStatusBar->StartProgress(_("Opening the Document"), msgDisplayed, nTotal);
 	}
 
