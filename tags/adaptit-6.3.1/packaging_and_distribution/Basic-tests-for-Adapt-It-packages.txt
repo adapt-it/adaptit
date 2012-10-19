@@ -1,0 +1,72 @@
+Basic-tests-for-Adapt-It-packages.txt
+by Bill Martin
+4 June 2012
+
+There are some basic tests that I do for each distribution package 
+(both i386 and amd64) by installing the packages in an appropriate 
+VirtualBox VM, and performing some basic tests. The tests are mainly 
+done to insure that the package installs properly and is not missing 
+some component needed by an Adapt It function when it runs.
+
+Here are the steps for basic testing:
+
+1. Remove all vestiges of any previous installation of Adapt It:
+      sudo dpkg --purge adaptit-docs
+      sudo dpkg --purge adaptit
+
+2. Install the package being tested in the appropriate VM:
+     sudo dpkg -i adaptit_6.2.2-1_i386.deb
+     sudo dpkg -i adaptit-docs_6.2.2-1_all.deb
+
+3. Run adaptit from the Office menu (or by searching for "adapit" in 
+Unity). It should run and the interface should indicate its running 
+status with the appropriate icon in the interface. Select "About Adapt 
+It..." from the Help menu and ensure that the version and date shown 
+there match your expectations for the release.
+
+4. Check that the HTML Help files have installed properly by selecting 
+Help > Help Topics. The help viewer should appear with the HTML help 
+tree contained within it. This is the only test step that requires the 
+adaptit-docs package be installed.
+
+5. Check that the localization files (.mo and .po) have installed 
+properly by selecting the "Change Interface Language..." from the View 
+menu. The dialog that opens should show about 8 different languages in 
+the Unicode version (6 in the ANSI version), that can be selected from. 
+If the language names show up in the list in the dialog that is 
+probably a sufficient test that a given localization will appear in the 
+interface (after an Adapt It restart).
+
+6. Check that the "Adapt It Quick Start" html document will appear in 
+the user's default browser by selecting "Adapt It Quick Start..." from 
+the Help menu. Quickly scroll through the document to ensure that its 
+small images of various toolbar buttons appear in the document 
+(indicating AI can find the images as well as the 
+Adapt_It_Quick_Start.htm document.
+
+7. Make the Administrator menu appear via the menu item on the View menu. 
+Then select the "Help For Administrators (HTML)" item on the 
+Administrator menu. Scroll down through the document to ensure that it 
+was able to find its images.
+
+8. Select Edit > Preferences, then go to the "Backups and Misc" tab. 
+Click on the "Lookup Codes" button. It should bring up the list of 
+several thousand language codes (both two-letter and three-letter codes). 
+If the list gets populated it indicates that the iso639-3codes.txt file 
+was installed properly and loaded successfully.
+
+9. Install Bibledit and/or Paratext for Linux on the test machine/VM, 
+and copy at least one AI project folder including the "Adapt It Unicode 
+Work" folder to the test machine. Also copy the .bibledit folder from 
+another Bibledit installation into the user's home folder and/or data 
+from a "Paratext Projects" folder that can be used to test collaboration 
+setup and basic collaboration operations. Test collaboration setup using 
+the "Setup Collaboration..." menu item and dialog. Select an existing AI 
+project, Select an editor project for source text and an editor project 
+for target text. "Accept" the defined setup. Close the Setup 
+Collaboration dialog and select the AI project from the wizard. Ensure 
+that the 3-button dialog appears, select the top button to turn 
+collaboration on, then select a book and chapter from the "Get Source 
+Text from PT/BE Project" dialog. If a collaboration project appears for 
+adaptation, the collaboration setup and test can be considered successful.
+

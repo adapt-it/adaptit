@@ -1,0 +1,38 @@
+.\" Man page for the adaptit project.
+.\" Process this file with
+.\" groff -man -Tascii adaptit.1
+.TH adaptit 1  "December 27, 2011" "version 6.1.0" "USER COMMANDS"
+.SH NAME
+adaptit \- helps in translating between related languages
+.SH SYNOPSIS
+.B adaptit
+[\-xo olpc mode] [\-wf work folder] [\-frm force reviewing mode]
+.SH DESCRIPTION
+Adapt It gives you tools for translating text from one language which
+you know, to another related language known to you or a co-worker.
+.P
+Adapt It translates or adapts source text documents into target or
+translated text. This process depends on the knowledge of the human
+translator in understanding both languages.
+.P
+Adapt It maintains a Knowledge Base which stores word and phrase
+adaptations that can be automatically inserted into the target text,
+thus speeding the translation process.
+.P
+Adapt It uses plain text (txt) files for input and expects the use of
+Unified Standard Format Markers (USFM) in the input file. The
+translated text can be exported as a USFM text file or a Rich Text
+format file.
+.SH OPTIONS
+.TP
+\-xo
+use compact toolbar and modebar for execution on OLPC XO
+.TP
+\-wf
+force the following path to be used as the Adapt It work folder
+.TP
+\-frm
+force reviewing mode (disables the normal drafting mode)
+.SH AUTHOR
+Bill Martin (bill_martin (at) sil.org)
+
