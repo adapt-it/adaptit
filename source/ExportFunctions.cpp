@@ -7260,12 +7260,6 @@ b:						// b: is exit point to write the last columns of data
 		gpApp->LogUserAction(_T("No text was found to output in the range you specified. The output file will exist but will be empty."));
 	}
 	
-#ifndef __WXGTK__
-	// TODO: Determine why the following wxMessageBox() call crashes the application
-	// on Linux when navigation protection is ON for _INTERLINEAR_RTF_OUTPUTS. For now
-	// I've conditionally compiled the code to omit this informational prompt on the
-	// wxGTK port.
-
 	// whm 7Jul11 Note:
 	// For protected navigation situations AI determines the actual
 	// filename that is used for the export, and the export itself is
@@ -7282,8 +7276,6 @@ b:						// b: is exit point to write the last columns of data
 	wxString msg = _("The exported file was named:\n\n%s\n\nIt was saved at the following path:\n\n%s");
 	msg = msg.Format(msg,fileNameAndExtOnly.c_str(),exportPath.c_str());
 	wxMessageBox(msg,_("Export operation successful"),wxICON_INFORMATION | wxOK);
-
-#endif
 	gpApp->LogUserAction(_T("Export operation successful"));
 
 	// BEW changed next line 24Jun05 since this doc parameter can't change once the doc is created
