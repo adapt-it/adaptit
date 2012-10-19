@@ -128,6 +128,8 @@ DVCS::~DVCS(void)
 
 	In all cases if hg returns an error we get a message in errors.  So we'll need to distinguish between hg
 	not being found, or being found and its execution returning an error.
+ 
+	The int we return is the result code from calling wxExecute, so zero means success.
 */
 
 int  DVCS::call_hg ( bool bDisplayOutput )
@@ -226,28 +228,39 @@ int  DVCS::init_repository ()
 	return call_hg (FALSE);
 }
 
-// add_file is called when the current (new) file is to be added to version control.  No commits have been done
-//  yet, so we initialize the commit count to zero.  If the file is already under version control we just
-//  return without doing anything -- we must leave the commit count alone.
+// add_file() is called when the current (new) file is to be added to version control.  No commits have been done
+//  yet, so once the file is successfully added we initialize the commit count to zero.  If the file is already 
+//  under version control we just return without doing anything -- we must leave the commit count alone.  In both
+//  these cases we return zero (no error).  If an error occurs in the call to hg, we return that error code, whatever
+//  it was.
 
 int  DVCS::add_file (wxString fileName)
 {
-	CAdapt_ItApp*	pApp = &wxGetApp();
+	int				returnCode;
+	CAdapt_ItDoc*	pDoc = m_pApp->GetDocument();
 
-	if (pApp->m_commitCount >= 0)       // already under version control - do nothing
+	if (m_pApp->m_commitCount >= 0)       // already under version control - do nothing
         return 0;
 
-	pApp->m_commitCount = 0;
+//	m_pApp->m_commitCount = 0;
 
 	hg_command = _T("add");
 	hg_arguments = fileName;
-	return call_hg (FALSE);
+	returnCode = call_hg (TRUE);
+	if (returnCode)
+		return returnCode;				// an error occurred, and we've displayed a message already
+	
+	m_pApp->m_commitCount = 0;			// no error - initialize commit count
+	pDoc->Modify(TRUE);					// mark doc dirty to ensure commit count gets saved
+	return 0;
 }
 
 
 // add_all_files() adds all documents in the Adaptations folder to version control.  They should all end in
 //  "*.xml" so we pass that to hg.  Note this gives them all "A" status.  They're not really truly under
 //  version control until the first commit.
+
+// Currently, this is not called, and is DEPRECATED since we need to mark all the files added with a zero commitCnt.
 
 int  DVCS::add_all_files()
 {
