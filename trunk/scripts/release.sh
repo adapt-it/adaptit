@@ -188,7 +188,7 @@ for i in $OSRELEASES; do
 
   # Build in each pbuilder
   pbuilder-$i build adaptit_${RELEASE}-1.dsc
-  pbuilder-$i-i386 build adaptit_${RELEASE}-1.dsc
+  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-1.dsc
 
   # Copy the resulting .deb files to a results folder under the current directory
   # No longer done 2012-10-05 JM
