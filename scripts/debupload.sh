@@ -3,14 +3,14 @@
 #
 # Author: Jonathan Marsden <jmarsden@fastmail.fm>
 #
-# Date: 2012-10-05
+# Date: 2012-10-19
 
 # Is packages.sil.org in ~/.dput.cf ?  If not, add it
-if grep -sq packager.lsdev.sil.org ~/dput.cf ; then
- : # No addition to dput.cf is needed
+if grep -sq packager.lsdev.sil.org ~/.dput.cf ; then
+ : # No addition to ~/.dput.cf is needed
 else
-  # Add packages.sil.org to ~/dput.cf
-cat >>EOF
+  # Add packages.sil.org to ~/.dput.cf
+cat <<"EOF" >>~/.dput.cf
 [packager]
 method	= rsync
 fqdn    = packager.lsdev.sil.org
@@ -22,5 +22,5 @@ fi
 # Now do the actual uploading
 for i in $(find ~/pbuilder/*_result -type f -name "adaptit_*+*.changes")
 do
-  dput packages:ubuntu/$(echo $i |sed -e 's/^.*+//' -e 's/_.*$//') $i
+  # dput packages:ubuntu/$(echo $i |sed -e 's/^.*+//' -e 's/_.*$//') $i
 done
