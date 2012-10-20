@@ -22,5 +22,5 @@ fi
 # Now do the actual uploading
 for i in $(find ~/pbuilder/*_result -type f -name "adaptit_*+*.changes")
 do
-  # dput packages:ubuntu/$(echo $i |sed -e 's/^.*+//' -e 's/_.*$//') $i
+  dput packager:ubuntu/$(echo $i |sed -e 's/^.*+//' -e 's/_.*$//') $i
 done
