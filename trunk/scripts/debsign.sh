@@ -7,5 +7,5 @@
 
 for i in $(find ~/pbuilder/*_result -type f -name "adaptit_*+*.changes")
 do
-  debsign $i
+  debsign --re-sign $i
 done 
