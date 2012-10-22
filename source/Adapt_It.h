@@ -1827,6 +1827,7 @@ public:
 					 // calling ::ShowModal()
 };
 
+#ifdef TB
 // whm 12Oct10 added this class. It didn't seem worth the bother to put it into
 // separate source files, since it is a very minimal override of wxToolBar for
 // the basic purpose of implementing a GetToolBarToolsList() getter. We need this
@@ -1845,6 +1846,7 @@ private:
 	DECLARE_DYNAMIC_CLASS(AIToolBar)
 };
 // enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#endif
 
 class wxDynamicLibrary;
 class AI_Server;
@@ -3600,7 +3602,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	ConfigureToolBarForUserProfile();
 	void	ConfigureWizardForUserProfile();
 	void	RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer);
+#ifdef TB
 	void	RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar);
+#endif
 	void	MakeMenuInitializationsAndPlatformAdjustments(); //(enum ProgramMenuMode progMenuMode);
 	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
