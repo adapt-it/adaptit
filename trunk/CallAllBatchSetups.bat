@@ -13,8 +13,6 @@ echo Unicode executable to pack in the installation. The executables
 echo are copied directly to the installation folders by Visual Studio
 echo when Release and Unicode Release builds are done.
 echo ===============================================================
-echo Press CRTL-C to abort or
-pause
 
 @echo on
 rem 1. Now calling _CopyDocs2InstallFolders.bat from the docs folder
@@ -45,4 +43,3 @@ call _CopyXML2InstallFolders.bat
 cd ..
 echo ===================================================
 echo Batch processes completed.
-pause

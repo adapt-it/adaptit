@@ -25,8 +25,6 @@ echo Adapt_It.htb is copied as Adapt_It.htb to the setup Regular Documentation O
 echo Adapt_It.htb is copied as Adapt_It_Unicode.htb to the setup Unicode folder
 echo Adapt_It.htb is copied as Adapt_It_Unicode.htb to the setup Unicode Documentation Only folder
 echo ===================================================
-echo Press CRTL-C to abort or
-pause
 
 rem The next line deletes any existing temporary help folder named hlp_temp
 rem along with any sub-folders and files it contains.
@@ -70,4 +68,3 @@ echo ===================================================
 
 :END
 echo Process completed.
-pause

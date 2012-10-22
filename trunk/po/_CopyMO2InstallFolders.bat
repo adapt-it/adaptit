@@ -28,8 +28,6 @@ echo az.mo is copied as Adapt_It_Unicode.mo to the Languages\az folder of each U
 echo swh.mo is copied as Adapt_It_Unicode.mo to the Languages\swh folder of each Unicode installation
 echo defauls.mo is copied under the same name to the Languages folder of each installation
 echo ===================================================
-echo Press CRTL-C to abort or
-pause
 
 @echo on
 rem 1. The following copies localization files to the "setup Regular" folder
@@ -403,4 +401,3 @@ copy default.po "..\bin\win32\Unicode Release\Languages\default.po"
 
 echo ===================================================
 echo Copy process completed.
-pause

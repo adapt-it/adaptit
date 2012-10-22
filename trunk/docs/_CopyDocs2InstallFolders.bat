@@ -49,7 +49,7 @@ echo adapt_it.ico is copied from res folder to Images folder of
 echo    setup Regular and setup Unicode (12.)
 echo ===================================================
 echo Press CRTL-C to abort or
-pause
+
 
 @echo on
 rem 1. The following copies Documentation files to the "setup Regular" folder
@@ -227,4 +227,3 @@ copy "..\res\adapt_it.ico" "..\setup Unicode\Images\adapt_it.ico" /Y
 
 echo ===================================================
 echo Copy process completed.
-pause

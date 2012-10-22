@@ -10,8 +10,6 @@ echo files that do not need to be distributed as part of Adapt It source
 echo packages. It includes some exe and dll files that are needed for 
 echo collaboration with Paratext.
 echo ===================================================
-echo Press CRTL-C to abort or
-pause
 
 @echo on
 rem Remove any existing "downloads" folder
@@ -137,4 +135,3 @@ rem   *             a single asterisk tells 7za to include all dirs and files
 
 echo ===================================================
 echo Copy process completed.
-pause

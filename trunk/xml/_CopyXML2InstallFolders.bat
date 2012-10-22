@@ -21,8 +21,6 @@ echo    Interop.XceedZipLib.dll
 echo    ICSharpCode.SharpZipLib.dll
 echo    Utilities.dll
 echo ===================================================
-echo Press CRTL-C to abort or
-pause
 
 @echo on
 rem 1. The following copies Documentation files to the "setup Regular" folder
@@ -116,4 +114,3 @@ copy "Utilities.dll" "..\setup Unicode - No Html Help\"
 
 echo ===================================================
 echo Copy process completed.
-pause
