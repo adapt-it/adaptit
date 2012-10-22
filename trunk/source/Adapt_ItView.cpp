@@ -314,7 +314,7 @@ extern bool bPlaceBackTransInRTFText;	// default is FALSE
 extern bool bPlaceAINotesInRTFText;		// default is FALSE
 
 // whm 9Jun12 changed the type for filterMkr and filterMrkEnd to wxString (and remove const) to agree with the actual
-// declaration in Adapt_ItDoc. Otherwise wxWidgets 2.9.3 generates a error LNK2001: unresolved external symbol "wchar_t const * const filterMkr" 
+// declaration in Adapt_ItDoc. Otherwise wxWidgets 2.9.3 generates a error LNK2001: unresolved external symbol "wchar_t const * const filterMkr"
 extern wxString filterMkr; // defined in the Doc, used here in OnLButtonDown() & free translation code, etc
 extern wxString filterMkrEnd; // defined in the Doc, used in free translation code, etc
 
@@ -1164,6 +1164,20 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	}
 
 }
+
+// Redraw() is simply intended to cause the view to redraw itself, if something that affects the visual
+// appearance might have changed, e.g. the read-only status.  It's proved surprisingly tricky to get this
+// to actually update everything!
+
+void CAdapt_ItView::Redraw (void)
+{
+	Invalidate();
+	canvas->ClearBackground();	// On Mac this does the redraw rather than merely clearing the background!
+	GetLayout()->Redraw();		// Not actually needed on Mac, but doesn't hurt
+	GetLayout()->PlaceBox();	// Sets the parameters for the updated placement of the phrase box if changing
+								//  direction, also gets rid of all the pink if making doc editable!
+}
+
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;
 // the pile list is at CLayout::m_pileList
@@ -5734,8 +5748,8 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 
 	// whm modified 29Mar12. As of this date, this is the only
 	// location in the whole code base where the m_pTargetBox->Show()
-	// call is made. 
-	// 
+	// call is made.
+	//
 	// Only call m_pTargetBox->Show() if the app is NOT in read-only mode.
 	if (!pApp->m_bReadOnlyAccess)
 	{
@@ -6233,7 +6247,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	pApp->m_nDefaultBookIndex = 39; // default is Matthew
 	pApp->m_nLastBookIndex = -1;
 	pApp->m_pCurrBookNamePair = NULL;
-	
+
 	// whm added 27Apr12. When the project is closed, the project config file should be written
 	// out to disk and then the m_curProjectPath should become empty so that the project config
 	// file won't get written out at time when no project is open. The m_curProjectPaht is given
@@ -6263,7 +6277,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		if (!bOK)
 		{
 			wxString msg = _T("In OnFileCloseProject() WriteConfigurationFile() failed for project config file or admin project config file.");
-			wxMessageBox(msg); 
+			wxMessageBox(msg);
 			pApp->LogUserAction(msg);
 		}
 	}
@@ -6298,7 +6312,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
 	pApp->m_arrOldSearches.Clear(); // old search strings accumulated while in this project
 
- 
+
 	// whm added 27Apr12. When the project is closed the m_curProjectPath should be an empty string.
 	pApp->m_curProjectPath.Empty();
 }
@@ -8938,14 +8952,14 @@ void CAdapt_ItView::OnUpdateButtonMerge(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// whm added 26Mar12. Disable toolbar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);
@@ -10367,14 +10381,14 @@ void CAdapt_ItView::OnUpdateButtonRestore(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (gbIsGlossing || gbShowTargetOnly)
 	{
 		event.Enable(FALSE);
@@ -11484,7 +11498,7 @@ void CAdapt_ItView::OnUpdateUseConsistentChanges(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateUseSilConverter(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	
+
 	// whm added 2i6Mar12.
 	if (pApp->m_bReadOnlyAccess)
 	{
@@ -12291,14 +12305,14 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// whm added 26Mar12. Disable the tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	bool bComposeWnd = FALSE;
 
 	wxWindow* pFocusWnd = wxWindow::FindFocus(); // gets a CTempWnd
@@ -12403,14 +12417,14 @@ void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// whm added 26Mar12 for read-only mode
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	bool bComposeSel = FALSE;
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
 	if (pFWnd == NULL)
@@ -13167,13 +13181,13 @@ void CAdapt_ItView::OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -13692,7 +13706,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			// BEW 31Mar12, commented the switching of the value out, because we don't
 			// want an empty string to have punctuation prefixed or suffixed to it; so if
 			// bEmptyTarget is TRUE, let that value continue for the code which follows
-			//if (bEmptyTarget) 
+			//if (bEmptyTarget)
 			//{
 			//	bEmptyTarget = FALSE;
 			//}
@@ -18451,6 +18465,10 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 #endif
 		}
 	}
+	
+	Redraw();			// mrh -- this does the job quite nicely, replacing the code below
+
+/*
 #ifdef __WXMAC__
 	// GDLC 2011-04-08 The Mac version of AI needs only the two commands not commented out!
 	// Question: Will Windows and Linux work correctly with only the two commands PlaceBox() and ClearBackground()?
@@ -18468,6 +18486,7 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 	GetLayout()->Redraw(); // yep, works nicely
 	GetLayout()->PlaceBox();
 #endif
+*/
 }
 
 // use this function when user changes, or potentially changes, the RTL checkboxes in
@@ -18725,14 +18744,14 @@ void CAdapt_ItView::OnUpdateButtonRespectBdry(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -18777,14 +18796,14 @@ void CAdapt_ItView::OnUpdateButtonIgnoreBdry(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -18995,14 +19014,14 @@ void CAdapt_ItView::OnUpdateButtonShowPunct(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -19161,14 +19180,14 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
- 	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -19315,14 +19334,14 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& event)
 void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
 {
  	CAdapt_ItApp* pApp = &wxGetApp();
-	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -19451,14 +19470,14 @@ void CAdapt_ItView::OnUpdateButtonHidePunct(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-  	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -20325,14 +20344,14 @@ void CAdapt_ItView::OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event)
 	// enable when a project is open since changes may require reading
 	// kb correspondences
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 }
 
@@ -20974,14 +20993,14 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	
+
 	// whm added 26Mar12.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -28399,7 +28418,7 @@ void CAdapt_ItView::OnUpdateAdvancedDelay(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-    
+
 	// whm added 26Mar12.
 	if (pApp->m_bReadOnlyAccess)
 	{
@@ -28433,7 +28452,7 @@ void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	
+
 	pApp->LogUserAction(_T("Initiated OnSelectSilConverters()"));
 	// bring up the SilConverter select dialog to allow
     // the user to pick a converter

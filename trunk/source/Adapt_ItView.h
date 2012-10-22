@@ -73,6 +73,7 @@ class PileList;
 /// a canvas as a member of the View which is based on CAdapt_ItCanvas which is based
 /// on wxScrolledWindow.
 /// \derivation		The CAdapt_ItView class is derived from wxView.
+
 class CAdapt_ItView : public wxView
 {
 public:
@@ -103,6 +104,7 @@ public:
 	bool OnCreate(wxDocument* doc, long flags); // a virtual method of wxView
 
 	void OnDraw(wxDC* pDC);
+	void Redraw (void);
 	bool PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength); // whm moved to public for wx
 
 #if !defined(__WXGTK__)
