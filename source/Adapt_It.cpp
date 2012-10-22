@@ -14599,7 +14599,7 @@ void CAdapt_ItApp::DeleteKbServer(int whichType)
 	wxASSERT(whichType == 1 || whichType == 2);
 	if (m_pKbServer[whichType - 1] != NULL)
 	{
-		delete[] m_pKbServer[whichType - 1];
+		delete m_pKbServer[whichType - 1];
 	}
 	m_pKbServer[whichType - 1] = NULL;
 }

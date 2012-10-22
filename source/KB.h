@@ -163,6 +163,7 @@ public:
 
 	// use next for phrasebox typed adaptations or glosses, and for KBEditor's Add button
 	bool			HandleNewPairTyped(int kbServerType, wxString srcKey, wxString translation); 
+	bool			HandleUndelete(int kbServerType, wxString srcKey, wxString translation); 
 														  
 
 
