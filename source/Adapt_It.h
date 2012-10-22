@@ -63,6 +63,7 @@ const int ID_MENU_ACCEPT_REVISION		= 991;
 const int ID_MENU_RETURN_TO_LATEST		= 990;
 const int ID_MENU_DVCS_LOG_FILE			= 989;
 const int ID_MENU_DVCS_LOG_PROJECT		= 988;
+const int ID_MENU_TAKE_OWNERSHIP		= 987;
 
 // Action codes for calling the DVCS:
 enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY,

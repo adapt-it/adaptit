@@ -440,6 +440,7 @@ public:
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
 	void DocChangedExternally();
+	void OnTakeOwnership (wxCommandEvent& WXUNUSED(event));
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
 	int  DoSaveAndCommit();
 	void OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event));

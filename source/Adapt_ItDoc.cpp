@@ -313,6 +313,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU (ID_MENU_REVERT_FILE, CAdapt_ItDoc::OnRevertToPreviousRevision)
 	EVT_MENU (ID_MENU_ACCEPT_REVISION, CAdapt_ItDoc::OnAcceptRevision)
 	EVT_MENU (ID_MENU_RETURN_TO_LATEST, CAdapt_ItDoc::OnReturnToLatestRevision)
+	EVT_MENU (ID_MENU_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
 	EVT_MENU(ID_SAVE_AS, CAdapt_ItDoc::OnFileSaveAs)
@@ -1461,6 +1462,21 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 }
 
 
+void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
+{
+	wxCommandEvent	dummy;
+
+	if (gpApp->m_owner == gpApp->m_AIuser)
+		return;								// if we're already the owner, there's nothing to do
+			
+	gpApp->m_owner = gpApp->m_AIuser;		// force doc's owner to be logged-in user, no matter what
+	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
+	Modify (TRUE);							// mark doc dirty, to ensure new owner gets saved
+	
+	gpApp->GetView()->Redraw();
+}
+
+
 /*	mrh - May 2012.
 	This function is needed for the version control stuff, but might be more generally useful
 	as well.  It's called when something external to AdaptIt has modified the current document.  
@@ -1533,13 +1549,21 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	
 	if (gpApp->m_commitCount < 0) 
 	{
-		wxMessageBox(_T("This document hasn't been put under version control yet!"));
+		wxMessageBox (_T("This document hasn't been put under version control yet!"));
 		return -1;
 	}
 
 	if (gpApp->m_trialRevNum >= 0) 
 	{
-		wxMessageBox(_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
+		wxMessageBox (_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
+		return -1;
+	}
+
+// If the logged-in user isn't the owner of the document, it will be read-only, but we still need to bail out here.
+	
+	if ( (gpApp->m_owner != NOOWNER) && (gpApp->m_owner != gpApp->m_AIuser) )
+	{
+		wxMessageBox (_T("This document is owned by someone else, so you can't do a commit!"));
 		return -1;
 	}
 	
@@ -1550,7 +1574,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	gpApp->m_revisionDate = localDate.ToUTC (FALSE);
 	gpApp->m_commitCount += 1;					// bump the commit count
 	
-	gpApp->m_owner = gpApp->m_AIuser;			// owner must be assigned on a commit
+	gpApp->m_owner = gpApp->m_AIuser;			// owner may have been NOOWNER, but must be assigned on a commit
 
 	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
