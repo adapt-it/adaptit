@@ -4064,12 +4064,15 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				// actually enabled. So, we explicitly enable the toolbar button here instead of
 				// waiting for it to be done in idle time.
 				CMainFrame* pFrame = pApp->GetMainFrame();
-				wxToolBarBase* pToolBar = pFrame->GetToolBar();
-				wxASSERT(pToolBar != NULL);
-				// whm 12Oct10 modified for user workflow profile compatibility
-				if (pToolBar->GetToolPos(ID_BUTTON_RETRANSLATION) == wxNOT_FOUND)
+				wxAuiToolBarItem *tbi;
+				tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_RETRANSLATION);
+				// Return if the toolbar item is hidden
+				if (!tbi->GetWindow()->IsShown())
+				{
 					return;
-				pToolBar->EnableTool(ID_BUTTON_RETRANSLATION,TRUE);
+				}
+				// enable the toolbar button
+				pFrame->m_auiToolbar->EnableTool(ID_BUTTON_RETRANSLATION, true);
 				pApp->GetRetranslation()->DoRetranslationByUpArrow();
 			}
 		}

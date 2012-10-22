@@ -1698,12 +1698,15 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // when they are disabled, we must check for a disabled button and return if disabled.
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
-	// whm 12Oct10 modified for user workflow profile compatibility
-	if (pToolBar->GetToolPos(ID_BUTTON_RETRANSLATION) == wxNOT_FOUND)
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_RETRANSLATION);
+	// Return if the toolbar item is hidden
+	if (!tbi->GetWindow()->IsShown())
+	{
 		return;
-	if (!pToolBar->GetToolEnabled(ID_BUTTON_RETRANSLATION))
+	}
+	// Return if this toolbar item is disabled
+	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_RETRANSLATION))
 	{
 		::wxBell();
 		return;
@@ -2406,12 +2409,15 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
     // when they are disabled, we must check for a disabled button and return if disabled.
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument(); 
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
-	// whm 12Oct10 modified for user workflow profile compatibility
-	if (pToolBar->GetToolPos(ID_BUTTON_EDIT_RETRANSLATION) == wxNOT_FOUND)
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_EDIT_RETRANSLATION);
+	// Return if the toolbar item is hidden
+	if (!tbi->GetWindow()->IsShown())
+	{
 		return;
-	if (!pToolBar->GetToolEnabled(ID_BUTTON_EDIT_RETRANSLATION))
+	}
+	// Return if this toolbar item is disabled
+	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_EDIT_RETRANSLATION))
 	{
 		::wxBell();
 		return;

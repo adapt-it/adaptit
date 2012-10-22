@@ -5231,6 +5231,7 @@ LangInfo langsKnownToWX[] =
     { NULL, wxLANGUAGE_UNKNOWN, NULL}												// 1
 };
 
+#ifdef TB
 // whm 12Oct10 added this class. It didn't seem worth the bother to put it into
 // separate source files, since it is a very minimal override of wxToolBar for
 // the basic purpose of implementing a GetToolBarToolsList() getter. We need this
@@ -5259,6 +5260,7 @@ wxToolBarToolsList AIToolBar::GetToolBarToolsList()
 	return m_tools;
 }
 // enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#endif
 
 // beginning of AIModalDialog class implementation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // whm Note: The AIModalDialog class exists as a base dialog class for Adapt It modal
@@ -8723,6 +8725,7 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 	return bItemIsVisible;
 }
 
+#ifdef TB
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      the AIToolBar (derived from wxToolBar) from which items are to be removed
@@ -8804,6 +8807,7 @@ void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
 	}
 
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
