@@ -3411,14 +3411,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			pRefString->m_translation = tgtPhrase;
 		}
 #if defined(_KBSERVER)
-		// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
-		// since both the key and the translation (both possibly with a case adjustment
-		// for the first letter) are defined.
-		// Note: we can't reliably assume that the newly typed translation or gloss has
-		// not be independently by some other use added to the kbserver already, and also
-		// subsequently deleted by him before the present; therefore we must test for the
-		// absence of this src/tgt pair and only upload if the entry really is going to be
-		// a new one.
+        // BEW added 5Oct12, here is a suitable place for kbserver support of
+        // CreateEntry(), since both the key and the translation (both possibly with a case
+        // adjustment for the first letter) are defined.
+        // Note: we can't reliably assume that the newly typed translation or gloss has not
+        // been, independently by some other user, added to the kbserver already, and also
+        // subsequently deleted by him before the present; therefore we must test for the
+        // absence of this src/tgt pair and only upload if the entry really is going to be
+        // a new one.
 		if (m_pApp->m_bIsKBServerProject)
 		{
 			bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
@@ -3566,11 +3566,11 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-			// Note: we can't reliably assume that the newly typed translation or gloss has
-			// not be independently by some other use added to the kbserver already, and also
-			// subsequently deleted by him before the present; therefore we must test for the
-			// absence of this src/tgt pair and only upload if the entry really is going to be
-			// a new one.
+            // Note: we can't reliably assume that the newly typed translation or gloss has
+            // not been, independently by some other user, added to the kbserver already,
+            // and also subsequently deleted by him before the present; therefore we must
+            // test for the absence of this src/tgt pair and only upload if the entry
+            // really is going to be a new one.
 			if (m_pApp->m_bIsKBServerProject)
 			{
 				bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
@@ -3692,14 +3692,26 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
 
+#if defined(_KBSERVER)
+                        // BEW added 18Oct12, call HandleUndelete() Note: we can't reliably
+                        // assume that the kbserver entry is also currently stored as a
+                        // deleted entry, because some other connected user may have
+                        // already just undeleted it. So we must first determine that an
+                        // entry with the same src/tgt string is in the remote database,
+                        // and that it's currently pseudo-deleted. If that's the case, we
+                        // undelete it. If it's not in the remote database at all yet, then
+                        // we add it instead as a normal entry. If it's in the remote
+                        // database already as a normal entry, then we make no change.
+						if (m_pApp->m_bIsKBServerProject)
+						{
+							bool bHandledOK = HandleUndelete(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
-
-
-// TODO  how for kbserver do we undelete? ask Jonathan -- need a new client
-
-
-
-
+                            // I've not yet decided what to do with the return value, at
+                            // present we'll just ignore it even if FALSE (an internally
+                            // generated message would have been seen anyway in that event)
+							bHandledOK = bHandledOK; // avoid compiler warning
+						}
+#endif
 					}
 					else
 					{
@@ -3818,14 +3830,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefString->m_translation = tgtPhrase;
 					}
 #if defined(_KBSERVER)
-					// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
-					// since both the key and the translation (both possibly with a case adjustment
-					// for the first letter) are defined.
-					// Note: we can't reliably assume that the newly typed translation or gloss has
-					// not be independently by some other use added to the kbserver already, and also
-					// subsequently deleted by him before the present; therefore we must test for the
-					// absence of this src/tgt pair and only upload if the entry really is going to be
-					// a new one.
+                    // BEW added 5Oct12, here is a suitable place for kbserver support of
+                    // CreateEntry(), since both the key and the translation (both possibly
+                    // with a case adjustment for the first letter) are defined.
+                    // Note: we can't reliably assume that the newly typed translation or
+                    // gloss has not been, independently by some other user, added to the
+                    // kbserver already, and also subsequently deleted by him before the
+                    // present; therefore we must test for the absence of this src/tgt pair
+                    // and only upload if the entry really is going to be a new one.
 					if (m_pApp->m_bIsKBServerProject)
 					{
 						bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
@@ -5002,7 +5014,94 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 
 // Return TRUE if there was no error, FALSE otherwise
 // Use for phrasebox typed adaptations or glosses, and for KBEditor's Add button
+// Implements the following logic:
+// 1. Determine if the src/tgt pair is in the kbserver database or not
+// 2. If it's not present, upload and create a new entry
+// 3. If it's present, it could be a normal entry or a pseudo-deleted one, so use the
+//    result from 1. to find out which is the case
+// 4. If it's a pseudo-deleted entry, the it needs to be undeleted, do a PUT to effect
+//    that change.
+// 5. If it a normal entry, refrain from accessing kbserver as there is nothing to do
 bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString translation)
+{
+	bool rv = TRUE;
+	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
+	if (pKBSvr != NULL)
+	{
+		pKBSvr->ClearAllPrivateStorageArrays();
+		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
+		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
+		{
+			//  POST the new entry to the kbserver
+			responseCode = pKBSvr->CreateEntry(srcKey, translation);
+			if (responseCode != CURLE_OK)
+			{
+				// TODO a function to show the error code and a meaningful
+				// explanation
+				wxString msg;
+				msg = msg.Format(_T("HandleNewPairTyped(), CreateEntry(): Failure! responseCode = %d"), responseCode);
+				wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
+				rv = FALSE; // but don't abort
+			}
+		}
+		else if (responseCode == CURLE_OK)
+		{
+			// An entry for the src/tgt pair is in the kbserver, but it may be
+			// pseudo-deleted, or it may be undeleted. If the former, then we must
+			// now undelete it. If the latter, we refrain from further action.
+			if ((*pKBSvr->GetDeletedArray())[0] == 1) 
+			{
+				// It's currently pseudo-deleted, so do a PUT to undelete it. 
+				// The first param is the kbserver database's entryID value gleaned from
+				// the id field in the entry returned by the LookupEntryFields() call above)
+				responseCode = pKBSvr->PseudoDeleteOrUndeleteEntry((*pKBSvr->GetIDsArray())[0], doUndelete);
+				if (responseCode != CURLE_OK)
+				{
+					// TODO a function to show the error code and a meaningful
+					// explanation
+					wxString msg;
+					msg = msg.Format(_T("HandleNewPairTyped(), PseudoDeleteOrUndeleteEntry(): Failure for doUndelete! responseCode = %d"), responseCode);
+					wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
+					rv = FALSE; // but don't abort
+				}
+			}
+		}
+	}
+	else
+	{
+		// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
+		wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
+		rv = FALSE; // but don't abort
+	}
+	return rv;
+}
+
+// Return TRUE if there was no error, FALSE otherwise
+// Use for KBEditor's Update button, which pseudo-deletes the wrongly spelled entry and
+// creates a new one with correct spelling in the local KB, so reproduce this logic in
+// the kbserver database, but don't assume that the old wrongly spelled entry is actually
+// there already (there's a small possibility it may not be)
+// TODO -- the rest for a pseudo-delete (including sending the new respelled entry)
+
+
+
+
+// Return TRUE if there was no error, FALSE otherwise
+// Use for phrase box typing which creates a src/tgt pair to be treated as a normal local
+// KB entry when the same pair has been earlier pseudo-deleted. A local undelete is
+// needed. So reproduce this outcome in the kbserver database, but don't assume that the
+// entry actually is in the database already (it might not be) nor that if it is, it is
+// currently a pseudo-deleted one (it may in fact be a normal one, though the likelihood
+// is small, due to the actions of another connected user)
+// Implements the following logic:
+// 1. Determine if the src/tgt pair is in the kbserver database or not
+// 2. If it's not present, upload and create a new normal entry
+// 3. If it's present, it could be a normal entry or a pseudo-deleted one, so use the
+//    result from 1. to find out which is the case
+// 4. If it's a pseudo-deleted entry, then it needs to be undeleted, do a PUT to effect
+//    that change.
+// 5. If it a normal entry, refrain from accessing kbserver as there is nothing to do
+bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation)
 {
 	bool rv = TRUE;
 	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
@@ -5056,9 +5155,6 @@ bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString transla
 	}
 	return rv;
 }
-
-
-
 
 
 
