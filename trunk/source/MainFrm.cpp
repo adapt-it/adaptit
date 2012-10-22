@@ -20,6 +20,7 @@
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
+#include <wx/aui/aui.h>
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -97,6 +98,86 @@
 
 // for about box
 #include "../res/vectorized/ai_128.cpp"
+// other vectorized images (for the toolbar)
+#include "../res/vectorized/document_new_16.cpp"
+#include "../res/vectorized/document_open_16.cpp"
+#include "../res/vectorized/document_save_16.cpp"
+#include "../res/vectorized/edit_cut_16.cpp"
+#include "../res/vectorized/edit_copy_16.cpp"
+#include "../res/vectorized/edit_paste_16.cpp"
+#include "../res/vectorized/document_print_16.cpp"
+#include "../res/vectorized/dialog_guesser_16.cpp"
+#include "../res/vectorized/dialog_notes_16.cpp"
+#include "../res/vectorized/note_next_16.cpp"
+#include "../res/vectorized/note_prev_16.cpp"
+#include "../res/vectorized/note_delete_all_16.cpp"
+#include "../res/vectorized/bounds_go_16.cpp"
+#include "../res/vectorized/bounds_stop_16.cpp"
+#include "../res/vectorized/format_hide_punctuation_16.cpp"
+#include "../res/vectorized/format_show_punctuation_16.cpp"
+#include "../res/vectorized/go_first_16.cpp"
+#include "../res/vectorized/go_last_16.cpp"
+#include "../res/vectorized/go_previous_16.cpp"
+#include "../res/vectorized/go_up_16.cpp"
+#include "../res/vectorized/go_down_16.cpp"
+#include "../res/vectorized/phrase_new_16.cpp"
+#include "../res/vectorized/phrase_remove_16.cpp"
+#include "../res/vectorized/retranslation_new_16.cpp"
+#include "../res/vectorized/retranslation_edit_16.cpp"
+#include "../res/vectorized/retranslation_delete_16.cpp"
+#include "../res/vectorized/placeholder_new_16.cpp"
+#include "../res/vectorized/placeholder_delete_16.cpp"
+#include "../res/vectorized/dialog_choose_translation_16.cpp"
+#include "../res/vectorized/show_target_16.cpp"
+#include "../res/vectorized/show_source_target_16.cpp"
+#include "../res/vectorized/dialog_view-translation-or-glosses_16.cpp"
+#include "../res/vectorized/punctuation_copy_16.cpp"
+#include "../res/vectorized/punctuation_do_not_copy_16.cpp"
+#include "../res/vectorized/help_browser_16.cpp"
+#include "../res/vectorized/document-new_22.cpp"
+#include "../res/vectorized/document-open_22.cpp"
+#include "../res/vectorized/document-save_22.cpp"
+#include "../res/vectorized/edit-cut_22.cpp"
+#include "../res/vectorized/edit-copy_22.cpp"
+#include "../res/vectorized/edit-paste_22.cpp"
+#include "../res/vectorized/document-print_22.cpp"
+#include "../res/vectorized/dialog-guesser_22.cpp"
+#include "../res/vectorized/dialog-notes_22.cpp"
+#include "../res/vectorized/note-next_22.cpp"
+#include "../res/vectorized/note-prev_22.cpp"
+#include "../res/vectorized/note-delete-all_22.cpp"
+#include "../res/vectorized/bounds-go_22.cpp"
+#include "../res/vectorized/bounds-stop_22.cpp"
+#include "../res/vectorized/format-hide-punctuation_22.cpp"
+#include "../res/vectorized/format-show-punctuation_22.cpp"
+#include "../res/vectorized/go-first_22.cpp"
+#include "../res/vectorized/go-last_22.cpp"
+#include "../res/vectorized/go-previous_22.cpp"
+#include "../res/vectorized/go-up_22.cpp"
+#include "../res/vectorized/go-down_22.cpp"
+#include "../res/vectorized/phrase-new_22.cpp"
+#include "../res/vectorized/phrase-remove_22.cpp"
+#include "../res/vectorized/retranslation-new_22.cpp"
+#include "../res/vectorized/retranslation-edit_22.cpp"
+#include "../res/vectorized/retranslation-delete_22.cpp"
+#include "../res/vectorized/placeholder-new_22.cpp"
+#include "../res/vectorized/placeholder-delete_22.cpp"
+#include "../res/vectorized/dialog-choose-translation_22.cpp"
+#include "../res/vectorized/show-target_22.cpp"
+#include "../res/vectorized/show-source-target_22.cpp"
+#include "../res/vectorized/dialog-view-translation-or-glosses_22.cpp"
+#include "../res/vectorized/punctuation-copy_22.cpp"
+#include "../res/vectorized/punctuation-do-not-copy_22.cpp"
+#include "../res/vectorized/help-browser_22.cpp"
+
+//(*IdInit(CMainFrame)
+// Toolbar and toolbar buttons
+const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
+//const long CMainFrame::ID_TBI_BOUNDS_IGNORE_STOP = wxNewId();
+//const long CMainFrame::ID_TBI_PUNCTUATION_SHOW_HIDE = wxNewId();
+//const long CMainFrame::ID_TBI_SHOW_SOURCE_TARGET = wxNewId();
+//const long CMainFrame::ID_TBI_PUNCTUATION_COPY = wxNewId();
+//*)
 
 // includes above
 
@@ -1156,6 +1237,8 @@ CMainFrame::~CMainFrame()
 		bAppendedOK = bAppendedOK; // removes compiler warning
 		// no Refresh() needed
 	}
+	m_auiMgr.UnInit();
+
 }
 
 CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
@@ -1315,7 +1398,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 	m_pMenuBar = (wxMenuBar*) NULL;			// handle/pointer to the menuBar
 	m_pStatusBar = (wxStatusBar*) NULL;		// handle/pointer to the statusBar
-	m_pToolBar = (AIToolBar*) NULL;			// handle/pointer to the toolBar
 	m_pControlBar = (wxPanel*) NULL;		// handle/pointer to the controlBar
 	m_pComposeBar = (wxPanel*) NULL;		// handle/pointer to the composeBar
 	m_pRemovalsBar = (wxPanel*) NULL;		// handle/pointer to the removalsBar
@@ -1323,6 +1405,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//m_pVertEditStepTransBar = (wxPanel*) NULL; // handle/pointer to the vertEditStepTransBar
 	m_pComposeBarEditBox = (wxTextCtrl*) NULL;	// handle/pointer to the composeBar's edit box
 
+	m_auitbHeight = 0;
 	m_toolBarHeight = 0;		// determined in CMainFrame constructor after toolBar is created
 	m_controlBarHeight = 0;		// determined in CMainFrame constructor after controlBar is created
 	m_composeBarHeight = 0;		// determined in CMainFrame constructor after composeBar is created
@@ -1346,18 +1429,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// properly before calling SetMenuBar.
 	// Note that on some platforms, it is not possible to call this function twice for
 	// the same frame object."
-
-	// Create the main ToolBar for the app
-	// wx revision 2Sep06
-	// The original design for the wx toolbar was based on the toolbar sample, which
-	// created and deleted the toolbar each time it was viewed/hidden. Rather than
-	// doing that, we just hide the toolbar when not being viewed (via View menu).
-	// We can also manage the toolbar in our mainsizer. along with the controlbar,
-	// composebar and canvas.
-    long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
-	AIToolBar* toolBar = new AIToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
-	wxASSERT(toolBar != NULL);
-	m_pToolBar = toolBar;
 
 	// Determine the screen dpi to see if we are running on a 200dpi OLPC XO type screen.
 	// If so, we use the alternate AIToolBar32x30Func which has double sized toolbar bitmaps for better
@@ -1394,6 +1465,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y))
 	//	/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
 
+#ifdef TB
 	if (gpApp->m_bExecutingOnXO)
 	{
 		toolBar->SetToolBitmapSize(wxSize(32,30));
@@ -1423,7 +1495,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 												// our Main Frame should account for its
 												// presence when calculating the client size
 												// with pMainFrame->GetClientSize()
-
+#else
+	m_toolBarHeight = 0;
+#endif
 	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
 	// OnInit() function. At this point the basic config file has not been
 	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on
@@ -1438,6 +1512,85 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//{
 	//	m_pToolBar->Hide();
 	//}
+
+	// EDB 24 Sept 2012 - AUI toolbar stuff:
+	// - Currently wxDesigner (v. 2.20a) doesn't fully support AUI toolbar 
+	//   functionality, so we need to create and maintain it ourselves.
+	// - We've reusing the IDs from the old toolbar buttons, and the event 
+	//   handlers from _most_ of the buttons. The exception is to the toggle
+	//   event handlers, as the UI redrawing is different under AUI; I just
+	//   found it easier to write up new event handlers for these.
+	//(*Initialize(CMainFrame)
+    m_auiMgr.SetManagedWindow(this);
+	m_auiToolbar = new wxAuiToolBar(this, ID_AUI_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
+	//m_auiToolbar->SetToolBitmapSize(wxSize(22, 22));
+	m_auiToolbar->AddTool(wxID_NEW, _("New"), gpApp->wxGetBitmapFromMemory(document_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document"), NULL);
+	m_auiToolbar->AddTool(wxID_OPEN, _("Open"), gpApp->wxGetBitmapFromMemory(document_open_png_16), wxNullBitmap, wxITEM_NORMAL, _("Open"), _("Open an existing document"), NULL);
+	m_auiToolbar->AddTool(wxID_SAVE, _("Save"), gpApp->wxGetBitmapFromMemory(document_save_png_16), wxNullBitmap, wxITEM_NORMAL, _("Save"), _("Save the active document"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_EDIT_CUT, _("Cut"), gpApp->wxGetBitmapFromMemory(edit_cut_png_16), wxNullBitmap, wxITEM_NORMAL, _("Cut"), _("Cut the selection and put it on the Clipboard"), NULL);
+	m_auiToolbar->AddTool(ID_EDIT_COPY, _("Copy"), gpApp->wxGetBitmapFromMemory(edit_copy_png_16), wxNullBitmap, wxITEM_NORMAL, _("Copy"), _("Copy the selection and put it on the Clipboard"), NULL);
+	m_auiToolbar->AddTool(ID_EDIT_PASTE, _("Paste"), gpApp->wxGetBitmapFromMemory(edit_paste_png_16), wxNullBitmap, wxITEM_NORMAL, _("Paste"), _("Insert Clipboard contents"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(wxID_PRINT, _("Print"), gpApp->wxGetBitmapFromMemory(document_print_png_16), wxNullBitmap, wxITEM_NORMAL, _("Print"), _("Print the active document"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_GUESSER, _("Change Guesser Settings"), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_16), wxNullBitmap, wxITEM_NORMAL, _("Change Guesser Settings"), _("Change settings for guessing the translation text"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_CREATE_NOTE, _("Open a Note dialog"), gpApp->wxGetBitmapFromMemory(dialog_notes_png_16), wxNullBitmap, wxITEM_NORMAL, _("Open a Note dialog"), _("Create a note dialog and open it for typing"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_PREV_NOTE, _("Jump to the previous Note"), gpApp->wxGetBitmapFromMemory(note_prev_png_16), wxNullBitmap, wxITEM_NORMAL, _("Jump to the previous Note"), _("Go back and open the previous note"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_NEXT_NOTE, _("Jump to the next Note"), gpApp->wxGetBitmapFromMemory(note_next_png_16), wxNullBitmap, wxITEM_NORMAL, _("Jump to the next Note"), _("Go forward and open the next note"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_DELETE_ALL_NOTES, _("Delete All Notes"), gpApp->wxGetBitmapFromMemory(note_delete_all_png_16), wxNullBitmap, wxITEM_NORMAL, _("Delete All Notes"), _("Delete all the notes currently in the document"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_RESPECTING_BDRY, _("Ignore Boundaries"), gpApp->wxGetBitmapFromMemory(bounds_stop_png_16), wxNullBitmap, wxITEM_NORMAL, _("Ignore Boundaries"), _("Ignore boundaries when making selections"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_SHOWING_PUNCT, _("Hide Punctuation"), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_16), wxNullBitmap, wxITEM_NORMAL, _("Hide Punctuation"), _("Don't show punctuation with the text"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_TO_END, _("Advance to End"), gpApp->wxGetBitmapFromMemory(go_last_png_16), wxNullBitmap, wxITEM_NORMAL, _("Advance to End"), _("Advance to the end of the data"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_TO_START, _("Back to Start"), gpApp->wxGetBitmapFromMemory(go_first_png_16), wxNullBitmap, wxITEM_NORMAL, _("Back to Start"), _("Go back to the start of the data"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_STEP_DOWN, _("Move down one step"), gpApp->wxGetBitmapFromMemory(go_down_png_16), wxNullBitmap, wxITEM_NORMAL, _("Move Down One Step"), _("Move the bundle down one step towards the bottom of the file"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_STEP_UP, _("Move up one step"), gpApp->wxGetBitmapFromMemory(go_up_png_16), wxNullBitmap, wxITEM_NORMAL, _("Move Up One Step"), _("Move bundle back up one step towards the start of the file"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_BACK, _("Jump back"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), wxNullBitmap, wxITEM_NORMAL, _("Jump Back"), _("Jump back to the last active location"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_MERGE, _("Make a phrase"), gpApp->wxGetBitmapFromMemory(phrase_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Make A Phrase"), _("Merge selected words into a phrase"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_RESTORE, _("Unmake A Phrase"), gpApp->wxGetBitmapFromMemory(phrase_remove_png_16), wxNullBitmap, wxITEM_NORMAL, _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_RETRANSLATION, _("Do A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Do A Retranslation"), _("The selected section is a retranslation, not an adaptation"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_EDIT_RETRANSLATION, _("Edit A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_16), wxNullBitmap, wxITEM_NORMAL, _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location"), NULL);
+	m_auiToolbar->AddTool(ID_REMOVE_RETRANSLATION, _("Remove A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_NULL_SRC, _("Insert A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text"), NULL);
+	m_auiToolbar->AddSeparator();
+	m_auiToolbar->AddTool(ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), NULL);
+	m_auiToolbar->AddTool(ID_SHOWING_ALL, _("Show Target Text Only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show target text only"), _("Show target text only"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_EARLIER_TRANSLATION, _("View Translation or Glosses Elsewhere in the Document"), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_16), wxNullBitmap, wxITEM_NORMAL, _("View Translation or Glosses Elsewhere in the Document"), _("View  translation or glosses elsewhere in the document; locate them by chapter and verse"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_NO_PUNCT_COPY, _("No Punctuation Copy"), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_16), wxNullBitmap, wxITEM_NORMAL, _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily"), NULL);
+	m_auiToolbar->AddTool(wxID_HELP, _("Help"), gpApp->wxGetBitmapFromMemory(help_browser_png_16), wxNullBitmap, wxITEM_NORMAL, _("Help"), _("Display Adapt It program help topics"), NULL);
+	// register the changes with the AUI manager
+	m_auiToolbar->Realize();
+	m_auiMgr.AddPane(m_auiToolbar, wxAuiPaneInfo().Name(_T("auiToolbar")).ToolbarPane().Caption(_("Pane caption")).Top().DockFixed().Dockable(false).Floatable(false).Movable(false).Gripper(false));
+	// enable / disable toolbar items
+	m_auiToolbar->EnableTool(wxID_NEW, false);
+	m_auiToolbar->EnableTool(wxID_OPEN, false);
+	m_auiToolbar->EnableTool(ID_EDIT_PASTE, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_TO_START, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_STEP_UP, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_MERGE, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_RESTORE, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_RETRANSLATION, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_EDIT_RETRANSLATION, false);
+	m_auiToolbar->EnableTool(ID_REMOVE_RETRANSLATION, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_NULL_SRC, false);
+	m_auiToolbar->EnableTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, false);
+	// save the toolbar's height for UI redraws
+	wxSize auitbSize;
+	auitbSize = m_auiToolbar->GetSize();
+	m_auitbHeight = auitbSize.GetHeight();
+	if (gpApp->m_bToolBarVisible == FALSE)
+	{
+		m_auiToolbar->Hide();
+	}
+
+	//*)
 
 	// MFC version also has 3 lines here to EnableDocking() of toolBar. We won't use docking in
 	// the wx version, although the wxGTK version enables docking by default (we turn it off).
@@ -1502,6 +1655,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxTextCtrl* pDelayBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_DELAY);
 	wxASSERT(pDelayBox != NULL);
 	pDelayBox->SetBackgroundColour(pApp->sysColorBtnFace);
+	m_pControlBar->Hide();
 
 	// Create the compose bar using a wxPanel
 	wxPanel *composeBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
@@ -1615,6 +1769,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     // client window is adjusted accordingly and the screen redrawn as needed
 	m_pVertEditBar->Hide();
 
+
 	// BEW added 27Mar07 for support of receiving synchronized scroll messages
 	// whm note: in the MFC version the following is located in CMainFrame::OnCreate()
 	if (gpDocList == NULL)
@@ -1635,6 +1790,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
  	this->canvas = CreateCanvas(splitter);
 #else
 	this->canvas = CreateCanvas(this);
+	//m_auiMgr.AddPane((wxWindow *)this->canvas, wxAuiPaneInfo().Name(_T("Canvas")).Caption(_(" ")).CenterPane());
 #endif
 	// now that canvas is created, set canvas' pointer to this main frame
 	canvas->pFrame = this;
@@ -1727,6 +1883,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// set the font used in the compose bar to the font & size for the target font
 	// Unlike the MFC version, the fonts haven't been created yet at this point,
 	// so I've moved the code that sets the composebar font and RTL to the App's OnInit().
+
+	m_auiMgr.Update();
+    m_pPerspective = m_auiMgr.SavePerspective();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2657,6 +2816,12 @@ wxSize CMainFrame::GetCanvasClientSize()
 			canvasSize.y -= m_vertEditBarHeight;
 		}
 	}
+	// EDB 21/9/2012 - AUI toolbar needs to be factored in now.
+	if (gpApp->m_bToolBarVisible)
+	{
+		canvasSize.y -= m_auitbHeight;
+	}
+
 	return canvasSize;
 }
 
@@ -2667,6 +2832,40 @@ wxSize CMainFrame::GetCanvasClientSize()
 // whm 7Jan12 modified for better viewing and hiding of tool bar
 void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 {
+	if (m_auiToolbar != NULL)
+	{
+		if (gpApp->m_bToolBarVisible)
+		{
+			m_auiMgr.GetPane(_("auiToolbar")).Hide();
+			GetMenuBar()->Check(ID_VIEW_TOOLBAR, FALSE);
+			gpApp->LogUserAction(_T("Hide Tool bar"));
+			gpApp->m_bToolBarVisible = FALSE;
+			m_auiMgr.Update();
+			SendSizeEvent(); // needed to force redraw
+		}
+		else
+		{
+			m_auiMgr.GetPane(_("auiToolbar")).Show();
+			GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
+			gpApp->LogUserAction(_T("Show Tool bar"));
+			gpApp->m_bToolBarVisible = TRUE;
+			m_auiMgr.Update();
+			SendSizeEvent(); // needed to force redraw
+		}
+	}
+	//else if (!gpApp->m_bToolBarVisible)
+	//{
+ //       RecreateToolBar(); // whm 12Oct10 modified RecreateToolBar() for user profile compatibility
+	//	wxMenuItem* pMenuItem = GetMenuBar()->FindItem(ID_VIEW_TOOLBAR);
+	//	if (pMenuItem == NULL)
+	//		return;
+	//	GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
+	//	gpApp->m_bToolBarVisible = TRUE; // whm added 6Jan12
+	//	gpApp->LogUserAction(_T("View Toolbar"));
+	//	SendSizeEvent();
+	//}
+
+#ifdef TB
 	if (m_pToolBar != NULL)
 	{
 		if (gpApp->m_bToolBarVisible)
@@ -2699,6 +2898,9 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 		gpApp->LogUserAction(_T("View Toolbar"));
 		SendSizeEvent();
 	}
+#else
+	SendSizeEvent(); // needed to force redraw
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -2944,7 +3146,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // The FinalHeightOfCanvas that we end up placing starts with the available height of
     // the mainFrameClientSize as determined by the GetClientSize() call above, now reduced
     // by the height of our always visible controlBar.
-	int finalHeightOfCanvas = mainFrameClientSize.y;
+	int finalHeightOfCanvas = mainFrameClientSize.y - 1;
 	// The upper left position of the main frame's client area is always 0,0 so we position
     // the controlBar there if it is visible.
     // Note: SetSize sets both the position and the size.
@@ -2952,13 +3154,24 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     // height also in pixels. Its signature is SetSize(int x, int y, int width, int
     // height).
 
+	// EDB 20/9/2012 AUI toolbar
+	// The AUI toolbar is drawn within the bounds of the canvas, along with the other wxPanel guys (the control bar, etc.) -
+	// set the placement of the wxPanels based on whether the toolbar is visible or not.
+	VertDisplacementFromReportedMainFrameClientSize += (gpApp->m_bToolBarVisible == false) ? 0 : m_auitbHeight;
+	finalHeightOfCanvas -= (gpApp->m_bToolBarVisible == false) ? 0 : m_auitbHeight;
+
+	if (gpApp->m_bToolBarVisible == FALSE)
+	{
+		m_auiToolbar->Hide();
+	}
+
 	// Adjust the Mode Bar's position in the main frame (if controlBar is visible).
 	if (m_pControlBar->IsShown())
 	{
-		m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight);
+		m_pControlBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, 
+			mainFrameClientSize.x, m_controlBarHeight);//0, 0, mainFrameClientSize.x, m_controlBarHeight);
 						// width is mainFrameClientSize.x, height is m_controlBarHeight
 		m_pControlBar->Refresh(); // this is needed to repaint the controlBar after OnSize
-
 		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
 		VertDisplacementFromReportedMainFrameClientSize += m_controlBarHeight;
 		finalHeightOfCanvas -= m_controlBarHeight;
@@ -3097,6 +3310,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 // whm 12Oct10 modified for configurable tool bar under user profiles
 void CMainFrame::RecreateToolBar()
 {
+#ifdef TB
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	// delete and recreate the toolbar
     AIToolBar *toolBar = GetToolBar();
@@ -3137,13 +3351,19 @@ void CMainFrame::RecreateToolBar()
 	wxSize toolBarSize;
 	toolBarSize = m_pToolBar->GetSize();
 	m_toolBarHeight = toolBarSize.GetHeight();
+#else
+	m_toolBarHeight = 0;
+#endif
 }
 
-// this overrides the wxFrame::GetToolBar() method which returns a wxToolBar*
-AIToolBar* CMainFrame::GetToolBar()
-{
-	return m_pToolBar;
-}
+//// this overrides the wxFrame::GetToolBar() method which returns a wxToolBar*
+//AIToolBar* CMainFrame::GetToolBar()
+//{
+//#ifdef TB
+//	return m_pToolBar;
+//#endif
+//	return NULL;
+//}
 
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::DoCreateStatusBar()

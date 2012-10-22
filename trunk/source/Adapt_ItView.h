@@ -435,18 +435,6 @@ protected:
 	void OnAlignment(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAlignment(wxUpdateUIEvent& event);
 	void OnSize(wxSizeEvent& event); //See OnSize in CMainFrame.
-	void OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonRespectBdry(wxUpdateUIEvent& event);
-public: // edb 05 March 2010 - set to public (we call this from CRetranslation)
-	void OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXUNUSED(event));
-protected:
-	void OnUpdateButtonIgnoreBdry(wxUpdateUIEvent& event);
-	void OnUpdateButtonShowPunct(wxUpdateUIEvent& event);
-	void OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonHidePunct(wxUpdateUIEvent& event);
-	void OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event);
-	void OnButtonNoPunctCopy(wxCommandEvent& event);
 	void OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event);
 	void OnMarkerWrapsStrip(wxCommandEvent& event);
 	void OnUpdateShowTgt(wxUpdateUIEvent& event);
@@ -501,9 +489,16 @@ protected:
 	void OnChangeInterfaceLanguage(wxCommandEvent& WXUNUSED(event));
 
 public:
+	void OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateToggleRespectBoundary(wxUpdateUIEvent& event);
+	void OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateToggleShowPunctuation(wxUpdateUIEvent& event);
+	void OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateToggleShowSourceText(wxUpdateUIEvent& event);
+	void OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateToggleEnablePunctuationCopy(wxUpdateUIEvent& event);
+
 	void OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event));
-	void OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED(event));
-	void OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED(event));
 	void OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event));
 	void OnUseSilConverter(wxCommandEvent& WXUNUSED(event));
 	void OnAdvancedSeeGlosses(wxCommandEvent& event);
@@ -512,8 +507,6 @@ public:
 	void OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event);
 	void OnAdvancedDelay(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedDelay(wxUpdateUIEvent& event);
-	void OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event);
-	void OnButtonEnablePunctCopy(wxCommandEvent& event);
 	void OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event);
 	void OnButtonMerge(wxCommandEvent& WXUNUSED(event));

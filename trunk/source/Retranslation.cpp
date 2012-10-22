@@ -2389,7 +2389,9 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	
 	// ensure respect for boundaries is turned back on
 	if (!m_pApp->m_bRespectBoundaries)
-		m_pView->OnButtonFromIgnoringBdryToRespectingBdry(event);
+	{
+		m_pView->OnToggleRespectBoundary(event);
+	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
 	gnOldSequNum = nSaveOldSequNum; // restore the value we set earlier
 }
@@ -3101,7 +3103,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	
 	// ensure respect for boundaries is turned back on
 	if (!m_pApp->m_bRespectBoundaries)
-		m_pView->OnButtonFromIgnoringBdryToRespectingBdry(event);
+	{
+		m_pView->OnToggleRespectBoundary(event);
+	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
 }
 
@@ -3693,7 +3697,9 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	
 	// ensure respect for boundaries is turned back on
 	if (!m_pApp->m_bRespectBoundaries)
-		m_pView->OnButtonFromIgnoringBdryToRespectingBdry(event);
+	{
+		m_pView->OnToggleRespectBoundary(event);
+	}
 	m_bInsertingWithinFootnote = FALSE; // restore default value
 }
 

@@ -4514,7 +4514,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 	if (gbShowTargetOnly)
 	{
 		//restore normal mode
-		pApp->GetView()->OnFromShowingTargetOnlyToShowingAll(dummyevent);
+		pApp->GetView()->OnToggleShowSourceText(dummyevent);
 	}
 
 	// get name/title of document

@@ -25,6 +25,7 @@
 
 //#include <wx/help.h> //(wxWidgets chooses the appropriate help controller class)
 #include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
+#include <wx/aui/aui.h>
 
 // forward declarations
 class CAdapt_ItCanvas;
@@ -122,7 +123,23 @@ class CMainFrame : public wxDocParentFrame
 	wxMenuBar* m_pMenuBar;
 
 	wxStatusBar* m_pStatusBar;	// handle/pointer to the statusBar
-	AIToolBar* m_pToolBar;		// handle/pointer to the toolBar
+	wxString m_pPerspective;
+	int m_auitbHeight;
+
+	//(*Declarations(CMainFrame)
+    wxAuiManager m_auiMgr;
+	wxAuiToolBar* m_auiToolbar;
+	//*)
+
+public:
+	//(*Identifiers(CMainFrame)
+	//static const long ID_TBI_BOUNDS_IGNORE_STOP;
+	//static const long ID_TBI_PUNCTUATION_SHOW_HIDE;
+	//static const long ID_TBI_SHOW_SOURCE_TARGET;
+	//static const long ID_TBI_PUNCTUATION_COPY;
+	static const long ID_AUI_TOOLBAR;
+	//*)
+
 	wxPanel* m_pControlBar;		// handle/pointer to the controlBar
 	wxPanel* m_pComposeBar;		// handle/pointer to the composeBar
 	wxPanel* m_pRemovalsBar;	// whm added for 12Sep08 refactored source text editing
@@ -231,7 +248,9 @@ class CMainFrame : public wxDocParentFrame
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
 
     void RecreateToolBar();
+#ifdef TB
 	AIToolBar* GetToolBar();
+#endif
 	void DoCreateStatusBar();
 	//void OnMRUFile(wxCommandEvent& event); //whm removed 1Oct12
 
