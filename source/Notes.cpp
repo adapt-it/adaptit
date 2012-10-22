@@ -1123,7 +1123,10 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
-	m_pView->OnButtonEnablePunctCopy(event);
+	if (!m_pApp->m_bCopySourcePunctuation)
+	{
+		m_pView->OnToggleEnablePunctuationCopy(event);
+	}
 	m_pView->Invalidate();
 	m_pLayout->PlaceBox();
 	
@@ -1330,7 +1333,10 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
-	m_pView->OnButtonEnablePunctCopy(event);
+	if (!m_pApp->m_bCopySourcePunctuation)
+	{
+		m_pView->OnToggleEnablePunctuationCopy(event);
+	}
 
 	m_pView->Invalidate(); // get Draw() done & phrase box shown
 	m_pLayout->PlaceBox();

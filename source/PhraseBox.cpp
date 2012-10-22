@@ -441,7 +441,10 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 		gbEnterTyped = FALSE;
 		// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 		wxCommandEvent event;
-		pView->OnButtonEnablePunctCopy(event);
+		if (!GetLayout()->m_pApp->m_bCopySourcePunctuation)
+		{
+			pView->OnToggleEnablePunctuationCopy(event);
+		}
 		return FALSE;
 	}
 	return TRUE;
@@ -463,7 +466,10 @@ void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pV
 	gbEnterTyped = FALSE;
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
-	pView->OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		pView->OnToggleEnablePunctuationCopy(event);
+	}
 	if (gbSuppressStoreForAltBackspaceKeypress)
 		gSaveTargetPhrase.Empty();
 	gTemporarilySuspendAltBKSP = FALSE;
@@ -851,7 +857,10 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
-	pApp->GetView()->OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		pView->OnToggleEnablePunctuationCopy(event);
+	}
 	if (pNewPile == NULL)
 	{
 		// we deem vertical editing current step to have ended if control gets into this
@@ -1306,7 +1315,10 @@ b:	pApp->m_bSaveToKB = TRUE;
 														 // the active sequ number
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
-	pApp->GetView()->OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		pApp->GetView()->OnToggleEnablePunctuationCopy(event);
+	}
 	if (pNewPile == NULL)
 	{
 		// we deem vertical editing current step to have ended if control gets into this
@@ -3361,7 +3373,10 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
-	pApp->GetView()->OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		pApp->GetView()->OnToggleEnablePunctuationCopy(event);
+	}
 	if (pNewPile == NULL)
 	{
 		// we deem vertical editing current step to have ended if control gets into this
@@ -3656,7 +3671,10 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 	{
 		// restore default button image, and m_bCopySourcePunctuation to TRUE
 		wxCommandEvent event;
-		pApp->GetView()->OnButtonEnablePunctCopy(event);
+		if (!pApp->m_bCopySourcePunctuation)
+		{
+			pApp->GetView()->OnToggleEnablePunctuationCopy(event);
+		}
 		GetLayout()->m_docEditOperationType = no_edit_op;
 		return FALSE; // can't move if the storage failed
 	}
@@ -3670,7 +3688,10 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
-	pApp->GetView()->OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		pApp->GetView()->OnToggleEnablePunctuationCopy(event);
+	}
 	if (pNewPile == NULL)
 	{
         // we deem vertical editing current step to have ended if control gets into this

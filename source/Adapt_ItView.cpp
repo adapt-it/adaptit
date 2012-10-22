@@ -132,6 +132,24 @@
 #include "MergeUpdatedSrc.h"
 #include "KBExportImportOptionsDlg.h"
 
+// vectorized toolbar images (for toggle toolbars)
+#include "../res/vectorized/bounds_go_16.cpp"
+#include "../res/vectorized/bounds_stop_16.cpp"
+#include "../res/vectorized/format_hide_punctuation_16.cpp"
+#include "../res/vectorized/format_show_punctuation_16.cpp"
+#include "../res/vectorized/show_target_16.cpp"
+#include "../res/vectorized/show_source_target_16.cpp"
+#include "../res/vectorized/punctuation_copy_16.cpp"
+#include "../res/vectorized/punctuation_do_not_copy_16.cpp"
+#include "../res/vectorized/bounds-go_22.cpp"
+#include "../res/vectorized/bounds-stop_22.cpp"
+#include "../res/vectorized/format-hide-punctuation_22.cpp"
+#include "../res/vectorized/format-show-punctuation_22.cpp"
+#include "../res/vectorized/show-target_22.cpp"
+#include "../res/vectorized/show-source-target_22.cpp"
+#include "../res/vectorized/punctuation-copy_22.cpp"
+#include "../res/vectorized/punctuation-do-not-copy_22.cpp"
+
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
 //#define max(a,b)            (((a) > (b)) ? (a) : (b))
@@ -967,26 +985,15 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(IDC_BUTTON_NO_ADAPT, CAdapt_ItView::OnUpdateButtonNoAdapt)
 
 	// ToolBar event handlers
-	// Event for Enable/Disable Punct copy
-	EVT_TOOL(ID_BUTTON_ENABLE_PUNCT_COPY, CAdapt_ItView::OnButtonEnablePunctCopy)
-	EVT_UPDATE_UI(ID_BUTTON_ENABLE_PUNCT_COPY, CAdapt_ItView::OnUpdateButtonEnablePunctCopy)
-	EVT_TOOL(ID_BUTTON_NO_PUNCT_COPY, CAdapt_ItView::OnButtonNoPunctCopy)
-	EVT_UPDATE_UI(ID_BUTTON_NO_PUNCT_COPY, CAdapt_ItView::OnUpdateButtonNoPunctCopy)
-	// Event for Respect/Ignore boundary controlBar button
-    EVT_TOOL(ID_BUTTON_RESPECTING_BDRY, CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry)
-    EVT_UPDATE_UI(ID_BUTTON_RESPECTING_BDRY, CAdapt_ItView::OnUpdateButtonRespectBdry)
-    EVT_TOOL(ID_BUTTON_IGNORING_BDRY, CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry)
-    EVT_UPDATE_UI(ID_BUTTON_IGNORING_BDRY, CAdapt_ItView::OnUpdateButtonIgnoreBdry)
-	// Event for Show/Hide Punctuation controlBar button
-	EVT_TOOL(ID_BUTTON_SHOWING_PUNCT, CAdapt_ItView::OnButtonFromShowingToHidingPunct)
-	EVT_UPDATE_UI(ID_BUTTON_SHOWING_PUNCT, CAdapt_ItView::OnUpdateButtonShowPunct)
-    EVT_TOOL(ID_BUTTON_HIDING_PUNCT, CAdapt_ItView::OnButtonFromHidingToShowingPunct)
-	EVT_UPDATE_UI(ID_BUTTON_HIDING_PUNCT, CAdapt_ItView::OnUpdateButtonHidePunct)
-	// Event for Show Target/Show All controlBar button
-	EVT_TOOL(ID_SHOWING_ALL, CAdapt_ItView::OnFromShowingAllToShowingTargetOnly)
-	EVT_UPDATE_UI(ID_SHOWING_ALL, CAdapt_ItView::OnUpdateShowTgt)
-	EVT_TOOL(ID_SHOWING_TGT, CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll)
-	EVT_UPDATE_UI(ID_SHOWING_TGT, CAdapt_ItView::OnUpdateShowAll)
+	// toggle toolbar buttons (these were in 2 separate handlers for the old toolbar)
+	EVT_TOOL(ID_BUTTON_RESPECTING_BDRY, CAdapt_ItView::OnToggleRespectBoundary)
+	EVT_UPDATE_UI(ID_BUTTON_RESPECTING_BDRY, CAdapt_ItView::OnUpdateToggleRespectBoundary)
+	EVT_TOOL(ID_BUTTON_SHOWING_PUNCT, CAdapt_ItView::OnToggleShowPunctuation)
+	EVT_UPDATE_UI(ID_BUTTON_SHOWING_PUNCT, CAdapt_ItView::OnUpdateToggleShowPunctuation)
+	EVT_TOOL(ID_SHOWING_ALL, CAdapt_ItView::OnToggleShowSourceText)
+	EVT_UPDATE_UI(ID_SHOWING_ALL, CAdapt_ItView::OnUpdateToggleShowSourceText)
+	EVT_TOOL(ID_BUTTON_NO_PUNCT_COPY, CAdapt_ItView::OnToggleEnablePunctuationCopy)
+	EVT_UPDATE_UI(ID_BUTTON_NO_PUNCT_COPY, CAdapt_ItView::OnUpdateToggleEnablePunctuationCopy)
 
 	EVT_TOOL(ID_BUTTON_TO_END, CAdapt_ItView::OnButtonToEnd)
 	EVT_UPDATE_UI(ID_BUTTON_TO_END, CAdapt_ItView::OnUpdateButtonToEnd)
@@ -1352,7 +1359,7 @@ void CAdapt_ItView::OnInitialUpdate()
 		gnSaveLeading = pApp->m_curLeading;
 		gnSaveGap = pApp->m_curGapWidth;
 		gbShowTargetOnly = TRUE;
-		OnFromShowingTargetOnlyToShowingAll(dummyevent); // normal view, showing source & target lines
+		OnToggleShowSourceText(dummyevent); // normal view, showing source & target lines
 	}
 
 	// whm Note 22Aug11. I think it is better to call the
@@ -1383,7 +1390,10 @@ void CAdapt_ItView::OnInitialUpdate()
 	if (pApp->m_bCopySourcePunctuation)
 	{
 		pApp->m_bCopySourcePunctuation = FALSE; // the function call will reset it to TRUE
-		OnButtonEnablePunctCopy(dummyevent); // enable automatic copying of source text punctuation
+		if (!pApp->m_bCopySourcePunctuation)
+		{
+			OnToggleEnablePunctuationCopy(dummyevent);
+		}
 	}
 
 	if (pApp->m_bMarkerWrapsStrip)
@@ -6870,7 +6880,7 @@ void CAdapt_ItView::RemoveSelection()
 
 	// toggle Respect Boundaries button back on, so m_bRespectBoundaries is reset TRUE
 	if (!pApp->m_bRespectBoundaries)
-		OnButtonFromIgnoringBdryToRespectingBdry(dummyevent);
+		OnToggleRespectBoundary(dummyevent);// FromIgnoringBdryToRespectingBdry(dummyevent);
 }
 
 // DeepCopySublist2Sublist was in Helpers.cpp in the legacy version.
@@ -7999,7 +8009,10 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	GetLayout()->m_docEditOperationType = default_op;
 
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
-	OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		OnToggleEnablePunctuationCopy(event);
+	}
 
 	Invalidate(); // get the layout redrawn and the phrase box too
 	GetLayout()->PlaceBox();
@@ -8307,7 +8320,10 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 	GetLayout()->m_docEditOperationType = default_op;
 
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
-	OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		OnToggleEnablePunctuationCopy(event);
+	}
 
 	Invalidate();
 	GetLayout()->PlaceBox();
@@ -8593,7 +8609,10 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	GetLayout()->m_docEditOperationType = default_op;
 
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
-	OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		OnToggleEnablePunctuationCopy(event);
+	}
 
 	Invalidate();
 	GetLayout()->PlaceBox();
@@ -8925,7 +8944,10 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	GetLayout()->m_docEditOperationType = default_op;
 
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
-	OnButtonEnablePunctCopy(event);
+	if (!pApp->m_bCopySourcePunctuation)
+	{
+		OnToggleEnablePunctuationCopy(event);
+	}
 
 	Invalidate();
 	GetLayout()->PlaceBox();
@@ -10441,6 +10463,7 @@ void CAdapt_ItView::UnmergePhrase()
 // BEW updated OnButtonRestore() 16Feb10 for support of doc version 5 (nothing needed to be done)
 void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 {
+#ifdef TB
     // Since the Restore (Unmerge) toolbar button has an accelerator table hot key (CTRL-U
     // see CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even
     // when they are disabled, we must check for a disabled button and return if disabled.
@@ -10712,6 +10735,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	}
 	Invalidate();
 	GetLayout()->PlaceBox();
+#endif
 }
 
 // return TRUE if the selection extended, FALSE if not (would be false only if at a
@@ -10739,7 +10763,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	// restore flag (and button)
 	if (bSaveFlag == FALSE)
 	{
-		OnButtonFromRespectingBdryToIgnoringBdry(dummyevent);
+		OnToggleRespectBoundary(dummyevent);
 	}
 
 	// need a CClientDC
@@ -10959,7 +10983,8 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	// restore flag (and button)
 	if (bSaveFlag == FALSE)
 	{
-		OnButtonFromRespectingBdryToIgnoringBdry(dummyevent);
+		//TODO: looks like we _don't_ want to toggle to TRUE?
+		//OnToggleRespectBoundary(dummyevent); //OnButtonFromRespectingBdryToIgnoringBdry(dummyevent);
 	}
 
 	// need a CClientDC
@@ -15134,7 +15159,7 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 	// so if so, switch back to normal view mode
 	if (gbShowTargetOnly)
 	{
-		OnFromShowingTargetOnlyToShowingAll(event);
+		OnToggleShowSourceText(event);
 	}
 	if (pApp->m_pFindDlg == NULL)
 	{
@@ -15427,7 +15452,7 @@ void CAdapt_ItView::OnReplace(wxCommandEvent& event)
 	// we must not be in 'show target only' mode, so if so, switch back to normal view mode
 	if (gbShowTargetOnly)
 	{
-		OnFromShowingTargetOnlyToShowingAll(event);
+		OnToggleShowSourceText(event);
 	}
 
 	if (pApp->m_pReplaceDlg == NULL)
@@ -18729,110 +18754,6 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-/// of the following conditions are TRUE, this handler disables the "Stop Selection At
-/// Boundaries" toolbar item and returns immediately: The application is in Free
-/// Translation mode, in glossing mode, is showing only the target language text, the
-/// active pile is NULL, or there are no source phrases in the m_pSourcePhrases list.
-/// Otherwise, it enables the toolbar button if the m_curIndex represents a valid location.
-/// Note: The "Stop Selection At Boundaries" toolbar button is the opposite state toggle of
-/// the "Ignore Boundaries" toolbar button.
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateButtonRespectBdry(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-
-	// whm added 26Mar12. Disable tool bar button when in read-only mode.
-	if (pApp->m_bReadOnlyAccess)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-
-	if (pApp->m_bFreeTranslationMode)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (gbIsGlossing || gbShowTargetOnly)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pActivePile == NULL)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
-		pApp->m_nActiveSequNum >= 0)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-/// of the following conditions are TRUE, this handler disables the "Ignore Boundaries"
-/// toolbar item and returns immediately: The application is in Free Translation mode, in
-/// glossing mode, is showing only the target language text, the active pile is NULL, or
-/// there are no source phrases in the m_pSourcePhrases list. Otherwise, it enables the
-/// toolbar button if the m_curIndex represents a valid location. Note: The "Ignore
-/// Boundaries" toolbar button is the opposite state toggle of the "Stop Selection At
-/// Boundaries" toolbar button.
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateButtonIgnoreBdry(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-
-	// whm added 26Mar12. Disable tool bar button when in read-only mode.
-	if (pApp->m_bReadOnlyAccess)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-
-	if (pApp->m_bFreeTranslationMode)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (gbIsGlossing || gbShowTargetOnly)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pActivePile == NULL)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
-		pApp->m_nActiveSequNum >= 0)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
 /// \param      event   -> the wxCommandEvent that is associated with the
 ///                         ID_BUTTON_RESPECTING_BDRY bitmap image on the toolBar
 /// \remarks
@@ -18846,11 +18767,9 @@ void CAdapt_ItView::OnUpdateButtonIgnoreBdry(wxUpdateUIEvent& event)
 /// ahead with no fence across it) is displayed on the toolBar after this handler finishes
 /// because it shows the user what state the respect/ignore boundaries functionality would
 /// be if the user were to press that toolbar button, i.e., the opposite of the current
-/// state. Note: The "Respecting Boundaries" toolbar button (having a fence across the
-/// road) is the opposite state toggle of the "Ignoring Boundaries" toolbar button . See
-/// also OnButtonFromIgnoringBdryToRespectingBdry().
+/// state. 
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 {
     // This handler was called OnButtonRespectBdry() in the MFC version. Since it is a
     // toggle button which changes its appearance I've changed the name of the handler and
@@ -18859,143 +18778,137 @@ void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXU
 	wxASSERT(pApp != NULL);
 	CMainFrame *pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
 
-	// toggle the setting and adjust the button image accordingly
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_IGNORING_BDRY);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_BUTTON_RESPECTING_BDRY);
-	// whm 12Oct10 note: these buttons for ignoring/respecting boundaries will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
+	// get the ToolBarItem
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_RESPECTING_BDRY);
+
+	// update the toggle value
+	pApp->m_bRespectBoundaries = !(pApp->m_bRespectBoundaries);
+
+	// set the label and bitmap as appropriate
 	if (pApp->m_bRespectBoundaries)
 	{
-        // The app is currently respecting boundaries. The user wants to switch from
-        // respecting to ignoring them. This is effected by setting m_bRespectBoundaries to
-        // FALSE.
-		pApp->m_bRespectBoundaries = FALSE;
-        // Now we must change the appearance of the toggle button in the toolbar so that
-        // its appearance switches from the respecting image to the ignoring image. We do
-        // this by inserting the ID_BUTTON_IGNORING_BDRY button into position on the
-        // toolbar.
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if (tbDeleted)
-		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
-					AIToolBarBitmapsToggled32x30Func( 0 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Stop Selection At Boundaries"),
-					_("Respect boundaries when selecting"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
-					AIToolBarBitmapsToggledFunc( 0 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Stop Selection At Boundaries"),
-					_("Respect boundaries when selecting"));
-			}
-            // whm Note: Now, the ignoring bdry button is showing on the toolbar. Remember:
-            // The tooltip and help text tell what clicking on this hiding button would do,
-            // i.e., Respect Boundaries. must call Realize() after adding a new button
-			pToolBar->Realize();
-		}
+		tbi->SetLongHelp(_("Stop Selection At Boundaries"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16)); // TODO: base on size
 	}
+	else
+	{
+		tbi->SetLongHelp(_("Ignore Boundaries"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_16)); // TODO: base on size
+	}
+	// update the toolbar
+	pFrame->m_auiToolbar->Realize();
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Stop Selection At
+/// Boundaries" toolbar item and returns immediately: The application is in Free
+/// Translation mode, in glossing mode, is showing only the target language text, the
+/// active pile is NULL, or there are no source phrases in the m_pSourcePhrases list.
+/// Otherwise, it enables the toolbar button if the m_curIndex represents a valid location.
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItView::OnUpdateToggleRespectBoundary(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+
+	// whm added 26Mar12. Disable tool bar button when in read-only mode.
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
+	if (pApp->m_bFreeTranslationMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbIsGlossing || gbShowTargetOnly)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pActivePile == NULL)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pSourcePhrases->GetCount() == 0)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
+		pApp->m_nActiveSequNum >= 0)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxCommandEvent that is associated with the
-///                         ID_BUTTON_IGNORING_BDRY bitmap image on the toolBar
+///                         ID_BUTTON_SHOWING_PUNCT bitmap image on the toolBar
 /// \remarks
 /// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-/// associated with the ID_BUTTON_IGNORING_BDRY bitmap image (road with no fence across
-/// it). Note: The Button image depicts what the current state of boundary
-/// respecting/ignoring is, but the tooltip and help text describe what clicking the button
-/// will accomplish. If m_bRespectBoundaries is FALSE, this handler insures that the
-/// ID_BUTTON_RESPECTING_BDRY bitmap image is displayed in the Toolbar, and changes
-/// m_bRespectBoundaries to TRUE. The "Respecting Boundaries" button (witn
-/// ID_BUTTON_RESPECTING_BDRY image having a fence across the road) is displayed on the
-/// toolBar after this handler finishes because it shows the user what state the
-/// respect/ignore boundaries functionality would be if the user were to press that toolbar
-/// button, i.e., the opposite of the current state. Note: The "Ignoring Boundaries"
-/// toolbar button (road ahead with no fence across it) is the opposite state toggle of the
-/// "Respecting Boundaries" toolbar button . See also
-/// OnButtonFromRespectingBdryToIgnoringBdry().
+/// associated with the ID_BUTTON_SHOWING_PUNCT bitmap image. Note: The Button image
+/// depicts what the current state of punctuation showing/hiding is, but the tooltip and
+/// help text describe what clicking the button will accomplish. If m_bHidePunctuation is
+/// FALSE, this handler insures that the ID_BUTTON_HIDING_PUNCT bitmap image is displayed
+/// in the Toolbar, and changes m_bHidePunctuation to TRUE. 
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 {
-    // This handler was called OnButtonIgnoreBdry() in the MFC version. Since it is a
-    // toggle button which changes its appearance I've changed the name of the handler and
-    // its ID symbol names.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CMainFrame *pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
 
-	// user or the app wants to restore respect for boundarires, fix accordingly
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_IGNORING_BDRY);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_BUTTON_RESPECTING_BDRY);
-	// whm 12Oct10 note: these buttons for ignoring/respecting boundaries will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
-	if (!pApp->m_bRespectBoundaries)
+	// Update the toolbar UI
+	// get the ToolBarItem
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_SHOWING_PUNCT);
+	// update the toggle value
+	pApp->m_bHidePunctuation = !(pApp->m_bHidePunctuation);
+	// set the label and bitmap as appropriate
+	if (!pApp->m_bHidePunctuation)
 	{
-		// The app is currently ingoring boundaries. The user wants to switch from ignoring
-		// to respecting them. This is effected by setting m_bRespectBoundaries to TRUE.
-		pApp->m_bRespectBoundaries = TRUE;
-        // Now we must change the appearance of the toggle button in the toolbar so that
-        // its appearance switches from the ignoring image to the respecting image. We do
-        // this by inserting the ID_BUTTON_RESPECTING_BDRY button into position on the
-        // toolbar.
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if(tbDeleted)
-		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsUnToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
-					AIToolBarBitmapsUnToggled32x30Func( 9 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Ignore Boundaries"),
-					_("Ignore boundaries when making selections"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
-					AIToolBarBitmapsUnToggledFunc( 9 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Ignore Boundaries"),
-					_("Ignore boundaries when making selections"));
-			}
-            // whm Note: Now, the respecting bdry button is showing on the toolbar.
-            // Remember: The tooltip and help text tell what clicking on this hiding button
-            // would do, i.e., Ignore Boundaries. must call Realize() after adding a new
-            // button
-			pToolBar->Realize();
-		}
+		tbi->SetLongHelp(_("Hide Punctuation"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_16)); // TODO: base on size
 	}
+	else
+	{
+		tbi->SetLongHelp(_("Show Punctuation"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_16)); // TODO: base on size
+	}
+	// update the toolbar
+	pFrame->m_auiToolbar->Realize();
+
+	// redraw the canvas UI
+	if (pApp->m_nActiveSequNum != -1)
+	{
+		CPile* pPile = GetPile(pApp->m_nActiveSequNum);
+		wxASSERT(pPile);
+		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+
+		// reset the pApp->m_targetPhrase to hold the source phrase's other member
+		pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+	}
+	CLayout* pLayout = GetLayout();
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -19007,10 +18920,9 @@ void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXU
 /// toolbar item and returns immediately: The application is in Free Translation mode, in
 /// glossing mode, the active pile is NULL, or there are no source phrases in the
 /// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
-/// represents a valid location. Note: The "Show Punctuation" toolbar button is the
-/// opposite state toggle of the "Hide Punctuation" toolbar button.
+/// represents a valid location. 
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateButtonShowPunct(wxUpdateUIEvent& event)
+void CAdapt_ItView::OnUpdateToggleShowPunctuation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -19055,91 +18967,55 @@ void CAdapt_ItView::OnUpdateButtonShowPunct(wxUpdateUIEvent& event)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxCommandEvent that is associated with the
-///                         ID_BUTTON_SHOWING_PUNCT bitmap image on the toolBar
+/// \param      event   -> the wxCommandEvent that is associated with the ID_SHOWING_TGT
+///                        bitmap image on the toolBar
 /// \remarks
 /// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-/// associated with the ID_BUTTON_SHOWING_PUNCT bitmap image. Note: The Button image
-/// depicts what the current state of punctuation showing/hiding is, but the tooltip and
-/// help text describe what clicking the button will accomplish. If m_bHidePunctuation is
-/// FALSE, this handler insures that the ID_BUTTON_HIDING_PUNCT bitmap image is displayed
-/// in the Toolbar, and changes m_bHidePunctuation to TRUE. The "Hiding Punctuation" button
-/// (witn ID_BUTTON_HIDING_PUNCT image having curtains closed on stage) is displayed on the
-/// toolBar after this handler finishes because it shows the user what state the show/hide
-/// punctuation functionality would be if the user were to press that toolbar button, i.e.,
-/// the opposite of the current state. Note: The "Showing Punctuation" toolbar button
-/// (curtains drawn back revealing an exclamation point) is the opposite state toggle of
-/// the "Hiding Punctuation" toolbar button . See also OnButtonFromHidingToShowingPunct().
+/// associated with the ID_SHOWING_TGT bitmap image. The
+/// OnFromShowingTargetOnlyToShowingAll() handler is also called directly from the View's
+/// OnInitialUpdate(), OnFind(), and OnReplace(). Note: The Button image depicts what the
+/// current state of showing-all/showing-target-only is, but the tooltip and help text
+/// describe what clicking the button will accomplish. If gbShowTargetOnly is TRUE, this
+/// handler insures that the ID_SHOWING_ALL bitmap image is displayed in the Toolbar, and
+/// changes gbShowTargetOnly to FALSE. The "Showing ALL" button (witn ID_SHOWING_ALL image
+/// having pairs of lines representing strips of source and target together) is displayed
+/// on the toolBar after this handler finishes because it shows the user what state the
+/// showing-all/showing-target-text-only functionality would be if the user were to press
+/// that toolbar button, i.e., the opposite of the current state. 
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 {
-    // This handler was called OnButtonShowPunct() in the MFC version. Since it is a toggle
-    // button which changes its appearance I've changed the name of the handler and its ID
-    // symbol names.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CMainFrame *pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
 
-	// toggle the setting and adjust the button image accordingly
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_HIDING_PUNCT);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_BUTTON_SHOWING_PUNCT);
-	// whm 12Oct10 note: these buttons for hiding/showing punctuation will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
-	if (!pApp->m_bHidePunctuation)
+	// update the toolbar UI
+	// get the ToolBarItem
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_SHOWING_ALL);
+	// update the toggle value
+	gbShowTargetOnly = !(gbShowTargetOnly);
+	// set the label and bitmap as appropriate
+	if (gbShowTargetOnly)
 	{
-        // The app is currently showing (not hiding) punctuation. The user wants to switch
-        // from showing to hiding. This is effected by setting m_bHidePunctuation to TRUE.
-		pApp->m_bHidePunctuation = TRUE;
-        // Now we must change the appearance of the toggle button in the toolbar so that
-        // its appearance switches from the showing image to the hiding image. We do this
-        // by inserting the ID_BUTTON_HIDING_PUNCT button into position on the toolbar.
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if (tbDeleted)
+		tbi->SetLongHelp(_("Show Target Text Only"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_16)); // TODO: base on size
+	}
+	else
+	{
+		tbi->SetLongHelp(_("Show Source And Target Text"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_16)); // TODO: base on size
+	}
+	// update the toolbar
+	pFrame->m_auiToolbar->Realize();
+
+	// refresh the canvas UI
+	CLayout* pLayout = GetLayout();
+	if (pApp->m_pSourcePhrases != NULL)
+	{
+		if (!pApp->m_pSourcePhrases->IsEmpty())
 		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
-					AIToolBarBitmapsToggled32x30Func( 1 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Show Punctuation"),
-					_("Show text with punctuation"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
-					AIToolBarBitmapsToggledFunc( 1 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Show Punctuation"),
-					_("Show text with punctuation"));
-			}
-            // whm Note: Now, the hiding punct button is showing on the toolbar. Remember:
-            // The tooltip and help text tell what clicking on this hiding button would do,
-            // i.e., Show Punctuation. must call Realize() after adding a new button
-			pToolBar->Realize();
-
-			if (pApp->m_nActiveSequNum != -1)
-			{
-				CPile* pPile = GetPile(pApp->m_nActiveSequNum);
-				wxASSERT(pPile);
-				CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-
-				// reset the pApp->m_targetPhrase to hold the source phrase's other member
-				pApp->m_targetPhrase = pSrcPhrase->m_adaption;
-			}
-			CLayout* pLayout = GetLayout();
 #ifdef _NEW_LAYOUT
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -19150,17 +19026,6 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 			GetLayout()->PlaceBox();
 		}
 	}
-	else
-	{
-		// oops, the boolean was out of sync with the state shown by the view's icon, so
-		// have this else block to fix the value; next click of the same button will then work
-		// right - but we need to do a Redraw() here, to get punctuation shown - in
-		// agreement with this fix of the flag value
-		pApp->m_bHidePunctuation = FALSE;
-
-		CLayout* pLayout = GetLayout();
-		pLayout->Redraw();
-	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -19168,36 +19033,20 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-/// of the following conditions are TRUE, this handler disables the "Enable Punctuation
-/// Copy" toolbar item (black punctuation characters on a green background) and returns
-/// immediately: The application is in Free Translation mode, in glossing mode, the active
-/// pile is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise,
-/// it enables the toolbar button if the m_curIndex represents a valid location. Note: The
-/// "Enable Punctuation Copy" toolbar button is the opposite state toggle of the "No
-/// Punctuation Copy" toolbar button (black punctuation with yellow background and a red
-/// circle and red diagonal bar).
+/// of the following conditions are TRUE, this handler disables the "Show Target Text Only"
+/// toolbar item and returns immediately: Vertical Editing is in progress, the active pile
+/// is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise, it
+/// enables the toolbar button if m_endIndex is within a valid range. 
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
+void CAdapt_ItView::OnUpdateToggleShowSourceText(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	CAdapt_ItApp* pApp = &wxGetApp();
-
-	// whm added 26Mar12. Disable tool bar button when in read-only mode.
-	if (pApp->m_bReadOnlyAccess)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-
-	if (pApp->m_bFreeTranslationMode)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-   if (gbIsGlossing)
-    {
-            event.Enable(FALSE);
-            return;
-    }
+	wxASSERT(pApp != NULL);
 	if (pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
@@ -19208,11 +19057,17 @@ void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	if (pApp->m_bFreeTranslationMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
 		pApp->m_nActiveSequNum >= 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -19232,89 +19087,35 @@ void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
 /// ID_BUTTON_NO_PUNCT_COPY image having black punctuation with yellow background and a red
 /// circle and red diagonal bar) is displayed on the toolBar after this handler finishes
 /// because it shows the user what state the punctuation copy functionality would be if the
-/// user were to press that toolbar button, i.e., the opposite of the current state. Note:
-/// The "Enable Punctuation Copy" toolbar button is the opposite state toggle of the "No
-/// Punctuation Copy" toolbar button (black punctuation with yellow background and a red
-/// circle and red diagonal bar). See also OnButtonNoPunctCopy().
+/// user were to press that toolbar button, i.e., the opposite of the current state. 
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& event)
+void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event))
 {
-	// whm note: This OnButtonEnablePunctCopy() handler functions as one
-	// half of the toolbar toggle button that toggles between "Copy Punctuation"
-	// and "No Copy Punctuation". It only sets m_bCopySourcePunctuation to TRUE
-	// if m_bCopySourcePunctuation is FALSE when OnButtonEnablePunctCopy() is
-	// called. The other half of the toggle function is done in
-	// OnButtonNoPunctCopy().
 	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pFrame = pApp->GetMainFrame();
-	wxASSERT(pFrame);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
+	wxASSERT(pApp != NULL);
+	CMainFrame *pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
 
-	// We only want to call the LogUserAction() when this OnButtonEnablePunctCopy()
-	// handler is initiated from the toolbar and not when it is being called from other
-	// functions, so we look at the id associated with the event.
-	if (event.GetId()  == ID_BUTTON_ENABLE_PUNCT_COPY)
-	{
-		pApp->LogUserAction(_T("Enable Punctation Copy"));
-	}
+	// get the ToolBarItem
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_NO_PUNCT_COPY);
 
-	// toggle the setting and adjust the button image accordingly
-    // whm Note: The MFC version starts with both toggle state images in the toolbar images
-    // and simply hides one and shows the other as appropriate. The wxToolBar class does
-    // not have a HideButton() method, so we Delete the unwanted image from the toolBar,
-    // and Insert the image we want into the toolBar. The MFC version also used this
-    // OnButtonEnablePunctCopy() handler to set the initial state of the punctuation copy
-    // function to TRUE in OnInitialUpdate() and other places, so to be safe we will get
-    // the toolPos from either the ID_BUTTON_NO_PUNCT_COPY image or the
-    // ID_BUTTON_ENABLE_PUNCT_COPY image, delete whatever image was there, but then
-    // unilaterally we insert the ID_BUTTON_NO_PUNCT_COPY into the position of the deleted
-    // image. The image names reflect the toggle state that would ensue if the button were
-    // pressed, rather than the present state as indicated by the value of
-    // m_bCopySourcePunctuation as set at the end of this handler.
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_NO_PUNCT_COPY);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_BUTTON_ENABLE_PUNCT_COPY);
-	// whm 12Oct10 note: these buttons for no/yes punctuation copy will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
-	if (!pApp->m_bCopySourcePunctuation)
+	// update the toggle value
+	pApp->m_bCopySourcePunctuation = !(pApp->m_bCopySourcePunctuation);
+
+	// set the label and bitmap as appropriate
+	if (pApp->m_bCopySourcePunctuation)
 	{
-		// In WX we delete the unwanted button and insert the wanted button to create
-		// the toggle effect
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if (tbDeleted)
-		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsUnToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
-					AIToolBarBitmapsUnToggled32x30Func( 27 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("No Punctuation Copy"),
-					_("Suppress the copying of source text punctuation temporarily"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
-					AIToolBarBitmapsUnToggledFunc( 27 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("No Punctuation Copy"),
-					_("Suppress the copying of source text punctuation temporarily"));
-			}
-			// must call Realize() after adding a new button
-			pToolBar->Realize();
-		}
-		// toggle the setting
-		pApp->m_bCopySourcePunctuation = TRUE;
+		tbi->SetLongHelp(_("No punctuation copy"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_16)); // TODO: base on size
 	}
+	else
+	{
+		tbi->SetLongHelp(_("Enable Punctuation Copy"));
+		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_16)); // TODO: base on size
+	}
+	// update the toolbar
+	pFrame->m_auiToolbar->Realize();
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -19322,26 +19123,23 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& event)
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-/// of the following conditions are TRUE, this handler disables the "No Punctuation Copy"
-/// toolbar item (black punctuation with yellow background and a red circle and red
-/// diagonal bar) and returns immediately: The application is in Free Translation mode, in
-/// glossing mode, the active pile is NULL, or there are no source phrases in the
-/// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
-/// represents a valid location. Note: The "No Punctuation Copy" toolbar button is the
-/// opposite state toggle of the "Enable Punctuation Copy" toolbar button (black
-/// punctuation characters on a green background).
+/// of the following conditions are TRUE, this handler disables the "Enable Punctuation
+/// Copy" toolbar item (black punctuation characters on a green background) and returns
+/// immediately: The application is in Free Translation mode, in glossing mode, the active
+/// pile is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise,
+/// it enables the toolbar button if the m_curIndex represents a valid location. 
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
+void CAdapt_ItView::OnUpdateToggleEnablePunctuationCopy(wxUpdateUIEvent& event)
 {
- 	CAdapt_ItApp* pApp = &wxGetApp();
-
+	CAdapt_ItApp* pApp = &wxGetApp();
+ 	
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-
+	
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -19367,546 +19165,8 @@ void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
+
 }
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxCommandEvent that is associated with the
-///                         ID_BUTTON_NO_PUNCT_COPY bitmap image on the toolBar
-/// \remarks
-/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-/// associated with the ID_BUTTON_NO_PUNCT_COPY bitmap image. If m_bCopySourcePunctuation
-/// is TRUE, this handler insures that the ID_BUTTON_ENABLE_PUNCT_COPY bitmap image is
-/// displayed in the Toolbar, and changes m_bCopySourcePunctuation to FALSE. The "Enable
-/// Punctuation Copy" button (witn ID_BUTTON_ENABLE_PUNCT_COPY image having black
-/// punctuation with green background) is displayed on the toolBar after this handler
-/// finishes because it shows the user what state the punctuation copy functionality would
-/// be if the user were to press that toolbar button, i.e., the opposite of the current
-/// state. Note: The "No Punctuation Copy" toolbar button (black punctuation with yellow
-/// background and a red circle and red diagonal bar) is the opposite state toggle of the
-/// "Enable Punctuation Copy" toolbar button . See also OnUpdateButtonEnablePunctCopy().
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& event)
-{
-	// whm note: This OnButtonNoPunctCopy() handler functions as one
-	// half of the toolbar toggle button that toggles between "No Copy Punctuation"
-	// and "Copy Punctuation". It only sets m_bCopySourcePunctuation to FALSE
-	// if m_bCopySourcePunctuation is TRUE when OnButtonNoPunctCopy() is
-	// called. The other half of the toggle function is done in
-	// OnButtonEnablePunctCopy().
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pFrame = pApp->GetMainFrame();
-	wxASSERT(pFrame);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
-
-	// We only want to call the LogUserAction() when this OnButtonNoPunctCopy()
-	// handler is initiated from the toolbar and not when it is being called from other
-	// functions, so we look at the id associated with the toolbar event.
-	if (event.GetId()  == ID_BUTTON_NO_PUNCT_COPY)
-	{
-		pApp->LogUserAction(_T("No Punctuation Copy"));
-	}
-
-	// toggle the setting and adjust the button image accordingly
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_NO_PUNCT_COPY);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_BUTTON_ENABLE_PUNCT_COPY);
-	// whm 12Oct10 note: these buttons for no/yes punctuation copy will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
-	if (pApp->m_bCopySourcePunctuation)
-	{
-		// In WX we delete the unwanted button and insert the wanted button to
-		// create the toggle effect
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if (tbDeleted)
-		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsUnToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
-					AIToolBarBitmapsToggled32x30Func( 3 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Enable Punctuation Copy"),
-					_("Re-enable automatic copying of source text punctuation"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
-					AIToolBarBitmapsToggledFunc( 3 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Enable Punctuation Copy"),
-					_("Re-enable automatic copying of source text punctuation"));
-			}
-			// must call Realize() after adding a new button
-			pToolBar->Realize();
-		}
-		// toggle the setting
-		pApp->m_bCopySourcePunctuation = FALSE;
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-/// of the following conditions are TRUE, this handler disables the "Hide Punctuation"
-/// toolbar item and returns immediately: The application is in Free Translation mode, in
-/// glossing mode, the active pile is NULL, or there are no source phrases in the
-/// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
-/// represents a valid location. Note: The "Hide Punctuation" toolbar button is the
-/// opposite state toggle of the "Show Punctuation" toolbar button.
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateButtonHidePunct(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-
-	// whm added 26Mar12. Disable tool bar button when in read-only mode
-	if (pApp->m_bReadOnlyAccess)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-
-	if (pApp->m_bFreeTranslationMode)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-   if (gbIsGlossing)
-    {
-            event.Enable(FALSE);
-            return;
-    }
-	if (pApp->m_pActivePile == NULL)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
-		pApp->m_nActiveSequNum >= 0)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxCommandEvent that is associated with the
-///                         ID_BUTTON_HIDING_PUNCT bitmap image on the toolBar
-/// \remarks
-/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-/// associated with the ID_BUTTON_HIDING_PUNCT bitmap image (image with curtains closed).
-/// Note: The Button image depicts what the current state of punctuation showing/hiding is,
-/// but the tooltip and help text describe what clicking the button will accomplish. If
-/// m_bHidePunctuation is TRUE, this handler insures that the ID_BUTTON_SHOWING_PUNCT
-/// bitmap image is displayed in the Toolbar, and changes m_bHidePunctuation to FALSE. The
-/// "Showing Punctuation" button (witn ID_BUTTON_SHOWING_PUNCT image having curtains drawn
-/// back revealing an exclamation point) is displayed on the toolBar after this handler
-/// finishes because it shows the user what state the show/hide punctuation functionality
-/// would be if the user were to press that toolbar button, i.e., the opposite of the
-/// current state. Note: The "Hiding Punctuation" toolbar button (curtains closed on stage)
-/// is the opposite state toggle of the "Showing Punctuation" toolbar button . See also
-/// OnButtonFromShowingToHidingPunct().
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(event))
-{
-    // This handler was called OnButtonHidePunct() in the MFC version. Since it is a toggle
-    // button which changes its appearance I've changed the name of the handler and its ID
-    // symbol names.
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CMainFrame *pFrame = pApp->GetMainFrame();
-	wxASSERT(pFrame != NULL);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
-
-	// toggle the setting and adjust the button image accordingly
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_BUTTON_HIDING_PUNCT);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_BUTTON_SHOWING_PUNCT);
-	// whm 12Oct10 note: these buttons for hiding/showing punctuation will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
-	if (pApp->m_bHidePunctuation)
-	{
-        // The app is currently hiding punctuation. The user wants to switch from hiding
-        // to showing. This is effected by setting m_bHidePunctuation to FALSE.
-		pApp->m_bHidePunctuation = FALSE;
-        // Now we must change the appearance of the toggle button in the toolbar so that
-        // its appearance switches from the hiding image to the showing image. We do this
-        // by inserting the ID_BUTTON_SHOWING_PUNCT button into position on the toolbar.
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if (tbDeleted)
-		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsUnToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
-					AIToolBarBitmapsUnToggled32x30Func( 10 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Hide Punctuation"),
-					_("Don't show punctuation with the text"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
-					AIToolBarBitmapsUnToggledFunc( 10 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Hide Punctuation"),
-					_("Don't show punctuation with the text"));
-			}
-            // whm Note: Now, the showing punct button is showing on the toolbar. Remember:
-            // The tooltip and help text tell what clicking on this hiding button would do,
-            // i.e., Hide Punctuation. must call Realize() after adding a new button
-			pToolBar->Realize();
-			CLayout* pLayout = GetLayout();
-			if (pApp->m_nActiveSequNum != -1 && !pLayout->GetPileList()->IsEmpty())
-			{
-				CPile* pPile = GetPile(pApp->m_nActiveSequNum);
-				wxASSERT(pPile);
-				CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-
-				// reset the pApp->m_targetPhrase to hold the source phrase's other member
-				pApp->m_targetPhrase = pSrcPhrase->m_targetStr;
-			}
-			if (pApp->m_pSourcePhrases != NULL)
-			{
-				if (!pApp->m_pSourcePhrases->IsEmpty())
-				{
-#ifdef _NEW_LAYOUT
-					pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-					pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-					Invalidate();
-					GetLayout()->PlaceBox();
-				}
-			}
-		}
-	}
-	else
-	{
-		// oops, the boolean was out of sync with the state shown by the view's icon, so
-		// have this else block to fix the value; next click of the same button will then work
-		// right - but we need to do a Redraw() here, to get punctuation hidden - in
-		// agreement with this fix of the flag value
-		pApp->m_bHidePunctuation = TRUE;
-
-		CLayout* pLayout = GetLayout();
-		pLayout->Redraw();
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-/// of the following conditions are TRUE, this handler disables the "Show Target Text Only"
-/// toolbar item and returns immediately: Vertical Editing is in progress, the active pile
-/// is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise, it
-/// enables the toolbar button if m_endIndex is within a valid range. Note: The "Show
-/// Target Text Only" toolbar button is the opposite state toggle of the "Show Source And
-/// Target Text" toolbar button.
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateShowTgt(wxUpdateUIEvent& event)
-{
-	if (gbVerticalEditInProgress)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	if (pApp->m_pActivePile == NULL)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_bFreeTranslationMode)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
-		pApp->m_nActiveSequNum >= 0)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxCommandEvent that is associated with the ID_SHOWING_ALL
-///                        bitmap image on the toolBar
-/// \remarks
-/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-/// associated with the ID_SHOWING_ALL bitmap image. Note: The Button image depicts what
-/// the current state of showing-all/showing-target-only is, but the tooltip and help text
-/// describe what clicking the button will accomplish. If gbShowTargetOnly is FALSE, this
-/// handler insures that the ID_SHOWING_TGT bitmap image is displayed in the Toolbar, and
-/// changes gbShowTargetOnly to TRUE. The "Showing Source And Target Text" button (witn
-/// ID_SHOWING_ALL image having pairs of lines representing strips of source and target
-/// together) is displayed on the toolBar after this handler finishes because it shows the
-/// user what state the target text only functionality would be if the user were to press
-/// that toolbar button, i.e., the opposite of the current state. Note: The "Show Source
-/// And Target Text" toolbar button is the opposite state toggle of the "Show Target Text
-/// Only" toolbar button. See also OnFromShowingAllToShowingTargetOnly().
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED(event))
-{
-    // This handler was called OnShowTgt() in the MFC version. Since it is a toggle button
-    // which changes its appearance I've changed the name of the handler and its ID symbol
-    // names.
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CMainFrame *pFrame = pApp->GetMainFrame();
-	wxASSERT(pFrame != NULL);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
-
-	// toggle the setting and adjust the button image accordingly
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_SHOWING_TGT);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_SHOWING_ALL);
-	// whm 12Oct10 note: these buttons for showing only target/showing all will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
-	if (!gbShowTargetOnly)
-	{
-		// The app is currently showing all. The user wants to switch from showing all
-		// to showing only TGT text. This is effected by setting gbShowTargetOnly to TRUE.
-
-		// must remove any selection first
-		RemoveSelection();
-
-		// user wants to show only the target lines, so fix accordingly
-		gbShowTargetOnly = TRUE;
-        // Now we must change the appearance of the toggle button in the toolbar so that
-        // its appearance switches from the showing all image to the showing only target
-        // text image. We do this by inserting the ID_SHOWING_TGT button into position on
-        // the toolbar.
-		gnSaveLeading = pApp->m_curLeading;
-		gnSaveGap = pApp->m_curGapWidth;
-		pApp->m_curLeading = pApp->m_nTgtHeight / 4;
-		int newGapWidth = pApp->m_curGapWidth / 3;
-		pApp->m_curGapWidth = wxMax(newGapWidth,10);
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if (tbDeleted)
-		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsUnToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
-					AIToolBarBitmapsToggled32x30Func( 2 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Show normal view"),
-					_("Show Source And Target Text"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
-					AIToolBarBitmapsToggledFunc( 2 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Show normal view"),
-					_("Show Source And Target Text"));
-			}
-            // whm Note: Now, the showing tgt only button is showing on the toolbar.
-            // Remember: The tooltip and help text tell what clicking on this hiding button
-            // would do, i.e., Show Source and Target Text. Must call Realize() after
-            // adding a new button
-			pToolBar->Realize();
-			CLayout* pLayout = GetLayout();
-#ifdef _NEW_LAYOUT
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-			Invalidate();
-			GetLayout()->PlaceBox();
-		}
-	}
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-/// If any of the following conditions are TRUE, this handler disables the "Show Source And
-/// Target Text" toolbar item (pairs of lines representing strips) and returns immediately:
-/// Vertical Editing is in progress, the active pile is NULL, or there are no source
-/// phrases in the m_pSourcePhrases list. Otherwise, it enables the toolbar button if
-/// m_endIndex is within a valid range.
-/// Note: The "Show Source And Target Text" toolbar button is the opposite state toggle of
-/// the "Show Target Text Only" toolbar button.
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateShowAll(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (gbVerticalEditInProgress)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	wxASSERT(pApp != NULL);
-	if (pApp->m_pActivePile == NULL)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() &&
-		pApp->m_nActiveSequNum >= 0)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxCommandEvent that is associated with the ID_SHOWING_TGT
-///                        bitmap image on the toolBar
-/// \remarks
-/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-/// associated with the ID_SHOWING_TGT bitmap image. The
-/// OnFromShowingTargetOnlyToShowingAll() handler is also called directly from the View's
-/// OnInitialUpdate(), OnFind(), and OnReplace(). Note: The Button image depicts what the
-/// current state of showing-all/showing-target-only is, but the tooltip and help text
-/// describe what clicking the button will accomplish. If gbShowTargetOnly is TRUE, this
-/// handler insures that the ID_SHOWING_ALL bitmap image is displayed in the Toolbar, and
-/// changes gbShowTargetOnly to FALSE. The "Showing ALL" button (witn ID_SHOWING_ALL image
-/// having pairs of lines representing strips of source and target together) is displayed
-/// on the toolBar after this handler finishes because it shows the user what state the
-/// showing-all/showing-target-text-only functionality would be if the user were to press
-/// that toolbar button, i.e., the opposite of the current state. Note: The "Showing Target
-/// Text Only" toolbar button is the opposite state toggle of the "Showing All" toolbar
-/// button. See also OnFromShowingAllToShowingTargetOnly().
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED(event))
-{
-    // This handler was called OnShowAll() in the MFC version. Since it is a toggle button
-    // which changes its appearance I've changed the name of the handler and its ID symbol
-    // names.
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CMainFrame *pFrame = pApp->GetMainFrame();
-	wxASSERT(pFrame != NULL);
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
-
-	// toggle the setting and adjust the button image accordingly
-	int toolPos;
-	toolPos = pToolBar->GetToolPos(ID_SHOWING_TGT);
-	if (toolPos == wxNOT_FOUND)
-		toolPos = pToolBar->GetToolPos(ID_SHOWING_ALL);
-	// whm 12Oct10 note: these buttons for showing only target/showing all will probably never
-	// be candidates for hiding in a user workflow profile, but in case they do, the
-	// wxASSERT and the following test will give notice and prevent a crash.
-	wxASSERT(toolPos != wxNOT_FOUND);
-	if (toolPos == wxNOT_FOUND)
-		return; // whm 12Oct10 added
-	if (gbShowTargetOnly)
-	{
-        // The app is currently showing only target lines. The user wants to switch from
-        // showing only the target text to showing all. This is effected by setting
-        // gbShowTargetOnly to FALSE.
-		gbShowTargetOnly = FALSE;
-        // Now we must change the appearance of the toggle button in the toolbar so that
-        // its appearance switches from the showing target only image to the showing all
-        // image. We do this by inserting the ID_SHOWING_ALL button into position on the
-        // toolbar.
-		pApp->m_curLeading = gnSaveLeading;
-		pApp->m_curGapWidth = gnSaveGap;
-		gnSaveLeading = 4;
-		gnSaveGap = 8;
-		bool tbDeleted = FALSE;
-		tbDeleted = pToolBar->DeleteToolByPos(toolPos);
-		if(tbDeleted)
-		{
-            // Note: In InsertTool, 1st parameter is position of button, zero based, count
-            // includes spacers In AIToolBarBitmapsUnToggledFunc parameter is index of
-            // bitmap, zero based (no spacers in count)
-			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
-			{
-				pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
-					AIToolBarBitmapsUnToggled32x30Func( 24 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Show Target Text Only"),
-					_("Show target text only"));
-			}
-			else
-			{
-				pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
-					AIToolBarBitmapsUnToggledFunc( 24 ), wxNullBitmap,
-					wxITEM_CHECK,
-					_("Show Target Text Only"),
-					_("Show target text only"));
-			}
-            // whm Note: Now, the showing all button is showing on the toolbar. Remember:
-            // The tooltip and help text tell what clicking on this hiding button would do,
-            // i.e., Show Target Text Only. Must call Realize() after adding a new button
-			pToolBar->Realize();
-			CLayout* pLayout = GetLayout();
-			if (pApp->m_pSourcePhrases != NULL)
-			{
-				if (!pApp->m_pSourcePhrases->IsEmpty())
-				{
-#ifdef _NEW_LAYOUT
-					pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-					pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-					Invalidate();
-					GetLayout()->PlaceBox();
-				}
-			}
-		}
-	}
-}
-
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -23913,7 +23173,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 	if (!pApp->m_bRespectBoundaries)
 	{
 		wxCommandEvent ev;
-		OnButtonFromIgnoringBdryToRespectingBdry(ev);
+		OnToggleRespectBoundary(ev);
 	}
 	pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
 

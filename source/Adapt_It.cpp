@@ -8557,6 +8557,7 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 {
+#ifdef TB
 	CMainFrame* pMainFrame;
 	pMainFrame = GetMainFrame();
 	pMainFrame->Freeze(); // to avoid flicker
@@ -8638,6 +8639,11 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 												// presence when calculating the client size
 												// with pMainFrame->GetClientSize()
 	pMainFrame->Thaw();
+#else
+	CMainFrame* pMainFrame;
+	pMainFrame = GetMainFrame();
+	pMainFrame->m_toolBarHeight = 0;
+#endif
 }
 
 
@@ -19061,9 +19067,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// element hidden, that element will stay hidden and the user won't be able to change
 	// that element's visibility. The
 	if (m_bToolBarVisible)
-		m_pMainFrame->m_pToolBar->Show();
+		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Show();
 	else
-		m_pMainFrame->m_pToolBar->Hide();
+		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Hide();
 
 	if (m_bModeBarVisible)
 		m_pMainFrame->m_pControlBar->Show();
@@ -20718,6 +20724,9 @@ int ii = 1;
 
 	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
 	//	m_pTargetBox->GetCancelAndSelectFlag());
+
+	GetMainFrame()->SendSizeEvent(); // needed to force redraw
+
 	return TRUE;
 }
 

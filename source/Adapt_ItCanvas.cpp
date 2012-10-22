@@ -1698,7 +1698,10 @@ x:					CCell* pCell = 0;
 
 					// restore default button image, and m_bCopySourcePunctuation to TRUE
 					wxCommandEvent event;
-					pApp->GetView()->OnButtonEnablePunctCopy(event);
+					if (!pApp->m_bCopySourcePunctuation)
+					{
+						pApp->GetView()->OnToggleEnablePunctuationCopy(event);
+					}
 
 					CPile* pPile;
 					pPile = pView->GetPile(pApp->m_nActiveSequNum);
