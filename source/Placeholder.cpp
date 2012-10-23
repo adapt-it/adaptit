@@ -2124,10 +2124,11 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
     // see CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even
     // when they are disabled, we must check for a disabled button and return if disabled.
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
 	wxAuiToolBarItem *tbi;
 	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE);
 	// Return if the toolbar item is hidden
-	if (!tbi->GetWindow()->IsShown())
+	if (tbi == NULL)
 	{
 		return;
 	}
@@ -2288,11 +2289,12 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
     // when they are disabled, we must check for a disabled button and return if disabled.
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument(); //GetDocument();
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
 
 	wxAuiToolBarItem *tbi;
 	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_NULL_SRC);
 	// Return if the toolbar item is hidden or disabled
-	if (!tbi->GetWindow()->IsShown())
+	if (tbi == NULL)
 	{
 		return;
 	}
