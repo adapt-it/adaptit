@@ -104,7 +104,7 @@ public:
 	bool OnCreate(wxDocument* doc, long flags); // a virtual method of wxView
 
 	void OnDraw(wxDC* pDC);
-	void Redraw (void);
+	void UpdateAppearance (void);
 	bool PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength); // whm moved to public for wx
 
 #if !defined(__WXGTK__)
