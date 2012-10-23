@@ -5231,37 +5231,6 @@ LangInfo langsKnownToWX[] =
     { NULL, wxLANGUAGE_UNKNOWN, NULL}												// 1
 };
 
-#ifdef TB
-// whm 12Oct10 added this class. It didn't seem worth the bother to put it into
-// separate source files, since it is a very minimal override of wxToolBar for
-// the basic purpose of implementing a GetToolBarToolsList() getter. We need this
-// in ConfigureToolBarForUserProfile() to configure AI's toolbar for user profiles.
-// Begin AIToolBar class definition !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-IMPLEMENT_DYNAMIC_CLASS(AIToolBar, wxToolBar)
-
-AIToolBar::AIToolBar()
-{
-}
-
-AIToolBar::AIToolBar(wxWindow* parent, wxWindowID id, const wxPoint& pos,
-	const wxSize& size, long style,	const wxString& name)
-	: wxToolBar(parent, id, pos, size, style, name)
-{
-}
-
-AIToolBar::~AIToolBar()
-{
-}
-
-// This is our only derived method - a getter for
-// the actual list of tool bar items
-wxToolBarToolsList AIToolBar::GetToolBarToolsList()
-{
-	return m_tools;
-}
-// enf of AIToolBar class declaration !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#endif
-
 // beginning of AIModalDialog class implementation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // whm Note: The AIModalDialog class exists as a base dialog class for Adapt It modal
 // dialogs. AIModalDialog functions practically identical to its own base class wxDialog.
@@ -8725,89 +8694,6 @@ bool CAdapt_ItApp::NewProjectItemIsVisibleInThisProfile(const int nProfile)
 	return bItemIsVisible;
 }
 
-#ifdef TB
-//////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      the AIToolBar (derived from wxToolBar) from which items are to be removed
-/// \remarks
-/// Called from: the App's ConfigureToolBarForUserProfile() and CMainFrame::RecreateToolBar().
-/// This function is a helper function for ConfigureToolBarForUserProfile().
-/// It removes any tool bar items that are not visible in the currently selected user
-/// profile. It also removes any left-over or duplicate tool bar separators.
-//////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::RemoveToolBarItemsFromToolBar(AIToolBar* pToolBar)
-{
-	int ct,toolCount;
-	toolCount = (int)pToolBar->GetToolsCount();
-	wxToolBarToolsList toolBarToolsList = pToolBar->GetToolBarToolsList();
-	wxToolBarToolsList::Node* node;
-	wxToolBarToolBase* pTBItem;
-	// Since we are removing the tool bar items by position in the bar, we
-	// need to remove the items from the right end (higher position) to the
-	// left end (lower) position, otherwise our position index ct will not
-	// be accurate after the first removal.
-	for (ct = toolCount-1; ct >= 0; ct--) // counting downwards from right end
-	{
-		node = toolBarToolsList.Item(ct);
-		pTBItem = (wxToolBarToolBase*)node->GetData();
-		wxString itemLabel;
-		if (!pTBItem->IsSeparator())
-		{
-			//wxString isSepStr = _T("");
-			//wxLogDebug(_T("Toolbar window item: Short Help: %s, Long Help: %s"),
-			//	pTBItem->GetShortHelp().c_str(),pTBItem->GetLongHelp().c_str());
-			itemLabel = pTBItem->GetShortHelp();
-			itemLabel.Trim(FALSE);
-			itemLabel.Trim(TRUE);
-		}
-		else
-		{
-			//wxString isSepStr = _T("");
-			//isSepStr = _T("Separator");
-			//wxLogDebug(_T("Toolbar window item: wxItemKind: %s"),isSepStr.c_str());
-			itemLabel = _T("");
-		}
-		// Note: the above wxLogDebug() shows that GetLabel() always is null str, GetShortHelp() is
-		// the name of the toolbar button (the tooltip), and GetLongHelp() is the status help for the
-		// button. We can use the string returned from GetShortHelp() to identify the toolbar button.
-		// separators are a null string in GetShortHelp and GetLongHelp - and they also have a
-		// getter called IsSeparator() which returns TRUE for separators, FALSE otherwise.
-		if (!ToolBarItemIsVisibleInThisProfile(m_nWorkflowProfile,itemLabel))
-		{
-			pToolBar->DeleteToolByPos(ct);
-		}
-	}
-	// Now take care of left-over or duplicate tool bar separators
-	toolCount = (int)pToolBar->GetToolsCount();
-	toolBarToolsList = pToolBar->GetToolBarToolsList();
-	// Since we are removing the tool bar items by position in the bar, we
-	// need to remove the items from the right end (higher position) to the
-	// left end (lower) position, otherwise our position index ct will not
-	// be accurate after the first removal.
-	bool bLastItemWasSeparator = FALSE;
-	for (ct = toolCount-1; ct >= 0; ct--) // counting downwards from right end
-	{
-		node = toolBarToolsList.Item(ct);
-		pTBItem = (wxToolBarToolBase*)node->GetData();
-		if (!pTBItem->IsSeparator())
-		{
-			// item is a normal tool bar item (not a separator)
-			bLastItemWasSeparator = FALSE;
-		}
-		else
-		{
-			// item is a tool bar separator
-			// delete if the last item was a separator
-			if (bLastItemWasSeparator)
-			{
-				pToolBar->DeleteToolByPos(ct);
-			}
-			bLastItemWasSeparator = TRUE;
-		}
-	}
-
-}
-#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

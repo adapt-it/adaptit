@@ -1475,26 +1475,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	{
 		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
 	}
-	SetToolBar(toolBar);
-	// Notes on SetToolBar(): WX Docs say,
-	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with
-	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage
-	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect
-	// the available space for application windows. Under Pocket PC, you should always use this
-	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use
-	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar
-	// as usual."
-
-	m_pToolBar = GetToolBar();
-	wxASSERT(m_pToolBar == toolBar);
-
-	wxSize toolBarSize;
-	toolBarSize = m_pToolBar->GetSize();
-	m_toolBarHeight = toolBarSize.GetHeight();	// we shouldn't need this since doc/view
-												// is supposed to manage the toolbar and
-												// our Main Frame should account for its
-												// presence when calculating the client size
-												// with pMainFrame->GetClientSize()
 #else
 	m_toolBarHeight = 0;
 #endif
@@ -2841,7 +2821,6 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 			gpApp->LogUserAction(_T("Hide Tool bar"));
 			gpApp->m_bToolBarVisible = FALSE;
 			m_auiMgr.Update();
-			SendSizeEvent(); // needed to force redraw
 		}
 		else
 		{
@@ -2850,57 +2829,10 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 			gpApp->LogUserAction(_T("Show Tool bar"));
 			gpApp->m_bToolBarVisible = TRUE;
 			m_auiMgr.Update();
-			SendSizeEvent(); // needed to force redraw
 		}
 	}
-	//else if (!gpApp->m_bToolBarVisible)
-	//{
- //       RecreateToolBar(); // whm 12Oct10 modified RecreateToolBar() for user profile compatibility
-	//	wxMenuItem* pMenuItem = GetMenuBar()->FindItem(ID_VIEW_TOOLBAR);
-	//	if (pMenuItem == NULL)
-	//		return;
-	//	GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
-	//	gpApp->m_bToolBarVisible = TRUE; // whm added 6Jan12
-	//	gpApp->LogUserAction(_T("View Toolbar"));
-	//	SendSizeEvent();
-	//}
 
-#ifdef TB
-	if (m_pToolBar != NULL)
-	{
-		if (gpApp->m_bToolBarVisible)
-		{
-			// Hide the tool bar
-			m_pToolBar->Hide();
-			GetMenuBar()->Check(ID_VIEW_TOOLBAR, FALSE);
-			gpApp->LogUserAction(_T("Hide Tool bar"));
-			gpApp->m_bToolBarVisible = FALSE;
-			SendSizeEvent(); // needed to force redraw
-		}
-		else
-		{
-			// Show the tool bar
-			m_pToolBar->Show(TRUE);
-			GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
-			gpApp->LogUserAction(_T("Show Tool bar"));
-			gpApp->m_bToolBarVisible = TRUE;
-			SendSizeEvent(); // needed to force redraw
-		}
-	}
-	else if (!gpApp->m_bToolBarVisible)
-	{
-        RecreateToolBar(); // whm 12Oct10 modified RecreateToolBar() for user profile compatibility
-		wxMenuItem* pMenuItem = GetMenuBar()->FindItem(ID_VIEW_TOOLBAR);
-		if (pMenuItem == NULL)
-			return;
-		GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
-		gpApp->m_bToolBarVisible = TRUE; // whm added 6Jan12
-		gpApp->LogUserAction(_T("View Toolbar"));
-		SendSizeEvent();
-	}
-#else
 	SendSizeEvent(); // needed to force redraw
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -3305,65 +3237,6 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		gpApp->m_pLayout->PlaceBox();
 	}
 }
-
-// BEW 26Mar10, no changes needed for support of doc version 5
-// whm 12Oct10 modified for configurable tool bar under user profiles
-void CMainFrame::RecreateToolBar()
-{
-#ifdef TB
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	// delete and recreate the toolbar
-    AIToolBar *toolBar = GetToolBar();
-	if (toolBar != NULL) // whm 11Jun12 added NULL test
-	    delete toolBar;
-	toolBar = (AIToolBar*)NULL;
-    SetToolBar(NULL);
-
-    long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
-
-    // We do not use CreateToolBar() now in the wx version. It is a method of
-    // the Frame class and can be used to inform the doc/view of the existence
-    // of the toolbar so the client window can allow space for it, but we manage
-    // the calculations for the size of the client window on our own.
-	//toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
-	toolBar = new AIToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
-	wxASSERT(toolBar != NULL);
-	m_pToolBar = toolBar;
-
-	if (gpApp->m_bExecutingOnXO)
-	{
-		toolBar->SetToolBitmapSize(wxSize(32,30));
-		AIToolBar32x30Func( toolBar );
-		// see the App's ConfigureToolBarForUserProfile() for notes on the following call
-		pApp->RemoveToolBarItemsFromToolBar(toolBar);
-	}
-	else
-	{
-		AIToolBarFunc( toolBar );
-		// see the App's ConfigureToolBarForUserProfile() for notes on the following call
-		pApp->RemoveToolBarItemsFromToolBar(toolBar);
-	}
-	SetToolBar(toolBar);
-
-	m_pToolBar = GetToolBar();
-	wxASSERT(m_pToolBar == toolBar);
-
-	wxSize toolBarSize;
-	toolBarSize = m_pToolBar->GetSize();
-	m_toolBarHeight = toolBarSize.GetHeight();
-#else
-	m_toolBarHeight = 0;
-#endif
-}
-
-//// this overrides the wxFrame::GetToolBar() method which returns a wxToolBar*
-//AIToolBar* CMainFrame::GetToolBar()
-//{
-//#ifdef TB
-//	return m_pToolBar;
-//#endif
-//	return NULL;
-//}
 
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::DoCreateStatusBar()

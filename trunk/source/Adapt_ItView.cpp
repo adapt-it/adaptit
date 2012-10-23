@@ -10476,23 +10476,27 @@ void CAdapt_ItView::UnmergePhrase()
 // BEW updated OnButtonRestore() 16Feb10 for support of doc version 5 (nothing needed to be done)
 void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 {
-#ifdef TB
     // Since the Restore (Unmerge) toolbar button has an accelerator table hot key (CTRL-U
     // see CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even
     // when they are disabled, we must check for a disabled button and return if disabled.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CMainFrame* pFrame = pApp->GetMainFrame();
-	wxToolBarBase* pToolBar = pFrame->GetToolBar();
-	wxASSERT(pToolBar != NULL);
-	// whm 12Oct10 modified for user workflow profile compatibility
-	if (pToolBar->GetToolPos(ID_BUTTON_RESTORE) == wxNOT_FOUND)
+	wxASSERT(pFrame != NULL);
+	wxAuiToolBarItem *tbi;
+	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_RESTORE);
+	// Return if the toolbar item is hidden
+	if (tbi == NULL)
+	{
 		return;
-	if (!pToolBar->GetToolEnabled(ID_BUTTON_RESTORE))
+	}
+	// Return if this toolbar item is disabled
+	if (!pFrame->m_auiToolbar->GetToolEnabled(ID_BUTTON_RESTORE))
 	{
 		::wxBell();
 		return;
 	}
+
     // In glossing mode (ie. actually glossing) I think I've managed to silently prevent
     // any unmerge from happening before OnButtonRestore( ) can get invoked. However, it
     // the user were to explicitly click the button, there is no recourse except to tell
@@ -10748,7 +10752,6 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	}
 	Invalidate();
 	GetLayout()->PlaceBox();
-#endif
 }
 
 // return TRUE if the selection extended, FALSE if not (would be false only if at a
@@ -18802,13 +18805,19 @@ void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 	// set the label and bitmap as appropriate
 	if (pApp->m_bRespectBoundaries)
 	{
-		tbi->SetLongHelp(_("Stop Selection At Boundaries"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("Stop Selection At Boundaries"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16)); // TODO: base on size
+		}
 	}
 	else
 	{
-		tbi->SetLongHelp(_("Ignore Boundaries"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("Ignore Boundaries"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_16)); // TODO: base on size
+		}
 	}
 	// update the toolbar
 	pFrame->m_auiToolbar->Realize();
@@ -18892,13 +18901,19 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 	// set the label and bitmap as appropriate
 	if (!pApp->m_bHidePunctuation)
 	{
-		tbi->SetLongHelp(_("Hide Punctuation"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("Hide Punctuation"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_16)); // TODO: base on size
+		}
 	}
 	else
 	{
-		tbi->SetLongHelp(_("Show Punctuation"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("Show Punctuation"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_16)); // TODO: base on size
+		}
 	}
 	// update the toolbar
 	pFrame->m_auiToolbar->Realize();
@@ -19012,13 +19027,19 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 	// set the label and bitmap as appropriate
 	if (gbShowTargetOnly)
 	{
-		tbi->SetLongHelp(_("Show Target Text Only"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("Show Target Text Only"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_16)); // TODO: base on size
+		}
 	}
 	else
 	{
-		tbi->SetLongHelp(_("Show Source And Target Text"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("Show Source And Target Text"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_16)); // TODO: base on size
+		}
 	}
 	// update the toolbar
 	pFrame->m_auiToolbar->Realize();
@@ -19119,13 +19140,19 @@ void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event
 	// set the label and bitmap as appropriate
 	if (pApp->m_bCopySourcePunctuation)
 	{
-		tbi->SetLongHelp(_("No punctuation copy"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("No punctuation copy"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_16)); // TODO: base on size
+		}
 	}
 	else
 	{
-		tbi->SetLongHelp(_("Enable Punctuation Copy"));
-		tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_16)); // TODO: base on size
+		if (tbi != NULL)
+		{
+			tbi->SetLongHelp(_("Enable Punctuation Copy"));
+			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_16)); // TODO: base on size
+		}
 	}
 	// update the toolbar
 	pFrame->m_auiToolbar->Realize();

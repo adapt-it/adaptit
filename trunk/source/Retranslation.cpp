@@ -1698,10 +1698,11 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // when they are disabled, we must check for a disabled button and return if disabled.
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
 	wxAuiToolBarItem *tbi;
 	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_RETRANSLATION);
 	// Return if the toolbar item is hidden
-	if (!tbi->GetWindow()->IsShown())
+	if (tbi == NULL)
 	{
 		return;
 	}
@@ -2409,10 +2410,11 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
     // when they are disabled, we must check for a disabled button and return if disabled.
 	CAdapt_ItDoc* pDoc = m_pApp->GetDocument(); 
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
 	wxAuiToolBarItem *tbi;
 	tbi = pFrame->m_auiToolbar->FindTool(ID_BUTTON_EDIT_RETRANSLATION);
 	// Return if the toolbar item is hidden
-	if (!tbi->GetWindow()->IsShown())
+	if (tbi == NULL)
 	{
 		return;
 	}

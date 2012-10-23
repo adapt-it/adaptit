@@ -247,10 +247,6 @@ public:
 	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
 
-    void RecreateToolBar();
-#ifdef TB
-	AIToolBar* GetToolBar();
-#endif
 	void DoCreateStatusBar();
 	//void OnMRUFile(wxCommandEvent& event); //whm removed 1Oct12
 
