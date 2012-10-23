@@ -1473,7 +1473,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
 	Modify (TRUE);							// mark doc dirty, to ensure new owner gets saved
 	
-	gpApp->GetView()->Redraw();
+	gpApp->GetView()->UpdateAppearance();
 }
 
 

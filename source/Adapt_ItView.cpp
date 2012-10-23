@@ -1172,19 +1172,32 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 
 }
 
-// Redraw() is simply intended to cause the view to redraw itself, if something that affects the visual
+// UpdateAppearance() is simply intended to cause the view to redraw itself, if something that affects the visual
 // appearance might have changed, e.g. the read-only status.  It's proved surprisingly tricky to get this
-// to actually update everything!
+// to actually update everything completely!
 
-void CAdapt_ItView::Redraw (void)
+void CAdapt_ItView::UpdateAppearance (void)
 {
+	CLayout*	ptrLayout;
+	
 	Invalidate();
-	canvas->ClearBackground();	// On Mac this does the redraw rather than merely clearing the background!
-	GetLayout()->Redraw();		// Not actually needed on Mac, but doesn't hurt
-	GetLayout()->PlaceBox();	// Sets the parameters for the updated placement of the phrase box if changing
-								//  direction, also gets rid of all the pink if making doc editable!
-}
+	if (canvas != NULL)
+		canvas->ClearBackground();    // On Mac this does the redraw rather than merely clearing the background!
+	else
+		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with canvas == NULL"));
 
+	ptrLayout = GetLayout();
+	if (ptrLayout != NULL)
+	{
+		ptrLayout->Redraw();		// Not actually needed on Mac, but doesn't hurt
+		ptrLayout->PlaceBox();		// Sets the parameters for the updated placement of the phrase box if changing
+									//  direction, also gets rid of all the pink if making doc editable!
+	}
+	else
+		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
+
+	Invalidate();					// only needed on Windows to really get rid of all the pink!!
+}
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;
 // the pile list is at CLayout::m_pileList
@@ -18491,7 +18504,7 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	
-	Redraw();			// mrh -- this does the job quite nicely, replacing the code below
+	UpdateAppearance();			// mrh -- this does the job quite nicely, replacing the code below
 
 /*
 #ifdef __WXMAC__
