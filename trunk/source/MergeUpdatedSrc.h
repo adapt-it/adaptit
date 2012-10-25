@@ -236,8 +236,10 @@ bool	AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 						wxString& strDelimiter, wxString& strStartingVerse, int& nStartingVerse,
 						wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
 						int& nEndingVerse, wxChar& charEndingVerseSuffix);
-bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers);
+bool	AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecifiers,
+							 int& countOfChapters, int& countOfVerses);
 bool	AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, SfmChunk* pNewChunk);
+bool	AreInventoriesDisparate(int oldOnesCount, int newOnesCount);
 bool	AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk);
 void	ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew);
 void	CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray);

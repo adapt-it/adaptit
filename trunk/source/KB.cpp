@@ -5070,7 +5070,7 @@ bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString transla
 	else
 	{
 		// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-		wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
+		wxMessageBox(_T("HandleNewPairTyped(), CreateEntry() not called because m_pKbServer is NULL"));
 		rv = FALSE; // but don't abort
 	}
 	return rv;
@@ -5084,6 +5084,83 @@ bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString transla
 // TODO -- the rest for a pseudo-delete (including sending the new respelled entry)
 
 
+// Return TRUE if there was no error, FALSE otherwise
+// Use within KB Editor's handler for the Remove button which pseudo-deletes in the local
+// KB a src/tgt pair (i.e. a CRefString instance within the list in the current pTgtUnit). A
+// pseudo-delete therefore needs to be reproduced in the kbserver database, but don't
+// assume that the kbserver entry actually is in the database already (it might not be) nor
+// that if it is, it is currently a normal one (it may in fact be a pseudo-deleted one,
+// though the likelihood is small, due to the actions of another connected user)
+// Implements the following logic:
+// 1. Determine if the src/tgt pair is in the kbserver database or not
+// 2. If it's not present, upload and create a new entry but with its deleted flag set to 1
+// 3. If it's present, it could be a normal entry or a pseudo-deleted one, so use the
+//    result from 1. to find out which is the case
+// 4. If it's a normal entry, then it needs to be pseudo-deleted, do a PUT to effect
+//    that change.
+// 5. If it a pseudo-deleted entry already, refrain from accessing kbserver as there 
+//    is nothing to do
+bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString translation)
+{
+	bool rv = TRUE;
+	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
+
+	//   TODO  ***************** need Jonathan's tweak that allows createentry with deleted
+	//   flag == 1 to be implemented ********************** (fior #2 above, I'll just
+	//   temporarily do a CreateEntry() call as a normal entry as that's all that's
+	//   currently possible) ****************************************************************************************************!!!!!!!!!NOTE 
+
+
+	if (pKBSvr != NULL)
+	{
+		pKBSvr->ClearAllPrivateStorageArrays();
+		// note: pKBSvr knows whether itself is an adapting KB server, or a glossing one
+		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
+		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
+		{
+			//  POST the new entry to the kbserver -- but with deleted flag value of 1
+			responseCode = pKBSvr->CreateEntry(srcKey, translation /*, 1 */); // <<-- *************NEEDS Jonathan's createentry extra param tweak
+			if (responseCode != CURLE_OK)
+			{
+				// TODO a function to show the error code and a meaningful
+				// explanation
+				wxString msg;
+				msg = msg.Format(_T("HandlePseudoDelete(), in call CreateEntry(): Failure! responseCode = %d"), responseCode);
+				wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
+				rv = FALSE; // but don't abort
+			}
+		}
+		else if (responseCode == CURLE_OK)
+		{
+            // An entry for the src/tgt pair is in the kbserver, but it may be normal (i.e.
+            // not pseudo-deleted), or it may be pseudo-deleted. If the former, then we
+            // must now pseudo-delete it. If the latter, we refrain from further action.
+			if ((*pKBSvr->GetDeletedArray())[0] == 0) 
+			{
+				// It's currently not pseudo-deleted, so do a PUT to pseudo-delete it. 
+				// The first param is the kbserver database's entryID value gleaned from
+				// the id field in the entry returned by the LookupEntryFields() call above)
+				responseCode = pKBSvr->PseudoDeleteOrUndeleteEntry((*pKBSvr->GetIDsArray())[0], doDelete);
+				if (responseCode != CURLE_OK)
+				{
+					// TODO a function to show the error code and a meaningful
+					// explanation
+					wxString msg;
+					msg = msg.Format(_T("HandlePseudoDelete(), in call PseudoDeleteOrUndeleteEntry(): Failure for doDelete! responseCode = %d"), responseCode);
+					wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
+					rv = FALSE; // but don't abort
+				}
+			}
+		}
+	}
+	else
+	{
+		// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
+		wxMessageBox(_T("HandlePseudoDelete(), nothing done in the call because m_pKbServer is NULL"));
+		rv = FALSE; // but don't abort
+	}
+	return rv;
+}
 
 
 // Return TRUE if there was no error, FALSE otherwise
@@ -5105,7 +5182,6 @@ bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation
 {
 	bool rv = TRUE;
 	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
-	// send the src/tgt pair, ignore the returned int responseCode (for now, anyway)
 	if (pKBSvr != NULL)
 	{
 		pKBSvr->ClearAllPrivateStorageArrays();
@@ -5150,7 +5226,7 @@ bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation
 	else
 	{
 		// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-		wxMessageBox(_T("CKB::StoreText(), CreateEntry() not called because m_pKbServer is NULL"));
+		wxMessageBox(_T("HandleUndelete(), did nothing because m_pKbServer is NULL"));
 		rv = FALSE; // but don't abort
 	}
 	return rv;

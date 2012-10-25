@@ -216,11 +216,15 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 	{
 		pApp->GetView()->ShowGlosses();
 	}
-	if (pApp->m_bFrozenForPrinting)
-	{
-		pApp->GetMainFrame()->Thaw();
-		pApp->m_bFrozenForPrinting = FALSE;
-	}
+	// BEW removed, 25Oct12. Having the Thaw() in the destructor was too late, the memory of
+	// the early Freeze() had by then been lost, and so this Thaw() was throwing an
+	// exception that there was no matching Freeze(). Fixed the problem by moving these
+	// lines to both OnOK() handler and OnCancel() handler.
+//	if (pApp->m_bFrozenForPrinting)
+//	{
+//		pApp->GetMainFrame()->Thaw();
+//		pApp->m_bFrozenForPrinting = FALSE;
+//	}
 	// BEW added 19Nov11
     gbCheckInclFreeTransText = FALSE; // restore default OFF
     gbCheckInclGlossesText = FALSE; // restore default OFF
@@ -619,6 +623,11 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bFrozenForPrinting)
+	{
+		pApp->GetMainFrame()->Thaw();
+		pApp->m_bFrozenForPrinting = FALSE;
+	}
 
 	// whm note: Since we are not fiddling with our print options within a customized print dialog, we
 	// could do all this from within the wxID_OK block of code in OnPrint().
@@ -706,6 +715,11 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 void CPrintOptionsDlg::OnCancel(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bFrozenForPrinting)
+	{
+		pApp->GetMainFrame()->Thaw();
+		pApp->m_bFrozenForPrinting = FALSE;
+	}
 	CAdapt_ItView* pView = gpApp->GetView();
 	pView->ClearPagesList();
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09

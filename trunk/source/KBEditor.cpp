@@ -1030,9 +1030,9 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	wxString message;
 	int	nPreviousReferences = 0;
 
-    // get the index of the selected translation string (this may not be the same index for the
-	// CRefString stored in pCurTgtUnit because there may be stored deleted CRefString
-	// instances in the pCurTgtUnit which messes up the index correspondences)
+    // get the index of the selected translation string (this may not be the same index for
+    // the CRefString stored in pCurTgtUnit because there may be stored deleted CRefString
+    // instances in the pCurTgtUnit which messes up the index correspondences)
 	int nTransSel = 0;
 	nTransSel = m_pListBoxExistingTranslations->GetSelection();
 
@@ -1147,7 +1147,19 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_edTransStr = _T("");
 		m_pListBoxExistingTranslations->Clear();
 	}
+	// BEW added 22Oct12 for kbserver support
+#if defined(_KBSERVER)
+		if (pApp->m_bIsKBServerProject)
+		{
+			bool bHandledOK = pKB->HandlePseudoDelete(pApp->GetKBTypeForServer(), m_curKey, 
+											pRefString->m_translation); // needs a 4th param, 'deleted' flag value
 
+			// I've not yet decided what to do with the return value, at present we'll
+			// just ignore it even if FALSE (an internally generated message would have
+			// been seen anyway in that event)
+			bHandledOK = bHandledOK; // avoid compiler warning
+		}
+#endif
     // remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
     // 'remove' in the context of kbVersion 2 just means to retain storage of the
     // CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata
