@@ -101,6 +101,113 @@
 // libcurl
 #include <curl/curl.h>
 
+// vectorized bitmaps
+#include "../res/vectorized/document_new_16.cpp"
+#include "../res/vectorized/document_open_16.cpp"
+#include "../res/vectorized/document_save_16.cpp"
+#include "../res/vectorized/edit_cut_16.cpp"
+#include "../res/vectorized/edit_copy_16.cpp"
+#include "../res/vectorized/edit_paste_16.cpp"
+#include "../res/vectorized/document_print_16.cpp"
+#include "../res/vectorized/dialog_guesser_16.cpp"
+#include "../res/vectorized/dialog_notes_16.cpp"
+#include "../res/vectorized/note_next_16.cpp"
+#include "../res/vectorized/note_prev_16.cpp"
+#include "../res/vectorized/note_delete_all_16.cpp"
+#include "../res/vectorized/bounds_go_16.cpp"
+#include "../res/vectorized/bounds_stop_16.cpp"
+#include "../res/vectorized/format_hide_punctuation_16.cpp"
+#include "../res/vectorized/format_show_punctuation_16.cpp"
+#include "../res/vectorized/go_first_16.cpp"
+#include "../res/vectorized/go_last_16.cpp"
+#include "../res/vectorized/go_previous_16.cpp"
+#include "../res/vectorized/go_up_16.cpp"
+#include "../res/vectorized/go_down_16.cpp"
+#include "../res/vectorized/phrase_new_16.cpp"
+#include "../res/vectorized/phrase_remove_16.cpp"
+#include "../res/vectorized/retranslation_new_16.cpp"
+#include "../res/vectorized/retranslation_edit_16.cpp"
+#include "../res/vectorized/retranslation_delete_16.cpp"
+#include "../res/vectorized/placeholder_new_16.cpp"
+#include "../res/vectorized/placeholder_delete_16.cpp"
+#include "../res/vectorized/dialog_choose_translation_16.cpp"
+#include "../res/vectorized/show_target_16.cpp"
+#include "../res/vectorized/show_source_target_16.cpp"
+#include "../res/vectorized/dialog_view-translation-or-glosses_16.cpp"
+#include "../res/vectorized/punctuation_copy_16.cpp"
+#include "../res/vectorized/punctuation_do_not_copy_16.cpp"
+#include "../res/vectorized/help_browser_16.cpp"
+#include "../res/vectorized/document-new_22.cpp"
+#include "../res/vectorized/document-open_22.cpp"
+#include "../res/vectorized/document-save_22.cpp"
+#include "../res/vectorized/edit-cut_22.cpp"
+#include "../res/vectorized/edit-copy_22.cpp"
+#include "../res/vectorized/edit-paste_22.cpp"
+#include "../res/vectorized/document-print_22.cpp"
+#include "../res/vectorized/dialog-guesser_22.cpp"
+#include "../res/vectorized/dialog-notes_22.cpp"
+#include "../res/vectorized/note-next_22.cpp"
+#include "../res/vectorized/note-prev_22.cpp"
+#include "../res/vectorized/note-delete-all_22.cpp"
+#include "../res/vectorized/bounds-go_22.cpp"
+#include "../res/vectorized/bounds-stop_22.cpp"
+#include "../res/vectorized/format-hide-punctuation_22.cpp"
+#include "../res/vectorized/format-show-punctuation_22.cpp"
+#include "../res/vectorized/go-first_22.cpp"
+#include "../res/vectorized/go-last_22.cpp"
+#include "../res/vectorized/go-previous_22.cpp"
+#include "../res/vectorized/go-up_22.cpp"
+#include "../res/vectorized/go-down_22.cpp"
+#include "../res/vectorized/phrase-new_22.cpp"
+#include "../res/vectorized/phrase-remove_22.cpp"
+#include "../res/vectorized/retranslation-new_22.cpp"
+#include "../res/vectorized/retranslation-edit_22.cpp"
+#include "../res/vectorized/retranslation-delete_22.cpp"
+#include "../res/vectorized/placeholder-new_22.cpp"
+#include "../res/vectorized/placeholder-delete_22.cpp"
+#include "../res/vectorized/dialog-choose-translation_22.cpp"
+#include "../res/vectorized/show-target_22.cpp"
+#include "../res/vectorized/show-source-target_22.cpp"
+#include "../res/vectorized/dialog-view-translation-or-glosses_22.cpp"
+#include "../res/vectorized/punctuation-copy_22.cpp"
+#include "../res/vectorized/punctuation-do-not-copy_22.cpp"
+#include "../res/vectorized/help-browser_22.cpp"
+#include "../res/vectorized/document-new_32.cpp"
+#include "../res/vectorized/document-open_32.cpp"
+#include "../res/vectorized/document-save_32.cpp"
+#include "../res/vectorized/edit-cut_32.cpp"
+#include "../res/vectorized/edit-copy_32.cpp"
+#include "../res/vectorized/edit-paste_32.cpp"
+#include "../res/vectorized/document-print_32.cpp"
+#include "../res/vectorized/dialog-guesser_32.cpp"
+#include "../res/vectorized/dialog-notes_32.cpp"
+#include "../res/vectorized/note-next_32.cpp"
+#include "../res/vectorized/note-prev_32.cpp"
+#include "../res/vectorized/note-delete-all_32.cpp"
+#include "../res/vectorized/bounds-go_32.cpp"
+#include "../res/vectorized/bounds-stop_32.cpp"
+#include "../res/vectorized/format-hide-punctuation_32.cpp"
+#include "../res/vectorized/format-show-punctuation_32.cpp"
+#include "../res/vectorized/go-first_32.cpp"
+#include "../res/vectorized/go-last_32.cpp"
+#include "../res/vectorized/go-previous_32.cpp"
+#include "../res/vectorized/go-up_32.cpp"
+#include "../res/vectorized/go-down_32.cpp"
+#include "../res/vectorized/phrase-new_32.cpp"
+#include "../res/vectorized/phrase-remove_32.cpp"
+#include "../res/vectorized/retranslation-new_32.cpp"
+#include "../res/vectorized/retranslation-edit_32.cpp"
+#include "../res/vectorized/retranslation-delete_32.cpp"
+#include "../res/vectorized/placeholder-new_32.cpp"
+#include "../res/vectorized/placeholder-delete_32.cpp"
+#include "../res/vectorized/dialog-choose-translation_32.cpp"
+#include "../res/vectorized/show-target_32.cpp"
+#include "../res/vectorized/show-source-target_32.cpp"
+#include "../res/vectorized/dialog-view-translation-or-glosses_32.cpp"
+#include "../res/vectorized/punctuation-copy_32.cpp"
+#include "../res/vectorized/punctuation-do-not-copy_32.cpp"
+#include "../res/vectorized/help-browser_32.cpp"
+
 #if defined(_KBSERVER)
 extern std::string str_CURLbuffer;
 #endif
@@ -8528,93 +8635,141 @@ void CAdapt_ItApp::RemoveModeBarItemsFromModeBarSizer(wxSizer* pModeBarSizer)
 //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 {
-#ifdef TB
-	CMainFrame* pMainFrame;
-	pMainFrame = GetMainFrame();
-	pMainFrame->Freeze(); // to avoid flicker
-	pMainFrame->m_pToolBar->Destroy(); // removes the existing tool bar which may not be showing all items in the current profile
-
-	// Create the new tool bar with our AIToolBar class override of wxToolBar (see similar
-	// code in CMainFrame's constructor)
-    long style = /*wxNO_BORDER |*/ wxTB_FLAT | wxTB_HORIZONTAL;
-	AIToolBar* toolBar = new AIToolBar(pMainFrame, -1, wxDefaultPosition, wxDefaultSize, style);
-	wxASSERT(toolBar != NULL);
-	pMainFrame->m_pToolBar = toolBar;
-
-	// The AIToolBarFunc() and AIToolBar32x30Func() functions are located
-	// in Adapt_It_wdr.cpp.
-	if (gpApp->m_bExecutingOnXO) // add a ! to test the 32x32 toolbar when -xo is not set
-	{
-		toolBar->SetToolBitmapSize(wxSize(32,30));
-		AIToolBar32x30Func( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
-		// Note: AIToolBar32x32Func() creates 33 defauls elements including toolbar separators
-		// The default elements that are not included (compared to AIToolBarFunc()) are:
-		// 1. Cut [not likely used much - also has Ctrl-X hotkey]
-		// 2. Copy [not likely used much - also has Ctrl-C hotkey]
-		// 3. Paste [not likely used much - also has Ctrl-V hotkey]
-		// 4. Spacer
-		// 5. Print [available on File menu]
-		// 6. Spacer
-		// 7. Display Help Topics [available on Help menu]
-
-		// scan through this default toolbar and remove items that are not supposed to
-		// be visible in the current profile.
-		// The wxToolBarBase class has a protected member called
-		// wxToolBarToolsList m_tools which is "the list of all our tools" which
-		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
-		RemoveToolBarItemsFromToolBar(toolBar);
-	}
-	else
-	{
-		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
-		// Note: AIToolBar32x32Func() creates 40 default elements including toolbar separators
-
-		// scan through this default toolbar and remove items that are not supposed to
-		// be visible in the current profile.
-		// The wxToolBarBase class has a protected member called
-		// wxToolBarToolsList m_tools which is "the list of all our tools" which
-		// we can now retrieve with our AIToolBar::GetToolBarToolsList() override
-		RemoveToolBarItemsFromToolBar(toolBar);
-	}
-	// Note: The RemoveToolBarItemsFromToolBar() call above also removed any "leftover"
-	// or duplicate tool bar separators.
-
-	pMainFrame->SetToolBar(toolBar);
-	// Notes on SetToolBar(): WX Docs say,
-	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with
-	// this function, or made known to the frame with wxFrame::SetToolBar, the frame will manage
-	// the toolbar position and adjust the return value from wxWindow::GetClientSize to reflect
-	// the available space for application windows. Under Pocket PC, you should always use this
-	// function for creating the toolbar to be managed by the frame, so that wxWidgets can use
-	// a combined menubar and toolbar. Where you manage your own toolbars, create a wxToolBar
-	// as usual."
-	pMainFrame->m_pToolBar = pMainFrame->GetToolBar();
-	wxASSERT(pMainFrame->m_pToolBar == toolBar);
-
-	// whm added 7Jan12 set toolBar visibility according to basic config
-	// file setting - as stored in the App's m_bToolBarVisible member
-	if (gpApp->m_bToolBarVisible)
-	{
-		gpApp->GetMainFrame()->m_pToolBar->Show();
-	}
-	else
-	{
-		gpApp->GetMainFrame()->m_pToolBar->Hide();
-	}
-
-	wxSize toolBarSize;
-	toolBarSize = pMainFrame->m_pToolBar->GetSize();
-	pMainFrame->m_toolBarHeight = toolBarSize.GetHeight();	// we shouldn't need this since doc/view
-												// is supposed to manage the toolbar and
-												// our Main Frame should account for its
-												// presence when calculating the client size
-												// with pMainFrame->GetClientSize()
-	pMainFrame->Thaw();
-#else
 	CMainFrame* pMainFrame;
 	pMainFrame = GetMainFrame();
 	pMainFrame->m_toolBarHeight = 0;
-#endif
+	pMainFrame->Freeze(); // to avoid flicker
+
+	// remove the existing tools so we can rebuild them
+	if (pMainFrame->m_auiToolbar != NULL)
+	{
+		pMainFrame->m_auiToolbar->ClearTools(); // remove all tools
+	}
+
+	wxAuiToolBar *pAuiToolbar = pMainFrame->m_auiToolbar;
+	bool bJustAddedSeparator = false;	// make sure we don't add 2 separators in a row
+	int index = 0;
+	wxBitmap bmp;
+
+	// the full set of toolbar buttons (all sizes)
+	ToolbarButtonInfo tbInfo[] =
+	{
+		{wxID_NEW, _("New"), _("New"), _("Create a new document"), gpApp->wxGetBitmapFromMemory(document_new_png_16), gpApp->wxGetBitmapFromMemory(document_new_png_22), gpApp->wxGetBitmapFromMemory(document_new_png_32)},
+		{wxID_OPEN, _("Open"), _("Open"), _("Open an existing document"), gpApp->wxGetBitmapFromMemory(document_open_png_16), gpApp->wxGetBitmapFromMemory(document_open_png_22), gpApp->wxGetBitmapFromMemory(document_open_png_32)},
+		{wxID_SAVE, _("Save"), _("Save"), _("Save the active document"), gpApp->wxGetBitmapFromMemory(document_save_png_16), gpApp->wxGetBitmapFromMemory(document_save_png_22), gpApp->wxGetBitmapFromMemory(document_save_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_EDIT_CUT, _("Cut"), _("Cut"), _("Cut the selection and put it on the Clipboard"), gpApp->wxGetBitmapFromMemory(edit_cut_png_16), gpApp->wxGetBitmapFromMemory(edit_cut_png_22), gpApp->wxGetBitmapFromMemory(edit_cut_png_32)},
+		{ID_EDIT_COPY, _("Copy"), _("Copy"), _("Copy the selection and put it on the Clipboard"), gpApp->wxGetBitmapFromMemory(edit_copy_png_16), gpApp->wxGetBitmapFromMemory(edit_copy_png_22), gpApp->wxGetBitmapFromMemory(edit_copy_png_32)},
+		{ID_EDIT_PASTE, _("Paste"), _("Paste"), _("Insert Clipboard contents"), gpApp->wxGetBitmapFromMemory(edit_paste_png_16), gpApp->wxGetBitmapFromMemory(edit_paste_png_22), gpApp->wxGetBitmapFromMemory(edit_paste_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{wxID_PRINT, _("Print"), _("Print"), _("Print the active document"), gpApp->wxGetBitmapFromMemory(document_print_png_16), gpApp->wxGetBitmapFromMemory(document_print_png_22), gpApp->wxGetBitmapFromMemory(document_print_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_GUESSER, _("Change Guesser Settings"), _("Change Guesser Settings"), _("Change settings for guessing the translation text"), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_16), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_22), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_CREATE_NOTE, _("Open a Note dialog"), _("Open a Note dialog"), _("Create a note dialog and open it for typing"), gpApp->wxGetBitmapFromMemory(dialog_notes_png_16), gpApp->wxGetBitmapFromMemory(dialog_notes_png_22), gpApp->wxGetBitmapFromMemory(dialog_notes_png_32)},
+		{ID_BUTTON_PREV_NOTE, _("Jump to the previous Note"), _("Jump to the previous Note"), _("Go back and open the previous note"), gpApp->wxGetBitmapFromMemory(note_prev_png_16), gpApp->wxGetBitmapFromMemory(note_prev_png_22), gpApp->wxGetBitmapFromMemory(note_prev_png_32)},
+		{ID_BUTTON_NEXT_NOTE, _("Jump to the next Note"), _("Jump to the next Note"), _("Go forward and open the next note"), gpApp->wxGetBitmapFromMemory(note_next_png_16), gpApp->wxGetBitmapFromMemory(note_next_png_22), gpApp->wxGetBitmapFromMemory(note_next_png_32)},
+		{ID_BUTTON_DELETE_ALL_NOTES, _("Delete All Notes"), _("Delete All Notes"), _("Delete all the notes currently in the document"), gpApp->wxGetBitmapFromMemory(note_delete_all_png_16), gpApp->wxGetBitmapFromMemory(note_delete_all_png_22), gpApp->wxGetBitmapFromMemory(note_delete_all_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_RESPECTING_BDRY, _("Ignore Boundaries"), _("Ignore Boundaries"), _("Ignore boundaries when making selections"), gpApp->wxGetBitmapFromMemory(bounds_stop_png_16), gpApp->wxGetBitmapFromMemory(bounds_stop_png_22), gpApp->wxGetBitmapFromMemory(bounds_stop_png_32)},
+		{ID_BUTTON_SHOWING_PUNCT, _("Hide Punctuation"), _("Hide Punctuation"), _("Don't show punctuation with the text"), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_16), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_22), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_TO_END, _("Advance to End"), _("Advance to End"), _("Advance to the end of the data"), gpApp->wxGetBitmapFromMemory(go_last_png_16), gpApp->wxGetBitmapFromMemory(go_last_png_22), gpApp->wxGetBitmapFromMemory(go_last_png_32)},
+		{ID_BUTTON_TO_START, _("Back to Start"), _("Back to Start"), _("Go back to the start of the data"), gpApp->wxGetBitmapFromMemory(go_first_png_16), gpApp->wxGetBitmapFromMemory(go_first_png_22), gpApp->wxGetBitmapFromMemory(go_first_png_32)},
+		{ID_BUTTON_STEP_DOWN, _("Move down one step"), _("Move down one step"), _("Move the bundle down one step towards the bottom of the file"), gpApp->wxGetBitmapFromMemory(go_down_png_16), gpApp->wxGetBitmapFromMemory(go_down_png_22), gpApp->wxGetBitmapFromMemory(go_down_png_32)},
+		{ID_BUTTON_STEP_UP, _("Move up one step"), _("Move up one step"), _("Move bundle back up one step towards the start of the file"), gpApp->wxGetBitmapFromMemory(go_up_png_16), gpApp->wxGetBitmapFromMemory(go_up_png_22), gpApp->wxGetBitmapFromMemory(go_up_png_32)},
+		{ID_BUTTON_BACK, _("Jump back"), _("Jump back"), _("Jump back to the last active location"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), gpApp->wxGetBitmapFromMemory(go_previous_png_22), gpApp->wxGetBitmapFromMemory(go_previous_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_MERGE, _("Make a phrase"), _("Make a phrase"), _("Merge selected words into a phrase"), gpApp->wxGetBitmapFromMemory(phrase_new_png_16), gpApp->wxGetBitmapFromMemory(phrase_new_png_22), gpApp->wxGetBitmapFromMemory(phrase_new_png_32)},
+		{ID_BUTTON_RESTORE, _("Unmake A Phrase"), _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(phrase_remove_png_16), gpApp->wxGetBitmapFromMemory(phrase_remove_png_22), gpApp->wxGetBitmapFromMemory(phrase_remove_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_RETRANSLATION, _("Do A Retranslation"), _("Do A Retranslation"), _("The selected section is a retranslation, not an adaptation"), gpApp->wxGetBitmapFromMemory(retranslation_new_png_16), gpApp->wxGetBitmapFromMemory(retranslation_new_png_22), gpApp->wxGetBitmapFromMemory(retranslation_new_png_32)},
+		{ID_BUTTON_EDIT_RETRANSLATION, _("Edit A Retranslation"), _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location"), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_16), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_22), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_32)},
+		{ID_REMOVE_RETRANSLATION, _("Remove A Retranslation"), _("Remove A Retranslation"), _("Remove the whole of the retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_22), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_NULL_SRC, _("Insert A Placeholder"), _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), gpApp->wxGetBitmapFromMemory(placeholder_new_png_22), gpApp->wxGetBitmapFromMemory(placeholder_new_png_32)},
+		{ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove A Placeholder"), _("Remove A Placeholder"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_22), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_32)},
+		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+		{ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_22), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_32)},
+		{ID_SHOWING_ALL, _("Show Target Text Only"), _("Show Target Text Only"), _("Show target text only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), gpApp->wxGetBitmapFromMemory(show_source_target_png_22), gpApp->wxGetBitmapFromMemory(show_source_target_png_32)},
+		{ID_BUTTON_EARLIER_TRANSLATION, _("View Translation or Glosses Elsewhere in the Document"), _("View Translation or Glosses Elsewhere in the Document"), 
+			_("View translation or glosses elsewhere in the document; locate them by chapter and verse"), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_16), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_22), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_32)},
+		{ID_BUTTON_NO_PUNCT_COPY, _("No Punctuation Copy"), _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily"), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_16), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_22), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_32)},
+		{wxID_HELP, _("Help"), _("Help"), _("Display Adapt It program help topics"), gpApp->wxGetBitmapFromMemory(help_browser_png_16), gpApp->wxGetBitmapFromMemory(help_browser_png_22), gpApp->wxGetBitmapFromMemory(help_browser_png_32)},
+		{-1, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
+	};
+
+	// TODO: implement small / regular / large button support UI that allows the user
+	// to choose the preferred button size. This could be expanded to include the 
+	// button label below the icon on the button if desired.
+	ToolbarButtonSize btnSize;
+	if (gpApp->m_bExecutingOnXO)
+	{
+		btnSize = btnLarge;
+		pAuiToolbar->SetToolBitmapSize(wxSize(32, 32));
+	}
+	else
+	{
+		btnSize = btnSmall;
+		pAuiToolbar->SetToolBitmapSize(wxSize(16, 16));
+	}
+
+	// loop through the tbInfo array and add the toolbar buttons / separators for the current user profile
+	while (tbInfo[index].toolId != -1)
+	{
+		// is this a separator?
+		if (tbInfo[index].toolId == 0)
+		{
+			// separator -- did we just add one?
+			if (!bJustAddedSeparator)
+			{
+				// didn't just add one -- add this one and set our flag
+				pAuiToolbar->AddSeparator();
+				bJustAddedSeparator = true;
+			}
+		}
+		else if ((m_nWorkflowProfile == 0) || (ToolBarItemIsVisibleInThisProfile(m_nWorkflowProfile, tbInfo[index].label)))
+		{
+			// this toolbar item is visible in this profile -- add it to the toolbar
+			// get the right bitmap
+			switch (btnSize)
+			{
+			case btnLarge:
+				bmp = tbInfo[index].bmpLarge;
+				break;
+			case btnMedium:
+				bmp = tbInfo[index].bmpMedium;
+				break;
+			case btnSmall:
+			default:
+				bmp = tbInfo[index].bmpSmall;
+				break;
+			}
+			// add the toolbar item
+			pAuiToolbar->AddTool(tbInfo[index].toolId, tbInfo[index].label,	bmp,
+				wxNullBitmap, wxITEM_NORMAL, tbInfo[index].shortHelpString, tbInfo[index].longHelpString, NULL);
+			// reset the separator flag (we just added a button -- it's ok to add a separator now)
+			bJustAddedSeparator = false;
+		}
+		// fetch the next item
+		index++;
+	}
+
+	// Done adding the buttons -- now tell the UI to update itself
+	pAuiToolbar->Realize();
+	// find the toolbar height, so we can figure out the rest of the canvas dimensions in OnSize()
+	wxSize auitbSize;
+	auitbSize = pAuiToolbar->GetSize();
+	pMainFrame->m_toolBarHeight = pMainFrame->m_auitbHeight = auitbSize.GetHeight();
+	// whm added 7Jan12 set toolBar visibility according to basic config
+	// file setting - as stored in the App's m_bToolBarVisible member
+	if (m_bToolBarVisible)
+		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Show();
+	else
+		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Hide();
+	// unfreeze the UI and call OnSize()
+	pMainFrame->Thaw();
+	pMainFrame->SendSizeEvent();
 }
 
 
@@ -19813,9 +19968,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// ConfigureInterfaceForUserProfile(). However, if the m_nWorkflowProfile is 0 "None"
 	// we simply bypass calling ConfigureInterfaceForUserProfile() and the application
 	// uses its default interface of menus, etc.
+
 	if (m_nWorkflowProfile != 0)
 	{
 		ConfigureInterfaceForUserProfile();
+	}
+	else // m_nWorkflowProfile == 0
+	{
+		// EDB 25Oct12 - ConfigureToolBarForUserProfile() now sets the toolbar button size (16x16, 22x22, 32x32);
+		// we need to call it explicitly, even when m_nWorkflowProfile == 0
+		ConfigureToolBarForUserProfile();
 	}
 
 	// Config file's value for user work profile has been read in, so set the

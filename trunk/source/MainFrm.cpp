@@ -169,6 +169,41 @@
 #include "../res/vectorized/punctuation-copy_22.cpp"
 #include "../res/vectorized/punctuation-do-not-copy_22.cpp"
 #include "../res/vectorized/help-browser_22.cpp"
+#include "../res/vectorized/document-new_32.cpp"
+#include "../res/vectorized/document-open_32.cpp"
+#include "../res/vectorized/document-save_32.cpp"
+#include "../res/vectorized/edit-cut_32.cpp"
+#include "../res/vectorized/edit-copy_32.cpp"
+#include "../res/vectorized/edit-paste_32.cpp"
+#include "../res/vectorized/document-print_32.cpp"
+#include "../res/vectorized/dialog-guesser_32.cpp"
+#include "../res/vectorized/dialog-notes_32.cpp"
+#include "../res/vectorized/note-next_32.cpp"
+#include "../res/vectorized/note-prev_32.cpp"
+#include "../res/vectorized/note-delete-all_32.cpp"
+#include "../res/vectorized/bounds-go_32.cpp"
+#include "../res/vectorized/bounds-stop_32.cpp"
+#include "../res/vectorized/format-hide-punctuation_32.cpp"
+#include "../res/vectorized/format-show-punctuation_32.cpp"
+#include "../res/vectorized/go-first_32.cpp"
+#include "../res/vectorized/go-last_32.cpp"
+#include "../res/vectorized/go-previous_32.cpp"
+#include "../res/vectorized/go-up_32.cpp"
+#include "../res/vectorized/go-down_32.cpp"
+#include "../res/vectorized/phrase-new_32.cpp"
+#include "../res/vectorized/phrase-remove_32.cpp"
+#include "../res/vectorized/retranslation-new_32.cpp"
+#include "../res/vectorized/retranslation-edit_32.cpp"
+#include "../res/vectorized/retranslation-delete_32.cpp"
+#include "../res/vectorized/placeholder-new_32.cpp"
+#include "../res/vectorized/placeholder-delete_32.cpp"
+#include "../res/vectorized/dialog-choose-translation_32.cpp"
+#include "../res/vectorized/show-target_32.cpp"
+#include "../res/vectorized/show-source-target_32.cpp"
+#include "../res/vectorized/dialog-view-translation-or-glosses_32.cpp"
+#include "../res/vectorized/punctuation-copy_32.cpp"
+#include "../res/vectorized/punctuation-do-not-copy_32.cpp"
+#include "../res/vectorized/help-browser_32.cpp"
 
 //(*IdInit(CMainFrame)
 // Toolbar and toolbar buttons
@@ -1454,44 +1489,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	MemSizeMB = memSize / 1048576;
 	hostName = ::wxGetHostName(); // "BILLDELL" on my desktop
 
-	//wxSize displaySizeInPixels;
-	//displaySizeInPixels = wxGetDisplaySize();
-	//wxSize displaySizeInMM;
-	//displaySizeInMM = wxGetDisplaySizeMM();
-	//wxSize displaySizeInInches;
-	//displaySizeInInches.x = displaySizeInMM.x / 25.4;
-	//displaySizeInInches.y = displaySizeInMM.y / 25.4;
-	//float screenDPI;
-	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y))
-	//	/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
-
-#ifdef TB
-	if (gpApp->m_bExecutingOnXO)
-	{
-		toolBar->SetToolBitmapSize(wxSize(32,30));
-		AIToolBar32x30Func( toolBar );
-	}
-	else
-	{
-		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
-	}
-#else
 	m_toolBarHeight = 0;
-#endif
-	// whm Note 6Jan12: The CMainFrame constructor is called relatively early in the App's
-	// OnInit() function. At this point the basic config file has not been
-	// read, therefore the visibility of the toolBar, statusBar and modeBar will take on
-	// their normal defaults - all visible. The changes of visibility according to the
-	// user's preferences are done later in OnInit() when the
-	// MakeMenuInitializationsAndPlatformAdjustments() function is called.
-	//if (gpApp->m_bToolBarVisible)
-	//{
-	//	m_pToolBar->Show();
-	//}
-	//else
-	//{
-	//	m_pToolBar->Hide();
-	//}
 
 	// EDB 24 Sept 2012 - AUI toolbar stuff:
 	// - Currently wxDesigner (v. 2.20a) doesn't fully support AUI toolbar 
@@ -1503,7 +1501,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//(*Initialize(CMainFrame)
     m_auiMgr.SetManagedWindow(this);
 	m_auiToolbar = new wxAuiToolBar(this, ID_AUI_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_DEFAULT_STYLE);
-	//m_auiToolbar->SetToolBitmapSize(wxSize(22, 22));
+	m_auiToolbar->SetToolBitmapSize(wxSize(22, 22));
 	m_auiToolbar->AddTool(wxID_NEW, _("New"), gpApp->wxGetBitmapFromMemory(document_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document"), NULL);
 	m_auiToolbar->AddTool(wxID_OPEN, _("Open"), gpApp->wxGetBitmapFromMemory(document_open_png_16), wxNullBitmap, wxITEM_NORMAL, _("Open"), _("Open an existing document"), NULL);
 	m_auiToolbar->AddTool(wxID_SAVE, _("Save"), gpApp->wxGetBitmapFromMemory(document_save_png_16), wxNullBitmap, wxITEM_NORMAL, _("Save"), _("Save the active document"), NULL);
@@ -1548,6 +1546,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// register the changes with the AUI manager
 	m_auiToolbar->Realize();
 	m_auiMgr.AddPane(m_auiToolbar, wxAuiPaneInfo().Name(_T("auiToolbar")).ToolbarPane().Caption(_("Pane caption")).Top().DockFixed().Dockable(false).Floatable(false).Movable(false).Gripper(false));
+
 	// enable / disable toolbar items
 	m_auiToolbar->EnableTool(wxID_NEW, false);
 	m_auiToolbar->EnableTool(wxID_OPEN, false);
