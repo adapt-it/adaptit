@@ -3604,7 +3604,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void	ReportMenuAndUserProfilesInconsistencies();
 	bool	MenuItemIsVisibleInThisProfile(const int nProfile, const int menuItemIDint);
 	bool	ModeBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
-	bool	ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel);
+	bool	ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLongStringHelp);
 	bool	NewProjectItemIsVisibleInThisProfile(const int nProfile);
 	wxString GetTopLevelMenuLabelForThisTopLevelMenuID(int IDint);
 	wxArrayString GetBooksArrayFromBookFlagsString(wxString bookFlagsStr);

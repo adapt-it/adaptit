@@ -8728,7 +8728,7 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 				bJustAddedSeparator = true;
 			}
 		}
-		else if ((m_nWorkflowProfile == 0) || (ToolBarItemIsVisibleInThisProfile(m_nWorkflowProfile, tbInfo[index].label)))
+		else if ((m_nWorkflowProfile == 0) || (ToolBarItemIsVisibleInThisProfile(m_nWorkflowProfile, tbInfo[index].longHelpString)))
 		{
 			// this toolbar item is visible in this profile -- add it to the toolbar
 			// get the right bitmap
@@ -9813,7 +9813,7 @@ bool CAdapt_ItApp::ModeBarItemIsVisibleInThisProfile(const int nProfile, const w
 /// the m_pUserProfiles data struct stored on the heap and reads the usedVisibilityValues
 /// for that item as indexed for the nProfile.
 //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLabel)
+bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const wxString itemLongStringHelp)
 {
 	// we assume that a tool bar item is visible unless the m_pUserProfiles data
 	// indicates otherwise.
@@ -9838,21 +9838,21 @@ bool CAdapt_ItApp::ToolBarItemIsVisibleInThisProfile(const int nProfile, const w
 		{
 			continue;
 		}
-		if (itemLabel == _T("")) // the item is a separator in the toolbar group
+		if (itemLongStringHelp == _T("")) // the item is a separator in the toolbar group
 		{
 			// We skip the processing of the separator
 			continue;
 		}
-		wxString itemLabelStr;
-		itemLabelStr = pUserProfileItem->itemText;
-		itemLabelStr.Trim(FALSE);
-		itemLabelStr.Trim(TRUE);
+		wxString itemHelpStr;
+		itemHelpStr = pUserProfileItem->itemDescr;
+		itemHelpStr.Trim(FALSE);
+		itemHelpStr.Trim(TRUE);
 		int indexFromProfile = 0;
 		if (nProfile <= 0)
 			indexFromProfile = 0;
 		else if (nProfile > 0)
 			indexFromProfile = nProfile - 1;
-		if (itemLabelStr == itemLabel && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
+		if (itemHelpStr == itemLongStringHelp && pUserProfileItem->usedVisibilityValues.Item(indexFromProfile) == _T("0"))
 		{
 			return FALSE;
 		}
