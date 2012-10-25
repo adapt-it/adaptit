@@ -818,9 +818,10 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	int newSPCount = arrNew.GetCount();
 	if (newSPCount == 0)
 		return;
+	bool bAreDispirateSizedInventories = AreInventoriesDisparate(oldSPCount, newSPCount);
 
 #if defined(myMilestoneDebugCalls) && defined(_DEBUG)
-	wxLogDebug(_T("\n\nMergeUpdatedSrcTextCore passed in: arrOld count = %d   arrNew count = %d"),
+	wxLogDebug(_T("\n\nMergeUpdatedSrcTextCore() passed in: arrOld CSourcePhrase count = %d   arrNew CSourcePhrase count = %d"),
 		oldSPCount, newSPCount);
 #endif
 	int defaultLimit = limit; // this is the default miminum value for the limit parameter; 
@@ -862,19 +863,33 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
     // Analyse the arrOld and arrNew arrays in order to chunk the data appropriately...
     // remember to delete these local wxArrayPtrVoid arrays' contents from the heap before
     // returning, etc
+    bool bHandleDispirateSizedLastOldChunk = FALSE; // BEW added 25Oct12
     bool bSuccessful_Old;
 	bool bSuccessful_New;
 	wxArrayPtrVoid* pChunksOld = new wxArrayPtrVoid;
 	wxArrayPtrVoid* pChunksNew = new wxArrayPtrVoid;
+	int oldCountOfChapters = 0;
+	int oldCountOfVerses = 0;
+	int newCountOfChapters = 0;
+	int newCountOfVerses = 0;
 	// setup the SfmChunk arrays
-	bSuccessful_Old =  AnalyseSPArrayChunks(&arrOld, pChunksOld); // analyse arrOld
-	bSuccessful_New =  AnalyseSPArrayChunks(&arrNew, pChunksNew); // analyse arrNew
+	bSuccessful_Old =  AnalyseSPArrayChunks(&arrOld, pChunksOld, oldCountOfChapters, oldCountOfVerses); // analyse arrOld
+	bSuccessful_New =  AnalyseSPArrayChunks(&arrNew, pChunksNew, newCountOfChapters, newCountOfVerses); // analyse arrNew
 	int countOldChunks = pChunksOld->GetCount();
 	int countNewChunks = pChunksNew->GetCount();
+	int oldMaxIndex = countOldChunks - 1;
+	int newMaxIndex = countNewChunks - 1;
 #if defined(myMilestoneDebugCalls) && defined(_DEBUG)
-	wxLogDebug(_T("MergeUpdatedSrcTextCore  countOldChunks = %d   countNewChunks = %d"),
+	wxLogDebug(_T("MergeUpdatedSrcTextCore()  countOldChunks = %d   countNewChunks = %d"),
 		countOldChunks, countNewChunks);
 #endif
+#if defined(myMilestoneDebugCalls) && defined(_DEBUG)
+	wxLogDebug(_T("MergeUpdatedSrcTextCore()  oldCountOfChapters = %d   oldCountOfVerses = %d  newCountOfChapters = %d  newCountOfVerses = %d"),
+			oldCountOfChapters, oldCountOfVerses,  newCountOfChapters,  newCountOfVerses);
+#endif
+	bool bDispirateSizedChunkInventories = AreInventoriesDisparate(countOldChunks, countNewChunks);
+	bool bDispirateSizedChaptersInventory = AreInventoriesDisparate(oldCountOfChapters, newCountOfChapters);
+	bool bDispirateSizedVersesInventory = AreInventoriesDisparate(oldCountOfVerses, newCountOfVerses);
 
     // BEW added 17Aug12, these will hold subranges of matched pairs of subarrays of the
     // contents of arrOld and arrNew, which we populated based on our analysis of the
@@ -981,14 +996,37 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
 	}
 #endif
-	// if there was no SFM or USFM data, need a limit = -1 merger, plus a progress bar
-	if (!bSuccessful_Old && !bSuccessful_New)
+	// BEW 25Oct12, augmented the tests for entry to this block, to cover difficult
+	// situations robustly...
+    // If there was no SFM or USFM data, need a limit = -1 merger, plus a progress bar In
+    // fact, there are quite a few conditions where just merging all the old stuff with all
+    // the new stuff is best done as two large superchunks -- slower, but it gets
+    // everything right. Usually these situations are when the new data is approximately
+    // the same as the old data (that is, the file sizes are not dispirate), but chunking
+    // goes differently for some reason, such as:
+	// a) no \c nor \v markers are in the old data, but the user has edited them in to the
+	// new data;
+	// b) the old data has only partial markup, so that \c and/or \v markers are
+	// significantly fewer in the old data than in the new data (or vise versa).
+    // There is a very small risk however, if the old data had extra material, say some
+    // adapted introduction which isn't in the new material, then that block of adapted
+    // introduction material would be lost. This is a pretty unlikely scenario however,
+    // because intro material is typically only put in after verses and chapters are marked
+    // up - and in that circumstance we'd not be processing the data as two large
+    // superchunks.
+	if (	(!bSuccessful_Old && !bSuccessful_New) || // no \c or \v markers in either, OR
+			(!bAreDispirateSizedInventories && bDispirateSizedChunkInventories) || // similar CSourcePhrase inventories 
+																				   // but dissimilar sized chunk inventories  
+			 !bAreDispirateSizedInventories && // not dissimilar in their inventories of CSourcePhrase instances, AND
+			(bDispirateSizedVersesInventory || bDispirateSizedChaptersInventory))  // are dissimilar in either \v 
+																				   // inventories or \c inventories
 	{
-        // this will be very inefficient and slow because all unique words in arrOld must
-        // be checked for all matchups with all unique words in arrNew, an order of N
-        // squared operation, where N = total words (but if one or the other array is
-        // markedly shorter, it isn't so bad)
-        // need two dummy params (unused when processStartToEnd is passed in)
+        // Do a "two superchunks" merger. This will be inefficient and slow because
+        // all unique words in arrOld must be checked for all matchups with all unique
+        // words in arrNew, an order of N squared operation, where N = total words (but if
+        // one or the other array is markedly shorter, it isn't so bad)
+		// (When processStartToEnd is the enum value, rather than processPerMilestone, all
+		// param after the nStartingSequNum param are ignored.)
         int oldChunkIndex = -1;
 		int newChunkIndex = -1;
 		MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum, 
@@ -1164,13 +1202,20 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			}
 			else
 			{
-				// one of, or both of, the array's preFirstChapterChunk instances are absent;
-				// if arrOld's is absent, but arrNew's is not, then just copy the
-				// introduction material straight to pMergedList; if arrNew's is absent,
-				// but arrOld's is not, then just ignore the preFirstChapterChunk in arrOld
-				// because it isn't any longer wanted; if both are absent, do nothing
-				// (except get the oldLastChunkIndex and newLastChunkIndex set ready for
-				// the next test - which should be milestoned material)
+                // One of, or both of, the array's preFirstChapterChunk instances are
+                // absent. If arrOld's is absent, but arrNew's is present, then just copy
+                // the introduction material straight to pMergedList. If arrNew's is
+                // absent, but arrOld's is present, then try not to loose the arrOld
+                // material unless it really should be removed. It the new chunk is a
+                // chapter and verse chunk, the it's likely that the user added a missing
+                // chapter marker when doing the external edit, and so we want to keep any
+                // subheading adaptations etc. The way to do this is to do no merge here,
+                // but instead take the next "old" chunk and give it the present old
+                // chunk's starting index number, so that a later matchup will incorporate
+                // the material which can't be handled here. For any other situatin, assume
+                // this preliminary material is no longer wanted. So do nothing (except get
+                // the oldLastChunkIndex and newLastChunkIndex set ready for the next test
+                // - which should be milestoned material)
 				if (pNewChunk->type == preFirstChapterChunk)
 				{
 					// copy to pMergedList, no recursive merge is required
@@ -1186,8 +1231,17 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						// pMergedList, always using the nStartingSequNum value to start from
 						gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
 					}
-				} // the other two options can be safely ignored (ie. neither array has
-				  // preFirstChapterChunk or only arrOld has it)
+				}
+				else if ( oldChunkIndex < oldMaxIndex && (
+					(pNewChunk->type == chapterPlusVerseChunk) ||
+					(pNewChunk->type == subheadingPlusVerseChunk) ||
+					(pNewChunk->type == verseChunk)))
+				{
+					SfmChunk* pNextOldChunk = (SfmChunk*)pChunksOld->Item(oldChunkIndex + 1);
+					pNextOldChunk->startsAt = pOldChunk->startsAt;
+				}
+				// the other option can be safely ignored (ie. neither array has
+				// preFirstChapterChunk)
 			}
 		} // end of TRUE block for test: 
 		  // if (oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
@@ -1195,8 +1249,6 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		// next, handle any milestoned material - this is done in a loop
 		oldChunkIndex = oldLastChunkIndex + 1;
 		newChunkIndex = newLastChunkIndex + 1;
-		int oldMaxIndex = countOldChunks - 1;
-		int newMaxIndex = countNewChunks - 1;
 		SfmChunk* pEndChunkOld = NULL;
 		SfmChunk* pEndChunkNew = NULL;
 		bool bInitialRefsSame =  TRUE;
@@ -1248,9 +1300,48 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 								newLastChunkIndex, bDisparateSizes, arrPairingOld);
 			} // end of TRUE block for test: if (bInitialRefsSame)
 
+			// BEW added 25Oct12. This block is to handle the situation when the old source
+			// text has only negligable or partial USFM marker content, and the user has
+			// exported the source text, added fuller or full USFM content, and then
+			// imported the marker-rich edited source text back into the document. We want
+			// this process to preserve many of the original adaptations (and
+			// placeholders) as possible, since it's likely that only markers, or mainly
+			// markers, are the sum total of the external editing changes. In this
+			// scenario, it's likely that the final chunk of the old text will be very
+			// large - being the span from where partial earlier markup finished to the
+			// end of the earlier form of the document; and the matching chunk may be very
+			// small, typically just a verse. The legacy code would just match the verse
+			// content with adaptations retention, and then the loop would be exited and
+			// the whole of the remaining newly edited source text would be added as a
+			// copy operation - thereby throwing all the adaptations etc for that
+			// material. The approach I'll take here is to test for this kind of scenario,
+			// and when the size of the old LAST chunk is disproportionately large to the
+			// matched new chunk, call MergeRecursively() with the old and new spans being
+			// everything from the presently unmerged old and new material up to the very
+			// end of each CSourcePhrase array - the internal one (arrOld), and the one
+			// for the edited material just imported (arrNew). For this, the limit value
+			// should be -1, so that milestones are ignored and the final (large) chunks
+			// are merged as wholes. Then control should exit the loop, and the
+			// MergeUpdatedSrcTextCore() function should exit after any final housekeeping
+			// is done.
+			if ( // bInitialRefsSame may also be TRUE, but we won't assume so and so won't test for it
+				!bPairedOK &&
+				bDisparateSizes &&
+				(countOldChunks > 0) &&
+				(oldLastChunkIndex != wxNOT_FOUND) &&
+				(oldLastChunkIndex == oldMaxIndex)
+				)
+			{
+				// set the following flag, and delay processing until the matched
+				// milestoned material, if any, has been handled - then test the flag for
+				// TRUE just before loop end, and if true then exit the loop and finish
+				// the super-chunk merger outside the loop
+				bHandleDispirateSizedLastOldChunk = TRUE;
+			}
+
 			if (bPairedOK && bInitialRefsSame)
 			{		
-				// didn't come to a halting location, so must have reached end or one
+				// didn't come to a halting location, so must have reached end of one
 				// or both arrays -- check it out
 				if (oldLastChunkIndex == oldMaxIndex && newLastChunkIndex == newMaxIndex)
 				{
@@ -1289,7 +1380,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// added more source text at the end of the previous source text,
 					// and we have to now copy ALL of the remaining CSourcePhrase
 					// instances in arrNew to pMergedList - no recursion is needed;
-					// and we must explicitly to m_nSequNumber updating here as well.
+					// and we must explicitly do m_nSequNumber updating here as well.
 					// But prior to all that, we must recursively merge whatever stuff
 					// was successfully paired to form a super-chunk.
 					pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex);
@@ -1449,8 +1540,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					RemoveAll(&subArrOld);
 					RemoveAll(&subArrNew);
 				} // end of TRUE block for complex 3-part test:
-				  // if ( bInitialRefsSame || !bDisparateSizes ||
-				  // (bDisparateSizes && (oldChunkIndex < oldLastChunkIndex && newChunkIndex < newLastChunkIndex))
+				  // if ( bInitialRefsSame || (!bDisparateSizes ||
+				  // (bDisparateSizes && (oldChunkIndex < oldLastChunkIndex && newChunkIndex < newLastChunkIndex)))
 
 				// if bDisparateSizes is TRUE, we have to merge that pair which have
 				// the disparate word count sizes now, using a limit value of -1 to
@@ -1785,6 +1876,15 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			{
 				break; // break out of the loop
 			}
+			if (bHandleDispirateSizedLastOldChunk)
+			{
+				// this flag being true is also cause for exiting the loop and processing
+				// in a once-only block below; we need to here set newLastChunkIndex to its
+				// maximum value to prevent a spurious copy being done below outside the loop
+				newLastChunkIndex = newMaxIndex; // this is needed!
+				oldLastChunkIndex = oldMaxIndex; // not needed, but documents where 
+													 // processing has finished to
+			}
 		} // end of loop: while (oldIndex < countOldChunks && newIndex < countNewChunks)
 
 		// Since the above loop can exit with one of the two arrays still with data, we
@@ -1796,7 +1896,34 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		// of them to pMergedList would need to be done here.
 		newChunkIndex = newLastChunkIndex + 1; // since newLastChunkIndex was last instance
 											   // copied to pMergeList
-		if (newChunkIndex <= newMaxIndex)
+		// BEW added next test and true block on 25Oct12
+		if (bHandleDispirateSizedLastOldChunk)
+		{
+			// Because bDisparateSizes is TRUE, the oldLastChunkIndex and
+			// newLastChunkIndex values returned are the chunk indices for
+			// the parts which are yet to be merged; so use this fact to
+			// set the needed subarrays for the final superchunk merge
+			pOldChunk = (SfmChunk*)pChunksOld->Item(oldLastChunkIndex); // starts here
+			pNewChunk = (SfmChunk*)pChunksNew->Item(newLastChunkIndex); // starts here
+			pEndChunkOld = (SfmChunk*)pChunksOld->Item(oldMaxIndex); // ends at end of this one
+			pEndChunkNew = (SfmChunk*)pChunksNew->Item(newMaxIndex); // ends at end of this one
+			// now set up the content of subArrOld and subArrNew
+			CopySubArray(arrOld, pOldChunk->startsAt, pEndChunkOld->endsAt, subArrOld);
+			CopySubArray(arrNew, pNewChunk->startsAt, pEndChunkNew->endsAt, subArrNew);
+			// Merge the superchunks. Fot the processStartToEnd enum value, params
+			// after the nStartingSequNum param are not used, and what's passed in are
+			// just fillers that are ignored.
+			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
+				arrOld, arrNew, oldChunkIndex, newChunkIndex);
+#if defined(_DEBUG) && defined(MERGE_Recursively)
+			wxLogDebug(_T("MergeRecursively() last old chunk & disparate sized, take all remaining in both old & new \nas super-chunk -- earlier: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
+				pOldChunk->startsAt, pEndChunkOld->endsAt, pNewChunk->startsAt, pEndChunkNew->endsAt, -1, nStartingSequNum);
+#endif
+			RemoveAll(&subArrOld);
+			RemoveAll(&subArrNew);
+		}
+		else if (newChunkIndex <= newMaxIndex)
 		{
 			// copy the rest from arrNew to pMergedList
 			CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
@@ -2504,7 +2631,7 @@ int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, in
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return         TRUE if one or more in-sync matchups are determined (oldEndChunk and
 ///                 newEndChunk values can then be relied upon); FALSE if no in-sync matchups
-///                 were able to be made, or if their is a valid pairing but the pair are
+///                 were able to be made, or if there is a valid pairing but the pair are
 ///                 disparate in size (word counts comparison -- see the bDisparateSizes
 ///                 parameter for more detail)
 /// \param  arrOld          ->  ref to old CSourcePhrase instances array (ie. the Adapt It
@@ -2541,7 +2668,7 @@ int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, in
 /// \param  newChunkIndexKickoff -> the index for the first chunk in the new (full) array
 ///                             which as yet is not processed
 /// \remarks
-/// This is the function which does the recursive merging of two subpans of CSourcePhrase
+/// This is the function which does the recursive merging of two subspans of CSourcePhrase
 /// instances. It may be called often in the process of merging all the data.
 /// Note: Merging milestoned groups (such as verse chunks) will normally not destroy
 /// stored retranslations or free translations - but it is possible that either or both
@@ -2554,15 +2681,15 @@ int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, in
 /// data is all imported).
 /// Note: the oldChunkIndexKickoff and newChunkIndexKickoff are indices into the full
 /// arrays in the caller - they are each one more than the indices for the last chunks of
-/// those that have already been processed. Since the GetMaxInSyncChunksPairing starts
-/// with an empty arrPairingsOld and arrPairingsNew, the latter arrays will loop using
-/// an index which commences at 0. So we have to be careful when using the loop index in
-/// this function, we make a mistake to use it without an offset to allow for what has
-/// already been process. Instead, we must add appropriate offsets if indexing into
+/// those that have already been processed. Since the GetMaxInSyncChunksPairing() starts
+/// with an empty arrPairingsOld and arrPairingsNew, the latter arrays will loop using an
+/// index which commences at 0. So we have to be careful when using the loop index in this
+/// function, we would make a mistake if we use it without an offset to allow for what has
+/// already been processed. Instead, we must add appropriate offsets if indexing into
 /// arrOldFull and arrNewFull, and the offsets are oldChunkIndexKickoff and
 /// newChunkIndexKickoff, respectively -- but this only applies when howToProcess was
-/// passed in as processPerMilestone; for the other enum value, pre-processing done in
-/// the caller makes all the needed adjustments before MergeRecursively is entered.
+/// passed in as processPerMilestone; for the other enum value, pre-processing done in the
+/// caller makes all the needed adjustments before MergeRecursively is entered.
 //////////////////////////////////////////////////////////////////////////////////////
 void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
 		int initialSequNum,  wxArrayPtrVoid* pChunksOld, wxArrayPtrVoid* pChunksNew,
@@ -2589,10 +2716,10 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	// new code in a block further below
 	if (howToProcess == processStartToEnd)
 	{
-		// arrOld and arrNew passed in are typically subarray's of longer arrays in the caller,
-		// because arrOld and arrNew params are set by CopySubArray() calls in the caller,
-		// extracting the subarrays from arrOld and arrNew which contain the full set of
-		// old and new CSourcePhrase instances, respectively
+        // arrOld and arrNew passed in are typically subarray's of longer arrays in the
+        // caller, because arrOld and arrNew params are set by CopySubArray() calls in the
+        // caller, extracting the subarrays from the caller's arrOld and arrNew which
+        // contain the full set of old and new CSourcePhrase instances, respectively
 		int oldSPCount = arrOld.GetCount();
 		int newSPCount = arrNew.GetCount();
 
@@ -9235,6 +9362,23 @@ void CopyToList(SPArray& arr, int fromIndex, int toIndex, SPList* pList)
 	}
 }
 
+// In this function, "Ones" are CSourcePhrase instances - the "old" ones are from the
+// document, and the "new" ones are from the array of instances being imported for merger;
+// or chapter markers \c, or verse markers \v, depending on what we pass in.
+// Return TRUE if the sizes differ by mor than 150%
+bool AreInventoriesDisparate(int oldOnesCount, int newOnesCount)
+{
+	int maxItems = wxMax(oldOnesCount, newOnesCount);
+	int minItems = wxMin(oldOnesCount, newOnesCount);
+	int second = (int)DISPARATE_SIZES_NUMERATOR * minItems;
+	int first =  (int)DISPARATE_SIZES_DENOMINATOR * maxItems;
+	if (first > second)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return                 TRUE if the array could be chunked because markers were present,
 ///                         FALSE if it could not be chunked (that would almost certainly
@@ -9243,8 +9387,11 @@ void CopyToList(SPArray& arr, int fromIndex, int toIndex, SPList* pList)
 ///                         any USFM or SFM markup)
 /// \param  pInputArray ->  an array of CSourcePhrase pointers (it may be a subarray
 ///                         extracted from a larger array, it can't be assumed to be
-///                         the whole document)
+///                         the whole document - but almost certainly always will be, and
+///                         so far Adapt It only uses it this way)
 /// \param  pChunkSpecs <-  an array of pointers to SfmChunk structs
+/// \param  countOfChapters <- returns a count of how many \c markers there were
+/// \param  countOfVerses   <- returns a count of how many \v (or \vn) markers there were
 /// \remarks
 /// The SfmChunk struct has the following structure, & is declared in MereUpdatedSrc.h
 /// and comments there describe what each member field is for:
@@ -9270,7 +9417,8 @@ void CopyToList(SPArray& arr, int fromIndex, int toIndex, SPList* pList)
 /// verse information - actually, all of them, except verseChunk; each chunk indexes into
 /// the passed in pInputArray array of CSourcePhrase instances (in document order,
 /// although the first in the array does not necessarily have a m_nSequNumber value of 0)
-bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
+bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
+							 int& countOfChapters, int& countOfVerses)
 {
 	bool bCannotChunkThisArray = TRUE; // it might turn out to have no (U)SFMs in it
 	pChunkSpecs->Clear(); // ensure it starts empty
@@ -9405,6 +9553,9 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 		nEndsAt = wxNOT_FOUND; 
 	}
 
+	countOfChapters = 0;
+	countOfVerses = 0;
+
 	// Now we analyse one or more chapters until done. This will involve smaller chunks -
 	// largest should be a verse. The chunks, in order of occurrence that we will search
 	// for, in a loop, are:
@@ -9487,6 +9638,17 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 				pSfmChunk->nEndingVerse = 0;
 				pSfmChunk->charEndingVerseSuffix = _T('\0');
 			}
+			else
+			{
+				if (!pSfmChunk->strChapter.IsEmpty())
+				{
+					countOfChapters++;
+				}
+				if (!pSfmChunk->strStartingVerse.IsEmpty())
+				{
+					countOfVerses++;
+				}
+			}
 			pChunkSpecs->Add(pSfmChunk);
 
 			// consume this chunk, by advancing where we start from next
@@ -9531,6 +9693,13 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 					pSfmChunk->nEndingVerse = 0;
 					pSfmChunk->charEndingVerseSuffix = _T('\0');
 				}
+				else
+				{
+					if (!pSfmChunk->strStartingVerse.IsEmpty())
+					{
+						countOfVerses++;
+					}
+				}
 				pChunkSpecs->Add(pSfmChunk);
 
 				// consume this chunk, by advancing where we start from next
@@ -9574,6 +9743,13 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs)
 						pSfmChunk->strEndingVerse = _T("0");
 						pSfmChunk->nEndingVerse = 0;
 						pSfmChunk->charEndingVerseSuffix = _T('\0');
+					}
+					else
+					{
+						if (!pSfmChunk->strStartingVerse.IsEmpty())
+						{
+							countOfVerses++;
+						}
 					}
 					pChunkSpecs->Add(pSfmChunk);
 

@@ -1,4 +1,11 @@
 ----------------------------------------------
+Bug fixes in 6.3.2
+----------------------------------------------
+* Fixed failures of the Import Edited Source Text feature in a
+variety of unusual circumstances - such as, for example, when
+the document and the edited source text differ significantly in
+marker inventories but the data is similarly sized nevertheless
+----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------
 ----------------------------------------------
