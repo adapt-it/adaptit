@@ -1198,6 +1198,25 @@ enum VersionComparison
 	profileVersionDiffers
 };
 
+// edb added 23Oct12 for new toolbar support
+enum ToolbarButtonSize
+{
+	btnSmall,	// 16x16 (old tb size)
+	btnMedium,	// 22x22 (standard linux tb size)
+	btnLarge	// 32x32 (OLPC XO size)
+};
+
+struct ToolbarButtonInfo
+{
+	int toolId;
+    wxString label;
+    wxString shortHelpString;
+    wxString longHelpString;
+	wxBitmap bmpSmall;
+	wxBitmap bmpMedium;
+	wxBitmap bmpLarge;
+};
+
 struct UserProfileItem
 {
 	wxString itemID;
