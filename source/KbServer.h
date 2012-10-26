@@ -68,7 +68,6 @@ public:
 	int		  LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry );
 	int		  LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		  CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag);  // was SendEntry()
-	//int		  LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted);
 	int		  PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 
 	// public setters
@@ -155,18 +154,18 @@ private:
 	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
 
 	// getters for the private member variables above
-	wxString GetKBServerURL();
-	wxString GetKBServerUsername();
-	wxString GetKBServerPassword();
-	wxString GetKBServerLastSync();
-	wxString GetSourceLanguageCode();
-	wxString GetTargetLanguageCode();
-	wxString GetGlossLanguageCode();
-	int		 GetKBServerType();
-	wxString GetPathToPersistentDataStore();
-	wxString GetPathSeparator();
-	wxString GetCredentialsFilename();
-	wxString GetLastSyncFilename();
+	wxString	GetKBServerURL();
+	wxString	GetKBServerUsername();
+	wxString	GetKBServerPassword();
+	wxString	GetKBServerLastSync();
+	wxString	GetSourceLanguageCode();
+	wxString	GetTargetLanguageCode();
+	wxString	GetGlossLanguageCode();
+	int			GetKBServerType();
+	wxString	GetPathToPersistentDataStore();
+	wxString	GetPathSeparator();
+	wxString	GetCredentialsFilename();
+	wxString	GetLastSyncFilename();
 
     // Private storage arrays (they are wxArrayString, but deleted flag and id will use
     // wxArrayInt) for entries data returned from the server, and for uploads too),

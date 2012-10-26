@@ -2689,6 +2689,7 @@ public:
 private:
 	KbServer* m_pKbServer[2]; // [0] one for adapting, [1] one for glossing
 public:
+	void	  SetKbServer(int whichType, KbServer* pKbSvr);
 	KbServer* GetKbServer(int whichType); // getter for whichever m_pKbServer is current, adapting or glossing
 	void	  DeleteKbServer(int whichType);
 	bool	  SetupForKBServer(int whichType);

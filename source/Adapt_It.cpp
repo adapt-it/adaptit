@@ -14636,6 +14636,13 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 
 #if defined(_KBSERVER)
 
+//setter for m_pKbServer pointer in CAdapt_ItApp
+void CAdapt_ItApp::SetKbServer(int whichType, KbServer* pKbSvr)
+{
+	wxASSERT( whichType == 1 || whichType == 2);
+	m_pKbServer[whichType - 1] = pKbSvr;
+}
+
 // getter for m_pKbServer; pass in 1 for the adaptations KbServer instance, and 2 for the
 // glossing one
 KbServer* CAdapt_ItApp::GetKbServer(int whichType)
@@ -14679,6 +14686,10 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		wxMessageBox(msg, _T("KbServer error"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
+	// store it for the user's adapting or glossing session in this project
+	SetKbServer(whichType, pKbSvr);
+	
+	// get the kbserver credentials we need
 	wxString credsfilename = _T("credentials.txt"); // temporary
 	wxString syncfilename = _T("lastsync.txt"); //  temporary
 	wxString url; url.Empty();
