@@ -87,6 +87,7 @@ static int		totalBytesSent = 0;
 //=============================== KbServer class ===================================
 
 std::string str_CURLbuffer;
+const size_t npos = (size_t)-1; // largest possible value, for use with std:find()
 
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
@@ -569,7 +570,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer); // <-- not needed
 		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when header info is
-													  //not needed in the download
+													  //not needed in the download (and below)
 
 		result = curl_easy_perform(curl);
 
@@ -580,6 +581,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 #endif
 
 		if (result) {
+			str_CURLbuffer.clear(); // always clear it before returning
 			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n", 
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
@@ -613,6 +615,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 			// a non-localizable message will do, it's unlikely to ever be seen
 			wxMessageBox(_T("LookupEntriesForSourcePhrase(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
+			str_CURLbuffer.clear(); // always clear it before returning
 			return -1;
 		}
 		int listSize = jsonval.Size();
@@ -629,6 +632,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 			m_arrUsername.Add(jsonval[index][_T("user")].AsString());
 			m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 		}
+		str_CURLbuffer.clear(); // always clear it before returning
 	}
 
 	return 0;
@@ -661,12 +665,19 @@ void KbServer::ClearOneStringArray(wxArrayString* pArray)
 
 // Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
 // also the storage arrays should be cleared with a call of ClearAllPrivateStorageArrays()
+// and always remember to clear str_CURLbuffer before returning.
+// Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
+// be returned even when there is no entry in the database. It's the returned ascii
+// string, "No matching entry found" put into str_CURLbuffer which tells us that the entry
+// is not in the kbserver database, so use that fact
 int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 {
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
 	wxString aPwd; // ditto
+	const char notPresentStr[] = "No matching entry found";
+	ClearAllPrivateStorageArrays(); // always must start off empty
 
 	CBString charUrl;
 	CBString charUserpwd;
@@ -704,13 +715,24 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 #endif
 
 		if (result) {
-			printf("LookupEntryFields() result code: %d, Error: %s\n", 
+			str_CURLbuffer.clear(); // always clear it before returning
+			printf("LookupEntryFields() result code: %d, cURL Error: %s\n", 
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
 	}
 	curl_easy_cleanup(curl);
+
+	// Find out if there is no entry, if so, clear the buffer and return 1 to indicate
+	// failure to find the entry (the find() will work whether or not headers precede the
+	// search string)
+	if (str_CURLbuffer.find(notPresentStr) != npos)
+	{
+		// found the notPresentstr, so the looked up pair is not in the database
+		str_CURLbuffer.clear();
+		return 1;
+	}
 
 	// uncomment out only for "changed since" downloads, and also uncomment out the
 	// CURLOPT_HEADER, 1L line above, so that header info is inserted in the data stream
@@ -722,6 +744,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
         //wxString sshowit = ToUtf16(ss);
         //wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
 #endif
+	// If there was no matching entry in the database, "No matching entry found" is
+	// returned, so test for this 
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
@@ -737,6 +761,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			// a non-localizable message will do, it's unlikely to ever be seen
 			wxMessageBox(_T("LookupEntryForSrcTgtPair(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
+			str_CURLbuffer.clear(); // always clear it before returning
 			return -1;
 		}
 		// we extract id, source phrase, target phrase, deleted flag value, username,
@@ -748,6 +773,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		m_arrTarget.Add(jsonval[_T("target")].AsString());
 		m_arrUsername.Add(jsonval[_T("user")].AsString());
 		m_arrTimestamp.Add(jsonval[_T("timestamp")].AsString());
+		str_CURLbuffer.clear(); // always clear it before returning
 	}
 
 	return 0;
@@ -824,54 +850,6 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 	return 0;
 }
 
-// Returns the entryID, or -1 if there was an error. filter defaults to onlyUndeletedPairs;
-// this is a filtering flag, when it equals onlyUndeletedPairs the lookup only considers
-// (pseudo) undeleted src/tgt pairs as candidates for a successful lookup; if
-// onlyDeletePairs is the value, only (pseudo) deleted pairs are considered; finally,
-// allPairs considers all possibilities and will return the index of any pair which
-// matches, but this is unlikely to be helpful because no information regarding deletion
-// state is returned.
-/* deprecated
-int KbServer::LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted)
-{
-	int entryID = -1;
-	bDeleted = 0;
-	int curlcode = LookupEntriesForSourcePhrase(srcPhrase);
-	if (curlcode == CURLE_OK)
-	{
-		if (!str_CURLbuffer.empty())
-		{
-			wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str());
-			wxJSONValue jsonval;
-			wxJSONReader reader;
-			int numErrors = reader.Parse(myList, &jsonval);
-			if (numErrors > 0)
-			{
-				wxMessageBox(_T("LookupEntryID(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
-					_T("kbserver error"), wxICON_ERROR | wxOK);
-				return -1;
-			}
-			int listSize = jsonval.Size();
-			int index;
-			for (index = 0; index < listSize; index++)
-			{
-				// we need to get the deleted flag's value
-				entryID = jsonval[index][_T("id")].AsInt();
-				int deletedFlag = jsonval[index][_T("deleted")].AsInt();
-				bDeleted = deletedFlag == 1 ? TRUE : FALSE;
-				wxString aTgtPhrase = jsonval[index][_T("target")].AsString();
-				if (aTgtPhrase == tgtPhrase)
-				{
-					return entryID;
-				}
-			}
-		}
-	}
-	// not found
-	return -1;
-}
-*/
-
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
 int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
 {
@@ -947,8 +925,6 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 	curl_easy_cleanup(curl);
 	return 0;
 }
-
-
 
 
 

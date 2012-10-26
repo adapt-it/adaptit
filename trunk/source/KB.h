@@ -162,13 +162,22 @@ public:
 #if defined (_KBSERVER)
 
 	// use next for phrasebox typed adaptations or glosses, and for KBEditor's Add button
-	bool			HandleNewPairTyped(int kbServerType, wxString srcKey, wxString translation); 
-	bool			HandleUndelete(int kbServerType, wxString srcKey, wxString translation); 
+	bool			HandleNewPairCreated(int kbServerType, wxString srcKey, wxString translation);
+	// use the next for phrasebox typed adaptation or gloss which is to be a normal entry
+	// when the local KB has the same pair as a pseudo-deleted entry
+	bool			HandleUndelete(int kbServerType, wxString srcKey, wxString translation);
+	// use the next when in the KB Editor for the local KB, the user selects an adaptation
+	// or gloss and clicks the Remove button to pseudo-delete it
 	bool			HandlePseudoDelete(int kbServerType, wxString srcKey, wxString translation);
+	// Use the next when in the KB Editor for the local KB, the user corrects an
+	// incorrectly spelled adaptation or gloss. Internally this is implemented as a
+	// pseudo-delete of the old incorrectly spelled entry, together with creation of a new
+	// entry with the corrected src/tgt or src/gloss pair. Hence, the kbserver support can
+	// simply do HandlePseudoDelete() using the old pair, followed by
+	// HandleNewPairCreated() using the new src/tgt or src/gloss pair.
+	bool			HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey, 
+									wxString oldTranslation, wxString newTranslation);
 														  
-
-
-
 
 
 

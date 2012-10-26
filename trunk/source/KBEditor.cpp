@@ -525,7 +525,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
     // edit page's list -- this is in anticipation of kbserver support, which will work
     // correctly (ie. the uploaded deletions will cause deletions in the other connected
     // clients, and the new entry will result in a new kbserver pair with the edited
-    // adaptation or gloss text as the second member of the pair.
+    // adaptation or gloss text as the second member of the pair).
     
 	// clone the pCurRefString, the clone will become the new entry, pCurRefString will
 	// become the deleted CRefString instance (eventually)
@@ -558,6 +558,20 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// wxListBox list
 	pCurRefString->GetRefStringMetadata()->SetDeletedDateTime(nowStr);
 	pCurRefString->SetDeletedFlag(TRUE);
+
+	// BEW added 26Oct12 for kbserver support
+#if defined(_KBSERVER)
+	if (pApp->m_bIsKBServerProject)
+	{
+		bool bHandledOK = pKB->HandlePseudoDeleteAndNewPair(pApp->GetKBTypeForServer(), 
+									m_curKey, oldText, newText); 
+
+		// I've not yet decided what to do with the return value, at present we'll
+		// just ignore it even if FALSE (an internally generated message would have
+		// been seen anyway in that event)
+		bHandledOK = bHandledOK; // avoid compiler warning
+	}
+#endif
 
 	// That completes what's needed for updating the CTargetUnit instance. The stuff below
 	// is to get the page's translations (or glosses) list to comply with the edit done
@@ -681,6 +695,18 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 												  // not already there
 	if (bOK)
 	{
+	// BEW added 26Oct12 for kbserver support
+#if defined(_KBSERVER)
+		if (pApp->m_bIsKBServerProject)
+		{
+			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
+
+			// I've not yet decided what to do with the return value, at present we'll
+			// just ignore it even if FALSE (an internally generated message would have
+			// been seen anyway in that event)
+			bHandledOK = bHandledOK; // avoid compiler warning
+		}
+#endif
 		// don't add to the list if the AddRefString call did not succeed
 		wxString s;
 		s = _("<no adaptation>"); 
@@ -781,9 +807,22 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 				// will match in position
 	wxString s = _("<no adaptation>"); 
 
-	// if it was added successfully, show it in the listbox & select it
+	// if it was added successfully, show it in the listbox & select it; and do kbserver
+	// support if required
 	if (bOK)
 	{
+	// BEW added 26Oct12 for kbserver support
+#if defined(_KBSERVER)
+		if (pApp->m_bIsKBServerProject)
+		{
+			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
+
+			// I've not yet decided what to do with the return value, at present we'll
+			// just ignore it even if FALSE (an internally generated message would have
+			// been seen anyway in that event)
+			bHandledOK = bHandledOK; // avoid compiler warning
+		}
+#endif
 		if (newText.IsEmpty())
 			newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
@@ -1149,16 +1188,16 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 	// BEW added 22Oct12 for kbserver support
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject)
-		{
-			bool bHandledOK = pKB->HandlePseudoDelete(pApp->GetKBTypeForServer(), m_curKey, 
-											pRefString->m_translation); // needs a 4th param, 'deleted' flag value
+	if (pApp->m_bIsKBServerProject)
+	{
+		bool bHandledOK = pKB->HandlePseudoDelete(pApp->GetKBTypeForServer(), m_curKey, 
+										pRefString->m_translation); // needs a 4th param, 'deleted' flag value
 
-			// I've not yet decided what to do with the return value, at present we'll
-			// just ignore it even if FALSE (an internally generated message would have
-			// been seen anyway in that event)
-			bHandledOK = bHandledOK; // avoid compiler warning
-		}
+		// I've not yet decided what to do with the return value, at present we'll
+		// just ignore it even if FALSE (an internally generated message would have
+		// been seen anyway in that event)
+		bHandledOK = bHandledOK; // avoid compiler warning
+	}
 #endif
     // remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
     // 'remove' in the context of kbVersion 2 just means to retain storage of the

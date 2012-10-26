@@ -3421,7 +3421,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
         // a new one.
 		if (m_pApp->m_bIsKBServerProject)
 		{
-			bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+			bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
 			// I've not yet decided what to do with the return value, at present we'll
 			// just ignore it even if FALSE (an internally generated message would have
@@ -3573,7 +3573,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // really is going to be a new one.
 			if (m_pApp->m_bIsKBServerProject)
 			{
-				bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
 				// I've not yet decided what to do with the return value, at present we'll
 				// just ignore it even if FALSE (an internally generated message would have
@@ -3840,7 +3840,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
                     // and only upload if the entry really is going to be a new one.
 					if (m_pApp->m_bIsKBServerProject)
 					{
-						bool bHandledOK = HandleNewPairTyped(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+						bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
 						// I've not yet decided what to do with the return value, at present we'll
 						// just ignore it even if FALSE (an internally generated message would have
@@ -5022,13 +5022,12 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 // 4. If it's a pseudo-deleted entry, then it needs to be undeleted, so do a PUT to
 //    effect that change.
 // 5. If it a normal entry, refrain from accessing kbserver as there is nothing to do
-bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString translation)
+bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString translation)
 {
 	bool rv = TRUE;
 	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
 	if (pKBSvr != NULL)
 	{
-		pKBSvr->ClearAllPrivateStorageArrays();
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
 		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
 		{
@@ -5233,6 +5232,47 @@ bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation
 	}
 	return rv;
 }
+
+// Use the next when in the KB Editor for the local KB, the user corrects an
+// incorrectly spelled adaptation or gloss. Internally this is implemented as a
+// pseudo-delete of the old incorrectly spelled entry, together with creation of a new
+// entry with the corrected src/tgt or src/gloss pair. Hence, the kbserver support can
+// simply do HandlePseudoDelete() using the old pair, followed by
+// HandleNewPairCreated() using the new src/tgt or src/gloss pair.
+bool  CKB::HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey, 
+						wxString oldTranslation, wxString newTranslation)
+{
+	bool rv = TRUE;
+
+	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation);
+	if (rv)
+	{
+		rv = HandleNewPairCreated(kbServerType, srcKey, newTranslation);
+		if (!rv)
+		{
+			// if there was an error, log the strings, but do no more and let
+			// processing continue
+			wxString msg = _T("OLD: ");
+			msg += srcKey + _T(" : ") + oldTranslation;
+			msg += _T(" NEW: ");
+			msg += srcKey + _T(" : ") + newTranslation;
+			m_pApp->LogUserAction(msg);
+		}
+	}
+	else
+	{
+		// if there was an error, log the strings, but do no more and let
+		// processing continue
+		wxString msg = _T("OLD: ");
+		msg += srcKey + _T(" : ") + oldTranslation;
+		msg += _T(" NEW: ");
+		msg += srcKey + _T(" : ") + newTranslation;
+		m_pApp->LogUserAction(msg);
+	}
+	return rv;
+}
+
+
 
 
 
