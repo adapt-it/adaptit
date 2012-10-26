@@ -67,7 +67,7 @@ public:
 	// just a single word
 	int		  LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry );
 	int		  LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
-	int		  CreateEntry(wxString srcPhrase, wxString tgtPhrase);  // was SendEntry()
+	int		  CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag);  // was SendEntry()
 	//int		  LookupEntryID(wxString srcPhrase, wxString tgtPhrase, bool& bDeleted);
 	int		  PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 

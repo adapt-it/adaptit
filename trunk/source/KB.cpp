@@ -5016,11 +5016,11 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 // Use for phrasebox typed adaptations or glosses, and for KBEditor's Add button
 // Implements the following logic:
 // 1. Determine if the src/tgt pair is in the kbserver database or not
-// 2. If it's not present, upload and create a new entry
+// 2. If it's not present, upload and create a new entry with deleted flag set to 0
 // 3. If it's present, it could be a normal entry or a pseudo-deleted one, so use the
 //    result from 1. to find out which is the case
-// 4. If it's a pseudo-deleted entry, the it needs to be undeleted, do a PUT to effect
-//    that change.
+// 4. If it's a pseudo-deleted entry, then it needs to be undeleted, so do a PUT to
+//    effect that change.
 // 5. If it a normal entry, refrain from accessing kbserver as there is nothing to do
 bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString translation)
 {
@@ -5032,15 +5032,16 @@ bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString transla
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
 		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
 		{
-			//  POST the new entry to the kbserver
-			responseCode = pKBSvr->CreateEntry(srcKey, translation);
+			//  POST the new entry to the kbserver, with bDeletedFlag set to FALSE
+			responseCode = pKBSvr->CreateEntry(srcKey, translation, FALSE);
 			if (responseCode != CURLE_OK)
 			{
 				// TODO a function to show the error code and a meaningful
 				// explanation
 				wxString msg;
-				msg = msg.Format(_T("HandleNewPairTyped(), CreateEntry(): Failure! responseCode = %d"), responseCode);
+				msg = msg.Format(_T("HandleNewPairTyped(), call of CreateEntry() failed: responseCode = %d"), responseCode);
 				wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
+				m_pApp->LogUserAction(msg);
 				rv = FALSE; // but don't abort
 			}
 		}
@@ -5060,8 +5061,9 @@ bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString transla
 					// TODO a function to show the error code and a meaningful
 					// explanation
 					wxString msg;
-					msg = msg.Format(_T("HandleNewPairTyped(), PseudoDeleteOrUndeleteEntry(): Failure for doUndelete! responseCode = %d"), responseCode);
+					msg = msg.Format(_T("HandleNewPairTyped(), call of PseudoDeleteOrUndeleteEntry()failed for doUndelete: responseCode = %d"), responseCode);
 					wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
+					m_pApp->LogUserAction(msg);
 					rv = FALSE; // but don't abort
 				}
 			}
@@ -5070,7 +5072,9 @@ bool CKB::HandleNewPairTyped(int kbServerType, wxString srcKey, wxString transla
 	else
 	{
 		// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-		wxMessageBox(_T("HandleNewPairTyped(), CreateEntry() not called because m_pKbServer is NULL"));
+		wxString msg = _T("HandleNewPairTyped(), call of CreateEntry() not done because m_pKbServer is NULL");
+		wxMessageBox(msg);
+		m_pApp->LogUserAction(msg);
 		rv = FALSE; // but don't abort
 	}
 	return rv;
@@ -5104,13 +5108,6 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 {
 	bool rv = TRUE;
 	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
-
-	//   TODO  ***************** need Jonathan's tweak that allows createentry with deleted
-	//   flag == 1 to be implemented ********************** (fior #2 above, I'll just
-	//   temporarily do a CreateEntry() call as a normal entry as that's all that's
-	//   currently possible) ****************************************************************************************************!!!!!!!!!NOTE 
-
-
 	if (pKBSvr != NULL)
 	{
 		pKBSvr->ClearAllPrivateStorageArrays();
@@ -5118,14 +5115,15 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
 		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
 		{
-			//  POST the new entry to the kbserver -- but with deleted flag value of 1
-			responseCode = pKBSvr->CreateEntry(srcKey, translation /*, 1 */); // <<-- *************NEEDS Jonathan's createentry extra param tweak
+			//  POST the new entry to the kbserver - but with bDeletedFlag value of TRUE
+			responseCode = pKBSvr->CreateEntry(srcKey, translation, TRUE);
 			if (responseCode != CURLE_OK)
 			{
 				// TODO a function to show the error code and a meaningful
 				// explanation
 				wxString msg;
-				msg = msg.Format(_T("HandlePseudoDelete(), in call CreateEntry(): Failure! responseCode = %d"), responseCode);
+				msg = msg.Format(_T("HandlePseudoDelete(), call of CreateEntry() failed: responseCode = %d"), responseCode);
+				m_pApp->LogUserAction(msg);
 				wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
 				rv = FALSE; // but don't abort
 			}
@@ -5146,7 +5144,8 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 					// TODO a function to show the error code and a meaningful
 					// explanation
 					wxString msg;
-					msg = msg.Format(_T("HandlePseudoDelete(), in call PseudoDeleteOrUndeleteEntry(): Failure for doDelete! responseCode = %d"), responseCode);
+					msg = msg.Format(_T("HandlePseudoDelete(), call of PseudoDeleteOrUndeleteEntry() failed for doDelete: responseCode = %d"), responseCode);
+					m_pApp->LogUserAction(msg);
 					wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
 					rv = FALSE; // but don't abort
 				}
@@ -5156,20 +5155,21 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 	else
 	{
 		// Tell developer: logic error elsewhere has m_pKbServer still NULL, fix it.
-		wxMessageBox(_T("HandlePseudoDelete(), nothing done in the call because m_pKbServer is NULL"));
+		wxString msg = _T("HandlePseudoDelete(), nothing done in the call because m_pKbServer is NULL");
+		wxMessageBox(msg);
+		m_pApp->LogUserAction(msg);
 		rv = FALSE; // but don't abort
 	}
 	return rv;
 }
 
-
 // Return TRUE if there was no error, FALSE otherwise
 // Use for phrase box typing which creates a src/tgt pair to be treated as a normal local
-// KB entry when the same pair has been earlier pseudo-deleted. A local undelete is
-// needed. So reproduce this outcome in the kbserver database, but don't assume that the
-// entry actually is in the database already (it might not be) nor that if it is, it is
-// currently a pseudo-deleted one (it may in fact be a normal one, though the likelihood
-// is small, due to the actions of another connected user)
+// KB entry when the same pair has been earlier pseudo-deleted. A local undelete is needed.
+// So reproduce this outcome also in the kbserver database, but don't assume that the entry
+// actually is in the database already (it might not be) nor that if it is, it is currently
+// a pseudo-deleted one (it may in fact be a normal one, though the likelihood is small,
+// due to the actions of another connected user)
 // Implements the following logic:
 // 1. Determine if the src/tgt pair is in the kbserver database or not
 // 2. If it's not present, upload and create a new normal entry
@@ -5188,14 +5188,15 @@ bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
 		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
 		{
-			//  POST the new entry to the kbserver
-			responseCode = pKBSvr->CreateEntry(srcKey, translation);
+			//  POST the new entry to the kbserver, with bDeletedFlag set to FALSE
+			responseCode = pKBSvr->CreateEntry(srcKey, translation, FALSE);
 			if (responseCode != CURLE_OK)
 			{
 				// TODO a function to show the error code and a meaningful
 				// explanation
 				wxString msg;
-				msg = msg.Format(_T("HandleNewPairTyped(), CreateEntry(): Failure! responseCode = %d"), responseCode);
+				msg = msg.Format(_T("HandleNewPairTyped(), call of CreateEntry() failed: responseCode = %d"), responseCode);
+				m_pApp->LogUserAction(msg);
 				wxMessageBox(msg, _T("Error in CreateEntry"), wxICON_EXCLAMATION | wxOK);
 				rv = FALSE; // but don't abort
 			}
@@ -5216,7 +5217,8 @@ bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation
 					// TODO a function to show the error code and a meaningful
 					// explanation
 					wxString msg;
-					msg = msg.Format(_T("HandleNewPairTyped(), PseudoDeleteOrUndeleteEntry(): Failure for doUndelete! responseCode = %d"), responseCode);
+					msg = msg.Format(_T("HandleNewPairTyped(), call of PseudoDeleteOrUndeleteEntry() failed for doUndelete: responseCode = %d"), responseCode);
+					m_pApp->LogUserAction(msg);
 					wxMessageBox(msg, _T("Error in PseudoDeleteOrUndeleteEntry"), wxICON_EXCLAMATION | wxOK);
 					rv = FALSE; // but don't abort
 				}
