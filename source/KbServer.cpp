@@ -753,7 +753,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	return 0;
 }
 
-int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase) // was SendEntry()
+int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag) // was SendEntry()
 {
 	CURL *curl;
 	CURLcode result; // result code
@@ -780,6 +780,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase) // was SendEnt
 	jsonval[_T("target")] = tgtPhrase;
 	jsonval[_T("user")] = GetKBServerUsername();
 	jsonval[_T("type")] = kbType;
+	jsonval[_T("deleted")] = bDeletedFlag ? 1 : 0;
 
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
