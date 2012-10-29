@@ -17,10 +17,14 @@
   - Removes intermediate files / directories
   -->
   <target name="clean"
-        description="clean up" >
+        description="clean up artifacts from previous builds" >
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+	<!-- Delete expanded 3pt directories -->
+	<delete dir="${3pt}\boost\current\boost" />
+	<delete dir="${3pt}\wxWidgets-2.8.12\wxWidgets-2.8.12" /> 
+	<delete dir="${3pt}\wxWidgets\current\wxWidgets" /> 
     <!-- Delete ALL intermediate setup directories -->
     <delete dir="${root}\setup Regular"/>
     <delete dir="${root}\setup Regular - Minimal"/>
@@ -72,7 +76,7 @@
     <exec executable="7za" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/wxwidgets/current/wxWidgets-2.9.4.7z" />
-	<arg value="-o${3pt}/wxwidgets/current" />
+	<arg value="-o${3pt}/wxwidgets/current/wxWidgets" />
 	<arg value="-y" />
     </exec>
     <exec executable="7za" failonerror="yes">
@@ -81,20 +85,10 @@
 	<arg value="-o${3pt}/wxwidgets/2.8.12" />
 	<arg value="-y" />
     </exec>
-    <!-- build wxwidgets for wxwin -->
-    <copy file="${3pt}/wxwidgets/current/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/include/wx/setup.h"/>
-    <exec executable="msbuild" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Debug" />
-	  <arg value="/p:Configuration=Release" />
-	<arg value="${3pt}/wxwidgets/current/build/msw/wx_vc9.sln" />
-    </exec>
-    <exec executable="msbuild" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Debug" />
-	  <arg value="/p:Configuration=Release" />
-	<arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
-    </exec>
+    <!-- wxWidgets needs us to tell it what OS platform we're building; we do this by
+	     copying the setup.h file from the /msw directory up into the /include/wx directory.
+         Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
+    <copy file="${3pt}/wxwidgets/current/wxWidgets/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets/include/wx/setup.h"/>
   </target>
 
   <!-- 
@@ -103,10 +97,16 @@
   -->
   <target name="compile_unicode_debug" depends="init"
         description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="msbuild" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Debug" />
+	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+    </exec>
     <!-- build Adapt It -->
     <exec executable="msbuild" failonerror="yes">
 		<env key="WXVER" value="29"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<arg value="${root}/bin/win32/Adapt_It.sln" />
 		<arg value="/target:rebuild" />
@@ -120,10 +120,21 @@
   -->
   <target name="compile_unicode_release" depends="init"
         description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="msbuild" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Debug" />
+	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+    </exec>
+    <exec executable="msbuild" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Release" />
+	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+    </exec>
     <!-- build Adapt It -->
     <exec executable="msbuild" failonerror="yes">
 		<env key="WXVER" value="29"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<arg value="${root}/bin/win32/Adapt_It.sln" />
 		<arg value="/target:rebuild" />
@@ -137,6 +148,12 @@
   -->
   <target name="compile_debug" depends="init"
         description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="msbuild" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Debug" />
+	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
+    </exec>
     <!-- build Adapt It -->
     <exec executable="msbuild" failonerror="yes">
 		<env key="WXVER" value="28"/>
@@ -154,6 +171,12 @@
   -->
   <target name="compile_release" depends="init"
         description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="msbuild" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Release" />
+ 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
+    </exec>
     <!-- build Adapt It -->
     <exec executable="msbuild" failonerror="yes">
 		<env key="WXVER" value="28"/>
@@ -243,14 +266,14 @@
   - build_continuous target
   - Compiles the Unicode Debug build.
   -->
-  <target name="build_continuous" depends="init, compile_unicode_debug" description="Continuous build target" >
+  <target name="build_continuous" depends="clean, init, compile_unicode_debug" description="Continuous build target" >
   </target>
 
   <!-- 
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, init, compile_unicode_release, copy, generate_installers" description="Daily / Release build target" >
+  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, copy, generate_installers" description="Daily / Release build target" >
   </target>
 
 </project>
