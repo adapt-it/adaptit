@@ -3,13 +3,13 @@
 /// \file			MergeUpdatedSrc.cpp
 /// \author			Bruce Waters
 /// \date_created	12 April 2011
-/// \date_revised	
+/// \date_revised
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is a header file containing some helper functions used 
+/// \description	This is a header file containing some helper functions used
 ///                 by Adapt It, for merging updated/edited source text in the form
 ///                 of a list of CSourcePhrase instances with an earlier list of
-///                 adapted CSourcePhrase instances for the same span of source text. 
+///                 adapted CSourcePhrase instances for the same span of source text.
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -53,7 +53,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 #define LOOPINDEX             // this one gives the loop indices at the start of each iteration
 #define MERGE_Recursively     // use this one and the next to look at the tuple processing
 #define _RECURSE_			  // gives useful information when recursion takes place in merging matched spans
-//#define LEFTRIGHT			  // displays results of extending in-common matches to left or right 
+//#define LEFTRIGHT			  // displays results of extending in-common matches to left or right
 							  //(this one has limited usefulness, only use if extending issues are your focus)
 */
 /// This global is defined in Adapt_It.cpp.
@@ -84,7 +84,7 @@ void InitializeUsfmMkrs()
 {
 	titleMkrs = _T("\\id \\ide \\h \\h1 \\h2 \\h3 \\mt \\mt1 \\mt2 \\mt3 ");
 	introductionMkrs = _T("\\imt \\imt1 \\imt2 \\imt3 \\imte \\is \\is1 \\is2 \\is3 \\ip \\ipi \\ipq \\ipr \\iq \\iq1 \\iq2 \\iq3 \\im \\imi \\imq \\io \\io1 \\io2 \\io3 \\iot \\iex \\ib \\ili \\ili1 \\ili2 \\ie ");
-	chapterMkrs = _T("\\c \\cl "); // \ca \ca* \p & \cd omitted, they follow 
+	chapterMkrs = _T("\\c \\cl "); // \ca \ca* \p & \cd omitted, they follow
 								   // \c so aren't needed for chunking
 	verseMkrs = _T("\\v \\vn "); // \va \va* \vp \vp* omitted, they follow \v
 				// and so are not needed for chunking; \vn is a non-standard
@@ -100,7 +100,7 @@ void InitializeUsfmMkrs()
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// \return                    the word count
-/// \param  arr             -> the arrOld from which we extract the m_key member 
+/// \param  arr             -> the arrOld from which we extract the m_key member
 ///                            from each CSourcePhrase instance
 /// \param  pSubspan        -> the subspan in arrOld we are dealing with, from it we need the
 ///                            bClosedEnd value, and also the oldEndPos value - we use the
@@ -109,7 +109,7 @@ void InitializeUsfmMkrs()
 /// \param  oldSrcKeysStr   <- pass back the string in the form "word1 word2 word3 ... wordn"
 ///                            (the words are keys and so have any beginning and ending
 ///                            puntuation stripped off)
-/// \param  limit           -> how many consecutive CSourcePhrase instances to deal with, 
+/// \param  limit           -> how many consecutive CSourcePhrase instances to deal with,
 ///                            to limit the checking so as to apply to just that many
 ///                            (default is SPAN_LIMIT, currently set to 80) use -1 if no
 ///                            limit is wanted & so all are to be checked. If the
@@ -126,7 +126,7 @@ void InitializeUsfmMkrs()
 /// done in Paratext at an earlier time, but not necessarily done in Paratext), and this
 /// fact should make our approach within the MergeUpdatedSourceText() function a little
 /// more efficient than would be the case if the order was random.
-/// 
+///
 /// Note 1: some CSourcePhrase instances encountered may be mergers, and so will contain
 /// two or more words. We have to break these into individual word tokens and check for
 /// duplicates on each such token. We ignore ellipses (...) for placeholders and don't put
@@ -235,7 +235,7 @@ int GetUniqueOldSrcKeysAsAString(SPArray& arr, Subspan* pSubspan, wxString& oldS
 				}
 			}
 			else
-			{ 
+			{
 				// not a conjoining, it's just a normal merger
 				mergeCount = SmartTokenize(space, aKey, arrMerged, FALSE); // FALSE means ignore empty strings
 				if (mergeCount > 0)
@@ -418,21 +418,21 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                    the count of the words which are in common
 /// \param  arr             -> the arrNew from which we extract the m_key member from
-///                            each CSourcePhrase instance (the words are keys and so 
+///                            each CSourcePhrase instance (the words are keys and so
 ///                            have any beginning and ending puntuation stripped off)
 /// \param  pSubspan        -> from this we get the starting index for the search
 ///                            (newStartPos), and the bClosedEnd value which determines
 ///                            how we calculate the howMany value which determines how
 ///                            many new CSourcePhrase instances we check when looking for
 ///                            in-common words with the associated subspan in arrOld
-/// \param  uniqueKeysStr   -> the string of unique old m_key values, in the form "word1 
+/// \param  uniqueKeysStr   -> the string of unique old m_key values, in the form "word1
 ///                            word2 word3 ... wordn", with which the keys from arrNew
 ///                            are compared
 /// \param  strArray        <- pass in an empty string array, return the "words in common"
 ///                            in it, one word per item - mergers in the CSourcePhrases
 ///                            obtained from the arr parameter have to be tokenized to
-///                            individual word tokens before storage in strArray                  
-/// \param  limit           -> how many consecutive CSourcePhrase instances to deal with, 
+///                            individual word tokens before storage in strArray
+/// \param  limit           -> how many consecutive CSourcePhrase instances to deal with,
 ///                            to limit the checking so as to apply to just that many
 ///                            (default is SPAN_LIMIT, currently set to 80) use -1 if no
 ///                            limit is wanted & so all are to be checked. If the
@@ -446,14 +446,14 @@ int GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowO
 /// on the 4th param, limit, which if absent defaults to SPAN_LIMIT = 80 (CSourcePhrase
 /// instances) - but the whole arr if limit is passed in as -1, or if the arr count is
 /// less than the limit value.
-/// 
+///
 /// Note 1: Some CSourcePhrase instances encountered may be mergers, and so will contain
 /// two or more words. We have to break these into individual word tokens and check for
 /// duplicates on each such token. We ignore ellipses (...) for placeholders - and there
 /// shouldn't be any in the arr array anyway, since what is in arr will be the
 /// just-tokenized CSourcePhrase instances arising from calling TokenizeText() on the
 /// just-edited (outside of Adapt It) source text USFM plain text string.
-/// 
+///
 /// Note 2: Beware, empty subspans within a Subspan instance will manifest as starting and
 /// ending index pairs with values (-1,-1), so protect from using these as real index values
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -530,7 +530,7 @@ int GetWordsInCommon(SPArray& arrNew, Subspan* pSubspan, wxString& uniqueKeysStr
 			continue; // skip over any ... ellipses (placeholders)
 		if (pSrcPhrase->m_nSrcWords > 1)
 		{
-			// it's a merger or a fixedspace pseudo-merger -- so get the word tokens 
+			// it's a merger or a fixedspace pseudo-merger -- so get the word tokens
 			// and deal with each individually
 			wxString aWordToken;
 			arrMerged.Clear();
@@ -659,7 +659,7 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 					word[index] = _T(' ');
 				}
 			}
-			wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),  
+			wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),
 				word[0].c_str(), word[1].c_str(), word[2].c_str(), word[3].c_str(), word[4].c_str(),
 				word[5].c_str(), word[6].c_str(), word[7].c_str(), word[8].c_str(), word[9].c_str(),
 				word[10].c_str(), word[11].c_str());
@@ -675,18 +675,18 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 	return commonsCount;
 }
 
-void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos, 
+void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos,
 						int oldEndPos, int newStartPos, int newEndPos, bool bClosedEnd)
 {
-	pSubspan->childSubspans[0] = NULL; 
-	pSubspan->childSubspans[1] = NULL; 
-	pSubspan->childSubspans[2] = NULL; 
+	pSubspan->childSubspans[0] = NULL;
+	pSubspan->childSubspans[1] = NULL;
+	pSubspan->childSubspans[2] = NULL;
 	pSubspan->oldStartPos = oldStartPos;
 	pSubspan->newStartPos = newStartPos;
 	pSubspan->oldEndPos = oldEndPos;
 	pSubspan->newEndPos = newEndPos;
 	pSubspan->spanType = spanType;
-	pSubspan->bClosedEnd = bClosedEnd; // caller must always set this 
+	pSubspan->bClosedEnd = bClosedEnd; // caller must always set this
 		// explicitly FALSE for any rightmost one which abuts the
 		// as-yet-unprocessed lying-to-the-right CSourcePhrase instances
 		// in the array pair (the indices for the abuttal location won't
@@ -704,7 +704,7 @@ void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos,
 /// \param  startFrom -> index in arr at which to start looking for a match
 /// \param  endAt   ->  index (inclusive) at which to cease looking for a match
 /// \param  phrase  <-  when the m_key matched contains only a single word, phrase is
-///                     returned empty; but when m_key contains more than one word (any of 
+///                     returned empty; but when m_key contains more than one word (any of
 ///                     them could have therefore been matched), the whole m_key phrase is
 ///                     returned here
 /// \remarks
@@ -824,10 +824,10 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	wxLogDebug(_T("\n\nMergeUpdatedSrcTextCore() passed in: arrOld CSourcePhrase count = %d   arrNew CSourcePhrase count = %d"),
 		oldSPCount, newSPCount);
 #endif
-	int defaultLimit = limit; // this is the default miminum value for the limit parameter; 
+	int defaultLimit = limit; // this is the default miminum value for the limit parameter;
 			// internally, for big chunks added, a small value is dangerous, so we'll use
 			// bigger values in certain situations so as to be sure we span the material
-			// with the limit value; but for subspans of matched verses, the default value 
+			// with the limit value; but for subspans of matched verses, the default value
 			// will suffice
 	int dynamicLimit = defaultLimit; // use LHS as our variable limit value, initialize
 									 // to the SPAN_LIMIT value (of 80)
@@ -838,8 +838,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
     // take the largest span possible. If limit is not explicitly specified in the call,
     // then default to SPAN_LIMIT (currently set in AdaptitConstants.h to 80 -- big enough
     // to embrace an average verse's amount of words); if some explicit value is given, use
-	// that or a suitably smaller value if close to an array end. 
-	// 
+	// that or a suitably smaller value if close to an array end.
+	//
     // However, when defining an embedded tuple, the beforeSpan will end at the start of
     // the commonSpan, the commonSpan will end at the start of the afterSpan, and the
     // afterSpan must ALWAYS be set to end at the end of oldSPArray for the old data, and
@@ -857,7 +857,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
     // finished node - so tuple deletion is involved automatically.
 
 	InitializeUsfmMkrs();
-	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the 
+	nStartingSequNum = (arrOld.Item(0))->m_nSequNumber; // store this, to get the
 									// sequence numbers right at the end of the process
 
     // Analyse the arrOld and arrNew arrays in order to chunk the data appropriately...
@@ -956,7 +956,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			break;
 		}
 		wxLogDebug(_T("  %d  type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
-		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
+		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText,
 		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
 	}
 	wxLogDebug(_T("\n\n****  NEW array: SfmChunk instances  ****"));
@@ -992,7 +992,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			break;
 		}
 		wxLogDebug(_T("  %d  type: %s  [ start , end ] =  [ %d , %d ]   bContainsText: %d   chapter:  %s  verse_start:  %s  verse_end  %s"),
-		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText, 
+		counter, typeStr.c_str(), pChunk->startsAt, pChunk->endsAt, (int)pChunk->bContainsText,
 		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
 	}
 #endif
@@ -1015,11 +1015,11 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
     // up - and in that circumstance we'd not be processing the data as two large
     // superchunks.
 	if (	(!bSuccessful_Old && !bSuccessful_New) || // no \c or \v markers in either, OR
-			(!bAreDispirateSizedInventories && bDispirateSizedChunkInventories) || // similar CSourcePhrase inventories 
-																				   // but dissimilar sized chunk inventories  
-			 !bAreDispirateSizedInventories && // not dissimilar in their inventories of CSourcePhrase instances, AND
-			(bDispirateSizedVersesInventory || bDispirateSizedChaptersInventory))  // are dissimilar in either \v 
-																				   // inventories or \c inventories
+			(!bAreDispirateSizedInventories && bDispirateSizedChunkInventories) || // similar CSourcePhrase inventories
+																				   // but dissimilar sized chunk inventories
+            (!bAreDispirateSizedInventories && // not dissimilar in their inventories of CSourcePhrase instances, AND
+			(bDispirateSizedVersesInventory || bDispirateSizedChaptersInventory))  // are dissimilar in either \v
+		)																		   // inventories or \c inventories
 	{
         // Do a "two superchunks" merger. This will be inefficient and slow because
         // all unique words in arrOld must be checked for all matchups with all unique
@@ -1029,8 +1029,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		// param after the nStartingSequNum param are ignored.)
         int oldChunkIndex = -1;
 		int newChunkIndex = -1;
-		MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum, 
-				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, 
+		MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum,
+				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 				arrOld, arrNew, oldChunkIndex, newChunkIndex);
 		// Updating m_nSequNumber values is done internally
 
@@ -1049,8 +1049,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	// etc) we work out the maximum number of words involved and call MergeRecursively()
 	// with a limit value equal to that number of words, just on those paired subspans. We
 	// proceed with this left to right processing until all the inputs are merged - that
-	// is, arrOld and arrNew. 
-	
+	// is, arrOld and arrNew.
+
 	// start with bookInitialChunk, if present
 	SfmChunk* pOldChunk = NULL; // a scratch variable
 	SfmChunk* pNewChunk = NULL; // a scratch variable
@@ -1071,7 +1071,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			CopySubArray(arrNew, pNewChunk->startsAt, pNewChunk->endsAt, subArrNew);
 			// MergeRecursively() appends to pMergedList and updates sequ numbers, and
 			// copies changed punctuation and/or USFMs for material "in common", etc
-			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
 				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 				arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1107,7 +1107,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				}
 			} // the other two options can be safely ignored (ie. neither array has
 			  // bookInitialChunk or only arrOld has it)
-		} // end of else block for test: 
+		} // end of else block for test:
 		  // if (pOldChunk->type == bookInitialChunk && pNewChunk->type == bookInitialChunk)
 
 		// next, handle any introduction information, if present
@@ -1128,8 +1128,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				CopySubArray(arrNew, pNewChunk->startsAt, pNewChunk->endsAt, subArrNew);
 				// MergeRecursively() appends to pMergedList and updates sequ numbers, and
 				// copies changed punctuation and/or USFMs for material "in common", etc
-				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
-						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, 
+				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum,
+						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() 2 introduction chunks: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
@@ -1167,7 +1167,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				} // the other two options can be safely ignored (ie. neither array has
 				  // introductionChunk or only arrOld has it)
 			}
-		} // end of TRUE block for test: 
+		} // end of TRUE block for test:
 		  // if (oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
 
 		// next, handle any preFirstChapterChunk information, if present
@@ -1188,8 +1188,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				CopySubArray(arrNew, pNewChunk->startsAt, pNewChunk->endsAt, subArrNew);
 				// MergeRecursively() appends to pMergedList and updates sequ numbers, and
 				// copies changed punctuation and/or USFMs for material "in common", etc
-				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
-						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld, 
+				MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum,
+						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("MergeRecursively() a preFirstChapterChunk: OLD [ %d : %d] NEW [ %d : %d] limit=%d  starting sequnum = %d"),
@@ -1243,7 +1243,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// the other option can be safely ignored (ie. neither array has
 				// preFirstChapterChunk)
 			}
-		} // end of TRUE block for test: 
+		} // end of TRUE block for test:
 		  // if (oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
 
 		// next, handle any milestoned material - this is done in a loop
@@ -1296,7 +1296,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                 // counts within those two chunks are disparate; if pairing gets to the end
                 // of one or both arrays, it returns TRUE
 				bPairedOK = GetMaxInSyncChunksPairing(arrOld, arrNew, pChunksOld, pChunksNew,
-								oldChunkIndex, newChunkIndex, oldLastChunkIndex, 
+								oldChunkIndex, newChunkIndex, oldLastChunkIndex,
 								newLastChunkIndex, bDisparateSizes, arrPairingOld);
 			} // end of TRUE block for test: if (bInitialRefsSame)
 
@@ -1340,7 +1340,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			}
 
 			if (bPairedOK && bInitialRefsSame)
-			{		
+			{
 				// didn't come to a halting location, so must have reached end of one
 				// or both arrays -- check it out
 				if (oldLastChunkIndex == oldMaxIndex && newLastChunkIndex == newMaxIndex)
@@ -1356,7 +1356,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// copies changed punctuation and/or USFMs for material "in common",
 					// etc; for in-sync milestoned chunk pairings, use the (small) default
 					// value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
 						pChunksOld, pChunksNew, processPerMilestone, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1392,7 +1392,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                     // numbers, and copies changed punctuation and/or USFMs for
                     // material "in common", etc; for in-sync milestoned chunk
                     // pairings, use the (small) default value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
 						pChunksOld, pChunksNew, processPerMilestone, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1430,7 +1430,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					}
 					break;
 
-				} // end of else block for test: 
+				} // end of else block for test:
 				  // if (oldLastChunkIndex == oldMaxIndex && newLastChunkIndex == newMaxIndex)
 
 			} // end of TRUE block for test: if (bPairedOK && bInitialRefsSame)
@@ -1447,20 +1447,20 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// material provided there is such material already aggegated. If the
 				// pair are disparate in size, the indices returned point to those
 				// two, rather than to the instances preceding them as for other halt
-				// situations) 
+				// situations)
 				bool bDoMyEndTweak = FALSE;
 				// The following complex 3-part test has the following meaning: if one of
 				// the conditions is TRUE, then there is at least one (but possibly more,
 				// even hundreds) paired chunk which were successfully matched
 				// simple-verse chunks, and so should be processed recursively with the
 				// minimal limit value defaultLimit (the value passed in, which equals
-				// SPAN_LIMIT and the latter is set at 80 in AdaptitConstants.h). 
+				// SPAN_LIMIT and the latter is set at 80 in AdaptitConstants.h).
 				// After that successfully paired lot of chunks there will be a location
 				// where the pairing attempt failed - either due to disparate sizes in the
 				// pair being considered, or because the verse referencing etc is messy
 				// and not a simple single-verse matchup. In the next block we want to
 				// deal with the successfully paired stuff,
-				// The conditions have the following individual implications for a 
+				// The conditions have the following individual implications for a
 				// TRUE result:
                 // 1st: bInitialRefsSame is TRUE -- the first chunks considered for pairing
                 // turned out to be pairable simple-verse chunks, and therefore any halting
@@ -1530,7 +1530,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// numbers, and copies changed punctuation and/or USFMs for
 					// material "in common", etc; for in-sync milestoned chunk
 					// pairings, use the (small) default value of limit
-					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+					MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1563,7 +1563,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					pEndChunkNew = (SfmChunk*)pChunksNew->Item(newLastChunkIndex);
 					CopySubArray(arrOld, pEndChunkOld->startsAt, pEndChunkOld->endsAt, subArrOld);
 					CopySubArray(arrNew, pEndChunkNew->startsAt, pEndChunkNew->endsAt, subArrNew);
-					MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum, 
+					MergeRecursively(subArrOld, subArrNew, pMergedList, -1, nStartingSequNum,
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1572,7 +1572,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 #endif
 					RemoveAll(&subArrOld);
 					RemoveAll(&subArrNew);
-					oldChunkIndex = oldLastChunkIndex + 1; 
+					oldChunkIndex = oldLastChunkIndex + 1;
 					newChunkIndex = newLastChunkIndex + 1;
 					bDisparateSizes = FALSE; // not needed, but harmless
 					if (!bDoMyEndTweak)
@@ -1598,8 +1598,8 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				newChunkIndex = newLastChunkIndex + 1; // first chunk of the arrNew's messy data
 				int oldMatchedChunk; // for returning closest paired old chunk, or -1 if none
 				int newMatchedChunk; // for returning closest paired new chunk, or -1 if none
-				bool bGotALaterPairing = FindClosestSafeMatchup(arrOld, arrNew, pChunksOld, 
-											pChunksNew, oldChunkIndex, newChunkIndex, 
+				bool bGotALaterPairing = FindClosestSafeMatchup(arrOld, arrNew, pChunksOld,
+											pChunksNew, oldChunkIndex, newChunkIndex,
 											oldMatchedChunk, newMatchedChunk, bDisparateSizes);
                 // Note: if bDisparateSizes is returned TRUE, the oldMatchedChunk and
                 // newMatchedChunk index the pair which have the disparate size, and
@@ -1646,11 +1646,11 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                             // arrNew verses to be inserted here, and no recursion is
                             // needed for that, but recursion is needed for the
                             // disparate chunks - with a large limit value too
-							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt,
 								((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("CopyToList() disparate sizes, oldChunkIndex == oldMatchedChunk && newChunkIndex < newMatchedChunk: NEW [ %d : %d]"),
-				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt,
 				((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt);
 #endif
 							// update sequence numbers using initialSequNum
@@ -1662,9 +1662,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 								gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
 							}
 							// now prepare for the if (!bFinished) code block below
-							int oldCountOfWords = 
+							int oldCountOfWords =
 								CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
-							int newCountOfWords = 
+							int newCountOfWords =
 								CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
 							dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
 							// obtain the start and end chunks in arrOld and arrNew for each subspan
@@ -1672,7 +1672,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 							pNewChunk = (SfmChunk*)pChunksNew->Item(newMatchedChunk);
 							pEndChunkOld = pOldChunk;
 							pEndChunkNew = pNewChunk;
-							bFinished = FALSE; 
+							bFinished = FALSE;
 						} // end of TRUE block for test: if (bDisparateSizes)
 						else
 						{
@@ -1680,11 +1680,11 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                             // a subsequent kickoff location; but there are one or more
                             // arrNew verses to be inserted here, and no recursion is
                             // needed
-							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+							CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt,
 								((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt, pMergedList);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("CopyToList() NOT disparate sizes, oldChunkIndex == oldMatchedChunk && newChunkIndex < newMatchedChunk: NEW [ %d : %d]"),
-				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt,
 				((SfmChunk*)pChunksNew->Item(newMatchedChunk - 1))->endsAt);
 #endif
 							// update sequence numbers using initialSequNum
@@ -1707,9 +1707,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						// check and set up for that if warranted
 						if (bDisparateSizes)
 						{
-							int oldCountOfWords = 
+							int oldCountOfWords =
 								CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
-							int newCountOfWords = 
+							int newCountOfWords =
 								CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
 							dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
 							// obtain the start and end chunks in arrOld and arrNew for each subspan
@@ -1729,9 +1729,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 							bFinished = TRUE; // suppresses the MergeRecursively() call below
 						}
 					}
-					else if (bDisparateSizes && 
+					else if (bDisparateSizes &&
 							(oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk))
-					{							
+					{
                         // we get here if there has as yet been no aggegation of
                         // successfully paired instances, but the first pairing was of
                         // a disparately sized pair, -- merging this pair with a small
@@ -1740,9 +1740,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                         // exit without dealing with all the data; so for this scenario
                         // we use a limit value of -1 on just the pair of chunks with
                         // the disparate sizes (other situations were dealt with above)
-						int oldCountOfWords = 
+						int oldCountOfWords =
 							CountWords(&arrOld, pChunksOld, oldMatchedChunk, oldMatchedChunk);
-						int newCountOfWords = 
+						int newCountOfWords =
 							CountWords(&arrNew, pChunksNew, newMatchedChunk, newMatchedChunk);
 						dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
 						// obtain the start and end chunks in arrOld and arrNew for each subspan
@@ -1756,7 +1756,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 #endif
 						bFinished = FALSE;
 					}
-					else if (!bDisparateSizes && 
+					else if (!bDisparateSizes &&
 							(oldChunkIndex == oldMatchedChunk && newChunkIndex == newMatchedChunk))
 					{
 						// shouldn't happen
@@ -1768,9 +1768,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						// disparate sized chunks, just a messy section of
 						// non-pairings to deal with -- so get the chunks pointed at &
 						// work count done for setting dynamicLimit
-						int oldCountOfWords = 
+						int oldCountOfWords =
 							CountWords(&arrOld, pChunksOld, oldChunkIndex, oldMatchedChunk - 1);
-						int newCountOfWords = 
+						int newCountOfWords =
 							CountWords(&arrNew, pChunksNew, newChunkIndex, newMatchedChunk - 1);
 						dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
 						// obtain the start and end chunks in arrOld and arrNew for each subspan
@@ -1782,7 +1782,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 							wxLogDebug(_T("recursion needed: NOT disparate sizes, a mess of unpaired chunks to aggregate & merge: old word count %d  new word count %d, uses max"),
 								oldCountOfWords, newCountOfWords);
 #endif
-						bFinished = FALSE; 
+						bFinished = FALSE;
 					}
 				} // end of TRUE block for test: if (bGotALaterPairing)
 				else
@@ -1793,9 +1793,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// (being wxNOT_FOUND) So use oldMaxIndex and newMaxIndex to
 					// process the end material; and no accomodation needs to be made
 					// in the code here for bDisparateSizes
-					int oldCountOfWords = 
+					int oldCountOfWords =
 						CountWords(&arrOld, pChunksOld, oldLastChunkIndex + 1, oldMaxIndex);
-					int newCountOfWords = 
+					int newCountOfWords =
 						CountWords(&arrNew, pChunksNew, newLastChunkIndex + 1, newMaxIndex);
 					dynamicLimit = wxMax(oldCountOfWords, newCountOfWords); // ensure a cover
 					// obtain the start and end chunks in arrOld and arrNew for each subspan
@@ -1821,7 +1821,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// MergeRecursively() with the word-count-based limit value, which
 					// ensures safety (a word count is potentially larger than a
 					// CSourcePhrase count, because of the possibility of mergers)
-					MergeRecursively(subArrOld, subArrNew, pMergedList, dynamicLimit, nStartingSequNum, 
+					MergeRecursively(subArrOld, subArrNew, pMergedList, dynamicLimit, nStartingSequNum,
 						pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 						arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1861,7 +1861,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					// normal situation, oldMatchedChunk and newMatchedChunk are to be
 					// the kick-off location for next iteration -- we do this block only if
 					// at a preceding block we've not processed to the end of the old and
-					// new arrays, that's what !bDoingToTheEnd tells us 
+					// new arrays, that's what !bDoingToTheEnd tells us
 					oldChunkIndex = oldMatchedChunk;
 					newChunkIndex = newMatchedChunk;
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1882,7 +1882,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// in a once-only block below; we need to here set newLastChunkIndex to its
 				// maximum value to prevent a spurious copy being done below outside the loop
 				newLastChunkIndex = newMaxIndex; // this is needed!
-				oldLastChunkIndex = oldMaxIndex; // not needed, but documents where 
+				oldLastChunkIndex = oldMaxIndex; // not needed, but documents where
 													 // processing has finished to
 			}
 		} // end of loop: while (oldIndex < countOldChunks && newIndex < countNewChunks)
@@ -1892,7 +1892,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		// arrNew still has some chunks, then the user's edits want those old chunks
 		// removed - so we just don't copy them to pMergedList. The other possibility is
 		// that arrOld was fully processed, and arrNew has more chunks - that means the
-		// user has added new material that he wants included, and so a simple deep copy 
+		// user has added new material that he wants included, and so a simple deep copy
 		// of them to pMergedList would need to be done here.
 		newChunkIndex = newLastChunkIndex + 1; // since newLastChunkIndex was last instance
 											   // copied to pMergeList
@@ -1913,7 +1913,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// Merge the superchunks. Fot the processStartToEnd enum value, params
 			// after the nStartingSequNum param are not used, and what's passed in are
 			// just fillers that are ignored.
-			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum, 
+			MergeRecursively(subArrOld, subArrNew, pMergedList, defaultLimit, nStartingSequNum,
 				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 				arrOld, arrNew, oldChunkIndex, newChunkIndex);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
@@ -1926,11 +1926,11 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		else if (newChunkIndex <= newMaxIndex)
 		{
 			// copy the rest from arrNew to pMergedList
-			CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+			CopyToList(arrNew, ((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt,
 				((SfmChunk*)pChunksNew->Item(newMaxIndex))->endsAt, pMergedList);
 #if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("CopyToList() AFTER LOOP, newChunkIndex <= newMaxIndex: NEW [ %d : %d] where newChunkIndex was %d"),
-				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt, 
+				((SfmChunk*)pChunksNew->Item(newChunkIndex))->startsAt,
 				((SfmChunk*)pChunksNew->Item(newMaxIndex))->endsAt, newChunkIndex);
 #endif
 			// update sequence numbers using initialSequNum
@@ -1966,14 +1966,14 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		// otherwise it would wipe out all the original milestoned data; however, it may
 		// happen that the user wants to remove USFMs from the document but retain
 		// adaptations made, so we'll allow it)
-		// 
+		//
 		// The way to handle (2) doesn't require recursion, just a copy operation. The
 		// others, and any other unlikely combinations are best handled by simply calling
 		// MergeRecursively() with a limit value of -1, which gives the safest merge in a
 		// non- or partly-milestoned situation
 #if defined(_DEBUG) && defined(MERGE_Recursively)
 			wxLogDebug(_T("else block, AFTER LOOP, special cases 1 23 or 3  -- we don't expect to enter either of these two blocks"));
-#endif		
+#endif
 		if (arrOld.IsEmpty())
 		{
 			CopyToList(arrNew, 0, arrNew.GetCount() - 1, pMergedList);
@@ -1990,14 +1990,14 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
             // must be checked for all matchups with all unique words in arrNew, an order
             // of N squared operation, where N = total words (but if one or the other array
             // is markedly shorter, it isn't so bad)
-			MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum, 
+			MergeRecursively(arrOld, arrNew, pMergedList, -1, nStartingSequNum,
 				pChunksOld, pChunksNew, processStartToEnd, arrPairingOld,
 				arrOld, arrNew, oldChunkIndex, newChunkIndex);
 			// Updating m_nSequNumber values is done internally
 		}
 	} // end of else block for test: if (countOldChunks > 0 && countNewChunks > 0)
-    
-	// we are done with the temporary array's of SfmChunk instances, 
+
+	// we are done with the temporary array's of SfmChunk instances,
 	// so remove them from the heap
 	DeleteSfmChunkArray(pChunksOld);
 	DeleteSfmChunkArray(pChunksNew);
@@ -2082,7 +2082,7 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 ///                             for the matchup with one in pOldChunks
 /// \param  oldMatchedChunk <-  ref to index for the matched SfmChunk pertaining to
 ///                             arrOld, -1 if there was no matchup made
-/// \param  newMatchedChunk <-  ref to index for the matched SfmChunk pertaining to 
+/// \param  newMatchedChunk <-  ref to index for the matched SfmChunk pertaining to
 ///                             arrNew, -1 if there was no matchup made
 /// \param  bDisparateSizes <-  ref to boolean, TRUE if a matching pair of chunks differ
 ///                             in word counts by more than a factor of 1.5, else FALSE
@@ -2110,8 +2110,8 @@ bool AreSizesDisparate(SPArray& arrOld, SPArray& arrNew, SfmChunk* pOldChunk, Sf
 /// user may add a sufficient number of chapters and verses previously not in the source
 /// text that the number of words involved won't exceed any arbitrary presumed-safe
 /// default value.
-bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunks, 
-							wxArrayPtrVoid* pNewChunks, int oldStartChunk, int newStartChunk, 
+bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunks,
+							wxArrayPtrVoid* pNewChunks, int oldStartChunk, int newStartChunk,
 							int& oldMatchedChunk, int& newMatchedChunk, bool& bDisparateSizes)
 {
 	int oldCountOfChunks = pOldChunks->GetCount();
@@ -2132,8 +2132,8 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 		pOldChunkInfo->indexRef = pOldChunk->startsAt; // indexes into arrOld
 		pOldChunkInfo->bIsComplex = FALSE; // default, but check and make TRUE if required by the
 										   // tests in the following lines
-		if (pOldChunk->nStartingVerse != pOldChunk->nEndingVerse || 
-			pOldChunk->charStartingVerseSuffix != _T('\0') || 
+		if (pOldChunk->nStartingVerse != pOldChunk->nEndingVerse ||
+			pOldChunk->charStartingVerseSuffix != _T('\0') ||
 			pOldChunk->charEndingVerseSuffix != _T('\0'))
 		{
 			pOldChunkInfo->bIsComplex = TRUE;
@@ -2154,8 +2154,8 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 		pNewChunkInfo->indexRef = pNewChunk->startsAt; // indexes into arrNew
 		pNewChunkInfo->bIsComplex = FALSE; // default, but check and make TRUE if required by the
 										   // tests in the following lines
-		if (pNewChunk->nStartingVerse != pNewChunk->nEndingVerse || 
-			pNewChunk->charStartingVerseSuffix != _T('\0') || 
+		if (pNewChunk->nStartingVerse != pNewChunk->nEndingVerse ||
+			pNewChunk->charStartingVerseSuffix != _T('\0') ||
 			pNewChunk->charEndingVerseSuffix != _T('\0'))
 		{
 			pNewChunkInfo->bIsComplex = TRUE;
@@ -2170,7 +2170,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 	int countNewInfoStructs = arrNewChunkInfos.GetCount();
 	// re-use iterators oldIndex and newIndex in the do loops below. Each must start from 0.
 	oldIndex = 0;
-	newIndex = 0; 
+	newIndex = 0;
 	int oldFoundAt = wxNOT_FOUND;
 	int newFoundAt = wxNOT_FOUND;
 	bool bOldFoundOne = FALSE;
@@ -2290,7 +2290,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 		else
 		{
 			// there weren't any more in the arrOld array of SfmChunk instances that were
-			// simple-verse ones, so no matchup of same is possible for what's in arrNew 
+			// simple-verse ones, so no matchup of same is possible for what's in arrNew
 			// chunks
 			break;
 		}
@@ -2332,11 +2332,11 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 /// \param  pNewChunks      ->  array of SfmChunk structs indexing into arrNew, determined by analysis
 /// \param  oldStartChunk   ->  index to the first SfmChunk to be examined when examining
 ///                             instances ahead for verse ref data in-sync
-/// \param  newStartChunk   ->  index to the first SfmChunk to be examined in pNewChunks                            
-/// \param  oldEndChunk     <-  ref to index for the last matched in-sync pair of SfmChunk 
+/// \param  newStartChunk   ->  index to the first SfmChunk to be examined in pNewChunks
+/// \param  oldEndChunk     <-  ref to index for the last matched in-sync pair of SfmChunk
 ///                             instances prior to which a dislocation in the syncing was
 ///                             detected (-1 if no aggregation happened)
-/// \param  newEndChunk     <-  ref to index for the matched last in-sync SfmChunk instance 
+/// \param  newEndChunk     <-  ref to index for the matched last in-sync SfmChunk instance
 ///                             which is in-sync with the one defined by oldEndChunk (-1 if
 ///                             no aggregation happened)
 /// \param  bDisparateSizes <-  return FALSE if the 1.5 times the size of the smaller number
@@ -2359,7 +2359,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 /// be in one but 8 in the other. We do this because calling MergeRecursively() with a
 /// small limit value is safe provided the pairings are in-sync throughout the sequence of
 /// paired chunks.
-/// 
+///
 /// (That doesn't mean there are no gaps, it does mean that any gaps that are present have
 /// the same verse ref info preceding the gap in each array, and the same verse ref info
 /// following the gap in each array. For instance if in arrOld there is a gap after 2:6 and
@@ -2372,7 +2372,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 /// established in the caller before entry. Iteration just tests successive potential
 /// pairings using AreSfmChunksWithSameRef() until the latter returns FALSE, and returns
 /// the indices for the last successful pairing in oldEndChunk and newEndChunk.
-/// 
+///
 /// BEW 16Aug12 Here's how I plan to tackle a problem identified by Kim Blewett
 /// (17July2012) in an email. She had added several verses, more than SPAN_LIMIT's value of
 /// extra words, at the end of the source text in Paratext - and the Adapt It messed up the
@@ -2390,7 +2390,7 @@ bool FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pO
 /// get some chopped off and lost.
 //////////////////////////////////////////////////////////////////////////////////////
 bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunksArray,
-						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk, 
+						wxArrayPtrVoid* pNewChunksArray, int oldStartChunk, int newStartChunk,
 						int& oldEndChunk, int& newEndChunk, bool& bDisparateSizes,
 						wxArrayInt& arrPairingOld)
 {
@@ -2449,11 +2449,11 @@ bool GetMaxInSyncChunksPairing(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid*
 			// and arrPairingNew, respectively -- MergeRecursively will use these
 			arrPairingOld.Add(oldIndex);
 			//arrPairingNew.Add(newIndex);
-			
+
 #if defined( myMilestoneDebugCalls) && defined( _DEBUG)
 			// log the pair we've just accepted
-			SfmChunk* pAnOldChunk = (SfmChunk*)pOldChunksArray->Item(oldIndex);	
-			SfmChunk* pANewChunk = (SfmChunk*)pNewChunksArray->Item(newIndex);	
+			SfmChunk* pAnOldChunk = (SfmChunk*)pOldChunksArray->Item(oldIndex);
+			SfmChunk* pANewChunk = (SfmChunk*)pNewChunksArray->Item(newIndex);
 			wxLogDebug(_T("GetMaxInSyncChunksPairing() TRUE, (non-disparate-sized pair) accepted pair: pOldChunk %s:%s  OLD = [ %d , %d ]  NEW = [ %d , %d ] "),
 				pAnOldChunk->strChapter.c_str(), pAnOldChunk->strStartingVerse.c_str(), pAnOldChunk->startsAt, pAnOldChunk->endsAt, pANewChunk->startsAt, pANewChunk->endsAt);
 #endif
@@ -2548,7 +2548,7 @@ bool GetNextSimpleVerseChunkInfo(wxArrayPtrVoid* pChunkInfos, int startFrom, int
 // two verses match - and we can leave it to the code which updates the sfms to remove the
 // old \c 2 and put a new \c 2 earlier at the m_markers of the first word of verse 1 in
 // chapter 2. So I'm making the test smarter, and putting it AFTER the tests for matching
-// verse numbers and suffix part differences. We need the above situation to return TRUE. 
+// verse numbers and suffix part differences. We need the above situation to return TRUE.
 bool AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk)
 {
 	//if (pOldChunk->type != pNewChunk->type)
@@ -2577,7 +2577,7 @@ bool AreSfmChunksWithSameRef(SfmChunk* pOldChunk, SfmChunk* pNewChunk)
 	// must allow for fluidity in where the chapter number may occur; so one may be a
 	// chapterPlusVerseChunk and the other may be a verseChunk - and if so, we'll allow
 	// such combinations as legitimate
-	if (	
+	if (
 		 (pOldChunk->type == chapterPlusVerseChunk && pNewChunk->type == verseChunk)
 		 ||
 		 (pOldChunk->type == verseChunk && pNewChunk->type == chapterPlusVerseChunk)
@@ -2647,7 +2647,7 @@ int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, in
 /// \param  initialSequNum  ->  needed to supply the kick off value for the UpdateSequNumbers()
 ///                             call after CSourcePhrase inventory in pMergedList has been changed
 ///  **** The next 9 were added at 17Aug12 refactoring, to make the algorithm failsafe if
-///  a lot of words were manually added at the end of the edited source text **** 
+///  a lot of words were manually added at the end of the edited source text ****
 /// \param  pChunksOld      ->  the array of SfmChunk structs indexing into arrOld
 /// \param  pChunksNew      ->  the array of SfmChunk structs indexing into arrNew
 /// \param  howToProcess    ->  enum value; the legacy code will be used when processStartToEnd
@@ -2656,7 +2656,7 @@ int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, in
 ///                             milestone chunks (typically verse chunks) and do the merger
 ///                             recursively on each such chunk pair. This ensures safety.
 /// \param  arrPairingsOld  ->  array of integer indices which define one member of a
-///                             successfully matched SfmChunk pair                           
+///                             successfully matched SfmChunk pair
 /// \param  arrPairingsNew  ->  array of integer indices, acting in parallel to the one immediately
 ///                             above, which defines the other SfmChunk of the matched pair
 /// \param  arrOldFull      ->  the full 'old' SPArray (not a subarray drawn from it,
@@ -2691,9 +2691,9 @@ int CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, in
 /// passed in as processPerMilestone; for the other enum value, pre-processing done in the
 /// caller makes all the needed adjustments before MergeRecursively is entered.
 //////////////////////////////////////////////////////////////////////////////////////
-void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit, 
+void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit,
 		int initialSequNum,  wxArrayPtrVoid* pChunksOld, wxArrayPtrVoid* pChunksNew,
-		enum ProcessHow howToProcess, wxArrayInt& arrPairingsOld, SPArray& arrOldFull, 
+		enum ProcessHow howToProcess, wxArrayInt& arrPairingsOld, SPArray& arrOldFull,
 		SPArray& arrNewFull, int oldChunkIndexKickoff, int newChunkIndexKickoff)
 {
 	// set up the top level tuple, beforeSpan and commonSpan will be empty (that is, the
@@ -2709,7 +2709,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	bool bContainsFreeTranslations = FALSE;
 	bContainsFreeTranslations = pFreeTrans->IsFreeTransInArray(&arrOld); // if TRUE we will
 			// later call a free-translation-malformations-fixing function after the
-			// merger is done, to erase free translations corrupted by CSourcePhrase 
+			// merger is done, to erase free translations corrupted by CSourcePhrase
 			// replacements from arrNew
 	// BEW added support for a per-milestone loop, to be used when there is a sequence of
 	// successfully matched SfmChunk pairs; do the legacy way in the first block, then the
@@ -2735,7 +2735,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 		// extents of arrOld and arrNew -- the subsequent SetEndIndices() call will limit the
 		// value, provided limit is not -1
 		// In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
-		InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
+		InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE);
 		// update the end indices to more reasonable values, the above could bog processing down
 		SetEndIndices(arrOld, arrNew, pSubspan, limit); // SPAN_LIMIT is currently 80
 
@@ -2862,7 +2862,7 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 				// initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
 				// extents of arrSubOld and arrSubNew
 				// In this call: FALSE is bClosedEnd, i.e. it's an open-ended afterSpan
-				InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE); 
+				InitializeSubspan(pSubspan, afterSpan, 0, oldSPCount - 1, 0, newSPCount - 1, FALSE);
 
 				// Pass the top level tuple to the RecursiveTupleProcessor() function. When this next
 				// call finally returns after being recursively called possibly a few times, the
@@ -2874,12 +2874,12 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 	} // end of else block for test: if (howToProcess == processStartToEnd)
 
 	// Clean up...
-	
+
 #if defined(_DEBUG) && defined(_RECURSE_)
 	wxLogDebug(_T("in MergeRecursively() RecursiveTupleProcessor() after top level call, returned: pMergedList->GetCount() = %d ; initial sequnum = %d"),
 		pMergedList->GetCount(), initialSequNum);
 #endif
-	
+
 	// Get the CSourcePhrase instances appropriately numbered in the temporary
 	// list which is to be returned to the caller
 	if (!pMergedList->IsEmpty())
@@ -2960,7 +2960,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
         // check the pair pPrevSrcPhrase and pSrcPhrase; if the former has m_bRetranslation
         // FALSE and the latter has it TRUE and with m_bBeginRetranslation FALSE, then we
         // have a retranslation with its start chopped off
-		if (!pPrevSrcPhrase->m_bRetranslation && 
+		if (!pPrevSrcPhrase->m_bRetranslation &&
 			(pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bBeginRetranslation))
 		{
             // clear out the bad stuff until we get to a non-retranslation instance, or the
@@ -2975,7 +2975,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 			pSP->m_bBeginRetranslation = TRUE; // give it a valid start flag
 			SPList::Node* posEnd = pos;
 			int first = pMergedList->IndexOf(pSP);
-			while (posLocal != NULL &&  pSP->m_bRetranslation 
+			while (posLocal != NULL &&  pSP->m_bRetranslation
 				&& (pSP->m_bRetranslation && !pSP->m_bEndRetranslation)
 				&& !(pSP != pKickoffSP &&  pSP->m_bRetranslation && pSP->m_bBeginRetranslation))
 			{
@@ -3007,7 +3007,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 				pSP_AtEnd->m_bEndRetranslation = TRUE;
 				last = pMergedList->IndexOf(pSP_AtEnd);
 			}
-					
+
 			// now do RemoveRetranslation() on the now-valid short retranslation fragment
 			wxString strAdaptationToThrowAway;
 			pRetranslation->RemoveRetranslation(pMergedList,first,last,strAdaptationToThrowAway);
@@ -3023,14 +3023,14 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 			index = first;
 			pos = pMergedList->Item(first);
 		}
-		else 
+		else
         // deal with retranslations which have their end chopped off; because the caller
         // always keeps any auto-inserted placeholders belonging to the retranslation
         // together with the retranslation, a 'chopped off end' will always have chopped
         // off any such placeholders as well as at least one of the final non-placeholder
         // retranslation CSourcePhrase instances in the retranslation
 		if ( (pPrevSrcPhrase->m_bRetranslation && !pPrevSrcPhrase->m_bEndRetranslation) &&
-		(!pSrcPhrase->m_bRetranslation || 
+		(!pSrcPhrase->m_bRetranslation ||
 		(pSrcPhrase->m_bRetranslation && pSrcPhrase->m_bBeginRetranslation)))
 		{
 			// The above condition for detecting a chopped off end is: (1) previous
@@ -3041,7 +3041,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 			// flag FALSE, or be the start of a new retranslation - which means that the
 			// latter flag would be TRUE and also it's m_bBeginRetranslation flag would be
 			// TRUE as well.
-			
+
 			// Clear out the bad stuff starting at pPrevSrcPhrase and going backwards
 			// until we get to a non-retranslation instance or the end of a (valid)
 			// retranslation; pSP will start off being pPrevSrcPhrase, and we iterate to
@@ -3061,7 +3061,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 			//SPList::Node* posStart = posLocal;
 			int last = pMergedList->IndexOf(pSP);
 			while ( posLocal != NULL  && (pSP->m_bRetranslation && !pSP->m_bBeginRetranslation)
-				 && pSP->m_bRetranslation 
+				 && pSP->m_bRetranslation
 				 && !(pSP != pKickOffSP && pSP->m_bRetranslation && pSP->m_bEndRetranslation) )
 			{
                 // the above condition means: keep moving pSP backwards so long as there is
@@ -3085,7 +3085,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 			int first = last; // initialize to last's value
 			if (posLocal == NULL)
 			{
-				// posAfter is at the start of pMergedList, & it must be the start of the 
+				// posAfter is at the start of pMergedList, & it must be the start of the
 				// retranslation
 				pSP_AtStart = posAfter->GetData();
 				pSP_AtStart->m_bBeginRetranslation = TRUE;
@@ -3101,7 +3101,7 @@ void EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList)
 					first = pMergedList->IndexOf(pSP);
 				}
 				else
-				{	
+				{
 					// the starting CSourcePhrase must be the one which follows pSP, and
 					// it will need it's flag to be set as well as first's value calculated
 					pSP_AtStart = posAfter->GetData();
@@ -3166,7 +3166,7 @@ bool IsLeftAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 // unchanged CSourcePhrase instances to the existing matching CSourcePhrase instances - so
 // as to ensure any user edits of the UFSM structure or punctuation are not missed in the
 // merge process.
-void TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bFlagsToo, 
+void TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bFlagsToo,
 							  bool bClearAfterwards)
 {
 	wxString empty = _T("");
@@ -3276,7 +3276,7 @@ bool IsRightAssociatedPlaceholder(CSourcePhrase* pSrcPhrase)
 // unchanged CSourcePhrase instances to the existing matching CSourcePhrase instances - so
 // as to ensure any user edits of the UFSM structure or punctuation are not missed in the
 // merge process.
-void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
+void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 			bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards)
 {
 	wxString empty = _T("");
@@ -3363,7 +3363,7 @@ void TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo,
 // not do anything with any most of of the flags, and optionally can empty the puncts and marker
 // fields data is transferred from, after the data in them has been transferred. Calls
 // TransferPrecedingMembers() and TransferFollowingMembers(). Fields involved are:
-// m_markers, m_endMarkers, m_inlineBindingMarkers, m_inlineBindingEndMarkers, 
+// m_markers, m_endMarkers, m_inlineBindingMarkers, m_inlineBindingEndMarkers,
 // m_inlineNonbindingMarkers, m_inlineNonbindingEndMarkers; m_precPunct, m_follPunct and
 // m_follOuterPunct. We always, however, transfer m_bVerse and m_inform values.
 // This function is used in one context: in the import edited source text feature, to
@@ -3404,9 +3404,9 @@ void TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool
 // instances - so as to ensure any user edits of the UFSM structure or punctuation are not
 // missed in the merge process.
 // BEW 28May11, changed the signature to conform to the other Transfer...() functions' signatures
-// old signature: bool TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt, 
+// old signature: bool TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt,
 //                int newEndAt, CSourcePhrase* pTo)
-bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
+bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int & newDoneToIncluding)
 {
 	wxASSERT(pSubspan->spanType == commonSpan);
@@ -3430,7 +3430,7 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	wxASSERT(pTo->m_nSrcWords > 1);
 	wxASSERT((int)pTo->m_pSavedWords->GetCount() == pTo->m_nSrcWords);
 
-	int newStartAt = newIndex; 
+	int newStartAt = newIndex;
     int newEndAt = newIndex + pTo->m_nSrcWords - 1;
 
 	//int newCount = arrNew.GetCount();
@@ -3567,7 +3567,7 @@ int PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray)
 // medial information builds strFromMedials from the new material's m_key members plus
 // punctuation, and returns it to the caller by means of the signature, where it will have
 // the parent's previous and following puncts added - to form a new m_srcPhrase value.
-// We also rebuild the m_targetStr members for both parent and it's children. 
+// We also rebuild the m_targetStr members for both parent and it's children.
 // This function is used within TransferPunctsAndMarkersToMerger()
 void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew,
 				wxString& parentPrevPunct, wxString& parentFollPunct, wxString& strFromMedials)
@@ -3612,7 +3612,7 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				targetStr += pOrig->m_follPunct;
 				targetStr += pOrig->GetFollowingOuterPunct();
 				// insert it into the m_targetStr member of pSrcPhrase, also copy
-				// m_adaption 
+				// m_adaption
 				pSrcPhrase->m_adaption = pOrig->m_adaption;
 				pSrcPhrase->m_targetStr = targetStr;
 			}
@@ -3662,7 +3662,7 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				targetStr += pOrig->m_adaption;
 				targetStr += parentFollPunct; // combines m_follPunct + m_follOuterPunct
 				// insert it into the m_targetStr member of pSrcPhrase, also copy
-				// m_adaption 
+				// m_adaption
 				pSrcPhrase->m_adaption = pOrig->m_adaption;
 				pSrcPhrase->m_targetStr = targetStr;
 			}
@@ -3709,7 +3709,7 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				targetStr += pOrig->m_follPunct;
 				targetStr += pOrig->GetFollowingOuterPunct();
 				// insert it into the m_targetStr member of pSrcPhrase, also copy
-				// m_adaption 
+				// m_adaption
 				pSrcPhrase->m_adaption = pOrig->m_adaption;
 				pSrcPhrase->m_targetStr = targetStr;
 			}
@@ -3791,7 +3791,7 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 		// definition, being in m_pSavedWords, can't have partner piles
 		pDoc->DeleteSingleSrcPhrase((CSourcePhrase*)arrRangeOfOldOnes.Item(index), FALSE);
 	}
-	pMergedSP->m_pSavedWords->Clear(); // default call doesn't call delete 
+	pMergedSP->m_pSavedWords->Clear(); // default call doesn't call delete
 								// on the stored pointers" (because we've deleted them
 								// in the loop above)
 	// now deep copy the new array's matching instances, and append the ptr-to-copy in the
@@ -3816,19 +3816,19 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// \param  arrNew          ->  array of new CSourcePhrase instances
 /// \param  oldStartAt      ->  starting index in arrOld for parent Subspan
 /// \param  oldEndAt        ->  ending (inclusive) index in arrOld for parent Subspan
-/// \param  newStartAt      ->  starting index in arrNew for parent Subspan                
+/// \param  newStartAt      ->  starting index in arrNew for parent Subspan
 /// \param  newEndAt        ->  ending (inclusive) index in arrNew for parent Subspan
 /// \param  oldStartingPos  ->  the index in arrOld from which we start our leftwards jump
 /// \param  newStartingPos  ->  the index in arrNew from which we start our leftwards jump
 /// \param  oldCount        <-  ref to a count of the number of CSourcePhrase instances to accept
-///                             to the left in our "single" jump within the arrOld array (it may 
+///                             to the left in our "single" jump within the arrOld array (it may
 ///                             not be just one - see below)
 /// \param  newCount        <-  ref to a count of the number of CSourcePhrase instances to accept
-///                             to the left in our "single" jump within the arrNew array (it should 
+///                             to the left in our "single" jump within the arrNew array (it should
 ///                             always be just one - see below, because arrNew will NEVER
 ///                             have any retranslations or placeholders in it)
-///                         
-/// \remarks                      
+///
+/// \remarks
 /// This function tries to extend a matchup of an in-common word leftwards by one step,
 /// and since it is called repeatedly until a failure results, the kick off point will
 /// move leftwards for each iteration in both arrOld and arrNew. If there are no
@@ -3837,14 +3837,14 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// in the array, at the next smallest index value) in both arrOld and arrNew. Return TRUE
 /// if they match, FALSE if they don't - and returning FALSE indicates we've come to the
 /// left bound of an in-common span of CSourcePhrase instances.
-/// 
+///
 /// Note: the recursion algorithm must not change the number or order of CSourcePhrase
 /// instances in arrOld and arrNew. Only after recursion is completed and the merging is
 /// therefore completed can we do cleanup actions which change number of final
 /// CSourcePhrase instances (such as removing placeholders in partially destroyed
 /// retranslations - and even then, such cleanup is not done in either of arrOld or
-/// arrNew) 
-/// 
+/// arrNew)
+///
 /// Retranslations (and those may end with zero, one or more placeholders) and
 /// placeholders complicate the situation significantly. This function is designed to
 /// encapsulate these complications within it, so that higher level functions do not have
@@ -3858,7 +3858,7 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// whole newly merged document looking for the messed-up retranslation subspans, and fixes
 /// things - the fixes involve removing the adaptations within the retranslation fragments
 /// that have lost either end.
-/// 
+///
 /// But the WidenLeftwardsOnce() function still has to handle retranslations to some extent
 /// (see below), and all placeholders which are not placeholders within a retranslation.
 /// What follows are the rules...
@@ -3892,13 +3892,13 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// although it's highly likely they never will occur);
 /// (c) If left-associated, deem it to belong at the end of beforeSpan;
 /// (d) If it is neither left- nor right-associated, treat it the same as for (c)
-/// 
+///
 /// An additional complication is that arrOld will probably contain mergers, but arrNew
 /// never will. So when widening, if an merger is encountered, IsMergerAMatch() must be
 /// called to determine if the potentially equivalent word sequence is in arrNew starting
 /// at an appropriate index value. This also leads to newCount being > 1 if the
 /// corresponding sequence exists in arrNew.
-/// (There is also a WidenRightwardsOnce() function which has similar rules, but different 
+/// (There is also a WidenRightwardsOnce() function which has similar rules, but different
 /// in places for obvious reasons)
 bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
@@ -3930,7 +3930,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		{
 			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
 			{
-				// we can extend the commonSpan successfully leftwards to this 
+				// we can extend the commonSpan successfully leftwards to this
 				// pair of instances
 				oldCount++;
 				newCount++;
@@ -3950,7 +3950,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		// placeholder nor within a retranslation) because that is more likely to happen
 		// than the other complications we must handle. We'll also handle fixedspace
 		// conjoining here too - and accept a non-conjoined identical word pair in arrNew
-		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair) 
+		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair)
 		else if (pOldSrcPhrase->m_nSrcWords > 1)
 		{
 			// it's a merger, or conjoined pseudo-merger
@@ -3971,7 +3971,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			{
 				if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
 				{
-					// we can extend the commonSpan successfully leftwards to this 
+					// we can extend the commonSpan successfully leftwards to this
 					// pair of instances, each has the fixedspace (~) marker in its
 					// m_key member
 					oldCount++;
@@ -3982,7 +3982,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 				{
 					// the arrNew array at the match location doesn't have a fixedspace
 					// pseudo-merger, so attempt to match the words there individually
-					if (newIndex - numWords + 1 >= newStartAt)					
+					if (newIndex - numWords + 1 >= newStartAt)
 					{
                         // there are enough words available for a match attempt... get the
                         // individual words in pOldSrcPhrase and then check for a match
@@ -4009,7 +4009,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		wxLogDebug(_T("Leftwards ONCE: exiting at THREE"));
 #endif
 							return FALSE;
-						}	
+						}
 					}
 					else
 					{
@@ -4070,8 +4070,8 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			bool bItsInARetranslation = FALSE;
 			if (pOldSrcPhrase->m_bRetranslation)
 			{
-				// It's a placeholder at the end of a retranslation. 
-				// 
+				// It's a placeholder at the end of a retranslation.
+				//
                 // Our approach for these is to keep such placeholder(s) with the
                 // retranslation unit to which they belong - so we defer decision until we
                 // check for a match (in arrNew) with the first non-placeholder in arrOld
@@ -4088,14 +4088,14 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                 // CSourcePhrase's m_bBeginRetranslation flag to TRUE, and do a "Remove
                 // Retranslation" operation on it, to remove the bogus target text values
                 // in it, and the final placeholders, prior to displaying the merged
-                // document to the user. 
-                // 
+                // document to the user.
+                //
                 // But if the pre-placeholder(s) CSourcePhrase we find doesn't
                 // match the one in arrNew, then we are at the left boundary for
                 // commonSpan, and so the retranslation placeholder(s) belong with the rest
                 // of the retranslation - which is in beforeSpan, so we exclude them by
                 // returning oldCount = 0
-                // 
+                //
 				// The code for implementing this protocol requires we traverse over the
 				// one or more placeholders to find a preceding placeholder; which is what
 				// we must do for a manually inserted placeholder - so since the only
@@ -4107,7 +4107,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			// It's either a plain vanila (i.e. user-manually-created) placeholder, not one
 			// in a retranslation; or if bItsInARetranslation is TRUE, its a placeholder
 			// which is at the end of a retranslation section.
-			
+
 			// Get past this and any additional non-retranslation placeholders until
 			// either we reach oldStartAt and can't check further, or we get a
 			// non-placeholder which is at or after oldStartAt which we can test for a
@@ -4140,7 +4140,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 						// it's not a merger - so check for a match with the one in arrNew
 						if (pPrevSrcPhrase->m_key == pNewSrcPhrase->m_key)
 						{
-							// we can extend the commonSpan successfully leftwards to this 
+							// we can extend the commonSpan successfully leftwards to this
 							// pair of instances, pulling the traversed placeholders
 							// into commonSpan along with the non-placeholder one at
 							// their left -- this also applies to ones within a retranslation
@@ -4323,18 +4323,18 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// \param  arrNew          ->  array of new CSourcePhrase instances
 /// \param  oldStartAt      ->  starting index in arrOld for parent Subspan
 /// \param  oldEndAt        ->  ending (inclusive) index in arrOld for parent Subspan
-/// \param  newStartAt      ->  starting index in arrNew for parent Subspan                
+/// \param  newStartAt      ->  starting index in arrNew for parent Subspan
 /// \param  newEndAt        ->  ending (inclusive) index in arrNew for parent Subspan
 /// \param  oldStartingPos  ->  the index in arrOld from which we start our rightwards jump
 /// \param  newStartingPos  ->  the index in arrNew from which we start our rightwards jump
 /// \param  oldCount        <-  ref to a count of the number of CSourcePhrase instances to accept
-///                             to the right in our "single" jump within the arrOld array (it may 
+///                             to the right in our "single" jump within the arrOld array (it may
 ///                             not be just one - see below)
 /// \param  newCount        <-  ref to a count of the number of CSourcePhrase instances to accept
-///                             to the right in our "single" jump within the arrNew array (it should 
+///                             to the right in our "single" jump within the arrNew array (it should
 ///                             always be just one - see below, because arrNew will NEVER
 ///                             have any retranslations or placeholders in it)
-///                         
+///
 /// \remarks
 /// Note: WidenRightwardsOnce() has passed to it either the oldEndAt set to the highest
 /// index in arrOld (when bClosedEnd is FALSE in the parent), and newEndAt set to the
@@ -4343,7 +4343,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// SPAN_LIMIT value -- see AdaptitConstants.h) When the end is 'open' we don't want to
 /// cut short successful rightwards widening at some arbitrary point, but let it go as far
 /// as possible.
-///                      
+///
 /// This function tries to extend a matchup of an in-common word rightwards by one step,
 /// and since it is called repeatedly until a failure results, the kick off point will move
 /// leftwards for each iteration in both arrOld and arrNew. If there are no placeholders
@@ -4354,14 +4354,14 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// in-common span of CSourcePhrase instances. (Note: if bClosedEnd is FALSE, iterations
 /// to match additional rightwards CSourcePhrase instances in the two arrays can continue
 /// on until a match failure happens, or the end of one of arrOld or arrNew is encountered.)
-/// 
+///
 /// Note: the recursion algorithm must not change the number or order of CSourcePhrase
 /// instances in arrOld and arrNew. Only after recursion is completed and the merging is
 /// therefore completed can we do cleanup actions which change number of final
 /// CSourcePhrase instances (such as removing placeholders in partially destroyed
 /// retranslations - and even then, such cleanup is not done in either of arrOld or
-/// arrNew) 
-/// 
+/// arrNew)
+///
 /// Retranslations (and those may end with zero, one or more placeholders) and placeholders
 /// complicate the situation significantly. This function is designed to encapsulate these
 /// complications within it, so that higher level functions do not have to consider either
@@ -4374,7 +4374,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// completed and which spans whole newly merged document looking for the messed-up
 /// retranslation subspans, and fixes things - the fixes remove the adaptations within the
 /// retranslation fragments that have lost either end.
-/// 
+///
 /// But the WidenRightwardsOnce() function still has to handle retranslations to some
 /// extent (see below), and all placeholders which are not placeholders within a
 /// retranslation. What follows are the rules...
@@ -4410,12 +4410,12 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// although it's highly likely they never will occur);
 /// (c) If right-associated, deem it to belong at the start of afterSpan;
 /// (d) If it is neither left- nor right-associated, treat it the same as for (c)
-/// 
+///
 /// An additional complication is that arrOld will probably contain mergers, but arrNew
 /// never will. So when widening, if an merger is encountered, IsMergerAMatch() must be
 /// called to determine if the potentially equivalent word sequence is in arrNew starting
 /// at an appropriate index value.
-/// (There is also a WidenLeftwardsOnce() function which has similar rules, but different 
+/// (There is also a WidenLeftwardsOnce() function which has similar rules, but different
 /// in places for obvious reasons, and it doesn't need the bClosedEnd parameter)
 bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
@@ -4455,7 +4455,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 		{
 			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
 			{
-				// we can extend the commonSpan successfully rightwards to this 
+				// we can extend the commonSpan successfully rightwards to this
 				// pair of instances
 				oldCount++;
 				newCount++;
@@ -4475,7 +4475,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 		// placeholder nor within a retranslation) because that is more likely to happen
 		// than the other complications we must handle. We'll also handle fixedspace
 		// conjoining here too - and accept a non-conjoined identical word pair in arrNew
-		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair) 
+		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair)
 		else if (pOldSrcPhrase->m_nSrcWords > 1)
 		{
 			// it's a merger, or conjoined pseudo-merger
@@ -4496,7 +4496,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 			{
 				if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
 				{
-					// we can extend the commonSpan successfully rightwards to this 
+					// we can extend the commonSpan successfully rightwards to this
 					// pair of instances, each has the fixedspace (~) marker in its
 					// m_key member
 					oldCount++;
@@ -4507,7 +4507,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 				{
 					// the arrNew array at the match location doesn't have a fixedspace
 					// pseudo-merger, so attempt to match the words there individually
-					if (newIndex + numWords - 1 <= newEndAt)					
+					if (newIndex + numWords - 1 <= newEndAt)
 					{
                         // there are enough words available for a match attempt... get the
                         // individual words in pOldSrcPhrase and then check for a match
@@ -4605,8 +4605,8 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 			bool bItsInARetranslation = FALSE;
 			if (pOldSrcPhrase->m_bRetranslation)
 			{
-				// It's the first placeholder at the end of a retranslation. 
-				// 
+				// It's the first placeholder at the end of a retranslation.
+				//
                 // Our approach for these is to keep such placeholder(s) with the
 				// retranslation unit to which they belong - so we find out how many of
 				// them there are, and make them be within commonSpan. Then we go to the
@@ -4617,14 +4617,14 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 				// last placeholder, matching against the one CSourcePhrase instance in
 				// arrNew at newIndex - and if there is a match, we have succeeded in
 				// extending rightwards (return TRUE after setting count values), but if
-				// there is no match, then we must close off commonSpan & return FALSE 
+				// there is no match, then we must close off commonSpan & return FALSE
 				bItsInARetranslation = TRUE;
 			} // end of TRUE block for test: if (pOldSrcPhrase->m_bRetranslation)
 
             // It's either a plain vanila (i.e. user-manually-created) placeholder, not one
             // in a retranslation; or if bItsInARetranslation is TRUE, its the first
             // placeholder which is at the end of a retranslation section.
-			
+
 			// Get past this and any additional non-retranslation placeholders until
 			// either we reach oldEndAt and can't check further, or we get a
 			// non-placeholder which is at or before oldEndAt which we can test for a
@@ -4658,7 +4658,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						// it's not a merger - so check for a match with the one in arrNew
 						if (pNextSrcPhrase->m_key == pNewSrcPhrase->m_key)
 						{
-							// we can extend the commonSpan successfully rightwards to this 
+							// we can extend the commonSpan successfully rightwards to this
 							// pair of instances, pulling the traversed placeholders
 							// into commonSpan along with the non-placeholder one at
 							// their right -- this also applies to ones within a retranslation
@@ -4750,8 +4750,8 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 							if (bMatched)
 							{
 								oldCount++; // it now equals 1
-								newCount += numWords; // no mergers in arrNew (other than fixedspace 
-										// pseudo mergers), so we count the requisite number of words 
+								newCount += numWords; // no mergers in arrNew (other than fixedspace
+										// pseudo mergers), so we count the requisite number of words
 										// which belong in commonSpan
 								return TRUE;
 							}
@@ -4848,9 +4848,9 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 /// \param  arrOld              ->  array of old CSourcePhrase instances
 /// \param  arrNew              ->  array of new CSourcePhrase instances
 /// \param  pParentSubspan      ->  the Subspan which we are decomposing by finding the
-///                                 longest in-common subspans within arrOld and arrNew 
+///                                 longest in-common subspans within arrOld and arrNew
 ///                                 which are matched
-/// \param  limit               ->  the span width limit value, used for defining a 
+/// \param  limit               ->  the span width limit value, used for defining a
 ///                                 less-than-all width, or if -1, use-all width for the
 ///                                 subspans in which the set of unique in-common words
 ///                                 are obtained
@@ -4870,8 +4870,8 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 /// tuple of beforeSpan, commonSpan, and afterSpan.
 Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit)
 {
-	wxArrayString arrUniqueInCommonWords; 
-	wxArrayPtrVoid arrSubspans; 
+	wxArrayString arrUniqueInCommonWords;
+	wxArrayPtrVoid arrSubspans;
 	wxArrayInt arrWidths;
 	// The first task is to populate the arrUniqueInCommonWords array, based on the data
 	// in pParentSubspan
@@ -4886,7 +4886,7 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 	// constructed from the widths of the subspan in arrOld plus the width of the matched
 	// subspan in arrNew). The Subspan pointers, and the widths, are stored in arrSubspans
 	// and arrWidths, respectively.
-	bool bThereAreSpans = GetAllCommonSubspansFromOneParentSpan(arrOld, arrNew, pParentSubspan, 
+	bool bThereAreSpans = GetAllCommonSubspansFromOneParentSpan(arrOld, arrNew, pParentSubspan,
 				&arrUniqueInCommonWords, &arrSubspans, &arrWidths, pParentSubspan->bClosedEnd);
 	if (bThereAreSpans)
 	{
@@ -4897,19 +4897,19 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 		int widthsCount = arrWidths.GetCount();
 		int maxWidth = arrWidths.Item(0); // initialize to composite width of the first
 #if defined( myLogDebugCalls) && defined(_DEBUG)
-		wxLogDebug(_T("Composite WIDTH =  %d  for index value  %d"),maxWidth, 0); 
+		wxLogDebug(_T("Composite WIDTH =  %d  for index value  %d"),maxWidth, 0);
 #endif
-		int lastIndexForMax = 0; // initialize 
+		int lastIndexForMax = 0; // initialize
 		int i;
 		for (i = 1; i < widthsCount; i++)
 		{
-#if defined(_DEBUG) && defined(_RECURSE_) 
+#if defined(_DEBUG) && defined(_RECURSE_)
 			Subspan* pSub = (Subspan*)arrSubspans.Item(i);
 			wxLogDebug(_T("GetMaxInCommonSubspan(), loop index %d, Composite WIDTH  %d  for Subspan: (%d,%d) <-> (%d,%d)"),
 						i, arrWidths.Item(i), pSub->oldStartPos, pSub->oldEndPos, pSub->newStartPos, pSub->newEndPos);
 #endif
 			if (arrWidths.Item(i) > maxWidth)
-			{	
+			{
 				// only accept a new value if it is bigger, this way if any are equal
 				// size, we'll take the index for the first of them, which is a better
 				// idea when trying to work left to right
@@ -4918,10 +4918,10 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 			}
 		}
 		Subspan* pMaxInCommonSubspan = (Subspan*)arrSubspans.Item(lastIndexForMax);
-#if defined(_DEBUG) && defined(_RECURSE_) 
-		wxLogDebug(_T("index chosen for Max in-common span = %d  for Subspan:  (%d,%d) <-> (%d,%d)"), 
-			lastIndexForMax, pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos, 
-			pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos ); 
+#if defined(_DEBUG) && defined(_RECURSE_)
+		wxLogDebug(_T("index chosen for Max in-common span = %d  for Subspan:  (%d,%d) <-> (%d,%d)"),
+			lastIndexForMax, pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos,
+			pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos );
 #endif
 
 		// delete the rest
@@ -4933,7 +4933,7 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 			{
 				if ((Subspan*)arrSubspans.Item(i) != NULL) // whm 11Jun12 added NULL test
 				{
-#if defined(_DEBUG) && defined(myLogDebugCalls) 
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 					countCommonSpanDeletions++; // because there are many made & rejected, the counts for these are large
 #endif
 					delete (Subspan*)arrSubspans.Item(i);
@@ -4941,10 +4941,10 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 			}
 		}
 		arrSubspans.Clear();
-		return pMaxInCommonSubspan; // Returning a commonSpan Subspan instance means the 
+		return pMaxInCommonSubspan; // Returning a commonSpan Subspan instance means the
 					 // parent span is segmentable into beforeSpan, commonSpan and
 					 // and afterSpan, thereby defining a child tuple - which must
-					 // then be processed by a call of RecursiveTupleProcessor(), 
+					 // then be processed by a call of RecursiveTupleProcessor(),
 					 // passing in that tuple
 	}
     // There were no in-common words, and hence no commonSpan type of Subspan instances
@@ -4954,7 +4954,7 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 	return NULL;
 }
 
-bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart, 
+bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart,
 						int newPosEnd, wxArrayPtrVoid* pSubspansArray)
 {
 	int count = pSubspansArray->GetCount();
@@ -4985,10 +4985,10 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 ///                             in-common words in the pUniqueCommonWordsArray passed in,
 ///                             in which case FALSE is returned. (FALSE is equivalent to
 ///                             the caller testing that the array of unique common words
-///                             is empty and that no Subspan instances were created and 
+///                             is empty and that no Subspan instances were created and
 ///                             stored)
 /// \param  arrOld           -> array of old CSourcePhrase instances (may have mergers,
-///                             placeholders, retranslation, fixedspace conjoinings as 
+///                             placeholders, retranslation, fixedspace conjoinings as
 ///                             well as minimal CSourcePhrase instances)
 /// \param  arrNew           -> array of new CSourcePhrase instances (will only be minimal
 ///                             CSourcePhrase instances, but could also contain fixedspace
@@ -4997,7 +4997,7 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 ///                             collect the set of all possible commonSpan Subspans which
 ///                             get stored in pSubspansArray
 /// \param  pUniqueCommonWordsArray -> array of unique in-common words derived from the current
-///                             (parent) Subspan's old and new subspan pair               
+///                             (parent) Subspan's old and new subspan pair
 /// \param  pSubspansArray   <- store each commonSpan Subspan ptr instance we obtain, in here
 /// \param  pWidthsArray     <- add here the sum of the span widths in arrOld and arrNew which
 ///                             form a matched pair of subspans within the Subspan instance
@@ -5012,7 +5012,7 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 ///                             rightmost afterSpan so far defined. That is, the afterSpan
 ///                             instances at the right edge of the hierarchy of tuples will
 ///                             each have their bClosedEnd values cleared to FALSE.)
-///                         
+///
 /// \remarks
 /// This function takes the passed in array of unique in-common words within a (limited
 /// width) span of CSourcePhrase instances from both arrOld and arrNew, and for each word
@@ -5024,7 +5024,7 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 /// placeholders, retranslations and possibly fixedspace pseudo-mergers. These are all
 /// dealt with, but encapsulated within lower level functions - see the comments for
 /// WidenLeftwardsOnce() and WidenRightwardsOnce(), we won't discuss these issues here.)
-/// 
+///
 /// Not every matchup can be widened, spurious accidental matchups can occur - these will
 /// tend to be of limited width, but we must still derive them and store them until it is
 /// determined that they can be abandoned. After widening, a Subspan is created on the heap
@@ -5040,7 +5040,7 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 /// (SPAN_LIMIT number of instances of consecutive CSourcePhrase instances, SPAN_LIMIT
 /// being 80 (currently)), and for each matchup widening is attempted provided that the
 /// matchup index values don't lie within an already found Subspan instance.
-/// 
+///
 /// The "width" values we store are the sum of counts of the consecutive CSourcePhrase
 /// instances in the arrOld limited span within that larger array, and the consecutive
 /// CSourcePhrase instances in the arrNew limited span within that larger array. For
@@ -5051,14 +5051,14 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 /// pWidthsArray. That way, it is easier to see which Subspan really is the maximal one;
 /// the minimal one would have a combined width of 2 (one CSourcePhrase instance from each
 /// of arrOld and arrNew).
-/// 
+///
 /// The Subspan ptr instances are on the heap, and a higher level function will find which
 /// is the maximal one - when that is done, it is retained and the others must be deleted
 /// so as not to leak memory. As we recursively iterate though the data, we deal with
 /// smaller and smaller subspans as the nesting level deepens, and progressively from left
 /// to right across the whole of arrOld and arrNew as recursion level decreases. (That's a
 /// simplification, but you get the idea. I hope.)
-/// 
+///
 /// Note: widening a matchup to the right must stop at the bounding oldEndPos index within
 /// arrOld, and the newEndPos index within arrNew. However, the rightmost tuple's afterSpan
 /// at every nesting level of the right hand edge of the hierachy of tuples must have the
@@ -5070,14 +5070,14 @@ bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPos
 /// the as-yet-unprocessed right-hand ends of arrOld and arrNew. This can potentially save
 /// a lot of processing time, especially if the user's edits of the source text were all
 /// near the start of the exported source text file.
-/// 
+///
 /// Calls GetNextMatchup() which returned TRUE if a matchup succeeded, and FALSE if it
 /// didn't; and when successful, the signature returns counts for how many consecutive
 /// CSourcePhrase instances in arrOld and arrNew are involved in the matchup - this
 /// information is then passed in to the WidenMatchup() function.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew, 
-			Subspan* pParentSubspan, wxArrayString* pUniqueCommonWordsArray, 
+bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
+			Subspan* pParentSubspan, wxArrayString* pUniqueCommonWordsArray,
 			wxArrayPtrVoid* pSubspansArray, wxArrayInt* pWidthsArray, bool bClosedEnd)
 {
 	// store in local variables the start and end (both fixed) index values for the span
@@ -5154,10 +5154,10 @@ bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 			{
 				// try for the first or next matchup (oldMatchedStart to newMatchedEnd are
 				// uninitialized, but set to -1 when the function has just been entered)
-				bMatchupSucceeded = GetNextCommonSpan(searchWord, arrOld, arrNew, 
-					oldParentSpanStart, newParentSpanStart, oldIndex, oldParentSpanEnd, 
-					newIndex, newParentSpanEnd, oldMatchedStart, oldMatchedEnd, 
-					newMatchedStart, newMatchedEnd, oldLastIndex, newLastIndex, 
+				bMatchupSucceeded = GetNextCommonSpan(searchWord, arrOld, arrNew,
+					oldParentSpanStart, newParentSpanStart, oldIndex, oldParentSpanEnd,
+					newIndex, newParentSpanEnd, oldMatchedStart, oldMatchedEnd,
+					newMatchedStart, newMatchedEnd, oldLastIndex, newLastIndex,
 					bClosedEnd, pSubspansArray, pWidthsArray);
 				// determine whether the inner loop has finished or not, and if not,
 				// update the oldIndex and newIndex values to be one greater than the
@@ -5172,7 +5172,7 @@ bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 					newIndex = newLastIndex + 1;
 					if (newIndex >= newParentSpanEnd)
 					{
-						newIndex = newParentSpanStart; // start over when next outer 
+						newIndex = newParentSpanStart; // start over when next outer
 													   // loop location is tested
 						break; // no room for looking ahead, so the inner loop ends
 					}
@@ -5207,11 +5207,11 @@ bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 					{
 						// no matchup, but we did advance to a new location in arrNew from
 						// which we can do a Find...() starting from what lies beyond that
-						// location - so prepare for the next iteration 
+						// location - so prepare for the next iteration
 						newIndex = newLastIndex + 1;
 						if (newIndex >= newParentSpanEnd)
 						{
-							newIndex = newParentSpanStart; // start over when next outer 
+							newIndex = newParentSpanStart; // start over when next outer
 														   // loop location is tested
 							break; // no room for looking ahead, so the inner loop ends
 						}
@@ -5255,26 +5255,26 @@ bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 /// \param  word             -> the word being searched for at or after the starting index
 ///                             locations in arrOld and arrNew
 /// \param  arrOld           -> array of old CSourcePhrase instances (may have mergers,
-///                             placeholders, retranslation, fixedspace conjoinings as 
+///                             placeholders, retranslation, fixedspace conjoinings as
 ///                             well as minimal CSourcePhrase instances)
 /// \param  arrNew           -> array of new CSourcePhrase instances (will only be minimal
 ///                             CSourcePhrase instances, but could also contain fixedspace
 ///                             conjoined instances too)
-/// \param  oldStartAt       -> index at which span is left-bounded (right-bounded for RTL 
+/// \param  oldStartAt       -> index at which span is left-bounded (right-bounded for RTL
 ///                             languages)
-/// \param  newStartAt       -> index at which span is right-bounded (left-bounded for RTL 
+/// \param  newStartAt       -> index at which span is right-bounded (left-bounded for RTL
 ///                             languages)
 /// \param  oldStartFrom     -> index from which to start searching in arrOld
 /// \param  oldEndAt         -> index in arrOld at which last search is to be tried
 /// \param  newStartFrom     -> index from which to start searching in arrNew
 /// \param  newEndAt         -> index in arrNew at which last search is to be tried
-/// \param  oldMatchedStart  <- index of initial matched CSourcePhrase in arrOld, 
+/// \param  oldMatchedStart  <- index of initial matched CSourcePhrase in arrOld,
 ///                             wxNOT_FOUND if no match
-/// \param  oldMatchedEnd    <- index of last matched CSourcePhrase in arrOld, 
+/// \param  oldMatchedEnd    <- index of last matched CSourcePhrase in arrOld,
 ///                             wxNOT_FOUND if no match
-/// \param  newMatchedStart  <- index of initial matched CSourcePhrase in arrNew, 
+/// \param  newMatchedStart  <- index of initial matched CSourcePhrase in arrNew,
 ///                             wxNOT_FOUND if no match
-/// \param  newMatchedEnd    <- index of last matched CSourcePhrase in arrNew, 
+/// \param  newMatchedEnd    <- index of last matched CSourcePhrase in arrNew,
 ///                             wxNOT_FOUND if no match
 /// \param  oldLastIndex     <- index of CSourcePhrase in which the word matched in arrOld,
 ///                             (but it may not have resulted in a matchup) but we need it
@@ -5288,7 +5288,7 @@ bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 ///                             the index following it, provided that index is in the span;
 ///                             set to wxNOT_FOUND if the Find... operation fails,
 ///                             otherwise it is +ve
-///                         
+///
 /// \remarks
 /// Besides the easy and most common situation where a the two matched up CSourcePhrase
 /// instances contain just the same word in their m_key members, it also has to handle the
@@ -5332,9 +5332,9 @@ bool GetAllCommonSubspansFromOneParentSpan(SPArray& arrOld, SPArray& arrNew,
 /// oldLastIndex and newLastIndex values in order to increment them by one and use the
 /// resulting values as the new oldStartAt and newStartAt values for a new call of
 /// GetNextMatchup()
-bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, 
-		int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, 
-		int& oldMatchedStart, int& oldMatchedEnd, int & newMatchedStart, 
+bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt,
+		int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt,
+		int& oldMatchedStart, int& oldMatchedEnd, int & newMatchedStart,
 		int& newMatchedEnd, int& oldLastIndex, int& newLastIndex)
 {
 	oldStartAt = oldStartAt; newStartAt = newStartAt; // prevent two compiler warnings
@@ -5342,7 +5342,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
     // default initializations; initialize the oldLastIndex and newLastIndex ones to the
     // starting from indices, so that only a FindNextInArray() failure to find results in
     // a wxNOT_FOUND value for these
-	oldLastIndex = oldStartFrom; 
+	oldLastIndex = oldStartFrom;
 	newLastIndex = newStartFrom;
 	oldMatchedStart = wxNOT_FOUND;
 	oldMatchedEnd = wxNOT_FOUND;
@@ -5364,14 +5364,14 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 	{
 		oldLastIndex = wxNOT_FOUND; // GetAllCommonSpansFromOneParentSpan() needs this
 		return FALSE;
-	}	
+	}
 	if (oldEndAt >= (int)arrOld.GetCount() || newEndAt >= (int)arrNew.GetCount())
 	{
 		newLastIndex = wxNOT_FOUND; // GetAllCommonSpansFromOneParentSpan() needs this
 		return FALSE;
 	}
 
-	// get the next occurrence of word in arrOld, return wxNOT_FOUND in oldLastIndex 
+	// get the next occurrence of word in arrOld, return wxNOT_FOUND in oldLastIndex
 	// if not found
 	oldMatchIndex = FindNextInArray(word, arrOld, oldStartFrom, oldEndAt, phrase);
 	if (oldMatchIndex == wxNOT_FOUND)
@@ -5400,7 +5400,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 	pOldSrcPhrase = arrOld.Item(oldMatchIndex);
 	if (pOldSrcPhrase->m_nSrcWords == 1)
 	{
-		// old instance's key is a single word... 
+		// old instance's key is a single word...
 		// & we have a potential match location in newArr, check it out in more detail
 		pNewSrcPhrase = arrNew.Item(newMatchIndex);
 		if (pNewSrcPhrase->m_nSrcWords == 1)
@@ -5510,7 +5510,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 	} // end of TRUE block for test: if (pOldSrcPhrase->m_nSrcWords == 1)
 	else
 	{
-		// it's a merger, or a fixedspace conjoined pseudo-merger 
+		// it's a merger, or a fixedspace conjoined pseudo-merger
 		bOldIsFixedspaceConjoined = IsFixedSpaceSymbolWithin(phrase);
 		if (bOldIsFixedspaceConjoined)
 		{
@@ -5520,7 +5520,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// conjoining at the arrNew matching location, or at that location the two words
 			// must be on successive CSourcePhrase instances which lie within the
 			// boundaries newStartFrom to newEndAt, inclusive.
-			
+
 			// test for identical fixedspace pseudo-mergers first
 			pNewSrcPhrase = arrNew.Item(newMatchIndex);
 			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
@@ -5722,7 +5722,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			newMatchedStart = ++leftIndex;
 			// *** NOTE *** the above pair need to be reset to wxNOT_FOUND if the attempt
 			// to match rightwards for the rest of the merged words should fail
-			
+
             // The second algorithm is to move rightwards, getting each word, and comparing
             // with what is in the corresponding cell of arrKeys
 			int rightWordCount = 0;
@@ -5838,26 +5838,26 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 /// \param  word             -> the word being searched for at or after the starting index
 ///                             locations in arrOld and arrNew
 /// \param  arrOld           -> array of old CSourcePhrase instances (may have mergers,
-///                             placeholders, retranslation, fixedspace conjoinings as 
+///                             placeholders, retranslation, fixedspace conjoinings as
 ///                             well as minimal CSourcePhrase instances)
 /// \param  arrNew           -> array of new CSourcePhrase instances (will only be minimal
 ///                             CSourcePhrase instances, but could also contain fixedspace
 ///                             conjoined instances too)
-/// \param  oldStartAt       -> index at which span is left-bounded (right-bounded for RTL 
+/// \param  oldStartAt       -> index at which span is left-bounded (right-bounded for RTL
 ///                             languages)
-/// \param  newStartAt       -> index at which span is right-bounded (left-bounded for RTL 
+/// \param  newStartAt       -> index at which span is right-bounded (left-bounded for RTL
 ///                             languages)
 /// \param  oldStartFrom     -> index from which to start searching in arrOld
 /// \param  oldEndAt         -> index in arrOld at which last search is to be tried
 /// \param  newStartFrom     -> index from which to start searching in arrNew
 /// \param  newEndAt         -> index in arrNew at which last search is to be tried
-/// \param  oldMatchedStart  <- index of initial matched CSourcePhrase in arrOld, 
+/// \param  oldMatchedStart  <- index of initial matched CSourcePhrase in arrOld,
 ///                             wxNOT_FOUND if no match
-/// \param  oldMatchedEnd    <- index of last matched CSourcePhrase in arrOld, 
+/// \param  oldMatchedEnd    <- index of last matched CSourcePhrase in arrOld,
 ///                             wxNOT_FOUND if no match
-/// \param  newMatchedStart  <- index of initial matched CSourcePhrase in arrNew, 
+/// \param  newMatchedStart  <- index of initial matched CSourcePhrase in arrNew,
 ///                             wxNOT_FOUND if no match
-/// \param  newMatchedEnd    <- index of last matched CSourcePhrase in arrNew, 
+/// \param  newMatchedEnd    <- index of last matched CSourcePhrase in arrNew,
 ///                             wxNOT_FOUND if no match
 /// \param  oldLastIndex     <- index of CSourcePhrase in which the word matched in arrOld,
 ///                             (but it may not have resulted in a matchup) but we need it
@@ -5895,7 +5895,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 /// call WidenLeftwardsOnce() in a loop until we can't widen further, than do similarly
 /// rightwards using WidenRightwardsOnce(), thereby (providing a failure condition has not
 /// been encountered yet by any of those 3 functions) defining the boundaries for the
-/// in-common span pair. 
+/// in-common span pair.
 /// The parameters are used to set the relevant indices in a newly created (on the heap)
 /// pSubspan instance, provided all went well, and the new instance is stored in the
 /// pCommonSpans array so that the caller will have access to it, and a composite count of
@@ -5906,18 +5906,18 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 /// added to the above-mentioned array which is of type wxArrayPtrVoid (later, a higher
 /// level function will examine all such stored subspans to determine which to keep - the
 /// "widest", the rest would get abandoned and their instances removed from the heap).
-/// 
+///
 /// Note 1: GetNextMatchup() doesn't necessarily return indices for just one CSourcePhrase
 /// in arrOld, and one in arrNew, for a matchup. A matchup can involve mergers, for
 /// instance, or fixedspace conjoined pairs, and so what is returned is, for a valid
 /// matchup, the starting and ending index values in arrOld and the same in arrNew. Only
 /// when the matchup involves simple one-word CSourcePhrase instances are the starting and
 /// ending indices the same for the matchup.
-/// 
+///
 /// Note 2: GetNextMatchup() also initializes to wxNOT_FOUND the following parameters:
 /// oldMatchedStart, oldMatchedEnd, newMatchedStart, newMatchedEnd, oldLastIndex, and
 /// newLastIndex; also oldCount and newCount are internally initialized to 0 at each call.
-/// 
+///
 /// Note 3: oldLastIndex and newLastIndex are updated within the GetNextMatchup() call,
 /// and will be returned with new (larger) values if the internal calls within it to
 /// FindNextInArray() return non-negative values, but that does not mean that the matchup
@@ -5928,7 +5928,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 /// merger within arrOld, and also at some location in arrNew, but the ensuing attempt to
 /// determine that all the merger's words have matching equivalents in arrNew at the
 /// location found in arrNew, fails.
-/// 
+///
 /// Note 4: Don't get confused with the constraints on index values for the intial matchup
 /// - which has to return indices with the range oldStartFrom to oldEndAt in arrOld, and
 /// newStartFrom to newEndAt in arrNew, because a matchup is being sought at index values
@@ -5937,9 +5937,9 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 /// allowed to go to index values less than oldStartAt in arrOld, and less than newStartAt
 /// in arrNew, because we want our widening to go as wide as there are in-common
 /// CSourcePhrase instances within the parent subspan.
-bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, 
-			int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, 
-			int& oldMatchedStart, int& oldMatchedEnd, int& newMatchedStart, 
+bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt,
+			int newStartAt, int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt,
+			int& oldMatchedStart, int& oldMatchedEnd, int& newMatchedStart,
 			int& newMatchedEnd, int& oldLastIndex, int& newLastIndex, bool bClosedEnd,
 			wxArrayPtrVoid* pCommonSpans, wxArrayInt* pWidthsArray)
 {
@@ -5951,7 +5951,7 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 		// we obtained a valid matchup within the allowed index ranges; first check if it
 		// lies within an already-delineated Subspan instance - if so, abandon this
 		// attempt and return FALSE; if not, add the new pSubspan instance to this array
-		// later below 
+		// later below
         bool bAlreadyExists = IsMatchupWithinAnyStoredSpanPair(oldMatchedStart, oldMatchedEnd,
 											newMatchedStart, newMatchedEnd, pCommonSpans);
         if (bAlreadyExists)
@@ -5967,8 +5967,8 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
         // now try to widen the matchup to either side, starting with a left widening loop;
         // a return value of FALSE from a widening attempt means "the boundary for widening
         // in that direction has been reached"
-        
-		// the next two track the left boundaries within arrOld and arrNew of the commonSpan 
+
+		// the next two track the left boundaries within arrOld and arrNew of the commonSpan
 		// being delimited by the widening loop below
 		int oldLeftBdryIndex = oldMatchedStart;
 		int newLeftBdryIndex = newMatchedStart;
@@ -5996,8 +5996,8 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 			while (oldLeftBdryIndex > oldStartAt && newLeftBdryIndex > newStartAt)
 			{
 				// attempt another leftwards "step"
-				bOK = WidenLeftwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt, 
-								newEndAt, oldJumpFromIndex, newJumpFromIndex, oldLeftCount, 
+				bOK = WidenLeftwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt,
+								newEndAt, oldJumpFromIndex, newJumpFromIndex, oldLeftCount,
 								newLeftCount);
 				if (bOK)
 				{
@@ -6018,8 +6018,8 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 		}
 		// do rightwards widening now, using a rightwards widening loop, if bounds permit
         // The next two track the jumping off locations in arrOld and arrNew, for the loop
-        
-		// the next two track the right boundaries within arrOld and arrNew of the commonSpan 
+
+		// the next two track the right boundaries within arrOld and arrNew of the commonSpan
 		// being delimited by the widening loop below
 		int oldRightBdryIndex = oldMatchedEnd;
 		int newRightBdryIndex = newMatchedEnd;
@@ -6048,7 +6048,7 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 		// is initialized to zero at the start of WidenRightwardsOnce()-- note, for an
 		// open afterSpan, we can widen past the passed in bounding end values. If that is
 		// the case, update oldEndAt and newEndAt here to array-end values for arrOld &
-		// arrNew 
+		// arrNew
 		int oldRightCount = 0;
 		int newRightCount = 0;
 		// set the right limits for widening, according to whether the end is closed or open
@@ -6057,7 +6057,7 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
             // When FALSE, we are free to widen the end bound as far as the end of arrOld,
             // and/or the end of arrNew NOTE: oldEndAt and newEndAt are not passed in as
             // reference variables, so these changed values disappear once
-            // GetNextCommonSpan() returns. 
+            // GetNextCommonSpan() returns.
             // THESE NEXT TWO LINES ARE THE SHARP END OF WHAT THE bClosedEnd PARAMETER IS
             // ALL ABOUT, IT'S ONLY HERE AND A FEW LINES ABOVE THAT IT DOES ITS JOB OF
             // ENABLING A WIDER SPAN
@@ -6070,9 +6070,9 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
             // than the span's right boundary
 			while (oldRightBdryIndex < oldEndAt && newRightBdryIndex < newEndAt)
 			{
-				// attempt another rightwards "step" 
-				bOK = WidenRightwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt, 
-								newEndAt, oldJumpFromIndex, newJumpFromIndex, oldRightCount, 
+				// attempt another rightwards "step"
+				bOK = WidenRightwardsOnce(arrOld, arrNew, oldStartAt, oldEndAt, newStartAt,
+								newEndAt, oldJumpFromIndex, newJumpFromIndex, oldRightCount,
 								newRightCount);
 				if (bOK)
 				{
@@ -6097,7 +6097,7 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 #if defined( myLogDebugCalls) && defined(_DEBUG)
 	countCommonSpans++;
 #endif
-		InitializeSubspan(pSubspan, commonSpan, oldLeftBdryIndex, oldRightBdryIndex, 
+		InitializeSubspan(pSubspan, commonSpan, oldLeftBdryIndex, oldRightBdryIndex,
 							newLeftBdryIndex, newRightBdryIndex, TRUE); // TRUE is bClosedEnd
 
 		// add the span to pCommonSpans, and calculate the composite width value and add
@@ -6146,7 +6146,7 @@ bool IsMergerAMatch(SPArray& arrOld, SPArray& arrNew, int oldLoc, int newFirstLo
 		return FALSE;
 	}
 	wxString newPhrase;
-	int index; 
+	int index;
 	int newIndex = newFirstLoc;
 	for (index = 0; index < numWords; index++)
 	{
@@ -6190,9 +6190,9 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 		else
 		{
 			// go as far as we can, up to the limit value, or array end, whichever comes first
-			pSubspan->oldEndPos = 
+			pSubspan->oldEndPos =
 				wxMin((unsigned int)(pSubspan->oldStartPos + limit), (unsigned int)(arrOld.GetCount())) - 1;
-			pSubspan->newEndPos = 
+			pSubspan->newEndPos =
 				wxMin((unsigned int)(pSubspan->newStartPos + limit), (unsigned int)(arrNew.GetCount())) - 1;
 		}
 	}
@@ -6205,13 +6205,13 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 ///                         (for errors of this gravity, the returned processed location
 ///                         values will be -1 and -1, so check for these)
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
-///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         placeholders, retranslation, fixedspace conjoinings as
 ///                         well as minimal CSourcePhrase instances)
 /// \param  arrNew      ->  array of new CSourcePhrase instances (will only be minimal
 ///                         CSourcePhrase instances, but could also contain fixedspace
 ///                         conjoined instances too)
-/// \param  pSubspan    ->  the Subspan instance, of commonSpan type, which delimits the new 
-///                         CSourcePhrase instances which are to be the origin of the USFM 
+/// \param  pSubspan    ->  the Subspan instance, of commonSpan type, which delimits the new
+///                         CSourcePhrase instances which are to be the origin of the USFM
 ///                         and punctuation data which needs to flow to the retained original
 ///                         instances in arrOld
 /// \remarks
@@ -6267,7 +6267,7 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// approach is as follows... Leave the arrOld's placeholder 'as is', but make a clone of
 /// it so that we can apply IsLeftAssociatedPlaceholder() and
 /// IsRightAssociatedPlaceholder() and save the boolean results of those two tests. Then
-/// we 'fix' the preceding and following CSourcePhrase instances in arrOld to have any 
+/// we 'fix' the preceding and following CSourcePhrase instances in arrOld to have any
 /// necessary punctuation and/or markers updated in the arrOld instances. Then we check
 /// the aforemented two saved boolean values, and we redo the left or right association
 /// data transfers - that is, left association will mean we move data from the end of the
@@ -6280,7 +6280,7 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// transfer of other of those info types due to a right association, we will have to
 /// restore the transfer of those info types as well when we do the stuff just above.
 /// Likewise for a non-empty m_filteredInfo member under right assocation.
-/// 
+///
 /// Remember that all the above is done just in a commonSpan -- one where the arrOld and
 /// arrNew data is judged to be "in common". What happens with punctuation and markers in
 /// beforeSpan and afterSpan? For those, if there is no arrNew CSourcePhrase instances,
@@ -6308,7 +6308,7 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// markup is established.
 /// I've commented what happens in this detail so that anyone coming to this later on will
 /// not have to recreate all the thinking that went into making this import feature work
-/// robustly. 
+/// robustly.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan)
 {
@@ -6358,28 +6358,28 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 		switch (oldSPtype)
 		{
 		case singleton:
-			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, 
+			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex,
 									pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case singleton_in_retrans:
-			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, 
+			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex,
 									pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case merger:
-			bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldIndex, 
+			bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case singleton_matches_new_conjoined:
 		case conjoined:
-			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, 
+			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case manual_placeholder:
-			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex, 
+			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case placeholder_in_retrans:
-			bOK = TransferToPlaceholderInRetranslation(arrOld, arrNew, oldIndex, 
+			bOK = TransferToPlaceholderInRetranslation(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		default: // assume singleton
@@ -6402,13 +6402,13 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 			}
 			// should be able to recover, work out what to do... and continue iterating;
 			// oldSpanEnd and newSpanEnd we'll assume are good, and keep trying
-			oldIndex = oldEndedAt + 1; 
+			oldIndex = oldEndedAt + 1;
 			newIndex =  newEndedAt + 1;
 		}
 		else
 		{
 			// there were no errors or problems, so work out kick-off locations and iterate
-			oldIndex = oldEndedAt + 1; 
+			oldIndex = oldEndedAt + 1;
 			newIndex =  newEndedAt + 1;
 		}
 	}
@@ -6417,11 +6417,11 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 FALSE if there is no fixedspace conjoining to be handled, also
-///                         returns FALSE if there is an index bounds error; 
-///                         returns TRUE if there a conjoining (ie. one of situations 1 2 
+///                         returns FALSE if there is an index bounds error;
+///                         returns TRUE if there a conjoining (ie. one of situations 1 2
 ///                         or 3 below)
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
-///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         placeholders, retranslation, fixedspace conjoinings as
 ///                         well as minimal CSourcePhrase instances) We pass in the WHOLE
 ///                         array, not just a subrange for the commonSpan
 /// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
@@ -6452,7 +6452,7 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 /// changes what's in arrOld, not the SPList it comes from, but that doesn't matter
 /// because we will delete the latter and the deep copy will indeed get into pMergedList
 /// which replaces it when the import & merge has finished)
-bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
+bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
 {
 	wxASSERT(pSubspan->spanType == commonSpan);
@@ -6498,7 +6498,7 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 
 			// handle the arrNew's conjoined CSourcePhrase's embedded CSourcePhrases first;
 			// FALSE is  bool bClearAfterwards
-			TransferPunctsAndMarkersOnly(pWordFirstSP, pOldSP, FALSE);	
+			TransferPunctsAndMarkersOnly(pWordFirstSP, pOldSP, FALSE);
 			TransferPunctsAndMarkersOnly(pWordLastSP, pOldNextSP, FALSE);
 
 			// punctuation changes will affect m_srcPhrase and m_targetStr in both pOldSP
@@ -6582,18 +6582,18 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			CSourcePhrase* pWordFirst = pos->GetData();
 			CSourcePhrase* pWordLast = posLast->GetData();
 
-			// first, rebuild pNewWordFirst->m_targetStr, starting from pWordFirst->adaption 
+			// first, rebuild pNewWordFirst->m_targetStr, starting from pWordFirst->adaption
 			pNewWordFirst->m_targetStr = pNewWordFirst->m_precPunct;
 			pNewWordFirst->m_targetStr += pWordFirst->m_adaption;
 			pNewWordFirst->m_targetStr += pNewWordFirst->m_follPunct;
 			pNewWordFirst->m_targetStr += pNewWordFirst->GetFollowingOuterPunct();
 
-			// next, rebuild pNewWordLast->m_targetStr, starting from pWordLast->adaption 
+			// next, rebuild pNewWordLast->m_targetStr, starting from pWordLast->adaption
 			pNewWordLast->m_targetStr = pNewWordLast->m_precPunct;
 			pNewWordLast->m_targetStr += pWordLast->m_adaption;
 			pNewWordLast->m_targetStr += pNewWordLast->m_follPunct;
 			pNewWordLast->m_targetStr += pNewWordLast->GetFollowingOuterPunct();
-			
+
 			// finally, rebuild pNewSP->m_targetStr by concatenating the previous two with ~
 			pNewSP->m_targetStr = pNewWordFirst->m_targetStr + _T("~");
 			pNewSP->m_targetStr += pNewWordLast->m_targetStr;
@@ -6601,7 +6601,7 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// now make a deep copy of pNewSP
 			CSourcePhrase* pNewDeepCopy = new CSourcePhrase(*pNewSP);
 			pNewDeepCopy->DeepCopy();
-			
+
 			// now replace pOldSP with pNewDeepCopy and delete pOldSP
 #ifdef _WXDEBUG__
 			CSourcePhrase** pDetached = arrOld.Detach(oldIndex);
@@ -6632,12 +6632,12 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 
 			// handle the arrOld's conjoined CSourcePhrase's embedded CSourcePhrases first;
 			// FALSE is  bool bClearAfterwards; after that, handle their parent instance
-			TransferPunctsAndMarkersOnly(pNewSP, pWordFirstSP, FALSE);	
-			TransferPunctsAndMarkersOnly(pNewNextSP, pWordLastSP, FALSE);	
+			TransferPunctsAndMarkersOnly(pNewSP, pWordFirstSP, FALSE);
+			TransferPunctsAndMarkersOnly(pNewNextSP, pWordLastSP, FALSE);
 
 			// now the parent
 			// FALSE, FALSE, FALSE, is: bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards
-			TransferPrecedingMembers(pNewSP, pOldSP, FALSE, FALSE, FALSE); 
+			TransferPrecedingMembers(pNewSP, pOldSP, FALSE, FALSE, FALSE);
 			// FALSE, FALSE, is: bool bFlagsToo, bool bClearAfterwards
 			TransferFollowingMembers(pNewNextSP, pOldSP, FALSE, FALSE);
 
@@ -6715,9 +6715,9 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 ///                         the relevant part of arrNew fails - and in this case,
 ///                         oldDoneToIncluding and newDoneToIncluding will return -1 and -1.
 ///                         Otherwise do the processing and return TRUE (for a manually
-///                         placed placeholder) 
+///                         placed placeholder)
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
-///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         placeholders, retranslation, fixedspace conjoinings as
 ///                         well as minimal CSourcePhrase instances) We pass in the WHOLE
 ///                         array, not just a subrange for the commonSpan
 /// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
@@ -6727,16 +6727,16 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 /// \param  oldIndex    ->  index in arrOld where the placeholder is (or if the user has
 ///                         inserted more than one, where the first one is)
 /// \param  newIndex    ->  the next CSourcePhrase instance in the arrNew array, it can't
-///                         be a placeholder of course, so is the first of what follows 
+///                         be a placeholder of course, so is the first of what follows
 ///                         where an equivalent one would be if present (placeholders on
 ///                         span boundaries will not be included in the in-common span, so
 ///                         that means there should be at least one CSourcePhrase following
-///                         the oldIndex location in the in-common subspan in arrOld, and 
+///                         the oldIndex location in the in-common subspan in arrOld, and
 ///                         hence at matching one or ones in arrNew, since this is commonSpan
 /// \param  pSubspan    ->  the Subspan instance, it's a commonSpan, which we are doing the
-///                         transfers of USFM and punctuation to the to-be-retained 
+///                         transfers of USFM and punctuation to the to-be-retained
 ///                         CSourcePhrase instances in this subspan of arrOld
-/// \param  oldDoneToIncluding  <-  index in arrOld of the last post-placeholder which has 
+/// \param  oldDoneToIncluding  <-  index in arrOld of the last post-placeholder which has
 ///                                 been updated within this function (note, if there are
 ///                                 consecutive manually placed placeholders, it would be
 ///                                 the first CSourcePhrase past the last of those, rather
@@ -6754,8 +6754,8 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 /// arrOld and arrNew is that we may need to access a CSourcePhrase instance in arrOld and
 /// or arrNew which lies beyond the bounds of the commonSpan itself. Our approach in this
 /// function is to update what's either side of the merger, and then re-establish any left
-/// or right association that we detect.                  
-bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
+/// or right association that we detect.
+bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,
 				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
 {
 	wxASSERT(pSubspan->spanType == commonSpan);
@@ -6827,7 +6827,7 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 	bool bIsLeftAssociated = IsLeftAssociatedPlaceholder(pPlaceholder);
 	// store a record of whether the only or last placeholder is right associated
 	bool bIsRightAssociated = IsRightAssociatedPlaceholder(pLastPlaceholder);
- 
+
     // the previous non-placeholder CSourcePhrase will have been updated already, so we can
     // use it's USFM and punctuation settings - so if bIsLeftAssociated, do the data
     // transfers and clear the relevant fields on the non-placeholder instance, and rebuild
@@ -6879,7 +6879,7 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			bool bDidItOk = TRUE;
 			int nOldTempIndex;
 			int nNewTempIndex;
-			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex, 
+			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex,
 						 pSubspan, nOldTempIndex, nNewTempIndex);
 			// it's unlikely that the return value will be FALSE
 			gpApp->LogUserAction(_T("TransferToManualPlaceholder(): did not transfer - might be a bounds error, line 6333 in MergeUpdatedSrc.cpp"));
@@ -6911,11 +6911,11 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 		if (follSrcPhraseType == merger && pFollSrcPhrase->m_nSrcWords > 1)
 		{
 			// it is a merger, and not a conjoining with fixed space
-			int numWords = pFollSrcPhrase->m_nSrcWords; 
+			int numWords = pFollSrcPhrase->m_nSrcWords;
 			numWords = numWords; // avoid compiler warning in release version
 			int dummyOldLoc;
 			int dummyNewLoc;
-			bool bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldFollIndex, 
+			bool bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldFollIndex,
 										newIndex, pSubspan, dummyOldLoc, dummyNewLoc);
 			if (!bOK)
 			{
@@ -6984,9 +6984,9 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 /// \return                 FALSE immediately if arrOld or arrNew passed in index values
 ///                         are outside the bounds specified by the passed in pSubspan
 ///                         Otherwise do the processing and return TRUE (for a manually
-///                         placed placeholder) 
+///                         placed placeholder)
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
-///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         placeholders, retranslation, fixedspace conjoinings as
 ///                         well as minimal CSourcePhrase instances) We pass in the WHOLE
 ///                         array, not just a subrange for the commonSpan
 /// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
@@ -6999,7 +6999,7 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 /// \param  pSubspan    ->  ptr to the commonSpan Subspan struct which defines the range of
 ///                         CSourcePhrase instances in arrOld which are having their
 ///                         punctuation and USFM data updated by the matched instances within
-///                         arrNew 
+///                         arrNew
 /// \param  oldDoneToIncluding  <-  index in arrOld of the CSourcePhrase just updated
 /// \param  newDoneToIncluding  <-  index in arrNew of the CSourcePhrase that contributed
 ///                                 the data for the updating
@@ -7009,8 +7009,8 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 /// these index values + 1. This function updates punctuation and SFM or USFM markers from
 /// the information of those types in the associated CSourcePhrase instance in arrNew,
 /// updating to the singleton in arrOld, which is being retained because it is "in common"
-/// with the new source text data and within the commonSpan, pSubspan, being processed                  
-bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
+/// with the new source text data and within the commonSpan, pSubspan, being processed
+bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,
 						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
 {
 	wxASSERT(pSubspan->spanType == commonSpan);
@@ -7064,7 +7064,7 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 // location. Autoinserted placeholders don't have any correspondence to anything in
 // arrNew, so there's no data to be moved here
 // return TRUE if all's well, FALSE if an index is out of bounds
-bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
+bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
 {
 	wxASSERT(pSubspan->spanType == commonSpan);
@@ -7089,7 +7089,7 @@ bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int 
 
 	// return the wanted index values, and TRUE
 	oldDoneToIncluding = oldIndex;
-	newDoneToIncluding = newIndex - 1; // return the pre-advanced index value, since 
+	newDoneToIncluding = newIndex - 1; // return the pre-advanced index value, since
 									   // placeholders are not in arrNew
 	return TRUE;
 }
@@ -7099,7 +7099,7 @@ bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
-///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         placeholders, retranslation, fixedspace conjoinings as
 ///                         well as minimal CSourcePhrase instances)
 /// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
 ///                         CSourcePhrase instances, but could also contain fixedspace
@@ -7123,7 +7123,7 @@ bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int 
 /// instances from arrOld, and then these are appended to pMergedList. On the other hand,
 /// beforeSpan or afterSpan will have nothing in common, and so the CSourcPhrase instances
 /// they point to are copied from arrNew, appending them to pMergedList.
-/// 
+///
 /// Note 1: The source text editing done earlier by someone outside of Adapt It can do any
 /// or all of the following (1) alter the spelling of words, (2) move blocks of words
 /// around, (3) insert new words, (4) remove existing words. Moving blocks is equivalent to
@@ -7135,11 +7135,11 @@ bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int 
 /// Words edited in their spelling manifest by a subspan within arrOld having a different
 /// set of CSourcePhrase instances (ie. different m_key values in the latter) in the
 /// subspan within arrNew. The arrNew instances then must replace the arrOld instances.
-/// 
+///
 /// Note 2: after the merger done as described above, the Subspan instance passed in MUST
 /// be removed from the heap - it is required no longer, and a memory leak would result if
 /// it was not deleted after it's data was used.
-/// 
+///
 /// Note 3: a Subspan which is ready for merger never has any Subspan instances managed by
 /// its childSubspans member - this 3 member array will just be {NULL,NULL,NULL} and so it
 /// manages nothing on the heap
@@ -7195,27 +7195,27 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 			}
 		}
 	}
-	// delete the Subspan instance 
-#if defined(_DEBUG) && defined(myLogDebugCalls) 
+	// delete the Subspan instance
+#if defined(_DEBUG) && defined(myLogDebugCalls)
 	if (pSubspan->spanType == commonSpan)
 	{
 		wxString typeStr = _T("commonSpan");
 		wxLogDebug(_T("    ** DELETING in MergeOldAndNew() the  %s  which is Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos, 
+			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos,
 			pSubspan->newEndPos, (int)pSubspan->bClosedEnd);
 	}
 	else if (pSubspan->spanType == beforeSpan)
 	{
 		wxString typeStr = _T("beforeSpan");
 		wxLogDebug(_T("    ** DELETING in MergeOldAndNew() the  %s  which is Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos, 
+			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos,
 			pSubspan->newEndPos, (int)pSubspan->bClosedEnd);
 	}
 	else
 	{
 		wxString typeStr = _T("afterSpan");
 		wxLogDebug(_T("    ** DELETING in MergeOldAndNew() the  %s  which is Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos, 
+			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos,
 			pSubspan->newEndPos, (int)pSubspan->bClosedEnd);
 	}
 
@@ -7248,11 +7248,11 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return                 TRUE if a commonSpan is found, FALSE if not; if the parent 
+/// \return                 TRUE if a commonSpan is found, FALSE if not; if the parent
 ///                         Subspan passed in is a commonSpan, this will be detected and
 ///                         FALSE returned and no attempt made to find a child tuple
 /// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
-///                         placeholders, retranslation, fixedspace conjoinings as 
+///                         placeholders, retranslation, fixedspace conjoinings as
 ///                         well as minimal CSourcePhrase instances)
 /// \param  arrNew      ->  array of new CSourcePhrase instances (will only be minimal
 ///                         CSourcePhrase instances, but could also contain fixedspace
@@ -7301,7 +7301,7 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 /// have it's bClosedEnd member set FALSE, since that is the rightmost one in the arrays,
 /// for that level
 ////////////////////////////////////////////////////////////////////////////////////////
-bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[], 
+bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[],
 						int limit)
 {
  	wxASSERT(pParentSubspan != NULL);
@@ -7333,7 +7333,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 	{
 		// display what we got
 		Subspan* pMaxInCommonSubspan = pCommonSubspan;
-		int incommonsCount = pMaxInCommonSubspan->oldEndPos - pMaxInCommonSubspan->oldStartPos + 1; 
+		int incommonsCount = pMaxInCommonSubspan->oldEndPos - pMaxInCommonSubspan->oldStartPos + 1;
 		{
 			int i = 0;
 			wxString word[12];
@@ -7357,7 +7357,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 						word[index] = _T(' ');
 					}
 				}
-				wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),  
+				wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),
 					word[0].c_str(), word[1].c_str(), word[2].c_str(), word[3].c_str(), word[4].c_str(),
 					word[5].c_str(), word[6].c_str(), word[7].c_str(), word[8].c_str(), word[9].c_str(),
 					word[10].c_str(), word[11].c_str());
@@ -7371,7 +7371,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 		{
 			// the subspan in arrNew is not empty, so display the words
 			wxLogDebug(_T("*** No Subspans created (as there were no in-common words) ***  arrNew words in this span: "));
-			int nonCommonsCount = pParentSubspan->newEndPos - pParentSubspan->newStartPos + 1; 
+			int nonCommonsCount = pParentSubspan->newEndPos - pParentSubspan->newStartPos + 1;
 			{
 				int i = 0;
 				wxString word[12];
@@ -7394,7 +7394,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 							word[index] = _T(' ');
 						}
 					}
-					wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),  
+					wxLogDebug(_T("   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s   %s"),
 						word[0].c_str(), word[1].c_str(), word[2].c_str(), word[3].c_str(), word[4].c_str(),
 						word[5].c_str(), word[6].c_str(), word[7].c_str(), word[8].c_str(), word[9].c_str(),
 						word[10].c_str(), word[11].c_str());
@@ -7414,7 +7414,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 	{
 		// there are one or more CSourcePhrases which are in common, for the maximal
 		// commonSpan Subspan child
-		tuple[1] = pCommonSubspan; // its spanType is already set to commonSpan, and 
+		tuple[1] = pCommonSubspan; // its spanType is already set to commonSpan, and
 								   // bClosedEnd is already set to TRUE
 		// define the beforeSpan and afterSpan
 		Subspan* pBeforeSpan = NULL;
@@ -7438,7 +7438,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
         // bClosedEnd
 		if (parentOldStartAt < pCommonSubspan->oldStartPos)
 		{
-			// the beforeSpan has some content from arrOld, so check the situation in arrNew 
+			// the beforeSpan has some content from arrOld, so check the situation in arrNew
 			if (parentNewStartAt < pCommonSubspan->newStartPos)
 			{
 				pBeforeSpan = new Subspan;
@@ -7451,13 +7451,13 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // possibly not all of it would end up being replaced, as there could be
                 // smaller subspans within it which are in common, and these would be
                 // delineated in the recursing to greater depth
-				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
-						pCommonSubspan->oldStartPos - 1, parentNewStartAt, 
+				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt,
+						pCommonSubspan->oldStartPos - 1, parentNewStartAt,
 						pCommonSubspan->newStartPos - 1, TRUE);
 #if defined( myLogDebugCalls) && defined(_DEBUG)
 				wxString typeStr = _T("beforeSpan");
 				wxLogDebug(_T("   ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
+					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos,
 					pBeforeSpan->newEndPos, (int)pBeforeSpan->bClosedEnd);
 #endif
 			}
@@ -7473,12 +7473,12 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // (this situation arises when the user's editing of the source phrase text
                 // has removed some of it, so the material in arrOld's subspan has to be
                 // ignored and nothing from this pBeforeSpan goes into pMergedList)
-				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt, 
+				InitializeSubspan(pBeforeSpan, beforeSpan, parentOldStartAt,
 						pCommonSubspan->oldStartPos - 1, -1, -1, TRUE);
 #if defined( myLogDebugCalls) && defined(_DEBUG)
 				wxString typeStr = _T("beforeSpan");
 				wxLogDebug(_T("    ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
+					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos,
 					pBeforeSpan->newEndPos, (int)pBeforeSpan->bClosedEnd);
 #endif
 			}
@@ -7502,7 +7502,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 #if defined( myLogDebugCalls) && defined(_DEBUG)
 				wxString typeStr = _T("beforeSpan");
 				wxLogDebug(_T("     ** CREATING  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos, 
+					typeStr.c_str(), pBeforeSpan->oldStartPos, pBeforeSpan->oldEndPos, pBeforeSpan->newStartPos,
 					pBeforeSpan->newEndPos, (int)pBeforeSpan->bClosedEnd);
 #endif
 			}
@@ -7540,12 +7540,12 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
-							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							//  in the child pAfterSpan, so that if the parent was rightmost,
 							// the child pAfterSpan will also be rightmost
 					// pAfterSpan's subspan in arrNew has some content too - obey the end
 					// limits (TRUE forces that)
 					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
-								pParentSubspan->oldEndPos, pCommonSubspan->newEndPos + 1, 
+								pParentSubspan->oldEndPos, pCommonSubspan->newEndPos + 1,
 								pParentSubspan->newEndPos, TRUE);
 				}
 				else
@@ -7555,15 +7555,15 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
-							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							//  in the child pAfterSpan, so that if the parent was rightmost,
 							// the child pAfterSpan will also be rightmost
                    // the end of the preceding commonSpan reaches, in arrNew, to the
                     // pParentSubspan's newEndPos value (this means that the user has
                     // earlier edited the old source text at this point by removing some
                     // CSourcePhrase instances, so those in arrOld's subspan have to be
                     // ignored and not copied to pMergedList))
-					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,  
-								pParentSubspan->oldEndPos, -1, -1, TRUE); 
+					InitializeSubspan(pAfterSpan, afterSpan, pCommonSubspan->oldEndPos + 1,
+								pParentSubspan->oldEndPos, -1, -1, TRUE);
 				}
 			} // end of TRUE block for test: if (parentOldEndAt > pCommonSubspan->oldEndPos)
 			else
@@ -7579,9 +7579,9 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
-							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							//  in the child pAfterSpan, so that if the parent was rightmost,
 							// the child pAfterSpan will also be rightmost
-					InitializeSubspan(pAfterSpan, afterSpan, -1, -1, 
+					InitializeSubspan(pAfterSpan, afterSpan, -1, -1,
 								pCommonSubspan->newEndPos + 1, parentNewEndAt, TRUE);
 				}
 				else
@@ -7596,7 +7596,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 		{
 			// right boundary index limits are potentially fluid - we've a bit more to do...
 			// (FALSE in the InitializeSubspan() calls is value to be assigned to
-			// bClosedEnd member) 
+			// bClosedEnd member)
 			int oldMaxIndex = arrOld.GetCount() - 1;
 			int newMaxIndex = arrNew.GetCount() - 1;
 
@@ -7609,11 +7609,11 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 			// Check if oldStartAt and/or newStartAt exceed the array bounds - if one
 			// does, do a special calculation, if neither do, just call SetEndIndices() to
 			// get appropriate end indices set up
-			if (oldStartAt > oldMaxIndex) 
+			if (oldStartAt > oldMaxIndex)
 			{
                 // the subspan in pCommonSubspan belonging to arrOld must end at
 				// oldMaxIndex, so a special calc is needed here
-				
+
 				// also check the situation which exists in arrNew...
 				if (newStartAt > newMaxIndex)
 				{
@@ -7632,9 +7632,9 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 #endif
 					pAfterSpan->oldStartPos = oldStartAt; // invalid, but we'll correct it below
 					pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
-				
+
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
-							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							//  in the child pAfterSpan, so that if the parent was rightmost,
 							// the child pAfterSpan will also be rightmost
                    // the subspan in pCommonSubspan belonging to arrNew ends earlier than
                     // the end of arrNew, so there are one or more CSourcePhrase instances
@@ -7660,7 +7660,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
                 // the subspan in pCommonSubspan belonging to arrOld ends earlier than the
                 // end of arrOld, so there are one or more CSourcePhrase instances beyond
                 // pCommonSubspan->oldEndPos which we need to process
-                
+
 				// check the situation which exists in arrNew...
 				if (newStartAt > newMaxIndex)
 				{
@@ -7669,7 +7669,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
-							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							//  in the child pAfterSpan, so that if the parent was rightmost,
 							// the child pAfterSpan will also be rightmost
 					pAfterSpan->oldStartPos = oldStartAt; // valid
 					pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
@@ -7694,7 +7694,7 @@ bool SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, 
 					countAfterSpans++;
 #endif
 					pAfterSpan->bClosedEnd = bClosedEnd; // set the parent's bClosedEnd value
-							//  in the child pAfterSpan, so that if the parent was rightmost, 
+							//  in the child pAfterSpan, so that if the parent was rightmost,
 							// the child pAfterSpan will also be rightmost
 					pAfterSpan->oldStartPos = oldStartAt; // valid
 					pAfterSpan->newStartPos = newStartAt; // possibly valid, next test will find out
@@ -7773,11 +7773,11 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 				// debugging purposes -- comment them out later on
 				int oldWordCount = 0;
 				// TRUE is bShowOld
-				oldWordCount = GetKeysAsAString_KeepDuplicates(arrOld, pParent, TRUE, allOldSrcWords, limit); 													
+				oldWordCount = GetKeysAsAString_KeepDuplicates(arrOld, pParent, TRUE, allOldSrcWords, limit);
 				wxLogDebug(_T("tupleIndex = %d; commonSpan oldWordCount = %d ,  allOldSrcWords:  %s"), tupleIndex, oldWordCount, allOldSrcWords.c_str());
 				int newWordCount = 0;
 				// FALSE is bShowOld
-				newWordCount = GetKeysAsAString_KeepDuplicates(arrNew, pParent, FALSE, allNewSrcWords, limit); 													
+				newWordCount = GetKeysAsAString_KeepDuplicates(arrNew, pParent, FALSE, allNewSrcWords, limit);
 				wxLogDebug(_T("tupleIndex = %d; commonSpan newWordCount = %d ,  allNewSrcWords:  %s"), tupleIndex, newWordCount, allNewSrcWords.c_str());
 				}
 #endif
@@ -7787,21 +7787,21 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					{
 						//wxString typeStr = _T("beforeSpan");
 						//wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-						//	typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+						//	typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 						//	pParent->newEndPos, (int)pParent->bClosedEnd);
 					}
 					else if (type == commonSpan)
 					{
 						wxString typeStr = _T("commonSpan");
 						wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 							pParent->newEndPos, (int)pParent->bClosedEnd);
 					}
 					else
 					{
 						//wxString typeStr = _T("afterSpan");
 						//wxLogDebug(_T("** NO RECURSE for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-						//	typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+						//	typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 						//	pParent->newEndPos, (int)pParent->bClosedEnd);
 					}
 #endif
@@ -7832,11 +7832,11 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// debugging purposes -- comment them out later on
 			int oldWordCount = 0;
 			// TRUE is bShowOld
-			oldWordCount = GetKeysAsAString_KeepDuplicates(arrOld, pParent, TRUE, allOldSrcWords, limit); 													
+			oldWordCount = GetKeysAsAString_KeepDuplicates(arrOld, pParent, TRUE, allOldSrcWords, limit);
 			wxLogDebug(_T("tupleIndex = %d; oldWordCount = %d ,  allOldSrcWords:  %s"), tupleIndex, oldWordCount, allOldSrcWords.c_str());
 			int newWordCount = 0;
 			// FALSE is bShowOld
-			newWordCount = GetKeysAsAString_KeepDuplicates(arrNew, pParent, FALSE, allNewSrcWords, limit); 													
+			newWordCount = GetKeysAsAString_KeepDuplicates(arrNew, pParent, FALSE, allNewSrcWords, limit);
 			wxLogDebug(_T("tupleIndex = %d; newWordCount = %d ,  allNewSrcWords:  %s"), tupleIndex, newWordCount, allNewSrcWords.c_str());
 			}
 #endif
@@ -7847,8 +7847,8 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			bIsClosedEnd = pParent->bClosedEnd; // only the rightmost afterSpan at
 						// any given nesting level will be FALSE, other afterSpans at
 						// the same level are always TRUE, and all beforeSpans are TRUE
-						// regardless of the level they are at, as are all commonSpans 
-						// likewise							
+						// regardless of the level they are at, as are all commonSpans
+						// likewise
 			if (tupleIndex == 0)
 			{
 				// pParent stores a beforeSpan, so we must try make a child
@@ -7867,7 +7867,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			}
 #endif
 			Subspan* aChildTuple[3]; // an array of three pointer-to-Subspan (the
-									 // SetupChildTuple() call will create the 
+									 // SetupChildTuple() call will create the
 									 // pointers internally and pass them back)
 			// Make a child tuple which can be populated with beforeSpan, commonSpan, and
 			// afterSpan Subspan pointers by the SetupChildTuple() call below
@@ -7882,16 +7882,16 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			// recurse to process it
 			if (bMadeChildTuple)
 			{
-				
+
 #if defined(_DEBUG) && defined(myLogDebugCalls)
 				if (pParent != NULL)
 				{
 					wxLogDebug(_T("**** RECURSING to process TUPLE made from parent Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-						pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, pParent->newEndPos, (int)pParent->bClosedEnd); 
+						pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, pParent->newEndPos, (int)pParent->bClosedEnd);
 				}
 #endif
 				RecursiveTupleProcessor(arrOld, arrNew, pMergedList, limit, aChildTuple);
-				
+
 				// on return, if it's a beforeSpan owner, or an afterSpan owner, then it
 				// should be deleted here
 				if (pParent->spanType == beforeSpan)
@@ -7899,7 +7899,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 #if defined(_DEBUG) && defined(myLogDebugCalls)
 					wxString typeStr = _T("beforeSpan");
 					wxLogDebug(_T("   **(on return) DELETING  the parent subspan which is a  %s : { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 						pParent->newEndPos, (int)pParent->bClosedEnd);
 #endif
 					if (pParent != NULL) // whm 11Jun12 added NULL test
@@ -7915,7 +7915,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 #if defined(_DEBUG) && defined(myLogDebugCalls)
 					wxString typeStr = _T("afterSpan");
 					wxLogDebug(_T("   **(on return) DELETING  the parent subspan which is a  %s : { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+						typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 						pParent->newEndPos, (int)pParent->bClosedEnd);
 #endif
 					if (pParent != NULL) // whm 11Jun12 added NULL test
@@ -7929,7 +7929,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 			}
 			else
 			{
-				// didn't make a child tuple, so the local variable aChildTuple is 
+				// didn't make a child tuple, so the local variable aChildTuple is
 				// still [NULL,NULL,NULL]; so we don't recurse, but merge the Subspan
 				// instance that pParent points at
 				if (pParent != NULL)
@@ -7940,21 +7940,21 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 					{
 						wxString typeStr = _T("beforeSpan");
 						wxLogDebug(_T("  ** NO RECURSE, but copying for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 							pParent->newEndPos, (int)pParent->bClosedEnd);
 					}
 					else if (type == commonSpan)
 					{
 						wxString typeStr = _T("commonSpan");
 						wxLogDebug(_T("  ** NO RECURSE, but copying for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 							pParent->newEndPos, (int)pParent->bClosedEnd);
 					}
 					else
 					{
 						wxString typeStr = _T("afterSpan");
 						wxLogDebug(_T("  ** NO RECURSE, but copying for  %s  Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
-							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos, 
+							typeStr.c_str(), pParent->oldStartPos, pParent->oldEndPos, pParent->newStartPos,
 							pParent->newEndPos, (int)pParent->bClosedEnd);
 					}
 #endif
@@ -7966,7 +7966,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 	} // end of for loop: for (tupleIndex = 0; tupleIndex < tupleSize; tupleIndex++)
 
 #if defined(_DEBUG) && defined(myLogDebugCalls)
- 	// logDebug the counts for each span type 
+ 	// logDebug the counts for each span type
 	wxLogDebug(_T("\nTUPLE DONE  *** Count of beforeSpan: %d"),countBeforeSpans);
 	wxLogDebug(_T("TUPLE DONE  Count of commonSpan: %d"),countCommonSpans);
 	wxLogDebug(_T("TUPLE DONE  Count of  afterSpan: %d"),countAfterSpans);
@@ -7980,18 +7980,18 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 
 /// returns                 TRUE for a successful analysis, FALSE if unsuccessful or an
 ///                         empty string was passed in
-/// 
+///
 /// \param  strChapVerse        ->  ref to a chapter:verse string, or chapter:verse_range string which
 ///                                 is passed in to be analysed into its parts
 /// \param  strChapter          <-  ref to the chapter number as a string
 /// \param  nChapter            <-  the int value of strChapter
 /// \param  strDelimiter        <-  if present, whatever separates the parts of a verse range
 /// \param  strStartingVerse    <-  the starting verse of a range, as a string
-/// \param  nStartingVerse      <-  the int value of strStartingVerse                   
+/// \param  nStartingVerse      <-  the int value of strStartingVerse
 /// \param  strStartingVerseSuffix <- usually a single lower case letter such as a or b
 ///                                   after strStartingVerse
 /// \param  strEndingVerse      <-  the ending verse of a range, as a string
-/// \param  nStartingVerse      <-  the int value of strEndingVerse                   
+/// \param  nStartingVerse      <-  the int value of strEndingVerse
 /// \param  strEndingVerseSuffix <- usually a single lower case letter such as a or b,
 ///                                 after strEndingVerse
 /// \remarks
@@ -8008,7 +8008,7 @@ void RecursiveTupleProcessor(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 /// the span (and there should have been) - we will set the 0 for chapter and verse in the
 /// caller's struct, and require that our merging algorithms have a robust behaviour if
 /// that happens.
-bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& nChapter, 
+bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& nChapter,
 					wxString& strDelimiter, wxString& strStartingVerse, int& nStartingVerse,
 					wxChar& charStartingVerseSuffix, wxString& strEndingVerse,
 					int& nEndingVerse, wxChar& charEndingVerseSuffix)
@@ -8123,7 +8123,7 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 			nEndingVerse = nStartingVerse;
 			return TRUE;
 		}
-		else 
+		else
 		{
 			// there is more still, what follows must be the delimiter, we'll assume it is
 			// possible to have more than a single character (exotic scripts might need
@@ -8203,7 +8203,7 @@ bool AnalyseChapterVerseRef(wxString& strChapVerse, wxString& strChapter, int& n
 				}
 				else
 				{
-					// there's more, but get what we've got so far and trim that stuff 
+					// there's more, but get what we've got so far and trim that stuff
 					// off of range
 					nEndingVerse = wxAtoi(strEndingVerse);
 					range = range.Mid(count);
@@ -8281,7 +8281,7 @@ int GetNextNonemptyMarkers(SPArray* pArray, int& startFrom, bool& bReachedEndOfA
 			// current index value in this loop -- and since it's a CSourcePhrase
 			// instance, we can't possibly be yet at the end of the array
 			return index;
-			
+
 			// BEW 16Aug12, the following was wrong logic - it resulted in two empty
 			// CSourcePhrase instances, each a verse, being coalesced into a single group
 			//if (index == count - 1)
@@ -8385,9 +8385,9 @@ bool GetBookInitialChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
 		bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers);
 		bIsVerseMkrWithin = IsSubstringWithin(verseMkrs, markers);
-	
+
 		// are we done?
-		if (bIsIntroductionWithin || bIsChapterMkrWithin || 
+		if (bIsIntroductionWithin || bIsChapterMkrWithin ||
 			bIsSubheadingMkrWithin || bIsVerseMkrWithin)
 		{
 			// we've found the start of the next information chunk, so the previous index
@@ -8728,7 +8728,7 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 				endsAt = foundIndex - 1;
 				return TRUE;
 			}
-			// start of next chapter or start of first verse of current chapter wasn't found, so 
+			// start of next chapter or start of first verse of current chapter wasn't found, so
 			// prepare to iterate
 			index = foundIndex + 1;
 			if (index > endIndex)
@@ -8778,7 +8778,7 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 				index = foundIndex; // update index to this location before breaking
 				break;
 			}
-			// start of next chapter or start of first verse of current chapter wasn't found, so 
+			// start of next chapter or start of first verse of current chapter wasn't found, so
 			// prepare to iterate
 			index = foundIndex + 1;
 			if (index > endIndex)
@@ -8809,7 +8809,7 @@ bool GetChapterPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 		{
 			// we are done
 			endsAt = end_AtStartOfVerseOrChapter;
-			return TRUE; 
+			return TRUE;
 		}
 		else if (startsAt == end_AtStartOfVerseOrChapter && !bCandVonSameInstance)
 		{
@@ -8955,7 +8955,7 @@ bool GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 	}
 	if (!bIsSubheadingPlusVerseChunk)
 	{
-		// return FALSE, it might be just a verse without any other non-verse marker preceding, 
+		// return FALSE, it might be just a verse without any other non-verse marker preceding,
 		// and we check for that next if this function returns FALSE
 		startsAt = -1;
 		endsAt = -1;
@@ -8974,7 +8974,7 @@ bool GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 	bool bReachedEndOfArray = FALSE;
 	if (bIsVerseMkrWithin)
 	{
-		// the \s or \s# and the \v are stored on the one CSourcePhrase, so get to the end 
+		// the \s or \s# and the \v are stored on the one CSourcePhrase, so get to the end
 		// of the verse in the second loop below (note: the only way \s and \v can be on
 		// the same CSourcePhrase is for \s to have no text content - we don't expect that
 		// to be the case, but it can't be guaranteed so we have to handle the possibility)
@@ -9084,7 +9084,7 @@ bool GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 
 			// check for any marker which indicates the subheadingPlusVerse material is ended
 			bIsChapterMkrWithin = IsSubstringWithin(chapterMkrs, markers);
-			bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers); // test 
+			bIsSubheadingMkrWithin = IsSubstringWithin(normalOrMinorMkrs, markers); // test
 																// for a 2nd subheading ahead
 			//bIsMajorOrSeriesMkrs = IsSubstringWithin(majorOrSeriesMkrs, markers);
 			//bIsRangeOrPsalmMkrs = IsSubstringWithin(rangeOrPsalmMkrs, markers);
@@ -9137,7 +9137,7 @@ bool GetSubheadingPlusVerseChunk(SPArray* arrP, int& startsAt, int& endsAt)
 // the CSourcePhrase instances which lie within the verse and return TRUE, but if we do not
 // succeed in delineating any such span, return FALSE (and in that case, startsAt and
 // endsAt values are undefined - I'll probably set them to -1 whenever FALSE is returned).
-// 
+//
 // NOTE: if no SFM or USFM is present, verse chunks can't be delineated and in that
 // circumstance we return FALSE, and the caller will detect that all 3 functions returned
 // FALSE within one iteration and then itself return FALSE (indicating we have plain text
@@ -9286,7 +9286,7 @@ wxString FindVerseReference(SPArray* arrP, int startFrom, int endAt)
 
 	// didn't find an m_chapVerse member which was non-empty, so send back the default
 	// "0:0" string
-	return strRef; 
+	return strRef;
 }
 
 void InitializeNonVerseChunk(SfmChunk* pStruct)
@@ -9396,7 +9396,7 @@ bool AreInventoriesDisparate(int oldOnesCount, int newOnesCount)
 /// The SfmChunk struct has the following structure, & is declared in MereUpdatedSrc.h
 /// and comments there describe what each member field is for:
 ///struct SfmChunk {
-///	SfmChunkType		type; 
+///	SfmChunkType		type;
 ///	wxString			strChapter;
 ///	int					nChapter;
 ///	int					strDelimiter;
@@ -9411,7 +9411,7 @@ bool AreInventoriesDisparate(int oldOnesCount, int newOnesCount)
 ///	bool				bContainsText;
 ///};
 /// SfmChunkType is an enum used for typing each SfmChunk instance, with values from the
-/// following: 	bookInitialChunk, introductionChunk, chapterStartChunk, subheadingChunk, 
+/// following: 	bookInitialChunk, introductionChunk, chapterStartChunk, subheadingChunk,
 /// verseChunk
 /// Note that not every chunk will pertain to a verse of scripture, some will have no
 /// verse information - actually, all of them, except verseChunk; each chunk indexes into
@@ -9462,7 +9462,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 		// don't advance, so now we need to try below for a chunk containing introduction
 		// material
 		nStartsAt = 0;
-		nEndsAt = wxNOT_FOUND; 
+		nEndsAt = wxNOT_FOUND;
 	}
 
 	// second, try for an introduction chunk
@@ -9503,7 +9503,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 		{
 			nStartsAt = 0;
 		}
-		nEndsAt = wxNOT_FOUND; 
+		nEndsAt = wxNOT_FOUND;
 	}
 
 	// now check in case there is some other material (eg. a \ms section) prior to the
@@ -9550,7 +9550,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 		{
 			nStartsAt = 0;
 		}
-		nEndsAt = wxNOT_FOUND; 
+		nEndsAt = wxNOT_FOUND;
 	}
 
 	countOfChapters = 0;
@@ -9621,8 +9621,8 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 			wxString strChapterVerseRef = FindVerseReference(pInputArray, nStartsAt, nEndsAt);
 			// parse and store the chapter/verse reference information (note: "0:0"  may
 			// have been returned)
-			bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter, 
-									pSfmChunk->nChapter, pSfmChunk->strDelimiter, 
+			bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter,
+									pSfmChunk->nChapter, pSfmChunk->strDelimiter,
 									pSfmChunk->strStartingVerse, pSfmChunk->nStartingVerse,
 									pSfmChunk->charStartingVerseSuffix, pSfmChunk->strEndingVerse,
 									pSfmChunk->nEndingVerse, pSfmChunk->charEndingVerseSuffix);
@@ -9658,12 +9658,12 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 		{
 			// Failure, so don't advance. So retry here for a subheadingPlusVerse chunk
 			nStartsAt = lastSuccessfulEndsAt + 1;
-			nEndsAt = wxNOT_FOUND; 
+			nEndsAt = wxNOT_FOUND;
 			bHasChapterPlusVerseChunk = FALSE;
 			bool bHasSubheadingPlusVerseChunk = GetSubheadingPlusVerseChunk(pInputArray, nStartsAt, nEndsAt);
 			if (bHasSubheadingPlusVerseChunk)
 			{
-				bCannotChunkThisArray = FALSE; // there are (U)SFMs, \s or \s1 etc is first, 
+				bCannotChunkThisArray = FALSE; // there are (U)SFMs, \s or \s1 etc is first,
 							// and there may be other SFMs, as well as a verse's material
 
 				// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
@@ -9676,8 +9676,8 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 				wxString strChapterVerseRef = FindVerseReference(pInputArray, nStartsAt, nEndsAt);
 				// parse and store the chapter/verse reference information (note: "0:0"  may
 				// have been returned)
-				bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter, 
-										pSfmChunk->nChapter, pSfmChunk->strDelimiter, 
+				bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter,
+										pSfmChunk->nChapter, pSfmChunk->strDelimiter,
 										pSfmChunk->strStartingVerse, pSfmChunk->nStartingVerse,
 										pSfmChunk->charStartingVerseSuffix, pSfmChunk->strEndingVerse,
 										pSfmChunk->nEndingVerse, pSfmChunk->charEndingVerseSuffix);
@@ -9709,13 +9709,13 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 			{
 				// Failure, so don't advance. So retry here for a verse chunk
 				nStartsAt = lastSuccessfulEndsAt + 1;
-				nEndsAt = wxNOT_FOUND; 
+				nEndsAt = wxNOT_FOUND;
 				bHasSubheadingPlusVerseChunk = FALSE;
 				bool bHasVerseChunk = GetVerseChunk(pInputArray, nStartsAt, nEndsAt);
 				if (bHasVerseChunk)
 				{
-					bCannotChunkThisArray = FALSE; // there are (U)SFMs, \v or \vn etc is first, 
-								// and there may be other SFMs (eg. \q1, \q2 etc), as well 
+					bCannotChunkThisArray = FALSE; // there are (U)SFMs, \v or \vn etc is first,
+								// and there may be other SFMs (eg. \q1, \q2 etc), as well
 								// as the verse's material
 					// create on the heap a SfmChunk struct, populate it and store in pChunkSpecs
 					SfmChunk* pSfmChunk = new SfmChunk;
@@ -9727,8 +9727,8 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 					wxString strChapterVerseRef = FindVerseReference(pInputArray, nStartsAt, nEndsAt);
 					// parse and store the chapter/verse reference information (note: "0:0"  may
 					// have been returned)
-					bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter, 
-											pSfmChunk->nChapter, pSfmChunk->strDelimiter, 
+					bool bValidReference = AnalyseChapterVerseRef(strChapterVerseRef, pSfmChunk->strChapter,
+											pSfmChunk->nChapter, pSfmChunk->strDelimiter,
 											pSfmChunk->strStartingVerse, pSfmChunk->nStartingVerse,
 											pSfmChunk->charStartingVerseSuffix, pSfmChunk->strEndingVerse,
 											pSfmChunk->nEndingVerse, pSfmChunk->charEndingVerseSuffix);
@@ -9762,7 +9762,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 					// failed, so don't loop any longer - in all probability the data
 					// doesn't have SFMs or USFMs
 					nStartsAt = lastSuccessfulEndsAt + 1; // in case we want to wxLogDebug() this value
-					nEndsAt = wxNOT_FOUND; 
+					nEndsAt = wxNOT_FOUND;
 					bHasVerseChunk = FALSE;
 					if (!bHasChapterPlusVerseChunk && !bHasSubheadingPlusVerseChunk && !bHasVerseChunk)
 					{
@@ -9777,7 +9777,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 	{
 		// control enters here only if there was no SFM or USFM data anywhere - e.g.
 		// literacy data or office-related text data etc
-		
+
 		// TODO? at the moment we just return FALSE, but I think that may be enough - the
 		// caller can be given the knowledge of what to do when FALSE is returned
 		return FALSE;
@@ -9785,7 +9785,7 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 	return TRUE;
 }
 
-// Return what kind of CSourcePhrase the passed in one is, 
+// Return what kind of CSourcePhrase the passed in one is,
 // returning one of the following values:
 //enum WhatAreYou {
 //	singleton,
