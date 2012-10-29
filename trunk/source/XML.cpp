@@ -960,6 +960,7 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 		gpApp->m_owner = NOOWNER;			// mrh - initial defaults.  If we read the appropriate tags, these will be replaced.
 		gpApp->m_commitCount = -1;			//  means not under version control (yet)
 		gpApp->m_revisionDate = wxInvalidDateTime;
+		gpApp->m_nActiveSequNum = 0;		// sensible default if we don't get a "real" value
 
 		wxStructStat status;
 		if (wxStat(path, &status))
@@ -2941,18 +2942,24 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	}
 	else 
 	{
+		// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
+		//			avoid crashes when changing the current docVersion.
+		
 		switch (gnDocVersion)
 		{
-			case 0:
-			case 1:
-			case 2:
-			case 3:
-			case 4:
+//			case 0:
+//			case 1:
+//			case 2:
+//			case 3:
+//			case 4:
 			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5, 6, 7 or 8
-			case 5:
-			case 6:
-			case 7:
+//			case 5:
+//			case 6:
+//			case 7:
+			
+			default:
 			{
+ 
 				if (tag == xml_scap) // if it's an "S" tag
 				{
 					// when we encounter an S opening tag, we might be about to create an
@@ -3012,9 +3019,9 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 					// find its way into the application's internal structures)
 					return TRUE;
 				}
-				break;
-			} // end block for docVersion case 4: or 5:
+			} // end block for default:
 		} // end block for switch (gnDocVersion)
+
 	} // end else block for test: if (tag == xml_settings)
 	return TRUE; // no error
 }
@@ -3035,27 +3042,34 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 		gnDocVersion = atoi(attrValue);
 		return TRUE;
 	}
+	
+	// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
+	//			avoid crashes when changing the current docVersion.
+
 	switch (gnDocVersion)
 	{
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
+//		case 0:
+//		case 1:
+//		case 2:
+//		case 3:
+//		case 4:
+//		case 5:
 			// docVersion 6 adds 3 wxString members which are absent in all earlier versions,
 			// so the same code can be used, and where docVersion == 6 support is explicit,
 			// we add a further if block, testing for gnDocVersion == 6, so that any attempt
 			// to use versions 5.2.4 or 5.2.5 will skip the parsing of the 3 new strings
-		case 6:
-		case 7:			// mrh 20Apr12 - docVersion 7 adds 3 items - owner, revision number and revision date/time.
+//		case 6:
+//		case 7:			// mrh 20Apr12 - docVersion 7 adds 3 items - owner, revision number and revision date/time.
+//		case 8:			// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
+		
+		default:
 		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
 				// none of this tag's attributes need entity replacement; first
 				// attributes are numbers, and so are handled the same for the
 				// regular & unicode apps; only strings require different treatment
-				
+
 				if (attrName == xml_sizex)
 				{
 					gpApp->m_docSize.x = atoi(attrValue); 
@@ -3120,7 +3134,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					if (result == NULL)
 						gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
 				}
-				
+
+			// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
+	
+				else if (gnDocVersion >= 8 && attrName == xml_activeSequNum)
+					gpApp->m_nActiveSequNum = atoi(attrValue);
+
 				else if (attrName == xml_specialcolor)
 				{
 					num = atoi(attrValue);
@@ -3183,7 +3202,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 					*/
 				}
 			
-			// mrh June 2012 -- docVersion 8 adds source and target language codes.  At present we only use these if we don't already
+			// mrh June 2012 -- docVersion 7 adds source and target language codes.  At present we only use these if we don't already
 			//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
 
 				else if (gnDocVersion >= 7 && attrName == xml_srccode)
@@ -3986,13 +4005,17 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 
 bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
+	
+	// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
+	//			avoid crashes when changing the current docVersion.
+
 	switch (gnDocVersion) 
 	{
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
+//		case 0:
+//		case 1:
+//		case 2:
+//		case 3:
+//		case 4:
 		// case 5: for gnDocVersion = 4 requires, if we are to read version 4 documents
 		// and convert them to version 5, a conversion function which is to be called on
 		// each of gpEmbeddedSrcPhrase and gpSrcPhrase before they are inserted in the
@@ -4003,9 +4026,12 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
         // functions below, eg FromDocVersion4ToDocVersion5() will need a name change to
         // FromDocVersion4ToDocVersionCurrent() and also pass in the gnDocVersion value,
         // and so forth
-		case 5:
-		case 6:
-		case 7:		// mrh 20Apr12 - added docVersion 7
+//		case 5:
+//		case 6:
+//		case 7:		// mrh 20Apr12 - added docVersion 7
+//		case 8:		// mrh Oct12 - added docVersion 8
+			
+		default:
 		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 

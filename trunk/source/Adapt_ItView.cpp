@@ -13430,11 +13430,13 @@ void CAdapt_ItView::ClobberDocument()
 	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
 	gEditRecord.deletedFreeTranslationsList.Clear(); // remove stored deleted free translns
 
-	// save settings for restoration from config file
-	if (pApp->m_nActiveSequNum == -1)
-		pApp->m_nActiveSequNum = 0;
+// save settings for restoration from config file
+
+	pApp->m_nActiveSequNum = 0;		// with no doc open, this must be zero
 	pApp->m_lastDocPath = pApp->m_curOutputPath;
-	pApp->nLastActiveSequNum = pApp->m_nActiveSequNum;
+
+//	pApp->nLastActiveSequNum = pApp->m_nActiveSequNum;  - mrh Oct12 - axed, and last seq num is
+//   written out in the doc's xml with docVersion 8.
 
     // now clobber it all the view stuff associated with the document, leaving an empty
     // document object
@@ -15084,7 +15086,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	GetLayout()->PlaceBox();
 }
 
-// pAchorCell is pointer to the first cell in the selection, nCount is the number cells in
+// pAnchorCell is pointer to the first cell in the selection, nCount is the number cells in
 // the selection (there is always one in existence, the first, when this function is
 // entered) Because the caller supports selections in src and phrase box line (either tgt
 // or gloss), the pAnchorCell's m_nCell index value may be 0 or 1)

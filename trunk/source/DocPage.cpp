@@ -947,10 +947,12 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
 		pApp->m_bEarlierProjectChosen = FALSE;
 		pApp->m_bEarlierDocChosen = FALSE;
-		pApp->nLastActiveSequNum = 0;
 
-		// initialize m_nActiveSequNum to the nLastActiveSequNum value
-		pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
+// mrh Oct12 - with docVersion 8, nLastActiveSequNum is axed.  We just initialize the active seq num to zero
+// (though it should be that already) and when we read the new doc in it will be set to the saved value.
+
+		pApp->m_nActiveSequNum = 0;
+
 		// set the active pile
 		pApp->m_pActivePile = pView->GetPile(0);
 
@@ -1006,10 +1008,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
-        // default the m_nActiveSequNum value to 0 when getting the doc open, we check
-        // later for what the config file gave for the last active location, and jump there
-        // if not at sequence number 0
-		pApp->m_nActiveSequNum = 0; 
+
 		bool bOK = pDoc->OnOpenDocument(docPath, true);
 		if (!bOK)
 		{
@@ -1090,6 +1089,13 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // location when the app was last closed
 		if (pApp->m_bEarlierProjectChosen && pApp->m_bEarlierDocChosen)
 		{
+
+// mrh - this whole bit can go west soon, as we move to docVersion 8, in which we save the active
+//  seq num for each doc in its xml.  But if we read in an earlier version doc, we'll still use
+//  nLastActiveSequNum to set the active location.  So let's keep this code around for a little while.
+//  However we need to check for m_nActiveSequNum being already set by OnOpenDocument()
+//  (i.e. this was a docVersion 8 doc).
+			
             // if the user did some operation that resulted in more sourcephrase instances
             // being created (eg. such as a rebuild from a punctuation change affecting
             // quote characters) and had the phrase box near the end in the document but
@@ -1098,16 +1104,22 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
             // would be read in when the document was next opened, so we must test for this
             // and reduce the sequ number value to a safe value before trying to set up a
             // pile at that location.
+
 			if (pApp->nLastActiveSequNum >= (int)pApp->m_pSourcePhrases->GetCount())
 				pApp->nLastActiveSequNum = pApp->m_pSourcePhrases->GetCount() - 1;
 
-			// initialize m_nActiveSequNum to the nLastActiveSequNum value
-			pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
-			// set the active pile
+		// initialize m_nActiveSequNum to the nLastActiveSequNum value, unless already set
+
+			if (pApp->m_nActiveSequNum <= 0)
+				pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
+
+		// set the active pile
+
 			CPile* pPile;
-			pPile = pView->GetPile(pApp->nLastActiveSequNum);
+			pPile = pView->GetPile(pApp->m_nActiveSequNum);
 			wxASSERT(pPile != NULL);
 			pPile = pPile; // avoid warning
+
             // this could turn out to be a retranslation pile (if user removed a
             // retranslation just before exiting the application without saving the
             // document, it would be), so check & if necessary move beyond the
@@ -1116,7 +1128,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 				// but it should work fine anywhere provided we set nFinish to 1 (or zero).
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
-								pApp->nLastActiveSequNum,pApp->m_nActiveSequNum,nFinish);
+								pApp->m_nActiveSequNum,pApp->m_nActiveSequNum,nFinish);
             bSetSafely = bSetSafely; // avoid warning (retain, we can continue safely
 									 // even if FALSE was returned)
 			

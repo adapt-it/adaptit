@@ -3029,7 +3029,8 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
     // lines pertain to wizard use, so not relevant here, but just in case I've forgotten
     // something it is good protection to have them)
 	pApp->m_bEarlierProjectChosen = FALSE;
-	pApp->nLastActiveSequNum = 0;
+
+	pApp->nLastActiveSequNum = 0;		// mrh - going west with docVersion 8, but staying zero for now
 
 	// set default character case equivalences for a new project
 	pApp->SetDefaultCaseEquivalences();

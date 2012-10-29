@@ -3702,6 +3702,7 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 /// boolean value, as per the user's last choice for "Verse" or "Punctuation" sectioning
 /// prior to the last save of the doc in the current session
 ///////////////////////////////////////////////////////////////////////////////
+
 CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 {
 	CBString	bstr;  bstr.Empty();
@@ -3752,14 +3753,16 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
 	if (commitCount < 0)
-		tempStr << NOOWNER;			// this doc isn't under version control
+		tempStr << NOOWNER;				// this doc isn't under version control
 	else
 		tempStr << commitCount;			// this many commits have been done
-	
 	numStr = gpApp->Convert16to8(tempStr);
-	bstr += "\" commitcnt=\"";
-	bstr += numStr; // add revision number
-	
+
+	bstr += "\" ";
+	bstr += xml_commitcnt;
+	bstr += "=\"";
+	bstr += numStr;						// add the commit count
+
 	if (gpApp->m_revisionDate.IsValid()) 
 		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));		
 																	// %T gives an error on Windows, so we have to spell it out!
@@ -3768,11 +3771,39 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "\" revdate=\"";
 	bstr += numStr;	// add revision date, empty if we don't have one
 
-	bstr += "\" sizex=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+// mrh - new field with docVersion 8 - we save m_nActiveSequNum:
+	tempStr.Empty();
+	tempStr << gpApp->m_nActiveSequNum;	// "<<" handles num->wxString conversion
+	numStr = gpApp->Convert16to8(tempStr);
+
+	bstr += "\" ";
+	bstr += xml_activeSequNum;
+	bstr += "=\"";
+	bstr += numStr;						// add the active sequence number
+
+// now we add the doc's width and height - currently I don't think we use these on input, but may sometime.
+	tempStr.Empty();
 	tempStr << gpApp->m_docSize.x;
 	numStr = gpApp->Convert16to8(tempStr);
-	bstr += numStr; // add doc width number string
+
+	bstr += "\" ";
+	bstr += xml_sizex;
+	bstr += "=\"";
+	bstr += numStr;						// add the doc width
+
+	tempStr.Empty();
+	tempStr << gpApp->m_docSize.y;
+	numStr = gpApp->Convert16to8(tempStr);
+	
+	bstr += "\" ";
+	bstr += xml_sizey;
+	bstr += "=\"";
+	bstr += numStr;						// add the doc height
+	
+// mrh Oct12 - as we're now saving the active seq number in the document, this whole bit can go west.  I'll leave
+// the below commentary for now but it should go very soon...
+
+/*
 	// TODO: Bruce substituted m_nActiveSequNum for the m_docSize.cy value here. Should this be rolled back?
 	// I think he no longer needed it this way for the Dana's progress gauge, and hijacking the m_docSize.cy
 	// value for such purposes caused a Beep in OpenDocument on certain size documents because m_docSize was
@@ -3786,6 +3817,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr << gpApp->m_nActiveSequNum; // should m_docSize.cy be used instead???
 	numStr = gpApp->Convert16to8(tempStr);
 	bstr += numStr; // add index of active location's string (Dana uses this) // add doc length number string
+*/
 
 	// BEW added 27Feb12, for docV6 support; but if m_bLegacyDocVersionForSaveAs is TRUE,
 	// then skip this docV6 attribute's construction
@@ -3907,11 +3939,29 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 		numStr = "";
 	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
 
-	bstr += "\" sizex=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+	// now we add the doc's width and height - currently I don't think we use these on input, but may sometime.
+	tempStr.Empty();
 	tempStr << gpApp->m_docSize.x;
 	numStr = tempStr;
-	bstr += numStr; // add doc width number string
+	
+	bstr += "\" ";
+	bstr += xml_sizex;
+	bstr += "=\"";
+	bstr += numStr;						// add the doc width
+	
+	tempStr.Empty();
+	tempStr << gpApp->m_docSize.y;
+	numStr = tempStr;
+	
+	bstr += "\" ";
+	bstr += xml_sizey;
+	bstr += "=\"";
+	bstr += numStr;						// add the doc height
+	
+// mrh Oct12 - as we're now saving the active seq number in the document, this whole bit can go west.  I'll leave
+// the below commentary for now but it should go very soon...
+
+/*
 	// TODO: Bruce substituted m_nActiveSequNum for the m_docSize.cy value here. Should this be rolled back?
 	// I think he no longer needed it this way for the Dana's progress gauge, and hijacking the m_docSize.cy
 	// value for such purposes caused a Beep in OpenDocument on certain size documents because m_docSize was
@@ -3922,6 +3972,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr << gpApp->m_nActiveSequNum; // should m_docSize.cy be used instead???
 	numStr = tempStr;
 	bstr += numStr; // add index of active location's string (Dana uses this) // add doc length number string
+*/
 	bstr += "\" specialcolor=\"";
 	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
 	tempStr << WxColour2Int(gpApp->m_specialTextColor);
@@ -4810,6 +4861,9 @@ bool CAdapt_ItDoc::OnSaveModified()
 
 bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /* = true */)
 {
+	CAdapt_ItApp*	pApp = GetApp();
+	CAdapt_ItView*	pView = pApp->GetView();
+
 	//wxLogDebug(_T("3538 at start of OnOpenDocument(), m_bCancelAndSelectButtonPressed = %d"),
 	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
 
@@ -4842,6 +4896,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// remove the assert which assumed that there would always be a backslash in the
 	// lpszPathName string, and replace it with a test on curPos instead (when doing a
 	// consistency check, the full path is not passed in)
+
+	pApp->m_nActiveSequNum = 0;		// mrh - initialize this to a sensible default -- should
+									//  be set to a new value when we read in the xml for the doc.
 
 	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
@@ -4898,7 +4955,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// value of the m_CollabBookSelected member; or doing an export of xhtml or for
 	// Pathway export, no book name is current and the user fills one out using the
 	// CBookName dialog which opens for that purpose
-	gpApp->m_bookName_Current.Empty();
+	pApp->m_bookName_Current.Empty();
 
 	wxFileName fn(filename);
 
@@ -4953,7 +5010,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		}
 	}
 
-	if (gpApp->m_bWantSourcePhrasesOnly)
+	if (pApp->m_bWantSourcePhrasesOnly)
 	{
         // From here on in for the rest of this function, all we do is set globals,
         // filenames, config file parameters, and change the view, all things we're not to
@@ -4991,8 +5048,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
     // filenames and paths for the doc and any backup are now guaranteed to be
     // what they should be
-	CAdapt_ItApp* pApp = GetApp();
-	CAdapt_ItView* pView = pApp->GetView();
+	// CAdapt_ItApp* pApp = GetApp();		// mrh - moved to start of function
+	// CAdapt_ItView* pView = pApp->GetView();
 //#ifdef _DEBUG
 //	wxLogDebug(_T("OnOpenDocument at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
@@ -5042,9 +5099,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		}
 		return FALSE;
 	}
-	pApp->m_pActivePile = GetPile(0); // a safe default for starters....
-	pApp->m_nActiveSequNum = 0; // and this is it's sequ num; use these values
-								// unless changed below
+	
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);	// seq num was initially zero but should have been set
+															// to a "real" value when the xml was read in
+
 	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
 	// because each document, on opening it, it must start with a truly empty EditRecord; and
 	// on doc closure and app closure, it likewise must be cleaned out entirely (the deletion
@@ -17450,11 +17508,14 @@ bool CAdapt_ItDoc::OnCloseDocument()
 //	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
 //	wxASSERT(pFreeTrans);
 
-	if (pApp->m_nActiveSequNum == -1)
-		pApp->m_nActiveSequNum = 0;
 	pApp->m_lastDocPath = pApp->m_curOutputPath;
-	pApp->nLastActiveSequNum = pApp->m_nActiveSequNum;
 
+// mrh Oct12 - with docVersion 8, the active seq number is saved in the doc's xml.  So now,
+//  with no doc open, m_nActiveSequNum must be zero, no matter what.  Its last value used
+//  to be saved in the config file, but not any longer.
+	
+	pApp->m_nActiveSequNum = 0;
+	
     // BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion
     // lists, because each document, on opening it, it must start with a truly empty
     // EditRecord; and on doc closure and app closure, it likewise must be cleaned out
@@ -24665,6 +24726,8 @@ CCell* CAdapt_ItDoc::LayoutDocForConsistencyCheck(CAdapt_ItApp* pApp, CSourcePhr
 					SPList* pPhrases)
 {
 	doc_edit_op op = consistency_check_op;
+
+// @@@ do something about this...
 	int nActiveSequNum = pSrcPhrase->m_nSequNumber;
 	wxASSERT(nActiveSequNum >= 0);
 	pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay

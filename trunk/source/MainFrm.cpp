@@ -702,6 +702,7 @@ void SyncScrollSend(const wxString& strThreeLetterBook, const wxString& strChapV
 // whm modified to return bool if sync scroll received successfully
 // whm 26May11 modified to speed up the multi-document search when the strChapVerse reference is to be found
 // in a document other than the one currently open
+
 bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse, const wxString& strChapVerse)
 {
     // do what you need to do scroll to the given reference in AdaptIt
@@ -716,11 +717,13 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
     FormatScriptureReference(strThreeLetterBook, nChap, nVerse, strMsg);
     ::MessageBox(0, strMsg, _T("Received Scripture Reference"), MB_OK);
 	*/
-	wxString strAdaptationsFolderPath; // use this when book folder mode is off
-	wxString strBookFolderPath; // use this when book folder mode is on
-	wxString strBookCode; // use as a scratch variable for the code in any doc we open while scanning etc
-	int theBookIndex = -1;
-	bool bGotCode = FALSE; // use for the result of a Get3LetterCode() call
+	
+	int			localSequNum = 0;			// for keeping track of active location
+	wxString	strAdaptationsFolderPath;	// use this when book folder mode is off
+	wxString	strBookFolderPath;			// use this when book folder mode is on
+	wxString	strBookCode;				// use as a scratch variable for the code in any doc we open while scanning etc
+	int			theBookIndex = -1;
+	bool		bGotCode = FALSE; // use for the result of a Get3LetterCode() call
 
 	CAdapt_ItDoc* pDoc = NULL;
 	CAdapt_ItView* pView = NULL;
@@ -957,8 +960,9 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						wxCHECK_MSG(bOK, FALSE, _T("SyncScrollReceive(): ::wxSetWorkingDirectory() failed, line 813 in MainFrm.cpp"));
 						return FALSE;
 					}
-					if (gpApp->nLastActiveSequNum >= (int)gpApp->m_pSourcePhrases->GetCount())
-						gpApp->nLastActiveSequNum = gpApp->m_pSourcePhrases->GetCount() - 1;
+		// @@@
+					if (localSequNum >= (int)gpApp->m_pSourcePhrases->GetCount())
+						localSequNum = gpApp->m_pSourcePhrases->GetCount() - 1;
 
 					// whm added 26May11
 					gnMatchedSequNumber = FindChapterVerseLocation(gpApp->m_pSourcePhrases,nChap,nVerse,strChapVerse);
@@ -982,16 +986,18 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					wxFileName fn(foundDocWithReferenceFilePathAndName);
 					title = fn.GetFullName() + _T(" - ") + typeName;
 					gpApp->GetMainFrame()->SetTitle(title);
-
-					gpApp->nLastActiveSequNum = gnMatchedSequNumber;
-					CPile* pPile = pView->GetPile(gpApp->nLastActiveSequNum);
+			// @@@
+					localSequNum = gnMatchedSequNumber;
+					CPile* pPile = pView->GetPile(localSequNum);
 					wxASSERT(pPile != NULL);
 					int nFinish = 1;
-					// initialize m_nActiveSequNum to the nLastActiveSequNum value
-					gpApp->m_nActiveSequNum = gpApp->nLastActiveSequNum;
+					
+					// initialize m_nActiveSequNum to the localSequNum value we obtained above
+					
+					gpApp->m_nActiveSequNum = localSequNum;
 					bool bSetSafely;
 					bSetSafely = pView->SetActivePilePointerSafely(gpApp,gpApp->m_pSourcePhrases,
-										gpApp->nLastActiveSequNum,gpApp->m_nActiveSequNum,nFinish);
+										gpApp->m_nActiveSequNum,gpApp->m_nActiveSequNum,nFinish);
 					bSetSafely = bSetSafely; // avoid warnings TODO: check for failures?
 					// m_nActiveSequNum might have been changed by the
 					// preceding call, so reset the active pile

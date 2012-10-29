@@ -360,6 +360,8 @@ const char xml_docversion[] = "docVersion";
 /// Attribute name used in Adapt It XML documents
 const char xml_bookName[] = "bookName";
 /// Attribute name used in Adapt It XML documents
+const char xml_activeSequNum[] = "actseqnum";
+/// Attribute name used in Adapt It XML documents
 const char xml_owner[] = "owner";
 /// Attribute name used in Adapt It XML documents
 const char xml_commitcnt[] = "commitcnt";
@@ -2745,7 +2747,7 @@ public:
 	// flags and variables for restoring earlier location on launch
 	bool		m_bEarlierProjectChosen;
 	bool		m_bEarlierDocChosen;
-	int			nLastActiveSequNum; // for config files
+	int			nLastActiveSequNum;		// going west with docVersion 8, but still used by docVersion 7
 
 	// whm For following see block above of other variables I've moved from the View
     // BEW 22Sep05: moved here from the view class, because setting it in the view's

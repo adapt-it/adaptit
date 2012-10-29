@@ -5777,14 +5777,14 @@ wxString szGlossesLanguageCode = _T("GlossesLanguageCode");
 /// m_freeTransLanguageCode member variable.
 wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 
-#if defined (_KBSERVER)
+// #if defined (_KBSERVER)  -- mrh - let's define the string even if we don't use it
 // BEW added 25Sep12
 /// The label that identifies the whether or not the project is associated with a KBServer.
 /// This value is written in the "ProjectSettings" part of the project configuration file.
 /// Adapt It stores this string in the App's m_bIsKBServerProject member variable. Default
 /// is FALSE.
 wxString szIsKBServerProject = _T("IsKBServerProject");
-#endif
+// #endif
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
 /// This value is written in the "Settings" part of the basic configuration file. After
@@ -6408,6 +6408,9 @@ wxString szWSizeCY = _T("WinSizeCY");
 /// "LastActiveSequenceNumber". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this value in the App's nLastActiveSequNum member
 /// variable.
+/// mrh note: as of DocVersion 8, we don't use this any more, but each doc now has an xml field
+///  for this value.  But we'll keep this around for a while to smooth the transition from 
+///  docVersion 7 -> 8.
 wxString szLastActiveSequNum = _T("LastActiveSequenceNumber");
 
 /// The label that identifies the following string encoded number as the application's
@@ -15494,7 +15497,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_bEarlierProjectChosen = FALSE;
 	m_bEarlierDocChosen = FALSE;
-	nLastActiveSequNum = 0; // config file will set this
+//	nLastActiveSequNum = 0; // config file will set this
 
     // initialize font pointers to NULL outside InitializeFonts() because InitializeFonts()
     // may also be called from SetDefaults().
@@ -27623,9 +27626,12 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szAdministratorPassword << tab << m_adminPassword;
 	pf->AddLine(data);
 
-	data.Empty();
-	data << szLastActiveSequNum << tab << nLastActiveSequNum;
-	pf->AddLine(data);
+// mrh Oct12 - the active seq num is now saved in the document, so we're not
+//  putting it in the config file any more
+
+//	data.Empty();
+//	data << szLastActiveSequNum << tab << nLastActiveSequNum;
+//	pf->AddLine(data);
 
 #ifndef _UNICODE
 	// ANSI
@@ -28839,6 +28845,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 	wxString strTwoPunctPairsTgtSet;
 #endif
 
+	nLastActiveSequNum = 0;		// mrh Oct12 -- this field is going west, so for now we ensure it's zero
+								//  unless changed
+	
 	do
 	{
 		data = pf->GetNextLine();
@@ -29021,7 +29030,8 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_adminPassword = strValue;
 		}
-		else if (name == szLastActiveSequNum)
+		else if (name == szLastActiveSequNum)  // This field is going west with docVersion 8, but 
+											   //  we don't want to give an error if it comes in
 		{
 			num = wxAtoi(strValue);
 			if (num < 0 || num > 3000000)
@@ -31838,6 +31848,9 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bIsKBServerProject = FALSE;
 			}
 		}
+#else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
+		else if (name == szIsKBServerProject)
+			;	// do nothing
 #endif
 		// whm 17Feb12 added the following two from the basic config file. They are
 		// used in collaboration operations too.
