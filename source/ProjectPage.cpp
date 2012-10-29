@@ -548,7 +548,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 			// ensure app does not try to restore last saved doc and active location
 			pApp->m_bEarlierProjectChosen = FALSE;
-			pApp->nLastActiveSequNum = 0;
+			pApp->m_nActiveSequNum = 0;
 
 			// set default character case equivalences for a new project
 			pApp->SetDefaultCaseEquivalences();
