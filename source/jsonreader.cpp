@@ -1850,11 +1850,14 @@ wxJSONReader::ConvertCharByChar( wxString& s, const wxMemoryBuffer& utf8Buffer )
  @return the last char read or -1 in case of EOF
 */
 
-union byte
-{
-    unsigned char c[2];
-    short int b;
-};
+// BEW 30Oct12, commented this out; definition conflicts with Microsoft's rpcndr.h
+// line 154 definition of byte as unsigned char; the union is not used anywhere in the
+// jsonreader.cpp file, nor the other two, jsonwriter.cpp and jsonval.cpp
+//union byte
+//{
+//   unsigned char c[2];
+//    short int b;
+//};
 
 int
 wxJSONReader::ReadMemoryBuff( wxInputStream& is, wxJSONValue& val )
