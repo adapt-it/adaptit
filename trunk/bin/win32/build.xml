@@ -206,8 +206,10 @@
   -->
   <target name="copy" depends="compile_unicode_release" description="copy the build results to the setup staging areas">
     <!-- copying is done through a batch file -->
-    <exec executable="cmd" failonerror="yes">
-	<arg value="${root}\CallAllBatchSetups.bat" />
+	<echo message="Copying files" />
+    <exec dir="${root}" executable="cmd" failonerror="yes">
+	  <arg value="/c" />
+	  <arg value="${root}\CallAllBatchSetups.bat" />
     </exec>
   </target>
 
@@ -217,7 +219,7 @@
   - output will be in the ${dist} directory if successful.
   - This target gets called from the daily build.
   -->
-  <target name="generate_installers" depends="compile_unicode_release, copy"
+  <target name="generate_installers" depends="copy"
         description="generate the distribution" >
     <!-- Run ALL the Inno IDE scripts -->
     <exec executable="compil32" failonerror="yes">
@@ -273,7 +275,7 @@
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, copy, generate_installers" description="Daily / Release build target" >
+  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, generate_installers" description="Daily / Release build target" >
   </target>
 
 </project>
