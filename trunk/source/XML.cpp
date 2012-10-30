@@ -2945,8 +2945,8 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
 		//			avoid crashes when changing the current docVersion.
 		
-		switch (gnDocVersion)
-		{
+//		switch (gnDocVersion)
+//		{
 //			case 0:
 //			case 1:
 //			case 2:
@@ -2957,8 +2957,8 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 //			case 6:
 //			case 7:
 			
-			default:
-			{
+//			default:
+//			{
  
 				if (tag == xml_scap) // if it's an "S" tag
 				{
@@ -3019,11 +3019,11 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 					// find its way into the application's internal structures)
 					return TRUE;
 				}
-			} // end block for default:
-		} // end block for switch (gnDocVersion)
+//			} // end block for default:
+//		} // end block for switch (gnDocVersion)
 
 	} // end else block for test: if (tag == xml_settings)
-	return TRUE; // no error
+	//return TRUE; // no error   <<--- unreachable, so is commented out
 }
 
 bool AtDocEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
@@ -3046,8 +3046,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 	// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
 	//			avoid crashes when changing the current docVersion.
 
-	switch (gnDocVersion)
-	{
+//	switch (gnDocVersion)
+//	{
 //		case 0:
 //		case 1:
 //		case 2:
@@ -3062,8 +3062,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 //		case 7:			// mrh 20Apr12 - docVersion 7 adds 3 items - owner, revision number and revision date/time.
 //		case 8:			// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
 		
-		default:
-		{
+//		default:
+//		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
 				// none of this tag's attributes need entity replacement; first
@@ -3598,8 +3598,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				//return FALSE;
 				return TRUE;
 			}
-			break;
-		}
+//			break;
+//		}
 #else // Unicode version
 
 				else if (attrName == xml_curchap)
@@ -3996,11 +3996,11 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				//return FALSE;
 				return TRUE;
 			}
-			break;
-		}
+//			break;
+//		}
 #endif
-	}
-	return TRUE; // no error
+//	}
+//	return TRUE; // no error  <<-- unreachable, so I commented it out
 }
 
 bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
@@ -4009,8 +4009,8 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
 	//			avoid crashes when changing the current docVersion.
 
-	switch (gnDocVersion) 
-	{
+//	switch (gnDocVersion) 
+//	{
 //		case 0:
 //		case 1:
 //		case 2:
@@ -4031,8 +4031,8 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 //		case 7:		// mrh 20Apr12 - added docVersion 7
 //		case 8:		// mrh Oct12 - added docVersion 8
 			
-		default:
-		{
+//		default:
+//		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
 			// or save it as a parent sourcephrase in the doc's m_pSourcePhrases list;
@@ -4089,9 +4089,9 @@ bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 				}
 				return TRUE;
 			}
-			break;
-		}
-	}
+//			break;
+//		}
+	//}
 	return TRUE;
 }
 
