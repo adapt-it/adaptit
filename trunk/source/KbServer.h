@@ -69,7 +69,7 @@ public:
 	int		  LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		  CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag);  // was SendEntry()
 	int		  PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
-
+	int		  ChangedSince(wxString timeStamp);
 	// public setters
 	void	 SetKBServerType(int type);
 	void	 SetKBServerURL(wxString url);
@@ -103,6 +103,8 @@ public:
 	void			ClearOneStringArray(wxArrayString* pArray);
 	void			ClearStrCURLbuffer();
 	void			UpdateLastSyncTimestamp();
+	void			EnableKBSharing(bool bEnable);
+	bool			IsKBSharingEnabled();
 
 protected:
 
@@ -182,7 +184,16 @@ private:
 	wxArrayString	m_arrTarget;
 	wxArrayString	m_arrUsername;
 
-	
+	// boolean for enabling, and temporarily disabling, KB sharing. Temporary disabling is
+	// potentially needed for the following scenario, for example. If downloading all entries in kbserver for the
+	// current project, and syncing the local KB using that data, calls to StoreText()
+	// would, try to test for the presence of each such entry in the remote KB - which
+	// must not happen as it accomplishes nothing except to waste a heap of time. So we
+	// need a way to turn of sharing while the local KB is being synced to the
+	// remote-sourced data. I've provided this protection, but probably I'll code a
+	// StoreTextFromKbServer() function which will handle syncing from full KB downloads
+	// and from ChangedSince() requests, and it won't of course try to do any uploading.
+	bool		m_bEnableKBSharing; // default is TRUE, and only FALSE temporarily when required
 
 	DECLARE_DYNAMIC_CLASS(KbServer)
 

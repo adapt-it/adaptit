@@ -20992,7 +20992,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
 	{
 		gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
-		// instantiate both adapting and glossing KbServer class instances
+		// instantiate both adapting and glossing KbServer class instances, enabled by default
 		if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
 		{
 			// an error message will have been shown, so just log the failure

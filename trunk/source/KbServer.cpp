@@ -194,9 +194,18 @@ wxString KbServer::GetLastSyncFilename()
 	return m_lastSyncFilename;
 }
 
+// the public setters & interrogatives
 
-// the public setters
-//
+void KbServer::EnableKBSharing(bool bEnable)
+{
+	m_bEnableKBSharing = bEnable;
+}
+
+bool KbServer::IsKBSharingEnabled()
+{
+	return m_bEnableKBSharing;
+}
+
 void KbServer::SetKBServerType(int type)
 {
 	m_kbServerType = type;
@@ -622,18 +631,26 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		int index;
 		for (index = 0; index < listSize; index++)
 		{
-			// we extract id, source phrase, target phrase, deleted flag value, username,
-			// and timestamp string; EACH must be extracted for every index value, in order
-			// to keep the storage arrays' items in sync with each other
-			m_arrID.Add(jsonval[index][_T("id")].AsInt());
-			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
+            // We can extract id, source phrase, target phrase, deleted flag value,
+            // username, and timestamp string; but for a lookup supporting a single
+            // CSourcePhrase, only we need to extract source phrase, target phrase, and the
+            // value of the deleted flag. So the others can be commented out.
 			m_arrSource.Add(jsonval[index][_T("source")].AsString());
 			m_arrTarget.Add(jsonval[index][_T("target")].AsString());
-			m_arrUsername.Add(jsonval[index][_T("user")].AsString());
-			m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
+			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
+			//m_arrID.Add(jsonval[index][_T("id")].AsInt());
+			//m_arrUsername.Add(jsonval[index][_T("user")].AsString());
+			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 		}
 		str_CURLbuffer.clear(); // always clear it before returning
 	}
+
+	return 0;
+}
+
+int KbServer::ChangedSince(wxString timeStamp)
+{
+
 
 	return 0;
 }
@@ -766,7 +783,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		}
 		// we extract id, source phrase, target phrase, deleted flag value, username,
 		// and timestamp string; for index value 0 only (there should only be one json
-		// object)
+		// object to deal with)
 		m_arrID.Add(jsonval[_T("id")].AsInt());
 		m_arrDeleted.Add(jsonval[_T("deleted")].AsInt());
 		m_arrSource.Add(jsonval[_T("source")].AsString());
@@ -839,6 +856,12 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 
 		curl_slist_free_all(headers);
 		if (result) {
+			wxString msg;
+			msg = msg.Format(_T("CreateEntry() result code: %d Error: %s\n"), result);
+			CBString s2(curl_easy_strerror(result));
+			wxString part2 = ToUtf16(s2);
+			msg += part2;
+			wxLogDebug(msg);
 			printf("CreateEntry() result code: %d Error: %s\n", 
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);

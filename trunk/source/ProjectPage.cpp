@@ -1206,7 +1206,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 			{
 				pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
 				// instantiate an adapting and a glossing KbServer class instance
-				if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2))
+				if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
 				{
 					// an error message will have been shown, so just log the failure
 					gpApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
