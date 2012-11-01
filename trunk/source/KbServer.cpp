@@ -591,7 +591,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 
 		if (result) {
 			str_CURLbuffer.clear(); // always clear it before returning
-			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n", 
+			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n",
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
 			return (int)result;
@@ -733,7 +733,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 
 		if (result) {
 			str_CURLbuffer.clear(); // always clear it before returning
-			printf("LookupEntryFields() result code: %d, cURL Error: %s\n", 
+			printf("LookupEntryFields() result code: %d, cURL Error: %s\n",
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
 			return (int)result;
@@ -762,7 +762,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
         //wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
 #endif
 	// If there was no matching entry in the database, "No matching entry found" is
-	// returned, so test for this 
+	// returned, so test for this
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
@@ -856,13 +856,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 
 		curl_slist_free_all(headers);
 		if (result) {
-			wxString msg;
-			msg = msg.Format(_T("CreateEntry() result code: %d Error: %s\n"), result);
-			CBString s2(curl_easy_strerror(result));
-			wxString part2 = ToUtf16(s2);
-			msg += part2;
-			wxLogDebug(msg);
-			printf("CreateEntry() result code: %d Error: %s\n", 
+			printf("CreateEntry() result code: %d Error: %s\n",
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
 			return result;
