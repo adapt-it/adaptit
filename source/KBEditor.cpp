@@ -39,6 +39,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 
 #include "Adapt_It.h"
+#include "KbServer.h"
 #include "KBEditor.h" 
 #include "KB.h"
 #include "TargetUnit.h"
@@ -561,7 +562,8 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 26Oct12 for kbserver support
 #if defined(_KBSERVER)
-	if (pApp->m_bIsKBServerProject)
+	if (pApp->m_bIsKBServerProject && 
+			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 	{
 		bool bHandledOK = pKB->HandlePseudoDeleteAndNewPair(pApp->GetKBTypeForServer(), 
 									m_curKey, oldText, newText); 
@@ -697,7 +699,8 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	{
 	// BEW added 26Oct12 for kbserver support
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject)
+		if (pApp->m_bIsKBServerProject && 
+			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
 			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
 
@@ -813,7 +816,8 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	{
 	// BEW added 26Oct12 for kbserver support
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject)
+		if (pApp->m_bIsKBServerProject && 
+			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
 			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
 
@@ -1188,7 +1192,8 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 	// BEW added 22Oct12 for kbserver support
 #if defined(_KBSERVER)
-	if (pApp->m_bIsKBServerProject)
+	if (pApp->m_bIsKBServerProject && 
+		pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 	{
 		bool bHandledOK = pKB->HandlePseudoDelete(pApp->GetKBTypeForServer(), m_curKey, 
 										pRefString->m_translation); // needs a 4th param, 'deleted' flag value

@@ -2785,7 +2785,8 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
         // subsequently deleted by him before the present; therefore we must test for the
         // absence of this src/tgt pair and only upload if the entry really is going to be
         // a new one.
-		if (m_pApp->m_bIsKBServerProject)
+		if (m_pApp->m_bIsKBServerProject && 
+			m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
 			bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
@@ -2859,7 +2860,8 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
             // and also subsequently deleted by him before the present; therefore we must
             // test for the absence of this src/tgt pair and only upload if the entry
             // really is going to be a new one.
-			if (m_pApp->m_bIsKBServerProject)
+			if (m_pApp->m_bIsKBServerProject && 
+				m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			{
 				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
@@ -2958,7 +2960,8 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
                         // undelete it. If it's not in the remote database at all yet, then
                         // we add it instead as a normal entry. If it's in the remote
                         // database already as a normal entry, then we make no change.
-						if (m_pApp->m_bIsKBServerProject)
+						if (m_pApp->m_bIsKBServerProject && 
+							m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 						{
 							bool bHandledOK = HandleUndelete(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
@@ -3067,7 +3070,8 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
                     // kbserver already, and also subsequently deleted by him before the
                     // present; therefore we must test for the absence of this src/tgt pair
                     // and only upload if the entry really is going to be a new one.
-					if (m_pApp->m_bIsKBServerProject)
+					if (m_pApp->m_bIsKBServerProject && 
+						m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 					{
 						bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
@@ -3498,7 +3502,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
         // subsequently deleted by him before the present; therefore we must test for the
         // absence of this src/tgt pair and only upload if the entry really is going to be
         // a new one.
-		if (m_pApp->m_bIsKBServerProject)
+		if (m_pApp->m_bIsKBServerProject && 
+			m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
 			bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
@@ -3650,7 +3655,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
             // and also subsequently deleted by him before the present; therefore we must
             // test for the absence of this src/tgt pair and only upload if the entry
             // really is going to be a new one.
-			if (m_pApp->m_bIsKBServerProject)
+			if (m_pApp->m_bIsKBServerProject && 
+				m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			{
 				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
@@ -3781,7 +3787,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
                         // undelete it. If it's not in the remote database at all yet, then
                         // we add it instead as a normal entry. If it's in the remote
                         // database already as a normal entry, then we make no change.
-						if (m_pApp->m_bIsKBServerProject)
+						if (m_pApp->m_bIsKBServerProject && 
+							m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 						{
 							bool bHandledOK = HandleUndelete(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 
@@ -3917,7 +3924,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
                     // kbserver already, and also subsequently deleted by him before the
                     // present; therefore we must test for the absence of this src/tgt pair
                     // and only upload if the entry really is going to be a new one.
-					if (m_pApp->m_bIsKBServerProject)
+					if (m_pApp->m_bIsKBServerProject && 
+						m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 					{
 						bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
 

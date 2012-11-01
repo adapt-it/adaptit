@@ -14691,6 +14691,9 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	}
 	// store it for the user's adapting or glossing session in this project
 	SetKbServer(whichType, pKbSvr);
+
+	// enable it (that's default, if the project is a KB sharing one)
+	pKbSvr->EnableKBSharing(TRUE);
 	
 	// get the kbserver credentials we need
 	wxString credsfilename = _T("credentials.txt"); // temporary

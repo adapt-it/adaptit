@@ -1962,7 +1962,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	if (pApp->m_bIsKBServerProject)
 	{
 		pApp->LogUserAction(_T("SetupForKBServer() called in HookUpToExistingAIProject()"));
-		if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2))
+		if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // enables each by default
 		{
 			// an error message will have been shown, so just log the failure
 			gpApp->LogUserAction(_T("SetupForKBServer() failed in HookUpToExistingAIProject()"));
