@@ -1035,6 +1035,231 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		03E7D7161643090C008C2CFC /* CocoaDebugWX2.9 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = "";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = CocoaDebugWX2.9;
+		};
+		03E7D7171643090C008C2CFC /* CocoaDebugWX2.9 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"$(WXPLATFORM)",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					MACOS_CLASSIC,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					"wxUSE_UNICODE=1",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = 4.2;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-I$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9",
+					"-I$(WXWIN)/include",
+					"-D_FILE_OFFSET_BITS=64",
+					"-D__WXMAC__",
+					"-D__WXOSX__",
+					"-D__WXOSX_COCOA__",
+				);
+				OTHER_CPLUSPLUSFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-L$(WXWIN)/buildosxud/lib",
+					"-framework",
+					IOKit,
+					"-framework",
+					Carbon,
+					"-framework",
+					Cocoa,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					System,
+					"-framework",
+					OpenGL,
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau_xrc-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau_webview-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau_qa-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_baseu_net-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau_html-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau_adv-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau_core-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau_aui-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_baseu_xml-2.9.a",
+					"$(WXWIN)/buildosxud/lib/libwx_baseu-2.9.a",
+					"-framework",
+					WebKit,
+					"-lexpat",
+					"-lwxregexu-2.9",
+					"-lwxtiff-2.9",
+					"-lwxjpeg-2.9",
+					"-lwxpng-2.9",
+					"-lz",
+					"-lpthread",
+					"-liconv",
+					"-lcurl",
+				);
+				PREBINDING = YES;
+				PRODUCT_NAME = "Adapt It";
+				SDKROOT = macosx10.5;
+				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9 ${BOOST_ROOT} ${WXWIN}/include .";
+				VALID_ARCHS = "x86_64 i386";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKIT = cocoa;
+				WXTOOLKITUPPER = COCOA;
+				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
+			};
+			name = CocoaDebugWX2.9;
+		};
+		03E7D75416431777008C2CFC /* CocoaReleaseWX2.9 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+				WARNING_CFLAGS = "";
+			};
+			name = CocoaReleaseWX2.9;
+		};
+		03E7D75516431777008C2CFC /* CocoaReleaseWX2.9 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"$(WXPLATFORM)",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					MACOS_CLASSIC,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					"wxUSE_UNICODE=1",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = 4.2;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxu/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"-I$(WXWIN)/buildosxu/lib/wx/include/osx_cocoa-unicode-static-2.9",
+					"-I$(WXWIN)/include",
+					"-D_FILE_OFFSET_BITS=64",
+					"-D__WXMAC__",
+					"-D__WXOSX__",
+					"-D__WXOSX_COCOA__",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-sign-compare",
+					"-fvisibility-inlines-hidden",
+					"$(OTHER_CFLAGS)",
+				);
+				OTHER_LDFLAGS = (
+					"-L$(WXWIN)/buildosxu/lib",
+					"-framework",
+					IOKit,
+					"-framework",
+					Carbon,
+					"-framework",
+					Cocoa,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					System,
+					"-framework",
+					OpenGL,
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau_xrc-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau_webview-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau_qa-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_baseu_net-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau_html-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau_adv-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau_core-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau_aui-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_baseu_xml-2.9.a",
+					"$(WXWIN)/buildosxu/lib/libwx_baseu-2.9.a",
+					"-framework",
+					WebKit,
+					"-lexpat",
+					"-lwxregexu-2.9",
+					"-lwxtiff-2.9",
+					"-lwxjpeg-2.9",
+					"-lwxpng-2.9",
+					"-lpthread",
+					"-liconv",
+					"-lz",
+					"-lcurl",
+				);
+				PRODUCT_NAME = "Adapt It";
+				SDKROOT = macosx10.5;
+				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/buildosxu/lib/wx/include/osx_cocoa-unicode-static-2.9 ${BOOST_ROOT} ${WXWIN}/include .";
+				VALID_ARCHS = "x86_64 i386";
+				VERSIONING_SYSTEM = "apple-generic";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKIT = cocoa;
+				WXTOOLKITUPPER = COCOA;
+				WX_PREPROCESSOR_DEFINITIONS = "wxDEBUG_LEVEL=0";
+			};
+			name = CocoaReleaseWX2.9;
+		};
 		C0E91AC608A95435008D54AB /* CarbonDebugWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1363,7 +1588,9 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C0E91AC608A95435008D54AB /* CarbonDebugWX2.9 */,
+				03E7D7171643090C008C2CFC /* CocoaDebugWX2.9 */,
 				C0E91AC708A95435008D54AB /* CarbonReleaseWX2.9 */,
+				03E7D75516431777008C2CFC /* CocoaReleaseWX2.9 */,
 				C81D46B015C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
 				C81D46B215C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
@@ -1374,7 +1601,9 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C0E91ACA08A95435008D54AB /* CarbonDebugWX2.9 */,
+				03E7D7161643090C008C2CFC /* CocoaDebugWX2.9 */,
 				C0E91ACB08A95435008D54AB /* CarbonReleaseWX2.9 */,
+				03E7D75416431777008C2CFC /* CocoaReleaseWX2.9 */,
 				C81D46AF15C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
 				C81D46B115C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
