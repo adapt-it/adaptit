@@ -8695,7 +8695,7 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_22), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_32)},
 		{ID_SHOWING_ALL, _("Show Target Text Only"), _("Show Target Text Only"), _("Show target text only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), gpApp->wxGetBitmapFromMemory(show_source_target_png_22), gpApp->wxGetBitmapFromMemory(show_source_target_png_32)},
-		{ID_BUTTON_EARLIER_TRANSLATION, _("View Translation or Glosses Elsewhere in the Document"), _("View Translation or Glosses Elsewhere in the Document"), 
+		{ID_BUTTON_EARLIER_TRANSLATION, _("View Translation or Glosses Elsewhere in the Document"), _("View Translation or Glosses Elsewhere in the Document"),
 			_("View translation or glosses elsewhere in the document; locate them by chapter and verse"), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_16), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_22), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_32)},
 		{ID_BUTTON_NO_PUNCT_COPY, _("No Punctuation Copy"), _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily"), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_16), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_22), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_32)},
 		{wxID_HELP, _("Help"), _("Help"), _("Display Adapt It program help topics"), gpApp->wxGetBitmapFromMemory(help_browser_png_16), gpApp->wxGetBitmapFromMemory(help_browser_png_22), gpApp->wxGetBitmapFromMemory(help_browser_png_32)},
@@ -8703,7 +8703,7 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 	};
 
 	// TODO: implement small / regular / large button support UI that allows the user
-	// to choose the preferred button size. This could be expanded to include the 
+	// to choose the preferred button size. This could be expanded to include the
 	// button label below the icon on the button if desired.
 	ToolbarButtonSize btnSize;
 	if (gpApp->m_bExecutingOnXO)
@@ -14745,7 +14745,7 @@ bool CAdapt_ItApp::ReleaseKBServer(int whichType)
         // do cleanup in the destructor, and especially, making the lastsync datetime value
         // received from the kbserver persistent; deletes and sets m_pKbServer[whichType-1]
         // to NULL
-		DeleteKbServer(whichType); 
+		DeleteKbServer(whichType);
 	}
 
 	// ************ NOTE NOTE NOTE *******************
