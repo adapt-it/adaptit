@@ -145,9 +145,9 @@
 					<Add directory="..\..\source" />
 				</Linker>
 				<ExtraCommands>
-					<Add after='xcopy Release\Adapt_It.exe &quot;..\..\setup Regular\Adapt_It.exe&quot; /Y' />
-					<Add after='xcopy Release\Adapt_It.exe &quot;..\..\setup Regular - Minimal\Adapt_It.exe&quot; /Y' />
-					<Add after='xcopy Release\Adapt_It.exe &quot;..\..\setup Regular - No Html Help\Adapt_It.exe&quot; /Y' />
+					<Add after='xcopy Release\Adapt_It.exe &quot;..\..\setup Regular\&quot; /Y' />
+					<Add after='xcopy Release\Adapt_It.exe &quot;..\..\setup Regular - Minimal\&quot; /Y' />
+					<Add after='xcopy Release\Adapt_It.exe &quot;..\..\setup Regular - No Html Help\&quot; /Y' />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
@@ -284,9 +284,10 @@
 					<Add directory="lib\silconverters" />
 				</Linker>
 				<ExtraCommands>
-					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot; /Y' />
-					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot; /Y' />
-					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot; /Y' />
+					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\&quot; /Y' />
+					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\&quot; /Y' />
+					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\&quot; /Y' />
+					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
 		</Build>
