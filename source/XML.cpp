@@ -2942,88 +2942,66 @@ bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 	}
 	else 
 	{
-		// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
-		//			avoid crashes when changing the current docVersion.
-		
-//		switch (gnDocVersion)
-//		{
-//			case 0:
-//			case 1:
-//			case 2:
-//			case 3:
-//			case 4:
-			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5, 6, 7 or 8
-//			case 5:
-//			case 6:
-//			case 7:
-			
-//			default:
-//			{
- 
-				if (tag == xml_scap) // if it's an "S" tag
+		if (tag == xml_scap) // if it's an "S" tag
+		{
+			// when we encounter an S opening tag, we might be about to create an
+			// unmerged sourcephrase - and if so, gpSrcPhrase will be NULL; but
+			// if it is not NULL, then we are about to construct an old sourcephrase
+			// which got merged, and so we need to create gpEmbeddedSrcPhrase for it
+			if (gpSrcPhrase == NULL)
+			{
+				gpSrcPhrase = new CSourcePhrase; // the constructor creates empty m_pSavedWords
+												// m_pMedialPuncts and m_pMedialMarkers list too;
+												// all BOOLs are FALSE, and all CStrings empty
+				// strictly speaking I should test for gpEmbeddedSrcPhrase == NULL here, but I'll assume it is
+			}
+			else
+			{
+				// we are creating an embedded sourcephrase within gpSrcPhrase
+				if (gpEmbeddedSrcPhrase != NULL)
 				{
-					// when we encounter an S opening tag, we might be about to create an
-					// unmerged sourcephrase - and if so, gpSrcPhrase will be NULL; but
-					// if it is not NULL, then we are about to construct an old sourcephrase
-					// which got merged, and so we need to create gpEmbeddedSrcPhrase for it
-					if (gpSrcPhrase == NULL)
-					{
-						gpSrcPhrase = new CSourcePhrase; // the constructor creates empty m_pSavedWords
-														// m_pMedialPuncts and m_pMedialMarkers list too;
-														// all BOOLs are FALSE, and all CStrings empty
-						// strictly speaking I should test for gpEmbeddedSrcPhrase == NULL here, but I'll assume it is
-					}
-					else
-					{
-						// we are creating an embedded sourcephrase within gpSrcPhrase
-						if (gpEmbeddedSrcPhrase != NULL)
-						{
-							// we have a data error -- it should have been made NULL at the </S> endtag 
-							// for an earlier embedded one
-							//return FALSE;
-                            // BEW 24Aug11; if an error here is to be treated as grounds
-                            // for aborting the parse and hence the application, then
-                            // return FALSE; otherwise return TRUE to cause the parser to
-                            // keep going
-                            wxBell(); // a little reminder that something went wrong
-							// we've probably leaked a small block of memory, but we'll
-							// tolerate it for the gain of not having the parse break
-							gpEmbeddedSrcPhrase = new CSourcePhrase;
-							return TRUE;
+					// we have a data error -- it should have been made NULL at the </S> endtag 
+					// for an earlier embedded one
+					//return FALSE;
+					// BEW 24Aug11; if an error here is to be treated as grounds
+					// for aborting the parse and hence the application, then
+					// return FALSE; otherwise return TRUE to cause the parser to
+					// keep going
+					wxBell(); // a little reminder that something went wrong
+					// we've probably leaked a small block of memory, but we'll
+					// tolerate it for the gain of not having the parse break
+					gpEmbeddedSrcPhrase = new CSourcePhrase;
+					return TRUE;
 
-						}
-						else
-						{
-							// it's NULL, so make a new one
-							gpEmbeddedSrcPhrase = new CSourcePhrase;
-						}
-					}
-					return TRUE;
-				}
-				else if (tag == xml_mpcap) // if it's an "MP" tag
-				{
-					// nothing needs to be done
-					return TRUE;
-				}
-				else if (tag == xml_mmcap) // if it's an "MM" tag
-				{
-					// nothing needs to be done
-					return TRUE;
 				}
 				else
 				{
-					//return FALSE; // unknown element, so signal the error to the caller
-					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-					// parse and hence the application, then return FALSE; otherwise return
-					// TRUE to cause the parser to keep going (unknown data then just does not
-					// find its way into the application's internal structures)
-					return TRUE;
+					// it's NULL, so make a new one
+					gpEmbeddedSrcPhrase = new CSourcePhrase;
 				}
-//			} // end block for default:
-//		} // end block for switch (gnDocVersion)
-
+			}
+			return TRUE;
+		}
+		else if (tag == xml_mpcap) // if it's an "MP" tag
+		{
+			// nothing needs to be done
+			return TRUE;
+		}
+		else if (tag == xml_mmcap) // if it's an "MM" tag
+		{
+			// nothing needs to be done
+			return TRUE;
+		}
+		else
+		{
+			//return FALSE; // unknown element, so signal the error to the caller
+			// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+			// parse and hence the application, then return FALSE; otherwise return
+			// TRUE to cause the parser to keep going (unknown data then just does not
+			// find its way into the application's internal structures)
+			return TRUE;
+		}
 	} // end else block for test: if (tag == xml_settings)
-	//return TRUE; // no error   <<--- unreachable, so is commented out
 }
 
 bool AtDocEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
@@ -3035,6 +3013,7 @@ bool AtDocEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
 bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXUNUSED(pStack))
 {
 	int num;
+
 	if (tag == xml_settings && attrName == xml_docversion)
 	{
 		// (the docVersion attribute is not versionable, so have it outside of the switch)
@@ -3043,554 +3022,475 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 		return TRUE;
 	}
 	
-	// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
-	//			avoid crashes when changing the current docVersion.
+	if (tag == xml_settings) // it's a "Settings" tag
+	{
+		// none of this tag's attributes need entity replacement; first
+		// attributes are numbers, and so are handled the same for the
+		// regular & unicode apps; only strings require different treatment
 
-//	switch (gnDocVersion)
-//	{
-//		case 0:
-//		case 1:
-//		case 2:
-//		case 3:
-//		case 4:
-//		case 5:
-			// docVersion 6 adds 3 wxString members which are absent in all earlier versions,
-			// so the same code can be used, and where docVersion == 6 support is explicit,
-			// we add a further if block, testing for gnDocVersion == 6, so that any attempt
-			// to use versions 5.2.4 or 5.2.5 will skip the parsing of the 3 new strings
-//		case 6:
-//		case 7:			// mrh 20Apr12 - docVersion 7 adds 3 items - owner, revision number and revision date/time.
-//		case 8:			// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
-		
-//		default:
-//		{
-			if (tag == xml_settings) // it's a "Settings" tag
+		if (attrName == xml_sizex)
+		{
+			gpApp->m_docSize.x = atoi(attrValue); 
+		}
+		else if (attrName == xml_sizey)
+		{
+			gpApp->m_docSize.y = atoi(attrValue);
+		}
+		else if (gnDocVersion >= 6 && attrName == xml_ftsbp)
+		{
+			// BEW added 27Feb12, the user's last-chosen setting for the "Verse" or
+			// "Punctuation" free translation sectioning radio button is stored in
+			// this new attribute as of docVersion 6 (first out in release 6.2.0)
+			int anInt = atoi(attrValue);
+			if (anInt == 0)
 			{
-				// none of this tag's attributes need entity replacement; first
-				// attributes are numbers, and so are handled the same for the
-				// regular & unicode apps; only strings require different treatment
+				gpApp->m_bDefineFreeTransByPunctuation = FALSE;
+			}else
+			{
+				gpApp->m_bDefineFreeTransByPunctuation = TRUE;
+			}
+		}
 
-				if (attrName == xml_sizex)
-				{
-					gpApp->m_docSize.x = atoi(attrValue); 
-				}
-				else if (attrName == xml_sizey)
-				{
-					gpApp->m_docSize.y = atoi(attrValue);
-				}
-				else if (gnDocVersion >= 6 && attrName == xml_ftsbp)
-				{
-					// BEW added 27Feb12, the user's last-chosen setting for the "Verse" or
-					// "Punctuation" free translation sectioning radio button is stored in
-					// this new attribute as of docVersion 6 (first out in release 6.2.0)
-					int anInt = atoi(attrValue);
-					if (anInt == 0)
-					{
-						gpApp->m_bDefineFreeTransByPunctuation = FALSE;
-					}else
-					{
-						gpApp->m_bDefineFreeTransByPunctuation = TRUE;
-					}
-				}
+	// mrh 20Apr12 - for docVersion 7, we look for the 3 new items:
+	// and BEW's 9Aug12 addition of a bookName attribute in Settings also
 
-			// mrh 20Apr12 - for docVersion 7, we look for the 3 new items:
-			// and BEW's 9Aug12 addition of a bookName attribute in Settings also
-	
-				else if (gnDocVersion >= 7 && attrName == xml_bookName)
-				{
-					ReplaceEntities (attrValue);			// first restore any XML metacharacters
-	#ifdef _UNICODE
-					gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
-	#else
-					gpApp->m_bookName_Current = attrValue;
-	#endif	
-				}
+		else if (gnDocVersion >= 7 && attrName == xml_bookName)
+		{
+			ReplaceEntities (attrValue);			// first restore any XML metacharacters
+#ifdef _UNICODE
+			gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
+#else
+			gpApp->m_bookName_Current = attrValue;
+#endif	
+		}
 
-				else if (gnDocVersion >= 7 && attrName == xml_owner)
-				{
-					ReplaceEntities (attrValue);			// first restore any XML metacharacters
-	#ifdef _UNICODE
-					gpApp->m_owner = gpApp->Convert8to16 (attrValue);
-	#else
-					gpApp->m_owner = attrValue;
-	#endif	
-				}
+		else if (gnDocVersion >= 7 && attrName == xml_owner)
+		{
+			ReplaceEntities (attrValue);			// first restore any XML metacharacters
+#ifdef _UNICODE
+			gpApp->m_owner = gpApp->Convert8to16 (attrValue);
+#else
+			gpApp->m_owner = attrValue;
+#endif	
+		}
 
-				else if (gnDocVersion >= 7 && attrName == xml_commitcnt)
-				{	
-					if (attrValue == "****")
-						gpApp->m_commitCount = -1;			// means not under version control yet
-					else
-						gpApp->m_commitCount = atoi(attrValue);
-				}
-				else if (gnDocVersion >= 7 && attrName == xml_revdate)
-				{		
-	#ifdef _UNICODE
-					wxString	tmp = gpApp->Convert8to16(attrValue);
-	#else
-					wxString	tmp = attrValue;
-	#endif
-					const wxChar*  result = gpApp->m_revisionDate.ParseDateTime (tmp);
-					if (result == NULL)
-						gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
-				}
+		else if (gnDocVersion >= 7 && attrName == xml_commitcnt)
+		{	
+			if (attrValue == "****")
+				gpApp->m_commitCount = -1;			// means not under version control yet
+			else
+				gpApp->m_commitCount = atoi(attrValue);
+		}
+		else if (gnDocVersion >= 7 && attrName == xml_revdate)
+		{		
+#ifdef _UNICODE
+			wxString	tmp = gpApp->Convert8to16(attrValue);
+#else
+			wxString	tmp = attrValue;
+#endif
+			const wxChar*  result = gpApp->m_revisionDate.ParseDateTime (tmp);
+			if (result == NULL)
+				gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
+		}
 
-			// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
-	
-				else if (gnDocVersion >= 8 && attrName == xml_activeSequNum)
-					gpApp->m_nActiveSequNum = atoi(attrValue);
+	// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
 
-				else if (attrName == xml_specialcolor)
-				{
-					num = atoi(attrValue);
-					num = num; // avoid warning
-					//gpApp->specialTextColor = num; // no longer used in WX version
-					// The special text color stored in the xml doc file
-					// The special text color stored in the doc's xml file is ignored in the wx version
-					// TODO: see if this is acceptable to Bruce
-					//gpApp->m_specialTextColor = (COLORREF)num;
-				}
-				else if (attrName == xml_retranscolor)
-				{
-					num = atoi(attrValue);
-					num = num; // avoid warning
-					//gpApp->reTranslnTextColor = num; // no longer used in WX version
-					// The retranslation text color stored in the xml doc file
-					// The retranslation text color stored in the doc's xml file is ignored in the wx version
-					// TODO: see if this is acceptable to Bruce
-					//gpApp->m_reTranslnTextColor = (COLORREF)num;
-				}
-				else if (attrName == xml_navcolor)
-				{
-					num = atoi(attrValue);
-					num = num; // avoid warning
-					// gpApp->navTextColor = num; // no longer used in WX version
-					// The nav text color stored in the xml doc file
-					// The nav text color stored in the doc's xml file is ignored in the wx version
-					// TODO: see if this is acceptable to Bruce
-					// gpApp->m_navTextColor = (COLORREF)num;
-				}
+		else if (gnDocVersion >= 8 && attrName == xml_activeSequNum)
+			gpApp->m_nActiveSequNum = atoi(attrValue);
+
+		else if (attrName == xml_specialcolor)
+		{
+			num = atoi(attrValue);
+			num = num; // avoid warning
+			//gpApp->specialTextColor = num; // no longer used in WX version
+			// The special text color stored in the xml doc file
+			// The special text color stored in the doc's xml file is ignored in the wx version
+			// TODO: see if this is acceptable to Bruce
+			//gpApp->m_specialTextColor = (COLORREF)num;
+		}
+		else if (attrName == xml_retranscolor)
+		{
+			num = atoi(attrValue);
+			num = num; // avoid warning
+			//gpApp->reTranslnTextColor = num; // no longer used in WX version
+			// The retranslation text color stored in the xml doc file
+			// The retranslation text color stored in the doc's xml file is ignored in the wx version
+			// TODO: see if this is acceptable to Bruce
+			//gpApp->m_reTranslnTextColor = (COLORREF)num;
+		}
+		else if (attrName == xml_navcolor)
+		{
+			num = atoi(attrValue);
+			num = num; // avoid warning
+			// gpApp->navTextColor = num; // no longer used in WX version
+			// The nav text color stored in the xml doc file
+			// The nav text color stored in the doc's xml file is ignored in the wx version
+			// TODO: see if this is acceptable to Bruce
+			// gpApp->m_navTextColor = (COLORREF)num;
+		}
+
 #ifndef _UNICODE // ANSI version (ie. regular)
-				else if (attrName == xml_curchap)
-				{
-					gpApp->m_curChapter = attrValue;
-				}
-				else if (attrName == xml_srcname)
-				{
-					;
-					// whm 1Oct12 removed MRU code
-					/*
-					// BEW modified 27Nov05; only use the doc values for restoring when doing an MRU open,
-					// because otherwise the doc could have been copied from another person's project and
-					// would give invalid names which would then find their way into the project config
-					// file and end up fouling things up
-					if (gbTryingMRUOpen)
-						gpApp->m_sourceName = attrValue;
-					*/
-				}
-				else if (attrName == xml_tgtname)
-				{
-					;
-					// whm 1Oct12 removed MRU code
-					/*
-					// BEW modified 27Nov05; only use the doc values for restoring when doing an MRU open,
-					// because otherwise the doc could have been copied from another person's project and
-					// would give invalid names which would then find their way into the project config
-					// file and end up fouling things up
-					if (gbTryingMRUOpen)
-						gpApp->m_targetName = attrValue;
-					*/
-				}
-			
-			// mrh June 2012 -- docVersion 7 adds source and target language codes.  At present we only use these if we don't already
-			//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
 
-				else if (gnDocVersion >= 7 && attrName == xml_srccode)
-				{
-					if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
-						gpApp->m_sourceLanguageCode = attrValue;
-				}
-				else if (gnDocVersion >= 7 && attrName == xml_tgtcode)
-				{
-					if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
-						gpApp->m_targetLanguageCode = attrValue;
-				}
-				
-				else if (attrName == xml_others)
-				{
-					wxString buffer(attrValue);
-					gpDoc->RestoreDocParamsOnInput(buffer); // BEW added 08Aug05
-					if (gpApp->m_pBuffer == NULL)
-					{
-						gpApp->m_pBuffer = new wxString; // ensure it's available
-						gpApp->m_nInputFileLength = buffer.Length(); // we don't use this, but play safe
-					}
-					*(gpApp->m_pBuffer) = attrValue;
-				}
-				else
-				{
-					// unknown attribute in the Settings tag
-					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-					// parse and hence the application, then return FALSE; otherwise return
-					// TRUE to cause the parser to keep going (unknown data then just does not
-					// find its way into the application's internal structures)
-					//return FALSE;
-					return TRUE;
-				}
-				return TRUE;
-			}
-			else if (tag == xml_scap) // it's an "S" tag
-			{
-				// all of them are versionable. 
-				if (gpEmbeddedSrcPhrase != NULL)
-				{
-					// we are constructing an old instance embedded in a merged sourcephrase, and
-					// so these attribute values belong to the gpEmbeddedSrcPhrase instance, which
-					// is itself to be saved in the m_pSavedWords list of the parent sourcephrase
-					// which is gpSrcPhrase
+		else if (attrName == xml_curchap)
+		{
+			gpApp->m_curChapter = attrValue;
+		}
+		else if (attrName == xml_srcname)
+		{
+			;
+			// whm 1Oct12 removed MRU code
+			/*
+			// BEW modified 27Nov05; only use the doc values for restoring when doing an MRU open,
+			// because otherwise the doc could have been copied from another person's project and
+			// would give invalid names which would then find their way into the project config
+			// file and end up fouling things up
+			if (gbTryingMRUOpen)
+				gpApp->m_sourceName = attrValue;
+			*/
+		}
+		else if (attrName == xml_tgtname)
+		{
+			;
+			// whm 1Oct12 removed MRU code
+			/*
+			// BEW modified 27Nov05; only use the doc values for restoring when doing an MRU open,
+			// because otherwise the doc could have been copied from another person's project and
+			// would give invalid names which would then find their way into the project config
+			// file and end up fouling things up
+			if (gbTryingMRUOpen)
+				gpApp->m_targetName = attrValue;
+			*/
+		}
+	
+	// mrh June 2012 -- docVersion 7 adds source and target language codes.  At present we only use these if we don't already
+	//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
 
-					// do the number attributes first, since these don't need entity replacement
-					// and then the couple of strings which also don't need it, then the ones
-					// needing it do them last
-					if (attrName == xml_f)
-					{
-						MakeBOOLs(gpEmbeddedSrcPhrase,attrValue);
-					}
-					else if (attrName == xml_sn)
-					{
-						gpEmbeddedSrcPhrase->m_nSequNumber = atoi(attrValue);
-					}
-					else if (attrName == xml_w)
-					{
-						gpEmbeddedSrcPhrase->m_nSrcWords = atoi(attrValue);
-					}
-					else if (attrName == xml_ty)
-					{
-						gpEmbeddedSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
-					}
-					else if (attrName == xml_i)
-					{
-						gpEmbeddedSrcPhrase->m_inform = attrValue;
-					}
-					else if (attrName == xml_c)
-					{
-						gpEmbeddedSrcPhrase->m_chapterVerse = attrValue;
-					}
-					else if (attrName == xml_em)
-					{
-						gpEmbeddedSrcPhrase->SetEndMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iBM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iBEM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iNM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iNEM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
-					}
-					else
-					{
-						// The rest of the string ones may potentially contain " or > (though unlikely),
-						// so ReplaceEntities() will need to be called
-						ReplaceEntities(attrValue); // most require it, so do it on all
-						if (attrName == xml_s)
-						{
-							gpEmbeddedSrcPhrase->m_srcPhrase = attrValue;
-						}
-						else if (attrName == xml_k)
-						{
-							gpEmbeddedSrcPhrase->m_key = attrValue;
-						}
-						else if (attrName == xml_t)
-						{
-							gpEmbeddedSrcPhrase->m_targetStr = attrValue;
-						}
-						else if (attrName == xml_a)
-						{
-							gpEmbeddedSrcPhrase->m_adaption = attrValue;
-						}
-						else if (attrName == xml_g)
-						{
-							gpEmbeddedSrcPhrase->m_gloss = attrValue;
-						}
-						else if (attrName == xml_pp)
-						{
-							gpEmbeddedSrcPhrase->m_precPunct = attrValue;
-						}
-						else if (attrName == xml_fp)
-						{
-							gpEmbeddedSrcPhrase->m_follPunct = attrValue;
-						}
-						else if (attrName == xml_fop)
-						{
-							gpEmbeddedSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
-						}
-						else if (attrName == xml_m)
-						{
-							gpEmbeddedSrcPhrase->m_markers = attrValue;
-						}
-						else if (attrName == xml_ft)
-						{
-							gpEmbeddedSrcPhrase->SetFreeTrans((char*)attrValue);
-						}
-						else if (attrName == xml_no)
-						{
-							gpEmbeddedSrcPhrase->SetNote((char*)attrValue);
-						}
-						else if (attrName == xml_bt)
-						{
-							gpEmbeddedSrcPhrase->SetCollectedBackTrans((char*)attrValue);
-						}
-						else if (attrName == xml_fi)
-						{
-							gpEmbeddedSrcPhrase->SetFilteredInfo((char*)attrValue);
-						}
-						// next 4 for docVersion = 6 support
-						else if (gnDocVersion >= 6 && attrName == xml_lapat)
-						{
-							gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = attrValue;
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
-						{
-							gpEmbeddedSrcPhrase->m_tgtMkrPattern = attrValue;
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
-						{
-							gpEmbeddedSrcPhrase->m_glossMkrPattern = attrValue;
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_pupat)
-						{
-							gpEmbeddedSrcPhrase->m_punctsPattern = attrValue;
-						}
-						else
-						{
-							// unknown attribute
-							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-							// parse and hence the application, then return FALSE; otherwise return
-							// TRUE to cause the parser to keep going (unknown data then just does not
-							// find its way into the application's internal structures)
-							//return FALSE;
-							return TRUE;
-						}
-					}
-				}
-				else
-				{
-                    // we are constructing an unmerged instance, or a parent to two or more
-                    // originals involved in a merger, to be saved in the doc's
-                    // m_pSourcePhrases member do the number attributes first, since these
-                    // don't need entity replacement and then the couple of strings which
-                    // also don't need it, then the ones needing it do them last
-					if (attrName == xml_f)
-					{
-						MakeBOOLs(gpSrcPhrase,attrValue);
-					}
-					else if (attrName == xml_sn)
-					{
-						gpSrcPhrase->m_nSequNumber = atoi(attrValue);
-					}
-					else if (attrName == xml_w)
-					{
-						gpSrcPhrase->m_nSrcWords = atoi(attrValue);
-					}
-					else if (attrName == xml_ty)
-					{
-						gpSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
-					}
-					else if (attrName == xml_i)
-					{
-						gpSrcPhrase->m_inform = attrValue;
-					}
-					else if (attrName == xml_c)
-					{
-						gpSrcPhrase->m_chapterVerse = attrValue;
-					}
-					else if (attrName == xml_em)
-					{
-						gpSrcPhrase->SetEndMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iBM)
-					{
-						gpSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iBEM)
-					{
-						gpSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iNM)
-					{
-						gpSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
-					}
-					else if (attrName == xml_iNEM)
-					{
-						gpSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
-					}
-					else
-					{
-						// The rest of the string ones may potentially contain " or > (though unlikely),
-						// so ReplaceEntities() will need to be called
-						ReplaceEntities(attrValue); // most require it, so do it on all
-						if (attrName == xml_s)
-						{
-							gpSrcPhrase->m_srcPhrase = attrValue;
-						}
-						else if (attrName == xml_k)
-						{
-							gpSrcPhrase->m_key = attrValue;
-						}
-						else if (attrName == xml_t)
-						{
-							gpSrcPhrase->m_targetStr = attrValue;
-						}
-						else if (attrName == xml_a)
-						{
-							gpSrcPhrase->m_adaption = attrValue;
-						}
-						else if (attrName == xml_g)
-						{
-							gpSrcPhrase->m_gloss = attrValue;
-						}
-						else if (attrName == xml_pp)
-						{
-							gpSrcPhrase->m_precPunct = attrValue;
-						}
-						else if (attrName == xml_fp)
-						{
-							gpSrcPhrase->m_follPunct = attrValue;
-						}
-						else if (attrName == xml_fop)
-						{
-							gpSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
-						}
-						else if (attrName == xml_m)
-						{
-							gpSrcPhrase->m_markers = attrValue;
-						}
-						else if (attrName == xml_ft)
-						{
-							gpSrcPhrase->SetFreeTrans((char*)attrValue);
-						}
-						else if (attrName == xml_no)
-						{
-							gpSrcPhrase->SetNote((char*)attrValue);
-						}
-						else if (attrName == xml_bt)
-						{
-							gpSrcPhrase->SetCollectedBackTrans((char*)attrValue);
-						}
-						else if (attrName == xml_fi)
-						{
-							gpSrcPhrase->SetFilteredInfo((char*)attrValue);
-						}
-						// next 4 for docVersion = 6 support
-						else if (gnDocVersion >= 6 && attrName == xml_lapat)
-						{
-							gpSrcPhrase->m_lastAdaptionsPattern = attrValue;
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
-						{
-							gpSrcPhrase->m_tgtMkrPattern = attrValue;
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
-						{
-							gpSrcPhrase->m_glossMkrPattern = attrValue;
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_pupat)
-						{
-							gpSrcPhrase->m_punctsPattern = attrValue;
-						}
-						else
-						{
-							// unknown attribute
-							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-							// parse and hence the application, then return FALSE; otherwise return
-							// TRUE to cause the parser to keep going (unknown data then just does not
-							// find its way into the application's internal structures)
-							//return FALSE;
-							return TRUE;
-						}
-					}
-				}
-				return TRUE;
-			}
-			else if (tag == xml_mpcap) // it's an "MP" tag
+		else if (gnDocVersion >= 7 && attrName == xml_srccode)
+		{
+			if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
+				gpApp->m_sourceLanguageCode = attrValue;
+		}
+		else if (gnDocVersion >= 7 && attrName == xml_tgtcode)
+		{
+			if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
+				gpApp->m_targetLanguageCode = attrValue;
+		}
+		
+		else if (attrName == xml_others)
+		{
+			wxString buffer(attrValue);
+			gpDoc->RestoreDocParamsOnInput(buffer); // BEW added 08Aug05
+			if (gpApp->m_pBuffer == NULL)
 			{
-				// potentially versionable
-				if (attrName == xml_mp)
-				{
-					// its a member of a medial puncts wxString list
-					ReplaceEntities(attrValue);
-					if (gpEmbeddedSrcPhrase != NULL)
-					{
-						// impossible - unmerged ones can never have content in this list
-						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-						// parse and hence the application, then return FALSE; otherwise return
-						// TRUE to cause the parser to keep going (unknown data then just does not
-						// find its way into the application's internal structures)
-						//return FALSE;
-						return TRUE;
-					}
-					else
-					{
-						gpSrcPhrase->m_pMedialPuncts->Add(wxString(attrValue));
-					}
-					return TRUE;
-				}
-				else
-				{
-					// unknown attribute
-					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-					// parse and hence the application, then return FALSE; otherwise return
-					// TRUE to cause the parser to keep going (unknown data then just does not
-					// find its way into the application's internal structures)
-					//return FALSE;
-					return TRUE;
-				}
+				gpApp->m_pBuffer = new wxString; // ensure it's available
+				gpApp->m_nInputFileLength = buffer.Length(); // we don't use this, but play safe
 			}
-			else if (tag == xml_mmcap) // it's an "MM" tag
+			*(gpApp->m_pBuffer) = attrValue;
+		}
+		else
+		{
+			// unknown attribute in the Settings tag
+			// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+			// parse and hence the application, then return FALSE; otherwise return
+			// TRUE to cause the parser to keep going (unknown data then just does not
+			// find its way into the application's internal structures)
+			//return FALSE;
+			return TRUE;
+		}
+		return TRUE;
+	}
+	else if (tag == xml_scap) // it's an "S" tag
+	{
+		// all of them are versionable. 
+		if (gpEmbeddedSrcPhrase != NULL)
+		{
+			// we are constructing an old instance embedded in a merged sourcephrase, and
+			// so these attribute values belong to the gpEmbeddedSrcPhrase instance, which
+			// is itself to be saved in the m_pSavedWords list of the parent sourcephrase
+			// which is gpSrcPhrase
+
+			// do the number attributes first, since these don't need entity replacement
+			// and then the couple of strings which also don't need it, then the ones
+			// needing it do them last
+			if (attrName == xml_f)
 			{
-				// potentially versionable, but should never require entity support
-				if (attrName == xml_mm)
-				{
-					// its a member of a medial markers wxString list
-					if (gpEmbeddedSrcPhrase != NULL)
-					{
-						// impossible - unmerged ones can never have content in this list
-						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-						// parse and hence the application, then return FALSE; otherwise return
-						// TRUE to cause the parser to keep going (unknown data then just does not
-						// find its way into the application's internal structures)
-						//return FALSE;
-						return TRUE;
-					}
-					else
-					{
-						gpSrcPhrase->m_pMedialMarkers->Add(wxString(attrValue)); 
-					}
-					return TRUE;
-				}
-				else
-				{
-					// unknown attribute
-					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-					// parse and hence the application, then return FALSE; otherwise return
-					// TRUE to cause the parser to keep going (unknown data then just does not
-					// find its way into the application's internal structures)
-					//return FALSE;
-					return TRUE;
-				}
+				MakeBOOLs(gpEmbeddedSrcPhrase,attrValue);
+			}
+			else if (attrName == xml_sn)
+			{
+				gpEmbeddedSrcPhrase->m_nSequNumber = atoi(attrValue);
+			}
+			else if (attrName == xml_w)
+			{
+				gpEmbeddedSrcPhrase->m_nSrcWords = atoi(attrValue);
+			}
+			else if (attrName == xml_ty)
+			{
+				gpEmbeddedSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
+			}
+			else if (attrName == xml_i)
+			{
+				gpEmbeddedSrcPhrase->m_inform = attrValue;
+			}
+			else if (attrName == xml_c)
+			{
+				gpEmbeddedSrcPhrase->m_chapterVerse = attrValue;
+			}
+			else if (attrName == xml_em)
+			{
+				gpEmbeddedSrcPhrase->SetEndMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iBM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iBEM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iNM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iNEM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
 			}
 			else
 			{
-				// it's an unknown tag
+				// The rest of the string ones may potentially contain " or > (though unlikely),
+				// so ReplaceEntities() will need to be called
+				ReplaceEntities(attrValue); // most require it, so do it on all
+				if (attrName == xml_s)
+				{
+					gpEmbeddedSrcPhrase->m_srcPhrase = attrValue;
+				}
+				else if (attrName == xml_k)
+				{
+					gpEmbeddedSrcPhrase->m_key = attrValue;
+				}
+				else if (attrName == xml_t)
+				{
+					gpEmbeddedSrcPhrase->m_targetStr = attrValue;
+				}
+				else if (attrName == xml_a)
+				{
+					gpEmbeddedSrcPhrase->m_adaption = attrValue;
+				}
+				else if (attrName == xml_g)
+				{
+					gpEmbeddedSrcPhrase->m_gloss = attrValue;
+				}
+				else if (attrName == xml_pp)
+				{
+					gpEmbeddedSrcPhrase->m_precPunct = attrValue;
+				}
+				else if (attrName == xml_fp)
+				{
+					gpEmbeddedSrcPhrase->m_follPunct = attrValue;
+				}
+				else if (attrName == xml_fop)
+				{
+					gpEmbeddedSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
+				}
+				else if (attrName == xml_m)
+				{
+					gpEmbeddedSrcPhrase->m_markers = attrValue;
+				}
+				else if (attrName == xml_ft)
+				{
+					gpEmbeddedSrcPhrase->SetFreeTrans((char*)attrValue);
+				}
+				else if (attrName == xml_no)
+				{
+					gpEmbeddedSrcPhrase->SetNote((char*)attrValue);
+				}
+				else if (attrName == xml_bt)
+				{
+					gpEmbeddedSrcPhrase->SetCollectedBackTrans((char*)attrValue);
+				}
+				else if (attrName == xml_fi)
+				{
+					gpEmbeddedSrcPhrase->SetFilteredInfo((char*)attrValue);
+				}
+				// next 4 for docVersion = 6 support
+				else if (gnDocVersion >= 6 && attrName == xml_lapat)
+				{
+					gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = attrValue;
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+				{
+					gpEmbeddedSrcPhrase->m_tgtMkrPattern = attrValue;
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+				{
+					gpEmbeddedSrcPhrase->m_glossMkrPattern = attrValue;
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_pupat)
+				{
+					gpEmbeddedSrcPhrase->m_punctsPattern = attrValue;
+				}
+				else
+				{
+					// unknown attribute
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
+				}
+			}
+		}
+		else
+		{
+			// we are constructing an unmerged instance, or a parent to two or more
+			// originals involved in a merger, to be saved in the doc's
+			// m_pSourcePhrases member do the number attributes first, since these
+			// don't need entity replacement and then the couple of strings which
+			// also don't need it, then the ones needing it do them last
+			if (attrName == xml_f)
+			{
+				MakeBOOLs(gpSrcPhrase,attrValue);
+			}
+			else if (attrName == xml_sn)
+			{
+				gpSrcPhrase->m_nSequNumber = atoi(attrValue);
+			}
+			else if (attrName == xml_w)
+			{
+				gpSrcPhrase->m_nSrcWords = atoi(attrValue);
+			}
+			else if (attrName == xml_ty)
+			{
+				gpSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
+			}
+			else if (attrName == xml_i)
+			{
+				gpSrcPhrase->m_inform = attrValue;
+			}
+			else if (attrName == xml_c)
+			{
+				gpSrcPhrase->m_chapterVerse = attrValue;
+			}
+			else if (attrName == xml_em)
+			{
+				gpSrcPhrase->SetEndMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iBM)
+			{
+				gpSrcPhrase->SetInlineBindingMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iBEM)
+			{
+				gpSrcPhrase->SetInlineBindingEndMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iNM)
+			{
+				gpSrcPhrase->SetInlineNonbindingMarkers((char*)attrValue);
+			}
+			else if (attrName == xml_iNEM)
+			{
+				gpSrcPhrase->SetInlineNonbindingEndMarkers((char*)attrValue);
+			}
+			else
+			{
+				// The rest of the string ones may potentially contain " or > (though unlikely),
+				// so ReplaceEntities() will need to be called
+				ReplaceEntities(attrValue); // most require it, so do it on all
+				if (attrName == xml_s)
+				{
+					gpSrcPhrase->m_srcPhrase = attrValue;
+				}
+				else if (attrName == xml_k)
+				{
+					gpSrcPhrase->m_key = attrValue;
+				}
+				else if (attrName == xml_t)
+				{
+					gpSrcPhrase->m_targetStr = attrValue;
+				}
+				else if (attrName == xml_a)
+				{
+					gpSrcPhrase->m_adaption = attrValue;
+				}
+				else if (attrName == xml_g)
+				{
+					gpSrcPhrase->m_gloss = attrValue;
+				}
+				else if (attrName == xml_pp)
+				{
+					gpSrcPhrase->m_precPunct = attrValue;
+				}
+				else if (attrName == xml_fp)
+				{
+					gpSrcPhrase->m_follPunct = attrValue;
+				}
+				else if (attrName == xml_fop)
+				{
+					gpSrcPhrase->SetFollowingOuterPunct((char*)attrValue);
+				}
+				else if (attrName == xml_m)
+				{
+					gpSrcPhrase->m_markers = attrValue;
+				}
+				else if (attrName == xml_ft)
+				{
+					gpSrcPhrase->SetFreeTrans((char*)attrValue);
+				}
+				else if (attrName == xml_no)
+				{
+					gpSrcPhrase->SetNote((char*)attrValue);
+				}
+				else if (attrName == xml_bt)
+				{
+					gpSrcPhrase->SetCollectedBackTrans((char*)attrValue);
+				}
+				else if (attrName == xml_fi)
+				{
+					gpSrcPhrase->SetFilteredInfo((char*)attrValue);
+				}
+				// next 4 for docVersion = 6 support
+				else if (gnDocVersion >= 6 && attrName == xml_lapat)
+				{
+					gpSrcPhrase->m_lastAdaptionsPattern = attrValue;
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+				{
+					gpSrcPhrase->m_tgtMkrPattern = attrValue;
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+				{
+					gpSrcPhrase->m_glossMkrPattern = attrValue;
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_pupat)
+				{
+					gpSrcPhrase->m_punctsPattern = attrValue;
+				}
+				else
+				{
+					// unknown attribute
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
+				}
+			}
+		}
+		return TRUE;
+	}
+	else if (tag == xml_mpcap) // it's an "MP" tag
+	{
+		// potentially versionable
+		if (attrName == xml_mp)
+		{
+			// its a member of a medial puncts wxString list
+			ReplaceEntities(attrValue);
+			if (gpEmbeddedSrcPhrase != NULL)
+			{
+				// impossible - unmerged ones can never have content in this list
 				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
 				// parse and hence the application, then return FALSE; otherwise return
 				// TRUE to cause the parser to keep going (unknown data then just does not
@@ -3598,397 +3498,396 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				//return FALSE;
 				return TRUE;
 			}
-//			break;
-//		}
+			else
+			{
+				gpSrcPhrase->m_pMedialPuncts->Add(wxString(attrValue));
+			}
+			return TRUE;
+		}
+		else
+		{
+			// unknown attribute
+			// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+			// parse and hence the application, then return FALSE; otherwise return
+			// TRUE to cause the parser to keep going (unknown data then just does not
+			// find its way into the application's internal structures)
+			//return FALSE;
+			return TRUE;
+		}
+	}
+	else if (tag == xml_mmcap) // it's an "MM" tag
+	{
+		// potentially versionable, but should never require entity support
+		if (attrName == xml_mm)
+		{
+			// its a member of a medial markers wxString list
+			if (gpEmbeddedSrcPhrase != NULL)
+			{
+				// impossible - unmerged ones can never have content in this list
+				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
+			}
+			else
+			{
+				gpSrcPhrase->m_pMedialMarkers->Add(wxString(attrValue)); 
+			}
+			return TRUE;
+		}
+		else
+		{
+			// unknown attribute
+			// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+			// parse and hence the application, then return FALSE; otherwise return
+			// TRUE to cause the parser to keep going (unknown data then just does not
+			// find its way into the application's internal structures)
+			//return FALSE;
+			return TRUE;
+		}
+	}
+	else
+	{
+		// it's an unknown tag
+		// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+		// parse and hence the application, then return FALSE; otherwise return
+		// TRUE to cause the parser to keep going (unknown data then just does not
+		// find its way into the application's internal structures)
+		//return FALSE;
+		return TRUE;
+	}
+
 #else // Unicode version
 
-				else if (attrName == xml_curchap)
-				{
-					gpApp->m_curChapter = gpApp->Convert8to16(attrValue);
-				}
-				else if (attrName == xml_srcname)
-				{
-					gpApp->m_sourceName = gpApp->Convert8to16(attrValue);
-				}
-				else if (attrName == xml_tgtname)
-				{
-					gpApp->m_targetName = gpApp->Convert8to16(attrValue);
-				}
-				else if (attrName == xml_others)
-				{
-					wxString buffer = gpApp->Convert8to16(attrValue);
-					gpDoc->RestoreDocParamsOnInput(buffer); // BEW added 08Aug05
-					if (gpApp->m_pBuffer == NULL)
-					{
-						gpApp->m_pBuffer = new wxString; // ensure it's available
-						gpApp->m_nInputFileLength = buffer.Length(); // we don't use this, but play safe
-					}
-					*(gpApp->m_pBuffer) = buffer;
-				}
-				else
-				{
-					// unknown attribute in the Settings tag
-					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-					// parse and hence the application, then return FALSE; otherwise return
-					// TRUE to cause the parser to keep going (unknown data then just does not
-					// find its way into the application's internal structures)
-					//return FALSE;
-					return TRUE;
-				}
-				return TRUE;
-			}
-			else if (tag == xml_scap) // it's an "S" tag
+		else if (attrName == xml_curchap)
+		{
+			gpApp->m_curChapter = gpApp->Convert8to16(attrValue);
+		}
+		else if (attrName == xml_srcname)
+		{
+			gpApp->m_sourceName = gpApp->Convert8to16(attrValue);
+		}
+		else if (attrName == xml_tgtname)
+		{
+			gpApp->m_targetName = gpApp->Convert8to16(attrValue);
+		}
+		else if (attrName == xml_others)
+		{
+			wxString buffer = gpApp->Convert8to16(attrValue);
+			gpDoc->RestoreDocParamsOnInput(buffer); // BEW added 08Aug05
+			if (gpApp->m_pBuffer == NULL)
 			{
-				// all of them are versionable. 
-				if (gpEmbeddedSrcPhrase != NULL)
-				{
-					// we are constructing an old instance embedded in a merged sourcephrase, and
-					// so these attribute values belong to the gpEmbeddedSrcPhrase instance, which
-					// is itself to be saved in the m_pSavedWords list of the parent sourcephrase
-					// which is gpSrcPhrase
+				gpApp->m_pBuffer = new wxString; // ensure it's available
+				gpApp->m_nInputFileLength = buffer.Length(); // we don't use this, but play safe
+			}
+			*(gpApp->m_pBuffer) = buffer;
+		}
+		else
+		{
+			// unknown attribute in the Settings tag
+			// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+			// parse and hence the application, then return FALSE; otherwise return
+			// TRUE to cause the parser to keep going (unknown data then just does not
+			// find its way into the application's internal structures)
+			//return FALSE;
+			return TRUE;
+		}
+		return TRUE;
+	}
+	else if (tag == xml_scap) // it's an "S" tag
+	{
+		// all of them are versionable. 
+		if (gpEmbeddedSrcPhrase != NULL)
+		{
+			// we are constructing an old instance embedded in a merged sourcephrase, and
+			// so these attribute values belong to the gpEmbeddedSrcPhrase instance, which
+			// is itself to be saved in the m_pSavedWords list of the parent sourcephrase
+			// which is gpSrcPhrase
 
-					// do the number attributes first, since these don't need entity replacement
-					// and then the couple of strings which also don't need it, then the ones
-					// needing it do them last
-					if (attrName == xml_f)
-					{
-						MakeBOOLs(gpEmbeddedSrcPhrase,attrValue);
-					}
-					else if (attrName == xml_sn)
-					{
-						gpEmbeddedSrcPhrase->m_nSequNumber = atoi(attrValue);
-					}
-					else if (attrName == xml_w)
-					{
-						gpEmbeddedSrcPhrase->m_nSrcWords = atoi(attrValue);
-					}
-					else if (attrName == xml_ty)
-					{
-						gpEmbeddedSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
-					}
-					else if (attrName == xml_i)
-					{
-						gpEmbeddedSrcPhrase->m_inform = gpApp->Convert8to16(attrValue);
-					}
-					else if (attrName == xml_c)
-					{
-						gpEmbeddedSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
-					}
-					else if (attrName == xml_em)
-					{
-						gpEmbeddedSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iBM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iBEM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iNM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iNEM)
-					{
-						gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else
-					{
-						// The rest of the string ones may potentially contain " or > (though unlikely),
-						// so ReplaceEntities() will need to be called
-						ReplaceEntities(attrValue); // most require it, so do it on all
-						if (attrName == xml_s)
-						{
-							gpEmbeddedSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_k)
-						{
-							gpEmbeddedSrcPhrase->m_key = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_t)
-						{
-							gpEmbeddedSrcPhrase->m_targetStr = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_a)
-						{
-							gpEmbeddedSrcPhrase->m_adaption = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_g)
-						{
-							gpEmbeddedSrcPhrase->m_gloss = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_pp)
-						{
-							gpEmbeddedSrcPhrase->m_precPunct = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_fp)
-						{
-							gpEmbeddedSrcPhrase->m_follPunct = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_fop)
-						{
-							gpEmbeddedSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue));
-						}
-						else if (attrName == xml_m)
-						{
-							gpEmbeddedSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_ft)
-						{
-							gpEmbeddedSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
-						}
-						else if (attrName == xml_no)
-						{
-							gpEmbeddedSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
-						}
-						else if (attrName == xml_bt)
-						{
-							gpEmbeddedSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
-						}
-						else if (attrName == xml_fi)
-						{
-							gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
-						}
-						// next 4 for docVersion = 6 support
-						else if (gnDocVersion >= 6 && attrName == xml_lapat)
-						{
-							gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = gpApp->Convert8to16(attrValue);
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
-						{
-							gpEmbeddedSrcPhrase->m_tgtMkrPattern = gpApp->Convert8to16(attrValue);
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
-						{
-							gpEmbeddedSrcPhrase->m_glossMkrPattern = gpApp->Convert8to16(attrValue);
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_pupat)
-						{
-							gpEmbeddedSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
-						}
-						else
-						{
-							// unknown attribute
-							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-							// parse and hence the application, then return FALSE; otherwise return
-							// TRUE to cause the parser to keep going (unknown data then just does not
-							// find its way into the application's internal structures)
-							//return FALSE;
-							return TRUE;
-						}
-					}
-				}
-				else
-				{
-                    // we are constructing an unmerged instance, or a parent to two or more
-                    // originals involved in a merger, to be saved in the doc's
-                    // m_pSourcePhrases member do the number attributes first, since these
-                    // don't need entity replacement and then the couple of strings which
-                    // also don't need it, then the ones needing it do them last
-					if (attrName == xml_f)
-					{
-						MakeBOOLs(gpSrcPhrase,attrValue);
-					}
-					else if (attrName == xml_sn)
-					{
-						gpSrcPhrase->m_nSequNumber = atoi(attrValue);
-					}
-					else if (attrName == xml_w)
-					{
-						gpSrcPhrase->m_nSrcWords = atoi(attrValue);
-					}
-					else if (attrName == xml_ty)
-					{
-						gpSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
-					}
-					else if (attrName == xml_i)
-					{
-						gpSrcPhrase->m_inform = gpApp->Convert8to16(attrValue);
-					}
-					else if (attrName == xml_c)
-					{
-						gpSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
-					}
-					else if (attrName == xml_em)
-					{
-						gpSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iBM)
-					{
-						gpSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iBEM)
-					{
-						gpSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iNM)
-					{
-						gpSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else if (attrName == xml_iNEM)
-					{
-						gpSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
-					}
-					else
-					{
-						// The rest of the string ones may potentially contain " or > (though unlikely),
-						// so ReplaceEntities() will need to be called
-						ReplaceEntities(attrValue); // most require it, so do it on all
-						if (attrName == xml_s)
-						{
-							gpSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_k)
-						{
-							gpSrcPhrase->m_key = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_t)
-						{
-							gpSrcPhrase->m_targetStr = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_a)
-						{
-							gpSrcPhrase->m_adaption = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_g)
-						{
-							gpSrcPhrase->m_gloss = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_pp)
-						{
-							gpSrcPhrase->m_precPunct = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_fp)
-						{
-							gpSrcPhrase->m_follPunct = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_fop)
-						{
-							gpSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue)); // BEW 11Oct10
-						}
-						else if (attrName == xml_m)
-						{
-							gpSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
-						}
-						else if (attrName == xml_ft)
-						{
-							gpSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
-						}
-						else if (attrName == xml_no)
-						{
-							gpSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
-						}
-						else if (attrName == xml_bt)
-						{
-							gpSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
-						}
-						else if (attrName == xml_fi)
-						{
-							gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
-						}
-						// next 4 for docVersion = 6 support
-						else if (gnDocVersion >= 6 && attrName == xml_lapat)
-						{
-							gpSrcPhrase->m_lastAdaptionsPattern = gpApp->Convert8to16(attrValue);
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_tmpat)
-						{
-							gpSrcPhrase->m_tgtMkrPattern = gpApp->Convert8to16(attrValue);
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_gmpat)
-						{
-							gpSrcPhrase->m_glossMkrPattern = gpApp->Convert8to16(attrValue);
-						}
-						else if (gnDocVersion >= 6 && attrName == xml_pupat)
-						{
-							gpSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
-						}
-						else
-						{
-							// unknown attribute
-							// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-							// parse and hence the application, then return FALSE; otherwise return
-							// TRUE to cause the parser to keep going (unknown data then just does not
-							// find its way into the application's internal structures)
-							//return FALSE;
-							return TRUE;
-						}
-					}
-				}
-				return TRUE;
-			}
-			else if (tag == xml_mpcap) // it's an "MP" tag
+			// do the number attributes first, since these don't need entity replacement
+			// and then the couple of strings which also don't need it, then the ones
+			// needing it do them last
+			if (attrName == xml_f)
 			{
-				// potentially versionable
-				if (attrName == xml_mp)
-				{
-					// its a member of a medial puncts wxString list
-					ReplaceEntities(attrValue);
-					if (gpEmbeddedSrcPhrase != NULL)
-					{
-						// impossible - unmerged ones can never have content in this list
-						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-						// parse and hence the application, then return FALSE; otherwise return
-						// TRUE to cause the parser to keep going (unknown data then just does not
-						// find its way into the application's internal structures)
-						//return FALSE;
-						return TRUE;
-					}
-					else
-					{
-						gpSrcPhrase->m_pMedialPuncts->Add(gpApp->Convert8to16(attrValue));
-					}
-					return TRUE;
-				}
-				else
-				{
-					// unknown attribute
-					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-					// parse and hence the application, then return FALSE; otherwise return
-					// TRUE to cause the parser to keep going (unknown data then just does not
-					// find its way into the application's internal structures)
-					//return FALSE;
-					return TRUE;
-				}
+				MakeBOOLs(gpEmbeddedSrcPhrase,attrValue);
 			}
-			else if (tag == xml_mmcap) // it's an "MM" tag
+			else if (attrName == xml_sn)
 			{
-				// potentially versionable
-				if (attrName == xml_mm)
-				{
-					// its a member of a medial markers wxString list
-					if (gpEmbeddedSrcPhrase != NULL)
-					{
-						// impossible - unmerged ones can never have content in this list
-						// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-						// parse and hence the application, then return FALSE; otherwise return
-						// TRUE to cause the parser to keep going (unknown data then just does not
-						// find its way into the application's internal structures)
-						//return FALSE;
-						return TRUE;
-					}
-					else
-					{
-						gpSrcPhrase->m_pMedialMarkers->Add(gpApp->Convert8to16(attrValue));
-					}
-					return TRUE;
-				}
-				else
-				{
-					// unknown attribute
-					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
-					// parse and hence the application, then return FALSE; otherwise return
-					// TRUE to cause the parser to keep going (unknown data then just does not
-					// find its way into the application's internal structures)
-					//return FALSE;
-					return TRUE;
-				}
+				gpEmbeddedSrcPhrase->m_nSequNumber = atoi(attrValue);
+			}
+			else if (attrName == xml_w)
+			{
+				gpEmbeddedSrcPhrase->m_nSrcWords = atoi(attrValue);
+			}
+			else if (attrName == xml_ty)
+			{
+				gpEmbeddedSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
+			}
+			else if (attrName == xml_i)
+			{
+				gpEmbeddedSrcPhrase->m_inform = gpApp->Convert8to16(attrValue);
+			}
+			else if (attrName == xml_c)
+			{
+				gpEmbeddedSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
+			}
+			else if (attrName == xml_em)
+			{
+				gpEmbeddedSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iBM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iBEM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iNM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iNEM)
+			{
+				gpEmbeddedSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
 			}
 			else
 			{
-				// it's an unknown tag
+				// The rest of the string ones may potentially contain " or > (though unlikely),
+				// so ReplaceEntities() will need to be called
+				ReplaceEntities(attrValue); // most require it, so do it on all
+				if (attrName == xml_s)
+				{
+					gpEmbeddedSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_k)
+				{
+					gpEmbeddedSrcPhrase->m_key = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_t)
+				{
+					gpEmbeddedSrcPhrase->m_targetStr = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_a)
+				{
+					gpEmbeddedSrcPhrase->m_adaption = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_g)
+				{
+					gpEmbeddedSrcPhrase->m_gloss = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_pp)
+				{
+					gpEmbeddedSrcPhrase->m_precPunct = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_fp)
+				{
+					gpEmbeddedSrcPhrase->m_follPunct = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_fop)
+				{
+					gpEmbeddedSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_m)
+				{
+					gpEmbeddedSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_ft)
+				{
+					gpEmbeddedSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_no)
+				{
+					gpEmbeddedSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_bt)
+				{
+					gpEmbeddedSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_fi)
+				{
+					gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+				}
+				// next 4 for docVersion = 6 support
+				else if (gnDocVersion >= 6 && attrName == xml_lapat)
+				{
+					gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+				{
+					gpEmbeddedSrcPhrase->m_tgtMkrPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+				{
+					gpEmbeddedSrcPhrase->m_glossMkrPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_pupat)
+				{
+					gpEmbeddedSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
+				}
+				else
+				{
+					// unknown attribute
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
+				}
+			}
+		}
+		else
+		{
+			// we are constructing an unmerged instance, or a parent to two or more
+			// originals involved in a merger, to be saved in the doc's
+			// m_pSourcePhrases member do the number attributes first, since these
+			// don't need entity replacement and then the couple of strings which
+			// also don't need it, then the ones needing it do them last
+			if (attrName == xml_f)
+			{
+				MakeBOOLs(gpSrcPhrase,attrValue);
+			}
+			else if (attrName == xml_sn)
+			{
+				gpSrcPhrase->m_nSequNumber = atoi(attrValue);
+			}
+			else if (attrName == xml_w)
+			{
+				gpSrcPhrase->m_nSrcWords = atoi(attrValue);
+			}
+			else if (attrName == xml_ty)
+			{
+				gpSrcPhrase->m_curTextType = (TextType)atoi(attrValue);
+			}
+			else if (attrName == xml_i)
+			{
+				gpSrcPhrase->m_inform = gpApp->Convert8to16(attrValue);
+			}
+			else if (attrName == xml_c)
+			{
+				gpSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
+			}
+			else if (attrName == xml_em)
+			{
+				gpSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iBM)
+			{
+				gpSrcPhrase->SetInlineBindingMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iBEM)
+			{
+				gpSrcPhrase->SetInlineBindingEndMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iNM)
+			{
+				gpSrcPhrase->SetInlineNonbindingMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else if (attrName == xml_iNEM)
+			{
+				gpSrcPhrase->SetInlineNonbindingEndMarkers(gpApp->Convert8to16(attrValue));
+			}
+			else
+			{
+				// The rest of the string ones may potentially contain " or > (though unlikely),
+				// so ReplaceEntities() will need to be called
+				ReplaceEntities(attrValue); // most require it, so do it on all
+				if (attrName == xml_s)
+				{
+					gpSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_k)
+				{
+					gpSrcPhrase->m_key = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_t)
+				{
+					gpSrcPhrase->m_targetStr = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_a)
+				{
+					gpSrcPhrase->m_adaption = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_g)
+				{
+					gpSrcPhrase->m_gloss = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_pp)
+				{
+					gpSrcPhrase->m_precPunct = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_fp)
+				{
+					gpSrcPhrase->m_follPunct = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_fop)
+				{
+					gpSrcPhrase->SetFollowingOuterPunct(gpApp->Convert8to16(attrValue)); // BEW 11Oct10
+				}
+				else if (attrName == xml_m)
+				{
+					gpSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
+				}
+				else if (attrName == xml_ft)
+				{
+					gpSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_no)
+				{
+					gpSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_bt)
+				{
+					gpSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+				}
+				else if (attrName == xml_fi)
+				{
+					gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+				}
+				// next 4 for docVersion = 6 support
+				else if (gnDocVersion >= 6 && attrName == xml_lapat)
+				{
+					gpSrcPhrase->m_lastAdaptionsPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_tmpat)
+				{
+					gpSrcPhrase->m_tgtMkrPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_gmpat)
+				{
+					gpSrcPhrase->m_glossMkrPattern = gpApp->Convert8to16(attrValue);
+				}
+				else if (gnDocVersion >= 6 && attrName == xml_pupat)
+				{
+					gpSrcPhrase->m_punctsPattern = gpApp->Convert8to16(attrValue);
+				}
+				else
+				{
+					// unknown attribute
+					// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+					// parse and hence the application, then return FALSE; otherwise return
+					// TRUE to cause the parser to keep going (unknown data then just does not
+					// find its way into the application's internal structures)
+					//return FALSE;
+					return TRUE;
+				}
+			}
+		}
+		return TRUE;
+	}
+	else if (tag == xml_mpcap) // it's an "MP" tag
+	{
+		// potentially versionable
+		if (attrName == xml_mp)
+		{
+			// its a member of a medial puncts wxString list
+			ReplaceEntities(attrValue);
+			if (gpEmbeddedSrcPhrase != NULL)
+			{
+				// impossible - unmerged ones can never have content in this list
 				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
 				// parse and hence the application, then return FALSE; otherwise return
 				// TRUE to cause the parser to keep going (unknown data then just does not
@@ -3996,103 +3895,132 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 				//return FALSE;
 				return TRUE;
 			}
-//			break;
-//		}
-#endif
-//	}
-//	return TRUE; // no error  <<-- unreachable, so I commented it out
+			else
+			{
+				gpSrcPhrase->m_pMedialPuncts->Add(gpApp->Convert8to16(attrValue));
+			}
+			return TRUE;
+		}
+		else
+		{
+			// unknown attribute
+			// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+			// parse and hence the application, then return FALSE; otherwise return
+			// TRUE to cause the parser to keep going (unknown data then just does not
+			// find its way into the application's internal structures)
+			//return FALSE;
+			return TRUE;
+		}
+	}
+	else if (tag == xml_mmcap) // it's an "MM" tag
+	{
+		// potentially versionable
+		if (attrName == xml_mm)
+		{
+			// its a member of a medial markers wxString list
+			if (gpEmbeddedSrcPhrase != NULL)
+			{
+				// impossible - unmerged ones can never have content in this list
+				// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+				// parse and hence the application, then return FALSE; otherwise return
+				// TRUE to cause the parser to keep going (unknown data then just does not
+				// find its way into the application's internal structures)
+				//return FALSE;
+				return TRUE;
+			}
+			else
+			{
+				gpSrcPhrase->m_pMedialMarkers->Add(gpApp->Convert8to16(attrValue));
+			}
+			return TRUE;
+		}
+		else
+		{
+			// unknown attribute
+			// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+			// parse and hence the application, then return FALSE; otherwise return
+			// TRUE to cause the parser to keep going (unknown data then just does not
+			// find its way into the application's internal structures)
+			//return FALSE;
+			return TRUE;
+		}
+	}
+	else
+	{
+		// it's an unknown tag
+		// BEW 24Aug11; if unknowns are to be treated as grounds for aborting the
+		// parse and hence the application, then return FALSE; otherwise return
+		// TRUE to cause the parser to keep going (unknown data then just does not
+		// find its way into the application's internal structures)
+		//return FALSE;
+		return TRUE;
+	}
+
+#endif		// non-UNICODE/UNICODE
+
 }
 
 bool AtDocEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
+// the only one we are interested in is the "</S>" endtag, so we can
+// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
+// or save it as a parent sourcephrase in the doc's m_pSourcePhrases list;
+// and of course the </AdaptItDoc> endtag
+
+	if (tag == xml_scap)
+	{
+		if (gpEmbeddedSrcPhrase != NULL)
+		{
+			// we have just come to the end of one of the original sourcephrase
+			// instances to be stored in the m_pSavedWords member of a merged
+			// sourcephrase which is pointed at by gpSrcPhrase, so add it to the
+			// list & then clear the pointer
+			wxASSERT(gpSrcPhrase);
+			if (gnDocVersion == 4)
+			{
+				FromDocVersion4ToDocVersionCurrent(gpSrcPhrase->m_pSavedWords, 
+									gpEmbeddedSrcPhrase, TRUE, gnDocVersion);
+			}
+			gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
+			gpEmbeddedSrcPhrase = NULL;
+		}
+		else 
+		{
+			// gpEmbeddedSrcPhrase is NULL, so we've been constructing an unmerged
+			// one, so now we can add it to the doc member m_pSourcePhrases and
+			// clear the pointer
+			if (gnDocVersion == 4)
+			{
+				FromDocVersion4ToDocVersionCurrent(gpApp->m_pSourcePhrases,  
+									gpSrcPhrase, FALSE, gnDocVersion);
+			}
+			if (gpSrcPhrase != NULL)
+			{
+				// it can be made NULL if it was an orphan that got deleted,
+				// so we must check and only append ones that persist
+				gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
+			}
+			gpSrcPhrase = NULL;
+		}
+
+	}
+	else if (tag == xml_adaptitdoc)
+	{
+		// we are done
+		if (gnDocVersion == 4)
+		{
+			// try fix bad bad parsings done in doc version 4
+			gpDoc->UpdateSequNumbers(0,NULL); // in case there were orphans deleted
+					// within the TransferEndMarkers() function within the
+					// FromDocVersion4ToDocVersion5() function
+			MurderTheDocV4Orphans(gpApp->m_pSourcePhrases);
+			gpDoc->UpdateSequNumbers(0,NULL); // incase there were orphans deleted
+											  // when Murdering... the little blighters
+		}
+		return TRUE;
+	}
 	
-	// mrh -- This switch on gnDocVersion currently includes ALL cases, so let's not enumerate them and so
-	//			avoid crashes when changing the current docVersion.
-
-//	switch (gnDocVersion) 
-//	{
-//		case 0:
-//		case 1:
-//		case 2:
-//		case 3:
-//		case 4:
-		// case 5: for gnDocVersion = 4 requires, if we are to read version 4 documents
-		// and convert them to version 5, a conversion function which is to be called on
-		// each of gpEmbeddedSrcPhrase and gpSrcPhrase before they are inserted in the
-		// list; the difference is that the contents of m_markers in version 4 is split
-		// between 4 members in version 5, m_endMarkers, m_freeTrans, m_note,
-		// m_collectedBackTrans, and m_filteredInfo
-        // BEW 13Feb12, Added case 6 for docVersion = 6, this will require changes to
-        // functions below, eg FromDocVersion4ToDocVersion5() will need a name change to
-        // FromDocVersion4ToDocVersionCurrent() and also pass in the gnDocVersion value,
-        // and so forth
-//		case 5:
-//		case 6:
-//		case 7:		// mrh 20Apr12 - added docVersion 7
-//		case 8:		// mrh Oct12 - added docVersion 8
-			
-//		default:
-//		{
-			// the only one we are interested in is the "</S>" endtag, so we can
-			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
-			// or save it as a parent sourcephrase in the doc's m_pSourcePhrases list;
-			// and of course the </AdaptItDoc> endtag
-			if (tag == xml_scap)
-			{
-				if (gpEmbeddedSrcPhrase != NULL)
-				{
-                    // we have just come to the end of one of the original sourcephrase
-                    // instances to be stored in the m_pSavedWords member of a merged
-                    // sourcephrase which is pointed at by gpSrcPhrase, so add it to the
-                    // list & then clear the pointer
-					wxASSERT(gpSrcPhrase);
-					if (gnDocVersion == 4)
-					{
-						FromDocVersion4ToDocVersionCurrent(gpSrcPhrase->m_pSavedWords, 
-											gpEmbeddedSrcPhrase, TRUE, gnDocVersion);
-					}
-					gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
-					gpEmbeddedSrcPhrase = NULL;
-				}
-				else 
-				{
-                    // gpEmbeddedSrcPhrase is NULL, so we've been constructing an unmerged
-                    // one, so now we can add it to the doc member m_pSourcePhrases and
-                    // clear the pointer
-					if (gnDocVersion == 4)
-					{
-						FromDocVersion4ToDocVersionCurrent(gpApp->m_pSourcePhrases,  
-											gpSrcPhrase, FALSE, gnDocVersion);
-					}
-					if (gpSrcPhrase != NULL)
-					{
-						// it can be made NULL if it was an orphan that got deleted,
-						// so we must check and only append ones that persist
-						gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
-					}
-					gpSrcPhrase = NULL;
-				}
-
-			}
-			else if (tag == xml_adaptitdoc)
-			{
-				// we are done
-				if (gnDocVersion == 4)
-				{
-					// try fix bad bad parsings done in doc version 4
-					gpDoc->UpdateSequNumbers(0,NULL); // in case there were orphans deleted
-							// within the TransferEndMarkers() function within the
-							// FromDocVersion4ToDocVersion5() function
-					MurderTheDocV4Orphans(gpApp->m_pSourcePhrases);
-					gpDoc->UpdateSequNumbers(0,NULL); // incase there were orphans deleted
-													  // when Murdering... the little blighters
-				}
-				return TRUE;
-			}
-//			break;
-//		}
-	//}
-	return TRUE;
+	return TRUE;		// for all other tags we just return TRUE.
 }
 
 bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata), CStack*& WXUNUSED(pStack))
