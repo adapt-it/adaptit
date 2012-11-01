@@ -5667,10 +5667,10 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 
 	#if defined(_DEBUG)
 	// last verse adaptation loss bug: get the last 200 chars and wxLogDebug them
-	wxString str;
-	int length = text.Len();
-	str = text.Mid(length - 200);
-	wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
+	//wxString str;
+	//int length = text.Len();
+	//str = text.Mid(length - 200);
+	//wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
 	#endif
 	return text;
 }
@@ -5694,10 +5694,10 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 
 	#if defined(_DEBUG)
 	// last verse free trans loss bug: get the last 200 chars and wxLogDebug them
-	wxString str;
-	int length = text.Len();
-	str = text.Mid(length - 200);
-	wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
+	//wxString str;
+	//int length = text.Len();
+	//str = text.Mid(length - 200);
+	//wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
 	#endif
 	return text;
 }
