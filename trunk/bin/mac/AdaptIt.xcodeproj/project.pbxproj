@@ -1203,7 +1203,6 @@
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"-Wno-sign-compare",
-					"-fvisibility-inlines-hidden",
 					"$(OTHER_CFLAGS)",
 				);
 				OTHER_LDFLAGS = (
