@@ -20229,6 +20229,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//result = m_pKbServer[0]->PseudoDeleteEntry(srcText2, tgtText2);
 	result = m_pKbServer[0]->LookupEntryFields(srcText2, tgtText23);
 	result = result;
+	result = m_pKbServer[0]->ChangedSince(_T("2012-09-01"));
+	m_pKbServer[0]->ClearAllPrivateStorageArrays();
+
 	delete m_pKbServer[0];
 #endif
 */

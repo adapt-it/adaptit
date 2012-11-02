@@ -541,13 +541,13 @@ wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
 
 }
 */
-// return the CURLcode value
-// Note: normally before calling LookupEntriesForSourcePhrase() the storage arrays should
-// be cleared with a call of ClearAllPrivateStorageArrays(); we'll leave the caller to
-// decide whether or not to do this; if not done, downloaded entries data is appended to
-// what is already in the arrays
+// return the CURLcode value, downloaded JSON data is extracted and stored in the private
+// arrays for that purpose, and other classes can obtain it using public getters which
+// each return a pointer to a single one of the arrays
 int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 {
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
@@ -613,8 +613,10 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
 	{
-		// Note: normally before calling LookupEntriesForSourcePhrase() the storage arrays
-		// should be cleared with a call of ClearAllPrivateStorageArrays()
+        // Before extracting the substrings from the JSON data, the storage arrays must be
+        // cleared with a call of ClearAllPrivateStorageArrays()
+		ClearAllPrivateStorageArrays(); // always must start off empty
+
 		wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str());
 		wxJSONValue jsonval;
 		wxJSONReader reader;
@@ -648,9 +650,130 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 	return 0;
 }
 
+// return the CURLcode value, downloaded JSON data is extracted and stored in the private
+// arrays for that purpose, and other classes can obtain it using public getters which
+// each return a pointer to a single one of the arrays
 int KbServer::ChangedSince(wxString timeStamp)
 {
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 
+	CURL *curl;
+	CURLcode result;
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString kbType;
+	wxItoa(GetKBServerType(),kbType);
+	wxString container = _T("entry");
+	wxString changedSince = _T("/?changedsince=");
+
+	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() + slash +
+			GetTargetLanguageCode() + slash + kbType + changedSince + timeStamp;
+	charUrl = ToUtf8(aUrl);
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		// We want the download's timestamp, so we must ask for the headers to be added
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+
+		if (result) {
+			str_CURLbuffer.clear(); // always clear it before returning
+			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n",
+				result, curl_easy_strerror(result));
+			curl_easy_cleanup(curl);
+			return (int)result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+
+	//  make the json data accessible (result is CURLE_OK if control gets to here)
+	if (!str_CURLbuffer.empty())
+	{
+        // Extract the timestamp, and remove the headers, leaving only the json data in
+        // str_CURLbuffer, ready for subfield extraction to take place in the loop below
+		str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
+
+		// If eyeball verification of the removal of preceding headers information is
+		// wanted, then uncomment out the three lines in the conditional compile here
+		#if defined (_DEBUG)
+			//CBString ss(str_CURLbuffer.c_str());
+			//wxString sshowit = ToUtf16(ss);
+			//wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
+		#endif
+        // Before extracting the substrings from the JSON data, the storage arrays must be
+        // cleared with a call of ClearAllPrivateStorageArrays()
+		ClearAllPrivateStorageArrays(); // always must start off empty
+
+		wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxJSONValue jsonval;
+		wxJSONReader reader;
+		int numErrors = reader.Parse(myList, &jsonval);
+		if (numErrors > 0)
+		{
+			// a non-localizable message will do, it's unlikely to ever be seen
+			wxMessageBox(_T("ChangedSince(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+				_T("kbserver error"), wxICON_ERROR | wxOK);
+			str_CURLbuffer.clear(); // always clear it before returning
+			return -1;
+		}
+		int listSize = jsonval.Size();
+#if defined (_DEBUG)
+		// get feedback about now many entries we got
+		if (listSize > 0)
+		{
+			wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
+				listSize, timeStamp);
+		}
+		else
+		{
+			wxLogDebug(_T("ChangedSince() did not return any entries, for data added to kbserver since %s"),
+				timeStamp);
+		}
+#endif
+		int index;
+		for (index = 0; index < listSize; index++)
+		{
+            // We can extract id, source phrase, target phrase, deleted flag value,
+            // username, and timestamp string; but for supporting the sync of a local KB we
+            // need only to extract source phrase, target phrase, and the value of the
+            // deleted flag. So the others can be commented out.
+			m_arrSource.Add(jsonval[index][_T("source")].AsString());
+			m_arrTarget.Add(jsonval[index][_T("target")].AsString());
+			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
+			//m_arrID.Add(jsonval[index][_T("id")].AsInt());
+			//m_arrUsername.Add(jsonval[index][_T("user")].AsString());
+			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
+#if defined (_DEBUG)
+			// list what entries were returned
+			wxLogDebug(_T("Downloaded:  %s  ,  %s  ,  deleted = %d"),
+				(m_arrSource[index]).c_str(), (m_arrTarget[index]).c_str(), (m_arrDeleted[index]));
+#endif
+		}
+		str_CURLbuffer.clear(); // always clear it before returning
+	}
 
 	return 0;
 }
@@ -689,6 +812,7 @@ void KbServer::ClearOneStringArray(wxArrayString* pArray)
 // is not in the kbserver database, so use that fact
 int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 {
+
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed

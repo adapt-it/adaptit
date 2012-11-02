@@ -109,6 +109,11 @@ enum FixItAction {
 // and finalAdaptation will in reality contain the old gloss and the final gloss, respectively
 // BEW 29Aug11, added two enums and split into two stucts, the second being a "G" variant
 // for when dealing with glossing KB (in glossing mode) -- also two processing functions
+// Note: oldAdaptation and finalAdaptation are needed so that when autofixing, comparison
+// can be made of these two to see if the user has changed the adaptation during the check;
+// so in DoConsistencyCheck() and DoConsistencyCheckG(), the oldAdaptation member is only
+// set, never used; but it IS used in helper functions such as MatchAutofixItem() and so is
+// NOT redundant & removable from the code
 struct	AutoFixRecord
 {
 	wxString	key;
