@@ -69,31 +69,31 @@
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- extract 3pt libraries -->
-    <exec executable="7za" failonerror="yes">
+    <exec executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/curl/current/curl.7z" />
 	<arg value="-o${3pt}/curl/current/curl" />
 	<arg value="-y" />
     </exec>
-    <exec executable="7za" failonerror="yes">
+    <exec executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/openssl/current/openssl.7z" />
 	<arg value="-o${3pt}/openssl/current/openssl" />
 	<arg value="-y" />
     </exec>
-    <exec executable="7za" failonerror="yes">
+    <exec executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/boost/current/boost.7z" />
 	<arg value="-o${3pt}/boost/current" />
 	<arg value="-y" />
     </exec>
-    <exec executable="7za" failonerror="yes">
+    <exec executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/wxwidgets/current/wxWidgets-2.9.4.7z" />
 	<arg value="-o${3pt}/wxwidgets/current/wxWidgets" />
 	<arg value="-y" />
     </exec>
-    <exec executable="7za" failonerror="yes">
+    <exec executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.7z" />
 	<arg value="-o${3pt}/wxwidgets/2.8.12" />
@@ -137,18 +137,18 @@
   <target name="compile_unicode_release" depends="init"
         description="compile the source " >
     <!-- build wxwidgets for wxwin -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="msbuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Debug" />
 	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
     </exec>
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="msbuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
 	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
     </exec>
     <!-- build Adapt It -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="msbuild.exe" failonerror="yes">
 		<env key="WXVER" value="29"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
@@ -167,13 +167,13 @@
   <target name="compile_debug" depends="init"
         description="compile the source " >
     <!-- build wxwidgets for wxwin -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="msbuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Debug" />
 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
     </exec>
     <!-- build Adapt It -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="msbuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
@@ -192,13 +192,13 @@
   <target name="compile_release" depends="init"
         description="compile the source " >
     <!-- build wxwidgets for wxwin -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="msbuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
     </exec>
     <!-- build Adapt It -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="msbuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
@@ -216,7 +216,7 @@
   -->
   <target name="build_help" depends="init" description="compile the help files" >
     <!-- build the help files -->
-    <exec executable="hhc" failonerror="yes">
+    <exec executable="hhc.exe" failonerror="yes">
 	<arg value="${root}/hlp/Adapt_It.hhp" />
     </exec>
   </target>
