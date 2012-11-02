@@ -10,7 +10,7 @@
   <property name="src" location="..\..\source"/>
   <property name="dist"  location="..\..\AIWX Installers"/>
   <property name="root"  location="..\.." />
-  <property name="3pt"   location="${SVNROOT}\vendor" />
+  <property name="3pt"   location="..\..\..\vendor" />
 
   <!-- 
   - clean target
