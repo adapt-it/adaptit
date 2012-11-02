@@ -14256,6 +14256,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	int nDerivedLength = nTextLength;
 	if (bIsUnstructured)
 	{
+		// BEW changed 1Nov12, a string of words with no CR or LF except at the end,
+		// causes a buffer overrun of the iterator in a call within AddParagraphMarkers(),
+		// so avoid this by Trim(ing off) any CRLF or CR or LF at the end first
+		rBuffer = rBuffer.Trim();
 		AddParagraphMarkers(rBuffer, nDerivedLength);
 		wxASSERT(nDerivedLength >= nTextLength);
 	}
@@ -22192,7 +22196,8 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // IN THE SAME KB (ie. in pKBCopy). Therefore, we maintain
 // pTU, and pRefStr, as pertaining only to the pKBCopy knowledge base instance
 // but pTU_OnOrig, and pRefStr_OnOrig, for pKB's knowledge base instance
-
+// BEW 2Nov12, fixed logic error, I'd failed to set pAutoFixRec->finalAdaptation in many
+// places, resulting in the doc's adaptation getting lost.
 bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB,
 						wxArrayString& arrRemoveNotInKB)
@@ -22746,9 +22751,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						continue;
 					}
 
-					// we've handled all possibilities for <Not In KB> inconsistencies,
-					// the rest below is for adaptation inconsistencies -- whether empty
-					// or not
+// we've handled all possibilities for <Not In KB> inconsistencies, the rest
+// below are for adaptation inconsistencies -- whether empty or not
 
 					/* see the one after this, we prefer the "split adaptation" support, rather than this one
 					// keep this in case we later change our mind...
@@ -22775,6 +22779,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						pAutoFixRec->nWords = nWords;
 						pAutoFixRec->key = key;
 						pAutoFixRec->oldAdaptation = adaption;
+						pAutoFixRec->finalAdaptation = adaption; // initialize to this value
 						pAutoFixRec->incType = inconsistencyType;
 						pAutoFixRec->fixAction = no_GUI_needed; // a default value
 							// until such time as the dialog is shown and the user's
@@ -22824,6 +22829,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						pAutoFixRec->nWords = nWords;
 						pAutoFixRec->key = key;
 						pAutoFixRec->oldAdaptation = adaption;
+						pAutoFixRec->finalAdaptation = adaption; // BEW 2nov12 initialize to this value
 						pAutoFixRec->incType = inconsistencyType;
 						pAutoFixRec->fixAction = no_GUI_needed; // a default value
 							// until such time as the dialog is shown and the user's
@@ -22853,6 +22859,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						pAutoFixRec->nWords = nWords;
 						pAutoFixRec->key = key;
 						pAutoFixRec->oldAdaptation = adaption;
+						pAutoFixRec->finalAdaptation = adaption; // BEW 2nov12 initialize to this value
 						pAutoFixRec->incType = inconsistencyType;
 						pAutoFixRec->fixAction = no_GUI_needed; // a default value
 							// until such time as the dialog is shown and the user's
@@ -22876,6 +22883,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						pAutoFixRec->nWords = nWords;
 						pAutoFixRec->key = key;
 						pAutoFixRec->oldAdaptation = adaption;
+						pAutoFixRec->finalAdaptation = adaption; // BEW 2nov12 initialize to this value
 						pAutoFixRec->fixAction = no_GUI_needed; // a default value
 							// until such time as the dialog is shown and the user's
 							// fixit choice becomes known & replaces this value
@@ -22899,6 +22907,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							//button
 							inconsistencyType = member_empty_flag_on_noPTU;
 							pAutoFixRec->incType = inconsistencyType;
+							pAutoFixRec->finalAdaptation.Empty(); // BEW added 2Nov12
+
 #ifdef CONSCHK
 							wxLogDebug(_T("6. for DLG  member_empty_flag_on_noPTU (3 choices)  at sn = %d , m_key:  %s   m_adaption:  %s"),
 								pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str());
@@ -22931,6 +22941,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 #endif
 							inconsistencyType = member_exists_flag_on_noPTU;
 							pAutoFixRec->incType = inconsistencyType;
+							pAutoFixRec->oldAdaptation = adaption; // BEW 2Nov12
+							pAutoFixRec->finalAdaptation = pSrcPhrase->m_adaption; // BEW added 2Nov12
 
 							// the dialog for this one is conschk_exists_notu_dlg
 							// which has wxDesigner func, ConsistencyCheck_ExistsNoTU_DlgFunc()
@@ -22949,6 +22961,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 #endif
 							inconsistencyType = member_exists_flag_off_noPTU;
 							pAutoFixRec->incType = inconsistencyType;
+							pAutoFixRec->oldAdaptation = adaption; // BEW added 2Nov12
+							pAutoFixRec->finalAdaptation = adaption; // BEW added 2Nov12
 						}
 					} // end of TRUE block for test: else if (pTU == NULL)
 
@@ -23306,6 +23320,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_adaption;
+						pAutoFixRec->oldAdaptation = pSrcPhrase->m_adaption;; // BEW added 2Nov12
 						bool bShowItCentered = TRUE;
 						ConsChk_Empty_noTU_Dlg dlg(
 							(wxWindow*)gpApp->GetMainFrame(),
@@ -23457,6 +23472,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_adaption;
+						pAutoFixRec->oldAdaptation = pSrcPhrase->m_adaption;; // BEW added 2Nov12
 						bool bShowItCentered = TRUE;
 						conschk_exists_notu_dlg dlg(
 						(wxWindow*)gpApp->GetMainFrame(),
@@ -23563,7 +23579,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						dlg.m_pApp = pApp;
 						dlg.m_pKBCopy = pKBCopy;
 						dlg.m_pTgtUnit = pTU; // could be null
-						dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
+						pAutoFixRec->oldAdaptation = pSrcPhrase->m_adaption;; // BEW added 2Nov12
+						dlg.m_finalAdaptation = adaption; // initialize final chosen adaptation or gloss
 						dlg.m_pSrcPhrase = pSrcPhrase;
 						// get the chapter and verse
 						wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
@@ -23704,6 +23721,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_adaption;
+						pAutoFixRec->oldAdaptation = pSrcPhrase->m_adaption;; // BEW added 2Nov12
 						bool bShowItCentered = TRUE;
 						conschk_exists_notu_dlg dlg(
 						(wxWindow*)gpApp->GetMainFrame(),
