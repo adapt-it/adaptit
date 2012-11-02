@@ -22829,7 +22829,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						pAutoFixRec->nWords = nWords;
 						pAutoFixRec->key = key;
 						pAutoFixRec->oldAdaptation = adaption;
-						pAutoFixRec->finalAdaptation = adaption; // BEW 2nov12 initialize to this value
+						pAutoFixRec->finalAdaptation = adaption; // BEW 2Nov12 initialize to this value
 						pAutoFixRec->incType = inconsistencyType;
 						pAutoFixRec->fixAction = no_GUI_needed; // a default value
 							// until such time as the dialog is shown and the user's
@@ -23943,6 +23943,8 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 // Returns TRUE if process runs to completion, FALSE if the user clicks the Cancel button
 // in any dialog which is shown - the FALSE is then passed back to the caller,
 // OnEditConsistencyCheck() to cause the whole process to be cancelled
+// BEW 2Nov12, fixed a bug in which adaptations got lost if the corrected entry was
+// created with AutoCaps off but the check was later done with AutoCaps on
 bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 									   AFGList& afgList, int& nCumulativeTotal)
 {
@@ -24176,8 +24178,9 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					pAutoFixGRec->nWords = nWords;
 					pAutoFixGRec->key = key;
 					pAutoFixGRec->oldGloss = gloss;
-					pAutoFixRec->incType = inconsistencyType;
-					pAutoFixRec->fixAction = no_GUI_needed; // a default value
+					pAutoFixGRec->finalGloss = gloss; // BEW 2Nov12, initialize to this value
+					pAutoFixGRec->incType = inconsistencyType;
+					pAutoFixGRec->fixAction = no_GUI_needed; // a default value
 						// until such time as the dialog is shown and the user's
 						// fixit choice becomes known & replaces this value
 
@@ -24220,6 +24223,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					pAutoFixGRec->nWords = nWords;
 					pAutoFixGRec->key = key;
 					pAutoFixGRec->oldGloss = gloss;
+					pAutoFixGRec->finalGloss = gloss; // BEW 2Nov12 initialize to this value
 					pAutoFixGRec->incType = inconsistencyType;
 					pAutoFixGRec->fixAction = no_GUI_needed; // a default value
 						// until such time as the dialog is shown and the user's
@@ -24244,6 +24248,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					pAutoFixGRec->nWords = nWords;
 					pAutoFixGRec->key = key;
 					pAutoFixGRec->oldGloss = gloss;
+					pAutoFixGRec->finalGloss = gloss; // BEW 2Nov12 initialize to this value
 					pAutoFixGRec->incType = inconsistencyType;
 					pAutoFixGRec->fixAction = no_GUI_needed; // a default value
 						// until such time as the dialog is shown and the user's
@@ -24291,6 +24296,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						pAutoFixGRec->nWords = nWords;
 						pAutoFixGRec->key = key;
 						pAutoFixGRec->oldGloss = gloss;
+						pAutoFixGRec->finalGloss = gloss; // BEW 2Nov12 initialize to this value
 						pAutoFixGRec->incType = inconsistencyType;
 						pAutoFixGRec->fixAction = no_GUI_needed; // a default value
 						// until such time as the dialog is shown and the user's
@@ -24463,6 +24469,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						wxString titleStr = _("Inconsistency Found");
 						wxString aSrcStr = pSrcPhrase->m_key;
 						wxString aTgtStr = pSrcPhrase->m_gloss;
+						pAutoFixGRec->oldGloss = pSrcPhrase->m_gloss; // BEW 2Nov12 initialize to this value
 						bool bShowItCentered = TRUE;
 						ConsChk_Empty_noTU_Dlg dlg(
 							(wxWindow*)gpApp->GetMainFrame(),
@@ -24569,7 +24576,8 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 						dlg.m_pApp = pApp;
 						dlg.m_pKBCopy = pKBCopy;
 						dlg.m_pTgtUnit = pTU; // could be null
-						dlg.m_finalAdaptation.Empty(); // initialize final chosen adaptation or gloss
+						dlg.m_finalAdaptation = pSrcPhrase->m_gloss; // initialize final chosen adaptation or gloss
+						pAutoFixGRec->oldGloss = pSrcPhrase->m_gloss; // BEW 2Nov12 initialize to this value
 						dlg.m_pSrcPhrase = pSrcPhrase;
 						// get the chapter and verse
 						wxString chVerse = pApp->GetView()->GetChapterAndVerse(pSrcPhrase);
