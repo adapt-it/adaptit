@@ -6463,7 +6463,7 @@ void CAdapt_ItView::OnUpdateFilePrint(wxUpdateUIEvent& event)
 		return;
 	}
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
+	event.Enable(pApp->IsDocumentOpen());
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -6484,7 +6484,7 @@ void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 		return;
 	}
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
+	event.Enable(pApp->IsDocumentOpen());
 }
 
 // Modified by whm 14Feb05 to support USFM and SFM Filtering.

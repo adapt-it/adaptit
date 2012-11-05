@@ -36001,6 +36001,31 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     true if there is a document open
+/// \param      none
+/// \remarks
+/// Helper method that returns whether a document is currently open.
+////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::IsDocumentOpen()
+{
+	// if there isn't a layout defined, there's no document open
+	if (m_pLayout == NULL)
+	{
+		return false;
+	}
+	// If the layout has at least one strip, there's a document open
+	if (m_pLayout->GetStripArray()->GetCount() > 0)
+	{
+		// aome content in the strip array --> document is open
+		return true;
+	}
+	else
+	{
+		// no document open
+		return false;
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -36025,7 +36050,7 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 		pKB = gpApp->m_pGlossingKB;
 	else
 		pKB = gpApp->m_pKB;
-	if (pKB != NULL && m_pLayout->GetStripArray()->GetCount() > 0)
+	if (pKB != NULL && IsDocumentOpen())
 	{
 		// doc is open, so close it first
 		pDoc->OnFileClose(event); // my version, which does not call OnCloseDocument
@@ -36121,8 +36146,7 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 		pKB = gpApp->m_pGlossingKB;
 	else
 		pKB = gpApp->m_pKB;
-	//if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
-	if (pKB != NULL && m_pLayout->GetStripArray()->GetCount() > 0)
+	if (pKB != NULL && IsDocumentOpen())
 	{
 		// doc is open, so close it first
 		pDoc->OnFileClose(event); // my version, which does not call OnCloseDocument
