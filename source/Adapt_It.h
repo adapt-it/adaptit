@@ -3571,6 +3571,8 @@ protected:
 #endif
 
 public:
+	bool IsDocumentOpen();	// edb 5Nov12 helper method to determine whether a document is currently open
+
 // EDB 08June2012 Image processing
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
 inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {

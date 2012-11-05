@@ -3749,7 +3749,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
     // // BEW 24Aug11, changed to allow the multi-doc choice with document still open
     bool bThisDocOnly = FALSE; // assume multi-doc as default choice, & this is the
 							   // only option available if no doc is currently open
-	if (m_pLayout->GetStripArray()->GetCount() > 0)
+	if (m_pApp->IsDocumentOpen())
 	{
 		// a doc is open, so when that is the case, there is an option for getting a
 		// report of just the open one, or the default multi-doc choice; ask user which
@@ -3856,7 +3856,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// navigation protection mode - in particular when they are used
 	// in collaboration (i.e., have a _Collab prefix). The _Collab
 	// prefix is changed to _Retrans_Report.
-	if (m_pLayout->GetStripArray()->GetCount() > 0)
+	if (m_pApp->IsDocumentOpen())
 	{
 		// a document is currently open
 		wxASSERT(pDoc != NULL);
