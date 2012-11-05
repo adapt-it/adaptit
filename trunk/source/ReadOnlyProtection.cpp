@@ -162,12 +162,14 @@ wxString ReadOnlyProtection::GetLocalMachinename()
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::GetLocalProcessID()
 {
-	unsigned long pid = ::wxGetProcessId();
+    wxString        pidValueStr;
+	unsigned long   pid = ::wxGetProcessId();
+
 	if (pid == 0)
 	{
 		pid = 0xFFFF;
 	}
-	wxString pidValueStr = wxString::Format(_T("%i"),pid);
+    pidValueStr << pid;
 	return pidValueStr;
 }
 
