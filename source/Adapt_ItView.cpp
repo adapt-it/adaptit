@@ -10776,11 +10776,6 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		Invalidate();
 		GetLayout()->PlaceBox();
 	}
-	// restore flag (and button)
-	if (bSaveFlag == FALSE)
-	{
-		OnToggleRespectBoundary(dummyevent);
-	}
 
 	// need a CClientDC
 	wxClientDC aDC(pApp->GetMainFrame()->canvas);
@@ -10995,12 +10990,6 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		RemoveSelection();
 		Invalidate();
 		GetLayout()->PlaceBox();
-	}
-	// restore flag (and button)
-	if (bSaveFlag == FALSE)
-	{
-		//TODO: looks like we _don't_ want to toggle to TRUE?
-		//OnToggleRespectBoundary(dummyevent); //OnButtonFromRespectingBdryToIgnoringBdry(dummyevent);
 	}
 
 	// need a CClientDC
