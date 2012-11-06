@@ -4953,6 +4953,10 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	int i;
 	bool bDontDoIt; // BEW added 20Apr12, see further below for comments
 	bDontDoIt = m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit;
+	// add some progress to the KB restore
+	CStatusBar *pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("DoKBRestore"), _("Restoring KB"), nCount);
 	for (i=0; i < nCount; i++)
 	{
 		wxString newName = pList->Item(i);
@@ -4975,6 +4979,10 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 		wxString docStr;
 		docStr = docStr.Format(_T("\n   %s:"),newName.c_str());
 		errors.Add(docStr);
+
+		wxString msgDisplayed;
+		msgDisplayed = msgDisplayed.Format(_("Restoring KB for File: %s (%d of %d)"), newName.c_str(), (i + 1), nCount);
+		pStatusBar->UpdateProgress(_("DoKBRestore"), i, msgDisplayed);
 
 		// whm 26Aug11 modified. If the just-opened doc has no source phrases, there
 		// is not point in processing the m_pSourcePhrases, so just continue to the
@@ -5058,6 +5066,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 			m_pApp->LogUserAction(_T("Warning: something went wrong doing a save of the KB"));
 		}
 	}
+	pStatusBar->FinishProgress(_("DoKBRestore"));
 
 	// BEW 20Apr12, added !bDontDoIt -- see comment above for why
 	if (bAnyDocChanged && !bDontDoIt)
