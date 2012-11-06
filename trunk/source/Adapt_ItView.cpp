@@ -14955,7 +14955,7 @@ void CAdapt_ItView::OnUpdateGoTo(wxUpdateUIEvent& event)
 		return;
 	}
 	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL &&
-		GetLayout()->GetStripArray()->GetCount() > 0)
+		pApp->IsDocumentOpen())
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
