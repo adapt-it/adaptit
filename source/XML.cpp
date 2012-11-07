@@ -3096,8 +3096,9 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 	// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
 
 		else if (gnDocVersion >= 8 && attrName == xml_activeSequNum)
+		{
 			gpApp->m_nActiveSequNum = atoi(attrValue);
-
+		}
 		else if (attrName == xml_specialcolor)
 		{
 			num = atoi(attrValue);

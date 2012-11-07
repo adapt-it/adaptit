@@ -652,7 +652,21 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 
 // return the CURLcode value, downloaded JSON data is extracted and stored in the private
 // arrays for that purpose, and other classes can obtain it using public getters which
-// each return a pointer to a single one of the arrays
+// each return a pointer to a single one of the arrays.
+// 
+// If the data download succeeds, the 'last sync' timestamp is extracted from the headers
+// information and stored in the private member variable: m_kbServerLastTimestampReceived
+// If there is a subsequent error - such as the JSON data extraction failing, then -1 is
+// returned and the timestamp value in m_kbServerLastTimestampReceived should be
+// disregarded -- because we only transfer the timestamp from there to the private member
+// variable: m_kbServerLastSync, if there was no error (ie. returned code was 0). If 0 is
+// returned then in the caller we should merge the data into the local KB, and use the
+// public member function UpdateLastSyncTimestamp() to move the timestamp from
+// m_kbServerLastTimestampReceived into m_kbServerLastSync; and then use the public member
+// function ExportLastSyncTimestamp() to export that m_kbServerLastSync value to persistent
+// storage. (Of course, the next successful ChangedSince() call will update what is stored
+// in persistent storage; and the timeStamp value used for that call is whatever is
+// currently within the variable m_kbServerLastSync).
 int KbServer::ChangedSince(wxString timeStamp)
 {
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data

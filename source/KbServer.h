@@ -86,9 +86,9 @@ public:
 
 
 	wxString  ImportLastSyncTimestamp(); // imports the datetime ascii string literal
-									   // in lastsync.txt file & returns it as wxString
-	bool	  ExportLastSyncTimestamp(); // exports it, temporarily, to lastsync.txt file
-									   // as an ascii string literal
+									     // in lastsync.txt file & returns it as wxString
+	bool	  ExportLastSyncTimestamp(); // exports it to lastsync.txt file
+									     // as an ascii string literal
 	// accessors for the private arrays
 	wxArrayInt*		GetIDsArray();
 	wxArrayInt*		GetDeletedArray();

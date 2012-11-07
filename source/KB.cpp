@@ -945,6 +945,78 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 	return FALSE; // did not find a match
 }
 
+#if defined (_KBSERVER)
+
+// Populate either a CTargetUnit instance in the local KB with anything new in the
+// download, or many CTargetUnit instances arising from a timestamp-based download -
+// either of the whole KB, or of those entries newly added subsequent to a stored 
+// timestamp value												  
+void CKB::StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whichEntries)
+{
+	if (pKbServer == NULL)
+	{
+		wxString msg;
+		msg = msg.Format(_T("StoreEntriesFromKbServer() with enum value %d, NULL passed in for pKbServer pointer.\n(Downloaded entries will not be stored in the local KB."),
+			(int)whichEntries);
+		wxMessageBox(msg,_T("Error - but program will continue"), wxICON_EXCLAMATION | wxOK);
+		return;
+	}
+	// we need only the source, target, and deleted flag's arrays - get them
+	wxArrayInt* pDeletedFlagArray = pKbServer->GetDeletedArray();
+	wxArrayString* pKeyArray = pKbServer->GetSourceArray();
+	wxArrayString* pTgtArray = pKbServer->GetTargetArray();
+	// get the size of any of the above arrays - that's our loop bound
+	size_t size = pKeyArray->GetCount();
+	size_t index;
+	switch(whichEntries)
+	{
+	case forOneCTargetUnit:
+
+// *** TODO *** -- call a handler function here
+
+		break;
+	default:
+	case mixedEntries:
+
+// *** TODO *** call a handler function here
+
+		break;
+	}
+	pKbServer->ClearAllPrivateStorageArrays();
+}
+
+// App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is
+// associated with m_pGlossingKB. Each CKB has a m_bGlossingKB member, FALSE for an
+// adapting CKB, TRUE for a glossing CKB. The latter is used for returning whichever
+// of m_pKbServer[0] or [1] is to be associated with the current CKB instance.
+// Return NULL if, for any reason, a pointer to the appropriate instantiated KbServer
+// instance cannot be obtained
+KbServer* CKB::GetMyKbServer()
+{
+	KbServer* pMyKbSvr = NULL;
+	if (m_pApp->m_bIsKBServerProject)
+	{
+		if (this->m_bGlossingKB)
+		{
+			// it's a a glossing KB
+			if (m_pApp->GetKbServer(2) != NULL)
+			{
+				return m_pApp->GetKbServer(2);
+			}
+		}
+		else
+		{
+			// it's an adapting KB
+			if (m_pApp->GetKbServer(1) != NULL)
+			{
+				return m_pApp->GetKbServer(1);
+			}
+		}
+	}
+	return pMyKbSvr;
+}
+#endif // for _KBSERVER
+
 // BEWw added 29Aug11: overloaded version below, for use when Consistency Check
 // is being done (return pTU, pRefStr, m_bDeleted flag value by ref)
 // Return in the last 3 variables NULL, NULL, and FALSE is no CTargetUnit matched, or no

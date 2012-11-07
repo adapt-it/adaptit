@@ -22330,6 +22330,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
 			key = pSrcPhrase->m_key;
+/*#if defined(_DEBUG)
+			wxString strIStap = _T("i stap");
+			if (key == strIStap)
+			{
+				int i = 1;
+			}
+#endif*/
 			adaption = pSrcPhrase->m_adaption; // could be an empty string
 			pos1 = pos1->GetNext();
 			counter++;
@@ -22399,7 +22406,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			// typically means giving "deleted" status to the CRefString storing the
 			// <Not In KB> string, and undeleting the CRefString (if present) of the adaptation
 			// corresponding to the source text word. To do these jobs, we have to collect
-			// entries where there are, for locations in the docs), non-deleted and
+			// entries where there are, for locations in the docs, non-deleted and
 			// deleted <Not In KB> entries in the KB, and store these source text words in
 			// separate arrays which must persist for the whole Consistency Check.
 			// Since we will know whether a pTU exists for this pSrcPhrase, we will use
@@ -22410,9 +22417,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			{
 				if (pTU->IsItNotInKB() && pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bHasKBEntry)
 				{
-					// we can't collect what might be inconsistencies, so the two boolean
-					// flags have to be included in the test so that we know were are
-					// collecting from a location in the doc where there is no inconsistency
+                    // we can't collect what might be inconsistencies, so the two boolean
+                    // flags, pSrcPhrase->m_bNotInKB and pSrcPhrase->m_bHasKBEntry, have to
+                    // be included in the test so that we know we are collecting from a
+                    // location in the doc where there is no inconsistency
 #ifdef CONSCHK
 					int beforeCount = arrSetNotInKB.GetCount();
 #endif
@@ -22436,7 +22444,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 				if (pTU->IsDeletedNotInKB() && !pSrcPhrase->m_bNotInKB && pSrcPhrase->m_bHasKBEntry)
 				{
 					// we can't collect what might be inconsistencies, so the two boolean
-					// flags have to be included in the test so that we know were are
+					// flags have to be included in the above test so that we know were are
 					// collecting from a location in the doc where there is no inconsistency
 #ifdef CONSCHK
 					int beforeCount = arrSetNotInKB.GetCount();
@@ -22518,14 +22526,18 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			}
 			if (bUnmakeNotInKB)
 			{
-				// found a valid 'deleted' one, so we ensure this location has a valid
-				// normal entry; we need param TRUE if we do the StoreText() call because
-				// this m_adaption value could be empty. Here it is NOT appropriate to do
-				// a store if m_adaption is empty and m_bHasKBEntry is FALSE, as "holes"
-				// should not have storage in the KB done before the phrase box has been there.
-				if (!pSrcPhrase->m_adaption.IsEmpty() || pSrcPhrase->m_bHasKBEntry)
+                // Found a valid 'deleted' one, so we ensure this location has a valid
+                // normal entry; we need param TRUE if we do the StoreText() call because
+                // this m_adaption value could be empty. Here it is NOT appropriate to do a
+                // store if m_adaption is empty and m_bHasKBEntry is FALSE, as "holes"
+                // should not have storage in the KB done before the phrase box has been
+                // there. BEW 6Nov12, removed test for non-empty m_adaption here, because
+                // this fix needs to be done whether it's empty or not, provided
+                // m_bNotInKB is TRUE
+				if (pSrcPhrase->m_bNotInKB)
 				{
-					// can give it a try, provided there is a pTU instance in the KB copy for here
+					// Try to undelete it, provided there is a pTU instance in the KB copy
+					// for here
 					if (pTU != NULL)
 					{
 						// assume that when pTU is not NULL, so too will be pTU_OnOrig
