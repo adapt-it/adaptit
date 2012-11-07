@@ -653,7 +653,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 // return the CURLcode value, downloaded JSON data is extracted and stored in the private
 // arrays for that purpose, and other classes can obtain it using public getters which
 // each return a pointer to a single one of the arrays.
-// 
+//
 // If the data download succeeds, the 'last sync' timestamp is extracted from the headers
 // information and stored in the private member variable: m_kbServerLastTimestampReceived
 // If there is a subsequent error - such as the JSON data extraction failing, then -1 is
@@ -759,12 +759,12 @@ int KbServer::ChangedSince(wxString timeStamp)
 		if (listSize > 0)
 		{
 			wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
-				listSize, timeStamp);
+				listSize, timeStamp.c_str());
 		}
 		else
 		{
 			wxLogDebug(_T("ChangedSince() did not return any entries, for data added to kbserver since %s"),
-				timeStamp);
+				timeStamp.c_str());
 		}
 #endif
 		int index;
