@@ -109,16 +109,16 @@
   - compile_Unicode_Debug target
   - Compiles AI in Unicode Debug mode.
   -->
-  <target name="compile_unicode_debug" depends="init"
-        description="compile the source " >
+  <target name="compile_unicode_debug" depends="init" description="compile the source " >
+	<property environment="env"/>
     <!-- build wxwidgets for wxwin -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Debug" />
 	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
     </exec>
     <!-- build Adapt It -->
-    <exec executable="msbuild" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="29"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
@@ -136,19 +136,20 @@
   -->
   <target name="compile_unicode_release" depends="init"
         description="compile the source " >
+	<property environment="env"/>
     <!-- build wxwidgets for wxwin -->
-    <exec executable="msbuild.exe" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Debug" />
 	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
     </exec>
-    <exec executable="msbuild.exe" failonerror="yes">
+    <exec executable="c:\WINDOWS\Microsoft.NET\Framework\v3.5\msbuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
 	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
     </exec>
     <!-- build Adapt It -->
-    <exec executable="msbuild.exe" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="29"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
@@ -166,14 +167,15 @@
   -->
   <target name="compile_debug" depends="init"
         description="compile the source " >
+	<property environment="env"/>
     <!-- build wxwidgets for wxwin -->
-    <exec executable="msbuild.exe" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Debug" />
 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
     </exec>
     <!-- build Adapt It -->
-    <exec executable="msbuild.exe" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
@@ -191,14 +193,15 @@
   -->
   <target name="compile_release" depends="init"
         description="compile the source " >
+	<property environment="env"/>
     <!-- build wxwidgets for wxwin -->
-    <exec executable="msbuild.exe" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
     </exec>
     <!-- build Adapt It -->
-    <exec executable="msbuild.exe" failonerror="yes">
+    <exec executable="${env.DotNetFramework3.5_x86_Path}/MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
