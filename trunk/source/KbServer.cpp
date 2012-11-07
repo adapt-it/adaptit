@@ -54,7 +54,9 @@ using namespace std;
 #include "jsonval.h"
 
 extern bool		gbIsGlossing;
-static int		totalBytesSent = 0;
+// whm 7Nov12 removed the static int below since it is never used and
+// generates the "defined but not used" warning from gcc
+//static int		totalBytesSent = 0;
 
 // A Note on the placement of SetupForKBServer(), and the protective wrapping boolean
 // m_bIsKBServerProject, defaulting to FALSE initially and then possibly set to TRUE by
