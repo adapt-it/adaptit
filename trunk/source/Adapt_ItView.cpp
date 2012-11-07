@@ -10767,8 +10767,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		return TRUE; // don't want message about boundaries
 
 	//// remove an existing selection if it was not done using the arrow key, save
-	//// m_bRespectBoundaries across this operation
-	//bool bSaveFlag = pApp->m_bRespectBoundaries;
+	// m_bRespectBoundaries across this operation
+	bool bSaveFlag = pApp->m_bRespectBoundaries;
+	bSaveFlag = bSaveFlag; // avoid compiler warning
 
 	if (pApp->m_selection.GetCount() > 0 && !pApp->m_bSelectByArrowKey)
 	{
@@ -10971,7 +10972,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 }
 
 // return TRUE if the selection extended, FALSE if not (would be false only if at a
-// boundary) this function works with selections on the 2nd line only; m_pAnchor is alway
+// boundary) this function works with selections on the 2nd line only; m_pAnchor is always
 // the pile at which the phraseBox currently is
 bool CAdapt_ItView::ExtendSelectionLeft()
 {
@@ -10983,8 +10984,10 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		return TRUE; // don't want message about boundaries
 
 	//// remove an existing selection if it was not done using the arrow key, save
-	//// m_bRespectBoundaries across this operation
-	//bool bSaveFlag = pApp->m_bRespectBoundaries;
+	// m_bRespectBoundaries across this operation
+	bool bSaveFlag = pApp->m_bRespectBoundaries;
+
+	bSaveFlag = bSaveFlag; // avoid compiler warning
 	if (pApp->m_selection.GetCount() > 0 && !pApp->m_bSelectByArrowKey)
 	{
 		RemoveSelection();

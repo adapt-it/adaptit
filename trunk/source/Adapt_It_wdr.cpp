@@ -8249,9 +8249,9 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE_AORG, _("Type %s:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_TYPED_AORG, wxT(""), wxDefaultPosition, wxSize(80,24), 0 );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_TYPED_AORG, wxT(""), wxDefaultPosition, wxSize(80,30), 0 );
     item13->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
-    item11->Add( item13, 1, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( item13, 1, wxALIGN_CENTER|wxALL, 0 );
 
     item6->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxTOP|wxBOTTOM, 0 );
 
@@ -8260,7 +8260,7 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Note: the Cancel button cancels the whole consistency check operation, not just the current dialog"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
+    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
