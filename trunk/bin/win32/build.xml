@@ -9,9 +9,11 @@
   <property environment="env"/>
   
   <!-- uncomment for local builds -->
-  <!-- <property name="netdir" location="${env.DotNetFramework3.5_x86_Path}"/> -->
+	<!-- <property name="netdir" location="${env.DotNetFramework3.5_x86_Path}"/> -->
   <!-- uncomment for teamcity -->
-  <property name="netdir" location="${DotNetFramework3.5_x86_Path}"/>
+	<property file="${TEAMCITY_BUILD_PROPERTIES_FILE}" />
+	<property name="netdir" location="${DotNetFramework3.5_x86_Path}"/>
+  <!-- end comment / uncomment block -->
 
   <!-- other directories -->
   <property name="SVNROOT" location="..\..\.."/>
