@@ -10766,9 +10766,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	if (gbShowTargetOnly)
 		return TRUE; // don't want message about boundaries
 
-	// remove an existing selection if it was not done using the arrow key, save
-	// m_bRespectBoundaries across this operation
-	bool bSaveFlag = pApp->m_bRespectBoundaries;
+	//// remove an existing selection if it was not done using the arrow key, save
+	//// m_bRespectBoundaries across this operation
+	//bool bSaveFlag = pApp->m_bRespectBoundaries;
 
 	if (pApp->m_selection.GetCount() > 0 && !pApp->m_bSelectByArrowKey)
 	{
@@ -10982,9 +10982,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	if (gbShowTargetOnly)
 		return TRUE; // don't want message about boundaries
 
-	// remove an existing selection if it was not done using the arrow key, save
-	// m_bRespectBoundaries across this operation
-	bool bSaveFlag = pApp->m_bRespectBoundaries;
+	//// remove an existing selection if it was not done using the arrow key, save
+	//// m_bRespectBoundaries across this operation
+	//bool bSaveFlag = pApp->m_bRespectBoundaries;
 	if (pApp->m_selection.GetCount() > 0 && !pApp->m_bSelectByArrowKey)
 	{
 		RemoveSelection();
