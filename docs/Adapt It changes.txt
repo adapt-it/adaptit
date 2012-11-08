@@ -1,5 +1,16 @@
 ----------------------------------------------
-Bug fixes in 6.3.2
+Version 6.4.0 release 30 November 2012
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.4.0
+----------------------------------------------
+* The Tool bar now uses a new set of scalable images that are 
+more flexible and aesthetic. The basic functions of the tool bar
+remain the same. These changes are in preparation for providing
+user selectable sets of dockable tool bar buttons in a future
+version of Adapt It.
+----------------------------------------------
+Bug fixes in 6.4.0
 ----------------------------------------------
 * Fixed failures of the Import Edited Source Text feature in a
 variety of unusual circumstances - such as, for example, when
