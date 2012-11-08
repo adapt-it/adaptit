@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--
+	 Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file.
+	 Instead, use NotePad or WordPad. -->
+<KB kbVersion="3" srcName="TPI" tgtName="Eng" srcCode="tpi" tgtCode="en" max="5" glossingKB="0">
+	<MAP mn="1">
+    <TU f="0" k="-">
+      <RS n="1" a="-" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="...">
+      <RS n="2" a="who" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="1">
+      <RS n="1" a="1" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="1JN">
+      <RS n="1" a="1JN" df="0"
+      cDT="2012-11-06T06:44:28Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="2:12">
+      <RS n="1" a="2:12" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="2:14">
+      <RS n="1" a="2:14" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="God">
+      <RS n="1" a="God" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="John">
+      <RS n="1" a="John" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="Krais">
+      <RS n="1" a="Christ" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="Pisin">
+      <RS n="1" a="Pisin" df="1"
+      cDT="2012-11-05T04:07:01Z" wC="bwaters:BWATERS-XPS"
+      dDT="2012-11-05T04:09:30Z"/>
+      <RS n="1" a="NeoMelanesian Pidgin" df="1"
+      cDT="2012-11-05T04:07:57Z" wC="bwaters:BWATERS-XPS"
+      dDT="2012-11-05T04:09:46Z"/>
+      <RS n="1" a="Pidgin English" df="1"
+      cDT="2012-11-05T04:08:15Z" wC="bwaters:BWATERS-XPS"
+      dDT="2012-11-05T04:09:46Z"/>
+      <RS n="1" a="&lt;Not In KB&gt;" df="0"
+      cDT="2012-11-05T04:09:46Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="Tok">
+      <RS n="1" a="Tok" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="bilong">
+      <RS n="1" a="of" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="chapter">
+      <RS n="1" a="chapter" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="dispela">
+      <RS n="6" a="this" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+      <RS n="1" a="" df="0"
+      cDT="2012-11-05T05:50:23Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="fragment">
+      <RS n="1" a="fragment" df="0"
+      cDT="2012-11-05T04:09:54Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="long">
+      <RS n="1" a="in the" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+      <RS n="1" a="about" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="man">
+      <RS n="1" a="man" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="mi">
+      <RS n="5" a="I" df="1"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"
+      dDT="2012-11-06T02:01:17Z"/>
+      <RS n="1" a="&lt;Not In KB&gt;" df="0"
+      cDT="2012-11-06T02:01:17Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="na">
+      <RS n="4" a="and" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="nem">
+      <RS n="1" a="name" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="strong">
+      <RS n="1" a="strong" df="0"
+      cDT="2012-11-06T02:01:14Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="tok">
+      <RS n="6" a="message" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="yet">
+      <RS n="2" a="still" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+	</MAP>
+	<MAP mn="2">
+    <TU f="0" k="Olsem na">
+      <RS n="6" a="Therefore" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="bipo tru">
+      <RS n="2" a="long ago" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="i stap">
+      <RS n="2" a="existed" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+      <RS n="2" a="is living" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+      <RS n="1" a="remains" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+      <RS n="1" a="&lt;Not In KB&gt;" df="1"
+      cDT="2012-11-06T06:44:13Z" wC="bwaters:BWATERS-XPS"
+      dDT="2012-11-06T06:44:13Z"/>
+    </TU>
+    <TU f="0" k="insait long">
+      <RS n="1" a="within" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="long Papa">
+      <RS n="1" a="about the Father" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="long yupela">
+      <RS n="6" a="to you" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+	</MAP>
+	<MAP mn="3">
+    <TU f="0" k="Yupela ol papa">
+      <RS n="2" a="Fathers" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="Yupela ol pikinini">
+      <RS n="1" a="Children" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="Yupela yangpela man">
+      <RS n="2" a="Young men" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="i gat strong">
+      <RS n="1" a="are strong" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="i lusim pinis">
+      <RS n="1" a="has removed" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="i save gut">
+      <RS n="3" a="know much" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="long dispela man">
+      <RS n="1" a="about this man" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="tok bilong God">
+      <RS n="1" a="the word of God" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+	</MAP>
+	<MAP mn="4">
+    <TU f="0" k="i winim Satan pinis">
+      <RS n="2" a="have defeated Satan" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+    <TU f="0" k="ol sin bilong yupela">
+      <RS n="1" a="your sins" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+	</MAP>
+	<MAP mn="5">
+    <TU f="0" k="Yupela liklik pikinini bilong mi">
+      <RS n="1" a="My little children" df="0"
+      cDT="2012-11-05T03:21:29Z" wC="bwaters:BWATERS-XPS"/>
+    </TU>
+	</MAP>
+</KB>
