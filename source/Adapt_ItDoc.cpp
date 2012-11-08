@@ -22330,13 +22330,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
 			key = pSrcPhrase->m_key;
-/*#if defined(_DEBUG)
-			wxString strIStap = _T("i stap");
-			if (key == strIStap)
-			{
-				int i = 1;
-			}
-#endif*/
 			adaption = pSrcPhrase->m_adaption; // could be an empty string
 			pos1 = pos1->GetNext();
 			counter++;
