@@ -889,7 +889,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		pStartWorkingWizard->EndModal(1);   // mrh - need this on Mac/Cocoa.  On Linux apparently Show(FALSE) automatically calls
                                             //  EndModal(), but it's OK if we do this first, not after.
 		pStartWorkingWizard->Show(FALSE);
-		pStartWorkingWizard->Destroy();     // wx docs say we need this
+//		pStartWorkingWizard->Destroy();     // wx docs say we need this, but under Carbon we crash!!
 		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 
         // default the m_nActiveSequNum value to -1 when getting the doc created
@@ -1047,7 +1047,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		pStartWorkingWizard->EndModal(1);   // mrh - need this on Mac/Cocoa.  On Linux apparently Show(FALSE) automatically calls
                                             //  EndModal(), but it's OK if we do this first, not after.
 		pStartWorkingWizard->Show(FALSE);
-		pStartWorkingWizard->Destroy();     // wx docs say we need this
+//		pStartWorkingWizard->Destroy();     // wx docs say we need this, but under Carbon we crash!!
 		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 
 		CMainFrame* pFrame = (CMainFrame*)pView->GetFrame();
