@@ -3103,7 +3103,9 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 	// whm 25May11 Note: When collaborating with Paratext/Bibledit the Save... command is
 	// available under the same conditions as when not collaborating with Paratext/Bibledit,
 	// i.e., a Doc is open and it is dirty/modified.
-	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
+	// whm 6Nov12 revised to use the more self-documenting
+	// IsDocumentOpen() function.
+	if (pApp->m_pKB != NULL && pApp->IsDocumentOpen() && IsModified())
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
