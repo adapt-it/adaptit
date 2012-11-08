@@ -50,7 +50,8 @@ rem   -tzip         means to create a standard zip archive
 rem   -x!*.htb      means to exclude any *.htb file from going into the archive
 rem   ..\hlp\Adapt_It.htb  is the name of the archive to create in the hlp dir
 rem   *             a single asterisk tells 7za to include all dirs and files
-"C:\Program Files\7-Zip\7za" a -tzip Adapt_It.htb * -xr!.svn -xr!*.bat -xr!*.chm -xr!*.zip -xr!mac_excl.lst -xr!_errorlog.txt -xr!Adapt_It.htb 
+rem "C:\Program Files\7-Zip\7za" a -tzip Adapt_It.htb * -xr!.svn -xr!*.bat -xr!*.chm -xr!*.zip -xr!mac_excl.lst -xr!_errorlog.txt -xr!Adapt_It.htb 
+"7za" a -tzip Adapt_It.htb * -xr!.svn -xr!*.bat -xr!*.chm -xr!*.zip -xr!mac_excl.lst -xr!_errorlog.txt -xr!Adapt_It.htb 
 
 rem If we're doing this on a machine that doesn't have Bill's directories
 rem for Setup Generator, just end now.

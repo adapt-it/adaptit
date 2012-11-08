@@ -145,11 +145,6 @@
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Debug" />
-	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
-    </exec>
-    <exec executable="MSBuild.exe" failonerror="yes">
-	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
 	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
     </exec>
@@ -220,7 +215,7 @@
   - build_help target
   - Compiles the help files.
   -->
-  <target name="build_help" depends="init" description="compile the help files" >
+  <target name="build_help" description="compile the help files" >
     <!-- build the help files -->
     <exec executable="hhc.exe" failonerror="yes">
 	<arg value="${root}/hlp/Adapt_It.hhp" />
@@ -250,44 +245,44 @@
   <target name="generate_installers" depends="copy"
         description="generate the distribution" >
     <!-- Run ALL the Inno IDE scripts -->
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Documentation Only.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Localizations Only.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Minimal.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - No Html Help.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Documentation Only.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Localizations Only.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Minimal.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - No Html Help.iss" />
     </exec>
-    <exec executable="compil32" failonerror="yes">
-	<arg value="/cc" />
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode.iss" />
     </exec>
   </target>
@@ -303,7 +298,7 @@
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, generate_installers" description="Daily / Release build target" >
+  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, build_help, generate_installers" description="Daily / Release build target" >
   </target>
 
 </project>
