@@ -6,18 +6,18 @@
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CDocPage class. 
+/// \description	This is the implementation file for the CDocPage class.
 /// The CDocPage class creates a wizard panel that allows the user
-/// to either create a new document or select a document to work on 
+/// to either create a new document or select a document to work on
 /// from a list of existing documents.
 /// \derivation		The CDocPage class is derived from wxWizardPage.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in DocPage.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -82,14 +82,14 @@
 /// order to use the Move command to move one or more from the Adaptations folder into the book
 /// folder. Without the following change, the status bar continues to say that the current folder is
 /// the Adaptations one, when in fact it is not. So we have the status bar updated here too.
-/// TODO: Determine if gbReachedDocPage is still needed in the wx version. See DoStartWorkingWizard() 
+/// TODO: Determine if gbReachedDocPage is still needed in the wx version. See DoStartWorkingWizard()
 /// in the App where its value is tested .
 bool gbReachedDocPage;
 
-/// BEW added test on 21Mar07, to distinguish 
-/// any other kind of failure to create a new document in OnNewDocument(), from a failure 
-/// in OnNewDocument() specifically due to encountering in the input file a 3-letter id code 
-/// that doesn't match the currently active book folder - thus preventing the document being 
+/// BEW added test on 21Mar07, to distinguish
+/// any other kind of failure to create a new document in OnNewDocument(), from a failure
+/// in OnNewDocument() specifically due to encountering in the input file a 3-letter id code
+/// that doesn't match the currently active book folder - thus preventing the document being
 /// constructed.
 bool gbMismatchedBookCode = FALSE; // TRUE if the user is creating a document which
 								   // belongs to the active book folder
@@ -110,7 +110,7 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 extern bool gbWizardNewProject;
 
 /// This global is defined in Adapt_It.cpp.
-extern CStartWorkingWizard* pStartWorkingWizard; 
+extern CStartWorkingWizard* pStartWorkingWizard;
 
 /// This global is defined in Adapt_It.cpp.
 extern CProjectPage* pProjectPage;
@@ -160,14 +160,14 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 
 	// Note: The wizard page should handle all initialization here in the
 	// constructor rather than in InitDialog, which is not called in the
-	// construction of a wizard since ShowModal is not used. Only this 
+	// construction of a wizard since ShowModal is not used. Only this
 	// constructor is called at the point in the App where new CDocPage is
 	// called.
 
 	// Note: This constructor is only called when the new CDocPage statement is
 	// encountered in the App before the wizard displays. It is not called
 	// when the page changes to/from the docPage in the Wizard.
-	
+
 	m_pParentWizard = parent; // whm added 10Aug12
 
 	// TODO: Is the following needed for WX in light of other m_currProjectPath initializations below for WX
@@ -184,8 +184,8 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 	m_bForceUTF8 = FALSE;
 
 	m_pListBox = (wxListBox*)FindWindowById(IDC_LIST_NEWDOC_AND_EXISTINGDOC);
-	
-	// whm added 21Apr05 - moved below to InitDialog() because it needs to be set after reading 
+
+	// whm added 21Apr05 - moved below to InitDialog() because it needs to be set after reading
 	// the project config file and this constructor is called earlier
 	//pChangeFixedSpaceToRegular = (wxCheckBox*)FindWindowById(IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES);
 	//wxASSERT(pChangeFixedSpaceToRegular != NULL);
@@ -210,7 +210,7 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 
 CDocPage::~CDocPage() // destructor
 {
-	
+
 }
 
 bool CDocPage::Create( wxWizard* parent)
@@ -232,13 +232,13 @@ void CDocPage::CreateControls()
 }
 
 // implement wxWizardPage functions
-wxWizardPage* CDocPage::GetPrev() const 
-{ 
-	// The returned wizard page depends on whether the user had previously chosen an existing 
-	// project or was creating a <New Project> (indicated by the gbWizardNewProject global). 
+wxWizardPage* CDocPage::GetPrev() const
+{
+	// The returned wizard page depends on whether the user had previously chosen an existing
+	// project or was creating a <New Project> (indicated by the gbWizardNewProject global).
 	// If the user had previously chosen an existing project, GetPrev() here in the docPage
-	// skips the other pages and directly returns the pProjectPage. If the user had previously 
-	// chosen <New Project> then GetPrev() returns the next-to-the-last page in the longer 
+	// skips the other pages and directly returns the pProjectPage. If the user had previously
+	// chosen <New Project> then GetPrev() returns the next-to-the-last page in the longer
 	// wizard (the filterPage).
 	if (gbWizardNewProject)
 	{
@@ -249,7 +249,7 @@ wxWizardPage* CDocPage::GetPrev() const
 		// whm Note 10Mar12: This GetPrev() method is called at more times that just when
 		// the user clicks the < Back button. It is also called whenever the the user clicks
 		// on the Next > button via these calls: OnBackOrNext() > ShowPage() > HasPrevPage > GetPrev().
-		// Therefore, we cannot reset any read-only settings the user set entering the project 
+		// Therefore, we cannot reset any read-only settings the user set entering the project
 		// from the 3-button ChooseCollabOptionsDlg from here because it will nullify the settings
 		// we made at the Next > call. See StartWorkingWizard::OnPageShown()
 		return pProjectPage;
@@ -319,9 +319,9 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		//	else
 		//	{
 		//		wxASSERT(m_pListBox->GetCount() == 1);
-		//		// User deselected <New Project> (possibly by clicking on it once in wxGTK), but since it 
-		//		// is the only item listed (GetCount should have returned 1), we assume the user wants to 
-		//		// start a <New Project>, so we'll select it for him automatically and allow the page to 
+		//		// User deselected <New Project> (possibly by clicking on it once in wxGTK), but since it
+		//		// is the only item listed (GetCount should have returned 1), we assume the user wants to
+		//		// start a <New Project>, so we'll select it for him automatically and allow the page to
 		//		// change with <New Project> selected.
 		//		m_pListBox->SetSelection(0);
 		//		nSel = m_pListBox->GetSelection();
@@ -343,9 +343,9 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		// (if book mode is disabled because of a bad read of the books.xml file, don't change the
 		// m_bDisableBookMode flag back to FALSE, only a subsequent good read of the xml file
 		// should do that)
-		// 
+		//
 		// whm 2Sep11 modification. Unilaterally turning OFF book folder mode should NOT be
-		// done here in OnWizardPageChanging()! Doing so here would result in a FALSE value 
+		// done here in OnWizardPageChanging()! Doing so here would result in a FALSE value
 		// for m_bBookMode, and -1 for m_nBookIndex being stored in the current project config
 		// file, when the pProjectPage->InitDialog() call is made below in preparation for
 		// moving backwards to the ProjectPage.
@@ -406,9 +406,9 @@ void CDocPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 }
 
 // wx version note: This OnSetActive() is not called by the EVT_ACTIVATE handler in wx, so it
-// is called internally from InitDialog above and OnButtonChangeFolder(), so we retain it as a 
+// is called internally from InitDialog above and OnButtonChangeFolder(), so we retain it as a
 // wx function here.
-void CDocPage::OnSetActive() 
+void CDocPage::OnSetActive()
 {
 	gbReachedDocPage = TRUE; // we can't set nLastWizPage to doc_page, because that would clobber the
 							 // memory of which page was the last one (usually project_page) so use
@@ -450,13 +450,13 @@ void CDocPage::OnSetActive()
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, NULL, NULL,
 								m_pListBox, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bNavTextRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, NULL, NULL, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, NULL, NULL,
 								m_pListBox, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 
 	// we'll press m_pDlgTgtFont into service for the mode information static texts,
 	// but use the source text font for displaying them, at 12 point size
-	// BEW changed 27Oct05...NO!!! If, for example, the source text font is a hacked single-byte 
+	// BEW changed 27Oct05...NO!!! If, for example, the source text font is a hacked single-byte
 	// font with Devangri glyphs, Uniscribe is smart enough to display it in the Unicode app,
 	// but we only see unintelligible Devenagri gobbledegook. So play safe... use NavText font.
 	CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pDlgTgtFont);
@@ -505,20 +505,20 @@ void CDocPage::OnSetActive()
 	// whm 7Mar12 revised at Bruce's request.
 	// When no collaboration has been setup for the opened project we show all documents,
 	// i.e., don't execute the block below to filter out _Collab... docs from the list.
-	// When the user turns collaboration ON this DocPage doesn't show at all. 
+	// When the user turns collaboration ON this DocPage doesn't show at all.
 	// When the user selects "Turn collaboration off", the DocPage does appear, but
-	// we hide _Collab documents, but only when the "_Collab" substring of the file 
-	// name is at the initial position within the filename. If an administrator or 
-	// user manually renames the Adaptations document so that some substring is 
-	// prefixed to its _Collab... file name, the document will now appear as a 
-	// "non-collaboration" document within the DocPage's list - in spite of what the 
+	// we hide _Collab documents, but only when the "_Collab" substring of the file
+	// name is at the initial position within the filename. If an administrator or
+	// user manually renames the Adaptations document so that some substring is
+	// prefixed to its _Collab... file name, the document will now appear as a
+	// "non-collaboration" document within the DocPage's list - in spite of what the
 	// name seems to indicate in the DocPage's list.
 	// When the advisor/consultant/user selects read-only mode, we show all documents.
 	// Don't filter out _Collab... docs if it is not a potential collaboration project
-	// 
+	//
 	// whm added 19Apr12. Ensure that the collaboration flags are set to FALSE. The DocPage
-	// is only supposed to appear when collaboration is turned off by the user at the ProjectPage, 
-	// so these two lines of code below ensure that some faulty logic elsewhere won't get propagated 
+	// is only supposed to appear when collaboration is turned off by the user at the ProjectPage,
+	// so these two lines of code below ensure that some faulty logic elsewhere won't get propagated
 	// any further.
 	gpApp->m_bCollaboratingWithParatext = FALSE;
 	gpApp->m_bCollaboratingWithParatext = FALSE;
@@ -628,8 +628,8 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 		}
 	}
 
-	// whm added 21Apr05 - moved below to OnSetActive() which is called by InitDialog() because 
-	// the pointers and pChangeFixedSpaceToRegular needs to be set after reading the project 
+	// whm added 21Apr05 - moved below to OnSetActive() which is called by InitDialog() because
+	// the pointers and pChangeFixedSpaceToRegular needs to be set after reading the project
 	// config file; this DocPage's constructor is called earlier.
 	pChangeFixedSpaceToRegular = (wxCheckBox*)FindWindowById(IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES);
 	wxASSERT(pChangeFixedSpaceToRegular != NULL);
@@ -643,14 +643,14 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 	tempStr = m_pListBox->GetStringSelection();
 	// whm 11Jun12 added !tempStr.IsEmpty() && to the test below. GetChar(0) should not be called on an
 	// empty string.
-	if (!tempStr.IsEmpty() && tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
+	if (!tempStr.IsEmpty() && tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may
 									   // produce a different text); this is how we tell
 									   // that the user chose <New Document>
 	{
 		// The docPage has <New Document> selected, so cause the Fixed Space ... check box control
 		// to appear
 		pChangeFixedSpaceToRegular->Show(TRUE); // start with fixed space ... check box showing
-		
+
 	}
 	else
 	{
@@ -660,7 +660,7 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 
 	m_pListBox->SetFocus(); // whm added 11Aug08 otherwise the read only text ctrl at top gets focus and shows blinking cursor in it
 
-	// whm added below for wx version: Since label lengths can change call the docPage's sizer's Layout() 
+	// whm added below for wx version: Since label lengths can change call the docPage's sizer's Layout()
 	// method to resize the dialog if necessary
 	// whm 8 Jun 09 moved here from above since the hiding of the pChangeFixedSpaceToRegular control can affect layout
 	pDocPageSizer->Layout();
@@ -669,7 +669,7 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 }
 // event handling functions
 
-void CDocPage::OnButtonWhatIsDoc(wxCommandEvent& WXUNUSED(event)) 
+void CDocPage::OnButtonWhatIsDoc(wxCommandEvent& WXUNUSED(event))
 {
 	wxString s;
 	wxString accum;
@@ -696,17 +696,17 @@ void CDocPage::OnButtonWhatIsDoc(wxCommandEvent& WXUNUSED(event))
 	wxMessageBox(accum, _T(""), wxICON_INFORMATION | wxOK);
 }
 
-void CDocPage::OnCheckForceUtf8(wxCommandEvent& WXUNUSED(event)) 
+void CDocPage::OnCheckForceUtf8(wxCommandEvent& WXUNUSED(event))
 {
 	wxCheckBox* pCheck = (wxCheckBox*)FindWindowById(IDC_CHECK_FORCE_UTF8);
 	wxASSERT(pCheck != NULL);
 
 	// set or clear the global, to force or unforce UTF8 conversions on source data input
-	gbForceUTF8 = pCheck->GetValue(); 
+	gbForceUTF8 = pCheck->GetValue();
 }
 
 // BEW added 04Aug05
-//void CDocPage::OnCheckSaveUsingXML(wxCommandEvent& WXUNUSED(event)) 
+//void CDocPage::OnCheckSaveUsingXML(wxCommandEvent& WXUNUSED(event))
 //{
 //	wxCheckBox* pCheck = (wxCheckBox*)FindWindowById(IDC_SAVE_DOCSKB_AS_XML);
 //
@@ -763,7 +763,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	{
 		// this should never happen even on Linux/GTK, since we've forced a selection back in
 		// the OnWizardPageChanging() handler.
-		wxMessageBox(_("List box error when getting the current selection"), 
+		wxMessageBox(_("List box error when getting the current selection"),
 						_T(""), wxICON_EXCLAMATION | wxOK);
 		wxASSERT(FALSE);
 		wxExit();
@@ -774,7 +774,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	CAdapt_ItView* pView = pApp->GetView();
 
 	// send the app the current size & position data, for saving to config on closure
-	// 
+	//
 	// whm modification 14Apr09. I've commented out the assigning of frame position, size, and zoom
 	// characteristics below, because these should not be changed here at the time the docPage calls
 	// OnWizardFinish(). Instead, the main frame around any new or existing document should retain its dimensions
@@ -795,11 +795,11 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	pApp->m_szView.SetHeight(rectFrame.GetHeight());
 	pApp->m_bZoomed = pFrame->IsMaximized(); //pFrame->IsZoomed();
 	*/
-	
+
 #ifdef _RTL_FLAGS // whm added23Mar07
-	// We've just defined a new project (via previous wizard pages), or we've loaded 
-	// an existing project config file (via projectPage). In either case, we may now 
-	// have a different RTL layout and/or RTL fonts so call AdjustAlignmentMenu to 
+	// We've just defined a new project (via previous wizard pages), or we've loaded
+	// an existing project config file (via projectPage). In either case, we may now
+	// have a different RTL layout and/or RTL fonts so call AdjustAlignmentMenu to
 	// ensure that the Layout menu item's text is set correctly.
 	if (pApp->m_bSrcRTL == TRUE && pApp->m_bTgtRTL == TRUE)
 	{
@@ -817,7 +817,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
 	// whm 11Jun12 added !m_docName.IsEmpty() && to the test below. GetChar(0) should never be called on an
 	// empty string.
-	if (!m_docName.IsEmpty() && m_docName.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
+	if (!m_docName.IsEmpty() && m_docName.GetChar(0) == _T('<')) // check for an initial < (because localizing may
 									   // produce a different text); this is how we tell
 									   // that the user chose <New Document>
 	{
@@ -878,21 +878,22 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		if (pKB != NULL && pApp->m_pLayout->GetStripCount() > 0)
 		{
 			// doc is open, so close it first
-			pDoc->OnFileClose(dummyevent); // my version, which does not call 
+			pDoc->OnFileClose(dummyevent); // my version, which does not call
 										   // OnCloseDocument
 		}
 
 		// use the OnNewDocument() function to go to the file dialog for inputting
 		// a source text file to use as the new document
-		pStartWorkingWizard->Show(FALSE); 
-        // wx version note: The Linux/GTK version in debug mode reports that the EndModal
-        // call gets called twice, so I've commented the call to EndModal below. EndModal
-        // apparently is automatically called by the wizard class (under Windows it didn't
-        // assert).
-		//pStartWorkingWizard->EndModal(1);
-		
+
+    // close off the wizard:
+		pStartWorkingWizard->EndModal(1);   // mrh - need this on Mac/Cocoa.  On Linux apparently Show(FALSE) automatically calls
+                                            //  EndModal(), but it's OK if we do this first, not after.
+		pStartWorkingWizard->Show(FALSE);
+		pStartWorkingWizard->Destroy();     // wx docs say we need this
+		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
+
         // default the m_nActiveSequNum value to -1 when getting the doc created
-		pApp->m_nActiveSequNum = -1; 
+		pApp->m_nActiveSequNum = -1;
 		bool bResult = pDoc->OnNewDocument();
 		// whm 17Apr11 changed test below to include check for m_nActiveSequNum being
 		// -1 after return of OnNewDocument(). If user cancels the file dialog within
@@ -914,7 +915,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 				gbMismatchedBookCode = FALSE;
 				wxCommandEvent uevent;
 				pDoc->OnFileOpen(uevent); // get the Document page of the wizard open again
-				return; // TRUE; // MFC note: FALSE means: don't destroy the property sheet; 
+				return; // TRUE; // MFC note: FALSE means: don't destroy the property sheet;
                     // TRUE means destroy it and as the above OnFileOpen() call is a nested
                     // call, a successful document creation should result in the wizard
                     // being destroyed, and so the remaining function exits just only need
@@ -939,10 +940,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
 		pFrame->Raise();
 		if (pApp->m_bZoomed)
-			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE
 						| wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);
 		else
-			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE
 						| wxFRAME_NO_WINDOW_MENU);
 
 		pApp->m_bEarlierProjectChosen = FALSE;
@@ -967,12 +968,14 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		}
 		return; //return CPropertyPage::OnWizardFinish();
 	}
+
 	else // the user did not choose <New Document>
+
 	{
 		wxString msg = _T("In DocPage: Finish selected: Open Existing Document: \"%s\"");
 		msg = msg.Format(msg,m_docName.c_str());
 		pApp->LogUserAction(msg);
-        
+
 		// it's an existing document that we want to open; but first we can come here with
         // an existing doc open, so we must first close it & also prompt for doc save & kb
         // save if user does not save the doc, then go on
@@ -984,18 +987,18 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		if (pKB != NULL && pApp->m_pLayout->GetStripCount() > 0)
 		{
 			// doc is open, so close it first
-			pDoc->OnFileClose(dummyevent); // my version, which does not call 
+			pDoc->OnFileClose(dummyevent); // my version, which does not call
 										   // OnCloseDocument
 			pApp->GetMainFrame()->canvas->Update(); // force immediate repaint // TODO: Need this ???
 		}
-				
+
 		// construct the path to the wanted document, then call CAdapt_ItDoc's
 		// OnOpenDocument function to open it & get the view laid out, etc.
 		// path depends on m_bBookMode flag
 		wxString docPath;
 		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		{
-			docPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + 
+			docPath = pApp->m_curAdaptionsPath + pApp->PathSeparator +
 											pApp->m_pCurrBookNamePair->dirName;
 			docPath += pApp->PathSeparator + m_docName;
 		}
@@ -1024,7 +1027,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
 			&& (pApp->m_pTargetBox->IsShown()))
 		{
-			int len = pApp->m_pTargetBox->GetLineLength(0); // line number zero 
+			int len = pApp->m_pTargetBox->GetLineLength(0); // line number zero
 															// for our phrasebox
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len;
@@ -1040,21 +1043,20 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			}
 		}
 
-		// close off the wizard
-		pStartWorkingWizard->Show(FALSE); //pStartWorkingWizard->ShowWindow(SW_HIDE);
-            // wx version note: The Linux/GTK version in debug mode reports that the
-            // EndModal call gets called twice, so I've commented the call to EndModal
-            // below. EndModal apparently is automatically called by the wizard class
-            // (under Windows it didn't assert).
-		//pStartWorkingWizard->EndModal(1);
+    // close off the wizard:
+		pStartWorkingWizard->EndModal(1);   // mrh - need this on Mac/Cocoa.  On Linux apparently Show(FALSE) automatically calls
+                                            //  EndModal(), but it's OK if we do this first, not after.
+		pStartWorkingWizard->Show(FALSE);
+		pStartWorkingWizard->Destroy();     // wx docs say we need this
 		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
+
 		CMainFrame* pFrame = (CMainFrame*)pView->GetFrame();
 		pFrame->Raise();
 		if (pApp->m_bZoomed)
-			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE
 						| wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);
 		else
-			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE 
+			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE
 						| wxFRAME_NO_WINDOW_MENU);
 
 		// MainFrame title set in OnOpenDocument(docPath) but the doc/view framework
@@ -1069,10 +1071,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		fn.SplitPath(docPath,&fpath,&fname,&fext);
 		pFrame->SetTitle(fname + _T(" - ") + typeName);
 
-		pDoc->SetFilename(docPath,TRUE); // here TRUE means "notify the views" whereas in 
+		pDoc->SetFilename(docPath,TRUE); // here TRUE means "notify the views" whereas in
 										 // MFC means add to MRU
-	
-		// determine whether user opened the same document, using info saved in the 
+
+		// determine whether user opened the same document, using info saved in the
 		// config file
 		pApp->m_bEarlierDocChosen = FALSE;
 		if (!pApp->m_lastDocPath.IsEmpty())
@@ -1095,7 +1097,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 //  nLastActiveSequNum to set the active location.  So let's keep this code around for a little while.
 //  However we need to check for m_nActiveSequNum being already set by OnOpenDocument()
 //  (i.e. this was a docVersion 8 doc).
-			
+
             // if the user did some operation that resulted in more sourcephrase instances
             // being created (eg. such as a rebuild from a punctuation change affecting
             // quote characters) and had the phrase box near the end in the document but
@@ -1124,14 +1126,14 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
             // retranslation just before exiting the application without saving the
             // document, it would be), so check & if necessary move beyond the
             // retranslation or to an earlier safe location
-			int nFinish = 1; // the next function was designed for retranslation use, 
+			int nFinish = 1; // the next function was designed for retranslation use,
 				// but it should work fine anywhere provided we set nFinish to 1 (or zero).
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
 								pApp->m_nActiveSequNum,pApp->m_nActiveSequNum,nFinish);
             bSetSafely = bSetSafely; // avoid warning (retain, we can continue safely
 									 // even if FALSE was returned)
-			
+
 			// BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
             // above call, and so the ones below should be redundant (and if
             // ChooseTranslation was called in the earlier Jump() it would then get called
@@ -1145,7 +1147,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		gbDoingInitialSetup = FALSE;
 
 		// make sure the menu command is checked or unchecked as necessary
-		wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
+		wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 		wxASSERT(pMenuBar != NULL);
 		wxMenuItem * pAdvBookMode = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
 		//wxASSERT(pAdvBookMode != NULL);
@@ -1179,7 +1181,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 #ifdef SHOW_DOC_I_O_BENCHMARKS
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("OnWizardFinish - OpenDocument executed in %s ms"), 
+		wxLogDebug(_T("OnWizardFinish - OpenDocument executed in %s ms"),
 						(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 
@@ -1206,15 +1208,15 @@ void CDocPage::OnLbnSelchangeListNewdocAndExistingdoc(wxCommandEvent& WXUNUSED(e
 	// box (which is the case after a call to Clear).
 	if (m_pListBox->GetCount() == 0)
 		return;
-	
+
 	// This handler executes also on a double click event. The double click
 	// event is then passed on to the OnDblclkListNewAndExistingDoc() handler
 	int nSel;
 	wxString tempStr;
 	nSel = m_pListBox->GetSelection();
-	// wx note: On Linux/GTK is it possible for all listbox items to be deselected by the 
-	// user or by other events (intervening dialog), so we must be able to handle -1 values 
-	// from all GetSelection() calls gracefully - by insuring that the first (and maybe only) 
+	// wx note: On Linux/GTK is it possible for all listbox items to be deselected by the
+	// user or by other events (intervening dialog), so we must be able to handle -1 values
+	// from all GetSelection() calls gracefully - by insuring that the first (and maybe only)
 	// item in the listbox is selected before moving on to GetString() or GetStringSelection()
 	// calls which assert if called on -1.
 	if (nSel == -1)
@@ -1225,14 +1227,14 @@ void CDocPage::OnLbnSelchangeListNewdocAndExistingdoc(wxCommandEvent& WXUNUSED(e
 	tempStr = m_pListBox->GetString(nSel);
 	// whm 11Jun12 added !tempStr.IsEmpty() && to the test below. GetChar(0) should not be called on an
 	// empty string.
-	if (! tempStr.IsEmpty() && tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may 
+	if (! tempStr.IsEmpty() && tempStr.GetChar(0) == _T('<')) // check for an initial < (because localizing may
 									   // produce a different text); this is how we tell
 									   // that the user chose <New Document>
 	{
 		// User clicked on <New Document>, so cause the Fixed Space ... check box control
 		// to appear
 		pChangeFixedSpaceToRegular->Show(TRUE); // start with fixed space ... check box showing
-		
+
 	}
 	else
 	{
