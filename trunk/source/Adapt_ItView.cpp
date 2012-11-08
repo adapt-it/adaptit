@@ -6393,8 +6393,9 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 	// DeleteContents() is called, which does not happen until either the user chooses New...
 	// or Open... or the Wizard equivalents, or closes the app. So a zero strip count is
 	// a sufficient condition.
-	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL &&
-		pApp->m_pLayout->GetStripArray()->GetCount() == 0)
+	// whm 6Nov12 revised to use the more self-documenting
+	// IsDocumentOpen() function.
+	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && !pApp->IsDocumentOpen())
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -6438,8 +6439,9 @@ void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
     // strip count is a sufficient condition.
     // I've changed this now, the source phrases now get clobbered, but using the strip
     // count is still perfectly acceptable, so I'll leave it unchanged.
-	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL &&
-		pApp->m_pLayout->GetStripArray()->GetCount() == 0)
+	// whm 6Nov12 revised to use the more self-documenting
+	// IsDocumentOpen() function.
+	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && !pApp->IsDocumentOpen())
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -8360,7 +8362,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 /// zero.
 /// It enables the toolbar item if the App's m_endIndex is greater than zero and less than
 /// the count of source phrases in m_pSourcePhrases -1, otherwise it disables the toolbar
-/// item. otherwise it disables the toolbar item.
+/// item.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateButtonStepDown(wxUpdateUIEvent& event)
 {
@@ -12219,8 +12221,6 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 {
-    // whm: Removed the messages which would be issued endlessly if ever the errors
-    // happened in the update idler handling.
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	if (pApp->m_pActivePile == NULL)
@@ -12232,25 +12232,18 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
 	if (pFWnd == NULL)
 	{
-		//wxMessageBox(_T("Failure to obtain pointer to the frame window in OnUpdateEditCopy\n"),
-		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
 	wxPanel* pBar = pFWnd->m_pComposeBar;
 	if (pBar == NULL)
 	{
-		//wxMessageBox(_T("Failure to obtain pointer to the Compose Bar in OnUpdateEditCopy\n"),
-		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
 	wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
 	if (pEdit == NULL)
 	{
-		//wxMessageBox(_T(
-		//	"Failure to obtain pointer to the Compose Bar's wxTextCtrl control in OnUpdateEditCopy\n"),
-		//	_T(""), wxICON_EXCLAMATION | wxOK);
 		event.Enable(FALSE);
 		return;
 	}
