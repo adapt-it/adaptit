@@ -3,7 +3,7 @@
 // Purpose:     MD5 file checksum
 // Author:      Francesco Montorsi
 // Created:     2005/07/13
-// RCS-ID:      $Id: md5.cpp,v 1.5 2005/10/20 16:06:01 frm Exp $
+// RCS-ID:      $Id$
 // Copyright:   (c) 2005 Francesco Montorsi
 // Licence:     wxWidgets licence + RDS Data Security license
 /////////////////////////////////////////////////////////////////////////////
