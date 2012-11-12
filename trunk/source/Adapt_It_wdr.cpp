@@ -25,7 +25,7 @@
 /// \file			Adapt_It_wdr.cpp
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	23 July 2012
+/// \rcs_id $Id$
 /// \copyright		2007 Bruce Waters, Bill Martin, SIL International
 /// \license		wxWindows license (see License.txt)
 /// \description	This file was automatically produced by wxDesigner.

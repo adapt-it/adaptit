@@ -3,7 +3,7 @@
 /// \file			SilConverterSelectDlg.cpp
 /// \author			Bill Martin
 /// \date_created	28 April 2006
-/// \date_revised	30 December 2008
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CSilConverterSelectDlg class. 

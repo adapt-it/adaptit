@@ -3,7 +3,7 @@
 /// \file			ExportSaveAsDlg.h
 /// \author			Bill Martin
 /// \date_created	14 June 2006
-/// \date_revised	15 June 2012 (edb rework for xhtml and pathway options)
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General
 ///			Public License (see license directory)

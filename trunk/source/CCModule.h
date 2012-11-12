@@ -3,7 +3,7 @@
 /// \file			CCModule.h
 /// \author			Bill Martin
 /// \date_created	15 March 2008
-/// \date_revised	15 March 2008
+/// \rcs_id $Id$
 /// \copyright		See below for original copyright notice for original cc source code.
 ///                 Modified and adapted 2008 by permission for inclusion in adaptit 
 ///                 by Bruce Waters, Bill Martin, SIL International.

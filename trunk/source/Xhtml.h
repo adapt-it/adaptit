@@ -3,7 +3,7 @@
 /// \file			Xhtml.h
 /// \author			Bruce Waters
 /// \date_created	9 June 2012
-/// \date_revised	
+/// \rcs_id $Id$
 /// \copyright		2012 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General 
 ///                 Public License (see license directory)

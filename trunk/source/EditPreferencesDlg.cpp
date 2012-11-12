@@ -3,7 +3,7 @@
 /// \file			EditPreferencesDlg.cpp
 /// \author			Bill Martin
 /// \date_created	13 August 2004
-/// \date_revised	13 November 2011
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CEditPreferencesDlg class. 

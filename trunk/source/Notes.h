@@ -3,7 +3,7 @@
 /// \file			Notes.h
 /// \author			Erik Brommers
 /// \date_created	10 Februuary 2010
-/// \date_revised	10 Februuary 2010
+/// \rcs_id $Id$
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General 
 ///                 Public License (see license directory)

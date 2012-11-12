@@ -3,7 +3,7 @@
 /// \file			ExportFunctions.cpp
 /// \author			Bruce Waters, revised for wxWidgets by Bill Martin
 /// \date_created	31 January 2008
-/// \date_revised	31 January 2008
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file containing export functions used by Adapt It.

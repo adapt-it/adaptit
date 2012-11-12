@@ -3,7 +3,7 @@
 /// \file			StatusBar.h
 /// \author			Erik Brommers
 /// \date_created	02 October 2012
-/// \date_revised	02 October 2012
+/// \rcs_id $Id$
 /// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This header file defines the custom status bar used by

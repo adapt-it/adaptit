@@ -3,7 +3,7 @@
 /// \file			CCTabbedDialog.cpp
 /// \author			Bill Martin
 /// \date_created	19 June 2007
-/// \date_revised	2 August 2011
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CCCTabbedDialog class.

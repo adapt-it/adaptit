@@ -3,7 +3,7 @@
 /// \file			ConsChk_Empty_noTU_Dlg.cpp
 /// \author			Bruce Waters
 /// \date_created	31 August2011
-/// \date_revised	
+/// \rcs_id $Id$
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the ConsChk_Empty_noTU_Dlg class. 

@@ -3,7 +3,7 @@
 /// \file			CollabUtilities.h
 /// \author			Bruce Waters, from code taken from SetupEditorCollaboration.h by Bill Martin
 /// \date_created	27 July 2011
-/// \date_revised	
+/// \rcs_id $Id$
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is a header file containing some utility functions used by Adapt It's

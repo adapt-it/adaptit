@@ -3,7 +3,7 @@
 /// \file			Uuid_AI.cpp
 /// \author			Bruce Waters
 /// \date_created	5 May 2010
-/// \date_revised	2 September 2010
+/// \rcs_id $Id$
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for UUID generation within Adapt It.
