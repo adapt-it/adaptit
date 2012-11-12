@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2007-12-11
-// RCS-ID:      $Id: scrollingdialog.cpp,v 1.2 2008/01/06 13:57:33 anthemion Exp $
+// RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
 // Licence:     New BSD License
 /////////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 // Purpose:     the generator of JSON text from a JSON value
 // Author:      Luciano Cattani
 // Created:     2007/09/15
-// RCS-ID:      $Id: jsonwriter.h,v 1.4 2008/03/03 19:05:45 luccat Exp $
+// RCS-ID:      $Id$
 // Copyright:   (c) 2007 Luciano Cattani
 // Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
