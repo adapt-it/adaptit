@@ -110,6 +110,9 @@
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
     <copy file="${3pt}/wxwidgets/current/wxWidgets/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets/include/wx/setup.h"/>
+    <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
+	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
+	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
   </target>
 
   <!-- 

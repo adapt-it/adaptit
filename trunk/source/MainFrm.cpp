@@ -1942,7 +1942,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strVersionNumber += _T(".");
 	strVersionNumber << VERSION_BUILD_PART;
 	strVersionNumber += _T(".");
-	strVersionNumber << VERSION_REVISION_PART;
+	strVersionNumber << GetAISvnVersion();
 	if (PRE_RELEASE != 0)
 	{
 		wxStaticText* pStaticWXVerLabel = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_LABEL);

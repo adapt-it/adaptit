@@ -154,6 +154,13 @@ class KbServer;
 #define VERSION_DATE_MONTH 11
 #define VERSION_DATE_YEAR 2012
 const wxString appVerStr(_T("6.4.0"));
+const wxString svnVerStr(_T("$LastChangedRevision$"));
+
+inline int GetAISvnVersion() 
+{
+	// return the integer found at the end of the svnVerStr string
+	return atoi(svnVerStr.Mid(svnVerStr.Find(_T(" ")) + 1, (svnVerStr.Length() - svnVerStr.Find(_T(" ")) - 1)));
+}
 
 //#define Print_failure
 
