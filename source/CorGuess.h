@@ -3,7 +3,7 @@
 /// \file		CorGuess.h
 /// \author		Alan Buseman
 /// \date_created 1 May 2004
-/// \date_revised 28 Sep 2010
+/// \rcs_id $Id$
 /// \copyright	2010 SIL International
 /// \license	The Common Public License or the GNU Lesser General Public
 ///				License (see license directory)

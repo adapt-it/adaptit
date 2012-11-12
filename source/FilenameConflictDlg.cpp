@@ -3,7 +3,7 @@
 /// \file			FilenameConflictDlg.cpp
 /// \author			Bruce Waters
 /// \date_created	8 December 2009
-/// \date_revised	
+/// \rcs_id $Id$
 /// \copyright		2009 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License 
 ///                 (see license directory)

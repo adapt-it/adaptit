@@ -3,7 +3,7 @@
 /// \file			SplitDialog.cpp
 /// \author			Jonathan Field; modified by Bill Martin for the WX version
 /// \date_created	15 May 2006
-/// \date_revised	15 January 2008
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the SplitDialog class.

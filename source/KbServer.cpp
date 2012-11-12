@@ -3,7 +3,7 @@
 /// \file			KbServer.cpp
 /// \author			Kevin Bradford, Bruce Waters
 /// \date_created	26 September 20012
-/// \date_revised
+/// \rcs_id $Id$
 /// \copyright		2012 Kevin Bradford, Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for functions involved in kbserver support.

@@ -3,7 +3,7 @@
 /// \file			NavProtectNewDoc.h
 /// \author			Bruce Waters
 /// \date_created	9 August 2010
-/// \date_revised   13Jun11 by Bill Martin
+/// \rcs_id $Id$
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the NavProtectNewDoc class.

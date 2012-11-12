@@ -3,7 +3,7 @@
 /// \file			AdminEditMenuProfile.cpp
 /// \author			Bill Martin
 /// \date_created	20 August 2010
-/// \date_revised	15 October 2010
+/// \rcs_id $Id$
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CAdminEditMenuProfile class. 

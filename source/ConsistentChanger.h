@@ -3,7 +3,7 @@
 /// \file			ConsistentChanger.h
 /// \author			Bill Martin
 /// \date_created	12 February 2004
-/// \date_revised	15 April 2008
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL
 /// \description	This is the header file for the CConsistentChanger class. 
 /// The CConsistentChanger class has methods to manage the consistent change process

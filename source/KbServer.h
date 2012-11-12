@@ -3,7 +3,7 @@
 /// \file			KbServer.h
 /// \author			Bruce Waters
 /// \date_created	1 October 2012
-/// \date_revised
+/// \rcs_id $Id$
 /// \copyright		2012 Kevin Bradford, Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the KbServer class.

@@ -3,7 +3,7 @@
 /// \file			CreateNewAIProjForCollab.cpp
 /// \author			Bill Martin
 /// \date_created	23 February 2012
-/// \date_revised	23 February 2012
+/// \rcs_id $Id$
 /// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CCreateNewAIProjForCollab class. 

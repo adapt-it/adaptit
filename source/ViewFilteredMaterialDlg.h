@@ -3,7 +3,7 @@
 /// \file			ViewFilteredMaterialDlg.h
 /// \author			Bill Martin
 /// \date_created	2 July 2006
-/// \date_revised	15 January 2008
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CViewFilteredMaterialDlg class. 

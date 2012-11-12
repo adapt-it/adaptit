@@ -3,7 +3,7 @@
 /// \file			ChooseCollabOptionsDlg.h
 /// \author			Bill Martin
 /// \date_created	18 February 2012
-/// \date_revised	18 February 2012
+/// \rcs_id $Id$
 /// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CChooseCollabOptionsDlg class. 

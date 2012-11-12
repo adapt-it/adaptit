@@ -3,7 +3,7 @@
 /// \file			PrintOptionsDlg.h
 /// \author			Bill Martin
 /// \date_created	10 November 2006
-/// \date_revised	29 February 2008
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CPrintOptionsDlg class. 

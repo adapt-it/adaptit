@@ -3,7 +3,7 @@
 /// \file			AssignLocationsForInputsAndOutputs.cpp
 /// \author			Bill Martin
 /// \date_created	12 June 2011
-/// \date_revised	12 June 2011
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CAssignLocationsForInputsAndOutputs class. 

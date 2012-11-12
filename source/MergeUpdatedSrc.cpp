@@ -3,7 +3,7 @@
 /// \file			MergeUpdatedSrc.cpp
 /// \author			Bruce Waters
 /// \date_created	12 April 2011
-/// \date_revised
+/// \rcs_id $Id$
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is a header file containing some helper functions used

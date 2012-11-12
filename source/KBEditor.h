@@ -3,7 +3,7 @@
 /// \file			KBEditor.h
 /// \author			Bill Martin
 /// \date_created	28 April 2004
-/// \date_revised	4 February 2009
+/// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CKBEditor class. 
