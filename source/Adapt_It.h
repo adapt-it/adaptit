@@ -159,7 +159,7 @@ const wxString svnVerStr(_T("$LastChangedRevision$"));
 inline int GetAISvnVersion() 
 {
 	// return the integer found at the end of the svnVerStr string
-	return atoi(svnVerStr.Mid(svnVerStr.Find(_T(" ")) + 1, (svnVerStr.Length() - svnVerStr.Find(_T(" ")) - 1)));
+	return atoi(svnVerStr.Mid(svnVerStr.Find(_T(" ")) + 1, (svnVerStr.Length() - svnVerStr.Find(_T(" ")) - 1)).ToAscii());
 }
 
 //#define Print_failure
