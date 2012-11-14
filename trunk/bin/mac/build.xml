@@ -1,0 +1,295 @@
+<?xml version="1.0"?>
+<project name="AI_Mac" default="build_continuous" basedir=".">
+    <description>
+        The Adapt It / Macintosh ant build script for command-line builds.
+		This build script contains several build targets that can be used to
+		build continuous, daily and release builds of Adapt It on OS X. The
+		build targets towards the end of this script are used by the TeamCity
+		CI build system:
+		- build_continuous: called whenever there is a SVN change made.
+		- build_release: called for daily / release builds.
+    </description>
+  <!-- global properties for this build -->
+  <property environment="env"/>
+
+  <!-- other directories -->
+  <property name="SVNROOT" location="..\..\.."/>
+  <property name="src" location="..\..\source"/>
+  <property name="dist"  location="..\..\dist"/>
+  <property name="root"  location="..\.." />
+  <property name="3pt"   location="..\..\..\vendor" />
+
+  <!-- 
+  - clean target
+  - Removes intermediate files / directories
+  -->
+  <target name="clean"
+        description="clean up artifacts from previous builds" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+	<!-- Delete expanded 3pt directories -->
+	<delete dir="${3pt}\boost\current\boost" />
+	<delete dir="${3pt}\wxWidgets-2.8.12\wxWidgets-2.8.12" /> 
+	<delete dir="${3pt}\wxWidgets\current\wxWidgets" /> 
+	<delete dir="${3pt}\openssl\current\openssl" /> 
+	<delete dir="${3pt}\curl\current\curl" /> 
+  </target>
+
+  <!-- 
+  - checkout target
+  - Checks the source and 3pt libraries out of source control. This target
+  - isn't used by the build machines (there's a separate TeamCity config page
+  - for this).
+  -->
+  <target name="checkout">
+    <!-- This target doesn't get called on the build machines; TeamCity handles this for us. -->
+    <!-- Export source from SVN -->
+    <exec executable="svn">
+	<arg value="checkout" />
+	<arg value="http://adaptit.googlecode.com/svn/trunk/ adaptit" />
+    </exec>
+    <!-- Export libs from SVN -->
+    <exec executable="svn">
+	<arg value="checkout" />
+	<arg value="http://adaptit.googlecode.com/svn/vendor/ vendor" />
+    </exec>
+  </target>
+
+  <!-- 
+  - init target
+  - Setup for the builds. This target unpacks the 3pt libraries, building them if
+  - needed, then updates the environment variables that VSBuild needs to compile.
+  -->
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- extract 3pt libraries -->
+    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/curl/current/curl.7z" />
+	<arg value="-o${3pt}/curl/current/curl" />
+	<arg value="-y" />
+    </exec>
+    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/openssl/current/openssl.7z" />
+	<arg value="-o${3pt}/openssl/current/openssl" />
+	<arg value="-y" />
+    </exec>
+    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/boost/current/boost.7z" />
+	<arg value="-o${3pt}/boost/current" />
+	<arg value="-y" />
+    </exec>
+    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/wxwidgets/current/wxWidgets-2.9.4.7z" />
+	<arg value="-o${3pt}/wxwidgets/current/wxWidgets" />
+	<arg value="-y" />
+    </exec>
+    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.7z" />
+	<arg value="-o${3pt}/wxwidgets/2.8.12" />
+	<arg value="-y" />
+    </exec>
+    <!-- wxWidgets needs us to tell it what OS platform we're building; we do this by
+	     copying the setup.h file from the /osx directory up into the /include/wx directory.
+         Do this now... (we'll build the wxMac libs in the compile_xxx targets below) -->
+    <copy file="${3pt}/wxwidgets/current/wxWidgets/include/wx/osx/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets/include/wx/setup.h"/>
+    <!-- Set the svn version number in Adapt_It.h. -->
+	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
+  </target>
+
+  <!-- 
+  - compile_Unicode_Debug target
+  - Compiles AI in Unicode Debug mode.
+  -->
+  <target name="compile_unicode_debug" depends="init" description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Debug" />
+	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+    </exec>
+    <!-- build Adapt It -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+		<env key="WXVER" value="29"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
+		<env key="BOOST" value="${3pt}/boost/current/boost"/>
+		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
+		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
+		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="/target:rebuild" />
+		<arg value="/p:Configuration=Unicode Debug" />
+    </exec>
+  </target>
+
+  <!-- 
+  - compile_Unicode_Release target
+  - Compiles AI in Unicode Release mode.
+  -->
+  <target name="compile_unicode_release" depends="init"
+        description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Release" />
+	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+    </exec>
+    <!-- build Adapt It -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+		<env key="WXVER" value="29"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
+		<env key="BOOST" value="${3pt}/boost/current/boost"/>
+		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
+		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
+		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="/target:rebuild" />
+		<arg value="/p:Configuration=Unicode Release" />
+    </exec>
+  </target>
+  
+  <!-- 
+  - compile_Debug target
+  - Compiles AI in Debug mode.
+  -->
+  <target name="compile_debug" depends="init"
+        description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Debug" />
+	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
+    </exec>
+    <!-- build Adapt It -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+		<env key="WXVER" value="28"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
+		<env key="BOOST" value="${3pt}/boost/current/boost"/>
+		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
+		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
+		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="/target:rebuild" />
+		<arg value="/p:Configuration=Debug" />
+    </exec>
+  </target>
+
+  <!-- 
+  - compile_Release target
+  - compiles AI in release mode.
+  -->
+  <target name="compile_release" depends="init"
+        description="compile the source " >
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Release" />
+ 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
+    </exec>
+    <!-- build Adapt It -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+		<env key="WXVER" value="28"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
+		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
+		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
+		<env key="BOOST" value="${3pt}/boost/current/boost"/>
+		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="/target:rebuild" />
+		<arg value="/p:Configuration=Release" />
+    </exec>
+  </target>
+
+  <!-- 
+  - build_help target
+  - Compiles the help files.
+  -->
+  <target name="build_help" description="compile the help files" >
+    <!-- build the help files -->
+    <exec executable="hhc.exe" failonerror="yes">
+	<arg value="${root}/hlp/Adapt_It.hhp" />
+    </exec>
+  </target>
+  
+  <!-- 
+  - copy target
+  - Runs the CallAllBatchSetups.bat file, that copies docs, help, localizations and .exes to the setup
+  - staging areas for the installers. This is called from the build_release target.
+  -->
+  <target name="copy" depends="compile_unicode_release" description="copy the build results to the setup staging areas">
+    <!-- copying is done through a batch file -->
+	<echo message="Copying files" />
+    <exec dir="${root}" executable="cmd" failonerror="yes">
+	  <arg value="/c" />
+	  <arg value="${root}\CallAllBatchSetups.bat" />
+    </exec>
+  </target>
+
+  <!-- 
+  - generate_installers
+  - Runs all the installer scripts to create the installers.
+  - output will be in the ${dist} directory if successful.
+  - This target gets called from the daily build.
+  -->
+  <target name="generate_installers" depends="copy"
+        description="generate the distribution" >
+    <!-- Run ALL the Inno IDE scripts -->
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Documentation Only.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Localizations Only.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Minimal.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - No Html Help.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Documentation Only.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Localizations Only.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Minimal.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - No Html Help.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode.iss" />
+    </exec>
+  </target>
+
+  <!-- 
+  - build_continuous target
+  - Compiles the Unicode Debug build.
+  -->
+  <target name="build_continuous" depends="clean, init, compile_unicode_debug" description="Continuous build target" >
+  </target>
+
+  <!-- 
+  - build_release target
+  - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
+  -->
+  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, build_help, generate_installers" description="Daily / Release build target" >
+  </target>
+
+</project>
