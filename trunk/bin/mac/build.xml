@@ -65,31 +65,31 @@
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- extract 3pt libraries -->
-    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+    <exec dir="${root}/bin/mac" executable="./7za" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/curl/current/curl.7z" />
 	<arg value="-o${3pt}/curl/current/curl" />
 	<arg value="-y" />
     </exec>
-    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+    <exec dir="${root}/bin/mac" executable="./7za" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/openssl/current/openssl.7z" />
 	<arg value="-o${3pt}/openssl/current/openssl" />
 	<arg value="-y" />
     </exec>
-    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+    <exec dir="${root}/bin/mac" executable="./7za" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/boost/current/boost.7z" />
 	<arg value="-o${3pt}/boost/current" />
 	<arg value="-y" />
     </exec>
-    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+    <exec dir="${root}/bin/mac" executable="./7za" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/wxwidgets/current/wxWidgets-2.9.4.7z" />
 	<arg value="-o${3pt}/wxwidgets/current/wxWidgets" />
 	<arg value="-y" />
     </exec>
-    <exec dir="${root}/bin/mac" executable="7za" failonerror="yes">
+    <exec dir="${root}/bin/mac" executable="./7za" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.7z" />
 	<arg value="-o${3pt}/wxwidgets/2.8.12" />
