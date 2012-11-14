@@ -7,8 +7,7 @@
 /// \copyright		2012 Kevin Bradford, Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for functions involved in kbserver support.
-/// This .cpp file contains member functions of the CAdapt_ItApp class, and so is an
-/// extension to the Adapt_It.cpp class.
+/// This .cpp file contains member functions of the KbServer class.
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
