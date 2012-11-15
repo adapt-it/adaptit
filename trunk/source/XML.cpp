@@ -12,6 +12,16 @@
 /// KB-parsing functions.)
 /////////////////////////////////////////////////////////////////////////////
 
+/*	mrh note (Oct 2012)
+	We'd like to have forward compatibility in our document format as much as possible -- see the above BEW comment.
+	So if we hit an unknown attribute, we'll quietly ignore it by returning TRUE from the parsing function.  This will
+	cause the parser to keep going, and the unknown data will just not just does not find its way into the application's 
+	internal structures
+ 
+	We can find all these places by looking for Bruces comments with the words "unknown attribute".
+*/
+
+
 // for debugging LIFT AtLIFTxxxx() callback functions
 //#define _debugLIFT_
 
@@ -3574,6 +3584,21 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 		{
 			gpApp->m_targetName = gpApp->Convert8to16(attrValue);
 		}
+
+	// mrh June 2012 -- docVersion 7 adds source and target language codes.  At present we only use these if we don't already
+	//  have the corresponding variables set -- if they are set, we just ignore the incoming codes.
+	
+		else if (gnDocVersion >= 7 && attrName == xml_srccode)
+		{
+			if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
+				gpApp->m_sourceLanguageCode = attrValue;
+		}
+		else if (gnDocVersion >= 7 && attrName == xml_tgtcode)
+		{
+			if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
+				gpApp->m_targetLanguageCode = attrValue;
+		}
+	
 		else if (attrName == xml_others)
 		{
 			wxString buffer = gpApp->Convert8to16(attrValue);

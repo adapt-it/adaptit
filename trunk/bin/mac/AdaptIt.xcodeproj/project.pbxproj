@@ -45,7 +45,6 @@
 		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
 		7DEAF5EA14FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DEAF5E614FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp */; };
 		7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DEAF5E814FF24A000D6E871 /* CreateNewAIProjForCollab.cpp */; };
-		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 		C80016911410923A009BA61F /* conschk_exists_notu_dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C80016901410923A009BA61F /* conschk_exists_notu_dlg.cpp */; };
 		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
 		C805DBF011705519006919E2 /* Placeholder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C805DBEF11705519006919E2 /* Placeholder.cpp */; };
@@ -150,12 +149,6 @@
 		C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E570F3F9CAB007579B8 /* XML.cpp */; };
 		C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */; };
 		C8F82F370F3F9CE7007579B8 /* AIWX.gif in Resources */ = {isa = PBXBuildFile; fileRef = C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */; };
-		C8F82FBB0F3FA161007579B8 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F82FBA0F3FA161007579B8 /* QuickTime.framework */; };
-		C8F830B00F3FA3EE007579B8 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830AF0F3FA3EE007579B8 /* AppKit.framework */; };
-		C8F830B40F3FA41B007579B8 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830B30F3FA41B007579B8 /* AGL.framework */; };
-		C8F830B80F3FA455007579B8 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830B70F3FA455007579B8 /* IOKit.framework */; };
-		C8F830BC0F3FA47D007579B8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830BB0F3FA47D007579B8 /* OpenGL.framework */; };
-		C8F830C00F3FA4AA007579B8 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830BF0F3FA4AA007579B8 /* System.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -175,14 +168,11 @@
 		03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PeekAtFile.cpp; path = ../../source/PeekAtFile.cpp; sourceTree = SOURCE_ROOT; };
 		03F468AD11F759A300B3CAEC /* PeekAtFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PeekAtFile.h; path = ../../source/PeekAtFile.h; sourceTree = SOURCE_ROOT; };
 		03F468AE11F759A300B3CAEC /* tellenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tellenc.h; path = ../../source/tellenc.h; sourceTree = SOURCE_ROOT; };
-		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		273A30841619A853002B8AA0 /* KbServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KbServer.h; path = ../../source/KbServer.h; sourceTree = SOURCE_ROOT; };
 		27699F47153CEBAB009B0ADD /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
 		2791678516195D4D00744DF8 /* KBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBServer.cpp; path = ../../source/KBServer.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
-		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
-		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UsfmFilterPage.cpp; path = ../../source/UsfmFilterPage.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2E125D7EAA005DF3C6 /* UsfmFilterPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UsfmFilterPage.h; path = ../../source/UsfmFilterPage.h; sourceTree = SOURCE_ROOT; };
@@ -431,12 +421,6 @@
 		C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = XMLErrorDlg.cpp; path = ../../source/XMLErrorDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E5A0F3F9CAB007579B8 /* XMLErrorDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = XMLErrorDlg.h; path = ../../source/XMLErrorDlg.h; sourceTree = SOURCE_ROOT; };
 		C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = AIWX.gif; path = ../../res/AIWX.gif; sourceTree = SOURCE_ROOT; };
-		C8F82FBA0F3FA161007579B8 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/QuickTime.framework; sourceTree = DEVELOPER_DIR; };
-		C8F830AF0F3FA3EE007579B8 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = DEVELOPER_DIR; };
-		C8F830B30F3FA41B007579B8 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/AGL.framework; sourceTree = DEVELOPER_DIR; };
-		C8F830B70F3FA455007579B8 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = DEVELOPER_DIR; };
-		C8F830BB0F3FA47D007579B8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/OpenGL.framework; sourceTree = DEVELOPER_DIR; };
-		C8F830BF0F3FA4AA007579B8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/System.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -444,13 +428,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
-				C8F82FBB0F3FA161007579B8 /* QuickTime.framework in Frameworks */,
-				C8F830B00F3FA3EE007579B8 /* AppKit.framework in Frameworks */,
-				C8F830B40F3FA41B007579B8 /* AGL.framework in Frameworks */,
-				C8F830B80F3FA455007579B8 /* IOKit.framework in Frameworks */,
-				C8F830BC0F3FA47D007579B8 /* OpenGL.framework in Frameworks */,
-				C8F830C00F3FA4AA007579B8 /* System.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -758,15 +735,6 @@
 			children = (
 				C8DE45651323679C0030EC9B /* base64.h */,
 				C8DE45661323679C0030EC9B /* base64.cpp */,
-				C8F830BF0F3FA4AA007579B8 /* System.framework */,
-				C8F830BB0F3FA47D007579B8 /* OpenGL.framework */,
-				C8F830B70F3FA455007579B8 /* IOKit.framework */,
-				C8F830B30F3FA41B007579B8 /* AGL.framework */,
-				C8F830AF0F3FA3EE007579B8 /* AppKit.framework */,
-				C8F82FBA0F3FA161007579B8 /* QuickTime.framework */,
-				20286C33FDCF999611CA2CEA /* Carbon.framework */,
-				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
-				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
 			);
 			name = "External Frameworks and Libraries";
 			sourceTree = "<group>";
@@ -1038,17 +1006,19 @@
 		03E7D7161643090C008C2CFC /* CocoaDebugWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_VERSION = 4.0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(inherited)";
 				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = "";
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
 				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				VALID_ARCHS = x86_64;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = CocoaDebugWX2.9;
@@ -1135,7 +1105,7 @@
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx10.5;
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9 ${BOOST_ROOT} ${WXWIN}/include .";
-				VALID_ARCHS = "x86_64 i386";
+				VALID_ARCHS = x86_64;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -1152,12 +1122,14 @@
 		03E7D75416431777008C2CFC /* CocoaReleaseWX2.9 */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_VERSION = 4.0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
+				VALID_ARCHS = x86_64;
 				WARNING_CFLAGS = "";
 			};
 			name = CocoaReleaseWX2.9;
@@ -1244,7 +1216,7 @@
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx10.6;
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/buildosxu/lib/wx/include/osx_cocoa-unicode-static-2.9 ${BOOST_ROOT} ${WXWIN}/include .";
-				VALID_ARCHS = "x86_64 i386";
+				VALID_ARCHS = x86_64;
 				VERSIONING_SYSTEM = "apple-generic";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -1259,355 +1231,26 @@
 			};
 			name = CocoaReleaseWX2.9;
 		};
-		C0E91AC608A95435008D54AB /* CarbonDebugWX2.9 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_DYNAMIC_NO_PIC = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_MODEL_TUNING = G4;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PFE_FILE_C_DIALECTS = "c++ objective-c++";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(WX_PREPROCESSOR_DEFINITIONS)",
-					"$(WXPLATFORM)",
-					__WXMAC__,
-					"wxUSE_BASE=1",
-					"_FILE_OFFSET_BITS=64",
-					_LARGE_FILES,
-					MACOS_CLASSIC,
-					"__WXMAC_XCODE__=1",
-					"WX_PRECOMP=1",
-					"wxUSE_UNICODE=1",
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_VERSION = 4.2;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(WXWIN)/build/osx/build/Debug",
-					"\"$(SRCROOT)/../../source\"",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-fvisibility=hidden";
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-sign-compare",
-					"$(OTHER_CFLAGS)",
-					"-fvisibility-inlines-hidden",
-				);
-				OTHER_LDFLAGS = (
-					"-liconv",
-					"-lz",
-					"-lwx_osx_carbon_static",
-					"-lcurl",
-				);
-				PREBINDING = YES;
-				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/build/osx/setup/carbon/include ${WXWIN}/include .";
-				USE_HEADERMAP = "";
-				USE_SEPARATE_HEADERMAPS = YES;
-				VALID_ARCHS = "i386 x86_64";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
-				WXTOOLKIT = carbon;
-				WXTOOLKITUPPER = CARBON;
-				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
-				ZERO_LINK = NO;
-			};
-			name = CarbonDebugWX2.9;
-		};
-		C0E91AC708A95435008D54AB /* CarbonReleaseWX2.9 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_MODEL_TUNING = G4;
-				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(WX_PREPROCESSOR_DEFINITIONS)",
-					"$(WXPLATFORM)",
-					__WXMAC__,
-					"wxUSE_BASE=1",
-					"_FILE_OFFSET_BITS=64",
-					_LARGE_FILES,
-					MACOS_CLASSIC,
-					"__WXMAC_XCODE__=1",
-					"WX_PRECOMP=1",
-					"wxUSE_UNICODE=1",
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_VERSION = 4.2;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(WXWIN)/build/osx/build/Release",
-					"\"$(SRCROOT)/../../source\"",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-fvisibility=hidden";
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-sign-compare",
-					"-fvisibility-inlines-hidden",
-					"$(OTHER_CFLAGS)",
-				);
-				OTHER_LDFLAGS = (
-					"-liconv",
-					"-lz",
-					"-lwx_osx_carbon_static",
-					"-lcurl",
-				);
-				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx;
-				UNSTRIPPED_PRODUCT = NO;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/build/osx/setup/carbon/include ${WXWIN}/include .";
-				USE_HEADERMAP = "";
-				USE_SEPARATE_HEADERMAPS = YES;
-				VALID_ARCHS = "i386 x86_64";
-				VERSIONING_SYSTEM = "apple-generic";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
-				WXTOOLKIT = carbon;
-				WXTOOLKITUPPER = CARBON;
-				WX_PREPROCESSOR_DEFINITIONS = "wxDEBUG_LEVEL=0";
-			};
-			name = CarbonReleaseWX2.9;
-		};
-		C0E91ACA08A95435008D54AB /* CarbonDebugWX2.9 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				GCC_VERSION = 4.0;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = "";
-				MACOSX_DEPLOYMENT_TARGET = "";
-				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
-				PREBINDING = NO;
-				SDKROOT = macosx10.6;
-				USER_HEADER_SEARCH_PATHS = "$(inherited)";
-				VERSIONING_SYSTEM = "apple-generic";
-			};
-			name = CarbonDebugWX2.9;
-		};
-		C0E91ACB08A95435008D54AB /* CarbonReleaseWX2.9 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				GCC_VERSION = 4.0;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
-				SDKROOT = macosx10.6;
-				WARNING_CFLAGS = "";
-			};
-			name = CarbonReleaseWX2.9;
-		};
-		C81D46AF15C3EAF00072BD3F /* UnicodeDebugWX2.8 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				GCC_VERSION = 4.0;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(inherited)";
-				LIBRARY_SEARCH_PATHS = "";
-				MACOSX_DEPLOYMENT_TARGET = "";
-				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
-				PREBINDING = NO;
-				SDKROOT = macosx10.4;
-				USER_HEADER_SEARCH_PATHS = "$(inherited)";
-				VERSIONING_SYSTEM = "apple-generic";
-			};
-			name = UnicodeDebugWX2.8;
-		};
-		C81D46B015C3EAF00072BD3F /* UnicodeDebugWX2.8 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = YES;
-				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_DYNAMIC_NO_PIC = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_MODEL_TUNING = G4;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(WXWIN28)/include/wx/wxprec.h";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(WX_PREPROCESSOR_DEFINITIONS)",
-					"wxUSE_UNICODE=1",
-					__WXMAC__,
-					"wxUSE_BASE=1",
-					"_FILE_OFFSET_BITS=64",
-					_LARGE_FILES,
-					"__WXMAC_XCODE__=1",
-					MACOS_CLASSIC,
-					"WX_PRECOMP=1",
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_VERSION = 4.0;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(WXWIN28)/src/build/Development",
-					"\"$(SRCROOT)/../../source\"",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_CFLAGS = "";
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-sign-compare",
-					"$(OTHER_CFLAGS)",
-				);
-				OTHER_LDFLAGS = (
-					"-liconv",
-					"-lz",
-					"-lwx_mac_static",
-					"-lcurl",
-				);
-				PREBINDING = NO;
-				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx10.4;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
-				USE_HEADERMAP = "";
-				USE_SEPARATE_HEADERMAPS = YES;
-				VALID_ARCHS = "i386 x86_64";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
-				ZERO_LINK = NO;
-			};
-			name = UnicodeDebugWX2.8;
-		};
-		C81D46B115C3EB250072BD3F /* UnicodeReleaseWX2.8 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				GCC_VERSION = 4.0;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				PREBINDING = NO;
-				SDKROOT = macosx10.4;
-				WARNING_CFLAGS = "";
-			};
-			name = UnicodeReleaseWX2.8;
-		};
-		C81D46B215C3EB250072BD3F /* UnicodeReleaseWX2.8 */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(NATIVE_ARCH)";
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
-				GCC_MODEL_TUNING = G4;
-				GCC_OPTIMIZATION_LEVEL = s;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "$(WXWIN28)/include/wx/wxprec.h";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(WX_PREPROCESSOR_DEFINITIONS)",
-					"wxUSE_UNICODE=1",
-					__WXMAC__,
-					"wxUSE_BASE=1",
-					"_FILE_OFFSET_BITS=64",
-					_LARGE_FILES,
-					"__WXMAC_XCODE__=1",
-					"WX_PRECOMP=1",
-					MACOS_CLASSIC,
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(WXWIN28)/src/build/Deployment",
-					"\"$(SRCROOT)/../../source\"",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-sign-compare",
-					"$(OTHER_CFLAGS)",
-				);
-				OTHER_LDFLAGS = (
-					"-liconv",
-					"-lz",
-					"-lwx_mac_static",
-					"-lcurl",
-				);
-				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx10.4;
-				UNSTRIPPED_PRODUCT = NO;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
-				USE_HEADERMAP = "";
-				USE_SEPARATE_HEADERMAPS = YES;
-				VALID_ARCHS = "i386 x86_64";
-				VERSIONING_SYSTEM = "apple-generic";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = app;
-				WX_PREPROCESSOR_DEFINITIONS = "";
-				ZERO_LINK = NO;
-			};
-			name = UnicodeReleaseWX2.8;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
 		C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91AC608A95435008D54AB /* CarbonDebugWX2.9 */,
 				03E7D7171643090C008C2CFC /* CocoaDebugWX2.9 */,
-				C0E91AC708A95435008D54AB /* CarbonReleaseWX2.9 */,
 				03E7D75516431777008C2CFC /* CocoaReleaseWX2.9 */,
-				C81D46B015C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
-				C81D46B215C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = CarbonReleaseWX2.9;
+			defaultConfigurationName = CocoaDebugWX2.9;
 		};
 		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91ACA08A95435008D54AB /* CarbonDebugWX2.9 */,
 				03E7D7161643090C008C2CFC /* CocoaDebugWX2.9 */,
-				C0E91ACB08A95435008D54AB /* CarbonReleaseWX2.9 */,
 				03E7D75416431777008C2CFC /* CocoaReleaseWX2.9 */,
-				C81D46AF15C3EAF00072BD3F /* UnicodeDebugWX2.8 */,
-				C81D46B115C3EB250072BD3F /* UnicodeReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = CarbonReleaseWX2.9;
+			defaultConfigurationName = CocoaDebugWX2.9;
 		};
 /* End XCConfigurationList section */
 	};
