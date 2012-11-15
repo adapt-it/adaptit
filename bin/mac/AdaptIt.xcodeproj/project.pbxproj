@@ -1214,7 +1214,7 @@
 					"-lcurl",
 				);
 				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx10.6;
+				SDKROOT = macosx10.5;
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/buildosxu/lib/wx/include/osx_cocoa-unicode-static-2.9 ${BOOST_ROOT} ${WXWIN}/include .";
 				VALID_ARCHS = x86_64;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -1231,6 +1231,161 @@
 			};
 			name = CocoaReleaseWX2.9;
 		};
+		C81D46AF15C3EAF00072BD3F /* CarbonDebugWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = "";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				PREBINDING = NO;
+				SDKROOT = macosx10.4;
+				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = CarbonDebugWX2.8;
+		};
+		C81D46B015C3EAF00072BD3F /* CarbonDebugWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN28)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"wxUSE_UNICODE=1",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					MACOS_CLASSIC,
+					"WX_PRECOMP=1",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = 4.0;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(WXWIN28)/src/build/Development",
+					"\"$(SRCROOT)/../../source\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-sign-compare",
+					"$(OTHER_CFLAGS)",
+				);
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lz",
+					"-lwx_mac_static",
+					"-lcurl",
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = "Adapt It";
+				SDKROOT = macosx10.4;
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
+				USE_HEADERMAP = "";
+				USE_SEPARATE_HEADERMAPS = YES;
+				VALID_ARCHS = i386;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
+				ZERO_LINK = NO;
+			};
+			name = CarbonDebugWX2.8;
+		};
+		C81D46B115C3EB250072BD3F /* CarbonReleaseWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.4;
+				WARNING_CFLAGS = "";
+			};
+			name = CarbonReleaseWX2.8;
+		};
+		C81D46B215C3EB250072BD3F /* CarbonReleaseWX2.8 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN28)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"wxUSE_UNICODE=1",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					MACOS_CLASSIC,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(WXWIN28)/src/build/Deployment",
+					"\"$(SRCROOT)/../../source\"",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-sign-compare",
+					"$(OTHER_CFLAGS)",
+				);
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lz",
+					"-lwx_mac_static",
+					"-lcurl",
+				);
+				PRODUCT_NAME = "Adapt It";
+				SDKROOT = macosx10.4;
+				UNSTRIPPED_PRODUCT = NO;
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
+				USE_HEADERMAP = "";
+				USE_SEPARATE_HEADERMAPS = YES;
+				VALID_ARCHS = i386;
+				VERSIONING_SYSTEM = "apple-generic";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WX_PREPROCESSOR_DEFINITIONS = "";
+				ZERO_LINK = NO;
+			};
+			name = CarbonReleaseWX2.8;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1239,6 +1394,8 @@
 			buildConfigurations = (
 				03E7D7171643090C008C2CFC /* CocoaDebugWX2.9 */,
 				03E7D75516431777008C2CFC /* CocoaReleaseWX2.9 */,
+				C81D46B015C3EAF00072BD3F /* CarbonDebugWX2.8 */,
+				C81D46B215C3EB250072BD3F /* CarbonReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = CocoaDebugWX2.9;
@@ -1248,6 +1405,8 @@
 			buildConfigurations = (
 				03E7D7161643090C008C2CFC /* CocoaDebugWX2.9 */,
 				03E7D75416431777008C2CFC /* CocoaReleaseWX2.9 */,
+				C81D46AF15C3EAF00072BD3F /* CarbonDebugWX2.8 */,
+				C81D46B115C3EB250072BD3F /* CarbonReleaseWX2.8 */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = CocoaDebugWX2.9;
