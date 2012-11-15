@@ -3591,12 +3591,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 		else if (gnDocVersion >= 7 && attrName == xml_srccode)
 		{
 			if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
-				gpApp->m_sourceLanguageCode = attrValue;
+				gpApp->m_sourceLanguageCode = gpApp->Convert8to16(attrValue);
 		}
 		else if (gnDocVersion >= 7 && attrName == xml_tgtcode)
 		{
 			if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
-				gpApp->m_targetLanguageCode = attrValue;
+				gpApp->m_targetLanguageCode = gpApp->Convert8to16(attrValue);
 		}
 	
 		else if (attrName == xml_others)
