@@ -101,124 +101,108 @@
     <copy file="${3pt}/wxwidgets/current/wxWidgets/include/wx/osx/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets/include/wx/setup.h"/>
     <!-- Set the svn version number in Adapt_It.h. -->
 	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
+    <!-- make the wxwidgets / osx build directories -->
+    <mkdir dir="${3pt}/wxwidgets/current/wxWidgets/buildosxu"/>
+    <mkdir dir="${3pt}/wxwidgets/current/wxWidgets/buildosxud"/>
   </target>
 
   <!-- 
-  - compile_Unicode_Debug target
-  - Compiles AI in Unicode Debug mode.
+  - compile_debug_29 target
+  - Compiles the CocoaDebugWX2.9 AI build configuration.
   -->
-  <target name="compile_unicode_debug" depends="init" description="compile the source " >
-    <!-- build wxwidgets for wxwin -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Debug" />
-	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
-    </exec>
-    <!-- build Adapt It -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="29"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
-		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
-		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
-		<arg value="/target:rebuild" />
-		<arg value="/p:Configuration=Unicode Debug" />
-    </exec>
-  </target>
-
-  <!-- 
-  - compile_Unicode_Release target
-  - Compiles AI in Unicode Release mode.
-  -->
-  <target name="compile_unicode_release" depends="init"
+  
+  <target name="compile_debug_29" depends="init"
         description="compile the source " >
-    <!-- build wxwidgets for wxwin -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Release" />
-	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+    <!-- build wxwidgets for osx (unicode debug) -->
+    <exec dir="${3pt}/wxwidgets/current/wxWidgets/buildosxud" executable="../config" failonerror="yes">
+	  <arg value="--with-cocoa" />
+	  <arg value="--with-macosx-version-min=10.5" />
+	  <arg value="--enable-debug" />
+	  <arg value="--with-macosx-sdk=/Developer/SDKs/MacOSX10.5.sdk" />
+	  <arg value="--enable-unicode" />
+	  <arg value="--disable-shared" />
+	  <arg value="--prefix='$(pwd)'" />
     </exec>
-    <!-- build Adapt It -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="29"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
-		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
-		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
-		<arg value="/target:rebuild" />
-		<arg value="/p:Configuration=Unicode Release" />
+    <exec dir="${root}/bin/mac" executable="make" failonerror="yes">
+    </exec>
+    <!-- build adapt it -->
+    <exec executable="xcodebuild" failonerror="yes">
+	  <arg value="ARCHS=x86_64" />
+	  <arg value="ONLY_ACTIVE_ARCH=NO" />
+	  <arg value="-project" />
+	  <arg value="${root}/bin/mac/AdaptIt.xcodeproj" />
+	  <arg value="-activetarget" />
+	  <arg value="-configuration" />
+	  <arg value="CocoaDebugWX2.9" />
+    </exec>
+  </target>
+
+  <!-- 
+  - compile_release_29 target
+  - Compiles the CocoaReleaseWX2.9 AI build configuration.
+  -->
+  <target name="compile_release_29" depends="init"
+        description="compile the source " >
+    <!-- build wxwidgets for osx (unicode release) -->
+    <exec dir="${3pt}/wxwidgets/current/wxWidgets/buildosxu" executable="../config" failonerror="yes">
+	  <arg value="--with-cocoa" />
+	  <arg value="--with-macosx-version-min=10.5" />
+	  <arg value="--with-macosx-sdk=/Developer/SDKs/MacOSX10.5.sdk" />
+	  <arg value="--enable-unicode" />
+	  <arg value="--disable-shared" />
+	  <arg value="--prefix='$(pwd)'" />
+    </exec>
+    <exec dir="${root}/bin/mac" executable="make" failonerror="yes">
+    </exec>
+    <!-- build adapt it -->
+    <exec executable="xcodebuild" failonerror="yes">
+	  <arg value="ARCHS=x86_64" />
+	  <arg value="ONLY_ACTIVE_ARCH=NO" />
+	  <arg value="-project" />
+	  <arg value="${root}/bin/mac/AdaptIt.xcodeproj" />
+	  <arg value="-activetarget" />
+	  <arg value="-configuration" />
+	  <arg value="CocoaReleaseWX2.9" />
     </exec>
   </target>
   
   <!-- 
-  - compile_Debug target
-  - Compiles AI in Debug mode.
+  - compile_debug_28 target
+  - Compiles the UnicodeDebugWX2.8 AI build configuration.
   -->
-  <target name="compile_debug" depends="init"
+  <target name="compile_debug_28" depends="init"
         description="compile the source " >
     <!-- build wxwidgets for wxwin -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Debug" />
-	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
+    <exec dir="${root}/bin/mac" executable="config" failonerror="yes">
+	  <arg value="ARCHS=x86_64" />
+	  <arg value="ONLY_ACTIVE_ARCH=NO" />
+	  <arg value="-project" />
+	  <arg value="${root}/bin/mac/AdaptIt.xcodeproj" />
+	  <arg value="-activetarget" />
+	  <arg value="-configuration" />
+	  <arg value="CocoaDebugWX2.9" />
     </exec>
-    <!-- build Adapt It -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="28"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
-		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
-		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
-		<arg value="/target:rebuild" />
-		<arg value="/p:Configuration=Debug" />
+    <exec dir="${root}/bin/mac" executable="make" failonerror="yes">
+    </exec>
+    <!-- build adapt it -->
+    <exec executable="xcodebuild" failonerror="yes">
+	  <arg value="ARCHS=i386" />
+	  <arg value="ONLY_ACTIVE_ARCH=NO" />
+	  <arg value="-project" />
+	  <arg value="${root}/bin/mac/AdaptIt.xcodeproj" />
+	  <arg value="-activetarget" />
+	  <arg value="-configuration" />
+	  <arg value="UnicodeDebugWX2.8" />
     </exec>
   </target>
 
-  <!-- 
-  - compile_Release target
-  - compiles AI in release mode.
-  -->
-  <target name="compile_release" depends="init"
-        description="compile the source " >
-    <!-- build wxwidgets for wxwin -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Release" />
- 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
-    </exec>
-    <!-- build Adapt It -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="28"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
-		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
-		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
-		<arg value="/target:rebuild" />
-		<arg value="/p:Configuration=Release" />
-    </exec>
-  </target>
 
-  <!-- 
-  - build_help target
-  - Compiles the help files.
-  -->
-  <target name="build_help" description="compile the help files" >
-    <!-- build the help files -->
-    <exec executable="hhc.exe" failonerror="yes">
-	<arg value="${root}/hlp/Adapt_It.hhp" />
-    </exec>
-  </target>
-  
   <!-- 
   - copy target
   - Runs the CallAllBatchSetups.bat file, that copies docs, help, localizations and .exes to the setup
   - staging areas for the installers. This is called from the build_release target.
   -->
-  <target name="copy" depends="compile_unicode_release" description="copy the build results to the setup staging areas">
+  <target name="copy" depends="compile_release_29" description="copy the build results to the setup staging areas">
     <!-- copying is done through a batch file -->
 	<echo message="Copying files" />
     <exec dir="${root}" executable="cmd" failonerror="yes">
@@ -233,48 +217,55 @@
   - output will be in the ${dist} directory if successful.
   - This target gets called from the daily build.
   -->
-  <target name="generate_installers" depends="copy"
+  <target name="generate_installer" depends="copy"
         description="generate the distribution" >
     <!-- Run ALL the Inno IDE scripts -->
+    <!--
+hdiutil create -megabytes 5 -fs HFS+ -volname myDisk ~/Desktop/myDisk
+hdiutil create -srcfolder "${source}" -volname "${title}" -fs HFS+ \
+      -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${size}k pack.temp.dmg
+Mount the disk image, and store the device name (you might want to use sleep for a few seconds after this operation):
+
+device=$(hdiutil attach -readwrite -noverify -noautoopen "pack.temp.dmg" | \
+         egrep '^/dev/' | sed 1q | awk '{print $1}')
+Store the background picture (in PNG format) in a folder called ".background" in the DMG, and store its name in the "backgroundPictureName" variable.
+
+Use AppleScript to set the visual styles (name of .app must be in bash variable "applicationName", use variables for the other properties as needed):
+
+echo '
+   tell application "Finder"
+     tell disk "'${title}'"
+           open
+           set current view of container window to icon view
+           set toolbar visible of container window to false
+           set statusbar visible of container window to false
+           set the bounds of container window to {400, 100, 885, 430}
+           set theViewOptions to the icon view options of container window
+           set arrangement of theViewOptions to not arranged
+           set icon size of theViewOptions to 72
+           set background picture of theViewOptions to file ".background:'${backgroundPictureName}'"
+           make new alias file at container window to POSIX file "/Applications" with properties {name:"Applications"}
+           set position of item "'${applicationName}'" of container window to {100, 100}
+           set position of item "Applications" of container window to {375, 100}
+           update without registering applications
+           delay 5
+           eject
+     end tell
+   end tell
+' | osascript
+Finialize the DMG by setting permissions properly, compressing and releasing it:
+
+chmod -Rf go-w /Volumes/"${title}"
+sync
+sync
+hdiutil detach ${device}
+hdiutil convert "/pack.temp.dmg" -format UDZO -imagekey zlib-level=9 -o "${finalDMGName}"
+rm -f /pack.temp.dmg 
+-->
+
     <exec executable="iscc" failonerror="yes">
 	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Documentation Only.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Localizations Only.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Minimal.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - No Html Help.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Documentation Only.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Localizations Only.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Minimal.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - No Html Help.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode.iss" />
     </exec>
   </target>
 
@@ -282,14 +273,14 @@
   - build_continuous target
   - Compiles the Unicode Debug build.
   -->
-  <target name="build_continuous" depends="clean, init, compile_unicode_debug" description="Continuous build target" >
+  <target name="build_continuous" depends="clean, init, compile_debug_29" description="Continuous build target" >
   </target>
 
   <!-- 
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, build_help, generate_installers" description="Daily / Release build target" >
+  <target name="build_release" depends="clean, init, compile_release_29, generate_installer" description="Daily / Release build target" >
   </target>
 
 </project>
