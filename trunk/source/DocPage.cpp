@@ -1017,7 +1017,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		{
 			// IDS_LOAD_DOC_FAILURE
 			wxString msg = _(
-"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)");
+"Loading the document failed. Possibly it was created with a later version of Adapt It. Contact the developers if you cannot resolve the problem yourself.");
 			wxMessageBox(msg, _T(""), wxICON_STOP);
 			pApp->LogUserAction(msg);
 			return; // wxExit(msg); whm modified 27May11

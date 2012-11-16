@@ -329,7 +329,7 @@
 				Optimization="0"
 				FavorSizeOrSpeed="2"
 				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswu&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;lib\silconverters"
-				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB"
+				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_KBSERVER"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="$(IntDir)/Adapt_It.pch"
