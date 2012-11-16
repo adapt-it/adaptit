@@ -5090,11 +5090,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	if (pApp->m_pSourcePhrases->GetCount() == 0)
 	{
 		// nothing to show
-		// IDS_NO_DATA
-		wxMessageBox(_(
-"There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),
-		fn.GetFullName(), wxICON_EXCLAMATION | wxOK);
-		gpApp->LogUserAction(_T("There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."));
+		wxString msg;
+		msg = _("Nothing was read in successfully.\nThis can happen if the document being loaded was created with a later version of Adapt It that has either a higher docVersion value, or extra attributes in the <Settings> tag, or both.\nYou can try manual editing in Notepad or a similar PlainText editor (on a copy of the document xml file) removing attributes added recently to the <Settings> element, or lowering the docVersion number, or both, and then saving (as UTF-8).\nThen try to load the edited document file.\nComparing the docVersion and attributes of documents not opened for a long time may help you work out which are the things to remove or change. Confine such editing to lines 5 to 7 of the xml document file.\nPerhaps contacting the developers for help is best.");
+		wxMessageBox(msg, fn.GetFullName(), wxICON_EXCLAMATION | wxOK);
+		gpApp->LogUserAction(msg);
 		if (nTotal > 0 && bShowProgress)
 		{
 			pStatusBar->FinishProgress(_("Opening the Document"));

@@ -181,6 +181,35 @@ int CTargetUnit::FindRefString(wxString& translationStr)
 	return (int)wxNOT_FOUND;
 }
 
+#if defined(_KBSERVER)
+// A variant of the above FindRefString() function. Returns the matched (not
+// pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made
+CRefString* CTargetUnit::FindRefStringForKbSharing(wxString& translationStr)
+{
+	CRefString* pRefString = NULL;
+	wxString emptyStr; emptyStr.Empty();
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pRefString != NULL);
+		pos = pos->GetNext();
+		if (!pRefString->GetDeletedFlag())
+		{
+			wxString str = pRefString->m_translation;
+			if ( (translationStr.IsEmpty() && str.IsEmpty()) || (translationStr == str))
+			{
+				// we have a match
+				return pRefString;
+			}
+		} // end of block for test: m_bDeleted == FALSE
+	}
+	// if control gets to here, we have no match, and pRefString is still NULL
+	return pRefString;
+}
+#endif
+
 // returns an index to a deleted CRefString instance whose m_translation member matches
 // the passed in translationStr; otherwise returns wxNOT_FOUND if there was no such
 // deleted one present (that is, a non-deleted one will cause wxNOT_FOUND to be returned)
@@ -218,6 +247,36 @@ int CTargetUnit::FindDeletedRefString(wxString& translationStr)
 	// if control gets to here, we have no match
 	return (int)wxNOT_FOUND;
 }
+
+#if defined(_KBSERVER)
+// A variant of the above FindDeletedRefString() function. Returns the matched
+// (pseudo-deleted) CRefString instance's pointer, or NULL if no match could be made
+CRefString* CTargetUnit::FindDeletedRefStringForKbSharing(wxString& translationStr)
+{
+	CRefString* pRefString = NULL;
+	wxString str;
+	wxString emptyStr; emptyStr.Empty();
+	TranslationsList::Node* pos = m_pTranslations->GetFirst();
+	wxASSERT(pos != NULL);
+	while (pos != NULL)
+	{
+		pRefString = (CRefString*)pos->GetData();
+		wxASSERT(pRefString != NULL);
+		pos = pos->GetNext();
+		if (pRefString->GetDeletedFlag() == TRUE)
+		{
+			str = pRefString->m_translation;
+			if ( (translationStr.IsEmpty() && str.IsEmpty()) || (translationStr == str))
+			{
+				// we have a match
+				return pRefString;
+			}
+		} // end of block for test: m_bDeleted == FALSE
+	}
+	// if control gets to here, we have no match and pRefString is still NULL
+	return pRefString;
+}
+#endif
 
 
 // Checks the CRefString instances, and any with m_bDeleted cleared to FALSE, it sets it
@@ -273,7 +332,7 @@ void CTargetUnit::DeleteAllToPrepareForNotInKB()
 // "<Not In KB>" entry, if present.
 // (4) A FALSE value returned will require a separate StoreText() call in the caller if the
 // intent is to store a string other than "<Not In KB>" on the parent CTargetUnit instance.
-// (5) A TRUE value returned means that there the passed in str value is present, - either
+// (5) A TRUE value returned means that the passed in str value is present, - either
 // because it was formerly deleted and has just become undeleted, or it was formerly
 // undeleted anyway.
 //

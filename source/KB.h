@@ -195,7 +195,12 @@ public:
 	// of m_pKbServer[0] or [1] is to be associated with the current CKB instance
 	KbServer*	GetMyKbServer();
 
-
+	bool		LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr);
+	CTargetUnit* GetTargetUnitForKbSharing(wxString keyStr);
+/*  I don't think I need this next one (it's only a stub so far)
+	bool		IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
+					int deletedFlag, CRefString*& pRefString, bool& bMatchedTranslation);
+*/
 
 #endif // for _KBSERVER
 

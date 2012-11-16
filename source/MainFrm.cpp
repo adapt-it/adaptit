@@ -951,7 +951,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					{
 						// IDS_LOAD_DOC_FAILURE
 						wxMessageBox(_(
-"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
+"Loading the document failed. Possibly it was created with a later version of Adapt It. Contact the developers if you cannot resolve the problem yourself."),
 						_T(""), wxICON_ERROR | wxOK);
 						bool bOK;
 						bOK = ::wxSetWorkingDirectory(strSavedCurrentDirectoryPath); // restore old current directory

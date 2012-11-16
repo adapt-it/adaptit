@@ -513,6 +513,34 @@ a:		iter = pMap->find(keyStr);
 #endif
 }
 
+#if defined(_KBSERVER)
+// Return TRUE if a CTargetUnit instance is found with the passed in keyStr, FALSE is not.
+// In this function, the keyStr parameter will always be a source string; the caller must
+// determine which particular map is to be looked up and provide it's pointer as the first
+// parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
+// pointer. This function has no smarts for AutoCapitalization support, because KbServer
+// database simply takes whatever is passed to it, and returns same when requested. A
+// failure to find an associated CTargetUnit instance for the passed in keyStr also results
+// in pTU being returned as NULL; otherwise.
+bool CKB::LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
+{
+	wxString saveKey;
+	MapKeyStringToTgtUnit::iterator iter;
+	iter = pMap->find(keyStr);
+	if (iter != pMap->end())
+	{
+		pTU = iter->second;
+		wxASSERT(pTU != NULL);
+	}
+	else
+	{
+		pTU = (CTargetUnit*)NULL;
+		return FALSE;
+	}
+	return TRUE;
+}
+#endif
+
 // looks up the knowledge base to find if there is an entry in the map with index
 // nSrcWords-1, for the key keyStr and then searches the list in the CTargetUnit for the
 // CRefString with m_translation member identical to valueStr, and returns a pointer to
@@ -968,6 +996,11 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whi
 	// get the size of any of the above arrays - that's our loop bound
 	size_t size = pKeyArray->GetCount();
 	size_t index;
+	// scratch variables for key, translation, and deleted flag, for a single entry
+	wxString key;
+	wxString translation; // could be an adaptation, or in glossing mode, a gloss
+	bool deletedFlag;
+
 	switch(whichEntries)
 	{
 	case forOneCTargetUnit:
@@ -977,9 +1010,16 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whi
 		break;
 	default:
 	case mixedEntries:
+		for (index = 0; index < size; index++)
+		{
+			key = pKeyArray->Item(index);
+			translation = pTgtArray->Item(index);
+			deletedFlag = pDeletedFlagArray->Item(index) == 1 ? TRUE : FALSE;
 
-// *** TODO *** call a handler function here
 
+
+
+		}
 		break;
 	}
 	pKbServer->ClearAllPrivateStorageArrays();
@@ -1798,8 +1838,8 @@ bool CKB::UndeleteNormalEntryAndDeleteNotInKB(CSourcePhrase* pSrcPhrase, CTarget
 
 // returns TRUE if, for the pSrcPhrase->m_key key value, the KB (adaptation KB only, the
 // caller will not call this function if the mode is glossing mode) contains a CTargetUnit
-// instance which has a CRefString instance which is not storing "<Not In KB>". Else it
-// returns FALSE.
+// instance which has a CRefString instance which is storing "<Not In KB>" in a CRefString
+// which is not marked as deleted. Else it returns FALSE.
 // Called in: PlacePhraseBox(), RestoreOriginalMinPhrases() and OnRemoveRetranslation().
 // BEW 21Jun10, changed for support of kbVersion 2's m_bDeleted flag; any matches of
 // <Not In KB> are deemed to be non-matches if the storing CRefString instance has its
@@ -2462,6 +2502,87 @@ CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 	return (CTargetUnit*)NULL;
 }
 
+#if defined(_KBSERVER)
+// Looks up the local knowledge base to find if there is a CTargetUnit pointer entry in the
+// map with index nSrcWords-1, for the key keyStr, and returns the CTargetUnit pointer it
+// finds. If it fails, it returns a null pointer. Since no CSourcePhrase is involved, the
+// number of words is determined by tokenizing the keyStr, and finding out how many tokens
+// are involved. Since we deal with keys, empty string is not going to ever be present, so
+// we pass FALSE to SmartTokenize() for its final parameter.
+// BEW created 14Nov12
+CTargetUnit* CKB::GetTargetUnitForKbSharing(wxString keyStr)
+{
+	int nSrcWords = 1;
+	wxString delimiters = _T(' '); // the only delimiter we need is space character
+	wxArrayString arrStr; 
+	arrStr.Clear();
+	long numWordTokens = SmartTokenize(delimiters, keyStr, arrStr, FALSE);
+	nSrcWords = (int)numWordTokens;
+	MapKeyStringToTgtUnit* pMap = m_pMap[nSrcWords-1];
+	wxASSERT(pMap != NULL);
+	CTargetUnit* pTgtUnit;
+	bool bOK = LookupForKbSharing(pMap, pTgtUnit, keyStr);
+	if (bOK)
+	{
+		wxASSERT(pTgtUnit);
+		return pTgtUnit; // we found it
+	}
+    // lookup failed, so return NULL pointer
+	return (CTargetUnit*)NULL;
+}
+
+/*
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return         TRUE if translation param && deletedFlag params' values are
+///                 identical to those in a single CRefString within pTU, FALSE
+///                 if one or both do not match.
+/// \param pTU  ->  pointer to a CTargetUnit looked up in the caller by a successful 
+///                 call to LookupForKbSharing() - it may contain one or more CRefString
+///                 instances
+/// \param translation -> ref to a string (it may have multiple words, space delimited, or
+///                 even might be an empty string - for a <no adaptation> entry) which is
+///                 paired to the source text key that the caller used for the lookup; the
+///                 translation string could be target text, or glossing text (if the latter
+///                 then it may have punctuation in it - we allow punctuation only in the
+///                 glossing KB) - the origin of the translation string most likely is
+///                 from a kbserver on the LAN or the web and some kind of GET has just
+///                 been done
+/// \param deletedFlag -> the value (0 is FALSE, 1 is TRUE) of the deleted flag for the
+///                 pair being considered for a match (pair being the key and the
+///                 translation string, but we also want to check for a match or non-match
+///                 of the deleted flag as well - the latter info is needed so we can
+///                 determine what the appropriate action is to be in the local KB
+/// \param pRefString <- Set to pointer to the matched CRefString instance in pTU, or NULL
+///                 if no match could be made to any CRefString in pTU.
+/// \param bMatchedTranslation <- Set TRUE if the passed in translation string matches
+///                 the m_translation member's contents within a matched CRefString within
+///                 the passed in pTU; FALSE if the two strings did not match.
+/// \remarks        If TRUE is returned, then both translation and deletedFlag values 
+///                 are matched - so we've then matched either a normal entry, or a deleted
+///                 entry. If FALSE is returned, we must test further, and check the value
+///                 of bMatchedTranslation. If the latter is TRUE, then we have matched a
+///                 CRefString in which the m_bDeleted flag has the opposite value to
+///                 whatever value the deletedFlag param had on entry; otherwise, if
+///                 bMatchedTranslation is FALSE, we've not matched any CRefString, and
+///                 the value of bMatchedTranslation should be ignored. (In the latter
+///                 case, the caller should use the translation value to create a new
+///                 CRefString instance and Append() it to the list in pTU, and give the
+///                 new CRefString instance's m_bDeleted flag the value within deletedFlag
+///                 after casting the latter to bool.)
+/////////////////////////////////////////////////////////////////////////////////////////
+bool CKB::IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
+					int deletedFlag, CRefString*& pRefString, bool& bMatchedTranslation)
+{
+
+
+// so far, I don't need this. Use CTargetUnit::FindRefStringForKbSharing() and 
+// FindDeletedRefStringForKbSharing() instead
+	return TRUE;
+}
+*/
+
+#endif // for _KBSERVER #defined
+
 // This is the inner workings of the handler OnCheckKBSave() -- the latter being called
 // when the user clicks the GUI checkbox "Save to knowledge base" (the latter is checked
 // by default, it takes a user click to uncheck it, and that results in "<Not In KB>"
@@ -2860,12 +2981,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		if (m_pApp->m_bIsKBServerProject && 
 			m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+			// don't send to kbserver if it's a <Not In KB> entry
+			if (!bStoringNotInKB)
+			{
+				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), 
+											key, pRefString->m_translation);
 
-			// I've not yet decided what to do with the return value, at present we'll
-			// just ignore it even if FALSE (an internally generated message would have
-			// been seen anyway in that event)
-			bHandledOK = bHandledOK; // avoid compiler warning
+				// I've not yet decided what to do with the return value, at present we'll
+				// just ignore it even if FALSE (an internally generated message would have
+				// been seen anyway in that event)
+				bHandledOK = bHandledOK; // avoid compiler warning
+			}
 		}
 #endif
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
@@ -2935,12 +3061,17 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			if (m_pApp->m_bIsKBServerProject && 
 				m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			{
-				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+				// don't send to kbserver if it's a <Not In KB> entry
+				if(!bStoringNotInKB)
+				{
+					bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), 
+												key, pRefString->m_translation);
 
-				// I've not yet decided what to do with the return value, at present we'll
-				// just ignore it even if FALSE (an internally generated message would have
-				// been seen anyway in that event)
-				bHandledOK = bHandledOK; // avoid compiler warning
+					// I've not yet decided what to do with the return value, at present we'll
+					// just ignore it even if FALSE (an internally generated message would have
+					// been seen anyway in that event)
+					bHandledOK = bHandledOK; // avoid compiler warning
+				}
 			}
 #endif
 			// continue with the store to the local KB
@@ -3035,12 +3166,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						if (m_pApp->m_bIsKBServerProject && 
 							m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 						{
-							bool bHandledOK = HandleUndelete(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							{
+								bool bHandledOK = HandleUndelete(m_pApp->GetKBTypeForServer(), 
+														key, pRefString->m_translation);
 
-                            // I've not yet decided what to do with the return value, at
-                            // present we'll just ignore it even if FALSE (an internally
-                            // generated message would have been seen anyway in that event)
-							bHandledOK = bHandledOK; // avoid compiler warning
+								// I've not yet decided what to do with the return value, at
+								// present we'll just ignore it even if FALSE (an internally
+								// generated message would have been seen anyway in that event)
+								bHandledOK = bHandledOK; // avoid compiler warning
+							}
 						}
 #endif
 					}
@@ -3145,12 +3280,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					if (m_pApp->m_bIsKBServerProject && 
 						m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 					{
-						bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+						if (!bStoringNotInKB)
+						{
+							bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), 
+													key, pRefString->m_translation);
 
-						// I've not yet decided what to do with the return value, at present we'll
-						// just ignore it even if FALSE (an internally generated message would have
-						// been seen anyway in that event)
-						bHandledOK = bHandledOK; // avoid compiler warning
+							// I've not yet decided what to do with the return value, at present we'll
+							// just ignore it even if FALSE (an internally generated message would have
+							// been seen anyway in that event)
+							bHandledOK = bHandledOK; // avoid compiler warning
+						}
 					}
 #endif
 					// continue with the store to the local KB
@@ -3577,12 +3716,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		if (m_pApp->m_bIsKBServerProject && 
 			m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+			// don't send to kbserver if it's a <Not In KB> entry
+			if (!bStoringNotInKB)
+			{
+				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), 
+										key, pRefString->m_translation);
 
-			// I've not yet decided what to do with the return value, at present we'll
-			// just ignore it even if FALSE (an internally generated message would have
-			// been seen anyway in that event)
-			bHandledOK = bHandledOK; // avoid compiler warning
+				// I've not yet decided what to do with the return value, at present we'll
+				// just ignore it even if FALSE (an internally generated message would have
+				// been seen anyway in that event)
+				bHandledOK = bHandledOK; // avoid compiler warning
+			}
 		}
 #endif
 		// continue with the store to the local KB
@@ -3730,12 +3874,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			if (m_pApp->m_bIsKBServerProject && 
 				m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			{
-				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+				// don't send to kbserver if it's a <Not In KB> entry
+				if(!bStoringNotInKB)
+				{
+					bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), 
+													key, pRefString->m_translation);
 
-				// I've not yet decided what to do with the return value, at present we'll
-				// just ignore it even if FALSE (an internally generated message would have
-				// been seen anyway in that event)
-				bHandledOK = bHandledOK; // avoid compiler warning
+					// I've not yet decided what to do with the return value, at present we'll
+					// just ignore it even if FALSE (an internally generated message would have
+					// been seen anyway in that event)
+					bHandledOK = bHandledOK; // avoid compiler warning
+				}
 			}
 #endif
 			// continue with the store to the local KB
@@ -3859,15 +4008,29 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
                         // undelete it. If it's not in the remote database at all yet, then
                         // we add it instead as a normal entry. If it's in the remote
                         // database already as a normal entry, then we make no change.
+						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
+						// and when user locally unticks the Save in KB checkbox to make
+						// that key have only <Not In KB> as the pseudo-adaptation, it
+						// makes any normal adaptations for that key become pseudo-deleted
+						// but we don't inform kbserver of that fact. Therefore, an
+						// attempt to undelete any of those pseudo-deleted entries needs
+                        // to be stopped from sending anything to kbserver also. We want to
+                        // keep use of <Not In KB> restricted to the particular user who
+                        // wants to do that, and not propagate it and deletions /
+                        // undeletions that may happen as part of it, to the kbserver.
 						if (m_pApp->m_bIsKBServerProject && 
 							m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 						{
-							bool bHandledOK = HandleUndelete(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							{
+								bool bHandledOK = HandleUndelete(m_pApp->GetKBTypeForServer(), 
+														key, pRefString->m_translation);
 
-                            // I've not yet decided what to do with the return value, at
-                            // present we'll just ignore it even if FALSE (an internally
-                            // generated message would have been seen anyway in that event)
-							bHandledOK = bHandledOK; // avoid compiler warning
+								// I've not yet decided what to do with the return value, at
+								// present we'll just ignore it even if FALSE (an internally
+								// generated message would have been seen anyway in that event)
+								bHandledOK = bHandledOK; // avoid compiler warning
+							}
 						}
 #endif
 					}
@@ -3946,7 +4109,8 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					return TRUE; // all is well
 				}
 				else // either we are glossing; or we are adapting
-					  // and it's a normal adaptation or <Not In KB>
+					 // and it's a normal adaptation or <Not In KB> and
+					 // there is no <Not In KB> CRefString in pTU already
 				{
 					if (tgtPhrase.IsEmpty())
 					{
@@ -3999,12 +4163,17 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					if (m_pApp->m_bIsKBServerProject && 
 						m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 					{
-						bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), key, pRefString->m_translation);
+						// don't send a <Not In KB> entry to kbserver
+						if (!bStoringNotInKB)
+							{
+							bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(), 
+													key, pRefString->m_translation);
 
-						// I've not yet decided what to do with the return value, at present we'll
-						// just ignore it even if FALSE (an internally generated message would have
-						// been seen anyway in that event)
-						bHandledOK = bHandledOK; // avoid compiler warning
+							// I've not yet decided what to do with the return value, at present we'll
+							// just ignore it even if FALSE (an internally generated message would have
+							// been seen anyway in that event)
+							bHandledOK = bHandledOK; // avoid compiler warning
+						}
 					}
 #endif
 					// continue with the store to the local KB
