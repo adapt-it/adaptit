@@ -87,9 +87,9 @@ adaptit_SOURCES = \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
 	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
-	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h" \
+	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h \
 	../../source/jsonval.cpp ../../source/jsonval.h \
-	../../source/jsonwriter.cpp ../../source/jsonwriter.h" \
+	../../source/jsonwriter.cpp ../../source/jsonwriter.h \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/KbServer.cpp \
