@@ -149,6 +149,14 @@
 #include "../res/vectorized/show-source-target_22.cpp"
 #include "../res/vectorized/punctuation-copy_22.cpp"
 #include "../res/vectorized/punctuation-do-not-copy_22.cpp"
+#include "../res/vectorized/bounds-go_32.cpp"
+#include "../res/vectorized/bounds-stop_32.cpp"
+#include "../res/vectorized/format-hide-punctuation_32.cpp"
+#include "../res/vectorized/format-show-punctuation_32.cpp"
+#include "../res/vectorized/show-target_32.cpp"
+#include "../res/vectorized/show-source-target_32.cpp"
+#include "../res/vectorized/punctuation-copy_32.cpp"
+#include "../res/vectorized/punctuation-do-not-copy_32.cpp"
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -18795,7 +18803,14 @@ void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Ignore Boundaries")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_32)); // TODO: base on size
+			}
+			else 
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16)); // TODO: base on size
+			}
 		}
 	}
 	else
@@ -18803,7 +18818,14 @@ void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Stop Selection At Boundaries")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_32)); // TODO: base on size
+			}
+			else
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_16)); // TODO: base on size
+			}
 		}
 	}
 	// update the toolbar
@@ -18891,7 +18913,14 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Show Punctuation")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_32)); // TODO: base on size
+			}
+			else
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_16)); // TODO: base on size
+			}
 		}
 	}
 	else
@@ -18899,7 +18928,14 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Hide Punctuation")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_32)); // TODO: base on size
+			}
+			else
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_16)); // TODO: base on size
+			}
 		}
 	}
 	// update the toolbar
@@ -19017,7 +19053,14 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Show Source And Target Text")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_32)); // TODO: base on size
+			}
+			else
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_16)); // TODO: base on size
+			}
 		}
 	}
 	else
@@ -19025,7 +19068,14 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Show Target Text Only")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_32)); // TODO: base on size
+			}
+			else
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_16)); // TODO: base on size
+			}
 		}
 	}
 	// update the toolbar
@@ -19130,7 +19180,14 @@ void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("No punctuation copy")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_32)); // TODO: base on size
+			}
+			else
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_16)); // TODO: base on size
+			}
 		}
 	}
 	else
@@ -19138,7 +19195,14 @@ void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Enable Punctuation Copy")); // what will happen if they click the button
-			tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_16)); // TODO: base on size
+			if (pApp->m_bExecutingOnXO)
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_32)); // TODO: base on size
+			}
+			else
+			{
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_16)); // TODO: base on size
+			}
 		}
 	}
 	// update the toolbar
