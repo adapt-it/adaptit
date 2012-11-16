@@ -16,9 +16,9 @@
 	We'd like to have forward compatibility in our document format as much as possible -- see the above BEW comment.
 	So if we hit an unknown attribute, we'll quietly ignore it by returning TRUE from the parsing function.  This will
 	cause the parser to keep going, and the unknown data will just not just does not find its way into the application's 
-	internal structures
+	internal structures.
  
-	We can find all these places by looking for Bruces comments with the words "unknown attribute".
+	We can find all these places by looking for Bruce's comments with the words "unknown attribute".
 */
 
 
@@ -3022,13 +3022,26 @@ bool AtDocEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
 
 bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXUNUSED(pStack))
 {
-	int num;
+	int num, inputDocVersion;
 
 	if (tag == xml_settings && attrName == xml_docversion)
 	{
-		// (the docVersion attribute is not versionable, so have it outside of the switch)
-		// set the gnDocVersion global with the document's versionable serialization number
-		gnDocVersion = atoi(attrValue);
+		// the docVersion attribute is not versionable, so have it outside of the if block.
+		// (mrh Nov12) if the version we read in is GREATER than our current VERSION_NUMBER, we
+		// give a warning.  See the comment at the start of this file.  This won't be an error,
+		//  but fields we can't handle will get ignored.
+		// We then set our global gnDocVersion to the version of the doc or VERSION_NUMBER, whichever
+		//  is less.  I'm dubious about what might happen if we set it to greater than VERSION_NUMBER.
+	
+		inputDocVersion = atoi (attrValue);
+
+		if (inputDocVersion > VERSION_NUMBER)
+		{
+			wxMessageBox (_T("It appears that this document has been created with a newer version of Adapt It. Some things that the newer version supports, won't be available."));
+			inputDocVersion = VERSION_NUMBER;
+		}
+		
+		gnDocVersion = inputDocVersion;
 		return TRUE;
 	}
 	
