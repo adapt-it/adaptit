@@ -437,8 +437,6 @@ protected:
 	void OnSize(wxSizeEvent& event); //See OnSize in CMainFrame.
 	void OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event);
 	void OnMarkerWrapsStrip(wxCommandEvent& event);
-	void OnUpdateShowTgt(wxUpdateUIEvent& event);
-	void OnUpdateShowAll(wxUpdateUIEvent& event);
 	void OnUpdateEditUndo(wxUpdateUIEvent& event);
 	void OnEditUndo(wxCommandEvent& event);
 	void OnUpdateImportToKb(wxUpdateUIEvent& event);
