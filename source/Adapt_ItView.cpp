@@ -24797,7 +24797,7 @@ bailout:	pAdaptList->Clear();
         // back translations have been removed (and because this modifies the doc, partner
         // piles are created too) note: doing this is just to PREPARE the edit span's
         // CONTEXT in document for the results of the user's source text editing, the
-        // deletions and replacements for the actual edit span itself are done about 500
+        // deletions and replacements for the actual edit span itself are done about 344
         // lines below at the TransferCompletedSrcPhrases() call
 		bool bReplacedOK;
 		bReplacedOK = ReplaceCSourcePhrasesInSpan(pSrcPhrases,
@@ -25135,7 +25135,7 @@ bailout:	pAdaptList->Clear();
         // the new CSourcePhrase instances are now ready to be put into the document's
         // m_pSourcePhrases list at the editable span location, replacing the (possibly
         // modified) ones in the editable span due to the replacements done above (about
-        // 500 lines up). Beware, the new list might be empty, or shorter, or the same
+        // 344 lines up). Beware, the new list might be empty, or shorter, or the same
         // length, or longer than the former editable span. The
         // TransferCompletedSrcPhrases() function also adjusts the active location, and
         // the stored value in the edit record, if the user's edits have made either or
