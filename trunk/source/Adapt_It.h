@@ -1762,7 +1762,7 @@ typedef struct
     // EditRecord are few
 	bool bAdaptationStepEntered; // default FALSE, TRUE if this step is set up on the
                 // screen, even if user then jumps to next step (TRUE is a flag which says
-                // that the step was entered, even if immediately exitted; so data members
+                // that the step was entered, even if immediately exitt ed; so data members
                 // here can be expected to perhaps have content, and therefore need to be
                 // looked at by processes such as cancel or bailout)
 	SPList adaptationStep_SrcPhraseList; // the list of CSourcePhrase instances in the
