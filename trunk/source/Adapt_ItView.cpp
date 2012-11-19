@@ -1116,6 +1116,9 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // clobbered. So recalc m_pActivePile before going on... (yes, this fixed the problem)
 	pApp->m_pActivePile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum);
 	CPile* pActivePile = pApp->m_pActivePile;
+#if defined(_DEBUG)
+	wxLogDebug(_T("Active pile's m_pOwningStrip: %x"), (unsigned int)pActivePile->GetStrip());
+#endif
 	CPile* pPrevPile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum - 1);
 	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
 	{
