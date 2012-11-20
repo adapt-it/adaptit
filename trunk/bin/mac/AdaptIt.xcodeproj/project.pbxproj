@@ -75,6 +75,10 @@
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
+		C87B76E01655EE86009278E7 /* wxUUID.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C87B76DD1655EE86009278E7 /* wxUUID.cpp */; };
+		C89D2932165B130300961BBA /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C89D292C165B130300961BBA /* jsonreader.cpp */; };
+		C89D2933165B130300961BBA /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C89D292E165B130300961BBA /* jsonval.cpp */; };
+		C89D2934165B130300961BBA /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C89D2930165B130300961BBA /* jsonwriter.cpp */; };
 		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */; };
@@ -272,6 +276,15 @@
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
 		C85CE18114103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsChk_Empty_noTU_Dlg.h; path = ../../source/ConsChk_Empty_noTU_Dlg.h; sourceTree = SOURCE_ROOT; };
 		C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConsChk_Empty_noTU_Dlg.cpp; path = ../../source/ConsChk_Empty_noTU_Dlg.cpp; sourceTree = SOURCE_ROOT; };
+		C87B76DD1655EE86009278E7 /* wxUUID.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wxUUID.cpp; path = ../../source/wxUUID.cpp; sourceTree = SOURCE_ROOT; };
+		C87B76DE1655EE86009278E7 /* wxUUID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wxUUID.h; path = ../../source/wxUUID.h; sourceTree = SOURCE_ROOT; };
+		C89D292B165B130300961BBA /* json_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = json_defs.h; path = ../../source/json_defs.h; sourceTree = SOURCE_ROOT; };
+		C89D292C165B130300961BBA /* jsonreader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = ../../source/jsonreader.cpp; sourceTree = SOURCE_ROOT; };
+		C89D292D165B130300961BBA /* jsonreader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonreader.h; path = ../../source/jsonreader.h; sourceTree = SOURCE_ROOT; };
+		C89D292E165B130300961BBA /* jsonval.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = ../../source/jsonval.cpp; sourceTree = SOURCE_ROOT; };
+		C89D292F165B130300961BBA /* jsonval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonval.h; path = ../../source/jsonval.h; sourceTree = SOURCE_ROOT; };
+		C89D2930165B130300961BBA /* jsonwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonwriter.cpp; path = ../../source/jsonwriter.cpp; sourceTree = SOURCE_ROOT; };
+		C89D2931165B130300961BBA /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = SOURCE_ROOT; };
 		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
@@ -487,6 +500,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C87B76DD1655EE86009278E7 /* wxUUID.cpp */,
+				C87B76DE1655EE86009278E7 /* wxUUID.h */,
 				03CFAA09161DE73400B82F58 /* StatusBar.cpp */,
 				03CFAA0A161DE73400B82F58 /* StatusBar.h */,
 				273A30841619A853002B8AA0 /* KbServer.h */,
@@ -530,6 +545,13 @@
 				7D8A045013ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.h */,
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
 				7D98196A139C7002009F4E93 /* md5.cpp */,
+				C89D292B165B130300961BBA /* json_defs.h */,
+				C89D292C165B130300961BBA /* jsonreader.cpp */,
+				C89D292D165B130300961BBA /* jsonreader.h */,
+				C89D292E165B130300961BBA /* jsonval.cpp */,
+				C89D292F165B130300961BBA /* jsonval.h */,
+				C89D2930165B130300961BBA /* jsonwriter.cpp */,
+				C89D2931165B130300961BBA /* jsonwriter.h */,
 				7D98196B139C7002009F4E93 /* md5.h */,
 				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
 				7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */,
@@ -1033,6 +1055,10 @@
 				03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */,
 				2791678616195D4D00744DF8 /* KBServer.cpp in Sources */,
 				03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */,
+				C87B76E01655EE86009278E7 /* wxUUID.cpp in Sources */,
+				C89D2932165B130300961BBA /* jsonreader.cpp in Sources */,
+				C89D2933165B130300961BBA /* jsonval.cpp in Sources */,
+				C89D2934165B130300961BBA /* jsonwriter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1313,10 +1339,7 @@
 				GCC_VERSION = 4.0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(WXWIN28)/src/build/Development",
-					"\"$(SRCROOT)/../../source\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(WXWIN28)/src/build/Development";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
@@ -1333,7 +1356,7 @@
 				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx10.4;
-				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN28}/src/build/include ${WXWIN28}/include .";
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${WXWIN28}/src/build/include ${WXWIN28}/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
 				VALID_ARCHS = i386;
@@ -1343,7 +1366,7 @@
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
-				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
+				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1 _KBSERVER";
 				ZERO_LINK = NO;
 			};
 			name = CarbonDebugWX2.8;

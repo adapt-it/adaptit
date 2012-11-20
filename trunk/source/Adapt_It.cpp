@@ -16163,6 +16163,28 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	////////////// END OF WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////
 	*/
 
+// GDLC 9Nov12 Testing the wxUUID class
+//	wxString uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+//	uuid_test = GetUuid();
+//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+
 	// BEW 6April2011 **** DO NOT REMOVE COMMENTED OUT CODE BELOW **** THIS IS VALUABLE FOR BEW ****
 	//
 	// Some code to get the sequence of utf-8 bytes for a given utf-16 character
