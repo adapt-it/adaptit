@@ -41,7 +41,7 @@
 #include "wx/string.h"
 #include "wx/wfstream.h"
 
-
+#include "helpers.h"
 
 // 
 // MD5 from RSA

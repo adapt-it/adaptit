@@ -23,6 +23,7 @@
 #endif
 #include "Adapt_It.h"
 #include "MergeUpdatedSrc.h"
+#include <string>
 
 class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
@@ -89,6 +90,9 @@ enum EditorProjectVerseContent
 
 ////////////////////////////////////////////
 //  helper functions
+
+
+std::string MakeStdString(wxString str);
 
 //char* StrStrAI(char* super, char* sub);
 //

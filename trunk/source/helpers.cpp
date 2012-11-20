@@ -107,6 +107,14 @@ static wxUint8 szU16BOM_BigEndian[nU16BOMLen] = {0xFE, 0xFF};
 //  helper functions
 
 
+std::string MakeStdString(wxString str)
+{
+	const wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
+	std::string myStr(tempBuf);
+	return myStr;
+}
+
+
 //*************************************
 // Friend functions for various classes
 //*************************************
