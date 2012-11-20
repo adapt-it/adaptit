@@ -50,13 +50,80 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
-
 // ----------------
 // MD5 by RSA
 // ----------------
+
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
+// GDLC 19OCT12 Constructors and destructor added from C O'Donnell
+
+wxMD5::wxMD5()
+{
+	m_bCalculatedDigest = false;
+	m_pszDigestString[32] = '\0';
+}
+
+wxMD5::wxMD5(const wxString& szText)
+{
+	m_bCalculatedDigest = false;
+	m_pszDigestString[32] = '\0';
+	m_szText = szText;
+}
+
+wxMD5::~wxMD5()
+{
+}
+
+//////////////////////////////////////////////////////////////////////
+// Other Methods
+//////////////////////////////////////////////////////////////////////
+
+
+const wxString wxMD5::GetDigest()
+{
+	if(m_bCalculatedDigest)
+	{
+		const wxString szRetVal = m_pszDigestString;
+		return szRetVal;
+	}
+	else if(m_szText.IsEmpty())
+	{
+		return wxT("");
+	}
+	else
+	{
+		MD5_CTX md5Context;
+		MD5Init(&md5Context);
+		
+		MD5Update(&md5Context, (unsigned char*)(m_szText.c_str()), m_szText.Len());
+		MD5Final(m_arrDigest, &md5Context);
+		
+		int j = 0;
+		for(int i = 0; i < 16; i++)
+		{
+			sprintf(((char*)(&m_arrDigest[j])), "%02x", m_pszDigestString[i]);
+			j += 2;
+		}
+		
+		const wxString szRetVal = m_pszDigestString;
+		
+		return szRetVal;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////
+// Static Methods
+//////////////////////////////////////////////////////////////////////
+
+const wxString wxMD5::GetDigest(const wxString& szText)
+{
+	wxMD5 md5(szText);
 	
+	return md5.GetDigest();
+}
+
 char * MD5End(MD5_CTX *ctx, char *buf)
 {
     int i;

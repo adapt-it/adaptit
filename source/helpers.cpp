@@ -45,7 +45,8 @@
 #include "SplitDialog.h"
 #include "ExportFunctions.h"
 #include "PlaceInternalMarkers.h"
-#include "Uuid_AI.h" // for uuid support
+//#include "Uuid_AI.h" // for uuid support
+#include "wxUUID.h"
 // the following includes support friend functions for various classes
 #include "TargetUnit.h"
 #include "KB.h"
@@ -56,7 +57,8 @@
 #include "RefString.h"
 #include "helpers.h"
 #include "tellenc.h"
-#include "md5.h"
+// GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
+//#include "md5.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -6347,8 +6349,14 @@ wxString GetUuid()
 	// it is returned as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh"
 	// (32 hex digits plus 4 hyphens = total 36 chars followed by null char (37th))
 	wxString anUuid;
-	Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
+//	GDLC 9Nov12 This is Bill's version using Uuid_AI
+//	Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
+//	anUuid = pUuidGen->GetUUID();
+
+//	GDLC 9Nov12 This is my version using wxUUID
+	wxUUID* pUuidGen = new wxUUID(); // generates the UUID
 	anUuid = pUuidGen->GetUUID();
+
 	if (pUuidGen != NULL) // whm 11Jun12 added NULL test
 		delete pUuidGen;
 	//wxLogDebug(_T("UUID =    %s"), anUuid);
