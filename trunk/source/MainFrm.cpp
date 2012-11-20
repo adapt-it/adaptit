@@ -6137,6 +6137,16 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 27Feb12 added gbVerticalEditIsEnding = TRUE;
+// BEW note 20Nov12: to understand this function, it's important to realize that the
+// rollbacks roll back to how things were at the end of the LAST step, and then control
+// FALLS THROUGH in the switch to the preceding event -- and that is rolled back, and so
+// forth until the final step is for the source text edit (i.e. how things were when the
+// user had finished his edit in the Edit Source Text dialog) -- so any RecalcLayout()
+// call has to be delayed until the series of rollbacks are completed.
+// Bill noticed that the Cancel All Steps button led to a crash in the Linux version,
+// because in OnDraw() a pile could not get it's m_pOwningStrip pointer (NULL was
+// returned), but in the Windows app this same data didn't give a fail, so I've got tweaks
+// here to try make the Linux code failsafe.
 void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// turn receiving of synchronized scrolling messages back on, if we temporarily have
@@ -6151,7 +6161,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 	}
 	// roll back through the steps doing restorations and set up original situation
 
-	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+#if defined(__WXGTK__)
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+#endif
 	bool bWasOK = TRUE;
 	CAdapt_ItView* pView = gpApp->GetView();
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
@@ -6190,6 +6202,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				if (gEntryPoint == freeTranslationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
 
 					// clean up & restore original state
 					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
@@ -6238,6 +6252,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				if (gEntryPoint == glossesEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
 
 					// clean up & restore original state
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
@@ -6285,7 +6301,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 					pView->ToggleGlossingMode(); // turn off glossing mode
 				} // fall through
@@ -6293,6 +6309,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				if (gEntryPoint == adaptationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
 
 					// clean up & restore original state
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
@@ -6313,13 +6331,12 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
 						bool bWasOK;
-						// BEW 19Nov12, changed arguments 4 and 6 which were wrong in next call
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nAdaptationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->cancelSpan_SrcPhraseList,
+							&pRec->adaptationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
-							pRec->nOldSpanCount);
+							pRec->nAdaptationStep_OldSpanCount);
 						if (!bWasOK)
 						{
 							// tell the user there was a problem, but keep processing even if
@@ -6330,7 +6347,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
+					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 				} // fall through
 			case sourceTextStep:
@@ -6447,6 +6464,18 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
+#if defined(__WXGTK__)
+					// BEW 20Nov12 In Linux build, OnDraw() crashes because a CPile instances
+					// m_pOwningStrip member is NULL (I don't know why); same data in the
+					// windows build doesn't give a crash. I'm trying the RecalcLayout()
+					// to see if that fixes the problem
+					gpApp->GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+					gpApp->m_pActivePile = pView->GetPile(pRec->nStartingSequNum);
+					pDoc->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase(), TRUE);
+#else
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
+#endif
 				}
 				break;
 			} // end of switch (gEditStep)
@@ -6468,6 +6497,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				if (gEntryPoint == freeTranslationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
 
 					// clean up & restore original state
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
@@ -6514,6 +6545,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				if (gEntryPoint == adaptationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
 
 					// clean up & restore original state
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
@@ -6548,9 +6581,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nAdaptationStep_StartingSequNum,
 							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->cancelSpan_SrcPhraseList,
+							&pRec->adaptationStep_SrcPhraseList,
 							0, // start at index 0, ie. insert whole of deep copied list
-							pRec->nOldSpanCount);
+							pRec->nAdaptationStep_OldSpanCount);
 						if (!bWasOK)
 						{
 							// tell the user there was a problem, but keep processing even if
@@ -6563,13 +6596,15 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 				} // fall through
 			case glossesStep:
 				if (gEntryPoint == glossesEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
 
 					// clean up & restore original state
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
@@ -6615,7 +6650,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
+					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 					pView->ToggleGlossingMode(); // turn glossing mode back off
 				} // fall through
@@ -6734,6 +6769,18 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
+#if defined(__WXGTK__)
+					// BEW 20Nov12 In Linux build, OnDraw() crashes because a CPile instances
+					// m_pOwningStrip member is NULL (I don't know why); same data in the
+					// windows build doesn't give a crash. I'm trying the RecalcLayout()
+					// to see if that fixes the problem
+					gpApp->GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+					gpApp->m_pActivePile = pView->GetPile(pRec->nStartingSequNum);
+					pDoc->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase(), TRUE);
+#else
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+									 // the needed redraw
+#endif
 				}
 				break;
 			} // end of switch (gEditStep)
