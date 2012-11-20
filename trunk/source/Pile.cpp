@@ -255,10 +255,11 @@ bool CPile::GetIsCurrentFreeTransSection()
 	return m_bIsCurrentFreeTransSection;
 }
 
-int CPile::GetWidth()
-{
-	return m_nWidth;
-}
+// BEW removed 20Nov12, it's dangerous -- see .h file for why (use Width() instead)
+//int CPile::GetWidth()
+//{
+//	return m_nWidth;
+//}
 
 int CPile::Width()
 {
@@ -519,6 +520,9 @@ CCell** CPile::GetCellArray()
 void CPile::SetPhraseBoxGapWidth(int nNewWidth)
 {
 	m_nWidth = nNewWidth; // a useful overload, for when the phrase box is contracting
+	// BEW 20Nov12 added line to set m_curBoxWidth, so that a subsequent RecalcLayout()
+	// call will use the new gap width just set
+	m_pLayout->m_curBoxWidth = nNewWidth;
 }
 
 // BEW 22Feb10 some changes done for support of doc version 5
