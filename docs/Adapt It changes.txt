@@ -20,6 +20,9 @@ marker inventories but the data is similarly sized nevertheless
 which contained a merger, pressing Cancel All Steps resulted in
 a more piles than expected, copying some of the following context
 to obtain and show the bogus extra ones.
+* In the Linux version, if there was a merger within a section of
+edited source text, then the vertical edit button Cancel All 
+Steps, if pressed, would crash the application. Now fixed.
 ----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------
