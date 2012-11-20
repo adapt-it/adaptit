@@ -97,7 +97,8 @@ const wxString wxMD5::GetDigest()
 		MD5_CTX md5Context;
 		MD5Init(&md5Context);
 		
-		MD5Update(&md5Context, (unsigned char*)(m_szText.c_str()), m_szText.Len());
+		//MD5Update(&md5Context, (unsigned char*)(m_szText.c_str()), m_szText.Len());
+		MD5Update(&md5Context, (unsigned char*)((MakeStdString(m_szText)).c_str()), (unsigned int)((MakeStdString(m_szText)).size()));
 		MD5Final(m_arrDigest, &md5Context);
 		
 		int j = 0;
