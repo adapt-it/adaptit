@@ -28,7 +28,7 @@
 
 // for all others
 #ifndef WX_PRECOMP
-	#include <wx/wx.>
+	#include <wx/wx.h>
 #endif
 
 #include <wx/utils.h>
