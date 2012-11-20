@@ -1091,6 +1091,14 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 
 	pDC->DestroyClippingRegion(); // ensure whole client area is drawable
 
+    // BEW 5Oct11; Doing a Print Preview after PrintOptionsDlg did a print of physical
+    // pages, failed here (pActivePile below was rubbish) due to m_pActivePile having been
+    // clobbered. So recalc m_pActivePile before going on... (yes, this fixed the problem)
+	pApp->m_pActivePile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum);
+#if defined(_DEBUG) && defined(_NEWDRAW)
+	wxLogDebug(_T("CAdapt_ItView::OnDraw(): Active pile's m_pOwningStrip: %x"), (unsigned int)pApp->m_pActivePile->GetStrip());
+#endif
+
     // BEW 14Mar11, Gerry Andersen reports that occasionally, for an unknown set of user
     // actions, the display is updated in such a way that the right end of the phrase box
     // overlaps the start of text in the next pile's adaptation. Noone has ever been able
@@ -1111,32 +1119,33 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // than the previous pile's left offset plus its m_nWidth value. We can test for the
     // latter too, and when that happens, force the recalc before the draw.
 
-    // BEW 5Oct11; Doing a Print Preview after PrintOptionsDlg did a print of physical
-    // pages, failed here (pActivePile below was rubbish) due to m_pActivePile having been
-    // clobbered. So recalc m_pActivePile before going on... (yes, this fixed the problem)
-	pApp->m_pActivePile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum);
 	CPile* pActivePile = pApp->m_pActivePile;
-#if defined(_DEBUG)
-	wxLogDebug(_T("Active pile's m_pOwningStrip: %x"), (unsigned int)pActivePile->GetStrip());
-#endif
 	CPile* pPrevPile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum - 1);
 	if (pActivePile != NULL && pApp->m_nActiveSequNum != -1)
 	{
 		//int activePileWidth = pActivePile->m_nWidth;
 		wxSize boxSize = pApp->m_pTargetBox->GetSize();
-		int boxWidth = (int)boxSize.y;
+		int boxWidth = (int)boxSize.GetWidth() - 1; // -1 to ignore box boundary, else boxWidth
+													// is consistently 1 more than layoutGapWith
+													// resulting in needless FixBox() calls
 		int layoutGapWidth = pApp->m_pLayout->m_curBoxWidth;
 		if (boxWidth > layoutGapWidth)
 		{
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CAdapt_ItView::OnDraw(): Box Width Adjustment: boxWidth: %d, > layoutGapWidth: %d  so FixBox() is called"),
+				boxWidth, layoutGapWidth);
+#endif
 			wxSize textExtent;
 			wxString currText = pApp->m_pTargetBox->GetValue();
 			pApp->m_pTargetBox->FixBox(this, currText,TRUE,textExtent,1);
 		}
-		else if (pPrevPile != NULL && !pApp->m_bRTL_Layout)
+		else if (pPrevPile != NULL && !pApp->m_bRTL_Layout
+			&& (pPrevPile->GetStripIndex() == pApp->m_pActivePile->GetStripIndex()))
 		{
+			// Provided that the previous pile and the active pile are on the same strip,
 			// test for left bound of the phrase box (ie. left x-coord of the active pile)
 			// having a value less than the sum of the left x-coord of the previous pile
-			// plus that piles m_nWidth value. When true, make the above adjustment here
+			// plus that piles m_nMinWidth value. When true, make the above adjustment here
 			// too. The error we are kludging around has only been reported for LTR
 			// layout, so we'll ignore the RTL layout possibility. (I was able to get
 			// control to enter here a couple of times... one time was when I made a three
@@ -1148,8 +1157,19 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 			// former active location - and control entered here... so possibly that kind
 			// of thing generates the layout error Gerry reported -- important thing,
 			// though, is that this kludge works and does not cause a noticeable delay)
-			if (pActivePile->Left() < pPrevPile->Left() + pPrevPile->GetWidth())
+			// I need in the debugger to track the test param values, so I'll make locals
+			// here for tracking purposes...
+			int activePileLeft = pActivePile->Left();
+			int prevPileLeft = pPrevPile->Left();
+			int prevPileWidth = pPrevPile->Width();
+			int added = prevPileLeft + prevPileWidth;
+			added = added; // avoid compiler warning
+			if (activePileLeft < prevPileLeft + prevPileWidth)
 			{
+#if defined(_DEBUG) && defined(_NEWDRAW)
+			wxLogDebug(_T("CAdapt_ItView::OnDraw(): activePileLeft: %d, < prevPileLeft: %d, + prevPileWidth: %d, last two added: %d  so FixBox() called"),
+				activePileLeft, prevPileLeft, prevPileWidth, added);
+#endif
 				wxSize textExtent;
 				wxString currText = pApp->m_pTargetBox->GetValue();
 				pApp->m_pTargetBox->FixBox(this, currText,TRUE,textExtent,1);

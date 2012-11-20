@@ -80,8 +80,9 @@ private:
 	CStrip*			m_pOwningStrip;
 	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
 	int				m_nPile; // what my index is in the strip object
-	int				m_nWidth;
-	int				m_nMinWidth;
+	int				m_nWidth; // stores width as calculated from PhraseBox width, so is valid only at active
+							  // location; at other piles it stores -1
+	int				m_nMinWidth; // this stores the actual pile width based on the extent of the text
 	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
 
 	// destructor
@@ -102,7 +103,9 @@ public:
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
 	int			GetPileIndex();
-	int			GetWidth(); // BEW added 14Mar11
+	//int		GetWidth(); // BEW added 14Mar11 & removed on 20Nov12, it's dangerous because the
+							// value is not -1 only when the pile is the active pile, so
+							// it's easy to use it where it shouldn't be used, use Width() instead
 
 	int			Width();
 	int			Height();
