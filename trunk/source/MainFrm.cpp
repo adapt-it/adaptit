@@ -717,7 +717,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
     FormatScriptureReference(strThreeLetterBook, nChap, nVerse, strMsg);
     ::MessageBox(0, strMsg, _T("Received Scripture Reference"), MB_OK);
 	*/
-	
+
 	int			localSequNum = 0;			// for keeping track of active location
 	wxString	strAdaptationsFolderPath;	// use this when book folder mode is off
 	wxString	strBookFolderPath;			// use this when book folder mode is on
@@ -991,9 +991,9 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 					CPile* pPile = pView->GetPile(localSequNum);
 					wxASSERT(pPile != NULL);
 					int nFinish = 1;
-					
+
 					// initialize m_nActiveSequNum to the localSequNum value we obtained above
-					
+
 					gpApp->m_nActiveSequNum = localSequNum;
 					bool bSetSafely;
 					bSetSafely = pView->SetActivePilePointerSafely(gpApp,gpApp->m_pSourcePhrases,
@@ -1263,7 +1263,7 @@ CMainFrame::~CMainFrame()
 	PopEventHandler(FALSE); // for PushEventHandler(m_pRetranslation)
 	PopEventHandler(FALSE); // for PushEventHandler(m_pNotes)
 	PopEventHandler(FALSE); // for PushEventHandler(m_pFreeTrans)
-	
+
 	// restore to the menu bar the Administrator menu if it is currently removed
 	if (gpApp->m_bAdminMenuRemoved)
 	{
@@ -1498,9 +1498,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_toolBarHeight = 0;
 
 	// EDB 24 Sept 2012 - AUI toolbar stuff:
-	// - Currently wxDesigner (v. 2.20a) doesn't fully support AUI toolbar 
+	// - Currently wxDesigner (v. 2.20a) doesn't fully support AUI toolbar
 	//   functionality, so we need to create and maintain it ourselves.
-	// - We've reusing the IDs from the old toolbar buttons, and the event 
+	// - We've reusing the IDs from the old toolbar buttons, and the event
 	//   handlers from _most_ of the buttons. The exception is to the toggle
 	//   event handlers, as the UI redrawing is different under AUI; I just
 	//   found it easier to write up new event handlers for these.
@@ -1844,7 +1844,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 		int fieldWidths[] = {-1, 100, 100};
 		m_pStatusBar->SetStatusWidths(3, fieldWidths);
 	}
-	m_pStatusBar->Update(); 
+	m_pStatusBar->Update();
 
 	wxSize statusBarSize;
 	statusBarSize = m_pStatusBar->GetSize();
@@ -2463,8 +2463,8 @@ void CMainFrame::OnUpdateDVCS_Version (wxUpdateUIEvent& event)
 }
 
 void CMainFrame::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
-{    
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_VERSION, 0);	
+{
+	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_VERSION, 0);
 	lastResultCode = resultCode;		// avoid compiler warning about unused variable
 }
 
@@ -3107,7 +3107,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	// Adjust the Mode Bar's position in the main frame (if controlBar is visible).
 	if (m_pControlBar->IsShown())
 	{
-		m_pControlBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, 
+		m_pControlBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
 			mainFrameClientSize.x, m_controlBarHeight);//0, 0, mainFrameClientSize.x, m_controlBarHeight);
 						// width is mainFrameClientSize.x, height is m_controlBarHeight
 		m_pControlBar->Refresh(); // this is needed to repaint the controlBar after OnSize
@@ -3332,13 +3332,13 @@ void CMainFrame::OnUpdateCheckForceAsk(wxUpdateUIEvent& event)
 	// the flags we want are on the view, so get the view
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	
+
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	if (pView != NULL)
 	{
@@ -3931,9 +3931,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
 			DoDelay(); // defined in Helpers.cpp (m_nCurDelay is in tick units)
 		}
-		bool bSuccessfulInsertAndMove =  pBox->OnePass(pView); // whm note: This is 
+		bool bSuccessfulInsertAndMove =  pBox->OnePass(pView); // whm note: This is
 											// the only place OnePass() is called
-												
+
 		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
 		// because PlaceBox() is called in OnePass via the MoveToNextPile() call near the beginning
 		// of OnePass, then again near the end of OnePass - twice in the normal course of
@@ -5508,7 +5508,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 						wxPostEvent(this, eventCustom);
 						return;
 					}
-									
+
                     // now switch free translations mode ON; we do it here so that we don't
                     // bother to switch it on if the user is not going to be shown the GUI
                     // for this step; but in the backTranslationsStep's handler we will
@@ -5526,7 +5526,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 					// flag m_bDefineFreeTransByPunctuation had when the free translation
 					// section was first created - we get the value from  the EditRecord
 					bool bOriginal_FreeTransByPunctuationValue = !pRec->bVerseBasedSection;
-					
+
                     // BEW 27Feb12, for docV6 support of m_bSectionByVerse flag. What we
                     // need to do here is use the EditRecord's bVerseBasedSection value to
                     // set the GUI radio buttons to what they should be to agree with the
@@ -5815,7 +5815,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 					// flag m_bDefineFreeTransByPunctuation had when the free translation
 					// section was first created - we get the value from  the EditRecord
 					bool bOriginal_FreeTransByPunctuationValue = !pRec->bVerseBasedSection;
-					
+
                     // BEW 27Feb12, for docV6 support of m_bSectionByVerse flag. What we
                     // need to do here is use the EditRecord's bVerseBasedSection value to
                     // set the GUI radio buttons to what they should be to agree with the
@@ -5830,7 +5830,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
 					// now it's safe to set the radio buttons temporarily to possibly different
 					// values
 					gpApp->GetFreeTrans()->SetupFreeTransRadioButtons(bOriginal_FreeTransByPunctuationValue);
-					
+
                     // Initializing must be done only once (the user can return to this
                     // step using interface buttons) -- initializing is done the first time
                     // glossesStep is entered in the vertical edit, so it is put within a

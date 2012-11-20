@@ -19,7 +19,7 @@
 #define _WXUUID_H__
 
 // the following improves GCC compilation performance
-#ifdef __GNUG__ && !defined(__APPLE__)
+#if defined(__GNUG__) && !defined(__APPLE__)
 	#pragma interface "wxUUID.h"
 #endif
 
