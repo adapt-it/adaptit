@@ -15,7 +15,7 @@
 //////////////////////////////////////////////////////////////////////
 // GDLC 19OCT12 Adapted for inclusion in Adapt It sources
 
-#ifdef __GNUG__ && !defined(__APPLE__)
+#if defined(__GNUG__) && !defined(__APPLE__)
 	#pragma implementation "wxUUID.h"
 #endif
 

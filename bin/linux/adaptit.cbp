@@ -455,6 +455,8 @@
 		<Unit filename="../../source/scrollingwizard.cpp" />
 		<Unit filename="../../source/scrollingwizard.h" />
 		<Unit filename="../../source/tellenc.cpp" />
+		<Unit filename="../../source/wxUUID.cpp" />
+		<Unit filename="../../source/wxUUID.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

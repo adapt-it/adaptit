@@ -1210,7 +1210,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 void CAdapt_ItView::UpdateAppearance (void)
 {
 	CLayout*	ptrLayout;
-	
+
 	Invalidate();
 	if (canvas != NULL)
 		canvas->ClearBackground();    // On Mac this does the redraw rather than merely clearing the background!
@@ -18524,7 +18524,7 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 #endif
 		}
 	}
-	
+
 	UpdateAppearance();			// mrh -- this does the job quite nicely, replacing the code below
 
 /*
@@ -18801,7 +18801,7 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 /// ahead with no fence across it) is displayed on the toolBar after this handler finishes
 /// because it shows the user what state the respect/ignore boundaries functionality would
 /// be if the user were to press that toolbar button, i.e., the opposite of the current
-/// state. 
+/// state.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 {
@@ -18830,7 +18830,7 @@ void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 			{
 				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_32)); // TODO: base on size
 			}
-			else 
+			else
 			{
 				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16)); // TODO: base on size
 			}
@@ -18915,7 +18915,7 @@ void CAdapt_ItView::OnUpdateToggleRespectBoundary(wxUpdateUIEvent& event)
 /// depicts what the current state of punctuation showing/hiding is, but the tooltip and
 /// help text describe what clicking the button will accomplish. If m_bHidePunctuation is
 /// FALSE, this handler insures that the ID_BUTTON_HIDING_PUNCT bitmap image is displayed
-/// in the Toolbar, and changes m_bHidePunctuation to TRUE. 
+/// in the Toolbar, and changes m_bHidePunctuation to TRUE.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 {
@@ -18994,7 +18994,7 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 /// toolbar item and returns immediately: The application is in Free Translation mode, in
 /// glossing mode, the active pile is NULL, or there are no source phrases in the
 /// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
-/// represents a valid location. 
+/// represents a valid location.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateToggleShowPunctuation(wxUpdateUIEvent& event)
 {
@@ -19055,7 +19055,7 @@ void CAdapt_ItView::OnUpdateToggleShowPunctuation(wxUpdateUIEvent& event)
 /// having pairs of lines representing strips of source and target together) is displayed
 /// on the toolBar after this handler finishes because it shows the user what state the
 /// showing-all/showing-target-text-only functionality would be if the user were to press
-/// that toolbar button, i.e., the opposite of the current state. 
+/// that toolbar button, i.e., the opposite of the current state.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 {
@@ -19130,7 +19130,7 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 /// of the following conditions are TRUE, this handler disables the "Show Target Text Only"
 /// toolbar item and returns immediately: Vertical Editing is in progress, the active pile
 /// is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise, it
-/// enables the toolbar button if m_endIndex is within a valid range. 
+/// enables the toolbar button if m_endIndex is within a valid range.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateToggleShowSourceText(wxUpdateUIEvent& event)
 {
@@ -19181,7 +19181,7 @@ void CAdapt_ItView::OnUpdateToggleShowSourceText(wxUpdateUIEvent& event)
 /// ID_BUTTON_NO_PUNCT_COPY image having black punctuation with yellow background and a red
 /// circle and red diagonal bar) is displayed on the toolBar after this handler finishes
 /// because it shows the user what state the punctuation copy functionality would be if the
-/// user were to press that toolbar button, i.e., the opposite of the current state. 
+/// user were to press that toolbar button, i.e., the opposite of the current state.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event))
 {
@@ -19241,19 +19241,19 @@ void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event
 /// Copy" toolbar item (black punctuation characters on a green background) and returns
 /// immediately: The application is in Free Translation mode, in glossing mode, the active
 /// pile is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise,
-/// it enables the toolbar button if the m_curIndex represents a valid location. 
+/// it enables the toolbar button if the m_curIndex represents a valid location.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateToggleEnablePunctuationCopy(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
- 	
+
 	// whm added 26Mar12. Disable tool bar button when in read-only mode.
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
