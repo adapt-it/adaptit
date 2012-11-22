@@ -1551,7 +1551,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_auiToolbar->AddTool(wxID_HELP, _("Help"), gpApp->wxGetBitmapFromMemory(help_browser_png_16), wxNullBitmap, wxITEM_NORMAL, _("Help"), _("Display Adapt It program help topics"), NULL);
 	// register the changes with the AUI manager
 	m_auiToolbar->Realize();
-	m_auiMgr.AddPane(m_auiToolbar, wxAuiPaneInfo().Name(_T("auiToolbar")).ToolbarPane().Caption(_("Pane caption")).Top().DockFixed().Dockable(false).Floatable(false).Movable(false).Gripper(false));
+	m_auiMgr.AddPane(m_auiToolbar, wxAuiPaneInfo().Name(_T("auiToolbar")).ToolbarPane().Caption(_T("Pane caption")).Top().DockFixed().Dockable(false).Floatable(false).Movable(false).Gripper(false));
 
 	// enable / disable toolbar items
 	m_auiToolbar->EnableTool(wxID_NEW, false);
@@ -2823,7 +2823,7 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 	{
 		if (gpApp->m_bToolBarVisible)
 		{
-			m_auiMgr.GetPane(_("auiToolbar")).Hide();
+			m_auiMgr.GetPane(_T("auiToolbar")).Hide();
 			GetMenuBar()->Check(ID_VIEW_TOOLBAR, FALSE);
 			gpApp->LogUserAction(_T("Hide Tool bar"));
 			gpApp->m_bToolBarVisible = FALSE;
@@ -2831,7 +2831,7 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 		}
 		else
 		{
-			m_auiMgr.GetPane(_("auiToolbar")).Show();
+			m_auiMgr.GetPane(_T("auiToolbar")).Show();
 			GetMenuBar()->Check(ID_VIEW_TOOLBAR, TRUE);
 			gpApp->LogUserAction(_T("Show Tool bar"));
 			gpApp->m_bToolBarVisible = TRUE;

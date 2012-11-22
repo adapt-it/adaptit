@@ -8767,9 +8767,9 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 	// whm added 7Jan12 set toolBar visibility according to basic config
 	// file setting - as stored in the App's m_bToolBarVisible member
 	if (m_bToolBarVisible)
-		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Show();
+		m_pMainFrame->m_auiMgr.GetPane(_T("auiToolbar")).Show();
 	else
-		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Hide();
+		m_pMainFrame->m_auiMgr.GetPane(_T("auiToolbar")).Hide();
 	// unfreeze the UI and call OnSize()
 	pMainFrame->Thaw();
 	pMainFrame->SendSizeEvent();
@@ -19151,9 +19151,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// element hidden, that element will stay hidden and the user won't be able to change
 	// that element's visibility. The
 	if (m_bToolBarVisible)
-		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Show();
+		m_pMainFrame->m_auiMgr.GetPane(_T("auiToolbar")).Show();
 	else
-		m_pMainFrame->m_auiMgr.GetPane(_("auiToolbar")).Hide();
+		m_pMainFrame->m_auiMgr.GetPane(_T("auiToolbar")).Hide();
 
 	if (m_bModeBarVisible)
 		m_pMainFrame->m_pControlBar->Show();
