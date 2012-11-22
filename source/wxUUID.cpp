@@ -133,9 +133,9 @@ void wxUUID::GetRandomInfo(char pSeed[16])
 	wxString	szToHash = szSystemInfo + llTime.ToString() + szHostName;
 
 	wxString	szHash = wxMD5::GetDigest(szToHash);
-// GDLC DEBUGGING 25Oct12
-	int szHashSize = ( szHash.Len() > 16 ? 16 : szHash.Len());
-	for(unsigned int i = 0; i < szHashSize; i++)
+// GDLC 22NOV12 Limited number of chars copied to pSeed
+	unsigned int len = ( szHash.Len() > 16 ? 16 : szHash.Len());
+	for(unsigned int i = 0; i < len; i++)
 	{
 		pSeed[i] = szHash[i];
 	}
@@ -179,7 +179,8 @@ void wxUUID::GenerateUUIDv1(const short& sClock, const wxLongLong& llTime, const
 	m_cClockLow = sClock & 0xFF;
 	m_cClockHiAndReserved = (sClock & 0x3F00) >> 8;
 	m_cClockHiAndReserved |= 0x80;
-	int nodeSize = sizeof (pIEEENode);
+// GDLC DEBUGGING - checking memcpy()
+//	int nodeSize = sizeof (pIEEENode);
 	memcpy(m_IEEENode, pIEEENode, sizeof(pIEEENode));
 }
 
