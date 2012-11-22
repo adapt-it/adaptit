@@ -6,7 +6,8 @@ Feature changes and new features in 6.4.0
 ----------------------------------------------
 * The Tool bar now uses a new set of scalable images that are 
 more flexible and aesthetic. The basic functions of the tool bar
-remain the same. These changes are in preparation for providing
+remain the same, although some of the toolbar button images have
+changed. These changes are in preparation for providing
 user selectable sets of dockable tool bar buttons in a future
 version of Adapt It.
 ----------------------------------------------
@@ -21,8 +22,12 @@ which contained a merger, pressing Cancel All Steps resulted in
 a more piles than expected, copying some of the following context
 to obtain and show the bogus extra ones.
 * In the Linux version, if there was a merger within a section of
-edited source text, then the vertical edit button Cancel All 
-Steps, if pressed, would crash the application. Now fixed.
+edited source text, then the vertical edit button "Cancel All 
+Steps", if pressed, would crash the application. Now fixed.
+* The previously used paths for KB exports (sfm and LIFT) are now
+stored in the project configuration files rather than the basic
+configuration file. The move should help avoid confusion for
+users who do a lot of exports from different projects.
 ----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------
