@@ -27637,13 +27637,20 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szLastPackedDocumentPath << tab << m_lastPackedOutputPath;
 	pf->AddLine(data);
 
-	data.Empty();
-	data << szLastKBExportPath << tab << m_lastKbOutputPath; // prior to 6.x.x used szKBExportPath "KB_ExportPath"
-	pf->AddLine(data);
+	// whm 22Nov2012 removed. The m_lastKbOutputPath is now stored in
+	// the appropriate project config files rather than here in the
+	// basic config file.
+	//data.Empty();
+	//data << szLastKBExportPath << tab << m_lastKbOutputPath; // prior to 6.x.x used szKBExportPath "KB_ExportPath"
+	//pf->AddLine(data);
 
-	data.Empty();
-	data << szLastKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
-	pf->AddLine(data);
+	// whm 22Nov2012 removed. The m_lastKbLiftOutputPath is now stored in
+	// the appropriate project config files rather than here in the
+	// basic config file.
+	//data.Empty();
+	//data << szLastKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
+	//pf->AddLine(data);
+	
 	// end of m_last...Path values
 
 	data.Empty();
@@ -29004,11 +29011,31 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		}
 		else if (name == szLastKBExportPath || name == szKBExportPath) // new 6.x.x label for newer basic config files
 		{
-			m_lastKbOutputPath = strValue;
+			// whm 22Nov2012 Note: The value for the m_lastKbOutputPath
+			// is now being stored in the project config files instead
+			// of the basic config file - as it should be specific to
+			// a give project. This code block is left here for backward
+			// compatibility, but it should never execute after the user
+			// upgrades to AI version 6.4.0 and the m_lastKbOutputPath
+			// value gets stored in specific project config files.
+			// Process the strValue but don't store it in the App member
+			// since it may be misleading having come from the basic
+			// config file.
+			; //m_lastKbOutputPath = strValue;
 		}
 		else if (name == szLastKBLIFTExportPath || name == szKBLIFTExportPath)
 		{
-			m_lastKbLiftOutputPath = strValue;
+			// whm 22Nov2012 Note: The value for the m_lastKbLiftOutputPath
+			// is now being stored in the project config files instead
+			// of the basic config file - as it should be specific to
+			// a give project. This code block is left here for backward
+			// compatibility, but it should never execute after the user
+			// upgrades to AI version 6.4.0 and the m_lastKbLiftOutputPath
+			// value gets stored in specific project config files.
+			// Process the strValue but don't store it in the App member
+			// since it may be misleading having come from the basic
+			// config file.
+			; //m_lastKbLiftOutputPath = strValue;
 		}
 		// whm 6Aug11 From version 6.x.x on store the m_lastDocPath
 		// only in the appropriate project config file
@@ -31191,6 +31218,18 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szLastPathwayOutputPath << tab << m_lastPathwayOutputPath; // whm added 23Jul12
 	pf->AddLine(data);
 
+	// whm 22Nov2012 moved storage of the m_lastKbOutputPath value 
+	// from the basic config file to the project config file
+	data.Empty();
+	data << szLastKBExportPath << tab << m_lastKbOutputPath; // prior to 6.x.x used szKBExportPath "KB_ExportPath"
+	pf->AddLine(data);
+
+	// whm 22Nov2012 moved storage of the m_lastKbLiftOutputPath value 
+	// from the basic config file to the project config file
+	data.Empty();
+	data << szLastKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
+	pf->AddLine(data);
+
 	data.Empty();
 	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
 	pf->AddLine(data);
@@ -31956,6 +31995,14 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szLastPathwayOutputPath) // whm added 23Jul12
 		{
 			m_lastPathwayOutputPath = strValue;
+		}
+		else if (name == szLastKBExportPath || name == szKBExportPath) // whm 22Nov12 moved here from basic config file
+		{
+			m_lastKbOutputPath = strValue;
+		}
+		else if (name == szLastKBLIFTExportPath || name == szKBLIFTExportPath) // whm 22Nov12 moved here from basic config file
+		{
+			m_lastKbLiftOutputPath = strValue;
 		}
 		else if (name == szFoldersProtectedFromNavigation)
 		{
