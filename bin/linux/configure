@@ -633,6 +633,7 @@ MSGFMT
 GETTEXT_MACRO_VERSION
 USE_NLS
 WX_LIBS
+WXDEBUG
 CXXCPP
 CPP
 OTOOL64
@@ -759,6 +760,7 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+enable_debug
 with_wx_config
 enable_nls
 enable_rpath
@@ -1405,6 +1407,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-debug          enable debug build using debug wxwidgets libraries
   --disable-nls           do not use Native Language Support
   --disable-rpath         do not hardcode runtime library paths
 
@@ -14942,6 +14945,25 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# Debug builds pass --debug to wx-config and define _DEBUG
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug;
+else
+  enable_debug=no
+fi
+
+
+WXDEBUG=
+if test "x$enable_debug" != xno; then :
+  WXDEBUG="--debug"
+
+
+$as_echo "#define _DEBUG 1" >>confdefs.h
+
+
+fi
+
 CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"
 CXXFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"
 
@@ -14978,9 +15000,9 @@ $as_echo "not found" >&6; }
 # Verify minimus requires
 vers=`echo $wxversion | $AWK 'BEGIN { FS = "."; } { printf "% d", ($1 * 1000 + $2) * 1000 + $3;}'`
 if test -n "$vers" && test "$vers" -ge 2003003; then
-	WX_CPPFLAGS="`$WXCONFIG --cppflags`"
-	WX_CXXFLAGS="`$WXCONFIG --cxxflags | sed -e 's/-fno-exceptions//'`"
-	WX_LIBS="`$WXCONFIG --libs`"
+	WX_CPPFLAGS="`$WXCONFIG --cppflags $WXDEBUG`"
+	WX_CXXFLAGS="`$WXCONFIG --cxxflags $WXDEBUG | sed -e 's/-fno-exceptions//'`"
+	WX_LIBS="`$WXCONFIG --libs $WXDEBUG`"
 else
 	as_fn_error $? "wxWidgets 2.3.3 or newer is required" "$LINENO" 5
 fi
