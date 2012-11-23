@@ -47,9 +47,11 @@ wxUUID::wxUUID(const int& iVersion /*= 0*/, const wxString& szNameOrHash /*= wxE
 	if(iVersion==0)
 		DoV1();
 	else if(iVersion==1)
-		DoVName();
+		wxASSERT_MSG(FALSE, _T("UUID generation from a name not yet implemented"));
+//		DoVName();
 	else if(iVersion==2)
-		DoV3();
+		wxASSERT_MSG(FALSE, _T("UUID Type 3 generation not yet implemented"));
+//		DoV3();
 }
 
 wxUUID::~wxUUID()
@@ -87,12 +89,13 @@ wxString wxUUID::GetUUID()
 	return uuid.ToString();
 }
 
-wxUUID wxUUID::ParseUUID(const wxString& szUUID)
-{
-	wxUUID uuid;
-
-	return uuid;
-}
+// GDLC 23NOV12 Commented out until we find a need for this function
+//wxUUID wxUUID::ParseUUID(const wxString& szUUID)
+//{
+//	wxUUID uuid;
+//
+//	return uuid;
+//}
 
 //////////////////////////////////////////////////////////////////////
 // UUID Generation Utility Methods
@@ -124,7 +127,6 @@ void wxUUID::GetIEEENode(unsigned char pIEEENode[6])
 void wxUUID::GetRandomInfo(char pSeed[16])
 {
 	wxString	szSystemInfo = wxGetOsDescription();
-//	wxString	szToHash = wxGetOsDescription();
 	wxString	szHostName = wxGetFullHostName();
 	wxLongLong	llTime;
 
@@ -133,11 +135,11 @@ void wxUUID::GetRandomInfo(char pSeed[16])
 	wxString	szToHash = szSystemInfo + llTime.ToString() + szHostName;
 
 	wxString	szHash = wxMD5::GetDigest(szToHash);
-// GDLC 22NOV12 Limited number of chars copied to pSeed
+// GDLC 22NOV12 Limit the number of chars copied to pSeed
 	unsigned int len = ( szHash.Len() > 16 ? 16 : szHash.Len());
 	for(unsigned int i = 0; i < len; i++)
 	{
-		pSeed[i] = szHash[i];
+		pSeed[i] = (szHash[i] & 0xFF);	// GDLC avoid high order bits in the wxChars
 	}
 }
 
@@ -162,13 +164,14 @@ void wxUUID::DoV1()
 	GenerateUUIDv1(sClock, llTime, ieeeNode);
 }
 
-void wxUUID::DoVName()
-{
-}
-
-void wxUUID::DoV3()
-{
-}
+// GDLC 23NOV12 Commented out until we find a need to complete them and use them
+//void wxUUID::DoVName()
+//{
+//}
+//
+//void wxUUID::DoV3()
+//{
+//}
 
 void wxUUID::GenerateUUIDv1(const short& sClock, const wxLongLong& llTime, const unsigned char pIEEENode[6])
 {
@@ -179,18 +182,17 @@ void wxUUID::GenerateUUIDv1(const short& sClock, const wxLongLong& llTime, const
 	m_cClockLow = sClock & 0xFF;
 	m_cClockHiAndReserved = (sClock & 0x3F00) >> 8;
 	m_cClockHiAndReserved |= 0x80;
-// GDLC DEBUGGING - checking memcpy()
-//	int nodeSize = sizeof (pIEEENode);
 	memcpy(m_IEEENode, pIEEENode, sizeof(pIEEENode));
 }
 
-void wxUUID::GenerateUUIDv3(const wxString& szHash)
-{
-}
-
-void wxUUID::GenerateUUIDvName(const wxString& szName)
-{
-}
+// GDLC 23NOV12 Commented out until we find a need to complete them and use them
+//void wxUUID::GenerateUUIDv3(const wxString& szHash)
+//{
+//}
+//
+//void wxUUID::GenerateUUIDvName(const wxString& szName)
+//{
+//}
 
 
 

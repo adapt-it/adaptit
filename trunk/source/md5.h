@@ -64,7 +64,7 @@ char * MD5End(MD5_CTX *, char *);
 
 
 //! A utility class to calculate MD5 checksums from files or strings
-// but extended from Casey O'Donnel's wxMD5.h/.cpp by adding the functions
+// but extended from Casey O'Donnel's wxMD5.h/.cpp by adding the function
 // GetDigest
 class wxMD5
 {

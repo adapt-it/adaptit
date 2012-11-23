@@ -1102,30 +1102,25 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(WX_PREPROCESSOR_DEFINITIONS)",
 					"$(WXPLATFORM)",
-					__WXMAC__,
-					"wxUSE_BASE=1",
 					"_FILE_OFFSET_BITS=64",
-					_LARGE_FILES,
-					MACOS_CLASSIC,
-					"__WXMAC_XCODE__=1",
+					__WXMAC__,
+					__WXOSX__,
+					__WXOSX_COCOA__,
+					"_FILE_OFFSET_BITS=64",
 					"WX_PRECOMP=1",
-					"wxUSE_UNICODE=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.2;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"-I$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9",
-					"-I$(WXWIN)/include",
-					"-D_FILE_OFFSET_BITS=64",
-					"-D__WXMAC__",
-					"-D__WXOSX__",
-					"-D__WXOSX_COCOA__",
-				);
+				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-L$(WXWIN)/buildosxud/lib",
@@ -1166,8 +1161,8 @@
 				PREBINDING = YES;
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx10.5;
-				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9 ${BOOST_ROOT} ${WXWIN}/include .";
-				VALID_ARCHS = x86_64;
+				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${WXWIN}/include ${BOOST_ROOT} .";
+				VALID_ARCHS = "i386 x86_64";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -1337,6 +1332,12 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.0;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN28)/src/build/Development";
@@ -1408,6 +1409,12 @@
 					MACOS_CLASSIC,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = NO;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
+				GCC_WARN_UNUSED_VALUE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
@@ -1440,7 +1447,7 @@
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
-				WX_PREPROCESSOR_DEFINITIONS = "";
+				WX_PREPROCESSOR_DEFINITIONS = _KBSERVER;
 				ZERO_LINK = NO;
 			};
 			name = CarbonReleaseWX2.8;
