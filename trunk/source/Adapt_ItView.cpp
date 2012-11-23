@@ -543,6 +543,7 @@ bool gbAdaptBeforeGloss = TRUE; // TRUE (default) if adaptationsStep is to be do
 /// to make reading the members easier
 /// typedef struct
 /// {
+///     CSourcePhrase*  activeCSourcePhrasePtr;
 /// 	bool			bGlossingModeOnEntry;
 /// 	bool			bSeeGlossesEnabledOnEntry;
 /// 	bool			bEditSpanHasAdaptations;
@@ -7070,7 +7071,225 @@ void CAdapt_ItView::RemoveFilterWrappersButLeaveContent(wxString& str)
 /// do insertions.
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 23Nov12, refactored the following to remove logic error and improve the needlessly 
+/// convoluted logic and the goto label
 /////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
+					SPList* pReplacementsList, int nReplaceStartAt, int nReplaceCount)
+{
+	// 26May08	function created as part of refactoring the Edit Source Text functionality
+	// whm note: Bruce has this function in helpers.h and .cpp, but it is only used in the
+	// View so I moved it to the View.
+    // (BEW 22Mar10, this could go back in helpers.cpp as it is a potential
+    // utility function which could be used in other places at a later date.)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = GetDocument();
+	SPList::Node* posMaster = NULL; //POSITION posMaster = NULL;
+	SPList::Node* posReplace = NULL; //POSITION posReplace = NULL;
+	wxString error;
+    // do nothing if either list has no elements, or if nothing; treat it as an error state
+	if (pMasterList->GetCount() == 0)
+		return FALSE;
+	if (pReplacementsList->GetCount() == 0)
+		return FALSE;
+	if (nHowMany == 0 && nReplaceCount == 0)
+		return FALSE;
+	CSourcePhrase* pSrcPhrase = NULL;
+	CSourcePhrase* pReplaceSrcPhrase = NULL;
+	CSourcePhrase* pDeepCopiedSrcPhrase = NULL;
+//#ifdef _debugLayout
+//ShowSPandPile(393, 30);
+//ShowSPandPile(394, 30);
+//ShowInvalidStripRange();
+//#endif
+	int maxIndex = pApp->GetMaxIndex();
+	if (nStartAt > maxIndex)
+	{
+		// just append the replacements
+		posReplace = pReplacementsList->Item(nReplaceStartAt);
+		int anIndex;
+		SPList::Node* pos2 = NULL;
+		int endAt = nReplaceStartAt + nReplaceCount -1;
+		for (anIndex = nReplaceStartAt; anIndex <= endAt; anIndex++)
+		{
+			pReplaceSrcPhrase = posReplace->GetData();
+			posReplace = posReplace->GetNext();
+			pDeepCopiedSrcPhrase = new CSourcePhrase(*pReplaceSrcPhrase);
+			pDeepCopiedSrcPhrase->DeepCopy(); // make the deep copy
+			wxASSERT(pDeepCopiedSrcPhrase != NULL);
+			// add each deep copy to the end of the master list
+			pos2 = pMasterList->Append(pDeepCopiedSrcPhrase);
+			pos2 = pos2; // avoid warning
+			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
+		}
+		return TRUE;
+	}
+	else
+	{
+		posMaster = pMasterList->Item(nStartAt);
+		if (posMaster == NULL)
+		{
+			// whm note: I don't think this error needs to be translated for localization
+			// an unexpected exception, so inform the caller & advise the user of the error
+			error = _T(
+"FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), posMaster value is NULL. ");
+			error += _T("Abandoning current operation.");
+			error += _T(" (If restoring document's original state, it is not properly restored.");
+			wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
+			return FALSE;
+		}
+	}
+//#ifdef _debugLayout
+//ShowSPandPile(393, 31);
+//ShowSPandPile(394, 31);
+//ShowInvalidStripRange();
+//#endif
+	posReplace = pReplacementsList->Item(nReplaceStartAt);
+	if (posMaster == NULL)
+	{
+		// whm note: I don't think this error need to be translated for localization
+		// an unexpected exception, so inform the caller & advise the user of the error
+		error = _T(
+"FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), posReplace value is NULL. ");
+		error += _T("Abandoning current operation.");
+		error += _T(" (If restoring document's original state, it is not properly restored.");
+		wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
+		return FALSE;
+	}
+
+	// First delete the old (ie. unwanted) instances from the main list; then insert or
+	// append the replacements depending on where the deletions had been done. Note, if
+	// nHowMany is 0, then no deletions are wanted, just insertions.
+	SPList::Node* posSaved = NULL;
+	SPList::Node* pos2 = NULL;
+	int index;
+//#ifdef _debugLayout
+//ShowSPandPile(393, 32);
+//ShowSPandPile(394, 32);
+//ShowInvalidStripRange();
+//#endif
+	// delete the range of originals from pMasterList, none are deleted if nHowMany is 0
+	for (index = 0; index < nHowMany; index++)
+	{
+		posSaved = posMaster;
+		wxASSERT(posSaved);
+		pSrcPhrase = posMaster->GetData(); // assume success
+		posMaster = posMaster->GetNext();
+		pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase); // delete pSrcPhrase
+			// and its elements from memory locations; also calls DeletePartnerPile()
+		pMasterList->DeleteNode(posSaved);	// delete the list's pSrcPhrase element
+		// break out of the loop if we have come to the end of the pMasterList
+		if (posMaster == NULL)
+			break;
+	}
+
+	// now insert the non-empty range of replacements at the same location, or append
+	// them at the end if the deletions were done to the end
+	if (nStartAt == (int)pMasterList->GetCount())
+	{
+        // there is no CSourcePhrase instance now at the nStartAt value, because we
+        // deleted right to the end of the master list inclusively, so we only need
+        // append each to the tail of the pMasterList
+		for (index = 0; index < nReplaceCount; index++)
+		{
+			// get a deep copy
+			pReplaceSrcPhrase = posReplace->GetData();
+			posReplace = posReplace->GetNext();
+			pDeepCopiedSrcPhrase = new CSourcePhrase(*pReplaceSrcPhrase);
+			pDeepCopiedSrcPhrase->DeepCopy(); // make the deep copy
+			wxASSERT(pDeepCopiedSrcPhrase != NULL);
+			// append each deep copy to the master list
+			pos2 = pMasterList->Append(pDeepCopiedSrcPhrase);
+
+			// BEW added 13Mar09 for refactored layout
+			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks the owning
+											// strip, or a nearby one, as invalid
+			// break out of loop if we have come to the end of the replacements list
+			if (pReplaceSrcPhrase == NULL)
+				break;
+		}
+//#ifdef _debugLayout
+//ShowSPandPile(393, 33);
+//ShowSPandPile(394, 33);
+//ShowInvalidStripRange();
+//#endif
+	}
+	else
+	{
+        // there is a CSourcePhrase instance at the nStartAt location, it has moved
+        // down to occupy the location at which the earlier deletions were
+        // started, so we must now insert before it
+		posMaster = pMasterList->Item(nStartAt);
+		if (posMaster == NULL)
+		{
+			// an unexpected exception, so inform the caller & advise the developer
+			// of the error
+			error = _T(
+			"FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), ");
+			error += _T(
+			"posMaster value is NULL when finding the POSITION of first CSourcePhrase ");
+			error += _T("following the gap. Abandoning current operation.");
+			error += _T(
+			" (If restoring document's original state, it is not properly restored.");
+			wxMessageBox(error, _T(""), wxICON_EXCLAMATION | wxOK);
+			return FALSE;
+		}
+//#ifdef _debugLayout
+//ShowSPandPile(393, 35);
+//ShowSPandPile(394, 35);
+//ShowInvalidStripRange();
+//#endif
+//#ifdef _DEBUG
+		//SPList::Node* posDebug = pMasterList->GetFirst();
+		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
+		//{
+		//	CSourcePhrase* pSrcPh;
+		//	pSrcPh = posDebug->GetData();
+		//	posDebug = posDebug->GetNext();
+		//	wxLogDebug(_T("pMasterList BEFORE Insert: pSrcPh->m_srcPhrase = %s"),
+		//	pSrcPh->m_srcPhrase.c_str());
+		//}
+//#endif
+		for (index = 0; index < nReplaceCount; index++)
+		{
+			// insert them in normal order, each preceding the posMaster POSITION
+			pReplaceSrcPhrase = posReplace->GetData();
+			posReplace = posReplace->GetNext();
+			pDeepCopiedSrcPhrase = new CSourcePhrase(*pReplaceSrcPhrase);
+			pDeepCopiedSrcPhrase->DeepCopy(); // make the deep copy
+			wxASSERT(pDeepCopiedSrcPhrase != NULL);
+			// insert each deep copy before the posMaster location each time
+			pos2 = pMasterList->Insert(posMaster, pDeepCopiedSrcPhrase);
+			pos2 = pos2; // avoid warning
+			// BEW added 13Mar09 for refactored layout
+			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks its or a
+														// nearby strip as invalid
+//#ifdef _debugLayout
+//ShowSPandPile(393, 34);
+//ShowSPandPile(394, 34);
+//ShowInvalidStripRange();
+//#endif
+			// break out of loop if we have come to the end of the replacements list
+			if (pReplaceSrcPhrase == NULL)
+				break;
+		}
+//#ifdef _DEBUG
+		//posDebug = pMasterList->GetFirst();
+		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
+		//{
+		//	CSourcePhrase* pSrcPh;
+		//	pSrcPh = posDebug->GetData();
+		//	posDebug = posDebug->GetNext();
+		//	wxLogDebug(_T("pMasterList AFTER Insert: pSrcPh->m_srcPhrase = %s"),
+		//	pSrcPh->m_srcPhrase.c_str());
+		//}
+//#endif
+	}	
+	return TRUE;
+}
+
+/* 
+//BEW 23Nov12, refactored the following to remove logic error and improve the needlessly convoluted logic and the goto label
 bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 					SPList* pReplacementsList, int nReplaceStartAt, int nReplaceCount)
 {
@@ -7308,7 +7527,7 @@ ins:	;
 	}
 	return TRUE;
 }
-
+*/
 
 /////////////////////////////////////////////////////////////////////////////////
 ///	GetMarkerArrayFromString
@@ -21863,6 +22082,10 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 {
+#if defined(_DEBUG) && defined(_VERTEDIT)
+		CAdapt_ItApp* pApp = &wxGetApp();
+		wxLogDebug(_T("InitializeEditRecord() at entry line, 21869: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetValue());
+#endif
 	// BEW added 17Apr08
 	// first clear the global boolean which tracks whether or not
 	// vertical editing is currently happening
@@ -21873,6 +22096,7 @@ void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 	// now clear EditRecord members which should be cleared once any one
 	// instance of vertical editing is completed, or cancelled, or abandoned
 	CAdapt_ItDoc* pDoc = (CAdapt_ItDoc*)GetDocument();
+	editRec.activeCSourcePhrasePtr = NULL;
 	editRec.bGlossingModeOnEntry = FALSE; // default is adaptations mode is
             // currently ON, even even when it isn't; this is safe because the flag is only
             // looked at when vertical editing is currently in progress, and it's only then
@@ -21896,6 +22120,7 @@ void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 	editRec.nBackTrans_EndingSequNum = -1;
 	editRec.nCancelSpan_StartingSequNum = -1;
 	editRec.nCancelSpan_EndingSequNum = -1;
+
 	pDoc->DeleteSourcePhrases(&editRec.cancelSpan_SrcPhraseList);
 	pDoc->DeleteSourcePhrases(&editRec.modificationsSpan_SrcPhraseList);
 	pDoc->DeleteSourcePhrases(&editRec.propagationSpan_SrcPhraseList);
@@ -21904,6 +22129,7 @@ void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
     // inserts deep copies into the document list, leaving editableSpan_NewSrcPhraseList
     // unchanged, so we must delete those too
 	pDoc->DeleteSourcePhrases(&editRec.editableSpan_NewSrcPhraseList);
+
 	editRec.nPropagationSpan_StartingSequNum = -1;
 	editRec.nPropagationSpan_EndingSequNum = -1;
 	editRec.arrNotesSequNumbers.Clear();
@@ -23542,6 +23768,291 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 21Nov12, rewritten to search for old active CSourcePhrase pointer, as the way to
+/// best try to get the original active location; if it's not found, then use alternative
+/// means according to the older code which this version replaces; also, use
+/// RecalcLayout() with a create_strips_keep_piles param, to tone up the strip inventory,
+/// rather than just toning up the active strip; also EditRecord has had CSourcePhrase*
+/// activeCSourcePhrasePtr added, to store the pointer value we search to match.
+/// BEW 23Nov12, added the bool bCalledFromOnVerticalEditCancelAllSteps param, default is FALSE
+void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEditCancelAllSteps)
+{
+	EditRecord* pRec = &gEditRecord;
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = GetLayout();
+	CSourcePhrase* pOldActiveSrcPhrase = pRec->activeCSourcePhrasePtr; // might be NULL
+	int nSequNum = pRec->nSaveActiveSequNum; // original active location as stored in 
+											 // the EditRecord, but might not now be valid
+ 	bool bOriginalLocationWithinSpan = FALSE;
+	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+
+    // here use pOldActiveSrcPhrase, if not NULL, to try find original active sequ number
+    // -- its CSourcePhrase instance may have moved due to user's edits, or become lost -
+    // for example, if he changed the SPList inventory and cancelled out of vertical edit
+    if (pOldActiveSrcPhrase != NULL)
+	{
+		SPList::Node* pos = pSrcPhrases->GetFirst();
+		bool bFoundMatch = FALSE;
+		while (pos != NULL)
+		{
+			CSourcePhrase* pSP = pos->GetData();
+			if (pSP == pOldActiveSrcPhrase)
+			{
+				bFoundMatch = TRUE;
+				break;
+			}
+			pos = pos->GetNext();
+		}
+		if (bFoundMatch)
+		{
+			// The old active location is intact, so we can reuse it; and we can
+			// infer that bOriginalLocationWithinSpan should remain FALSE. An
+			// UpdateSequNumbers() call will have already been done, so we can
+			// get the text for the box and the sequ number easily, etc... do all this
+			// here and return
+			nSequNum = pOldActiveSrcPhrase->m_nSequNumber;
+			pApp->m_nActiveSequNum = nSequNum;
+			// tone up the strips by doing a completely new recalculation of them
+			pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+			pApp->m_pActivePile = pApp->GetView()->GetPile(nSequNum); // uses CLayout's PileList
+			// the old phrase box text has been stored in the EditRecord, so use it
+			wxString boxText = pRec->oldPhraseBoxText;
+			pApp->m_targetPhrase = boxText;
+			pApp->m_pTargetBox->ChangeValue(boxText);
+			// in the next call, TRUE means "suppress recalculation of the phrase box gap
+			// in the layout"
+			pApp->GetDocument()->ResetPartnerPileWidth(pOldActiveSrcPhrase, TRUE);
+			pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 12June09
+			pLayout->m_docEditOperationType = vert_edit_exit_op;
+			// call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
+			// the only place in the application where RestoreBoxOnFinishVerticalMode() is called
+			//return; // don't return here, we need window cleanup etc to happen later
+		}
+		else
+		{
+			// the original pointer got lost, so we can infer that the old active location
+			// was involved in deep copies and even if restoration of the original is
+			// done, it is done by deep copies, and so the pointers will be different -
+			// which is why the loop aabove didn't find a match
+			bOriginalLocationWithinSpan = TRUE; 
+		}
+	} // end of TRUE block for test:  if (pOldActiveSrcPhrase != NULL)
+
+    // If control gets to here, we have more work to do to get an acceptable active
+    // location for the phrase box; so try a modified legacy means to do it
+
+	// when this function is called, the original pre-Vertical Edit Process mode (either
+	// glossing or adapting) will have been restored, but the gEditRecord has not yet been
+	// initialized so as to clear it; so use its contents to work out where the active
+	// location should be put
+	if (!gbIsGlossing)
+	{
+		// we are in adapting mode
+		if (pRec->nAdaptationStep_NewSpanCount != 0)
+		{
+			if (bCalledFromOnVerticalEditCancelAllSteps)
+			{
+				// rollback was done, so the original span is now replaced
+				if (nSequNum >= pRec->nStartingSequNum && nSequNum <= pRec->nEndingSequNum)
+				{
+					bOriginalLocationWithinSpan = TRUE;
+				}
+			}
+			else
+			{
+				// not a cancel, so no rollback done, so use the following span
+				if (nSequNum >= pRec->nAdaptationStep_StartingSequNum &&
+					nSequNum <= pRec->nAdaptationStep_EndingSequNum)
+				{
+					bOriginalLocationWithinSpan = TRUE;
+				}
+			}
+		}
+	}
+	else
+	{
+		// we are in glossing mode
+		if (pRec->nAdaptationStep_NewSpanCount != 0)
+		{
+			if (bCalledFromOnVerticalEditCancelAllSteps)
+			{
+				// rollback was done, so the original span is now replaced
+				if (nSequNum >= pRec->nStartingSequNum && nSequNum <= pRec->nEndingSequNum)
+				{
+					bOriginalLocationWithinSpan = TRUE;
+				}
+			}
+			else
+			{
+				// not a cancel, so no rollback done, so use the following span
+				if (nSequNum >= pRec->nGlossStep_StartingSequNum &&
+					nSequNum <= pRec->nGlossStep_EndingSequNum)
+				{
+					bOriginalLocationWithinSpan = TRUE;
+				}
+			}
+		}
+	}
+    // now we attempt to find a safe final active location; and it can be within a
+    // retranslation if we are restoring glossing mode, but not if we are restoring
+    // adapting mode; vertical edit in MFC legacy app is only available from a Source Text
+    // Edit, and it is not possible to do that from free translations mode, so we know we
+    // are not restoring to the latter mode (**** NOT TRUE for wxWidgets *** where
+    // eventually vert edit will be available in any mode except when collecting back
+    // translations -- in that case extend this function to handle those extra options)
+	CSourcePhrase* pSrcPhrase = NULL;
+	CSourcePhrase* pOldSrcPhrase = NULL;
+	if (!gbIsGlossing)
+	{
+		// adapting mode was on when the user first entered the edit process
+		// & is now back on
+		if (bOriginalLocationWithinSpan || pRec->nAdaptationStep_NewSpanCount == 0)
+		{
+            // the original location was either within the (non-empty) span, or the span is
+            // now empty because the user deleted all of its CSourcePhrase instances - in
+            // which case the old sequence number at entry would now be somewhere in the
+            // context or even possibly beyond the end of the document, so we have to look
+            // carefully for a suitable place to rebuild the box -- it could be within a
+            // retranslation, so find a safe place to put the box
+			if (nSequNum > pApp->GetMaxIndex())
+			{
+				// the old location is beyond the end of the document, so initialize to the
+				// last CSourcePhrase instance in the document, and then check it is safe
+				nSequNum =  pApp->GetMaxIndex();
+			}
+			pSrcPhrase = GetSrcPhrase(nSequNum); // won't return NULL because the
+												 // CSourcePhrase at nSequNum we know exists
+			pOldSrcPhrase = pSrcPhrase; // in case we want to try again from same initial one
+			wxASSERT(pSrcPhrase != NULL);
+			if (pSrcPhrase->m_bRetranslation)
+			{
+                // this location is within a retranslation, and because of the possibility
+                // the edit span may be at the end of the document, we'll look for a safe
+                // location preceding the retranslation rather than following it
+				pSrcPhrase = GetPrevSafeSrcPhrase(pSrcPhrase);
+				if (pSrcPhrase == NULL)
+				{
+                    // we expect this never to happen, but if we can't find such a
+                    // location, try following the the retranslation
+					pSrcPhrase = pOldSrcPhrase;
+					pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
+					if (pSrcPhrase == NULL)
+					{
+						// unthinkable, but if it happens, violate rule about retranslations
+						// and put the box within it!
+						pSrcPhrase = pOldSrcPhrase;
+					}
+				}
+			}
+			// get the safe sequence number index
+			nSequNum = pSrcPhrase->m_nSequNumber;
+		}
+		else
+		{
+            // the original location, being outside the span, must already be a safe
+            // location, so do the restoration at nSequNum's location
+			;
+		}
+	}
+
+	// we now have the nSequNum at which we want to restore the box, so do it
+	// BEW 10Jan12, bug fix needed here - use GetSrcPhrase() and gbIsGlossing
+	// to find the appropriate text for the box, don't use the translation (wxString)
+	// global variable's value - it isn't guaranteed to contain the wanted string
+	bool bOldIsOK = TRUE;
+	if (nSequNum == pRec->nSaveActiveSequNum)
+	{
+		// the old location is still good, use it -- grab whatever is the
+		// appropriate text in the CSourcePhrase instance at that location
+		CSourcePhrase* spPtr = GetSrcPhrase(nSequNum);
+		wxASSERT(spPtr != NULL);
+		if (gbIsGlossing)
+		{
+			pApp->m_targetPhrase = spPtr->m_gloss;
+		}
+		else
+		{
+			pApp->m_targetPhrase = spPtr->m_adaption;
+		}
+		translation.Empty();
+	}
+	else
+	{
+		// clear, and do a lookup below instead
+		translation.Empty();
+		pApp->m_targetPhrase.Empty();
+		bOldIsOK = FALSE;
+	}
+
+	// now set up the phrase box
+	pApp->m_nActiveSequNum = nSequNum; // needed, as a test for m_nActiveSequNum
+				// < 0 done internally will have box placement skipped if we get
+				// here and it is -1
+	pApp->m_pActivePile = GetPile(nSequNum);
+	bool bFoundSomething = FALSE;
+	if (!bOldIsOK)
+	{
+		if (!pRec->bGlossingModeOnEntry)
+		{
+			if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
+				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
+			if (bFoundSomething)
+			{
+				pApp->m_targetPhrase = translation;
+			}
+			else
+			{
+				translation = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+				pApp->m_targetPhrase = translation;
+			}
+		}
+		else
+		{
+			// it was glossing mode on entry
+			if (pApp->m_pActivePile->GetSrcPhrase()->m_gloss.IsEmpty())
+				bFoundSomething = pApp->m_pTargetBox->LookUpSrcWord(pApp->m_pActivePile);
+			if (bFoundSomething)
+			{
+				pApp->m_targetPhrase = translation;
+			}
+			else
+			{
+				translation = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+				pApp->m_targetPhrase = translation;
+			}
+		}
+	}
+#ifdef _NEW_LAYOUT
+	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	// BEW 20Jan11, need to recreate the strips on Restoration because there will have
+	// been piles replaced and possibly some created in order to restore the original
+	// state, and they will still have default value for m_pOwningStrip of NULL, and that
+	// will cause a crash unless the strips are rebuilt so as to be synched to whatever
+	// pile array was reestablished
+	pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 12June09
+
+	pLayout->m_docEditOperationType = vert_edit_exit_op;
+    // call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
+    // the only place in the application where RestoreBoxOnFinishVerticalMode() is called
+    
+	// make sure m_targetPhrase agrees with the phrasebox's value, since any later
+	// PlaceBox() call includes a ResizeBox() call which puts m_targetPhrase into the box
+	// as it's value to be shown to the user
+	if (pApp->m_targetPhrase != pApp->m_pTargetBox->GetValue())
+	{
+		pApp->m_targetPhrase = pApp->m_pTargetBox->GetValue();
+	}
+#if defined(_DEBUG) && defined(_VERTEDIT)
+		wxLogDebug(_T("RestoreBoxOnFinishVerticalMode(), location - at end of function: PhraseBox contents:     %s"), pApp->m_pTargetBox->GetValue());
+#endif
+}
+
+/* Old version saved here, new one is rewritten above by BEW on 21Nov12
 void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 {
 	EditRecord* pRec = &gEditRecord;
@@ -23726,6 +24237,7 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
     // call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
     // the only place in the application where RestoreBoxOnFinishVerticalMode() is called
 }
+*/
 
 // public accessor
 void CAdapt_ItView::EditSourceText(wxCommandEvent& event)
@@ -23827,6 +24339,12 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	pRec->nSaveActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	pDoc->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // mark its strip
 																	  // as invalid
+	// store pointer to the active CSourcePhrase - we use it later to scan for as a quick
+	// way to test whether or not the active location was in the changed span(s) or
+	// outside of them - if the latter, we can quickly restore the active location when
+	// vertical editing is completed or abandoned by user action
+	pRec->activeCSourcePhrasePtr = pApp->m_pActivePile->GetSrcPhrase();
+
 	// preserve the active location's phrase box text, in case
 	// the phrase box is recreated there when done
 	pRec->oldPhraseBoxText = pApp->m_targetPhrase;
@@ -28051,6 +28569,36 @@ void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& even
 #endif
 }
 
+// **** SOME VERTICAL EDIT FUNCTIONS **** here below
+/*
+void CAdapt_ItView::PlaceBoxAfterVerticalEdit(CAdapt_ItApp* pApp, EditRecord* pRec, SPList* pSrcPhrases)
+{
+    // BEW added 21Nov12. In linux app, Cancel All Steps button crashed when view's
+    // OnDraw() was called because a strip pointer had become NULL. Recalculating the
+	// layout, by rebuilding just the strips fixed the problem. Also, testing vertical
+	// edit reveals that the locating of the phrase box back to the original location can
+	// be easily defeated by adding or removing mergers and/or adding or removing words
+	// from the source text selection for the original src text edit; and the Cancel All
+	// Steps button can then place quite wrong text in the box under what looks like an
+	// arbitrary source text word or phrase. So a function which produces a predicable
+	// result is called for. And layout recalculation using create_strips_keep_piles is a
+	// good idea so as to 'clean up' the doc's strips after what might be a long
+	// accumulation of 'invalid' strips in various parts of the layout.
+
+	// set active location at the start of the cancel span; this sequ num is guaranteed to
+	// exist, and if there are no free translations or collected back translations, it
+	// will also be the location of the start of the user's original src text selection
+	int nSequNum = pRec->nCancelSpan_StartingSequNum;
+	pApp->GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+	pApp->m_pActivePile = pApp->GetView()->GetPile(nSequNum);
+	// get the text to be put in the phrase box, and put it there
+	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+	wxString boxText = pSrcPhrase->m_adaption; // might be an empty string, but that's okay
+	pApp->m_pTargetBox->ChangeValue(boxText);
+	pApp->GetDocument()->ResetPartnerPileWidth(pSrcPhrase, TRUE);
+	Invalidate(); // internally calls Refresh() on the canvas
+}
+*/
 void CAdapt_ItView::OnUpdateButtonNextStep(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)

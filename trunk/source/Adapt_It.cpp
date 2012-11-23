@@ -14855,6 +14855,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bCalledFromOnVerticalEditCancelAllSteps = FALSE; // initialize to default value, BEW added 23Nov12
 #if defined(_KBSERVER)
 
 	m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active

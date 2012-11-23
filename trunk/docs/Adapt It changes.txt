@@ -28,6 +28,12 @@ Steps", if pressed, would crash the application. Now fixed.
 stored in the project configuration files rather than the basic
 configuration file. The move should help avoid confusion for
 users who do a lot of exports from different projects.
+* Logic errors in vertical edit of long standing have been fixed.
+Those errors would give some or all of these problems when, say,
+Cancel All Steps button was clicked. Wrong adaptation in the 
+phrase box when vertical end has ended, extra bogus copies of 
+some piles inserted after replaced ones were put back, the active
+location shifting elsewhere for no apparent reason.
 ----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------

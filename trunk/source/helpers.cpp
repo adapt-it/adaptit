@@ -45,8 +45,8 @@
 #include "SplitDialog.h"
 #include "ExportFunctions.h"
 #include "PlaceInternalMarkers.h"
-//#include "Uuid_AI.h" // for uuid support
-#include "wxUUID.h"
+#include "Uuid_AI.h" // for uuid support
+//#include "wxUUID.h"
 // the following includes support friend functions for various classes
 #include "TargetUnit.h"
 #include "KB.h"
@@ -6358,12 +6358,12 @@ wxString GetUuid()
 	// (32 hex digits plus 4 hyphens = total 36 chars followed by null char (37th))
 	wxString anUuid;
 //	GDLC 9Nov12 This is Bill's version using Uuid_AI
-//	Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
-//	anUuid = pUuidGen->GetUUID();
+	Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
+	anUuid = pUuidGen->GetUUID();
 
 //	GDLC 9Nov12 This is my version using wxUUID
-	wxUUID* pUuidGen = new wxUUID(); // generates the UUID
-	anUuid = pUuidGen->GetUUID();
+//	wxUUID* pUuidGen = new wxUUID(); // generates the UUID
+//	anUuid = pUuidGen->GetUUID();
 
 	if (pUuidGen != NULL) // whm 11Jun12 added NULL test
 		delete pUuidGen;

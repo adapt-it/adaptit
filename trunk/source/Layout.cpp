@@ -559,6 +559,9 @@ void CLayout::PlaceBox()
     // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
 	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
 	// after Invalidate() calls, and after Redraw() calls
+#if defined(_DEBUG)
+	wxLogDebug(_T("CLayout::PlaceBox() at start, line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue());
+#endif
 
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
@@ -854,6 +857,9 @@ void CLayout::PlaceBox()
 
 		// wx Note: we don't destroy the target box, just set its text to null
 		m_pApp->m_pTargetBox->ChangeValue(_T(""));
+#if defined(_DEBUG)
+	wxLogDebug(_T("CLayout::PlaceBox() line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue());
+#endif
 
 		// make the phrase box size adjustments, set the colour of its text, tell it where it
 		// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and

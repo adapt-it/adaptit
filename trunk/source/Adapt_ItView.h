@@ -236,7 +236,7 @@ public:
 	int			RecalcPhraseBoxWidth(wxString& phrase);
 	void		RestoreMode(bool WXUNUSED(bSeeGlossesEnabled), bool WXUNUSED(bIsGlossing), EditRecord* pRec); // BEW added 29July08
 	bool		RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList);
-	void		RestoreBoxOnFinishVerticalMode(); // BEW added 8Sept08
+	void		RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEditCancelAllSteps = FALSE); // BEW added 8Sept08, added bool param on 23Nov12
 	void		SelectDragRange(CCell* pAnchor,CCell* pCurrent);
 	void		SelectAnchorOnly();
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
@@ -345,6 +345,7 @@ protected:
 	bool		DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int&   nCount);
 public:
 	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
+	//void		PlaceBoxAfterVerticalEdit(CAdapt_ItApp* pApp, EditRecord* pRec, SPList* pSrcPhrases);
 protected:
 	bool		IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												 bool* pbHasAdaptations); // BEW added 15July08
