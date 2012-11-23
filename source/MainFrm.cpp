@@ -6041,6 +6041,30 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("AA: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 
 	// turn receiving of synchronized scrolling messages back on, if we temporarily have
 	// turned them off
@@ -6084,13 +6108,89 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
         // so we'll unilaterally do the store now - using whatever mode (either glossing or
         // adapting) is currently still in effect
 		pView->DoConditionalStore(); // parameter defaults TRUE, FALSE, are in effect
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("BB 6124: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 
 		// restore the original mode,
 		pView->RestoreMode(gbGlossingVisible, gbIsGlossing, &gEditRecord);
 		gEditStep = noEditStep; // no need to pretend any longer that vertical edit is in a step
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("CC 6151: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 
 		// put the phrase box at a suitable and safe location in the document
-		pView->RestoreBoxOnFinishVerticalMode();
+		pView->RestoreBoxOnFinishVerticalMode(gpApp->m_bCalledFromOnVerticalEditCancelAllSteps);
+		gpApp->m_bCalledFromOnVerticalEditCancelAllSteps = FALSE; // restore default value
+#if defined(_DEBUG) && defined(_VERTEDIT)
+		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 6168: PhraseBox contents:     %s"), gpApp->m_pTargetBox->GetValue());
+#endif
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("DD 6180: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 
 		// populate the combobox with the required removals data for the returned-to state
 		bool bFilledListOK = FALSE;
@@ -6108,12 +6208,34 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			bFilledListOK = pView->PopulateRemovalsComboBox(adaptationsStep, pRec);
 			bFilledListOK = bFilledListOK; // avoid warning (continue even if not filled)
 		}
+#if defined(_DEBUG) && defined(_VERTEDIT)
+		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 6212: PhraseBox contents:     %s"), gpApp->m_pTargetBox->GetValue());
+#endif
 
 		// initiate a redraw of the frame and the client area (Note, this is MFC's CFrameWnd
 		// member function called RecalcLayout(), not my CAdapt_ItView member function of same name
 		//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so, no harm
 							   // if the window is not embedded
-		SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+							   
+		// BEW 21Nov12, a compound bug discovered on this date was that if the phrase box
+		// was after the selection, and the user edit added a word, and in the adaptations
+		// the last two words were made a merger, and then Cancel All Steps was clicked,
+		// the legacy code for finishing off the vertical edit adds a couple of bogus
+		// CSourcePhrase instances to the old series of CSourcePhrases restored (which
+		// makes the active location shift to two piles earlier), and as well, the
+		// adaptation in the phrase box at the time Cancel All Steps was pressed gets put
+		// as the adaptation for that (bogus) earlier active location. Stepping in the
+		// debugger revealed that that (bogus) earlier active location's adaptation stayed
+		// correct and unchanged until the following SendSizeEvent() call - after which,
+		// the phrase box had the value as it was at the final merger in the user's edits
+		// in the adaptations step of vertical edit. This is bizarre, but I'm not going to
+		// chase it down. I don't think the SendSizeEvent() is needed here (and if it was,
+		// pView->Invalidate() would probably be better anyway), so I'm commenting it out.
+		// It will stay commented out if doing so fixes the second part of this compound bug.
+		//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+#if defined(_DEBUG) && defined(_VERTEDIT)
+		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 6237: PhraseBox contents:     %s"), gpApp->m_pTargetBox->GetValue());
+#endif
 
 		// clear by initializing (but the gEditRecord's removed data lists, which are maintained
 		// within the gEditRecord global struct, are left intact while the Adapt It session is alive)
@@ -6128,10 +6250,27 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		int nActiveStripIndex = (pView->GetPile(gpApp->m_nActiveSequNum))->GetStripIndex();
 		pLayout->RelayoutActiveStrip(pView->GetPile(gpApp->m_nActiveSequNum), nActiveStripIndex,
 			pLayout->GetGapWidth(), pLayout->GetLogicalDocSize().x);
-
+#if defined(_DEBUG) && defined(_VERTEDIT)
+		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 6254: PhraseBox contents:     %s"), gpApp->m_pTargetBox->GetValue());
+#endif
 		pView->Invalidate(); // get the layout drawn
 		pLayout->PlaceBox();
+#if defined(_DEBUG) && defined(_VERTEDIT)
+		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 6259: PhraseBox contents:     %s"), gpApp->m_pTargetBox->GetValue());
+#endif
 	}
+    // When vertical editing is canceled we should hide the m_pRemovalsBar, and
+    // m_pVertEditBar, - any and all that are visible.
+	if (m_pVertEditBar->IsShown())
+	{
+		m_pVertEditBar->Hide();
+	}
+	if (m_pRemovalsBar->IsShown())
+	{
+		m_pRemovalsBar->Hide();
+	}
+	SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
+					 // do the needed redraw;
 	return;
 }
 
@@ -6161,6 +6300,15 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 	}
 	// roll back through the steps doing restorations and set up original situation
 
+	// Set the following flag to TRUE (it's only TRUE when this present function has been
+	// called) so that the following OnCustomEventEndVerticalEdit() function will know
+	// whether it's call of RestoreBoxOnFinishVerticalMode() needs to be passed TRUE, or
+	// will take default FALSE. When TRUE is passed in, the function uses a different span
+	// (the rolled-back-to-the-original-span) to determine whether or not the original
+	// active location was within the modified area of the source text, or not. After that
+	// function is called, the boolean is immediately returned to its default FALSE value.
+	gpApp->m_bCalledFromOnVerticalEditCancelAllSteps = TRUE;
+
 #if defined(__WXGTK__)
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 #endif
@@ -6175,6 +6323,29 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 	wxASSERT(m_pComposeBar != NULL);
 	wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 	wxASSERT(pEdit != NULL);
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("CX %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 	if (gbVerticalEditInProgress)
 	{
         // gEditStep, on entry, has the step which is current when the cause of the
@@ -6301,7 +6472,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 					pView->ToggleGlossingMode(); // turn off glossing mode
 				} // fall through
@@ -6325,6 +6496,29 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					gEditStep = adaptationsStep;
 					if (pRec->nNewSpanCount > 0)
 					{
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("A 6497: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 						// restore the editable span to what it was when adaptationsStep
 						// was started
 						int nHowMany = pRec->nAdaptationStep_NewSpanCount;
@@ -6346,8 +6540,31 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5888 in MainFrm.cpp; processing continues"));
 						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("B 6541: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 					}
-					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 				} // fall through
 			case sourceTextStep:
@@ -6422,7 +6639,29 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
                     // perhaps if the propagation span sticks out past the end of the
                     // cancel span) - we do these copies in the sourceTextStp case below.
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
-
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("b 6640: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 					// handle the user edits done in the Edit Source Text dialog
 					nHowMany = pRec->nCancelSpan_EndingSequNum + 1 - pRec->nCancelSpan_StartingSequNum;
 					wxASSERT(nHowMany != 0);
@@ -6441,6 +6680,29 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						gpApp->LogUserAction(_T("OnCustomEventCancelVerticalEdit() called ReplaceCSourcePhrasesInSpan() and the latter returned FALSE, at line 5983 in MainFrm.cpp; processing continues"));
 					}
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("C 6681: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 
 					// if the end of the propagation span is beyond end of cancel span, restore
 					// those extras too
@@ -6464,6 +6726,29 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("D 6727: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
+	}
+#endif
 #if defined(__WXGTK__)
 					// BEW 20Nov12 In Linux build, OnDraw() crashes because a CPile instances
 					// m_pOwningStrip member is NULL (I don't know why); same data in the
@@ -6473,6 +6758,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					gpApp->m_pActivePile = pView->GetPile(pRec->nStartingSequNum);
 					pDoc->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase(), TRUE);
 #else
+					// BEW 22Nov12, removed, do one at the end only
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 #endif
@@ -6596,7 +6882,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 				} // fall through
 			case glossesStep:
@@ -6650,7 +6936,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					//SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
 									 // do the needed redraw
 					pView->ToggleGlossingMode(); // turn glossing mode back off
 				} // fall through
@@ -6778,6 +7064,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					gpApp->m_pActivePile = pView->GetPile(pRec->nStartingSequNum);
 					pDoc->ResetPartnerPileWidth(gpApp->m_pActivePile->GetSrcPhrase(), TRUE);
 #else
+					// BEW 22Nov12, removed, do one at the end only
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do
 									 // the needed redraw
 #endif
@@ -6786,7 +7073,30 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			} // end of switch (gEditStep)
 		} // end of FALSE block for test (gbAdaptBeforeGloss)
 
+#if defined(_DEBUG) && defined(_VERTEDIT)
+	{
+		wxArrayString arr;
+		int snStart = 234;
+		int i;
+		SPList::Node* pos = pSrcPhrases->Item(snStart);
+		wxString src;
+		for (i = 0; i < 30; i++)
+		{
+			src = pos->GetData()->m_srcPhrase;
+			pos = pos->GetNext();
+			arr.Add(src);
+		}
+		wxString spaces = _T("  ");
+		wxLogDebug(_T("E: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
+			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
+			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
+			arr.Item(15)+ spaces,arr.Item(16)+ spaces,arr.Item(17)+ spaces,arr.Item(18)+ spaces,arr.Item(19)+ spaces,
+			arr.Item(20)+ spaces,arr.Item(21)+ spaces,arr.Item(22)+ spaces,arr.Item(23)+ spaces,arr.Item(24)+ spaces,
+			arr.Item(25)+ spaces,arr.Item(26)+ spaces,arr.Item(27)+ spaces,arr.Item(28)+ spaces,arr.Item(29)+ spaces);
 		// clean up & restore original state
+	}
+#endif
 		wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 		wxPostEvent(this, eventCustom);
 		// whm Note: This event also calls the code which hides any of the

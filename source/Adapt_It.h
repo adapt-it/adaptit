@@ -1556,6 +1556,9 @@ typedef struct
     // programmatically once the edit is done. Notes content is not changed - if changes
     // are warranted, the user will have to do them manually after the total vertical edit
     // process ends.
+    
+	CSourcePhrase* activeCSourcePhrasePtr; // store the ptr to the active one, on entry
+										   // BEW added this member on 21Nov12
 	bool	bGlossingModeOnEntry; // at entry, TRUE if glossing mode is ON, FALSE if
                 // adapting mode is ON, vertical edit is not enabled in any other mode
                 // (such as free trans mode). Default is adaptations mode is currently ON,
@@ -1947,6 +1950,9 @@ class CAdapt_ItApp : public wxApp
 
 	// support for read-only protection
 	ReadOnlyProtection* m_pROP;
+
+	// BEW added 23Nov12, for support of Cancel All Steps button in Vertical Edit mode
+	bool m_bCalledFromOnVerticalEditCancelAllSteps; // default is FALSE, initialized in OnInit()
 
 private:
 
