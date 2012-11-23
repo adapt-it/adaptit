@@ -16164,26 +16164,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	*/
 
 // GDLC 9Nov12 Testing the wxUUID class
-//	wxString uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
-//	uuid_test = GetUuid();
-//	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	wxString uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
+	uuid_test = GetUuid();
+	wxLogDebug(_T("UUID = %s"), uuid_test.c_str());
 
 	// BEW 6April2011 **** DO NOT REMOVE COMMENTED OUT CODE BELOW **** THIS IS VALUABLE FOR BEW ****
 	//
@@ -20226,6 +20226,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 
 	// **** test code fragments here ****
+
+// GDLC 24OCT12 testing the new wxUUID class
+	wxString test_UUID = GetUuid();
 /*
 #if defined (_KBSERVER)
 	// test KbServer API functions
