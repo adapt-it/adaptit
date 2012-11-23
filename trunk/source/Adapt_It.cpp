@@ -40674,16 +40674,29 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 			pView->CloseProject(); // calls View's OnFileCloseProject()
 		}
 	}
-
-	CSetupEditorCollaboration dlg(GetMainFrame());
-	if (dlg.ShowModal() == wxID_OK)
+	
+	// whm 23Nov2012 modified. We need to deal with the situation that
+	// the user may have clicked "Cancel" at the prompt asking if he
+	// wants to save any changes to the file at the time the close
+	// project process tries to close the current document. That
+	// "Cancel" should abort the whole close project process and leave
+	// the project open and the document open and showing in the main window.
+	// Therefore, we need to test here again if the project is indeed
+	// closed before instantiating the CSetupEditorCollaboration dialog
+	if (!IsAIProjectOpen())
 	{
-		// All setup is done and saved to individual AI project config files within
-		// the CSetupEditorCollaborationDlg class.
-		;
+		// The project (and any document) is now closed so it is now
+		// safe to call the Setup Collaboration dialog
+		CSetupEditorCollaboration dlg(GetMainFrame());
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			// All setup is done and saved to individual AI project config files within
+			// the CSetupEditorCollaborationDlg class.
+			;
+		}
+		// Note: The CSetupEditorCollaboration dialog now only has a "Close" (wxID_OK)
+		// button
 	}
-	// Note: The CSetupEditorCollaboration dialog now only has a "Close" (wxID_OK)
-	// button
 }
 
 // whm added the next two handlers 14Feb12
