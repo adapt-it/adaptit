@@ -75,10 +75,6 @@
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
-		C87B76E01655EE86009278E7 /* wxUUID.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C87B76DD1655EE86009278E7 /* wxUUID.cpp */; };
-		C89D2932165B130300961BBA /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C89D292C165B130300961BBA /* jsonreader.cpp */; };
-		C89D2933165B130300961BBA /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C89D292E165B130300961BBA /* jsonval.cpp */; };
-		C89D2934165B130300961BBA /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C89D2930165B130300961BBA /* jsonwriter.cpp */; };
 		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */; };
@@ -276,15 +272,6 @@
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
 		C85CE18114103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsChk_Empty_noTU_Dlg.h; path = ../../source/ConsChk_Empty_noTU_Dlg.h; sourceTree = SOURCE_ROOT; };
 		C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConsChk_Empty_noTU_Dlg.cpp; path = ../../source/ConsChk_Empty_noTU_Dlg.cpp; sourceTree = SOURCE_ROOT; };
-		C87B76DD1655EE86009278E7 /* wxUUID.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wxUUID.cpp; path = ../../source/wxUUID.cpp; sourceTree = SOURCE_ROOT; };
-		C87B76DE1655EE86009278E7 /* wxUUID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wxUUID.h; path = ../../source/wxUUID.h; sourceTree = SOURCE_ROOT; };
-		C89D292B165B130300961BBA /* json_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = json_defs.h; path = ../../source/json_defs.h; sourceTree = SOURCE_ROOT; };
-		C89D292C165B130300961BBA /* jsonreader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = ../../source/jsonreader.cpp; sourceTree = SOURCE_ROOT; };
-		C89D292D165B130300961BBA /* jsonreader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonreader.h; path = ../../source/jsonreader.h; sourceTree = SOURCE_ROOT; };
-		C89D292E165B130300961BBA /* jsonval.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = ../../source/jsonval.cpp; sourceTree = SOURCE_ROOT; };
-		C89D292F165B130300961BBA /* jsonval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonval.h; path = ../../source/jsonval.h; sourceTree = SOURCE_ROOT; };
-		C89D2930165B130300961BBA /* jsonwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonwriter.cpp; path = ../../source/jsonwriter.cpp; sourceTree = SOURCE_ROOT; };
-		C89D2931165B130300961BBA /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = SOURCE_ROOT; };
 		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
@@ -500,19 +487,10 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C87B76DD1655EE86009278E7 /* wxUUID.cpp */,
-				C87B76DE1655EE86009278E7 /* wxUUID.h */,
-				03CFAA09161DE73400B82F58 /* StatusBar.cpp */,
-				03CFAA0A161DE73400B82F58 /* StatusBar.h */,
-				273A30841619A853002B8AA0 /* KbServer.h */,
-				2791678516195D4D00744DF8 /* KBServer.cpp */,
-				03C7004915D4351800FAB605 /* Pathway.cpp */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
 				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
-				C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */,
-				C8C3970715D3D2670093A3CE /* BookNameDlg.h */,
 				C8DC8FF014A3331200EA1D5C /* DVCS.h */,
 				C8DC8FF114A3331200EA1D5C /* DVCS.cpp */,
 				C8F82E580F3F9CAB007579B8 /* XML.h */,
@@ -523,8 +501,6 @@
 				7DEAF5E914FF24A000D6E871 /* CreateNewAIProjForCollab.h */,
 				7D66132714D87232007A2C30 /* ClientServerConnection.cpp */,
 				7D66132814D87232007A2C30 /* ClientServerConnection.h */,
-				7D6612D11495C70C007A2C30 /* KBExportImportOptionsDlg.cpp */,
-				7D6612D21495C70C007A2C30 /* KBExportImportOptionsDlg.h */,
 				7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */,
 				7D4EEBBE1471932C003B4CC2 /* scrollingdialog.h */,
 				7D4EEBBF1471932C003B4CC2 /* scrollingwizard.cpp */,
@@ -545,13 +521,6 @@
 				7D8A045013ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.h */,
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
 				7D98196A139C7002009F4E93 /* md5.cpp */,
-				C89D292B165B130300961BBA /* json_defs.h */,
-				C89D292C165B130300961BBA /* jsonreader.cpp */,
-				C89D292D165B130300961BBA /* jsonreader.h */,
-				C89D292E165B130300961BBA /* jsonval.cpp */,
-				C89D292F165B130300961BBA /* jsonval.h */,
-				C89D2930165B130300961BBA /* jsonwriter.cpp */,
-				C89D2931165B130300961BBA /* jsonwriter.h */,
 				7D98196B139C7002009F4E93 /* md5.h */,
 				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
 				7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */,
@@ -564,6 +533,8 @@
 				7DCCD187127FA19000A42526 /* CorGuess.h */,
 				7DCCD188127FA19000A42526 /* GuesserSettingsDlg.cpp */,
 				7DCCD189127FA19000A42526 /* GuesserSettingsDlg.h */,
+				7D6612D11495C70C007A2C30 /* KBExportImportOptionsDlg.cpp */,
+				7D6612D21495C70C007A2C30 /* KBExportImportOptionsDlg.h */,
 				7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */,
 				7D4C1A2E125D7EAA005DF3C6 /* UsfmFilterPage.h */,
 				C80E02B71222481000ECCA6A /* AdminEditMenuProfile.cpp */,
@@ -601,6 +572,8 @@
 				C8F82DC10F3F9CAB007579B8 /* AIPrintout.h */,
 				C8F82DC20F3F9CAB007579B8 /* AutoSavingPage.cpp */,
 				C8F82DC30F3F9CAB007579B8 /* AutoSavingPage.h */,
+				C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */,
+				C8C3970715D3D2670093A3CE /* BookNameDlg.h */,
 				C8F82DC40F3F9CAB007579B8 /* BString.cpp */,
 				C8F82DC50F3F9CAB007579B8 /* BString.h */,
 				C8F82DC60F3F9CAB007579B8 /* CaseEquivPage.cpp */,
@@ -684,6 +657,9 @@
 				C8F82E120F3F9CAB007579B8 /* OpenExistingProjectDlg.h */,
 				C8F82E130F3F9CAB007579B8 /* OutputFilenameDlg.cpp */,
 				C8F82E140F3F9CAB007579B8 /* OutputFilenameDlg.h */,
+				273A30841619A853002B8AA0 /* KbServer.h */,
+				2791678516195D4D00744DF8 /* KBServer.cpp */,
+				03C7004915D4351800FAB605 /* Pathway.cpp */,
 				C8F82E150F3F9CAB007579B8 /* PhraseBox.cpp */,
 				C8F82E160F3F9CAB007579B8 /* PhraseBox.h */,
 				C8F82E170F3F9CAB007579B8 /* Pile.cpp */,
@@ -721,6 +697,8 @@
 				C8F82E390F3F9CAB007579B8 /* StartWorkingWizard.cpp */,
 				C8F82E3A0F3F9CAB007579B8 /* StartWorkingWizard.h */,
 				C8F82E3B0F3F9CAB007579B8 /* Strip.cpp */,
+				03CFAA09161DE73400B82F58 /* StatusBar.cpp */,
+				03CFAA0A161DE73400B82F58 /* StatusBar.h */,
 				C8F82E3C0F3F9CAB007579B8 /* Strip.h */,
 				C8F82E3D0F3F9CAB007579B8 /* TargetUnit.cpp */,
 				C8F82E3E0F3F9CAB007579B8 /* TargetUnit.h */,
@@ -1055,10 +1033,6 @@
 				03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */,
 				2791678616195D4D00744DF8 /* KBServer.cpp in Sources */,
 				03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */,
-				C87B76E01655EE86009278E7 /* wxUUID.cpp in Sources */,
-				C89D2932165B130300961BBA /* jsonreader.cpp in Sources */,
-				C89D2933165B130300961BBA /* jsonval.cpp in Sources */,
-				C89D2934165B130300961BBA /* jsonwriter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1102,25 +1076,30 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(WX_PREPROCESSOR_DEFINITIONS)",
 					"$(WXPLATFORM)",
-					"_FILE_OFFSET_BITS=64",
 					__WXMAC__,
-					__WXOSX__,
-					__WXOSX_COCOA__,
+					"wxUSE_BASE=1",
 					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					MACOS_CLASSIC,
+					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
+					"wxUSE_UNICODE=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.2;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_PARAMETER = YES;
-				GCC_WARN_UNUSED_VALUE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(WXWIN)/build/osx/build/Debug";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "";
+				OTHER_CFLAGS = (
+					"-I$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9",
+					"-I$(WXWIN)/include",
+					"-D_FILE_OFFSET_BITS=64",
+					"-D__WXMAC__",
+					"-D__WXOSX__",
+					"-D__WXOSX_COCOA__",
+				);
 				OTHER_CPLUSPLUSFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-L$(WXWIN)/buildosxud/lib",
@@ -1161,8 +1140,8 @@
 				PREBINDING = YES;
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = macosx10.5;
-				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${WXWIN}/include ${BOOST_ROOT} .";
-				VALID_ARCHS = "i386 x86_64";
+				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9 ${BOOST_ROOT} ${WXWIN}/include .";
+				VALID_ARCHS = x86_64;
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -1332,12 +1311,6 @@
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.0;
-				GCC_WARN_SIGN_COMPARE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = NO;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_LABEL = YES;
-				GCC_WARN_UNUSED_PARAMETER = YES;
-				GCC_WARN_UNUSED_VALUE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "$(WXWIN28)/src/build/Development";
@@ -1367,7 +1340,7 @@
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
-				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1 _KBSERVER";
+				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
 				ZERO_LINK = NO;
 			};
 			name = CarbonDebugWX2.8;
@@ -1409,18 +1382,9 @@
 					MACOS_CLASSIC,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_WARN_SIGN_COMPARE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = NO;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_LABEL = YES;
-				GCC_WARN_UNUSED_PARAMETER = YES;
-				GCC_WARN_UNUSED_VALUE = YES;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(WXWIN28)/src/build/Deployment",
-					"\"$(SRCROOT)/../../source\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(WXWIN28)/src/build/Deployment";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -1447,7 +1411,7 @@
 					"-Wno-unknown-pragmas",
 				);
 				WRAPPER_EXTENSION = app;
-				WX_PREPROCESSOR_DEFINITIONS = _KBSERVER;
+				WX_PREPROCESSOR_DEFINITIONS = "";
 				ZERO_LINK = NO;
 			};
 			name = CarbonReleaseWX2.8;
