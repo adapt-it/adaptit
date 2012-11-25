@@ -123,8 +123,8 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
 	ViewFilteredMaterialDlg.$(OBJEXT) ViewPage.$(OBJEXT) \
 	WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) WhichBook.$(OBJEXT) \
-	WhichFilesDlg.$(OBJEXT) wxUUID.$(OBJEXT) Xhtml.$(OBJEXT) \
-	XML.$(OBJEXT) XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
+	WhichFilesDlg.$(OBJEXT) Xhtml.$(OBJEXT) XML.$(OBJEXT) \
+	XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
 adaptit_OBJECTS = $(am_adaptit_OBJECTS)
 adaptit_LDADD = $(LDADD)
 adaptit_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -479,7 +479,7 @@ adaptit_SOURCES = \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
 	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
 	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
-	../../source/wxUUID.cpp ../../source/Xhtml.cpp \
+	../../source/Xhtml.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
 adaptit_LDFLAGS = $(WX_LIBS) $(CURL_LIBS) -luuid
@@ -699,7 +699,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingdialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scrollingwizard.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tellenc.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wxUUID.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -2415,20 +2414,6 @@ WhichFilesDlg.obj: ../../source/WhichFilesDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/WhichFilesDlg.cpp' object='WhichFilesDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o WhichFilesDlg.obj `if test -f '../../source/WhichFilesDlg.cpp'; then $(CYGPATH_W) '../../source/WhichFilesDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/WhichFilesDlg.cpp'; fi`
-
-wxUUID.o: ../../source/wxUUID.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wxUUID.o -MD -MP -MF $(DEPDIR)/wxUUID.Tpo -c -o wxUUID.o `test -f '../../source/wxUUID.cpp' || echo '$(srcdir)/'`../../source/wxUUID.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/wxUUID.Tpo $(DEPDIR)/wxUUID.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/wxUUID.cpp' object='wxUUID.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wxUUID.o `test -f '../../source/wxUUID.cpp' || echo '$(srcdir)/'`../../source/wxUUID.cpp
-
-wxUUID.obj: ../../source/wxUUID.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT wxUUID.obj -MD -MP -MF $(DEPDIR)/wxUUID.Tpo -c -o wxUUID.obj `if test -f '../../source/wxUUID.cpp'; then $(CYGPATH_W) '../../source/wxUUID.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/wxUUID.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/wxUUID.Tpo $(DEPDIR)/wxUUID.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/wxUUID.cpp' object='wxUUID.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o wxUUID.obj `if test -f '../../source/wxUUID.cpp'; then $(CYGPATH_W) '../../source/wxUUID.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/wxUUID.cpp'; fi`
 
 Xhtml.o: ../../source/Xhtml.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Xhtml.o -MD -MP -MF $(DEPDIR)/Xhtml.Tpo -c -o Xhtml.o `test -f '../../source/Xhtml.cpp' || echo '$(srcdir)/'`../../source/Xhtml.cpp
