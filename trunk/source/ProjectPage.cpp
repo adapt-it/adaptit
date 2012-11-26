@@ -906,7 +906,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					// again when the dialog ends.
 					pStartWorkingWizard->Disable();
 
-					CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
+					//CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
+					CChooseCollabOptionsDlg collabOptDlg(pStartWorkingWizard);
 					collabOptDlg.CenterOnParent();
 					collabOptDlg.m_aiProjName = m_projectName;
 					if (collabOptDlg.ShowModal() == wxID_CANCEL)
