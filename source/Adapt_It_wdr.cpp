@@ -8579,53 +8579,57 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("You have selected this Adapt It project:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_SELECTED_AI_PROJECT, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("You have selected this Adapt It project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_SELECTED_AI_PROJECT, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Options for entering this project:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    item6->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Options for entering this project:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxButton *item8 = new wxButton( parent, ID_BUTTON_TELL_ME_MORE, _("&Tell me more about these options"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+    item7->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item9 = new wxButton( parent, ID_BUTTON_TELL_ME_MORE, _("&Tell me more about these options"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Work with my %s &Scripture texts (Collaboration on)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_NOT_INSTALLED_ERROR_MSG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
-    item5->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_ON, _("Work with my %s &Scripture texts (Collaboration on)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Work with &other Adapt It texts (%s texts not available: Collaboration off)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_NOT_INSTALLED_ERROR_MSG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
+    item6->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("&Read-only mode (All texts accessible but not editable - I'm an advisor or consultant)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_TURN_COLLAB_OFF, _("Work with &other Adapt It texts (%s texts not available: Collaboration off)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxRadioButton *item13 = new wxRadioButton( parent, ID_RADIOBUTTON_READ_ONLY_MODE, _("&Read-only mode (All texts accessible but not editable - I'm an advisor or consultant)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+    item1->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetDefault();
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    item0->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetDefault();
+    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item1, 1, wxALL, 5 );
 
     if (set_sizer)
     {
