@@ -325,7 +325,8 @@ class CHtmlFileViewer;
 // because CodeBlocks lacks any way of gathering and displaying wxLogDebug() output, so this does it
 // -- see the end of the OnInit() function for the code which creates the window and ties it to the
 // logging mechanism
-class wxLogDebug;
+// whm 25Nov12 Removed the following
+//class wxLogDebug;
 #endif
 
 // The following constants were originally declared in the global space of XML.h. G++ 3.x
