@@ -15002,7 +15002,7 @@ vers=`echo $wxversion | $AWK 'BEGIN { FS = "."; } { printf "% d", ($1 * 1000 + $
 if test -n "$vers" && test "$vers" -ge 2003003; then
 	WX_CPPFLAGS="`$WXCONFIG --cppflags $WXDEBUG`"
 	WX_CXXFLAGS="`$WXCONFIG --cxxflags $WXDEBUG | sed -e 's/-fno-exceptions//'`"
-	WX_LIBS="`$WXCONFIG --libs $WXDEBUG`"
+	WX_LIBS="`$WXCONFIG --libs std,aui $WXDEBUG`"
 else
 	as_fn_error $? "wxWidgets 2.3.3 or newer is required" "$LINENO" 5
 fi
