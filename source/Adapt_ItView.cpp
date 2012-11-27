@@ -1096,7 +1096,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // pages, failed here (pActivePile below was rubbish) due to m_pActivePile having been
     // clobbered. So recalc m_pActivePile before going on... (yes, this fixed the problem)
 	pApp->m_pActivePile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum);
-#if defined(_DEBUG) && defined(_NEWDRAW)
+#if defined(_DEBUG) && defined(_NEWDRAW) && !defined(__WXGTK__)
 	wxLogDebug(_T("CAdapt_ItView::OnDraw(): Active pile's m_pOwningStrip: %x"), (unsigned int)pApp->m_pActivePile->GetStrip());
 #endif
 
@@ -6427,6 +6427,13 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 	// a sufficient condition.
 	// whm 6Nov12 revised to use the more self-documenting
 	// IsDocumentOpen() function.
+#if defined(__WXGTK__) && defined(_DEBUG)
+    bool bDocOpen = pApp->IsDocumentOpen();
+    if (bDocOpen)
+        wxLogDebug(_T("view::OnUpdateFileNew:  Doc is OPEN"));
+    else
+        wxLogDebug(_T("view::OnUpdateFileNew:  Doc is CLOSED"));
+#endif
 	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && !pApp->IsDocumentOpen())
 		event.Enable(TRUE);
 	else
@@ -7071,7 +7078,7 @@ void CAdapt_ItView::RemoveFilterWrappersButLeaveContent(wxString& str)
 /// do insertions.
 /// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
 /// BEW 9July10, no changes needed for support of kbVersion 2
-/// BEW 23Nov12, refactored the following to remove logic error and improve the needlessly 
+/// BEW 23Nov12, refactored the following to remove logic error and improve the needlessly
 /// convoluted logic and the goto label
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
@@ -7284,11 +7291,11 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 		//	pSrcPh->m_srcPhrase.c_str());
 		//}
 //#endif
-	}	
+	}
 	return TRUE;
 }
 
-/* 
+/*
 //BEW 23Nov12, refactored the following to remove logic error and improve the needlessly convoluted logic and the goto label
 bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 					SPList* pReplacementsList, int nReplaceStartAt, int nReplaceCount)
@@ -13705,6 +13712,10 @@ void CAdapt_ItView::ClobberDocument()
 	// hide and disable the target box until input is expected
 	pApp->m_pTargetBox->Hide(); // whm note: ChangeValue(_T("")) is called above
 	pApp->m_pTargetBox->Enable(FALSE);
+
+#if defined(__WXGTK__) && defined(_DEBUG)
+        wxLogDebug(_T("view:ClobberDocument(): Doc has just been CLOSED"));
+#endif
 }
 
 void CAdapt_ItView::CloseProject()
@@ -23781,7 +23792,7 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEdi
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
 	CSourcePhrase* pOldActiveSrcPhrase = pRec->activeCSourcePhrasePtr; // might be NULL
-	int nSequNum = pRec->nSaveActiveSequNum; // original active location as stored in 
+	int nSequNum = pRec->nSaveActiveSequNum; // original active location as stored in
 											 // the EditRecord, but might not now be valid
  	bool bOriginalLocationWithinSpan = FALSE;
 	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
@@ -23834,7 +23845,7 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEdi
 			// was involved in deep copies and even if restoration of the original is
 			// done, it is done by deep copies, and so the pointers will be different -
 			// which is why the loop aabove didn't find a match
-			bOriginalLocationWithinSpan = TRUE; 
+			bOriginalLocationWithinSpan = TRUE;
 		}
 	} // end of TRUE block for test:  if (pOldActiveSrcPhrase != NULL)
 
@@ -24039,7 +24050,7 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode(bool bCalledFromOnVerticalEdi
 	pLayout->m_docEditOperationType = vert_edit_exit_op;
     // call Invalidate() in the caller, which is OnCustomEventEndVerticalEdit() & that is
     // the only place in the application where RestoreBoxOnFinishVerticalMode() is called
-    
+
 	// make sure m_targetPhrase agrees with the phrasebox's value, since any later
 	// PlaceBox() call includes a ResizeBox() call which puts m_targetPhrase into the box
 	// as it's value to be shown to the user
