@@ -12845,6 +12845,8 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 			// The CollabAIProjectName, CollabSourceLangName and
 			// CollabTargetLangName are all empty strings, and we
 			// assume the project was never setup for collaboration.
+			m_bCollaboratingWithBibledit = FALSE;
+			m_bCollaboratingWithParatext = FALSE;
 			return collabProjNotConfigured;
 		}
 		//
