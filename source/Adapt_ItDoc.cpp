@@ -5435,9 +5435,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// update status bar with project name
 	gpApp->RefreshStatusBarInfo();
 
-#if defined(__WXGTK__) && defined(_DEBUG)
-        wxLogDebug(_T("doc:OnOpenDocument():  Doc has just been OPENED"));
-#endif
 	return TRUE;
 }
 
@@ -17158,10 +17155,6 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
 	translation = _T(""); // make sure the global var is clear
-
-#if defined(__WXGTK__) && defined(_DEBUG)
-        wxLogDebug(_T("doc:DeleteContents(): Doc has just been CLOSED"));
-#endif
 
 	return wxDocument::DeleteContents(); // just returns TRUE
 }

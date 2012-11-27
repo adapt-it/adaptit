@@ -6427,13 +6427,6 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 	// a sufficient condition.
 	// whm 6Nov12 revised to use the more self-documenting
 	// IsDocumentOpen() function.
-#if defined(__WXGTK__) && defined(_DEBUG)
-    bool bDocOpen = pApp->IsDocumentOpen();
-    if (bDocOpen)
-        wxLogDebug(_T("view::OnUpdateFileNew:  Doc is OPEN"));
-    else
-        wxLogDebug(_T("view::OnUpdateFileNew:  Doc is CLOSED"));
-#endif
 	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && !pApp->IsDocumentOpen())
 		event.Enable(TRUE);
 	else
@@ -13712,10 +13705,6 @@ void CAdapt_ItView::ClobberDocument()
 	// hide and disable the target box until input is expected
 	pApp->m_pTargetBox->Hide(); // whm note: ChangeValue(_T("")) is called above
 	pApp->m_pTargetBox->Enable(FALSE);
-
-#if defined(__WXGTK__) && defined(_DEBUG)
-        wxLogDebug(_T("view:ClobberDocument(): Doc has just been CLOSED"));
-#endif
 }
 
 void CAdapt_ItView::CloseProject()
