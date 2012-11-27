@@ -47,11 +47,15 @@ wxUUID::wxUUID(const int& iVersion /*= 0*/, const wxString& szNameOrHash /*= wxE
 	if(iVersion==0)
 		DoV1();
 	else if(iVersion==1)
-		wxASSERT_MSG(FALSE, _T("UUID generation from a name not yet implemented"));
+	{
+	    wxASSERT_MSG(FALSE, _T("UUID generation from a name not yet implemented"));
 //		DoVName();
+	}
 	else if(iVersion==2)
+	{
 		wxASSERT_MSG(FALSE, _T("UUID Type 3 generation not yet implemented"));
 //		DoV3();
+	}
 }
 
 wxUUID::~wxUUID()

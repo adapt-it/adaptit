@@ -1083,7 +1083,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 			// calculate the layout in the view
 			int srcCount;
-			srcCount = pApp->m_pSourcePhrases->GetCount(); 
+			srcCount = pApp->m_pSourcePhrases->GetCount();
 			srcCount = srcCount; // unused  (retain to avoid compiler warning)
 			if (pApp->m_pSourcePhrases->IsEmpty())
 			{
@@ -1440,10 +1440,10 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 		// in a DoCollabFileSave() function as it needs to also be called from
 		// OnSaveModified(), otherwise saves can be lost if user closes the main
 		// frame window - which triggers OnSaveModified() but not OnFileSave().
-		// Notes: 
-		// 1. DoCollabFileSave() returns a bool as does DoFileSave_Protected() 
-		// and DoFileSave(), but they (and hence DoCollabFileSave() too) make 
-		// no use of the bool value that is returned - although the code probably 
+		// Notes:
+		// 1. DoCollabFileSave() returns a bool as does DoFileSave_Protected()
+		// and DoFileSave(), but they (and hence DoCollabFileSave() too) make
+		// no use of the bool value that is returned - although the code probably
 		// should.
 		// 2. DoCollabFilesave() also calls DoFileSave_Protected(TRUE,pProgDlg)
 		DoCollabFileSave((gpApp->m_bShowProgress) ? _("Saving File") : _T(""), msgDisplayed);
@@ -1468,18 +1468,18 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 
 	if (gpApp->m_owner == gpApp->m_AIuser)
 		return;								// if we're already the owner, there's nothing to do
-			
+
 	gpApp->m_owner = gpApp->m_AIuser;		// force doc's owner to be logged-in user, no matter what
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
 	Modify (TRUE);							// mark doc dirty, to ensure new owner gets saved
-	
+
 	gpApp->GetView()->UpdateAppearance();
 }
 
 
 /*	mrh - May 2012.
 	This function is needed for the version control stuff, but might be more generally useful
-	as well.  It's called when something external to AdaptIt has modified the current document.  
+	as well.  It's called when something external to AdaptIt has modified the current document.
 	We need to re-read it, and refresh the screen display.  The code below is largely lifted from
 	OnEditConsistencyCheck().
 */
@@ -1487,7 +1487,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::DocChangedExternally()
 {
 	bool			bOK;
-	
+
 	wxString		savedCurOutputPath = gpApp->m_curOutputPath;			// includes filename
 	wxString		savedCurOutputFilename = gpApp->m_curOutputFilename;
 	int				savedCurSequNum = gpApp->m_nActiveSequNum;				// for resetting the box location
@@ -1509,7 +1509,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	bOK = bOK; // whm added 13Aug12 to suppress gcc warning "set but not used"
-	
+
 	m_bPreserveKBsWhenClosingDocument = TRUE;	// to prevent KB being clobbered -- we want only the doc closed
 	OnCloseDocument();
 	m_bPreserveKBsWhenClosingDocument = FALSE;	// restore normal default
@@ -1518,16 +1518,16 @@ void CAdapt_ItDoc::DocChangedExternally()
 
 	bOK = ReOpenDocument (	gpApp,
 							strSaveCurrentDirectoryFullPath,
-							savedCurOutputPath, 
-							savedCurOutputFilename, 
-							savedCurSequNum, 
+							savedCurOutputPath,
+							savedCurOutputFilename,
+							savedCurSequNum,
 							savedBookmodeFlag,
-							savedDisableBookmodeFlag, 
-							pSavedCurBookNamePair, 
-							savedBookIndex, 
+							savedDisableBookmodeFlag,
+							pSavedCurBookNamePair,
+							savedBookIndex,
 							FALSE					// don't mark as dirty
 						  );
-	
+
 	gpApp->m_bDocReopeningInProgress = FALSE;
 	gpApp->m_commitCount = savedCommitCount;
 	gpApp->m_trialRevNum = savedTrialRevNum;
@@ -1546,34 +1546,34 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 // the menu item or button will be disabled if it's not, but let's make sure.  Likewise if a
 // trial is under way, we need a decision from the user first as to whether to accept the
 // trial or go back.
-	
-	if (gpApp->m_commitCount < 0) 
+
+	if (gpApp->m_commitCount < 0)
 	{
 		wxMessageBox (_T("This document hasn't been put under version control yet!"));
 		return -1;
 	}
 
-	if (gpApp->m_trialRevNum >= 0) 
+	if (gpApp->m_trialRevNum >= 0)
 	{
 		wxMessageBox (_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
 
 // If the logged-in user isn't the owner of the document, it will be read-only, but we still need to bail out here.
-	
+
 	if ( (gpApp->m_owner != NOOWNER) && (gpApp->m_owner != gpApp->m_AIuser) )
 	{
 		wxMessageBox (_T("This document is owned by someone else, so you can't do a commit!"));
 		return -1;
 	}
-	
+
 // Here we find the date/time and the commit count, which we'll save in the file before we do the commit.
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
-	
+
 	localDate = wxDateTime::Now();
 	gpApp->m_revisionDate = localDate.ToUTC (FALSE);
 	gpApp->m_commitCount += 1;					// bump the commit count
-	
+
 	gpApp->m_owner = gpApp->m_AIuser;			// owner may have been NOOWNER, but must be assigned on a commit
 
 	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
@@ -1581,14 +1581,14 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 
 	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
 
-	if (commit_result) 
+	if (commit_result)
 	{
 	// What do we do here??  We've already saved the document with the above info updated.  I think we
 	//  should roll everything back and re-save.  The DVCS code will already have given a message.
 		gpApp->m_revisionDate = origDate;
 		gpApp->m_commitCount -= 1;
 		gpApp->m_owner = origOwner;
-		
+
 		gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		OnFileSave (dummy);
 		return -2;
@@ -1609,25 +1609,25 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 	int				trialRevNum = gpApp->m_trialRevNum;
 	int				test;
 
-	if (gpApp->m_commitCount < 0) 
+	if (gpApp->m_commitCount < 0)
 	{
 		wxMessageBox (_T("This document hasn't been put under version control yet!") );
 		return;
 	}
 
-	if (gpApp->m_commitCount == 0) 
+	if (gpApp->m_commitCount == 0)
 	{
 		wxMessageBox (_T("This document hasn't been committed yet!") );
 		return;
 	}
-	
-	if (trialRevNum == 0) 
+
+	if (trialRevNum == 0)
 	{
 		wxMessageBox (_T("We're already back at the first commit!") );
 		return;
 	}
 
-	if (trialRevNum < 0) 
+	if (trialRevNum < 0)
 	{			// We don't already have a previous revision under trial.  We need to save and commit the current
 				// revision, so we can come back to it if necessary.
 
@@ -1653,7 +1653,7 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 
 	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_REVERT_FILE, trialRevNum);
 
-	if (!commit_result) 
+	if (!commit_result)
 	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
 			// ReadOnlyProtection sees that m_trialRevNum is non-negative.  We skip this
 			//  if gpApp->m_pDVCS->DoDVCS() returned an error, and leave m_trialRevNum alone.
@@ -1663,7 +1663,7 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 }
 
 void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
-{	
+{
 	if (gpApp->m_trialRevNum < 0)
 	{
 		wxMessageBox (_T("We're not looking at earlier revisions!"));
@@ -1688,7 +1688,7 @@ void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_REVERT_FILE, gpApp->m_latestRevNum);
 
 	if (commit_result)  return;			// bail out on error - message should have been displayed
-	
+
 	gpApp->m_trialRevNum = -1;
 	DocChangedExternally();
 }
@@ -2115,7 +2115,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 		// button of the message prompt. The local AI doc gets saved by the DoFileSave_Protected()
 		// call above, but the doc is then marked "clean" rather than "dirty" which with
 		// respect to the Paratext data is not true. Immediately after getting here the
-		// AI doc is not dirty and so the Save button and File | Save are disabled. To give 
+		// AI doc is not dirty and so the Save button and File | Save are disabled. To give
 		// the user the opportunity of doing another save without having to do something
 		// to make the doc dirty again, we'll set the doc as modified here
 		this->Modify(TRUE);
@@ -2515,7 +2515,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	// user chose for the SaveType, so this call has to be made after the
 	// SetDocVersion() call above - as that call sets the doc's save state which
 	// remains in force until changed, or restored by a RestoreCurrentDocVersion() call
-	// 
+	//
 	// BEW 27Feb12, internally checks the value of m_bLegacyDocVersionForSaveAs flag, and
 	// if TRUE, then it doesn't construct the docV6 attribute (first used in release
 	// 6.2.0) for the m_bDefineFreeTransByPunctuation flag (see Adapt_It.h) as part of the
@@ -3261,7 +3261,7 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 		dirPath = pApp->m_curAdaptionsPath;
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
-	bOK = bOK; // avoid warning 
+	bOK = bOK; // avoid warning
 	// NOTE: This OnFileOpen() handler calls DoFileOpen() in the App, which now simply
 	// calls DoStartWorkingWizard().
 	pApp->DoFileOpen();
@@ -3379,10 +3379,10 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 		{
 			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
 			// whm 7Mar12 Note: We do not reset the m_bFictitiousReadOnlyAccess	here because
-			// if it is TRUE it should stay set to TRUE until a project close (in EraseKB) 
+			// if it is TRUE it should stay set to TRUE until a project close (in EraseKB)
 			// or App exit. Note: the RemoveReadOnlyProtection() call above also removes our
 			// fictitious ROPFile, but it gets created again when the next doc is opened as
-			// long as the project has not closed (EraseKB called), since the 
+			// long as the project has not closed (EraseKB called), since the
 			// m_bFictitiousReadOnlyAccess flag does not get reset here.
 			pApp->GetView()->canvas->Refresh(); // try force color change back to normal
 			// white background -- it won't work as the canvas is empty, but the
@@ -3714,7 +3714,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
     // wx note: the wx version in Unicode build refuses to assign a CBString to char
     // numStr[24] so I'll declare numStr as a CBString also
 	CBString	numStr; //char numStr[24];
- 
+
 #ifdef _UNICODE
 
 	// first line -- element name and 4 attributes
@@ -3751,7 +3751,7 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	InsertEntities(btemp);				// ensure any XML metacharacters in the owner name are escaped properly
 	bstr += "\" owner=\"";
 	bstr += btemp; // add owner name
-	
+
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
 	if (commitCount < 0)
@@ -3765,10 +3765,10 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "=\"";
 	bstr += numStr;						// add the commit count
 
-	if (gpApp->m_revisionDate.IsValid()) 
-		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));		
+	if (gpApp->m_revisionDate.IsValid())
+		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));
 																	// %T gives an error on Windows, so we have to spell it out!
-	else 
+	else
 		numStr = "";
 	bstr += "\" revdate=\"";
 	bstr += numStr;	// add revision date, empty if we don't have one
@@ -3796,12 +3796,12 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr.Empty();
 	tempStr << gpApp->m_docSize.y;
 	numStr = gpApp->Convert16to8(tempStr);
-	
+
 	bstr += "\" ";
 	bstr += xml_sizey;
 	bstr += "=\"";
 	bstr += numStr;						// add the doc height
-	
+
 // mrh Oct12 - as we're now saving the active seq number in the document, this whole bit can go west.  I'll leave
 // the below commentary for now but it should go very soon...
 
@@ -3925,19 +3925,19 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	btemp = gpApp->m_owner;				// no unicode conversion needed
 	InsertEntities(btemp);				// ensure any XML metacharacters in the owner name are escaped properly
 	bstr += "\" owner=\"" + btemp;		// add owner name
-	
+
 	tempStr.Empty();
 	commitCount = gpApp->m_commitCount;
 	if (commitCount < 0)
 		tempStr << NOOWNER;			// this doc isn't under version control
 	else
 		tempStr << commitCount;			// this many commits have been done
-		
+
 	bstr += "\" commitcnt=\"" + tempStr;	// add commit count, without unicode conversion needed
-	
-	if (gpApp->m_revisionDate.IsValid()) 
+
+	if (gpApp->m_revisionDate.IsValid())
 		numStr = gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S"));	// without unicode conversion
-	else 
+	else
 		numStr = "";
 	bstr += "\" revdate=\"" + numStr;	// add revision date, empty if we don't have one
 
@@ -3945,21 +3945,21 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	tempStr.Empty();
 	tempStr << gpApp->m_docSize.x;
 	numStr = tempStr;
-	
+
 	bstr += "\" ";
 	bstr += xml_sizex;
 	bstr += "=\"";
 	bstr += numStr;						// add the doc width
-	
+
 	tempStr.Empty();
 	tempStr << gpApp->m_docSize.y;
 	numStr = tempStr;
-	
+
 	bstr += "\" ";
 	bstr += xml_sizey;
 	bstr += "=\"";
 	bstr += numStr;						// add the doc height
-	
+
 // mrh Oct12 - as we're now saving the active seq number in the document, this whole bit can go west.  I'll leave
 // the below commentary for now but it should go very soon...
 
@@ -4012,12 +4012,12 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += xml_srccode;
 	btemp = gpApp->m_sourceLanguageCode;		// source language code
 	bstr += "=\"" + btemp;
-	
+
 	bstr += "\" ";
 	bstr += xml_tgtcode;
 	btemp = gpApp->m_targetLanguageCode;		// target language code
 	bstr += "=\"" + btemp;
-	
+
 	bstr += "\"\r\n"; // TODO: EOL chars need adjustment for Linux and Mac??
 
 	// third line - one attribute (potentially large, containing unix strings with filter markers,
@@ -4123,7 +4123,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 	bool bSameProject = (curSourceName == gpApp->m_sourceName) && (curTargetName == gpApp->m_targetName);
     // BEW added 27Nov05 to keep settings straight when doc may have been pasted here in
     // Win Explorer but was created and stored in another project
-	
+
 	// whm 1Oct12 removed  && !gbTryingMRUOpen test from if block below
 	if (!bSameProject)
 	{
@@ -4248,7 +4248,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 					// if present in the filtered markers string field, that its content markers should
 					// also be present. If \x is absent the content markers associated with \x should
 					// also be absent. Same story for the \f and \fe markers and their associated
-					// content markers. I've written a function called CleanupFilterMarkerOrphansInString() 
+					// content markers. I've written a function called CleanupFilterMarkerOrphansInString()
 					// to do the job.
 					strFilterMarkersSavedInDoc = gpApp->CleanupFilterMarkerOrphansInString(strFilterMarkersSavedInDoc);
 					break;
@@ -4360,7 +4360,7 @@ void CAdapt_ItDoc::RestoreDocParamsOnInput(wxString buffer)
 	else
 	{
 		// BEW changed 27Nov05, because we only let doc settings be used when MRU was being tried
-t:		
+t:
 		;
 		// whm 1Oct12 removed MRU related code
 		//if (gbTryingMRUOpen /* && !bSameProject */)
@@ -4661,8 +4661,8 @@ bool CAdapt_ItDoc::OnSaveModified()
 			// in a DoCollabFileSave() function as it needs to also be called from
 			// OnSaveModified(), otherwise saves can be lost if user closes the main
 			// frame window - which triggers OnSaveModified() but not OnFileSave().
-			// Notes: 
-			// 1. DoCollabFileSave() returns a bool as does DoFileSave_Protected() 
+			// Notes:
+			// 1. DoCollabFileSave() returns a bool as does DoFileSave_Protected()
 			// and DoFileSave().
 			// 2. DoCollabFilesave() also calls DoFileSave_Protected(TRUE,pProgDlg)
 			bUserSavedDoc = DoCollabFileSave(_("Saving File"),msgDisplayed);
@@ -4904,7 +4904,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
 	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
-	
+
 	wxString thePath = filename;
 	wxString extension = thePath.Right(4);
 	extension.MakeLower();
@@ -4938,7 +4938,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	wxString progMsg;
 	// add 1 chunk to insure that we have enough after int division above
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
-	
+
 	// Only show the progress dialog when there is at lease one chunk of data, AND we're wanting
 	//  to show progress dialogs just now.
 
@@ -5100,7 +5100,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		}
 		return FALSE;
 	}
-	
+
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);	// seq num was initially zero but should have been set
 															// to a "real" value when the xml was read in
 
@@ -5147,15 +5147,15 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
         // The gbAbortMRUOpen flag is only set true by a test within SetupDirectories() -
         // and we are interested only in this after a click of an MRU item on the File
         // menu.
-		
+
 		// mrh 3May12 - since the document variables are now in the app instead of the doc, the
 		//  following call causes some to be re-initialized, which we don't want.  So we need
 		//  to save and restore them.  A redesign should avoid the need for this!
-		
+
 		wxString	savedOwner = pApp->m_owner;
 		int			savedCommitCount = pApp->m_commitCount;
 		wxDateTime	savedRevisionDate = pApp->m_revisionDate;
-		
+
 		pApp->SetupDirectories(); // also sets KB paths and loads KBs & Guesser
 
 		if (gbViaMostRecentFileList)
@@ -5398,7 +5398,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		{
 			pApp->m_pROP->ForceFictitiousReadOnlyProtection(pApp->m_curProjectPath);
 		}
-		
+
 		// BEW added 13Nov09, for setting or denying ownership for writing permission.
 		// This is something we want to do each time a doc is opened - if the local user
 		// already has ownership for writing, no change is done and he retains it; but
@@ -5415,7 +5415,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 			// if read only access is turned on, force the background colour change to show
 			// now, instead of waiting for a user action requiring a canvas redraw
 			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more effective
-		
+
 			// whm added 29Mar12. When read-only access is active, we don't show the phrasebox
 			pApp->m_pTargetBox->Hide();
 			pApp->m_pTargetBox->Enable(FALSE);
@@ -5435,6 +5435,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	// update status bar with project name
 	gpApp->RefreshStatusBarInfo();
 
+#if defined(__WXGTK__) && defined(_DEBUG)
+        wxLogDebug(_T("doc:OnOpenDocument():  Doc has just been OPENED"));
+#endif
 	return TRUE;
 }
 
@@ -9829,7 +9832,7 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// BEW 4Jan2012, altered FindParseHaltLocation() so that it does not halt at a ] (closing
 /// bracket) when ] is not included in the list of punctuation characters. (Data which
 /// revealed the problem: adapt a word with the adaptation "voice [lit:neck]"  -- the ParseWord()
-/// function hung at the [ character.) 
+/// function hung at the [ character.)
 //////////////////////////////////////////////////////////////////////////////////
 wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 											bool* pbFoundInlineBindingEndMarker,
@@ -9856,7 +9859,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 	// end-of-buffer
 	while (p < pEnd)
 	{
-		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpace(p) && !(*p == _T(']') 
+		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpace(p) && !(*p == _T(']')
 			&& !IsClosingBracketWordBuilding(gpApp->m_punctuation[1])))
 		{
 			// if none of those, then it's part of the word, or part of punctuation which
@@ -14146,7 +14149,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 	{
 		// could be \bt, or longer markers beginning with those 3 chars
 		wxASSERT(!filterStr.IsEmpty()); // whm 11Jun12 added. GetChar(0) should never be called on an empty string
-		aChar = filterStr.GetChar(0); 
+		aChar = filterStr.GetChar(0);
 		while (!IsWhiteSpace(&aChar))
 		{
 			// trim off from the front the marker info, a character at
@@ -14334,7 +14337,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 		//bHitMarker = FALSE;
-		
+
 		if (IsWhiteSpace(ptr))
 		{
             // advance pointer past the white space (inter-word spaces should be thrown
@@ -15415,7 +15418,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 // marker) between the empty markers -- without this function, the legacy parser would
 // accumulate the preceding \v, verse number, \p, and following \v into the one
 // CSourcePhrase, effectively removing the earlier verse from the merged source text
-bool CAdapt_ItDoc::ForceAnEmptyUSFMBreakHere(wxString tokBuffer, 
+bool CAdapt_ItDoc::ForceAnEmptyUSFMBreakHere(wxString tokBuffer,
 							CSourcePhrase* pSrcPhrase, wxChar* ptr)
 {
 	// the condition for returning TRUE is:
@@ -16395,7 +16398,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	// due to a processing error.
 	if (!gpApp->m_bReadOnlyAccess)
 	{
-		bSavedOK = DoFileSave_Protected(TRUE, _("Packing Document")); 
+		bSavedOK = DoFileSave_Protected(TRUE, _("Packing Document"));
 		// English error message will have been seen in the call, so just prevent the pack
 		// from proceeding further; but we don't expect a failure in DoFileSave_Protected()
 		if (!bSavedOK)
@@ -16603,16 +16606,16 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	int len = exportFilename.Length();
 	exportFilename.Remove(len-3,3); // remove the xml extension
 	exportFilename += _T("aip"); // make it a *.aip file type
-	
-	// whm addition 21Feb12. Bruce at Kim's request suggests we identify the language 
-	// names by including them (prefixed) in the composed name of the Packed Document. This would 
-	// be helpful for when a computer has multiple AI projects since the _PACKED_INPUTS_OUTPUTS 
-	// folder (or whatever folder) is not associated with a particular project, but is 
+
+	// whm addition 21Feb12. Bruce at Kim's request suggests we identify the language
+	// names by including them (prefixed) in the composed name of the Packed Document. This would
+	// be helpful for when a computer has multiple AI projects since the _PACKED_INPUTS_OUTPUTS
+	// folder (or whatever folder) is not associated with a particular project, but is
 	// located directly within the Adapt It Unicode Work folder.
 	exportFilename = gpApp->m_sourceName + _T('-') + gpApp->m_targetName + _T('_') + exportFilename;
 	// Remove any _Collab_ part of the name which isn't really necessary.
 	exportFilename.Replace(_T("_Collab_"),_T(""),TRUE);
-	
+
 	// Here we add the incoming parameter bInvokeFileDialog to the test. When DoPackDocument()
 	// is called from EmailReportDlg.cpp it calls it with the bInvokeFileDialog parameter
 	// FALSE because it wants the document packed without user interaction in order to attach
@@ -17156,6 +17159,10 @@ bool CAdapt_ItDoc::DeleteContents()
 
 	translation = _T(""); // make sure the global var is clear
 
+#if defined(__WXGTK__) && defined(_DEBUG)
+        wxLogDebug(_T("doc:DeleteContents(): Doc has just been CLOSED"));
+#endif
+
 	return wxDocument::DeleteContents(); // just returns TRUE
 }
 
@@ -17482,17 +17489,17 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		if (!bOK)
 		{
 			wxString msg = _T("In OnCloseDocument() WriteConfigurationFile() failed for project config file or admin project config file.");
-			wxMessageBox(msg); 
+			wxMessageBox(msg);
 			pApp->LogUserAction(msg);
 		}
 	}
-	
+
 // mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve the current KB, so we now have
 //  a private flag to indicate this.
 
-	if (!m_bPreserveKBsWhenClosingDocument) 
+	if (!m_bPreserveKBsWhenClosingDocument)
 	{
-		
+
 	#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
@@ -17518,9 +17525,9 @@ bool CAdapt_ItDoc::OnCloseDocument()
 // mrh Oct12 - with docVersion 8, the active seq number is saved in the doc's xml.  So now,
 //  with no doc open, m_nActiveSequNum must be zero, no matter what.  Its last value used
 //  to be saved in the config file, but not any longer.
-	
+
 	pApp->m_nActiveSequNum = 0;
-	
+
     // BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion
     // lists, because each document, on opening it, it must start with a truly empty
     // EditRecord; and on doc closure and app closure, it likewise must be cleaned out
@@ -18162,7 +18169,7 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	
+
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -19025,9 +19032,9 @@ wxString CAdapt_ItDoc::GetNextFilteredMarker(wxString& markers, int offset,
 			wxString fEnd(filterMkrEnd);
 			len3 = fEnd.Length();
 			nEnd = nFound + len3;
-			// whm modified 7Jul12. To avoid an out of range array access error (which asserts in 
-			// wxidgets 2.9.3) we need to ensure that markers[nEnd] is not out of range, so I'm 
-			// adding the following two initial tests: !markers.IsEmpty() && markers.Len() > nEnd && 
+			// whm modified 7Jul12. To avoid an out of range array access error (which asserts in
+			// wxidgets 2.9.3) we need to ensure that markers[nEnd] is not out of range, so I'm
+			// adding the following two initial tests: !markers.IsEmpty() && markers.Len() > nEnd &&
 			// to the original test.
 			if (!markers.IsEmpty() && markers.Len() > (size_t)nEnd && markers[nEnd] == _T(' ')) //if (markers[nEnd] == _T(' '))
 				nEnd++; // count the following space too
@@ -20941,7 +20948,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	// BEW 28Sep12, if this project is a KB sharing one, then the project configuration
 	// read should have set m_bIsKBServerProject to TRUE, so once we have the KB's loaded,
 	// we can call SetupForKBServer() twice below.
-	
+
 	gpApp->SetupKBPathsEtc();
 
     // now we can save the xml document file to the destination folder (either Adaptations
@@ -21293,14 +21300,14 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	
+
 	// whm added 15Mar12 for read-only mode
 	if (pApp->m_bReadOnlyAccess)
 	{
 		::wxBell();
 		return;
 	}
-	
+
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE;			// this is a global boolean
@@ -21565,7 +21572,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	// Put up the Choose Consistency Check Type dialog
 	CChooseConsistencyCheckTypeDlg ccDlg(pApp->GetMainFrame());
 	if (ccDlg.ShowModal() == wxID_OK)
-	{		
+	{
 		// handle user's choice of consistency check type
 		if (ccDlg.m_bCheckOpenDocOnly)
 		{
@@ -21730,7 +21737,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// restore the current settings when the loop completes. Though we may not
 				// need to, we'll also save and afterwards restore m_curOutputPath,
 				// m_curOutputFilename and m_curOutputBackupFilename.
-				
+
 				wxString save_currentOutputPath = pApp->m_curOutputPath;
 				wxString save_currentOutputFilename = pApp->m_curOutputFilename;
 				wxString save_currentOutputBackupFilename = pApp->m_curOutputBackupFilename;
@@ -21754,7 +21761,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				for (bookIndex = 0; bookIndex < nMaxBookFolders; bookIndex++)
 				{
 					wxString msg;
-					msg = msg.Format(_T("Checking Book: %d of %d"), bookIndex, nMaxBookFolders); 
+					msg = msg.Format(_T("Checking Book: %d of %d"), bookIndex, nMaxBookFolders);
 					pStatusBar->UpdateProgress(_("Performing Consistency Check"), bookIndex, msg);
 					pBookNamePair = ((BookNamePair*)(*pApp->m_pBibleBooks)[bookIndex]);
 					folderPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + pBookNamePair->dirName;
@@ -21835,7 +21842,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
                 // Enumerate the doc files and do the consistency check
                 // whm note: EnumerateDocFiles() has the side effect of changing the current
                 // work directory to the passed in dirPath.
-	
+
 				pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Starting Consistency Check"));
 				bOK = pApp->EnumerateDocFiles(this, dirPath);
 				if (bOK)
@@ -21894,7 +21901,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					}
 					if (!bConsCheckDone)
 					{
-						bDocForcedToClose = TRUE;	// EDB 26 Sept 2012: DoConsistencyCheck calls ClobberDocument(); 
+						bDocForcedToClose = TRUE;	// EDB 26 Sept 2012: DoConsistencyCheck calls ClobberDocument();
 													// if the user cancelled, we need to reopen the current document
 						bUserCancelled = TRUE; // from within one of the dialogs shown
 											   // during DoConsistencyCheck()
@@ -23494,7 +23501,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						// location
 						dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
-	
+
 						if (dlg.ShowModal() == wxID_OK)
 						{
 							// get and store the FixItAction
@@ -23599,9 +23606,9 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 						dlg.m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
 
 						// put up the dialog
-	
+
 						if (dlg.ShowModal() == wxID_OK)
-						{	
+						{
 							if (dlg.m_bIgnoreIt)
 							{
 								// skip rest of this block, don't change KB, don't change doc
@@ -24272,7 +24279,7 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 					// re-stored in the KB) -- we can fix this one automatically
 					bool bStored;
 					bStored = pKB->StoreText(pSrcPhrase, gloss);
-					bStored = bStored; // avoid warning 
+					bStored = bStored; // avoid warning
 					continue;
 				}
 				// final possibilities -- there was no CTargetUnit returned from the
