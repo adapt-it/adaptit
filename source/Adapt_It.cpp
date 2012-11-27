@@ -12833,6 +12833,21 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// CollaborationEditor to point to that existing external editor. If no external editor is
 		// installed/available we need to prevent ...
 		//
+		// whm 27Nov12 added check to bleed off the case in which the
+		// project was never configured for collaboration. If the values 
+		// for CollabAiProjStrFound, CollabSrcLangNameStrFound 
+		// and CollabRgtLangNameStrFound are empty we can assume that
+		// the project was not previously configured by an
+		// administrator as a collaboration project. In this case we
+		// return collabProjNotConfigured.
+		if (CollabAiProjStrFound.IsEmpty() && CollabSrcLangNameStrFound.IsEmpty() && CollabTgtLangNameStrFound.IsEmpty())
+		{
+			// The CollabAIProjectName, CollabSourceLangName and
+			// CollabTargetLangName are all empty strings, and we
+			// assume the project was never setup for collaboration.
+			return collabProjNotConfigured;
+		}
+		//
 		// If the values for CollabAiProjStrFound, CollabSrcLangNameStrFound, and
 		// CollabTgtLangNameStrFound are not empty, we can assume that the project was at some
 		// point configured by an administrator as a collaboration project.
