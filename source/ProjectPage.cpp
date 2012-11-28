@@ -922,7 +922,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 					//CChooseCollabOptionsDlg collabOptDlg(pApp->GetMainFrame());
 					CChooseCollabOptionsDlg collabOptDlg(pStartWorkingWizard);
-					collabOptDlg.CenterOnParent();
+					//collabOptDlg.CenterOnParent();
 					collabOptDlg.m_aiProjName = m_projectName;
 					if (collabOptDlg.ShowModal() == wxID_CANCEL)
 					{
