@@ -340,13 +340,13 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		if (m_pApp->m_bCollaboratingWithParatext)
 		{
 			str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.");
-			wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR | wxOK);
+			wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR | wxOK, this); // whm 28Nov12 added this as parent);
 			m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed."));
 		}
 		else if (m_pApp->m_bCollaboratingWithBibledit)
 		{
 			str = _T("Your administrator has configured Adapt It to collaborate with Bibledit.\nBut Bibledit does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Bibledit projects.");
-			wxMessageBox(str, _T("Not enough Bibledit projects defined for collaboration"), wxICON_ERROR | wxOK);
+			wxMessageBox(str, _T("Not enough Bibledit projects defined for collaboration"), wxICON_ERROR | wxOK, this); // whm 28Nov12 added this as parent);
 			m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed."));
 		}
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
@@ -393,7 +393,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		wxString str;
 		str = str.Format(_("Your administrator needs to setup Adapt It and %s as follows before you can begin working:%s"),m_collabEditorName.c_str(),strProjectNotSel.c_str());
-		wxMessageBox(str, _("Collaboration setup required by administrator"), wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(str, _("Collaboration setup required by administrator"), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		m_pApp->LogUserAction(str);
 		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
 		// whm changed 22Mar12. Leave the app running so an administrator can look at it.
@@ -496,7 +496,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 {
 	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
 	{
-		wxMessageBox(_("Please select a book from the list of books."),_T(""),wxICON_INFORMATION | wxOK);
+		wxMessageBox(_("Please select a book from the list of books."),_T(""),wxICON_INFORMATION | wxOK, this); // whm 28Nov12 added this as parent
 		pListBoxBookNames->SetFocus();
 		return; // don't accept any changes until a book is selected
 	}
@@ -504,7 +504,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// whm added 27Jul11 a test for whether we are working by chapter
 	if (m_bTempCollabByChapterOnly && pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED) == wxNOT_FOUND)
 	{
-		wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION | wxOK);
+		wxMessageBox(_("Please select a chapter from the list of chapters."),_T(""),wxICON_INFORMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListCtrlChapterNumberAndStatus->SetFocus();
 		return; // don't accept any changes until a chapter is selected
 	}
@@ -704,7 +704,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			// not likely to happen so an English warning will suffice
 			wxMessageBox(_(
 "Could not read data from the Paratext/Bibledit projects. Please submit a problem report to the Adapt It developers (see the Help menu)."),
-			_T(""),wxICON_EXCLAMATION | wxOK);
+			_T(""),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 			wxString temp;
 			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error. resultSrc = %d "),resultSrc);
 			m_pApp->LogUserAction(temp);
@@ -1126,7 +1126,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
                     // user Copy Source been turned off, etc
 					wxMessageBox(_(
 "The Copy Source (to Target) command on View Menu is temporarily turned off because the source text was edited outside of Adapt It.\nNow you need to adapt the changed parts again.\nAdapt It will guide you, displaying each location that was changed. Use the Enter key to jump to the next location after you enter each new adaptation.\nIf these locations have free translations, you should update each free translation too."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
+					_T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent 
 				}
 
 				// update the copy of the source text in __SOURCE_INPUTS folder with the
@@ -1157,7 +1157,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// we don't expect failure, so an English message will do
 					wxString msg;
 					msg = _T("For the developer: When collaborating: error in MoveTextToFolderAndSave() within GetSourceTextFromEditor.cpp:\nUnexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe source text USFM data hasn't been saved (or updated) to disk there.");
-					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent
 					m_pApp->LogUserAction(msg);
 				}
 			} // end of TRUE block for test: if (::wxFileExists(docPath))
@@ -1215,7 +1215,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					// should never happen, so an English message will suffice
 					wxString msg;
 					msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
-					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 					m_pApp->LogUserAction(msg);
 					pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 					return;
@@ -1252,7 +1252,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				{
 					wxString msg;
 					msg = _T("For the developer: When collaborating: error in MoveTextToFolderAndSave() within GetSourceTextFromEditor.cpp:\nUnexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe source text USFM data hasn't been saved (or updated) to disk there.");
-					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+					wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 					m_pApp->LogUserAction(msg);
 				}
 
@@ -1270,7 +1270,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
             // message tell the user to take the Cancel option & retry
             wxString msg;
 			msg = _T("Collaboration: a highly unexpected failure to hook up to the identified pre-existing Adapt It adaptation project has happened.\nYou should Cancel from the current collaboration attempt.\nThen carefully check that the Adapt It project's source language and target language names exactly match the language names you supplied within Paratext or Bibledit.\n Fix the Adapt It project folder's language names to be spelled the same, then try again.");
-			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 			m_pApp->LogUserAction(msg);
 			pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 			return;
@@ -1386,7 +1386,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			message = message.Format(_("Error: attempting to create an Adapt It project for supporting collaboration with an external editor, failed.\nThe application is not in a state suitable for you to continue working, but it will still run. You should now Cancel and then shut it down.\nThen (using a File Browser application) you should also manually delete this folder and its contents: %s  if it exists.\nThen relaunch, and try again."),
 				m_pApp->m_curProjectPath.c_str());
 			m_pApp->LogUserAction(message);
-			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR | wxOK);
+			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR | wxOK, this); // whm 28Nov12 added this as parent);
 			pProgDlg->Destroy();
 			return;
 		}
@@ -1468,7 +1468,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
             // what to do - this should never happen, so an English message will suffice
 			wxString msg;
 			msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
-			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 			m_pApp->LogUserAction(msg);
 			pProgDlg->Destroy();
 			return;
@@ -1498,7 +1498,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		{
 			wxString msg;
 			msg = _T("For the developer: When collaborating: error in MoveTextToFolderAndSave() within GetSourceTextFromEditor.cpp:\nUnexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe source text USFM data hasn't been saved (or updated) to disk there.");
-			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 			m_pApp->LogUserAction(msg);
 		}
 
@@ -1907,7 +1907,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg = _("Could not read data from the Bibledit projects.\nError(s) reported:\n   %s\n\nPlease submit a problem report to the Adapt It developers (see the Help menu).");
 		}
 		msg = msg.Format(msg,concatMsgs.c_str());
-		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		m_pApp->LogUserAction(msg);
 		wxLogDebug(msg);
 
@@ -2065,7 +2065,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),sourceProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
@@ -2110,7 +2110,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		msg2 += _("Please select a different book, or use %s to import content into %s that is usable as source texts, then try again.");
 		msg2 = msg2.Format(msg2,m_pApp->m_collaborationEditor.c_str(),fullBookName.c_str());
 		msg += msg2;
-		wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		return;
 	}
 
@@ -2128,7 +2128,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
@@ -2155,7 +2155,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),freeTransProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListBoxBookNames->SetSelection(-1); // remove any selection
 		pBtnCancel->SetFocus();
 		// clear lists and static text box at bottom of dialog
@@ -2193,7 +2193,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxString msg2 = _T("\n\n");
 		msg2 += _("Please select a different book that has content that is usable as source texts.");
 		msg += msg2;
-		wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg,msgTitle,wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 		pStaticTextCtrlNote->ChangeValue(_T(""));
 		pStaticSelectAChapter->SetLabel(_("Select a &chapter:"));
@@ -2244,7 +2244,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			msg2 = msg2.Format(_("Please run Bibledit and select the %s project. Select File | Project | Properties. Then select \"Templates+\" from the Project properties dialog. Choose the book(s) to be created and click OK. Then return to Adapt It and try again."),targetProjShortName.c_str());
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg1,_("No chapters and verses found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		pListCtrlChapterNumberAndStatus->InsertItem(0,_("No chapters and verses found")); //pListCtrlChapterNumberAndStatus->Append(_("No chapters and verses found"));
 		pListCtrlChapterNumberAndStatus->Enable(FALSE);
 		pBtnCancel->SetFocus();
@@ -2637,7 +2637,7 @@ void CGetSourceTextFromEditorDlg::LoadBookNamesIntoList()
 			msg2 = _("Please select the Bibledit Project that contains the source texts you will use for adaptation work.");
 		}
 		msg1 = msg1 + _T(' ') + msg2;
-		wxMessageBox(msg1,_T("No books found"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(msg1,_T("No books found"),wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
 		// clear lists and static text box at bottom of dialog
 		pListBoxBookNames->Clear();
 		pListCtrlChapterNumberAndStatus->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
