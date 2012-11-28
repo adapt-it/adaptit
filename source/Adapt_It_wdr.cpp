@@ -8885,12 +8885,18 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
 
     item1->Add( item49, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item54 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item54 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item55 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item54->Add( item55, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item55 = new wxBoxSizer( wxHORIZONTAL );
 
-    item54->Add( 60, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item56 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item55->Add( item56, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item55->Add( 60, 15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item54->Add( item55, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item54->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item54, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
