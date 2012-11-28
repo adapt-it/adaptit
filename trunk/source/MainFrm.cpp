@@ -2386,7 +2386,7 @@ void CMainFrame::OnHelpReportAProblem(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->LogUserAction(_T("Initiated OnHelpReportAProblem()"));
 	CEmailReportDlg erDlg(this);
-	erDlg.Centre();
+	//erDlg.Centre();
 	erDlg.reportType = erDlg.Report_a_problem;
 	if (erDlg.ShowModal() == wxID_OK)
 	{
