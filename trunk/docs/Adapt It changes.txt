@@ -34,6 +34,14 @@ Cancel All Steps button was clicked. Wrong adaptation in the
 phrase box when vertical end has ended, extra bogus copies of 
 some piles inserted after replaced ones were put back, the active
 location shifting elsewhere for no apparent reason.
+* Transferring a project folder from a Windows machine to a Linux
+machine, would wrongly turn on collaboration mode for any project
+entered on the Linux machine, whether it was a collaborating with
+Bibledit project or not.
+* Any editing done in the View Filtered Material dialog, when the 
+user returned using the OK button, did not make the document dirty.
+We now assume that an OK button press was after something got
+changed, and so we make the document be marked as dirty.
 ----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------

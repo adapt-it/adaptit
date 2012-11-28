@@ -5497,7 +5497,7 @@ bool CAdapt_ItDoc::IsModified() const // from wxWidgets mdi sample
 /// the CNoteDlg's OnBnClickedNextBtn(), OnBnClickedPrevBtn(),
 /// OnBnClickedFirstBtn(), OnBnClickedLastBtn(), OnBnClickedFindNextBtn(), the CPhraseBox's
 /// OnPhraseBoxChanged(), CViewFilteredMaterialDlg's UpdateContentOnRemove(), OnOK(),
-/// OnBnClickedRemoveBtn().
+/// OnBnClickedRemoveBtn(), and (BEW added 28Nov12), the ViewFilteredMaterialDlg's OnOK() button.
 /// Sets the Doc's dirty flag according to the value of mod by calling wxDocument::Modify(mod).
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample

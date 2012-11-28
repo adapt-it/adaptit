@@ -732,6 +732,8 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
+	gpApp->GetDocument()->Modify(TRUE); // BEW added 28Nov12, we should assume something got changed
+										// if OnOK() was called
 	//AIModalDialog::OnOK(event); // we are running modeless so don't call the base method
 }
 

@@ -36107,7 +36107,7 @@ bool CAdapt_ItApp::IsDocumentOpen()
 	// If the layout has at least one strip, there's a document open
 	if (m_pLayout->GetStripArray()->GetCount() > 0)
 	{
-		// aome content in the strip array --> document is open
+		// some content in the strip array --> document is open
 		return true;
 	}
 	else
