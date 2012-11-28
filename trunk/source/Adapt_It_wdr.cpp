@@ -8621,11 +8621,13 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
 
     item1->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
     wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->SetDefault();
     item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item14->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
 
