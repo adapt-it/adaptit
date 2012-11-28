@@ -765,7 +765,6 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					wxString msg = errMessageCommon.Format(errMessageCommon,errString.c_str());
 					wxMessageBox(msg,titleMessageCommon,wxICON_EXCLAMATION | wxOK);
 					pApp->LogUserAction(msg);
-					gpApp->LogUserAction(msg);
 					event.Veto();
 					return;
 				}
@@ -814,6 +813,21 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 						projList = gpApp->GetListOfPTProjects();
 					else if (gpApp->m_collaborationEditor == _T("Bibledit"))
 						projList = gpApp->GetListOfBEProjects();
+
+					if (projList.GetCount() == 0)
+					{
+						// There are no PT/BE projects available for the user to choose
+						// from so there is no point in showing the
+						// wxGetSingleChoiceIndex() messages below.
+						// Instead we give the user some instructions
+						// on how to proceed.
+						wxString msg2 = _("No %s projects are available. To get access to the \"%s\" project out of collaboration mode, collaboration mode must be turned off. This is an administrator-only action, it requires showing the password protected Administrator menu, and using the Setup or Remove Collaboration... command to remove collaboration on this project.");
+						msg2 = msg2.Format(msg2,gpApp->m_collaborationEditor.c_str(),m_projectName.c_str());
+						wxMessageBox(msg2,_T(""), wxICON_ERROR | wxOK);
+						pApp->LogUserAction(msg2);
+						event.Veto();
+						return;
+					}
 
 					wxString choiceMadeforSrcProj;
 					if (bQueryForSource)
