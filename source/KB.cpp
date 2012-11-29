@@ -1903,6 +1903,8 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	wxString strNotInKB = _T("<Not In KB>");
 	gloss.Empty(); // this name used for the "adaptation" when adapting,
 				   // or the "gloss" when glossing
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
 
 	// BEW 9Jun10 support for kbVersion 2, uses the custom markers:
 	// \del  for the m_bDeleted flag value "0" or "1" values (for FALSE or TRUE)
@@ -2072,8 +2074,6 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	wxString progMsg = _("Exporting KB %s  - %d of %d Total entries and senses");
 	wxFileName fn(fileNamePath);
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
-	CStatusBar* pStatusBar = NULL;
-	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
 	pStatusBar->StartProgress(titleStr, msgDisplayed, nTotal);
 
 	bool bSuppressDeletionsInSFMexport = FALSE; // default is to export everything for SFM export
@@ -2379,7 +2379,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
 					}
 					// update the progress bar every 20th iteration
-					if (counter % 200 == 0)
+					if (counter % 20 == 0)
 					{
 						msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 						pStatusBar->UpdateProgress(titleStr, counter, msgDisplayed);
@@ -2455,7 +2455,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					//}
 				}
 				// update the progress bar every 200th iteration
-				if (counter % 200 == 0)
+				if (counter % 20 == 0)
 				{
 					msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),counter,nTotal);
 					pStatusBar->UpdateProgress(titleStr, counter, msgDisplayed);
