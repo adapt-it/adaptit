@@ -12,6 +12,10 @@ WXGTK=$VENDOR/wxwidgets/current/wxWidgets
 if ! type "7za" > /dev/null; then
   sudo apt-get -y install p7zip-full
 fi
+# check for dos2unix
+if ! type "dos2unix" > /dev/null; then
+  sudo apt-get -y install dos2unix
+fi
 
 # Extract wxWidgets from the vendor branch
 7za x -o$WXGTK -y $VENDOR/wxwidgets/current/wxWidgets-2.9.4.7z
