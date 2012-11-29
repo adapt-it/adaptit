@@ -6,19 +6,19 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CComposeBarEditBox class. 
+/// \description	This is the implementation file for the CComposeBarEditBox class.
 /// The CComposeBarEditBox class is subclassed from wxTextCtrl in order to
 /// capture certain keystrokes while editing free translation text; and for
-/// use in real-time editing of free translation text within the Adapt It 
+/// use in real-time editing of free translation text within the Adapt It
 /// main window.
 /// \derivation		The CComposeBarEditBox class is derived from wxTextCtrl.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in ComposeBarEditBox.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -73,10 +73,22 @@ CComposeBarEditBox::CComposeBarEditBox() // constructor
 
 CComposeBarEditBox::~CComposeBarEditBox() // destructor
 {
-	
+
 }
 
 // event handling functions
+
+#if defined(__WXGTK__)
+// for a kludge in support of enabling Paste menu item in Ubuntu Unity
+void CComposeBarEditBox::OnSetFocus(wxFocusEvent& event)
+{
+    CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+    pApp->m_bTargetBoxHadFocusLast = FALSE;
+    pApp->m_bComposeBarTextCtrlHadFocusLast = TRUE;
+}
+#endif
+
+
 void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 {
 	// intercept the Enter key and make it call the OnAdvanceButton() handler
@@ -91,7 +103,7 @@ void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 	if (!event.AltDown())
 		event.Skip();
 	// The actual text characters typed in the compose bar's edit box go through here
-	
+
 }
 
 void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
@@ -121,21 +133,21 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// StoreFreeTranslation uses the current (edited) content of the edit box
 			pFreeTrans->StoreFreeTranslation(pFreeTrans->m_pCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
 				retain_editbox_contents, this->GetValue());
-			// for wx version we need to set the background mode to wxSOLID and the text background 
+			// for wx version we need to set the background mode to wxSOLID and the text background
 			// to white in order to clear the background as we write over it with spaces during
 			// real-time edits of free translation.
 			dc.SetBackgroundMode(gpApp->m_backgroundMode); // do not use wxTRANSPARENT here!!!
 			dc.SetTextBackground(wxColour(255,255,255)); // white
 			pFreeTrans->DrawFreeTranslationsAtAnchor(&dc, gpApp->m_pLayout);
 			// whm 4Apr09 note on problem of free translations in main window not being cleared for
-			// deletes or other edits the result in a shorter version: We need both Refresh and Update 
+			// deletes or other edits the result in a shorter version: We need both Refresh and Update
 			// here to force the edit updates to happen in the main window. Note, however, that we must
 			// not have Refresh and Update in the View's OnDraw after DrawFreeTranslations is called
 			// because there they cause the OnDraw() function to be called repeatedly in a continuous
 			// loop resulting in flicker on Windows and program hang on Mac.
 			pView->canvas->Refresh();
 			pView->canvas->Update();
-			
+
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
 		}
@@ -172,7 +184,7 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 		CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 		wxASSERT(pFreeTrans != NULL);
 		wxCommandEvent bevent;
-		// the following block is a work-around to get the ALT+key short-cut keys to work 
+		// the following block is a work-around to get the ALT+key short-cut keys to work
 		// for the buttons on the composebar
 		if (event.AltDown())
 		{

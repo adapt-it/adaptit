@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the CPhraseBox class. 
+/// \description	This is the header file for the CPhraseBox class.
 /// The CPhraseBox class governs the behavior of the phrase or
 /// target box where the user enters and/or edits translations while adapting text.
 /// \derivation		The PhraseBox class derives from the wxTextCtrl class.
@@ -20,7 +20,7 @@
     #pragma interface "PhraseBox.h"
 #endif
 
-#include "SourcePhrase.h" // needed for 
+#include "SourcePhrase.h" // needed for
 
 // forward declarations
 class CAdapt_ItApp;
@@ -58,7 +58,7 @@ public:
 	bool		m_bMergeWasDone; // whm moved here from within OnChar()
 
 protected:
-	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile, 
+	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile,
 							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
 	void DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNextEmptyPile);
 							// BEW added DealWithUnsuccessfulStore() 24Mar09, to simplify MoveToNextPile()
@@ -68,10 +68,10 @@ protected:
 							CPile* pCurPile, bool bIsTransliterateMode = FALSE);
 							// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
 	void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
-							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect); 
+							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect);
 							// BEW added 24Mar09, to simplify MoveToNextPile()
 	void HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
-							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect); 
+							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect);
 							// BEW added 24Mar09, to simplify MoveToNextPile()
 	void MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect);
 							// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
@@ -107,7 +107,9 @@ protected:
 	void OnKeyDown(wxKeyEvent& event);
 	void OnLButtonDown(wxMouseEvent& event);
 	void OnLButtonUp(wxMouseEvent& event);
-
+#if defined(__WXGTK__)
+	void OnSetFocus(wxFocusEvent& event); // BEW added 29Nov12
+#endif
 public:
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
@@ -119,9 +121,9 @@ private:
 	bool m_bCancelAndSelectButtonPressed;
 
 	DECLARE_DYNAMIC_CLASS(CPhraseBox)
-	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to 
-	// declare that the objects of this class should be dynamically 
-	// creatable from run-time type information. 
+	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to
+	// declare that the objects of this class should be dynamically
+	// creatable from run-time type information.
 	// MFC uses DECLARE_DYNCREATE(CPhraseBox)
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()

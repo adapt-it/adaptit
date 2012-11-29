@@ -16,7 +16,6 @@
 					<Add option="-g" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
-					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />

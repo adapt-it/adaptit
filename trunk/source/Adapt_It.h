@@ -156,7 +156,7 @@ class KbServer;
 const wxString appVerStr(_T("6.4.0"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
-inline int GetAISvnVersion() 
+inline int GetAISvnVersion()
 {
 	// return the integer found at the end of the svnVerStr string
 	return atoi(svnVerStr.Mid(svnVerStr.Find(_T(" ")) + 1, (svnVerStr.Length() - svnVerStr.Find(_T(" ")) - 1)).ToAscii());
@@ -1557,7 +1557,7 @@ typedef struct
     // programmatically once the edit is done. Notes content is not changed - if changes
     // are warranted, the user will have to do them manually after the total vertical edit
     // process ends.
-    
+
 	CSourcePhrase* activeCSourcePhrasePtr; // store the ptr to the active one, on entry
 										   // BEW added this member on 21Nov12
 	bool	bGlossingModeOnEntry; // at entry, TRUE if glossing mode is ON, FALSE if
@@ -3748,6 +3748,14 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_PathwayInstallDirPath;
 	wxString GetPathwayInstallDirPath();
 	bool	PathwayIsInstalled();
+
+	#if defined(__WXGTK__)
+	// for a kludge in support of Paste in Unity (otherwise, legacy code in view's OnUpdateEditPaste()
+    // disables the Paste menu item, preventing pasting into the phrase box - because focus gets lost
+    // from the phrase box because Unity steals the app's menubar and focus goes there with a click on it
+    bool    m_bTargetBoxHadFocusLast;
+    bool    m_bComposeBarTextCtrlHadFocusLast;
+	#endif
 
 	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
 	//void ForceCollabSettingsFromCommandLineSwitches();
