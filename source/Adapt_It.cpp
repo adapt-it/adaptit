@@ -6409,7 +6409,7 @@ wxString szWSizeCY = _T("WinSizeCY");
 /// configuration file. Adapt It stores this value in the App's nLastActiveSequNum member
 /// variable.
 /// mrh note: as of DocVersion 8, we don't use this any more, but each doc now has an xml field
-///  for this value.  But we'll keep this around for a while to smooth the transition from 
+///  for this value.  But we'll keep this around for a while to smooth the transition from
 ///  docVersion 7 -> 8.
 wxString szLastActiveSequNum = _T("LastActiveSequenceNumber");
 
@@ -12834,8 +12834,8 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// installed/available we need to prevent ...
 		//
 		// whm 27Nov12 added check to bleed off the case in which the
-		// project was never configured for collaboration. If the values 
-		// for CollabAiProjStrFound, CollabSrcLangNameStrFound 
+		// project was never configured for collaboration. If the values
+		// for CollabAiProjStrFound, CollabSrcLangNameStrFound
 		// and CollabRgtLangNameStrFound are empty we can assume that
 		// the project was not previously configured by an
 		// administrator as a collaboration project. In this case we
@@ -14711,7 +14711,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 
 	// enable it (that's default, if the project is a KB sharing one)
 	pKbSvr->EnableKBSharing(TRUE);
-	
+
 	// get the kbserver credentials we need
 	wxString credsfilename = _T("credentials.txt"); // temporary
 	wxString syncfilename = _T("lastsync.txt"); //  temporary
@@ -14872,6 +14872,15 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	#if defined(__WXGTK__)
+	// for a kludge in support of Paste in Unity (otherwise, legacy code in view's OnUpdateEditPaste()
+    // disables the Paste menu item, preventing pasting into the phrase box - because focus gets lost
+    // from the phrase box because Unity steals the app's menubar and focus goes there with a click on it
+    m_bTargetBoxHadFocusLast = TRUE; // default, a Paste will go there unless ComposeBar's edit ctrl
+                                     // preempts it
+    m_bComposeBarTextCtrlHadFocusLast = FALSE;
+	#endif
+
 	m_bCalledFromOnVerticalEditCancelAllSteps = FALSE; // initialize to default value, BEW added 23Nov12
 #if defined(_KBSERVER)
 
@@ -14888,6 +14897,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//m_kbServerPassword.Empty();
 	//m_kbServerLastSync.Empty();
 
+#endif
+#if defined(_DEBUG) && defined(__WXGTK__)
+    wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
 	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
@@ -20841,6 +20853,9 @@ int ii = 1;
 	//	m_pTargetBox->GetCancelAndSelectFlag());
 
 	GetMainFrame()->SendSizeEvent(); // needed to force redraw
+#if defined(_DEBUG) && defined(__WXGTK__)
+    wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
+#endif
 
 	return TRUE;
 }
@@ -27671,7 +27686,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	//data.Empty();
 	//data << szLastKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
 	//pf->AddLine(data);
-	
+
 	// end of m_last...Path values
 
 	data.Empty();
@@ -28903,7 +28918,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 
 	nLastActiveSequNum = 0;		// mrh Oct12 -- this field is going west, so for now we ensure it's zero
 								//  unless changed
-	
+
 	do
 	{
 		data = pf->GetNextLine();
@@ -29106,7 +29121,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_adminPassword = strValue;
 		}
-		else if (name == szLastActiveSequNum)  // This field is going west with docVersion 8, but 
+		else if (name == szLastActiveSequNum)  // This field is going west with docVersion 8, but
 											   //  we don't want to give an error if it comes in
 		{
 			num = wxAtoi(strValue);
@@ -31239,13 +31254,13 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szLastPathwayOutputPath << tab << m_lastPathwayOutputPath; // whm added 23Jul12
 	pf->AddLine(data);
 
-	// whm 22Nov2012 moved storage of the m_lastKbOutputPath value 
+	// whm 22Nov2012 moved storage of the m_lastKbOutputPath value
 	// from the basic config file to the project config file
 	data.Empty();
 	data << szLastKBExportPath << tab << m_lastKbOutputPath; // prior to 6.x.x used szKBExportPath "KB_ExportPath"
 	pf->AddLine(data);
 
-	// whm 22Nov2012 moved storage of the m_lastKbLiftOutputPath value 
+	// whm 22Nov2012 moved storage of the m_lastKbLiftOutputPath value
 	// from the basic config file to the project config file
 	data.Empty();
 	data << szLastKBLIFTExportPath << tab << m_lastKbLiftOutputPath;
@@ -40692,7 +40707,7 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 			pView->CloseProject(); // calls View's OnFileCloseProject()
 		}
 	}
-	
+
 	// whm 23Nov2012 modified. We need to deal with the situation that
 	// the user may have clicked "Cancel" at the prompt asking if he
 	// wants to save any changes to the file at the time the close

@@ -6433,7 +6433,7 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-/////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
 ///                         to be displayed
@@ -12576,6 +12576,14 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
 /// disables the "Paste" item in the Edit menu and immediately returns.
 /// It enables the "Paste" item on the Edit menu if either the composeBar's edit box is
 /// shown or the targetBox is shown, otherwise it disables the menu item.
+/// BEW altered 29nov12; in Ubuntu Unity, the app's menu bar is taken over by Unity. This
+/// has the unfortunate effect of removing focus from the phrase box when the user clicks
+/// the Edit menu to get at the Paste item. So I've made a kludge for __WXGTK__ compile
+/// which uses two booleans on the app class, m_bTargetBoxHadFocusLast and
+/// m_bComposeBarTextCtrlHadFocusLast, which get set TRUE (and the other FALSE) by an
+/// OnSetFocus() event in either the PhraseBox or the ComposeBar's wxTextCtrl. The
+/// OnUpdateEditPaste() handler then uses these rather than relying on the focus remaining
+/// in the text control when the coopted menu bar is clicked to access the Edit menu. It works.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 {
@@ -12586,6 +12594,7 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
+        //wxLogDebug(_T("OnUpdateEditPaste #1 disabled"));
 		return;
 	}
 
@@ -12596,32 +12605,73 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 	if (pFWnd == NULL)
 	{
 		event.Enable(FALSE);
+        //wxLogDebug(_T("OnUpdateEditPaste #2 disabled"));
 		return;
 	}
 	wxPanel* pBar = pFWnd->m_pComposeBar;
 	if (pBar == NULL)
 	{
 		event.Enable(FALSE);
+        //wxLogDebug(_T("OnUpdateEditPaste #3 disabled"));
 		return;
 	}
 	wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
 	if (pEdit == NULL)
 	{
 		event.Enable(FALSE);
+        //wxLogDebug(_T("OnUpdateEditPaste #4 disabled"));
 		return;
 	}
+	bool bTargetBox = FALSE;
+#if defined(__WXGTK__)
+	// for a kludge in support of Paste in Unity (otherwise, legacy code in view's OnUpdateEditPaste()
+    // disables the Paste menu item, preventing pasting into the phrase box - because focus gets lost
+    // from the phrase box because Unity steals the app's menubar and focus goes there with a click on it
+    bTargetBox = pApp->m_bTargetBoxHadFocusLast;
+    bComposeWnd = pApp->m_bComposeBarTextCtrlHadFocusLast;
+    pFocusWnd = pFocusWnd; // avoid compiler warning
+
+    //#if defined(_DEBUG) && defined(__WXGTK__)
+    //wxLogDebug(_T("OnUpdateEditPaste #5 bComposeWnd = %d"), (int)bComposeWnd);
+    //wxLogDebug(_T("OnUpdateEditPaste #6 bTargetBox = %d"), (int)bTargetBox);
+    //bool bFinalValue = bComposeWnd || bTargetBox;
+    //if (bFinalValue)
+    //{
+    //    wxLogDebug(_T("OnUpdateEditPaste #7 enabled"));
+    //}
+    //else
+    //{
+    //     wxLogDebug(_T("OnUpdateEditPaste #8 disabled"));
+    //}
+    //#endif
+#else // Windows and OS X
+
 	// In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle
 	// from the view menu merely shows or hides the composeBar. In MFC version the
 	// compose bar is recreated each time it becomes visible. Hence, I'll add the
 	// condition check to ensure the text control in the composeBar IsShown()
 	if (pFocusWnd == pEdit && pEdit->IsShown())
+	{
 		bComposeWnd = TRUE;
-
-	bool bTargetBox = FALSE;
+	}
 	if (pApp->m_pTargetBox != NULL)
-		bTargetBox = (pApp->m_pTargetBox->IsShown()) &&
-			(pApp->m_pTargetBox == pFocusWnd);
-
+	{
+		bTargetBox = (pApp->m_pTargetBox->IsShown()) && (pApp->m_pTargetBox == pFocusWnd);
+	}
+    //#if defined(_DEBUG) && defined(__WXGTK__)
+    //wxLogDebug(_T("OnUpdateEditPaste #5 bComposeWnd = %d"), (int)bComposeWnd);
+    //wxLogDebug(_T("OnUpdateEditPaste #6 bTargetBox = %d"), (int)bTargetBox);
+    //bool bFinalValue = bComposeWnd || bTargetBox;
+    //if (bFinalValue)
+    //{
+    //    wxLogDebug(_T("OnUpdateEditPaste #7 enabled"));
+    //}
+    //else
+    //{
+    //     wxLogDebug(_T("OnUpdateEditPaste #8 disabled"));
+    //}
+    //#endif
+#endif
 	event.Enable(bComposeWnd || bTargetBox);
 }
 
