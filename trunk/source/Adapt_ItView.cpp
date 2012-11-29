@@ -12408,9 +12408,11 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
+#if !defined(__WXMSW__)
     // next two lines for debugging support ... they can remain, since quick
     bool bTestFlag1 = pApp->m_bComposeBarTextCtrlHadFocusLast;
     bTestFlag1 = bTestFlag1; // avoid compiler warning
+#endif
 
 	// get the window which has the current focus
 	wxWindow* pWnd = wxWindow::FindFocus(); // gets a CTempWnd
