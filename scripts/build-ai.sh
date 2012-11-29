@@ -15,13 +15,12 @@ fi
 # check for dos2unix
 if ! type "dos2unix" > /dev/null; then
   sudo apt-get -y install dos2unix
-  if [ $? -ne 0 ]
-  then
+fi
 # some distros use tofrodos - install it if the dos2unix package isn't there
 # and create a symlink (alias) so we can use dos2unix
+if ! type "dos2unix" > /dev/null; then
     sudo apt-get -y install tofrodos
     sudo ln -s fromdos dos2unix
-  fi
 fi
 
 # Extract wxWidgets from the vendor branch
