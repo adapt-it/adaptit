@@ -8,6 +8,11 @@ TRUNK=$DIR/../
 VENDOR=$DIR/../../vendor
 WXGTK=$VENDOR/wxwidgets/current/wxWidgets
 
+# check for 7za
+if ! type "7za" > /dev/null; then
+  sudo apt-get -y install p7zip
+fi
+
 # Extract wxWidgets from the vendor branch
 7za x -o$WXGTK -y $VENDOR/wxwidgets/current/wxWidgets-2.9.4.7z
 #7za x -o$VENDOR/wxwidgets/current -y $VENDOR/wxwidgets/current/wxWidgets-2.9.4.tar
