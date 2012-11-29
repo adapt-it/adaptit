@@ -3749,10 +3749,11 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString GetPathwayInstallDirPath();
 	bool	PathwayIsInstalled();
 
-	#if defined(__WXGTK__)
+	#if !defined(__WXMSW__)
 	// for a kludge in support of Paste in Unity (otherwise, legacy code in view's OnUpdateEditPaste()
     // disables the Paste menu item, preventing pasting into the phrase box - because focus gets lost
-    // from the phrase box because Unity steals the app's menubar and focus goes there with a click on it
+    // from the phrase box because Unity steals the app's menubar and focus goes there with a click
+    // it. I'll keep it for OS X too, so wrap with __WXMSW__ NOT #defined
     bool    m_bTargetBoxHadFocusLast;
     bool    m_bComposeBarTextCtrlHadFocusLast;
 	#endif

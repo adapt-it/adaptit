@@ -14872,14 +14872,14 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-	#if defined(__WXGTK__)
+#if !defined(__WXMSW__)
 	// for a kludge in support of Paste in Unity (otherwise, legacy code in view's OnUpdateEditPaste()
     // disables the Paste menu item, preventing pasting into the phrase box - because focus gets lost
     // from the phrase box because Unity steals the app's menubar and focus goes there with a click on it
     m_bTargetBoxHadFocusLast = TRUE; // default, a Paste will go there unless ComposeBar's edit ctrl
                                      // preempts it
     m_bComposeBarTextCtrlHadFocusLast = FALSE;
-	#endif
+#endif
 
 	m_bCalledFromOnVerticalEditCancelAllSteps = FALSE; // initialize to default value, BEW added 23Nov12
 #if defined(_KBSERVER)

@@ -63,6 +63,9 @@ BEGIN_EVENT_TABLE(CComposeBarEditBox, wxTextCtrl)
 	// whm 15Mar12 added back for read-only mode handling
 	EVT_KEY_DOWN(CComposeBarEditBox::OnKeyDown)
 	EVT_KEY_UP(CComposeBarEditBox::OnKeyUp)
+#if !defined(__WXMSW__)
+	EVT_SET_FOCUS(CComposeBarEditBox::OnSetFocus)
+#endif
 END_EVENT_TABLE()
 
 // the following constructor is never executed (see constructor in ComposeBarEditBox.h)
@@ -78,7 +81,7 @@ CComposeBarEditBox::~CComposeBarEditBox() // destructor
 
 // event handling functions
 
-#if defined(__WXGTK__)
+#if !defined(__WXMSW__)
 // for a kludge in support of enabling Paste menu item in Ubuntu Unity
 void CComposeBarEditBox::OnSetFocus(wxFocusEvent& event)
 {
