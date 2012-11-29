@@ -12407,6 +12407,11 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+    // next two lines for debugging support ... they can remain, since quick
+    bool bTestFlag1 = pApp->m_bComposeBarTextCtrlHadFocusLast;
+    bTestFlag1 = bTestFlag1; // avoid compiler warning
+
 	// get the window which has the current focus
 	wxWindow* pWnd = wxWindow::FindFocus(); // gets a CTempWnd
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
@@ -12436,13 +12441,19 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	// from the view menu merely shows or hides the composeBar. In MFC version the
 	// compose bar is recreated each time it becomes visible. Hence, I'll add the
 	// condition check to ensure the text control in the composeBar IsShown()
+	// BEW 29Nov12, next text only yields expected TRUE in Windows version; in Ubuntu Unity
+	// copying by the Edit menu's Copy command (since Unity has stolen the app's menu bar)
+	// skips this block, and instead copies the text below from the phrase box - so I've had
+	// to put extra code to detect this, I'll assume OS X should be handled the same as Linux
+#if defined(__WXMSW__)
 	if (pWnd == pEdit && pEdit->IsShown())
 	{
 		pEdit->Copy(); // copy to the clipboard using wxTextCtrl's built in function
                        // (CF_TEXT format, or CF_UNICODETEXT for the Unicode version)
 		return;
 	}
-
+#endif
+    pWnd = pWnd; // avoid compiler warning
 	if (pApp->m_selectionLine == 0)
 	{
 		// this has priority, ie. if there is or are sourcePhrase(s) selected
@@ -12450,9 +12461,54 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-	wxTextCtrl* pEdit2 = pApp->m_pTargetBox;
-	if (pEdit2 == pWnd)
-		pEdit2->Copy();
+	    // BEW 29Nov12 In Ubuntu Unity, pEdit2->Copy() is not getting the wxTextCtrl's text
+	    // on to the clipboard, and so DoTargetBoxPaste() when OnEditPaste() is called ends
+	    // up replacing the phrase box's text with its own text. The wxWidgets documentation
+	    // for wxTextCtrl says for the Copy() member, that it works for Windows and Motif.
+	    // Nothing said about working for GTK - so I'll try using wxClipboard explicitly for
+	    // the __GTK__ build and OSX build
+        wxTextCtrl* pEdit2 = pApp->m_pTargetBox;
+        //bool bTestFlag2 = pApp->m_bComposeBarTextCtrlHadFocusLast; //  previous line doesn't change it
+#if defined(__WXMSW__)
+        if (pEdit2 == pWnd)
+        {
+            pEdit2->Copy();
+        }
+#else
+        // if control was in the compose bar's text control, then get the text from there;
+        // otherwise, assume it should be got from the phrase box
+        if (pApp->m_bComposeBarTextCtrlHadFocusLast)
+        {
+            if (pEdit != NULL)
+            {
+                wxString theSelectionStr = pEdit->GetStringSelection(); // may return empty string
+                if (wxTheClipboard->Open())
+                {
+                    // the created wxTextDataObject is owned by the global wxTheClipboard, and
+                    // gets deleted under wxWidgets control, so we must not delete
+                    // it ourselves (see wxClipboard documentation)
+                    wxTheClipboard->SetData( new wxTextDataObject(theSelectionStr));
+                    wxTheClipboard->Close();
+                }
+            }
+        } // end of TRUE block for test: if (pApp->m_bComposeBarTextCtrlHadFocusLast)
+        else
+        {
+            // assume selection was from phrase box
+            if (pEdit2 != NULL)
+            {
+                wxString theSelectionStr = pEdit2->GetStringSelection(); // may return empty string
+                if (wxTheClipboard->Open())
+                {
+                    // the created wxTextDataObject is owned by the global wxTheClipboard, and
+                    // gets deleted under wxWidgets control, so we must not delete
+                    // it ourselves (see wxClipboard documentation)
+                    wxTheClipboard->SetData( new wxTextDataObject(theSelectionStr));
+                    wxTheClipboard->Close();
+                }
+            }
+        }
+ #endif
 	}
 }
 
