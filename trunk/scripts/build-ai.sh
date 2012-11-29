@@ -10,7 +10,7 @@ WXGTK=$VENDOR/wxwidgets/current/wxWidgets
 
 # check for 7za
 if ! type "7za" > /dev/null; then
-  sudo apt-get -y install p7zip
+  sudo apt-get -y install p7zip-full
 fi
 
 # Extract wxWidgets from the vendor branch
