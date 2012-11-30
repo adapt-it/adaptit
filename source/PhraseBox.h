@@ -107,9 +107,6 @@ protected:
 	void OnKeyDown(wxKeyEvent& event);
 	void OnLButtonDown(wxMouseEvent& event);
 	void OnLButtonUp(wxMouseEvent& event);
-#if !defined(__WXMSW__)
-	void OnSetFocus(wxFocusEvent& event); // BEW added 29Nov12
-#endif
 public:
 	void OnEditUndo(wxCommandEvent& WXUNUSED(event));
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
