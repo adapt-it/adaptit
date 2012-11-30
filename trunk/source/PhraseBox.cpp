@@ -280,9 +280,6 @@ BEGIN_EVENT_TABLE(CPhraseBox, wxTextCtrl)
 	EVT_KEY_UP(CPhraseBox::OnKeyUp)
 	EVT_LEFT_DOWN(CPhraseBox::OnLButtonDown)
 	EVT_LEFT_UP(CPhraseBox::OnLButtonUp)
-#if !defined(__WXMSW__)
-	EVT_SET_FOCUS(CPhraseBox::OnSetFocus) // BEW added 29Nov12, to support enbling Paste item in Ubuntu Unity
-#endif
 END_EVENT_TABLE()
 
 CPhraseBox::CPhraseBox(void)
@@ -306,22 +303,6 @@ CPhraseBox::CPhraseBox(void)
 CPhraseBox::~CPhraseBox(void)
 {
 }
-
-#if !defined(__WXMSW__)
-// for a kludge in support of enabling Paste menu item in Ubuntu Unity (doesn't help for
-// OnEditCopy(), but does help if CTRL + C is done, and OnEditPaste() then works right;
-// I've yet to find a way to support copy and paste in Unity using Edit > Copy menu command
-// because focus gets back to the phrase box before OnEditCopy() gets called, and so the
-// text copied is not from compose bar's wxTextCtrl, but from the wxTextCtrl I'm trying to
-// paste into. The shortcuts CTRL+C followed by moving to the box then CTRL+V do work right
-// however, so that's a workaround)
-void CPhraseBox::OnSetFocus(wxFocusEvent& event)
-{
-    CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-    pApp->m_bTargetBoxHadFocusLast = TRUE;
-    pApp->m_bComposeBarTextCtrlHadFocusLast = FALSE;
-}
-#endif
 
 // returns number of phrases built; a return value of zero means that we have a halt condition
 // and so none could be built (eg. source phrase is a merged one would halt operation)

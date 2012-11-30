@@ -559,9 +559,9 @@ void CLayout::PlaceBox()
     // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
 	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
 	// after Invalidate() calls, and after Redraw() calls
-#if defined(_DEBUG)
-	wxLogDebug(_T("CLayout::PlaceBox() at start, line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
-#endif
+//#if defined(_DEBUG)
+//	wxLogDebug(_T("CLayout::PlaceBox() at start, line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
+//#endif
 
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
@@ -857,9 +857,9 @@ void CLayout::PlaceBox()
 
 		// wx Note: we don't destroy the target box, just set its text to null
 		m_pApp->m_pTargetBox->ChangeValue(_T(""));
-#if defined(_DEBUG)
-	wxLogDebug(_T("CLayout::PlaceBox() line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
-#endif
+//#if defined(_DEBUG)
+//	wxLogDebug(_T("CLayout::PlaceBox() line 563: PhraseBox contents:   %s"), m_pApp->m_pTargetBox->GetValue().c_str());
+//#endif
 
 		// make the phrase box size adjustments, set the colour of its text, tell it where it
 		// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and
@@ -2164,13 +2164,13 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-/// \return                     TRUE if background highlighting of a range of 
+/// \return                     TRUE if background highlighting of a range of
 ///                             auto-insertions is currently in effect, FALSE if that
 ///                             is not so or background highlighting is turned off
-/// \param nStripCount          <-  returns a count of how many consecutive strips (the 
+/// \param nStripCount          <-  returns a count of how many consecutive strips (the
 ///                                 last one could be the active strip, and usually is)
 ///                                 are shown highlighted
-/// \param bActivePileIsInLast  <-  returns TRUE if the active pile is within the strip 
+/// \param bActivePileIsInLast  <-  returns TRUE if the active pile is within the strip
 ///                                 with index nLast, FALSE it it is not (perhaps
 ///                                 it's the first pile in next strip)
 /// \remarks
@@ -2181,15 +2181,15 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 /// auto-inserted strips there are so as to help ScrollIntoView() to intelligently
 /// position the phrase box in the vertical dimension.
 /// BEW created 2010??
-/// BEW refactored 9Apr12, to support discontinuous highlight spans when auto-inserting                            
-///////////////////////////////////////////////////////////////////////////////////////                        
+/// BEW refactored 9Apr12, to support discontinuous highlight spans when auto-inserting
+///////////////////////////////////////////////////////////////////////////////////////
 bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast)
 {
 	if (!AreAnyAutoInsertHighlightsPresent())
 	{
 		return FALSE;
 	}
-	
+
 	// Get the index for the active strip...
 	// First, get a default nActiveStrip index - use the last strip of the document
 	int maxIndex = m_pApp->GetMaxIndex();
@@ -2197,7 +2197,7 @@ bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInL
 	int nActiveStrip = pLastPile->GetStripIndex(); // this will work if the phrase
 							// box is beyond the doc end, i.e. is invisible
 
-	bActivePileIsInLast = FALSE; // a default, and appropriate if the phrase box 
+	bActivePileIsInLast = FALSE; // a default, and appropriate if the phrase box
 								 // is hidden when beyond the doc end
 	if (m_pApp->m_nActiveSequNum != -1)
 	{
@@ -2210,7 +2210,7 @@ bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInL
 
 	// Use stripIndicesArray to accumulate the unique strip indices of all piles having a
 	// CCell[1] with m_bAutoInserted set to TRUE; if any match the nActiveStrip value,
-	// preserve the index for it in the array in the local int nActiveLocationStrip_Index 
+	// preserve the index for it in the array in the local int nActiveLocationStrip_Index
 	wxArrayInt stripIndicesArray;
 	stripIndicesArray.Clear();
 	int nActiveLocationStrip_Index = -1; // if it remains -1, then there was no match
@@ -3803,7 +3803,7 @@ void CLayout::MakeAllPilesNonCurrent()
 /// \remarks
 ///	Scans all piles of the current layout to find any CCell[1] which has its
 ///	m_bAutoInserted member boolean set to TRUE, and clears it to FALSE
-///	
+///
 ///	Usage:
 ///	Call as follows:
 ///	1. In OnNewDocument() to ensure correct initialization
@@ -3812,8 +3812,8 @@ void CLayout::MakeAllPilesNonCurrent()
 ///	   in any cell; in another place to clear highlighting for a click in a cell
 ///	   not already highlighted [uses IsClickWithinAutoInsertionsHighlightedSpan()]
 ///	4. In OpenDocWithMerger()
-///	5. In JumpForward() 
-///	
+///	5. In JumpForward()
+///
 /// BEW 9Apr12 created, for the refactored auto-insert mechanism,
 /// which supports discontinuous auto-insertions
 /////////////////////////////////////////////////////////////////////////////////
@@ -3843,11 +3843,11 @@ void CLayout::ClearAutoInsertionsHighlighting()
 /// \remarks
 ///	Tests CCell[1] for its m_bAutoInserted member boolean set to TRUE, returning the
 ///	result to the caller
-///	
+///
 ///	Usage:
 ///	Call as follows:
 ///	1. In OnLButtonDown() - to clear highlighting for a click in a cell not already highlighted
-///	
+///
 /// BEW 9Apr12 created, for the refactored auto-insert mechanism,
 /// which supports discontinuos auto-insertions
 /////////////////////////////////////////////////////////////////////////////////

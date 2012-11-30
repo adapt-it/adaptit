@@ -12408,12 +12408,6 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
-#if !defined(__WXMSW__)
-    // next two lines for debugging support ... they can remain, since quick
-    bool bTestFlag1 = pApp->m_bComposeBarTextCtrlHadFocusLast;
-    bTestFlag1 = bTestFlag1; // avoid compiler warning
-#endif
-
 	// get the window which has the current focus
 	wxWindow* pWnd = wxWindow::FindFocus(); // gets a CTempWnd
 	CMainFrame *pFWnd = wxGetApp().GetMainFrame();
@@ -12439,23 +12433,18 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
+
 	// In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle
 	// from the view menu merely shows or hides the composeBar. In MFC version the
 	// compose bar is recreated each time it becomes visible. Hence, I'll add the
 	// condition check to ensure the text control in the composeBar IsShown()
-	// BEW 29Nov12, next text only yields expected TRUE in Windows version; in Ubuntu Unity
-	// copying by the Edit menu's Copy command (since Unity has stolen the app's menu bar)
-	// skips this block, and instead copies the text below from the phrase box - so I've had
-	// to put extra code to detect this, I'll assume OS X should be handled the same as Linux
-#if defined(__WXMSW__)
 	if (pWnd == pEdit && pEdit->IsShown())
 	{
 		pEdit->Copy(); // copy to the clipboard using wxTextCtrl's built in function
                        // (CF_TEXT format, or CF_UNICODETEXT for the Unicode version)
 		return;
 	}
-#endif
-    pWnd = pWnd; // avoid compiler warning
+
 	if (pApp->m_selectionLine == 0)
 	{
 		// this has priority, ie. if there is or are sourcePhrase(s) selected
@@ -12464,53 +12453,19 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 	    // BEW 29Nov12 In Ubuntu Unity, pEdit2->Copy() is not getting the wxTextCtrl's text
-	    // on to the clipboard, and so DoTargetBoxPaste() when OnEditPaste() is called ends
-	    // up replacing the phrase box's text with its own text. The wxWidgets documentation
-	    // for wxTextCtrl says for the Copy() member, that it works for Windows and Motif.
-	    // Nothing said about working for GTK - so I'll try using wxClipboard explicitly for
-	    // the __GTK__ build and OSX build
+	    // on to the clipboard, because using the menu bar which Unity stole does this:
+	    // 1st, focus drifts back to phrase box from composebar's text ctrl unbidden and
+	    // before any of our handlers are invoked,
+	    // 2nd, a selection in compose bar's text ctrl becomes a cursor position within or at
+	    // the end of the selection or at its start, depending on how user dragged; and that
+	    // results in an empty string going to the clipboard. Cut is similarly damaged.
+	    // But CTRL+C and CTRL+V appear to work correctly. There's no workaround except to
+	    // refrain from using Unity interface in Precise Pangolin.
         wxTextCtrl* pEdit2 = pApp->m_pTargetBox;
-        //bool bTestFlag2 = pApp->m_bComposeBarTextCtrlHadFocusLast; //  previous line doesn't change it
-#if defined(__WXMSW__)
         if (pEdit2 == pWnd)
         {
             pEdit2->Copy();
         }
-#else
-        // if control was in the compose bar's text control, then get the text from there;
-        // otherwise, assume it should be got from the phrase box
-        if (pApp->m_bComposeBarTextCtrlHadFocusLast)
-        {
-            if (pEdit != NULL)
-            {
-                wxString theSelectionStr = pEdit->GetStringSelection(); // may return empty string
-                if (wxTheClipboard->Open())
-                {
-                    // the created wxTextDataObject is owned by the global wxTheClipboard, and
-                    // gets deleted under wxWidgets control, so we must not delete
-                    // it ourselves (see wxClipboard documentation)
-                    wxTheClipboard->SetData( new wxTextDataObject(theSelectionStr));
-                    wxTheClipboard->Close();
-                }
-            }
-        } // end of TRUE block for test: if (pApp->m_bComposeBarTextCtrlHadFocusLast)
-        else
-        {
-            // assume selection was from phrase box
-            if (pEdit2 != NULL)
-            {
-                wxString theSelectionStr = pEdit2->GetStringSelection(); // may return empty string
-                if (wxTheClipboard->Open())
-                {
-                    // the created wxTextDataObject is owned by the global wxTheClipboard, and
-                    // gets deleted under wxWidgets control, so we must not delete
-                    // it ourselves (see wxClipboard documentation)
-                    wxTheClipboard->SetData( new wxTextDataObject(theSelectionStr));
-                    wxTheClipboard->Close();
-                }
-            }
-        }
- #endif
 	}
 }
 
@@ -12681,28 +12636,6 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 		return;
 	}
 	bool bTargetBox = FALSE;
-#if defined(__WXGTK__)
-	// for a kludge in support of Paste in Unity (otherwise, legacy code in view's OnUpdateEditPaste()
-    // disables the Paste menu item, preventing pasting into the phrase box - because focus gets lost
-    // from the phrase box because Unity steals the app's menubar and focus goes there with a click on it
-    bTargetBox = pApp->m_bTargetBoxHadFocusLast;
-    bComposeWnd = pApp->m_bComposeBarTextCtrlHadFocusLast;
-    pFocusWnd = pFocusWnd; // avoid compiler warning
-
-    //#if defined(_DEBUG) && defined(__WXGTK__)
-    //wxLogDebug(_T("OnUpdateEditPaste #5 bComposeWnd = %d"), (int)bComposeWnd);
-    //wxLogDebug(_T("OnUpdateEditPaste #6 bTargetBox = %d"), (int)bTargetBox);
-    //bool bFinalValue = bComposeWnd || bTargetBox;
-    //if (bFinalValue)
-    //{
-    //    wxLogDebug(_T("OnUpdateEditPaste #7 enabled"));
-    //}
-    //else
-    //{
-    //     wxLogDebug(_T("OnUpdateEditPaste #8 disabled"));
-    //}
-    //#endif
-#else // Windows and OS X
 
 	// In the wxWidgets version the m_pcomposeBar pointer always exists. The toggle
 	// from the view menu merely shows or hides the composeBar. In MFC version the
@@ -12716,20 +12649,23 @@ void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 	{
 		bTargetBox = (pApp->m_pTargetBox->IsShown()) && (pApp->m_pTargetBox == pFocusWnd);
 	}
-    //#if defined(_DEBUG) && defined(__WXGTK__)
-    //wxLogDebug(_T("OnUpdateEditPaste #5 bComposeWnd = %d"), (int)bComposeWnd);
-    //wxLogDebug(_T("OnUpdateEditPaste #6 bTargetBox = %d"), (int)bTargetBox);
-    //bool bFinalValue = bComposeWnd || bTargetBox;
-    //if (bFinalValue)
-    //{
-    //    wxLogDebug(_T("OnUpdateEditPaste #7 enabled"));
-    //}
-    //else
-    //{
-    //     wxLogDebug(_T("OnUpdateEditPaste #8 disabled"));
-    //}
-    //#endif
-#endif
+	// remove commenting out to see the problem the Unit interface in Precise Pangolin
+	// causes, Paste is disabled because focus wanders away from the text ctrl
+	/*
+    #if defined(_DEBUG) && defined(__WXGTK__)
+    wxLogDebug(_T("OnUpdateEditPaste #1 bComposeWnd = %d"), (int)bComposeWnd);
+    wxLogDebug(_T("OnUpdateEditPaste #2 bTargetBox = %d"), (int)bTargetBox);
+    bool bFinalValue = bComposeWnd || bTargetBox;
+    if (bFinalValue)
+    {
+        wxLogDebug(_T("OnUpdateEditPaste #3 enabled"));
+    }
+    else
+    {
+         wxLogDebug(_T("OnUpdateEditPaste #5 disabled"));
+    }
+    #endif
+    */
 	event.Enable(bComposeWnd || bTargetBox);
 }
 
