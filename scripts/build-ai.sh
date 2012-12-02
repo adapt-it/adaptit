@@ -8,26 +8,30 @@ TRUNK=$DIR/../
 VENDOR=$DIR/../../vendor
 WXGTK=$VENDOR/wxwidgets/current/wxWidgets
 
+# remove files from previous builds
+rm -rf $WXGTK
+rm -rf $TRUNK/bin/linux/UnicodeDebug
+
 # check for 7za
-if ! type "7za" > /dev/null; then
-  sudo apt-get -y install p7zip-full
-fi
+#if ! type "7za" > /dev/null; then
+#  sudo apt-get -y install p7zip-full
+#fi
 # check for dos2unix
-if ! type "dos2unix" > /dev/null; then
-  sudo apt-get -y install dos2unix
-fi
+#if ! type "dos2unix" > /dev/null; then
+#  sudo apt-get -y install dos2unix
+#fi
 # some distros use tofrodos - install it if the dos2unix package isn't there
 # and create a symlink (alias) so we can use dos2unix
-if ! type "dos2unix" > /dev/null; then
-    sudo apt-get -y install tofrodos
-    sudo ln -s fromdos dos2unix
-fi
+#if ! type "dos2unix" > /dev/null; then
+#    sudo apt-get -y install tofrodos
+#    sudo ln -s fromdos dos2unix
+#fi
 
 # Extract wxWidgets from the vendor branch
-7za x -o$WXGTK -y $VENDOR/wxwidgets/current/wxWidgets-2.9.4.7z
-#7za x -o$VENDOR/wxwidgets/current -y $VENDOR/wxwidgets/current/wxWidgets-2.9.4.tar
+unzip -a -o -q $VENDOR/wxwidgets/current/wxWidgets-2.9.4.zip -d$WXGTK
+#7za x -o$WXGTK -y $VENDOR/wxwidgets/current/wxWidgets-2.9.4.7z
 # change the line endings from Windows (CRLF) to Linux
-find $WXGTK -type f -exec dos2unix {} \; 
+#find $WXGTK -type f -exec dos2unix {} \; 
 # copy over the appropriate setup.h so wxwidgets knows which platform to build
 cp -f $WXGTK/include/wx/gtk/setup.h $WXGTK/include/wx/setup.h
 # allow a couple wxwidgets scripts to execute
