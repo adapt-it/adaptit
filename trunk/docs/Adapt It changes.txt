@@ -1,6 +1,19 @@
 ----------------------------------------------
 Version 6.4.0 release 30 November 2012
 ----------------------------------------------
+
+*** WARNING*** Known Issue
+In Ubuntu Precise, running the Unity Interface, the text control 
+in the ComposeBar does not maintain the input focus, nor any 
+selection made, when the user mouses to the Unity menu bar (which
+was formerly Adapt It's menu bar) to choose from the Edit menu
+any of the commands Cut, Copy, or Paste. Results will not be what
+you expect, Paste may be disabled, and Cut or Copy clears the 
+phrase box instead. This is an Ubuntu issue which we can't fix.
+A bug report has been sent to the Unity developers. In the meantime:
+CTRL+C, CTRL+X, and CTRL+V work correctly, and you'll have no
+problems if you use these shortcuts instead.
+
 ----------------------------------------------
 Feature changes and new features in 6.4.0
 ----------------------------------------------
@@ -42,6 +55,17 @@ Bibledit project or not.
 user returned using the OK button, did not make the document dirty.
 We now assume that an OK button press was after something got
 changed, and so we make the document be marked as dirty.
+* Removing something, such as a free translation, when in the
+"View Filtered Material" dialog, did not make the document dirty.
+It should, and now does.
+* In the Linux version, doing collaboration with Bibledit, when
+the user did File > Save to save his translation work to Bibledit
+while Bibledit was still running, Adapt It failed to detect it was
+running and warn the user to close it before trying again. Now fixed.
+* Using Ubuntu with the Unity interface, Adapt It shows the Paste
+command disabled, and cut, copy and paste do not work right. We are
+awaiting a bug fix from the Unity developers. In the meantime, use
+the CTRL key shortcuts (see the "Known Issue" above for details.)
 ----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------

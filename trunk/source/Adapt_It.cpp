@@ -13760,6 +13760,11 @@ bool CAdapt_ItApp::BibleditIsRunning()
 	if (outputMsg.GetCount() > 0)
 	{
 		wxString str = outputMsg.Item(0);
+		// BEW 3Dec12, the count index went to 5 for a process id of 5063, and so even
+		// though bibledit-gtk on Precise laptop was running, bIsRunning was returned
+		// as false. So I've added here 2 lines to trim whitespace from both ends of the pid
+		str.Trim(TRUE);
+		str.Trim(FALSE);
 		bool bIsNumber = TRUE;
 		int ct;
 		for (ct = 0; ct < (int)str.Length(); ct++)
