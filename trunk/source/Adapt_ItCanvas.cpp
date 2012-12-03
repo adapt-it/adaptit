@@ -59,7 +59,7 @@
 #include "ViewFilteredMaterialDlg.h"
 #include "FreeTrans.h"
 
-#define _FT_ADJUST
+//#define _FT_ADJUST
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress;
