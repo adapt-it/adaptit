@@ -687,7 +687,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 					// now test to see if the click actually occurred within it
 					if (wedgeRect.Contains(point))
 					{
-						bClickWasProductive = TRUE;						
+						bClickWasProductive = TRUE;
 						// user clicked in this wedge - so open the dialog
 
                         // keep track of the sequ num of the src phrase whose m_markers is
@@ -778,7 +778,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 						// check if the click was in noteRect
 						if (noteRect.Contains(point)) //if (noteRect.PtInRect(point))
 						{
-							bClickWasProductive = TRUE;						
+							bClickWasProductive = TRUE;
 							// user clicked in the note icon - so open the note window
 							if (pApp->m_pViewFilteredMaterialDlg != NULL)
 								return; // if the green wedge dialog is open, prevent a
@@ -889,8 +889,8 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 			{
 				pApp->m_pEarlierTransDlg->Show(FALSE); // hide the dialog window
 				bMadeViewActive = TRUE;
-				
-				bClickWasProductive = TRUE;						
+
+				bClickWasProductive = TRUE;
 
 				if (pApp->m_pTargetBox == NULL)
 					goto y; // check, just in case, and do the longer cleanup if the box
@@ -916,7 +916,7 @@ y:				; // I may put some code here later
     // modeless dialogs for "Find" (pApp->m_pFindDlg) and "Find and Replace"
     // (pApp->m_pReplaceDlg).
 	// whm 29Mar12 Note: A Replace modeless dialog won't ever be open in read-only mode
-	// but a Find dialog can be, so clicks in this instance should be honored in read-only 
+	// but a Find dialog can be, so clicks in this instance should be honored in read-only
 	// mode. Note: The phrase Box will always be hidden in read-only mode so the code to
 	// set focus on the phrase box below will not have any effect.
 	if (pApp->m_pFindDlg != NULL || pApp->m_pReplaceDlg != NULL || bMadeViewActive)
@@ -928,7 +928,7 @@ y:				; // I may put some code here later
 			if ((pApp->m_pFindDlg != NULL && pApp->m_pFindDlg->IsShown()) ||
 				(pApp->m_pReplaceDlg != NULL && pApp->m_pReplaceDlg->IsShown()))
 			{
-				bClickWasProductive = TRUE;						
+				bClickWasProductive = TRUE;
 				if (pApp->m_pFindDlg != NULL && pApp->m_pFindDlg->IsShown())
 					pApp->m_pFindDlg->Show(FALSE); // hide the dialog window
 				if (pApp->m_pReplaceDlg != NULL && pApp->m_pReplaceDlg->IsShown())
@@ -1624,11 +1624,11 @@ x:					CCell* pCell = 0;
 						if (pApp->m_pActivePile->GetSrcPhrase()->m_bStartFreeTrans)
 						{
 							// we are in an existing free translation section
-							
+
 							// BEW 27Feb12, since we've come to the anchor of a pre-defined
 							// section, we must set up the radio buttons to be what was in
 							// effect when this section was originally created
-							bool bTemporaryByPunctuationFlag = 
+							bool bTemporaryByPunctuationFlag =
 								!pApp->m_pActivePile->GetSrcPhrase()->m_bSectionByVerse;
 
 							// now set the radio buttons temporarily to possibly different values
@@ -2765,6 +2765,7 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
         // left point of the client viewing area; then convert to scroll units in Scroll().
         // whm note: wxScrolledWindow::Scroll() scrolls the window so the view start is at
         // the given point (expressed in scroll units)
+		Scroll(0,posn);
 		Refresh();
 		return yDist;
 	}
