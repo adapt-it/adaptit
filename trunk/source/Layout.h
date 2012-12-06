@@ -442,7 +442,7 @@ public:
 
 	// a debugging function
 	//void		DebugIndexMismatch(int nPileIndex_InList, int locator);
-	
+
 	// BEW 9Apr12, functions for the refactored support of background
 	// highlighting for auto-inserted adaptations, or glosses - using the new
 	// m_bAutoInserted member of CCell class

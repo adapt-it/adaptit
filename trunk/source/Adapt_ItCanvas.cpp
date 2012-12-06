@@ -214,12 +214,21 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	{
 		wxLogDebug(_T("canvas OnPaint() reports dc is not Ok!"));
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::OnPaint:  Before DoPrepareDC(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
     DoPrepareDC(paintDC); // PrepareDC() now calls DoPrepareDC()
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::OnPaint:  After DoPrepareDC(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
 
 	if (pView)
 	{
 		pView->OnDraw(& paintDC);
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::OnPaint:  After  pView->OnDraw(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
 }
 
 
@@ -478,8 +487,15 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::OnScroll:  At start before Skip(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
+
 	event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
 					// to be processed
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::OnScroll:  At end after Skip(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
 }
 
 bool CAdapt_ItCanvas::IsModified() const
@@ -2067,12 +2083,15 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-
+	CLayout* pLayout = pApp->m_pLayout;
+	
 	if (pApp->m_nActiveSequNum == -1)
 	{
 		return; // do nothing if the phrase box is hidden because we are at doc end
 	}
-	CLayout* pLayout = pApp->m_pLayout;
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::ScrollIntoView:  At start,  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
 
 #ifdef Do_Clipping
 	// disable clipping, but note below - if we determine that no scroll is needed we will
@@ -2080,15 +2099,13 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	// m_bAllowScrolling is also TRUE)
 	pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
 #endif
-
-//#ifdef _debugLayout
-//ShowSPandPile(393, 50);
-//ShowSPandPile(394, 50);
-//ShowInvalidStripRange();
-//#endif
+	//#ifdef _debugLayout
+	//ShowSPandPile(393, 50);
+	//ShowSPandPile(394, 50);
+	//ShowInvalidStripRange();
+	//#endif
 
 // ------------------------------------------------------------------------------------------
-
 
 //#if defined(_FT_ADJUST) && defined(_DEBUG)
 	if (!pApp->m_bFreeTranslationMode)
@@ -2419,7 +2436,10 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 					pLayout->SetScrollingFlag(FALSE); // clear m_bScrolling to FALSE
 				}
 #endif
+				//int scrollRange = GetScrollRange(wxVERTICAL);
+				//wxLogDebug(_T("scrollRange = %d  steps"), scrollRange);
 				Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("Typical scroll, scroll car set to yDist of  %d pixels"),desiredViewTop);
 		int newXPos,current_yDistFromDocStartToViewTop;
@@ -2586,6 +2606,9 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 //#if defined(_FT_ADJUST) && defined(_DEBUG)
 	}
 //#endif
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::ScrollIntoView:  At end,  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
 
 // end of the free translation supporting else block
 }
