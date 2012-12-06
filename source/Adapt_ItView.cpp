@@ -1091,7 +1091,17 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize(); // gets the width and height of canvas in pixels
 
 	pDC->DestroyClippingRegion(); // ensure whole client area is drawable
-
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::OnDraw:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+		
+		//int vertScrollPos = pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL);
+		//if (vertScrollPos == 0)
+		//{
+			// we want to break, to examine the call stack to see what the caller is when 
+			// scrollPos has gone back to 0
+		//	int break_here = 1;
+		//}
+#endif
     // BEW 5Oct11; Doing a Print Preview after PrintOptionsDlg did a print of physical
     // pages, failed here (pActivePile below was rubbish) due to m_pActivePile having been
     // clobbered. So recalc m_pActivePile before going on... (yes, this fixed the problem)
@@ -1201,7 +1211,9 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		pApp->GetFreeTrans()->DrawFreeTranslationsForPrinting(pDC, GetLayout());
 #endif
 	}
-
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::OnDraw:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 }
 
 // UpdateAppearance() is simply intended to cause the view to redraw itself, if something that affects the visual
@@ -2875,6 +2887,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::PlacePhraseBox:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 
 	// if there is no active pile defined, construct one at the clicked location,
 	// or at whatever cell pointer was passed in - eg. when having just opened a document,
@@ -3376,6 +3391,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 
 	Invalidate();
 	pLayout->PlaceBox();
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::PlacePhraseBox:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 }
 
 // OnPrepareDC() was moved to CAdapt_ItCanvas in the wx version
@@ -8638,11 +8656,337 @@ void CAdapt_ItView::OnUpdateButtonStepDown(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+// GoThereSafely() is an alternative to Jump(), because the latter in the __GTK__ build failes
+// to do ScrollIntoView() if the new active location is remote from the starting active 
+// location. So GoThereSafely() is based on the OnButtonStepDown() handler, which does shift
+// the active location to remote new locations successfully, and contains code to set the
+// phrase box safely there (i.e. not in a retranslation), and calls ScrollIntoView(). Handlers
+// which fail to scroll when expected are a few which call Jump() - the latter's ScrollIntoView()
+// function does nothing in its Scroll() call if the new location is remote - functions with
+// this failure were at least these: handler for Close and Jump Here button in the dialog for
+// examining a different part of the document; SetActivePilePointerSafely() - when loading
+// a document; and the OnGoTo() handler (there may be more, but I didn't test all 
+// possibilities). Unlike OnButtonStepDown() wwhich does a StoreText(), GoThereSafely() will
+// not do that; and it assumes the passed in sequNum is for the new active location, and the
+// old active location is still in effect (ie. m_pActivePile is still pointing at the old
+// active location).
+void CAdapt_ItView::GoThereSafely(int sequNum)
+{
+	CMainFrame* pFrame;
+	wxTextCtrl* pEdit = NULL; // whm initialized to NULL
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	CLayout* pLayout = pApp->GetLayout();
+	SPList* pList = pApp->m_pSourcePhrases;
+
+	// remove any selection to be safe from unwanted selection-related side effects
+	RemoveSelection();
+	wxASSERT(pApp->m_pActivePile != NULL);
+
+	// find the new active location; but if none is found then just beep and stay at the 
+	// current active location
+	bool bFoundActiveLoc = FALSE;
+	int nSequNum = 0; // start searching from beginning of doc
+	CPile* pPile = GetPile(nSequNum); // might return NULL (if at doc end)
+	int maxIndex = pApp->GetMaxIndex();
+	CSourcePhrase* pSrcPhrase = NULL;
+	while (pPile != NULL && nSequNum <= maxIndex)
+	{
+		pSrcPhrase = pPile->GetSrcPhrase();
+		if (pSrcPhrase->m_nSequNumber == sequNum)
+		{
+			bFoundActiveLoc = TRUE;
+			break;
+		}
+		else
+		{
+			nSequNum++;
+			pPile = GetPile(nSequNum);
+		}
+	}
+
+	// if the new active location was not found, then exit with a beep
+	if (!bFoundActiveLoc)
+	{
+		::wxBell();
+		return;
+	}
+	// the new active location was found, so pSrcPhrase is valid & is the new active one
+	pLayout->m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // ensures the strip there is marked invalid
+
+	// if it is free translation mode, get a pointer to the compose bar's wxTextCtrl
+	if (pApp->m_bFreeTranslationMode)
+	{
+		pFrame = (CMainFrame*)pApp->GetMainFrame();
+		wxASSERT(pFrame != NULL);
+		wxASSERT(pFrame->m_pComposeBar != NULL);
+		pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		wxASSERT(pEdit != NULL);
+		wxString tempStr;
+		tempStr.Empty();
+		pEdit->ChangeValue(tempStr); // make it have an empty string
+	}
+	
+
+	wxASSERT(pPile);
+	pApp->m_pActivePile = pPile; // set the new active pile's pointer
+	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
+	wxASSERT(pApp->m_nActiveSequNum == sequNum); // this might not be a valid location - could
+				// be in a free translation if free trans mode is active, or in a retranslation
+				// so we must check for these possibilities and adjust if necessary
+	
+	SPList::Node* pos = pList->Item(pApp->m_nActiveSequNum);
+	wxASSERT(pos != NULL);
+	CSourcePhrase* pSrcPhr = (CSourcePhrase*)pos->GetData();
+	wxASSERT(pSrcPhr != NULL);
+
+	// if free translation mode is on, we would not want the box to be anywhere but at the
+	// start of a free translation section, so if the found location is not the start of
+	// such a section, make the adjustment if required so that box goes instead to that
+	// free translation section's anchor position
+	if (pApp->m_bFreeTranslationMode)
+	{
+		if (pSrcPhr->m_bHasFreeTrans && !pSrcPhr->m_bStartFreeTrans)
+		{
+			// move back to the sequ num for the anchor position
+			while (TRUE)
+			{
+				pos = pos->GetPrevious();
+				pSrcPhr = (CSourcePhrase*)pos->GetData();
+				pos = pos->GetPrevious();
+				wxASSERT(pSrcPhr != NULL);
+				nSequNum = pSrcPhr->m_nSequNumber;
+				if (pSrcPhr->m_bStartFreeTrans || (pSrcPhr->m_nSequNumber == 0))
+				{
+                    // don't go back more further than start of a free translation section,
+                    // or start of the document
+					pApp->m_nActiveSequNum = nSequNum;
+					pApp->m_pActivePile = GetPile(nSequNum);
+					// ensure the strip there is marked invalid
+					pLayout->m_pDoc->ResetPartnerPileWidth(pSrcPhr); 
+					break;
+				}
+			}
+		}
+	}
+	else // not free translation mode
+	{
+		// handle the possibility that the new active location might be a "<Not In KB>" one
+		if (!pSrcPhr->m_bHasKBEntry && pSrcPhr->m_bNotInKB)
+		{
+            // this ensures user has to explicitly type into the box and explicitly check
+            // the checkbox if he wants to override the "not in kb" earlier setting at this
+            // location
+			pApp->m_bSaveToKB = FALSE;
+			pApp->m_targetPhrase.Empty();
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+		}
+		else if (!pSrcPhr->m_adaption.IsEmpty())
+		{
+			// do this if it has a non-empty adaptation or gloss (if in glossing mode) 
+			// already there
+			if (gbIsGlossing)
+			{
+				pApp->m_targetPhrase = pSrcPhr->m_gloss;
+				pApp->m_pTargetBox->ChangeValue(pSrcPhr->m_gloss);
+			}
+			else
+			{
+				pApp->m_targetPhrase = pSrcPhr->m_adaption;
+				pApp->m_pTargetBox->ChangeValue(pSrcPhr->m_adaption);
+			}
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+			// make the translation global string be empty to avoid any confusions
+			translation.Empty();
+		}
+		else
+		{
+			// the location is a "hole"
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			pApp->m_pTargetBox->Clear();
+			pApp->m_targetPhrase.Empty();
+		}
+
+		// We are not out of the woods yet... the active location just chosen must not
+        // contain a retranslation, since we want to put the phrase box there, so check and 
+        // if so, move backwards until we find a src phrase which is not a retranslation, and
+        // not a <Not In KB> location either. Going back is safe, but at least for scripture
+        // the initial CSourcePhrase should be for a book ID (such as MAT, or LUK, etc) and
+        // that would be a "safe" place even if everything else wasn't!
+		if (pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
+		{
+			// its a retranslation location, so move active location to smaller sequence
+			// numbers until we find a sourcePhrase which is not in the retranslation
+			CPile* pPile = pApp->m_pActivePile;
+			do
+			{
+				CPile* pSavePile = pPile;
+				pPile = GetPrevPile(pPile);
+				if (pPile == NULL)
+				{
+                    // we've gone back before the start of the document, so just make the
+                    // earlier (saved) pile the active one unconditionally; control is almost
+                    // certainly never going to enter this block
+					pApp->m_nActiveSequNum = 0;
+					pApp->m_pActivePile = pSavePile;
+					if (gbIsGlossing)
+					{
+						pApp->m_targetPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+					}
+					else
+					{
+						pApp->m_targetPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+					}
+					// update the layout and get a fresh active pile pointer 
+					// (the next lines down to the return are copied from below)
+					#ifdef _NEW_LAYOUT
+					GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+					#else
+					GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+					#endif
+					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+
+					pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+					GetLayout()->m_docEditOperationType = default_op;
+					Invalidate();
+					GetLayout()->PlaceBox();
+
+					// if we are in free translation mode, we want the focus to be in 
+					// the Compose Bar's edit box after the move has been done
+					if (pApp->m_bFreeTranslationMode && pEdit != NULL)
+					{
+						pEdit->SetFocus();
+					}
+					return;
+				}
+			} while (pPile->GetSrcPhrase()->m_bRetranslation);
+
+			// in the loop above we found a pPile which was not in a retranslation, but we
+			// may be unfortunately at a <Not In KB> location, sigh, so check for that and
+			// handle it if so after we set a temporary active loc here first
+			wxASSERT(pPile);
+			pApp->m_pActivePile = pPile; // this one is not in the retranslation
+			pSrcPhr = pApp->m_pActivePile->GetSrcPhrase();
+			pApp->m_nActiveSequNum = pSrcPhr->m_nSequNumber;
+
+			// handle the possibility that the new active location might be a 
+			// "<Not In KB>" one -- that's a "safe" location, so we can use it
+			if (!pSrcPhr->m_bHasKBEntry && pSrcPhr->m_bNotInKB)
+			{
+				// this ensures user has to explicitly type into the box and explicitly 
+				// check the checkbox if he wants to override the "not in kb" earlier 
+				// setting at this location
+				pApp->m_bSaveToKB = FALSE;
+				pApp->m_targetPhrase.Empty();
+				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			}
+			else // it's not a <Not In KB> location, ie. it's normal
+			{
+				if (!gbIsGlossing && !pSrcPhr->m_adaption.IsEmpty())
+				{
+					// there is an adaptation
+					pApp->m_targetPhrase = pSrcPhr->m_adaption;
+					pApp->m_pTargetBox->ChangeValue(pSrcPhr->m_adaption);
+					pApp->m_pTargetBox->m_bAbandonable = FALSE;
+				}
+				else if (gbIsGlossing && !pSrcPhr->m_gloss.IsEmpty())
+				{
+					// there is a gloss
+					pApp->m_targetPhrase = pSrcPhr->m_gloss;
+					pApp->m_pTargetBox->ChangeValue(pSrcPhr->m_gloss);
+					pApp->m_pTargetBox->m_bAbandonable = FALSE;
+				}
+				else
+				{
+					pApp->m_pTargetBox->m_bAbandonable = TRUE;
+					if (pApp->m_bCopySource)
+					{
+						pApp->m_targetPhrase = CopySourceKey(pSrcPhr,pApp->m_bUseConsistentChanges);
+					}
+					else
+					{
+						pApp->m_targetPhrase.Empty();
+						pApp->m_pTargetBox->Clear();
+					}
+				}
+			}
+			//  make sure our safe active location has it's strip marked as
+			// invalid, so that the window is updated here and scrolling to this
+			// new location will work right
+			pLayout->m_pDoc->ResetPartnerPileWidth(pSrcPhr); 
+		}
+
+		// remove the text from the KB, if refString is not null
+		wxString emptyStr = _T("");
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhr, emptyStr, useGlossOrAdaptationForLookup);
+		else
+			pApp->m_pKB->GetAndRemoveRefString(pSrcPhr, emptyStr, useGlossOrAdaptationForLookup);
+	} // end block for "not free translation mode"
+
+	// update the layout and get a fresh active pile pointer
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+
+	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+	GetLayout()->m_docEditOperationType = default_op;
+
+	//Invalidate();
+	GetLayout()->PlaceBox();
+    // if we are in free translation mode, we want the focus to be in the Compose Bar's
+    // edit box after the move has been done
+	if (pApp->m_bFreeTranslationMode && pEdit != NULL)
+	{
+		pEdit->SetFocus();
+	}
+	
+	// The following is a kludge which I hope will fix a GTK scrolling bug. I think that
+	// Scroll() call in ScrollIntoView() while it works to change scrollPos for the vertical
+	// bar correctly, wxScrolledWindow's knowledge of that change isn't registering there, and
+	// so that class remembers the old scrollPos -- and at the very end of things, sends a
+	// final paint event to the event handler - that uses the un-updated scrollPos, and so
+	// causes the old scrollPos to be restored - and then my OnDraw() code complies dutifully
+	// by drawing the screen at the old location and the DC scrolled accordingly - so the old
+	// doc part is viewed, and the phrase box location could be miles away - wherever the
+	// ScrollIntoView() sent it to. This problem has been in the GTK build of AI for at least
+	// 6.3.0 and 6.3.1 and up to the present which is being prepared for 6.4.0; and Kim reports
+	// having observed this behaviour too, so it probably goes back a *long* way.
+	// My attempt at a fix is to try force wxScrolledWindow to get whatever memory of the
+	// scrollPos it has to be updated. Perhaps an explicit call of SetScrollbars() here, 
+	// using the new values for xPos = 0 and yPos, might do it?
+	int xLogical, yLogical; // units are pixels
+	CAdapt_ItCanvas* pCanvas = pApp->GetMainFrame()->canvas;
+	pCanvas->CalcUnscrolledPosition(0,0,&xLogical,&yLogical);
+	int xPixelsPerScrollUnit, yPixelsPerScrollUnit;
+	pCanvas->GetScrollPixelsPerUnit(&xPixelsPerScrollUnit, &yPixelsPerScrollUnit);
+	int numUnitsX, numUnitsY;
+	numUnitsX = pCanvas->GetScrollRange(wxHORIZONTAL); // units are scroll units
+	numUnitsY = pCanvas->GetScrollRange(wxVERTICAL); // units are scroll units
+	int xPos, yPos;
+	xPos = xLogical / xPixelsPerScrollUnit; // should be 0
+	yPos = yLogical / yPixelsPerScrollUnit;
+	// Now we can use SetScrollbars
+	pCanvas->SetScrollbars(xPixelsPerScrollUnit, yPixelsPerScrollUnit, numUnitsX, numUnitsY, xPos, yPos);
+#if defined(_DEBUG)
+	int scrollPosY = pCanvas->GetScrollPos(wxVERTICAL);
+	wxLogDebug(_T("view::GoThereSafely:  after kludge at end,  yLogical (pixels) = %d , yPixelsPerScrollUnit = %d , yPos (scroll units) = %d, scrollPosY (wxWindow call) = %d, numUnitsY = %d"),
+				 yLogical, yPixelsPerScrollUnit, yPos, scrollPosY, numUnitsY);
+#endif	
+	// Sadly, SetScrollbars() doesn't fix it.
+}
+
 void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 {
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit = NULL; // whm initialized to NULL
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	
+#if defined(_DEBUG)
+//		wxLogDebug(_T("view::OnButtonStepDown:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 
 	SPList* pList = pApp->m_pSourcePhrases;
 	int nSaveOldSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
@@ -8888,6 +9232,9 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	{
 		pEdit->SetFocus();
 	}
+#if defined(_DEBUG)
+//		wxLogDebug(_T("view::OnButtonStepDown:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -8955,6 +9302,9 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	SPList* pList = pApp->m_pSourcePhrases;
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::OnButtonStepUp:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 
 	// Beware, the update handler has the button enabled if the active sequ num is -1 and
 	// there is data in the document; so we can't try to call GetSrcPhrase() for an active
@@ -9223,6 +9573,9 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	{
 		pEdit->SetFocus();
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::OnButtonStepUp:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////

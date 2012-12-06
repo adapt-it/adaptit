@@ -49,6 +49,10 @@
 #include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "Pile.h"
+#if defined(__WXGTK__)
+#include "MainFrm.h"
+#include "Adapt_ItCanvas.h"
+#endif
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -580,9 +584,20 @@ void CEarlierTranslationDlg::OnCloseAndJump(wxCommandEvent& event)
 	CPile* pPile = m_pView->GetPile(nSequNum);
 
 	wxCommandEvent Okevent = wxID_OK;
-	OnOK(event);	// get rid of the dialog - calls destroy and deletes gpApp->m_pEarlierTransDlg pointer
-
+	OnOK(Okevent);	// get rid of the dialog - calls destroy and deletes gpApp->m_pEarlierTransDlg pointer
+	event.Skip();
+#if defined(_DEBUG)
+		wxLogDebug(_T("CEarlierTranslationDlg:  in OnCloseAndJump(), BEFORE GoThereSafely(),  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
+	#if defined(__WXGTK__)
+	pPile = pPile; // avoid compiler warning
+	m_pView->GoThereSafely(nSequNum);
+#if defined(_DEBUG)
+		wxLogDebug(_T("CEarlierTranslationDlg:  in OnCloseAndJump(), AFTER GoThereSafely(),  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
+	#else
 	m_pView->Jump(pApp,pPile->GetSrcPhrase());
+	#endif
 }
 
 void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event)) 
