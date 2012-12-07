@@ -37855,6 +37855,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	}
 	pView->StatusBarMessage(message);
 	pFrame->m_pStatusBar->Update();
+
 }
 
 // Getters, setters, and shorthands.  Added by Jonathn Field 2005

@@ -2777,6 +2777,9 @@ CAdapt_ItCanvas *CMainFrame::CreateCanvas(CMainFrame *parent)
 // BEW 26Mar10, no changes needed for support of doc version 5
 wxSize CMainFrame::GetCanvasClientSize()
 {
+#if defined(_DEBUG)
+		wxLogDebug(_T("mainfrm::GetCanvasClientSize:  At start,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 	wxSize frameClientSize, canvasSize;
 	frameClientSize = GetClientSize();
 	canvasSize.x = frameClientSize.x; // canvas always fills width of frame's client size
@@ -2808,6 +2811,9 @@ wxSize CMainFrame::GetCanvasClientSize()
 	{
 		canvasSize.y -= m_auitbHeight;
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("mainfrm::GetCanvasClientSize:  At end,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 
 	return canvasSize;
 }
@@ -2819,6 +2825,9 @@ wxSize CMainFrame::GetCanvasClientSize()
 // whm 7Jan12 modified for better viewing and hiding of tool bar
 void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 {
+#if defined(_DEBUG)
+		wxLogDebug(_T("mainfrm::OnViewToolBar:  At start,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 	if (m_auiToolbar != NULL)
 	{
 		if (gpApp->m_bToolBarVisible)
@@ -2840,6 +2849,9 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 	}
 
 	SendSizeEvent(); // needed to force redraw
+#if defined(_DEBUG)
+		wxLogDebug(_T("mainfrm::OnViewToolBar:  At end,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -3067,6 +3079,9 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	// from the canvas itself, I've opted to place those windows within the main frame
 	// manually (apart from using mainFrameSizer) so as to be able to better determine
 	// the source of other scrolling problems.
+#if defined(_DEBUG)
+		wxLogDebug(_T("mainfrm::OnSize:  At start,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 
     // First, set the position of the m_pControlBar in the main frame's client area. Note:
     // the m_pControlBar is never hidden, but always visible on the main frame.
@@ -3168,6 +3183,9 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		finalHeightOfCanvas -= m_vertEditBarHeight;
 	}
 
+#if defined(_DEBUG)
+		wxLogDebug(_T("mainfrm::OnSize:  At middle,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 #ifdef _USE_SPLITTER_WINDOW
     // whm Note: If the splitter window IsSplit, we have two versions of the canvas, one in
     // the top splitter window and one in the bottom splitter window. To size things
@@ -3243,6 +3261,9 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		pView->Invalidate();
 		gpApp->m_pLayout->PlaceBox();
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("mainfrm::OnSize:  At end,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
