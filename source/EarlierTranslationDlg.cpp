@@ -49,12 +49,9 @@
 #include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "Pile.h"
-#include "MainFrm.h"			// These 2 #includes are needed on the Mac
+#include "MainFrm.h"			// mrh - These 2 #includes are needed on both the Mac and Linux.
 #include "Adapt_ItCanvas.h"
-#if defined(__WXGTK__)
-#include "MainFrm.h"
-#include "Adapt_ItCanvas.h"
-#endif
+
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
