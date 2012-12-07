@@ -49,6 +49,8 @@
 #include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "Pile.h"
+#include "MainFrm.h"			// These 2 #includes are needed on the Mac
+#include "Adapt_ItCanvas.h"
 #if defined(__WXGTK__)
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
