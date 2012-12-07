@@ -8942,7 +8942,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 	{
 		pEdit->SetFocus();
 	}
-	
+/* no point retaining it, it doesn't fix the problem	
 	// The following is a kludge which I hope will fix a GTK scrolling bug. I think that
 	// Scroll() call in ScrollIntoView() while it works to change scrollPos for the vertical
 	// bar correctly, wxScrolledWindow's knowledge of that change isn't registering there, and
@@ -8976,6 +8976,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 				 yLogical, yPixelsPerScrollUnit, yPos, scrollPosY, numUnitsY);
 #endif	
 	// Sadly, SetScrollbars() doesn't fix it.
+*/
 }
 
 void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
@@ -15418,7 +15419,7 @@ f:					if (!gbIsGlossing)
 				}
 
 				if (bOK && chapter == nWantedChapter &&  nWantedVerse != 0
-						&& lastVerse > nWantedVerse) // if passed the wanted verse
+						&& lastVerse > nWantedVerse) // if beyond the wanted verse
 					goto a;
 			}
 
