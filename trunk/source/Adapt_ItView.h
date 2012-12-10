@@ -397,9 +397,9 @@ protected:
 	void OnUpdateButtonToStart(wxUpdateUIEvent& event);
 	void OnUpdateButtonStepDown(wxUpdateUIEvent& event);
 	void OnButtonStepDown(wxCommandEvent& event);
-public:
-	void GoThereSafely(int sequNum);
-protected:
+//public:
+//	void GoThereSafely(int sequNum);
+//protected:
 	void OnUpdateButtonStepUp(wxUpdateUIEvent& event);
 	void OnButtonStepUp(wxCommandEvent& event);
 	void OnUpdateButtonMerge(wxUpdateUIEvent& event);

@@ -461,9 +461,6 @@ void CLayout::Draw(wxDC* pDC)
 // colour (white); assumes the redraw is to be based on an unchanged active location
 void CLayout::Redraw(bool bFirstClear)
 {
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::Redraw:  At start,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 	wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
 	m_pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
 	wxClientDC* pDC = &aDC;
@@ -478,9 +475,6 @@ void CLayout::Redraw(bool bFirstClear)
 
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
-#endif
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::Redraw:  At end,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
 #endif
 }
 
@@ -564,9 +558,6 @@ bool CLayout::GetFullWindowDrawFlag()
 // BEW 22Jun10, no changes needed for support of kbVersion 2
 void CLayout::PlaceBox()
 {
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::PlaceBox:  At start,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
     // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
 	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
 	// after Invalidate() calls, and after Redraw() calls
@@ -959,9 +950,6 @@ void CLayout::PlaceBox()
 		}
 	}
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::PlaceBox:  At end,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 }
 
 bool CLayout::GetBoxVisibilityFlag()
@@ -1666,9 +1654,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 #if defined(Do_Clipping)
 	SetFullWindowDrawFlag(TRUE);
 #endif
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::RecalcLayout:  At start,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 	if (!m_pApp->m_bIsPrinting)
 	{
 		m_numVisibleStrips = CalcNumVisibleStrips();
@@ -2073,9 +2058,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 		}
 	}
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::RecalcLayout:  At end,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 	return TRUE;
 }
 
@@ -2545,9 +2527,6 @@ void CLayout::GetVisibleStripsRange(int& nFirstStripIndex, int& nLastStripIndex)
 int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips,
 										   int numTotalStrips)
 {
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::GetStartingIndex_ByBinaryChop:  At start,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 	// "upper" partition is the one with small sequence number, "lower" has larger
 	// sequence numbers
 	if (numTotalStrips < 64)
@@ -2580,9 +2559,6 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 		}
 		nIndexToStartFrom = nLowerBound;
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::GetStartingIndex_ByBinaryChop:  At end,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 	return nIndexToStartFrom;
 }
 
@@ -2907,9 +2883,6 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nStripWidth,
 		 int gap, int nFirstPileIndex, int nEndPileIndex, int nInitialStripCount)
 {
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::RebuildTheInvalidStripRange:  At start,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 	int nFinalStripCount = nInitialStripCount; // initialize to the value passed in
 	int nStripCount = 0;
 	int stripIndex = nFirstStrip;
@@ -3231,9 +3204,6 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 				wxLogDebug(_T("	Rebuild: 6. Last filled strip is INVALID,  Final count of refilled strips is %d"),nFinalStripCount);
 		}
 	#endif
-#endif
-#if defined(_DEBUG)
-		wxLogDebug(_T("layout::RebuildTheInvalidStripRange:  At end,  vert ScrollPos = %d"), GetApp()->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
 #endif
 	return nFinalStripCount; // the caller will renumber strip indices if that is necessary
 }

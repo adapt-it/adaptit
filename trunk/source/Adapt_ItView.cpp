@@ -1091,21 +1091,12 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize(); // gets the width and height of canvas in pixels
 
 	pDC->DestroyClippingRegion(); // ensure whole client area is drawable
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::OnDraw:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
 
-		//int vertScrollPos = pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL);
-		//if (vertScrollPos == 0)
-		//{
-			// we want to break, to examine the call stack to see what the caller is when
-			// scrollPos has gone back to 0
-		//	int break_here = 1;
-		//}
-#endif
     // BEW 5Oct11; Doing a Print Preview after PrintOptionsDlg did a print of physical
     // pages, failed here (pActivePile below was rubbish) due to m_pActivePile having been
     // clobbered. So recalc m_pActivePile before going on... (yes, this fixed the problem)
 	pApp->m_pActivePile = pApp->m_pLayout->GetPile(pApp->m_nActiveSequNum);
+
 #if defined(_DEBUG) && defined(_NEWDRAW) && !defined(__WXGTK__)
 	wxLogDebug(_T("CAdapt_ItView::OnDraw(): Active pile's m_pOwningStrip: %x"), (unsigned int)pApp->m_pActivePile->GetStrip());
 #endif
@@ -1211,9 +1202,6 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		pApp->GetFreeTrans()->DrawFreeTranslationsForPrinting(pDC, GetLayout());
 #endif
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::OnDraw:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 }
 
 // UpdateAppearance() is simply intended to cause the view to redraw itself, if something that affects the visual
@@ -2887,9 +2875,6 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::PlacePhraseBox:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 
 	// if there is no active pile defined, construct one at the clicked location,
 	// or at whatever cell pointer was passed in - eg. when having just opened a document,
@@ -3391,9 +3376,6 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 
 	Invalidate();
 	pLayout->PlaceBox();
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::PlacePhraseBox:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 }
 
 // OnPrepareDC() was moved to CAdapt_ItCanvas in the wx version
@@ -8670,6 +8652,9 @@ void CAdapt_ItView::OnUpdateButtonStepDown(wxUpdateUIEvent& event)
 // not do that; and it assumes the passed in sequNum is for the new active location, and the
 // old active location is still in effect (ie. m_pActivePile is still pointing at the old
 // active location).
+// This code is perfectly good, but Jump() does the equivalent so I'll comment it out
+// until such time as we need it - which may be never
+/* retain, in case we want it later
 void CAdapt_ItView::GoThereSafely(int sequNum)
 {
 	CMainFrame* pFrame;
@@ -8942,52 +8927,13 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 	{
 		pEdit->SetFocus();
 	}
-/* no point retaining it, it doesn't fix the problem
-	// The following is a kludge which I hope will fix a GTK scrolling bug. I think that
-	// Scroll() call in ScrollIntoView() while it works to change scrollPos for the vertical
-	// bar correctly, wxScrolledWindow's knowledge of that change isn't registering there, and
-	// so that class remembers the old scrollPos -- and at the very end of things, sends a
-	// final paint event to the event handler - that uses the un-updated scrollPos, and so
-	// causes the old scrollPos to be restored - and then my OnDraw() code complies dutifully
-	// by drawing the screen at the old location and the DC scrolled accordingly - so the old
-	// doc part is viewed, and the phrase box location could be miles away - wherever the
-	// ScrollIntoView() sent it to. This problem has been in the GTK build of AI for at least
-	// 6.3.0 and 6.3.1 and up to the present which is being prepared for 6.4.0; and Kim reports
-	// having observed this behaviour too, so it probably goes back a *long* way.
-	// My attempt at a fix is to try force wxScrolledWindow to get whatever memory of the
-	// scrollPos it has to be updated. Perhaps an explicit call of SetScrollbars() here,
-	// using the new values for xPos = 0 and yPos, might do it?
-	int xLogical, yLogical; // units are pixels
-	CAdapt_ItCanvas* pCanvas = pApp->GetMainFrame()->canvas;
-	pCanvas->CalcUnscrolledPosition(0,0,&xLogical,&yLogical);
-	int xPixelsPerScrollUnit, yPixelsPerScrollUnit;
-	pCanvas->GetScrollPixelsPerUnit(&xPixelsPerScrollUnit, &yPixelsPerScrollUnit);
-	int numUnitsX, numUnitsY;
-	numUnitsX = pCanvas->GetScrollRange(wxHORIZONTAL); // units are scroll units
-	numUnitsY = pCanvas->GetScrollRange(wxVERTICAL); // units are scroll units
-	int xPos, yPos;
-	xPos = xLogical / xPixelsPerScrollUnit; // should be 0
-	yPos = yLogical / yPixelsPerScrollUnit;
-	// Now we can use SetScrollbars
-	pCanvas->SetScrollbars(xPixelsPerScrollUnit, yPixelsPerScrollUnit, numUnitsX, numUnitsY, xPos, yPos);
-#if defined(_DEBUG)
-	int scrollPosY = pCanvas->GetScrollPos(wxVERTICAL);
-	wxLogDebug(_T("view::GoThereSafely:  after kludge at end,  yLogical (pixels) = %d , yPixelsPerScrollUnit = %d , yPos (scroll units) = %d, scrollPosY (wxWindow call) = %d, numUnitsY = %d"),
-				 yLogical, yPixelsPerScrollUnit, yPos, scrollPosY, numUnitsY);
-#endif
-	// Sadly, SetScrollbars() doesn't fix it.
-*/
 }
-
+*/
 void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 {
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit = NULL; // whm initialized to NULL
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
-#if defined(_DEBUG)
-//		wxLogDebug(_T("view::OnButtonStepDown:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 
 	SPList* pList = pApp->m_pSourcePhrases;
 	int nSaveOldSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
@@ -9233,9 +9179,6 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	{
 		pEdit->SetFocus();
 	}
-#if defined(_DEBUG)
-//		wxLogDebug(_T("view::OnButtonStepDown:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -9303,9 +9246,6 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	SPList* pList = pApp->m_pSourcePhrases;
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::OnButtonStepUp:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 
 	// Beware, the update handler has the button enabled if the active sequ num is -1 and
 	// there is data in the document; so we can't try to call GetSrcPhrase() for an active
@@ -9574,9 +9514,6 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	{
 		pEdit->SetFocus();
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::OnButtonStepUp:  At end,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -19349,9 +19286,6 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
  	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::OnSize:  AT START,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 
     // wx note: event.Skip() must be called here in order to pass the size event
     // on to be handled by the CMainFrame::OnSize() method.
@@ -19436,10 +19370,6 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		Invalidate();
 		GetLayout()->PlaceBox();
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("view::OnSize:  AT END,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////

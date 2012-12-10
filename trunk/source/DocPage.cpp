@@ -331,16 +331,6 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		// Finish wizard button was selected
 		// Since I cannot get OnWizardFinish handler to work, I'll call its function here
 		OnWizardFinish(event); //event.Skip(); // do nothing
-/*
-#if defined(__WXGTK__) && defined(_DEBUG)
-		wxLogDebug(_T("DocPage::OnWizardPageChanging:  after OnWizardFinish(),  vert ScrollPos = %d"), gpApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
-		//int sequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-		//gpApp->GetView()->GoThereSafely(sequNum);
-*/
-#if defined(_DEBUG)
-		wxLogDebug(_T("DocPage::OnWizardPageChanging:  after OnWizardFinish() & about to exit,  vert ScrollPos = %d"), gpApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
 
         // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to 0 here
 #if defined(SCROLLPOS) && defined(__WXGTK__)

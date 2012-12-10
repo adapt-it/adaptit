@@ -587,18 +587,7 @@ void CEarlierTranslationDlg::OnCloseAndJump(wxCommandEvent& event)
 	wxCommandEvent Okevent = wxID_OK;
 	OnOK(Okevent);	// get rid of the dialog - calls destroy and deletes gpApp->m_pEarlierTransDlg pointer
 	event.Skip();
-#if defined(_DEBUG)
-		wxLogDebug(_T("CEarlierTranslationDlg:  in OnCloseAndJump(), BEFORE GoThereSafely(),  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
-	#if defined(__WXGTK__)
-	pPile = pPile; // avoid compiler warning
-	m_pView->GoThereSafely(nSequNum);
-#if defined(_DEBUG)
-		wxLogDebug(_T("CEarlierTranslationDlg:  in OnCloseAndJump(), AFTER GoThereSafely(),  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-#endif
-	#else
 	m_pView->Jump(pApp,pPile->GetSrcPhrase());
-	#endif
     // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to 0 here
 #if defined(SCROLLPOS) && defined(__WXGTK__)
         gpApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post wxEVT_Adjust_Scroll_Pos

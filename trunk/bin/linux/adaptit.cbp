@@ -464,6 +464,8 @@
 			<envvars />
 			<debugger>
 				<search_path add="../../../wxGTK-2.8.12" />
+				<search_path add="../../../wxGTK-2.8.12/buildgtkud" />
+				<search_path add="../../../wxGTK-2.8.12/src" />
 			</debugger>
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">

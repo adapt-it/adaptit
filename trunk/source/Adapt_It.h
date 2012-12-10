@@ -46,7 +46,11 @@
 //#define _KBSERVER
 //#endif
 
-//BEW added 10Dec12, a temporary #define for testing the workaround for scrollPos bug in GTK build
+// BEW added 10Dec12, a #define for the workaround for scrollPos bug in GTK build;
+// the added code needs to be present in the app permanently because the problem comes
+// from an structural defect in wxWidgets which won't change soon if ever; but I'll
+// leave SCROLLPOS defined as it's a handy way to hunt for all the bits and pieces of
+// the workaround
 #define SCROLLPOS
 
 // a temporary #define for Mike to use when working on DVCS:
@@ -4118,13 +4122,46 @@ public:
 											// the ai project name (i.e., Telei-English) on export file names
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
+    // BEW added 10Dec12
+    //This workaround is needed to avoid wxWidgets input focus mechanism from later resetting
+    // the focus to the canvas (ie. wxScrolledWindow's subclass) from within wxWidgets
+    // windows.cpp's gtk_window_focus_in_callback() function, at the point in that function
+    // where its code thinks our canvas window doesn't have focus and so calls the
+    // DoSendFocusEvents() on the canvas. That in turn leads to scrlwing.cpp's function
+    // HandleOnChildFocus() being called which internally calls its own Scroll(x_Pos, y_Pos)
+    // function on the canvas - but with the y_Pos value as stored from before our
+    // ScrollIntoView() function gets called - with the final effect of all this being to
+    // restore the scroll car to whatever was it's position prior to ScrollIntoView() being
+    // called -- and then a repaint event causes the view to be drawn at the old location
+    // in the document rather than at the strip where our ScollIntoView() code worked out it
+    // should be at.
+    // I tried a workaround - to call SetFocus()
+    // on the canvas explicitly, so as to avoid wxWidgets having to do it with a wrong y_Pos        // the canvas window the input focus explicitly here, the the DoSendFocusEvents()
+    // value; but I couldn't find a place to make that work: tried at the start of
+    // ScrollIntoView(), at the end of ScrollIntoView() and also at the end of canvas's
+    // OnPaint() call (after it's pView->Draw() call); but the scrollPos value still got
+    // clobbered every time, being reset to its old position.
+    // Therefore, I conclude the problem is an architectural design flaw in wxWidgets
+    // implementation of the interaction between the input focus mechanism anhd scrolling
+    // support. The only thing we can do is therefore program a way around the problem, by
+    // forcing a further resetting of scrollPos back to where it should be, then repainting
+    // the canvas. To ensure the repositioning of the scroll car is done after wxWidgets
+    // has done its worst to mess it up for us, I post the needed custom event from an OnIdle()
+    // call; and use a boolean m_bAdjustScrollPos defined in the CAdapt_ItApp class to
+    // indicate, by setting it TRUE, when this extra adjustment should be done.
+    // So far I've identified 3 features that need this support (but only in the __WxXGTK__
+    // build): (1) When opening a document in which the initial location of the phrase box
+    // is below the bottom of the client window. (2) When requesting a GoTo... some other
+    // part of the document beyond the bounds of the currently visible part of the document.
+    // (3) When hitting the Cancel And Jump Here button in the View Translation or Glosses
+    // Elsewhere In The Document dialog. (Windows and OS X builds work correctly with this.)
     private:
 
-    // boolean used for a workaround for the scrollPos bug (position goes back to old position unbidden)
+    // boolean flag refered to in the comment above
     bool m_bAdjustScrollPos;
 
     public:
-
+    // getter and setter for this flag
     void SetAdjustScrollPosFlag(bool bDoAdjustment);
     bool GetAdjustScrollPosFlag();
 #endif
