@@ -331,17 +331,24 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		// Finish wizard button was selected
 		// Since I cannot get OnWizardFinish handler to work, I'll call its function here
 		OnWizardFinish(event); //event.Skip(); // do nothing
-#if defined(__WXGTK__)
-#if defined(_DEBUG)
+/*
+#if defined(__WXGTK__) && defined(_DEBUG)
 		wxLogDebug(_T("DocPage::OnWizardPageChanging:  after OnWizardFinish(),  vert ScrollPos = %d"), gpApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
 #endif
-		int sequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-		gpApp->GetView()->GoThereSafely(sequNum);
+		//int sequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+		//gpApp->GetView()->GoThereSafely(sequNum);
+*/
 #if defined(_DEBUG)
-		wxLogDebug(_T("DocPage::OnWizardPageChanging:  after GoThereSafely(),  vert ScrollPos = %d"), gpApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+		wxLogDebug(_T("DocPage::OnWizardPageChanging:  after OnWizardFinish() & about to exit,  vert ScrollPos = %d"), gpApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
 #endif
-#endif		
-		
+
+        // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to 0 here
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+        gpApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post wxEVT_Adjust_Scroll_Pos
+                // custom event & it's handler will restore correct scrollPos value, get a draw
+                // of the view done, and then OnIdle() will reset the m_bAdjustScrollPos flag
+                // back to its default FALSE value
+#endif
 	}
 	else
 	{

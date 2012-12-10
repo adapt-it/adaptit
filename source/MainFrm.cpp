@@ -352,6 +352,19 @@ DEFINE_EVENT_TYPE(wxEVT_End_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
 
+//BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+
+DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
+
+#define EVT_SCROLLPOS_ADJUST(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Adjust_Scroll_Pos, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+#endif
+
 // it may also be convenient to define an event table macro for the above event types
 #define EVT_ADAPTATIONS_EDIT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
@@ -467,6 +480,11 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
+
+	//BEW added 10Dec12
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+	EVT_SCROLLPOS_ADJUST(-1, CMainFrame::OnCustomEventAdjustScrollPos)
+#endif
 
 END_EVENT_TABLE()
 
@@ -3661,6 +3679,9 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 	// because the breakpoint will itself trigger the OnActivate() event!
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+#if defined(_DEBUG)
+		wxLogDebug(_T("cmainframe::OnActivate:  AT START,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 
 	// m_pTargetBox is now on the App, and under wxWidgets the main frame's
 	// OnActivate() method may be called after the view has been destroyed
@@ -3689,6 +3710,9 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
 	event.Skip();
+#if defined(_DEBUG)
+		wxLogDebug(_T("cmainframe::OnActivate:  AT END,  vert ScrollPos = %d"), this->canvas->GetScrollPos(wxVERTICAL));
+#endif
 }
 
 // OnIdle moved here from the App. When it was in the App it was causing
@@ -3972,7 +3996,40 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			pApp->m_bAutoInsert = FALSE;
 		}
 	}
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+	// BEW added 10Dec12, a workaround for the scrollPos bug
+    if (pApp->GetAdjustScrollPosFlag())
+    {
+        // adjustment has been requested, so post the event to the event loop
+        wxCommandEvent eventCustom(wxEVT_Adjust_Scroll_Pos);
+        wxPostEvent(this, eventCustom);
+
+        pApp->SetAdjustScrollPosFlag(FALSE); // restore default value
+    }
+#endif
 }
+
+// BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+void CMainFrame::OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+#if defined(_DEBUG)
+		wxLogDebug(_T("cmainframe::OnCustomEventAdjustScrollPos: at Start ,  vert ScrollPos = %d"), canvas->GetScrollPos(wxVERTICAL));
+#endif
+	CAdapt_ItView* pView = pApp->GetView();
+	wxASSERT(pView != NULL);
+
+    wxLogDebug(_T("OnCustomEventAdjustScrollPos() active sequence number = %d"),pApp->m_nActiveSequNum);
+    canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+    pView->Invalidate();
+#if defined(_DEBUG)
+		wxLogDebug(_T("cmainframe::OnCustomEventAdjustScrollPos: at End ,  vert ScrollPos = %d"), canvas->GetScrollPos(wxVERTICAL));
+#endif
+}
+#endif
+
 
 // whm Note: this and following custom event handlers are in the View in the MFC version
 //
@@ -6077,7 +6134,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("AA: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("AA: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6144,7 +6201,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("BB 6124: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("BB 6124: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6172,7 +6229,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("CC 6151: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("CC 6151: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6203,7 +6260,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("DD 6180: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("DD 6180: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6237,7 +6294,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		// member function called RecalcLayout(), not my CAdapt_ItView member function of same name
 		//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so, no harm
 							   // if the window is not embedded
-							   
+
 		// BEW 21Nov12, a compound bug discovered on this date was that if the phrase box
 		// was after the selection, and the user edit added a word, and in the adaptations
 		// the last two words were made a merger, and then Cancel All Steps was clicked,
@@ -6358,7 +6415,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("CX %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("CX %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6531,7 +6588,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("A 6497: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("A 6497: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6575,7 +6632,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("B 6541: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("B 6541: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6674,7 +6731,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("b 6640: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("b 6640: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6715,7 +6772,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("C 6681: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("C 6681: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -6761,7 +6818,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("D 6727: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("D 6727: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,
@@ -7108,7 +7165,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			arr.Add(src);
 		}
 		wxString spaces = _T("  ");
-		wxLogDebug(_T("E: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"), 
+		wxLogDebug(_T("E: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s"),
 			arr.Item(0)+ spaces,arr.Item(1)+ spaces,arr.Item(2)+ spaces,arr.Item(3)+ spaces,arr.Item(4)+ spaces,
 			arr.Item(5)+ spaces,arr.Item(6)+ spaces,arr.Item(7)+ spaces,arr.Item(8)+ spaces,arr.Item(9)+ spaces,
 			arr.Item(10)+ spaces,arr.Item(11)+ spaces,arr.Item(12)+ spaces,arr.Item(13)+ spaces,arr.Item(14)+ spaces,

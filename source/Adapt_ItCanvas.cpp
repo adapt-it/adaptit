@@ -181,7 +181,6 @@ CAdapt_ItCanvas::~CAdapt_ItCanvas(void)
 
 void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
-
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		// make the background be an insipid red colour
@@ -194,6 +193,9 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 		this->SetOwnBackgroundColour(backcolor);
 		//this->SetOwnBackgroundColour(wxNullColour);
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("canvas::OnPaint:  AT START,  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
+#endif
 	wxPaintDC paintDC(this);//wxAutoBufferedPaintDC paintDC(this);
 	// whm 9Jun07 Note: use of wxAutoBufferedPaintDC() is supposed to recognize when
 	// double buffering is being done by the system's graphics primitives, and avoids
@@ -204,9 +206,9 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	// a release build on Ubuntu apparently defined wxUSE_GRAPHICS_CONTEXT and got
 	// link errors for "undefined reference wxGCDC::...
 	// whm 22Jun12 set all ports to use the wxDC &dc = paintDC under wxWidgets 2.9.3
-//#if wxUSE_GRAPHICS_CONTEXT && !__WXGTK__ && !__WXMSW__
+//#if wxUSE_GRAPHICS_CONTEXT && !__WXMSW__ && !__WXGTK__
 //     wxGCDC gdc( paintDC ) ;
-//    wxDC &dc = m_useContext ? (wxDC&) gdc : (wxDC&) paintDC ;
+//   wxDC &dc = m_useContext ? (wxDC&) gdc : (wxDC&) paintDC ;
 //#else
     wxDC &dc = paintDC ;
 //#endif
@@ -2084,7 +2086,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CLayout* pLayout = pApp->m_pLayout;
-	
+
 	if (pApp->m_nActiveSequNum == -1)
 	{
 		return; // do nothing if the phrase box is hidden because we are at doc end

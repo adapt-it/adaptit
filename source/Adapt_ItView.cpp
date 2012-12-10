@@ -1093,11 +1093,11 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	pDC->DestroyClippingRegion(); // ensure whole client area is drawable
 #if defined(_DEBUG)
 		wxLogDebug(_T("view::OnDraw:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
-		
+
 		//int vertScrollPos = pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL);
 		//if (vertScrollPos == 0)
 		//{
-			// we want to break, to examine the call stack to see what the caller is when 
+			// we want to break, to examine the call stack to see what the caller is when
 			// scrollPos has gone back to 0
 		//	int break_here = 1;
 		//}
@@ -8657,7 +8657,7 @@ void CAdapt_ItView::OnUpdateButtonStepDown(wxUpdateUIEvent& event)
 }
 
 // GoThereSafely() is an alternative to Jump(), because the latter in the __GTK__ build failes
-// to do ScrollIntoView() if the new active location is remote from the starting active 
+// to do ScrollIntoView() if the new active location is remote from the starting active
 // location. So GoThereSafely() is based on the OnButtonStepDown() handler, which does shift
 // the active location to remote new locations successfully, and contains code to set the
 // phrase box safely there (i.e. not in a retranslation), and calls ScrollIntoView(). Handlers
@@ -8665,7 +8665,7 @@ void CAdapt_ItView::OnUpdateButtonStepDown(wxUpdateUIEvent& event)
 // function does nothing in its Scroll() call if the new location is remote - functions with
 // this failure were at least these: handler for Close and Jump Here button in the dialog for
 // examining a different part of the document; SetActivePilePointerSafely() - when loading
-// a document; and the OnGoTo() handler (there may be more, but I didn't test all 
+// a document; and the OnGoTo() handler (there may be more, but I didn't test all
 // possibilities). Unlike OnButtonStepDown() wwhich does a StoreText(), GoThereSafely() will
 // not do that; and it assumes the passed in sequNum is for the new active location, and the
 // old active location is still in effect (ie. m_pActivePile is still pointing at the old
@@ -8682,7 +8682,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 	RemoveSelection();
 	wxASSERT(pApp->m_pActivePile != NULL);
 
-	// find the new active location; but if none is found then just beep and stay at the 
+	// find the new active location; but if none is found then just beep and stay at the
 	// current active location
 	bool bFoundActiveLoc = FALSE;
 	int nSequNum = 0; // start searching from beginning of doc
@@ -8725,7 +8725,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 		tempStr.Empty();
 		pEdit->ChangeValue(tempStr); // make it have an empty string
 	}
-	
+
 
 	wxASSERT(pPile);
 	pApp->m_pActivePile = pPile; // set the new active pile's pointer
@@ -8733,7 +8733,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 	wxASSERT(pApp->m_nActiveSequNum == sequNum); // this might not be a valid location - could
 				// be in a free translation if free trans mode is active, or in a retranslation
 				// so we must check for these possibilities and adjust if necessary
-	
+
 	SPList::Node* pos = pList->Item(pApp->m_nActiveSequNum);
 	wxASSERT(pos != NULL);
 	CSourcePhrase* pSrcPhr = (CSourcePhrase*)pos->GetData();
@@ -8762,7 +8762,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 					pApp->m_nActiveSequNum = nSequNum;
 					pApp->m_pActivePile = GetPile(nSequNum);
 					// ensure the strip there is marked invalid
-					pLayout->m_pDoc->ResetPartnerPileWidth(pSrcPhr); 
+					pLayout->m_pDoc->ResetPartnerPileWidth(pSrcPhr);
 					break;
 				}
 			}
@@ -8782,7 +8782,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 		}
 		else if (!pSrcPhr->m_adaption.IsEmpty())
 		{
-			// do this if it has a non-empty adaptation or gloss (if in glossing mode) 
+			// do this if it has a non-empty adaptation or gloss (if in glossing mode)
 			// already there
 			if (gbIsGlossing)
 			{
@@ -8807,7 +8807,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 		}
 
 		// We are not out of the woods yet... the active location just chosen must not
-        // contain a retranslation, since we want to put the phrase box there, so check and 
+        // contain a retranslation, since we want to put the phrase box there, so check and
         // if so, move backwards until we find a src phrase which is not a retranslation, and
         // not a <Not In KB> location either. Going back is safe, but at least for scripture
         // the initial CSourcePhrase should be for a book ID (such as MAT, or LUK, etc) and
@@ -8836,7 +8836,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 					{
 						pApp->m_targetPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
 					}
-					// update the layout and get a fresh active pile pointer 
+					// update the layout and get a fresh active pile pointer
 					// (the next lines down to the return are copied from below)
 					#ifdef _NEW_LAYOUT
 					GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
@@ -8850,7 +8850,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 					Invalidate();
 					GetLayout()->PlaceBox();
 
-					// if we are in free translation mode, we want the focus to be in 
+					// if we are in free translation mode, we want the focus to be in
 					// the Compose Bar's edit box after the move has been done
 					if (pApp->m_bFreeTranslationMode && pEdit != NULL)
 					{
@@ -8868,12 +8868,12 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 			pSrcPhr = pApp->m_pActivePile->GetSrcPhrase();
 			pApp->m_nActiveSequNum = pSrcPhr->m_nSequNumber;
 
-			// handle the possibility that the new active location might be a 
+			// handle the possibility that the new active location might be a
 			// "<Not In KB>" one -- that's a "safe" location, so we can use it
 			if (!pSrcPhr->m_bHasKBEntry && pSrcPhr->m_bNotInKB)
 			{
-				// this ensures user has to explicitly type into the box and explicitly 
-				// check the checkbox if he wants to override the "not in kb" earlier 
+				// this ensures user has to explicitly type into the box and explicitly
+				// check the checkbox if he wants to override the "not in kb" earlier
 				// setting at this location
 				pApp->m_bSaveToKB = FALSE;
 				pApp->m_targetPhrase.Empty();
@@ -8912,7 +8912,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 			//  make sure our safe active location has it's strip marked as
 			// invalid, so that the window is updated here and scrolling to this
 			// new location will work right
-			pLayout->m_pDoc->ResetPartnerPileWidth(pSrcPhr); 
+			pLayout->m_pDoc->ResetPartnerPileWidth(pSrcPhr);
 		}
 
 		// remove the text from the KB, if refString is not null
@@ -8942,7 +8942,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 	{
 		pEdit->SetFocus();
 	}
-/* no point retaining it, it doesn't fix the problem	
+/* no point retaining it, it doesn't fix the problem
 	// The following is a kludge which I hope will fix a GTK scrolling bug. I think that
 	// Scroll() call in ScrollIntoView() while it works to change scrollPos for the vertical
 	// bar correctly, wxScrolledWindow's knowledge of that change isn't registering there, and
@@ -8955,7 +8955,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 	// 6.3.0 and 6.3.1 and up to the present which is being prepared for 6.4.0; and Kim reports
 	// having observed this behaviour too, so it probably goes back a *long* way.
 	// My attempt at a fix is to try force wxScrolledWindow to get whatever memory of the
-	// scrollPos it has to be updated. Perhaps an explicit call of SetScrollbars() here, 
+	// scrollPos it has to be updated. Perhaps an explicit call of SetScrollbars() here,
 	// using the new values for xPos = 0 and yPos, might do it?
 	int xLogical, yLogical; // units are pixels
 	CAdapt_ItCanvas* pCanvas = pApp->GetMainFrame()->canvas;
@@ -8974,7 +8974,7 @@ void CAdapt_ItView::GoThereSafely(int sequNum)
 	int scrollPosY = pCanvas->GetScrollPos(wxVERTICAL);
 	wxLogDebug(_T("view::GoThereSafely:  after kludge at end,  yLogical (pixels) = %d , yPixelsPerScrollUnit = %d , yPos (scroll units) = %d, scrollPosY (wxWindow call) = %d, numUnitsY = %d"),
 				 yLogical, yPixelsPerScrollUnit, yPos, scrollPosY, numUnitsY);
-#endif	
+#endif
 	// Sadly, SetScrollbars() doesn't fix it.
 */
 }
@@ -8984,7 +8984,7 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit = NULL; // whm initialized to NULL
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	
+
 #if defined(_DEBUG)
 //		wxLogDebug(_T("view::OnButtonStepDown:  At start,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
 #endif
@@ -15225,6 +15225,14 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					// as close to wanted loc'n as possible
 					Jump(pApp,pSrcPhrase);
 
+    // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to earlier value
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+                    pApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post a
+                        // wxEVT_Adjust_Scroll_Pos custom event & it's handler will restore
+                        // correct scrollPos value, get a draw of the view done, and then
+                        // OnIdle() will reset the m_bAdjustScrollPos flag back to its
+                        // default FALSE value
+#endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
 					if (!gbIgnoreScriptureReference_Send)
@@ -15277,6 +15285,14 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					// loc'n as possible
 					Jump(pApp,pSrcPhrase);
 
+    // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to earlier value
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+                    pApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post a
+                        // wxEVT_Adjust_Scroll_Pos custom event & it's handler will restore
+                        // correct scrollPos value, get a draw of the view done, and then
+                        // OnIdle() will reset the m_bAdjustScrollPos flag back to its
+                        // default FALSE value
+#endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
 					if (!gbIgnoreScriptureReference_Send)
@@ -15331,6 +15347,14 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 					// loc'n as possible
 					Jump(pApp,pSrcPhrase);
 
+    // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to earlier value
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+                    pApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post a
+                        // wxEVT_Adjust_Scroll_Pos custom event & it's handler will restore
+                        // correct scrollPos value, get a draw of the view done, and then
+                        // OnIdle() will reset the m_bAdjustScrollPos flag back to its
+                        // default FALSE value
+#endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
 					if (!gbIgnoreScriptureReference_Send)
@@ -15408,6 +15432,14 @@ f:					if (!gbIsGlossing)
 					// loc'n as possible
 					Jump(pApp,pSrcPhrase);
 
+    // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to earlier value
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+                    pApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post a
+                        // wxEVT_Adjust_Scroll_Pos custom event & it's handler will restore
+                        // correct scrollPos value, get a draw of the view done, and then
+                        // OnIdle() will reset the m_bAdjustScrollPos flag back to its
+                        // default FALSE value
+#endif
 					// if the user has turned on the sending of synchronized scrolling
 					// messages, send the relevant message
 					if (!gbIgnoreScriptureReference_Send)
@@ -19317,6 +19349,9 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
  	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::OnSize:  AT START,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
 
     // wx note: event.Skip() must be called here in order to pass the size event
     // on to be handled by the CMainFrame::OnSize() method.
@@ -19401,6 +19436,10 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		Invalidate();
 		GetLayout()->PlaceBox();
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("view::OnSize:  AT END,  vert ScrollPos = %d"), pApp->GetMainFrame()->canvas->GetScrollPos(wxVERTICAL));
+#endif
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////

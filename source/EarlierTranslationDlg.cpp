@@ -6,20 +6,20 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CEarlierTranslationDlg class. 
+/// \description	This is the implementation file for the CEarlierTranslationDlg class.
 /// The CEarlierTranslationDlg class allows the user to view an earlier translation made
-/// within the same document (choosing its location by reference), and optionally jump 
+/// within the same document (choosing its location by reference), and optionally jump
 /// there if desired.
 /// The CEarlierTranslationDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
 /// \derivation		The CEarlierTranslationDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in EarlierTranslationDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -114,7 +114,7 @@ CEarlierTranslationDlg::CEarlierTranslationDlg(wxWindow* parent) // dialog const
 	// size dialog.
 	pEarlierTransSizer = EarlierTransDlgFunc(this, TRUE, TRUE);
 	// The declaration is: EarlierTransDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	// Get pointers to controls and set validators
 	m_pSrcTextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_TEXT);
 	wxASSERT(m_pSrcTextBox != NULL);
@@ -160,9 +160,9 @@ void CEarlierTranslationDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 }
 
 void CEarlierTranslationDlg::OnClose(wxCloseEvent& WXUNUSED(event))
-{	
+{
 	// This OnClose handler does not get called when user presses the esc key
-	// TODO: Implement a different way to capture esc key closing of the dialog window so we can call Destroy. 
+	// TODO: Implement a different way to capture esc key closing of the dialog window so we can call Destroy.
 	Destroy();
 	//delete gpApp->m_pEarlierTransDlg; // BEW added 19Nov05, to prevent memory leak // No, this is harmful in wx!!!
 	gpApp->m_pEarlierTransDlg = NULL;
@@ -172,7 +172,7 @@ void CEarlierTranslationDlg::OnClose(wxCloseEvent& WXUNUSED(event))
 void CEarlierTranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-	
+
 	//// make the spin buttons work properly
 	m_pChapterSpinCtrl->SetRange(0,150);
 	m_pVerseSpinCtrl->SetRange(1,2000); // allow up to 2,000; for greater values, type directly in the box
@@ -181,7 +181,7 @@ void CEarlierTranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_nChapter = gnLastEarlierChapter;
 	m_nVerse = gnLastEarlierVerse;
 
-	// first, use the current source and target language fonts for the 
+	// first, use the current source and target language fonts for the
 	// edit boxes (in case there are special characters); or if glossing is on and
 	// navText font is used for rendering, then set up that instead for the 'target'
 
@@ -190,7 +190,7 @@ void CEarlierTranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSrcTextBox, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSrcTextBox, NULL, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSrcTextBox, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 
@@ -198,7 +198,7 @@ void CEarlierTranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTgtTextBox, NULL,
 								NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTgtTextBox, NULL, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTgtTextBox, NULL,
 								NULL, NULL, gpApp->m_pDlgTgtFont);
 	#endif
 
@@ -209,7 +209,7 @@ void CEarlierTranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pTgtTextBox, NULL,
 									NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
 		#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTgtTextBox, NULL, 
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pTgtTextBox, NULL,
 									NULL, NULL, gpApp->m_pDlgTgtFont);
 		#endif
 	}
@@ -391,7 +391,7 @@ void CEarlierTranslationDlg::EnableJumpButton(bool bEnableFlag)
 /////////////////////////////////////////////////////////////////////////////
 // CEarlierTranslationDlg message handlers
 
-void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(event)) 
+void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(event))
 {
 	//TransferDataFromWindow(); // whm removed 21Nov11
 	m_srcText = m_pSrcTextBox->GetValue(); // whm added 21Nov11
@@ -529,7 +529,7 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 			int chapter;
 			int firstVerse;
 			int lastVerse;
-			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
+			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here
 			bool bOK = m_pView->AnalyseReference(
 				pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
 
@@ -537,7 +537,7 @@ void CEarlierTranslationDlg::OnGetChapterVerseText(wxCommandEvent& WXUNUSED(even
 			if (bOK && chapter > nWantedChapter)
 				goto a;
 
-			if (bOK && chapter == nWantedChapter 
+			if (bOK && chapter == nWantedChapter
 				&& (nWantedVerse >= firstVerse && nWantedVerse <= lastVerse))
 			{
 
@@ -570,10 +570,10 @@ a:		str = str.Format(_("Sorry, but the chapter and verse combination %s does not
 		EnableLessButton(FALSE);
 		EnableMoreButton(FALSE);
 		EnableJumpButton(FALSE);
-	}	
+	}
 }
 
-void CEarlierTranslationDlg::OnCloseAndJump(wxCommandEvent& event) 
+void CEarlierTranslationDlg::OnCloseAndJump(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	gnOldSequNum = pApp->m_nActiveSequNum;
@@ -597,9 +597,16 @@ void CEarlierTranslationDlg::OnCloseAndJump(wxCommandEvent& event)
 	#else
 	m_pView->Jump(pApp,pPile->GetSrcPhrase());
 	#endif
+    // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to 0 here
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+        gpApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post wxEVT_Adjust_Scroll_Pos
+                // custom event & it's handler will restore correct scrollPos value, get a draw
+                // of the view done, and then OnIdle() will reset the m_bAdjustScrollPos flag
+                // back to its default FALSE value
+#endif
 }
 
-void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event)) 
+void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	SPList* pList = pApp->m_pSourcePhrases;
@@ -636,7 +643,7 @@ void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event))
 			m_preContext[nIndex] = m_preContext[nIndex-1];
 			goto a;
 		}
-		
+
 		// space the verses apart a bit
 		m_srcText = _T("     ") + m_srcText;
 		m_tgtText = _T("     ") + m_tgtText;
@@ -682,7 +689,7 @@ void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event))
 					int firstVerse;
 					int lastVerse;
 					bool bOK;
-					// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
+					// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here
 					bOK = m_pView->AnalyseReference(
 						pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
 					bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
@@ -733,7 +740,7 @@ a:	if (m_nCurLastSequNum >= (int)pList->GetCount() - 1)
 			int firstVerse;
 			int lastVerse;
 			bool bOK;
-			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on Bill's code here 
+			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on Bill's code here
 			bOK = m_pView->AnalyseReference(
 				pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
 			bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
@@ -822,7 +829,7 @@ b:	m_nExpansionIndex = nIndex; // update its value
 	m_pEndChVerseStaticText->SetLabel(m_strEndChVerse); // whm added 21Nov11
 }
 
-void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event) 
+void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	SPList* pList = pApp->m_pSourcePhrases;
@@ -889,7 +896,7 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 
 				// analyse the reference
 				bool bOK;
-				// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
+				// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here
 				bOK = m_pView->AnalyseReference(
 					pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
 				bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
@@ -905,7 +912,7 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 
 				// analyse the reference
 				bool bOK;
-				// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
+				// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here
 				bOK = m_pView->AnalyseReference(
 					pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
 				bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
@@ -916,7 +923,7 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 
 			// analyse the reference
 			bool bOK;
-			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here 
+			// BW added extra parameter Oct 2004, set it  > 0 so it has no effect on my code here
 			bOK = m_pView->AnalyseReference(
 				pSrcPhrase->m_chapterVerse,chapter,firstVerse,lastVerse,200);
 			bOK = bOK; // avoid warning TODO: test for failures? (BEW 2Jan12, No, we want
@@ -958,12 +965,12 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-// WX Note: If user types ESC key, or clicks on the "Close" button, this OnOK() 
+// WX Note: If user types ESC key, or clicks on the "Close" button, this OnOK()
 // handler is called followed by a call to the class Destructor.
-void CEarlierTranslationDlg::OnOK(wxCommandEvent& WXUNUSED(event)) 
+void CEarlierTranslationDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 {
 	// Note: The dialog's Close button has the wxID_OK identifier to this OnOK() handler is called
-	// when user clicks "Close". This OnOK() handler is also called when the user clicks on the 
+	// when user clicks "Close". This OnOK() handler is also called when the user clicks on the
 	// "Close and Jump Here" button.
 	Destroy();
 	//delete gpApp->m_pEarlierTransDlg; // BEW added 19Nov05, to prevent memory leak // No, this is harmful in wx!!!

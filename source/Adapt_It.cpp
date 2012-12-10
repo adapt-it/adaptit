@@ -14864,6 +14864,19 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 
 #endif // for _KBSERVER
 
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+void CAdapt_ItApp::SetAdjustScrollPosFlag(bool bDoAdjustment)
+{
+    m_bAdjustScrollPos = bDoAdjustment;
+}
+
+bool CAdapt_ItApp::GetAdjustScrollPosFlag()
+{
+    return m_bAdjustScrollPos;
+}
+#endif
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all goes well, FALSE if there was something that causes premature exit
 /// \remarks
@@ -14877,6 +14890,11 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+    // boolean used for a workaround for the scrollPos bug (position goes back to old position unbidden)
+    m_bAdjustScrollPos = FALSE;
+#endif
+
 	m_bCalledFromOnVerticalEditCancelAllSteps = FALSE; // initialize to default value, BEW added 23Nov12
 #if defined(_KBSERVER)
 
