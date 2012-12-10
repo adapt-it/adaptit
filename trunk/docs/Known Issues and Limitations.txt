@@ -21,32 +21,16 @@ box.
 
 Linux version:
 
-1. A bogus paint event, with a device context scrolled to the
-earlier vertical location of the vertical scroll bar's scroll
-car happens after certain events (but not all, fortunately).
-The visible effect is that the Adapt It code has correctly
-placed the phrase box at some far away place in the document -
-as requested by the user, but the main window does not scroll so
-as to show it on screen. Actually, the scroll is done correctly
-but the bogus paint event overrides it's effect, and Adapt It
-then obeys the wrong scroll car position and shows the earlier
-location on the screen. This is a nuisance, but nothing is
-damaged. A manual scroll has to be done to bring the phrase
-box back into view. (For operations which don't greatly change
-the scroll position, no visible effect can be noticed.)
-The functions which display this failure of the application to
-scroll the active location into view are:
-1) When a document is loaded, and the active location is below
-the bottom of the main window.
-2) When the GoTo menu item is used, and the target location is
-above or below the main window.
-3) When the View Translation of Glosses Elsewhere In The Document
-dialog's Close And Jump Here button is used to cause the active
-location to jump to a chapter:verse location which is above or
-below the main window.
-This problem only happens in the Linux build. Windows and OS X
-work properly. Unfortunately, the problem is in the wxWidgets
-code resources and so we are unable to fix it ourselves.
+1. In Ubuntu Precise, running the Unity Interface, the text control 
+in the ComposeBar does not maintain the input focus, nor any 
+selection made, when the user mouses to the Unity menu bar (which
+was formerly Adapt It's menu bar) to choose from the Edit menu
+any of the commands Cut, Copy, or Paste. Results will not be what
+you expect, Paste may be disabled, and Cut or Copy clears the 
+phrase box instead. This is an Ubuntu issue which we can't fix.
+A bug report has been sent to the Unity developers. In the meantime:
+CTRL+C, CTRL+X, and CTRL+V work correctly, and you'll have no
+problems if you use these shortcuts instead.
 
 All Versions:
 
