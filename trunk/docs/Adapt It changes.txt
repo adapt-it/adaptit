@@ -9,10 +9,12 @@ selection made, when the user mouses to the Unity menu bar (which
 was formerly Adapt It's menu bar) to choose from the Edit menu
 any of the commands Cut, Copy, or Paste. Results will not be what
 you expect, Paste may be disabled, and Cut or Copy clears the 
-phrase box instead. This is an Ubuntu issue which we can't fix.
-A bug report has been sent to the Unity developers. In the meantime:
-CTRL+C, CTRL+X, and CTRL+V work correctly, and you'll have no
+phrase box instead. This is a Unity issue which we can't fix.
+Until such time as the Unity developers fix this, CTRL+C, 
+CTRL+X, and CTRL+V work correctly, and you'll have no
 problems if you use these shortcuts instead.
+The problem does not arise on other *buntus, nor on other distros
+such as Linux Mint.
 
 ----------------------------------------------
 Feature changes and new features in 6.4.0
@@ -63,12 +65,24 @@ the user did File > Save to save his translation work to Bibledit
 while Bibledit was still running, Adapt It failed to detect it was
 running and warn the user to close it before trying again. Now fixed.
 * Using Ubuntu with the Unity interface, Adapt It shows the Paste
-command disabled, and cut, copy and paste do not work right. We are
-awaiting a bug fix from the Unity developers. In the meantime, use
-the CTRL key shortcuts (see the "Known Issue" above for details.)
+command disabled, and cut, copy and paste do not work right. The 
+Unity developers may fix this problem some day. In the meantime, use
+the CTRL key shortcuts (see the "Known Issue" above for details), or
+use a different GUI in Ubuntu, or a different Linux flavour, such as
+the very popular Mint - Cinnamon.
 * The keyboard up-arrow key should scroll the document by a distance
 the same as the strip height plus the leading, but nothing happened.
 This is now fixed. (Keyboard down-arrow key did not have this bug.)
+* For several versions, there has been a bug in the syncing of the
+draw location to the position of the phrase box, but only in the
+Linux version. We've now got a seamless workaround. The problem is
+not of our making, but originates from a design glitch in the
+wxWidgets resources on which we rely. An example of the bug is the
+following: open a document in which the active location is below
+the bottom of the window. Adapt It failed, in the Linux version, to
+scroll the active strip into the middle of the view window, so the
+phrase box was unseen until manually scrolled into view, or some text
+was added to it.
 ----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------
