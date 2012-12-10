@@ -46,6 +46,9 @@
 //#define _KBSERVER
 //#endif
 
+//BEW added 10Dec12, a temporary #define for testing the workaround for scrollPos bug in GTK build
+#define SCROLLPOS
+
 // a temporary #define for Mike to use when working on DVCS:
 #define TEST_DVCS
 
@@ -4114,6 +4117,17 @@ public:
 	bool m_bUsePrefixExportProjectNameOnFilename; // whm 21Feb12 added flag to include/exclude prefixing
 											// the ai project name (i.e., Telei-English) on export file names
 
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+    private:
+
+    // boolean used for a workaround for the scrollPos bug (position goes back to old position unbidden)
+    bool m_bAdjustScrollPos;
+
+    public:
+
+    void SetAdjustScrollPosFlag(bool bDoAdjustment);
+    bool GetAdjustScrollPosFlag();
+#endif
 };
 
 DECLARE_APP(CAdapt_ItApp);

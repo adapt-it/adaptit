@@ -52,6 +52,7 @@
 			<Add before="#ifndef _RTL_FLAGS" />
 			<Add before="#ifdef _RTL_FLAGS" />
 			<Add before="#endif" />
+			<Add before="#define SCROLLPOS" />
 		</ExtraCommands>
 		<Unit filename="../../res/32x32/adaptit.png" />
 		<Unit filename="../../res/48x48/adaptit.png" />
@@ -457,9 +458,13 @@
 		<Unit filename="../../source/wxUUID.cpp" />
 		<Unit filename="../../source/wxUUID.h" />
 		<Extensions>
-			<code_completion />
+			<code_completion>
+				<search_path add="../../../wxGTK-2.8.12" />
+			</code_completion>
 			<envvars />
-			<debugger />
+			<debugger>
+				<search_path add="../../../wxGTK-2.8.12" />
+			</debugger>
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
 				<gui name="wxWidgets" src="" main="" init_handlers="necessary" language="CPP" />

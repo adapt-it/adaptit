@@ -6,8 +6,8 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CChooseTranslation class. 
-/// The CChooseTranslation class provides a dialog in which the user can choose 
+/// \description	This is the implementation file for the CChooseTranslation class.
+/// The CChooseTranslation class provides a dialog in which the user can choose
 /// either an existing translation, or enter a new translation for a given source phrase.
 /// \derivation		The CChooseTranslation class is derived from AIModalDialog.
 /// BEW 2July10, this class has been updated to support kbVersion 2
@@ -132,7 +132,7 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	pChooseTransSizer = ChooseTranslationDlgFunc(this, TRUE, TRUE);
     // The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool
     // set_sizer );
-    
+
    // whm modification 27Feb09: wxDesigner doesn't have an easy way to incorporate a custom
    // derived listbox control such as our CMyListBox control. Hence, it has used the stock
    // library wxListBox in the ChooseTranslationDlgFunc() dialog building function. I'll
@@ -176,7 +176,7 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_refCount = 0;
 	m_refCountStr.Empty();
 	m_refCountStr << m_refCount;
-	// wx version note: The parent of our dialogs is not the View, so we'll get the 
+	// wx version note: The parent of our dialogs is not the View, so we'll get the
 	// view elsewhere
 	m_bHideCancelAndSelectButton = FALSE;
 
@@ -209,13 +209,13 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	}
 	m_pMap = m_pKB->m_pMap[m_nWordsInPhrase-1];
 
-	// Note: We don't need to set up any SetValidators for data transfer 
+	// Note: We don't need to set up any SetValidators for data transfer
 	// in this class since all assignment of values is done in OnOK()
 }
 
 CChooseTranslation::~CChooseTranslation() // destructor
 {
-	
+
 }
 
 void CChooseTranslation::OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event))
@@ -246,7 +246,7 @@ void CChooseTranslation::OnUpdateButtonMoveUp(wxUpdateUIEvent& event)
 }
 
 // BEW 28Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
-void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event)) 
+void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 {
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
@@ -308,7 +308,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// and nSel will index its new location
 		m_pMyListBox->Delete(nLocation);
 		m_pMyListBox->Insert(tempStr,nSel,(void*)&value);
-		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's 
+		// m_pMyListBox is NOT sorted but it is safest to find the just-inserted item's
 		// index before calling a function which needs to know the location
 		nLocation = gpApp->FindListBoxItem(m_pMyListBox,tempStr,caseSensitive,exactString);
 		wxASSERT(nLocation != wxNOT_FOUND); // we just added it so it must be there!
@@ -331,7 +331,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// potential presence of deleted instances means that we must search for the
 		// instance to be moved earlier in the list, and moving it means we must move over
 		// each preceding deleted instance, if any, until we get to the location of the
-		// first preceding non-deleted element, and insert at that location 
+		// first preceding non-deleted element, and insert at that location
 		wxASSERT(pos != NULL);
 		pRefString = (CRefString*)pos->GetData();
 		wxASSERT(pRefString != NULL);
@@ -401,7 +401,7 @@ void CChooseTranslation::OnUpdateButtonMoveDown(wxUpdateUIEvent& event)
 }
 
 // BEW 30Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
-void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event)) 
+void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 {
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
@@ -535,7 +535,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 			pCurTargetUnit->m_pTranslations->Append(pRefString);
 		}
 		else
-		{	
+		{
 			// we are at a CRefString instance, so we can insert before it
 			pCurTargetUnit->m_pTranslations->Insert(pos,pRefString);
 		}
@@ -544,7 +544,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 
 		// check the insertion or append got done right, a simple message will do (in
 		// English) for the developer if it didn't work - this error is unlikely to ever
-		// happen 
+		// happen
 		pos = pCurTargetUnit->m_pTranslations->Find(pRefString);
 		if (pos == NULL)
 		{
@@ -568,7 +568,7 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED(event)) 
+void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
@@ -594,18 +594,18 @@ void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED
 	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 }
 
-void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(event)) 
+void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(event))
 {
     // whm Note: Sinced this is a "double-click" handler we want the behavior to be essentially
 	// equivalent to calling both the OnSelchangeListBoxTranslations(), followed by any code handling
 	// that goes into the OnOK() handler. Testing shows that when making a double-click on a list
 	// box the OnSelchangeListBoxTranslations() is called first, then this
 	// OnDblclkListboxTranslations() handler is called.
-	
+
 	wxString s;
 	// IDS_NO_ADAPTATION
 	s = s.Format(_("<no adaptation>")); // ready "<no adaptation>" in case it's needed
-	
+
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pMyListBox))
 	{
         // In wxGTK, when m_pMyListBox->Clear() is called it triggers this
@@ -626,7 +626,7 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	if (str == s)
 	{
 		str = _T(""); // restore null string to be shown in the phrase box
-		m_bEmptyAdaptationChosen = TRUE; // this will be used to set the 
+		m_bEmptyAdaptationChosen = TRUE; // this will be used to set the
 								// gbEmptyAdaptationChosen global used by PlacePhraseBox
 	}
 	m_chosenTranslation = str;
@@ -636,14 +636,14 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
     // whm Correction 12Jan09 - The zero parameter given previously to EndModal(0) was incorrect. The
     // parameter needs to be the value that gets returned from the ShowModal() being invoked on this
     // dialog - which in the case of a double-click, should be wxID_OK.
-	
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
 }
 
 // BEW 28Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
-void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event)) 
+void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 {
 	// whm added: If the m_pMyListBox is empty, just return as there is nothing to remove
 	if (m_pMyListBox->GetCount() == 0)
@@ -684,7 +684,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// find the corresponding CRefString instance in the knowledge base, and set the
 	// nPreviousReferences variable for use in the message box; if user hits Yes
-	// then go ahead and do the removals. 
+	// then go ahead and do the removals.
     // Note: the global pCurTargetUnit is set to a target unit in either the glossing KB
     // (when glossing is ON) or to one in the normal KB when adapting, so we don't need to
     // test for the KB type here.
@@ -714,7 +714,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
 	}
-	// get the ref count, use it to warn user about how many previous references 
+	// get the ref count, use it to warn user about how many previous references
 	// this will mess up
 	int nPreviousReferences = pRefString->m_refCount;
 
@@ -773,9 +773,9 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	if (numNotDeleted == 0)
 	{
 		// this means the pCurTargetUnit has no undeleted CRefString instances left
-		
+
 		// legacy code here has been omitted -- nothing to do in this block now
-		
+
 		// whm Note 3Aug06:
         // The user wanted to delete the translation from the KB, so it would be nice
         // if the the phrasebox did not show the removed translation again after
@@ -809,7 +809,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 	m_bEmptyAdaptationChosen = FALSE;
 	m_bCancelAndSelect = FALSE;
-	
+
 	wxString s;
 	s = s.Format(_("<no adaptation>")); // that is, "<no adaptation>", ready in case we need it
 
@@ -821,7 +821,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSourcePhraseBox, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSourcePhraseBox, NULL, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, m_pSourcePhraseBox, NULL,
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 
@@ -829,7 +829,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pNewTranslationBox, NULL,
 								m_pMyListBox, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pNewTranslationBox, NULL, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pNewTranslationBox, NULL,
 								m_pMyListBox, NULL, gpApp->m_pDlgTgtFont);
 	#endif
 
@@ -870,17 +870,24 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	PopulateList(pCurTargetUnit, 0, No);
 
 	// select the first string in the listbox by default
-	m_pMyListBox->SetSelection(0);
-	wxString str = m_pMyListBox->GetStringSelection();
-	int nNewSel = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
-	wxASSERT(nNewSel != -1);
-	m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nNewSel);
-	m_refCountStr.Empty();
-	m_refCountStr << m_refCount;
-	// the above could fail, if nothing is in the list box, in which case -1 will be put in the 
-	// m_refCount variable, in which case that is out of bounds, so change to zero
-	if (m_refCount < 0)
-		m_refCount = 0;
+	// BEW changed 3Dec12, if the list box is empty, the ASSERT below trips. So we need a test
+	// that checks for an empty list, and sets nothing in that case
+	if (!m_pMyListBox->IsEmpty())
+	{
+        m_pMyListBox->SetSelection(0);
+        wxString str = m_pMyListBox->GetStringSelection();
+        int nNewSel = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
+        wxASSERT(nNewSel != -1);
+        m_refCount = *(wxUint32*)m_pMyListBox->GetClientData(nNewSel);
+        m_refCountStr.Empty();
+        m_refCountStr << m_refCount;
+        // the above could fail, if nothing is in the list box, in which case -1 will be put in the
+        // m_refCount variable, in which case that is out of bounds, so change to zero
+        if (m_refCount < 0)
+        {
+            m_refCount = 0;
+        }
+	}
 
 	// hide the Do Not Ask Again button if there is more than one item in the list
 	int nItems = m_pMyListBox->GetCount();
@@ -907,7 +914,7 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
 		pButton->Show(FALSE);
 	}
-	
+
 	//TransferDataToWindow(); // whm removed 21Nov11
 	m_pEditReferences->ChangeValue(m_refCountStr); // whm added 21Nov11
 
@@ -957,7 +964,7 @@ void CChooseTranslation::PopulateList(CTargetUnit* pTU, int selectionIndex, enum
 	}
 }
 
-void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event) 
+void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -968,7 +975,7 @@ void CChooseTranslation::OnButtonCancelAndSelect(wxCommandEvent& event)
 	OnCancel(event);
 }
 
-void CChooseTranslation::OnKeyDown(wxKeyEvent& event) 
+void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 // applies only when adapting; when glossing, just immediately exit
 {
 	if (gbIsGlossing) return; // glossing being ON must not allow this shortcut to work
@@ -991,7 +998,7 @@ void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 	}
 }
 
-void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event)) 
+void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	// don't need to do anything
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
@@ -1001,7 +1008,7 @@ void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-void CChooseTranslation::OnOK(wxCommandEvent& event) 
+void CChooseTranslation::OnOK(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -1034,7 +1041,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 			if (str == s)
 			{
 				str = _T(""); // restore null string
-				m_bEmptyAdaptationChosen = TRUE; // this will be used to set the 
+				m_bEmptyAdaptationChosen = TRUE; // this will be used to set the
 										// gbEmptyAdaptationChosen global used by PlacePhraseBox
 			}
 
@@ -1042,7 +1049,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 		}
 	}
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
-	
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 

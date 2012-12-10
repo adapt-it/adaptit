@@ -57,6 +57,11 @@ DECLARE_EVENT_TYPE(wxEVT_Back_Translations_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_End_Vertical_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
+
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+    DECLARE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos, -1)
+#endif
+
 END_DECLARE_EVENT_TYPES()
 
 
@@ -217,7 +222,7 @@ public:
 #if defined(TEST_DVCS)
 	void OnDVCS_Version (wxCommandEvent& WXUNUSED(event));
 	void OnUpdateDVCS_Version(wxUpdateUIEvent& event);
-	
+
 	void OnInit_Repository (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Add_File (wxCommandEvent& WXUNUSED(event));
 	void OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event));
@@ -246,6 +251,11 @@ public:
 	void OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
+
+#if defined(SCROLLPOS) && defined(__WXGTK__)
+	void OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event));
+#endif
+
 
 	void DoCreateStatusBar();
 	//void OnMRUFile(wxCommandEvent& event); //whm removed 1Oct12
