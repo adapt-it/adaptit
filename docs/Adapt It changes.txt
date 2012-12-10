@@ -66,6 +66,9 @@ running and warn the user to close it before trying again. Now fixed.
 command disabled, and cut, copy and paste do not work right. We are
 awaiting a bug fix from the Unity developers. In the meantime, use
 the CTRL key shortcuts (see the "Known Issue" above for details.)
+* The keyboard up-arrow key should scroll the document by a distance
+the same as the strip height plus the leading, but nothing happened.
+This is now fixed. (Keyboard down-arrow key did not have this bug.)
 ----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------

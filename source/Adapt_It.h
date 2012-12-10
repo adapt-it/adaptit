@@ -1976,7 +1976,7 @@ private:
 		helpMenu,
 		administratorMenu
 	};
-   /// The application's m_pMainFrame member serves as the backbone for Adapt It's
+    /// The application's m_pMainFrame member serves as the backbone for Adapt It's
     /// interface and its document-view framework. It is created in the App's OnInit()
     /// function and is the "parent" window for almost all other parts of Adapt It's
     /// interface including the menuBar, toolBar, controlBar, composeBar, statusBar and
