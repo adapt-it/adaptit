@@ -193,9 +193,6 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 		this->SetOwnBackgroundColour(backcolor);
 		//this->SetOwnBackgroundColour(wxNullColour);
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::OnPaint:  AT START,  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
 	wxPaintDC paintDC(this);//wxAutoBufferedPaintDC paintDC(this);
 	// whm 9Jun07 Note: use of wxAutoBufferedPaintDC() is supposed to recognize when
 	// double buffering is being done by the system's graphics primitives, and avoids
@@ -216,21 +213,12 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	{
 		wxLogDebug(_T("canvas OnPaint() reports dc is not Ok!"));
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::OnPaint:  Before DoPrepareDC(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
     DoPrepareDC(paintDC); // PrepareDC() now calls DoPrepareDC()
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::OnPaint:  After DoPrepareDC(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
 
 	if (pView)
 	{
 		pView->OnDraw(& paintDC);
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::OnPaint:  After  pView->OnDraw(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
 }
 
 
@@ -489,15 +477,8 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::OnScroll:  At start before Skip(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
-
 	event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
 					// to be processed
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::OnScroll:  At end after Skip(),  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
 }
 
 bool CAdapt_ItCanvas::IsModified() const
@@ -2091,10 +2072,6 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	{
 		return; // do nothing if the phrase box is hidden because we are at doc end
 	}
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::ScrollIntoView:  At start,  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
-
 #ifdef Do_Clipping
 	// disable clipping, but note below - if we determine that no scroll is needed we will
 	// turn the flag off so that clipping becomes possible (provided the CLayout bool
@@ -2608,10 +2585,6 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 //#if defined(_FT_ADJUST) && defined(_DEBUG)
 	}
 //#endif
-#if defined(_DEBUG)
-		wxLogDebug(_T("canvas::ScrollIntoView:  At end,  vert ScrollPos = %d"), GetScrollPos(wxVERTICAL));
-#endif
-
 // end of the free translation supporting else block
 }
 
