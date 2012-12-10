@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.4.0 release 30 November 2012
+Version 6.4.0 release 12 December 2012
 ----------------------------------------------
 
 *** WARNING*** Known Issue
