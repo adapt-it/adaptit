@@ -165,6 +165,39 @@
   </target>
   
   <!-- 
+  - compile_msi target
+  - Builds the AI msi installers (ANSI and Unicode).
+  -->
+  <target name="compile_msi" depends="compile_unicode_release"
+        description="compile the msi installers" >
+    <!-- build the unicode release msi installer -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+		<env key="WXVER" value="29"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
+		<env key="BOOST" value="${3pt}/boost/current/boost"/>
+		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
+		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.vdproj" />
+		<arg value="/target:rebuild" />
+		<arg value="/p:Configuration=Release" />
+    </exec>
+    <!-- build the regular (ANSI) msi installer -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+		<env key="WXVER" value="29"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
+		<env key="BOOST" value="${3pt}/boost/current/boost"/>
+		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
+		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.vdproj" />
+		<arg value="/target:rebuild" />
+		<arg value="/p:Configuration=Release" />
+    </exec>
+	<!-- copy the msi installers into the AIWX Installers directory -->
+    <copy file="${root}/bin/Adapt It WX Unicode Setup/Release/Adapt It WX Unicode Setup.msi" tofile="${dist}/Adapt It WX Unicode Setup.msi"/>
+    <copy file="${root}/bin/Adapt It WX Release Setup/Release/Adapt It WX Regular Setup.msi" tofile="${dist}/Adapt It WX Regular Setup.msi"/>
+  </target>
+
+  <!-- 
   - compile_Debug target
   - Compiles AI in Debug mode.
   -->

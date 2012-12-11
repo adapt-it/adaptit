@@ -31,7 +31,7 @@ OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2012 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX
 VersionInfoProductVersion=6.4.0
-WizardImageFile={#SvnBase}\res\AIWX.bmp
+WizardImageFile="{#SvnBase}\res\ai_wiz_bg.bmp"
 WizardSmallImageFile={#SvnBase}\res\AILogo32x32.bmp
 WizardImageStretch=false
 AppCopyright=2012 Bruce Waters, Bill Martin, SIL International
@@ -43,6 +43,7 @@ VersionInfoDescription=Adapt It WX
 UsePreviousGroup=false
 UsePreviousAppDir=false
 DisableWelcomePage=true
+WizardImageBackColor=clWhite
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
