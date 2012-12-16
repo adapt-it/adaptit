@@ -6,12 +6,12 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
+			<Target title="DebugWX2.8">
+				<Option output="bin/DebugWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX2.8/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
+				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
@@ -20,14 +20,15 @@
 				<Linker>
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
 					<Add option="-lcurl -luuid" />
+					<Add library="~/wx2.8/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
+			<Target title="ReleaseWX2.8">
+				<Option output="bin/ReleaseWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWX2.8/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
+				<Option projectLinkerOptionsRelation="1" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
@@ -36,6 +37,41 @@
 					<Add option="-s" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --libs`" />
 					<Add option="-lcurl -luuid" />
+					<Add library="~/wx2.8/buildgtku/lib/*.*" />
+				</Linker>
+			</Target>
+			<Target title="DebugWX2.9">
+				<Option output="bin/DebugWX2.9/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX2.9/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-D_DEBUG" />
+				</Compiler>
+				<Linker>
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
+					<Add option="-lcurl -luuid" />
+					<Add library="~/wx2.9/buildgtkud/lib/*.*" />
+				</Linker>
+			</Target>
+			<Target title="ReleaseWX2.9">
+				<Option output="bin/ReleaseWX2.9/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWX2.9/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --libs`" />
+					<Add option="-lcurl -luuid" />
+					<Add library="~/wx2.9/buildgtku/lib/*.*" />
 				</Linker>
 			</Target>
 		</Build>
@@ -463,7 +499,7 @@
 			</code_completion>
 			<envvars />
 			<debugger>
-				<search_path add="$(WXWIN)/src" />
+				<search_path add="~/wx2.8/src" />
 			</debugger>
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
