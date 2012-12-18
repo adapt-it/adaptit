@@ -11802,7 +11802,11 @@ fnb: while (fnptr < pfnEnd)
 					}
 					// if my programming does what I've intended there should be
 					// two closing braces added
-					wxASSERT(MiscRTF.Length() == 2);
+					// whm 17Dec12 removed the first wxASSERT() below.
+					// If the footnote exists but does not have
+					// content an extra closing brace may be added to
+					// balance the closing brace count.
+					//wxASSERT(MiscRTF.Length() == 2);
 					wxASSERT(nClosingBraces == nOpeningBraces);
 
 					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
