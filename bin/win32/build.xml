@@ -30,7 +30,7 @@
     <delete dir="${dist}"/>
 	<!-- Delete expanded 3pt directories -->
 	<delete dir="${3pt}\boost\current\boost" />
-	<delete dir="${3pt}\wxWidgets-2.8.12\wxWidgets-2.8.12" /> 
+	<delete dir="${3pt}\wxWidgets\2.8.12\wxWidgets-2.8.12" /> 
 	<delete dir="${3pt}\wxWidgets\current\wxWidgets" /> 
 	<delete dir="${3pt}\openssl\current\openssl" /> 
 	<delete dir="${3pt}\curl\current\curl" /> 
@@ -45,6 +45,13 @@
     <delete dir="${root}\setup Unicode - No Html Help"/>
     <delete dir="${root}\setup Unicode Documentation Only"/>
     <delete dir="${root}\setup Unicode Localizations Only"/>
+  </target>
+  
+  <!-- quick test to see if the 3rd party libs have been expanded yet -->
+  <target name="check-3pt">
+    <!-- Create the time stamp -->
+    <tstamp/>
+	<available file="${3pt}\boost\current\boost\boost.css" property="3pt.expanded"/>
   </target>
 
   <!-- 
@@ -72,9 +79,7 @@
   - Setup for the builds. This target unpacks the 3pt libraries, building them if
   - needed, then updates the environment variables that VSBuild needs to compile.
   -->
-  <target name="init">
-    <!-- Create the time stamp -->
-    <tstamp/>
+  <target name="init" depends="check-3pt" unless="3pt.expanded">
     <!-- extract 3pt libraries -->
     <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
 	<arg value="x" />
@@ -100,12 +105,9 @@
 	<arg value="-o${3pt}/wxwidgets/current/wxWidgets" />
 	<arg value="-y" />
     </exec>
-    <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
-	<arg value="x" />
-	<arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.7z" />
-	<arg value="-o${3pt}/wxwidgets/2.8.12" />
-	<arg value="-y" />
-    </exec>
+    <unzip src="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.zip" 
+		dest="${3pt}/wxwidgets/2.8.12">
+    </unzip>
     <!-- wxWidgets needs us to tell it what OS platform we're building; we do this by
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
@@ -120,6 +122,8 @@
   - Compiles AI in Unicode Debug mode.
   -->
   <target name="compile_unicode_debug" depends="init" description="compile the source " >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
@@ -145,6 +149,8 @@
   -->
   <target name="compile_unicode_release" depends="init"
         description="compile the source " >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
@@ -170,6 +176,8 @@
   -->
   <target name="compile_msi" depends="compile_unicode_release"
         description="compile the msi installers" >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build the unicode release msi installer -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="29"/>
@@ -198,11 +206,13 @@
   </target>
 
   <!-- 
-  - compile_Debug target
-  - Compiles AI in Debug mode.
+  - compile_debug target
+  - Compiles AI in ANSI Debug mode.
   -->
   <target name="compile_debug" depends="init"
         description="compile the source " >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
@@ -213,21 +223,25 @@
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
+		<env key="WXVER_VS05" value="28"/>
+		<env key="WXWIN_VS05" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="${root}/bin/win32/Adapt_It_vs05.sln" />
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Debug" />
     </exec>
   </target>
 
   <!-- 
-  - compile_Release target
-  - compiles AI in release mode.
+  - compile_release target
+  - compiles AI in ANSI release mode.
   -->
   <target name="compile_release" depends="init"
         description="compile the source " >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
@@ -238,10 +252,12 @@
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
+		<env key="WXVER_VS05" value="28"/>
+		<env key="WXWIN_VS05" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="${root}/bin/win32/Adapt_It_vs05.sln" />
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Release" />
     </exec>
@@ -263,7 +279,7 @@
   - Runs the CallAllBatchSetups.bat file, that copies docs, help, localizations and .exes to the setup
   - staging areas for the installers. This is called from the build_release target.
   -->
-  <target name="copy" depends="compile_unicode_release" description="copy the build results to the setup staging areas">
+  <target name="copy" description="copy the build results to the setup staging areas">
     <!-- copying is done through a batch file -->
 	<echo message="Copying files" />
     <exec dir="${root}" executable="cmd" failonerror="yes">
@@ -273,34 +289,14 @@
   </target>
 
   <!-- 
-  - generate_installers
-  - Runs all the installer scripts to create the installers.
+  - generate_unicode_installers
+  - Runs the unicode installer scripts to create the installers.
   - output will be in the ${dist} directory if successful.
   - This target gets called from the daily build.
   -->
-  <target name="generate_installers" depends="copy"
+  <target name="generate_unicode_installers" depends="copy"
         description="generate the distribution" >
-    <!-- Run ALL the Inno IDE scripts -->
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Documentation Only.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Localizations Only.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Minimal.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - No Html Help.iss" />
-    </exec>
-    <exec executable="iscc" failonerror="yes">
-	<arg value="/q" />
-	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular.iss" />
-    </exec>
+    <!-- Run the Inno IDE scripts for unicode versions of Adapt It -->
     <exec executable="iscc" failonerror="yes">
 	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Unicode - Documentation Only.iss" />
@@ -324,6 +320,37 @@
   </target>
 
   <!-- 
+  - generate_ansi_installers
+  - Runs all the installer scripts to create the installers.
+  - output will be in the ${dist} directory if successful.
+  - This target gets called from the daily build.
+  -->
+  <target name="generate_ansi_installers" depends="copy"
+        description="generate the distribution" >
+    <!-- Run the Inno IDE scripts for ansi versions of Adapt It -->
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Documentation Only.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Localizations Only.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Minimal.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - No Html Help.iss" />
+    </exec>
+    <exec executable="iscc" failonerror="yes">
+	<arg value="/q" />
+	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular.iss" />
+    </exec>
+  </target>
+  
+  <!-- 
   - build_continuous target
   - Compiles the Unicode Debug build.
   -->
@@ -334,7 +361,14 @@
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, init, compile_unicode_release, compile_release, build_help, generate_installers" description="Daily / Release build target" >
+  <target name="build_release" depends="clean, init, compile_unicode_release, build_help, copy, generate_unicode_installers" description="Daily / Release build target (Unicode only)" >
+  </target>
+
+  <!-- 
+  - build_legacy target
+  - Compiles the regular (ansi) Debug and Release builds using the VS 2005 compiler.
+  -->
+  <target name="build_ansi" depends="clean, init, compile_debug, compile_release, build_help, copy, generate_ansi_installers" description="ANSI Debug and Release build target" >
   </target>
 
 </project>
