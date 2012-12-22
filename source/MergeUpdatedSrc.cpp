@@ -47,12 +47,17 @@ WX_DEFINE_OBJARRAY(SPArray);
 // uncomment out the #define ShowConversionItems just preceding the helpers.cpp function
 // void ConvertSPList2SPArray(SPList* pList, SPArray* pArray), at about line 8772
 
-/* If you don't know what you need to look at for debugging, turn on the first five below...
+/* If you don't know what you need to look at for debugging, turn on the first six below...
 #define myLogDebugCalls       // probably the most useful one overall, and for counting spans & their deletions
 #define myMilestoneDebugCalls // useful for outer loop and MergeRecursively() calls
 #define LOOPINDEX             // this one gives the loop indices at the start of each iteration
 #define MERGE_Recursively     // use this one and the next to look at the tuple processing
 #define _RECURSE_			  // gives useful information when recursion takes place in merging matched spans
+#define _INCOMMON			  // this is for debugging GetMaxInCommonSubspan_ByWordGroupSampling() which
+							  // handles non-milestoned large chunks mergers -- avoids
+							  // excessive multiple small pairings by sampling from
+							  // equidistant points in arrOld, doing word-group matchups
+							  // to quickly find in-common span pairings
 //#define LEFTRIGHT			  // displays results of extending in-common matches to left or right
 							  //(this one has limited usefulness, only use if extending issues are your focus)
 */
@@ -678,9 +683,10 @@ int	GetWordsInCommon(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, wxArra
 void InitializeSubspan(Subspan* pSubspan, SubspanType spanType, int oldStartPos,
 						int oldEndPos, int newStartPos, int newEndPos, bool bClosedEnd)
 {
-	pSubspan->childSubspans[0] = NULL;
-	pSubspan->childSubspans[1] = NULL;
-	pSubspan->childSubspans[2] = NULL;
+	// BEW 20Dec12, removed childSubspans[] array, it's not needed
+	//pSubspan->childSubspans[0] = NULL;
+	//pSubspan->childSubspans[1] = NULL;
+	//pSubspan->childSubspans[2] = NULL;
 	pSubspan->oldStartPos = oldStartPos;
 	pSubspan->newStartPos = newStartPos;
 	pSubspan->oldEndPos = oldEndPos;
@@ -3818,15 +3824,17 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// \param  oldEndAt        ->  ending (inclusive) index in arrOld for parent Subspan
 /// \param  newStartAt      ->  starting index in arrNew for parent Subspan
 /// \param  newEndAt        ->  ending (inclusive) index in arrNew for parent Subspan
-/// \param  oldStartingPos  ->  the index in arrOld from which we start our leftwards jump
-/// \param  newStartingPos  ->  the index in arrNew from which we start our leftwards jump
-/// \param  oldCount        <-  ref to a count of the number of CSourcePhrase instances to accept
-///                             to the left in our "single" jump within the arrOld array (it may
-///                             not be just one - see below)
-/// \param  newCount        <-  ref to a count of the number of CSourcePhrase instances to accept
-///                             to the left in our "single" jump within the arrNew array (it should
-///                             always be just one - see below, because arrNew will NEVER
-///                             have any retranslations or placeholders in it)
+/// \param  oldStartingPos  ->  the index in arrOld from which we start our leftwards widening
+/// \param  newStartingPos  ->  the index in arrNew from which we start our leftwards widening
+/// \param  oldCount        <-  ref to a count of the number of CSourcePhrase instances to be
+///                             accepted, being to the left in our "single" widening within the
+///                             arrOld array (it may not be just one - see below regarding
+///                             complications such as mergers and placeholders)
+/// \param  newCount        <-  ref to a count of the number of CSourcePhrase instances to be
+///                             accepted to the left in our "single" jump within the arrNew
+///                             array (it usually will be just one because arrNew will NEVER
+///                             have any retranslations or placeholders in it; but a merger
+///                             in arrOld can lead to > 1 new ones being accepted - see below)
 ///
 /// \remarks
 /// This function tries to extend a matchup of an in-common word leftwards by one step,
@@ -3835,8 +3843,8 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// placeholders nor retranslations to the immediate left, then we have only to make a
 /// simple test for matching m_key values in the CSourcePhrase to the immediate left (i.e.
 /// in the array, at the next smallest index value) in both arrOld and arrNew. Return TRUE
-/// if they match, FALSE if they don't - and returning FALSE indicates we've come to the
-/// left bound of an in-common span of CSourcePhrase instances.
+/// if they match, FALSE if they don't - and returning FALSE indicates we've come to what
+/// is to be the left bound of this in-common span of CSourcePhrase instances.
 ///
 /// Note: the recursion algorithm must not change the number or order of CSourcePhrase
 /// instances in arrOld and arrNew. Only after recursion is completed and the merging is
@@ -3886,7 +3894,8 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// we need additional criteria to help us decide whether or not the placeholder should be
 /// included in the commonSpan, or considered to belong in the beforeSpan. Here is the
 /// protocol for deciding this:
-/// (a) Check the placeholder, is it left-associated, right-associated, or neither
+/// (a) Check the placeholder, to determine whether it is left-associated, right-associated,
+/// or neither. Then...
 /// (b) If right-associated, deem it to belong in commonSpan as the latter's first
 /// CSourcePhrase instance (we'll support sequences of manually inserted placeholders,
 /// although it's highly likely they never will occur);
@@ -4027,20 +4036,36 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                 // that lies within arrNew's bounds, if so we assume then that arrNew may
                 // have a matching word sequence, so we test for the match
 				int newStartIndex = newIndex - numWords + 1;
-				wxASSERT(newStartIndex >= 0); // otherwise a bounds error
-				bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newStartIndex);
-				if (bMatched)
+				
+				if (newStartIndex >= 0)
 				{
-					oldCount++; // it now equals 1
-					newCount += numWords; // no mergers in arrNew, so we count the
-							// requisite number of words which belong in commonSpan
-					return TRUE;
+					// BEW changed 17Dec12, if the merger is large enough, and newIndex small
+					// enough, then the newStartIndex can go negative; so we don't want to
+					// assert it's positive or zero, but test for negative, and if so, then
+					// the widening leftwards cannot be done, so return FALSE
+					//wxASSERT(newStartIndex >= 0); // otherwise a bounds error
+					bool bMatched = IsMergerAMatch(arrOld, arrNew, oldIndex, newStartIndex);
+					if (bMatched)
+					{
+						oldCount++; // it now equals 1
+						newCount += numWords; // no mergers in arrNew, so we count the
+								// requisite number of words which belong in commonSpan
+						return TRUE;
+					}
+					else
+					{
+						// no match, so return FALSE
+#if defined( LEFTRIGHT) && defined(_DEBUG)
+		wxLogDebug(_T("Leftwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+#endif
+						return FALSE;
+					}
 				}
 				else
 				{
-					// no match, so return FALSE
+					// can't extend that far to the left
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+		wxLogDebug(_T("Leftwards ONCE: exiting at THREE point five - the merger-sequence mismatch, newStartIndex went negative"));
 #endif
 					return FALSE;
 				}
@@ -4856,25 +4881,110 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 ///                                 are obtained
 /// \remarks
 /// We take the parent Subspan instance, use it's bounds to delineate subspans of arrOld
-/// and arrNew (typically SPAN_LIMIT amound of CSourcePhrase instances, but could be less
-/// if not that many are available for the parent Subspan), and then from those two
+/// and arrNew (typically SPAN_LIMIT amount of CSourcePhrase instances, but could be less
+/// if not that many are available for the parent Subspan), 
+/// 
+/// BEW legacy comments, prior to 18thDec12... and then from those two
 /// subspans obtain an array of unique in-common words (yes, words, not CSourcePhrase
 /// instances) which are common to both subspans. These words enable us to find matchup
 /// locations within arrOld and arrNew, and ultimately to get the longest such matchup -
 /// the latter jobs are done by calling GetAllCommonSubspansFromOneParentSpan. Internally
 /// we create some arrays that we need for doing these tasks, an array for the unique
 /// in-common words, one for all Subspan instances that we find - and a parallel array of
-/// their composite width values. The longest Subspan is taken and all the others (which
-/// are all on the heap) are deleted, and the longest is then used in the caller, along
-/// with the parent Subspan bounds, to work out the beginning and ending indices for the
-/// tuple of beforeSpan, commonSpan, and afterSpan.
+/// their composite width values.
+/// 
+/// BEW 18Dec12 comments - for new algorithms added:
+/// Looking for the longest in-common span matchups when two large data chunks are merged
+/// (for example, a whole scripture book lacking USFMs, into which the source text file
+/// with the same source text but with all USFMs added) may involve billions of
+/// combinations to check if individual words are checked in all possible location
+/// permuatations. 
+/// For this reason, I've a different approach for getting the longest in-common subspan
+/// within a parent subspan. In the "old" chunk, I divide the chunk into a series of
+/// sampling locations and at each location obtain a group of in-sequence words of a size
+/// which I determine algorithmically (if the group is smaller, the number of words in the
+/// sequence is smaller; but these are not a string of words, but rather the words within a
+/// small range of consecutive cells in the array of words passed in, stored in a
+/// wxArrayString created on the heap temporarily). There will be at least two words, and
+/// probably I'll go as large as 7 for large chunks. In the other passed in array, the
+/// "new" data's one, I'll then search for matchups with the 2 to 7 chosen words - this
+/// will greatly reduce the possibilities, and for groups of about 5 or more, there may be
+/// only a single matchup possible - that helps enormously.
+/// If such a group of words falls within the largest in-common subspan being searched for,
+/// then the other array will give a match with 100% reliability -- and then we extend the
+/// words-in-common to the left and right as far as possible, and store the span and its
+/// width so delineated. If the span's width is more than half the width of the span passed
+/// in, then no larger span is possible, and so we can return exit the matchups loop early
+/// and return to the caller. 
+/// The danger in this algorithm is that there may be only a large number of smallish
+/// in-common spans, and our testing points may miss landing within any of these - which
+/// would increase the likelihood that the in-common span we return is actually an
+/// accidental (bogus) matchup - leading to a poor merger result (lots of adaptations
+/// thrown away needlessly). We reduce this danger, though we can't eliminate it, by not
+/// being too ambitious in the size of the word groups we delineate (smaller is better, but
+/// not so small that spurious matchups proliferate), and that we sample the text for
+/// getting the word groups to search for across the whole range of the parent span passed
+/// in with jump distances not too large - 15 to 50 words would be reasonable, smaller
+/// jumps being for an "old" chunk that is itself small. So, for example, if our word group
+/// size is just 2 words, then we'd want to make a new word group of that size, for
+/// checking purposes, about every 8 to 10 words approximately, for a passed in span of no
+/// more than about 160 words. But if the passed in span is 1000 words or more, then we'd
+/// probably want to grab a group of 7 words, about every 40 to 50 words across the span.
+/// When we widen a matchup, in both old and new chunks, to get it's maximum extent in
+/// each. But if we are within an already delineated matched span, then we abandon that
+/// attempt - there's no point continuing, because we'd just end up with the same span
+/// we've already delineated. Hence, all the in-common spans we delineate will have empty
+/// intersections. We then take the largest and return it, as in the legacy comments below.
+/// (Even if our algorithm causes us to miss the largest span on this iteration, so long as
+/// the in-common matchup is not bogus, a subsequent iteration will eventually find the
+/// missed in-common span and deal with it.) 
+/// Finally, if the word groups we construct are not matched in the other array, this
+/// algorithm fails. So we must check for this, and if so return FALSE to the caller. The
+/// caller would then need to use the legacy single-word based matchup algorithm, because
+/// word group non-matches imply that the actual in-common subspans have small size, or are
+/// absent.
+/// 
+/// BEW, legacy ending comments (still apply) The longest Subspan is taken and all the
+/// others (which are all on the heap) are deleted, and the longest is then used in the
+/// caller, along with the parent Subspan bounds, to work out the beginning and ending
+/// indices for the tuple of beforeSpan, commonSpan, and afterSpan.
+/// pMaxInCommonSubspan (a pointer to a Subspan struct on the heap) has to be deleted in
+/// the caller when no longer needed.
 Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit)
 {
-	wxArrayString arrUniqueInCommonWords;
 	wxArrayPtrVoid arrSubspans;
 	wxArrayInt arrWidths;
-	// The first task is to populate the arrUniqueInCommonWords array, based on the data
-	// in pParentSubspan
+	Subspan* pMaxInCommonSubspan = (Subspan*)NULL;
+
+	// If limit is -1, then we will try the speedier match-a-group-of-words at a
+	// restricted set of sample locations algorithm, and if it fails, fall through
+	// to the legacy approach below. We don't use this algorithm if the "old" chunk
+	// is small enough to be merged using the legacy approach. "Small enough" means that a
+	// chunk is less than the SPAN_LIMIT value (currently defined as 80, in AdaptitConstants.h)
+	int nSmallEnoughToUseLegacyWayInstead = (int)SPAN_LIMIT; // 80
+	int countOfSrcPhrases_Old = pParentSubspan->oldEndPos - pParentSubspan->oldStartPos;
+	if (limit == -1 && (countOfSrcPhrases_Old > (3 * nSmallEnoughToUseLegacyWayInstead)  / 2))
+	{
+		pMaxInCommonSubspan = GetMaxInCommonSubspan_ByWordGroupSampling(arrOld, arrNew, 
+					   pParentSubspan, limit, &arrSubspans, &arrWidths);
+		// On return, arrSubspans should be empty, and arrWidths likewise; BEWARE, failure
+		// to make any matchups will cause pMaxInCommonSubspan to contain NULL. This is a
+		// "non-success result", and processing should then proceed to the legacy code
+		// further below.
+		if (pMaxInCommonSubspan != NULL)
+		{
+			return pMaxInCommonSubspan;
+		}
+		// fall through to the code below if the word-group method fails
+	}
+
+    // BEW 18Dec12 The code below is the legacy single-word-based matchup algorithm, it is
+    // very inefficient for spans greater than about 200 words, but for small chunks it has
+    // the advantage that it is fail-safe and can process down to spans which are just a
+    // single word in length. 
+    // Our first task is to populate the arrUniqueInCommonWords array, based on the data in
+    // pParentSubspan
+	wxArrayString arrUniqueInCommonWords;
 	int wordCount = GetWordsInCommon(arrOld, arrNew, pParentSubspan, arrUniqueInCommonWords, limit);
 	wordCount = wordCount; // avoid compiler warning
 	// The second task is to use the array of in-common words to get the set of all
@@ -4896,9 +5006,9 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 		// and return the max one to the caller in pMaxInCommonSubspan, clear the arrays
 		int widthsCount = arrWidths.GetCount();
 		int maxWidth = arrWidths.Item(0); // initialize to composite width of the first
-#if defined( myLogDebugCalls) && defined(_DEBUG)
-		wxLogDebug(_T("Composite WIDTH =  %d  for index value  %d"),maxWidth, 0);
-#endif
+		#if defined( myLogDebugCalls) && defined(_DEBUG)
+			wxLogDebug(_T("Composite WIDTH =  %d  for index value  %d"),maxWidth, 0);
+		#endif
 		int lastIndexForMax = 0; // initialize
 		int i;
 		for (i = 1; i < widthsCount; i++)
@@ -4917,12 +5027,12 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 				lastIndexForMax = i;
 			}
 		}
-		Subspan* pMaxInCommonSubspan = (Subspan*)arrSubspans.Item(lastIndexForMax);
-#if defined(_DEBUG) && defined(_RECURSE_)
-		wxLogDebug(_T("index chosen for Max in-common span = %d  for Subspan:  (%d,%d) <-> (%d,%d)"),
-			lastIndexForMax, pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos,
-			pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos );
-#endif
+		pMaxInCommonSubspan = (Subspan*)arrSubspans.Item(lastIndexForMax);
+		#if defined(_DEBUG) && defined(_RECURSE_)
+			wxLogDebug(_T("index chosen for Max in-common span = %d  for Subspan:  (%d,%d) <-> (%d,%d)"),
+				lastIndexForMax, pMaxInCommonSubspan->oldStartPos, pMaxInCommonSubspan->oldEndPos,
+				pMaxInCommonSubspan->newStartPos, pMaxInCommonSubspan->newEndPos );
+		#endif
 
 		// delete the rest
 		arrWidths.Clear();
@@ -4933,9 +5043,9 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 			{
 				if ((Subspan*)arrSubspans.Item(i) != NULL) // whm 11Jun12 added NULL test
 				{
-#if defined(_DEBUG) && defined(myLogDebugCalls)
-					countCommonSpanDeletions++; // because there are many made & rejected, the counts for these are large
-#endif
+					#if defined(_DEBUG) && defined(myLogDebugCalls)
+						countCommonSpanDeletions++; // because there are many made & rejected, the counts for these are large
+					#endif
 					delete (Subspan*)arrSubspans.Item(i);
 				}
 			}
@@ -4954,6 +5064,717 @@ Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParen
 	return NULL;
 }
 
+// BEW created 18Dec12 to handle efficiently finding largest in-common span when the passed
+// in arrOld and arrNew subspans are large; we do it by sampling at approximately equal
+// intervals in the "old" array, obtaining a word-group (stored in a wxArrayString on the
+// heap, with the pointer to that managed by a wxArrayPtrVoid array) at each sample point,
+// of algorithmically defined size, and searching for the same word-groups in the "new"
+// passed in array. Each such matchup is widened left and right as far as possible in both
+// old and new arrays, and a Subspan defined to store each such in-common subarray pairing.
+// When all potential non-overlapping pairs are defined, we check for the largest and
+// return it to the caller, after deleting all the smaller Subspan instances. We check for
+// subspan nesting, and ignore any nested matchups - they are worthless because they would
+// only widen to an already existing Subspan. Subspan instances are created on the heap,
+// and so the winning one we send to the caller must be deleted at a higher level to avoid
+// leaking memory.
+// Typically, there will be fewer CSourcePhrase instances in arrOld than there are source
+// text words stored within them, due to the presence of mergers.
+// When comparing "old" with "new" source text, any placeholders (which can only occur in
+// the "old" CSourcePhrase instances) are completely ignored for matching purposes, but
+// retained in the document when mergers are done from the new data that was imported.
+// 
+// Return NULL for the Subspan* if we did not succeed an making any word-group matchups
+// between arrOld and arrNew; the caller should interpret this as 'non success' and
+// processing should then fall through in the caller to the legacy single-word-based
+// matchups algorithm.
+Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arrNew, 
+	Subspan* pParentSubspan, int limit, wxArrayPtrVoid* pSubspansArray, wxArrayInt* pWidthsArray)
+{
+	limit = limit; // avoid compiler warning
+	// pSubspansArray should be empty, but just in case, clear it out
+	Subspan* pSubspanPair = NULL; // use this local var to add 
+								  // Subspan* instances to pSubspansArray
+	if (!pSubspansArray->IsEmpty())
+	{
+		int i;
+		for (i=0; i < (int)pSubspansArray->GetCount(); i++)
+		{
+			pSubspanPair = (Subspan*)pSubspansArray->Item(i);
+			delete pSubspanPair;
+		}
+	}
+	pWidthsArray->Clear();
+	#if defined(_DEBUG) && defined(_INCOMMON) // _INCOMMON is #defined at line 56
+		// sanity check: get the sequence numbers of the first and last CSourcePhrase instances
+		// passed in for arrOld and arrNew; and check that pParentSubspan delivers correct (ie.
+		// within bounds) values for the initial and final indices in each subspan
+	wxLogDebug(_T("\n GetMaxInCommonSubspan() ** ** ** COMMENCING ** ** **\nSanity check: pParentSubspan [ %d  ,  %d ] <-> [ %d , %d ]"),
+			pParentSubspan->oldStartPos, pParentSubspan->oldEndPos, pParentSubspan->newStartPos, pParentSubspan->newEndPos);
+		CSourcePhrase* pOldBeginSPh = NULL;
+		CSourcePhrase* pOldEndSPh = NULL;
+		CSourcePhrase* pNewBeginSPh = NULL;
+		CSourcePhrase* pNewEndSPh = NULL;
+		pOldBeginSPh = arrOld.Item(0);
+		pOldEndSPh = arrOld.Item(arrOld.GetCount() - 1);
+		pNewBeginSPh = arrNew.Item(0);
+		pNewEndSPh = arrNew.Item(arrNew.GetCount() - 1);
+		wxLogDebug(_T("Sanity check: oldArr   [ %d  ,  %d ]  <->  newArr  [ %d , %d ]"),
+			pOldBeginSPh->m_nSequNumber, pOldEndSPh->m_nSequNumber, pNewBeginSPh->m_nSequNumber, pNewEndSPh->m_nSequNumber);
+	#endif
+	Subspan* pMaxSubspan = NULL;
+    // A note about how we process the data. The check for matching a subarray in arrOld
+    // with a subarray in arrNew must, of necessity, test that two sequences of words are
+    // identical. We don't, however, give primacy to strings of words. The basic units of
+    // data we deal with are CSourcePhrase instances in arrOld and arrNew, and our indexing
+    // is easier to keep track of things if we index into these objects for defining the
+    // extents of our subarrays which are "in common". So we only extract words (ie. source
+    // text words from m_key members) temporarily on an as-needed basis, and for storage
+    // and matching we'll have such word groups contained sequentially in their natural
+    // order from the top down in small wxArrayString arrays created temporarily on the
+    // heap. The words in these short-lived arrays are copies, and so we can delete the
+    // arrays safely when no longer needed.
+    
+	// note, the arrOldSrcPhrasesCount and arrNewSrcPhrasesCount must be calculated from
+	// the parent subspan, since that may be co-extensive with arrOld and arrNew, or it
+	// might be subspans within each of those -- so we take the count by working from the
+	// parent subspan's indices...
+	int arrOldSrcPhrasesCount = (int)(pParentSubspan->oldEndPos - pParentSubspan->oldStartPos + 1);
+	int nHalfCount = arrOldSrcPhrasesCount / 2; // any widened in-common subarray that is >=
+												// to this value, is the widest possible, so
+												// once found we can immediately return that
+												// subarray pair to the caller (after cleaning
+												// up of course)
+	#if defined(_DEBUG) && defined(_INCOMMON)
+	int arrNewSrcPhrasesCount = (int)(pParentSubspan->newEndPos - pParentSubspan->newStartPos + 1);
+		wxLogDebug(_T("GetMaxInCommonSubspan(): arrOldSrcPhrasesCount = %d  , arrNewSrcPhrasesCount = %d"),arrOldSrcPhrasesCount,arrNewSrcPhrasesCount);
+	#endif
+	int nJumpDistance = 0; // initialize both to zero, they are see a couple of lines down
+	int numGroupWords = 0; // normally from 2 to 6 inclusive, but we allow more when
+						   // a merger takes the count over the intended maximum
+	
+	CalcWordGroupSizeAndJumpDistance(arrOldSrcPhrasesCount, &numGroupWords, &nJumpDistance);
+	int nActualNumGroupWords = numGroupWords; // RHS is a constant, but nActualNumGroupWords
+											  // might be greater if a merger is in the group
+	int nActualNumGroupWords_New; // used for the return value from SetWordGroup() from arrNew
+	#if defined(_DEBUG) && defined(_INCOMMON)
+		wxLogDebug(_T("GetMaxInCommonSubspan(): numGroupWords = %d  , nJumpDistance = %d"),numGroupWords,nJumpDistance);
+	#endif
+
+	// Parameters needed for the nested loops below. The outer loop iterates to a new
+	// sampling location in arrOld; the inner loop searches for word-sequence matchups
+	// within arrNew (there quite possibly can be more than one - so all have to be 
+	// checked in order to avoid accepting a bogus matchup association of subspans)
+	// 
+	// The next four establish the bounding indices for each array with arrOld and arrNew,
+	// the calculation has to be based on the pParentSubspan's array bounding indices...
+	int oldArr_StartAt = pParentSubspan->oldStartPos;
+	int oldArr_EndAt = pParentSubspan->oldEndPos;
+	int newArr_StartAt = pParentSubspan->newStartPos;
+	int newArr_EndAt = pParentSubspan->newEndPos;
+	// new two are where scanning forward on next iteration is to start from in each array
+	int oldStartingPos_Last = pParentSubspan->oldStartPos;
+	int newStartingPos_Last = pParentSubspan->newStartPos;
+	// next two are the iterators for the loops, oldIndex for the outer loop, newIndex for
+	// the inner loop
+	int oldIndex;
+	int newIndex;
+	// storage array for the wxArrayString instances which each store one group of src words for
+	// matching; only one such array is needed; it stores groups from arrOld.
+	wxArrayPtrVoid arrWordGroups;
+	wxArrayInt arrOldLocations; // indices into arrOld for where each word group's start is
+
+	// The arrNew array requires an array to store SETS of matched wxString arrays, one
+	// such set of wxArrayString instances for each successfull match within arrNew of each
+	// single wxArrayString within arrWordGroups from arrOld. It's arrOfWordGroupSets.
+	wxArrayPtrVoid arrNew_WordGroupSets; // this array stores an array (or set) of
+                // wxArrayPtrVoid instances, each of which stores at least one
+                // wxArrayString (it would be more than one if the given array in
+                // arrWordGroups from arrOld was matched at more than one location within
+                // arrNew). So this is an array of arrays of arrays.
+    wxArrayPtrVoid arrNew_LocationSets; // this is parallel to arrNew_WordGroupSets above;
+				// it stores wxArrayInt arrays, each one of which gives the indices into
+				// arrNew at which each matching word group (from arrWordGroups for arrOld)
+				// was matched. If the word group is a sufficient number of words, there
+				// is little likehood of more than one match within arrNew, but since
+				// there could be several matches, we need an array for all such matches
+				// within arrNew for a single word group obtained from arrOld. So this is
+				// an array of arrays.
+ 
+	oldIndex = oldArr_StartAt;
+
+	// Outer loop commences - it scans within arrOld
+	do {
+		// create a wxArrayString on the heap to accept the words extracted for this group
+		wxArrayString* pWordGroupArray = new wxArrayString;
+		nActualNumGroupWords = SetWordGroupArray(arrOld, pWordGroupArray, oldIndex, numGroupWords);
+
+		// store in arrWordGroups the array of words we just created, and it's location in
+		// an array of integers (the size S of each array can be used to dynamically
+		// calculate the end index according to the formula: endIndex = oldIndex + S - 1)
+		arrWordGroups.Add(pWordGroupArray);
+		arrOldLocations.Add(oldIndex);
+
+		#if defined(_DEBUG) && defined(_INCOMMON)
+			wxString words = pWordGroupArray->Item(0); int j;
+			for (j=1; j < nActualNumGroupWords; j++){words += _T(" ") + pWordGroupArray->Item(j);}
+			wxLogDebug(_T("GetMaxInCommonSubspan(): location = %d , nActualNumGroupWords = %d  , wordGroup:  %s"),oldIndex,nActualNumGroupWords,words);
+		#endif
+				
+        // Find how many matches of the nActualNumGroupWords words there are in the arrNew
+        // array. This loop will be slower, we have to test every CSourcePhrase as a
+        // potential match. Since our algorithms use a minimum of two CSourcePhrases, we'll
+        // do a quick check for a match with the first word from the old array's word
+        // group, and if that matches, compare the second - only if that matches other
+        // second from the other array do we then grab the whole lot we need for a full
+        // check for a matchup.
+        // 
+		// create a wxArrayPtrVoid on the heap, to store however many matchups for
+		// the current pWordGroupArray contents we find within arrNew
+		wxArrayPtrVoid* pWordGroupMatches_New = new wxArrayPtrVoid;
+		// add it to the storage array, even if there are no matchups, we need to leave it
+		// there empty so that we can keep track of the mappings between the various
+		// storage arrays for word groups
+		wxArrayInt* pNewLocationsArray = new wxArrayInt; // in parallel with pWordGroupMatches
+
+		arrNew_WordGroupSets.Add(pWordGroupMatches_New); // this pWordGroupMatches_New instance
+					// will remain empty of wxArrayString instances if the inner loop does not
+					// succeed in making any matches for arrOld's current pWordGroupArray instance
+		arrNew_LocationSets.Add(pNewLocationsArray); // pNewLocationsArray will store newIndex values
+													 // for any matchups made in arrNew
+													 // (could remain empty if there were none)
+		wxArrayString* pWordGroupArray_New; // create these on the fly in the next loop, on the heap
+		wxString oldFirstWord = pWordGroupArray->Item(0); // match this first in the inner loop
+		wxString oldSecondWord = pWordGroupArray->Item(1); // match this second if first matches
+        // if the first two trial matches succeed and the current value of
+        // nActualNumGroupWords is two (to indicate we don't need to try to match any more
+        // for this matchup; we expect this to be useful only for doing a "old" group of
+        // between 80 and 160 CSourcePhrases, because for larger chunks we'll be trying for
+        // longer word group matches, that is, 3 or more words)
+		newIndex = newArr_StartAt; // loop from start of arrNew to near the end
+
+		// Inner loop commmences - it scans within arrNew
+		do {
+			wxString firstKey_New = (arrNew.Item(newIndex))->m_key;
+			// enter the following block only if there is the potential for a matchup at
+			// this newIndex location within arrNew
+			if (firstKey_New == oldFirstWord)
+			{
+				wxString secondKey_New = (arrNew.Item(newIndex + 1))->m_key;
+				// enter the following block only if there is still the potential for a 
+				// matchup at this (newIndex + 1) location within arrNew
+				bool bMatched = FALSE; // initialise
+				if (secondKey_New == oldSecondWord)
+				{
+					// both first and second words have been matched in arrNew
+					if (nActualNumGroupWords == 2)
+					{
+						bMatched = TRUE; // we know we have a match
+						pWordGroupArray_New = new wxArrayString;
+						pWordGroupArray_New->Add(firstKey_New);
+						pWordGroupArray_New->Add(secondKey_New);
+						nActualNumGroupWords_New = 2;
+					}
+					else
+					{
+                        // nActualNumGroupWords is 3 or more, so if this many words,
+                        // extract the array of words from arrNew, and then test against
+                        // the group of arrOld words in pWordGroupArray
+						pWordGroupArray_New = new wxArrayString;
+						nActualNumGroupWords_New = SetWordGroupArray(arrNew, 
+									pWordGroupArray_New, newIndex, nActualNumGroupWords);
+
+                        // compare the two arrays of words, the outer loop's one from
+                        // arrOld, & this inner loop's one for words from arrNew
+						bMatched = AreTheWordGroupArraysEqual(pWordGroupArray, pWordGroupArray_New);
+					}
+					if (bMatched)
+					{
+						// we have a successful matchup
+						#if defined(_DEBUG) && defined(_INCOMMON)
+							wxString words = pWordGroupArray_New->Item(0);int j;
+							for (j=1; j < nActualNumGroupWords_New; j++){words += _T(" ") + pWordGroupArray_New->Item(j);}
+							wxLogDebug(_T("      arrNew: INNER LOOP MATCHUP: location = %d , nActualNumGroupWords_New = %d  , wordGroup:  %s"),newIndex,nActualNumGroupWords_New, words);
+						#endif
+                        // throw away this matchup if it is nested within an existing
+                        // in-common subarray matchup
+						wxASSERT(nActualNumGroupWords == nActualNumGroupWords_New);
+						int oldEndWordGroupIndex = oldIndex + nActualNumGroupWords - 1;
+						int newEndWordGroupIndex = newIndex + nActualNumGroupWords_New - 1;
+						bool bItsNested = IsMatchupWithinAnyStoredSpanPair(oldIndex, 
+												oldEndWordGroupIndex, newIndex, 
+												newEndWordGroupIndex, pSubspansArray);
+						if (bItsNested)
+						{
+                            // throw away this wordgroup array derived from arrNew, but do
+                            // not remove the one it pairs with from arrOld, because the
+                            // latter is paired with some other subarray from arrNew
+                            // already
+							#if defined(_DEBUG) && defined(_INCOMMON)
+								wxString words = pWordGroupArray_New->Item(0);int j;
+								for (j=1; j < nActualNumGroupWords_New; j++){words += _T(" ") + pWordGroupArray_New->Item(j);}
+								wxLogDebug(_T("      REMOVED subarray in arrNew (nested): loc'n = %d , wordcount = %d , wordGroup:  %s"),newIndex, nActualNumGroupWords_New, words);
+							#endif
+
+							delete pWordGroupArray_New;
+						} // end of TRUE block for test: if (bItsNested)
+						else
+						{
+                            // we'll process it and add it as a new Subspan instance in
+                            // pSubspansArray; and since we've not thrown it away we also
+                            // must now store it and its location in the arrays
+							pWordGroupMatches_New->Add(pWordGroupArray_New); // store the matched subarray
+							pNewLocationsArray->Add(newIndex);
+
+                            // Do leftwards widening first. The next two track the left
+                            // boundaries within arrOld and arrNew of the commonSpan being
+                            // delimited by the widening loop within DoLeftwardsWidening()
+							int oldLeftBdryIndex = oldIndex;
+							int newLeftBdryIndex = newIndex;
+							DoLeftwardsWidening(arrOld, arrNew, oldIndex, newIndex,
+										oldArr_StartAt, oldArr_EndAt, newArr_StartAt, 
+										newArr_EndAt, oldLeftBdryIndex, newLeftBdryIndex);
+
+
+                            // Do rightwards widening second. The next two track the
+                            // right bounds of the being-widened in-common span
+							int oldRightBdryIndex = oldEndWordGroupIndex;
+							int newRightBdryIndex = newEndWordGroupIndex;
+							DoRightwardsWidening(arrOld, arrNew, oldEndWordGroupIndex, 
+									newEndWordGroupIndex, oldArr_StartAt, oldArr_EndAt, 
+									newArr_StartAt, newArr_EndAt, oldRightBdryIndex, 
+									newRightBdryIndex);
+
+                            // create a new commonSpan type of Subspan instance & set
+                            // up the index values within it (in-common spans are 'closed')
+							pSubspanPair = new Subspan;
+							InitializeSubspan(pSubspanPair, commonSpan, oldLeftBdryIndex, 
+									oldRightBdryIndex, newLeftBdryIndex, newRightBdryIndex, 
+									TRUE); // TRUE is bClosedEnd
+
+							// calculate and store the width of the span from the arrOld
+							int oldWidth = oldRightBdryIndex - oldLeftBdryIndex + 1;
+
+							// if this span is equal to, or wider than, nHalfCount,
+							// then no other span can be larger -- in which case we
+							// are done and can clean up and return this subspan pair
+							// to the caller
+							if (oldWidth >= nHalfCount)
+							{
+								// we are done, no need to store pSpanPair in pSubspansArray
+								pMaxSubspan = pSubspanPair;
+
+								// clean up
+								CleanUpForWordGroups(pMaxSubspan, pSubspansArray, 
+									pWidthsArray, &arrWordGroups, &arrNew_WordGroupSets, 
+									&arrNew_LocationSets);
+
+								return pMaxSubspan;
+							}
+							else
+							{
+								// store pSpanPair, it may not be the widest
+								pSubspansArray->Add((void*)pSubspanPair);
+                                // the legacy code added the width of both arrays, but in
+                                // this function just the width of the old data's subspan
+                                // will do
+								pWidthsArray->Add(oldWidth);
+								#if defined(_DEBUG) && defined(_INCOMMON)
+									wxLogDebug(_T("Storing: width(on left) = %d , for [ %d , %d] from arrOld"),oldWidth, oldLeftBdryIndex ,oldRightBdryIndex);
+								#endif
+							}
+						} // end of else block for test: if (bItsNested)
+					} // end of TRUE block for test: if (bMatched)
+					else
+					{
+						// the matchup attempt did not succeed
+						delete pWordGroupArray_New;
+					}
+				}  // end of TRUE block for test: if (secondKey_New == oldSecondWord)
+
+			} // end of TRUE block for test: if (firstKey_New == oldFirstWord)
+
+			// prepare for next iteration
+			newStartingPos_Last = newIndex;
+			newIndex = newStartingPos_Last + 1;
+
+		} while (newIndex < newArr_EndAt - nActualNumGroupWords);
+		
+		// prepare for next iteration
+		oldStartingPos_Last = oldIndex;
+		oldIndex = oldStartingPos_Last + nJumpDistance;
+
+	} while (oldIndex < oldArr_EndAt - numGroupWords);
+
+	// If control gets here, no subspan pairing qualities for the arrOld's subspan being
+	// more than half the possible size, and so we have had to collect all possible
+	// pairings and now we must obtain the one which is the largest.
+	int widthsCount = pWidthsArray->GetCount();
+	#if defined(_DEBUG) && defined(_INCOMMON)
+		wxLogDebug(_T("*** Count of pWidthsArray = %d , Count of pSubspansArray = %d "),widthsCount,pSubspansArray->GetCount());
+	#endif
+
+	// get the maximum width
+	int maxWidth = pWidthsArray->Item(0); // initialize to width of first matched pair,
+										  // using the arrOld's subarray's width
+	int lastIndexForMax = 0; // initialize
+	int w;
+	for (w = 1; w < widthsCount; w++)
+	{
+		#if defined(_DEBUG) && defined(_INCOMMON)
+			Subspan* pSub = (Subspan*)pSubspansArray->Item(w);
+			wxLogDebug(_T("From pSubspansArray: loop index %d , in-common subspan (from arrOld) WIDTH = %d  for Subspan: (%d,%d) <-> (%d,%d)"),
+					w,pWidthsArray->Item(w),pSub->oldStartPos,pSub->oldEndPos,pSub->newStartPos,pSub->newEndPos);
+		#endif
+		if (pWidthsArray->Item(w) > maxWidth)
+		{
+			// only accept a new value if it is bigger, this way if any are equal
+			// size, we'll take the index for the first of them, which is a better
+			// idea when trying to work left to right
+			maxWidth = pWidthsArray->Item(w);
+			lastIndexForMax = w;
+		}
+	}
+	// Define pMaxSubspan
+	pMaxSubspan = (Subspan*)pSubspansArray->Item(lastIndexForMax);
+	#if defined(_INCOMMON) && defined(_DEBUG)
+		wxLogDebug(_T("GetMaxInCommonSubspan_ByWordGroupSampling(): max in-common span's WIDTH =  %d  for index = %d"),maxWidth,lastIndexForMax);
+	#endif
+    // Clean up before exiting the function; pMaxSubspan is passed in so that the clean up
+    // function can test for it an avoid deleting it from the heap, but the others all get
+    // deleted
+	CleanUpForWordGroups(pMaxSubspan, pSubspansArray, pWidthsArray, &arrWordGroups, 
+						 &arrNew_WordGroupSets, &arrNew_LocationSets);
+	return pMaxSubspan;
+}
+
+void DoLeftwardsWidening(SPArray& arrOld, SPArray& arrNew, int& oldIndex, int& newIndex,
+		int& oldArr_StartAt, int& oldArr_EndAt, int& newArr_StartAt, int& newArr_EndAt,
+		int& oldLeftBdryIndex, int & newLeftBdryIndex)
+{
+	// suppressor to prevent bounds errors in the loop below
+	bool bSuppressLeftWidening = FALSE;
+    // The next two track the jumping off locations in arrOld and arrNew, for the leftwards
+    // widening loop
+	int oldJumpFromIndex = oldIndex - 1; // might be out of bounds
+	int newJumpFromIndex = newIndex - 1; // might be out of bounds
+	// suppress if out of bounds
+	if (oldJumpFromIndex < oldArr_StartAt || newJumpFromIndex < newArr_StartAt)
+	{
+		bSuppressLeftWidening = TRUE;
+	}
+    // The next two are for when WidenLeftwardsOnce()is called. They count how many words
+    // have been included in the in-common span on a given iteration of the widening loop
+    // for doing it's job leftwards.
+	int oldWordsAddedLeftwards;
+	int newWordsAddedLeftwards;
+    // each of the above is initialized to zero at the start of the loop
+	if (!bSuppressLeftWidening)
+	{
+        // only widen leftwards if the current in-common left boundary is later than the
+        // each span's left boundary
+		while (oldLeftBdryIndex > oldArr_StartAt && newLeftBdryIndex > newArr_StartAt)
+		{
+			// attempt another leftwards "step"
+			oldWordsAddedLeftwards = 0;
+			newWordsAddedLeftwards = 0;
+			bool bOK = WidenLeftwardsOnce(arrOld, arrNew, oldArr_StartAt, oldArr_EndAt, 
+							newArr_StartAt, newArr_EndAt, oldJumpFromIndex, 
+							newJumpFromIndex, oldWordsAddedLeftwards, newWordsAddedLeftwards);
+			if (bOK)
+			{
+				// calculate the new values for the left bounds
+				oldLeftBdryIndex -= oldWordsAddedLeftwards;
+				newLeftBdryIndex -= newWordsAddedLeftwards;
+				// prepare for the next iteration, get updated jump index values
+				oldJumpFromIndex = oldLeftBdryIndex - 1;
+				newJumpFromIndex = newLeftBdryIndex - 1;
+			}
+			else
+			{
+                // the widening attempt fails, so exit the loop, retaining the boundary
+                // indices as they were at the end of the last iteration
+				break;
+			}
+		} // end of loop
+	} // end of TRUE block for test: if (!bSuppressLeftWidening)
+}
+
+void DoRightwardsWidening(SPArray& arrOld, SPArray& arrNew, int& oldEndWordGroupIndex, 
+				int& newEndWordGroupIndex, int& oldArr_StartAt, int& oldArr_EndAt, 
+				int& newArr_StartAt, int& newArr_EndAt, int& oldRightBdryIndex, 
+				int& newRightBdryIndex)
+{
+	// suppressor to prevent bounds errors in the loop below
+	bool bSuppressRightWidening = FALSE;
+    // The next two track the jumping off locations in arrOld and arrNew, for the
+    // rightwards widening loop
+	int oldJumpFromIndex = oldEndWordGroupIndex + 1; // might be out of bounds
+	int newJumpFromIndex = newEndWordGroupIndex + 1; // might be out of bounds
+	// check and set suppressor if we cannot widen to the right
+	if (oldJumpFromIndex > oldArr_EndAt || newJumpFromIndex > newArr_EndAt)
+	{
+		bSuppressRightWidening = TRUE;
+	}
+    // The next two are for when WidenRightwardsOnce()is called. They count how many words
+    // have been included in the in-common span on a given iteration of the widening loop
+    // for doing it's job rightwards.
+	int oldWordsAddedRightwards;
+	int newWordsAddedRightwards;
+	if (!bSuppressRightWidening)
+	{
+        // only widen rightwards if the current in-common right boundary is earlier than
+        // the span's right boundary
+		while (oldRightBdryIndex < oldArr_EndAt && newRightBdryIndex < newArr_EndAt)
+		{
+			oldWordsAddedRightwards = 0;
+			newWordsAddedRightwards = 0;
+			// attempt another rightwards "step"
+			bool bOK = WidenRightwardsOnce(arrOld, arrNew, oldArr_StartAt, oldArr_EndAt, 
+							newArr_StartAt, newArr_EndAt, oldJumpFromIndex, newJumpFromIndex, 
+							oldWordsAddedRightwards, newWordsAddedRightwards);
+			if (bOK)
+			{
+				// calculate the new values for the left bounds
+				oldRightBdryIndex += oldWordsAddedRightwards;
+				newRightBdryIndex += newWordsAddedRightwards;
+				// prepare for the next iteration, get updated index values
+				oldJumpFromIndex = oldRightBdryIndex + 1;
+				newJumpFromIndex = newRightBdryIndex + 1;
+			}
+			else
+			{
+                // the widening attempt fails, so exit the loop, retaining the boundary
+                // indices as they were at the end of the last iteration
+				break;
+			}
+		}
+	} // end of TRUE block for test: if (!bSuppressRightWidening)
+}
+
+void CleanUpForWordGroups(Subspan* pMaxSubspan_NoDelete, wxArrayPtrVoid* pSubspansArr,
+					wxArrayInt* pOldWidthsArr, wxArrayPtrVoid* pOldWdGrpsArr, 
+					wxArrayPtrVoid* pNewWordGroupSets, wxArrayPtrVoid* pNewIntSetsArr)
+{
+	int i, k, m;
+	for (i=0; i < (int)pSubspansArr->GetCount(); i++)
+	{
+		Subspan* pSubSpan = (Subspan*)pSubspansArr->Item(i);
+		// delete them all except for the one which we want to return to the caller;
+		// but if we didn't actually store it in the array this block does nothing
+		if (pSubSpan != pMaxSubspan_NoDelete)
+		{
+			delete pSubSpan;
+		}
+	}
+	pOldWidthsArr->Clear();
+	int oldwdgrpsCount = (int)pOldWdGrpsArr->GetCount();
+	for (k=0; k < oldwdgrpsCount; k++)
+	{
+		delete (wxArrayString*)pOldWdGrpsArr->Item(k);
+	}
+	int newwdgrpsetCount = (int)pNewWordGroupSets->GetCount();
+	for (k=0; k < newwdgrpsetCount; k++)
+	{
+		wxArrayPtrVoid* pArrNewWordGroupSet = (wxArrayPtrVoid*)pNewWordGroupSets->Item(k);
+		if (!pArrNewWordGroupSet->IsEmpty())
+		{
+			int itsSize = (int)pArrNewWordGroupSet->GetCount();
+			for (m=0; m < itsSize; m++)
+			{
+				delete (wxArrayString*)pArrNewWordGroupSet->Item(m);
+			}
+		}
+		delete pArrNewWordGroupSet;
+		delete (wxArrayInt*)pNewIntSetsArr->Item(k);
+	}
+}
+
+
+// Starting at nStartIndex in the array of CSourcePhrase instances, arr, extract the m_key
+// string from each, appending it to pWordGroupArray. Do at least as many as nGroupSize
+// (which typically will have a passed in value between 2 and 7 inclusive), but if there is
+// a merger or two in the array at the sample location, then the words collected may be one
+// or more than the passed in nGroupSize -- we don't care and it shouldn't matter, so we
+// will accept all words in a merger's m_key member even if it pushes the count a bit
+// higher. It just means the caller will need to match a few more when looking for the
+// in-common location, which is safe to do because that reduces the risk of a spurious
+// matchup. 
+// When one or more CSourcePhrase instance is a merger, the code will extract each
+// m_key string from the stored original CSourcePhrase instances that make up the merger
+// (this is quicker than tokenizing the string of src text words, and safe, because even if
+// the user has edited the source text, mergers are unmerged automatically before the edit
+// can be done, and if re-merged, the saved originals will have the edits in them).
+// Conjoinings with USFM fixed space marker (a tilde, ~) will be treated as a single word.
+// The caller will use the pWordGroupArray passed back, in order to try find a matching
+// sequence of source text words (with punctuation stripped off, so comparing the m_key
+// members) in the set of CSourcePhrase instances resulting from the import.
+// pWordGroupArray, when returned to the caller, will be empty if near the end we couldn't
+// access at least two CSourcePhrase instances.
+// Returns the actual size of the group of words extracted. If there were no mergers
+// involved, then the value of nGroupSize would be returned, but if mergers were present,
+// the value returned could be greater than that. Zero is returned if nothing was done.
+int SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartIndex, int nGroupSize)
+{
+	size_t instancesCount = arr.GetCount();
+	wxString tilde = _T('~'); // USFM fixed space marker
+	int offset = wxNOT_FOUND;
+	pWordGroupArray->Clear(); // starts off empty
+	// we must be able to grab at least two CSourcePhrase instances
+	if ((size_t)nStartIndex >= instancesCount - (size_t)nGroupSize - 1)
+	{
+		return 0;
+	}
+	CSourcePhrase* pSrcPhrase;
+	size_t i;
+	int wordCount = 0;
+	// we must reduce the upper bound by nGroupSize, otherwise we may end up attempting to
+	// grab CSourcePhrase instances beyond the arr array's end
+	for (i = (size_t)nStartIndex; i < instancesCount - (size_t)nGroupSize; i++)
+	{
+		pSrcPhrase = arr.Item(i);
+		if (pSrcPhrase->m_nSrcWords > 1)
+		{
+			wxString mykey = pSrcPhrase->m_key;
+			// check if it's conjoined by tilde, if so, treat it as a single word
+			offset = mykey.Find(tilde);
+			if (offset != wxNOT_FOUND)
+			{
+				// found a tilde, so assume it's a fixedspace conjoining
+				pWordGroupArray->Add(mykey);
+				wordCount += 1;
+				if (wordCount >= nGroupSize)
+					break;
+			}
+			else
+			{
+				// we have two or more words so get them from the stored original
+				// CSourcePhrase instances
+				SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
+				while (pos != NULL)
+				{
+					CSourcePhrase* pSPhr = pos->GetData();
+					pWordGroupArray->Add(pSPhr->m_key);
+					pos = pos->GetNext();
+					wordCount += 1;
+				}
+				if (wordCount >= nGroupSize)
+					break;
+			}
+		}
+		else
+		{
+			pWordGroupArray->Add(pSrcPhrase->m_key);
+			wordCount += 1;
+			if (wordCount >= nGroupSize)
+				break;
+		}
+	} // end of for loop
+	return wordCount;
+}
+
+// The two wxArrayString objects are equal only if they contain an equal number of
+// strings, and each string is a pairwise exact match for the string at same index value in
+// the other array. Return TRUE if so, otherwise return FALSE.
+bool AreTheWordGroupArraysEqual(wxArrayString* pOldArray, wxArrayString* pNewArray)
+{
+	size_t oldOnesCount = pOldArray->GetCount();
+	size_t newOnesCount = pNewArray->GetCount();
+	if (oldOnesCount != newOnesCount)
+	{
+		return FALSE;
+	}
+	size_t i;
+	// we only call this function provided we have matches for the m_key strings at index
+	// values 0 and 1; so we only need to test any which lie beyond 1
+	for (i = 2; i < oldOnesCount; i++)
+	{
+		if (pOldArray->Item(i) != pNewArray->Item(i))
+		{
+			return FALSE; // we don't have a match
+		}
+	}
+	// if control reaches here, all the compared strings were exact matches
+	return TRUE;
+}
+
+// The two params, numGroupWords and jumpDistance should be calculated from the "old"
+// array size, as arrNew's CSourcePhrase instances have only a single word in each
+// m_key, no mergers, & no placeholders, and so it's convenient to look for matchups in
+// the simpler of the two arrays, that is, within arrNew.
+// BEW created 18Dec12, to support more quickly finding the longest in-common word
+// sequences from a pair of parent arrays, one 'old' the other 'new'
+void CalcWordGroupSizeAndJumpDistance(int arrOldSize, int* pNumGroupWords, int* pJumpDistance)
+{
+	// Note, the sampling approach is not used if arrOld is less than SPAN_LIMIT
+	// (currently 80) in length; so the first test below is effectively going to be for a
+	// span between 80 and 160 CSourcePhrase instances for the subspan in which we are
+	// looking for in-common words in matched locations within the two arrays
+	int totalSpan = arrOldSize;
+	// The calculations below are arrived at experimentally. I did this by having just the
+	// outer and inner loops, with nothing being done except creating the word-groups from
+	// sampling at intervals in arrOld, and looking in arrNew for all possible matches for
+	// each. A good result is when there is only one matchup in arrNew for a wordgroup
+	// from arrOld, because then that is the correct in-common matchup. Whenever there is
+	// more than one matchup in arrNew, then all but one of those are accidental (and
+	// therefore bogus as far as determining the locations of the matched in-common data
+	// from each of the two arrays). If *pNumGroupWords is small, then there are lots of
+	// bogus matchups. If it is large, there is only one matchup for each can of all of
+	// arrNew.
+    // The experiment was done with Boko to Busa Proverbs (all 31 chapters), related west
+    // african languages. Both have tonal diacritics, and a nasalization diacritic; and are
+    // of semi agglutinative type, the affixation isn't complex. Boko Proverbs, having some
+    // mergers, was 11,011 CSourcePhrases, there were no USFMs in it. The input source text
+    // was Boko Proverbs, with USFMs added back in, and a few word edits here and there,
+	// but not many. I kept the nJumpDistance constant (at 60), but varied the number of
+	// words in the word group, between 4 and 7, inclusive. What we want for best results
+	// is the the value should be large enough for getting a single matchup only, but
+	// small enough to likely give a word sequence that is within any in-common matched
+	// spans that may exist. Bogus matchups will waste processing time, so should be
+	// avoided if possible. Here's the results...
+	// Word group size   processing time  multiple-match locations  total bogus matches
+	//      7            over 20 secs         0                           0
+	//      6            15 seconds           0                           0
+	//      5            unmeasured           1                           1
+	//      4            20 seconds           3                           5
+    // These results suggest that an optimal word group size for a large data set is 6
+    // words. It's likely that isolating languages would take at an average of at least one
+    // extra word to generate meaningful word groups, and so an optimal value for them may
+    // be 7. However, Adapt It is not used much in areas where many isolating languages
+    // exist, so probably 6 will suffice for them anyway - with a slight speed penalty due
+    // to having to eliminate a few bogus matchups.
+	if (totalSpan < 240)
+	{
+		*pNumGroupWords = 2;
+		*pJumpDistance = wxMin(10, totalSpan / 14);
+	}
+	else if (totalSpan < 460)
+	{
+		*pNumGroupWords = 3;
+		*pJumpDistance = wxMin(12, totalSpan / 16);
+	}
+	else if (totalSpan < 840)
+	{
+		*pNumGroupWords = 4;
+		*pJumpDistance = wxMin(26, totalSpan / 15);
+	}
+	else if (totalSpan < 2000)
+	{
+		*pNumGroupWords = 5;
+		*pJumpDistance = wxMin(32, totalSpan / 34);
+	}
+	// default for anything larger than 2000
+	*pNumGroupWords = 6;
+	*pJumpDistance = wxMin(60, totalSpan / 40);
+}
+
+
+// In-common spans cannot overlap an already defined span pair, but can only be wholely
+// within another span, or wholely outside of that span. The caller will use a returned
+// TRUE value to reject the matchup, because some previous matched pair of spans is a
+// larger match which is a superset for the one being considered here, and so the larger
+// must win (because we want the maximum in-common words matchup). FALSE returned means
+// that the matched pair of spans passed in are a candidate for a new in-common span,
+// which we'll want to test for size against any others, in the caller.
 bool IsMatchupWithinAnyStoredSpanPair(int oldPosStart, int oldPosEnd, int newPosStart,
 						int newPosEnd, wxArrayPtrVoid* pSubspansArray)
 {
@@ -6091,8 +6912,8 @@ bool GetNextCommonSpan(wxString& word, SPArray& arrOld, SPArray& arrNew, int old
 				}
 			}
 		}
-		// create a new commonSpan type of Subspan instance & set up the index values within
-		// pSubspan, and recall that commonSpans are always bClosedEnd = TRUE
+        // create a new commonSpan type of Subspan instance & set up the index values
+        // within pSubspan, and recall that commonSpans are always bClosedEnd = TRUE
 		pSubspan = new Subspan;
 #if defined( myLogDebugCalls) && defined(_DEBUG)
 	countCommonSpans++;
@@ -7140,9 +7961,6 @@ bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int 
 /// be removed from the heap - it is required no longer, and a memory leak would result if
 /// it was not deleted after it's data was used.
 ///
-/// Note 3: a Subspan which is ready for merger never has any Subspan instances managed by
-/// its childSubspans member - this 3 member array will just be {NULL,NULL,NULL} and so it
-/// manages nothing on the heap
 ////////////////////////////////////////////////////////////////////////////////////////
 void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList* pMergedList)
 {

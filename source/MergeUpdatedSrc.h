@@ -71,9 +71,9 @@ struct Subspan {
 	int			oldEndPos;			// index in oldSPArray where CSourcePhrase instances end (inclusive)
 	int			newStartPos;		// index in newSPArray where CSourcePhrase instances commence
 	int			newEndPos;			// index in newSPArray where CSourcePhrase instances end (inclusive)
-	Subspan*	childSubspans[3];	// a set of beforeSpan, commonSpan & afterSpan Subspan instances on the heap
+	//Subspan*	childSubspans[3];	// a set of beforeSpan, commonSpan & afterSpan Subspan instances on the heap
 	SubspanType	spanType;			// an enum with values beforeSpan, commonSpan, afterSpan (this member
-									// is redundant, but useful for a sanity check when processing
+									// is redundant, but useful for a sanity check when processing)
 	bool		bClosedEnd;			// default TRUE, but FALSE for the rightmost afterSpan so that
 									// in-common matching can match beyond SPAN_LIMIT instances
 };
@@ -269,6 +269,27 @@ bool	GetVerseChunk(SPArray* arrP, int& startsAt, int& endsAt);
 int		GetKeysAsAString_KeepDuplicates(SPArray& arr, Subspan* pSubspan, bool bShowOld, 
 										wxString& keysStr, int limit);
 Subspan* GetMaxInCommonSubspan(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, int limit);
+
+// BEW added next on  18Dec12
+
+Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arrNew, 
+					   Subspan* pParentSubspan, int limit, wxArrayPtrVoid* pSubspansArray,
+					   wxArrayInt* pWidthsArray);
+void    CalcWordGroupSizeAndJumpDistance(int arrOldSize, int* pNumGroupWords, int* pJumpDistance);
+int     SetWordGroupArray(SPArray& arr, wxArrayString*& pWordGroupArray, int nStartIndex, int nGroupSize);
+bool	AreTheWordGroupArraysEqual(wxArrayString* pOldArray, wxArrayString* pNewArray);
+void    CleanUpForWordGroups(Subspan* pMaxSubspan_NoDelete, wxArrayPtrVoid* pSubspansArr,
+						   wxArrayInt* pOldWidthsArr, wxArrayPtrVoid* pOldWdGrpsArr, 
+						   wxArrayPtrVoid* pNewWordGroupSets, wxArrayPtrVoid* pNewIntSetsArr);
+void	DoLeftwardsWidening(SPArray& arrOld, SPArray& arrNew, int& oldIndex, int& newIndex,
+							int& oldArr_StartAt, int& oldArr_EndAt, int& newArr_StartAt,
+							int& newArr_EndAt, int& oldLeftBdryIndex, int& newLeftBdryIndex);
+void	DoRightwardsWidening(SPArray& arrOld, SPArray& arrNew, int& oldEndWordGroupIndex, 
+							int& newEndWordGroupIndex, int& oldArr_StartAt, int& oldArr_EndAt, 
+							int& newArr_StartAt, int& newArr_EndAt, int& oldRightBdryIndex, 
+							int& newRightBdryIndex);
+// end of 18Dec12 additions
+
 bool	GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldStartAt, int newStartAt,
 					   int oldStartFrom, int oldEndAt, int newStartFrom, int newEndAt, int& oldMatchedStart, 
 					   int& oldMatchedEnd, int & newMatchedStart, int& newMatchedEnd, int& oldLastIndex,
