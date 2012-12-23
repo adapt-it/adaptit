@@ -25,6 +25,13 @@ remain the same, although some of the toolbar button images have
 changed. These changes are in preparation for providing
 user selectable sets of dockable tool bar buttons in a future
 version of Adapt It.
+* The Import Edited Source Text feature would run very slowly if
+a large amount of data (such as a book like Proverbs) lacked USFM
+markers, and the source text being imported (whether with or without
+edited words) had all the needed USFM markers added. By "very slowly"
+I mean "SLOWLY" - like more than a day to complete the import! This
+has been fixed. What before took days to complete now is completed
+in a few seconds.
 ----------------------------------------------
 Bug fixes in 6.4.0
 ----------------------------------------------
