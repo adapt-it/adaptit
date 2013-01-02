@@ -157,9 +157,9 @@ class KbServer;
 #define VERSION_BUILD_PART 0
 #define VERSION_REVISION_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 12
-#define VERSION_DATE_MONTH 12
-#define VERSION_DATE_YEAR 2012
+#define VERSION_DATE_DAY 9
+#define VERSION_DATE_MONTH 1
+#define VERSION_DATE_YEAR 2013
 const wxString appVerStr(_T("6.4.0"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 

@@ -1,8 +1,8 @@
 ----------------------------------------------
-Version 6.4.0 release 12 December 2012
+Version 6.4.0 release 9 January 2013
 ----------------------------------------------
 
-*** WARNING*** Known Issue
+*** WARNING*** Known Issue for Linux Unity users
 In Ubuntu Precise, running the Unity Interface, the text control 
 in the ComposeBar does not maintain the input focus, nor any 
 selection made, when the user mouses to the Unity menu bar (which
