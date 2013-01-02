@@ -1,4 +1,96 @@
 ----------------------------------------------
+Version 6.4.0 release 9 January 2013
+----------------------------------------------
+
+*** WARNING*** Known Issue for Linux Unity users
+In Ubuntu Precise, running the Unity Interface, the text control 
+in the ComposeBar does not maintain the input focus, nor any 
+selection made, when the user mouses to the Unity menu bar (which
+was formerly Adapt It's menu bar) to choose from the Edit menu
+any of the commands Cut, Copy, or Paste. Results will not be what
+you expect, Paste may be disabled, and Cut or Copy clears the 
+phrase box instead. This is a Unity issue which we can't fix.
+Until such time as the Unity developers fix this, CTRL+C, 
+CTRL+X, and CTRL+V work correctly, and you'll have no
+problems if you use these shortcuts instead.
+The problem does not arise on other *buntus, nor on other distros
+such as Linux Mint.
+
+----------------------------------------------
+Feature changes and new features in 6.4.0
+----------------------------------------------
+* The Tool bar now uses a new set of scalable images that are 
+more flexible and aesthetic. The basic functions of the tool bar
+remain the same, although some of the toolbar button images have
+changed. These changes are in preparation for providing
+user selectable sets of dockable tool bar buttons in a future
+version of Adapt It.
+* The Import Edited Source Text feature would run very slowly if
+a large amount of data (such as a book like Proverbs) lacked USFM
+markers, and the source text being imported (whether with or without
+edited words) had all the needed USFM markers added. By "very slowly"
+I mean "SLOWLY" - like more than a day to complete the import! This
+has been fixed. What before took days to complete now is completed
+in a few seconds.
+----------------------------------------------
+Bug fixes in 6.4.0
+----------------------------------------------
+* Fixed failures of the Import Edited Source Text feature in a
+variety of unusual circumstances - such as, for example, when
+the document and the edited source text differ significantly in
+marker inventories but the data is similarly sized nevertheless
+* Fixed this vertical edit bug. If editing a source text stretch 
+which contained a merger, pressing Cancel All Steps resulted in
+a more piles than expected, copying some of the following context
+to obtain and show the bogus extra ones.
+* In the Linux version, if there was a merger within a section of
+edited source text, then the vertical edit button "Cancel All 
+Steps", if pressed, would crash the application. Now fixed.
+* The previously used paths for KB exports (sfm and LIFT) are now
+stored in the project configuration files rather than the basic
+configuration file. The move should help avoid confusion for
+users who do a lot of exports from different projects.
+* Logic errors in vertical edit of long standing have been fixed.
+Those errors would give some or all of these problems when, say,
+Cancel All Steps button was clicked. Wrong adaptation in the 
+phrase box when vertical end has ended, extra bogus copies of 
+some piles inserted after replaced ones were put back, the active
+location shifting elsewhere for no apparent reason.
+* Transferring a project folder from a Windows machine to a Linux
+machine, would wrongly turn on collaboration mode for any project
+entered on the Linux machine, whether it was a collaborating with
+Bibledit project or not.
+* Any editing done in the View Filtered Material dialog, when the 
+user returned using the OK button, did not make the document dirty.
+We now assume that an OK button press was after something got
+changed, and so we make the document be marked as dirty.
+* Removing something, such as a free translation, when in the
+"View Filtered Material" dialog, did not make the document dirty.
+It should, and now does.
+* In the Linux version, doing collaboration with Bibledit, when
+the user did File > Save to save his translation work to Bibledit
+while Bibledit was still running, Adapt It failed to detect it was
+running and warn the user to close it before trying again. Now fixed.
+* Using Ubuntu with the Unity interface, Adapt It shows the Paste
+command disabled, and cut, copy and paste do not work right. The 
+Unity developers may fix this problem some day. In the meantime, use
+the CTRL key shortcuts (see the "Known Issue" above for details), or
+use a different GUI in Ubuntu, or a different Linux flavour, such as
+the very popular Mint - Cinnamon.
+* The keyboard up-arrow key should scroll the document by a distance
+the same as the strip height plus the leading, but nothing happened.
+This is now fixed. (Keyboard down-arrow key did not have this bug.)
+* For several versions, there has been a bug in the syncing of the
+draw location to the position of the phrase box, but only in the
+Linux version. We've now got a seamless workaround. The problem is
+not of our making, but originates from a design glitch in the
+wxWidgets resources on which we rely. An example of the bug is the
+following: open a document in which the active location is below
+the bottom of the window. Adapt It failed, in the Linux version, to
+scroll the active strip into the middle of the view window, so the
+phrase box was unseen until manually scrolled into view, or some text
+was added to it.
+----------------------------------------------
 Version 6.3.1 release 17 October 2012
 ----------------------------------------------
 ----------------------------------------------
