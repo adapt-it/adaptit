@@ -327,7 +327,11 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 					nReadBytes = nReadBytes; // avoid warning
 					// we were able to open the file, so now read through the file until we have read successive
 					// bytes that together read "X-Poedit-Language: "
-					char strToFind[] = "X-Poedit-Language: "; // length is 19 bytes plus null char = 20
+					//char strToFind[] = "X-Poedit-Language: "; // length is 19 bytes plus null char = 20
+					// whm 5Jan13 changed the search criteria to match
+					// what is currently stored within the mo file,
+					// which is \n + "Language: " + "<name>" + \n
+					char strToFind[] = "\nLanguage: "; // length is 19 bytes plus null char = 20
 					char* ptr;
 					wxString languageFound;
 					int pos, len, outcome;
@@ -335,7 +339,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 					ptr = pBuff;
 					// scan through the buffer with ptr and use memcmp to compare strToFind with the
 					// portion of the buffer starting at ptr
-					for (pos = 0; pos < fileLen - 20; pos++) // stop 20 bytes short of end of buffer
+					for (pos = 0; pos < fileLen - (len + 1); pos++) // stop len + 1 bytes short of end of buffer
 					{
 						outcome = memcmp(strToFind, ptr+pos, len);
 						// outcome is 0 if strToFind is equal to the sequence of len chars starting at ptr+pos
