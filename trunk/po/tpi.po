@@ -11,6 +11,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Basepath: ..\\\n"
 "X-Generator: Poedit 1.5.4\n"
+"Language: Tok Pisin\n"
 "X-Poedit-SearchPath-0: source\n"
 
 #: source/Adapt_It.cpp:787 source/Adapt_It.cpp:2264
