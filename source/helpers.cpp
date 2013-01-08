@@ -2940,6 +2940,20 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 	return TRUE;
 }
 
+#if defined (_KBSERVER)
+// a handy utility for counting how many space-delimited words occur in str
+int CountSpaceDelimitedWords(wxString& str)
+{
+	if (str.IsEmpty())
+		return 0;
+	wxString delimiters = _T(' ');
+	wxArrayString words;
+	bool bStoreEmptyStringsToo = FALSE;
+	int wordCount = (int)SmartTokenize(delimiters,str,words,bStoreEmptyStringsToo);
+	return wordCount;
+}
+#endif
+
 // BEW added 22Jan10: string tokenization is a pain in the butt in wxWidgets, because the
 // developers do not try to give uniform behaviours for CR versus CR+LF across all
 // platforms (eg. multiline text controls), so a function is needed for tokenizing which

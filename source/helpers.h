@@ -466,7 +466,13 @@ void     RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, in
 // returns it in param 2. Return TRUE if no error, FALSE if something went wrong and the
 // returned string isn't defined.
 bool     GetLanguageCodePrintName(wxString code, wxString& printName);
- 
+
+
+#if defined (_KBSERVER)
+// a handy utility for counting how many space-delimited words occur in str
+int CountSpaceDelimitedWords(wxString& str);
+#endif
+
 
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially

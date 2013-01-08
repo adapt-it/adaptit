@@ -197,6 +197,8 @@ public:
 
 	bool		LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr);
 	CTargetUnit* GetTargetUnitForKbSharing(wxString keyStr);
+	void		MakeAndStoreNewRefString(CKB* pKB, CTargetUnit* pTU, wxString& tgtPhrase, 
+									wxString& username, bool bDeletedFlag);
 /*  I don't think I need this next one (it's only a stub so far)
 	bool		IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
 					int deletedFlag, CRefString*& pRefString, bool& bMatchedTranslation);

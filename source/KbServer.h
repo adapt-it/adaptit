@@ -155,7 +155,8 @@ private:
 	// private member functions
 	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
 
-	// getters for the private member variables above
+	// public getters for the private member variables above
+public:
 	wxString	GetKBServerURL();
 	wxString	GetKBServerUsername();
 	wxString	GetKBServerPassword();
@@ -177,6 +178,7 @@ private:
 	// and kbtype - these are constant for any given instance of KbServer, and their
 	// values are determinate from member variables m_kbSourceLanguageCode,
 	// m_kbTargetLanguageCode, and m_kbServerType, respectively.
+private:
 	wxArrayInt		m_arrID;
 	wxArrayInt		m_arrDeleted;
 	wxArrayString	m_arrTimestamp;
