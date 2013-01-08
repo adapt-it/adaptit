@@ -451,7 +451,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			// other entries with source text beginning with uppercase, with auto-caps ON,
 			// DO get their key converted to lower case -- so there is a noticeable
 			// assymmetry in the management of KB entries in such a scenario. The way to
-			// avoid this is do force a lowercase lookup every time autocaps is ON, and if
+			// avoid this is to force a lowercase lookup every time autocaps is ON, and if
 			// it fails, (ie. the "Kristus" <-> "Christ" entry is not seen by the lookup)
 			// then just return FALSE to the caller so that a new CTargetUnit instance is
 			// created with key "kristus" and it's CRefString will then have "christ" in
@@ -989,17 +989,36 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whi
 		wxMessageBox(msg,_T("Error - but program will continue"), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
-	// we need only the source, target, and deleted flag's arrays - get them
+    // We need the source, target, and deleted flag's arrays - get them; but also get
+    // m_arrUsername because we want the local KB to preserve the username for whoever
+    // contributed any kbserver's entry which makes it into the local KB from kbserver
 	wxArrayInt* pDeletedFlagArray = pKbServer->GetDeletedArray();
 	wxArrayString* pKeyArray = pKbServer->GetSourceArray();
 	wxArrayString* pTgtArray = pKbServer->GetTargetArray();
-	// get the size of any of the above arrays - that's our loop bound
+	wxArrayString* pUsernameArray = pKbServer->GetUsernameArray();
+
+	// get the size of any of the above arrays - that's our loop bound; define an iterator
 	size_t size = pKeyArray->GetCount();
 	size_t index;
-	// scratch variables for key, translation, and deleted flag, for a single entry
+
+	// scratch variables for key, tgtPhrase, and deleted flag, for a single entry
 	wxString key;
-	wxString translation; // could be an adaptation, or in glossing mode, a gloss
-	bool deletedFlag;
+	wxString tgtPhrase; // could be an adaptation, or in glossing mode, a gloss
+	wxString username; // who created a given entry received from kbserver
+	bool bDeletedFlag;
+	// bGlossingKB will be TRUE if the glossing KB is currently in use (ie. glossing mode
+	// is on), and FALSE if not in use (ie. adapting mode is on)
+	bool bGlossingKB = pKbServer->GetKBServerType() == 2 ? TRUE : FALSE;
+	// get a pointer to the CKB instance currently being used
+	CKB* pKB = bGlossingKB ? m_pApp->m_pGlossingKB : m_pApp->m_pKB;
+
+	// local variables needed for storing to the CKB instance
+	CTargetUnit* pTU = NULL;
+	CRefString* pRefString = NULL;
+	int nMapIndex = 0;
+	int nWordCount = 0;
+	MapKeyStringToTgtUnit* pMap = NULL; // set which map we lookup using nWordCount
+	MapKeyStringToTgtUnit::iterator iter;
 
 	switch(whichEntries)
 	{
@@ -1013,13 +1032,95 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whi
 		for (index = 0; index < size; index++)
 		{
 			key = pKeyArray->Item(index);
-			translation = pTgtArray->Item(index);
-			deletedFlag = pDeletedFlagArray->Item(index) == 1 ? TRUE : FALSE;
+			tgtPhrase = pTgtArray->Item(index);
+			username = pUsernameArray->Item(index);
+			bDeletedFlag = pDeletedFlagArray->Item(index) == 1 ? TRUE : FALSE;
+			// count how many words there are in key (uses a utility function from helpers.cpp)
+			nWordCount = CountSpaceDelimitedWords(key);
+			if (nWordCount > 0)
+			{
+                // NOTE: we do NOT support auto-capitalization in this function by design.
+                // Instead, we just look up the key string "as is" to see if a paired
+                // CTargetUnit instance is in the map, whether or not autocapitalization is
+                // on. So it's possible for one user sharing the KB to have auto caps on,
+                // and another have it off, nevertheless we just lookup without checking
+                // for case and then doing any needed case conversions. This may result in
+                // one user not receiving entries for upper case keys that he'd like to
+                // receive but which aren't in the kbserver and so can't be sent, or
+                // alternatively, receiving entries for upper case keys which are in
+                // kbserver but which he'll never use while he has autocaptalization turned
+                // on. So be it. But no damage is done either way.
+                nMapIndex = nWordCount - 1;
+				pMap = pKB->m_pMap[nMapIndex]; // get the map
+				if (pMap != NULL)
+				{
+					// lookup for a paired pTU, using the string in key...
+					pTU = NULL; // default to a failure to find a matching entry
+					iter = pMap->find(key); // failure returns pMap->end()
+					if (iter != pMap->end())
+					{
+						pTU = iter->second; // pTU points at a matched CTargetUnit instance
+					}
 
+					if (pTU == NULL)
+					{
+						// The local KB does not yet have an entry for this key; so create it
+						pTU = new CTargetUnit;
+						MakeAndStoreNewRefString(pKB, pTU, tgtPhrase, username, bDeletedFlag);
+						// Add the new pTU to the appropriate map
+						(*pMap)[key] = pTU;
+                        // This new CRefString may have more source text words in it than
+                        // any other entry in the local CKB instance; test for this, and if
+                        // so, update pKB->m_nMaxWords so that the newly added entry is
+                        // lookup-able from now on
+						if (pKB->m_nMaxWords < nWordCount)
+						{
+							pKB->m_nMaxWords = nWordCount;
+						}
 
+					} // end of TRUE block for test: if (pTU == NULL)
+					else
+					{
+						// The local KB has this CTargetUnit - so we need to find out if the
+						// key is matched by the m_translation member of one of it's
+						// CRefString instances. An empty list of CRefString instances in pTU
+						// is normally an error, but we'll just add the new entry and that
+						// will 'fix' it
+						if (pTU->m_pTranslations->IsEmpty())
+						{
+                            // See the block above's comments for what we are doing here...
+                            // the only difference from what's above is that we don't need to
+                            // first create a CTargetUnit instance in this current block
+							MakeAndStoreNewRefString(pKB, pTU, tgtPhrase, username, bDeletedFlag);
+							(*pMap)[key] = pTU;
+							if (pKB->m_nMaxWords < nWordCount)
+							{
+								pKB->m_nMaxWords = nWordCount;
+							}
+						}
+						else
+						{
+							// The m_pTranslations list is not empty, so check if the
+							// kbserver entry is already present with the same value of
+							// the deleted flag - if so, we abandon this entry as it's
+							// already in the local KB; but if absent, or the deleted flag
+							// value is different, then we have to update the local KB
+							// accordingly
 
+							
+							
+							
+							
+							
+							
+							
+// TODO		
 
-		}
+						} // end of else block for test: if (pTU->m_pTranslations->IsEmpty())
+					} // end of else block for test: if (pTU == NULL)
+				} // end of TRUE block for test: if (pMap != NULL)
+			} // end of TRUE block for test: if (nWordCount > 0)
+		} // end of for loop
 		break;
 	}
 	pKbServer->ClearAllPrivateStorageArrays();
@@ -1055,6 +1156,43 @@ KbServer* CKB::GetMyKbServer()
 	}
 	return pMyKbSvr;
 }
+
+// Encapsulates the making of a CRefString added because of a new entry from kbserver. We
+// need this in more than one place, so made a function of it
+void CKB::MakeAndStoreNewRefString(CKB* pKB, CTargetUnit* pTU, wxString& tgtPhrase, 
+								   wxString& username, bool bDeletedFlag)
+{
+	CRefString* pRefString = new CRefString(pTU); // automatically creates and hooks
+	// up it's owned CRefStringMetadata instance, and sets its creator
+	// and creation datetime (creator is initialized to the user
+	// account on the local machine, but we then overwrite now with the
+	// username received in the kbserver entry)
+	pRefString->GetRefStringMetadata()->SetWhoCreated(username);
+	// default is to create a normal entry, but if the kbserver
+	// entry is a pseudo-deleted one, we have extra work to do
+	if (bDeletedFlag)
+	{
+		pRefString->SetDeletedFlag(TRUE);
+		// and give it a deletion datetime of 'now'
+		pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+	}
+	// set the lowest possible reference count value (a 0 value would
+	// result in Adapt It removing the entry, so smallest for persistence
+	// is 1)
+	pRefString->m_refCount = 1;
+	// set the tgtPhrase value (remember, it will be a gloss if
+	// glossing mode is current, otherwise it will be an adaptation)
+	pRefString->m_translation = tgtPhrase;
+	// add the new CRefString instance to this pTU
+	pTU->m_pTranslations->Append(pRefString);
+	// NOTE, since the entry is not coming from the user's actions in
+	// the document, we accept the default value for the m_bForceAsk
+	// flag, which is the value FALSE - so nothing to do here
+}
+
+
+
+
 #endif // for _KBSERVER
 
 // BEWw added 29Aug11: overloaded version below, for use when Consistency Check
