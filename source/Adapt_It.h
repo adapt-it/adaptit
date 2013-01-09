@@ -3807,6 +3807,7 @@ public:
 	// for localization support
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
 	bool	LocalizationFilesExist();
+	wxString GetLanguageNameFromBinaryMoFile(wxString pathAndMoFileName);
 	// Functions that let the user select/change Adapt It's interface language
 	bool	ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface);
 	bool	ReverseOkCancelButtonsForMac(wxDialog* dialog);
@@ -3818,7 +3819,8 @@ public:
 	// miscellaneous (this group in alphabetical order mostly)
 	void	ChangeUILanguage();
 	//bool	FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize);
-	wxString GetDefaultPathForLocalizationSubDirectories();
+	wxString GetBasePathForLocalizationSubDirectories();
+	wxString GetLocalizationMoFilePath(wxString langCode);
 	wxString GetDefaultPathForXMLControlFiles();
 	wxString GetDefaultPathForHelpFiles();
 	int		GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid, wxArrayString keyArray);
