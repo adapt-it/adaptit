@@ -2053,9 +2053,9 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		// On Mac OS X: C
 
 		// On Linux Natty i386 version GetSysName() returns a long garbage string which
-		// distorts the dialog, so we'll test for a long string (> 20 chars) and if detected
+		// distorts the dialog, so we'll test for a long string (> 40 chars) and if detected
 		// we'll just put '[Unknown]'
-		if (tempStr.Length() > 20)
+		if (tempStr.Length() > 40)
 		{
 			tempStr = _T("[Unknown]");
 		}

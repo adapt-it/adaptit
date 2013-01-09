@@ -72,7 +72,7 @@ public:
 	//bool		tempSfmOnlyAfterNewlines;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnUILanguage(wxCommandEvent& WXUNUSED(event));
+	//void OnUILanguage(wxCommandEvent& WXUNUSED(event));
     
 	//// implement wxWizardPage functions
 	void OnEditSourceLanguageName(wxCommandEvent& WXUNUSED(event)); // whm added 14May10

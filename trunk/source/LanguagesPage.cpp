@@ -299,11 +299,11 @@ void CLanguagesPage::OnEditTargetLanguageName(wxCommandEvent& WXUNUSED(event)) /
 	pTgtLangCodeBox->ChangeValue(_T(""));
 }
 	
-void CLanguagesPage::OnUILanguage(wxCommandEvent& WXUNUSED(event))
-{
-	// This is called when the Start Working Wizard is setting up a new project.
-	gpApp->ChangeUILanguage();
-}
+//void CLanguagesPage::OnUILanguage(wxCommandEvent& WXUNUSED(event))
+//{
+//	// This is called when the Start Working Wizard is setting up a new project.
+//	gpApp->ChangeUILanguage();
+//}
 
 // Prevent leaving the page if either the source or target language
 // names are left blank

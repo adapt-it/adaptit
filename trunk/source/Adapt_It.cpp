@@ -6926,18 +6926,33 @@ bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolled
 */
 
 ////////////////////////////////////////////////////////////////////////////////////////
-/// \return     a wxString representing the path to the directory which contains all of
-///             the localization subdirectories (es, fr, in, ru, zh_TW, etc) which
-///             contain .mo files
+/// \return     a wxString representing the path to the base directory which contains 
+///             all of the localization subdirectories (es, fr, in, ru, zh_TW, etc) 
+///             which in turn contain LC_MESSAGES and/or .mo localization files
 /// \remarks
 /// Called from: the App's ChooseInterfaceLanguage().
-/// Gets the path from which we expect to find the 2-letter ("xx") or 5-letter ("xx_XX")
-/// subdirectories that contain localization .mo files for Adapt It and/or the wxWidgets
-/// library strings. If the directory cannot be determined, or there are no subdirectories
-/// of the expected form containing at least one localization .mo file, an empty string is
-/// returned.
+/// Gets a platform specific absolute path of the directory where we expect to
+/// be able to find the 2-letter ("xx"), 3-letter ("xxx"), or 5-letter ("xx_XX")
+/// subdirectories that contain (more subdirectories that contain) localization 
+/// .mo files for Adapt It and/or the wxWidgets library strings. If the directory 
+/// cannot be determined, or there are no subdirectories of the expected form 
+/// containing at least one localization .mo file, an empty string is returned.
+/// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\ or
+///             C:\Program Files\Adapt It WX Unicode\Languages\"
+///             which then contain multiple xx or xxx directories which in
+///             turn contain an Adapt_It.mo or Adapt_It_Unicode.mo file.
+/// On wxGTK:   "/usr/share/locale/" or "/usr/local/share/locale/"   
+///             which then contain multiple xx or xxx directories which in
+///             turn contain a LC_MESSAGES directory which contains an
+///             adaptit.mo file.
+/// On wxMac:   "AdaptIt.app/Contents/Resources/locale"
+///             within the application bundle, which then contain multiple
+///             xx or xxx directories which in turn contain a LC_MESSAGES
+///             directory which contains an Adapt It.mo file. This
+///             is where Poedit puts its localization files, so we'll follow
+///             Poedit's example.
 /////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
+wxString CAdapt_ItApp::GetBasePathForLocalizationSubDirectories()
 {
 	// According to the wx docs:
 	// Adapt It looks for its possible interface translations (localizations)
@@ -6963,8 +6978,8 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
     // - On Mac OS X, localization files are installed in the
     // "<appname>.app/Contents/Resources/locale" bundle subdirectory, so Adapt It looks for
     // localization <lang> subfolders and files in the
-    // AdaptIt.app/Contents/Resources/locale bundle subdirectory. The <lang> subfolders
-    // also have an additional LC_MESSAGES subfolder which contains the AdaptIt.mo files.
+    // Adapt It.app/Contents/Resources/locale bundle subdirectory. The <lang> subfolders
+    // also have an additional LC_MESSAGES subfolder which contains the Adapt It.mo files.
     // In all cases, the <lang> subdirectory is named with the two (or five) letter short
     // canonical name of the language from the old ISO639 standard. Within these individual
     // <lang> subdirectories, the localization translations are contained in a compiled
@@ -7067,6 +7082,54 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	wxFileName fn(pathToLocalizationFolders);
 	fn.Normalize();
 	return pathToLocalizationFolders;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing the absolute path to the platform specific
+///             .mo localization file that contains the compiled localization
+///             strings for the langCode language interface.
+/// \param      langCode -> the 2 or 3-letter ISO 639 code used at the base level
+///             of the localization directory structure and under which the .mo 
+///             localization file should be found
+/// \remarks
+/// Called from: 
+/// Gets the platform appropriate absolute path for the .mo
+/// localization file for a given 2 or 3-letter language code 
+/// parameter langCode.
+/// Examples using the tpi language code:
+/// On wxMSW:   "C:\Program Files\Adapt It WX\Languages\tpi\Adapt_It.mo or
+///             C:\Program Files\Adapt It WX Unicode\Languages\tpi\Adapt_It_Unicode.mo"
+/// On wxGTK:   "/usr/share/locale/tpi/LC_MESSAGES/adaptit.mo" 
+///     or      "/usr/local/share/locale/tpi/LC_MESSAGES/adaptit.mo"
+/// On wxMac:  "Adapt It.app/Contents/Resources/locale/tpi/LC_MESSAGES/Adapt It.mo"
+///    [within the bundle subdirectory]. This is where Poedit puts 
+///    its localization files, so we'll follow Poedit's example.
+/// See the related function GetBasePathForLocalizationSubDirectories()
+/////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::GetLocalizationMoFilePath(wxString langCode)
+{
+	wxString appName;
+	appName = GetAppName();
+	// Get the platform specific base path (absolute) for the initial part of
+	// the path.
+	wxString moFileAbsolutePath;
+	wxString basePath;
+	basePath = GetBasePathForLocalizationSubDirectories();
+	// Now augment the base path with the platform specific remaining path
+	// part that points to the specific language .mo file used for the
+	// langCode localization
+#ifdef __WXMAC__
+	moFileAbsolutePath = basePath + PathSeparator + langCode + PathSeparator + _T("LC_MESSAGES") + PathSeparator + appName + _T(".mo");
+#endif
+
+#ifdef __WXGTK__
+	moFileAbsolutePath = basePath + PathSeparator + langCode + PathSeparator + _T("LC_MESSAGES") + PathSeparator + appName + _T(".mo");
+#endif
+
+#ifdef __WXMSW__
+	moFileAbsolutePath = basePath + PathSeparator + langCode + PathSeparator + appName + _T(".mo");
+#endif
+	return moFileAbsolutePath;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -7339,9 +7402,13 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if the dirPath represents a subdirectory containing a child or grandchild
-///             localization directory(s) which contain an <appName>.mo file
+///             localization directory(s) which contain an <appName>.mo file,
+///             or if the incoming subFolderName parameter is en or en_XX,
+///             since English is Adapt It's default localization when no other
+///             localization is chosen
 /// \param      dirPath         -> the path to look for the <lang> localization subfolder
-/// \param      subFolderName = -> the name of a specific subfolder to contain <appName>.mo
+/// \param      subFolderName = -> the name of a specific subfolder to check for existence
+///                                 of a localization .mo file
 /// \remarks
 /// Called from: the App's LocalizationFilesExist()
 /// Determines if dirPath has one or more child or grandchild subfolders which contain an
@@ -7350,10 +7417,14 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
 /// (on Windows); or the /usr/share/locale/ directory on Linux; or
 /// /<appName>.app/Contents/Resources directory on the Mac. These directory locations should
 /// contain at least one localization <lang> subfolder containing an <appName>.mo file. If
-/// subFolderName is not a null string, this function will only return TRUE if a subfolder
-/// exists at dirPath with the subFolderName. If subFolderName is a null string the
-/// function does not check the names of the localization subfolders, but only checks to
-/// see if an <appName>.mo file can be found in at least one such subfolder.
+/// subFolderName is not an empty string, this function will do a "strict search" and only 
+/// return TRUE if a subfolder exists at dirPath with the subFolderName. If subFolderName 
+/// is an empty string from the caller, the function does not require that a
+/// given directory name exist on the local machine, but only checks to see if an <appName>.mo 
+/// file can be found in at least one such localization subfolder.
+/// If subFolderName is a form of en or en_XX the function returns TRUE
+/// because English is the default localization for Adapt It when no specific
+/// localization is selected.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFolderName)
 {
@@ -7363,6 +7434,24 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 	wxString appName;
 	appName = GetAppName();
 
+	bool bSpecificMoFileExists = FALSE;
+	bool bAtLeastOneMoFileExists = FALSE;
+	bool bStrictSearch;
+	if (!subFolderName.IsEmpty())
+		bStrictSearch = TRUE;
+	else
+		bStrictSearch = FALSE;
+	bool bFolderNameIsAnEnglishName;
+	if (subFolderName == _T("en") || subFolderName.Find(_T("en_")) != wxNOT_FOUND)
+	{
+		bFolderNameIsAnEnglishName = TRUE;
+		// In this case we use the "default" localization of English, so
+		// we can return a TRUE value here for the function
+		return TRUE;
+	}
+	else
+		bFolderNameIsAnEnglishName = FALSE;
+
 	wxArrayString subDirList;
 	subDirList.Clear();
 	GetListOfSubDirectories(dirPath,subDirList);
@@ -7371,44 +7460,62 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 						// reading read-only folders/files
 
 	int ct;
+	// Scan through all localization folders present on the machine gathering
+	// information about the existence of the localization files.
 	for (ct = 0; ct < (int)subDirList.GetCount(); ct++)
 	{
-		bool bNamesMatch = TRUE; // assume match unless subFolderName parameter
-								 // has a non-null string
 		bool bHasRegionCode = FALSE;
-		if (!subFolderName.IsEmpty())
+		bool bNamesMatch = FALSE;	// assume no match unless subFolderName parameter
+									// value matches this folder name on the
+									// local machine
+		// When doing a strict search and this folder name represents a
+		// non-English localization, determine if this folder is a match
+		// for the strict folder parameter. A match exists if the2 or 3 letter
+		// language code matches (ignoring the _XX region part).
+		// English is the default interface language for Adapt It so there
+		// won't ever be an en or en_XX localization folder (at least
+		// not installed by Adapt It), although the subFolderName parameter
+		// may represent an incoming en or en_XX language. Don't look for a
+		// match if the incoming folder name code is an English name code of
+		// some sort.
+		if (bStrictSearch && !bFolderNameIsAnEnglishName)
 		{
 			wxString subDir = subDirList.Item(ct);
 			if (subDir.Length() > 2 && subDir[2] == _T('_') && subDir.Length() >= 5)
 				bHasRegionCode = TRUE;
 			wxString subFldr = subFolderName;
 #ifdef __WXMSW__
+			// do non-case-sensitive comparison on Windows
 			subDir.MakeLower();
 			subFldr.MakeLower();
 #endif
-			if (bHasRegionCode && subFldr.Mid(0,2) != subDir.Mid(0,2))
+			// When the language code has a _XX region suffix only compare the
+			// prefix language code parts for a match.
+			if (bHasRegionCode && subFldr.Mid(0,2) == subDir.Mid(0,2))
 			{
-				bNamesMatch = FALSE;
+				bNamesMatch = TRUE;
 			}
-			else if (subFldr != subDir)
+			else if (subFldr == subDir)
 			{
-				bNamesMatch = FALSE;
+				bNamesMatch = TRUE;
 			}
 		}
 
-		dirPath = dirPath + PathSeparator + subDirList.Item(ct);
-        // check for existence of "LC_MESSAGES" subfolder within dirPath, and if it exists,
-        // search within it
-		if (wxDir::Exists(dirPath + PathSeparator + _T("LC_MESSAGES")))
-			dirPath = dirPath + PathSeparator + _T("LC_MESSAGES");
-		wxDir dPath(dirPath);
-		// whm Note: with wxDir we must call .Open() before enumerating files or calling
-		// IsOpen()! Otherwise it asserts on wxGTK!
-		if (dPath.Open(dirPath) && bNamesMatch && dPath.HasFiles(_T("*.mo")) &&
-			dPath.HasFiles(appName + _T(".mo")))
+		// Check for the existence of mo file(s) within the structure of
+		// this folder on the machine.
+		wxString folderName = subDirList.Item(ct);
+		dirPath = GetLocalizationMoFilePath(folderName);
+		if (wxFileExists(dirPath))
 		{
-			return TRUE;
+			if (bNamesMatch)
+				bSpecificMoFileExists = TRUE;
+			bAtLeastOneMoFileExists = TRUE;
 		}
+	}
+	if ((bStrictSearch && bSpecificMoFileExists)
+		|| (!bStrictSearch && bAtLeastOneMoFileExists))
+	{
+		return TRUE;
 	}
 	// if we make it here none were found
 	// end of scope for wxLogNull
@@ -7476,8 +7583,8 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 /// \remarks
 /// Called from: the App's ProcessUILanguageInfoFromConfig() and ChangeUILanguage(). Stores
 /// the user's choice of interface language (using the members of the CurrLocalizationInfo
-/// struct) in the global configuration (the Registry on Windows, or a hidden file in the
-/// user's folder on Linux/Mac.
+/// struct) in the global configuration m_pConfig file (\Users\<user>\AppData\Roaming\Adapt_It_WX.ini 
+/// on Windows, or in a hidden file named .Adapt_It_WX in the user's folder on Linux/Mac.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 {
@@ -7486,29 +7593,30 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 
 	wxLogNull logNo; // avoid spurious messages from the system
 
-	// save current CurrLocalizationInfo struct's member information in registry/hidden
+	// save current CurrLocalizationInfo struct's member information in m_pConfig
 	// settings file
-	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path
 	m_pConfig->SetPath(_T("/Settings"));
 	m_pConfig->Write(_T("ui_language"), (long)currLocalizationInfo.curr_UI_Language);
     m_pConfig->Write(_T("ui_language_code"), currLocalizationInfo.curr_shortName);
     m_pConfig->Write(_T("ui_language_name"), currLocalizationInfo.curr_fullName);
-//#ifdef _UNICODE
-//    m_pConfig->Write(_T("ui_language_path_unicode"), currLocalizationInfo.curr_localizationPath);
-//#else
-//    m_pConfig->Write(_T("ui_language_path"), currLocalizationInfo.curr_localizationPath);
-//#endif
+#ifdef _UNICODE
+    m_pConfig->Write(_T("ui_language_path_unicode"), currLocalizationInfo.curr_localizationPath);
+#else
+    m_pConfig->Write(_T("ui_language_path"), currLocalizationInfo.curr_localizationPath);
+#endif
 
 #ifdef _DEBUG
 	wxLogDebug(_T(
-"Writing to m_pConfig:\n   curr_UI_Language = %d\n   curr_shortName = %s\n   curr_fullName = %s"), //\n   curr_localizationPath = %s"),
+"Writing to m_pConfig:\n   curr_UI_Language = %d\n   curr_shortName = %s\n   curr_fullName = %s\n   curr_localizationPath = %s"),
 		currLocalizationInfo.curr_UI_Language,
 		currLocalizationInfo.curr_shortName.c_str(),
-		currLocalizationInfo.curr_fullName.c_str()); //,
-		//currLocalizationInfo.curr_localizationPath.c_str());
+		currLocalizationInfo.curr_fullName.c_str(),
+		currLocalizationInfo.curr_localizationPath.c_str());
 #endif
-	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
-	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed 
+	// in OnExit().
+	// restore the oldPath back to what it was on entry
 	m_pConfig->SetPath(oldPath);
 }
 
@@ -7516,31 +7624,33 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 /// \return     nothing
 /// \remarks
 /// Called from: CChooseLanguageDlg::OnOK(). Stores a user defined interface language in
-/// the global configuration (the Registry on Windows, or a hidden file in the user's
-/// folder on Linux/Mac. User defined languages may be stored in registry/hidden settings
-/// keys of the form user_defined_language_n, where n may be an integer from 0 through 8.
+/// the global configuration m_pConfig file (\Users\<user>\AppData\Roaming\Adapt_It_WX.ini 
+/// on Windows, or in a hidden file named .Adapt_It_WX in the user's folder on Linux/Mac. 
+/// User defined languages may be stored in the m_pConfig settings keys of the form 
+/// user_defined_language_n (ANSI version), or user_defined_language_u_n (Unicode 
+/// version) where n may be an integer from 0 through 8.
 /// This function uses the incoming parameter data to create a composite unix-like string
-/// delimited by colons (:), and saves this composit string to one of 9 keys in the
+/// delimited by colons (:), and saves this composite string to one of 9 keys in the
 /// Registry or hidden settings file. Up to 9 user defined languages can be remembered in
-/// this way, using keys with names such as user_defined_language_0,
-/// user_defined_language_1, and so on up through user_defined_language_8. This function
-/// first checks to see if the incoming user defined language was previously saved in one
-/// of the user_defined_language_n keys. If the incoming language is not
-/// already stored, the first available key that has not yet been assigned a string is
-/// used. If all keys are currently filled with user defined language info, the oldest
-/// string is replaced by the new language composite string.
+/// this way (for ANSI or Unicode version), using keys with names such as 
+/// user_defined_language_u_0, user_defined_language_u_1, and so on up through 
+/// user_defined_language_u_8. This function first checks to see if the incoming user 
+/// defined language was previously saved in one of the user_defined_language_u_n keys. If 
+/// the incoming language is not already stored, the first available key that has not yet 
+/// been assigned a string is used. If all keys are currently filled with user defined 
+/// language info, the oldest string is replaced by the new language composite string.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		const wxString shortName, const wxString fullName, const wxString localizationPath)
 {
 	// A composite unix string for a user defined language such as Tok Pisin might look like
-	// this: 231:tpi:Tok Pisin
+	// this: 231:tpi:Tok Pisin:
 	// The 3 fields of the unix string are parsed using the : delimiter.
 
-	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path of what it was on entry
 	m_pConfig->SetPath(_T("/Settings"));
 
-    // Take stock of the user_defined_language_n entry keys the the registry/hidden
+    // Take stock of the user_defined_language..._n entry keys the m_pConfig
     // settings file. The keyArray[] array will contain what is stored there.
 	int ct;
 	const int nKeys = 9;
@@ -7552,7 +7662,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 	for (ct = 0; ct < nKeys; ct++)
 	{
 		wxLogNull logNo; // eliminates spurious message from the system: "Can't read value of
-			// key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+			// ...Adapt_It_WX\Settings' Error" [valid until end of this block]
 		wxString str;
 #ifdef _UNICODE
 		str << _T("user_defined_language_u_") << ct;
@@ -7589,10 +7699,8 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
     // of whether some or all of the keys were present when
     // SaveUserDefinedLanguageInfoStringToConfig() was called.
 
-    // Sort the array. Since the wxLanguage number (as string) is first in compositeStr, we
-    // sort the array so that unassigned keys are moved to the end where we want them.
-	//keyArray.Sort();  // sorts the array in ascending order (the unassigned keys get
-						// sorted to the end of the list)
+    // The array will get sorted on next run by OnInit()'s 
+    // ProcessUILanguageInfoFromConfig().
 
     // Check whether the language represented by our compositeStr has been assigned
     // previously; we don't want to store duplicate user languages, but we do want to
@@ -7635,7 +7743,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
         // with wxLANGUAGE_USER_DEFINED + 1.
 		if (bAllKeysAssigned)
 		{
-            // All 9 available user_defined_language_n keys have been previously assigned,
+            // All 9 available user_defined_language..._n keys have been previously assigned,
             // so we remove the oldest by copying keyArray[1] to keyArray[0], keyArray[2]
             // to keyArray[1], etc., all the way through keyArray[9] copied to keyArray[8].
             // Then we assign make this newest key "[UNASSIGNED]" so that it will get
@@ -7682,7 +7790,7 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		// Make a composite unix-like string from the parameters
 		wxString compositeStr;
 		compositeStr << wxLangCode << _T(':') << shortName << _T(':') << fullName
-					<< _T(':'); // << localizationPath; whm 8Dec11 removed the path part
+					<< _T(':');
 
 		// Assign compositeStr to the first empty array element in keyArray[].
 		for (ct = 0; ct < nKeys; ct++)
@@ -7696,15 +7804,12 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		}
 	}
 
-	// Sort the array again since we may have added or inserted something.
-	//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys get
-					   //sorted to the end of the list)
-
  	wxLogNull logNo; // avoid spurious messages from the system
 
-	// Rewrite all 9 keys from keyArray[] back to the registry/hidden settings file. This
-    // is done even if we did not add a compositeStr language, but, since we did sort the
-    // keyArray[], it may have changed the order.
+	// Rewrite all 9 keys from keyArray[] back to the m_pConfig settings file. This
+	// is done even if we did not add a compositeStr language. This may have changed 
+	// the order, but it will be reordered on next run when OnInit() calls the 
+    // ProcessUILanguageInfoFromConfig() function.
 	int ctkey;
 	for (ctkey = 0; ctkey < nKeys; ctkey++)
 	{
@@ -7717,8 +7822,9 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 		m_pConfig->Write(str, keyArray[ctkey]);
 	}
 
-	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
-	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is 
+						// destroyed in OnExit().
+	// restore the oldPath back to what is was on entry
 	m_pConfig->SetPath(oldPath);
 }
 
@@ -7726,10 +7832,10 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 /// \return     nothing
 /// \remarks
 /// Called from: CChooseLanguageDlg::OnOK(). This function searches for a
-/// user_defined_language_n key using the incoming parameter data. If the key is found, it
-/// effectively removes the key value by making it a null string. We also sort the
-/// user_defined_language_n keys and write them back to the registry/hidden settings file
-/// so that they are always kept in numerical order.
+/// user_defined_language_n or user_defined_language_u_n key using the incoming parameter 
+/// data. If the key is found, it effectively removes the key value by making it a null 
+/// string. We also sort the user_defined_language_n (or user_defined_language_u_n) keys 
+/// and write them back to the m_pConfig settings file.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString shortName,
 																 const wxString fullName)
@@ -7738,15 +7844,12 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
     // composite unix-like string delimited by colons (:). There are 9 keys in the registry
     // or hidden settings file, so up to 9 user defined languages can be remembered there.
     // A composite unix string for a user defined language such as Tok Pisin might look
-    // like this: 231:tpi:Tok Pisin:C:\Program Files\Adapt It\Languages
-    // The first 3 fields of the unix string are parsed using the : delimiter. The 4th
-    // field is assumed to compose all the remaining characters of the localization path,
-    // including any colon chars that may exist in the path after the volume label, i.e.,
-    // C:\....
-
-    // Read any existing strings associated with user_defined_language_n keys into an array
+    // like this: 231:tpi:Tok Pisin:
+    // The 3 fields of the unix string are parsed using the : delimiter.
+    // 
+    // Read any existing strings associated with user_defined_language..._n keys into an array
     // called keyArray[].
-	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path what it was on entry
 	m_pConfig->SetPath(_T("/Settings"));
 
 	int ct;
@@ -7756,7 +7859,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	for (ct = 0; ct < nKeys; ct++)
 	{
 		wxLogNull logNo; // eliminates spurious message from the system:
-            // "Can't read value of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid
+            // "Can't read value of ...Adapt_It_WX\Settings' Error" [valid
             // until end of this block]
 		wxString str;
 #ifdef _UNICODE
@@ -7775,7 +7878,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		if (!valReadOK)
 		{
 			keyArray[ct] = _T("[UNASSIGNED]");	// assign "[UNASSIGNED]" string to any
-										// keyArray element for which there is no key
+												// keyArray element for which there is no key
 		}
 		// end of wxLogNull logNo scope
 	}
@@ -7785,7 +7888,7 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 
 	if (!bKeysPresent)
 	{
-        // there are no user_defined_language_n keys in the registry/hidden settings file,
+        // there are no user_defined_language_n keys in the m_pConfig settings file,
         // so we have nothing to remove, so we quietly return to the caller.
 		return;
 	}
@@ -7814,13 +7917,6 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
         // reordering of wxLanguage values before calling AddLanguage(), and insuring that
         // any [UNASSIGNED] keys are placed last in the list.
 
-		// Sort the keyArray.
-        // Sort the array. Since the wxLanguage number (as string) is first in
-        // compositeStr, we sort the array so that unassigned keys are moved to the end
-        // where we want them.
-		//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys
-						   // get sorted to the end of the list)
-
 		wxLogNull logNo; // avoid spurious messages from the system
 
 		// Finally, write the 9 keys back to the registry
@@ -7836,8 +7932,9 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		}
 	}
 
-	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
-	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in 
+						// OnExit().
+	// restore the oldPath back to what it was on entry
 	m_pConfig->SetPath(oldPath);
 }
 
@@ -13935,12 +14032,12 @@ int CAdapt_ItApp::GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgTy
 ///             m_pConfig info
 /// \remarks
 /// Called from: the App's OnInit(). Retrieves any previously stored user defined languages
-/// from m_pConfig using the registry (Windows)/hidden settings file (Linux/Mac), and adds
-/// the language info to the current locale with wxLocale::AddLanguage(). Then it retrieves
-/// the user's current localization information stored in the m_pConfig and returns it to
-/// the caller. If no previous interface has been chosen (i.e., on first run of Adapt It),
-/// the string members of the CurrLocalizationInfo struct being returned are set to null
-/// strings and the curr_UI_Language is set to wxLANGUAGU_UNKNOWN.
+/// from m_pConfig using the registry (Windows) or the hidden settings file (Linux/Mac), 
+/// and adds the language info to the current locale with wxLocale::AddLanguage(). Then it 
+/// retrieves the user's current localization information stored in the m_pConfig and 
+/// returns it to the caller. If no previous interface has been chosen (i.e., on first run 
+/// of Adapt It), the string members of the CurrLocalizationInfo struct being returned are 
+/// set to null strings and the curr_UI_Language is set to wxLANGUAGU_UNKNOWN.
 //////////////////////////////////////////////////////////////////////////////////////////
 CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 {
@@ -13952,11 +14049,11 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 	// So we use our m_pConfig object which was created in OnInit() and deleted in OnExit()
 
 	// Retrieve the interface language information from m_pConfig if it exists.
-	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path
 	m_pConfig->SetPath(_T("/Settings"));
 
 	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value of
-		// key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+		// ...Adapt_It_WX\Settings' Error" [valid until end of this block]
 
 	// First, retrieve the current localization info
 	CurrLocalizationInfo currLocInfo; // populate a local struct which we return to caller
@@ -13970,11 +14067,63 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 	m_pConfig->Read(_T("ui_language"), &currLocInfo.curr_UI_Language);
 	m_pConfig->Read(_T("ui_language_code"),&currLocInfo.curr_shortName);
 	m_pConfig->Read(_T("ui_language_name"),&currLocInfo.curr_fullName);
-//#ifdef _UNICODE
-//	m_pConfig->Read(_T("ui_language_path_unicode"),&currLocInfo.curr_localizationPath);
-//#else
-//	m_pConfig->Read(_T("ui_language_path"),&currLocInfo.curr_localizationPath);
-//#endif
+#ifdef _UNICODE
+	m_pConfig->Read(_T("ui_language_path_unicode"),&currLocInfo.curr_localizationPath);
+#else
+	m_pConfig->Read(_T("ui_language_path"),&currLocInfo.curr_localizationPath);
+#endif
+	// whm added 6Jan13 validity checks on localization values coming
+	// from the m_pConfig file.
+	if (!currLocInfo.curr_shortName.IsEmpty() && !currLocInfo.curr_fullName.IsEmpty())
+	{
+		// Ensure there is a path to the localizations if other 
+		// localization values exist.
+		currLocInfo.curr_localizationPath = GetBasePathForLocalizationSubDirectories();
+		// Note: GetBasePathForLocalizationSubDirectories() will
+		// assign the default location on Windows according to where
+		// the executable is located, even if it is in a developer 
+		// build directory. We always store the current path.
+#ifdef _UNICODE
+		m_pConfig->Write(_T("ui_language_path_unicode"), currLocInfo.curr_localizationPath);
+#else
+		m_pConfig->Write(_T("ui_language_path"), currLocInfo.curr_localizationPath);
+#endif
+		// whm added 6Jan13 ensure that the ui_language_name represents
+		// the "Language: " name value in the binary mo file stored in
+		// the localization directory represented by the ui_language_code
+		// value. A previous bug in CChooseLanguageDlg::InitDialog()- now 
+		// fixed - might have resulted in the ui_language_name being 
+		// represented as, for example:
+		//    ui_language_name=tpi [Contains Unknown or New Localization]
+		// instead of 
+		//    ui_language_name=Tok Pisin
+		if (currLocInfo.curr_fullName.Find(_T("[Contains Unknown or New Localization]")) != wxNOT_FOUND)
+		{
+			// The m_pConfig data most likely using a
+			// user_defined_language whose ui_language_name should be
+			// represented by the <name> that follows "\nLanguage: <name>" in
+			// its localization mo file rather than by its code followed
+			// by the "[Contains Unknown or New Localization]" string.
+			// We here establish the correct full language name before the
+			// gpApp->m_pLocale->AddLanguage() call is made below
+			wxASSERT(currLocInfo.curr_fullName.Find(currLocInfo.curr_shortName) != wxNOT_FOUND);
+			if (currLocInfo.curr_fullName.Find(currLocInfo.curr_shortName) != wxNOT_FOUND)
+			{
+				wxString moFilePath;
+				moFilePath = GetLocalizationMoFilePath(currLocInfo.curr_shortName);
+				if (wxFileExists(moFilePath))
+				{
+					wxString tempLangName;
+					tempLangName = GetLanguageNameFromBinaryMoFile(moFilePath);
+					if (!tempLangName.IsEmpty())
+					{
+						currLocInfo.curr_fullName = tempLangName;
+						m_pConfig->Write(_T("ui_language_name"),currLocInfo.curr_fullName);
+					}
+				}
+			}
+		}
+	}
 
 	// Next, retrieve any user defined language data from the user_defined_language_n keys.
 	int ct;
@@ -13982,8 +14131,6 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 	wxArrayString keyArray;
 	keyArray.Alloc(9);
 	bool bKeysPresent = FALSE;
-	//bool bKeyMissing = FALSE;
-	//bool bAllKeysAssigned = FALSE;
 
 	for (ct = 0; ct < nKeys; ct++)
 	{
@@ -13996,18 +14143,68 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 		bool valReadOK = TRUE;
 		wxString tempStr;
 		valReadOK = m_pConfig->Read(str, &tempStr);
+        // whm 7Jan13 added check the user defined language value for any
+        // "[Contains Unknown or New Localization]" string and modify it to use
+        // the full language name from an existing localization mo file. Use
+        // the same modification as in the code block above in the case of the
+        // ui_language_name.
+		if (tempStr.Find(_T("[Contains Unknown or New Localization]")) != wxNOT_FOUND)
+		{
+			// The m_pConfig data most likely using a
+			// user_defined_language whose ui_language_name should be
+			// represented by the <name> that follows "\nLanguage: <name>" in
+			// its localization mo file rather than by its code followed
+			// by the "[Contains Unknown or New Localization]" string.
+			// We here establish the correct full language name before the
+			// gpApp->m_pLocale->AddLanguage() call is made below
+			// The tempStr here is of the form:
+			// nnn:xxx:xxx [Contains Unknown or New Localization]
+			// and we want it to be of the form:
+			// nnn:xxx Language
+			// where xxx is the 2 or 3-letter language code and Language is
+			// the name of the Language retrieved from the .mo file within the
+			// xxx localization folder structure.
+			// 
+			// First extract the first xxx code from tempStr (it is the field
+			// between the first and second : delimiters
+			wxString langCodeStr;
+			int posColon;
+			posColon = tempStr.Find(_T(':'));
+			langCodeStr = tempStr.Mid(posColon + 1);
+			posColon = langCodeStr.Find(_T(':'));
+			langCodeStr = langCodeStr.Left(posColon);
+			wxASSERT(tempStr.Find(langCodeStr) != wxNOT_FOUND);
+			if (tempStr.Find(langCodeStr) != wxNOT_FOUND)
+			{
+				wxString moFilePath;
+				moFilePath = GetLocalizationMoFilePath(langCodeStr);
+				if (wxFileExists(moFilePath))
+				{
+					wxString tempLangName;
+					tempLangName = GetLanguageNameFromBinaryMoFile(moFilePath);
+					if (!tempLangName.IsEmpty())
+					{
+						// Update the currLocInfo.curr_fullName with correct data
+						currLocInfo.curr_fullName = tempLangName;
+						// Replace the third field with the discovered
+						// language name.
+						tempStr.Replace(langCodeStr + _T(" [Contains Unknown or New Localization]"),tempLangName);
+						// Write the correction back to m_pConfig's
+						// user_defined_language_u_n value.
+						m_pConfig->Write(str,tempStr);
+					}
+				}
+			}
+		}
+
+        
 		keyArray.Add(tempStr);
-		//if (valReadOK && keyArray[ct] == _T("[UNASSIGNED]"))
-		//{
-		//	bAllKeysAssigned = FALSE;
-		//}
 		if (valReadOK && keyArray[ct] != _T("[UNASSIGNED]"))
 		{
 			bKeysPresent = TRUE;
 		}
 		if (!valReadOK)
 		{
-			//bKeyMissing = TRUE;
 			keyArray[ct] = _T("[UNASSIGNED]");	// assign null string to any keyArray element
 												// for which there is no key
 		}
@@ -14022,7 +14219,7 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
         // settings file. It may be that during the previous running of the application the
         // user added a user defined language when all user_defined_language_n keys were
         // already assigned. In that case Adapt It removed the oldest assigned language
-        // from the keys (which would have been assigned the wxLangauge numerical value of
+        // from the keys (which would have been assigned the wxLanguage numerical value of
         // 231); moved the other 8 keys up in the list (keeping their values ranging from
         // 232 through 239), and added the most recent language to the last key with a
         // value of 240. Therefore, with this scenario, it could be that the wxLanguage
@@ -14151,43 +14348,46 @@ CurrLocalizationInfo CAdapt_ItApp::ProcessUILanguageInfoFromConfig()
 		}
 	}
 
-	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
-	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is 
+						// destroyed in OnExit().
+	// restore the oldPath
 	m_pConfig->SetPath(oldPath);
     return currLocInfo;
 	// end of wxLogNull logNo here
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if localization files exist at a known path; FALSE otherwise
+/// \return     TRUE if localization files exist at localization base path; FALSE otherwise
 /// \remarks
-/// Called from: the App's OnInit(). Determines if localization files are present at a
-/// known path on the local computer. This function first checks the registry/hidden
-/// settings file to see if a previous localization path was set (in ui_language_path). If
-/// so, it checks to see if localization files are actually currently located there. If so
-/// it sets the ui_localizationFilesExist key to TRUE and returns TRUE. If no files are
-/// located at a previously set path as indicated by the ui_language_path key, it checks to
-/// see if localization files are located at the default location for the current platform.
-/// If localization files actually exist there it sets the path stored in the
-/// ui_language_path key to reflect where they are actually located, and sets the
-/// ui_localizationFilesExist key to TRUE and returns TRUE. If localization files could not
-/// be found by inspecting the ui_language_path key nor at the default location, the
-/// ui_localizationFilesExist key is set to FALSE and this function returns FALSE.
-/// Therefore, when this function returns, the ui_localizationFilesExist key is guaranteed
-/// to be set to either TRUE or FALSE and the return value of this function will agree with
-/// that key settings.
+/// Called from: the App's ChooseInterfaceLanguage(). Determines if localization files are 
+/// present on the computer.
+/// This LocalizationFilesExist() function first checks the m_pConfig settings file 
+/// (Adapt_It_WX.ini or .Adapt_It_WX) to see if a previous localization path was set 
+/// (in the ui_language_path key). If so, it checks to see if localization files are 
+/// actually located there. If so it sets the ui_localizationFilesExist key to TRUE and 
+/// returns TRUE. If no files are located at the previously set path as indicated by 
+/// the ui_language_path key, it checks to see if localization files are located at 
+/// the base location for the current platform. The base path is determined by a call 
+/// to GetBasePathForLocalizationSubDirectories(). If localization files actually exist 
+/// there it sets the path stored in the ui_language_path key to reflect where they are 
+/// actually located, and sets the ui_localizationFilesExist key to TRUE and returns 
+/// TRUE. If localization files could not be found by inspecting the ui_language_path 
+/// key nor at the base location, the ui_localizationFilesExist key is set to FALSE and 
+/// this function returns FALSE. Therefore, when this function returns, the 
+/// ui_localizationFilesExist key is guaranteed to be set to either TRUE or FALSE and 
+/// the return value of this function will agree with that key settings.
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::LocalizationFilesExist()
 {
 	bool bLocalizationFilesFound = FALSE; // assume FALSE unless we actually find them
-	// First check to see if the ui_language_path key exists.
-	//
+
 	// Retrieve the interface language information from m_pConfig if it exists.
-	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path
 	m_pConfig->SetPath(_T("/Settings"));
 
 	wxLogNull logNo; // eliminates spurious message from the system: "Can't read value
-		// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+		// ...Adapt_It_WX\Settings' Error" [valid until end of this block]
+
 	wxString uiLangPath;
 	uiLangPath.Empty();
 #ifdef _UNICODE
@@ -14196,112 +14396,155 @@ bool CAdapt_ItApp::LocalizationFilesExist()
 	m_pConfig->Read(_T("ui_language_path"),&uiLangPath);
 #endif
 
-	if (!uiLangPath.IsEmpty())
+	// Note: The ProcessUILanguageInfoFromConfig() does some validity checking
+	// of the m_pConfig data. It ensures that the uiLangPath will have the
+	// default value in it if the ui_language_code and ui_language_name were
+	// previously set. On first run of the application it will be an empty string
+	// so, we ensure that it is set to its default value here.
+	if (uiLangPath.IsEmpty())
 	{
-        // The key was is the registry/hidden settings file, so check if localization files
-        // actually exist at the specified location, and for the ui_language_code (used as
-        // subdir name). Since ui_language_path exists, there should also be a
-        // ui_language_code value that we can use to ensure that the specific localization
-        // subfolder named actually exists.
-		wxString shortNameStr;
-		shortNameStr.Empty();
-		m_pConfig->Read(_T("ui_language_code"), &shortNameStr);
-        // If shortNameStr is empty at this point, it means that no actual ui_language_code
-        // key was present and so the PathHas_mo_LocalizationFile() test below will not
-        // require a specific subdir to be present as a localization folder.
-		if (PathHas_mo_LocalizationFile(uiLangPath, shortNameStr))
-		{
-            // The uiLangPath contains at least one subfolder which in turn contains an
-            // <appName>.mo file, so we set the ui_localizationFilesExist key to TRUE, and
-            // return TRUE (at end).
-			bLocalizationFilesFound = TRUE;
-#ifdef _UNICODE
-			m_pConfig->Write(_T("ui_localizationFilesExist_unicode"), bLocalizationFilesFound);
-#else
-			m_pConfig->Write(_T("ui_localizationFilesExist"), bLocalizationFilesFound);
-#endif
-		}
-		else
-		{
-            // The current ui_language_path contains a bad localization files path. So,
-            // we'll check to see if localization files are located at the platform default
-            // location.
-			wxString defaultPath;
-			defaultPath = GetDefaultPathForLocalizationSubDirectories();
-			if (PathHas_mo_LocalizationFile(defaultPath, shortNameStr))
-			{
-                // The defaultPath contains at least one subfolder which in turn contains
-                // an <appName>.mo file, so we correct the bad ui_localization_path key,
-                // set the ui_localizationFilesExist key to TRUE, and return TRUE (at end).
-				bLocalizationFilesFound = TRUE;
-#ifdef _UNICODE
-				m_pConfig->Write(_T("ui_language_path_unicode"), defaultPath);
-				m_pConfig->Write(_T("ui_localizationFilesExist_unicode"), bLocalizationFilesFound);
-#else
-				m_pConfig->Write(_T("ui_language_path"), defaultPath);
-				m_pConfig->Write(_T("ui_localizationFilesExist"), bLocalizationFilesFound);
-#endif
-			}
-			else
-			{
-				bLocalizationFilesFound = FALSE;
-#ifdef _UNICODE
-				m_pConfig->Write(_T("ui_localizationFilesExist_unicode"), bLocalizationFilesFound);
-#else
-				m_pConfig->Write(_T("ui_localizationFilesExist"), bLocalizationFilesFound);
-#endif
-			}
-		}
+		uiLangPath = GetBasePathForLocalizationSubDirectories();
+	}
+	
+    // Check whether localization files actually exist at any specified location.
+	wxString shortNameStr;
+	shortNameStr.Empty();
+	m_pConfig->Read(_T("ui_language_code"), &shortNameStr);
+    // If shortNameStr is empty at this point, it means that no actual ui_language_code
+    // key was present and so the PathHas_mo_LocalizationFile() test below will not
+	// require a specific subdir to be present as a localization folder. An
+	// empty string in shortNameStr should be the case on first run of the
+	// application before a user selects a localization.
+	if (PathHas_mo_LocalizationFile(uiLangPath, shortNameStr))
+	{
+        // The uiLangPath contains at least one subfolder which in turn contains an
+        // <appName>.mo file, so we set the ui_localizationFilesExist key to TRUE, and
+        // return TRUE (at end).
+		bLocalizationFilesFound = TRUE;
 	}
 	else
 	{
-        // The ui_language_path key was not in the registry/hidden settings file. This
-        // probably means that no ui_language has yet been stored in the registry/hidden
-        // settings file. We could check to see if ui_language, ui_language_code and
-        // ui_language_name exist unexpectedly, but if they do without a ui_language_path
-        // key, it would only mean that someone has been monkeying with the registry/hidden
-        // settings file, deleting some keys but not others. We can't prevent all possible
-        // silly things from being done, so we will just assume that no localization files
-        // exist which will bring up the ChooseLanguageDlg dialog at program startup (and
-        // fix any problems that exist in the stored keys).
+		// There were no suitable localization possibilities. It appears that
+		// the localization files no longer exist in the AI installation. 
+		// TODO: Notify the user to reinstall to repair the localization
+		// apparratus??
 		bLocalizationFilesFound = FALSE;
-#ifdef _UNICODE
-		m_pConfig->Write(_T("ui_localizationFilesExist_unicode"), bLocalizationFilesFound);
-#else
-		m_pConfig->Write(_T("ui_localizationFilesExist"), bLocalizationFilesFound);
-#endif
 	}
-	m_pConfig->Flush(); // write now, otherwise write takes place when m_p is destroyed in OnExit().
-	// restore the oldPath back to "/Recent_File_List"
+	// Save the path and bLocalizationFilesFound value to m_pConfig
+#ifdef _UNICODE
+	m_pConfig->Write(_T("ui_language_path_unicode"), uiLangPath);
+	m_pConfig->Write(_T("ui_localizationFilesExist_unicode"), bLocalizationFilesFound);
+#else
+	m_pConfig->Write(_T("ui_language_path"), uiLangPath);
+	m_pConfig->Write(_T("ui_localizationFilesExist"), bLocalizationFilesFound);
+#endif
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is 
+						// destroyed in OnExit().
+	// restore the wxConfigFile value to what it was on entry
 	m_pConfig->SetPath(oldPath);
 	return bLocalizationFilesFound;
+}
+	
+wxString CAdapt_ItApp::GetLanguageNameFromBinaryMoFile(wxString pathAndMoFileName)
+{
+	bool bFound = FALSE;
+	wxString str = _T("");
+	wxFile f;
+	if (f.Exists(pathAndMoFileName) && f.Open(pathAndMoFileName,wxFile::read))
+	{
+		long fileLen; 
+		fileLen = f.Length(); // get length of file in bytes.
+		char* pBuff = new char[fileLen + 1]; // create on the heap just in case it is mistakenly a huge file
+		memset(pBuff,0,fileLen + 1);
+		int nReadBytes;
+		nReadBytes = f.Read(pBuff,fileLen);
+		nReadBytes = nReadBytes; // avoid warning
+		// we were able to open the file, so now read through the file until we have read successive
+		// bytes that together read "X-Poedit-Language: "
+		//char strToFind[] = "X-Poedit-Language: "; // length is 19 bytes plus null char = 20
+		// whm 5Jan13 changed the search criteria to match
+		// what is currently stored within the mo file,
+		// which is \n + "Language: " + "<name>" + \n
+		char strToFind[] = "\nLanguage: "; // length is 19 bytes plus null char = 20
+		char* ptr;
+		wxString languageFound;
+		int pos, len, outcome;
+		len = strlen(strToFind); // strlen gets length of strToFind not including the terminating null
+		ptr = pBuff;
+		// scan through the buffer with ptr and use memcmp to compare strToFind with the
+		// portion of the buffer starting at ptr
+		for (pos = 0; pos < fileLen - (len + 1); pos++) // stop len + 1 bytes short of end of buffer
+		{
+			outcome = memcmp(strToFind, ptr+pos, len);
+			// outcome is 0 if strToFind is equal to the sequence of len chars starting at ptr+pos
+			if (outcome == 0)
+			{
+				bFound = TRUE;
+				break;
+			}
+		}
+		if (bFound)
+		{
+			// the "X-Poedit-Language: " string was found in the mo file, so now copy bytes from
+			// the end of "X-Poedit-Language: " to the following \n character
+			int ct = 0;
+			while (pos < fileLen && *(ptr+pos+len+ct) != '\n')
+			{
+				str += *(ptr+pos+len+ct);
+				ct++;
+			}
+		}
+		f.Close();
+		delete[] pBuff;
+	}
+	if (bFound)
+	{
+		// Do reality check. If str is longer than say 100 bytes, truncate it at 100 bytes
+		// since a longer string won't show in the list box, and besides if the language name
+		// is anywhere 100 bytes long, we probably have found something in the binary mo file
+		// that is not in reality a language name.
+		if (str.Length() > 100)
+			str.Left(100);
+		wxString tempStr(str);
+		return tempStr;
+	}
+	return wxEmptyString;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if user made a choice different from the current language; FALSE if
 ///             the user canceled or made no change
 /// \remarks
-/// Called from: the App's OnInit() and ChangeUILanguage(). If localization files are
-/// present, it presents the user with the CChooseLanguageDlg dialog from which he can
-/// choose an interface language localization for Adapt It from a list of possible language
-/// localizations. If there are no localization files installed/available at the
-/// localization files path, and no previous ui_language was ever saved in the
-/// registry/hidden settings file, the dialog is not shown and ChooseInterfaceLanguage()
-/// simply sets the global CurrLocalizationInfo struct's curr_UI_Language to
-/// wxLANGUAGE_DEFAULT (and its other members appropriately). Also, if localization files
-/// are present, but the user aborts the choice, or a suitable interface language could not
-/// be determined, ChooseInterfaceLanguage() sets the global CurrLocalizationInfo struct's
-/// curr_UI_Language to wxLANGUAGE_DEFAULT (and its other members appropriately).
+/// Called from: the App's OnInit() and ChangeUILanguage(). Presents the user with the 
+/// CChooseLanguageDlg dialog from which he can choose an interface language localization 
+/// for Adapt It from a list of possible language localizations. 
+/// Note: The caller determines if the ChooseInterfaceLanguage dialog is shown
+/// using the following two criteria:
+/// 1. The dialog is show if there 
+/// localization files installed/available at the localization files base path, and no 
+/// previous ui_language was ever saved in the registry/hidden settings file, the dialog 
+/// is not shown and ChooseInterfaceLanguage() simply sets the global CurrLocalizationInfo 
+/// struct's curr_UI_Language to wxLANGUAGE_DEFAULT (and its other members appropriately). 
+/// Also, if localization files are present, but the user aborts the choice, or a suitable 
+/// interface language could not be determined, ChooseInterfaceLanguage() sets the global 
+/// CurrLocalizationInfo struct's curr_UI_Language to wxLANGUAGE_DEFAULT (and its other 
+/// members appropriately).
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface)
 {
 	// See LangInfo struct and langsKnownToWX[] for valid wxLanguage languages
 	// identifiers known to wxWidgets.
 
-	CurrLocalizationInfo currLocInfo;
-	currLocInfo = currLocalizationInfo;
+	CurrLocalizationInfo currLocInfoSave;
+	currLocInfoSave = currLocalizationInfo;
 	bool bChangeMade = FALSE;
 
+	// We want the dialog to appear if any of the following are TRUE:
+	// (1) This ChooseInterfaceLanguage function is called with the
+	// userInitiated parameter,
+	// (2) LocalizationFilesExist() indicates that the computer has
+	// localization files in the expected location,
+	// (3) The user holds down the ALT key during program startup.
 	if (setInterface == userInitiated || LocalizationFilesExist() || wxGetKeyState(WXK_ALT))
 	{
 
@@ -14334,11 +14577,11 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 			// The user aborted from the CChooseLanguageDlg dialog, so we set the
             // CurrLocalizationInfo struct's members back to their values before calling
             // CChooseLanguageDlg.
-			currLocalizationInfo.curr_UI_Language = currLocInfo.curr_UI_Language;
-			currLocalizationInfo.curr_shortName = currLocInfo.curr_shortName;
-			currLocalizationInfo.curr_fullName = currLocInfo.curr_fullName;
-			currLocalizationInfo.curr_localizationPath = currLocInfo.curr_localizationPath;
-			//m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
+			currLocalizationInfo.curr_UI_Language = currLocInfoSave.curr_UI_Language;
+			currLocalizationInfo.curr_shortName = currLocInfoSave.curr_shortName;
+			currLocalizationInfo.curr_fullName = currLocInfoSave.curr_fullName;
+			currLocalizationInfo.curr_localizationPath = currLocInfoSave.curr_localizationPath;
+			m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
 		}
 	}
 	else
@@ -14368,8 +14611,8 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 			currLocalizationInfo.curr_shortName.Empty();
 			currLocalizationInfo.curr_fullName.Empty();
 		}
-		currLocalizationInfo.curr_localizationPath = GetDefaultPathForLocalizationSubDirectories();
-		//m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
+		currLocalizationInfo.curr_localizationPath = GetBasePathForLocalizationSubDirectories();
+		m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
 	}
     // the CurrLocalizationInfo struct's members are now filled appropriately, so save the
     // data in the m_pConfig configuration.
@@ -14472,7 +14715,7 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the View's OnChangeInterfaceLanguage() and CLanguagesPage::OnUILanguage().
+/// Called from: the View's OnChangeInterfaceLanguage().
 /// Calls the ChooseInterfaceLanguage() function which presents the user with the
 /// CChooseLanguageDlg dialog from which he can choose an interface language for the
 /// application from a list of languages that have localization <appName>.mo files on in
@@ -16688,7 +16931,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//    "/usr/share/locale/<lang>/LC_MESSAGES/" or "/usr/local/share/locale/<lang>/LC_MESSAGES/"
 	//    for each <lang> localization depending on the value of m_PathPrefix.
 	//    path variable: m_localizationInstallPath
-	//    relevant function: GetDefaultPathForLocalizationSubDirectories()
+	//    relevant function: GetBasePathForLocalizationSubDirectories()
 	// 6. The help documents adaptit.htb, Adapt_It_Quick_Start.htm, Help_for_Administrators.htm,
 	//    and the supporting images files .../Images/Admin_help/* and .../Images/Adapt_It_Quick_Start/*
 	//    at "/usr/share/adaptit/help/..." or "/usr/local/share/adaptit/help/..." depending on the
@@ -16738,7 +16981,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//                                   "<lang>/LC_MESSAGES/adaptit.mo"
 	// On wxMac:   "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this
 				// is where Poedit puts its localization files.
-	m_localizationInstallPath = GetDefaultPathForLocalizationSubDirectories();
+	m_localizationInstallPath = GetBasePathForLocalizationSubDirectories();
 	wxLogDebug(_T("The m_localizationInstallPath = %s"),m_localizationInstallPath.c_str());
 
 	// The m_helpInstallPath stores the path where the help files are installed on
@@ -17330,7 +17573,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// language choice from within the app via View | "Choose Interface Language...".
 		// Note: currLocalizationInfo.curr_UI_Language is initialized to wxLANGUAGE_UNKNOWN by
 		// OnInit(), but may be changed by ProcessUILanguageInfoFromConfig() call made above
-		// if it has been previously determined.
+		// if a valid interface language has been previously determined.
+		
+		// See if Localizations exist on this computer. 
+		// Note: The LocalizationFilesExist() call below has the side
+		// effect of setting the m_pConfig's ui_localizationFilesExist_unicode
+		// (or ui_localizationFilesExist) value to 1 (true) or 0 (false)
+		// depending on whether the localization files exist or not on this
+		// computer.
+		bool bLocalizationFilesExist = 0;
+		bLocalizationFilesExist = LocalizationFilesExist(); // sets ui_localizationFilesExist_unicode to 1 or 0
+		bLocalizationFilesExist = bLocalizationFilesExist; // to avoid gcc warning
 
 		if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
 		{
@@ -17341,7 +17594,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 		// for testing below:
 		//wxString pathToLocaleSubDir;
-		//pathToLocaleSubDir = GetDefaultPathForLocalizationSubDirectories();
+		//pathToLocaleSubDir = GetBasePathForLocalizationSubDirectories();
 
 		// InitializeLanguageLocale() below deletes any exising wxLocale object and creates a
 		// new wxLocale for the currently selected language (using the non-default wxLocale

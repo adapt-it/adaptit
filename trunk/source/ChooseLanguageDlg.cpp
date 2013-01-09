@@ -116,7 +116,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// "/usr/share/locale/<lang>/LC_MESSAGES/" or "/usr/local/share/locale/<lang>/LC_MESSAGES/")
 	// depending on the value of m_PathPrefix.
 	// Therefore I've modified the code below to always assign the current value returned by 
-	// the App's GetDefaultPathForLocalizationSubDirectories() to pathToLocalizationFolders .
+	// the App's GetBasePathForLocalizationSubDirectories() to pathToLocalizationFolders .
 	// Note: This modification has also been done for 
 	
 	m_bChangeMade = FALSE;
@@ -132,7 +132,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	//{
 	// Get the default path that should contain the localization subdirectories for this platform.
 	//wxString pathToLocalizationFolders;
-	pathToLocalizationFolders = gpApp->GetDefaultPathForLocalizationSubDirectories();
+	pathToLocalizationFolders = gpApp->GetBasePathForLocalizationSubDirectories();
 	//}
 	// put localization path in its edit box
 	pEditLocalizationPath->SetValue(pathToLocalizationFolders);
@@ -194,7 +194,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		currLocalizationInfo.curr_UI_Language = sysLanguage;
 		currLocalizationInfo.curr_shortName = info->CanonicalName;
 		currLocalizationInfo.curr_fullName = info->Description;
-		currLocalizationInfo.curr_localizationPath = GetDefaultPathForLocalizationSubDirectories();
+		currLocalizationInfo.curr_localizationPath = GetBasePathForLocalizationSubDirectories();
 	*/
 	// Determine if the system default language has an existing localization
 	wxString shortDefaultLangName;
@@ -261,9 +261,15 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 			// If the OS and/or C run time can't identify the language (i.e., returns
 			// wxLANGUAGE_UNKNOWN), we investigate the following possibilities in order:
 			// 1. Snoop in the .mo binary file and look for a string directly following
-			// "X-Poedit_Language: " character sequence. If specified, the language 
+			// "\nLanguage: " character sequence. If specified, the language 
 			// specified within the .mo file will be composed of all of the subsequent 
 			// characters up to the next \n (0a) in the binary file.
+			// whm Note 6Jan13. The embedded language name in mo files
+			// previously followed a "X-Poedit_Language: " string
+			// rather than the current "\nLanguage: " string. This was
+			// causing all user defined languages to have the "
+			// [Contains Unknown or New Localization]" suffix. Hopefully 
+			// Poedit won't change this in the future!
 			// 2. If 1 above fails to produce a valid string (which might be the case if the
 			// .mo file was compiled by a program other than Poedit or the translator
 			// forgot to enter the language name into the Poedit setup), we check to see if
@@ -313,6 +319,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 				// once it is selected from the list, in which case we query him for the language name 
 				// Description and store it in wxFileConfig. See above for three ways to go from here.
 				// 
+				/*
 				bool bFound = FALSE;
 				wxString str = _T("");
 				wxFile f;
@@ -374,13 +381,18 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 					wxString tempStr(str);
 					fullLangName = tempStr;
 				}
-				else if (gpApp->currLocalizationInfo.curr_shortName == subDirList.Item(ct))
+				*/
+				fullLangName = gpApp->GetLanguageNameFromBinaryMoFile(dirPath + gpApp->PathSeparator + appName + _T(".mo"));
+				if (fullLangName.IsEmpty())
 				{
-					fullLangName = gpApp->currLocalizationInfo.curr_fullName;
-				}
-				else
-				{
-					fullLangName = subDirList.Item(ct) + _T(" [Contains Unknown or New Localization]");
+					if (gpApp->currLocalizationInfo.curr_shortName == subDirList.Item(ct))
+					{
+						fullLangName = gpApp->currLocalizationInfo.curr_fullName;
+					}
+					else
+					{
+						fullLangName = subDirList.Item(ct) + _T(" [Contains Unknown or New Localization]");
+					}
 				}
 				// append the fullLangName and associated subDir data to the list
 				pListBox->Append(fullLangName,&subDirList.Item(ct));
@@ -626,8 +638,8 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 		gpApp->currLocalizationInfo.curr_UI_Language = wxLANGUAGE_DEFAULT;
 		gpApp->currLocalizationInfo.curr_shortName = _T("default");
 		gpApp->currLocalizationInfo.curr_fullName = _T("system default language");
-		gpApp->currLocalizationInfo.curr_localizationPath = gpApp->GetDefaultPathForLocalizationSubDirectories();
-		//gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
+		gpApp->currLocalizationInfo.curr_localizationPath = gpApp->GetBasePathForLocalizationSubDirectories();
+		gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
 		return; // go back to the dialog in case the user wants to select a different language
 	}
 	m_strCurrentLanguage = pListBox->GetString(nSel);
@@ -686,9 +698,8 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 														gpApp->currLocalizationInfo.curr_fullName, 
 														pEditLocalizationPath->GetValue());
 		}
-		// whm 8Dec11 removed the path manipulations below
-		//gpApp->currLocalizationInfo.curr_localizationPath = pEditLocalizationPath->GetValue();
-		//gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
+		gpApp->currLocalizationInfo.curr_localizationPath = pEditLocalizationPath->GetValue();
+		gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
 	}
 	else
 	{
@@ -735,7 +746,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 			currLocInfo.curr_UI_Language = new_wxLangCode;	// we are now using a user defined language
 			currLocInfo.curr_shortName = dirStr;			// the dirStr of the subfolder where the .mo file was located
 			currLocInfo.curr_fullName = commonName;			// the name supplied by the user for this language localization
-			//currLocInfo.curr_localizationPath = pEditLocalizationPath->GetValue(); // the path shown in the path edit box
+			currLocInfo.curr_localizationPath = pEditLocalizationPath->GetValue(); // the path shown in the path edit box
 			
 			// InitializeLanguageLocale() below deletes any exising wxLocale object and creates a new wxLocale
 			// for the currently selected language (using the non-default wxLocale constructor).
@@ -749,8 +760,8 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 				gpApp->currLocalizationInfo.curr_UI_Language = currLocInfo.curr_UI_Language;	// we are now using a user defined language
 				gpApp->currLocalizationInfo.curr_shortName = currLocInfo.curr_shortName;		// the dirStr of the subfolder where the .mo file was located
 				gpApp->currLocalizationInfo.curr_fullName = currLocInfo.curr_fullName;			// the name supplied by the user for this language localization
-				//gpApp->currLocalizationInfo.curr_localizationPath = currLocInfo.curr_localizationPath; // the path shown in the path edit box
-				//gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
+				gpApp->currLocalizationInfo.curr_localizationPath = currLocInfo.curr_localizationPath; // the path shown in the path edit box
+				gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
 				
 				// Update list to show user entered language name (curr_fullName). This name
 				// should also be loaded subsequently when tpi (curr_shortName) is found as a directory name.
