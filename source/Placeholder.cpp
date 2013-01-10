@@ -2269,12 +2269,15 @@ void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 		else
 		{
 			wxWindow *focus = wxWindow::FindFocus();
-			if (m_pApp->m_pTargetBox == focus) // don't use GetHandle() on m_pTargetBox here !!!
+			if (focus != NULL && m_pApp->m_pTargetBox == focus) // don't use GetHandle() on m_pTargetBox here !!!
 			{
-				if (m_pApp->m_pTargetBox->IsShown()
-					&& m_pApp->m_pActivePile->GetSrcPhrase()->m_bNullSourcePhrase
-					&& !m_pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
-					bCanDelete = TRUE;
+				if (m_pApp->m_pActivePile != NULL && m_pApp->m_pActivePile->GetSrcPhrase() != NULL)
+				{
+					if (m_pApp->m_pTargetBox->IsShown()
+						&& m_pApp->m_pActivePile->GetSrcPhrase()->m_bNullSourcePhrase
+						&& !m_pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
+						bCanDelete = TRUE;
+				}
 			}
 		}
 	}
