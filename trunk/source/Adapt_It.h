@@ -22,6 +22,8 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
+//#undef _KBSERVER
+
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 // is set at the beginning of Adapt_It.h. When set it does the following:
 // 1. Forces the this BibleditIsInstalled() function to return TRUE
@@ -51,7 +53,9 @@
 // from an structural defect in wxWidgets which won't change soon if ever; but I'll
 // leave SCROLLPOS defined as it's a handy way to hunt for all the bits and pieces of
 // the workaround
+#if defined(__WXGTK__)
 #define SCROLLPOS
+#endif
 
 // a temporary #define for Mike to use when working on DVCS:
 #define TEST_DVCS
@@ -107,7 +111,10 @@ class NavProtectNewDoc; // for user navigation protection feature
 // for support of the  m_pKbServer public member (pointer to the current instance of
 // KbServer class - which is non_NULL only when kbserver support is instantiated for an
 // adaptation project designated as one which is to support KB sharing
+
+#if defined(_KBSERVER)
 class KbServer;
+#endif
 
 /////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
@@ -4162,7 +4169,8 @@ public:
     // is below the bottom of the client window. (2) When requesting a GoTo... some other
     // part of the document beyond the bounds of the currently visible part of the document.
     // (3) When hitting the Cancel And Jump Here button in the View Translation or Glosses
-    // Elsewhere In The Document dialog. (Windows and OS X builds work correctly with this.)
+    // Elsewhere In The Document dialog. (Windows and OS X builds work correctly without
+    // this kludge.)
     private:
 
     // boolean flag refered to in the comment above
