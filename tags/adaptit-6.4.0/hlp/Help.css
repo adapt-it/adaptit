@@ -1,0 +1,256 @@
+/* Help.css 2006-07-05 */
+
+/* Stylesheet for Help topics */
+
+/* The formatting for body and p is analogous to Normal style */
+
+body {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 75%; /* 12px at Medium Text Size */
+}
+
+p { /* Always use paragraph classes in Help topics */
+	font-size: 100%; /* Necessary for WebHelp */
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+/* Block elements */
+
+/* Headings */
+
+h1, /* Heading 1 is not used in Help topics */
+h2 { /* Heading 2 */
+	font-size: 150%; /* 18px */
+	margin-top: 0; /* Heading 2 is the first element in the body */
+	margin-bottom: 0.4em; /* 7px */
+}
+
+h3 { /* Heading 3 */
+	font-size: 115%; /* 14px */
+	margin-top: 0.87em; /* 12px */
+	margin-bottom: 0.52em; /* 7px */
+}
+
+h4 { /* Heading 4 */
+	font-size: 100%; /* 12px */
+	margin-top: 1em; /* 12px */
+	margin-bottom: 0.6em; /* 7px */
+}
+
+/* Paragraphs */
+
+p.BodyText {
+	margin-bottom: 0.6em; /* 7px */
+}
+
+p.SpaceSingle {
+	line-height: 1em; /* 12px */
+}
+
+p.SpaceHalf {
+	line-height: 0.5em; /* 6px */
+}
+
+/* Paragraphs in table cells */
+
+th p.BodyText, /* Table Col Heading */
+td p.BodyText { /* Table Row */
+	margin-top: 0.25em; /* 3px */
+	margin-bottom: 0.25em; /* 3px */
+}
+
+/* Tables */
+
+table {
+	font-size: 100%;
+	margin-top: 0em;
+	margin-bottom: 0em;
+	border-style: none;
+} /* Note: The default for cellspacing is 2 */
+
+tr {
+	vertical-align: top;
+}
+
+th,
+td { /* Table Row */
+	vertical-align: top;
+	text-align: left;
+	padding-left: 10px;
+	padding-right: 10px;
+	border-style: none;
+}
+		
+th { /* Table Col Heading */
+	background: #DDDDDD;
+}
+
+/*
+If a table needs borders, add two attributes to the table start tag:
+HTML: <table class=TableGrid cellspacing=0 ...>
+XHTML: <table class="TableGrid" cellspacing="0" ...>
+*/
+
+table.TableGrid { /* Table Grid */
+	border-spacing: 0px;
+	border-style: Solid;
+	border-width: 1px;
+	border-color: Black; /* #000000 */ /* Same as body color */
+}
+
+table.TableGrid th, /* Table Col Heading */
+table.TableGrid td { /* Table Row */
+	border-spacing: 0px;
+	border-style: Solid;
+	border-width: 1px;
+	border-color: Black; /* #000000 */ /* Same as body color */
+}
+
+/* Lists */
+
+ol { /* List Procedure 1 */
+	font-size: 100%;
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 2em; /* 24 px */
+	padding-left: 0;
+}
+
+ul { /* List Bullet */
+	font-size: 100%;
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-left: 1.5em; /* 18 px */
+	padding-left: 0;
+}
+
+ol ul, ul ul { /* List Bullet 2 */
+	list-style: disc;
+}
+
+li { /* li contains one or more BodyText paragraphs */
+	margin-left: 0;
+}
+
+/* Inline elements */
+
+/* Character styles */
+
+span.BookTitle {
+	font-style: italic;
+}
+
+span.DefinedWord {
+	font-style: italic;
+}
+
+span.Emphasis {
+	font-style: italic;
+}
+
+span.FileName {
+	/* Same as Default paragraph font in Help topics */
+}
+
+span.Keyboard {
+	font-weight: bold;
+}
+
+span.Placeholder {
+	font-style: italic;
+}
+
+span.Strong {
+	font-weight: bold;
+}
+
+span.Style {
+	font-style: italic;
+}
+
+span.TypedText {
+	font-weight: bold;
+}
+
+span.UserInterface {
+	font-weight: bold;
+}
+
+span.VernacularWord {
+	font-weight: bold;
+}
+
+/* Hyperlinks */
+
+a:link,
+a:visited {
+	text-decoration: underline;
+	color: Blue; /* #0000FF */
+}
+
+a:active,
+a:hover {
+	text-decoration: underline;
+	color: Red; /* #FF0000 */
+	cursor: hand;
+}
+
+/* Popup links in HTML Help */
+
+a.popupspot:link,
+a.popupspot:visited {
+	color: Green; /* #008000 */
+}
+
+a.popupspot:active,
+a.popupspot:hover {
+	color: Red; /* #FF0000 */
+}
+
+/* Popup links in WebHelp */
+
+a.BSSCPopup:link,
+a.BSSCPopup:visited {
+	color: Green; /* #008000 */
+}
+
+a.BSSCPopup:active,
+a.BSSCPopup:hover {
+	color: Red; /* #FF0000 */
+}
+
+/* Expanding text for links (not recommended) */
+
+span.expandtext {
+	font-style: italic;
+	font-weight: normal;
+	color: Blue; /* #0000FF */
+}
+
+span.glosstext {
+	font-style: italic;
+	font-weight: normal;
+	color: Blue; /* #0000FF */
+}
+
+a.expandspot {
+	font-style: italic;
+	text-decoration: none;
+	color: Green; /* #008000 */
+	cursor: hand;
+}
+
+a.dropspot {
+	font-style: italic;
+	text-decoration: none;
+	color: Green; /* #008000 */
+	cursor: hand;
+}
+
+a.glossterm {
+	font-style: italic;
+	text-decoration: none;
+	color: Green; /* #008000 */
+	cursor: hand;
+}
