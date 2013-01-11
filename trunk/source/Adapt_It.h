@@ -4122,6 +4122,12 @@ public:
 										       // export type (i.e., target_text_) on export file names
 	bool m_bUsePrefixExportProjectNameOnFilename; // whm 21Feb12 added flag to include/exclude prefixing
 											// the ai project name (i.e., Telei-English) on export file names
+	bool m_bClosingDown; // defaults to FALSE, set TRUE at the start of OnExit(),
+						 // used to prevent at least on update handler,
+						 // CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase()
+						 // from trying to access a deleted CSourcePhrase instance
+						 // while the app is shutting down in collab mode
+
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12

@@ -2250,7 +2250,10 @@ void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 		return;
 	}
 	bool bCanDelete = FALSE;
-	if (m_pApp->m_pTargetBox->GetHandle() != NULL)
+    // BEW 10Jan13, added the && !m_pApp->m_bClosingDown part of the test, to ensure
+    // this block's code isn't entered when closing down and there are no CSourcePhrase
+    // instances in existence (else, get a crash)
+	if (m_pApp->m_pTargetBox->GetHandle() != NULL && !m_pApp->m_bClosingDown)
 	{
         // set the flag true either if there is a selection and which is on a null source
         // phrase which is not a retranslation, or if the active pile is a null source
