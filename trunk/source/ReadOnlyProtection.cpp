@@ -738,6 +738,10 @@ bool ReadOnlyProtection::RemoveROPFile(wxString& projectFolderPath, wxString& ro
 		// It's a fictitious ROPFile, or one owned by the current user, so qualifies 
 		// for closing it and then deleting it; do so.
 		m_pApp->m_pROPwxFile->Close(); // ignore returned boolean, this shouldn't fail
+		// whm 10Jan13 added wxLogNull to suppress spurious warning if on
+		// first run the user Cancels wizard and immediately closes app and
+		// there won't be any project folder created (observed error in Balsa).
+		wxLogNull logNo;
 		bRemoved = ::wxRemoveFile(pathToFile); // may fail
 	}
 	else

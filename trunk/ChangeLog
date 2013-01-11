@@ -119,6 +119,11 @@ to be worked on.
 menu has been changed to "Setup or Remove Collaboration..." to
 more accurately indicate the services that the resulting dialog 
 is designed to provide.
+* If the Copy item on View menu was off, and in the Choose
+Translation dialog the user removed the only listed adaptation,
+and then moved to another pile, and then back again to the
+original pile, and chose the Choose Translation dialog again,
+the app crashed. Now fixed.
 ----------------------------------------------
 Bug fixes in 6.3.1
 ----------------------------------------------
