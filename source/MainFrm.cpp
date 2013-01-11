@@ -2729,6 +2729,8 @@ void CMainFrame::OnClose(wxCloseEvent& event)
 	// was causing intermittent crashes. To prevent the OnIdle() handler from processing
 	// during the shutdown process, I'm turning off the idle processes as soon as the main
 	// frame begins to close.
+	gpApp->m_bClosingDown = TRUE; // BEW added 10Jan13 (see start of OnInit() )
+								  // (TRUE used for suppressing an update handler in Placeholder.cpp)
 	wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
 	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED);
 	event.Skip();	// to enable the close event to be propagated where needed elsewhere

@@ -43,10 +43,10 @@ enum KB_Entry {
 };
 
 #if defined (_KBSERVER)
-enum SharedKbEntries {
-	forOneCTargetUnit,
-	mixedEntries
-};
+//enum SharedKbEntries {
+//	forOneCTargetUnit,
+//	mixedEntries
+//};
 #endif
 
 // BEW removed 29May10, as TUList is redundant * now removed
@@ -188,7 +188,8 @@ public:
 	// download, or many CTargetUnit instances arising from a timestamp-based download -
 	// either of the whole KB, or of those entries newly added subsequent to a stored 
 	// timestamp value												  
-	void		StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whichEntries);
+	//void		StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whichEntries);
+	void		StoreEntriesFromKbServer(KbServer* pKbServer);
 	// App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is
 	// associated with m_pGlossingKB. Each CKB has a m_bGlossingKB member, FALSE for an
 	// adapting CKB, TRUE for a glossing CKB. The latter is used for returning whichever
@@ -197,8 +198,9 @@ public:
 
 	bool		LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr);
 	CTargetUnit* GetTargetUnitForKbSharing(wxString keyStr);
-	void		MakeAndStoreNewRefString(CKB* pKB, CTargetUnit* pTU, wxString& tgtPhrase, 
+	void		MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase, 
 									wxString& username, bool bDeletedFlag);
+	CRefString*	GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, bool& bIsDeleted);
 /*  I don't think I need this next one (it's only a stub so far)
 	bool		IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
 					int deletedFlag, CRefString*& pRefString, bool& bMatchedTranslation);

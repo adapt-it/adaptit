@@ -15133,6 +15133,7 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // boolean used for a workaround for the scrollPos bug (position goes back to old position unbidden)
     m_bAdjustScrollPos = FALSE;
