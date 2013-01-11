@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CKBEditor class. 
+/// \description	This is the implementation file for the CKBEditor class.
 /// The CKBEditor class provides a tabbed dialog (one tab for each of one to
 /// ten word source phrases stored in the knowledge base). It allows the user
 /// to examine, edit, add, or delete the translations that have been stored for
@@ -40,7 +40,7 @@
 
 #include "Adapt_It.h"
 #include "KbServer.h"
-#include "KBEditor.h" 
+#include "KBEditor.h"
 #include "KB.h"
 #include "TargetUnit.h"
 #include "RefString.h"
@@ -119,7 +119,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
     // "this". The second and third parameters should both be TRUE to utilize the sizers
     // and create the right size dialog.
 
-	// wx Note: no harm in initializing vars here before the dialog contorls are 
+	// wx Note: no harm in initializing vars here before the dialog contorls are
 	// created via KBEditorDlgFunc.
 	m_edTransStr = _T("");
 	m_srcKeyStr = _T("");
@@ -128,12 +128,12 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_flagSetting = _T("");
 	m_entryCountStr = _T("");
 
-	m_TheSelectedKey = _T("");	// whm moved from the View's global space (where it was 
+	m_TheSelectedKey = _T("");	// whm moved from the View's global space (where it was
 			// gTheSelectedKey) and renamed it to m_TheSelectedKey as member of CKBEditor
 
-	m_nWordsSelected = -1; // whm removed gnWordsInPhrase from global space and 
+	m_nWordsSelected = -1; // whm removed gnWordsInPhrase from global space and
 						   // incorporated it into m_nWordsSelected
-	
+
     // whm: In the following, I've changed the "ON" to "YES" and "OFF" to "NO" because it
     // signifies the status of "Force Choice For This Item is ___". This makes it possible
     // to distinguish localizations for the other place in the program where "ON" and "OFF"
@@ -141,7 +141,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
     // where "ON" and "OFF" is appropriate but "YES" or "NO" doesn't fit so well. In the
     // localization a given string can only have one translation that must work for the
     // string literal used everywhere in the program.
-	m_ON = _T("YES"); 
+	m_ON = _T("YES");
 	m_OFF = _T("NO");
 	pApp = (CAdapt_ItApp*)&wxGetApp();
 	if (gbIsGlossing)
@@ -159,16 +159,16 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	bKBEntryTemporarilyAddedForLookup = FALSE;
 
 	KBEditorDlgFunc(this, TRUE, TRUE);
-    // The declaration is: 
+    // The declaration is:
     // KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer);
-    
+
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 
-	// the following pointer to the KBEditor's wxNotebook control is a single instance; 
+	// the following pointer to the KBEditor's wxNotebook control is a single instance;
 	// it can only be associated with a pointer after the KBEditorDlgFunc above call
 	m_pKBEditorNotebook = (wxNotebook*)FindWindowById(ID_KB_EDITOR_NOTEBOOK);
 	wxASSERT(m_pKBEditorNotebook != NULL);
@@ -198,7 +198,7 @@ void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
 	DoRetain();
 
 	// if we get to here user selected a different page
-	m_srcKeyStr.Empty(); // we don't want a string from a previous page displayed 
+	m_srcKeyStr.Empty(); // we don't want a string from a previous page displayed
 						 // on tab with no entries
 	m_edTransStr.Empty(); // ditto...
 	m_refCountStr.Empty(); // ditto...
@@ -206,12 +206,12 @@ void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
 	m_nCurPage = pageNumSelected;
 
 	// Set up new page data by populating list boxes and controls
-	LoadDataForPage(pageNumSelected,0); // start with first item selected for 
+	LoadDataForPage(pageNumSelected,0); // start with first item selected for
 										// new tab page
 }
 
 // BEW 22Jun10, changes needed for support of kbVersion 2's m_bDeleted flag
-void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 {
     // wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a
     // call to Clear() so we must check to see if the listbox contains no items and if so
@@ -273,8 +273,8 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 				}
 				// m_pListBoxExistingTranslations is not sorted
 				m_pListBoxExistingTranslations->Append(str, pCurRefString);
-				// next 4 lines are legacy code, commented out as wxWidgets provides 
-				// a much quicker 2-parameter overload of Append() as used above											 
+				// next 4 lines are legacy code, commented out as wxWidgets provides
+				// a much quicker 2-parameter overload of Append() as used above
 				//int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,
 				//									caseSensitive,exactString);
 				//wxASSERT(nNewSel != -1); // we just added it so it must be there!
@@ -338,7 +338,7 @@ void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(eve
 	}
 
 	wxString s;
-	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
+	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>"
 
 	//int nSel;
 	//nSel = m_pListBoxExistingTranslations->GetSelection();
@@ -373,14 +373,14 @@ void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(eve
 	UpdateButtons();
 }
 
-void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event) 
+void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event)
 {
 	OnSelchangeListExistingTranslations(event);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxCommandEvent that is generated when the contents of the 
+/// \param      event   -> the wxCommandEvent that is generated when the contents of the
 ///                         KB Dialog Editor's "Type Key To Be Found" edit box changes
 /// \remarks
 /// Called from: The wxCommandEvent mechanism when the contents of the KB Dialog Editor's
@@ -389,7 +389,7 @@ void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event)
 /// selected in the list and this handler calls OnSelchangeListSrcKeys(). If the string
 /// typed so far is not found as a substring of a list item, a beep is emitted.
 /////////////////////////////////////////////////////////////////////////////////////////
-void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event) 
+void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event)
 {
 	// assuming that another char was typed, find the nearest matching key in the list
 	m_srcKeyStr = m_pTypeSourceBox->GetValue(); // this is what user has typed into edit box
@@ -416,14 +416,14 @@ void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxCommandEvent that is generated when the contents of the 
+/// \param      event   -> the wxCommandEvent that is generated when the contents of the
 ///                         KB Dialog Editor's "Edit or Add a Translation" edit box changes
 /// \remarks
 /// Called from: The wxCommandEvent mechanism when the contents of the KB Dialog Editor's
 /// "Edit or Add a Translation" edit box changes. This handler simply calls the CKBEditor's
 /// UpdateButtons() helper function whenever the edit box changes.
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event))
 {
     // This OnUpdateEditOrAdd is called every time SetValue() is called which happens
     // anytime the user selects a string from the list box, even though he makes no changes
@@ -440,7 +440,7 @@ void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 25Jun10, changes needed for support of kbVersion 2
-void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
@@ -454,13 +454,13 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 		return;
 	}
-	
+
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
-	wxString s = _("<no adaptation>"); 
+	wxString s = _("<no adaptation>");
 
 	// ensure that it is not a "<Not In KB>" entry
 	if (oldText == _T("<Not In KB>"))
@@ -513,7 +513,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// go ahead and do the update (pCurRefString should already be set, but I don't want
 	// to rely on that - so add a few lines to make sure we have it set correctly)
-	int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText, 
+	int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText,
 														caseSensitive, exactString);
 	wxASSERT(nFound != wxNOT_FOUND);
 	pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nFound);
@@ -527,7 +527,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
     // correctly (ie. the uploaded deletions will cause deletions in the other connected
     // clients, and the new entry will result in a new kbserver pair with the edited
     // adaptation or gloss text as the second member of the pair).
-    
+
 	// clone the pCurRefString, the clone will become the new entry, pCurRefString will
 	// become the deleted CRefString instance (eventually)
 	CRefString* pEditedRefString = new CRefString(*pCurRefString, pCurTgtUnit); // CRefStringMetadata
@@ -549,24 +549,25 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// the pCurRefString ptr value.
 	int actualIndex = pCurTgtUnit->m_pTranslations->IndexOf(pCurRefString);
 	wxASSERT(actualIndex != wxNOT_FOUND);
-	
+
 	// Insert the pEditedRefString instance at the actualIndex location in pCurTgtUnit, we
 	// don't need the returned iterator value, so ignore it
 	pCurTgtUnit->m_pTranslations->Insert(actualIndex, pEditedRefString);
 
 	// Now adjust the pCurRefString instance to be a deleted one - we leave it in
-	// pCurTgtUnit of course, but further below we must remove it from the page's 
+	// pCurTgtUnit of course, but further below we must remove it from the page's
 	// wxListBox list
 	pCurRefString->GetRefStringMetadata()->SetDeletedDateTime(nowStr);
 	pCurRefString->SetDeletedFlag(TRUE);
 
 	// BEW added 26Oct12 for kbserver support
+/*
 #if defined(_KBSERVER)
-	if (pApp->m_bIsKBServerProject && 
+	if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 	{
-		bool bHandledOK = pKB->HandlePseudoDeleteAndNewPair(pApp->GetKBTypeForServer(), 
-									m_curKey, oldText, newText); 
+		bool bHandledOK = pKB->HandlePseudoDeleteAndNewPair(pApp->GetKBTypeForServer(),
+									m_curKey, oldText, newText);
 
 		// I've not yet decided what to do with the return value, at present we'll
 		// just ignore it even if FALSE (an internally generated message would have
@@ -574,7 +575,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		bHandledOK = bHandledOK; // avoid compiler warning
 	}
 #endif
-
+*/
 	// That completes what's needed for updating the CTargetUnit instance. The stuff below
 	// is to get the page's translations (or glosses) list to comply with the edit done
 
@@ -592,14 +593,14 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// find the original entry before which we just inserted the edited one, so as to
 	// delete it from the list
-	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText, 
+	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText,
 														caseSensitive, exactString);
 	wxASSERT(nOldLoc != wxNOT_FOUND); // -1
 	m_pListBoxExistingTranslations->Delete(nOldLoc);
 
 	// re-find the index for the newly edited entry in the list, select it and set it's
 	// clientData member in the relevant wxListBox's node, and set it's m_refCount to 1
-	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText, 
+	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText,
 														caseSensitive, exactString);
 	m_pListBoxExistingTranslations->SetSelection(nLocation,TRUE);
 	m_pListBoxExistingTranslations->SetClientData(nLocation, pEditedRefString);
@@ -632,14 +633,14 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	// find the original entry before which we just inserted the edited one, so as to
 	// delete it from the list
-	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText, 
+	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText,
 														caseSensitive, exactString);
 	wxASSERT(nOldLoc != wxNOT_FOUND); // -1
 	m_pListBoxExistingTranslations->Delete(nOldLoc);
 
 	// re-find the index for the newly edited entry in the list, select it and set it's
 	// clientData member in the relevant wxListBox's node, and set it's m_refCount to 1
-	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText, 
+	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText,
 														caseSensitive, exactString);
 	m_pListBoxExistingTranslations->SetSelection(nLocation,TRUE);
 	m_pListBoxExistingTranslations->SetClientData(nLocation,pCurRefString);
@@ -674,7 +675,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
-	
+
 	//int nSel;
 	//nSel = m_pListBoxExistingTranslations->GetSelection();
 
@@ -693,13 +694,14 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	m_edTransStr = m_pEditOrAddTranslationBox->GetValue();
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
 	wxASSERT(pCurTgtUnit != 0);
-	bool bOK = AddRefString(pCurTgtUnit,newText); // adds it, provided it is 
+	bool bOK = AddRefString(pCurTgtUnit,newText); // adds it, provided it is
 												  // not already there
 	if (bOK)
 	{
 	// BEW added 26Oct12 for kbserver support
+/*
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject && 
+		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
 			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
@@ -710,14 +712,15 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 			bHandledOK = bHandledOK; // avoid compiler warning
 		}
 #endif
+*/
 		// don't add to the list if the AddRefString call did not succeed
 		wxString s;
-		s = _("<no adaptation>"); 
+		s = _("<no adaptation>");
 		newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
-		// m_pListBoxExistingTranslations is not sorted, but it is safer to always get 
+		// m_pListBoxExistingTranslations is not sorted, but it is safer to always get
 		// an index using FindListBoxItem
-		int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText, 
+		int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText,
 															caseSensitive, exactString);
 		if (nFound == -1) // LB_ERR
 		{
@@ -751,7 +754,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 }
 
 // BEW 22Jun10, changes needed for support of kbVersion 2
-void CKBEditor::OnButtonAdd(wxCommandEvent& event) 
+void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
@@ -764,7 +767,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
-	
+
 	bool bOK = TRUE;
 	//int nSel;
 	//nSel = m_pListBoxExistingTranslations->GetSelection();
@@ -773,7 +776,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
 	wxString strNot = _T("<Not In KB>");
 
-	// ensure that it is not a "<Not In KB>" targetUnit that we are trying to 
+	// ensure that it is not a "<Not In KB>" targetUnit that we are trying to
 	// add more to; also ensure the user isn't manually trying to undelete a deleted
 	// <Not In KB> CRefString instance
 	wxString newText = _T("");
@@ -806,17 +809,18 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	wxASSERT(pCurTgtUnit != 0);
 	bOK = AddRefString(pCurTgtUnit,newText); // if 'undelete' happens, AddRefString() will
 				// have repositioned the undeleted CRefString to the end of the CTargetUnit
-				// instance's list, so that the Append() call on the list box done below 
+				// instance's list, so that the Append() call on the list box done below
 				// will match in position
-	wxString s = _("<no adaptation>"); 
+	wxString s = _("<no adaptation>");
 
 	// if it was added successfully, show it in the listbox & select it; and do kbserver
 	// support if required
 	if (bOK)
 	{
 	// BEW added 26Oct12 for kbserver support
+/*
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject && 
+		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
 			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
@@ -827,12 +831,13 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			bHandledOK = bHandledOK; // avoid compiler warning
 		}
 #endif
+*/
 		if (newText.IsEmpty())
 			newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
-		// m_pListBoxExistingTranslations is not sorted, but it is safer to always 
+		// m_pListBoxExistingTranslations is not sorted, but it is safer to always
 		// get an index using FindListBoxItem
-		int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText, 
+		int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText,
 														caseSensitive, exactString);
 		if (nFound == -1) // LB_ERR
 		{
@@ -845,7 +850,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			return;
 		}
 		// for the next call, pCurRefString will have been set within the above call to
-		// AddRefString() 
+		// AddRefString()
 		m_pListBoxExistingTranslations->SetClientData(nFound,pCurRefString);
 		m_pListBoxExistingTranslations->SetSelection(nFound,TRUE);
 		OnSelchangeListExistingTranslations(event);
@@ -856,7 +861,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			newText.Empty();
 		}
 		m_pEditOrAddTranslationBox->ChangeValue(newText);
-		m_pEditOrAddTranslationBox->DiscardEdits(); // resets the internal "modified" 
+		m_pEditOrAddTranslationBox->DiscardEdits(); // resets the internal "modified"
 													// flag to no longer "dirty"
 		UpdateButtons();
 		gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save button enabled
@@ -894,7 +899,7 @@ void CKBEditor::DoRetain()
 	bool bStoreEmptyStringsToo = FALSE;
 	wxString contents = m_pEditSearches->GetValue();
 	// SmartTokenize always first clears the passed in wxArrayString
-	long numSearchStrings = SmartTokenize(delims, contents, gpApp->m_arrSearches, 
+	long numSearchStrings = SmartTokenize(delims, contents, gpApp->m_arrSearches,
 					  bStoreEmptyStringsToo);
 	numSearchStrings = numSearchStrings; // avoid compiler warning
 	// check what we got
@@ -925,7 +930,7 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// one or more search strings have been defined
-		
+
 		DoRetain(); // populates the contents of m_arrSearches
 
 		// put up the KBEditSearch dialog, and in its InitDialog() method do the search and
@@ -955,7 +960,7 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 				}
 
 				count = gpApp->m_arrOldSearches.GetCount(); // has new count value now
-				m_pComboOldSearches->Clear(); 
+				m_pComboOldSearches->Clear();
 				// refill with the longer set of items
 				for (index = 0; index < count; index++)
 				{
@@ -1037,7 +1042,7 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 		return;
 	}
-	
+
 	// the "Forget All Lines" button handler -- erases the control window and also empties
 	// the contents of m_arrSearches
 	wxTextCtrl* pText = m_pEditSearches;
@@ -1046,7 +1051,7 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_arrSearches.Empty();
 }
 
-void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 {
     // this button must remove the selected translation from the KB, which means that user
     // must be shown a child dialog or message to the effect that there are m_refCount
@@ -1054,7 +1059,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // not agree with the state of the knowledge base, and the user is then to be urged to
     // do a Verify operation on each of the existing document files to get the KB and those
     // files in sync with each other.
-	
+
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
 		::wxBell();
@@ -1067,9 +1072,9 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 		return;
 	}
-	
+
 	wxString s;
-	s = _("<no adaptation>"); 
+	s = _("<no adaptation>");
 	wxString message;
 	int	nPreviousReferences = 0;
 
@@ -1081,12 +1086,12 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// get the selected string
 	wxString str;
-	str = m_pListBoxExistingTranslations->GetStringSelection(); // the list 
+	str = m_pListBoxExistingTranslations->GetStringSelection(); // the list
 									// box translation string being deleted
 	wxString str2 = str;
-	
+
 	if (str == s) // ie. if contents of str is "<no adaptation>"
-		str = _T(""); // for comparison's with what is stored in the KB, 
+		str = _T(""); // for comparison's with what is stored in the KB,
 					  // it must be empty
 
 	// don't allow an attempt to remove <Not In KB>
@@ -1125,7 +1130,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		// we don't have matching empty strings, so check for matching non-empty ones 
+		// we don't have matching empty strings, so check for matching non-empty ones
 		if (str != pRefString->m_translation)
 		{
 			// message can be in English, it's never likely to occur, let processing continue
@@ -1134,7 +1139,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			_T(""), wxICON_EXCLAMATION | wxOK);
 		}
 	}
-	// get the ref count, use it to warn user about how many previous references 
+	// get the ref count, use it to warn user about how many previous references
 	// this will mess up
 	nPreviousReferences = pRefString->m_refCount;
 
@@ -1191,11 +1196,12 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_pListBoxExistingTranslations->Clear();
 	}
 	// BEW added 22Oct12 for kbserver support
+/*
 #if defined(_KBSERVER)
-	if (pApp->m_bIsKBServerProject && 
+	if (pApp->m_bIsKBServerProject &&
 		pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 	{
-		bool bHandledOK = pKB->HandlePseudoDelete(pApp->GetKBTypeForServer(), m_curKey, 
+		bool bHandledOK = pKB->HandlePseudoDelete(pApp->GetKBTypeForServer(), m_curKey,
 										pRefString->m_translation); // needs a 4th param, 'deleted' flag value
 
 		// I've not yet decided what to do with the return value, at present we'll
@@ -1204,6 +1210,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		bHandledOK = bHandledOK; // avoid compiler warning
 	}
 #endif
+*/
     // remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
     // 'remove' in the context of kbVersion 2 just means to retain storage of the
     // CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata
@@ -1217,7 +1224,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
 	int numNotDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
-	
+
     // We'll also need the index of the source word/phrase selected in the keys list box.
     // If it turns out that we have just deleted all of a source word/phrase's
     // translations, we therefore would need to also delete the source word/phrase from
@@ -1231,11 +1238,11 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	if (numNotDeleted == 0)
 	{
 		// the pCurTgtUnit stores only CRefString instances with m_bDeleted set TRUE, so
-		// this one should not be shown in the m_listBoxKeys list box... 
+		// this one should not be shown in the m_listBoxKeys list box...
 		// wx note: FindString also only does a caseless find, and we don't have a second
 		// parameter in FindString to allow for a search from a certain position, so we'll
 		// use our own FindListBoxItem using a case sensitive search.
-		
+
         // get the selected item from the Source Phrase list, as we need to delete it since
         // all of its translations have been removed
 		wxString spStr = m_pListBoxKeys->GetStringSelection();
@@ -1247,13 +1254,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(nNewKeySel < keysCount);
 		keysCount = keysCount; // avoid warning
 		m_pListBoxKeys->Delete(nNewKeySel);
-		// set nNewKeySel to be the previous item in listbox unless it already 
+		// set nNewKeySel to be the previous item in listbox unless it already
 		// is the first item
 		if (nNewKeySel > 0)
 			nNewKeySel--;
 	}
 	LoadDataForPage(m_nCurPage,nNewKeySel);
-	m_pTypeSourceBox->SetSelection(0,0); // sets selection to beginning of type 
+	m_pTypeSourceBox->SetSelection(0,0); // sets selection to beginning of type
 										 // source edit box following MFC
 	m_pTypeSourceBox->SetFocus();
 
@@ -1261,12 +1268,12 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
 	gbCallerIsRemoveButton = FALSE; // reestablish the safe default
 	UpdateButtons();
-	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save 
+	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save
 										// button enabled
 }
 
 // BEW 22Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
-void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
@@ -1282,7 +1289,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 		return;
 	}
-	
+
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 
@@ -1330,7 +1337,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		// potential presence of deleted instances means that we must search for the
 		// instance to be moved earlier in the list, and moving it means we must move over
 		// each preceding deleted instance, if any, until we get to the location of the
-		// first preceding non-deleted element, and insert at that location 
+		// first preceding non-deleted element, and insert at that location
 		int oldLocation = pCurTgtUnit->m_pTranslations->IndexOf(pOldRefStr); // BEW added 22Jun10
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(oldLocation);
 		wxASSERT(pos != NULL);
@@ -1373,7 +1380,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pos != NULL);
 		pRefString = (CRefString*)pos->GetData();
 		wxASSERT(pRefString != NULL);
-		pCurTgtUnit->m_pTranslations->DeleteNode(pos); 
+		pCurTgtUnit->m_pTranslations->DeleteNode(pos);
 		pos = pCurTgtUnit->m_pTranslations->Item(nSel);
 		wxASSERT(pos != NULL);
         // Note: wxList::Insert places the item before the given item and the inserted item
@@ -1393,17 +1400,17 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	m_pEditRefCount->SetValue(m_refCountStr);
 	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
 	UpdateButtons();
-	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save 
+	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save
 										// button enabled
 }
 
 // BEW 22Jun10, changes needed for support of kbVersion 2 & its m_bDeleted flag
-void CKBEditor::OnButtonMoveDown(wxCommandEvent& event) 
+void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 {
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
 		wxMessageBox(_(
-		"Translations list box error when getting the current selection"), 
+		"Translations list box error when getting the current selection"),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		return;
 	}
@@ -1414,7 +1421,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		::wxBell();
 		return;
 	}
-	
+
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
 	int nOldSel = nSel; // save old selection index
@@ -1460,7 +1467,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 		// instance to be moved to later in the list, and moving it means we must move over
 		// each following deleted instance, if any, until we get to the location of the
 		// second following non-deleted element, and insert before that location - but if
-		// we reach the end of the list, we just append 
+		// we reach the end of the list, we just append
 		int oldLocation = pCurTgtUnit->m_pTranslations->IndexOf(pOldRefStr); // BEW added 24Jun10
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->Item(oldLocation);
 		wxASSERT(pos != NULL);
@@ -1494,7 +1501,7 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 			pCurTgtUnit->m_pTranslations->Append(pRefString);
 		}
 		else
-		{	
+		{
 			// we are at a CRefString instance, so we can insert before it
 			pCurTgtUnit->m_pTranslations->Insert(pos,pRefString);
 		}
@@ -1525,11 +1532,11 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& event)
 	m_pEditRefCount->SetValue(m_refCountStr);
 	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
 	UpdateButtons();
-	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save 
+	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save
 										// button enabled
 }
 
-void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event))
 {
 	// whm added 15Mar12 for read-only mode
 	if (gpApp->m_bReadOnlyAccess)
@@ -1537,7 +1544,7 @@ void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event))
 		::wxBell();
 		return;
 	}
-	
+
 	if (pCurTgtUnit == NULL)
 	{
 		::wxBell();
@@ -1556,12 +1563,12 @@ void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event))
 	}
 	// we're not using validators here so fill the text ctrl
 	m_pFlagBox->SetValue(m_flagSetting);
-	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save 
+	gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save
 										// button enabled
 }
 
 // BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps
-void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
+void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 															   // method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
@@ -1573,13 +1580,13 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
     // pointers are assigned.
 
 	wxASSERT(m_pKBEditorNotebook != NULL);
-	
+
     // MFC Note: New feature for version 2.2.1 requested by Gene Casad. A user selection
     // will take the first CSourcePhrase instance in the selection and open the KB editor
     // on the appropriate page and with that source key selected, but if the key is not in
     // the KB the selection will default to the first item of the list. The selection in
     // the main window can be anywhere, not necessarily at the phrasebox location.
-    // 
+    //
     // WX version Note: New feature for version 4.1.0. In addition to being able to look up
     // the KB entry of a selected source phrase at any location, Roland Fumey requested
     // that the KB Editor look up the source phrase that is being displayed in the
@@ -1592,11 +1599,11 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
     // and the KB Editor would not ordinarily be able to find it. Clearly, it would be more
     // intuitive for the user to be able to look up the source phrase that is currently
     // being displayed in the phrasebox.
-    // 
+    //
     // In order to effect a successful lookup in this case we need to temporarily add the
     // source phrase in the phrasebox back to the KB if it has just disappeared due to a
     // reference count having decremented to zero prior to invoking the KB Editor.
-	
+
     // If any source phrase is selected, determine how many words are in the selection and
     // what key to use in the lookup. The m_nWordsSelected and m_TheSelectedKey members
     // need to be set regardless of whether the app is in active Glossing mode or not.
@@ -1618,7 +1625,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 			gpApp->GetView()->StoreBeforeProceeding(gpApp->m_pActivePile->GetSrcPhrase());
 			bKBEntryTemporarilyAddedForLookup = TRUE;
 		}
-		gpApp->GetView()->RemoveSelection(); // to be safe, on return from the KB editor 
+		gpApp->GetView()->RemoveSelection(); // to be safe, on return from the KB editor
 											 // we want predictability
 	}
 	else if (gpApp->m_pActivePile != NULL)
@@ -1646,12 +1653,12 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	}
 
 
-    // Determine which tab page needs to be pre-selected. 
-    // 
+    // Determine which tab page needs to be pre-selected.
+    //
     // When Glossing mode is active, all notebook tabs except the first need to be removed,
     // the first tab needs to be renamed to "All Gloss Words Or Phrases", and the
     // m_nCurPage must be set to an index value of 0.
-	// 
+	//
     // When Glossing mode is not active, the m_nCurPage is set as follows depending on what
     // the circumstances are when the KB Editor is invoked:
     // 1. When there was a source phrase selection, the m_nCurPage should be one less than
@@ -1671,7 +1678,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	// BEW 13Nov10, removed to support Bob Eaton's request for glosssing KB to use all maps
         // First, configure the wxNoteBook for Glossing: Remove all but the first tab page
         // and rename that first tab page to "All Gloss Words Or Phrases".
-		// 
+		//
 		// wx version note: All pages are added to the wxNotebook in wxDesigner
 		// so we'll simply remove all but first one.
 	//	int ct;
@@ -1692,14 +1699,14 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	//	m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases"));
         // Hide the static text "Number of Words: Select a Tab according to the number of
         // words in the Source Phrase" while glossing.
-	//	m_pStaticSelectATab->Hide(); 
+	//	m_pStaticSelectATab->Hide();
 
 		// Now, that the wxNoteBook is configured, set m_nCurPage.
 		// When Glossing is active there is always only one tab and its index number is 0.
 	//	m_nCurPage = 0;
 	}
-	//else 
-		
+	//else
+
 	if (m_nWordsSelected != -1)
 	{
 		// the m_nCurPage is one less than m_nWordsSelected.
@@ -1709,10 +1716,10 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	{
 		m_nCurPage = m_pKBEditorNotebook->GetSelection();
 	}
-	
+
 	if (m_nCurPage != -1)
 	{
-		LoadDataForPage(m_nCurPage,0);	
+		LoadDataForPage(m_nCurPage,0);
 	}
 
 	// make the combobox have nothing in it
@@ -1730,7 +1737,7 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 	// CRefString instance's m_translation string, instead, just undelete that CRefString
 	// instance (no need to check for manual addition of "<Not In KB>" string, as the
 	// caller has that job and has already done the check)
-	wxASSERT(pTargetUnit != NULL); 
+	wxASSERT(pTargetUnit != NULL);
 	bool bMatched = FALSE;
 	CRefString* pRefString = new CRefString(pTargetUnit); // creates its metadata too
 	pRefString->m_refCount = 1; // set the count, assuming this will be stored (it may not be)
@@ -1748,10 +1755,10 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 
 		// wx TODO: Compare this to changes made in ChooseTranslation dialog
 		// does it match?
-		if ((pRefStr->m_translation.IsEmpty() && translationStr.IsEmpty()) ||	
+		if ((pRefStr->m_translation.IsEmpty() && translationStr.IsEmpty()) ||
 			(*pRefStr == *pRefString))
 		{
-			// we got a match, or both are empty, so warn user its a copy of an existing 
+			// we got a match, or both are empty, so warn user its a copy of an existing
 			// translation and return; or we matched an already 'deleted' one, in which
 			// case we undelete the deleted one and throw away the new one we created, and
 			// we have to reposition the undeleted one at the end of the list because the
@@ -1822,13 +1829,13 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 		//nWords = m_pKBEditorNotebook->GetSelection() + 1;
 		wxString emptyStr = _T("");
 		if (gbIsGlossing)
-			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(),
 												emptyStr, useGlossOrAdaptationForLookup);
 		else
-			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(),
 												emptyStr, useGlossOrAdaptationForLookup);
 	}
-	
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 
@@ -1841,7 +1848,7 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 	}
 }
 
-void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
 	if (bKBEntryTemporarilyAddedForLookup)
 	{
@@ -1852,10 +1859,10 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 		//nWords = m_pKBEditorNotebook->GetSelection() + 1;
 		wxString emptyStr = _T("");
 		if (gbIsGlossing)
-			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(),
 												emptyStr, useGlossOrAdaptationForLookup);
 		else
-			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(),
 												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
@@ -1887,9 +1894,9 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
     // chosen not to use Validators here because of the complications of having pointers to
     // controls differ on each page of the notebook; instead we manually transfer data
     // between dialog controls and their variables.
-	
+
     // set the page in wxNotebook
-    // 
+    //
     // whm changed 20Jan09. Previously I wrongly used SetSelection() which "generates page
     // changing events" and is now "deprecated". This LoadDataForPage() was being called
     // twice since SetSelection() was triggering OnTabSelChange() which also calls this
@@ -1897,14 +1904,14 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
     // KB Editor's list box(es) and potentially other problems. The solution is to use
     // ChangeSelection() instead of SetSelection() at this point.
     // ChangeSelection() does not trigger page changeing events. See:
-    // http://docs.wxwidgets.org/stable/wx_eventhandlingoverview.html#progevent 
+    // http://docs.wxwidgets.org/stable/wx_eventhandlingoverview.html#progevent
     // for a summary in the docs.
 	m_pKBEditorNotebook->ChangeSelection(pageNumSel);
 	wxNotebookPage* nbPage = m_pKBEditorNotebook->GetPage(pageNumSel);
 
 	// get pointers to dialog controls on this nbPage:
 	// Note: FindWindowById finds the first window with the given ID starting from the
-	// top-level frames, etc. We do NOT want this, we want to find the control as 
+	// top-level frames, etc. We do NOT want this, we want to find the control as
 	// a child of nbPage only, so we must use FindWindow, rather than FindWindowById.
 	m_pFlagBox = (wxTextCtrl*)nbPage->FindWindow(IDC_EDIT_SHOW_FLAG);
 	wxASSERT(m_pFlagBox != NULL);
@@ -1960,52 +1967,52 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	wxString s = _("<no adaptation>");
 
 	wxString srcKeyStr;
-	
+
 	wxASSERT(pageNumSel >= 0);
-	pMap = pKB->m_pMap[pageNumSel]; 
+	pMap = pKB->m_pMap[pageNumSel];
 	wxASSERT(pMap != NULL);
 	m_ON = _("ON"); //IDS_ON // for localization, use string table
 	m_OFF = _("OFF"); //IDS_OFF  // ditto
 
 	// Set fonts and directionality for controls in the dialog
 	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont,
 				m_pTypeSourceBox, NULL, m_pListBoxKeys, NULL, gpApp->m_pDlgSrcFont,
 				gpApp->m_bSrcRTL);
-	#else 
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, 
+	#else
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont,
 			m_pTypeSourceBox, NULL, m_pListBoxKeys, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
 		#ifdef _RTL_FLAGS
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, 
-				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont,
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations,
 				NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
-		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pNavTextFont, 
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pNavTextFont,
 				m_pComboOldSearches, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
-		#else 
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, 
-				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
+		#else
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont,
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations,
 				NULL, gpApp->m_pDlgTgtFont);
-		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pNavTextFont, 
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pNavTextFont,
 				m_pComboOldSearches, gpApp->m_pDlgTgtFont);
 		#endif
 	}
 	else
 	{
 		#ifdef _RTL_FLAGS
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, 
-				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont,
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations,
 				NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
-		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pTargetFont, 
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pTargetFont,
 				m_pComboOldSearches, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
-		#else 
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, 
-				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
+		#else
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont,
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations,
 				NULL, gpApp->m_pDlgTgtFont);
-		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pTargetFont, 
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pTargetFont,
 				m_pComboOldSearches, gpApp->m_pDlgTgtFont);
 		#endif
 	}
@@ -2045,7 +2052,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				// BEW removed 28May10, because TUList is redundant & is now removed
 				//TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
 				//wxASSERT(pos != NULL);
-				//pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
+				//pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now
 													  // gone from list
 				if (pCurTgtUnit != NULL) // whm 11Jun12 added NULL test
 					delete pCurTgtUnit; // and its memory chunk is freed
@@ -2072,7 +2079,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		pCurTgtUnit = 0; // no valid pointer set
 	}
 
-	// select the first string in the keys listbox by default, if possible; but if 
+	// select the first string in the keys listbox by default, if possible; but if
 	// m_TheSelectedKey has content, then try to make the selection default
 	// to m_TheSelectedKey instead, for rapid access to the desired entry.
 	m_curKey = _T("");
@@ -2093,7 +2100,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
             // is called.
 
 			m_srcKeyStr = m_TheSelectedKey;
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, 
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr,
 													caseInsensitive, subString);
 			if (nNewSel == -1) // LB_ERR
 			{
@@ -2145,7 +2152,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		m_nWordsSelected = -1;
 		m_TheSelectedKey.Empty();
 
-		// the above could fail, eg. if nothing is in the list box, in which case -1 will be 
+		// the above could fail, eg. if nothing is in the list box, in which case -1 will be
 		//  put in the pCurTgtUnit variable, so change it to a zero pointer
 		if (pCurTgtUnit <= 0)
 		{
@@ -2200,16 +2207,16 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				{
 					str = s; // set "<no adaptation>"
 				}
-				 
-				int anIndex = m_pListBoxExistingTranslations->Append(str,pCurRefString); // whm 
-														// modified 24Jan09 to use 2nd param			
+
+				int anIndex = m_pListBoxExistingTranslations->Append(str,pCurRefString); // whm
+														// modified 24Jan09 to use 2nd param
 				// If the ref string's m_translation member is the same as the m_adaption or,
 				// for a glossingKB, the m)gloss, set nMatchedRefString to the current index
 				if (GetGlossingKBFlag(pKB))
 				{
 					// no punctuation stripping is done with the glossingKB, so just test for
 					// a match with m_gloss contents (which could contain puntuation)
-					if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation == 
+					if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation ==
 										gpApp->m_pActivePile->GetSrcPhrase()->m_gloss)
 					{
 						nMatchedRefString = anIndex;
@@ -2219,7 +2226,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				{
 					// its an adaptingKB (use m_adaption, as it has punctuation stripped off,
 					// whereas m_targetStr doesn't and is never entered into the KB's maps)
-					if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation == 
+					if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation ==
 										gpApp->m_pActivePile->GetSrcPhrase()->m_adaption)
 					{
 						nMatchedRefString = anIndex;
@@ -2231,7 +2238,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		//wxASSERT(countShowable > 0 && countShowable == countNonDeleted); // <<-- remove
 		// because if the user has removed all the list's entries, this assert would trip
 		// even though no error has happened
-		
+
 		// if possible select the matched m_translation in the Ref String
         int listcount = m_pListBoxExistingTranslations->GetCount();
 		if (nMatchedRefString != -1)
@@ -2287,12 +2294,12 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 
 	m_pTypeSourceBox->SetSelection(-1,-1); // select all
 	m_pTypeSourceBox->SetFocus();
-		
+
 	m_pEditRefCount->ChangeValue(m_refCountStr);
 	m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);// whm added
 	UpdateButtons();
 }
- 
+
 void CKBEditor::UpdateButtons()
 {
 	// enables or disables buttons to reflect valid choices depending on number of
@@ -2402,7 +2409,7 @@ void CKBEditor::OnComboItemSelected(wxCommandEvent& event)
 void CKBEditor::UpdateComboInEachPage()
 {
 	int count = gpApp->m_arrOldSearches.GetCount(); // has new count value now
-	m_pComboOldSearches->Clear(); 
+	m_pComboOldSearches->Clear();
 	// refill with the longer set of items
 	int index;
 	for (index = 0; index < count; index++)
@@ -2420,7 +2427,7 @@ void CKBEditor::UpdateComboInEachPage()
 // m_pTranslations list; so we'll do the moves and then repopulate the list from scratch
 // for each move)
 // params:
-// pTgtUnit    ->  the current CTargetUnit instance whose contents are displayed in the 
+// pTgtUnit    ->  the current CTargetUnit instance whose contents are displayed in the
 //                 KBEditor's m_pTranslations list box
 // BEW added 22Jun10, in support of kbVersion 2
 void CKBEditor::PopulateTranslationsListBox(CTargetUnit* pTgtUnit)
@@ -2448,7 +2455,7 @@ void CKBEditor::PopulateTranslationsListBox(CTargetUnit* pTgtUnit)
 			}
             // cast to (void*) to ensure pRefStr is not considered owned by this list, so
             // that a later Clear() call will not delete any of the client data
-			anIndex = m_pListBoxExistingTranslations->Append(str,(void*)pRefStr);			
+			anIndex = m_pListBoxExistingTranslations->Append(str,(void*)pRefStr);
 		} // end TRUE block for test: if (!pCurRefString->m_bDeleted)
 	} // end while loop
 	wxASSERT(countShowable == countNonDeleted);

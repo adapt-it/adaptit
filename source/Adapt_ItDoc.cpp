@@ -17492,7 +17492,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 
 	if (!m_bPreserveKBsWhenClosingDocument)
 	{
-
+/*
 	#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
@@ -17501,6 +17501,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 			pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
 		}
 	#endif
+*/
 		// the EraseKB() call will also try to remove any read-only protection
 		EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
 		pApp->m_pKB = (CKB*)NULL; // whm added
@@ -20993,6 +20994,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
         // what is in it. A normal Open command can also be tried too.
 		gpApp->LogUserAction(thismsg);
 	}
+/*
 #if defined(_KBSERVER)
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
 	{
@@ -21005,6 +21007,7 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		}
 	}
 #endif
+*/
 	return TRUE;
 }
 

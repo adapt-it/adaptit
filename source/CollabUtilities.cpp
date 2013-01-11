@@ -10,6 +10,12 @@
 ///                 collaboration feature - collaborating with either Paratext or Bibledit.
 /////////////////////////////////////////////////////////////////////////////
 
+//#if defined(__WXGTK__)
+// need next line to get gcc compiler to stop compiling _KBSERVER-wrapped code for 6.4.0 release,
+// even though _KBSERVER is no longer #defined anywhere, nor in project settings
+//#undef _KBSERVER
+//#endif
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "CollabUtilities.h"
@@ -120,18 +126,18 @@ extern bool gbDoingInitialSetup;
 // specific to the target text and the free translation text. This function
 // works for all three text types - source, target and free trans via
 // specification in the textType parameter.
-void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType, 
+void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 								wxArrayString& usfmStructureAndExtentArray,
 								wxString collabCompositeProjectName,
-								wxString bookFullName, 
+								wxString bookFullName,
 								wxArrayString& staticBoxDescriptionArray,
 								wxArrayString& chapterList,
 								wxArrayString& statusList,
 								bool& bBookIsEmpty)
 {
-	// Retrieves several wxArrayString lists of information about the chapters 
+	// Retrieves several wxArrayString lists of information about the chapters
 	// and verses (and their status) from the PT/BE project's Scripture book
-	// represented in bookFillName. 
+	// represented in bookFillName.
 	wxArrayString chapterArray;
 	wxArrayString statusArray;
 	chapterArray.Clear();
@@ -146,7 +152,7 @@ void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 	bool bChapterIsEmpty = FALSE; // initialize to FALSE, the GetStatusOfChapter() function below will modify this value
 	wxString projShortName = GetShortNameFromProjectName(collabCompositeProjectName);
 	Collab_Project_Info_Struct* pCollabInfo;
-	pCollabInfo = gpApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+	pCollabInfo = gpApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the
 															// pApp->m_pArrayOfCollabProjects
 	wxASSERT(pCollabInfo != NULL);
 	wxString chMkr;
@@ -172,7 +178,7 @@ void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 		if (tempStr.Find(vsMkr) != wxNOT_FOUND) // \v
 			bVsFound = TRUE;
 	}
-	
+
 	if ((!bChFound && !bVsFound) || (bChFound && !bVsFound))
 	{
 		// The target book has no chapter and verse content to work with
@@ -184,7 +190,7 @@ void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 
 	wxString statusOfChapter;
 	wxString nonDraftedVerses; // used to get string of non-drafted verse numbers/range below
-	
+
 	if (bChFound)
 	{
 		for (ct = 0; ct < tot; ct++)
@@ -194,13 +200,13 @@ void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 			{
 				// we're pointing at a \c element of a string that is of the form: "\c 1:0:MD5"
 				// strip away the preceding \c and the following :0:MD5
-				
+
 				// Account for MD5 hash now at end of tempStr
 				int posColon = tempStr.Find(_T(':'),TRUE); // TRUE - find from right end
 				tempStr = tempStr.Mid(0,posColon); // get rid of the MD5 part and preceding colon (":0" in this case for \c markers)
 				posColon = tempStr.Find(_T(':'),TRUE);
 				tempStr = tempStr.Mid(0,posColon); // get rid of the char count part and preceding colon
-				
+
 				int posChMkr;
 				posChMkr = tempStr.Find(chMkr); // \c
 				wxASSERT(posChMkr == 0);
@@ -248,12 +254,12 @@ void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 	}
 	else
 	{
-		// No chapter marker was found in the book, so just collect its verse 
+		// No chapter marker was found in the book, so just collect its verse
 		// information using an index for the "chapter" element of -1. We use -1
-		// because GetStatusOfChapter() increments the assumed location of the \c 
+		// because GetStatusOfChapter() increments the assumed location of the \c
 		// line/element in the array before it starts collecting verse information
 		// for that given chapter. Hence, it will actually start collecting verse
-		// information with element 0 (the first element of the 
+		// information with element 0 (the first element of the
 		// TargetTextUsfmStructureAndExtentArray)
 		statusOfChapter = GetStatusOfChapter(textType,collabCompositeProjectName,
 			usfmStructureAndExtentArray,-1,bookFullName,bChapterIsEmpty,nonDraftedVerses);
@@ -297,7 +303,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 	// whm 18Jul12 revised signature and moved from CGetSourceTextFromEditor class to CollabUtilities.
 	// When this function is called from GetChapterListAndVerseStatusFromBook() the
 	// indexOfChItem parameter is pointing at a \c n:nnnn line in the Array.
-	// We want to get the status of the chapter by examining each verse of that chapter to see if it 
+	// We want to get the status of the chapter by examining each verse of that chapter to see if it
 	// has content. For collabTgtText, the returned string will have one of these three values:
 	//    1. "All %d verses have translation text"
 	//    2. "Partly drafted (%d of a total of %d verses have translation text)"
@@ -307,19 +313,19 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 	//    2. "%d of a total of %d verses have free translations"
 	//    3. "No verses of a total of %d have free translations yet"
 	// When the returned string is 2 above the reference parameter nonDraftedVerses
-	// will contain a string describing what verses/range of verses are empty, i.e. "The following 
+	// will contain a string describing what verses/range of verses are empty, i.e. "The following
 	// verses are empty: 12-14, 20, 21-29".
-	
-	// Scan forward in the usfmStructureAndExtentArray until we reach the next \c element. 
-	// For each \v we encounter we examine the text extent of that \v element. When a 
-	// particular \v element is empty we build a string list of verse numbers that are 
-	// empty, and collect verse counts for the number of verses which have content and 
-	// the total number of verses. These are used to construct the string return values 
+
+	// Scan forward in the usfmStructureAndExtentArray until we reach the next \c element.
+	// For each \v we encounter we examine the text extent of that \v element. When a
+	// particular \v element is empty we build a string list of verse numbers that are
+	// empty, and collect verse counts for the number of verses which have content and
+	// the total number of verses. These are used to construct the string return values
 	// and the nonDraftedVerses reference parameter - so that the Select a chapter
 	// list box will display something like:
 	// Mark 3 - "Partly drafted (13 of a total of 29 verses have content)"
-	// and the nonDraftedVerses string will contain: "12-14, 20, 21-29" which can be used in the 
-	// read-only text control box at the bottom of the dialog used for providing more detailed 
+	// and the nonDraftedVerses string will contain: "12-14, 20, 21-29" which can be used in the
+	// read-only text control box at the bottom of the dialog used for providing more detailed
 	// information about the book or chapter selected.
 
 	int nLastVerseNumber = 0;
@@ -335,7 +341,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 	bChapterIsEmpty = TRUE; // initialize the reference parameter; assume no content unless proven otherwise
 	wxString projShortName = GetShortNameFromProjectName(collabCompositeProjectName);
 	Collab_Project_Info_Struct* pCollabInfo;
-	pCollabInfo = gpApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the 
+	pCollabInfo = gpApp->GetCollab_Project_Struct(projShortName);  // gets pointer to the struct from the
 															// pApp->m_pArrayOfCollabProjects
 	wxASSERT(pCollabInfo != NULL);
 	wxString chMkr;
@@ -350,7 +356,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 		chMkr = _T("\\c");
 		vsMkr = _T("\\v");
 	}
-	
+
 	if (indexOfChItem == -1)
 	{
 		// When the incoming indexOfChItem parameter is -1 it indicates that this is
@@ -364,8 +370,8 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 			if (tempStr.Find(vsMkr) == 0) // \v
 			{
 				// We're at a verse, so note if it is empty.
-				// But, first get the last verse number in the tempStr. If the last verse 
-				// is a bridged verse, store the higher verse number of the bridge, otherwise 
+				// But, first get the last verse number in the tempStr. If the last verse
+				// is a bridged verse, store the higher verse number of the bridge, otherwise
 				// store the single verse number in nLastVerseNumber.
 				// tempStr is of the form "\v n" or possibly "\v n-m" if bridged
 				wxString str = GetNumberFromChapterOrVerseStr(tempStr);
@@ -375,7 +381,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 					// store the higher verse number of the bridge.
 					int nLowerNumber, nUpperNumber;
 					ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
-					
+
 					nLastVerseNumber = nUpperNumber;
 				}
 				else
@@ -396,7 +402,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 					// The verse is empty so get the verse number, and add it
 					// to the emptyVersesStr
 					emptyVersesStr += GetNumberFromChapterOrVerseStr(tempStr);
-					emptyVersesStr += _T(':'); 
+					emptyVersesStr += _T(':');
 					// calculate the nVersesWithoutContent value
 					if (str.Find('-',TRUE) != wxNOT_FOUND)
 					{
@@ -437,7 +443,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 			if (index >= tot)
 				break;
 			tempStr = usfmStructureAndExtentArray.Item(index);
-			
+
 			if (index < tot && tempStr.Find(chMkr) == 0) // \c
 			{
 				// we've encountered a new chapter
@@ -452,15 +458,15 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 				if (tempStr.Find(vsMkr) == 0) // \v
 				{
 					// We're at a verse, so note if it is empty.
-					// But, first get the last verse number in the tempStr. If the last verse 
-					// is a bridged verse, store the higher verse number of the bridge, otherwise 
+					// But, first get the last verse number in the tempStr. If the last verse
+					// is a bridged verse, store the higher verse number of the bridge, otherwise
 					// store the single verse number in nLastVerseNumber.
 					// tempStr is of the form "\v n:nnnn" or possibly "\v n-m:nnnn" if bridged
-					
+
 					// testing only below - uncomment to test the if-else block below
 					//tempStr = _T("\\ v 3-5:0");
 					// testing only above
-					
+
 					wxString str = GetNumberFromChapterOrVerseStr(tempStr);
 					if (str.Find('-',TRUE) != wxNOT_FOUND)
 					{
@@ -469,7 +475,7 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 
 						int nLowerNumber, nUpperNumber;
 						ExtractVerseNumbersFromBridgedVerse(str,nLowerNumber,nUpperNumber);
-						
+
 						nLastVerseNumber = nUpperNumber;
 					}
 					else
@@ -526,9 +532,9 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 	}
 	// Shorten any emptyVersesStr by indicating continuous empty verses with a dash between
 	// the starting and ending of continuously empty verses, i.e., 5-7, and format the list with
-	// comma and space between items so that the result would be something like: 
+	// comma and space between items so that the result would be something like:
 	// "1, 3, 5-7, 10-22" which is returned via nonDraftedVerses parameter to the caller.
-	
+
 	// testing below
 	//wxString wxStr1 = _T("1:3:4:5:6:9:10-12:13:14:20:22:24:25:26:30:");
 	//wxString wxStr2 = _T("1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:26:27:28:29:30:");
@@ -539,13 +545,13 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 	// test results: testStr1 = _T("1, 3-6, 9, 10-12, 13-14, 20, 22, 24-26, 30")
 	// test results: testStr2 = _T("1-30")
 	// testing above
-	
+
 	if (!emptyVersesStr.IsEmpty())
 	{
 		// Handle the "partially drafted" and "empty" cases.
-		// The emptyVersesStr has content, so there are one or more empty verses in the 
+		// The emptyVersesStr has content, so there are one or more empty verses in the
 		// chapter, including the possibility that all verses have content.
-		// Return the results to the caller via emptyVersesStr parameter and the 
+		// Return the results to the caller via emptyVersesStr parameter and the
 		// function's return value.
 		emptyVersesStr = AbbreviateColonSeparatedVerses(emptyVersesStr);
 		if (EmptyVerseRangeIncludesAllVersesOfChapter(emptyVersesStr))
@@ -594,12 +600,12 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 	return statusStr; // return the status string that becomes the list item's status in the caller
 }
 
-// whm 18Jul12 added. DoProjectAnalysis gets a list of all existing books for the given 
+// whm 18Jul12 added. DoProjectAnalysis gets a list of all existing books for the given
 // compositeProjName from the PT/BE editor. It uses the collab utility mechanism rdwrtp7.exe
 // or bibledit-rdwrt to read all the books of the project into a buffer and analyzes the
 // contents to determine which books are empty (no verse content) and which books have verse
-// text content, returning the respective lists in reference parameters emptyBooks and 
-// booksWithContent. 
+// text content, returning the respective lists in reference parameters emptyBooks and
+// booksWithContent.
 // This function was prompted by a report from one user who was confused about which Paratext
 // project to use for obtaining source texts and which to use for receiving target texts - and
 // swapped them. The apparent result was overwriting the intended source texts and possible
@@ -617,13 +623,13 @@ wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompos
 // the text content of the book storing the result in a TargetTextUsfmStructureAndExtentArray.
 // 4. Examine the TargetTextUsfmStructureAndExtentArray to determine whether it has
 // verse(s) that do not yet have any actual content, or whether it only has \c n chapter and \v n verse
-// markers which are empty of verse content - as would be expected for a project 
+// markers which are empty of verse content - as would be expected for a project
 // designated to receive translation/target texts.
 // 5. If the selected PT/BE project for obtaining source texts is empty of text content
 // warn the administrator that no useful work can be done within Adapt It - and if
 // the PT/BE projects are accidentally swapped, data loss could occur during collaboration.
 // The enum value we return in this function is one of the following:
-// 	 projHasVerseTextInAllBooks  [when 
+// 	 projHasVerseTextInAllBooks  [when
 //   projHasNoBooksWithVerseText  [when booksWithContent ends up empty]
 //   projHasSomeBooksWithVerseTextSomeWithout  [when booksWithContent has some content and emptyBooks has
 //      some content]
@@ -657,7 +663,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		}
 	}
 	wxASSERT(bFound == TRUE);
-	
+
 	wxString booksStr;
 	if (pArrayItem != NULL && bFound)
 	{
@@ -684,7 +690,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 	emptyBooks = wxEmptyString;
 	booksWithContent = wxEmptyString;
 	EditorProjectVerseContent editorProjVerseContent = projHasNoBooksWithVerseText; //  the enum defaults to no books with verse text
-	
+
 	// Set up a progress dialog
 	wxString msgDisplayed;
 	wxString progMsg;
@@ -729,7 +735,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		wxString bookCode;
 		bookCode = gpApp->GetBookCodeFromBookName(fullBookName);
 		wxASSERT(!bookCode.IsEmpty());
-		
+
 		// ensure that a .temp folder exists in the m_workFolderPath
 		wxString tempFolder;
 		tempFolder = gpApp->m_workFolderPath + gpApp->PathSeparator + _T(".temp");
@@ -742,22 +748,22 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		wxASSERT(!compositeProjName.IsEmpty());
 		projShortName = GetShortNameFromProjectName(compositeProjName);
 		wxString bookNumAsStr = gpApp->GetBookNumberAsStrFromName(fullBookName);
-		
+
 		wxString tempFileName;
 		tempFileName = tempFolder + gpApp->PathSeparator;
 		tempFileName += gpApp->GetFileNameForCollaboration(_T("_Collab"), bookCode, projShortName, wxEmptyString, _T(".tmp"));
-		
+
 		// Build the command lines for reading the PT projects using rdwrtp7.exe
 		// and BE projects using bibledit-rdwrt (or adaptit-bibledit-rdwrt).
-		
-		// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the 
-		// commandline, because within GetSourceTextFromEditor() we are using temp variables 
-		// for passing to the GetShortNameFromProjectName() function above, whereas 
-		// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs, 
-		// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App 
-		// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the 
+
+		// whm 23Aug11 Note: We are not using Bruce's BuildCommandLineFor() here to build the
+		// commandline, because within GetSourceTextFromEditor() we are using temp variables
+		// for passing to the GetShortNameFromProjectName() function above, whereas
+		// BuildCommandLineFor() uses the App's values for m_CollabProjectForSourceInputs,
+		// m_CollabProjectForTargetExports, and m_CollabProjectForFreeTransExports. Those App
+		// values are not assigned until GetSourceTextFromEditor()::OnOK() is executed and the
 		// dialog is about to be closed.
-		
+
 		// whm 17Oct11 modified the commandline strings below to quote the source and target
 		// short project names (projShortName and targetProjShortName). This is especially
 		// important for the Bibledit projects, since we use the language name for the project
@@ -794,9 +800,9 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		long resultExec = -1;
 		wxArrayString outputArray, errorsArray;
 		// Note: _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT is defined near beginning of Adapt_It.h
-		// Defined to 0 to use Bibledit's command-line interface to fetch text and write text 
+		// Defined to 0 to use Bibledit's command-line interface to fetch text and write text
 		// from/to its project data files. Defined as 0 is the normal setting.
-		// Defined to 1 to fetch text and write text directly from/to Bibledit's project data 
+		// Defined to 1 to fetch text and write text directly from/to Bibledit's project data
 		// files (not using command-line interface). Defined to 1 was for testing purposes
 		// only before Teus provided the command-line utility bibledit-rdwrt.
 		if (gpApp->m_bCollaboratingWithParatext || _EXCHANGE_DATA_DIRECTLY_WITH_BIBLEDIT == 0)
@@ -824,7 +830,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 
 		if (resultExec != 0)
 		{
-			// get the console output and error output, format into a string and 
+			// get the console output and error output, format into a string and
 			// include it with the message to user
 			wxString outputStr,errorsStr;
 			outputStr.Empty();
@@ -871,12 +877,12 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 
 		// now read the tmp files into buffers in preparation for analyzing their chapter and
 		// verse status info (1:1:nnnn).
-		// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a 
+		// Note: The files produced by rdwrtp7.exe for projects with 65001 encoding (UTF-8) have a
 		// UNICODE BOM of ef bb bf
 
-		// whm 21Sep11 Note: When grabbing the source text, we need to ensure that 
-		// an \id XXX line is at the beginning of the text, therefore the second 
-		// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is 
+		// whm 21Sep11 Note: When grabbing the source text, we need to ensure that
+		// an \id XXX line is at the beginning of the text, therefore the second
+		// parameter in the GetTextFromAbsolutePathAndRemoveBOM() call below is
 		// the bookCode. The addition of an \id XXX line will not normally be needed
 		// when grabbing whole books, but the check is made here to be safe. This
 		// call of GetTextFromAbsolutePathAndRemoveBOM() mainly gets the whole source
@@ -887,12 +893,12 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		wholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(tempFileName,bookCode);
 		usfmStructureAndExtentArray.Clear();
 		usfmStructureAndExtentArray = GetUsfmStructureAndExtent(wholeBookBuffer);
-		
+
 		// Note: The wholeBookBuffer will not be completely empty even
 		// if no Paratext book yet exists, because there will be a FEFF UTF-16 BOM char in it
 		// after rdwrtp7.exe tries to copy the file and the result is stored in the wxString
 		// buffer. So, we can tell better whether the book hasn't been created within Paratext
-		// by checking to see if there are any elements in the appropriate 
+		// by checking to see if there are any elements in the appropriate
 		// UsfmStructureAndExtentArrays.
 		if (usfmStructureAndExtentArray.GetCount() == 0)
 		{
@@ -910,7 +916,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		// whm 19Jul12 Note: We are currently interested in DoProjectAnalysis() whether
 		// the book we are analyzing has text content or not. Therefore the main value
 		// we examine in the call below is the nBookIsEmpty reference parameter. If it
-		// indicates the book is empty of content we add the book to our 
+		// indicates the book is empty of content we add the book to our
 		GetChapterListAndVerseStatusFromBook(textType,
 			usfmStructureAndExtentArray,
 			compositeProjName,
@@ -919,7 +925,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 			chapterListFromBook,
 			chapterStatusFromBook,
 			bBookIsEmpty);
-		
+
 		// testing only below !!!
 		//int i;
 		//wxLogDebug(_T("staticBoxDescriptionOfBook:"));
@@ -944,7 +950,7 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 			if (!emptyBooks.IsEmpty())
 			{
 				// prefix with a command and space
-				emptyBooks += _T(", "); 
+				emptyBooks += _T(", ");
 			}
 			emptyBooks += fullBookName;
 		}
@@ -953,11 +959,11 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 			if (!booksWithContent.IsEmpty())
 			{
 				// prefix with a command and space
-				booksWithContent += _T(", "); 
+				booksWithContent += _T(", ");
 			}
 			booksWithContent += fullBookName;
 		}
-		
+
 		msgDisplayed = progMsg.Format(progMsg,booksPresentArray.Item(nBookCount).c_str());
 		pStatusBar->UpdateProgress(progressTitle, nBookCount, msgDisplayed);
 	} // end of for (nBookCount = 0; nBookCount < nTotal; nBookCount++)
@@ -983,18 +989,18 @@ enum EditorProjectVerseContent DoProjectAnalysis(enum CollabTextType textType,
 		// for PT/BE projects selected for obtaining source texts into Adapt It
 		editorProjVerseContent = projHasVerseTextInAllBooks;
 	}
-	
+
 	if (nTotal > 0)
 	{
 		pStatusBar->FinishProgress(progressTitle);
 	}
-	
+
 	// For Testing only!!!
 	// Return the empty books (as a string list) to the caller via the emptyBooks reference parameter
 	//emptyBooks = _T("Genesis, Ruth, Esther, Matthew, Mark, Luke, John");
 	// Return the books with content (as a string list) to the caller via the booksWithContent reference parameter
 	//booksWithContent = _T("Acts, Romans, 1 Corinthians, 2 Corinthians, Galatians, Ephesians, Philippians, Collosians, 1 Thessalonians, 2 Thessalonians, 1 Timothy, 2 Timothy, Titus, Philemon, Hebrews, James, 1 Peter, 2 Peter, 1 John, 2 John, 3 John, Jude, Revelation");
-	
+
 	// The enum value we return in this function is one of the following:
 	// 	 projHasVerseTextInAllBooks
 	//   projHasNoBooksWithVerseText
@@ -1509,7 +1515,7 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 				wxString chNumStr;
 				chNumStr.Empty();
 				chNumStr << chNumArray.Item(ct);
-				// whm 11Jun12 added to the while test below !chNumStr.IsEmpty()) && to ensure that 
+				// whm 11Jun12 added to the while test below !chNumStr.IsEmpty()) && to ensure that
 				// GetChar(0) is not called on an empty string
 				while (!chNumStr.IsEmpty() && chNumStr.GetChar(0) == _T('0') && chNumStr.Length() > 1)
 					chNumStr.Remove(0,1);
@@ -1954,7 +1960,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	wxString pathCreationErrors = _T("");
 	pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
 	// ignore dealing with any unlikely pathCreationErrors at this point
-
+/*
 #if defined(_KBSERVER)
 	// BEW 28Sep12. If kbserver support was in effect and the project hasn't changed (see
     // the note above immediately after the GetProjectConfiguration() call), then we must
@@ -1969,6 +1975,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		}
 	}
 #endif
+*/
 	return TRUE;
 }
 
@@ -2527,7 +2534,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 	}
 	// whm 1Oct12 removed MRU code
 	//wxASSERT(!gbTryingMRUOpen); // must not be trying to open from
-	//MRU list 
+	//MRU list
 	wxASSERT(!gbConsistencyCheckCurrent); // must not be doing a consistency check
 	wxASSERT(pApp->m_pKB != NULL); // KBs must be loaded
 	// set the path for saving
@@ -2915,6 +2922,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 void UnloadKBs(CAdapt_ItApp* pApp)
 {
+/* delete temporarily for 6.4.0 because Code::Blocks ignores the fact that _KBSERVER is not defined any more, and still compiles this into the app
 #if defined(_KBSERVER)
     // BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer()twice here
     // before the KBs are clobbered; since UnloadKBs is called on every document closure in
@@ -2926,11 +2934,13 @@ void UnloadKBs(CAdapt_ItApp* pApp)
     // GetProjectConfiguration() call.
 	if (pApp->m_bIsKBServerProject)
 	{
+	    //index = 1; // a deliberate error to test that #undef _KBSERVER at file's start (line 14) works and this stuff doesn't get compiled
 		pApp->ReleaseKBServer(1); // the adaptations one
 		pApp->ReleaseKBServer(2); // the glossings one
 		pApp->LogUserAction(_T("ReleaseKBServer() called in UnloadKBs()"));
 	}
 #endif
+*/
 	// unload the KBs from memory
 	if (pApp->m_pKB != NULL)
 	{
@@ -3098,7 +3108,7 @@ bool CreateNewAIProject(CAdapt_ItApp* pApp, wxString& srcLangName, wxString& tgt
 							pApp->m_curProjectPath, projectConfigFile);
 	if (!bOK)
 	{
-		wxMessageBox(_T("In CreateNewAIProject() WriteConfigurationFile() failed for project config file.")); 
+		wxMessageBox(_T("In CreateNewAIProject() WriteConfigurationFile() failed for project config file."));
 		pApp->LogUserAction(_T("In CreateNewAIProject() WriteConfigurationFile() failed for project config file."));
 	}
 	gbDoingInitialSetup = FALSE; // ensure it's off, otherwise RecalcLayout() may
@@ -3204,22 +3214,22 @@ bool BookExistsInCollabProject(wxString projCompositeName, wxString bookFullName
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \return            TRUE if the projCompositeName of the PT/BE collab project 
+/// \return            TRUE if the projCompositeName of the PT/BE collab project
 ///                     is non-empty and has at least one book defined in it
 /// \param projCompositeName     ->  the PT/BE project's composite string
 /// \param collabEditor          -> the external editor, either "Paratext" or "Bibledit"
 /// \remarks
-/// Called from: CollabUtilities' CollabProjectsAreValid(), 
-/// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(), 
+/// Called from: CollabUtilities' CollabProjectsAreValid(),
+/// CSetupEditorCollaboration::OnBtnSelectFromListSourceProj(),
 /// CSetupEditorCollaboration::OnBtnSelectFromListTargetProj(), and
 /// CSetupEditorCollaboration::OnBtnSelectFromListFreeTransProj().
 /// Determines if a PT/BE project has at least one book created by PT/BE in its
-/// data store for the project. Uses the short name part of the incoming project's 
+/// data store for the project. Uses the short name part of the incoming project's
 /// composite name to find the project in the m_pArrayOfCollabProjects on the heap.
 /// If the incoming composite name is empty or the project could not be found,
-/// the funciton returns FALSE. If found, the function populates, then examines 
-/// the current Collab_Project_Info_Struct object for that project on the heap 
-/// (in m_pArrayOfCollabProjects). It then examines the struct's booksPresentFlags 
+/// the funciton returns FALSE. If found, the function populates, then examines
+/// the current Collab_Project_Info_Struct object for that project on the heap
+/// (in m_pArrayOfCollabProjects). It then examines the struct's booksPresentFlags
 /// member for the existence of at least one book in that project.
 bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEditor)
 {
@@ -3279,7 +3289,7 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// \param tgtCompositeProjName     ->  the PT/BE's target project's composite string
 /// \param freeTransCompositeProjName  ->  the PT/BE's free trans project's composite string
 /// \param collabEditor             -> the collaboration editor, either "Paratext" or "Bibledit"
-/// \param errorStr               <-  a wxString (multi-line) representing any error information 
+/// \param errorStr               <-  a wxString (multi-line) representing any error information
 ///                                     for when a FALSE value is returned from the function
 /// \param errorProjects          <-  a wxString representing "source", "target" "freetrans", or
 ///                                     any combination delimited by ':' chars of the three types
@@ -3292,7 +3302,7 @@ bool CollabProjectHasAtLeastOneBook(wxString projCompositeName,wxString collabEd
 /// 3. If the freeTransCompositeProjName is non-empty, that it has at least one book defined in it.
 /// If any of the above three conditions are not true, the errorStr reference parameter will return
 /// to the caller a string describing the error. If errorStr is non-empty it will be formatted with
-/// one or more \n newline characters, that is, it will format as a multi-line string. The 
+/// one or more \n newline characters, that is, it will format as a multi-line string. The
 /// errorProjects string will also return to the caller a string indicating which type of project
 /// the errors apply to, i.e., "source" or "source:freetrans", etc.
 bool CollabProjectsAreValid(wxString srcCompositeProjName, wxString tgtCompositeProjName,
