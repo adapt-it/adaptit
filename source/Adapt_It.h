@@ -22,7 +22,7 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
-//#undef _KBSERVER
+
 
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 // is set at the beginning of Adapt_It.h. When set it does the following:
@@ -260,10 +260,10 @@ inline int GetAISvnVersion()
 #include "scrollingdialog.h"
 #endif
 
-//#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 // for wxJson support
-//#include "json_defs.h"
-//#endif
+#include "json_defs.h"
+#endif
 
 #include "PhraseBox.h"
 #include "FindReplace.h"

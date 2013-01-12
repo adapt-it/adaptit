@@ -5777,14 +5777,14 @@ wxString szGlossesLanguageCode = _T("GlossesLanguageCode");
 /// m_freeTransLanguageCode member variable.
 wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 
-// #if defined (_KBSERVER)  -- mrh - let's define the string even if we don't use it
+//#if defined (_KBSERVER)  -- mrh - let's define the string even if we don't use it
 // BEW added 25Sep12
 /// The label that identifies the whether or not the project is associated with a KBServer.
 /// This value is written in the "ProjectSettings" part of the project configuration file.
 /// Adapt It stores this string in the App's m_bIsKBServerProject member variable. Default
 /// is FALSE.
 wxString szIsKBServerProject = _T("IsKBServerProject");
-// #endif
+//#endif
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
 /// This value is written in the "Settings" part of the basic configuration file. After
@@ -14901,7 +14901,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
     // caller that we could not get a code.
 	return codeToReturn;
 }
-/*
+//*
 #if defined(_KBSERVER)
 
 //setter for m_pKbServer pointer in CAdapt_ItApp
@@ -15106,7 +15106,7 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 
 
 #endif // for _KBSERVER
-*/
+//*/
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 void CAdapt_ItApp::SetAdjustScrollPosFlag(bool bDoAdjustment)
 {
@@ -20527,7 +20527,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 // GDLC 24OCT12 testing the new wxUUID class
 	wxString test_UUID = GetUuid();
-/*
+//*
 #if defined (_KBSERVER)
 	// test KbServer API functions
     SetupForKBServer(1);
@@ -20557,7 +20557,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	delete m_pKbServer[0];
 #endif
-*/
+//*/
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes
@@ -24130,7 +24130,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 	// the document when one is unsure if such a pointer exists.
 	CAdapt_ItDoc* pDoc = GetDocument();
 	wxASSERT(pDoc != NULL);
-/*
+//*
 #if defined(_KBSERVER)
 	// BEW 28Sep12, the still-open KBs might be for a kb sharing project, so to be safe,
 	// we should call ReleaseKBServer() here (this will reset m_bIsKBServerProject to
@@ -24148,7 +24148,7 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		}
 	}
 #endif
-*/
+//*/
 	if (pDoc != NULL && m_pKB != NULL)
 	{
 		// delete the adapting one we successfully loaded

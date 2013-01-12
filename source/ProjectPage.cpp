@@ -1210,7 +1210,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
-/*
+//*
 #if defined(_KBSERVER)
             // BEW 28Sep12, this seems to be the appropriate place, if this project has
             // been designated as one for support of KB sharing, to put the
@@ -1228,7 +1228,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				}
 			}
 #endif
-*/
+//*/
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;
