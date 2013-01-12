@@ -10,11 +10,11 @@
 ///                 collaboration feature - collaborating with either Paratext or Bibledit.
 /////////////////////////////////////////////////////////////////////////////
 
-//#if defined(__WXGTK__)
-// need next line to get gcc compiler to stop compiling _KBSERVER-wrapped code for 6.4.0 release,
-// even though _KBSERVER is no longer #defined anywhere, nor in project settings
-//#undef _KBSERVER
-//#endif
+//
+//
+//
+//
+//
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -1960,7 +1960,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	wxString pathCreationErrors = _T("");
 	pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
 	// ignore dealing with any unlikely pathCreationErrors at this point
-/*
+//*
 #if defined(_KBSERVER)
 	// BEW 28Sep12. If kbserver support was in effect and the project hasn't changed (see
     // the note above immediately after the GetProjectConfiguration() call), then we must
@@ -1975,7 +1975,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		}
 	}
 #endif
-*/
+//*/
 	return TRUE;
 }
 
@@ -2922,7 +2922,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 void UnloadKBs(CAdapt_ItApp* pApp)
 {
-/* delete temporarily for 6.4.0 because Code::Blocks ignores the fact that _KBSERVER is not defined any more, and still compiles this into the app
+//*
 #if defined(_KBSERVER)
     // BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer()twice here
     // before the KBs are clobbered; since UnloadKBs is called on every document closure in
@@ -2934,13 +2934,13 @@ void UnloadKBs(CAdapt_ItApp* pApp)
     // GetProjectConfiguration() call.
 	if (pApp->m_bIsKBServerProject)
 	{
-	    //index = 1; // a deliberate error to test that #undef _KBSERVER at file's start (line 14) works and this stuff doesn't get compiled
+	    //index = 1; // a deliberate error to test that this stuff doesn't get compiled when _KBSERVER is not #defined
 		pApp->ReleaseKBServer(1); // the adaptations one
 		pApp->ReleaseKBServer(2); // the glossings one
 		pApp->LogUserAction(_T("ReleaseKBServer() called in UnloadKBs()"));
 	}
 #endif
-*/
+//*/
 	// unload the KBs from memory
 	if (pApp->m_pKB != NULL)
 	{

@@ -7,12 +7,12 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CKB class.
-/// The CKB class defines the knowledge base class for the App's 
-/// data storage structures. The CKB class is completely independent of 
-/// the list of CSourcePhrase instances stored on the App. This independence 
-/// allows modifying the latter, or any of these CKB structures, independently 
-/// of the other with no side effects. Links between the document structures and the 
-/// CKB structures are established dynamically by the lookup engine on a 
+/// The CKB class defines the knowledge base class for the App's
+/// data storage structures. The CKB class is completely independent of
+/// the list of CSourcePhrase instances stored on the App. This independence
+/// allows modifying the latter, or any of these CKB structures, independently
+/// of the other with no side effects. Links between the document structures and the
+/// CKB structures are established dynamically by the lookup engine on a
 /// "need to know" basis.
 /// \derivation		The CKB class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
@@ -42,12 +42,12 @@ enum KB_Entry {
 	really_present
 };
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER)
 //enum SharedKbEntries {
 //	forOneCTargetUnit,
 //	mixedEntries
 //};
-#endif
+//#endif
 
 // BEW removed 29May10, as TUList is redundant * now removed
 // wxList declaration and partial implementation of the TUList class being
@@ -61,15 +61,15 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase
                     wxStringEqual,
                     MapKeyStringToTgtUnit ); // the name of the map class declared by this macro pMap
 
-/// The CKB class defines the knowledge base class for the App's 
-/// data storage structures. The CKB class is completely independent of 
-/// the list of CSourcePhrase instances stored on the App. This independence 
-/// allows modifying the latter, or any of these CKB structures, independently 
-/// of the other with no side effects. Links between the document structures and the 
-/// CKB structures are established dynamically by the lookup engine on a 
+/// The CKB class defines the knowledge base class for the App's
+/// data storage structures. The CKB class is completely independent of
+/// the list of CSourcePhrase instances stored on the App. This independence
+/// allows modifying the latter, or any of these CKB structures, independently
+/// of the other with no side effects. Links between the document structures and the
+/// CKB structures are established dynamically by the lookup engine on a
 /// "need to know" basis.
 /// \derivation		The CKB class is derived from wxObject.
-class CKB : public wxObject  
+class CKB : public wxObject
 {
 	friend class CTargetUnit;
 	friend class CRefString;
@@ -83,10 +83,10 @@ public:
 	// been defined before it gets used. Compiles fine actually, but m_pTargetUnits list pointer is
 	// garbage when the app runs. As a work around, use a function approach, defining a Copy() function.
 	void Copy(const CKB& kb); // this separates the copy code from creation of the object's owned lists
-	// Note: Could the problem be the result of the ordering of the members in this CKB class 
+	// Note: Could the problem be the result of the ordering of the members in this CKB class
 	// declaration below??? According to B. Milewski (p. 17) "Data members
-	// [including embedded objects] are inititalized in the order in which they appear in the class 
-	// definition...Embedded objects are destroyed in the reverse order of their creation." Hence 
+	// [including embedded objects] are inititalized in the order in which they appear in the class
+	// definition...Embedded objects are destroyed in the reverse order of their creation." Hence
 	// the compiler will initialize the MapKeyStringToTgtUnit, before TUList.
 	// TODO: Implement the commented out copy constructor, change the ordering of the class members
 	// in the declaration below, putting TUList* m_pTargetUnits before the MapKeyStringToTgtUnit* m_pMap[10]
@@ -100,13 +100,13 @@ public:
 	// were in the MFC version. I've put the declaration of TUList before MapKeyStringToTgtUnit
 	// since the compiler initializes the members in a class declaration IN THE ORDER they
 	// are declared in the class declaration. This is an attempt to correct problems that
-	// I've had (and possibly Bruce too) encountering NULL or bad m_pTargetUnits and m_pMap 
+	// I've had (and possibly Bruce too) encountering NULL or bad m_pTargetUnits and m_pMap
 	// pointers. BEW  note 29May10 -- this is no longer relevant, as TUList is removed now
 
 	// The names of the languages need to be stored, because the startup wizard's <Back
-	// button allows the user to create a project, then backtrack and choose an existing 
-	// project. Doing this, if we did not store the language names in the KB, would would 
-	// not easily be able to recover the existing project's language names, and the wrong 
+	// button allows the user to create a project, then backtrack and choose an existing
+	// project. Doing this, if we did not store the language names in the KB, would would
+	// not easily be able to recover the existing project's language names, and the wrong
 	// names would then be profiled out on exit of the app.
 	wxString			m_sourceLanguageName;
 	wxString			m_targetLanguageName;
@@ -141,7 +141,7 @@ public:
 	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
 	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation);
 	// overloaded version below, for use when Consistency Check is being done
-	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation, 
+	bool			IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 						CTargetUnit*& pTU, CRefString*& pRefStr, bool& bDeleted);
 	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
 	bool			IsNot_In_KB_inThisTargetUnit(CTargetUnit* pTU);
@@ -182,12 +182,12 @@ public:
 	// entry with the corrected src/tgt or src/gloss pair. Hence, the kbserver support can
 	// simply do HandlePseudoDelete() using the old pair, followed by
 	// HandleNewPairCreated() using the new src/tgt or src/gloss pair.
-	bool		HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey, 
+	bool		HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
 									wxString oldTranslation, wxString newTranslation);
 	// Populate either a CTargetUnit instance in the local KB with anything new in the
 	// download, or many CTargetUnit instances arising from a timestamp-based download -
-	// either of the whole KB, or of those entries newly added subsequent to a stored 
-	// timestamp value												  
+	// either of the whole KB, or of those entries newly added subsequent to a stored
+	// timestamp value
 	//void		StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whichEntries);
 	void		StoreEntriesFromKbServer(KbServer* pKbServer);
 	// App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is
@@ -198,7 +198,7 @@ public:
 
 	bool		LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr);
 	CTargetUnit* GetTargetUnitForKbSharing(wxString keyStr);
-	void		MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase, 
+	void		MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 									wxString& username, bool bDeletedFlag);
 	CRefString*	GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, bool& bIsDeleted);
 /*  I don't think I need this next one (it's only a stub so far)

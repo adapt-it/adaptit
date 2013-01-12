@@ -972,7 +972,7 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 	}
 	return FALSE; // did not find a match
 }
-/*
+//*
 #if defined (_KBSERVER)
 
 /// \return             nothing
@@ -1323,7 +1323,7 @@ CRefString*	CKB::GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, boo
 
 
 #endif // for _KBSERVER
-*/
+//*/
 
 // BEWw added 29Aug11: overloaded version below, for use when Consistency Check
 // is being done (return pTU, pRefStr, m_bDeleted flag value by ref)
@@ -2799,7 +2799,7 @@ CTargetUnit* CKB::GetTargetUnitForKbSharing(wxString keyStr)
 	return (CTargetUnit*)NULL;
 }
 
-/*
+//*
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return         TRUE if translation param && deletedFlag params' values are
 ///                 identical to those in a single CRefString within pTU, FALSE
@@ -2847,7 +2847,7 @@ bool CKB::IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
 // FindDeletedRefStringForKbSharing() instead
 	return TRUE;
 }
-*/
+//*/
 
 #endif // for _KBSERVER #defined
 
@@ -3237,7 +3237,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			// if something went wrong, just save as if gbAutoCaps was FALSE
 			pRefString->m_translation = tgtPhrase;
 		}
-/*
+//*
 #if defined(_KBSERVER)
         // BEW added 5Oct12, here is a suitable place for kbserver support of
         // CreateEntry(), since both the key and the translation (both possibly with a case
@@ -3263,7 +3263,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			}
 		}
 #endif
-*/
+//*/
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
@@ -3319,7 +3319,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			{
 				pRefString->m_translation = tgtPhrase;
 			}
-/*
+//*
 #if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
@@ -3345,7 +3345,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				}
 			}
 #endif
-*/
+//*/
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -3424,7 +3424,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
-/*
+//*
 #if defined(_KBSERVER)
                         // BEW added 18Oct12, call HandleUndelete() Note: we can't reliably
                         // assume that the kbserver entry is also currently stored as a
@@ -3450,7 +3450,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							}
 						}
 #endif
-*/
+//*/
 					}
 					else
 					{
@@ -3541,7 +3541,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					{
 						pRefString->m_translation = tgtPhrase;
 					}
-/*
+//*
 #if defined(_KBSERVER)
                     // BEW added 5Oct12, here is a suitable place for kbserver support of
                     // CreateEntry(), since both the key and the translation (both possibly
@@ -3566,7 +3566,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						}
 					}
 #endif
-*/
+//*/
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
@@ -3979,7 +3979,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// if something went wrong, just save as if gbAutoCaps was FALSE
 			pRefString->m_translation = tgtPhrase;
 		}
-/*
+//*
 #if defined(_KBSERVER)
         // BEW added 5Oct12, here is a suitable place for kbserver support of
         // CreateEntry(), since both the key and the translation (both possibly with a case
@@ -4005,7 +4005,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			}
 		}
 #endif
-*/
+//*/
 		// continue with the store to the local KB
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
@@ -4139,7 +4139,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				pRefString->m_translation = tgtPhrase;
 			}
-/*
+//*
 #if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
@@ -4165,7 +4165,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
 			}
 #endif
-*/
+//*/
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -4276,7 +4276,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
-/*
+//*
 #if defined(_KBSERVER)
                         // BEW added 18Oct12, call HandleUndelete() Note: we can't reliably
                         // assume that the kbserver entry is also currently stored as a
@@ -4312,7 +4312,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							}
 						}
 #endif
-*/
+//*/
 					}
 					else
 					{
@@ -4431,7 +4431,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					{
 						pRefString->m_translation = tgtPhrase;
 					}
-/*
+//*
 #if defined(_KBSERVER)
                     // BEW added 5Oct12, here is a suitable place for kbserver support of
                     // CreateEntry(), since both the key and the translation (both possibly
@@ -4457,7 +4457,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						}
 					}
 #endif
-*/
+//*/
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
@@ -5628,7 +5628,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	// whm Note: the pProgDlg->Destroy() is done back in the caller function OnFileRestoreKb() on the App
 	errors.Clear(); // clear the array
 }
-/*
+//*
 #if defined(_KBSERVER)
 
 // Return TRUE if there was no error, FALSE otherwise
@@ -5927,17 +5927,5 @@ bool  CKB::HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #endif // for _KBSERVER
-*/
+//*/

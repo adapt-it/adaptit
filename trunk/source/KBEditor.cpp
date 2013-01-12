@@ -561,7 +561,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	pCurRefString->SetDeletedFlag(TRUE);
 
 	// BEW added 26Oct12 for kbserver support
-/*
+//*
 #if defined(_KBSERVER)
 	if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -575,7 +575,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		bHandledOK = bHandledOK; // avoid compiler warning
 	}
 #endif
-*/
+//*/
 	// That completes what's needed for updating the CTargetUnit instance. The stuff below
 	// is to get the page's translations (or glosses) list to comply with the edit done
 
@@ -699,7 +699,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	if (bOK)
 	{
 	// BEW added 26Oct12 for kbserver support
-/*
+//*
 #if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -712,7 +712,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 			bHandledOK = bHandledOK; // avoid compiler warning
 		}
 #endif
-*/
+//*/
 		// don't add to the list if the AddRefString call did not succeed
 		wxString s;
 		s = _("<no adaptation>");
@@ -818,7 +818,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	if (bOK)
 	{
 	// BEW added 26Oct12 for kbserver support
-/*
+//*
 #if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -831,7 +831,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 			bHandledOK = bHandledOK; // avoid compiler warning
 		}
 #endif
-*/
+//*/
 		if (newText.IsEmpty())
 			newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
@@ -1196,7 +1196,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_pListBoxExistingTranslations->Clear();
 	}
 	// BEW added 22Oct12 for kbserver support
-/*
+//*
 #if defined(_KBSERVER)
 	if (pApp->m_bIsKBServerProject &&
 		pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
@@ -1210,7 +1210,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		bHandledOK = bHandledOK; // avoid compiler warning
 	}
 #endif
-*/
+//*/
     // remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
     // 'remove' in the context of kbVersion 2 just means to retain storage of the
     // CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata

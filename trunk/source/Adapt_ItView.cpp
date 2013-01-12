@@ -6336,7 +6336,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 			pApp->LogUserAction(msg);
 		}
 	}
-/*
+//*
 #if defined(_KBSERVER)
 	// BEW 28Sep12, clean up and make persistent any volatile data, if kbserver
 	// support is active
@@ -6347,7 +6347,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		pApp->LogUserAction(_T("ReleaseKBServer() called in OnFileCloseProject()"));
 	}
 #endif
-*/
+//*/
 	// BEW 28Sep12 moved KB erasure code to be here -- see note above
 	// Delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
