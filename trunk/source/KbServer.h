@@ -26,6 +26,18 @@
 // uncomment out the forward declaration class CAdapt_ItApp a little further down
 #include "Adapt_It.h" // this #includes json_defs.h
 
+// NOTE: we need to use long, not int, for integers if we use jsonval.cpp. The comment in
+// jsonval.cpp at lines 582-4 states:
+// "Note that if you are developing cross-platform applications you should never
+// use int as the integer data type but \b long for 32-bits integers and
+// short for 16-bits integers."
+// Hence we define an array of longs which we can use rather than wxArrayInt - the latter
+// leads to assertion trips in 64 bit Linux builds at runtime. So far jsonval's been happy with
+// using wxArrayInt for the 1 or 0 of the deleted flag. But for entry IDs, we get asserts.
+#include <wx/dynarray.h>
+WX_DEFINE_ARRAY_LONG(long, Array_of_long);
+
+
 #if defined(_KBSERVER)
 
 #include <curl/curl.h>
@@ -90,7 +102,8 @@ public:
 	bool	  ExportLastSyncTimestamp(); // exports it to lastsync.txt file
 									     // as an ascii string literal
 	// accessors for the private arrays
-	wxArrayInt*		GetIDsArray();
+	//wxArrayInt*		GetIDsArray();
+	Array_of_long*	GetIDsArray();
 	wxArrayInt*		GetDeletedArray();
 	wxArrayString*	GetTimestampArray();
 	wxArrayString*	GetSourceArray();
@@ -179,7 +192,8 @@ public:
 	// values are determinate from member variables m_kbSourceLanguageCode,
 	// m_kbTargetLanguageCode, and m_kbServerType, respectively.
 private:
-	wxArrayInt		m_arrID;
+	//wxArrayInt		m_arrID;
+	Array_of_long   m_arrID;
 	wxArrayInt		m_arrDeleted;
 	wxArrayString	m_arrTimestamp;
 	wxArrayString	m_arrSource;

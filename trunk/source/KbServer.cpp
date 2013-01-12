@@ -30,6 +30,9 @@
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
 #include <wx/textfile.h> // for wxTextFile
 
+//#include <wx/dynarray.h>
+//WX_DEFINE_ARRAY_LONG(long, Array_of_long);
+
 #if defined(_KBSERVER)
 
 using namespace std;
@@ -447,7 +450,8 @@ bool KbServer::ExportLastSyncTimestamp()
 }
 
 // accessors for the private arrays
-wxArrayInt* KbServer::GetIDsArray()
+//wxArrayInt* KbServer::GetIDsArray()
+Array_of_long* KbServer::GetIDsArray()
 {
 	return &m_arrID;
 }
@@ -923,7 +927,10 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		// we extract id, source phrase, target phrase, deleted flag value, username,
 		// and timestamp string; for index value 0 only (there should only be one json
 		// object to deal with)
-		m_arrID.Add(jsonval[_T("id")].AsInt());
+		//m_arrID.Add(jsonval[_T("id")].AsInt());
+		m_arrID.Add(jsonval[_T("id")].AsLong()); // needed to avoid tripping an assert
+                // in jsonval.cpp, IsInt() fails for 64 bit machine if int is used rather
+                // than long (jsonval desciption of
 		m_arrDeleted.Add(jsonval[_T("deleted")].AsInt());
 		m_arrSource.Add(jsonval[_T("source")].AsString());
 		m_arrTarget.Add(jsonval[_T("target")].AsString());
@@ -962,7 +969,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 	jsonval[_T("target")] = tgtPhrase;
 	jsonval[_T("user")] = GetKBServerUsername();
 	jsonval[_T("type")] = kbType;
-	jsonval[_T("deleted")] = bDeletedFlag ? 1 : 0;
+	jsonval[_T("deleted")] = bDeletedFlag ? (long)1 : (long)0;
 
 	// convert it to string form
 	wxJSONWriter writer; wxString str;

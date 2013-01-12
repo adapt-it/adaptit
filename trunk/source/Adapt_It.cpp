@@ -15000,6 +15000,8 @@ bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 {
 	wxASSERT(whichType == 1 || whichType == 2);
 	KbServer* pKbSvr = GetKbServer(whichType); // beware, may return NULL
+	if (pKbSvr == NULL)
+        return TRUE; // not currently defined
 
 	// ensure the m_kbServerLastSync timestamp value is stored to permanent storage (which
 	// temporarily is in lastsync.txt in the project folder)
@@ -20527,7 +20529,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 // GDLC 24OCT12 testing the new wxUUID class
 	wxString test_UUID = GetUuid();
-//*
+/*
 #if defined (_KBSERVER)
 	// test KbServer API functions
     SetupForKBServer(1);
@@ -20557,7 +20559,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	delete m_pKbServer[0];
 #endif
-//*/
+*/
 	/* last test: March 9, 2011
 	//int sizeofCStrip = sizeof(CStrip); // 48 bytes
 	int sizeofCPile = sizeof(CPile); // 48 bytes

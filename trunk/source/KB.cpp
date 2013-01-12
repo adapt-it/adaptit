@@ -995,7 +995,12 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 /// When this function is called, the remote server will have completed it's download and
 /// the arrays mentioned above will have been populated ready for this function to access
 /// them and use their data to update the local KB.
-//void CKB::StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whichEntries)
+/// NOTE: json requires, for x-platform apps, that we use long or short, not int. So far,
+/// json is confined to the KbServer class; and only entryIDs are stored and retrieved as
+/// longs, for example using .AsLong(). The deleted flag currently is handled okay by
+/// wxArrayInt. The latter is seen by CKB class; but our custom array of longs,
+/// Array_of_long (defined near the top of KbServer.h) is not yet exposed to CKB class. If
+/// that situation changes, then KB.h will need a similar Array_of_long defined in KB.h
 void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 {
 	if (pKbServer == NULL)
@@ -1037,13 +1042,6 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 	MapKeyStringToTgtUnit* pMap = NULL; // set which map we lookup using nWordCount
 	MapKeyStringToTgtUnit::iterator iter;
 
-//	switch(whichEntries)
-//	{
-//	case forOneCTargetUnit:
-//
-//		break;
-//	default:
-//	case mixedEntries:
 	for (index = 0; index < size; index++)
 	{
 		key = pKeyArray->Item(index);
@@ -1205,8 +1203,6 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 			} // end of TRUE block for test: if (pMap != NULL)
 		} // end of TRUE block for test: if (nWordCount > 0)
 	} // end of the loop: for (index = 0; index < size; index++)
-//		break; // from the mixedEntries case
-//	}
 	pKbServer->ClearAllPrivateStorageArrays(); // we are done with the downloaded kbserver entries
 }
 
@@ -2799,7 +2795,7 @@ CTargetUnit* CKB::GetTargetUnitForKbSharing(wxString keyStr)
 	return (CTargetUnit*)NULL;
 }
 
-//*
+/*
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return         TRUE if translation param && deletedFlag params' values are
 ///                 identical to those in a single CRefString within pTU, FALSE
@@ -2847,7 +2843,7 @@ bool CKB::IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
 // FindDeletedRefStringForKbSharing() instead
 	return TRUE;
 }
-//*/
+*/
 
 #endif // for _KBSERVER #defined
 
@@ -5656,7 +5652,7 @@ bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString trans
 	if (pKBSvr != NULL)
 	{
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
-		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
+		if (responseCode != 0) // entry is not in the kbserver if test yields TRUE
 		{
 			//  POST the new entry to the kbserver, with bDeletedFlag set to FALSE
 			responseCode = pKBSvr->CreateEntry(srcKey, translation, FALSE);
@@ -5671,7 +5667,7 @@ bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString trans
 				rv = FALSE; // but don't abort
 			}
 		}
-		else if (responseCode == CURLE_OK)
+		else if (responseCode == 0)
 		{
 			// An entry for the src/tgt pair is in the kbserver, but it may be
 			// pseudo-deleted, or it may be undeleted. If the former, then we must
@@ -5747,7 +5743,7 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 		pKBSvr->ClearAllPrivateStorageArrays();
 		// note: pKBSvr knows whether itself is an adapting KB server, or a glossing one
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
-		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
+		if (responseCode != 0) // entry is not in the kbserver if test yields TRUE
 		{
 			//  POST the new entry to the kbserver - but with bDeletedFlag value of TRUE
 			responseCode = pKBSvr->CreateEntry(srcKey, translation, TRUE);
@@ -5762,7 +5758,7 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 				rv = FALSE; // but don't abort
 			}
 		}
-		else if (responseCode == CURLE_OK)
+		else if (responseCode == 0)
 		{
             // An entry for the src/tgt pair is in the kbserver, but it may be normal (i.e.
             // not pseudo-deleted), or it may be pseudo-deleted. If the former, then we
@@ -5828,7 +5824,7 @@ bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation
 	{
 		pKBSvr->ClearAllPrivateStorageArrays();
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
-		if (responseCode != CURLE_OK) // entry is not in the kbserver if test yields TRUE
+		if (responseCode != 0) // entry is not in the kbserver if test yields TRUE
 		{
 			//  POST the new entry to the kbserver, with bDeletedFlag set to FALSE
 			responseCode = pKBSvr->CreateEntry(srcKey, translation, FALSE);
@@ -5843,7 +5839,7 @@ bool CKB::HandleUndelete(int kbServerType, wxString srcKey, wxString translation
 				rv = FALSE; // but don't abort
 			}
 		}
-		else if (responseCode == CURLE_OK)
+		else if (responseCode == 0)
 		{
 			// An entry for the src/tgt pair is in the kbserver, but it may be
 			// pseudo-deleted, or it may be undeleted. If the former, then we must
