@@ -3995,8 +3995,28 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 	// Note: calling delete on pMenuBar is sufficient; because of its hierarchy of ownership
 	// all of its child objects get destroyed automatically.
 	if (pMenuBar != NULL) // whm 11Jun12 added NULL test
+	{
+		// whm modified 12Jan13 to use the method shown in the OnDeleteMenu()
+		// function of the wxWidgets menu sample program. The Linux version
+		// sometimes would otherwise crash here when the code previously just
+		// did delete pMenuBar. We first delete all the wxMenu instances from
+		// pMenuBar and then delete the pMenuBar itself - the reverse of the
+		// new calls within the wxDesigner's AIMenuBarFunc() above that
+		// created the menu bar.
+		int count = (int)pMenuBar->GetMenuCount();
+		wxMenu* pMenu;
+		int ct;
+		// To preserve the position indices remove the menu items in 
+		// reverse order. With a zero-based position index, the last menu 
+		// item's position is count-1.
+		for (ct = count-1; ct >= 0; ct--)
+		{
+			pMenu = pMenuBar->Remove(ct);
+			delete pMenu;
+		}
 		delete pMenuBar;
-	pMenuBar = (wxMenuBar*)NULL;
+		pMenuBar = (wxMenuBar*)NULL;
+	}
 }
 
 /*
