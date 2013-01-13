@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Adapt It
+GenericName=Adapt It
+Comment=Adapt It Translation Assistant
+Exec=adaptit
+Icon=evolution
+Terminal=false
+Type=Application
+Categories=GTK;Office;
+StartupNotify=true
