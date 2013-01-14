@@ -84,6 +84,8 @@
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 #include "FreeTrans.h"
 #include "StatusBar.h" // EDB added 2Oct12
+#include "KBSharing.h" // BEW added 14Jan13
+
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
 #else
@@ -447,6 +449,14 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 //	EVT_MENU (ID_MENU_DVCS_COMMIT_PROJECT,	CMainFrame::OnDVCS_Commit_Project)
 	EVT_MENU (ID_MENU_DVCS_LOG_FILE,		CMainFrame::OnDVCS_Log_File)
 	EVT_MENU (ID_MENU_DVCS_LOG_PROJECT,		CMainFrame::OnDVCS_Log_Project)
+
+#endif
+
+	// support the KB Sharing dialog which is on the Advanced menu, BEW 14Jan13
+#if defined(_KBSERVER)
+
+	EVT_MENU (ID_MENU_SHOW_KBSERVER_DLG,	CMainFrame::OnKBSharingDlg)
+
 #endif
 
 	// TODO: uncomment two event handlers below when figure out why setting tooltip time
@@ -2529,6 +2539,35 @@ void CMainFrame::OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event))
 }
 
 #endif
+
+// BEW added 14Jan13, to support KB Sharing dialog on Advanced menu
+#if defined(_KBSERVER)
+
+void CMainFrame::OnKBSharingDlg(wxCommandEvent& event)
+{
+	if (event.GetId() == ID_MENU_SHOW_KBSERVER_DLG)
+	{
+		gpApp->LogUserAction(_T("Initiated OnKBSharingDlg()"));
+	}
+
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		return;
+	}
+	KBSharing dlg(this);
+	dlg.Center();
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		gpApp->LogUserAction(_T("Closed OnKBSharingDlg()"));
+	}
+	else
+	{
+		gpApp->LogUserAction(_T("Cancelled OnKBSharingDlg()"));
+	}
+}
+
+#endif
+
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out
 // why SetDelay() disables tooltips

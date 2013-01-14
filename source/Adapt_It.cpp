@@ -15176,8 +15176,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//m_kbServerUsername.Empty();
 	//m_kbServerPassword.Empty();
 	//m_kbServerLastSync.Empty();
-
 #endif
+
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
@@ -21127,6 +21127,21 @@ int ii = 1;
 
 #endif
 	// end of code for supporting Mike's DVCS work
+
+#if defined(_KBSERVER)
+	// append a menu separator and at "Knowledge Base Sharing" menu item to the Advanced
+	// menu in the _Debug build
+	size_t nAdvancedMenuIndex = 5;
+	CMainFrame* pFrame = GetMainFrame();
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
+	wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
+	pAdvancedMenu->AppendSeparator(); // ignore returned pointer
+	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _T("Knowledge Base Sharing..."));
+	pKBSharingMenuItem = pKBSharingMenuItem; // avoid compiler warning
+
+	// no update handler defined, so the menu always is enabled
+#endif
+
 /* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)
 	wxString sss;
 	sss = _T("\\f*");
