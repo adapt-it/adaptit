@@ -233,6 +233,12 @@ public:
 	void OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event));
 #endif
 
+#if defined(_KBSERVER)
+
+	void OnKBSharingDlg (wxCommandEvent& event);
+
+#endif
+
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar

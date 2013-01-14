@@ -76,6 +76,12 @@ const int ID_MENU_DVCS_LOG_FILE			= 989;
 const int ID_MENU_DVCS_LOG_PROJECT		= 988;
 const int ID_MENU_TAKE_OWNERSHIP		= 987;
 
+// BEW note 14Jan13, for the KB sharing menu item in Advanced menu will use value 980 for
+// the present and add the menu item and preceding separator only in the _DEBUG build while
+// developing the KB Sharing functionality (see further below), and wrapped by conditional
+// define using _KBSERVER symbol (the latter is #defined only in the Debug build in the
+// C/C++ config properties, the preprocessor section)
+
 // Action codes for calling the DVCS:
 enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY,
 		DVCS_ADD_FILE, DVCS_ADD_ALL_FILES,
@@ -113,7 +119,15 @@ class NavProtectNewDoc; // for user navigation protection feature
 // adaptation project designated as one which is to support KB sharing
 
 #if defined(_KBSERVER)
+
+// forward declaration
 class KbServer;
+
+// for a temporary ID for the "KB Sharing" menu item on Advanced menu; the menu item and a
+// preceding separator are setup (for the _DEBUG build only, while developing KB sharing
+// functionality, in the app function OnInit())
+const int ID_MENU_SHOW_KBSERVER_DLG	= 980;
+
 #endif
 
 /////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
