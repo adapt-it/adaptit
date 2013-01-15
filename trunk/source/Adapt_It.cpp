@@ -21129,17 +21129,22 @@ int ii = 1;
 	// end of code for supporting Mike's DVCS work
 
 #if defined(_KBSERVER)
-	// append a menu separator and at "Knowledge Base Sharing" menu item to the Advanced
-	// menu in the _Debug build
+    // append a menu separator and then a "Setup Knowledge Base Sharing..." menu item to
+    // the Advanced menu in the _Debug build
 	size_t nAdvancedMenuIndex = 5;
 	CMainFrame* pFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
 	pAdvancedMenu->AppendSeparator(); // ignore returned pointer
-	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _T("Knowledge Base Sharing..."));
+	wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _T("Setup Or Remove Knowledge Base Sharing..."));
+	pKBSharingSetupMenuItem = pKBSharingSetupMenuItem; // avoid compiler warning
+	
+    // append a "Controls For Knowledge Base Sharing..." menu item to the Advanced menu in
+    // the _Debug build
+	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _T("Controls For Knowledge Base Sharing..."));
 	pKBSharingMenuItem = pKBSharingMenuItem; // avoid compiler warning
 
-	// no update handler defined, so the menu always is enabled
+	// DONT FORGET UPDATE HANDLERS!
 #endif
 
 /* test that GetWholeMarker() and IsMarker() and ParseMarker() work right for \f* followed by a closing double quote (they do)

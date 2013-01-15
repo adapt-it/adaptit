@@ -78,7 +78,7 @@ FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	FilenameConflictFunc(this, TRUE, TRUE);
-	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	// The declaration is: functionname( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);

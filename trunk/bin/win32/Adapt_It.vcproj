@@ -700,6 +700,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KBSharingSetupDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.cpp"
 				>
 			</File>
@@ -1222,6 +1226,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBSharing.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KBSharingSetupDlg.h"
 				>
 			</File>
 			<File

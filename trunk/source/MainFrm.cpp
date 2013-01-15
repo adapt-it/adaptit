@@ -85,6 +85,7 @@
 #include "FreeTrans.h"
 #include "StatusBar.h" // EDB added 2Oct12
 #include "KBSharing.h" // BEW added 14Jan13
+#include "KBSharingSetupDlg.h" // BEW added 15Jan13
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -456,6 +457,9 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 #if defined(_KBSERVER)
 
 	EVT_MENU (ID_MENU_SHOW_KBSERVER_DLG,	CMainFrame::OnKBSharingDlg)
+	EVT_MENU (ID_MENU_SHOW_KBSERVER_SETUP_DLG,	CMainFrame::OnKBSharingSetupDlg)
+	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_DLG, CMainFrame::OnUpdateKBSharingDlg)
+	EVT_UPDATE_UI(ID_MENU_SHOW_KBSERVER_SETUP_DLG, CMainFrame::OnUpdateKBSharingSetupDlg)
 
 #endif
 
@@ -2565,6 +2569,44 @@ void CMainFrame::OnKBSharingDlg(wxCommandEvent& event)
 		gpApp->LogUserAction(_T("Cancelled OnKBSharingDlg()"));
 	}
 }
+
+void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
+{
+	if (event.GetId() == ID_MENU_SHOW_KBSERVER_SETUP_DLG)
+	{
+		gpApp->LogUserAction(_T("Initiated OnKBSharingSetupDlg()"));
+	}
+
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		return;
+	}
+	KBSharingSetupDlg dlg(this);
+	dlg.Center();
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		gpApp->LogUserAction(_T("Closed OnKBSharingSetupDlg()"));
+	}
+	else
+	{
+		gpApp->LogUserAction(_T("Cancelled OnKBSharingSetupDlg()"));
+	}
+}
+
+void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
+{
+
+
+}
+
+void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
+{
+
+
+
+}
+
+
 
 #endif
 

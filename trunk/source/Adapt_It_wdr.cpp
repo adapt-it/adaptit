@@ -9086,6 +9086,84 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Sending entries to the knowledge base server, and periodic receiving of new entries, are automatic."), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Therefore use this dialog only when you want extra manual control of sending and receiving."), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item5, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxString strs6[] = 
+    {
+        _("Knowledge base sharing is ON"), 
+        _("Knowledge base sharing is OFF")
+    };
+    wxRadioBox *item6 = new wxRadioBox( parent, ID_RADIO_SHARING_OFF, _("Status of knowledge base sharing"), wxDefaultPosition, wxSize(20,-1), 2, strs6, 2, wxRA_SPECIFY_COLS );
+    item6->SetToolTip( _("Connectivity can be turned on or off with these two buttons") );
+    item2->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("You will be asked for the KB server's password again if you turn KB sharing ON after it has been OFF."), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item9 = new wxButton( parent, ID_GET_RECENT, _("Receive New Added Entries"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetToolTip( _("Download entries added since last download") );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 14, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item10 = new wxButton( parent, ID_GET_ALL, _("Receive All Entries"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("Download all entries belonging to this project") );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item8->Add( 14, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item11 = new wxButton( parent, ID_SEND_ALL, _("Send All Local Entries"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Upload the contents of this project's local KB") );
+    item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    item12->Add( 150, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item13 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item14 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
@@ -9110,76 +9188,40 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL, _("Type your username (email address is best):"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
     item9->SetToolTip( _("Type your email or a unique name you will not forget") );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item6->Add( item7, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    item6->Add( item7, 0, wxALIGN_CENTER|wxRIGHT, 5 );
 
-    item6->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item5->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_PASSWORD_LABEL, _("Type the server's password:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_SERVER_PASSWORD, wxT(""), wxDefaultPosition, wxSize(140,-1), 0 );
-    item12->SetToolTip( _("Type the password given to you by your advisor") );
-    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item14 = new wxButton( parent, ID_KB_SHARING, _("This is a KB sharing project"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Turn on KB sharing") );
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item13->Add( 46, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item15 = new wxButton( parent, ID_NOT_KB_SHARING, _("This is not a KB sharing project"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Turn of KB sharing") );
-    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item17 = new wxButton( parent, ID_GET_RECENT, _("Get Recent Entries"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetToolTip( _("Download entries added since last download") );
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item16->Add( 14, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item18 = new wxButton( parent, ID_GET_ALL, _("Get All Entries"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->SetToolTip( _("Download all entries belonging to this project") );
-    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item16->Add( 14, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item19 = new wxButton( parent, ID_SEND_ALL, _("Send All Local Entries"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->SetToolTip( _("Upload the contents of this project's local KB") );
-    item16->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item5->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
-    item20->Add( 150, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item13 = new wxButton( parent, ID_KB_SHARING_REMOVE_SETUP, _("Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("No longer share this project's knowledge base") );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item21 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+    item12->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item20->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item22 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+    item12->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item15 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     if (set_sizer)
     {
