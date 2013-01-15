@@ -240,6 +240,15 @@ public:
 	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
 	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
 
+private:
+	wxString m_kbserverPassword;
+public:
+	// two accessors
+	wxString GetKBSvrPassword();
+	void	 SetKBSvrPassword(wxString pwd);
+	// The function for getting the kbserver password typed in by the user
+	wxString GetKBSvrPasswordFromUser();
+
 #endif
 
     //void ShowHelp(int commandId, wxHelpControllerBase& helpController);

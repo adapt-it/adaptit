@@ -182,6 +182,10 @@ public:
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
+	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
+	// and stored there for the session (it only changes if the project changes and even
+	// then only if a different kb server was used for the other project, which would be
+	// unlikely)
 
     // Private storage arrays (they are wxArrayString, but deleted flag and id will use
     // wxArrayInt) for entries data returned from the server, and for uploads too),
