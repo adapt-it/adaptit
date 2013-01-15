@@ -130,6 +130,8 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	m_bISO639ListFileFound = TRUE;
+    m_bFirstCodeSearch = TRUE;
+    m_bFirstNameSearch = TRUE;
 
 	// BEW 23Jul12, added next five lines
 	m_associatedLanguageName.Empty();
@@ -309,10 +311,19 @@ void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
 
 	m_searchString.LowerCase();
 
-	// for an ordinary search start at the first list position
-	// m_curSel is set to 0 in InitDialog()
-//	int nCurSel = m_curSel;
-    int nCurSel = 0; // edb 15 Jan 2013 -- always search the whole list
+    // set the initial position to search from
+	int nCurSel;
+    if (m_bFirstCodeSearch == TRUE)
+    {
+        // the first time through, search from the beginning of the list
+        nCurSel = 0; 
+        m_bFirstCodeSearch = FALSE;
+    }
+    else {
+        // subsequent times search from the current selection on (like a "find next instance")
+        nCurSel= m_curSel;
+    }
+
 	nCurSel++; // start search with following item
 	unsigned int index;
 	bool bFound = FALSE;
@@ -377,10 +388,19 @@ void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
 
 	m_searchString.LowerCase();
 
-	// for an ordinary search start at the first list position
-	// m_curSel is set to 0 in InitDialog()
-//	int nCurSel = m_curSel;
-	int nCurSel = 0; // edb 15 Jan 2013 -- always search the whole list 
+    // set the initial position to search from
+	int nCurSel;
+    if (m_bFirstNameSearch == TRUE)
+    {
+        // the first time through, search from the beginning of the list
+        nCurSel = 0; 
+        m_bFirstNameSearch = FALSE;
+    }
+    else {
+        // subsequent times search from the current selection on (like a "find next instance")
+        nCurSel = m_curSel;
+    }
+
 	nCurSel++; // start search with following item
 	unsigned int index;
 	bool bFound = FALSE;
