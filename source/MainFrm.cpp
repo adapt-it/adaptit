@@ -2595,17 +2595,66 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 
 void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 {
-
-
+	// Disable when in read-only mode.
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Enable if both KBs of the project are ready for work
+	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
 
 void CMainFrame::OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event)
 {
-
-
-
+	// Disable when in read-only mode.
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Enable if both KBs of the project are ready for work
+	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }
 
+// public accessor
+wxString CMainFrame::GetKBSvrPassword()
+{
+	return m_kbserverPassword;
+}
+// public accessor
+void CMainFrame::SetKBSvrPassword(wxString pwd)
+{
+	m_kbserverPassword = pwd;
+}
+
+// The public function for getting a kbserver's password. We have it here because we want
+// to get it typed in only once - not twice (ie. not for the adapting KB's KbServer
+// instance and then again for the glossing KB's KbServer instance)
+wxString CMainFrame::GetKBSvrPasswordFromUser()
+{
+	wxString msg = _T("Type the knowledge base server's password. It should have been given to you already by your administrator.\nWithout the correct password, it will not be possible to share your\nknowledge base data with others, nor for them to share theirs with you.");
+	wxString caption = _T("Type the server's password");
+	wxString default_value = _T("");
+	// it will be shown centred with default coords, and without any parent window
+	wxString password = ::wxGetPasswordFromUser(msg,caption,default_value);
+	if (!password.IsEmpty())
+	{
+		// a password was typed
+		gpApp->m_bShowAdministratorMenu = TRUE;
+		wxString strPwd;
+		// refrain from recording the password, that would introduce a vulnerability
+		strPwd = strPwd.Format(_T("GetPasswordFromUser(): A password was entered, of length: %d"), password.Len());
+		gpApp->LogUserAction(strPwd);
+	}
+	else
+	{
+		// invalid password - turn the checkbox back off, beep also
+		::wxBell();
+		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered."));
+	}
+	return password;
+}
 
 
 #endif

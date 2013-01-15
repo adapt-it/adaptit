@@ -2952,6 +2952,7 @@ int CountSpaceDelimitedWords(wxString& str)
 	int wordCount = (int)SmartTokenize(delimiters,str,words,bStoreEmptyStringsToo);
 	return wordCount;
 }
+
 #endif
 
 // BEW added 22Jan10: string tokenization is a pain in the butt in wxWidgets, because the

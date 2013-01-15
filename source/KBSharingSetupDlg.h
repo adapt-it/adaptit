@@ -27,7 +27,6 @@ public:
 	virtual ~KBSharingSetupDlg(void); // destructor
 	
 	// other methods
-	
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -36,7 +35,12 @@ protected:
 
 	//void OnBtnGetAll(wxCommandEvent& WXUNUSED(event));
 
-private:
+	// Note: I've stored the to-be-typed-just-once kb server password in the CMainFrame
+	// instance, and the dialog for getting the user to type it in is there too, and a
+	// private member wxString, m_kbserverPassword which keeps the value for the session's
+	// duration. When either the adapting or glossing KbServer instance needs the password
+	// it can get it from there with the accessor: GetKBSvrPassword()
+
 	DECLARE_EVENT_TABLE()
 };
 #endif /* KBSharingSetupDlg_h */

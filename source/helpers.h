@@ -471,6 +471,7 @@ bool     GetLanguageCodePrintName(wxString code, wxString& printName);
 #if defined (_KBSERVER)
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
+
 #endif
 
 

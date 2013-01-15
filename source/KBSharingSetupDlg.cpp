@@ -44,6 +44,7 @@
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include "Adapt_It.h"
+#include "MainFrm.h"
 #include "KBSharingSetupDlg.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -83,6 +84,16 @@ KBSharingSetupDlg::~KBSharingSetupDlg() // destructor
 
 void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent) 
 {
+	// Get the server password. Returns an empty string if nothing is typed, or if the
+	// user Cancels from the dialog
+	CMainFrame* pFrame = gpApp->GetMainFrame();
+	wxString pwd = pFrame->GetKBSvrPasswordFromUser();
+	// there will be a beep if no password was typed, or it the user cancelled; and an
+	// empty string is returned if so
+	if (!pwd.IsEmpty())
+	{
+		pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance
+	}
 	myevent.Skip();
 }
 
@@ -96,6 +107,7 @@ void KBSharingSetupDlg::OnCancel(wxCommandEvent& myevent)
 {
 	myevent.Skip();
 }
+
 
 /*
 void KBSharingSetupDlg::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
