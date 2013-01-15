@@ -39,6 +39,8 @@ public:
 	wxString m_searchString;
 	int m_curSel;
 	bool m_bISO639ListFileFound;
+	bool m_bFirstCodeSearch;
+    bool m_bFirstNameSearch;
 
 	wxListBox* pListBox;
 	wxTextCtrl* pEditSearchForLangName;
