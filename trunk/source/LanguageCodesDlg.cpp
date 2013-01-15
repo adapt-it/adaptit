@@ -269,7 +269,10 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 		}
 		m_curSel = 0;
 		if (pListBox->GetCount() > 0)
+        { 
 			pListBox->SetSelection(m_curSel,TRUE);
+            pListBox->EnsureVisible(m_curSel);
+        }
 		// if the user had previously designated a source language code and/or a
 		// target language code, and/or a gloss language code, enter those into 
 		// the appropriate edit boxes as initial/default values
@@ -308,7 +311,8 @@ void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
 
 	// for an ordinary search start at the first list position
 	// m_curSel is set to 0 in InitDialog()
-	int nCurSel = m_curSel;
+//	int nCurSel = m_curSel;
+    int nCurSel = 0; // edb 15 Jan 2013 -- always search the whole list
 	nCurSel++; // start search with following item
 	unsigned int index;
 	bool bFound = FALSE;
@@ -336,6 +340,7 @@ void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			pListBox->SetSelection(index,TRUE);
+            pListBox->EnsureVisible(index);
 			m_curSel = index;
 			bFound = TRUE;
 			break;
@@ -374,7 +379,8 @@ void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
 
 	// for an ordinary search start at the first list position
 	// m_curSel is set to 0 in InitDialog()
-	int nCurSel = m_curSel;
+//	int nCurSel = m_curSel;
+	int nCurSel = 0; // edb 15 Jan 2013 -- always search the whole list 
 	nCurSel++; // start search with following item
 	unsigned int index;
 	bool bFound = FALSE;
@@ -402,6 +408,7 @@ void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
 		else
 		{
 			pListBox->SetSelection(index,TRUE);
+            pListBox->EnsureVisible(index);
 			m_curSel = index;
 			bFound = TRUE;
 			break;
