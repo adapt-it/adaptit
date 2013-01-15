@@ -123,10 +123,14 @@ class NavProtectNewDoc; // for user navigation protection feature
 // forward declaration
 class KbServer;
 
-// for a temporary ID for the "KB Sharing" menu item on Advanced menu; the menu item and a
-// preceding separator are setup (for the _DEBUG build only, while developing KB sharing
-// functionality, in the app function OnInit())
+// for a temporary ID for the "Controls For Knowledge Base Sharing" menu item on Advanced
+// menu; the menu item and a preceding separator are setup (for the _DEBUG build only,
+// while developing KB sharing functionality, in the app function OnInit())
 const int ID_MENU_SHOW_KBSERVER_DLG	= 980;
+// for a temporary ID for the "Setup Knowledgebase Base Sharing" menu item on Advanced
+// menu; the menu item is setup (for the _DEBUG build only, while developing KB sharing
+// functionality, in the app function OnInit())
+const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 
 #endif
 

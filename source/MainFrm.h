@@ -235,7 +235,10 @@ public:
 
 #if defined(_KBSERVER)
 
-	void OnKBSharingDlg (wxCommandEvent& event);
+	void OnKBSharingDlg(wxCommandEvent& event);
+	void OnKBSharingSetupDlg(wxCommandEvent& event);
+	void OnUpdateKBSharingDlg(wxUpdateUIEvent& event);
+	void OnUpdateKBSharingSetupDlg(wxUpdateUIEvent& event);
 
 #endif
 

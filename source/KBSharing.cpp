@@ -37,7 +37,7 @@
 #endif
 
 // other includes
-#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include "Adapt_It.h"
 #include "KBSharing.h"
 
@@ -55,7 +55,7 @@ END_EVENT_TABLE()
 
 
 KBSharing::KBSharing(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Knowledge Base Sharing"),
+	: AIModalDialog(parent, -1, _("Controls For Knowledge Base Sharing"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 
