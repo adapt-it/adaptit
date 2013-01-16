@@ -779,11 +779,13 @@ int KbServer::ChangedSince(wxString timeStamp)
             // username, and timestamp string; but for supporting the sync of a local KB we
             // need only to extract source phrase, target phrase, and the value of the
             // deleted flag. So the others can be commented out.
+            // BEW changed 16Jan13, to have the username included in the arrays, so that we
+            // can track who originated each of the entries in the group's various local KBs
 			m_arrSource.Add(jsonval[index][_T("source")].AsString());
 			m_arrTarget.Add(jsonval[index][_T("target")].AsString());
 			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
 			//m_arrID.Add(jsonval[index][_T("id")].AsInt());
-			//m_arrUsername.Add(jsonval[index][_T("user")].AsString());
+			m_arrUsername.Add(jsonval[index][_T("user")].AsString());
 			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 #if defined (_DEBUG)
 			// list what entries were returned

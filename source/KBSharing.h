@@ -37,6 +37,7 @@ protected:
 	void OnBtnGetAll(wxCommandEvent& WXUNUSED(event));
 
 private:
+	CAdapt_ItApp* m_pApp;
 	DECLARE_EVENT_TABLE()
 };
 #endif /* KBSharing_h */
