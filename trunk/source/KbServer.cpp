@@ -642,11 +642,12 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
             // username, and timestamp string; but for a lookup supporting a single
             // CSourcePhrase, only we need to extract source phrase, target phrase, and the
             // value of the deleted flag. So the others can be commented out.
+            // BEW 12Jan13, we should also get the username - to track originator of the entry
 			m_arrSource.Add(jsonval[index][_T("source")].AsString());
 			m_arrTarget.Add(jsonval[index][_T("target")].AsString());
 			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
-			//m_arrID.Add(jsonval[index][_T("id")].AsInt());
-			//m_arrUsername.Add(jsonval[index][_T("user")].AsString());
+			//m_arrID.Add(jsonval[index][_T("id")].AsLong());
+			m_arrUsername.Add(jsonval[index][_T("user")].AsString());
 			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 		}
 		str_CURLbuffer.clear(); // always clear it before returning
@@ -930,9 +931,9 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		// and timestamp string; for index value 0 only (there should only be one json
 		// object to deal with)
 		//m_arrID.Add(jsonval[_T("id")].AsInt());
-		m_arrID.Add(jsonval[_T("id")].AsLong()); // needed to avoid tripping an assert
-                // in jsonval.cpp, IsInt() fails for 64 bit machine if int is used rather
-                // than long (jsonval desciption of
+		m_arrID.Add(jsonval[_T("id")].AsLong()); // AsLong() is needed to avoid tripping an
+                // assert in jsonval.cpp, IsInt() fails for 64 bit machine if int is used
+                // rather than long (Linux gave the tripped assert, Windows 64 bit didn't)
 		m_arrDeleted.Add(jsonval[_T("deleted")].AsInt());
 		m_arrSource.Add(jsonval[_T("source")].AsString());
 		m_arrTarget.Add(jsonval[_T("target")].AsString());
@@ -1043,10 +1044,10 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 	{
 	case doDelete:
 	default:
-		jsonval[_T("deleted")] = 1;
+		jsonval[_T("deleted")] = (long)1;
 		break;
 	case doUndelete:
-		jsonval[_T("deleted")] = 0;
+		jsonval[_T("deleted")] = (long)0;
 		break;
 	}
 

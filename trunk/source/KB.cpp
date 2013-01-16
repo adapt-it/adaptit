@@ -5686,7 +5686,7 @@ bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString trans
 				// It's currently pseudo-deleted, so do a PUT to undelete it.
 				// The first param is the kbserver database's entryID value gleaned from
 				// the id field in the entry returned by the LookupEntryFields() call above)
-				responseCode = pKBSvr->PseudoDeleteOrUndeleteEntry((*pKBSvr->GetIDsArray())[0], doUndelete);
+				responseCode = pKBSvr->PseudoDeleteOrUndeleteEntry(((int)(*pKBSvr->GetIDsArray())[0]), doUndelete);
 				if (responseCode != CURLE_OK)
 				{
 					// TODO a function to show the error code and a meaningful

@@ -6,17 +6,17 @@
 /// \rcs_id $Id: KBSharing.h 3025 2013-01-14 18:18:00Z jmarsden6@gmail.com $
 /// \copyright		2013 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the KBSharing class. 
+/// \description	This is the implementation file for the KBSharing class.
 /// The KBSharing class provides a dialog for the turning on or off KB Sharing, and for
 /// controlling the non-automatic functionalities within the KB sharing feature.
 /// \derivation		The KBSharing class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in KBSharing.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -35,6 +35,8 @@
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
 #endif
+
+#if defined(_KBSERVER)
 
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -76,10 +78,10 @@ KBSharing::KBSharing(wxWindow* parent) // dialog constructor
 
 KBSharing::~KBSharing() // destructor
 {
-	
+
 }
 
-void KBSharing::OnOK(wxCommandEvent& myevent) 
+void KBSharing::OnOK(wxCommandEvent& myevent)
 {
 	myevent.Skip();
 }
@@ -92,7 +94,7 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 }
 
-void KBSharing::OnCancel(wxCommandEvent& myevent) 
+void KBSharing::OnCancel(wxCommandEvent& myevent)
 {
 	myevent.Skip();
 }
@@ -169,4 +171,4 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 }
 
 
-
+#endif

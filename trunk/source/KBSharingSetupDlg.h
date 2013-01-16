@@ -6,7 +6,7 @@
 /// \rcs_id $Id: KBSharingSetup.h 3028 2013-01-15 11:38:00Z jmarsden6@gmail.com $
 /// \copyright		2013 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the KBSharing class. 
+/// \description	This is the header file for the KBSharing class.
 /// The KBSharing class provides a dialog for the turning on or off KB Sharing, and for
 /// controlling the non-automatic functionalities within the KB sharing feature.
 /// \derivation		The KBSharing class is derived from AIModalDialog.
@@ -20,12 +20,14 @@
     #pragma interface "KBSharingSetupDlg.h"
 #endif
 
+#if defined(_KBSERVER)
+
 class KBSharingSetupDlg : public AIModalDialog
 {
 public:
 	KBSharingSetupDlg(wxWindow* parent); // constructor
 	virtual ~KBSharingSetupDlg(void); // destructor
-	
+
 	// other methods
 
 protected:
@@ -43,4 +45,7 @@ protected:
 
 	DECLARE_EVENT_TABLE()
 };
+
+#endif
+
 #endif /* KBSharingSetupDlg_h */
