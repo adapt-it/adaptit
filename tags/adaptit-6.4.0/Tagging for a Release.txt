@@ -1,0 +1,63 @@
+Tagging for a Release.txt
+
+These note assume you are using TortoiseSVN on a Windows System where
+your local adaptit repository is checked out.
+
+1. Right click on the local "adaptit" repository folder, and select 
+   TortoiseSVN | Branch/Tag... on the popup menu.
+   The Copy (Branch/Tag) dialog appears.
+
+2. Note: The important things to deal with in this dialog are changing 
+   the "To URL" edit field, and entering a log message.
+   The "From WC at URL:" by default shows:
+      https://adaptit.googlecode.com/svn/trunk
+   and also the "To URL:" shows the same URL. 
+   The adaptit Google Code repository is structured like this:
+   --svn
+        |
+        -- branches
+        |
+        -- tags
+        |
+        -- trunk
+        |
+        -- wiki
+   Note that the "tags" folder and the "trunk" folder are directories
+   existing at the same level. Hence, we need to adjust the "To URL:"
+   edit box to create the copy back up one folder from "trunk" in the
+   parallel "tags" directory. We also add a folder within the tags
+   directory that names our desired tag version. Therefore in the 
+   "To URL:" edit box change the URL there to something like this:
+      https://adaptit.googlecode.com/svn/tags/adaptit-4.0.x
+   where x would be the next increment of this tagged code.
+   After doing this a first time the drop down box will show the 
+   previous Tag that was done and you can select it and just adjust 
+   the version number.
+
+3. Normally select the "HEAD revision in the repository" radio button
+   as the selection in "Create copy in the repository from: option. The
+   "Specific revision in repository" would probably also be OK if the 
+   revision number in the box is what the current revision number is at.
+
+4. Type a Log message, something brief like "Tagging 4.0.1".
+   Note: In the Linux packaging process, we use actually build the
+   package from the sources that are in the tags for that particular
+   version we are producing.
+
+5. Don't check the "Switch working copy to new branch/tag checkbox.
+   We would only do that if we were branching the code to work on
+   some separate feature, then possibly merge it back into the main
+   branch at a later time.
+
+6. Click on OK to create the tag. It goes fast.
+
+7. You can use the Repro Browser to check that the "tags" directory
+   now has a cloned copy of all that was in the trunk folder.
+   To get the Repro Browser, right click on the local "adaptit"
+   folder and select TortoiseSVN | Repro-browser.
+   The browser will open and in a few seconds show the remote
+   repository at https://adaptit.googlecode.com/svn/trunk.
+   Click on the top line in the tree in the left window to
+   "go up" one level in the tree. You will then see the full
+   tree under svn. Click on the "tags" folder to open it. You
+   should see the "adaptit-4.0.x" folder you made as a tag there.
