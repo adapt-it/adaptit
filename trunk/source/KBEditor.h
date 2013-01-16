@@ -76,6 +76,8 @@ public:
 	wxString		m_refCountStr;
 	wxString		m_flagSetting;
 	wxString		m_entryCountStr;
+	wxString		m_entryCountLabel; // BEW added 16Jan13, so we don't put a formatted string 
+									   // into m_entryCountStr thereby removing the %d format specifier
 	wxString		m_ON;
 	wxString		m_OFF;
 	int				m_nWordsSelected; // whm eliminated gnWordsInPhrase global; now only this m_nWordsSelected is needed
