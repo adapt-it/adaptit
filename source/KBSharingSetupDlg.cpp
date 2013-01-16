@@ -6,9 +6,9 @@
 /// \rcs_id $Id: KBSharingSetupDlg.h 3028 2013-01-15 11:38:00Z jmarsden6@gmail.com $
 /// \copyright		2013 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the KBSharingSetupDlg class. 
+/// \description	This is the implementation file for the KBSharingSetupDlg class.
 /// The KBSharingSetupDlg class provides two text boxes, the first for the KB server's URL,
-/// the second for the username --the user's email address is recommended, but not 
+/// the second for the username --the user's email address is recommended, but not
 /// enforced. It's best because it will be unique. The KB server's password is not
 /// entered in the dialog, otherwise it would be visible. Instead, a password dialog is
 /// shown when the OK button is clicked. (The password dialog appears at other times too -
@@ -17,11 +17,11 @@
 /// \derivation		The KBSharingSetupDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in KBSharingSetupDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -40,6 +40,8 @@
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
 #endif
+
+#if defined(_KBSERVER)
 
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -79,10 +81,10 @@ KBSharingSetupDlg::KBSharingSetupDlg(wxWindow* parent) // dialog constructor
 
 KBSharingSetupDlg::~KBSharingSetupDlg() // destructor
 {
-	
+
 }
 
-void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent) 
+void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 {
 	// Get the server password. Returns an empty string if nothing is typed, or if the
 	// user Cancels from the dialog
@@ -103,7 +105,7 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 }
 
-void KBSharingSetupDlg::OnCancel(wxCommandEvent& myevent) 
+void KBSharingSetupDlg::OnCancel(wxCommandEvent& myevent)
 {
 	myevent.Skip();
 }
@@ -116,3 +118,5 @@ void KBSharingSetupDlg::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 	//int i = 1;
 }
 */
+
+#endif
