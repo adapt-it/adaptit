@@ -127,6 +127,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_refCountStr = _T("");
 	m_flagSetting = _T("");
 	m_entryCountStr = _T("");
+	m_entryCountLabel = _T("");
 
 	m_TheSelectedKey = _T("");	// whm moved from the View's global space (where it was
 			// gTheSelectedKey) and renamed it to m_TheSelectedKey as member of CKBEditor
@@ -1717,6 +1718,12 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 		m_nCurPage = m_pKBEditorNotebook->GetSelection();
 	}
 
+	// BEW added 16Jan13 so as to set it here just once; don't get it from m_pStaticCount
+	// wxStatic label object here, because it isn't available; so just set it from a
+	// literal string instead
+	//m_entryCountStr = m_pStaticCount->GetLabel();
+	m_entryCountStr = _T("Number of Entries: %d");
+
 	if (m_nCurPage != -1)
 	{
 		LoadDataForPage(m_nCurPage,0);
@@ -2174,10 +2181,16 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	}
 	// show user how many entries - whm moved here from inside end of above block
 	// nCount was set above before if (nCount > 0) block
-	//IDS_ENTRY_COUNT
-	m_entryCountStr = m_pStaticCount->GetLabel();
-	m_entryCountStr = m_entryCountStr.Format(m_entryCountStr,nCount);
-	m_pStaticCount->SetLabel(m_entryCountStr);
+	// 
+    // BEW 16Jan13, changed to use two strings, because the specifier string was being
+    // loaded from the wxStatic label object, and the result was put back in the wxStatic
+    // label object - thereby turning that object into a string without a formatting
+    // specifier in it - and then returning to the same page of the KBEditor would crash
+    // when wxString::Format() was called with an argument for which a %d specifier no
+    // longer exists in the label string
+	m_entryCountLabel.Empty();
+	m_entryCountLabel = m_entryCountLabel.Format(m_entryCountStr,nCount);
+	m_pStaticCount->SetLabel(m_entryCountLabel);
 
 	// fill the translations listbox for the pCurTgtUnit selected
 	// BEW 22Jun10, tweaked the code to support both glossing and adapting KBs when trying
