@@ -2143,6 +2143,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	pStatic->SetLabel(layoutDirStr);
 
 	// Note: Set the current version number in wxDesigner in the AboutDlgFunc()
+    pAboutDlgSizer->SetSizeHints(this);
 	pAboutDlgSizer->Layout();
 }
 
