@@ -1018,6 +1018,11 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 	wxArrayString* pKeyArray = pKbServer->GetSourceArray();
 	wxArrayString* pTgtArray = pKbServer->GetTargetArray();
 	wxArrayString* pUsernameArray = pKbServer->GetUsernameArray();
+	wxASSERT(
+		pKeyArray->GetCount() == pTgtArray->GetCount() &&
+		pTgtArray->GetCount() == pDeletedFlagArray->GetCount() &&
+		pTgtArray->GetCount() == pUsernameArray->GetCount()
+		); // gotta all be the same count!
 
 	// get the size of any of the above arrays - that's our loop bound; define an iterator
 	size_t size = pKeyArray->GetCount();
@@ -1028,11 +1033,15 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 	wxString tgtPhrase; // could be an adaptation, or in glossing mode, a gloss
 	wxString username; // who created a given entry received from kbserver
 	bool bDeletedFlag;
+
+	/* don't need this, the this pointer points at the correct CKB already
 	// bGlossingKB will be TRUE if the glossing KB is currently in use (ie. glossing mode
 	// is on), and FALSE if not in use (ie. adapting mode is on)
 	bool bGlossingKB = pKbServer->GetKBServerType() == 2 ? TRUE : FALSE;
 	// get a pointer to the CKB instance currently being used
 	CKB* pKB = bGlossingKB ? m_pApp->m_pGlossingKB : m_pApp->m_pKB;
+	*/
+	CKB* pKB = this;
 
 	// local variables needed for storing to the CKB instance
 	CTargetUnit* pTU = NULL;
