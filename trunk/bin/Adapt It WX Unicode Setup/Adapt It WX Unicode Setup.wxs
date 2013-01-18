@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="482A2761-5034-41C1-8399-4696C3763D71" Name="Adapt It WX Unicode" Language="1033" Codepage="1252" Version="6.4.0" Manufacturer="SIL" UpgradeCode="64C9A09B-737D-4B47-BF3A-ED7EFAF5831B">
-        <Package Id="????????-????-????-????-????????????" Keywords="Installer" Description="Adapt It WX Unicode Installer" InstallerVersion="100" Languages="1031" Compressed="yes" SummaryCodepage="1252" />
+    <Product Id="482A2761-5034-41C1-8399-4696C3763D71" Language="1033" Name="Adapt It WX Unicode" Codepage="1252" Version="6.4.0" Manufacturer="SIL" UpgradeCode="64C9A09B-737D-4B47-BF3A-ED7EFAF5831B">
+        <Package Id="*" Keywords="Installer" Description="Adapt It WX Unicode Installer" InstallerVersion="100" Languages="1033" Compressed="yes" SummaryCodepage="1252" />
         <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
         <Directory Name="SourceDir" Id="TARGETDIR">
             <Directory Name="ProgramFilesFolder" Id="ProgramFilesFolder">
@@ -23,7 +23,7 @@
                     </Directory>
                     <Directory Name="Images" Id="_4">
                         <Directory Name="Adapt_It_Quick_Start" Id="_5">
-                            <Component Id="_images_adapt_it_quick_start" Guid="9EF0B969-E518-4E46-987F-47570745A589">
+                            <Component Id="_images_adapt_it_quick_start" Guid="FFD47FCA-246F-45b5-B3EE-3836265DFBFF">
                                 <File Source="..\..\setup Unicode\Images\Adapt_It_Quick_Start\back_button.gif" />
                                 <File Source="..\..\setup Unicode\Images\Adapt_It_Quick_Start\Image10.gif" />
                                 <File Source="..\..\setup Unicode\Images\Adapt_It_Quick_Start\Image11.gif" />
@@ -46,7 +46,7 @@
                             </Component>
                         </Directory>
                         <Directory Name="Admin_help" Id="_7">
-                            <Component Id="_images_admin_help" Guid="9EF0B969-E518-4E46-987F-47570745A589">
+                            <Component Id="_images_admin_help" Guid="39E0002F-2B7F-4d6d-B558-BAEA1CC81F79">
                                 <File Source="..\..\docs\Images\Admin_help\AdminMenuSetupBECollab.gif" />
                                 <File Source="..\..\docs\Images\Admin_help\AdminMenuSetupPTCollab.gif" />
                                 <File Source="..\..\docs\Images\Admin_help\ai_new_icon.gif" />
@@ -85,7 +85,7 @@
                                 <File Source="..\..\docs\Images\Admin_help\Windows_shortcut_properties.gif" />
                             </Component>
                         </Directory>
-                        <Component Id="_images" Guid="9EF0B969-E518-4E46-987F-47570745A589">
+                        <Component Id="_images" Guid="BCC0D361-538C-4082-8B76-4DFC6BC905CD">
                             <File Source="..\..\setup Unicode\Images\adapt_it.ico" />
                             <File Source="..\..\res\AI16x16-4color.ico" />
                             <File Source="..\..\res\AI32x32-4color.ico" />
@@ -101,68 +101,68 @@
                     </Directory>
                     <Directory Name="Languages" Id="_10">
                         <Directory Name="tpi" Id="_11">
-                            <Component Id="_lang_tpi" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\tpi\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_tpi" Guid="A7DF7883-5A16-4d92-918E-4A408877239A">
+                                <File Id="ai_tpi_mo" Source="..\..\setup Unicode\Languages\tpi\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\tpi\books_tpi.xml" />
                                 <File Source="..\..\setup Unicode\Languages\tpi\tpi.po" />
                                 <File Source="..\..\setup Unicode\Languages\tpi\tpi_readme.txt" />
-                                <File Source="..\..\setup Unicode\Languages\tpi\wxstd.mo" />
+                                <File Id="wxstd_tpi_mo" Source="..\..\setup Unicode\Languages\tpi\wxstd.mo" />
                             </Component>
                         </Directory>
                         <Directory Name="_id" Id="_12">
-                            <Component Id="_lang_id" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\id\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_id" Guid="D7C70E78-9AE6-4e9b-9DAF-C288A9951907">
+                                <File Id="ai_id_mo" Source="..\..\setup Unicode\Languages\id\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\id\id.po" />
                             </Component>
                         </Directory>
-                        <Directory Name="it" Id="_14">
-                            <Component Id="_lang_it" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\pt\Adapt_It_Unicode.mo" />
+                        <Directory Name="pt" Id="_14">
+                            <Component Id="_lang_pt" Guid="7E4C9E20-F4B4-4cb0-95CC-3986F9A9DE83">
+                                <File Id="ai_pt_mo" Source="..\..\setup Unicode\Languages\pt\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\pt\pt.po" />
-                                <File Source="..\..\setup Unicode\Languages\pt\wxstd.mo" />
+                                <File Id="wxstd_pt_mo" Source="..\..\setup Unicode\Languages\pt\wxstd.mo" />
                             </Component>
                         </Directory>
                         <Directory Name="az" Id="_16">
-                            <Component Id="_lang_az" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\az\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_az" Guid="30717363-F73C-4db1-8283-D1704DE01447">
+                                <File Id="ai_az_mo" Source="..\..\setup Unicode\Languages\az\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\az\az.po" />
                             </Component>
                         </Directory>
                         <Directory Name="swh" Id="_18">
-                            <Component Id="_lang_swh" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\swh\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_swh" Guid="B7BFE762-3D39-4dc0-9D9E-AA158946DE0C">
+                                <File Id="ai_swh_mo" Source="..\..\setup Unicode\Languages\swh\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\swh\swh.po" />
                             </Component>
                         </Directory>
                         <Directory Name="ru" Id="_20">
-                            <Component Id="_lang_ru" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\ru\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_ru" Guid="5EAB990C-5B52-46e3-9018-EFD83EF4E2B7">
+                                <File Id="ai_ru_mo" Source="..\..\setup Unicode\Languages\ru\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\ru\ru.po" />
-                                <File Source="..\..\setup Unicode\Languages\ru\wxstd.mo" />
+                                <File Id="wxstd_ru_mo" Source="..\..\setup Unicode\Languages\ru\wxstd.mo" />
                             </Component>
                         </Directory>
                         <Directory Name="es" Id="_22">
-                            <Component Id="_lang_es" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\es\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_es" Guid="BAA02E02-57C3-4ea5-A475-4CCAD15D0473">
+                                <File Id="ai_es_mo" Source="..\..\setup Unicode\Languages\es\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\es\es.po" />
-                                <File Source="..\..\setup Unicode\Languages\es\wxstd.mo" />
+                                <File Id="wxstd_es_mo" Source="..\..\setup Unicode\Languages\es\wxstd.mo" />
                             </Component>
                         </Directory>
                         <Directory Name="fr" Id="_24">
-                            <Component Id="_lang_fr" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\fr\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_fr" Guid="ACF6D63A-B710-42a3-B894-161FB60E74AA">
+                                <File Id="ai_fr_mo" Source="..\..\setup Unicode\Languages\fr\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\fr\fr.po" />
-                                <File Source="..\..\setup Unicode\Languages\fr\wxstd.mo" />
+                                <File Id="wxstd_fr_mo" Source="..\..\setup Unicode\Languages\fr\wxstd.mo" />
                             </Component>
                         </Directory>
                         <Directory Name="zh" Id="_26">
-                            <Component Id="_lang_zh" Guid="9EF0B969-E518-4E46-987F-47570745A589">
-                                <File Source="..\..\setup Unicode\Languages\zh\Adapt_It_Unicode.mo" />
+                            <Component Id="_lang_zh" Guid="A072F58A-9CF1-432b-9277-A73DF60BF326">
+                                <File Id="ai_zh_mo" Source="..\..\setup Unicode\Languages\zh\Adapt_It_Unicode.mo" />
                                 <File Source="..\..\setup Unicode\Languages\zh\wxstd.mo" />
                                 <File Source="..\..\setup Unicode\Languages\zh\zh.po" />
                             </Component>
                         </Directory>
-                        <Component Id="_lang_default" Guid="9EF0B969-E518-4E46-987F-47570745A589">
+                        <Component Id="_lang_default" Guid="7791777A-C42B-4506-865B-7A2A3FAE0148">
                             <File Source="..\..\setup Unicode\Languages\default.mo" />
                             <File Source="..\..\setup Unicode\Languages\default.po" />
                         </Component>
@@ -174,27 +174,14 @@
                         <File Source="..\..\setup Unicode\Adapt_It_Quick_Start.htm" />
                         <File Source="..\..\setup Unicode\Adapt_It_Unicode.exe" />
                         <File Source="..\..\setup Unicode\Adapt_It_Unicode.htb" />
-                        <File Source="..\..\docs\Images\Admin_help\AdminMenuSetupPTCollab.gif" />
                         <File Source="..\..\setup Unicode\AI_UserProfiles.xml" />
                         <File Source="..\..\setup Unicode\AI_USFM.xml" />
                         <File Source="..\..\setup Unicode\aiDefault.css" />
-                        <File Source="..\..\docs\Images\Admin_help\Balsa_create_launcher.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\BalsaOpeningScreen.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\BENewProject.gif" />
                         <File Source="..\..\setup Unicode\books.xml" />
-                        <File Source="..\..\docs\Images\Admin_help\ChangeParatextProjects.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\ChooseCollabOptionsDlg.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\CollabErrorLinux1.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\CollabErrorLinux2.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\Create_New_AI_Proj_Dlg_BE.gif" />
                         <File Source="..\..\setup Unicode\curl-ca-bundle.crt" />
-                        <File Source="..\..\docs\Images\Admin_help\Enter_src_lang_name_dlgBE.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\GetSourceTextFromEditorNoOptions.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\Give_Feedback.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\GuesserSettingsTBtn.gif" />
                         <File Source="..\..\docs\Help_for_Administrators.htm" />
-                        <File Source="ICSharpCode.SharpZipLib.DLL" />
-                        <File Source="Interop.XceedZipLib.DLL" />
+                        <File Source="..\..\setup Unicode\\ICSharpCode.SharpZipLib.DLL" />
+                        <File Source="..\..\setup Unicode\\Interop.XceedZipLib.DLL" />
                         <File Source="..\..\setup Unicode\iso639-3codes.txt" />
                         <File Source="..\..\setup Unicode\KJV 1Jn 2.12-17.txt" />
                         <File Source="..\..\setup Unicode\Known Issues and Limitations.txt" />
@@ -202,26 +189,14 @@
                         <File Source="..\..\setup Unicode\License_GPLv2.txt" />
                         <File Source="..\..\setup Unicode\License_LGPLv21.txt" />
                         <File Source="..\..\setup Unicode\LICENSING.txt" />
-                        <File Source="..\..\docs\Images\Admin_help\Linux_shortcut_properties.gif" />
                         <File Source="..\..\setup Unicode\Localization_Readme.txt" />
-                        <File Source="..\..\docs\Images\Admin_help\Move_or_Copy_Folders_or_Files.gif" />
-                        <File Source="NetLoc.DLL" />
-                        <File Source="..\..\setup Unicode\ParatextShared.dll" />
-                        <File Source="ParatextShared.DLL" />
-                        <File Source="..\..\docs\Images\Admin_help\PT-BE_no_books_found_msg.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\PTNewProject.gif" />
+                        <File Source="..\..\setup Unicode\\NetLoc.DLL" />
+                        <File Source="..\..\setup Unicode\\ParatextShared.DLL" />
                         <File Source="..\..\setup Unicode\rdwrtp7.exe" />
                         <File Source="..\..\setup Unicode\Readme_Unicode_Version.txt" />
-                        <File Source="..\..\docs\Images\Admin_help\Reminder_to_setup_PT_first_before_assigning_locations.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\Report_a_problemDlg.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\SetUpBibleditCollaboration.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\SetUpBibleditCollaborationWithLangNamesCtrls.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\SetupPTCollabNoLangNamesCtrls.gif" />
-                        <File Source="..\..\docs\Images\Admin_help\SetupPTCollabWithLangNamesCtrls.gif" />
                         <File Source="..\..\setup Unicode\SILConverters in AdaptIt.doc" />
                         <File Source="..\..\setup Unicode\Tok Pisin fragment 1John.txt" />
-                        <File Source="Utilities.DLL" />
-                        <File Source="..\..\docs\Images\Admin_help\Windows_shortcut_properties.gif" />
+                        <File Source="..\..\setup Unicode\\Utilities.DLL" />
                     </Component>
                 </Directory>
             </Directory>
