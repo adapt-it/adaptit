@@ -167,41 +167,57 @@
                             <File Source="..\..\setup Unicode\Languages\default.po" />
                         </Component>
                     </Directory>
-                    <Component Id="_adapt_it_wx_unicode" Guid="3C67513D-01DD-4637-8A68-80971EB9504F">
+                    <Component Id="ADAPT_IT_UNICODE.EXE" Guid="E1111FD4-877B-4F4D-99DD-48864E3BF3DA">
+                        <File Id="ADAPT_IT_UNICODE.EXE" Name="Adapt_It_Unicode.exe" Source="..\..\setup Unicode\Adapt_It_Unicode.exe">
+                                <Shortcut Id="desktopShortcut" Directory="DesktopFolder" Name="Adapt It WX Unicode" WorkingDirectory="INSTALLDIR" Advertise="yes" Icon="DesktopIcon.exe" IconIndex="0" />
+                                <Shortcut Id="ExeShortcut" Directory="ProgramMenuDir" Name="Adapt It WX Unicode" Advertise="yes" Icon="StartMenuIcon.exe" IconIndex="0" />
+                        </File> 
+					</Component>
+					<Component Id="_adapt_it_wx_unicode" Guid="3C67513D-01DD-4637-8A68-80971EB9504F">
                         <File Source="..\..\setup Unicode\Adapt It changes.txt" />
+                        <File Source="..\..\setup Unicode\Adapt_It_Quick_Start.htm" />
+                        <File Source="..\..\setup Unicode\Help_for_Administrators.htm" />
                         <File Source="..\..\setup Unicode\Adapt It Reference.doc" />
                         <File Source="..\..\setup Unicode\Adapt It Tutorial.doc" />
-                        <File Source="..\..\setup Unicode\Adapt_It_Quick_Start.htm" />
-                        <File Source="..\..\setup Unicode\Adapt_It_Unicode.exe" />
                         <File Source="..\..\setup Unicode\Adapt_It_Unicode.htb" />
                         <File Source="..\..\setup Unicode\AI_UserProfiles.xml" />
                         <File Source="..\..\setup Unicode\AI_USFM.xml" />
-                        <File Source="..\..\setup Unicode\aiDefault.css" />
                         <File Source="..\..\setup Unicode\books.xml" />
                         <File Source="..\..\setup Unicode\curl-ca-bundle.crt" />
-                        <File Source="..\..\docs\Help_for_Administrators.htm" />
-                        <File Source="..\..\setup Unicode\\ICSharpCode.SharpZipLib.DLL" />
-                        <File Source="..\..\setup Unicode\\Interop.XceedZipLib.DLL" />
                         <File Source="..\..\setup Unicode\iso639-3codes.txt" />
+                        <File Source="..\..\setup Unicode\aiDefault.css" />
                         <File Source="..\..\setup Unicode\KJV 1Jn 2.12-17.txt" />
                         <File Source="..\..\setup Unicode\Known Issues and Limitations.txt" />
+                        <File Source="..\..\setup Unicode\LICENSING.txt" />
                         <File Source="..\..\setup Unicode\License_CPLv05.txt" />
                         <File Source="..\..\setup Unicode\License_GPLv2.txt" />
                         <File Source="..\..\setup Unicode\License_LGPLv21.txt" />
-                        <File Source="..\..\setup Unicode\LICENSING.txt" />
-                        <File Source="..\..\setup Unicode\Localization_Readme.txt" />
-                        <File Source="..\..\setup Unicode\\NetLoc.DLL" />
-                        <File Source="..\..\setup Unicode\\ParatextShared.DLL" />
                         <File Source="..\..\setup Unicode\rdwrtp7.exe" />
+                        <File Source="..\..\setup Unicode\ParatextShared.DLL" />
+                        <File Source="..\..\setup Unicode\Localization_Readme.txt" />
+                        <File Source="..\..\setup Unicode\ICSharpCode.SharpZipLib.DLL" />
+                        <File Source="..\..\setup Unicode\Interop.XceedZipLib.DLL" />
+                        <File Source="..\..\setup Unicode\NetLoc.DLL" />
+                        <File Source="..\..\setup Unicode\Utilities.DLL" />
                         <File Source="..\..\setup Unicode\Readme_Unicode_Version.txt" />
                         <File Source="..\..\setup Unicode\SILConverters in AdaptIt.doc" />
                         <File Source="..\..\setup Unicode\Tok Pisin fragment 1John.txt" />
-                        <File Source="..\..\setup Unicode\\Utilities.DLL" />
+                    </Component>
+                </Directory>
+            </Directory>
+            <Directory Id="DesktopFolder" />
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ProgramMenuDir" Name="Adapt It WX Unicode">
+                    <Component Id="StartMenuShortcuts" Guid="545C3146-C41A-4426-9CCE-1C722D89B38D">
+                        <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+                        <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" />
+                        <Shortcut Id="UninstallProduct" Name="Uninstall Adapt It" Description="Uninstalls Adapt It WX Unicode" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" />
                     </Component>
                 </Directory>
             </Directory>
         </Directory>
         <Feature Id="_1" Level="1">
+			<ComponentRef Id="ADAPT_IT_UNICODE.EXE" />
             <ComponentRef Id="_adapt_it_wx_unicode" />
             <ComponentRef Id="_cc" />
             <ComponentRef Id="_images_adapt_it_quick_start" />
@@ -217,7 +233,11 @@
             <ComponentRef Id="_lang_tpi" />
             <ComponentRef Id="_lang_zh" />
             <ComponentRef Id="_lang_default" />
+            <ComponentRef Id="StartMenuShortcuts" />
         </Feature>
         <UI />
+        <UIRef Id="WixUI_Minimal" />
+        <Icon Id="DesktopIcon.exe" SourceFile="..\..\setup Unicode\Adapt_It_Unicode.exe" />
+        <Icon Id="StartMenuIcon.exe" SourceFile="..\..\setup Unicode\Adapt_It_Unicode.exe" />
     </Product>
 </Wix>
