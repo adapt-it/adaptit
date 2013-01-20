@@ -1051,8 +1051,30 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 	MapKeyStringToTgtUnit* pMap = NULL; // set which map we lookup using nWordCount
 	MapKeyStringToTgtUnit::iterator iter;
 
+	// support a progress indicator if size is > 50
+	wxString msgDisplayed = _("Merging entries from server");
+	wxString progressItem = _T("DownloadingFromKB"); // the user never sees this string
+	const int nTotal = size;
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+	int rangeDiv = 10; // divide the range into 10 increments, to show max of 10 updates
+	if (size > 50)
+	{
+		pStatusBar->StartProgress(progressItem, msgDisplayed, nTotal);
+	}
 	for (index = 0; index < size; index++)
 	{
+		// handle progress
+		if (size > 50)
+		{
+			if ( (index / rangeDiv) * rangeDiv == index)
+			{
+				// show progress
+				pStatusBar->UpdateProgress(progressItem, index);
+			}
+		}
+
+		// do the merging of the data
 		key = pKeyArray->Item(index);
 		tgtPhrase = pTgtArray->Item(index);
 		username = pUsernameArray->Item(index);
@@ -1213,6 +1235,13 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 		} // end of TRUE block for test: if (nWordCount > 0)
 	} // end of the loop: for (index = 0; index < size; index++)
 	pKbServer->ClearAllPrivateStorageArrays(); // we are done with the downloaded kbserver entries
+
+	// clean up the progress indicator
+	if (size > 50)
+	{
+		pStatusBar->FinishProgress(progressItem);
+	}
+
 }
 
 // App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is

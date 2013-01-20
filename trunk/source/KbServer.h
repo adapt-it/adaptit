@@ -37,8 +37,12 @@
 #include <wx/dynarray.h>
 WX_DEFINE_ARRAY_LONG(long, Array_of_long);
 
-
 #if defined(_KBSERVER)
+
+enum ClientAction {
+	getForOneKeyOnly,
+	changedSince,
+	getAll };
 
 #include <curl/curl.h>
 
@@ -47,6 +51,8 @@ class CTargetUnit;
 class CRefStringMetadata;
 class CRefString;
 class CBString;
+class CKB;
+class CAdapt_ItApp;
 
 enum DeleteOrUndeleteEnum
 {
@@ -72,16 +78,18 @@ public:
 	KbServer(int whichType); // the constructor we'll use, pass 1 for adapting KB, 2 for glossingKB
 	virtual	~KbServer(void); // destructor (should be virtual)
 
+	void	DownloadToKB(CKB* pKB, enum ClientAction action);
+
 	// attributes
 public:
 
 	// The API which we expose (note:  srcPhrase & tgtPhrase are often each
 	// just a single word
-	int		  LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry );
-	int		  LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
-	int		  CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag);  // was SendEntry()
-	int		  PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
-	int		  ChangedSince(wxString timeStamp);
+	int		 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry );
+	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
+	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag);  // was SendEntry()
+	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
+	int		 ChangedSince(wxString timeStamp);
 	// public setters
 	void	 SetKBServerType(int type);
 	void	 SetKBServerURL(wxString url);
@@ -142,7 +150,6 @@ protected:
 
 private:
 	// class variables
-	//CAdapt_ItApp* m_pApp;
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)
@@ -196,6 +203,7 @@ public:
 	// values are determinate from member variables m_kbSourceLanguageCode,
 	// m_kbTargetLanguageCode, and m_kbServerType, respectively.
 private:
+	CAdapt_ItApp*   m_pApp;
 	//wxArrayInt		m_arrID;
 	Array_of_long   m_arrID;
 	wxArrayInt		m_arrDeleted;
