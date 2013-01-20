@@ -101,37 +101,24 @@ void KBSharing::OnCancel(wxCommandEvent& myevent)
 
 void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 {
-	// Put here the kbserver code for a changedsince from an early time
 	KbServer* pKbServer;
-	wxString timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+	CKB* pKB = NULL; // it will be set either to m_pKB (the adapting KB) or m_pGlossingKB
 	if (gbIsGlossing)
 	{
 		// work with the glossing entries only
 		pKbServer = m_pApp->GetKbServer(2); // 2 indicates we deal with glosses
+		// which CKB instance is now also determinate
+		pKB = m_pApp->m_pGlossingKB;
 		if (pKbServer != NULL)
 		{
-			int rv = pKbServer->ChangedSince(timestamp);
-			if (rv != 0)
-			{
-				// there was a cURL error, display it
-				wxString msg;
-				msg = msg.Format(_T("glossing mode, ChangedSince(): error code returned: %d  Nothing was downloaded, application continues."), rv);
-				wxMessageBox(msg, _T("ChangedSince() failed"), wxICON_ERROR | wxOK);
-				m_pApp->LogUserAction(msg);
-			}
-			else
-			{
-				// the download was successful, so use the results to update the
-				// adaptations KB contents
-				m_pApp->m_pKB->StoreEntriesFromKbServer(pKbServer);
-			}
+			pKbServer->DownloadToKB(pKB, getAll);
 		}
 		else
 		{
 			// The KbServer[1] instantiation for glossing entries either failed or has not yet been done,
 			// tell the developer
-			wxString msg = _T("ChangedSince(): NULL returned. The KbServer[1] instantiation for glossing entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
-			wxMessageBox(msg, _T("Error, no KbServer instance available"), wxICON_ERROR | wxOK);
+			wxString msg = _T("OnBtnGetAll(): KbServer[1] is NULL, soinstantiation for glossing entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
+			wxMessageBox(msg, _T("Error, no glossing KbServer instance available"), wxICON_ERROR | wxOK);
 			m_pApp->LogUserAction(msg);
 		}
 	}
@@ -139,30 +126,18 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 	{
 		// work with adaptations entries only
 		pKbServer = m_pApp->GetKbServer(1); // 1 indicates we deal with adaptations
+		// which CKB instance is now also determinate
+		pKB = m_pApp->m_pKB; // the adaptations KB
 		if (pKbServer != NULL)
 		{
-			int rv = pKbServer->ChangedSince(timestamp);
-			if (rv != 0)
-			{
-				// there was a cURL error, display it
-				wxString msg;
-				msg = msg.Format(_T("adapting mode, ChangedSince(): error code returned: %d  Nothing was downloaded, application continues."), rv);
-				wxMessageBox(msg, _T("ChangedSince() failed"), wxICON_ERROR | wxOK);
-				m_pApp->LogUserAction(msg);
-			}
-			else
-			{
-				// the download was successful, so use the results to update the
-				// adaptations KB contents
-				m_pApp->m_pKB->StoreEntriesFromKbServer(pKbServer);
-			}
+			pKbServer->DownloadToKB(pKB, getAll);
 		}
 		else
 		{
 			// The KbServer[0] instantiation for glossing entries either failed or has not yet been done,
 			// tell the developer
-			wxString msg = _T("OnBtnGetAll(): NULL returned. The KbServer[0] instantiation for adapting entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
-			wxMessageBox(msg, _T("Error, no KbServer instance available"), wxICON_ERROR | wxOK);
+			wxString msg = _T("OnBtnGetAll(): The KbServer[0] is NULL, so instantiation for adapting entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
+			wxMessageBox(msg, _T("Error, no adapting KbServer instance available"), wxICON_ERROR | wxOK);
 			m_pApp->LogUserAction(msg);
 		}
 	}

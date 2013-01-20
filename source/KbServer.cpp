@@ -104,12 +104,15 @@ KbServer::KbServer()
 	m_kbServerPassword = _T("password");
 	m_kbTypeForServer = 1;
 	*/
+	m_pApp = &wxGetApp();
+
 }
 
 KbServer::KbServer(int whichType)
 {
 	wxASSERT(whichType == 1 || whichType == 2);
 	m_kbServerType = whichType;
+	m_pApp = &wxGetApp();
 }
 
 
@@ -128,7 +131,33 @@ CBString KbServer::ToUtf8(const wxString& str)
 	// converts UTF-16 strings to UTF-8  No need for #ifdef _UNICODE and #else
 	// define blocks.
 	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
+    // BEW changed 18Jan13, it appears that the above line can insert a utf-8 BOM 0xEF 0xBB
+    // 0xBF at the beginning of the tempBuf C-string; which we'll never want to happen. So
+    // test for it an remove it if there. If not removed, it leads to a
+    // CURLE_UNSUPPORTED_PROTOCOL (CURLCODE equals 1) error, as the https part of the URL
+    // has the BOM immediately preceding it.
+    CBString s = CBString(tempBuf);
+	// a clumsy way to do this, but it avoids compiler truncation warnings (I tried octal
+	// too, but the test below never returned TRUE)
+	unsigned char bom1 = (unsigned char)0xEF;
+	unsigned char bom2 = (unsigned char)0xBB;
+	unsigned char bom3 = (unsigned char) 0xBF;
+	int offset1 = s.Find(bom1);
+	int offset2 = s.Find(bom2);
+	int offset3 = s.Find(bom3);
+	// yep, offset1 was 0, offset2 was 1 and offset3 was 2, so it's the utf8 BOM
+	//if (s[0] == (char)0xEF && s[1] == (char)0xBB && s[2] == (char)0xBF)
+	// Do it differently to avoid compiler warnings about truncation
+	if (offset1 == 0 && offset2 == 1 && offset3 == 2)
+	{
+		//wxLogDebug(_T("KbServer::ToUtf8(), There was a utf8 BOM - so it's been removed"));
+		s = s.Mid(3);
+		return s;
+	}
+	else
+	{
 	return CBString(tempBuf);
+	}
 }
 
 wxString KbServer::ToUtf16(CBString& bstr)
@@ -136,7 +165,26 @@ wxString KbServer::ToUtf16(CBString& bstr)
 	// whm 21Aug12 modified. No need for #ifdef _UNICODE and #else
 	// define blocks.
 	wxWCharBuffer buf(wxConvUTF8.cMB2WC(bstr.GetBuffer()));
-	return wxString(buf);
+	// BEW changed 18Jan13 on the basis of what the wx convertion to utf8 did, (i.e. put
+	// in an initial unwanted utf8 BOM), the conversion above may put in the utf16 BOM
+	// (ie. 0xFF 0xFE), so test for it and remove it if there
+	wxString s = wxString(buf);
+	unsigned char bom1 = (unsigned char)0xFF;
+	unsigned char bom2 = (unsigned char)0xFE;
+	int offset1 = s.Find(bom1);
+	int offset2 = s.Find(bom2);
+	//if (s[0] == (char)0xFF && s[1] == (char)0xFE)
+	// Do it differently to avoid compiler warnings about truncation
+	if (offset1 == 0 && offset2 == 1)
+	{
+		//wxLogDebug(_T("KbServer::ToUtf16(), There was a utf16 BOM - so it's been removed"));
+		s = s.Mid(2);
+		return s;
+	}
+	else
+	{
+		return wxString(buf);
+	}
 }
 
 // the private getters
@@ -825,6 +873,46 @@ void KbServer::ClearOneStringArray(wxArrayString* pArray)
 	pArray->clear();
 }
 
+void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
+{
+	wxASSERT(pKB != NULL);
+	int rv = 0; // rv is "return value", initialize it
+	wxString timestamp;
+	switch (action)
+	{
+	case getForOneKeyOnly:
+
+
+
+		break;
+	case changedSince:
+		// get the last sync timestamp value
+
+
+		break;
+	case getAll:
+		timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+		rv = ChangedSince(timestamp);
+		break;
+	}
+	if (rv != 0)
+	{
+		// there was a cURL error, display it
+		wxString msg;
+		msg = msg.Format(_T("DownloadToKB(): error code returned: %d  Nothing was downloaded, application continues."), rv);
+		wxMessageBox(msg, _T("DownloadToKB() failed"), wxICON_ERROR | wxOK);
+		m_pApp->LogUserAction(msg);
+		return;
+	}
+	// Merge the data received into the local KB (either to the glossingKB or adaptingKB,
+	// depending on what pKB points at). This deserves a progress indicator if there are
+	// more than 50 entries in each of the parallel arrays (if fewer, it would be too
+	// quick for it to be worth the bother). Having the progress indicator will give the
+	// user feedback for what otherwise might be an inexplicable delay in responsiveness
+	// in typing into the phrase box
+	pKB->StoreEntriesFromKbServer(this);
+}
+
 // Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
 // also the storage arrays should be cleared with a call of ClearAllPrivateStorageArrays()
 // and always remember to clear str_CURLbuffer before returning.
@@ -1091,7 +1179,6 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 	curl_easy_cleanup(curl);
 	return 0;
 }
-
 
 
 //=============================== end of KbServer class ============================

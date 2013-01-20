@@ -2602,6 +2602,13 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// The controls in the dialog can't be used if KB sharing is not turned on for the
+	// currently active project
+	if (!gpApp->m_bIsKBServerProject)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// Enable if both KBs of the project are ready for work
 	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }

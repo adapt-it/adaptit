@@ -150,7 +150,7 @@ void CStatusBar::OnSize(wxSizeEvent& event)
 /// Adds a long-running task (a ProgressItem object) to the internal PIArray. This 
 /// ProgressItem object contains a similar set of data as the wxProgressDialog -- title,
 /// current status message, current value and maximum value (or range).
-/// When an object is added via StartProgress(), the embedded progress bar is diaplayed,
+/// When an object is added via StartProgress(), the embedded progress bar is displayed,
 /// and the range of the progress bar is expanded to hold the range + whatever other items
 /// are being worked on.
 ///////////////////////////////////////////////////////////////////////////////////////
