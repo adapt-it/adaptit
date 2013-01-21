@@ -104,7 +104,7 @@ KbServer::KbServer()
 	m_kbServerPassword = _T("password");
 	m_kbTypeForServer = 1;
 	*/
-	m_pApp = &wxGetApp();
+	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 
 }
 
@@ -112,7 +112,7 @@ KbServer::KbServer(int whichType)
 {
 	wxASSERT(whichType == 1 || whichType == 2);
 	m_kbServerType = whichType;
-	m_pApp = &wxGetApp();
+	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 }
 
 
@@ -138,7 +138,8 @@ CBString KbServer::ToUtf8(const wxString& str)
     // has the BOM immediately preceding it.
     CBString s = CBString(tempBuf);
 	// a clumsy way to do this, but it avoids compiler truncation warnings (I tried octal
-	// too, but the test below never returned TRUE)
+	// too, but couldn't get the test to return the correct boolean value; so the commented
+	// out test works, but gives compiler warnings, but the offsets way has no warnings)
 	unsigned char bom1 = (unsigned char)0xEF;
 	unsigned char bom2 = (unsigned char)0xBB;
 	unsigned char bom3 = (unsigned char) 0xBF;
@@ -413,11 +414,12 @@ bool KbServer::GetTextFileOpened(wxTextFile* pf, wxString& path)
 
 
 // Get and return the timestamp value last stored in persistent (i.e. on disk) storage.
-// Temporarily this storage is a file called lastsync.txt located in the project folder,
-// but later something more permanent will be used (a hidden file in the project folder?)
+// Temporarily this storage is, when working with an adaptations KB, a file called
+// lastsync_adaptations.txt located in the project folder, and for working with glosses, a
+// file called lastsync_glosses.txt, in the same folder.
 // KbServer class has a private CBString member, m_kbServerLastSync to store the
-// returned value. (May be called more than once in the life of a KbServer instance)
-
+// returned value. (This function may be called more than once in the life of a KbServer
+// instance)
 wxString KbServer::ImportLastSyncTimestamp()
 {
 	wxString dateTimeStr; dateTimeStr.Empty();
@@ -426,8 +428,17 @@ wxString KbServer::ImportLastSyncTimestamp()
 	bool bLastSyncFileExists = ::wxFileExists(path);
 	if (!bLastSyncFileExists)
 	{
-		// couldn't find lastsync.txt file in project folder
-		wxString msg = _T("wxFileExists()called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync.txt, does not exist");
+		// couldn't find lastsync... .txt file in project folder
+		wxString msg;
+		if (GetKBServerType() == 1)
+		{
+            msg = _T("wxFileExists()called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_adaptations.txt, does not exist");
+		}
+		else
+		{
+            msg = _T("wxFileExists()called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, does not exist");
+		}
+		m_pApp->LogUserAction(msg);
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return dateTimeStr; // it's empty still
 	}
@@ -447,23 +458,32 @@ wxString KbServer::ImportLastSyncTimestamp()
 	if (numLines == 0)
 	{
 		// warn developer that the wxTextFile is empty
-		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The lastsync.txt file is empty");
+		wxString msg;
+		if (GetKBServerType() == 1)
+		{
+            msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The lastsync_adaptations.txt file is empty");
+            m_pApp->LogUserAction(msg);
+		}
+		else
+		{
+            msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The lastsync_glosses.txt file is empty");
+            m_pApp->LogUserAction(msg);
+		}
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		f.Close();
 		return dateTimeStr; // it's empty still
 	}
-	// whew, finally, we have the lastsync datetime string
+	// whew, finally, we have the lastsync datetime string for this kbserver type
 	dateTimeStr = f.GetLine(0);
 	f.Close();
-
-// *** TODO *** the permanent code -- alter the above if necessary
-
 	return dateTimeStr;
 }
 
 // Takes the kbserver's datetime supplied with downloaded data, as stored in the
-// m_kbServerLastSync member, and stores it on disk (temporarily in the file lastsync.txt
-// located in the AI project folder) Return TRUE if no error, FALSE otherwise.
+// m_kbServerLastSync member, and stores it on disk (in the file lastsync_adaptations.txt
+// when the instance is dealing with adaptations, and lastsync_glosses.txt when dealing with
+// glosses KB; each is located in the AI project folder)
+// Return TRUE if no error, FALSE otherwise.
 bool KbServer::ExportLastSyncTimestamp()
 {
 	wxString path = GetPathToPersistentDataStore() + GetPathSeparator() + GetLastSyncFilename();
@@ -471,7 +491,17 @@ bool KbServer::ExportLastSyncTimestamp()
 	if (!bLastSyncFileExists)
 	{
 		// couldn't find lastsync.txt file in project folder - tell developer
-		wxString msg = _T("wxFileExists()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync.txt, does not exist");
+		wxString msg;
+		if (GetKBServerType() == 1)
+        {
+            // it's the adaptations KB which is being shared
+            msg = _T("wxFileExists()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_adaptations.txt, does not exist");
+        }
+        else
+        {
+            // it's the glosses KB which is being shared
+            msg = _T("wxFileExists()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, does not exist");
+        }
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
@@ -484,15 +514,23 @@ bool KbServer::ExportLastSyncTimestamp()
 	if (!bSuccess)
 	{
 		// warn developer that the wxTextFile could not be opened
-		wxString msg = _T("GetTextFileOpened()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync.txt, could not be opened");
+		wxString msg;
+		if (GetKBServerType() == 1)
+		{
+		    // it's the adaptations KB which is being shared
+            msg = _T("GetTextFileOpened()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_adaptations.txt, could not be opened");
+		}
+		else
+		{
+		    // it's the glosses KB which is being shared
+            msg = _T("GetTextFileOpened()called in ExportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, could not be opened");
+		}
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return FALSE;
 	}
 	f.Clear(); // chuck earlier value
 	f.AddLine(GetKBServerLastSync());
 	f.Close();
-
-// *** TODO *** the permanent code -- alter the above
 
 	return TRUE;
 }

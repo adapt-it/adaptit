@@ -21,7 +21,7 @@
     #pragma interface "KbServer.h"
 #endif
 
-// temporarily, while we need #if defined(_KBSERVER) from Adapt_It.h, #includle the latter
+// temporarily, while we need #if defined(_KBSERVER) from Adapt_It.h, #include the latter
 // here, and when we don't need the conditional compilation, remove the next line and
 // uncomment out the forward declaration class CAdapt_ItApp a little further down
 #include "Adapt_It.h" // this #includes json_defs.h
@@ -51,8 +51,7 @@ class CTargetUnit;
 class CRefStringMetadata;
 class CRefString;
 class CBString;
-class CKB;
-class CAdapt_ItApp;
+//class CAdapt_ItApp;
 
 enum DeleteOrUndeleteEnum
 {

@@ -2754,11 +2754,15 @@ public:
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
-	// lastsync.txt stores the date & time. These two files will be abandoned once we get a
-	// GUI built. Some metadata will also be (most likely) stored in a hidden file,
-	// .kbserver in the project folder, probably a JSON encoded data.
+	// lastsync_adaptations.txt stores the date & time for an adaptations KbServer instance,
+	// or lastsync_glosses.txt stores the timestamp for a glossess KbServer instance. The fist
+	// of these files will be abandoned once we get a GUI built; the two "lastsync..." ones
+	// will be retained permanently. Some metadata may also be (perhaps) stored in a hidden file,
+	// .kbserver in the project folder -- but I've not done so yet.
 	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
-									  // sharing kb data between clients in the same AI project
+									  // sharing kb data between clients in the same AI project;
+									  // two instances are created, one for adaptations, the
+									  // other for glosses
 
 #endif // for _KBSERVER
 
