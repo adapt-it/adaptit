@@ -4006,8 +4006,8 @@ void CAdapt_ItApp::SetupUnTranslatedMapMenuLabelStrToIdInt(MapMenuLabelStrToIdIn
 		int count = (int)pMenuBar->GetMenuCount();
 		wxMenu* pMenu;
 		int ct;
-		// To preserve the position indices remove the menu items in 
-		// reverse order. With a zero-based position index, the last menu 
+		// To preserve the position indices remove the menu items in
+		// reverse order. With a zero-based position index, the last menu
 		// item's position is count-1.
 		for (ct = count-1; ct >= 0; ct--)
 		{
@@ -14669,7 +14669,7 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 	if (pCancelButton == NULL)
 		return FALSE;
 
-#ifdef __WXMAC__ // Chande to #ifndef to test the swapping on Windows or Linux
+#ifdef __WXMAC__ // Change to #ifndef to test the swapping on Windows or Linux
 	// Get pointers to the containing sizer of the two buttons
 	wxBoxSizer* pContSizerOfOK = (wxBoxSizer*)pOKButton->GetContainingSizer();
 	wxASSERT(pContSizerOfOK != NULL);
@@ -14981,8 +14981,18 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	pKbSvr->EnableKBSharing(TRUE);
 
 	// get the kbserver credentials we need
-	wxString credsfilename = _T("credentials.txt"); // temporary
-	wxString syncfilename = _T("lastsync.txt"); //  temporary
+	wxString credsfilename = _T("credentials.txt"); // temporary, later we will use project config file
+	wxString syncfilename; // probably use this file permanently
+	if (whichType == 1)
+	{
+	    // this kbserver instance is for handling adaptations KB
+        syncfilename = _T("lastsync_adaptations.txt");
+	}
+	else
+	{
+	    // this kbserver instance is for handling glosses KB
+        syncfilename = _T("lastsync_glosses.txt");
+	}
 	wxString url; url.Empty();
 	wxString username; username.Empty();
 	wxString password; password.Empty();
@@ -15024,14 +15034,13 @@ bool CAdapt_ItApp::ReleaseKBServer(int whichType)
         return TRUE; // not currently defined
 
 	// ensure the m_kbServerLastSync timestamp value is stored to permanent storage (which
-	// temporarily is in lastsync.txt in the project folder)
+	// is in lastsync_adaptations.txt in the project folder when dealing with adaptations KB,
+	// and is lastsync_glosses.txt in the project folder, if dealing with glosses KB)
 	bool bOK = pKbSvr->ExportLastSyncTimestamp();
 
 	if (pKbSvr != NULL)
 	{
-        // do cleanup in the destructor, and especially, making the lastsync datetime value
-        // received from the kbserver persistent; deletes and sets m_pKbServer[whichType-1]
-        // to NULL
+        // do cleanup in the destructor; deletes and sets m_pKbServer[whichType-1] to NULL
 		DeleteKbServer(whichType);
 	}
 
@@ -21138,7 +21147,7 @@ int ii = 1;
 	pAdvancedMenu->AppendSeparator(); // ignore returned pointer
 	wxMenuItem* pKBSharingSetupMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_SETUP_DLG, _T("Setup Or Remove Knowledge Base Sharing..."));
 	pKBSharingSetupMenuItem = pKBSharingSetupMenuItem; // avoid compiler warning
-	
+
     // append a "Controls For Knowledge Base Sharing..." menu item to the Advanced menu in
     // the _Debug build
 	wxMenuItem* pKBSharingMenuItem = pAdvancedMenu->Append(ID_MENU_SHOW_KBSERVER_DLG, _T("Controls For Knowledge Base Sharing..."));
