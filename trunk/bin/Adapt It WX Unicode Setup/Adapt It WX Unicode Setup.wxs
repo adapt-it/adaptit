@@ -14,7 +14,9 @@
                             <File Source="..\..\setup Unicode\CC\cc32.dll" />
                             <File Source="..\..\setup Unicode\CC\CCDebug.doc" />
                             <File Source="..\..\setup Unicode\CC\CCFiles.doc" />
-                            <File Source="..\..\setup Unicode\CC\CCW32.exe" />
+                            <File Source="..\..\setup Unicode\CC\CCW32.exe">
+								<Shortcut Id="_consistent_changes_Shortcut" Directory="ProgramMenuDir" Name="Consistent Changes (standalone)" />
+							</File>
                             <File Source="..\..\setup Unicode\CC\CCW32.INI" />
                             <File Source="..\..\setup Unicode\CC\reverse_lx_ge.cct" />
                             <File Source="..\..\setup Unicode\CC\Summary.doc" />
@@ -174,11 +176,21 @@
                         </File> 
 					</Component>
 					<Component Id="_adapt_it_wx_unicode" Guid="3C67513D-01DD-4637-8A68-80971EB9504F">
-                        <File Source="..\..\setup Unicode\Adapt It changes.txt" />
-                        <File Source="..\..\setup Unicode\Adapt_It_Quick_Start.htm" />
-                        <File Source="..\..\setup Unicode\Help_for_Administrators.htm" />
-                        <File Source="..\..\setup Unicode\Adapt It Reference.doc" />
-                        <File Source="..\..\setup Unicode\Adapt It Tutorial.doc" />
+                        <File Source="..\..\setup Unicode\Adapt It changes.txt">
+							<Shortcut Id="_adapt_it_changes_Shortcut" Directory="ProgramMenuDir" Name="Adapt It Changes" />
+						</File>
+                        <File Source="..\..\setup Unicode\Adapt_It_Quick_Start.htm">
+							<Shortcut Id="_adapt_it_quick_start_Shortcut" Directory="ProgramMenuDir" Name="Adapt It Quick Start" />
+						</File>
+                        <File Source="..\..\setup Unicode\Help_for_Administrators.htm">
+							<Shortcut Id="_help_for_administrators_Shortcut" Directory="ProgramMenuDir" Name="Help for Administrators" />
+						</File>
+                        <File Source="..\..\setup Unicode\Adapt It Reference.doc">
+							<Shortcut Id="_adapt_it_references_Shortcut" Directory="ProgramMenuDir" Name="Adapt It Reference" />
+						</File>
+                        <File Source="..\..\setup Unicode\Adapt It Tutorial.doc">
+							<Shortcut Id="_adapt_it_tutorial_Shortcut" Directory="ProgramMenuDir" Name="Adapt It Tutorial" />
+						</File>
                         <File Source="..\..\setup Unicode\Adapt_It_Unicode.htb" />
                         <File Source="..\..\setup Unicode\AI_UserProfiles.xml" />
                         <File Source="..\..\setup Unicode\AI_USFM.xml" />
@@ -199,7 +211,9 @@
                         <File Source="..\..\setup Unicode\Interop.XceedZipLib.DLL" />
                         <File Source="..\..\setup Unicode\NetLoc.DLL" />
                         <File Source="..\..\setup Unicode\Utilities.DLL" />
-                        <File Source="..\..\setup Unicode\Readme_Unicode_Version.txt" />
+                        <File Source="..\..\setup Unicode\Readme_Unicode_Version.txt">
+							<Shortcut Id="_readme_Shortcut" Directory="ProgramMenuDir" Name="Readme" />
+						</File>
                         <File Source="..\..\setup Unicode\SILConverters in AdaptIt.doc" />
                         <File Source="..\..\setup Unicode\Tok Pisin fragment 1John.txt" />
                     </Component>
@@ -237,6 +251,8 @@
         </Feature>
         <UI />
         <UIRef Id="WixUI_Minimal" />
+		<WixVariable Id="WixUILicenseRtf" Value="..\..\setup Unicode\LICENSING.rtf" />
+		<WixVariable Id="WixUIDialogBmp" Value="..\..\setup Unicode\ai_msi_bg.bmp" />
         <Icon Id="DesktopIcon.exe" SourceFile="..\..\setup Unicode\Adapt_It_Unicode.exe" />
         <Icon Id="StartMenuIcon.exe" SourceFile="..\..\setup Unicode\Adapt_It_Unicode.exe" />
     </Product>
