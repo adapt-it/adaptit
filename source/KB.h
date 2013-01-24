@@ -184,11 +184,12 @@ public:
 	// HandleNewPairCreated() using the new src/tgt or src/gloss pair.
 	bool		HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
 									wxString oldTranslation, wxString newTranslation);
+	bool		HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcKey,
+						wxString oldTranslation, wxString newTranslation);
 	// Populate either a CTargetUnit instance in the local KB with anything new in the
 	// download, or many CTargetUnit instances arising from a timestamp-based download -
 	// either of the whole KB, or of those entries newly added subsequent to a stored
 	// timestamp value
-	//void		StoreEntriesFromKbServer(KbServer* pKbServer, enum SharedKbEntries whichEntries);
 	void		StoreEntriesFromKbServer(KbServer* pKbServer);
 	// App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is
 	// associated with m_pGlossingKB. Each CKB has a m_bGlossingKB member, FALSE for an

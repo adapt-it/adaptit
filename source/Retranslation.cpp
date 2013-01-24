@@ -11,6 +11,8 @@
 /// The CRetranslation class presents retranslation-related functionality to the user.
 /// The code in the CRetranslation class was originally contained in
 /// the CAdapt_ItView class.
+/// BEW 24Jan13, made the 3 update handlers more robust (avoids false positive 
+/// for test of selection)
 /// \derivation		The CNotes class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -4424,7 +4426,8 @@ void CRetranslation::OnUpdateRemoveRetranslation(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_selectionLine != -1)
+	// BEW 24Jan13 added first subtest to avoid spurious false positives
+	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
 		// we require both head and tail of the selection to lie within the retranslation
 		CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
@@ -4524,7 +4527,17 @@ void CRetranslation::OnUpdateButtonEditRetranslation(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (!gbIsGlossing && m_pApp->m_selectionLine != -1)
+	// BEW 24Jan13 with the commented out test it is possible to crash the app. It can be
+	// done by having some text in the phrase box (possibly selected) and doing an
+	// ALT+arrow move left or right that brings up something that takes focus from the
+	// phrase box (such as a message box), then a subsequent ALT+arrow keypress crashes
+	// the app by failing at the CCell* pCell = line just below; somehow, m_selectionLine
+	// is 0 even though no selection is set, and so control gets into the TRUE block
+	// below. The solution is to have the 2nd subtest last of three, and make the second
+	// be a test for a non-empty m_selection, so it will yield FALSE before making the 3rd
+	// test
+	//if (!gbIsGlossing && m_pApp->m_selectionLine != -1)
+	if (!gbIsGlossing && !m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
 		// we require both head and tail of the selection to lie within the retranslation
 		CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
@@ -4617,7 +4630,8 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_selectionLine != -1)
+	// BEW 24Jan13 added first subtest to avoid spurious false positives
+	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
         // if there is at least one srcPhrase with m_bRetranslation == TRUE, then disable
         // the button
