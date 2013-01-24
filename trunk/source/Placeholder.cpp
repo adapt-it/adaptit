@@ -2253,13 +2253,17 @@ void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
     // BEW 10Jan13, added the && !m_pApp->m_bClosingDown part of the test, to ensure
     // this block's code isn't entered when closing down and there are no CSourcePhrase
     // instances in existence (else, get a crash)
+	// BEW 24Jan13, added test for a non-empty selection, because m_selectionLine can be 0
+	// even when no selection is defined (e.g. doing ALT+leftarrow after a message box has
+	// removed focus from the phrasebox)
 	if (m_pApp->m_pTargetBox->GetHandle() != NULL && !m_pApp->m_bClosingDown)
 	{
         // set the flag true either if there is a selection and which is on a null source
         // phrase which is not a retranslation, or if the active pile is a null source
         // phrase which is not a retranslation. The selection, if there is one, takes
         // priority, if its pile is different from the active pile.
-		if (m_pApp->m_selectionLine != -1)
+        // BEW 24Jan13 added first subtest here, to make the if robust
+		if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 		{
 			CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
 			CCell* pCell = cpos->GetData();
@@ -2665,9 +2669,12 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 	bool bCanInsert = FALSE;
 	if (m_pApp->m_pTargetBox != NULL)
 	{
-		if (m_pApp->m_selectionLine != -1 || (m_pApp->m_pTargetBox->IsShown()
-											&& (m_pApp->m_pTargetBox == wxWindow::FindFocus())))
+		// BEW changed 24Jan13, to make the test more robust
+		if ((!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1 ) || 
+			(m_pApp->m_pTargetBox->IsShown() && (m_pApp->m_pTargetBox == wxWindow::FindFocus())))
+		{
 			bCanInsert = TRUE;
+		}
 	}
 	event.Enable(bCanInsert);
 }

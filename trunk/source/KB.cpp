@@ -5936,9 +5936,9 @@ bool  CKB::HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
 		{
 			// if there was an error, log the strings, but do no more and let
 			// processing continue
-			wxString msg = _T("OLD: ");
+			wxString msg = _T("pseudo-delted OLD: ");
 			msg += srcKey + _T(" : ") + oldTranslation;
-			msg += _T(" NEW: ");
+			msg += _T("Error when creating NEW: ");
 			msg += srcKey + _T(" : ") + newTranslation;
 			m_pApp->LogUserAction(msg);
 		}
@@ -5947,15 +5947,62 @@ bool  CKB::HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
 	{
 		// if there was an error, log the strings, but do no more and let
 		// processing continue
-		wxString msg = _T("OLD: ");
+		wxString msg = _T("Error in pseudo-deleting OLD: ");
 		msg += srcKey + _T(" : ") + oldTranslation;
-		msg += _T(" NEW: ");
+		msg += _T("Creation of new pair untried for NEW: ");
 		msg += srcKey + _T(" : ") + newTranslation;
 		m_pApp->LogUserAction(msg);
 	}
 	return rv;
 }
 
+// Use the next when in the KB Editor for the local KB, the user changes an an adaptation
+// or gloss by editing and then using the Update button, and the edited entry has become
+// identical to an existing pseudo-deleted entry not shown in the list box. Internally this
+// is implemented as a pseudo-delete of the old entry (the "oldTranslation" parameter in
+// the signature), together with creation of a new entry with undeletion (and display in
+// place of the old translation in the list box) of the "newTranslation" parameter. Hence,
+// the kbserver support can simply do HandlePseudoDelete() using the 3rd argument, followed
+// by HandleUndelete() using the 4th parameter. 
+// NOTE: When transliteration mode is active, the local KBs are being used for a special
+// purpose and must not be allowed to put heaps of <Not In KB> entries in a normal shared
+// KB and so we test for the app's flag being TRUE and silently return when it is
+bool  CKB::HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcKey,
+						wxString oldTranslation, wxString newTranslation)
+{
+	if (m_pApp->m_bTransliterationMode)
+	{
+		// disallow KB sharing support for transliteration mode
+		return TRUE;
+	}
+	bool rv = TRUE;
+	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation);
+	if (rv)
+	{
+		rv = HandleUndelete(kbServerType, srcKey, newTranslation);
+		if (!rv)
+		{
+			// if there was an error, log the strings, but do no more and let
+			// processing continue
+			wxString msg = _T("pseudo-deleted OLD: ");
+			msg += srcKey + _T(" : ") + oldTranslation;
+			msg += _T("Error in undelete NEW: ");
+			msg += srcKey + _T(" : ") + newTranslation;
+			m_pApp->LogUserAction(msg);
+		}
+	}
+	else
+	{
+		// if there was an error, log the strings, but do no more and let
+		// processing continue
+		wxString msg = _T("Error in pseudo-delete OLD: ");
+		msg += srcKey + _T(" : ") + oldTranslation;
+		msg += _T("did not try undelete of NEW: ");
+		msg += srcKey + _T(" : ") + newTranslation;
+		m_pApp->LogUserAction(msg);
+	}
+	return rv;
+}
 
 
 

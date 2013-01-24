@@ -14,6 +14,9 @@
 /// list to be shown automatically in the phrasebox by the ChooseTranslationDlg.
 /// A user can also toggle the "Force Choice..." flag or add <no adaptation> for
 /// a given source phrase using this dialog.
+/// BEW 24Jan13, changes to Update button, because updating an entry so it becomes spelled
+/// the same as an already deleted one, needs special treatment (ie. to undelete the
+/// deleted one after deleting the one changed)
 /// \derivation		The CKBEditor class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -33,6 +36,13 @@
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
 #endif
+
+//#if defined(_DEBUG)
+//#define DUALS_BUG
+// I didn't get to put wxLogDebug calls in the handler for Update button, where the actual
+// error was, because I figured out what was wrong before doing so. If DUALS_BUG is reused
+// at a later time, then some logging calls in the Update button handler may be warranted
+//#endif
 
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
@@ -240,6 +250,16 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pCurTgtUnit != NULL);
 	m_curKey = str;
 
+#if defined(_DEBUG) && defined(DUALS_BUG)
+	bool bDoAbaotem = FALSE;
+	int counter = 0;
+	if (m_curKey == _T("abaotem"))
+	{
+		bDoAbaotem = TRUE;
+		wxLogDebug(_T("\n")); // want a blank line to separate groups
+	}
+#endif
+
 	// show the setting for the "Show Alternatives If Matched" checkbox
 	bool bFlagValue = (bool)pCurTgtUnit->m_bAlwaysAsk;
 	if (bFlagValue)
@@ -262,6 +282,18 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 		while (pos != NULL)
 		{
 			pCurRefString = (CRefString*)pos->GetData();
+
+#if defined(_DEBUG) && defined(DUALS_BUG)
+			if (bDoAbaotem)
+			{
+				counter++;
+				wxString flag = pCurRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
+				wxLogDebug(_T("OnSelchangeListSrcKeys(): counter = %d  countNonDeleted = %d  m_translation = %s  m_bDeleted = %s"),
+					counter, countNonDeleted,
+					pCurRefString->m_translation.c_str(), flag.c_str());
+			}
+#endif
+
 			pos = pos->GetNext();
 			// ignore any CRefString instances which have m_bDeleted set to TRUE
 			if (!pCurRefString->GetDeletedFlag())
@@ -494,14 +526,26 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			return;
 	}
 
-	// ensure we are not duplicating a translation already in the list box
+	// Ensure we are not duplicating an undeleted translation already in the list box
+	// 
+	// BEW changed from here on, 24Jan13, because with kbVersion 2 deletions are present
+	// but with m_bDeleted = TRUE, and if an edit is done that makes the final form of
+	// the translation string identical to that in m_translation of a deleted entry, the
+	// legacy code then results in two identical entries - one deleted, one not; and a
+	// subsequent StoreText() in the document for the same value as the deleted one would
+	// then result in KB Editor having two identical non-deleted translations listed in
+	// the box. So I'm doing changes here and below as follows: check if the updated
+	// translation form matches any deleted entry, and if so, undelete it; but if it
+	// matches a non-deleted one, give the warning below as before, that it already
+	// exists, and return
 	wxString str = _T("");
 	int nStrings = m_pListBoxExistingTranslations->GetCount(); // deletions are not
-						// shown and therefore are not counted (kbVersion 2)
+						// shown and therefore are not counted (kbVersion 2) here, so the
+						// subsequent test is only for a match with non-deleted entries
 	for (int i=0; i < nStrings; i++)
 	{
 		str = m_pListBoxExistingTranslations->GetString(i);
-		if (str == s)
+		if (str == s) // does str equal _("<no adaptation>")
 			str = _T("");
 		if ((str.IsEmpty() && newText.IsEmpty()) || (str == newText))
 		{
@@ -513,12 +557,101 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// go ahead and do the update (pCurRefString should already be set, but I don't want
-	// to rely on that - so add a few lines to make sure we have it set correctly)
+	// to rely on that - so first add a few lines to make sure we have it set correctly)
 	int nFound = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText,
 														caseSensitive, exactString);
 	wxASSERT(nFound != wxNOT_FOUND);
 	pCurRefString = (CRefString*)m_pListBoxExistingTranslations->GetClientData(nFound);
 	wxASSERT(pCurRefString != NULL);
+
+	// BEW 24Jan12 - here is the appropriate place to test if the update string matches a
+	// deleted entry. If it does, we must undelete the entry and show it in the list.
+	// A match with an existing undeleted listed translation has been bled out of
+	// consideration above; so the only match possible in the following loop is with a
+	// deleted entry
+	bool bUndeleting = FALSE;
+	TranslationsList::Node* posKB = pCurTgtUnit->m_pTranslations->GetFirst();
+	CRefString* pARefStr = NULL;
+	while (posKB != NULL)
+	{
+		pARefStr = posKB->GetData();
+		posKB = posKB->GetNext();
+		wxASSERT(pARefStr != NULL);
+
+		// does it match? (The second subtest is redundant, but is safety-first)
+		if (pARefStr->m_translation == newText && pARefStr->GetDeletedFlag() == TRUE)
+		{	
+			// we've matched a deleted entry, so set the flag and exit the loop
+			bUndeleting = TRUE;
+			break;
+		}
+	}
+	if (bUndeleting) // pARefStr is the CRefString instance we are undeleting here
+	{
+		pARefStr->SetDeletedFlag(FALSE);
+		pARefStr->m_refCount = 1;
+		wxString aTimestamp = GetDateTimeNow(); // do this way, so all these are same timestamp
+		(pARefStr->GetRefStringMetadata())->SetCreationDateTime(aTimestamp);
+		wxString strEmpty = _T("");
+		(pARefStr->GetRefStringMetadata())->SetDeletedDateTime(strEmpty);
+		(pARefStr->GetRefStringMetadata())->SetModifiedDateTime(strEmpty);
+		// in the SetWho() call, param bool bOriginatedFromTheWeb is default FALSE
+		(pARefStr->GetRefStringMetadata())->SetWhoCreated(SetWho());
+
+		// Make the original, i.e. pCurRefString, become a pseudo-deleted KB entry
+		pCurRefString->SetDeletedFlag(TRUE);
+		//pCurRefString->m_refCount = 1; // leave it unchanged, if later undeleted set = 1 then
+		(pCurRefString->GetRefStringMetadata())->SetDeletedDateTime(aTimestamp);
+
+#if defined(_KBSERVER)
+		if (pApp->m_bIsKBServerProject &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		{
+			bool bHandledOK = pKB->HandlePseudoDeleteAndUndeleteDeletion(
+					pApp->GetKBTypeForServer(), m_curKey, oldText, newText);
+
+			// I've not yet decided what to do with the return value, at present we'll
+			// just ignore it even if FALSE (an internally generated message would have
+			// been seen anyway in that event)
+			bHandledOK = bHandledOK; // avoid compiler warning
+		}
+#endif
+        // Now get the visible listbox contents to comply with what we've done. nFound is
+        // still valid, it's the index for the list entry we need to remove; its clientData
+        // pointer which is a ptr to the CRefString instance owning the translation is not
+        // to be deleted however, since it must stay in the pCurTgtUnit; and it won't be
+        // deleted if the control doesn't own it, which it doesn't
+        m_pListBoxExistingTranslations->Delete(nFound);
+
+		// The undeleted translation string now needs to be made visible, and the client
+		// data set to the ptr to that CRefString instance; we'll use nFound again, and
+		// insert at that location if possible
+		size_t countItems = m_pListBoxExistingTranslations->GetCount();
+		if ((size_t)nFound > countItems)
+		{
+			nFound = countItems; // ensure no bounds error
+		}
+		m_pListBoxExistingTranslations->Insert(newText,(unsigned int)nFound,(void*)pARefStr);
+
+		// re-find the index for the newly undeleted entry in the list, select it and set
+		// it's m_refCount to 1
+		int nLocation = pApp->FindListBoxItem(m_pListBoxExistingTranslations, newText,
+															caseSensitive, exactString);
+		m_pListBoxExistingTranslations->SetSelection(nLocation,TRUE);
+		m_refCount = 1;
+
+		// update the dialog page to agree with what we've done
+		m_refCountStr = _T("1");
+		m_pEditRefCount->ChangeValue(m_refCountStr);
+		m_pEditOrAddTranslationBox->ChangeValue(newText);
+
+		UpdateButtons();
+		pApp->GetDocument()->Modify(TRUE);
+		return;
+	}
+	// If control gets to here, we didn't match a pseudo-deleted translation and have to
+	// undelete it and then return, so continue on - the newText is unique in this
+	// pCurTgtUnit, and so the pre-January2013 code which follows here still applies
 
     // BEW changed 24Sep12, to not modify "in place", but rather to clone a copy, the copy
     // then gets the modified datetime, and the new adaptation (or gloss) text, and is
@@ -543,11 +676,11 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	pEditedRefString->GetRefStringMetadata()->SetModifiedDateTime(nowStr);
 	pEditedRefString->GetRefStringMetadata()->SetWhoCreated(SetWho());
 
-	// The CTargetUnit which stores pCurRefString may have some "deleted" (and therefore
-	// unshown in the dialog's page) CRefString instances preceding the pCurRefString one,
-	// and so the nSel index won't necessarily be the right value for where pCurRefString
-	// is located in the pCurTgtUnit's list. So Find() the appropriate index - search for
-	// the pCurRefString ptr value.
+    // The CTargetUnit which stores pCurRefString may have some "deleted" (and therefore
+    // unshown in the dialog's page) CRefString instances which are preceding the
+    // pCurRefString one, and so the nSel index won't necessarily be the right value for
+    // where pCurRefString is located in the pCurTgtUnit's list. So Find() the appropriate
+    // index - search for the pCurRefString ptr value.
 	int actualIndex = pCurTgtUnit->m_pTranslations->IndexOf(pCurRefString);
 	wxASSERT(actualIndex != wxNOT_FOUND);
 
@@ -612,53 +745,12 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	m_pEditRefCount->ChangeValue(m_refCountStr);
 	m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
 
-/*  retain legacy code temporarily -- for about a year from Sept 2012
-	// set the new form of the adaptation (or gloss) into the m_translation member
-	// of pCurRefString
-	pCurRefString->m_translation = newText; // could be an empty string
-	pCurRefString->m_refCount = 1; // give it a minimal legal ref count value
-
-	// BEW 25Jun10, additions for kbVersion 2 specifically (two lines of code added)
-	pCurRefString->GetRefStringMetadata()->SetModifiedDateTime(GetDateTimeNow());
-	pCurRefString->GetRefStringMetadata()->SetWhoCreated(SetWho());
-
-	// set m_edTransStr to the new adaptation (or gloss) - this will be used below
-	// for updating the contents of m_pEditOrAddTranslationBox wxTextCtrl so that the
-	// control value will persist
-	m_edTransStr = newText;
-
-	// handle an empty adaptation (or gloss), so that the list will have something visible
-	if (newText.IsEmpty())
-		newText = s; // cause list box to show "<no adaptation>"
-	m_pListBoxExistingTranslations->Insert(newText,nSel);
-
-	// find the original entry before which we just inserted the edited one, so as to
-	// delete it from the list
-	int nOldLoc = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, oldText,
-														caseSensitive, exactString);
-	wxASSERT(nOldLoc != wxNOT_FOUND); // -1
-	m_pListBoxExistingTranslations->Delete(nOldLoc);
-
-	// re-find the index for the newly edited entry in the list, select it and set it's
-	// clientData member in the relevant wxListBox's node, and set it's m_refCount to 1
-	int nLocation = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, newText,
-														caseSensitive, exactString);
-	m_pListBoxExistingTranslations->SetSelection(nLocation,TRUE);
-	m_pListBoxExistingTranslations->SetClientData(nLocation,pCurRefString);
-	m_refCount = 1;
-
-	// update the dialog page to agree with what we've done
-	m_refCountStr = _T("1");
-	m_pEditRefCount->ChangeValue(m_refCountStr);
-	m_pEditOrAddTranslationBox->ChangeValue(m_edTransStr);
-*/
-
 	// make the state of the various buttons etc in the page agree with the new state
 	UpdateButtons();
 
 	// we'll also make the doc dirty to ensure that the File > Save is enabled, and the
 	// save button on the toolbar is also enabled
-	gpApp->GetDocument()->Modify(TRUE);
+	pApp->GetDocument()->Modify(TRUE);
 }
 
 // BEW 25Jun10, changes needed for support of kbVersion 2
@@ -1105,6 +1197,11 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+#if defined(_DEBUG) && defined(DUALS_BUG)
+	wxLogDebug(_T("\n OnButtonRemove(): The item text: %s"), str.c_str()); // want a blank line to separate groups
+#endif
+
+
 	// find the corresponding CRefString instance in the knowledge base, and set the
 	// nPreviousReferences variable for use in the message box; if user hits Yes
 	// then go ahead and do the removals
@@ -1120,6 +1217,12 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pos != NULL); // it must be there!
 	CRefString* pRefString = (CRefString*)pos->GetData();
 	wxASSERT(pRefString == pTheRefStr); // verify we got it
+
+#if defined(_DEBUG) && defined(DUALS_BUG)
+	wxString flag = pRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
+	wxLogDebug(_T("OnButtonRemove(): found pRefString with m_translation = %s  m_bDeleted = %s"),
+		pRefString->m_translation.c_str(), flag.c_str());		
+#endif
 
     // do legacy checks that we have the right reference string instance; we must allow for
     // equality of two empty strings to be considered to evaluate to TRUE (these should not
@@ -1184,6 +1287,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_refCountStr << m_refCount;
 		m_edTransStr = m_pListBoxExistingTranslations->GetString(nNewSel);
 		m_pListBoxExistingTranslations->SetSelection(nNewSel);
+
+#if defined(_DEBUG) && defined(DUALS_BUG)
+		wxString flag = pCurRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
+		wxLogDebug(_T("OnButtonRemove(): AFTER removal, remainder's top pCurRefString has m_translation = %s  m_bDeleted = %s"),
+			pCurRefString->m_translation.c_str(), flag.c_str());	
+#endif
+
 	}
 	else
 	{
@@ -1223,10 +1333,20 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
 	pRefString->m_refCount = 0;
 
+#if defined(_DEBUG) && defined(DUALS_BUG)
+	flag = pRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
+	wxLogDebug(_T("OnButtonRemove(): KB update section, just deleted pRefString with m_translation = %s  m_bDeleted = %s"),
+		pRefString->m_translation.c_str(), flag.c_str());	
+#endif
+
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
 	int numNotDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 
-    // We'll also need the index of the source word/phrase selected in the keys list box.
+ #if defined(_DEBUG) && defined(DUALS_BUG)
+	wxLogDebug(_T("OnButtonRemove(): KB update section, number of non-deleted ones remaining = %d   and function ends."),
+		numNotDeleted );	
+#endif
+   // We'll also need the index of the source word/phrase selected in the keys list box.
     // If it turns out that we have just deleted all of a source word/phrase's
     // translations, we therefore would need to also delete the source word/phrase from
     // its list box (but the owning CTargetUnit instance must remain in the map); but if
@@ -2086,6 +2206,11 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		pCurTgtUnit = 0; // no valid pointer set
 	}
 
+#if defined(_DEBUG) && defined(DUALS_BUG)
+		bool bDoAbaotem = FALSE;
+		int counter = 0;
+#endif
+
 	// select the first string in the keys listbox by default, if possible; but if
 	// m_TheSelectedKey has content, then try to make the selection default
 	// to m_TheSelectedKey instead, for rapid access to the desired entry.
@@ -2096,7 +2221,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		// check out if we have a desired key to be accessed first
 		if (!m_TheSelectedKey.IsEmpty())
 		{
-            // user wants a certain key selected on entry to the editor, try set it up for
+           // user wants a certain key selected on entry to the editor, try set it up for
             // him If successful this will change the initial selection passed in the 3rd
             // parameter
 			//
@@ -2148,6 +2273,20 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		}
 		m_curKey = m_pListBoxKeys->GetStringSelection(); // set m_curKey
 
+#if defined(_DEBUG) && defined(DUALS_BUG)
+		if (m_curKey == _T("abaotem"))
+		{
+			bDoAbaotem = TRUE;
+			counter = 0;
+			wxLogDebug(_T("\n")); // want a blank line to separate groups
+		}
+		else
+		{
+			bDoAbaotem = FALSE;
+			counter = 0;
+		}
+#endif
+		
 		// we're not using validators here so fill the textbox, but only if m_srcKeyStr
 		// is different from the current contents (avoids a spurious system beep)
 		// Also, instead of calling SetValue() we use ChangeValue() here to avoid spurious calling
@@ -2210,6 +2349,18 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		while (pos != NULL)
 		{
 			pCurRefString = (CRefString*)pos->GetData();
+			
+#if defined(_DEBUG) && defined(DUALS_BUG)
+			if (bDoAbaotem)
+			{
+				counter++;
+				wxString flag = pCurRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");
+				wxLogDebug(_T("LoadDataForPage(): counter = %d  countNonDeleted = %d  m_translation = %s  m_bDeleted = %s"),
+					counter, countNonDeleted,
+					pCurRefString->m_translation.c_str(), flag.c_str());
+			}
+#endif
+			
 			pos = pos->GetNext();
 			// only put into the list CRefString instances which are not marked as deleted
 			if (!pCurRefString->GetDeletedFlag())

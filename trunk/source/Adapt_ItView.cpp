@@ -12753,7 +12753,9 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	    // the end of the selection or at its start, depending on how user dragged; and that
 	    // results in an empty string going to the clipboard. Cut is similarly damaged.
 	    // But CTRL+C and CTRL+V appear to work correctly. There's no workaround except to
-	    // refrain from using Unity interface in Precise Pangolin.
+		// refrain from using Unity interface in Precise Pangolin. (BEW 24Jan13, the
+		// problem goes away if the Unity 'global menu' feature is uninstalled - I did so;
+		// or it can be disabled on a per-app basis, but this is too tricky for me to bother.) 
         wxTextCtrl* pEdit2 = pApp->m_pTargetBox;
         if (pEdit2 == pWnd)
         {
