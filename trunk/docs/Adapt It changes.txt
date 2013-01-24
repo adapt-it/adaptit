@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.4.0 release 9 January 2013
+Version 6.4.0 release 25 January 2013
 ----------------------------------------------
 
 *** WARNING*** Known Issue for Linux Unity users
