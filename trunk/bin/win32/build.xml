@@ -174,8 +174,8 @@
   - compile_msi target
   - Builds the AI msi installers (ANSI and Unicode).
   -->
-  <target name="compile_msi" depends="compile_unicode_release"
-        description="compile the msi installers" >
+  <target name="compile_msi_unicode" depends="compile_unicode_release"
+        description="compile the unicode msi installer" >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build the unicode release msi installer -->
@@ -185,18 +185,30 @@
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.vdproj" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.wixproj" />
 		<arg value="/target:rebuild" />
-		<arg value="/p:Configuration=Release" />
+		<arg value="/p:Configuration=Unicode Release" />
     </exec>
+  </target>
+  
+  <!-- 
+  - compile_msi target
+  - Builds the AI msi installers (ANSI and Unicode).
+  -->
+  <target name="compile_msi_ansi" depends="compile_release"
+        description="compile the ansi msi installer" >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build the regular (ANSI) msi installer -->
     <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="29"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
+		<env key="WXVER" value="28"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
+		<env key="WXVER_VS05" value="28"/>
+		<env key="WXWIN_VS05" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.vdproj" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixproj" />
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Release" />
     </exec>
