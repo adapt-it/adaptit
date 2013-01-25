@@ -51,6 +51,7 @@ class CTargetUnit;
 class CRefStringMetadata;
 class CRefString;
 class CBString;
+class CKB;
 //class CAdapt_ItApp;
 
 enum DeleteOrUndeleteEnum
@@ -125,6 +126,7 @@ public:
 	void			UpdateLastSyncTimestamp();
 	void			EnableKBSharing(bool bEnable);
 	bool			IsKBSharingEnabled();
+	CKB*			GetKB(int whichType); // whichType is 1 for adapting KB, 2 for glossing KB
 
 protected:
 
@@ -149,6 +151,7 @@ protected:
 
 private:
 	// class variables
+	CKB*		m_pKB; // whichever of the m_pKB versus m_pGlossingKB this instance is associated with
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)
@@ -176,6 +179,10 @@ private:
 
 	// public getters for the private member variables above
 public:
+	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
+	// and stored there for the session (it only changes if the project changes and even
+	// then only if a different kb server was used for the other project, which would be
+	// unlikely)
 	wxString	GetKBServerURL();
 	wxString	GetKBServerUsername();
 	wxString	GetKBServerPassword();
@@ -188,10 +195,11 @@ public:
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
-	// Getting the kb server password is done in CMainFrame::GetKBSvrPasswordFromUser(),
-	// and stored there for the session (it only changes if the project changes and even
-	// then only if a different kb server was used for the other project, which would be
-	// unlikely)
+
+	// Functions we'll want to be able to call programmatically... (button handler
+	// versions of these will be in KBSharing.cpp)
+	void		DoChangedSince();
+	void		DoGetAll();
 
     // Private storage arrays (they are wxArrayString, but deleted flag and id will use
     // wxArrayInt) for entries data returned from the server, and for uploads too),

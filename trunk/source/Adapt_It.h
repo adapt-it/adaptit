@@ -2718,7 +2718,7 @@ public:
 	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
 	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
 
-#if defined (_KBSERVER)
+#if defined(_KBSERVER)
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of

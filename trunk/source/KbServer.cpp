@@ -41,6 +41,8 @@ using namespace std;
 #include "Adapt_It.h"
 #include "TargetUnit.h"
 #include "KB.h"
+#include "Pile.h"
+#include "SourcePhrase.h"
 //#include "AdaptitConstants.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
@@ -105,20 +107,43 @@ KbServer::KbServer()
 	m_kbTypeForServer = 1;
 	*/
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
-
+	// using the gbIsGlossing flag is the only way to set m_pKB reliably in the default constructor
+	if (gbIsGlossing)
+		m_pKB = GetKB(2);
+	else
+		m_pKB = GetKB(2);
 }
 
 KbServer::KbServer(int whichType)
 {
+	// This is the constructor we should always use, explicitly at least
 	wxASSERT(whichType == 1 || whichType == 2);
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+	m_pKB = GetKB(whichType);
 }
 
 
 KbServer::~KbServer()
 {
 	; // nothing to do as yet
+}
+
+CKB* KbServer::GetKB(int whichType)
+{
+	if (whichType == 1)
+	{
+		// the adapting KB is wanted
+		wxASSERT(m_pApp->m_bKBReady && m_pApp->m_pKB != NULL);
+		return m_pApp->m_pKB;
+	}
+	else
+	{
+		// get the glossing KB
+		wxASSERT(m_pApp->m_bGlossingKBReady && m_pApp->m_pGlossingKB != NULL);
+		return m_pApp->m_pGlossingKB;
+
+	}
 }
 
 void KbServer::ErasePassword()
@@ -834,6 +859,16 @@ int KbServer::ChangedSince(wxString timeStamp)
 		ClearAllPrivateStorageArrays(); // always must start off empty
 
 		wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str());
+
+		// no new entries might exist yet and so str_CURLbuffer could now be empty, if so,
+		// just return 0
+		if (myList.IsEmpty())
+		{
+			// nothing to do, but it's not an error state
+			wxLogDebug(_T("ChangedSince() did not return any entries, for data added to kbserver since %s"),
+				timeStamp.c_str());
+			return 0;
+		}
 		wxJSONValue jsonval;
 		wxJSONReader reader;
 		int numErrors = reader.Parse(myList, &jsonval);
@@ -853,11 +888,6 @@ int KbServer::ChangedSince(wxString timeStamp)
 			wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
 				listSize, timeStamp.c_str());
 		}
-		else
-		{
-			wxLogDebug(_T("ChangedSince() did not return any entries, for data added to kbserver since %s"),
-				timeStamp.c_str());
-		}
 #endif
 		int index;
 		for (index = 0; index < listSize; index++)
@@ -871,7 +901,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 			m_arrSource.Add(jsonval[index][_T("source")].AsString());
 			m_arrTarget.Add(jsonval[index][_T("target")].AsString());
 			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
-			//m_arrID.Add(jsonval[index][_T("id")].AsInt());
+			//m_arrID.Add(jsonval[index][_T("id")].AsLong());
 			m_arrUsername.Add(jsonval[index][_T("user")].AsString());
 			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 #if defined (_DEBUG)
@@ -916,29 +946,62 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	wxASSERT(pKB != NULL);
 	int rv = 0; // rv is "return value", initialize it
 	wxString timestamp;
+	wxString curKey;
 	switch (action)
 	{
 	case getForOneKeyOnly:
-
-
-
+        // I'll populate this case with minimal required code, but I'm not planning we ever
+        // call this case this while the user is interactively adapting or glossing,
+        // because it will slow the GUI response abysmally. Instead, we'll rely on the
+        // occasional ChangedSince() calls getting the local KB populated more quickly.
+		curKey = (m_pApp->m_pActivePile->GetSrcPhrase())->m_key;
+		// *** NOTE *** in the above call, I've got no support for AutoCapitalization; if
+		// that was wanted, more code would be needed here - or alternatively, use the
+		// adjusted key from within AutoCapsLookup() which in turn would require that we
+		// modify this function to pass in the adjusted string for curKey via 
+		// DownloadToKB's signature
+		rv = LookupEntriesForSourcePhrase(curKey);
+		if (rv != 0)
+		{
+			ClearAllPrivateStorageArrays(); // don't risk passing on possibly bogus values
+		}
+		// If the lookup succeeded, the private arrays will have been populated with the
+		// one or more translation, or gloss, possibilities for this one source text key.
+		// -- So someone would need to write a function to get that info to where it needs
+		// to go -- presumably into an appropriate place in CAdapt_ItApp::AutoCapsLookup(),
+		// and call it after DownloadToKB() has returned
 		break;
 	case changedSince:
 		// get the last sync timestamp value
-
-
+		timestamp = GetKBServerLastSync();
+#if defined(_DEBUG)
+		wxLogDebug(_T("Doing ChangedSince() with lastsync timestamp value = %s"), timestamp.c_str());
+#endif
+		rv = ChangedSince(timestamp);
+		// if there was no error, update the m_kbServerLastSync value, and export it to
+		// the persistent file in the project folder
+		if (rv == 0)
+		{
+			UpdateLastSyncTimestamp();
+		}
 		break;
 	case getAll:
 		timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
 		rv = ChangedSince(timestamp);
+		// if there was no error, update the m_kbServerLastSync value, and export it to
+		// the persistent file in the project folder
+		if (rv == 0)
+		{
+			UpdateLastSyncTimestamp();
+		}
 		break;
 	}
 	if (rv != 0)
 	{
 		// there was a cURL error, display it
 		wxString msg;
-		msg = msg.Format(_T("DownloadToKB(): error code returned: %d  Nothing was downloaded, application continues."), rv);
-		wxMessageBox(msg, _T("DownloadToKB() failed"), wxICON_ERROR | wxOK);
+		msg = msg.Format(_("Downloading to the knowledge base: an error code ( %d ) was returned.  Nothing was downloaded, application continues."), rv);
+		wxMessageBox(msg, _("Downloading to the knowledge base failed"), wxICON_ERROR | wxOK);
 		m_pApp->LogUserAction(msg);
 		return;
 	}
@@ -948,7 +1011,16 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	// quick for it to be worth the bother). Having the progress indicator will give the
 	// user feedback for what otherwise might be an inexplicable delay in responsiveness
 	// in typing into the phrase box
-	pKB->StoreEntriesFromKbServer(this);
+	if (action == changedSince || action == getAll)
+	{
+		// the lookup case needs, if we ever support it, which I doubt, to call this
+		// function and if the lookup succeeds, to get the one or more adaptation or gloss
+		// entries and the values of the deleted flag, from the private arrays using their
+		// accessors directly (ie. GetTargetArray(), GetDeletedArray()) rather than
+		// calling StoreEntriesFromKbServer() here, because the chosen value would make
+		// its way into the KB when the phrase box moves on - so that's why we exclude
+		pKB->StoreEntriesFromKbServer(this);
+	}
 }
 
 // Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
@@ -1216,6 +1288,65 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 	}
 	curl_easy_cleanup(curl);
 	return 0;
+}
+
+void KbServer::DoChangedSince()
+{
+	int rv = 0; // rv is "return value", initialize it
+	wxString timestamp;
+	// get the last sync timestamp value
+	timestamp = GetKBServerLastSync();
+#if defined(_DEBUG)
+	wxLogDebug(_T("DoChangedSince() with lastsync timestamp value = %s"), timestamp.c_str());
+#endif
+	rv = ChangedSince(timestamp);
+	// if there was no error, update the m_kbServerLastSync value, and export it to
+	// the persistent file in the project folder
+	if (rv == 0)
+	{
+		UpdateLastSyncTimestamp();
+	}
+	else
+	{
+		// there was a cURL error, display it
+		wxString msg;
+		msg = msg.Format(_("Downloading to the knowledge base: an error code ( %d ) was returned.  Nothing was downloaded, application continues."), rv);
+		wxMessageBox(msg, _("Downloading to the knowledge base failed"), wxICON_ERROR | wxOK);
+		m_pApp->LogUserAction(msg);
+		return;
+	}
+	// If control gets to here, we are ready to merge what was returning into the local KB
+	// or GlossingKB, as the case may be
+	m_pKB->StoreEntriesFromKbServer(this);
+}
+
+void KbServer::DoGetAll()
+{
+	int rv = 0; // rv is "return value", initialize it
+	// get the last sync timestamp value
+	wxString timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!;
+#if defined(_DEBUG)
+	wxLogDebug(_T("DoGetAll() with lastsync timestamp value = %s"), timestamp.c_str());
+#endif
+	rv = ChangedSince(timestamp);
+	// if there was no error, update the m_kbServerLastSync value, and export it to
+	// the persistent file in the project folder
+	if (rv == 0)
+	{
+		UpdateLastSyncTimestamp();
+	}
+	else
+	{
+		// there was a cURL error, display it
+		wxString msg;
+		msg = msg.Format(_("Downloading to the knowledge base: an error code ( %d ) was returned.  Nothing was downloaded, application continues."), rv);
+		wxMessageBox(msg, _("Downloading to the knowledge base failed"), wxICON_ERROR | wxOK);
+		m_pApp->LogUserAction(msg);
+		return;
+	}
+	// If control gets to here, we are ready to merge what was returning into the local KB
+	// or GlossingKB, as the case may be
+	m_pKB->StoreEntriesFromKbServer(this);
 }
 
 

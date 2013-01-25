@@ -55,6 +55,7 @@ BEGIN_EVENT_TABLE(KBSharing, AIModalDialog)
 	EVT_BUTTON(wxID_OK, KBSharing::OnOK)
 	EVT_BUTTON(wxID_CANCEL, KBSharing::OnCancel)
 	EVT_BUTTON(ID_GET_ALL, KBSharing::OnBtnGetAll)
+	EVT_BUTTON(ID_GET_RECENT, KBSharing::OnBtnChangedSince)
 
 END_EVENT_TABLE()
 
@@ -117,7 +118,7 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 		{
 			// The KbServer[1] instantiation for glossing entries either failed or has not yet been done,
 			// tell the developer
-			wxString msg = _T("OnBtnGetAll(): KbServer[1] is NULL, soinstantiation for glossing entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
+			wxString msg = _T("OnBtnGetAll(): KbServer[1] is NULL, so instantiation for glossing entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
 			wxMessageBox(msg, _T("Error, no glossing KbServer instance available"), wxICON_ERROR | wxOK);
 			m_pApp->LogUserAction(msg);
 		}
@@ -145,5 +146,50 @@ void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
 	EndModal(wxID_OK);
 }
 
+void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
+{
+	KbServer* pKbServer;
+	CKB* pKB = NULL; // it will be set either to m_pKB (the adapting KB) or m_pGlossingKB
+	if (gbIsGlossing)
+	{
+		// work with the glossing entries only
+		pKbServer = m_pApp->GetKbServer(2); // 2 indicates we deal with glosses
+		// which CKB instance is now also determinate
+		pKB = m_pApp->m_pGlossingKB;
+		if (pKbServer != NULL)
+		{
+			pKbServer->DownloadToKB(pKB, changedSince);
+		}
+		else
+		{
+			// The KbServer[1] instantiation for glossing entries either failed or has not yet been done,
+			// tell the developer
+			wxString msg = _T("OnBtnChangedSince(): KbServer[1] is NULL, so instantiation for glossing entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
+			wxMessageBox(msg, _T("Error, no glossing KbServer instance available"), wxICON_ERROR | wxOK);
+			m_pApp->LogUserAction(msg);
+		}
+	}
+	else
+	{
+		// work with adaptations entries only
+		pKbServer = m_pApp->GetKbServer(1); // 1 indicates we deal with adaptations
+		// which CKB instance is now also determinate
+		pKB = m_pApp->m_pKB; // the adaptations KB
+		if (pKbServer != NULL)
+		{
+			pKbServer->DownloadToKB(pKB, changedSince);
+		}
+		else
+		{
+			// The KbServer[0] instantiation for glossing entries either failed or has not yet been done,
+			// tell the developer
+			wxString msg = _T("OnBtnChangedSince(): The KbServer[0] is NULL, so instantiation for adapting entries either failed or has not yet been done.\nApp continues, but nothing was downloaded.");
+			wxMessageBox(msg, _T("Error, no adapting KbServer instance available"), wxICON_ERROR | wxOK);
+			m_pApp->LogUserAction(msg);
+		}
+	}
+	// make the dialog close
+	EndModal(wxID_OK);
+}
 
 #endif
