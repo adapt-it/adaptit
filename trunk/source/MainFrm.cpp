@@ -86,6 +86,7 @@
 #include "StatusBar.h" // EDB added 2Oct12
 #include "KBSharing.h" // BEW added 14Jan13
 #include "KBSharingSetupDlg.h" // BEW added 15Jan13
+#include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -4119,6 +4120,44 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
         pApp->SetAdjustScrollPosFlag(FALSE); // restore default value
     }
 #endif
+
+
+// TODO -- code for cached new kbserver entries to be sent to remote server
+	KbServer* pKbSvr = NULL;
+	if (gpApp->m_bIsKBServerProject)
+	{
+		if (gbIsGlossing)
+		{
+			pKbSvr = gpApp->GetKbServer(2); // glossing
+		}
+		else
+		{
+			pKbSvr = gpApp->GetKbServer(1); // adapting
+		}
+		if (pKbSvr->IsKBSharingEnabled() && pKbSvr->CacheHasContent())
+		{
+			int deletedFlag;
+			wxString sourceStr;
+			wxString translationStr;
+			pKbSvr->GetLastEntryData(sourceStr, translationStr, deletedFlag);
+			bool bDeleted = deletedFlag == 1 ? TRUE : FALSE;
+#if defined(_DEBUG)
+			wxArrayInt* pArrInt = pKbSvr->GetCacheDeletedArray();
+			size_t theCount = pArrInt->GetCount();
+			wxLogDebug(_T("                       OnIdle: count=%d  src [ %s ] tgt [ %s ] flag %d"),
+				theCount, sourceStr.c_str(), translationStr.c_str(), deletedFlag);
+#endif
+			int returnValue = pKbSvr->CreateEntry(sourceStr, translationStr, bDeleted);
+#if defined(_DEBUG)
+			wxLogDebug(_T("OnIdle: CreateEntry returned: %d     <<-- If 0 then NO ERROR"), returnValue);
+#endif
+			if (returnValue == 0)
+			{
+				// the data transmission succeeded
+				pKbSvr->RemoveLastFromCacheArrays();
+			}
+		}
+	}
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)

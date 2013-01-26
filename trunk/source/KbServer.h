@@ -109,19 +109,7 @@ public:
 									     // in lastsync.txt file & returns it as wxString
 	bool	  ExportLastSyncTimestamp(); // exports it to lastsync.txt file
 									     // as an ascii string literal
-	// accessors for the private arrays
-	//wxArrayInt*		GetIDsArray();
-	Array_of_long*	GetIDsArray();
-	wxArrayInt*		GetDeletedArray();
-	wxArrayString*	GetTimestampArray();
-	wxArrayString*	GetSourceArray();
-	wxArrayString*	GetTargetArray();
-	wxArrayString*	GetUsernameArray();
-
 	// public helpers
-	void			ClearAllPrivateStorageArrays();
-	void			ClearOneIntArray(wxArrayInt* pArray);
-	void			ClearOneStringArray(wxArrayString* pArray);
 	void			ClearStrCURLbuffer();
 	void			UpdateLastSyncTimestamp();
 	void			EnableKBSharing(bool bEnable);
@@ -152,6 +140,7 @@ protected:
 private:
 	// class variables
 	CKB*		m_pKB; // whichever of the m_pKB versus m_pGlossingKB this instance is associated with
+	bool			m_bUseNewEntryCaching; // eventually set this via the GUI
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)
@@ -195,6 +184,8 @@ public:
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
+	bool		IsCachingON();
+	void		EnableCaching(bool bEnable);
 
 	// Functions we'll want to be able to call programmatically... (button handler
 	// versions of these will be in KBSharing.cpp)
@@ -211,7 +202,6 @@ public:
 	// m_kbTargetLanguageCode, and m_kbServerType, respectively.
 private:
 	CAdapt_ItApp*   m_pApp;
-	//wxArrayInt		m_arrID;
 	Array_of_long   m_arrID;
 	wxArrayInt		m_arrDeleted;
 	wxArrayString	m_arrTimestamp;
@@ -219,6 +209,37 @@ private:
 	wxArrayString	m_arrTarget;
 	wxArrayString	m_arrUsername;
 
+	// arrays for caching entries for periodic uploading, only 3 are needed
+	wxArrayInt		m_arrCacheDeleted;
+	wxArrayString	m_arrCacheSource;
+	wxArrayString	m_arrCacheTarget;
+
+public:
+
+	// public accessors for the private arrays (these are for general uploading and/downloading)
+	Array_of_long*	GetIDsArray();
+	wxArrayInt*		GetDeletedArray();
+	wxArrayString*	GetTimestampArray();
+	wxArrayString*	GetSourceArray();
+	wxArrayString*	GetTargetArray();
+	wxArrayString*	GetUsernameArray();
+	void			ClearAllPrivateStorageArrays();
+	//void			ClearOneIntArray(wxArrayInt* pArray); // so far unused
+	//void			ClearOneStringArray(wxArrayString* pArray); // so far unused
+
+	// public accessors for the private caching arrays (these are for supporting
+	// responsiveness of the user's adapting process, to 'hide' network traffic in idle
+	// events, and to do small bulk uploads i.e. one round trip with many entries as
+	// payload)
+	wxArrayInt*		GetCacheDeletedArray();
+	wxArrayString*	GetCacheSourceArray();
+	wxArrayString*	GetCacheTargetArray();
+	void			ClearAllPrivateCacheArrays();
+	void			RemoveLastFromCacheArrays(); // removes, in parallel, the last entry set
+	bool			CacheHasContent();
+	void			GetLastEntryData(wxString& sourceStr, wxString& translationStr, int& deletedFlag);
+
+private:
 	// boolean for enabling, and temporarily disabling, KB sharing. Temporary disabling is
 	// potentially needed for the following scenario, for example. If downloading all entries in kbserver for the
 	// current project, and syncing the local KB using that data, calls to StoreText()

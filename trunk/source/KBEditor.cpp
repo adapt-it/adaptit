@@ -797,7 +797,10 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
+			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
+
+			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr,
+									newText, pKbSvr->IsCachingON());
 
 			// I've not yet decided what to do with the return value, at present we'll
 			// just ignore it even if FALSE (an internally generated message would have
@@ -916,7 +919,10 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
+			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
+
+			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), 
+								m_srcKeyStr, newText, pKbSvr->IsCachingON());
 
 			// I've not yet decided what to do with the return value, at present we'll
 			// just ignore it even if FALSE (an internally generated message would have

@@ -109,9 +109,14 @@ KbServer::KbServer()
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	// using the gbIsGlossing flag is the only way to set m_pKB reliably in the default constructor
 	if (gbIsGlossing)
+	{
 		m_pKB = GetKB(2);
+	}
 	else
-		m_pKB = GetKB(2);
+	{
+		m_pKB = GetKB(1);
+	}
+	this->EnableCaching(TRUE); // change, when testing, to turn on or off new entry caching
 }
 
 KbServer::KbServer(int whichType)
@@ -121,7 +126,22 @@ KbServer::KbServer(int whichType)
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = GetKB(whichType);
+	this->EnableCaching(TRUE); // change, when testing, to turn on or off new entry caching
 }
+
+bool KbServer::IsCachingON()
+{
+	return m_bUseNewEntryCaching;
+}
+
+void KbServer::EnableCaching(bool bEnable)
+{
+	if (bEnable)
+		m_bUseNewEntryCaching = TRUE;
+	else
+		m_bUseNewEntryCaching = FALSE;
+}
+
 
 
 KbServer::~KbServer()
@@ -457,11 +477,11 @@ wxString KbServer::ImportLastSyncTimestamp()
 		wxString msg;
 		if (GetKBServerType() == 1)
 		{
-            msg = _T("wxFileExists()called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_adaptations.txt, does not exist");
+            msg = _T("wxFileExists() called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_adaptations.txt, does not exist");
 		}
 		else
 		{
-            msg = _T("wxFileExists()called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, does not exist");
+            msg = _T("wxFileExists() called in ImportLastSyncTimestamp(): The wxTextFile, taking path to lastsync_glosses.txt, does not exist");
 		}
 		m_pApp->LogUserAction(msg);
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
@@ -475,7 +495,7 @@ wxString KbServer::ImportLastSyncTimestamp()
 	if (!bSuccess)
 	{
 		// warn developer that the wxTextFile could not be opened
-		wxString msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The wxTextFile could not be opened");
+		wxString msg = _T("GetTextFileOpened() called in ImportLastSyncTimestamp(): The wxTextFile could not be opened");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return dateTimeStr; // it's empty still
 	}
@@ -486,12 +506,12 @@ wxString KbServer::ImportLastSyncTimestamp()
 		wxString msg;
 		if (GetKBServerType() == 1)
 		{
-            msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The lastsync_adaptations.txt file is empty");
+            msg = _T("GetTextFileOpened() called in ImportLastSyncTimestamp(): The lastsync_adaptations.txt file is empty");
             m_pApp->LogUserAction(msg);
 		}
 		else
 		{
-            msg = _T("GetTextFileOpened()called in ImportLastSyncTimestamp(): The lastsync_glosses.txt file is empty");
+            msg = _T("GetTextFileOpened( )called in ImportLastSyncTimestamp(): The lastsync_glosses.txt file is empty");
             m_pApp->LogUserAction(msg);
 		}
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
@@ -567,14 +587,19 @@ Array_of_long* KbServer::GetIDsArray()
 	return &m_arrID;
 }
 
-wxArrayInt*	KbServer::GetDeletedArray()
+wxArrayString* KbServer::GetUsernameArray()
 {
-	return &m_arrDeleted;
+	return &m_arrUsername;
 }
 
 wxArrayString* KbServer::GetTimestampArray()
 {
 	return &m_arrTimestamp;
+}
+
+wxArrayInt*	KbServer::GetDeletedArray()
+{
+	return &m_arrDeleted;
 }
 
 wxArrayString* KbServer::GetSourceArray()
@@ -587,9 +612,57 @@ wxArrayString* KbServer::GetTargetArray()
 	return &m_arrTarget;
 }
 
-wxArrayString* KbServer::GetUsernameArray()
+// and those for caching...
+
+wxArrayInt*	KbServer::GetCacheDeletedArray()
 {
-	return &m_arrUsername;
+	return &m_arrCacheDeleted;
+}
+
+wxArrayString* KbServer::GetCacheSourceArray()
+{
+	return &m_arrCacheSource;
+}
+
+wxArrayString* KbServer::GetCacheTargetArray()
+{
+	return &m_arrCacheTarget;
+}
+
+// Remove the last entry from each array, in parralel, if the arraes are not empty
+void KbServer::RemoveLastFromCacheArrays()
+{
+	if (m_arrCacheSource.IsEmpty())
+	{
+		return;
+	}
+	size_t count = m_arrCacheSource.GetCount();
+	wxASSERT(count == m_arrCacheTarget.GetCount() && count == m_arrCacheDeleted.GetCount());
+	m_arrCacheSource.RemoveAt(count - 1);
+	m_arrCacheTarget.RemoveAt(count - 1);
+	m_arrCacheDeleted.RemoveAt(count - 1);
+}
+
+void KbServer::GetLastEntryData(wxString& sourceStr, wxString& translationStr, int& deletedFlag)
+{
+	sourceStr.Empty(); translationStr.Empty(); deletedFlag = 0; // initialization
+	if (m_arrCacheSource.IsEmpty())
+	{
+		return;
+	}
+	size_t count = m_arrCacheSource.GetCount();
+	wxASSERT(count == m_arrCacheTarget.GetCount() && count == m_arrCacheDeleted.GetCount());
+	sourceStr = m_arrCacheSource.Item(count - 1);
+	translationStr = m_arrCacheTarget.Item(count - 1);
+	deletedFlag = m_arrCacheDeleted.Item(count - 1);
+}
+
+bool KbServer::CacheHasContent()
+{
+	if (m_arrCacheSource.IsEmpty())
+		return FALSE;
+	else
+		return TRUE;
 }
 
 // callback function for curl
@@ -931,6 +1004,14 @@ void KbServer::ClearAllPrivateStorageArrays()
 	m_arrTimestamp.clear();
 }
 
+void KbServer::ClearAllPrivateCacheArrays()
+{
+	m_arrCacheDeleted.clear();
+	m_arrCacheSource.clear();
+	m_arrCacheTarget.clear();
+}
+
+/* unused
 void KbServer::ClearOneIntArray(wxArrayInt* pArray)
 {
 	pArray->clear();
@@ -940,7 +1021,7 @@ void KbServer::ClearOneStringArray(wxArrayString* pArray)
 {
 	pArray->clear();
 }
-
+*/
 void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 {
 	wxASSERT(pKB != NULL);
