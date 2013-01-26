@@ -550,14 +550,62 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			pApp->m_bEarlierProjectChosen = FALSE;
 			pApp->m_nActiveSequNum = 0;
 
+            // Note: The WorkFlowProfile (m_nWorkflowProfile) can be copied
+            // over from any previously opened project before doing a < Back
+            // click in the wizard back to the ProjectPage and <New Project>
+            // is selected. Not setting any default value here will allow the
+            // value for m_nWorkflowProfile of the previously opened project to
+            // stand.
+
+            // Note: The FoldersProtectedFromNavigation
+            // (m_foldersProtectedFromNavigatio) can be copied over from any
+            // previously opened project before doing a < Back click in the
+            // wizard back to the ProjectPage and <New Project>
+            // is selected. Not setting any default value here will allow the
+            // value for m_foldersProtectedFromNavigatio of the previously
+            // opened project to stand.
+            
+			// Note: Fonts, Font colors, Punctuation correspondences, Guesser
+			// settings, Backup settings, USFM settings, etc. can all keep any
+			// settings from any previously opened project before doing <New
+			// Project>.
+
 			// set default character case equivalences for a new project
 			pApp->SetDefaultCaseEquivalences();
+
+			// whm 24Jan13 added. A new project should start with all of the
+			// App's m_last...path variables reset to empty strings.
+			// There are 15 of these m_last... paths that are associated with
+			// each project.
+			pApp->SetAllProjectLastPathStringsToEmpty();
+			
+			// whm 26Jan13 added. A new project should start with all of the
+			// App's language name and code variables reset to empty strings.
+			pApp->SetLanguageNamesAndCodesStringsToEmpty();
+
+			// whm 26Jan13 added. A new project should start with all of the
+			// App's collaboration variables reset to new project defaults.
+			pApp->SetCollabSettingsToNewProjDefaults();
 
 			// A new project will not yet have a project config file, so
 			// set the new project's filter markers list to be equal to
 			// pApp->gCurrentFilterMarkers, which, if the program was just started,
 			// was initialized by SetupMarkerStrings in InitInstance.
 			pApp->gProjectFilterMarkersForConfig = pApp->gCurrentFilterMarkers;
+
+			// whm 26Jan13 added. Ensure book mode is OFF and associated
+			// variables set to defaults.
+			pApp->m_bibleBooksFolderPath.Empty();
+			pApp->m_nBookIndex = -1;
+			pApp->m_nLastBookIndex = 39; // Matthew
+			pApp->m_nDefaultBookIndex = 39;
+			pApp->m_bBookMode = FALSE;
+
+			pApp->m_strSilEncConverterName.Empty();
+			pApp->m_bSilConverterDirForward = TRUE;
+			pApp->m_bECConnected = FALSE;
+			pApp->m_eSilConverterNormalizeOutput = 0;
+			pApp->m_bTransliterationMode = FALSE;
 
 			wxString msg = _T("In wizard ProjectPage changing: Creating New Project");
 			pApp->LogUserAction(msg);

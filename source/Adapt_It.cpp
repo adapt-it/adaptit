@@ -15658,7 +15658,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// TODO: check the Unpack process when unpacking a packed file coming from
 	// a different localization.
 	m_adaptionsFolder = _("Adaptations");
-	m_lastSourceInputPath = m_workFolderPath; // don't do alternative custom loc'n here
+	m_lastSourceInputPath = m_workFolderPath; // m_workFolderPath is set to _T("") above - don't do alternative custom loc'n here
 	m_curProjectPath = _T("");
 	m_sourceInputsFolderPath = _T("");
 	m_freeTransOutputsFolderPath = _T("");
@@ -15705,7 +15705,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_lastKbOutputPath = _T("");
 	m_lastKbLiftOutputPath = _T("");
 	m_lastPackedOutputPath = _T("");
-	//m_lastRtfOutputPath = _T("");
 	m_lastInterlinearRTFOutputPath = _T("");
 	m_lastRetransReportPath = _T("");
 	m_lastGlossesOutputPath = _T("");
@@ -15894,63 +15893,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
 
-	// whm added 9Feb11 in support of Paratext collaboration
-	m_bParatextIsInstalled = FALSE;
-	m_bParatextIsInstalled = ParatextIsInstalled();
-	m_bBibleditIsInstalled = FALSE;
-	m_bBibleditIsInstalled = BibleditIsInstalled();
-	m_bParatextIsRunning = FALSE;
-	m_bCollaboratingWithParatext = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
-	m_bCollaboratingWithBibledit = FALSE; // collaboration is OFF unless user administrator has turned it on (stored in basic config file)
-	m_bStartWorkUsingCollaboration = FALSE; // whm added 19Feb12
+	// whm 24Jan13. The following functions set up new project defaults and
+	// should be called in OnInit() and the <New Project> clode block of the ProjectPage
+	// whm 24Jan13 added. A new project should start with all of the
+	// App's m_last...path variables reset to empty strings.
+	// There are 15 of these m_last... paths that are associated with
+	// each project.
+	SetAllProjectLastPathStringsToEmpty();
+	
+	// whm 26Jan13 added. A new project should start with all of the
+	// App's language name and code variables reset to empty strings.
+	SetLanguageNamesAndCodesStringsToEmpty();
 
-	// edb added 7Aug12 for Pathway export support
-	m_bPathwayIsInstalled = PathwayIsInstalled();
-	m_PathwayInstallDirPath = GetPathwayInstallDirPath();
-
-	// whm 4Apr12 modification:
-	// As of version 6.2.1 the App's m_collaborationEditor variable is stored in
-	// the project config file with the other collaboration settings. Therefore
-	// we allow the reading of a project config file to set the string value of
-	// m_collaborationEditor, overriding whatever is set here based solely on what
-	// editor is installed. If more than one editor is installed, the administrator
-	// can select the external Scripture editor of choice in the
-	// SetupEditorCollaboration dialog by choosing the appropriate radio box button.
-	// If Paratext or Bibledit is currently installed we set a default editor name
-	// here, giving Paratext preference if it is installed. We set it here because
-	// when the SetupEditorCollaboration dialog is invoked, no project will be open
-	// and we won't know initially what editor may be preferred for a given AI project
-	// until the administrator selects an AI project at Step 1 in the dialog. This
-	// default assigned here will at least provide something other than %s for the
-	// string substitutions in the dialog's controls when it first appears and before
-	// the administrator selects an existing AI project.
-	//
-	// If neither Paratext nor Bibledit are installed, the m_collaborationEditor is
-	// an empty string. Since m_collaborationEditor can be an empty string, code should
-	// call wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
-	// substitutions.
-	if (m_bParatextIsInstalled)
-	{
-	     m_collaborationEditor = _T("Paratext"); // default editor
-	}
-	else if (m_bBibleditIsInstalled)
-	{
-	     m_collaborationEditor = _T("Bibledit"); // don't localize
-	}
-	m_CollabProjectForSourceInputs = _T("");
-	m_CollabProjectForTargetExports = _T("");
-	m_CollabProjectForFreeTransExports = _T("");
-	m_CollabAIProjectName = _T("");
-	m_CollabBookSelected = _T("");
-	m_bCollabByChapterOnly = TRUE; // collaboration defaults to "Get Chapter Only" selected
-	m_CollabChapterSelected = _T("");
-	m_CollabSourceLangName = _T("");
-	m_CollabTargetLangName = _T("");
-	m_ParatextInstallDirPath.Empty();
-	m_ParatextProjectsDirPath.Empty();
-	m_BibleditProjectsDirPath.Empty();
-	m_BibleditInstallDirPath.Empty();
-	bParatextSharedDLLLoaded = FALSE;
+	// whm 26Jan13 added. A new project should start with all of the
+	// App's collaboration variables reset to new project defaults.
+	SetCollabSettingsToNewProjDefaults();
 
 	// whm Note: Make sure these folder names match those used in the wxDesigner's
 	// AssignLocationsForInputsOutputsFunc() resource function.
@@ -19281,14 +19238,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// set the following before calling basic config files, otherwise these defaults wipe
 	// out config file settings... of these 3, only the first is in the config file
 
-   // BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
-    // a PT or BE collaboration project is set up with a project nominated for receiving
-	// free translations; the second is set if the Adapt It document in a collaboration
-	// session has one or more free translations within it
-	m_bCollaborationExpectsFreeTrans = FALSE;
-	m_bCollaborationDocHasFreeTrans = FALSE;
-	m_bSaveCopySourceFlag_For_Collaboration = FALSE;
-
 	if (!m_bSkipBasicConfigFileCall)
 	{
 		// this call is skipped if the previous call to
@@ -20387,23 +20336,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// actually disables the Turn Collaboration ON radio button and changes its
 	// label to "%s is NOT INSTALLED on this computer. No collaboration is
 	// possible".
-
-	// whm added 9Feb11 for Paratext and Bibledit Collaboration support
-	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
-	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\".
-	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on
-	// a Windows host system.
-	// Note: the GetParatextInstallDirPath() and GetParatextProjectsDirPath() function remove
-	// the Windows \ path separator from the end of the string
-	m_ParatextInstallDirPath = GetParatextInstallDirPath();
-	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
-
-	// GetBibleditInstallDirPath gets the absolute path to the Bibledit projects directory
-	// which on Linux systems is ~/.bibledit/projects.
-	// m_BibleditInstallDirPath will be null if Bibledit is not installed or we are not on
-	// a Linux host system.
-	m_BibleditInstallDirPath = GetBibleditInstallDirPath();
-	m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
 
 	// Note: The code in MakeMenuInitializationsAndPlatformAdjustments() below was originally
 	// called much earlier in OnInit(), but now that we have ConfigureInterfaceForUserProfile()
@@ -30703,6 +30635,125 @@ void CAdapt_ItApp::SetDefaultCaseEquivalences()
 	m_tgtUpperCaseChars = m_srcUpperCaseChars;
 	m_glossLowerCaseChars = m_srcLowerCaseChars;
 	m_glossUpperCaseChars = m_srcUpperCaseChars;
+}
+
+void CAdapt_ItApp::SetAllProjectLastPathStringsToEmpty()
+{
+	m_lastDocPath.Empty();					// AI-ProjectConfiguration.aic file label: LastDocumentPath
+	m_lastSourceInputPath.Empty();			// AI-ProjectConfiguration.aic file label: LastNewDocumentFolder
+	m_lastInterlinearRTFOutputPath.Empty();	// AI-ProjectConfiguration.aic file label: LastInterlinearRTFOutputPath
+	m_lastSourceOutputPath.Empty();			// AI-ProjectConfiguration.aic file label: LastSourceTextExportPath
+	m_lastSourceRTFOutputPath.Empty();		// AI-ProjectConfiguration.aic file label: LastSourceTextRTFExportPath
+	m_lastTargetOutputPath.Empty();			// AI-ProjectConfiguration.aic file label: LastTargetExportPath
+	m_lastTargetRTFOutputPath.Empty();		// AI-ProjectConfiguration.aic file label: LastTargetRTFExportPath
+	m_lastGlossesOutputPath.Empty();		// AI-ProjectConfiguration.aic file label: LastGlossesTextExportPath
+	m_lastGlossesRTFOutputPath.Empty();		// AI-ProjectConfiguration.aic file label: LastGlossesTextRTFExportPath
+	m_lastGlossesRTFOutputPath.Empty();		// AI-ProjectConfiguration.aic file label: LastFreeTransExportPath
+	m_lastFreeTransRTFOutputPath.Empty();	// AI-ProjectConfiguration.aic file label: LastFreeTransRTFExportPath
+	m_lastXhtmlOutputPath.Empty();			// AI-ProjectConfiguration.aic file label: LastXhtmlExportPath
+	m_lastPathwayOutputPath.Empty();		// AI-ProjectConfiguration.aic file label: LastPathwayExportPath
+	m_lastKbOutputPath.Empty();				// AI-ProjectConfiguration.aic file label: LastKBExportPath
+	m_lastKbLiftOutputPath.Empty();			// AI-ProjectConfiguration.aic file label: LastKBLIFTExportPath
+}
+
+void CAdapt_ItApp::SetLanguageNamesAndCodesStringsToEmpty()
+{
+	m_sourceName.Empty();				// AI-ProjectConfiguration.aic file label: SourceLanguageName
+	m_targetName.Empty();				// AI-ProjectConfiguration.aic file label: TargetLanguageName
+	m_glossesName.Empty();				// AI-ProjectConfiguration.aic file label: GlossesLanguageName
+	m_freeTransName.Empty();			// AI-ProjectConfiguration.aic file label: FreeTranslationLanguageName
+	m_sourceLanguageCode.Empty();		// AI-ProjectConfiguration.aic file label: SourceLanguageCode
+	m_targetLanguageCode.Empty();		// AI-ProjectConfiguration.aic file label: TargetLanguageCode
+	m_glossesLanguageCode.Empty();		// AI-ProjectConfiguration.aic file label: GlossesLanguageCode
+	m_freeTransLanguageCode.Empty();	// AI-ProjectConfiguration.aic file label: FreeTranslationLanguageCode
+}
+
+void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
+{
+	m_bCollaboratingWithParatext = FALSE; // AI-ProjectConfiguration.aic file label: CollaboratingWithParatext
+	m_bCollaboratingWithBibledit = FALSE; // AI-ProjectConfiguration.aic file label: CollaboratingWithBibledit
+	m_bStartWorkUsingCollaboration = FALSE; // whm added 19Feb12
+	// whm 26Jan13 moved from OnInit() in order to consolidate the
+	// collaboration settings into SetCollabSettingsToNewProjDefaults() which
+	// is called in OnInit()
+	m_bParatextIsInstalled = FALSE;
+	m_bParatextIsInstalled = ParatextIsInstalled();
+	m_bBibleditIsInstalled = FALSE;
+	m_bBibleditIsInstalled = BibleditIsInstalled();
+	m_bParatextIsRunning = FALSE;
+	// edb added 7Aug12 for Pathway export support
+	m_bPathwayIsInstalled = PathwayIsInstalled();
+	m_PathwayInstallDirPath = GetPathwayInstallDirPath();
+	
+	// whm added 9Feb11 for Paratext and Bibledit Collaboration support
+	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
+	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\".
+	// m_ParatextProjectsDirPath will be null if Paratext is not installed or we are not on
+	// a Windows host system.
+	// Note: the GetParatextInstallDirPath() and GetParatextProjectsDirPath() function remove
+	// the Windows \ path separator from the end of the string
+	m_ParatextInstallDirPath = GetParatextInstallDirPath();
+	m_ParatextProjectsDirPath = GetParatextProjectsDirPath();
+
+	// GetBibleditInstallDirPath gets the absolute path to the Bibledit projects directory
+	// which on Linux systems is ~/.bibledit/projects.
+	// m_BibleditInstallDirPath will be null if Bibledit is not installed or we are not on
+	// a Linux host system.
+	m_BibleditInstallDirPath = GetBibleditInstallDirPath();
+	m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
+	
+	bParatextSharedDLLLoaded = FALSE;
+
+	// whm 4Apr12 modification:
+	// As of version 6.2.1 the App's m_collaborationEditor variable is stored in
+	// the project config file with the other collaboration settings. Therefore
+	// we allow the reading of a project config file to set the string value of
+	// m_collaborationEditor, overriding whatever is set here based solely on what
+	// editor is installed. If more than one editor is installed, the administrator
+	// can select the external Scripture editor of choice in the
+	// SetupEditorCollaboration dialog by choosing the appropriate radio box button.
+	// If Paratext or Bibledit is currently installed we set a default editor name
+	// here, giving Paratext preference if it is installed. We set it here because
+	// when the SetupEditorCollaboration dialog is invoked, no project will be open
+	// and we won't know initially what editor may be preferred for a given AI project
+	// until the administrator selects an AI project at Step 1 in the dialog. This
+	// default assigned here will at least provide something other than %s for the
+	// string substitutions in the dialog's controls when it first appears and before
+	// the administrator selects an existing AI project.
+	//
+	// If neither Paratext nor Bibledit are installed, the m_collaborationEditor is
+	// an empty string. Since m_collaborationEditor can be an empty string, code should
+	// call wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
+	// substitutions.
+	if (m_bParatextIsInstalled)
+	{
+	     m_collaborationEditor = _T("Paratext"); // AI-ProjectConfiguration.aic file label: CollaborationEditor
+	}
+	else if (m_bBibleditIsInstalled)
+	{
+	     m_collaborationEditor = _T("Bibledit"); // AI-ProjectConfiguration.aic file label: CollaborationEditor
+	}
+	m_CollabProjectForSourceInputs = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForSourceInputs
+	m_CollabProjectForTargetExports = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForTargetExports
+	m_CollabProjectForFreeTransExports = _T(""); // AI-ProjectConfiguration.aic file label: CollabProjectForFreeTransExports
+	m_CollabAIProjectName = _T(""); // AI-ProjectConfiguration.aic file label: CollabAIProjectName
+	m_CollabBookSelected = _T(""); // AI-ProjectConfiguration.aic file label: CollabBookSelected
+	m_bCollabByChapterOnly = TRUE; // AI-ProjectConfiguration.aic file label: CollabByChapterOnly
+	m_CollabChapterSelected = _T(""); // AI-ProjectConfiguration.aic file label: CollabChapterSelected
+	m_CollabSourceLangName = _T(""); // AI-ProjectConfiguration.aic file label: CollabSourceLangName
+	m_CollabTargetLangName = _T(""); // AI-ProjectConfiguration.aic file label: CollabTargetLangName
+	// whm 26Jan13 moved the following from Bruce's original location in
+	// OnInit(), so that these settings will be together with other
+	// collaboration settings and their values will be set when
+	// SetCollabSettingsToNewProjDefaults() is called even earlier in
+	// OnInit(). 
+	// BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
+    // a PT or BE collaboration project is set up with a project nominated for receiving
+	// free translations; the second is set if the Adapt It document in a collaboration
+	// session has one or more free translations within it
+	m_bCollaborationExpectsFreeTrans = FALSE; // this is not stored in AI-ProjectConfiguration.aic
+	m_bCollaborationDocHasFreeTrans = FALSE; // this is not stored in AI-ProjectConfiguration.aic
+	m_bSaveCopySourceFlag_For_Collaboration = FALSE; // this is not stored in AI-ProjectConfiguration.aic
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
