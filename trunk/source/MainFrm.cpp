@@ -4121,7 +4121,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     }
 #endif
 
-
+#if defined(_KBSERVER)
 // TODO -- code for cached new kbserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	if (gpApp->m_bIsKBServerProject)
@@ -4158,6 +4158,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			}
 		}
 	}
+#endif
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)
