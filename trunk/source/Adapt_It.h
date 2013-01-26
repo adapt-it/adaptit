@@ -3953,6 +3953,9 @@ public:
 	bool	SaveKB(bool bAutoBackup, bool bShowProgress = true);
 	bool	SaveGlossingKB(bool bAutoBackup);
 	void	SetDefaultCaseEquivalences();
+	void	SetAllProjectLastPathStringsToEmpty();
+	void	SetLanguageNamesAndCodesStringsToEmpty();
+	void	SetCollabSettingsToNewProjDefaults();
 	void	SetPageOrientation(bool bIsPortrait);
 	bool	SetupDirectories();
 	bool	CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors);

@@ -107,12 +107,21 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 {
 	Create( parent );
 
+	// whm 26Jan13 moved the following initializations from here in the
+	// constructor to the InitDialog() method where they belong. If the source
+	// name and target name and their code are set here from the App's values
+	// they are set at the time new CLanguagesPage is called in
+	// StartWorkingWizard.cpp. Having them in the InitDialog() instead they
+	// are set when InitDialog() is called from the ProjectPage.
+	/*
 	// InitDialog uses the following temp variables to initialize the 
 	// languagesPage's GUI controls.
 	tempSourceName = gpApp->m_sourceName;
 	tempTargetName = gpApp->m_targetName;
 	tempSourceLangCode = gpApp->m_sourceLanguageCode; // whm added 10May10
 	tempTargetLangCode = gpApp->m_targetLanguageCode; // whm added 10May10
+	*/
+	
 	tempSfmEscCharStr = gSFescapechar;
 	// BEW 8Jun10, removed support for checkbox "Recognise standard format
 	// markers only following newlines"
@@ -247,6 +256,13 @@ void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 {
 	//InitDialog() is not virtual, no call needed to a base class
 
+	// Initialize the temp variables from the App's data
+	// whm 26Jan13 moved the following temp var initializations here from the
+	// constructor.
+	tempSourceName = gpApp->m_sourceName;
+	tempTargetName = gpApp->m_targetName;
+	tempSourceLangCode = gpApp->m_sourceLanguageCode; // whm added 10May10
+	tempTargetLangCode = gpApp->m_targetLanguageCode; // whm added 10May10
 	// Load the temp member data into text controls.
 	pSrcBox->ChangeValue(tempSourceName);
 	pSrcBox->SetFocus(); // start with focus on the Source edit box
