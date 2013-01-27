@@ -25300,7 +25300,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 			int result = wxMessageBox(message2,_("Bad path in config file"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 			if (result == wxNO)
 			{
-				wxASSERT(FALSE);
+				this->LogUserAction(message2);
 				// whm modified to use wxKill() instead of wxExit() which is the same as a crash
 				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
 				return FALSE;

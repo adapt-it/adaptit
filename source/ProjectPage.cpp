@@ -607,6 +607,15 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			pApp->m_eSilConverterNormalizeOutput = 0;
 			pApp->m_bTransliterationMode = FALSE;
 
+			// whm 26Jan13 note: The m_curProjectPath should be empty for the
+			// initial part of <New Project> creation. If we got here via <
+			// Back in the wizard and selection of <New Project>, the
+			// m_curProjectPath could have an invalid path. It might also have
+			// an invalid path if an AI project folder were moved or deleted. 
+			// The m_curProjectPath will be created after the wizard's 
+			// LanguagesPage is processed with language name information.
+			pApp->m_curProjectPath.Empty();
+
 			wxString msg = _T("In wizard ProjectPage changing: Creating New Project");
 			pApp->LogUserAction(msg);
 
@@ -1294,7 +1303,8 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 		// the wizard then shows the Projects list, select <New Project> and then the app
 		// will crash when control here calls CreateInputsAndOutputsDirectories() because
 		// at this point m_curProjectPath is empty
-		if (!pApp->m_curProjectPath.IsEmpty())
+		// whm 26Jan13 added && wxDirExists(pApp->m_curProjectPath) test below
+		if (!pApp->m_curProjectPath.IsEmpty() && wxDirExists(pApp->m_curProjectPath))
 		{
 			pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
 			// ignore dealing with any unlikely pathCreationErrors at this point
