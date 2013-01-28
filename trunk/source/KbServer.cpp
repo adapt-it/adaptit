@@ -50,6 +50,8 @@ using namespace std;
 //#include "BString.h"
 #include "Xhtml.h"
 #include "KbServer.h"
+#include "MainFrm.h"
+#include "StatusBar.h"
 
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
@@ -859,6 +861,10 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 // currently within the variable m_kbServerLastSync).
 int KbServer::ChangedSince(wxString timeStamp)
 {
+	CStatusBar* pStatusBar = NULL;
+	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
+	pStatusBar->StartProgress(_("Receiving..."), _("Receiving..."), 4);
+
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 
 	CURL *curl;
@@ -912,6 +918,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 	}
 	curl_easy_cleanup(curl);
 
+	pStatusBar->UpdateProgress(_("Receiving..."), 2);
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
@@ -945,6 +952,8 @@ int KbServer::ChangedSince(wxString timeStamp)
 		wxJSONValue jsonval;
 		wxJSONReader reader;
 		int numErrors = reader.Parse(myList, &jsonval);
+		pStatusBar->UpdateProgress(_("Receiving..."), 3);
+
 		if (numErrors > 0)
 		{
 			// a non-localizable message will do, it's unlikely to ever be seen
@@ -983,8 +992,13 @@ int KbServer::ChangedSince(wxString timeStamp)
 				(m_arrSource[index]).c_str(), (m_arrTarget[index]).c_str(), (m_arrDeleted[index]));
 #endif
 		}
+
+		pStatusBar->UpdateProgress(_("Receiving..."), 4);
+
 		str_CURLbuffer.clear(); // always clear it before returning
 	}
+
+	pStatusBar->FinishProgress(_("Receiving..."));
 
 	return 0;
 }
