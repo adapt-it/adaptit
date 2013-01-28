@@ -1,0 +1,76 @@
+<Project ToolsVersion="3.5" DefaultTargets="BuildWix" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+        <PropertyGroup>
+                <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+                <Cultures>en-US</Cultures>
+				<DefineSolutionProperties>False</DefineSolutionProperties>
+        </PropertyGroup>
+		<PropertyGroup>
+			<WixToolPath Condition="!HasTrailingSlash('$(WixToolPath)') ">$(WixToolPath)\</WixToolPath>
+			<WixTasksPath>$(WixToolPath)WixTasks.dll</WixTasksPath>
+			<WixTargetsPath>$(WixToolPath)Wix.targets</WixTargetsPath>
+			<OutputPath Condition="'$(MsiOutputPath)' != ''">$(MsiOutputPath)</OutputPath>
+			<OutputPath Condition="!HasTrailingSlash('$(OutputPath)') ">$(OutputPath)\</OutputPath>
+		 
+			<WixVariables>WixUILicenseRtf=$(LicenseFile);WixUIDialogBmp=$(WixUIDialogBmp);WixUIBannerBmp=$(WixUIBannerBmp)</WixVariables>
+			<DefineConstants>
+				 INSTALLVERSION=$(InstallVersion)
+				 ;APPLICATIONNAME=$(ApplicationName)
+				 ;COMPANYNAME=$(CompanyName)
+				 ;COMPANYUID=$(CompanyUID)
+				 ;UPGRADECODE=$(UpgradeCode)
+				 ;PRODUCTID=$(ProductId)
+				 ;COMPRESSED=$(Compressed)
+				 ;DESCRIPTION=$(Description)
+			</DefineConstants>
+		</PropertyGroup>		
+		<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+			<DebugSymbols Condition="'$(DebugSymbols)' == ''" >True</DebugSymbols>
+			<DebugType Condition="'$(DebugType)' == ''" >Full</DebugType>
+			<Optimize Condition="'$(Optimize)' == ''" >False</Optimize>
+		</PropertyGroup>
+	 
+		<PropertyGroup Condition="'$(DebugSymbols)' == 'Release' ">
+			<DebugSymbols Condition="'$(DebugSymbols)' == ''" >False</DebugSymbols>
+			<DebugType Condition=" '$(DebugType)' == ''" >None</DebugType>
+			<Optimize Condition=" '$(Optimize)' == ''" >True</Optimize>
+		</PropertyGroup>
+
+        <Import Project="$(WixTargetsPath)" />
+
+		<ItemGroup>
+            <Compile Include="Adapt It WX Unicode Setup.wxs" />
+        </ItemGroup>
+		
+	<Target Name="BuildWix" DependsOnTargets="ValidateGenericWix;Build">
+		<GenerateBootstrapper
+         ApplicationFile="$(OutputName).msi"
+         ApplicationName="$(ApplicationName)"
+         BootstrapperItems="@(BootstrapperFile)"
+         OutputPath="$(OutputPath)"
+         ComponentsLocation="HomeSite"
+         Culture="en"
+         CopyComponents="false"
+         SupportUrl="http://www.microsoft.com/downloads/details.aspx?familyid=333325FD-AE52-4E35-B531-508D977D32A6"
+       />
+	</Target>
+ 
+	<Target Name="ValidateGenericWix">
+		<Error Condition="'$(OutputName)'==''" Text="REQUIRED OutputName. used for naming msi. i.e. [OutputName].msi"/>
+		<Error Condition="'$(OutputType)'==''" Text="REQUIRED OutputType. Package(.msi), Module(.msm), Library(.wixlib)"/>
+		<Error Condition="'$(WixToolPath)'==''" Text="REQUIRED WixToolPath. Provide path to where Wix is installed."/>
+		<Error Condition="'$(MsiOutputPath)'==''" Text="REQUIRED MsiOutputPath. Where msi will be created to."/>
+		<Error Condition="'$(LicenseFile)'==''" Text="REQUIRED LicenseFile. EULA for the company."/>
+		<Error Condition="'$(WixSetupFile)'==''" Text="REQUIRED WixSetupFile. Main entry point of Wix script we can swap it with different Setup to compltely change the behavior of Wix script."/>
+		<Error Condition="'$(WixUIDialogBmp)'==''" Text="REQUIRED WixUIDialogBmp. Branding company setup."/>
+		<Error Condition="'$(WixUIBannerBmp)'==''" Text="REQUIRED WixUIBannerBmp. Branding company setup."/>
+		<Error Condition="'$(ApplicationName)'==''" Text="REQUIRED ApplicationName"/>
+		<Error Condition="'$(InstallVersion)'==''" Text="REQUIRED InstallVersion"/>
+		<Error Condition="'$(CompanyName)'==''" Text="REQUIRED CompanyName."/>
+		<Error Condition="'$(WixDirectoryFregment)'==''"  Text="REQUIRED WixDirectoryFregment. Every application provide its own directory, registry, components."/>
+		<Error Condition="'$(UpgradeCode)'==''"  Text="REQUIRED UpgradeCode."/>
+		<Error Condition="'$(ProductId)'==''"  Text="REQUIRED ProductId."/>
+		<Error Condition="'$(CompanyUID)'==''"  Text="REQUIRED CompanyUID. It is used as unique required by Wix"/>
+		<Error Condition="'$(Compressed)'==''"  Text="REQUIRED Compressed. Set it to no if admin install needed for patching."/>
+		<Error Condition="'$(Description)'==''"  Text="REQUIRED Description."/>
+	</Target>		
+</Project>
