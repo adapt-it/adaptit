@@ -119,6 +119,8 @@ KbServer::KbServer()
 		m_pKB = GetKB(1);
 	}
 	this->EnableCaching(TRUE); // change, when testing, to turn on or off new entry caching
+	// The following English message is hard-coded at the server end, so don't localize it
+	m_noEntryMessage = _T("No matching entry found");
 }
 
 KbServer::KbServer(int whichType)
@@ -129,6 +131,10 @@ KbServer::KbServer(int whichType)
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = GetKB(whichType);
 	this->EnableCaching(TRUE); // change, when testing, to turn on or off new entry caching
+	// The following English message is hard-coded at the server end, so don't localize it
+	// (actually, the server's string is 24 char, but the English is just 23, so don't
+	// test for equality, use Find() instead searching with this shorter 23 char one)
+	m_noEntryMessage = _T("No matching entry found");
 }
 
 bool KbServer::IsCachingON()
@@ -368,6 +374,13 @@ void KbServer::SetLastSyncFilename(wxString lastSyncFName)
 void KbServer::UpdateLastSyncTimestamp()
 {
 	m_kbServerLastSync.Empty();
+    // BEW added 28Jan13, somehow a UTF8 BOM ended up in the dateTimeStr passed to
+    // ChangedSince(), so as I've not got BOM detection and removal code in both ToUtf8()
+    // and ToUtf16(), I'll round trip the dateTimeStr here to ensure that if there is a BOM
+    // that has somehow crept in, then it won't find its way back to the caller!
+	CBString utfStr = ToUtf8(m_kbServerLastTimestampReceived);
+	m_kbServerLastTimestampReceived = ToUtf16(utfStr);
+	// now proceed to update m_kbServerLastSync string with a guaranteed BOM-less timestamp
 	m_kbServerLastSync = m_kbServerLastTimestampReceived;
 	m_kbServerLastTimestampReceived.Empty();
 	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
@@ -522,6 +535,13 @@ wxString KbServer::ImportLastSyncTimestamp()
 	}
 	// whew, finally, we have the lastsync datetime string for this kbserver type
 	dateTimeStr = f.GetLine(0);
+    // BEW added 28Jan13, somehow a UTF8 BOM ended up in the dateTimeStr passed to
+    // ChangedSince(), so as I've not got detection and removal code in both ToUtf8() and
+    // ToUtf16(), I'll round trip the dateTimeStr here to ensure that if there is a BOM
+    // there then it won't find its way back to the caller!
+	CBString utfStr = ToUtf8(dateTimeStr);
+	dateTimeStr = ToUtf16(utfStr);
+
 	f.Close();
 	return dateTimeStr;
 }
@@ -577,6 +597,10 @@ bool KbServer::ExportLastSyncTimestamp()
 	}
 	f.Clear(); // chuck earlier value
 	f.AddLine(GetKBServerLastSync());
+	f.Write(); // unfortunately, in the unicode build, this will add a utf8 BOM,
+			   // so I've got a check in the ImportLastSyncTimestamp() that will
+			   // remove the BOM if present before the rest of the string is passed
+			   // to its caller
 	f.Close();
 
 	return TRUE;
@@ -920,13 +944,43 @@ int KbServer::ChangedSince(wxString timeStamp)
 
 	pStatusBar->UpdateProgress(_("Receiving..."), 2);
 
-	//  make the json data accessible (result is CURLE_OK if control gets to here)
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//  
+	//  BEW 29Jan13, beware, if no new entries have been added since last time, then
+	//  the header will not have a json string, and will have the 'error' text
+    //  "No matching entry found". This isn't actually an error, and ChangedSince(), in
+    //  this circumstance should just benignly exit without doing or saying anything, and
+    //  return 0 (CURLE_OK). Changes to support this are below.
 	if (!str_CURLbuffer.empty())
 	{
         // Extract the timestamp, and remove the headers, leaving only the json data in
         // str_CURLbuffer, ready for subfield extraction to take place in the loop below
 		str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
 
+		// If no entries were sent, then str_CURLbuffer will contain "No matching entry
+		// found", in which case, don't do any of the json stuff, and the value in
+		// m_kbServerLastTimestampReceived will be correct and can be used to update the
+		// persistent storage file for the time of the lastsync
+		CBString cbstr(str_CURLbuffer.c_str());
+		wxString buffer(ToUtf16(cbstr));
+		// Can't use an equality test here, there is a spurious non-visible character
+		// after the word "found" in "No matching entry found" that makes an equality test
+		// fail. So rather than bothering to eliminate it, I'll just use a search --
+		// offset is returned as 0, which tells me the spurious character is at the end
+		int offset = buffer.Find(m_noEntryMessage);
+		if (offset != wxNOT_FOUND)
+		{
+			// No new entries were sent, because there were none more recent than the last
+			// saved timestamp value
+			str_CURLbuffer.clear(); // always clear it before returning
+
+			pStatusBar->UpdateProgress(_("Receiving..."), 4);
+			pStatusBar->FinishProgress(_("Receiving..."));
+
+			return 0;
+		}
+		// If control gets to here, then we've some json to process...
+		
 		// If eyeball verification of the removal of preceding headers information is
 		// wanted, then uncomment out the three lines in the conditional compile here
 		#if defined (_DEBUG)
@@ -996,7 +1050,8 @@ int KbServer::ChangedSince(wxString timeStamp)
 		pStatusBar->UpdateProgress(_("Receiving..."), 4);
 
 		str_CURLbuffer.clear(); // always clear it before returning
-	}
+	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
+
 
 	pStatusBar->FinishProgress(_("Receiving..."));
 

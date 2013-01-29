@@ -262,7 +262,7 @@ extern std::string str_CURLbuffer;
 // leak is unclear, uncomment the following include, recompile, run and
 // exit the program for a more detailed report of the memory leaks:
 #ifdef __WXMSW__
-//#include "vld.h"
+#include "vld.h"
 #endif
 
 // Other includes
