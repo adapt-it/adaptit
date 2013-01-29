@@ -887,9 +887,10 @@ int KbServer::ChangedSince(wxString timeStamp)
 {
 	CStatusBar* pStatusBar = NULL;
 	pStatusBar = (CStatusBar*)m_pApp->GetMainFrame()->m_pStatusBar;
-	pStatusBar->StartProgress(_("Receiving..."), _("Receiving..."), 4);
+	pStatusBar->StartProgress(_("Receiving..."), _("Receiving..."), 5);
 
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+	pStatusBar->UpdateProgress(_("Receiving..."), 1);
 
 	CURL *curl;
 	CURLcode result;
@@ -924,6 +925,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 		// We want the download's timestamp, so we must ask for the headers to be added
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 
+		pStatusBar->UpdateProgress(_("Receiving..."), 2);
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
@@ -937,12 +939,13 @@ int KbServer::ChangedSince(wxString timeStamp)
 			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n",
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
+			pStatusBar->FinishProgress(_("Receiving..."));
 			return (int)result;
 		}
 	}
 	curl_easy_cleanup(curl);
 
-	pStatusBar->UpdateProgress(_("Receiving..."), 2);
+	pStatusBar->UpdateProgress(_("Receiving..."), 3);
 
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
 	//  
@@ -974,7 +977,6 @@ int KbServer::ChangedSince(wxString timeStamp)
 			// saved timestamp value
 			str_CURLbuffer.clear(); // always clear it before returning
 
-			pStatusBar->UpdateProgress(_("Receiving..."), 4);
 			pStatusBar->FinishProgress(_("Receiving..."));
 
 			return 0;
@@ -1001,12 +1003,13 @@ int KbServer::ChangedSince(wxString timeStamp)
 			// nothing to do, but it's not an error state
 			wxLogDebug(_T("ChangedSince() did not return any entries, for data added to kbserver since %s"),
 				timeStamp.c_str());
+			pStatusBar->FinishProgress(_("Receiving..."));
 			return 0;
 		}
 		wxJSONValue jsonval;
 		wxJSONReader reader;
 		int numErrors = reader.Parse(myList, &jsonval);
-		pStatusBar->UpdateProgress(_("Receiving..."), 3);
+		pStatusBar->UpdateProgress(_("Receiving..."), 4);
 
 		if (numErrors > 0)
 		{
@@ -1014,6 +1017,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 			wxMessageBox(_T("ChangedSince(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
+			pStatusBar->FinishProgress(_("Receiving..."));
 			return -1;
 		}
 		int listSize = jsonval.Size();
@@ -1047,7 +1051,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 #endif
 		}
 
-		pStatusBar->UpdateProgress(_("Receiving..."), 4);
+		pStatusBar->UpdateProgress(_("Receiving..."), 5);
 
 		str_CURLbuffer.clear(); // always clear it before returning
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
