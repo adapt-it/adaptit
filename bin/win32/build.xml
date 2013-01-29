@@ -179,6 +179,7 @@
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build the unicode release msi installer -->
+	<!--
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="29"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
@@ -189,6 +190,27 @@
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Unicode Release" />
     </exec>
+	-->
+	<!-- candle.exe: WiX compiler -->
+    <exec executable="candle.exe" failonerror="yes">
+		<arg value="-nologo" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.wxs" />
+		<arg value="-out" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.wixobj" />
+		<arg value="-ext" />
+		<arg value="WixUIExtension" />
+    </exec>
+	<!-- light.exe: WiX linker -->
+    <exec executable="light.exe" failonerror="yes">
+		<arg value="-nologo" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.wixobj" />
+		<arg value="-out" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.msi" />
+		<arg value="-ext" />
+		<arg value="WixUIExtension" />
+    </exec>
+	<!-- copy the installer into the AIWX Installers directory -->
+    <copy file="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.msi" tofile="${dist}/Adapt It WX Unicode Setup.msi"/>
   </target>
   
   <!-- 
@@ -200,6 +222,7 @@
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build the regular (ANSI) msi installer -->
+	<!--
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
@@ -212,9 +235,27 @@
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Release" />
     </exec>
-	<!-- copy the msi installers into the AIWX Installers directory -->
-    <copy file="${root}/bin/Adapt It WX Unicode Setup/Release/Adapt It WX Unicode Setup.msi" tofile="${dist}/Adapt It WX Unicode Setup.msi"/>
-    <copy file="${root}/bin/Adapt It WX Release Setup/Release/Adapt It WX Regular Setup.msi" tofile="${dist}/Adapt It WX Regular Setup.msi"/>
+	-->
+	<!-- candle.exe: WiX compiler -->
+    <exec executable="candle.exe" failonerror="yes">
+		<arg value="-nologo" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wxs" />
+		<arg value="-out" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixobj" />
+		<arg value="-ext" />
+		<arg value="-WixUIExtension" />
+    </exec>
+	<!-- light.exe: WiX linker -->
+    <exec executable="light.exe" failonerror="yes">
+		<arg value="-nologo" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixobj" />
+		<arg value="-out" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.msi" />
+		<arg value="-ext" />
+		<arg value="-WixUIExtension" />
+    </exec>
+	<!-- copy the installer into the AIWX Installers directory -->
+    <copy file="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.msi" tofile="${dist}/Adapt It WX Regular Setup.msi"/>
   </target>
 
   <!-- 
