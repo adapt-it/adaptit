@@ -1499,6 +1499,55 @@ void KbServer::DoGetAll()
 	m_pKB->StoreEntriesFromKbServer(this);
 }
 
+void KbServer::UploadToKbServer()
+{
+	wxString srcPhrase;
+	CTargetUnit* cTU;
+	wxString tgtPhrase;
+		
+	CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
+
+	//Need to get each map
+	for (int i = 0; i< MAX_WORDS; i++)
+	{
+		//for each map
+		for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
+		{
+			wxASSERT(currKB->m_pMap[i] != NULL);
+
+			if (!currKB->m_pMap[i]->empty())
+			{			
+				srcPhrase = iter->first;
+
+				cTU = iter->second;
+				CRefString* pRefString = NULL;
+				TranslationsList::Node* pos = cTU->m_pTranslations->GetFirst();
+				wxASSERT(pos != NULL);
+				
+				wxDateTime now = wxDateTime::Now();
+				wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::CET).c_str());
+
+				while (pos != NULL)
+				{
+					pRefString = (CRefString*)pos->GetData();
+					wxASSERT(pRefString != NULL);
+					pos = pos->GetNext();
+
+					if (!pRefString->m_translation.IsEmpty())
+					{
+						CreateEntry(srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag());
+						// test info
+						wxDateTime now = wxDateTime::Now();
+						wxLogDebug(_T("UploadToKBServer()->CreateEntry() time: %s source: %s target %s deleted \n"), 
+							now.Format(_T("%c"), wxDateTime::CET).c_str(), 
+							srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag() );
+					}
+				}
+			}
+		}
+	}
+}
+
 
 //=============================== end of KbServer class ============================
 

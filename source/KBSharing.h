@@ -38,6 +38,7 @@ protected:
 
 	void OnBtnGetAll(wxCommandEvent& WXUNUSED(event));
 	void OnBtnChangedSince(wxCommandEvent& WXUNUSED(event));
+	void OnBtnSendAll(wxCommandEvent& WXUNUSED(event));
 
 private:
 	CAdapt_ItApp* m_pApp;
