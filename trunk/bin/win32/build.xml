@@ -174,7 +174,7 @@
   - compile_msi target
   - Builds the AI msi installers (ANSI and Unicode).
   -->
-  <target name="compile_msi_unicode" depends="compile_unicode_release"
+  <target name="compile_msi_unicode" depends="compile_unicode_release, copy"
         description="compile the unicode msi installer" >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
@@ -217,7 +217,7 @@
   - compile_msi target
   - Builds the AI msi installers (ANSI and Unicode).
   -->
-  <target name="compile_msi_ansi" depends="compile_release"
+  <target name="compile_msi_ansi" depends="compile_release, copy"
         description="compile the ansi msi installer" >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
@@ -414,14 +414,14 @@
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, init, compile_unicode_release, build_help, copy, generate_unicode_installers" description="Daily / Release build target (Unicode only)" >
+  <target name="build_release" depends="clean, init, compile_unicode_release, build_help, copy, generate_unicode_installers, compile_msi_unicode" description="Daily / Release build target (Unicode only)" >
   </target>
 
   <!-- 
   - build_legacy target
   - Compiles the regular (ansi) Debug and Release builds using the VS 2005 compiler.
   -->
-  <target name="build_ansi" depends="clean, init, compile_debug, compile_release, build_help, copy, generate_ansi_installers" description="ANSI Debug and Release build target" >
+  <target name="build_ansi" depends="clean, init, compile_debug, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
   </target>
 
 </project>

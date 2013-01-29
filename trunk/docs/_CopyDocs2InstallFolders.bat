@@ -34,6 +34,8 @@ echo and Localization Only:
 echo    curl-ca-bundle.crt
 echo    iso639-3codes.txt
 echo.
+echo To ONLY setup Unicode and setup Regular:
+echo    ..\license\*.rtf (for the msi installer) 
 echo To all except Minimal, Documentation Only and Localizations Only:
 echo    CC\*.*
 echo To all:
@@ -71,6 +73,7 @@ xcopy "KJV 1Jn 2.12-17.txt" "..\setup Regular\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Regular\" /Y
 xcopy "Localization_Readme.txt" "..\setup Regular\" /Y
 xcopy "..\license\*.txt" "..\setup Regular\*.*" /Y
+xcopy "..\license\*.rtf" "..\setup Regular\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular\" /Y
 xcopy "curl-ca-bundle.crt" "..\setup Regular\" /Y
 xcopy "iso639-3codes.txt" "..\setup Regular\" /Y
@@ -154,6 +157,7 @@ xcopy "KJV 1Jn 2.12-17.txt" "..\setup Unicode\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Unicode\" /Y
 xcopy "Localization_Readme.txt" "..\setup Unicode\" /Y
 xcopy "..\license\*.txt" "..\setup Unicode\*.*" /Y
+xcopy "..\license\*.rtf" "..\setup Unicode\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode\" /Y
 xcopy "curl-ca-bundle.crt" "..\setup Unicode\" /Y
 xcopy "iso639-3codes.txt" "..\setup Unicode\" /Y
