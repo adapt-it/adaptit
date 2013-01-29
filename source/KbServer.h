@@ -162,6 +162,7 @@ private:
 
 	wxString	m_credentialsFilename;
 	wxString	m_lastSyncFilename;
+	wxString	m_noEntryMessage; // BEW added 29Jan13
 
 	// private member functions
 	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
