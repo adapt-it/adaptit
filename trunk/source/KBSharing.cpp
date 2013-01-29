@@ -56,6 +56,7 @@ BEGIN_EVENT_TABLE(KBSharing, AIModalDialog)
 	EVT_BUTTON(wxID_CANCEL, KBSharing::OnCancel)
 	EVT_BUTTON(ID_GET_ALL, KBSharing::OnBtnGetAll)
 	EVT_BUTTON(ID_GET_RECENT, KBSharing::OnBtnChangedSince)
+	EVT_BUTTON(ID_SEND_ALL, KBSharing::OnBtnSendAll)
 
 END_EVENT_TABLE()
 
@@ -190,6 +191,15 @@ void KBSharing::OnBtnChangedSince(wxCommandEvent& WXUNUSED(event))
 	}
 	// make the dialog close
 	EndModal(wxID_OK);
+}
+
+void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
+{
+	KbServer* pKbServer;
+
+	pKbServer = m_pApp->GetKbServer((gbIsGlossing ? 2 : 1));
+
+	pKbServer->UploadToKbServer();
 }
 
 #endif
