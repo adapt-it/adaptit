@@ -63,6 +63,7 @@
 #include <wx/textfile.h>
 #include "MainFrm.h"
 #include "StatusBar.h"
+#include "Thread_CreateEntry.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -3289,13 +3290,45 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			// don't send to kbserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
+				// Here's where I'll test doing this on a thread
+				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+				// populate it's public members (it only has public ones anyway)
+				pCreateEntryThread->m_pKB = this;
+				//pCreateEntryThread->m_pKbSvr = pKbSvr;
+				pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
+				pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+				pCreateEntryThread->m_source = key;
+				pCreateEntryThread->m_translation = pRefString->m_translation;
+				// now create the runnable thread with explicit stack size of 10KB
+				wxThreadError error =  pCreateEntryThread->Create(10240);
+				if (error != wxTHREAD_NO_ERROR) 
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+				}
+				// now run the thread (it will destroy itself when done)
+				error = pCreateEntryThread->Run();
+				if (error != wxTHREAD_NO_ERROR) 
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+				}
+
+				/*
 				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
-						key, pRefString->m_translation, pKbSvr->IsCachingON());
+							key, pRefString->m_translation, pKbSvr->IsCachingON());
 
 				// I've not yet decided what to do with the return value, at present we'll
 				// just ignore it even if FALSE (an internally generated message would have
 				// been seen anyway in that event)
 				bHandledOK = bHandledOK; // avoid compiler warning
+				*/
 			}
 		}
 #endif
@@ -3373,13 +3406,45 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				// don't send to kbserver if it's a <Not In KB> entry
 				if(!bStoringNotInKB)
 				{
+					// Here's where I'll test doing this on a thread
+					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+					// populate it's public members (it only has public ones anyway)
+					pCreateEntryThread->m_pKB = this;
+					//pCreateEntryThread->m_pKbSvr = pKbSvr;
+					pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
+					pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+					pCreateEntryThread->m_source = key;
+					pCreateEntryThread->m_translation = pRefString->m_translation;
+					// now create the runnable thread with explicit stack size of 10KB
+					wxThreadError error =  pCreateEntryThread->Create(10240);
+					if (error != wxTHREAD_NO_ERROR) 
+					{
+						wxString msg;
+						msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+							(int)error);
+						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+						m_pApp->LogUserAction(msg);
+					}
+					// now run the thread (it will destroy itself when done)
+					error = pCreateEntryThread->Run();
+					if (error != wxTHREAD_NO_ERROR) 
+					{
+						wxString msg;
+						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+							(int)error);
+						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+						m_pApp->LogUserAction(msg);
+					}
+
+					/*
 					bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
-							key, pRefString->m_translation, pKbSvr->IsCachingON());
+								key, pRefString->m_translation, pKbSvr->IsCachingON());
 
 					// I've not yet decided what to do with the return value, at present we'll
 					// just ignore it even if FALSE (an internally generated message would have
 					// been seen anyway in that event)
 					bHandledOK = bHandledOK; // avoid compiler warning
+					*/
 				}
 			}
 #endif
@@ -3596,13 +3661,45 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 
 						if (!bStoringNotInKB)
 						{
+							// Here's where I'll test doing this on a thread
+							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+							// populate it's public members (it only has public ones anyway)
+							pCreateEntryThread->m_pKB = this;
+							//pCreateEntryThread->m_pKbSvr = pKbSvr;
+							pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
+							pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+							pCreateEntryThread->m_source = key;
+							pCreateEntryThread->m_translation = pRefString->m_translation;
+							// now create the runnable thread with explicit stack size of 10KB
+							wxThreadError error =  pCreateEntryThread->Create(10240);
+							if (error != wxTHREAD_NO_ERROR) 
+							{
+								wxString msg;
+								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+									(int)error);
+								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+								m_pApp->LogUserAction(msg);
+							}
+							// now run the thread (it will destroy itself when done)
+							error = pCreateEntryThread->Run();
+							if (error != wxTHREAD_NO_ERROR) 
+							{
+								wxString msg;
+								msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+									(int)error);
+								wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+								m_pApp->LogUserAction(msg);
+							}
+
+							/*
 							bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
-									key, pRefString->m_translation, pKbSvr->IsCachingON());
+										key, pRefString->m_translation, pKbSvr->IsCachingON());
 
 							// I've not yet decided what to do with the return value, at present we'll
 							// just ignore it even if FALSE (an internally generated message would have
 							// been seen anyway in that event)
 							bHandledOK = bHandledOK; // avoid compiler warning
+							*/
 						}
 					}
 #endif
@@ -4037,6 +4134,37 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// don't send to kbserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
+				// Here's where I'll test doing this on a thread
+				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+				// populate it's public members (it only has public ones anyway)
+				pCreateEntryThread->m_pKB = this;
+				//pCreateEntryThread->m_pKbSvr = pKbSvr;
+				pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
+				pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+				pCreateEntryThread->m_source = key;
+				pCreateEntryThread->m_translation = pRefString->m_translation;
+				// now create the runnable thread with explicit stack size of 10KB
+				wxThreadError error =  pCreateEntryThread->Create(10240);
+				if (error != wxTHREAD_NO_ERROR) 
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+				}
+				// now run the thread (it will destroy itself when done)
+				error = pCreateEntryThread->Run();
+				if (error != wxTHREAD_NO_ERROR) 
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+				}
+
+				/*
 				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
 							key, pRefString->m_translation, pKbSvr->IsCachingON());
 
@@ -4044,6 +4172,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// just ignore it even if FALSE (an internally generated message would have
 				// been seen anyway in that event)
 				bHandledOK = bHandledOK; // avoid compiler warning
+				*/
 			}
 		}
 #endif
@@ -4199,13 +4328,45 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				// don't send to kbserver if it's a <Not In KB> entry
 				if(!bStoringNotInKB)
 				{
-					bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
-								key, pRefString->m_translation, pKbSvr->IsCachingON());
+				// Here's where I'll test doing this on a thread
+				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+				// populate it's public members (it only has public ones anyway)
+				pCreateEntryThread->m_pKB = this;
+				//pCreateEntryThread->m_pKbSvr = pKbSvr;
+				pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
+				pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+				pCreateEntryThread->m_source = key;
+				pCreateEntryThread->m_translation = pRefString->m_translation;
+				// now create the runnable thread with explicit stack size of 10KB
+				wxThreadError error =  pCreateEntryThread->Create(10240);
+				if (error != wxTHREAD_NO_ERROR) 
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+				}
+				// now run the thread (it will destroy itself when done)
+				error = pCreateEntryThread->Run();
+				if (error != wxTHREAD_NO_ERROR) 
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+				}
 
-					// I've not yet decided what to do with the return value, at present we'll
-					// just ignore it even if FALSE (an internally generated message would have
-					// been seen anyway in that event)
-					bHandledOK = bHandledOK; // avoid compiler warning
+				/*
+				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
+							key, pRefString->m_translation, pKbSvr->IsCachingON());
+
+				// I've not yet decided what to do with the return value, at present we'll
+				// just ignore it even if FALSE (an internally generated message would have
+				// been seen anyway in that event)
+				bHandledOK = bHandledOK; // avoid compiler warning
+				*/
 				}
 			}
 #endif
@@ -4492,7 +4653,38 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 
 						// don't send a <Not In KB> entry to kbserver
 						if (!bStoringNotInKB)
+						{
+							// Here's where I'll test doing this on a thread
+							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+							// populate it's public members (it only has public ones anyway)
+							pCreateEntryThread->m_pKB = this;
+							//pCreateEntryThread->m_pKbSvr = pKbSvr;
+							pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
+							pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+							pCreateEntryThread->m_source = key;
+							pCreateEntryThread->m_translation = pRefString->m_translation;
+							// now create the runnable thread with explicit stack size of 10KB
+							wxThreadError error =  pCreateEntryThread->Create(10240);
+							if (error != wxTHREAD_NO_ERROR) 
 							{
+								wxString msg;
+								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+									(int)error);
+								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+								m_pApp->LogUserAction(msg);
+							}
+							// now run the thread (it will destroy itself when done)
+							error = pCreateEntryThread->Run();
+							if (error != wxTHREAD_NO_ERROR) 
+							{
+								wxString msg;
+								msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+									(int)error);
+								wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+								m_pApp->LogUserAction(msg);
+							}
+
+							/*
 							bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
 										key, pRefString->m_translation, pKbSvr->IsCachingON());
 
@@ -4500,6 +4692,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							// just ignore it even if FALSE (an internally generated message would have
 							// been seen anyway in that event)
 							bHandledOK = bHandledOK; // avoid compiler warning
+							*/
 						}
 					}
 #endif

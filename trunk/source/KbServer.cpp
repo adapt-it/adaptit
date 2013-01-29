@@ -118,7 +118,7 @@ KbServer::KbServer()
 	{
 		m_pKB = GetKB(1);
 	}
-	this->EnableCaching(TRUE); // change, when testing, to turn on or off new entry caching
+	this->EnableCaching(FALSE); // change, when testing, to turn on or off new entry caching
 	// The following English message is hard-coded at the server end, so don't localize it
 	m_noEntryMessage = _T("No matching entry found");
 }
@@ -130,7 +130,7 @@ KbServer::KbServer(int whichType)
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = GetKB(whichType);
-	this->EnableCaching(TRUE); // change, when testing, to turn on or off new entry caching
+	this->EnableCaching(FALSE); // change, when testing, to turn on or off new entry caching
 	// The following English message is hard-coded at the server end, so don't localize it
 	// (actually, the server's string is 24 char, but the English is just 23, so don't
 	// test for equality, use Find() instead searching with this shorter 23 char one)
