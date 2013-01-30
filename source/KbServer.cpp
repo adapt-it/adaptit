@@ -52,6 +52,7 @@ using namespace std;
 #include "KbServer.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
+#include "Thread_UploadToKbServer.h"
 
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
@@ -1503,11 +1504,40 @@ void KbServer::DoGetAll()
 	m_pKB->StoreEntriesFromKbServer(this);
 }
 
+void KbServer::UploadToKbServerThreaded()
+{
+	// Here's where I'll test doing this on a thread
+	Thread_UploadToKBServer* pUploadToKBServerThread = new Thread_UploadToKBServer;
+	pUploadToKBServerThread->m_pKbSvr = this;
+
+	// now create the runnable thread with explicit stack size of 10KB
+	wxThreadError error =  pUploadToKBServerThread->Create();  //10240
+	if (error != wxTHREAD_NO_ERROR) 
+	{
+		wxString msg;
+		msg = msg.Format(_T("Thread_UploadToKBServer(): thread creation failed, error number: %d"),
+			(int)error);
+		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+		m_pApp->LogUserAction(msg);
+	}
+	// now run the thread (it will destroy itself when done)
+	error = pUploadToKBServerThread->Run();
+	if (error != wxTHREAD_NO_ERROR) 
+	{
+		wxString msg;
+		msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+			(int)error);
+		wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+		m_pApp->LogUserAction(msg);
+	}
+}
+
 void KbServer::UploadToKbServer()
 {
 	wxString srcPhrase;
 	CTargetUnit* cTU;
 	wxString tgtPhrase;
+	int iTotalSent = 0;
 		
 	CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
 
@@ -1542,14 +1572,19 @@ void KbServer::UploadToKbServer()
 						CreateEntry(srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag());
 						// test info
 						wxDateTime now = wxDateTime::Now();
-						wxLogDebug(_T("UploadToKBServer()->CreateEntry() time: %s source: %s target %s deleted \n"), 
-							now.Format(_T("%c"), wxDateTime::CET).c_str(), 
+						iTotalSent++;
+						wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() time: %s source: %s target %s"), // deleted %s \n"), 
+							iTotalSent, now.Format(_T("%c"), wxDateTime::CET).c_str(), 
 							srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag() );
+						/*wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() time: %s source: %s target %s deleted %s \n"), 
+							iTotalSent, now.Format(_T("%c"), wxDateTime::CET).c_str(), 
+							srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag() );*/
 					}
 				}
 			}
 		}
-	}
+	} // for
+	wxLogDebug(_T("UploadToKBServer() Done!"));
 }
 
 
