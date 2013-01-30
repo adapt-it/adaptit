@@ -199,8 +199,8 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 
 	pKbServer = m_pApp->GetKbServer((gbIsGlossing ? 2 : 1));
 
-	//pKbServer->UploadToKbServer();
-	pKbServer->UploadToKbServerThreaded();
+	pKbServer->UploadToKbServer();
+	//pKbServer->UploadToKbServerThreaded();
 }
 
 #endif
