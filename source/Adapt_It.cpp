@@ -25305,6 +25305,8 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				wxKill(::wxGetProcessId(),wxSIGKILL); // wxExit();
 				return FALSE;
 			}
+			// whm added 26Jan13. Remove the bad path
+			m_curAdaptionsPath.Empty();
 		}
 	}
 
@@ -25366,8 +25368,26 @@ _("\nIf you want to continue, you must choose a project or create a new project.
     // wizard.
 
 	// Call RunWizard to start the wizard
-	pStartWorkingWizard->CenterOnParent();
-	pStartWorkingWizard->RunWizard(pStartWorkingWizard->GetFirstPage());
+	wxInitDialogEvent idevent;
+	if (!bDirPathOk)
+	{
+		pProjectPage->InitDialog(idevent);
+		pStartWorkingWizard->RunWizard(pProjectPage);
+	}
+	else
+	{
+		wxWizardPage* pStartPage = pStartWorkingWizard->GetFirstPage();
+		if (pStartPage == pProjectPage)
+		{
+			pProjectPage->InitDialog(idevent);
+			pStartWorkingWizard->RunWizard(pProjectPage);
+		}
+		else if (pStartPage == pDocPage)
+		{
+			pDocPage->InitDialog(idevent);
+			pStartWorkingWizard->RunWizard(pDocPage);
+		}
+	}
 	gbWizardNewProject = FALSE; // reset wizard global back to FALSE
 	pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 
