@@ -188,6 +188,7 @@ public:
 	bool		IsCachingON();
 	void		EnableCaching(bool bEnable);
 	void		UploadToKbServer();
+	void		UploadToKbServerThreaded();
 
 	// Functions we'll want to be able to call programmatically... (button handler
 	// versions of these will be in KBSharing.cpp)
