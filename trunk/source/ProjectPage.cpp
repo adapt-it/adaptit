@@ -142,6 +142,15 @@ CProjectPage::CProjectPage(wxWizard* parent)
 	pTextCtrlAsStaticProjectPage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	m_curLBSelection = 0; // default to select the first item in list
+	// default to <New Project> -- this will be updated in InitDialog
+	if (gpApp->m_bShowNewProjectItem)
+	{
+		wxString str;
+		// IDS_NEW_PROJECT
+		str = str.Format(_("<New Project>"));
+		m_projectName = str;
+	}
+
 }
 
 CProjectPage::~CProjectPage() // destructor
@@ -197,7 +206,8 @@ wxWizardPage* CProjectPage::GetNext() const
 {
 	// Determine if existing project is selected and, if so, return the docPage.
 	// If <New Project> was selected then return the next page in the longer wizard,
-	if (gbWizardNewProject)
+	if (!m_projectName.IsEmpty() && m_projectName.GetChar(0) == _T('<')) 
+	//if (gbWizardNewProject)
 		return pLanguagesPage;
 	else
 		return pDocPage;
@@ -226,6 +236,7 @@ void CProjectPage::OnLBSelectItem(wxCommandEvent& WXUNUSED(event))
 	}
 	wxString selStr;
 	selStr = m_pListBox->GetStringSelection();
+	m_projectName = m_pListBox->GetStringSelection();
 	// whm 11Jun12 added !selStr.IsEmpty() && to test below. GetChar(0) should not be called on an empty string.
 	if (!selStr.IsEmpty() && selStr.GetChar(0) == _T('<'))	// the name might change in a localized version,
 										// so look for < as the indicator that <New Project>
@@ -418,8 +429,10 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 		{
 			wxASSERT(m_pListBox->GetCount() > 0);
 			m_pListBox->SetSelection(0);
+			selItem = 0;
 		}
 		m_curLBSelection = selItem;
+		m_projectName = m_pListBox->GetStringSelection();
 	}
 	// ensure the listbox is in focus
 	m_pListBox->SetFocus();
