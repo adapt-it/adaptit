@@ -29,13 +29,27 @@ public:
 	virtual ~KBSharingSetupDlg(void); // destructor
 
 	// other methods
+	wxTextCtrl*	m_pURLCtrl;
+	wxTextCtrl*	m_pUsernameCtrl;
+
+	// Next two are needed because the user can invoke this dialog on an existing setup
+	// not realizing it is already running, and so we need to be able to check for that
+	// and tell him all's well; and we also need to be able to check for when the user
+	// wants to change servers on the fly
+	wxString m_saveOldURLStr;
+	wxString m_saveOldUsernameStr;
+	wxString m_savePassword; // so it can be restored if the user Cancels
+	bool	 m_saveIsONflag;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
+	void OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonRemoveSetup(wxUpdateUIEvent& event);
 
-	//void OnBtnGetAll(wxCommandEvent& WXUNUSED(event));
+	CAdapt_ItApp* m_pApp;
+	
 
 	// Note: I've stored the to-be-typed-just-once kb server password in the CMainFrame
 	// instance, and the dialog for getting the user to type it in is there too, and a

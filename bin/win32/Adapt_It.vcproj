@@ -889,6 +889,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_UploadToKBServer.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\TransformToGlossesDlg.cpp"
 				>
 			</File>
@@ -1415,6 +1419,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_CreateEntry.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_UploadToKBServer.h"
 				>
 			</File>
 			<File

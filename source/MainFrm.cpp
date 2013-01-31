@@ -2642,7 +2642,7 @@ void CMainFrame::SetKBSvrPassword(wxString pwd)
 // instance and then again for the glossing KB's KbServer instance)
 wxString CMainFrame::GetKBSvrPasswordFromUser()
 {
-	wxString msg = _T("Type the knowledge base server's password. It should have been given to you already by your administrator.\nWithout the correct password, it will not be possible to share your\nknowledge base data with others, nor for them to share theirs with you.");
+	wxString msg = _T("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
 	wxString caption = _T("Type the server's password");
 	wxString default_value = _T("");
 	// it will be shown centred with default coords, and without any parent window
@@ -4134,30 +4134,34 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
 			pKbSvr = gpApp->GetKbServer(1); // adapting
 		}
-		if (pKbSvr->IsKBSharingEnabled() && pKbSvr->CacheHasContent())
+		// at launch time, pKbSvr will still be NULL, so test for this
+		if (pKbSvr != NULL)
 		{
-			int deletedFlag;
-			wxString sourceStr;
-			wxString translationStr;
-			pKbSvr->GetLastEntryData(sourceStr, translationStr, deletedFlag);
-			bool bDeleted = deletedFlag == 1 ? TRUE : FALSE;
-#if defined(_DEBUG)
-			wxArrayInt* pArrInt = pKbSvr->GetCacheDeletedArray();
-			size_t theCount = pArrInt->GetCount();
-			wxLogDebug(_T("                       OnIdle: count=%d  src [ %s ] tgt [ %s ] flag %d"),
-				theCount, sourceStr.c_str(), translationStr.c_str(), deletedFlag);
-#endif
-			int returnValue = pKbSvr->CreateEntry(sourceStr, translationStr, bDeleted);
-#if defined(_DEBUG)
-			wxLogDebug(_T("OnIdle: CreateEntry returned: %d     <<-- If 0 then NO ERROR"), returnValue);
-#endif
-			if (returnValue == 0)
+			if (pKbSvr->IsKBSharingEnabled() && pKbSvr->CacheHasContent())
 			{
-				// the data transmission succeeded
-				pKbSvr->RemoveLastFromCacheArrays();
+				int deletedFlag;
+				wxString sourceStr;
+				wxString translationStr;
+				pKbSvr->GetLastEntryData(sourceStr, translationStr, deletedFlag);
+				bool bDeleted = deletedFlag == 1 ? TRUE : FALSE;
+#if defined(_DEBUG)
+				wxArrayInt* pArrInt = pKbSvr->GetCacheDeletedArray();
+				size_t theCount = pArrInt->GetCount();
+				wxLogDebug(_T("                       OnIdle: count=%d  src [ %s ] tgt [ %s ] flag %d"),
+					theCount, sourceStr.c_str(), translationStr.c_str(), deletedFlag);
+#endif
+				int returnValue = pKbSvr->CreateEntry(sourceStr, translationStr, bDeleted);
+#if defined(_DEBUG)
+				wxLogDebug(_T("OnIdle: CreateEntry returned: %d     <<-- If 0 then NO ERROR"), returnValue);
+#endif
+				if (returnValue == 0)
+				{
+					// the data transmission succeeded
+					pKbSvr->RemoveLastFromCacheArrays();
+				}
 			}
-		}
-	}
+		} // end of TRUE block for test: if (pKbSrv != NULL)
+	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
 #endif
 }
 

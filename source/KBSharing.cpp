@@ -57,7 +57,7 @@ BEGIN_EVENT_TABLE(KBSharing, AIModalDialog)
 	EVT_BUTTON(ID_GET_ALL, KBSharing::OnBtnGetAll)
 	EVT_BUTTON(ID_GET_RECENT, KBSharing::OnBtnChangedSince)
 	EVT_BUTTON(ID_SEND_ALL, KBSharing::OnBtnSendAll)
-
+	EVT_RADIOBOX(ID_RADIO_SHARING_OFF, KBSharing::OnRadioOnOff)
 END_EVENT_TABLE()
 
 
@@ -93,12 +93,61 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	m_pBtnGetAll = (wxButton*)FindWindowById(ID_GET_ALL);
-
+	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIO_SHARING_OFF);
+	// get the current state of the two radio buttons
+	KbServer* pAdaptingSvr = m_pApp->GetKbServer(1); // both are in same state, so this one is enough
+	m_nRadioBoxSelection = pAdaptingSvr->IsKBSharingEnabled() ? 0 : 1;
+	m_pRadioBox->SetSelection(m_nRadioBoxSelection); 
 }
 
 void KBSharing::OnCancel(wxCommandEvent& myevent)
 {
 	myevent.Skip();
+}
+
+void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
+{
+	// We shouldn't be able to see the dlg if its not a KB sharing project,
+	// let alone get this far!!
+	wxASSERT(m_pApp->m_bIsKBServerProject == TRUE);
+
+	// Get the new state of the radiobox
+	m_nRadioBoxSelection = m_pRadioBox->GetSelection();
+	// make the KB sharing state match the new setting; both KbServer instances must be
+	// changed in parallel
+	if (m_pApp->m_bIsKBServerProject)
+	{
+        // respond only if this project is currently designated as one for supporting KB
+        // sharing
+		if (m_nRadioBoxSelection == 0)
+		{
+			// This is the first button, the one for sharing to be ON
+			KbServer* pAdaptingSvr = m_pApp->GetKbServer(1);
+			KbServer* pGlossingSvr = m_pApp->GetKbServer(2);
+			if (pAdaptingSvr != NULL)
+			{
+				pAdaptingSvr->EnableKBSharing(TRUE);
+			}
+			if (pGlossingSvr != NULL)
+			{
+				pGlossingSvr->EnableKBSharing(TRUE);
+			}
+		}
+		else
+		{
+			// This is the second button, the one for sharing to be OFF
+			KbServer* pAdaptingSvr = m_pApp->GetKbServer(1);
+			KbServer* pGlossingSvr = m_pApp->GetKbServer(2);
+			if (pAdaptingSvr != NULL)
+			{
+				pAdaptingSvr->EnableKBSharing(FALSE);
+			}
+			if (pGlossingSvr != NULL)
+			{
+				pGlossingSvr->EnableKBSharing(FALSE);
+			}
+		}
+	}
 }
 
 void KBSharing::OnBtnGetAll(wxCommandEvent& WXUNUSED(event))
@@ -199,8 +248,22 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 
 	pKbServer = m_pApp->GetKbServer((gbIsGlossing ? 2 : 1));
 
+	// BEW comment 31Jan13
+	// I think that temporaly long operations like uploading a whole KB or downloading the
+	// server's contents for a given project should not be done on a work thread. My
+	// reasoning is the following... The dialog will close (or if EndModal() below is
+	// omitted in this handler, the dialog will become responsive again) and the user may
+	// think that the upload or download is completed, when in fact a separate process may
+	// have a few minutes to run before it completes. The user, on closure of the dialog,
+	// may exit the project, or shut down the application - either of which will destroy
+	// the code resources which the thread is relying on to do its work. To avoid this
+	// kind of problem, long operations should be done synchronously, and be tracked by
+	// the progress indicator at least - and they should close the dialog when they complete.
 	pKbServer->UploadToKbServer();
-	//pKbServer->UploadToKbServerThreaded();
+	//pKbServer->UploadToKbServerThreaded(); // <<-- repurpose this later, see 31Jan13 comment above
+	
+	// make the dialog close (a good way to say, "it's been done"
+	EndModal(wxID_OK);
 }
 
 #endif

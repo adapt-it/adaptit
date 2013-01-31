@@ -1517,7 +1517,7 @@ void KbServer::UploadToKbServerThreaded()
 		wxString msg;
 		msg = msg.Format(_T("Thread_UploadToKBServer(): thread creation failed, error number: %d"),
 			(int)error);
-		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
 		m_pApp->LogUserAction(msg);
 	}
 	// now run the thread (it will destroy itself when done)
@@ -1527,7 +1527,7 @@ void KbServer::UploadToKbServerThreaded()
 		wxString msg;
 		msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 			(int)error);
-		wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+		wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
 		m_pApp->LogUserAction(msg);
 	}
 }
@@ -1573,12 +1573,9 @@ void KbServer::UploadToKbServer()
 						// test info
 						wxDateTime now = wxDateTime::Now();
 						iTotalSent++;
-						wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() time: %s source: %s target %s"), // deleted %s \n"), 
+						wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() [time]:  %s    [source]:  %s    [target]:  %s"), 
 							iTotalSent, now.Format(_T("%c"), wxDateTime::CET).c_str(), 
-							srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag() );
-						/*wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() time: %s source: %s target %s deleted %s \n"), 
-							iTotalSent, now.Format(_T("%c"), wxDateTime::CET).c_str(), 
-							srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag() );*/
+							srcPhrase.c_str(), pRefString->m_translation.c_str());
 					}
 				}
 			}
