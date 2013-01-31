@@ -5804,6 +5804,19 @@ wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 /// Adapt It stores this string in the App's m_bIsKBServerProject member variable. Default
 /// is FALSE.
 wxString szIsKBServerProject = _T("IsKBServerProject");
+
+// next two added 30Jan13
+/// The label for the project configuration file's line which stores the URL of the last
+/// used server for knowledge base sharing within a project designated as one for sharing
+wxString szKbServerURL = _T("KbServerURL");
+
+/// The label for the project configuration file's line which stores the login username
+/// for the last used server for knowledge base sharing within a project designated as one
+/// for sharing. Because an email address is unique, we recommend the user's email address
+/// be used for the username (full address, including domain); however not all users will
+/// have email access, so any likely-to-be-unique name would be acceptable
+wxString szKbServerUsername = _T("KbServerUsername");
+
 //#endif
 
 /// The label that identifies the following string as the project's "TargetLanguageName".
@@ -14996,6 +15009,14 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	wxString url; url.Empty();
 	wxString username; username.Empty();
 	wxString password; password.Empty();
+	 
+	// Deprecated 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetupDlg
+	// now, and we store url and username as app variables m_strKbServerURL and
+	// m_strKbServerUsername from now on (these are saved in the project config file too),
+	// and we get those here now, instead of from the credentials.txt file; the password
+	// from the password dialog is stored in CMainFrame class as the member
+	// m_kbserverPassword, private, and so accessed with GetKBSvrPassword()
+	/*
 	bool bOpenedOK = GetCredentials(credsfilename, url, username, password);
 	if (!bOpenedOK)
 	{
@@ -15007,6 +15028,13 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		DeleteKbServer(whichType);
 		return FALSE;
 	}
+	*/
+	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strKbServerUsername.IsEmpty());
+	url = m_strKbServerURL;
+	username = m_strKbServerUsername;
+	password = GetMainFrame()->GetKBSvrPassword();
+	wxASSERT(!password.IsEmpty());
+
 	GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
 	GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
 	GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
@@ -15065,13 +15093,14 @@ int CAdapt_ItApp::GetKBTypeForServer()
 	return 1; // for adaptingKB
 }
 
-/// Return TRUE, and the url and username credentials (and while doing testing, also the
-/// kbserver password) to be stored in the app class. Temporarily this data is storedin a
-/// file called credentials.txt located in the project folder and contains url, username,
-/// password, one string per line. But later something more permanent will be used, and the
-/// kbserver password will never be stored in the app (so a permanent version of this code
-/// will only have the first two params in its signature) once a releasable version of kbserver
-/// support has been built (use a hidden file for url and username in the project folder?)
+// Return TRUE, and the url and username credentials (and while doing testing, also the
+// kbserver password) to be stored in the app class. Temporarily this data is storedin a
+// file called credentials.txt located in the project folder and contains url, username,
+// password, one string per line. But later something more permanent will be used, and the
+// kbserver password will never be stored in the app (so a permanent version of this code
+// will only have the first two params in its signature) once a releasable version of kbserver
+// support has been built (use a hidden file for url and username in the project folder?)
+/* BEW deprecated 31Jan13 -- we use project config file now, and ask for the password in a pwd dialog
 bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password)
 {
 	bool bSuccess = FALSE;
@@ -15124,16 +15153,9 @@ bool CAdapt_ItApp::GetCredentials(wxString filename, wxString& url, wxString& us
 		url.c_str(), username.c_str(), password.c_str());
 
 	f.Close();
-
-
-// *** TODO *** the permanent code -- alter the above if necessary
-
 	return TRUE;
 }
-
-
-
-
+*/
 
 
 #endif // for _KBSERVER
@@ -31546,6 +31568,14 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szIsKBServerProject << tab << (int)m_bIsKBServerProject;
 	pf->AddLine(data);
+
+	data.Empty();
+	data << szKbServerURL << tab << m_strKbServerURL;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szKbServerUsername << tab << m_strKbServerUsername;
+	pf->AddLine(data);
 #endif
 	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
 
@@ -32343,8 +32373,20 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bIsKBServerProject = FALSE;
 			}
 		}
+		else if (name == szKbServerURL)
+		{
+			m_strKbServerURL = strValue;
+		}
+		else if (name == szKbServerUsername)
+		{
+			m_strKbServerUsername = strValue;
+		}
 #else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
 		else if (name == szIsKBServerProject)
+			;	// do nothing
+		else if (name == szKbServerURL)
+			;	// do nothing
+		else if (name == szKbServerUsername)
 			;	// do nothing
 #endif
 		// whm 17Feb12 added the following two from the basic config file. They are

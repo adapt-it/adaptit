@@ -1276,12 +1276,30 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
             // variables defined in the CAdapt_ItApp class
 			if (pApp->m_bIsKBServerProject)
 			{
-				pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
-				// instantiate an adapting and a glossing KbServer class instance
-				if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+				// Ask for the password --- we no longer use a "credentials.txt" 
+				// temporary file. Returns an empty string if nothing is typed
+				CMainFrame* pFrame = pApp->GetMainFrame();
+				wxString pwd = pFrame->GetKBSvrPasswordFromUser();
+				// there will be a beep if no password was typed
+				if (!pwd.IsEmpty())
 				{
-					// an error message will have been shown, so just log the failure
-					gpApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+					pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
+												   // ready for SetupForKBServer() below to use it
+					pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
+					// instantiate an adapting and a glossing KbServer class instance
+					if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+					{
+						// an error message will have been shown, so just log the failure
+						gpApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+					}
+				}
+				else
+				{
+					wxString msg = _("No password was typed. Knowledge base sharing setup is cancelled.\nUse the command on the Advanced menu to setup manually.");
+					pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+					wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
+					pApp->LogUserAction(msg);
 				}
 			}
 #endif

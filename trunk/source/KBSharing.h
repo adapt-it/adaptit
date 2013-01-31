@@ -29,7 +29,8 @@ public:
 	virtual ~KBSharing(void); // destructor
 
 	// other methods
-	wxButton* m_pBtnGetAll;
+	wxButton*	m_pBtnGetAll;
+	wxRadioBox*	m_pRadioBox;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -39,9 +40,12 @@ protected:
 	void OnBtnGetAll(wxCommandEvent& WXUNUSED(event));
 	void OnBtnChangedSince(wxCommandEvent& WXUNUSED(event));
 	void OnBtnSendAll(wxCommandEvent& WXUNUSED(event));
+	void OnRadioOnOff(wxCommandEvent& WXUNUSED(event));
 
 private:
 	CAdapt_ItApp* m_pApp;
+	int	m_nRadioBoxSelection;
+
 	DECLARE_EVENT_TABLE()
 };
 

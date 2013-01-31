@@ -2745,7 +2745,8 @@ public:
 	bool	  ReleaseKBServer(int whichType);
 
 	int		  GetKBTypeForServer(); // returns 1 or 2
-	bool	  GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password);
+	// BEW deprecated 31Jan13
+	//bool	  GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password);
 
 
 
@@ -2755,14 +2756,20 @@ public:
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
 	// lastsync_adaptations.txt stores the date & time for an adaptations KbServer instance,
-	// or lastsync_glosses.txt stores the timestamp for a glossess KbServer instance. The fist
+	// or lastsync_glosses.txt stores the timestamp for a glossess KbServer instance. The first
 	// of these files will be abandoned once we get a GUI built; the two "lastsync..." ones
 	// will be retained permanently. Some metadata may also be (perhaps) stored in a hidden file,
 	// .kbserver in the project folder -- but I've not done so yet.
+	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
 									  // sharing kb data between clients in the same AI project;
 									  // two instances are created, one for adaptations, the
 									  // other for glosses
+	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
+	wxString	m_strKbServerUsername; // for the unique username known to the server, typically
+									// the user's email address if he has one, if not, any
+									// unique string will do provided the server administrator
+									// approves it
 
 #endif // for _KBSERVER
 

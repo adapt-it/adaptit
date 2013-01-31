@@ -9105,8 +9105,8 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
         _("Knowledge base sharing is ON"), 
         _("Knowledge base sharing is OFF")
     };
-    wxRadioBox *item6 = new wxRadioBox( parent, ID_RADIO_SHARING_OFF, _("Status of knowledge base sharing"), wxDefaultPosition, wxSize(20,-1), 2, strs6, 2, wxRA_SPECIFY_COLS );
-    item6->SetToolTip( _("Connectivity can be turned on or off with these two buttons") );
+    wxRadioBox *item6 = new wxRadioBox( parent, ID_RADIO_SHARING_OFF, _("Turn knowledge base sharing on or off"), wxDefaultPosition, wxSize(20,-1), 2, strs6, 2, wxRA_SPECIFY_COLS );
+    item6->SetToolTip( _("Temporarily turn sharing  on or off with these two buttons") );
     item2->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("You will be asked for the KB server's password again if you turn KB sharing ON after it has been OFF."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -9189,7 +9189,7 @@ wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer 
     item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item9->SetToolTip( _("Type your email or a unique name you will not forget") );
+    item9->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item6->Add( item7, 0, wxALIGN_CENTER|wxRIGHT, 5 );
