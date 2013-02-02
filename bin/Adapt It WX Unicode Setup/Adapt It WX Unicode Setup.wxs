@@ -203,7 +203,6 @@
 			<Component Id="ADAPT_IT_UNICODE.EXE" Guid="E1111FD4-877B-4F4D-99DD-48864E3BF3DA">
 				<File Id="ADAPT_IT_UNICODE.EXE" Name="Adapt_It_Unicode.exe" Source="..\..\setup Unicode\Adapt_It_Unicode.exe">
 						<Shortcut Id="desktopShortcut" Directory="DesktopFolder" Name="Adapt It WX Unicode" WorkingDirectory="INSTALLDIR" Advertise="yes" Icon="ai.exe" IconIndex="0" />
-						<Shortcut Id="ExeShortcut" Directory="ApplicationProgramsFolder" Name="Adapt It WX Unicode" Advertise="yes" Icon="ai.exe" IconIndex="0" />
 				</File> 
 			</Component>
 			<Component Id="_adapt_it_wx_unicode" Guid="3C67513D-01DD-4637-8A68-80971EB9504F">
@@ -241,7 +240,7 @@
 			<Component Id="StartMenuShortcuts" Guid="6181524C-B8E7-42a8-950D-47DC25B2E019">
 				<RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
 				<RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" />
-				<Shortcut Id="UninstallProduct" Name="Uninstall Adapt It" Description="Uninstalls Adapt It" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" />
+				<Shortcut Id="ExeShortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt It changes.txt" Name="Adapt It WX Unicode" />
 				<Shortcut Id="_adapt_it_changes_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt It changes.txt" Name="Adapt It Changes" />
 				<Shortcut Id="_adapt_it_quick_start_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt_It_Quick_Start.htm" Name="Adapt It Quick Start" />
 				<Shortcut Id="_help_for_administrators_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Help_for_Administrators.htm" Name="Help for Administrators" />
@@ -249,6 +248,7 @@
 				<Shortcut Id="_readme_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Readme.txt" Name="Readme" />
 				<Shortcut Id="_adapt_it_tutorial_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt It Tutorial.doc" Name="Adapt It Tutorial" />
 				<Shortcut Id="_consistent_changes_Shortcut" Directory="ApplicationProgramsFolder" Target="[CCDIR]CCW32.exe" Name="Consistent Changes (standalone)" />
+				<Shortcut Id="UninstallProduct" Name="Uninstall Adapt It" Description="Uninstalls Adapt It" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" />
 			</Component>
 		</DirectoryRef>
 		<DirectoryRef Id="CCFolder">
