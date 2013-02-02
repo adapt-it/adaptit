@@ -40,6 +40,8 @@
 
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+#include <wx/spinctrl.h>
+
 #include "Adapt_It.h"
 #include "KB.h"
 #include "KbServer.h"
@@ -58,6 +60,8 @@ BEGIN_EVENT_TABLE(KBSharing, AIModalDialog)
 	EVT_BUTTON(ID_GET_RECENT, KBSharing::OnBtnChangedSince)
 	EVT_BUTTON(ID_SEND_ALL, KBSharing::OnBtnSendAll)
 	EVT_RADIOBOX(ID_RADIO_SHARING_OFF, KBSharing::OnRadioOnOff)
+	EVT_SPINCTRL(ID_SPINCTRL_RECEIVE, KBSharing::OnSpinCtrlReceiving)
+	EVT_SPINCTRL(ID_SPINCTRL_SEND, KBSharing::OnSpinCtrlSending)
 END_EVENT_TABLE()
 
 
@@ -85,6 +89,10 @@ KBSharing::~KBSharing() // destructor
 
 void KBSharing::OnOK(wxCommandEvent& myevent)
 {
+	// update the sending and receiving intervals
+	m_pApp->m_nKbServerIncrementalDownloadInterval = receiveInterval;
+	m_pApp->m_nKbServerIncrementalUploadInterval = sendInterval;
+
 	myevent.Skip();
 }
 
@@ -94,15 +102,49 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	m_pBtnGetAll = (wxButton*)FindWindowById(ID_GET_ALL);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIO_SHARING_OFF);
+	m_pSpinReceiving = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_RECEIVE);
+	m_pSpinSending = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_SEND);
+
 	// get the current state of the two radio buttons
 	KbServer* pAdaptingSvr = m_pApp->GetKbServer(1); // both are in same state, so this one is enough
 	m_nRadioBoxSelection = pAdaptingSvr->IsKBSharingEnabled() ? 0 : 1;
-	m_pRadioBox->SetSelection(m_nRadioBoxSelection); 
+	m_pRadioBox->SetSelection(m_nRadioBoxSelection);
+
+	// initialize the spin controls to the current values (from project config file, or as
+	// recently changed by the user)
+	receiveInterval = m_pApp->m_nKbServerIncrementalDownloadInterval;
+	sendInterval = m_pApp->m_nKbServerIncrementalUploadInterval;
+	// put the values in the boxes
+	if (m_pSpinReceiving != NULL)
+	{
+		m_pSpinReceiving->SetValue(receiveInterval);
+	}
+	if (m_pSpinSending != NULL)
+	{
+		m_pSpinSending->SetValue(sendInterval);
+	}
 }
 
 void KBSharing::OnCancel(wxCommandEvent& myevent)
 {
 	myevent.Skip();
+}
+
+void KBSharing::OnSpinCtrlReceiving(wxSpinEvent& WXUNUSED(event))
+{
+	receiveInterval = m_pSpinReceiving->GetValue();
+	if (receiveInterval > 10)
+		receiveInterval = 10;
+	if (receiveInterval < 1)
+		receiveInterval = 1;
+}
+void KBSharing::OnSpinCtrlSending(wxSpinEvent& WXUNUSED(event))
+{
+	sendInterval = m_pSpinSending->GetValue();
+	if (sendInterval > 10)
+		sendInterval = 10;
+	if (sendInterval < 1)
+		sendInterval = 1;
 }
 
 void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))

@@ -4160,6 +4160,35 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 					pKbSvr->RemoveLastFromCacheArrays();
 				}
 			}
+
+			// Try an incremental download; if the m_KbServerDownloadTimer has fired, the
+			// 'pending' flag will have been made TRUE so the next block can be entered
+			if (pKbSvr->IsKBSharingEnabled() && gpApp->m_bKbServerIncrementalDownloadPending)
+			{
+#if defined(_DEBUG)
+				wxBell();
+				wxBell();
+				wxBell();
+#endif
+				pKbSvr->DoChangedSince();
+
+				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
+				pKbSvr->ClearAllPrivateStorageArrays();
+			}
+
+
+			// Try an incremental upload; if the m_KbServerUploadTimer has fired, the
+			// 'pending' flag will have been made TRUE so the next block can be entered
+			if (pKbSvr->IsKBSharingEnabled() && gpApp->m_bKbServerIncrementalUploadPending)
+			{
+
+// TODO  ******  put the call needed here (awaiting bulk upload support from Jonathan ******
+
+
+				gpApp->m_bKbServerIncrementalUploadPending = FALSE; // disable tries until next timer shot
+				pKbSvr->ClearAllPrivateCacheArrays();
+			}
+
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
 #endif
