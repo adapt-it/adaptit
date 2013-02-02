@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.4.0 release 25 January 2013
+Version 6.4.1 release 6 February 2013
 ----------------------------------------------
 
 *** WARNING*** Known Issue for Linux Unity users
@@ -16,6 +16,21 @@ problems if you use these shortcuts instead.
 The problem does not arise on other *buntus, nor on other distros
 such as Linux Mint.
 
+----------------------------------------------
+Bug fixes in 6.4.1
+----------------------------------------------
+* fixed a problem where deleting / renaming an adaptations project,
+then selecting "New Project" would cause the wizard to jump ahead
+to the doc page instead of the language page.
+* Fixed the problem of project settings from a previously opened
+project being carried over to a <New Project> scenario which was
+accessed via the wizard's <Back button. New project defaults are
+now set in the <New Project> code block of the 
+CProjectPage::OnWizardPageChanging() function using some new 
+consolidation functions created on the App.
+----------------------------------------------
+Version 6.4.0 release 25 January 2013
+----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.4.0
 ----------------------------------------------

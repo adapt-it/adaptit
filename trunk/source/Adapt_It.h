@@ -183,13 +183,13 @@ const int ID_KBSERVER_UPLOAD_TIMER = 977;
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 4
-#define VERSION_BUILD_PART 0
-#define VERSION_REVISION_PART 0
+#define VERSION_BUILD_PART 1
+#define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 25
-#define VERSION_DATE_MONTH 1
+#define VERSION_DATE_DAY 6
+#define VERSION_DATE_MONTH 2
 #define VERSION_DATE_YEAR 2013
-const wxString appVerStr(_T("6.4.0"));
+const wxString appVerStr(_T("6.4.1"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()

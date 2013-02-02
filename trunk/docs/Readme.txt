@@ -6,7 +6,7 @@ IS NOT AFFECTED BY UNINSTALLING.
 ---------------------------------------------------------------------
 Adapt It WX
 ---------------------------------------------------------------------
-Version 6.4.0
+Version 6.4.1
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
