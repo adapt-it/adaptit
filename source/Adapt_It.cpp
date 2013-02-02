@@ -5561,6 +5561,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
 
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
+#if defined(_KBSERVER)
+	EVT_TIMER(ID_KBSERVER_DOWNLOAD_TIMER, CAdapt_ItApp::OnKbServerDownloadTimer)
+	EVT_TIMER(ID_KBSERVER_UPLOAD_TIMER, CAdapt_ItApp::OnKbServerUploadTimer)
+#endif
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
 	//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
@@ -5816,6 +5820,14 @@ wxString szKbServerURL = _T("KbServerURL");
 /// be used for the username (full address, including domain); however not all users will
 /// have email access, so any likely-to-be-unique name would be acceptable
 wxString szKbServerUsername = _T("KbServerUsername");
+
+/// The minimum interval, in minutes, from one incremental download attempt to the next
+/// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
+wxString szKbServerDownloadInterval = _T("KbServerIncrementalDownloadInterval");
+
+/// The minimum interval, in minutes, from one incremental download attempt to the next
+/// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
+wxString szKbServerUploadInterval = _T("KbServerIncrementalUploadInterval");
 
 //#endif
 
@@ -15046,6 +15058,13 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
 	GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
+	// start timers for incremental uploads and downloads (each call stops the timer if it
+	// was already running, and then restarts it with the passed in interval -- this is
+	// nice because SetupForKBServer() is always called twice, once for the adapting KB
+	// and the other time for the glossing KB)
+	m_KbServerDownloadTimer.Start(m_nKbServerIncrementalDownloadInterval*1000);
+	m_KbServerUploadTimer.Start(m_nKbServerIncrementalUploadInterval*1000);
+
 	// all's well
 	return TRUE;
 }
@@ -15060,6 +15079,10 @@ bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 	KbServer* pKbSvr = GetKbServer(whichType); // beware, may return NULL
 	if (pKbSvr == NULL)
         return TRUE; // not currently defined
+
+	// stop the timers for incremental uploads and downloads
+	m_KbServerDownloadTimer.Stop();
+	m_KbServerUploadTimer.Stop();
 
 	// ensure the m_kbServerLastSync timestamp value is stored to permanent storage (which
 	// is in lastsync_adaptations.txt in the project folder when dealing with adaptations KB,
@@ -15199,14 +15222,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
 	m_bIsKBServerProject = FALSE; // initialise
 
-	// **** TODO **** the following 5 CAdapt_ItApp members will become private members of
-	// KbServer once the latter is coded suficiently, then these can be removed, as can
-	// the global functions in KBServer.cpp which set them
-	//m_kbTypeForServer = 1; // 1 for an adaptations KB, 2 for a glosses KB
-	//m_kbServerURL.Empty();
-	//m_kbServerUsername.Empty();
-	//m_kbServerPassword.Empty();
-	//m_kbServerLastSync.Empty();
+	// flag initializations
+	m_bKbServerIncrementalDownloadPending = FALSE;
+	m_bKbServerIncrementalUploadPending = FALSE;
+
+	// incremental upload and download default intervals (5 seconds) - but will be overridden
+	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-10)
+	m_nKbServerIncrementalDownloadInterval = 5;
+	m_nKbServerIncrementalUploadInterval = 5;
+
 #endif
 
 #if defined(_DEBUG) && defined(__WXGTK__)
@@ -31576,6 +31600,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szKbServerUsername << tab << m_strKbServerUsername;
 	pf->AddLine(data);
+
+	data.Empty();
+	data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szKbServerUploadInterval << tab << m_nKbServerIncrementalUploadInterval;
+	pf->AddLine(data);
+
 #endif
 	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
 
@@ -32381,6 +32414,24 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_strKbServerUsername = strValue;
 		}
+		else if (name == szKbServerDownloadInterval)
+		{
+			num = wxAtoi(strValue);
+			if (num < 1 || num > 10)
+				num = 5; // if out of range default to 5
+			m_nKbServerIncrementalDownloadInterval = num;
+		}
+		else if (name == szKbServerUploadInterval)
+		{
+			num = wxAtoi(strValue);
+			if (num < 1 || num > 10)
+				num = 5; // if out of range default to 5
+			m_nKbServerIncrementalUploadInterval = num;
+		}
+
+
+
+
 #else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
 		else if (name == szIsKBServerProject)
 			;	// do nothing
@@ -32388,6 +32439,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			;	// do nothing
 		else if (name == szKbServerUsername)
 			;	// do nothing
+		else if (name == szKbServerDownloadInterval)	
+			; // do nothing
+		else if (name == szKbServerUploadInterval)	
+			; // do nothing
 #endif
 		// whm 17Feb12 added the following two from the basic config file. They are
 		// used in collaboration operations too.
@@ -42234,6 +42289,58 @@ void CAdapt_ItApp::OnTimer(wxTimerEvent& WXUNUSED(event))
 {
 	CheckLockFileOwnership();
 }
+
+#if defined(_KBSERVER)
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \remarks Catches a wxTimerEvent when m_KbServerDownloadTimer is running. For each timer
+/// event it sets a flag: for instance, the flag for the adapting KbServer instance is
+/// m_bKbServerIncrementalDownloadPending, and when it is TRUE, the next OnIdle() event
+/// which also finds that an auto-insertion has just halted (ie. m_bAutoInsert has become
+/// FALSE), will initiate a DoChangedSince() download of entries from the KB server.
+/// Similarly for the glossing KbServer, if glossing mode is currently on, and it uses
+/// the same flag. There is a different flag for uploads, and a different timer handler.
+/// 
+/// This OnKbServerDownloadTimer() handler is called when KB Sharing is setup for a
+/// project. (I'll probably keep it running even if the user temporarily disables
+/// sharing.) It will be stopped when ReleaseKBServer() is called on one of the KbServer
+/// instances (since they are both on, or both off).
+///////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnKbServerDownloadTimer(wxTimerEvent& WXUNUSED(event))
+{
+	// set the pending flag, so that OnIdle() can prepare and send the download request
+	if (m_KbServerDownloadTimer.IsRunning())
+	{
+		m_bKbServerIncrementalDownloadPending = TRUE;
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \remarks Catches a wxTimerEvent when m_KbServerUploadTimer is running. For each timer
+/// event it sets a flag: for instance, the flag for the adapting KbServer instance is
+/// m_bKbServerIncrementalUploadPending, and when it is TRUE, the next OnIdle() event
+/// will initiate a function to upload a small set of recently adapted entries to the 
+/// KB server. Similarly for the glossing KbServer, if glossing mode is currently on, 
+/// and it uses the same flag. There is a different flag for downloads, and a different
+/// timer handler.
+/// 
+/// This OnKbServerUploadTimer() handler is called when KB Sharing is setup for a
+/// project. (I'll probably keep it running even if the user temporarily disables
+/// sharing.) It will be stopped when ReleaseKBServer() is called on one of the KbServer
+/// instances (since they are both on, or both off).
+///////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnKbServerUploadTimer(wxTimerEvent& WXUNUSED(event))
+{
+	// set the pending flag, so that OnIdle() can prepare and send the upload request
+	if (m_KbServerUploadTimer.IsRunning())
+	{
+		m_bKbServerIncrementalUploadPending = TRUE;
+	}
+}
+
+#endif // for _KBSERVER
 
 void CAdapt_ItApp::CheckLockFileOwnership()
 {

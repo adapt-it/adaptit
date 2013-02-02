@@ -131,6 +131,10 @@ const int ID_MENU_SHOW_KBSERVER_DLG	= 980;
 // menu; the menu item is setup (for the _DEBUG build only, while developing KB sharing
 // functionality, in the app function OnInit())
 const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
+// ID for m_KbServerDownloadTimer
+const int ID_KBSERVER_DOWNLOAD_TIMER = 978;
+// ID for m_KbServerUploadTimer
+const int ID_KBSERVER_UPLOAD_TIMER = 977;
 
 #endif
 
@@ -1910,6 +1914,26 @@ class CAdapt_ItApp : public wxApp
 
 	wxTimer m_timer;
 
+#if defined(_KBSERVER)
+
+	// The following are the two timers for incremental uploads and downloads; defaulted to
+	// 5 minutes each, but settable by the user to other values in the range 1-10 minutes,
+	// and the minutes value of each will be stored in the project config file
+	wxTimer m_KbServerDownloadTimer; // for periodic incremental download of entries from server
+	wxTimer m_KbServerUploadTimer; // for periodic incremental upoad of entries to server
+
+	// OnIdle() will be used for initiating an upload or download of the incremental type.
+	// Each will happen only after a boolean flag goes TRUE; the flags are the following
+	bool	m_bKbServerIncrementalDownloadPending;
+	bool	m_bKbServerIncrementalUploadPending;
+
+	// Storage for the upload and download intervals (in seconds; but for use with the
+	// timer, multiply by 1000 since the timer's units are milliseconds)
+	int		m_nKbServerIncrementalDownloadInterval;
+	int		m_nKbServerIncrementalUploadInterval;
+
+#endif
+
 	wxUint32 maxProgDialogValue; // whm added 25Aug11 as a temporary measure until we can
 							// sub-class the wxProgressDialog which currently has no
 							// way to get its maximum value held as a private member.
@@ -3543,6 +3567,15 @@ public:
 // Declaration of event handlers
 
 	void OnTimer(wxTimerEvent& WXUNUSED(event));
+
+#if defined(_KBSERVER)
+
+	void OnKbServerDownloadTimer(wxTimerEvent& WXUNUSED(event));
+	void OnKbServerUploadTimer(wxTimerEvent& WXUNUSED(event));
+
+#endif
+
+
 	void CheckLockFileOwnership();
 
 	void OnFileNew(wxCommandEvent& event);
