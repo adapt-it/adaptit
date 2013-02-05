@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="482A2761-5034-41C1-8399-4696C3763D71" Language="1033" Name="Adapt It WX Unicode" Codepage="1252" Version="6.4.0" Manufacturer="SIL" UpgradeCode="64C9A09B-737D-4B47-BF3A-ED7EFAF5831B">
+    <Product Id="482A2761-5034-41C1-8399-4696C3763D71" Language="1033" Name="Adapt It WX Unicode" Codepage="1252" Version="6.4.1" Manufacturer="SIL" UpgradeCode="64C9A09B-737D-4B47-BF3A-ED7EFAF5831B">
         <Package Id="*" Keywords="Installer" Description="Adapt It WX Unicode Installer" InstallerVersion="100" Languages="1033" Compressed="yes" SummaryCodepage="1252" />
-        <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+        <Media Id="1" Cabinet="product.cab" CompressionLevel="high" EmbedCab="yes" />
 		
 		<Property Id="ApplicationFolderName" Value="Adapt It WX Unicode" />
 		<Property Id="WixAppFolder" Value="WixPerMachineFolder" />
@@ -240,7 +240,7 @@
 			<Component Id="StartMenuShortcuts" Guid="6181524C-B8E7-42a8-950D-47DC25B2E019">
 				<RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
 				<RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" />
-				<Shortcut Id="ExeShortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt It changes.txt" Name="Adapt It WX Unicode" />
+				<Shortcut Id="ExeShortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt_It_Unicode.exe" Name="Adapt It WX Unicode" />
 				<Shortcut Id="_adapt_it_changes_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt It changes.txt" Name="Adapt It Changes" />
 				<Shortcut Id="_adapt_it_quick_start_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt_It_Quick_Start.htm" Name="Adapt It Quick Start" />
 				<Shortcut Id="_help_for_administrators_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Help_for_Administrators.htm" Name="Help for Administrators" />
