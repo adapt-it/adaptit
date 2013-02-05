@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="48px"
+   height="48px"
+   id="svg4198"
+   sodipodi:version="0.32"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="format-hide-punctuation.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.1"
+   inkscape:export-filename="/Users/erik/Documents/Wycliffe/adaptit/images and such/AI_icons/16x16/format-hide-punctuation.png"
+   inkscape:export-xdpi="29.591812"
+   inkscape:export-ydpi="29.591812">
+  <title
+     id="title3647">format-hide-punctuation</title>
+  <defs
+     id="defs4200">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 24 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="48 : 24 : 1"
+       inkscape:persp3d-origin="24 : 16 : 1"
+       id="perspective49" />
+    <linearGradient
+       id="linearGradient5048">
+      <stop
+         style="stop-color:black;stop-opacity:0;"
+         offset="0"
+         id="stop5050" />
+      <stop
+         id="stop5056"
+         offset="0.5"
+         style="stop-color:black;stop-opacity:1;" />
+      <stop
+         style="stop-color:black;stop-opacity:0;"
+         offset="1"
+         id="stop5052" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3558">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop3560" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop3562" />
+    </linearGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3558"
+       id="radialGradient3564"
+       cx="22.571428"
+       cy="30.857143"
+       fx="22.571428"
+       fy="30.857143"
+       r="15.571428"
+       gradientTransform="matrix(1.000000,0.000000,0.000000,0.651376,4.638648e-15,10.75754)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient15218">
+      <stop
+         style="stop-color:#f8f8f7;stop-opacity:1;"
+         offset="0"
+         id="stop15220" />
+      <stop
+         id="stop2269"
+         offset="0.59928656"
+         style="stop-color:#e8e8e8;stop-opacity:1;" />
+      <stop
+         style="stop-color:#e2e2de;stop-opacity:1;"
+         offset="1"
+         id="stop15222" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient15218"
+       id="linearGradient15224"
+       x1="22.308331"
+       y1="18.992140"
+       x2="35.785294"
+       y2="39.498238"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.060837,0.000000,0.000000,0.987595,4.641161,4.108291)" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2259">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop2261" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop2263" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2259"
+       id="linearGradient2265"
+       x1="26.076092"
+       y1="26.696676"
+       x2="30.811172"
+       y2="42.007351"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.993566,0.000000,0.000000,1.000000,6.219859,4.033411)" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2216">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop2218" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0;"
+         offset="1"
+         id="stop2220" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2216"
+       id="linearGradient2222"
+       x1="36.8125"
+       y1="39.15625"
+       x2="39.0625"
+       y2="42.0625"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(6.161836,4.033411)" />
+    <linearGradient
+       id="linearGradient2224">
+      <stop
+         style="stop-color:#7c7c7c;stop-opacity:1;"
+         offset="0"
+         id="stop2226" />
+      <stop
+         style="stop-color:#b8b8b8;stop-opacity:1;"
+         offset="1"
+         id="stop2228" />
+    </linearGradient>
+    <filter
+       inkscape:collect="always"
+       id="filter3643"
+       x="-0.086168433"
+       width="1.1723369"
+       y="-0.218529"
+       height="1.437058">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="1.3830566"
+         id="feGaussianBlur3645" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#bebebe"
+     borderopacity="1.0000000"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.50383782"
+     inkscape:cx="-361.18584"
+     inkscape:cy="12.80998"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:grid-bbox="true"
+     inkscape:document-units="px"
+     inkscape:window-width="1280"
+     inkscape:window-height="818"
+     inkscape:window-x="57"
+     inkscape:window-y="400"
+     inkscape:showpageshadow="false"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata4203">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>format-hide-punctuation</dc:title>
+        <dc:date>2012-02-02</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Erik Brommers</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>format</rdf:li>
+            <rdf:li>punctuation</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+        <dc:source>http://adapt-it.org</dc:source>
+        <dc:description>Hide punctuation</dc:description>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer">
+    <text
+       sodipodi:linespacing="125%"
+       id="text2851"
+       y="31.5"
+       x="2"
+       style="font-size:24px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#2e3436;fill-opacity:1;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter3643);font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
+       xml:space="preserve"><tspan
+         y="31.5"
+         x="2"
+         id="tspan2853"
+         sodipodi:role="line">“..!”</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:24px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#d3d7cf;fill-opacity:1;stroke:#000000;stroke-width:0.7;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:0.07,0.07;stroke-dashoffset:0;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
+       x="2"
+       y="29.5"
+       id="text2858"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4274"
+         x="2"
+         y="29.5">“..!”</tspan></text>
+  </g>
+</svg>

@@ -1,0 +1,21 @@
+begin > use(starter)
+group(starter)
+"" > omit(1)
+"\" > dup back(1) use(maingroup)
+
+group(maingroup)
+"\lx " > store(lx) use(sourcescan)
+"\lx ..." nl > use(starter)
+"\ge " nl > use(starter)
+"\ge " > store(ge) use(targetscan)
+nl > fwd(1)
+endfile > endfile
+nl endfile > endstore endfile
+
+group(sourcescan)
+"" > fwd(1)
+nl > dup endstore use(maingroup)
+
+group(targetscan)
+"" > fwd(1)
+nl > dup endstore "\lx " out(ge) "\ge " out(lx) nl use(starter)
