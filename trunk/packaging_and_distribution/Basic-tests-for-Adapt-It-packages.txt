@@ -27,6 +27,8 @@ Here are the steps for basic testing:
           the appropriate machine or VM:
           sudo dpkg -i adaptit_6.3.1-1+precise_i386.deb
           sudo dpkg -i adaptit-docs_6.3.1-1+precise_all.deb
+          sudo apt-get install -f   [if "Errors were encountered while 
+                                     processing:" message appears]
 
 3. Run Adapt It. On Linux run it from the Office menu (or by searching 
 for "adapit" in Unity). It should run and (on Linux and Mac) the 
