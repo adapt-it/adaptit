@@ -4,7 +4,7 @@
              Name="Adapt It WX"
              Language="1033"
 			 Codepage="1252"
-             Version="6.4.0"
+             Version="6.4.1"
              Manufacturer="SIL"
              UpgradeCode="12266E65-1D48-4090-BC83-9069A2DEA219">
 
@@ -14,7 +14,7 @@
          InstallerVersion='100' Languages='1033' 
          Compressed='yes' SummaryCodepage='1252'/>
 
-        <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
+        <Media Id="1" Cabinet="product.cab" CompressionLevel="high" EmbedCab="yes"/>
 		
 		<Property Id="ApplicationFolderName" Value="Adapt It WX" />
 		<Property Id="WixAppFolder" Value="WixPerMachineFolder" />
@@ -193,7 +193,6 @@
 			<Component Id="ADAPT_IT.EXE" Guid="E9454CE8-D788-4d42-A308-474901C23236">
 				<File Id="ADAPT_IT.EXE" Name="Adapt_It.exe" Source="..\..\setup Regular\Adapt_It.exe">
 						<Shortcut Id="desktopShortcut" Directory="DesktopFolder" Name="Adapt It WX" WorkingDirectory="INSTALLDIR" Advertise="yes" Icon="ai.exe" IconIndex="0" />
-						<Shortcut Id="ExeShortcut" Directory="ApplicationProgramsFolder" Name="Adapt It WX" Advertise="yes" Icon="ai.exe" IconIndex="0" />
 				</File> 
 			</Component>
 			<Component Id="_adapt_it_wx_regular" Guid="4D2AAEA7-0941-499b-BE02-60AFF9AFA788">
@@ -231,7 +230,7 @@
 			<Component Id="StartMenuShortcuts" Guid="6181524C-B8E7-42a8-950D-47DC25B2E019">
 				<RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
 				<RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" />
-				<Shortcut Id="UninstallProduct" Name="Uninstall Adapt It" Description="Uninstalls Adapt It" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" />
+				<Shortcut Id="ExeShortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt_It.exe" Name="Adapt It WX" />
 				<Shortcut Id="_adapt_it_changes_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt It changes.txt" Name="Adapt It Changes" />
 				<Shortcut Id="_adapt_it_quick_start_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt_It_Quick_Start.htm" Name="Adapt It Quick Start" />
 				<Shortcut Id="_help_for_administrators_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Help_for_Administrators.htm" Name="Help for Administrators" />
@@ -239,6 +238,7 @@
 				<Shortcut Id="_readme_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Readme.txt" Name="Readme" />
 				<Shortcut Id="_adapt_it_tutorial_Shortcut" Directory="ApplicationProgramsFolder" Target="[APPLICATIONFOLDER]Adapt It Tutorial.doc" Name="Adapt It Tutorial" />
 				<Shortcut Id="_consistent_changes_Shortcut" Directory="ApplicationProgramsFolder" Target="[CCDIR]CCW32.exe" Name="Consistent Changes (standalone)" />
+				<Shortcut Id="UninstallProduct" Name="Uninstall Adapt It" Description="Uninstalls Adapt It" Target="[System64Folder]msiexec.exe" Arguments="/x [ProductCode]" />
 			</Component>
 		</DirectoryRef>
 		<DirectoryRef Id="CCFolder">
