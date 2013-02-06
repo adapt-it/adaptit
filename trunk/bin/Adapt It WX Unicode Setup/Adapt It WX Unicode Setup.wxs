@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product Id="482A2761-5034-41C1-8399-4696C3763D71" Language="1033" Name="Adapt It WX Unicode" Codepage="1252" Version="6.4.1" Manufacturer="SIL" UpgradeCode="64C9A09B-737D-4B47-BF3A-ED7EFAF5831B">
-        <Package Id="*" Keywords="Installer" Description="Adapt It WX Unicode Installer" InstallerVersion="100" Languages="1033" Compressed="yes" SummaryCodepage="1252" />
+        <Package Id="*" Keywords="Installer" Description="Adapt It WX Unicode Installer" InstallerVersion="100" Languages="1033" Compressed="yes" InstallScope="perMachine" SummaryCodepage="1252" />
         <Media Id="1" Cabinet="product.cab" CompressionLevel="high" EmbedCab="yes" />
 		
 		<Property Id="ApplicationFolderName" Value="Adapt It WX Unicode" />
@@ -287,6 +287,8 @@
         </Feature>
         <UI />
         <UIRef Id="WixUI_Advanced" />
+		<WixVariable Id="WixUISupportPerUser" Value="1" />
+		<WixVariable Id="WixUISupportPerMachine" Value="1" />
 		<WixVariable Id="WixUILicenseRtf" Value="..\..\setup Unicode\LICENSING.rtf" />
 		<WixVariable Id="WixUIDialogBmp" Value="..\..\res\ai_msi_bg.bmp" />
 		<WixVariable Id="WixUIBannerBmp" Value="..\..\res\ai_msi_banner.bmp" />

@@ -205,7 +205,7 @@
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.wixobj" />
 		<arg value="-out" />
-		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.msi" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_1_Unicode.msi" />
 		<arg value="-ext" />
 		<arg value="WixUIExtension" />
     </exec>
@@ -250,7 +250,7 @@
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixobj" />
 		<arg value="-out" />
-		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.msi" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_1_Regular.msi" />
 		<arg value="-ext" />
 		<arg value="-WixUIExtension" />
     </exec>

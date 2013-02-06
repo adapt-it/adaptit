@@ -12,7 +12,7 @@
 		 Keywords='Installer'
          Description='Adapt It WX Installer'
          InstallerVersion='100' Languages='1033' 
-         Compressed='yes' SummaryCodepage='1252'/>
+         Compressed='yes' InstallScope="perMachine" SummaryCodepage='1252'/>
 
         <Media Id="1" Cabinet="product.cab" CompressionLevel="high" EmbedCab="yes"/>
 		
@@ -274,6 +274,8 @@
         </Feature>
         <UI />
         <UIRef Id="WixUI_Advanced" />
+		<WixVariable Id="WixUISupportPerUser" Value="1" />
+		<WixVariable Id="WixUISupportPerMachine" Value="1" />
 		<WixVariable Id="WixUILicenseRtf" Value="..\..\setup Regular\LICENSING.rtf" />
 		<WixVariable Id="WixUIDialogBmp" Value="..\..\res\ai_msi_bg.bmp" />
 		<WixVariable Id="WixUIBannerBmp" Value="..\..\res\ai_msi_banner.bmp" />
