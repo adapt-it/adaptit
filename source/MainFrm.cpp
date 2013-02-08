@@ -4137,7 +4137,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// at launch time, pKbSvr will still be NULL, so test for this
 		if (pKbSvr != NULL)
 		{
-			if (pKbSvr->IsKBSharingEnabled() && pKbSvr->CacheHasContent())
+			if (pKbSvr->IsKBSharingEnabled() && pKbSvr->IsCachingON() && pKbSvr->CacheHasContent())
 			{
 				int deletedFlag;
 				wxString sourceStr;

@@ -68,6 +68,13 @@ enum DeleteOrUndeleteEnum
 /// track of the number of times this translation was previously
 /// chosen.
 /// \derivation		The CRefString class is derived from wxObject.
+/// BEW 4Feb13, changed the base class from wxObject to be wxThread, because in the
+/// Linux version, using wxThread subclassed failed, because the vtable was not created, and
+/// so the creator and destructor of the subclass could not find the vtable, despite my having
+/// an explicit definition in the subclass for each virtual function of wxThread (which, according
+/// to the web is supposed to fix this kind of problem - but it didn't, so I'm having to try
+/// find a different waya to support threads.
+
 class KbServer : public wxObject
 {
 public:
@@ -79,6 +86,7 @@ public:
 	virtual	~KbServer(void); // destructor (should be virtual)
 
 	void	DownloadToKB(CKB* pKB, enum ClientAction action);
+
 
 	// attributes
 public:
@@ -153,7 +161,7 @@ private:
 					// value only after a successful receipt of downloaded data, hence the
 					// two variables (m_kbServerLastSync might be needed for more than one
 					// GET request before success is achieved)
-	int			m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
+	int			  m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
 	wxString	m_kbSourceLanguageCode;
 	wxString	m_kbTargetLanguageCode;
 	wxString	m_kbGlossLanguageCode;
@@ -180,15 +188,16 @@ public:
 	wxString	GetSourceLanguageCode();
 	wxString	GetTargetLanguageCode();
 	wxString	GetGlossLanguageCode();
-	int			GetKBServerType();
+	int			  GetKBServerType();
 	wxString	GetPathToPersistentDataStore();
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
-	bool		IsCachingON();
-	void		EnableCaching(bool bEnable);
-	void		UploadToKbServer();
-	void		UploadToKbServerThreaded();
+	bool		  IsCachingON();
+	void		  EnableCaching(bool bEnable);
+	void		  UploadToKbServer();
+
+	// rewrite later, using wxThreadHelper   void		  UploadToKbServerThreaded();
 
 	// Functions we'll want to be able to call programmatically... (button handler
 	// versions of these will be in KBSharing.cpp)
@@ -241,6 +250,8 @@ public:
 	void			RemoveLastFromCacheArrays(); // removes, in parallel, the last entry set
 	bool			CacheHasContent();
 	void			GetLastEntryData(wxString& sourceStr, wxString& translationStr, int& deletedFlag);
+
+protected:
 
 private:
 	// boolean for enabling, and temporarily disabling, KB sharing. Temporary disabling is

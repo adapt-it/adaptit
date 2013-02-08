@@ -6,7 +6,7 @@
 /// \rcs_id $Id: Thread_UploadToKBServer.cpp 3065 2013-01-29 02:00:00Z bruce_waters@sil.org $
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the Thread_UploadToKBServer class. 
+/// \description	This is the header file for the Thread_UploadToKBServer class.
 /// The Thread_UploadToKBServer is an experimental thread class for uploading a single new
 /// kbserver entry for eventual sharing; it's an attempt to decouple the upload from the
 /// user's normal adapting work, due to high network latency causing unacceptable delays
@@ -46,7 +46,7 @@
 #include "KbServer.h"
 #include "Thread_UploadToKBServer.h"
 
-Thread_UploadToKBServer::Thread_UploadToKBServer()
+Thread_UploadToKBServer::Thread_UploadToKBServer():wxThread()
 {
 	m_pApp = &wxGetApp();
 }
@@ -65,6 +65,11 @@ void* Thread_UploadToKBServer::Entry()
 {
 	m_pKbSvr->UploadToKbServer();
 	return (void*)NULL;
+}
+
+bool Thread_UploadToKBServer::TestDestroy()
+{
+  return true;
 }
 
 #endif // for _KBSERVER

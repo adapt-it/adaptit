@@ -6,7 +6,7 @@
 /// \rcs_id $Id: Thread_CreateEntry.cpp 3065 2013-01-29 02:00:00Z bruce_waters@sil.org $
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the Thread_CreateEntry class. 
+/// \description	This is the header file for the Thread_CreateEntry class.
 /// The Thread_CreateEntry is an experimental thread class for uploading a single new
 /// kbserver entry for eventual sharing; it's an attempt to decouple the upload from the
 /// user's normal adapting work, due to high network latency causing unacceptable delays
@@ -46,7 +46,7 @@
 //#include "KbServer.h"
 #include "Thread_CreateEntry.h"
 
-Thread_CreateEntry::Thread_CreateEntry()
+Thread_CreateEntry::Thread_CreateEntry():wxThread()
 {
 	m_pApp = &wxGetApp();
 }
@@ -66,6 +66,11 @@ void* Thread_CreateEntry::Entry()
 	bool bHandledOK = m_pKB->HandleNewPairCreated(m_kbServerType, m_source, m_translation, m_bUseCache);
 	bHandledOK = bHandledOK; // avoid compiler warning
 	return (void*)NULL;
+}
+
+bool Thread_CreateEntry::TestDestroy()
+{
+  return true;
 }
 
 #endif // for _KBSERVER
