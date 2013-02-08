@@ -406,6 +406,10 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
+		<Unit filename="../../source/Thread_CreateEntry.cpp" />
+		<Unit filename="../../source/Thread_CreateEntry.h" />
+		<Unit filename="../../source/Thread_UploadToKBServer.cpp" />
+		<Unit filename="../../source/Thread_UploadToKBServer.h" />
 		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
 		<Unit filename="../../source/TransformToGlossesDlg.h" />
 		<Unit filename="../../source/UnitsDlg.cpp" />

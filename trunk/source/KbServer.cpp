@@ -52,7 +52,7 @@ using namespace std;
 #include "KbServer.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
-#include "Thread_UploadToKbServer.h"
+#include "Thread_UploadToKBServer.h"
 
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
@@ -110,6 +110,7 @@ KbServer::KbServer()
 	m_kbTypeForServer = 1;
 	*/
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+
 	// using the gbIsGlossing flag is the only way to set m_pKB reliably in the default constructor
 	if (gbIsGlossing)
 	{
@@ -130,7 +131,7 @@ KbServer::KbServer(int whichType)
 	wxASSERT(whichType == 1 || whichType == 2);
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
-	m_pKB = GetKB(whichType);
+	m_pKB = GetKB(FALSE);
 	this->EnableCaching(FALSE); // change, when testing, to turn on or off new entry caching
 	// The following English message is hard-coded at the server end, so don't localize it
 	// (actually, the server's string is 24 char, but the English is just 23, so don't
@@ -937,7 +938,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 
 		if (result) {
 			str_CURLbuffer.clear(); // always clear it before returning
-			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n",
+			printf("ChangedSince() result code: %d Error: %s\n",
 				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
 			pStatusBar->FinishProgress(_("Receiving..."));
@@ -949,7 +950,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 	pStatusBar->UpdateProgress(_("Receiving..."), 3);
 
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
-	//  
+	//
 	//  BEW 29Jan13, beware, if no new entries have been added since last time, then
 	//  the header will not have a json string, and will have the 'error' text
     //  "No matching entry found". This isn't actually an error, and ChangedSince(), in
@@ -983,7 +984,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 			return 0;
 		}
 		// If control gets to here, then we've some json to process...
-		
+
 		// If eyeball verification of the removal of preceding headers information is
 		// wanted, then uncomment out the three lines in the conditional compile here
 		#if defined (_DEBUG)
@@ -1113,7 +1114,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		// *** NOTE *** in the above call, I've got no support for AutoCapitalization; if
 		// that was wanted, more code would be needed here - or alternatively, use the
 		// adjusted key from within AutoCapsLookup() which in turn would require that we
-		// modify this function to pass in the adjusted string for curKey via 
+		// modify this function to pass in the adjusted string for curKey via
 		// DownloadToKB's signature
 		rv = LookupEntriesForSourcePhrase(curKey);
 		if (rv != 0)
@@ -1353,6 +1354,8 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		// ask for the headers to be prepended to the body
+    curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 
 		result = curl_easy_perform(curl);
 
@@ -1504,6 +1507,7 @@ void KbServer::DoGetAll()
 	m_pKB->StoreEntriesFromKbServer(this);
 }
 
+/*  needs rewriting now that we subclass off of wxThreadHelper, rather than wxObject
 void KbServer::UploadToKbServerThreaded()
 {
 	// Here's where I'll test doing this on a thread
@@ -1512,7 +1516,7 @@ void KbServer::UploadToKbServerThreaded()
 
 	// now create the runnable thread with explicit stack size of 10KB
 	wxThreadError error =  pUploadToKBServerThread->Create();  //10240
-	if (error != wxTHREAD_NO_ERROR) 
+	if (error != wxTHREAD_NO_ERROR)
 	{
 		wxString msg;
 		msg = msg.Format(_T("Thread_UploadToKBServer(): thread creation failed, error number: %d"),
@@ -1522,7 +1526,7 @@ void KbServer::UploadToKbServerThreaded()
 	}
 	// now run the thread (it will destroy itself when done)
 	error = pUploadToKBServerThread->Run();
-	if (error != wxTHREAD_NO_ERROR) 
+	if (error != wxTHREAD_NO_ERROR)
 	{
 		wxString msg;
 		msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
@@ -1531,6 +1535,7 @@ void KbServer::UploadToKbServerThreaded()
 		m_pApp->LogUserAction(msg);
 	}
 }
+*/
 
 void KbServer::UploadToKbServer()
 {
@@ -1538,7 +1543,7 @@ void KbServer::UploadToKbServer()
 	CTargetUnit* cTU;
 	wxString tgtPhrase;
 	int iTotalSent = 0;
-		
+
 	CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
 
 	//Need to get each map
@@ -1550,14 +1555,14 @@ void KbServer::UploadToKbServer()
 			wxASSERT(currKB->m_pMap[i] != NULL);
 
 			if (!currKB->m_pMap[i]->empty())
-			{			
+			{
 				srcPhrase = iter->first;
 
 				cTU = iter->second;
 				CRefString* pRefString = NULL;
 				TranslationsList::Node* pos = cTU->m_pTranslations->GetFirst();
 				wxASSERT(pos != NULL);
-				
+
 				wxDateTime now = wxDateTime::Now();
 				wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::CET).c_str());
 
@@ -1573,8 +1578,8 @@ void KbServer::UploadToKbServer()
 						// test info
 						wxDateTime now = wxDateTime::Now();
 						iTotalSent++;
-						wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() [time]:  %s    [source]:  %s    [target]:  %s"), 
-							iTotalSent, now.Format(_T("%c"), wxDateTime::CET).c_str(), 
+						wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() [time]:  %s    [source]:  %s    [target]:  %s"),
+							iTotalSent, now.Format(_T("%c"), wxDateTime::CET).c_str(),
 							srcPhrase.c_str(), pRefString->m_translation.c_str());
 					}
 				}
@@ -1583,6 +1588,11 @@ void KbServer::UploadToKbServer()
 	} // for
 	wxLogDebug(_T("UploadToKBServer() Done!"));
 }
+
+
+
+
+
 
 
 //=============================== end of KbServer class ============================

@@ -15021,7 +15021,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	wxString url; url.Empty();
 	wxString username; username.Empty();
 	wxString password; password.Empty();
-	 
+
 	// Deprecated 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetupDlg
 	// now, and we store url and username as app variables m_strKbServerURL and
 	// m_strKbServerUsername from now on (these are saved in the project config file too),
@@ -15209,6 +15209,8 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+  //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+
 	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // boolean used for a workaround for the scrollPos bug (position goes back to old position unbidden)
@@ -15946,7 +15948,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// There are 15 of these m_last... paths that are associated with
 	// each project.
 	SetAllProjectLastPathStringsToEmpty();
-	
+
 	// whm 26Jan13 added. A new project should start with all of the
 	// App's language name and code variables reset to empty strings.
 	SetLanguageNamesAndCodesStringsToEmpty();
@@ -30750,7 +30752,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 	// edb added 7Aug12 for Pathway export support
 	m_bPathwayIsInstalled = PathwayIsInstalled();
 	m_PathwayInstallDirPath = GetPathwayInstallDirPath();
-	
+
 	// whm added 9Feb11 for Paratext and Bibledit Collaboration support
 	// GetParatextProjectsDirPath gets the absolute path to the Paratext Projects directory
 	// as stored in the Windows registry, i.e., "C:\My Paratext Projects\".
@@ -30767,7 +30769,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 	// a Linux host system.
 	m_BibleditInstallDirPath = GetBibleditInstallDirPath();
 	m_BibleditProjectsDirPath = GetBibleditProjectsDirPath();
-	
+
 	bParatextSharedDLLLoaded = FALSE;
 
 	// whm 4Apr12 modification:
@@ -30812,7 +30814,7 @@ void CAdapt_ItApp::SetCollabSettingsToNewProjDefaults()
 	// OnInit(), so that these settings will be together with other
 	// collaboration settings and their values will be set when
 	// SetCollabSettingsToNewProjDefaults() is called even earlier in
-	// OnInit(). 
+	// OnInit().
 	// BEW added 2Jul11, initialize the next two booleans. The first is set dynamically if
     // a PT or BE collaboration project is set up with a project nominated for receiving
 	// free translations; the second is set if the Adapt It document in a collaboration
@@ -32439,9 +32441,9 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			;	// do nothing
 		else if (name == szKbServerUsername)
 			;	// do nothing
-		else if (name == szKbServerDownloadInterval)	
+		else if (name == szKbServerDownloadInterval)
 			; // do nothing
-		else if (name == szKbServerUploadInterval)	
+		else if (name == szKbServerUploadInterval)
 			; // do nothing
 #endif
 		// whm 17Feb12 added the following two from the basic config file. They are
@@ -42301,7 +42303,7 @@ void CAdapt_ItApp::OnTimer(wxTimerEvent& WXUNUSED(event))
 /// FALSE), will initiate a DoChangedSince() download of entries from the KB server.
 /// Similarly for the glossing KbServer, if glossing mode is currently on, and it uses
 /// the same flag. There is a different flag for uploads, and a different timer handler.
-/// 
+///
 /// This OnKbServerDownloadTimer() handler is called when KB Sharing is setup for a
 /// project. (I'll probably keep it running even if the user temporarily disables
 /// sharing.) It will be stopped when ReleaseKBServer() is called on one of the KbServer
@@ -42321,11 +42323,11 @@ void CAdapt_ItApp::OnKbServerDownloadTimer(wxTimerEvent& WXUNUSED(event))
 /// \remarks Catches a wxTimerEvent when m_KbServerUploadTimer is running. For each timer
 /// event it sets a flag: for instance, the flag for the adapting KbServer instance is
 /// m_bKbServerIncrementalUploadPending, and when it is TRUE, the next OnIdle() event
-/// will initiate a function to upload a small set of recently adapted entries to the 
-/// KB server. Similarly for the glossing KbServer, if glossing mode is currently on, 
+/// will initiate a function to upload a small set of recently adapted entries to the
+/// KB server. Similarly for the glossing KbServer, if glossing mode is currently on,
 /// and it uses the same flag. There is a different flag for downloads, and a different
 /// timer handler.
-/// 
+///
 /// This OnKbServerUploadTimer() handler is called when KB Sharing is setup for a
 /// project. (I'll probably keep it running even if the user temporarily disables
 /// sharing.) It will be stopped when ReleaseKBServer() is called on one of the KbServer

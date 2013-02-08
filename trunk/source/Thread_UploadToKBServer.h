@@ -6,7 +6,7 @@
 /// \rcs_id $Id: Thread_UploadToKBServer.h 3065 2013-01-29 02:00:00Z bruce_waters@sil.org $
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the Thread_UploadToKBServer class. 
+/// \description	This is the header file for the Thread_UploadToKBServer class.
 /// The Thread_UploadToKBServer is an experimental thread class for uploading a single new
 /// kbserver entry for eventual sharing; it's an attempt to decouple the upload from the
 /// user's normal adapting work, due to high network latency causing unacceptable delays
@@ -24,7 +24,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "MyListBox.h"
+    #pragma interface "Thread_UploadToKBServer.h"
 #endif
 
 #if defined(_KBSERVER)
@@ -45,13 +45,13 @@ public:
 	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
 	//CKB*				m_pKB; // to access HandleNewPairCreated()
 	KbServer*			m_pKbSvr; // not sure yet if I need it or not
-	//int					m_kbServerType; 
+	//int					m_kbServerType;
 	//bool				m_bUseCache; // our testing will have this as FALSE
 	//wxString			m_source;
 	//wxString			m_translation;
 
 	// other methods...
-	
+
 	// wxThread::OnExit() is called when the thread exits at termination - for self
 	// destruction termination or by Delete(), but not if Kill() is used - the latter
 	// should never be used, it can leave resources in an indeterminate state
@@ -65,11 +65,14 @@ public:
 	// won't need to
 	virtual void*		Entry();
 
+	virtual bool    TestDestroy();
+
 protected:
 
 private:
 
 };
+
 #endif // for _KBSERVER
 
 #endif
