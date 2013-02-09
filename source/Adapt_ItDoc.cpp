@@ -1534,24 +1534,35 @@ void CAdapt_ItDoc::DocChangedExternally()
 }
 
 
+bool  CAdapt_ItDoc::Commit_valid()
+{
+	if (gpApp->m_AIuser == NOOWNER || gpApp->m_owner == NOOWNER)  return TRUE;
+    
+	if (gpApp->m_AIuser != gpApp->m_owner)
+	{
+		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
+					  + _T(" but the currently logged in user is ") + gpApp->m_AIuser
+					  + _T(".  Only the document's owner can commit changes to it.") );
+		return FALSE;
+	}
+	else  return TRUE;
+}
+
+
+//  (Feb 2013) - similarly to what Paratext does, if the doc isn't under version control yet, we add it silently.
+
 int CAdapt_ItDoc::DoSaveAndCommit()
 {
-	int				commit_result;
+	int				resultCode;
 	wxCommandEvent	dummy;
 	wxDateTime		localDate,
 					origDate = gpApp->m_revisionDate;
 	wxString		origOwner = gpApp->m_owner;
 
+    
 // Do we need a check here that the file is really under version control??  More likely
-// the menu item or button will be disabled if it's not, but let's make sure.  Likewise if a
-// trial is under way, we need a decision from the user first as to whether to accept the
+// If a trial is under way, we need a decision from the user first as to whether to accept the
 // trial or go back.
-
-	if (gpApp->m_commitCount < 0)
-	{
-		wxMessageBox (_T("This document hasn't been put under version control yet!"));
-		return -1;
-	}
 
 	if (gpApp->m_trialRevNum >= 0)
 	{
@@ -1559,15 +1570,18 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 		return -1;
 	}
 
-// If the logged-in user isn't the owner of the document, it will be read-only, but we still need to bail out here.
-
-	if ( (gpApp->m_owner != NOOWNER) && (gpApp->m_owner != gpApp->m_AIuser) )
+	if (!Commit_valid())
+		return -1;          // bail out if the ownership of the document isn't right
+    
+    if (gpApp->m_commitCount < 0)           // The doc isn't under version control yet
 	{
-		wxMessageBox (_T("This document is owned by someone else, so you can't do a commit!"));
-		return -1;
+        resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_ADD_FILE, 0);
+                                            // add the doc to version control, and set commit count to zero
+        if (resultCode)
+            return resultCode;              // bail out if adding the doc to version control failed for some reason
 	}
 
-// Here we find the date/time and the commit count, which we'll save in the file before we do the commit.
+// Now we find the date/time and the commit count, which we'll save in the file before we do the commit.
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 
 	localDate = wxDateTime::Now();
@@ -1579,9 +1593,9 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
 
-	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
+	resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
 
-	if (commit_result)
+	if (resultCode)
 	{
 	// What do we do here??  We've already saved the document with the above info updated.  I think we
 	//  should roll everything back and re-save.  The DVCS code will already have given a message.

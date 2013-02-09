@@ -2204,7 +2204,8 @@ public:
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
 										//  if the file is actually under version control.
 										//   -1 = not under version control
-										//    0 = under VC, but no commits done yet.
+										//    0 = under VC, but no commits done yet
+                                        //    n = n commits have been done
 	int			m_trialRevNum,			// non-negative if we're trialling a look at an earlier revision, and this is
 										//  the revision number.  Negative means no trial.
 				m_latestRevNum;			// Saves the latest revision number over a trial, so we can get back

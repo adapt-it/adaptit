@@ -210,7 +210,7 @@ int  DVCS::call_hg ( bool bDisplayOutput )
 			wxMessageBox (_T("Error message:\n") + str1);
 		}
 		else			// there was an error, but no error message.  Normally wx will display a message, but it's asynchronous.
-						// It should come up shortly.
+						// It should come up shortly.  But sometimes it doesn't!
 		{
 			wxMessageBox (_T("An error occurred -- further information should follow."));
 		}
@@ -224,8 +224,22 @@ int  DVCS::call_hg ( bool bDisplayOutput )
 
 int  DVCS::init_repository ()
 {
+    int     returnCode;
+    
+    if (wxDirExists(".hg"))
+    {   wxMessageBox(_T("Version control is already set up for this project."));
+        return 0;
+    }
+
 	hg_command = _T("init");
-	return call_hg (FALSE);
+	returnCode = call_hg (FALSE);
+    
+    if (returnCode)         // hg init failed -- most likely hg isn't installed.
+        wxMessageBox(_T("We couldn't set up version control.  Possibly Mercurial has not been installed yet.  You could contact your administrator for help."));
+    else
+        wxMessageBox(_T("Version control is now set up for this project."));
+    
+    return returnCode;
 }
 
 // add_file() is called when the current (new) file is to be added to version control.  No commits have been done
@@ -239,18 +253,19 @@ int  DVCS::add_file (wxString fileName)
 	int				returnCode;
 	CAdapt_ItDoc*	pDoc = m_pApp->GetDocument();
 
-	if (m_pApp->m_commitCount >= 0)       // already under version control - do nothing
+	if (m_pApp->m_commitCount >= 0)       // already under version control
+    {   wxMessageBox(_T("This document is already under version control."));
         return 0;
-
-//	m_pApp->m_commitCount = 0;
+    }
 
 	hg_command = _T("add");
 	hg_arguments = fileName;
-	returnCode = call_hg (TRUE);
+	returnCode = call_hg (FALSE);
 	if (returnCode)
 		return returnCode;				// an error occurred, and we've displayed a message already
-	
-	m_pApp->m_commitCount = 0;			// no error - initialize commit count
+// no error:
+//    wxMessageBox(_T("This document in now under version control."));  // we now want to do this silently
+	m_pApp->m_commitCount = 0;			// initialize commit count
 	pDoc->Modify(TRUE);					// mark doc dirty to ensure commit count gets saved
 	return 0;
 }
@@ -260,7 +275,8 @@ int  DVCS::add_file (wxString fileName)
 //  "*.xml" so we pass that to hg.  Note this gives them all "A" status.  They're not really truly under
 //  version control until the first commit.
 
-// Currently, this is not called, and is DEPRECATED since we need to mark all the files added with a zero commitCnt.
+// Currently, this is not called, and is DEPRECATED since we would need to mark all the files added with a zero
+//  commitCnt, which would be a pain.
 
 int  DVCS::add_all_files()
 {
@@ -271,15 +287,32 @@ int  DVCS::add_all_files()
 }
 
 // remove_file() is called to remove the given file from version control.  The file's not deleted.
+//  Why would anyone want to do this?  We probably should DEPRECATE this one.
 
 int  DVCS::remove_file (wxString fileName)
 {
+    int             returnCode;
+	CAdapt_ItDoc*	pDoc = m_pApp->GetDocument();
+
+    if (m_pApp->m_trialRevNum >=0)
+    {   wxMessageBox(_T("You can't remove this document from version control just now."));
+        return 0;
+    }
+    
 	hg_command = _T("forget");
 	hg_arguments = fileName;
-	return call_hg (FALSE);
+	returnCode = call_hg (FALSE);
+    
+    if (!returnCode)
+    {   wxMessageBox(_T("This document is now removed from version control."));
+        m_pApp->m_commitCount = -1;			// mark as not under version control
+        pDoc->Modify(TRUE);					// mark doc dirty to ensure commit count gets saved
+    }
+    return returnCode;
 }
 
 // remove_project() removes the whole current project from version control.  Nothing's actually deleted.
+//  I think we should DEPRECATE this since it would need us to go through each file and put a -1 commitCnt.
 
 int  DVCS::remove_project()
 {
@@ -314,9 +347,6 @@ int  DVCS::get_prev_revision ( bool bFirstTime, wxString fileName )
 // changeset:  9:<big hex number>
 // We loop till we get such a line, then parse out the number.
 
-//	test = hg_count;
-//	test = hg_lineNumber;
-
 	while (TRUE)
 	{
 		if (hg_lineNumber >= hg_count)  return -1;		// we've hit the end
@@ -332,7 +362,7 @@ int  DVCS::get_prev_revision ( bool bFirstTime, wxString fileName )
 		// if for some reason the line didn't contain a number, this returns zero, which we can live with
 }
 
-
+/* moved to Adapt_ItDoc:
 bool  DVCS::commit_valid()
 {
 	if (m_user == NOOWNER || m_pApp->m_owner == NOOWNER)  return TRUE;
@@ -346,14 +376,20 @@ bool  DVCS::commit_valid()
 	}
 	else  return TRUE;
 }
+*/
 
+// (Feb 13) - following what Paratext does, if a file isn't added to version control yet, we just
+//  silently add it.   qwqwqwqw still thinking here - we have to save it with the updated commitCnt!
 
 int  DVCS::commit_file (wxString fileName)
 {
 	wxString		local_owner = m_pApp->m_owner;
 	int				commitCount = m_pApp->m_commitCount;
 
-	if (!commit_valid()) return -1;
+//	if (!commit_valid()) return -1;
+
+    if (m_pApp->m_commitCount < 0)       // not under version control yet - silently add it
+        add_file(fileName);
 
 #ifndef __WXMSW__
 	local_owner.Replace (_T(" "), _T("\\ "), TRUE);
@@ -376,7 +412,7 @@ int  DVCS::commit_file (wxString fileName)
 
 int  DVCS::commit_project()
 {
-	if (!commit_valid()) return -1;
+//	if (!commit_valid()) return -1;
 
 	hg_command = _T("commit");
 	hg_options = _T("-m \"whole project commit\"");
@@ -407,7 +443,7 @@ int  DVCS::revert_to_revision ( int revision )
 	wxString		strRevision = wxString::Format	(_T("%i"), revision);
 
 	hg_command = _T("revert");
-	hg_arguments = fileName;	// ????MUST CONVERT revision TO wxString!!!!
+	hg_arguments = fileName;
 	hg_options = _T("-C -r ") + strRevision;
 
 	return call_hg (FALSE);

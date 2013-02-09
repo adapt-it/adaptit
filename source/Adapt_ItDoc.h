@@ -447,6 +447,7 @@ public:
 	void DocChangedExternally();
 	void OnTakeOwnership (wxCommandEvent& WXUNUSED(event));
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
+    bool Commit_valid();
 	int  DoSaveAndCommit();
 	void OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event));
 	void OnAcceptRevision (wxCommandEvent& WXUNUSED(event));
