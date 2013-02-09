@@ -50,7 +50,7 @@ protected:		// internal functions
 	int  remove_file (wxString fileName);
 	int  remove_project();
 	int  get_prev_revision ( bool bFirstTime, wxString fileName );
-	bool  commit_valid();
+//	bool  commit_valid(); - moved to Adapt_ItDoc
 	int  commit_file (wxString fileName);
 	int  commit_project();
 	int  log_file (wxString fileName);
