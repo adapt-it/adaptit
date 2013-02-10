@@ -137,18 +137,27 @@ protected:
 	// would give us a bit more work to do to use with CBString
 	CBString ToUtf8(const wxString& str);
 	wxString ToUtf16(CBString& bstr);
+
 	// a utility for getting the download's UTC timestamp which comes in the X-MySQL-Date
-	// header; all the headers precede the json payload, so after removing the pre-payload
-	// material, what's left is returned to be assigned back to the global str_CURLbuffer
-	// in the caller; the extracted timestamp is returned as a wxString which should be
+	// header; the extracted timestamp is returned as a wxString which should be
 	// stored in the m_kbServerLastTimestampReceived member
-	std::string ExtractTimestampThenRemoveHeaders(std::string s, wxString& timestamp);
+	void ExtractTimestamp(std::string s, wxString& timestamp);
+
+	// a utility for getting the HTTP status code, and human-readable result string, and
+	// content-length
+	void ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode, wxString& httpstatustext,
+                            wxString& contentLengthStr);
 
 
 private:
 	// class variables
 	CKB*		m_pKB; // whichever of the m_pKB versus m_pGlossingKB this instance is associated with
 	bool			m_bUseNewEntryCaching; // eventually set this via the GUI
+
+	wxString    m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
+	wxString    m_httpStatusText; // when the code is "200" the text will be "OK"
+	wxString    m_contentLenStr; // in case we want to display it, or wxLogDebug it
+	wxString    m_errorStr; // whatever is in curl's returned result, if it isn't json data
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)
@@ -161,7 +170,7 @@ private:
 					// value only after a successful receipt of downloaded data, hence the
 					// two variables (m_kbServerLastSync might be needed for more than one
 					// GET request before success is achieved)
-	int			  m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
+	int			m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
 	wxString	m_kbSourceLanguageCode;
 	wxString	m_kbTargetLanguageCode;
 	wxString	m_kbGlossLanguageCode;
@@ -188,14 +197,14 @@ public:
 	wxString	GetSourceLanguageCode();
 	wxString	GetTargetLanguageCode();
 	wxString	GetGlossLanguageCode();
-	int			  GetKBServerType();
+	int			GetKBServerType();
 	wxString	GetPathToPersistentDataStore();
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
-	bool		  IsCachingON();
-	void		  EnableCaching(bool bEnable);
-	void		  UploadToKbServer();
+	bool		IsCachingON();
+	void		EnableCaching(bool bEnable);
+	void		UploadToKbServer();
 
 	// rewrite later, using wxThreadHelper   void		  UploadToKbServerThreaded();
 
