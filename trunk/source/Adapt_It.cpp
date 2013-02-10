@@ -210,6 +210,7 @@
 
 #if defined(_KBSERVER)
 extern std::string str_CURLbuffer;
+extern std::string str_CURLheaders;
 #endif
 
 // The following include was originally Copyright (c) 2005 by Dan

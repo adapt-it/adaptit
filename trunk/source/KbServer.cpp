@@ -97,6 +97,7 @@ extern bool		gbIsGlossing;
 
 std::string str_CURLbuffer;
 const size_t npos = (size_t)-1; // largest possible value, for use with std:find()
+std::string str_CURLheaders;
 
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
@@ -388,72 +389,108 @@ void KbServer::UpdateLastSyncTimestamp()
 	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
 }
 
-// This function MUST be called, for any GET operation, before the material in
-// str_CURLbuffer is parsed as a JSON string; failure to do so will leave the headers data
-// in the string, and cause the json parse to fail.
-// Returns the input string, s, after timestamp extraction, as just the json data material
-// at the end of the received data stream from the GET request
-std::string KbServer::ExtractTimestampThenRemoveHeaders(std::string s, wxString& timestamp)
+void KbServer::ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode,
+                                    wxString& httpstatustext, wxString& contentLengthStr)
 {
 	// make the standard string into a wxString
-	timestamp.Empty(); // initialize
-	CBString cbstr(str_CURLbuffer.c_str());
+	httpstatuscode.Empty(); // initialize
+	httpstatustext.Empty(); // initialize
+	CBString cbstr(str_CURLheaders.c_str());
 	wxString buffer(ToUtf16(cbstr));
-	wxString srchStr = _T("X-MySQL-Date: ");
+
+	//there are two HTTP lines, the first has to do with authentication, we
+    // want the second one which will follow th  first "Content-Type" line.
+    wxString srchStr2 = _T("Content-Type");
+	int length2 = srchStr2.Len();
+	int offset2 = buffer.Find(srchStr2);
+	wxASSERT(offset2 != wxNOT_FOUND);
+	buffer = buffer.Mid(offset2 + length2); // bleed off the earlier stuff
+
+    // now search for the line we want
+	wxString srchStr = _T("HTTP/1.1 ");
 	int length = srchStr.Len();
 	int offset = buffer.Find(srchStr);
 	if (offset == wxNOT_FOUND)
 	{
-		s.clear(); // this should force a failure downstream
-		return s;
+        // if we couldn't find it, return "200" and "OK assumed..." and keep truckin'
+        // (this should never happen)
+        httpstatuscode = _T("200");
+        httpstatustext = _T("OK assumed, HTTP status info not present");
+        return;
 	}
 	else
 	{
 		// throw away everything preceding the matched string
 		buffer = buffer.Mid(offset + length);
-		// buffer now commences with the timestamp we want to extract - extract everything
-		// up to the next '\r' or '\n' - whichever comes first
+
+		// buffer now commences with the HTTP 1.1 status code we want to extract - extract
+		// everything up to the next space;
+		int offset_to_space = buffer.Find(_T(' '));
+		wxASSERT(offset_to_space != wxNOT_FOUND);
+        httpstatuscode = buffer.Left(offset_to_space);
+
+        // now we have extracted the http status code, extract the human readable text
+        // following it
+        buffer = buffer.Mid(offset_to_space + 1); // +1 for the space
 		int offset_to_CR = buffer.Find(_T('\r'));
 		int offset_to_LF = buffer.Find(_T('\n'));
 		offset = wxMin(offset_to_CR, offset_to_LF);
-		if (offset > 0)
-		{
-			timestamp = buffer.Left(offset);
+		httpstatustext = buffer.Left(offset);
 
-			// now we have extracted the timestamp, find where the json starts; we search for
-			// "Content-Type: application/json", and then jump any following carriage
-			// returns and or newlines, and then we are at the start of the json payload
-			wxString cont_type = _T("Content-Type: application/json");
-			offset = buffer.Find(cont_type);
-			if (offset == wxNOT_FOUND)
-			{
-				s.clear(); // this should force a failure downstream
-				timestamp.Empty();
-				return s;
-			}
-			else
-			{
-				// remove what proceeds the matched string, up to its end
-				length = cont_type.Len();
-				buffer = buffer.Mid(offset + length);
-				// now we've some line ends to skip over
-				wxChar CR = _T('\r');
-				wxChar LF = _T('\n');
-				while (buffer[0] == CR || buffer[0] == LF)
-				{
-					buffer = buffer.Mid(1);
-				}
-				// okay, now the json material commences at the first wxChar of buffer
-			}
-		}
-		else
-		{
-			s.clear(); // this should force a failure downstream
-			return s;
-		}
+		//finally, the value (as a string) for Content-Length, in case we want it for something
+        srchStr = _T("Content-Length: ");
+        length = srchStr.Len();
+        offset = buffer.Find(srchStr);
+        wxASSERT(offset != wxNOT_FOUND);
+        buffer = buffer.Mid(offset + length); // point pointing at the integer's string
+		offset_to_CR = buffer.Find(_T('\r'));
+		offset_to_LF = buffer.Find(_T('\n'));
+		offset = wxMin(offset_to_CR, offset_to_LF);
+		contentLengthStr = buffer.Left(offset);
 	}
-	s = (char*)ToUtf8(buffer);
-	return s;
+}
+
+
+// This function MUST be called, for any GET operation, from the headers information, which
+// is returned due to a CURLOPT_HEADERFUNCTION specification & a curl_headers_callback()
+// function which loads the header info into str_CURLheaders, a standard string.
+// Returns nothing, after timestamp extraction; leaving the standard string unchanged, until
+// we clear it with .clear() later in the caller
+// BEW refactored 9Feb13, to return nothing, except the timestamp, and leave the passed in
+// string unchanged in case the caller wants to extract something else, and return a 1960
+// timestamp if there was an error
+void KbServer::ExtractTimestamp(std::string s, wxString& timestamp)
+{
+	// make the standard string into a wxString
+	timestamp.Empty(); // initialize
+	CBString cbstr(str_CURLheaders.c_str());
+	wxString buffer(ToUtf16(cbstr));
+#if defined (_DEBUG)
+    wxLogDebug(_T("buffer:\n%s"), buffer.c_str());
+#endif
+	wxString srchStr = _T("X-MySQL-Date");
+	int length = srchStr.Len();
+	int offset = buffer.Find(srchStr);
+	if (offset == wxNOT_FOUND)
+	{
+        // now returning void, so if we couldn't extract the timestamp, just return
+        // something early -- a 1960 date would be a way to indicate the error was here
+        timestamp = _T("1960-01-01 00:00:00");
+        return;
+	}
+	else
+	{
+		// throw away everything preceding the matched string
+		buffer = buffer.Mid(offset + length + 2);
+
+		// buffer now commences with the timestamp we want to extract - extract
+		// everything up to the next '\r' or '\n' - whichever comes first
+		int offset_to_CR = buffer.Find(_T('\r'));
+		int offset_to_LF = buffer.Find(_T('\n'));
+		offset = wxMin(offset_to_CR, offset_to_LF);
+		wxASSERT(offset > 0);
+        timestamp = buffer.Left(offset);
+	}
 }
 
 // Return FALSE if pf not successfully opened, in which case the parent does not need to
@@ -693,7 +730,8 @@ bool KbServer::CacheHasContent()
 		return TRUE;
 }
 
-// callback function for curl
+// callback functions for curl
+
 size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
 	//ptr = ptr; // avoid "unreferenced formal parameter" warning
@@ -715,6 +753,21 @@ size_t curl_update_callback(void* ptr, size_t size, size_t nitems, void* userp)
 	ptr = (void*)(*((std::string*)userp)).c_str();
 	return nitems; // strictly speaking, nitems*size, but size is 1
 }
+
+// BEW added 9Feb12
+size_t curl_headers_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	//ptr = ptr; // avoid "unreferenced formal parameter" warning
+	userdata = userdata; // avoid "unreferenced formal parameter" warning
+
+	//wxString msg;
+	//msg = msg.Format(_T("In curl_headers_callback: sending %s bytes."),(size*nmemb));
+	//wxLogDebug(msg);
+
+	str_CURLheaders.append((char*)ptr, size*nmemb);
+	return size*nmemb;
+}
+
 
 /*
 wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
@@ -794,6 +847,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
 		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer); // <-- not needed
 		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when header info is
 													  //not needed in the download (and below)
@@ -815,17 +869,6 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		}
 	}
 	curl_easy_cleanup(curl);
-
-	// uncomment out only for "changed since" downloads, and also uncomment out the
-	// CURLOPT_HEADER, 1L line above, so that header info is inserted in the data stream
-	// Extract the timestamp, and remove the headers, leaving only the json data
-	//str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
-
-#if defined (_DEBUG) //&& defined (__WXGTK__)
-        //CBString ss(str_CURLbuffer.c_str());
-        //wxString sshowit = ToUtf16(ss);
-        //wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
-#endif
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
@@ -892,10 +935,12 @@ int KbServer::ChangedSince(wxString timeStamp)
 	pStatusBar->StartProgress(_("Receiving..."), _("Receiving..."), 5);
 
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+	str_CURLheaders.clear(); // BEW added 9Feb13
+
 	pStatusBar->UpdateProgress(_("Receiving..."), 1);
 
 	CURL *curl;
-	CURLcode result;
+	CURLcode result = CURLE_OK; // initialize to a harmless value
 	wxString aUrl; // convert to utf8 when constructed
 	wxString aPwd; // ditto
 
@@ -924,143 +969,163 @@ int KbServer::ChangedSince(wxString timeStamp)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
 		// We want the download's timestamp, so we must ask for the headers to be added
-		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // BEW commented out 9Feb13
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback); // BEW added 9Feb13, works!!
 
 		pStatusBar->UpdateProgress(_("Receiving..."), 2);
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
+        // BEW added 9Feb13, check what, if anything, got added to str_CURLheaders_callback
+        CBString s2(str_CURLheaders.c_str());
+        wxString showit2 = ToUtf16(s2);
+        wxLogDebug(_T("Returned headers: %s"), showit2.c_str());
+
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
 #endif
+        if (result) {
+            printf("ChangedSince() result code: %d Error: %s\n",
+                result, curl_easy_strerror(result));
 
-		if (result) {
-			str_CURLbuffer.clear(); // always clear it before returning
-			printf("ChangedSince() result code: %d Error: %s\n",
-				result, curl_easy_strerror(result));
-			curl_easy_cleanup(curl);
-			pStatusBar->FinishProgress(_("Receiving..."));
-			return (int)result;
-		}
+            curl_easy_cleanup(curl);
+
+            str_CURLbuffer.clear(); // always clear it before returning
+            str_CURLheaders.clear(); // BEW added 9Feb13
+            pStatusBar->FinishProgress(_("Receiving..."));
+            return (int)result;
+        }
 	}
+	// no CURL error, so continue...
 	curl_easy_cleanup(curl);
 
 	pStatusBar->UpdateProgress(_("Receiving..."), 3);
 
+	// Extract from the headers callback, the HTTP code, and the X-MySQL-Date value, the
+	// HTTP status information, and the payload's content-length value (as a string)
+    ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
+    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLenStr);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+        // show what ExtractHttpStatusEtc() returned
+        CBString s2(str_CURLheaders.c_str());
+        wxString showit2 = ToUtf16(s2);
+        wxLogDebug(_T("From headers: Timestamp = %s , HTTP code = %s , HTTP msg = %s , Contents-Length = %s"),
+                   m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode.c_str(),
+                   m_httpStatusText.c_str(), m_contentLenStr.c_str());
+#endif
+
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
 	//
 	//  BEW 29Jan13, beware, if no new entries have been added since last time, then
-	//  the header will not have a json string, and will have the 'error' text
+	//  the payload will not have a json string, and will have an 'error' string
     //  "No matching entry found". This isn't actually an error, and ChangedSince(), in
     //  this circumstance should just benignly exit without doing or saying anything, and
-    //  return 0 (CURLE_OK). Changes to support this are below.
+    //  return 0 (CURLE_OK)
 	if (!str_CURLbuffer.empty())
 	{
-        // Extract the timestamp, and remove the headers, leaving only the json data in
-        // str_CURLbuffer, ready for subfield extraction to take place in the loop below
-		str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
-
-		// If no entries were sent, then str_CURLbuffer will contain "No matching entry
-		// found", in which case, don't do any of the json stuff, and the value in
-		// m_kbServerLastTimestampReceived will be correct and can be used to update the
-		// persistent storage file for the time of the lastsync
+        // json data beginswith "[{", so test for the payload starting this way, if it
+        // doesn't, then there is only an error string to grab -- quite possibly
+        // "No matching entry found", in which case, don't do any of the json stuff, and
+        // the value in m_kbServerLastTimestampReceived will be correct and can be used
+        // to update the persistent storage file for the time of the lastsync
+        wxString strStartJSON = _T("[{");
 		CBString cbstr(str_CURLbuffer.c_str());
 		wxString buffer(ToUtf16(cbstr));
-		// Can't use an equality test here, there is a spurious non-visible character
-		// after the word "found" in "No matching entry found" that makes an equality test
-		// fail. So rather than bothering to eliminate it, I'll just use a search --
-		// offset is returned as 0, which tells me the spurious character is at the end
-		int offset = buffer.Find(m_noEntryMessage);
-		if (offset != wxNOT_FOUND)
+		int offset = buffer.Find(strStartJSON);
+		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
 		{
-			// No new entries were sent, because there were none more recent than the last
-			// saved timestamp value
-			str_CURLbuffer.clear(); // always clear it before returning
+            // Before extracting the substrings from the JSON data, the storage arrays must be
+            // cleared with a call of ClearAllPrivateStorageArrays()
+            ClearAllPrivateStorageArrays(); // always must start off empty
 
-			pStatusBar->FinishProgress(_("Receiving..."));
+            wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
 
-			return 0;
-		}
-		// If control gets to here, then we've some json to process...
+            wxJSONValue jsonval;
+            wxJSONReader reader;
+            int numErrors = reader.Parse(myList, &jsonval);
+            pStatusBar->UpdateProgress(_("Receiving..."), 4);
 
-		// If eyeball verification of the removal of preceding headers information is
-		// wanted, then uncomment out the three lines in the conditional compile here
-		#if defined (_DEBUG)
-			//CBString ss(str_CURLbuffer.c_str());
-			//wxString sshowit = ToUtf16(ss);
-			//wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
-		#endif
-        // Before extracting the substrings from the JSON data, the storage arrays must be
-        // cleared with a call of ClearAllPrivateStorageArrays()
-		ClearAllPrivateStorageArrays(); // always must start off empty
-
-		wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str());
-
-		// no new entries might exist yet and so str_CURLbuffer could now be empty, if so,
-		// just return 0
-		if (myList.IsEmpty())
-		{
-			// nothing to do, but it's not an error state
-			wxLogDebug(_T("ChangedSince() did not return any entries, for data added to kbserver since %s"),
-				timeStamp.c_str());
-			pStatusBar->FinishProgress(_("Receiving..."));
-			return 0;
-		}
-		wxJSONValue jsonval;
-		wxJSONReader reader;
-		int numErrors = reader.Parse(myList, &jsonval);
-		pStatusBar->UpdateProgress(_("Receiving..."), 4);
-
-		if (numErrors > 0)
-		{
-			// a non-localizable message will do, it's unlikely to ever be seen
-			wxMessageBox(_T("ChangedSince(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
-				_T("kbserver error"), wxICON_ERROR | wxOK);
-			str_CURLbuffer.clear(); // always clear it before returning
-			pStatusBar->FinishProgress(_("Receiving..."));
-			return -1;
-		}
-		int listSize = jsonval.Size();
+            if (numErrors > 0)
+            {
+                // a non-localizable message will do, it's unlikely to ever be seen
+                wxMessageBox(_T("ChangedSince(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+                    _T("kbserver error"), wxICON_ERROR | wxOK);
+                str_CURLbuffer.clear(); // always clear it before returning
+                pStatusBar->FinishProgress(_("Receiving..."));
+                return -1;
+            }
+            int listSize = jsonval.Size();
 #if defined (_DEBUG)
-		// get feedback about now many entries we got
-		if (listSize > 0)
-		{
-			wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
-				listSize, timeStamp.c_str());
-		}
+            // get feedback about now many entries we got
+            if (listSize > 0)
+            {
+                wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
+                    listSize, timeStamp.c_str());
+            }
 #endif
-		int index;
-		for (index = 0; index < listSize; index++)
-		{
-            // We can extract id, source phrase, target phrase, deleted flag value,
-            // username, and timestamp string; but for supporting the sync of a local KB we
-            // need only to extract source phrase, target phrase, and the value of the
-            // deleted flag. So the others can be commented out.
-            // BEW changed 16Jan13, to have the username included in the arrays, so that we
-            // can track who originated each of the entries in the group's various local KBs
-			m_arrSource.Add(jsonval[index][_T("source")].AsString());
-			m_arrTarget.Add(jsonval[index][_T("target")].AsString());
-			m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
-			//m_arrID.Add(jsonval[index][_T("id")].AsLong());
-			m_arrUsername.Add(jsonval[index][_T("user")].AsString());
-			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
+            int index;
+            for (index = 0; index < listSize; index++)
+            {
+                // We can extract id, source phrase, target phrase, deleted flag value,
+                // username, and timestamp string; but for supporting the sync of a local KB we
+                // need only to extract source phrase, target phrase, and the value of the
+                // deleted flag. So the others can be commented out.
+                // BEW changed 16Jan13, to have the username included in the arrays, so that we
+                // can track who originated each of the entries in the group's various local KBs
+                m_arrSource.Add(jsonval[index][_T("source")].AsString());
+                m_arrTarget.Add(jsonval[index][_T("target")].AsString());
+                m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
+                //m_arrID.Add(jsonval[index][_T("id")].AsLong());
+                m_arrUsername.Add(jsonval[index][_T("user")].AsString());
+                //m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 #if defined (_DEBUG)
-			// list what entries were returned
-			wxLogDebug(_T("Downloaded:  %s  ,  %s  ,  deleted = %d"),
-				(m_arrSource[index]).c_str(), (m_arrTarget[index]).c_str(), (m_arrDeleted[index]));
+                // list what entries were returned
+                wxLogDebug(_T("Downloaded:  %s  ,  %s  ,  deleted = %d"),
+                    (m_arrSource[index]).c_str(), (m_arrTarget[index]).c_str(), (m_arrDeleted[index]));
 #endif
+            }
+            pStatusBar->UpdateProgress(_("Receiving..."), 5);
+
+            str_CURLbuffer.clear(); // always clear it before returning
+            str_CURLheaders.clear(); // BEW added 9Feb13
 		}
+		else
+		{
+		    // the buffer contains an error message
+		    buffer.Trim();// remove the final \n
+            m_errorStr = buffer;
 
-		pStatusBar->UpdateProgress(_("Receiving..."), 5);
-
-		str_CURLbuffer.clear(); // always clear it before returning
+            // Can't use an equality test here, there is a \n character after the word
+            // "found" in "No matching entry found" that makes an equality test fail.
+            // So rather than bothering to eliminate it, I'll just use a search
+            int offset = buffer.Find(m_noEntryMessage);
+            if (offset != wxNOT_FOUND)
+            {
+                // No new entries were sent, because there were none more recent
+                // than the last saved timestamp value, so do nothing here
+                ;
+            }
+            else
+            {
+                // some other non-CURL error presumably, report it in debug mode, and exit;
+                // caller continues
+                wxString msg;
+                msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %s  Means: %s"),
+                                  m_errorStr.c_str(), m_httpStatusCode.c_str(), m_httpStatusText.c_str());
+                wxLogDebug(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+            }
+            str_CURLbuffer.clear(); // always clear it before returning
+            str_CURLheaders.clear(); // BEW added 9Feb13
+            pStatusBar->FinishProgress(_("Receiving..."));
+            return 0;
+		}
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
 
-
 	pStatusBar->FinishProgress(_("Receiving..."));
-
 	return 0;
 }
 
@@ -1156,8 +1221,8 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	{
 		// there was a cURL error, display it
 		wxString msg;
-		msg = msg.Format(_("Downloading to the knowledge base: an error code ( %d ) was returned.  Nothing was downloaded, application continues."), rv);
-		wxMessageBox(msg, _("Downloading to the knowledge base failed"), wxICON_ERROR | wxOK);
+		msg = msg.Format(_("Downloading, error code ( %d ) returned.  Nothing was downloaded, application continues.\nError code 6 may just mean a temporary problem, so try again."), rv);
+		wxMessageBox(msg, _("Downloading entries to the knowledge base failed"), wxICON_ERROR | wxOK);
 		m_pApp->LogUserAction(msg);
 		return;
 	}
@@ -1221,6 +1286,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
 		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when header info is
 													  //not needed in the download
 		result = curl_easy_perform(curl);
@@ -1241,7 +1307,9 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	}
 	curl_easy_cleanup(curl);
 
-	// Find out if there is no entry, if so, clear the buffer and return 1 to indicate
+  // If there was no matching entry in the database, "No matching entry found" is
+  // returned, so test for this...
+  // Find out if there is no entry, if so, clear the buffer and return 1 to indicate
 	// failure to find the entry (the find() will work whether or not headers precede the
 	// search string)
 	if (str_CURLbuffer.find(notPresentStr) != npos)
@@ -1250,19 +1318,6 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		str_CURLbuffer.clear();
 		return 1;
 	}
-
-	// uncomment out only for "changed since" downloads, and also uncomment out the
-	// CURLOPT_HEADER, 1L line above, so that header info is inserted in the data stream
-	// Extract the timestamp, and remove the headers, leaving only the json data
-	//str_CURLbuffer = ExtractTimestampThenRemoveHeaders(str_CURLbuffer, m_kbServerLastTimestampReceived);
-
-#if defined (_DEBUG) //&& defined (__WXGTK__)
-        //CBString ss(str_CURLbuffer.c_str());
-        //wxString sshowit = ToUtf16(ss);
-        //wxLogDebug(_T("Adjusted str_CURLbuffer: %s"), sshowit.c_str());
-#endif
-	// If there was no matching entry in the database, "No matching entry found" is
-	// returned, so test for this
 
 	//  make the json data accessible (result is CURLE_OK if control gets to here)
 	if (!str_CURLbuffer.empty())
