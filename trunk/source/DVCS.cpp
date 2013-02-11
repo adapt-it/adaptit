@@ -226,7 +226,7 @@ int  DVCS::init_repository ()
 {
     int     returnCode;
     
-    if (wxDirExists(".hg"))
+    if (wxDirExists(_T(".hg")))
     {   wxMessageBox(_T("Version control is already set up for this project."));
         return 0;
     }
