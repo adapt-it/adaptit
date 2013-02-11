@@ -63,7 +63,7 @@ void Thread_CreateEntry::OnExit()
 
 void* Thread_CreateEntry::Entry()
 {
-	bool bHandledOK = m_pKB->HandleNewPairCreated(m_kbServerType, m_source, m_translation, m_bUseCache);
+	bool bHandledOK = m_pKB->HandleNewPairCreated(m_kbServerType, m_source, m_translation);
 	bHandledOK = bHandledOK; // avoid compiler warning
 	return (void*)NULL;
 }

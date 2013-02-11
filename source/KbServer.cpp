@@ -35,6 +35,11 @@
 
 #if defined(_KBSERVER)
 
+static wxMutex s_QueueMutex; // only need one, because we cannot have
+							 // glossing & adapting modes on concurrently
+#include <wx/listimpl.cpp>
+
+
 using namespace std;
 #include <string>
 
@@ -49,10 +54,12 @@ using namespace std;
 #include "helpers.h"
 //#include "BString.h"
 #include "Xhtml.h"
-#include "KbServer.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
 #include "Thread_UploadToKBServer.h"
+#include "KbServer.h"
+
+WX_DEFINE_LIST(DownloadsQueue);
 
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
@@ -124,6 +131,7 @@ KbServer::KbServer()
 	this->EnableCaching(FALSE); // change, when testing, to turn on or off new entry caching
 	// The following English message is hard-coded at the server end, so don't localize it
 	m_noEntryMessage = _T("No matching entry found");
+	m_queue.clear();
 }
 
 KbServer::KbServer(int whichType)
@@ -138,6 +146,7 @@ KbServer::KbServer(int whichType)
 	// (actually, the server's string is 24 char, but the English is just 23, so don't
 	// test for equality, use Find() instead searching with this shorter 23 char one)
 	m_noEntryMessage = _T("No matching entry found");
+	m_queue.clear();
 }
 
 bool KbServer::IsCachingON()
@@ -677,8 +686,8 @@ wxArrayString* KbServer::GetTargetArray()
 	return &m_arrTarget;
 }
 
-// and those for caching...
-
+// and those for caching... BEW 11Feb13, removed upload caching support
+/*
 wxArrayInt*	KbServer::GetCacheDeletedArray()
 {
 	return &m_arrCacheDeleted;
@@ -729,6 +738,7 @@ bool KbServer::CacheHasContent()
 	else
 		return TRUE;
 }
+*/
 
 // callback functions for curl
 
@@ -1144,12 +1154,14 @@ void KbServer::ClearAllPrivateStorageArrays()
 	m_arrTimestamp.clear();
 }
 
+/* BEW 11Feb13 removed support for uploads caching
 void KbServer::ClearAllPrivateCacheArrays()
 {
 	m_arrCacheDeleted.clear();
 	m_arrCacheSource.clear();
 	m_arrCacheTarget.clear();
 }
+*/
 
 /* unused
 void KbServer::ClearOneIntArray(wxArrayInt* pArray)
@@ -1594,6 +1606,35 @@ void KbServer::UploadToKbServerThreaded()
 
 void KbServer::UploadToKbServer()
 {
+/*
+	// test queue
+	KbServerEntry* pEntry = new KbServerEntry;
+	pEntry->id = 1;
+	m_queue.push_back(pEntry);
+	pEntry = new KbServerEntry;
+	pEntry->id = 2;
+	m_queue.push_back(pEntry);
+	pEntry = new KbServerEntry;
+	pEntry->id = 3;
+	m_queue.push_back(pEntry);
+
+	KbServerEntry* pPopped = NULL;
+
+	pPopped = m_queue.front();
+	wxASSERT(pPopped->id == 1);
+	m_queue.pop_front();
+
+	pPopped = m_queue.front();
+	wxASSERT(pPopped->id == 2);
+	m_queue.pop_front();
+
+	pPopped = m_queue.front();
+	wxASSERT(pPopped->id == 3);
+	m_queue.pop_front();
+
+	wxASSERT(m_queue.GetCount() == 0);
+*/
+/*
 	wxString srcPhrase;
 	CTargetUnit* cTU;
 	wxString tgtPhrase;
@@ -1642,11 +1683,35 @@ void KbServer::UploadToKbServer()
 		}
 	} // for
 	wxLogDebug(_T("UploadToKBServer() Done!"));
+
+*/
 }
 
+void KbServer::PushToQueueEnd(KbServerEntry* pEntryStruct) // protect with a mutex
+{
+	s_QueueMutex.Lock();
 
+	m_queue.push_back(pEntryStruct);
 
+	s_QueueMutex.Unlock();
+}
 
+KbServerEntry* KbServer::PopFromQueueFront() // protect with a mutex
+{
+	s_QueueMutex.Lock();
+
+	KbServerEntry* pPopped = m_queue.front(); // gets but doesn't pop
+	m_queue.pop_front(); // this pops it to limbo
+
+	s_QueueMutex.Unlock();
+	return pPopped; // the returned struct's data will be used in 
+					// an OnIdle() call in main thread, then deleted
+}
+
+bool KbServer::IsQueueEmpty()
+{
+	return m_queue.empty(); // return TRUE if m_queue is empty
+}
 
 
 

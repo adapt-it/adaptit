@@ -169,16 +169,13 @@ public:
 #if defined (_KBSERVER)
 
 	// use next for phrasebox typed adaptations or glosses, and for KBEditor's Add button
-	bool		HandleNewPairCreated(int kbServerType, wxString srcKey, wxString translation,
-									bool bUseCache = TRUE);
+	bool		HandleNewPairCreated(int kbServerType, wxString srcKey, wxString translation);
 	// use the next for phrasebox typed adaptation or gloss which is to be a normal entry
 	// when the local KB has the same pair as a pseudo-deleted entry
-	bool		HandlePseudoUndelete(int kbServerType, wxString srcKey, wxString translation,
-									bool bUseCache = TRUE);
+	bool		HandlePseudoUndelete(int kbServerType, wxString srcKey, wxString translation);
 	// use the next when in the KB Editor for the local KB, the user selects an adaptation
 	// or gloss and clicks the Remove button to pseudo-delete it
-	bool		HandlePseudoDelete(int kbServerType, wxString srcKey, wxString translation,
-									bool bUseCache = TRUE);
+	bool		HandlePseudoDelete(int kbServerType, wxString srcKey, wxString translation);
 	// Use the next when in the KB Editor for the local KB, the user corrects an
 	// incorrectly spelled adaptation or gloss. Internally this is implemented as a
 	// pseudo-delete of the old incorrectly spelled entry, together with creation of a new
@@ -186,11 +183,9 @@ public:
 	// simply do HandlePseudoDelete() using the old pair, followed by
 	// HandleNewPairCreated() using the new src/tgt or src/gloss pair.
 	bool		HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
-									wxString oldTranslation, wxString newTranslation,
-									bool bUseCache = TRUE);
+									wxString oldTranslation, wxString newTranslation);
 	bool		HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcKey,
-									wxString oldTranslation, wxString newTranslation,
-									bool bUseCache = TRUE);
+									wxString oldTranslation, wxString newTranslation);
 	// Populate either a CTargetUnit instance in the local KB with anything new in the
 	// download, or many CTargetUnit instances arising from a timestamp-based download -
 	// either of the whole KB, or of those entries newly added subsequent to a stored

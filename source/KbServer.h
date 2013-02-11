@@ -39,6 +39,32 @@ WX_DEFINE_ARRAY_LONG(long, Array_of_long);
 
 #if defined(_KBSERVER)
 
+/// The KbServerEntry struct is used for storing a single entry of the server's database,
+/// in a queue (actually an STL-based wxList<T> instance, which stores pointer to T) - periodic
+/// incremental downloads are pushed to the end of the list, and rentries popped from its
+/// start, during idle events. The pushes and pops need to be protected with a mutex,
+/// because popping is so as to merge an entry to the KB, but another incremental download
+/// might be have a push happening which has the queue in a compromised state, of vise versa.
+/// Instances are created on the heap, stored in the queue until popped, and once the
+/// popped instance has had it's data merged to the KB, it is deleted
+struct KbServerEntry; // NOTE, omitting this forwards declaration and having the KbServerEntry
+					  // definition here instead, does NOT WORK! And the WX_DEFINE_LIST() macro
+					  // in the .cpp file must be somewhere AFTER the #include "KbServer.h" line
+WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
+
+struct KbServerEntry {
+	long		id;
+	wxString	srcLangCode;
+	wxString	tgtLangCode;
+	wxString	source;
+	wxString	translation; // for gloss, or tgt text, according to mode
+	wxString	username;
+	wxString	timestamp;
+	int			type; // the only values allowed are 1 (adapting) or 2 (glossing)
+	int			deleted; // the only values allowed are 0 (not pseudo-deleted) or 1 (pseudo-deleted)
+};
+
+
 enum ClientAction {
 	getForOneKeyOnly,
 	changedSince,
@@ -52,7 +78,6 @@ class CRefStringMetadata;
 class CRefString;
 class CBString;
 class CKB;
-//class CAdapt_ItApp;
 
 enum DeleteOrUndeleteEnum
 {
@@ -75,6 +100,7 @@ enum DeleteOrUndeleteEnum
 /// to the web is supposed to fix this kind of problem - but it didn't, so I'm having to try
 /// find a different waya to support threads.
 
+
 class KbServer : public wxObject
 {
 public:
@@ -86,7 +112,6 @@ public:
 	virtual	~KbServer(void); // destructor (should be virtual)
 
 	void	DownloadToKB(CKB* pKB, enum ClientAction action);
-
 
 	// attributes
 public:
@@ -152,7 +177,7 @@ protected:
 private:
 	// class variables
 	CKB*		m_pKB; // whichever of the m_pKB versus m_pGlossingKB this instance is associated with
-	bool			m_bUseNewEntryCaching; // eventually set this via the GUI
+	bool		m_bUseNewEntryCaching; // eventually set this via the GUI
 
 	wxString    m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
 	wxString    m_httpStatusText; // when the code is "200" the text will be "OK"
@@ -166,10 +191,10 @@ private:
 	wxString	m_kbServerPassword; // we never store this, the user has to remember it
 	wxString	m_kbServerLastSync; // stores a UTC date & time in format: YYYY-MM-DD HH:MM:SS
 	wxString	m_kbServerLastTimestampReceived; // store UTC date & time in above format received from server
-					// NOTE: m_kbServerLastTimestampReceived value replaces m_kbServerLastSync
-					// value only after a successful receipt of downloaded data, hence the
-					// two variables (m_kbServerLastSync might be needed for more than one
-					// GET request before success is achieved)
+							// NOTE: m_kbServerLastTimestampReceived value replaces m_kbServerLastSync
+							// value only after a successful receipt of downloaded data, hence the
+							// two variables (m_kbServerLastSync might be needed for more than one
+							// GET request before success is achieved)
 	int			m_kbServerType; // 1 for an adapting KB, 2 for a glossing KB
 	wxString	m_kbSourceLanguageCode;
 	wxString	m_kbTargetLanguageCode;
@@ -230,10 +255,8 @@ private:
 	wxArrayString	m_arrTarget;
 	wxArrayString	m_arrUsername;
 
-	// arrays for caching entries for periodic uploading, only 3 are needed
-	wxArrayInt		m_arrCacheDeleted;
-	wxArrayString	m_arrCacheSource;
-	wxArrayString	m_arrCacheTarget;
+	// the incremental downloads queue
+	DownloadsQueue m_queue;
 
 public:
 
@@ -247,18 +270,10 @@ public:
 	void			ClearAllPrivateStorageArrays();
 	//void			ClearOneIntArray(wxArrayInt* pArray); // so far unused
 	//void			ClearOneStringArray(wxArrayString* pArray); // so far unused
-
-	// public accessors for the private caching arrays (these are for supporting
-	// responsiveness of the user's adapting process, to 'hide' network traffic in idle
-	// events, and to do small bulk uploads i.e. one round trip with many entries as
-	// payload)
-	wxArrayInt*		GetCacheDeletedArray();
-	wxArrayString*	GetCacheSourceArray();
-	wxArrayString*	GetCacheTargetArray();
-	void			ClearAllPrivateCacheArrays();
-	void			RemoveLastFromCacheArrays(); // removes, in parallel, the last entry set
-	bool			CacheHasContent();
-	void			GetLastEntryData(wxString& sourceStr, wxString& translationStr, int& deletedFlag);
+	
+	void			PushToQueueEnd(KbServerEntry* pEntryStruct); // protect with a mutex
+	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
+	bool			IsQueueEmpty();
 
 protected:
 
