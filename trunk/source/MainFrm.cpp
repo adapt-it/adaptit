@@ -4137,6 +4137,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// at launch time, pKbSvr will still be NULL, so test for this
 		if (pKbSvr != NULL)
 		{
+			/* BEW 11Feb13 removed caching support for uploads
 			if (pKbSvr->IsKBSharingEnabled() && pKbSvr->IsCachingON() && pKbSvr->CacheHasContent())
 			{
 				int deletedFlag;
@@ -4144,22 +4145,23 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				wxString translationStr;
 				pKbSvr->GetLastEntryData(sourceStr, translationStr, deletedFlag);
 				bool bDeleted = deletedFlag == 1 ? TRUE : FALSE;
-#if defined(_DEBUG)
+				#if defined(_DEBUG)
 				wxArrayInt* pArrInt = pKbSvr->GetCacheDeletedArray();
 				size_t theCount = pArrInt->GetCount();
 				wxLogDebug(_T("                       OnIdle: count=%d  src [ %s ] tgt [ %s ] flag %d"),
 					theCount, sourceStr.c_str(), translationStr.c_str(), deletedFlag);
-#endif
+				#endif
 				int returnValue = pKbSvr->CreateEntry(sourceStr, translationStr, bDeleted);
-#if defined(_DEBUG)
+				#if defined(_DEBUG)
 				wxLogDebug(_T("OnIdle: CreateEntry returned: %d     <<-- If 0 then NO ERROR"), returnValue);
-#endif
+				#endif
 				if (returnValue == 0)
 				{
 					// the data transmission succeeded
 					pKbSvr->RemoveLastFromCacheArrays();
 				}
 			}
+			*/
 
 			// Try an incremental download; if the m_KbServerDownloadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered

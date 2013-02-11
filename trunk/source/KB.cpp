@@ -6085,8 +6085,8 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 // purpose and must not be allowed to put heaps of <Not In KB> entries in a normal shared
 // KB and so we test for the app's flag being TRUE and silently return when it is
 // BEW 26Jan13, added a cache option, with default being to have it turned ON
-bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString translation,
-									bool bUseCache)
+// BEW 11Feb13 removed cache option
+bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString translation)
 {
 	if (m_pApp->m_bTransliterationMode)
 	{
@@ -6099,6 +6099,7 @@ bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString trans
 	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
 	if (pKBSvr != NULL)
 	{
+		/* BEW 11Feb13 removed caching support for uploads
 		if (bUseCache)
 		{
 			// With caching we are relying on the code at the remote server implimenting
@@ -6121,6 +6122,7 @@ bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString trans
 			pCacheTargetArray->Add(translation);
 			return rv;
 		}
+		*/
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
 		if (responseCode != 0) // entry is not in the kbserver if test yields TRUE
 		{
@@ -6200,9 +6202,7 @@ bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString trans
 // 6. When transliteration mode is active, the local KBs are being used for a special
 // purpose and must not be allowed to put heaps of <Not In KB> entries in a normal shared
 // KB and so we test for the app's flag being TRUE and silently return when it is
-// BEW 26Jan13, added a cache option, with default being to have it turned ON
-bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString translation,
-									bool bUseCache)
+bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString translation)
 {
 	if (m_pApp->m_bTransliterationMode)
 	{
@@ -6213,6 +6213,7 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
 	if (pKBSvr != NULL)
 	{
+		/* BEW 11Feb13 removed cache option
 		if (bUseCache)
 		{
 			// With caching we are relying on the code at the remote server implimenting
@@ -6235,6 +6236,7 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 			pCacheTargetArray->Add(translation);
 			return rv;
 		}
+		*/
 		pKBSvr->ClearAllPrivateStorageArrays();
 		// note: pKBSvr knows whether itself is an adapting KB server, or a glossing one
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
@@ -6306,9 +6308,7 @@ bool CKB::HandlePseudoDelete(int kbServerType, wxString srcKey, wxString transla
 // 6. When transliteration mode is active, the local KBs are being used for a special
 // purpose and must not be allowed to put heaps of <Not In KB> entries in a normal shared
 // KB and so we test for the app's flag being TRUE and silently return when it is
-// BEW 26Jan13, added a cache option, with default being to have it turned ON
-bool CKB::HandlePseudoUndelete(int kbServerType, wxString srcKey, wxString translation,
-									bool bUseCache)
+bool CKB::HandlePseudoUndelete(int kbServerType, wxString srcKey, wxString translation)
 {
 	if (m_pApp->m_bTransliterationMode)
 	{
@@ -6319,6 +6319,7 @@ bool CKB::HandlePseudoUndelete(int kbServerType, wxString srcKey, wxString trans
 	KbServer* pKBSvr = m_pApp->GetKbServer(kbServerType);
 	if (pKBSvr != NULL)
 	{
+		/* BEW 11Feb13 removed cache option
 		if (bUseCache)
 		{
 			// With caching we are relying on the code at the remote server implimenting
@@ -6341,6 +6342,7 @@ bool CKB::HandlePseudoUndelete(int kbServerType, wxString srcKey, wxString trans
 			pCacheTargetArray->Add(translation);
 			return rv;
 		}
+		*/
 		pKBSvr->ClearAllPrivateStorageArrays();
 		int responseCode = pKBSvr->LookupEntryFields(srcKey, translation);
 		if (responseCode != 0) // entry is not in the kbserver if test yields TRUE
@@ -6401,8 +6403,7 @@ bool CKB::HandlePseudoUndelete(int kbServerType, wxString srcKey, wxString trans
 // purpose and must not be allowed to put heaps of <Not In KB> entries in a normal shared
 // KB and so we test for the app's flag being TRUE and silently return when it is
 bool  CKB::HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
-						wxString oldTranslation, wxString newTranslation,
-									bool bUseCache)
+						wxString oldTranslation, wxString newTranslation)
 {
 	if (m_pApp->m_bTransliterationMode)
 	{
@@ -6410,10 +6411,10 @@ bool  CKB::HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
 		return TRUE;
 	}
 	bool rv = TRUE;
-	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation, bUseCache);
+	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation);
 	if (rv)
 	{
-		rv = HandleNewPairCreated(kbServerType, srcKey, newTranslation, bUseCache);
+		rv = HandleNewPairCreated(kbServerType, srcKey, newTranslation);
 		if (!rv)
 		{
 			// if there was an error, log the strings, but do no more and let
@@ -6450,8 +6451,7 @@ bool  CKB::HandlePseudoDeleteAndNewPair(int kbServerType, wxString srcKey,
 // purpose and must not be allowed to put heaps of <Not In KB> entries in a normal shared
 // KB and so we test for the app's flag being TRUE and silently return when it is
 bool  CKB::HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcKey,
-						wxString oldTranslation, wxString newTranslation,
-									bool bUseCache)
+						wxString oldTranslation, wxString newTranslation)
 {
 	if (m_pApp->m_bTransliterationMode)
 	{
@@ -6459,10 +6459,10 @@ bool  CKB::HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcK
 		return TRUE;
 	}
 	bool rv = TRUE;
-	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation, bUseCache);
+	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation);
 	if (rv)
 	{
-		rv = HandlePseudoUndelete(kbServerType, srcKey, newTranslation, bUseCache);
+		rv = HandlePseudoUndelete(kbServerType, srcKey, newTranslation);
 		if (!rv)
 		{
 			// if there was an error, log the strings, but do no more and let
@@ -6486,9 +6486,6 @@ bool  CKB::HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcK
 	}
 	return rv;
 }
-
-
-
 
 
 #endif // for _KBSERVER
