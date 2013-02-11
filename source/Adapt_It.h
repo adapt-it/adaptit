@@ -134,7 +134,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // ID for m_KbServerDownloadTimer
 const int ID_KBSERVER_DOWNLOAD_TIMER = 978;
 // ID for m_KbServerUploadTimer
-const int ID_KBSERVER_UPLOAD_TIMER = 977;
+//const int ID_KBSERVER_UPLOAD_TIMER = 977; // BEW deprecated 11Feb13
 
 #endif
 
@@ -1916,21 +1916,22 @@ class CAdapt_ItApp : public wxApp
 
 #if defined(_KBSERVER)
 
-	// The following are the two timers for incremental uploads and downloads; defaulted to
-	// 5 minutes each, but settable by the user to other values in the range 1-10 minutes,
-	// and the minutes value of each will be stored in the project config file
+	// The following is the timer for incremental downloads; defaulted to
+	// 5 minutes, but settable by the user to other values in the range 1-10 minutes,
+	// and the minutes valuewill be stored in the project config file
 	wxTimer m_KbServerDownloadTimer; // for periodic incremental download of entries from server
-	wxTimer m_KbServerUploadTimer; // for periodic incremental upoad of entries to server
+	//wxTimer m_KbServerUploadTimer; // for periodic incremental upoad of entries to
+	//server, remove BEW 11Feb13
 
-	// OnIdle() will be used for initiating an upload or download of the incremental type.
-	// Each will happen only after a boolean flag goes TRUE; the flags are the following
+	// OnIdle() will be used for initiating a download of the incremental type.
+	// It will happen only after a boolean flag goes TRUE; the flag is the following
 	bool	m_bKbServerIncrementalDownloadPending;
-	bool	m_bKbServerIncrementalUploadPending;
+	//bool	m_bKbServerIncrementalUploadPending;
 
-	// Storage for the upload and download intervals (in seconds; but for use with the
+	// Storage for the download intervals (in seconds; but for use with the
 	// timer, multiply by 1000 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
-	int		m_nKbServerIncrementalUploadInterval;
+	//int		m_nKbServerIncrementalUploadInterval; // BEW 11Feb13, deprecated
 
 #endif
 

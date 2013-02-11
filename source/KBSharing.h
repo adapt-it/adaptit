@@ -32,7 +32,7 @@ public:
 	wxButton*		m_pBtnGetAll;
 	wxRadioBox*		m_pRadioBox;
 	wxSpinCtrl*		m_pSpinReceiving;
-	wxSpinCtrl*		m_pSpinSending;
+	//wxSpinCtrl*		m_pSpinSending;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -44,13 +44,13 @@ protected:
 	void OnBtnSendAll(wxCommandEvent& WXUNUSED(event));
 	void OnRadioOnOff(wxCommandEvent& WXUNUSED(event));
 	void OnSpinCtrlReceiving(wxSpinEvent& WXUNUSED(event));
-	void OnSpinCtrlSending(wxSpinEvent& WXUNUSED(event));
+	//void OnSpinCtrlSending(wxSpinEvent& WXUNUSED(event));
 
 private:
 	CAdapt_ItApp* m_pApp;
 	int	m_nRadioBoxSelection;
 	int receiveInterval; //(minutes)
-	int sendInterval; //(minutes)
+	//int sendInterval; //(minutes)
 
 	DECLARE_EVENT_TABLE()
 };

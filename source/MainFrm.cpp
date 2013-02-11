@@ -4166,7 +4166,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			if (pKbSvr->IsKBSharingEnabled() && gpApp->m_bKbServerIncrementalDownloadPending)
 			{
 #if defined(_DEBUG)
-				wxBell();
+				wxBell(); // temporary bells, so I can hear it working
 				wxBell();
 				wxBell();
 #endif
@@ -4176,18 +4176,17 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				pKbSvr->ClearAllPrivateStorageArrays();
 			}
 
-
+			// BEW deprecated 11Feb13, because auto uploads will not be bulk ones - to
+			// keep the design as RESTful as possible
 			// Try an incremental upload; if the m_KbServerUploadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered
-			if (pKbSvr->IsKBSharingEnabled() && gpApp->m_bKbServerIncrementalUploadPending)
-			{
+			//if (pKbSvr->IsKBSharingEnabled() && gpApp->m_bKbServerIncrementalUploadPending)
+			//{
+				// put code here...
 
-// TODO  ******  put the call needed here (awaiting bulk upload support from Jonathan ******
-
-
-				gpApp->m_bKbServerIncrementalUploadPending = FALSE; // disable tries until next timer shot
-				pKbSvr->ClearAllPrivateCacheArrays();
-			}
+			//	gpApp->m_bKbServerIncrementalUploadPending = FALSE; // disable tries until next timer shot
+			//	pKbSvr->ClearAllPrivateCacheArrays();
+			//}
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
