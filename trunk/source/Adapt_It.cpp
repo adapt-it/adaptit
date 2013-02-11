@@ -5564,7 +5564,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 #if defined(_KBSERVER)
 	EVT_TIMER(ID_KBSERVER_DOWNLOAD_TIMER, CAdapt_ItApp::OnKbServerDownloadTimer)
-	EVT_TIMER(ID_KBSERVER_UPLOAD_TIMER, CAdapt_ItApp::OnKbServerUploadTimer)
+	//EVT_TIMER(ID_KBSERVER_UPLOAD_TIMER, CAdapt_ItApp::OnKbServerUploadTimer) // BEW
+	//deprecated 11Feb13
 #endif
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
@@ -5828,7 +5829,7 @@ wxString szKbServerDownloadInterval = _T("KbServerIncrementalDownloadInterval");
 
 /// The minimum interval, in minutes, from one incremental download attempt to the next
 /// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
-wxString szKbServerUploadInterval = _T("KbServerIncrementalUploadInterval");
+//wxString szKbServerUploadInterval = _T("KbServerIncrementalUploadInterval"); // deprecated 11Feb13
 
 //#endif
 
@@ -15059,12 +15060,12 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
 	GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
-	// start timers for incremental uploads and downloads (each call stops the timer if it
+	// Start timer for incremental downloads (each call stops the timer if it
 	// was already running, and then restarts it with the passed in interval -- this is
 	// nice because SetupForKBServer() is always called twice, once for the adapting KB
 	// and the other time for the glossing KB)
 	m_KbServerDownloadTimer.Start(m_nKbServerIncrementalDownloadInterval*1000);
-	m_KbServerUploadTimer.Start(m_nKbServerIncrementalUploadInterval*1000);
+	//m_KbServerUploadTimer.Start(m_nKbServerIncrementalUploadInterval*1000); // BEW deprecated 11Feb13
 
 	// all's well
 	return TRUE;
@@ -15081,9 +15082,9 @@ bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 	if (pKbSvr == NULL)
         return TRUE; // not currently defined
 
-	// stop the timers for incremental uploads and downloads
+	// stop the timer for incremental downloads
 	m_KbServerDownloadTimer.Stop();
-	m_KbServerUploadTimer.Stop();
+	//m_KbServerUploadTimer.Stop(); // BEW deprecated 11Feb13
 
 	// ensure the m_kbServerLastSync timestamp value is stored to permanent storage (which
 	// is in lastsync_adaptations.txt in the project folder when dealing with adaptations KB,
@@ -15227,12 +15228,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// flag initializations
 	m_bKbServerIncrementalDownloadPending = FALSE;
-	m_bKbServerIncrementalUploadPending = FALSE;
+	//m_bKbServerIncrementalUploadPending = FALSE; // BEW deprecated 11Feb13
 
-	// incremental upload and download default intervals (5 seconds) - but will be overridden
+	// incremental download default interval (5 seconds) - but will be overridden
 	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-10)
 	m_nKbServerIncrementalDownloadInterval = 5;
-	m_nKbServerIncrementalUploadInterval = 5;
+	//m_nKbServerIncrementalUploadInterval = 5; // BEW deprecated 11Feb13
 
 #endif
 
@@ -31608,9 +31609,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
 	pf->AddLine(data);
 
-	data.Empty();
-	data << szKbServerUploadInterval << tab << m_nKbServerIncrementalUploadInterval;
-	pf->AddLine(data);
+	// BEW deprecated 11Feb13
+	//data.Empty();
+	//data << szKbServerUploadInterval << tab << m_nKbServerIncrementalUploadInterval;
+	//pf->AddLine(data);
 
 #endif
 	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
@@ -32424,16 +32426,14 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				num = 5; // if out of range default to 5
 			m_nKbServerIncrementalDownloadInterval = num;
 		}
-		else if (name == szKbServerUploadInterval)
-		{
-			num = wxAtoi(strValue);
-			if (num < 1 || num > 10)
-				num = 5; // if out of range default to 5
-			m_nKbServerIncrementalUploadInterval = num;
-		}
-
-
-
+		// BEW deprecated 11Feb13
+		//else if (name == szKbServerUploadInterval)
+		//{
+		//	num = wxAtoi(strValue);
+		//	if (num < 1 || num > 10)
+		//		num = 5; // if out of range default to 5
+		//	m_nKbServerIncrementalUploadInterval = num;
+		//}
 
 #else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
 		else if (name == szIsKBServerProject)
@@ -32444,8 +32444,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			;	// do nothing
 		else if (name == szKbServerDownloadInterval)
 			; // do nothing
-		else if (name == szKbServerUploadInterval)
-			; // do nothing
+		//else if (name == szKbServerUploadInterval)
+		//	; // do nothing
 #endif
 		// whm 17Feb12 added the following two from the basic config file. They are
 		// used in collaboration operations too.
@@ -42319,6 +42319,7 @@ void CAdapt_ItApp::OnKbServerDownloadTimer(wxTimerEvent& WXUNUSED(event))
 	}
 }
 
+/* BEW deprecated 11Feb13
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \remarks Catches a wxTimerEvent when m_KbServerUploadTimer is running. For each timer
@@ -42342,6 +42343,7 @@ void CAdapt_ItApp::OnKbServerUploadTimer(wxTimerEvent& WXUNUSED(event))
 		m_bKbServerIncrementalUploadPending = TRUE;
 	}
 }
+*/
 
 #endif // for _KBSERVER
 
