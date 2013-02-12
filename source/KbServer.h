@@ -52,15 +52,17 @@ struct KbServerEntry; // NOTE, omitting this forwards declaration and having the
 					  // in the .cpp file must be somewhere AFTER the #include "KbServer.h" line
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 
+// Not all values are needed from each entry, so I've commented out those the KB isn't
+// interested in
 struct KbServerEntry {
-	long		id;
-	wxString	srcLangCode;
-	wxString	tgtLangCode;
+	//long		id;
+	//wxString	srcLangCode;
+	//wxString	tgtLangCode;
 	wxString	source;
 	wxString	translation; // for gloss, or tgt text, according to mode
 	wxString	username;
-	wxString	timestamp;
-	int			type; // the only values allowed are 1 (adapting) or 2 (glossing)
+	//wxString	timestamp;
+	//int		type; // the only values allowed are 1 (adapting) or 2 (glossing)
 	int			deleted; // the only values allowed are 0 (not pseudo-deleted) or 1 (pseudo-deleted)
 };
 
@@ -123,6 +125,7 @@ public:
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag);  // was SendEntry()
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 ChangedSince(wxString timeStamp);
+	int		 ChangedSince_Queued(wxString timeStamp);
 	// public setters
 	void	 SetKBServerType(int type);
 	void	 SetKBServerURL(wxString url);
