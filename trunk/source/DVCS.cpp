@@ -74,11 +74,11 @@
 /*	Implementation notes:
 
 	Our DVCS engine is Mercurial (hg).  It uses a command-line interface.  So our job here is to create the command line, then
-	send it to hg using wxExecute(), then handle the return results.  
- 
+	send it to hg using wxExecute(), then handle the return results.
+
 	This is conceptually very simple, so originally I just wrote procedural code.  But now that we want everything to be as OOP as
 	possible, we have a DVCS class which just has one object, gpApp->m_pDVCS, instantiated in the application's OnInit() function.
- 
+
 	All DVCS calls from the application are made via the function gpApp->m_pDVCS->DoDVCS().  This function takes two int parms,
 	action and parm.  action is a code telling us what to do, and parm is used for various things depending on the action.
 
@@ -128,7 +128,7 @@ DVCS::~DVCS(void)
 
 	In all cases if hg returns an error we get a message in errors.  So we'll need to distinguish between hg
 	not being found, or being found and its execution returning an error.
- 
+
 	The int we return is the result code from calling wxExecute, so zero means success.
 */
 
@@ -178,7 +178,6 @@ int  DVCS::call_hg ( bool bDisplayOutput )
 
 	if (result)		// An error occurred
 	{
-//wxMessageBox( _T("error!!!") );		// debugging
 		returnCode = result;
 	}
 	else
@@ -222,28 +221,30 @@ int  DVCS::call_hg ( bool bDisplayOutput )
 
 // Setup functions:
 
+// We now init the repository automatically the first time we commit a file.  We want to do this silently, so if everything succeeds
+//  we no longer show a message.
+
 int  DVCS::init_repository ()
 {
     int     returnCode;
-    
-    if (wxDirExists(_T(".hg")))
-    {   wxMessageBox(_T("Version control is already set up for this project."));
-        return 0;
-    }
+
+    if ( wxDirExists(_T(".hg")) )
+        return 0;           // init already done -- just return
 
 	hg_command = _T("init");
 	returnCode = call_hg (FALSE);
-    
+
     if (returnCode)         // hg init failed -- most likely hg isn't installed.
         wxMessageBox(_T("We couldn't set up version control.  Possibly Mercurial has not been installed yet.  You could contact your administrator for help."));
-    else
-        wxMessageBox(_T("Version control is now set up for this project."));
-    
+
+//    else
+//        wxMessageBox(_T("Version control is now set up for this project.")); -- we now don't need a message here
+
     return returnCode;
 }
 
 // add_file() is called when the current (new) file is to be added to version control.  No commits have been done
-//  yet, so once the file is successfully added we initialize the commit count to zero.  If the file is already 
+//  yet, so once the file is successfully added we initialize the commit count to zero.  If the file is already
 //  under version control we just return without doing anything -- we must leave the commit count alone.  In both
 //  these cases we return zero (no error).  If an error occurs in the call to hg, we return that error code, whatever
 //  it was.
@@ -253,10 +254,15 @@ int  DVCS::add_file (wxString fileName)
 	int				returnCode;
 	CAdapt_ItDoc*	pDoc = m_pApp->GetDocument();
 
-	if (m_pApp->m_commitCount >= 0)       // already under version control
-    {   wxMessageBox(_T("This document is already under version control."));
+	if (m_pApp->m_commitCount >= 0)       // already under version control - do nothing
         return 0;
-    }
+
+// Maybe hg init hasn't been done.  We just call our function to do it.  This will simply return if
+//  nothing needs to be done.
+
+    returnCode = init_repository();
+    if (returnCode)
+        return returnCode;              // an error occurred, and we've displayed a message already.
 
 	hg_command = _T("add");
 	hg_arguments = fileName;
@@ -298,11 +304,11 @@ int  DVCS::remove_file (wxString fileName)
     {   wxMessageBox(_T("You can't remove this document from version control just now."));
         return 0;
     }
-    
+
 	hg_command = _T("forget");
 	hg_arguments = fileName;
 	returnCode = call_hg (FALSE);
-    
+
     if (!returnCode)
     {   wxMessageBox(_T("This document is now removed from version control."));
         m_pApp->m_commitCount = -1;			// mark as not under version control
@@ -379,17 +385,14 @@ bool  DVCS::commit_valid()
 */
 
 // (Feb 13) - following what Paratext does, if a file isn't added to version control yet, we just
-//  silently add it.   qwqwqwqw still thinking here - we have to save it with the updated commitCnt!
+//  silently add it.  This is done in the calling code in CAdapt_ItDoc::DoSaveAndCommit(), since
+//  after successful adding we have to save the file with zero commitCount, so we don't try to add it
+//  again.
 
 int  DVCS::commit_file (wxString fileName)
 {
 	wxString		local_owner = m_pApp->m_owner;
 	int				commitCount = m_pApp->m_commitCount;
-
-//	if (!commit_valid()) return -1;
-
-    if (m_pApp->m_commitCount < 0)       // not under version control yet - silently add it
-        add_file(fileName);
 
 #ifndef __WXMSW__
 	local_owner.Replace (_T(" "), _T("\\ "), TRUE);
