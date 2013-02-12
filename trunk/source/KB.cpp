@@ -3285,7 +3285,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		if (m_pApp->m_bIsKBServerProject &&
 			m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+			//KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 
 			// don't send to kbserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
@@ -3326,7 +3326,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pCreateEntryThread->m_pKB = this;
 				//pCreateEntryThread->m_pKbSvr = pKbSvr;
 				pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
-				pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+				//pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
 				pCreateEntryThread->m_source = key;
 				pCreateEntryThread->m_translation = pRefString->m_translation;
 				// now create the runnable thread with explicit stack size of 10KB
@@ -3434,7 +3434,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			if (m_pApp->m_bIsKBServerProject &&
 				m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			{
-				KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+				//KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 
 				// don't send to kbserver if it's a <Not In KB> entry
 				if(!bStoringNotInKB)
@@ -3476,7 +3476,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					pCreateEntryThread->m_pKB = this;
 					//pCreateEntryThread->m_pKbSvr = pKbSvr;
 					pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
-					pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+					//pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
 					pCreateEntryThread->m_source = key;
 					pCreateEntryThread->m_translation = pRefString->m_translation;
 					// now create the runnable thread with explicit stack size of 10KB
@@ -3724,7 +3724,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					if (m_pApp->m_bIsKBServerProject &&
 						m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 					{
-						KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+						//KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 
 						if (!bStoringNotInKB)
 						{
@@ -3765,7 +3765,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							pCreateEntryThread->m_pKB = this;
 							//pCreateEntryThread->m_pKbSvr = pKbSvr;
 							pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
-							pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+							//pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
 							pCreateEntryThread->m_source = key;
 							pCreateEntryThread->m_translation = pRefString->m_translation;
 							// now create the runnable thread with explicit stack size of 10KB
@@ -4230,7 +4230,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		if (m_pApp->m_bIsKBServerProject &&
 			m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+			//KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 
 			// don't send to kbserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
@@ -4272,7 +4272,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pCreateEntryThread->m_pKB = this;
 				//pCreateEntryThread->m_pKbSvr = pKbSvr;
 				pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
-				pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+				//pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
 				pCreateEntryThread->m_source = key;
 				pCreateEntryThread->m_translation = pRefString->m_translation;
 				// now create the runnable thread with explicit stack size of 10KB
@@ -4458,7 +4458,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			if (m_pApp->m_bIsKBServerProject &&
 				m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			{
-				KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+				//KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 
 				// don't send to kbserver if it's a <Not In KB> entry
 				if(!bStoringNotInKB)
@@ -4500,7 +4500,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pCreateEntryThread->m_pKB = this;
 				//pCreateEntryThread->m_pKbSvr = pKbSvr;
 				pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
-				pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+				//pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
 				pCreateEntryThread->m_source = key;
 				pCreateEntryThread->m_translation = pRefString->m_translation;
 				// now create the runnable thread with explicit stack size of 10KB
@@ -4817,7 +4817,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					if (m_pApp->m_bIsKBServerProject &&
 						m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 					{
-						KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+						//KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 
 						// don't send a <Not In KB> entry to kbserver
 						if (!bStoringNotInKB)
@@ -4859,7 +4859,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							pCreateEntryThread->m_pKB = this;
 							//pCreateEntryThread->m_pKbSvr = pKbSvr;
 							pCreateEntryThread->m_kbServerType = m_pApp->GetKBTypeForServer();
-							pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
+							//pCreateEntryThread->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
 							pCreateEntryThread->m_source = key;
 							pCreateEntryThread->m_translation = pRefString->m_translation;
 							// now create the runnable thread with explicit stack size of 10KB

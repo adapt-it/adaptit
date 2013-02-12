@@ -67,7 +67,6 @@ public:
 	CKB*				m_pKB; // to access HandleNewPairCreated()
 	//KbServer*			m_pKbSvr; // not sure yet if I need it or not
 	int					m_kbServerType;
-	bool				m_bUseCache; // our testing will have this as FALSE
 	wxString			m_source;
 	wxString			m_translation;
 

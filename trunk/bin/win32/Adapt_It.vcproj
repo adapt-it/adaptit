@@ -885,6 +885,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_ChangedSince.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Thread_CreateEntry.cpp"
 				>
 			</File>
@@ -1415,6 +1419,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_ChangedSince.h"
 				>
 			</File>
 			<File
