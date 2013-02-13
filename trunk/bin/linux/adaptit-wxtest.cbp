@@ -16,6 +16,7 @@
 					<Add option="-g" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
+					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
@@ -244,6 +245,8 @@
 		<Unit filename="../../source/Adapt_ItCanvas.h" />
 		<Unit filename="../../source/Adapt_ItDoc.cpp" />
 		<Unit filename="../../source/Adapt_ItDoc.h" />
+		<Unit filename="../../source/Adapt_ItKBServer.cpp" />
+		<Unit filename="../../source/Adapt_ItKBServer.h" />
 		<Unit filename="../../source/Adapt_ItView.cpp" />
 		<Unit filename="../../source/Adapt_ItView.h" />
 		<Unit filename="../../source/Adapt_It_Resources.h" />
@@ -351,6 +354,10 @@
 		<Unit filename="../../source/KBExportImportOptionsDlg.h" />
 		<Unit filename="../../source/KBPage.cpp" />
 		<Unit filename="../../source/KBPage.h" />
+		<Unit filename="../../source/KBSharing.cpp" />
+		<Unit filename="../../source/KBSharing.h" />
+		<Unit filename="../../source/KBSharingSetupDlg.cpp" />
+		<Unit filename="../../source/KBSharingSetupDlg.h" />
 		<Unit filename="../../source/KbServer.cpp" />
 		<Unit filename="../../source/KbServer.h" />
 		<Unit filename="../../source/LanguageCodesDlg.cpp" />
@@ -438,6 +445,12 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
+		<Unit filename="../../source/Thread_ChangedSince.cpp" />
+		<Unit filename="../../source/Thread_ChangedSince.h" />
+		<Unit filename="../../source/Thread_CreateEntry.cpp" />
+		<Unit filename="../../source/Thread_CreateEntry.h" />
+		<Unit filename="../../source/Thread_UploadToKBServer.cpp" />
+		<Unit filename="../../source/Thread_UploadToKBServer.h" />
 		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
 		<Unit filename="../../source/TransformToGlossesDlg.h" />
 		<Unit filename="../../source/UnitsDlg.cpp" />
@@ -491,6 +504,7 @@
 		<Unit filename="../../source/scrollingwizard.cpp" />
 		<Unit filename="../../source/scrollingwizard.h" />
 		<Unit filename="../../source/tellenc.cpp" />
+		<Unit filename="../../source/tellenc.h" />
 		<Unit filename="../../source/wxUUID.cpp" />
 		<Unit filename="../../source/wxUUID.h" />
 		<Extensions>
