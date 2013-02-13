@@ -26,6 +26,13 @@
 		27421E9F1655CBC0006729C5 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27421E9E1655CBC0006729C5 /* CoreFoundation.framework */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
+		27CDACA516CC4926004DC3D4 /* Adapt_ItKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CDACA316CC4926004DC3D4 /* Adapt_ItKBServer.cpp */; };
+		27CDACB416CC4954004DC3D4 /* KbServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CDACA616CC4954004DC3D4 /* KbServer.cpp */; };
+		27CDACB516CC4954004DC3D4 /* KBSharing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CDACA716CC4954004DC3D4 /* KBSharing.cpp */; };
+		27CDACB616CC4954004DC3D4 /* KBSharingSetupDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CDACA916CC4954004DC3D4 /* KBSharingSetupDlg.cpp */; };
+		27CDACBA16CC4954004DC3D4 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CDACAE16CC4954004DC3D4 /* Thread_ChangedSince.cpp */; };
+		27CDACBB16CC4954004DC3D4 /* Thread_CreateEntry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CDACB016CC4954004DC3D4 /* Thread_CreateEntry.cpp */; };
+		27CDACBC16CC4954004DC3D4 /* Thread_UploadToKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CDACB216CC4954004DC3D4 /* Thread_UploadToKBServer.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D4E56ED142EDDE0007A4424 /* AIPrintPreviewFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4E56EB142EDDE0007A4424 /* AIPrintPreviewFrame.cpp */; };
 		7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */; };
@@ -191,6 +198,19 @@
 		2791678516195D4D00744DF8 /* KBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBServer.cpp; path = ../../source/KBServer.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
+		27CDACA316CC4926004DC3D4 /* Adapt_ItKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItKBServer.cpp; path = ../../source/Adapt_ItKBServer.cpp; sourceTree = SOURCE_ROOT; };
+		27CDACA416CC4926004DC3D4 /* Adapt_ItKBServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_ItKBServer.h; path = ../../source/Adapt_ItKBServer.h; sourceTree = SOURCE_ROOT; };
+		27CDACA616CC4954004DC3D4 /* KbServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KbServer.cpp; path = ../../source/KbServer.cpp; sourceTree = SOURCE_ROOT; };
+		27CDACA716CC4954004DC3D4 /* KBSharing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharing.cpp; path = ../../source/KBSharing.cpp; sourceTree = SOURCE_ROOT; };
+		27CDACA816CC4954004DC3D4 /* KBSharing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSharing.h; path = ../../source/KBSharing.h; sourceTree = SOURCE_ROOT; };
+		27CDACA916CC4954004DC3D4 /* KBSharingSetupDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharingSetupDlg.cpp; path = ../../source/KBSharingSetupDlg.cpp; sourceTree = SOURCE_ROOT; };
+		27CDACAA16CC4954004DC3D4 /* KBSharingSetupDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSharingSetupDlg.h; path = ../../source/KBSharingSetupDlg.h; sourceTree = SOURCE_ROOT; };
+		27CDACAE16CC4954004DC3D4 /* Thread_ChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ChangedSince.cpp; path = ../../source/Thread_ChangedSince.cpp; sourceTree = SOURCE_ROOT; };
+		27CDACAF16CC4954004DC3D4 /* Thread_ChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ChangedSince.h; path = ../../source/Thread_ChangedSince.h; sourceTree = SOURCE_ROOT; };
+		27CDACB016CC4954004DC3D4 /* Thread_CreateEntry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_CreateEntry.cpp; path = ../../source/Thread_CreateEntry.cpp; sourceTree = SOURCE_ROOT; };
+		27CDACB116CC4954004DC3D4 /* Thread_CreateEntry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_CreateEntry.h; path = ../../source/Thread_CreateEntry.h; sourceTree = SOURCE_ROOT; };
+		27CDACB216CC4954004DC3D4 /* Thread_UploadToKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadToKBServer.cpp; path = ../../source/Thread_UploadToKBServer.cpp; sourceTree = SOURCE_ROOT; };
+		27CDACB316CC4954004DC3D4 /* Thread_UploadToKBServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadToKBServer.h; path = ../../source/Thread_UploadToKBServer.h; sourceTree = SOURCE_ROOT; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UsfmFilterPage.cpp; path = ../../source/UsfmFilterPage.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2E125D7EAA005DF3C6 /* UsfmFilterPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UsfmFilterPage.h; path = ../../source/UsfmFilterPage.h; sourceTree = SOURCE_ROOT; };
@@ -731,6 +751,19 @@
 				03D7A718112A2601004F6D39 /* Notes.cpp */,
 				27AC52F8159802C4009E7C07 /* Xhtml.h */,
 				27AC52F61598029E009E7C07 /* Xhtml.cpp */,
+				27CDACA616CC4954004DC3D4 /* KbServer.cpp */,
+				27CDACA716CC4954004DC3D4 /* KBSharing.cpp */,
+				27CDACA816CC4954004DC3D4 /* KBSharing.h */,
+				27CDACA916CC4954004DC3D4 /* KBSharingSetupDlg.cpp */,
+				27CDACAA16CC4954004DC3D4 /* KBSharingSetupDlg.h */,
+				27CDACAE16CC4954004DC3D4 /* Thread_ChangedSince.cpp */,
+				27CDACAF16CC4954004DC3D4 /* Thread_ChangedSince.h */,
+				27CDACB016CC4954004DC3D4 /* Thread_CreateEntry.cpp */,
+				27CDACB116CC4954004DC3D4 /* Thread_CreateEntry.h */,
+				27CDACB216CC4954004DC3D4 /* Thread_UploadToKBServer.cpp */,
+				27CDACB316CC4954004DC3D4 /* Thread_UploadToKBServer.h */,
+				27CDACA316CC4926004DC3D4 /* Adapt_ItKBServer.cpp */,
+				27CDACA416CC4926004DC3D4 /* Adapt_ItKBServer.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -1033,6 +1066,13 @@
 				03C7004A15D4351800FAB605 /* Pathway.cpp in Sources */,
 				2791678616195D4D00744DF8 /* KBServer.cpp in Sources */,
 				03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */,
+				27CDACA516CC4926004DC3D4 /* Adapt_ItKBServer.cpp in Sources */,
+				27CDACB416CC4954004DC3D4 /* KbServer.cpp in Sources */,
+				27CDACB516CC4954004DC3D4 /* KBSharing.cpp in Sources */,
+				27CDACB616CC4954004DC3D4 /* KBSharingSetupDlg.cpp in Sources */,
+				27CDACBA16CC4954004DC3D4 /* Thread_ChangedSince.cpp in Sources */,
+				27CDACBB16CC4954004DC3D4 /* Thread_CreateEntry.cpp in Sources */,
+				27CDACBC16CC4954004DC3D4 /* Thread_UploadToKBServer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1105,8 +1145,6 @@
 					"-L$(WXWIN)/buildosxud/lib",
 					"-framework",
 					IOKit,
-					"-framework",
-					Carbon,
 					"-framework",
 					Cocoa,
 					"-framework",

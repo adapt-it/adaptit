@@ -407,6 +407,8 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
+		<Unit filename="../../source/Thread_ChangedSince.cpp" />
+		<Unit filename="../../source/Thread_ChangedSince.h" />
 		<Unit filename="../../source/Thread_CreateEntry.cpp" />
 		<Unit filename="../../source/Thread_CreateEntry.h" />
 		<Unit filename="../../source/Thread_UploadToKBServer.cpp" />
@@ -472,9 +474,7 @@
 			</code_completion>
 			<envvars />
 			<debugger>
-				<search_path add="../../../wxGTK-2.8.12" />
-				<search_path add="../../../wxGTK-2.8.12/buildgtkud" />
-				<search_path add="../../../wxGTK-2.8.12/src" />
+				<search_path add="~/packages/wxwidgets2.8/src" />
 			</debugger>
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
