@@ -191,6 +191,8 @@ public:
 	// either of the whole KB, or of those entries newly added subsequent to a stored
 	// timestamp value
 	void		StoreEntriesFromKbServer(KbServer* pKbServer);
+	void		StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase, 
+									wxString& username, bool bDeletedFlag);
 	// App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is
 	// associated with m_pGlossingKB. Each CKB has a m_bGlossingKB member, FALSE for an
 	// adapting CKB, TRUE for a glossing CKB. The latter is used for returning whichever

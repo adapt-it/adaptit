@@ -106,6 +106,12 @@ std::string str_CURLbuffer;
 const size_t npos = (size_t)-1; // largest possible value, for use with std:find()
 std::string str_CURLheaders;
 
+// some custom error codes to make life simpler for ourselves when we have a non-CURL
+// error happen and we want to return it as if it was a CURL error (rather than returning
+// CURLE_OK) They will have ascending values, starting from 900
+const int customError_No_Matching_Entry_Found = 900; // see wxString m_noEntryMessage
+const int customError_Existing_Matching_Entry_Found = 901; // see wxString m_existingEntryMessage
+
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
@@ -128,10 +134,12 @@ KbServer::KbServer()
 	{
 		m_pKB = GetKB(1);
 	}
-	this->EnableCaching(FALSE); // change, when testing, to turn on or off new entry caching
-	// The following English message is hard-coded at the server end, so don't localize it
-	m_noEntryMessage = _T("No matching entry found");
 	m_queue.clear();
+	// The following English messages are hard-coded at the server end, so don't localize
+	// them, they are returned for certain error conditions and we'll want to know when
+	// one has been returned
+	m_noEntryMessage = _T("No matching entry found");
+	m_existingEntryMessage = _T("Existing matching entry found");
 }
 
 KbServer::KbServer(int whichType)
@@ -141,27 +149,13 @@ KbServer::KbServer(int whichType)
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = GetKB(FALSE);
-	this->EnableCaching(FALSE); // change, when testing, to turn on or off new entry caching
-	// The following English message is hard-coded at the server end, so don't localize it
-	// (actually, the server's string is 24 char, but the English is just 23, so don't
-	// test for equality, use Find() instead searching with this shorter 23 char one)
-	m_noEntryMessage = _T("No matching entry found");
 	m_queue.clear();
+	// The following English messages are hard-coded at the server end, so don't localize
+	// them, they are returned for certain error conditions and we'll want to know when
+	// one has been returned
+	m_noEntryMessage = _T("No matching entry found");
+	m_existingEntryMessage = _T("Existing matching entry found");
 }
-
-bool KbServer::IsCachingON()
-{
-	return m_bUseNewEntryCaching;
-}
-
-void KbServer::EnableCaching(bool bEnable)
-{
-	if (bEnable)
-		m_bUseNewEntryCaching = TRUE;
-	else
-		m_bUseNewEntryCaching = FALSE;
-}
-
 
 
 KbServer::~KbServer()
@@ -398,13 +392,59 @@ void KbServer::UpdateLastSyncTimestamp()
 	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
 }
 
+wxString KbServer::ExtractHumanReadableErrorMsg(std::string s)
+{
+	// make the standard string into a wxString
+	wxString errorMsg;
+	errorMsg.Empty(); // initialize
+	CBString cbstr(s.c_str());
+	wxString buffer(ToUtf16(cbstr));
+
+    // There are two "Content-Type lines, we want the second one which should be the last
+    // line with text before the one with the error we are intested in grabbing
+    wxString srchStr2 = _T("Content-Type");
+	int length2 = srchStr2.Len();
+	int offset2 = buffer.Find(srchStr2);
+	wxASSERT(offset2 != wxNOT_FOUND);
+	buffer = buffer.Mid(offset2 + length2); // bleed it off & the earlier stuff
+	// find the second one
+	offset2 = buffer.Find(srchStr2);
+	buffer = buffer.Mid(offset2 + length2); // bleed it off & the earlier stuff
+
+    // now search for the line we want -- assume it starts with "https:"
+	wxString srchStr = _T("https:");
+	int length = srchStr.Len();
+	int offset = buffer.Find(srchStr);
+	if (offset == wxNOT_FOUND)
+	{
+        // if we couldn't find it, return an empty string
+        return errorMsg;
+	}
+	else
+	{
+		// throw away everything preceding the matched string
+		buffer = buffer.Mid(offset + length); // typically what's left is "//"
+			// and the svr URL , "/entry/" followed by the entry ID, a space, then the
+			// error message we want - last in the buffer; so search for next space
+
+		int offset_to_space = buffer.Find(_T(' '));
+		wxASSERT(offset_to_space != wxNOT_FOUND);
+        buffer = buffer.Mid(offset_to_space + 1); // buffer now contains the error msg
+
+		// there may be CR+LF following, so we will Trim() the string
+		errorMsg = buffer;
+		errorMsg.Trim(); // remove following whitespace
+	}
+	return errorMsg;
+}
+
 void KbServer::ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode,
                                     wxString& httpstatustext, wxString& contentLengthStr)
 {
 	// make the standard string into a wxString
 	httpstatuscode.Empty(); // initialize
 	httpstatustext.Empty(); // initialize
-	CBString cbstr(str_CURLheaders.c_str());
+	CBString cbstr(s.c_str());
 	wxString buffer(ToUtf16(cbstr));
 
 	//there are two HTTP lines, the first has to do with authentication, we
@@ -472,7 +512,7 @@ void KbServer::ExtractTimestamp(std::string s, wxString& timestamp)
 {
 	// make the standard string into a wxString
 	timestamp.Empty(); // initialize
-	CBString cbstr(str_CURLheaders.c_str());
+	CBString cbstr(s.c_str());
 	wxString buffer(ToUtf16(cbstr));
 #if defined (_DEBUG)
     wxLogDebug(_T("buffer:\n%s"), buffer.c_str());
@@ -946,6 +986,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
+	EmptyErrorString();
 
 	pStatusBar->UpdateProgress(_("Receiving..."), 1);
 
@@ -981,8 +1022,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 
 		// We want the download's timestamp, so we must ask for the headers to be added
-		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // BEW commented out 9Feb13
-		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback); // BEW added 9Feb13, works!!
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback); // BEW added 9Feb13
 
 		pStatusBar->UpdateProgress(_("Receiving..."), 2);
 		result = curl_easy_perform(curl);
@@ -1106,9 +1146,14 @@ int KbServer::ChangedSince(wxString timeStamp)
 		}
 		else
 		{
-		    // the buffer contains an error message
+            // The buffer contains an error message -- note, the "error" of nothing being
+            // returned (typically because there was no new data to download) is an error
+            // as far as HTTP is concerned (404), but we don't treat it as such, and
+            // override it to be a "no error" situation - returning 0 (CURLE_OK); other
+            // errors we will save in m_error, and they can be accessed with a
+            // KbServer::GetLastError() call, returning wxString
 		    buffer.Trim();// remove the final \n
-            m_errorStr = buffer;
+            SetErrorString(buffer);
 
             // Can't use an equality test here, there is a \n character after the word
             // "found" in "No matching entry found" that makes an equality test fail.
@@ -1124,10 +1169,12 @@ int KbServer::ChangedSince(wxString timeStamp)
             {
                 // some other non-CURL error presumably, report it in debug mode, and exit;
                 // caller continues
-                wxString msg;
+#if defined (_DEBUG)
+				wxString msg;
                 msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %s  Means: %s"),
                                   m_errorStr.c_str(), m_httpStatusCode.c_str(), m_httpStatusText.c_str());
                 wxLogDebug(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+#endif
             }
             str_CURLbuffer.clear(); // always clear it before returning
             str_CURLheaders.clear(); // BEW added 9Feb13
@@ -1367,7 +1414,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	return 0;
 }
 
-int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag) // was SendEntry()
+int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag)
 {
 	CURL *curl;
 	CURLcode result; // result code
@@ -1380,6 +1427,8 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 	CBString strVal; // to store wxString form of the jsonval object, for curl
 	wxString container = _T("entry");
 	wxString aUrl, aPwd;
+	EmptyErrorString();
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
@@ -1422,12 +1471,34 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
-		// ask for the headers to be prepended to the body
-    curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// ask for the headers to be prepended to the body - this is a good choice here
+		// because no json data is to be returned
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// it works to get the headers & error stuff written to str_CURLbuffer
+		// (but not to str_CURLheaders using CURLOPT_WRITEHEADER)
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		// next one kept causing a lock file error, with a null ptr being accessed
+		//curl_easy_setopt(curl, CURLOPT_WRITEHEADER, &curl_headers_callback);
 
 		result = curl_easy_perform(curl);
 
+#if defined (_DEBUG) // && defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("CreateEntry() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText, m_contentLenStr);
+		// The kind of error we are looking for isn't a CURLcode one, but HTTP one (400 or higher)
+		if (m_httpStatusCode[0] == _T('4'))
+		{
+			// we've an error to deal with, so get the human readable one that was returned
+			m_errorStr = ExtractHumanReadableErrorMsg(str_CURLbuffer);
+		}
+
+		// Typically, result will contain CURLE_OK when the error was not in the protocol
+		// stack, and so the next block won't then be entered
 		curl_slist_free_all(headers);
+		str_CURLbuffer.clear();
 		if (result) {
 			printf("CreateEntry() result code: %d Error: %s\n",
 				result, curl_easy_strerror(result));
@@ -1437,6 +1508,27 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 	}
 	curl_easy_cleanup(curl);
 
+    // Work out what to return, depending on whether or not a non-curl error happened, and
+    // which one it was (only the "Existing matching entry found" one should cause us to
+    // return of a code other than CURLE_OK (ie. zero))
+	if (!m_errorStr.IsEmpty())
+	{
+		int offset = wxNOT_FOUND;
+		offset = m_errorStr.Find(m_existingEntryMessage);
+		if (offset >= 0)
+		{
+			// we found an existing entry, it could be a normal one, or a pseudo-deleted
+			// one, so we'll return a custom error code; this allows us to do further
+			// calls in the thread before it destructs; we would need a LookupFields() to
+			// determine what the deleted flag value is, and if it's a pseudo deleted
+			// entry, then we can call the function for restoring it to be a normal entry
+			// - 3 calls, and heaps of latency delay, but it would be a rare scenario
+			return customError_Existing_Matching_Entry_Found; // has value 901
+		}
+		// if it could possibly be that there was some other error, we don't care to do
+		// anything with it - so just return 0 which would mean that nothing is done to
+		// the remote database and the thread can just destruct immediately
+	}
 	return 0;
 }
 
@@ -1607,6 +1699,11 @@ void KbServer::UploadToKbServerThreaded()
 
 void KbServer::UploadToKbServer()
 {
+	wxString srcPhrase = _T("graun");
+	wxString tgtPhrase = _T("earth");
+	bool bDeletedFlag = FALSE;
+	int rv = CreateEntry(srcPhrase,tgtPhrase,bDeletedFlag);
+
 /*
 	// test queue
 	KbServerEntry* pEntry = new KbServerEntry;
@@ -1740,6 +1837,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 {
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
+	EmptyErrorString();
 
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize to a harmless value
@@ -1899,9 +1997,14 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 		}
 		else
 		{
-		    // the buffer contains an error message
+			// the buffer contains an error message -- note, the "error" of nothing being
+			// returned (typically because there was no new data to download) is an error
+			// as far as curl is concerned, but we don't treat it as such, and override it
+			// to be a "no error" situation - returning 0 (CURLE_OK); other errors we will
+			// save in m_error, and they can be accessed with a KbServer::GetLastError()
+			// call, returning wxString
 		    buffer.Trim();// remove the final \n
-            m_errorStr = buffer;
+            SetErrorString(buffer);
 
             // Can't use an equality test here, there is a \n character after the word
             // "found" in "No matching entry found" that makes an equality test fail.
@@ -1917,10 +2020,12 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
             {
                 // some other non-CURL error presumably, report it in debug mode, and exit;
                 // caller continues
-                wxString msg;
+#if defined (_DEBUG)
+				wxString msg;
                 msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %s  Means: %s"),
                                   m_errorStr.c_str(), m_httpStatusCode.c_str(), m_httpStatusText.c_str());
                 wxLogDebug(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+#endif
             }
             str_CURLbuffer.clear(); // always clear it before returning
             str_CURLheaders.clear(); // BEW added 9Feb13
@@ -1931,6 +2036,20 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 	return 0;
 }
 
+wxString KbServer::GetLastError()
+{
+	return m_errorStr;
+}
+
+void KbServer::EmptyErrorString()
+{
+	m_errorStr.Empty();
+}
+
+void KbServer::SetErrorString(wxString errorStr)
+{
+	m_errorStr = errorStr;
+}
 
 //=============================== end of KbServer class ============================
 

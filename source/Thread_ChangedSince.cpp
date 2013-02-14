@@ -76,11 +76,12 @@ void* Thread_ChangedSince::Entry()
 	if (rv != 0)
 	{
 		wxString msg;
-		msg = msg.Format(_("Periodic download of new entries failed. Error code: %d \nProbably nothing was downloaded to the local knowledge base. \n You can ignore this, but if it happens often, seek help to find out why it is happening."),
-			rv);
+		msg = msg.Format(_("A periodic download of new entries failed. Error code: %d  Error message: %s\nProbably nothing was downloaded to the local knowledge base. \n You can ignore this (the missed entries will be downloaded again next time), but if it happens often, seek help to fix the problem."),
+			rv, (m_pKbSvr->GetLastError()).c_str());
 		wxString title = _("Automatic download failure");
 		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-		m_pApp->LogUserAction(msg);
+		//m_pApp->LogUserAction(msg); // don't risk filling the log with lots of such
+									  // error messages
 	}
 	return (void*)NULL;
 }
