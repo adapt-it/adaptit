@@ -976,6 +976,188 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 //*
 #if defined (_KBSERVER)
 
+/// \return                 nothing
+/// \param key          ->  source text word or phrase
+/// \param tgtPhrase    ->  translation, or gloss, depending on the mode
+/// \param username     ->  typically the user's email, or some other personal unique string
+/// \param bDeletedFlag ->  TRUE if pseudo-deleted, FALSE if a normal entry
+/// \remarks
+/// This is a handler for storing into the local KB a single downloaded entry from 
+/// the remote server. It is similar to StoreEntriesFromKbServer(), differing in respect
+/// to the following: the latter loops over potentially many entries in the JSON
+/// downloaded string; the latter has progress bar support; and the latter uses a set
+/// of arrays for accessing entries data whereas StoreOneENtryFromKbServer() gets, in the
+/// caller, the information from a struct on a queue. The mechanics of storing to the KB
+/// instance in both functions are identical.
+void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase, 
+									wxString& username, bool bDeletedFlag)
+{
+	// local variables needed for storing to the CKB instance
+	CKB* pKB = this;
+	CTargetUnit* pTU = NULL;
+	CRefString* pRefString = NULL;
+	int nMapIndex = 0;
+	int nWordCount = 0;
+	MapKeyStringToTgtUnit* pMap = NULL; // set which map we lookup using nWordCount
+	MapKeyStringToTgtUnit::iterator iter;
+
+	// count how many words there are in key (uses a utility function from helpers.cpp)
+	nWordCount = CountSpaceDelimitedWords(key);
+	if (nWordCount > 0)
+	{
+        // NOTE: we do NOT support auto-capitalization in this function by design.
+        // Instead, we just look up the key string "as is" to see if a paired
+        // CTargetUnit instance is in the map, whether or not autocapitalization is on.
+        // So it's possible for one user sharing the KB to have auto caps on, and
+        // another have it off, nevertheless we just lookup without checking for case
+        // and then doing any needed case conversions. This may result in one user not
+        // receiving entries for upper case keys that he'd like to receive but which
+        // aren't in the kbserver and so can't be sent, or alternatively, receiving
+        // entries for upper case keys which are in kbserver but which he'll never use
+        // while he has autocaptalization turned on. So be it. But no damage is done
+        // either way.
+        nMapIndex = nWordCount - 1;
+		pMap = pKB->m_pMap[nMapIndex]; // get the map
+		if (pMap != NULL)
+		{
+			// lookup for a paired pTU, using the string in key...
+			pTU = NULL; // default to a failure to find a matching entry
+			iter = pMap->find(key); // failure returns pMap->end()
+			if (iter != pMap->end())
+			{
+				pTU = iter->second; // pTU points at a matched CTargetUnit instance
+			}
+
+			if (pTU == NULL)
+			{
+				// The local KB does not yet have an entry for this key; so create it
+				pTU = new CTargetUnit;
+				MakeAndStoreNewRefString(pTU, tgtPhrase, username, bDeletedFlag);
+				// Add the new pTU to the appropriate map
+				(*pMap)[key] = pTU;
+                // This new CRefString may have more source text words in it than
+                // any other entry in the local CKB instance; test for this, and if
+                // so, update pKB->m_nMaxWords so that the newly added entry is
+                // lookup-able from now on
+				if (pKB->m_nMaxWords < nWordCount)
+				{
+					pKB->m_nMaxWords = nWordCount;
+				}
+
+			} // end of TRUE block for test: if (pTU == NULL)
+			else
+			{
+				// The local KB has this CTargetUnit - so we need to find out if the
+				// key is matched by the m_translation member of one of it's
+				// CRefString instances. An empty list of CRefString instances in pTU
+				// is normally an error, but we'll just add the new entry and that
+				// will 'fix' it
+				if (pTU->m_pTranslations->IsEmpty())
+				{
+                    // See the block above's comments for what we are doing here...
+                    // the only difference from what's above is that we don't need to
+                    // first create a CTargetUnit instance in this current block
+					MakeAndStoreNewRefString(pTU, tgtPhrase, username, bDeletedFlag);
+					(*pMap)[key] = pTU;
+					if (pKB->m_nMaxWords < nWordCount)
+					{
+						pKB->m_nMaxWords = nWordCount;
+					}
+				}
+				else
+				{
+					// We must take <Not In KB> entries into account. These
+					// can occur in the local KB, but we never propagate them to a
+					// kbserver, and so the latter's downloaded entries will never
+					// contain them. However, the entry we are about to deal with
+					// may be, in this particular local KB, a <Not In KB> entry.
+					// In which case, the <Not In KB> status must win, until such
+					// time as the user of the local KB removes that status on
+					// that entry. So we much check for <Not In KB> and if the pTU
+					// current stores such an entry, then we abandon the non-<Not
+					// In KB> entry coming from the kbserver
+					wxString strNotInKB = _T("<Not In KB>");
+					if (pTU->IsItNotInKB())
+					{
+						// we should not override the user's choice, so we must
+						// abandon this entry received from the kbserver
+						return;
+					}
+					// The m_pTranslations list is not empty, so check if the
+					// kbserver entry is already present with the same value of
+					// the deleted flag - if so, we abandon this entry as it's
+					// already in the local KB; but if absent, or the deleted flag
+					// value is different, then we have to update the local KB
+					// accordingly.
+					bool bIsDeleted = FALSE; // default, actual value returned in next call
+					pRefString = GetMatchingRefString(pTU, tgtPhrase, bIsDeleted);
+
+                    // If no match was made, then pRefString will be returned as
+					// NULL and bIsDeleted will be FALSE - and so we need to add
+					// the new entry to the local KB
+					if (pRefString == NULL)
+					{
+						// No match. So we can add the new entry, and give it's
+						// m_bDeleted flag whatever value is in the bDeletedFlag
+						// as passed from the kbserver entry's download
+						MakeAndStoreNewRefString(pTU, tgtPhrase, username, bDeletedFlag);
+						// pTU is already in pMap, and the value of m_nMaxWords is
+						// already set correctly, so we've no more to do here
+						return;
+					}
+                    // On the other hand, if a match of the adaptation or gloss was
+                    // made, then pRefString is the matched CRefString instance
+                    // which stores it in the local KB, and bIsDeleted will hold
+                    // the value of it's m_bDeleted flag which tells us whether or
+                    // not this is a normal or a deleted entry in the local KB.
+                    // So if we got a match, and the two flags are equal, then the
+                    // local KB has this entry from the kbserver, and we can throw
+                    // it away and iterate the loop; but if the flags differ, then
+                    // we either have to pseudo-delete this local KB entry, or
+                    // undelete this local KB entry.
+					if (pRefString->m_bDeleted == bDeletedFlag)
+					{
+						// the local KB has this entry, therefore exit
+						return;
+					}
+					else
+					{
+						// the flags differ in value, so make the required update
+						// to the local KB
+						if (pRefString->m_bDeleted)
+						{
+							// the local KB has this entry currently
+							// pseudo-deleted, so here we need to undelete it
+							pRefString->m_bDeleted = FALSE;
+							pRefString->m_refCount = 1;
+							pRefString->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+							pRefString->m_pRefStringMetadata->m_deletedDateTime.Empty();
+							pRefString->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+							pRefString->m_pRefStringMetadata->m_whoCreated = username;
+						}
+						else
+						{
+							// the local KB has this entry currently undeleted, so
+							// here we need to make it a deleted entry (I'm
+							// uncertain which values to retain and which to
+							// clear; I think I'll just clear creation and
+							// modification times, and whoever caused the deletion
+							// should be blameable presumably)
+							pRefString->m_bDeleted = TRUE;
+							//pRefString->m_refCount = 1; <- leave the old count intact
+							pRefString->m_pRefStringMetadata->m_creationDateTime.Empty();
+							pRefString->m_pRefStringMetadata->m_deletedDateTime = GetDateTimeNow();
+							pRefString->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+							pRefString->m_pRefStringMetadata->m_whoCreated = username; // make her blameable
+						} // end of else block for test: if (pRefString->m_bDeleted)
+					} // end of else block for test: if (pRefString->m_bDeleted == bDeletedFlag)
+				} // end of else block for test: if (pTU->m_pTranslations->IsEmpty())
+			} // end of else block for test: if (pTU == NULL)
+		} // end of TRUE block for test: if (pMap != NULL)
+	} // end of TRUE block for test: if (nWordCount > 0)
+}
+
+
 /// \return             nothing
 /// \param pKbServer    ->  pointer to the particular KbServer instance which received
 ///                         the entry or entries from the server
@@ -1043,7 +1225,6 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 	CKB* pKB = bGlossingKB ? m_pApp->m_pGlossingKB : m_pApp->m_pKB;
 	*/
 	CKB* pKB = this;
-
 	// local variables needed for storing to the CKB instance
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefString = NULL;
@@ -1080,6 +1261,7 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 		tgtPhrase = pTgtArray->Item(index);
 		username = pUsernameArray->Item(index);
 		bDeletedFlag = pDeletedFlagArray->Item(index) == 1 ? TRUE : FALSE;
+
 		// count how many words there are in key (uses a utility function from helpers.cpp)
 		nWordCount = CountSpaceDelimitedWords(key);
 		if (nWordCount > 0)
@@ -1176,7 +1358,7 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 						// the new entry to the local KB
 						if (pRefString == NULL)
 						{
-							// No match. So we can added the new entry, and give it's
+							// No match. So we can add the new entry, and give it's
 							// m_bDeleted flag whatever value is in the bDeletedFlag
 							// as passed from the kbserver entry's download
 							MakeAndStoreNewRefString(pTU, tgtPhrase, username, bDeletedFlag);
@@ -1242,7 +1424,6 @@ void CKB::StoreEntriesFromKbServer(KbServer* pKbServer)
 	{
 		pStatusBar->FinishProgress(progressItem);
 	}
-
 }
 
 // App's m_pKbServer[0] is associated with app's m_pKB; and m_pKbServer[1] is

@@ -176,6 +176,12 @@ protected:
 	void ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode, wxString& httpstatustext,
                             wxString& contentLengthStr);
 
+	// a utility for getting the English error message returned to str_CURLbuffer, after a
+	// failure such as no matching entry found, or, existing matching entry found, etc.
+	// Call this function only after determining that a HTTP error beginning with digit
+	// "4" has been received (find that out from the results of calling
+	// ExtractHttpStatusEtc() beforehand)
+	wxString ExtractHumanReadableErrorMsg(std::string s);
 
 private:
 	// class variables
@@ -208,6 +214,7 @@ private:
 	wxString	m_credentialsFilename;
 	wxString	m_lastSyncFilename;
 	wxString	m_noEntryMessage; // BEW added 29Jan13
+	wxString	m_existingEntryMessage; // BEW added 13Feb13
 
 	// private member functions
 	void ErasePassword(); // don't keep it around longer than necessary, when no longer needed, call this
@@ -230,9 +237,11 @@ public:
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
-	bool		IsCachingON();
-	void		EnableCaching(bool bEnable);
 	void		UploadToKbServer();
+	// these three for storing human readable error messages from the php
+	wxString	GetLastError();
+	void		EmptyErrorString();
+	void		SetErrorString(wxString errorStr);
 
 	// rewrite later, using wxThreadHelper   void		  UploadToKbServerThreaded();
 

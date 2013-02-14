@@ -83,10 +83,12 @@
 #include "XML.h"
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 #include "FreeTrans.h"
+#include "KB.h"
 #include "StatusBar.h" // EDB added 2Oct12
 #include "KBSharing.h" // BEW added 14Jan13
 #include "KBSharingSetupDlg.h" // BEW added 15Jan13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
+#include "Thread_ChangedSince.h" // BEW added 13Feb13
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -4124,15 +4126,18 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 #if defined(_KBSERVER)
 // TODO -- code for cached new kbserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
+	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject)
 	{
 		if (gbIsGlossing)
 		{
 			pKbSvr = gpApp->GetKbServer(2); // glossing
+			pKB = gpApp->m_pGlossingKB;
 		}
 		else
 		{
 			pKbSvr = gpApp->GetKbServer(1); // adapting
+			pKB = gpApp->m_pKB;
 		}
 		// at launch time, pKbSvr will still be NULL, so test for this
 		if (pKbSvr != NULL)
@@ -4172,26 +4177,57 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				wxBell();
 				wxBell();
 #endif
-				pKbSvr->DoChangedSince();
-
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
-				pKbSvr->ClearAllPrivateStorageArrays();
+				Thread_ChangedSince* pThread = new Thread_ChangedSince;
+				wxThreadError error =  pThread->Create(10240); // set stacksize of 10kb
+				// we don't expect Create() will fail, so just check with an assert
+				if(error != wxTHREAD_NO_ERROR)
+				{
+					delete pThread;
+					wxString msg = _T("Thread_ChangedSince::Create() failed, so thread was not Run()");
+					wxString title = _T("Unexpected thread creation error");
+					wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+					return;
+				}
+				else
+				{
+					// run the thread, and we can then forget it if there was no error
+					wxThreadError mythreaderror = pThread->Run();
+					if(mythreaderror != wxTHREAD_NO_ERROR)
+					{
+						delete pThread;
+						wxString msg;
+						msg = msg.Format( _T("Thread_ChangedSince::Run() failed, error: %d  So thread was deleted."), 
+										(int)mythreaderror);
+						wxString title = _T("Unexpected thread run error");
+						wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+						return;
+					}
+				}
+				return; // only do this thread on one OnIdle() call, subsequent OnIdle() calls
+						// can attempt the additional kbserver actions in the code below
 			}
+			
+			// Do the removing from queue of the first KbServerEntry struct pointer, and
+			// merge it's contents into the local KB storage, here in main thread. (The
+			// access to the queue is mutex protected, with s_QueueMutex.)  We remove and
+			// merge just one struct per idle event.
+			if (pKbSvr->IsKBSharingEnabled() && !pKbSvr->IsQueueEmpty())
+			{
+				// the next line is protected internally by the s_QueueMutex
+				KbServerEntry* pEntryStruct = pKbSvr->PopFromQueueFront();
 
-			// BEW deprecated 11Feb13, because auto uploads will not be bulk ones - to
-			// keep the design as RESTful as possible
-			// Try an incremental upload; if the m_KbServerUploadTimer has fired, the
-			// 'pending' flag will have been made TRUE so the next block can be entered
-			//if (pKbSvr->IsKBSharingEnabled() && gpApp->m_bKbServerIncrementalUploadPending)
-			//{
-				// put code here...
-
-			//	gpApp->m_bKbServerIncrementalUploadPending = FALSE; // disable tries until next timer shot
-			//	pKbSvr->ClearAllPrivateCacheArrays();
-			//}
+				// the mutex is now released, so merge the data into the local KB
+				bool bDeletedFlag = pEntryStruct->deleted == 1 ? TRUE: FALSE;
+				pKB->StoreOneEntryFromKbServer(pEntryStruct->source, pEntryStruct->translation,
+												pEntryStruct->username, bDeletedFlag);
+				delete pEntryStruct; // don't leak memory
+				return; // if there are any more available, do them on subsequent idle events
+			}
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
+
 #endif
 }
 
