@@ -43,12 +43,13 @@
 // other includes
 #include "Adapt_It.h"
 #include "KB.h"
-//#include "KbServer.h"
+#include "KbServer.h"
 #include "Thread_CreateEntry.h"
 
 Thread_CreateEntry::Thread_CreateEntry():wxThread()
 {
-	m_pApp = &wxGetApp();
+	//m_pApp = &wxGetApp();
+	m_translation.Empty(); // default, caller should set it after creation
 }
 
 Thread_CreateEntry::~Thread_CreateEntry()
@@ -63,8 +64,15 @@ void Thread_CreateEntry::OnExit()
 
 void* Thread_CreateEntry::Entry()
 {
-	bool bHandledOK = m_pKB->HandleNewPairCreated(m_kbServerType, m_source, m_translation);
-	bHandledOK = bHandledOK; // avoid compiler warning
+	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
+	int rv;
+	rv = m_pKbSvr->CreateEntry(m_source, m_translation); // kbType is supplied internally from m_pKbSvr
+	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	{
+		// we've more work to do - may need to un-pseudodelete a pseudodeleted entry
+
+
+	}
 	return (void*)NULL;
 }
 

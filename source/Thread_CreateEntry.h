@@ -63,12 +63,13 @@ public:
 	virtual ~Thread_CreateEntry(void); // destructor
 
 	// keep it simple, forget accessors, just make variables public
-	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
-	CKB*				m_pKB; // to access HandleNewPairCreated()
-	//KbServer*			m_pKbSvr; // not sure yet if I need it or not
-	int					m_kbServerType;
+	KbServer*			m_pKbSvr; // it knows which type it is
 	wxString			m_source;
 	wxString			m_translation;
+
+	//CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
+	//CKB*				m_pKB; // to access HandleNewPairCreated()
+	//int				m_kbServerType;
 
 	// other methods...
 

@@ -122,7 +122,7 @@ public:
 	// just a single word
 	int		 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry );
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
-	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag);  // was SendEntry()
+	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp);
@@ -181,7 +181,7 @@ protected:
 	// Call this function only after determining that a HTTP error beginning with digit
 	// "4" has been received (find that out from the results of calling
 	// ExtractHttpStatusEtc() beforehand)
-	wxString ExtractHumanReadableErrorMsg(std::string s);
+	//wxString ExtractHumanReadableErrorMsg(std::string s);
 
 private:
 	// class variables
@@ -191,8 +191,6 @@ private:
 	int			m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
 	wxString    m_httpStatusText; 
 	int			m_contentLen; // in case we want to display it, or wxLogDebug it
-	wxString    m_errorStr; // the message in curl's returned result, or in a callback
-							// buffer, if what's there isn't json data
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)
@@ -240,9 +238,9 @@ public:
 	wxString	GetLastSyncFilename();
 	void		UploadToKbServer();
 	// these three for storing human readable error messages from the php
-	wxString	GetLastError();
-	void		EmptyErrorString();
-	void		SetErrorString(wxString errorStr);
+	//wxString	GetLastError();
+	//void		EmptyErrorString();
+	//void		SetErrorString(wxString errorStr);
 
 	// rewrite later, using wxThreadHelper   void		  UploadToKbServerThreaded();
 
@@ -271,6 +269,10 @@ private:
 	// the incremental downloads queue
 	DownloadsQueue m_queue;
 
+	// a KbServerEntry struct, for use in downloading or uploading (via json) a
+	// single entry
+	KbServerEntry	m_entryStruct;
+
 public:
 
 	// public accessors for the private arrays (these are for general uploading and/downloading)
@@ -287,6 +289,9 @@ public:
 	void			PushToQueueEnd(KbServerEntry* pEntryStruct); // protect with a mutex
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();
+	void			SetEntryStruct(KbServerEntry entryStruct);
+	KbServerEntry	GetEntryStruct();
+	void			ClearEntryStruct();
 
 protected:
 
