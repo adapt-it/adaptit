@@ -385,7 +385,7 @@ void KbServer::UpdateLastSyncTimestamp()
 	m_kbServerLastTimestampReceived.Empty();
 	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
 }
-
+/* deprecated
 wxString KbServer::ExtractHumanReadableErrorMsg(std::string s)
 {
 	// make the standard string into a wxString
@@ -431,7 +431,7 @@ wxString KbServer::ExtractHumanReadableErrorMsg(std::string s)
 	}
 	return errorMsg;
 }
-
+*/
 void KbServer::ExtractHttpStatusEtc(std::string s, int& httpstatuscode,
                                     wxString& httpstatustext, int& contentLength)
 {
@@ -983,7 +983,6 @@ int KbServer::ChangedSince(wxString timeStamp)
 
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
-	EmptyErrorString();
 
 	pStatusBar->UpdateProgress(_("Receiving..."), 1);
 
@@ -1147,14 +1146,8 @@ int KbServer::ChangedSince(wxString timeStamp)
 		}
 		else
 		{
-			// The buffer contains an error message -- note, the "error" of nothing being
-			// returned (typically because there was no new data to download) is an error
-			// as far as HTTP is concerned, but we don't treat it as such, and override it
-			// to be a "no error" situation - returning 0 (CURLE_OK); other errors we
-			// handle as real ones
-		    buffer.Trim();// remove the final \n
-            SetErrorString(buffer); // don't really need this 
-
+			// buffer contains an error message, such as "No matching entry found",
+			// but we will ignore it - the HTTP error reporting will suffice. 
 			if (m_httpStatusCode == 404)
             {
                 // A "Not Found" error. No new entries were sent, because there were none
@@ -1169,9 +1162,9 @@ int KbServer::ChangedSince(wxString timeStamp)
 				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
 #if defined (_DEBUG)
 				wxString msg;
-                msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %d  Means: %s"),
-                                  m_errorStr.c_str(), m_httpStatusCode, m_httpStatusText.c_str());
-                wxLogDebug(msg, _T("Unexpected HTTP error"), wxICON_EXCLAMATION | wxOK);
+				msg  = msg.Format(_T("ChangedSince()error: HTTP status: %d  Means: %s"),
+                                  m_httpStatusCode, m_httpStatusText.c_str());
+                wxLogDebug(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
  				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
@@ -1305,21 +1298,20 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 }
 
 // Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
-// also the storage arrays should be cleared with a call of ClearAllPrivateStorageArrays()
 // and always remember to clear str_CURLbuffer before returning.
 // Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
-// be returned even when there is no entry in the database. It's the returned ascii
-// string, "No matching entry found" put into str_CURLbuffer which tells us that the entry
-// is not in the kbserver database, so use that fact
+// be returned even when there is no entry in the database. It's the HTTP status codes we
+// need to get.
+// Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
+// HTTP error - such as no matching entry, or a badly formed request
 int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 {
-
 	CURL *curl;
 	CURLcode result;
 	wxString aUrl; // convert to utf8 when constructed
 	wxString aPwd; // ditto
-	const char notPresentStr[] = "No matching entry found";
-	ClearAllPrivateStorageArrays(); // always must start off empty
+	str_CURLbuffer.clear();
+	str_CURLheaders.clear();
 
 	CBString charUrl;
 	CBString charUserpwd;
@@ -1346,40 +1338,58 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		// We want separate storage for headers to be returned, to get the HTTP status code
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
 
-		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when header info is
-													  //not needed in the download
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
+													//headers separately
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) //&& defined (__WXGTK__)
+        CBString s2(str_CURLheaders.c_str());
+        wxString showit2 = ToUtf16(s2);
+		wxLogDebug(_T("LookupEntryFields(): Returned headers: %s"), showit2.c_str());
+
         CBString s(str_CURLbuffer.c_str());
         wxString showit = ToUtf16(s);
-        wxLogDebug(_T("Returned to str_CURLbuffer: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+		wxLogDebug(_T("LookupEntryFields() str_CURLbuffer has: %s    , The CURLcode is: %d"), 
+					showit.c_str(), (unsigned int)result);
 #endif
+		// Get the HTTP status code, and the English message (content length too, be we
+		// don't use it)
+		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLen);
 
+		// If the only error was a HTTP one, then result will contain CURLE_OK, in which
+		// case the next block is skipped
 		if (result) {
-			str_CURLbuffer.clear(); // always clear it before returning
-			printf("LookupEntryFields() result code: %d, cURL Error: %s\n",
-				result, curl_easy_strerror(result));
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("LookupEntryFields() result code: %d Error: %s"), 
+				result, error);
+			wxMessageBox(msg, _T("Error when looking up an entry"), wxICON_EXCLAMATION | wxOK);
+
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
 	}
 	curl_easy_cleanup(curl);
 
-  // If there was no matching entry in the database, "No matching entry found" is
-  // returned, so test for this...
-  // Find out if there is no entry, if so, clear the buffer and return 1 to indicate
-	// failure to find the entry (the find() will work whether or not headers precede the
-	// search string)
-	if (str_CURLbuffer.find(notPresentStr) != npos)
+	// If there was a HTTP error (typically, it would be 404 Not Found, because the
+	// src/tgt pair are not in the DB yet, but 100 Bad Request may also be possible I
+	// guess) then exit early, there won't be json data to handle if that was the case
+	if (m_httpStatusCode >= 400)
 	{
-		// found the notPresentstr, so the looked up pair is not in the database
+		// whether 400 or 404, return CURLE_HTTP_RETURNED_ERROR (ie. 22) to the caller
+		ClearEntryStruct(); // if we subsequently access it, its source member is an empty string
 		str_CURLbuffer.clear();
-		return 1;
+		str_CURLheaders.clear();
+		return CURLE_HTTP_RETURNED_ERROR;
 	}
 
-	//  make the json data accessible (result is CURLE_OK if control gets to here)
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//  We requested separate headers callback be used, so str_CURLbuffer should only have
+	//  the json string for the looked up entry
 	if (!str_CURLbuffer.empty())
 	{
 		// Note: normally before calling LookupEntryForSrcTgtPair() the storage arrays
@@ -1391,15 +1401,23 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		if (numErrors > 0)
 		{
 			// a non-localizable message will do, it's unlikely to ever be seen
+			// (but if we do get a parse error, then suspect that FromUTF8() may have
+			// inserted a BOM - in which case recompile using ToUtf16() instead)
 			wxMessageBox(_T("LookupEntryForSrcTgtPair(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
-			return -1;
+			str_CURLheaders.clear();
+			return CURLE_HTTP_RETURNED_ERROR;
 		}
-		// we extract id, source phrase, target phrase, deleted flag value, username,
-		// and timestamp string; for index value 0 only (there should only be one json
-		// object to deal with)
-		//m_arrID.Add(jsonval[_T("id")].AsInt());
+		// we extract source phrase, target phrase, deleted flag value & username
+		// for index value 0 only (there should only be one json object to deal with)
+		ClearEntryStruct(); // re-initializes m_entryStruct member
+		m_entryStruct.source = jsonval[_T("source")].AsString();
+		m_entryStruct.translation = jsonval[_T("target")].AsString();
+		m_entryStruct.username = jsonval[_T("user")].AsString();
+		m_entryStruct.deleted = jsonval[_T("deleted")].AsInt();
+
+		/*
 		m_arrID.Add(jsonval[_T("id")].AsLong()); // AsLong() is needed to avoid tripping an
                 // assert in jsonval.cpp, IsInt() fails for 64 bit machine if int is used
                 // rather than long (Linux gave the tripped assert, Windows 64 bit didn't)
@@ -1408,14 +1426,35 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		m_arrTarget.Add(jsonval[_T("target")].AsString());
 		m_arrUsername.Add(jsonval[_T("user")].AsString());
 		m_arrTimestamp.Add(jsonval[_T("timestamp")].AsString());
+		*/
 		str_CURLbuffer.clear(); // always clear it before returning
+		str_CURLheaders.clear();
 	}
 
 	return 0;
 }
 
-int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedFlag)
+void KbServer::ClearEntryStruct()
 {
+	m_entryStruct.source.Empty();
+	m_entryStruct.translation.Empty();
+	m_entryStruct.username.Empty();
+	m_entryStruct.deleted = 0;
+}
+
+void KbServer::SetEntryStruct(KbServerEntry entryStruct)
+{
+	m_entryStruct = entryStruct;
+}
+
+KbServerEntry KbServer::GetEntryStruct()
+{
+	return m_entryStruct;
+}
+
+int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
+{
+	// entries are always created as "normal" entries, that is, not pseudo-deleted
 	CURL *curl;
 	CURLcode result; // result code
 	struct curl_slist* headers = NULL;
@@ -1427,7 +1466,6 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 	CBString strVal; // to store wxString form of the jsonval object, for curl
 	wxString container = _T("entry");
 	wxString aUrl, aPwd;
-	EmptyErrorString();
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 
 	CBString charUrl; // use for curl options
@@ -1443,7 +1481,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 	jsonval[_T("target")] = tgtPhrase;
 	jsonval[_T("user")] = GetKBServerUsername();
 	jsonval[_T("type")] = kbType;
-	jsonval[_T("deleted")] = bDeletedFlag ? (long)1 : (long)0;
+	jsonval[_T("deleted")] = (long)0; // i.e. a normal entry
 
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
@@ -1484,21 +1522,16 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("CreateEntry() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
 #endif
+		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
+		// (400 or higher)
 		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText, m_contentLen);
-		// The kind of error we are looking for isn't a CURLcode one, but HTTP one (400 or higher)
-		if (m_httpStatusCode >= 400)
-		{
-			// we've an error to deal with, so get the human readable one that was returned
-			// (at the moment I'm extracting this, but we don't really need it, the HTTP
-			// status codes 400 or 404 should be all we'll ever need)
-			m_errorStr = ExtractHumanReadableErrorMsg(str_CURLbuffer);
-		}
+		
 		curl_slist_free_all(headers);
 		str_CURLbuffer.clear();
 
-		// Typically, result will contain CURLE_OK if an error was a HTTP one
-		// and so the next block won't then be entered; don't bother to localize this one,
-		// we don't expect it will happen much if at all
+        // Typically, result will contain CURLE_OK if an error was a HTTP one and so the
+        // next block won't then be entered; don't bother to localize this one, we don't
+        // expect it will happen much if at all
 		if (result) {
 			wxString msg;
 			CBString cbstr(curl_easy_strerror(result));
@@ -1704,9 +1737,35 @@ void KbServer::UploadToKbServer()
 {
 	wxString srcPhrase = _T("graun");
 	wxString tgtPhrase = _T("earth");
-	bool bDeletedFlag = FALSE;
-	int rv = CreateEntry(srcPhrase,tgtPhrase,bDeletedFlag);
+	int rv = CreateEntry(srcPhrase,tgtPhrase);
+	if (rv == CURLE_HTTP_RETURNED_ERROR)
+	{
+		int rv2 = LookupEntryFields(srcPhrase, tgtPhrase);
+#if defined(_DEBUG)
+		KbServerEntry e = GetEntryStruct();
+		wxLogDebug(_T("LookupEntryFields: for [%s & %s]: source = %s , translation = %s , deleted = %d , username = %s"),
+			srcPhrase, tgtPhrase, e.source, e.translation, e.deleted, e.username);
+		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
+		{
+			wxBell();
+		}
+		else
+		{
+			if (e.deleted == 1)
+			{
+				// do an un-pseudodelete here
 
+
+// TODO - next
+
+			}
+		}
+		int break_here = 1;
+#endif
+
+
+
+	}
 /*
 	// test queue
 	KbServerEntry* pEntry = new KbServerEntry;
@@ -1840,7 +1899,6 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 {
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
-	EmptyErrorString();
 
 	CURL *curl;
 	CURLcode result = CURLE_OK; // initialize to a harmless value
@@ -1962,10 +2020,10 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
             }
             int listSize = jsonval.Size();
 #if defined (_DEBUG)
-            // get feedback about now many entries we got
+            // get feedback about now many entries we got, in debug mode
             if (listSize > 0)
             {
-                wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
+                wxLogDebug(_T("ChangedSince_Queued() returned %d entries, for data added to kbserver since %s"),
                     listSize, timeStamp.c_str());
             }
 #endif
@@ -2004,14 +2062,8 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 		}
 		else
 		{
-			// The buffer contains an error message -- note, the "error" of nothing being
-			// returned (typically because there was no new data to download) is an error
-			// as far as HTTP is concerned, but we don't treat it as such, and override it
-			// to be a "no error" situation - returning 0 (CURLE_OK); other errors we
-			// handle as real ones
-		    buffer.Trim();// remove the final \n
-            SetErrorString(buffer); // don't really need this 
-
+			// buffer contains an error message, such as "No matching entry found",
+			// but we will ignore it, the HTTP status codes are enough
 			if (m_httpStatusCode == 404)
             {
                 // A "Not Found" error. No new entries were sent, because there were none
@@ -2026,9 +2078,9 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
 #if defined (_DEBUG)
 				wxString msg;
-                msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %d  Means: %s"),
-                                  m_errorStr.c_str(), m_httpStatusCode, m_httpStatusText.c_str());
-                wxLogDebug(msg, _T("Unexpected HTTP error"), wxICON_EXCLAMATION | wxOK);
+				msg  = msg.Format(_T("ChangedSince_Queued() error:  HTTP status: %d  Means: %s"),
+                                  m_httpStatusCode, m_httpStatusText.c_str());
+                wxLogDebug(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
 				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
@@ -2041,7 +2093,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
     str_CURLheaders.clear(); // BEW added 9Feb13
 	return 0;
 }
-
+/* deprecated
 wxString KbServer::GetLastError()
 {
 	return m_errorStr;
@@ -2056,7 +2108,7 @@ void KbServer::SetErrorString(wxString errorStr)
 {
 	m_errorStr = errorStr;
 }
-
+*/
 //=============================== end of KbServer class ============================
 
 #endif // for _KBSERVER
