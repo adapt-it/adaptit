@@ -173,8 +173,8 @@ protected:
 
 	// a utility for getting the HTTP status code, and human-readable result string, and
 	// content-length
-	void ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode, wxString& httpstatustext,
-                            wxString& contentLengthStr);
+	void ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext,
+                            int& contentLength);
 
 	// a utility for getting the English error message returned to str_CURLbuffer, after a
 	// failure such as no matching entry found, or, existing matching entry found, etc.
@@ -188,10 +188,11 @@ private:
 	CKB*		m_pKB; // whichever of the m_pKB versus m_pGlossingKB this instance is associated with
 	bool		m_bUseNewEntryCaching; // eventually set this via the GUI
 
-	wxString    m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
-	wxString    m_httpStatusText; // when the code is "200" the text will be "OK"
-	wxString    m_contentLenStr; // in case we want to display it, or wxLogDebug it
-	wxString    m_errorStr; // whatever is in curl's returned result, if it isn't json data
+	int			m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
+	wxString    m_httpStatusText; 
+	int			m_contentLen; // in case we want to display it, or wxLogDebug it
+	wxString    m_errorStr; // the message in curl's returned result, or in a callback
+							// buffer, if what's there isn't json data
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)

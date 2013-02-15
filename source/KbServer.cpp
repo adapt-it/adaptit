@@ -106,12 +106,6 @@ std::string str_CURLbuffer;
 const size_t npos = (size_t)-1; // largest possible value, for use with std:find()
 std::string str_CURLheaders;
 
-// some custom error codes to make life simpler for ourselves when we have a non-CURL
-// error happen and we want to return it as if it was a CURL error (rather than returning
-// CURLE_OK) They will have ascending values, starting from 900
-const int customError_No_Matching_Entry_Found = 900; // see wxString m_noEntryMessage
-const int customError_Existing_Matching_Entry_Found = 901; // see wxString m_existingEntryMessage
-
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
@@ -438,17 +432,18 @@ wxString KbServer::ExtractHumanReadableErrorMsg(std::string s)
 	return errorMsg;
 }
 
-void KbServer::ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode,
-                                    wxString& httpstatustext, wxString& contentLengthStr)
+void KbServer::ExtractHttpStatusEtc(std::string s, int& httpstatuscode,
+                                    wxString& httpstatustext, int& contentLength)
 {
 	// make the standard string into a wxString
-	httpstatuscode.Empty(); // initialize
+	httpstatuscode = 200; // initialize to OK
 	httpstatustext.Empty(); // initialize
+	contentLength = 0; // initialize
 	CBString cbstr(s.c_str());
 	wxString buffer(ToUtf16(cbstr));
 
 	//there are two HTTP lines, the first has to do with authentication, we
-    // want the second one which will follow th  first "Content-Type" line.
+    // want the second one which will follow the  first "Content-Type" line.
     wxString srchStr2 = _T("Content-Type");
 	int length2 = srchStr2.Len();
 	int offset2 = buffer.Find(srchStr2);
@@ -461,10 +456,10 @@ void KbServer::ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode,
 	int offset = buffer.Find(srchStr);
 	if (offset == wxNOT_FOUND)
 	{
-        // if we couldn't find it, return "200" and "OK assumed..." and keep truckin'
+        // if we couldn't find it, return 200 and "HTTP status code absent" and keep truckin'
         // (this should never happen)
-        httpstatuscode = _T("200");
-        httpstatustext = _T("OK assumed, HTTP status info not present");
+        httpstatuscode = 200;
+        httpstatustext = _T("HTTP status code absent");
         return;
 	}
 	else
@@ -476,7 +471,8 @@ void KbServer::ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode,
 		// everything up to the next space;
 		int offset_to_space = buffer.Find(_T(' '));
 		wxASSERT(offset_to_space != wxNOT_FOUND);
-        httpstatuscode = buffer.Left(offset_to_space);
+        wxString strValue = buffer.Left(offset_to_space);
+		httpstatuscode = wxAtoi(strValue);
 
         // now we have extracted the http status code, extract the human readable text
         // following it
@@ -486,7 +482,7 @@ void KbServer::ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode,
 		offset = wxMin(offset_to_CR, offset_to_LF);
 		httpstatustext = buffer.Left(offset);
 
-		//finally, the value (as a string) for Content-Length, in case we want it for something
+		//finally, the value for Content-Length, in case we want it for something
         srchStr = _T("Content-Length: ");
         length = srchStr.Len();
         offset = buffer.Find(srchStr);
@@ -495,7 +491,8 @@ void KbServer::ExtractHttpStatusEtc(std::string s, wxString& httpstatuscode,
 		offset_to_CR = buffer.Find(_T('\r'));
 		offset_to_LF = buffer.Find(_T('\n'));
 		offset = wxMin(offset_to_CR, offset_to_LF);
-		contentLengthStr = buffer.Left(offset);
+		strValue = buffer.Left(offset);
+		contentLength = wxAtoi(strValue);
 	}
 }
 
@@ -1038,8 +1035,12 @@ int KbServer::ChangedSince(wxString timeStamp)
         wxLogDebug(_T("Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
 #endif
         if (result) {
-            printf("ChangedSince() result code: %d Error: %s\n",
-                result, curl_easy_strerror(result));
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("ChangedSince() result code: %d Error: %s"), 
+				result, error);
+			wxMessageBox(msg, _T("Error when downloading entries"), wxICON_EXCLAMATION | wxOK);
 
             curl_easy_cleanup(curl);
 
@@ -1057,15 +1058,15 @@ int KbServer::ChangedSince(wxString timeStamp)
 	// Extract from the headers callback, the HTTP code, and the X-MySQL-Date value, the
 	// HTTP status information, and the payload's content-length value (as a string)
     ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
-    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLenStr);
+    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLen);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
         // show what ExtractHttpStatusEtc() returned
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
-        wxLogDebug(_T("From headers: Timestamp = %s , HTTP code = %s , HTTP msg = %s , Contents-Length = %s"),
-                   m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode.c_str(),
-                   m_httpStatusText.c_str(), m_contentLenStr.c_str());
+        wxLogDebug(_T("From headers: Timestamp = %s , HTTP code = %d , HTTP msg = %s , Contents-Length = %d"),
+                   m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode,
+                   m_httpStatusText.c_str(), m_contentLen);
 #endif
 
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
@@ -1146,43 +1147,42 @@ int KbServer::ChangedSince(wxString timeStamp)
 		}
 		else
 		{
-            // The buffer contains an error message -- note, the "error" of nothing being
-            // returned (typically because there was no new data to download) is an error
-            // as far as HTTP is concerned (404), but we don't treat it as such, and
-            // override it to be a "no error" situation - returning 0 (CURLE_OK); other
-            // errors we will save in m_error, and they can be accessed with a
-            // KbServer::GetLastError() call, returning wxString
+			// The buffer contains an error message -- note, the "error" of nothing being
+			// returned (typically because there was no new data to download) is an error
+			// as far as HTTP is concerned, but we don't treat it as such, and override it
+			// to be a "no error" situation - returning 0 (CURLE_OK); other errors we
+			// handle as real ones
 		    buffer.Trim();// remove the final \n
-            SetErrorString(buffer);
+            SetErrorString(buffer); // don't really need this 
 
-            // Can't use an equality test here, there is a \n character after the word
-            // "found" in "No matching entry found" that makes an equality test fail.
-            // So rather than bothering to eliminate it, I'll just use a search
-            int offset = buffer.Find(m_noEntryMessage);
-            if (offset != wxNOT_FOUND)
+			if (m_httpStatusCode == 404)
             {
-                // No new entries were sent, because there were none more recent
-                // than the last saved timestamp value, so do nothing here
-                ;
+                // A "Not Found" error. No new entries were sent, because there were none
+				// more recent than the last saved timestamp value, so do nothing here
+				// except update the lastsync timestamp, there's no point in keeping the
+				// earlier value unchanged
+                UpdateLastSyncTimestamp();
             }
             else
             {
-                // some other non-CURL error presumably, report it in debug mode, and exit;
-                // caller continues
+				// some other HTTP error presumably, report it in debug mode, and return a
+				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
 #if defined (_DEBUG)
 				wxString msg;
-                msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %s  Means: %s"),
-                                  m_errorStr.c_str(), m_httpStatusCode.c_str(), m_httpStatusText.c_str());
-                wxLogDebug(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+                msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %d  Means: %s"),
+                                  m_errorStr.c_str(), m_httpStatusCode, m_httpStatusText.c_str());
+                wxLogDebug(msg, _T("Unexpected HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
-            }
-            str_CURLbuffer.clear(); // always clear it before returning
-            str_CURLheaders.clear(); // BEW added 9Feb13
-            pStatusBar->FinishProgress(_("Receiving..."));
-            return 0;
+ 				str_CURLbuffer.clear();
+				str_CURLheaders.clear();
+				pStatusBar->FinishProgress(_("Receiving..."));
+				return CURLE_HTTP_RETURNED_ERROR; // = 22
+           }
 		}
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
 
+    str_CURLbuffer.clear();
+    str_CURLheaders.clear();
 	pStatusBar->FinishProgress(_("Receiving..."));
 	return 0;
 }
@@ -1474,11 +1474,8 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
 		// ask for the headers to be prepended to the body - this is a good choice here
 		// because no json data is to be returned
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
-		// it works to get the headers & error stuff written to str_CURLbuffer
-		// (but not to str_CURLheaders using CURLOPT_WRITEHEADER)
+		// get the headers stuff this way...
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
-		// next one kept causing a lock file error, with a null ptr being accessed
-		//curl_easy_setopt(curl, CURLOPT_WRITEHEADER, &curl_headers_callback);
 
 		result = curl_easy_perform(curl);
 
@@ -1487,47 +1484,53 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase, bool bDeletedF
         wxString showit = ToUtf16(s);
         wxLogDebug(_T("CreateEntry() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
 #endif
-		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText, m_contentLenStr);
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText, m_contentLen);
 		// The kind of error we are looking for isn't a CURLcode one, but HTTP one (400 or higher)
-		if (m_httpStatusCode[0] == _T('4'))
+		if (m_httpStatusCode >= 400)
 		{
 			// we've an error to deal with, so get the human readable one that was returned
+			// (at the moment I'm extracting this, but we don't really need it, the HTTP
+			// status codes 400 or 404 should be all we'll ever need)
 			m_errorStr = ExtractHumanReadableErrorMsg(str_CURLbuffer);
 		}
-
-		// Typically, result will contain CURLE_OK when the error was not in the protocol
-		// stack, and so the next block won't then be entered
 		curl_slist_free_all(headers);
 		str_CURLbuffer.clear();
+
+		// Typically, result will contain CURLE_OK if an error was a HTTP one
+		// and so the next block won't then be entered; don't bother to localize this one,
+		// we don't expect it will happen much if at all
 		if (result) {
-			printf("CreateEntry() result code: %d Error: %s\n",
-				result, curl_easy_strerror(result));
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("CreateEntry() result code: %d Error: %s"), 
+				result, error);
+			wxMessageBox(msg, _T("Error when trying to create an entry"), wxICON_EXCLAMATION | wxOK);
+
 			curl_easy_cleanup(curl);
 			return result;
 		}
 	}
 	curl_easy_cleanup(curl);
 
-    // Work out what to return, depending on whether or not a non-curl error happened, and
-    // which one it was (only the "Existing matching entry found" one should cause us to
-    // return of a code other than CURLE_OK (ie. zero))
-	if (!m_errorStr.IsEmpty())
+    // Work out what to return, depending on whether or not a HTTP error happened, and
+    // which one it was
+	if (m_httpStatusCode >= 400)
 	{
-		int offset = wxNOT_FOUND;
-		offset = m_errorStr.Find(m_existingEntryMessage);
-		if (offset >= 0)
-		{
-			// we found an existing entry, it could be a normal one, or a pseudo-deleted
-			// one, so we'll return a custom error code; this allows us to do further
-			// calls in the thread before it destructs; we would need a LookupFields() to
-			// determine what the deleted flag value is, and if it's a pseudo deleted
-			// entry, then we can call the function for restoring it to be a normal entry
-			// - 3 calls, and heaps of latency delay, but it would be a rare scenario
-			return customError_Existing_Matching_Entry_Found; // has value 901
-		}
-		// if it could possibly be that there was some other error, we don't care to do
-		// anything with it - so just return 0 which would mean that nothing is done to
-		// the remote database and the thread can just destruct immediately
+		// For a CreateEntry() call, 400 "Bad Request" should be the only one we get.
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+
+        // We found an existing entry, so it could be a normal one, or a pseudo-deleted
+        // one, and therefore we'll return CURLE_HTTP_RETURNED_ERROR (22); this allows us
+        // to check for this code in the caller and when it has been returned, to do
+        // further calls in the thread before it destructs. For CreateEntry() this would
+        // mean a LookupFields() to determine what the deleted flag value is, and if it's a
+        // pseudo deleted entry, then we can call the function for restoring it to be a
+        // normal entry - 3 calls, and heaps of latency delay, but it would be a rare
+        // scenario.
+		return CURLE_HTTP_RETURNED_ERROR; 
 	}
 	return 0;
 }
@@ -1887,8 +1890,12 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 		wxLogDebug(_T("Queued: Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
 #endif
         if (result) {
-            printf("ChangedSince_Queued() result code: %d Error: %s\n",
-                result, curl_easy_strerror(result));
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("ChangedSince_Queued() result code: %d Error: %s"), 
+				result, error);
+			wxMessageBox(msg, _T("Error when downloading entries"), wxICON_EXCLAMATION | wxOK);
 
             curl_easy_cleanup(curl);
 
@@ -1903,15 +1910,15 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 	// Extract from the headers callback, the HTTP code, and the X-MySQL-Date value, the
 	// HTTP status information, and the payload's content-length value (as a string)
     ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
-    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLenStr);
+    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLen);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
         // show what ExtractHttpStatusEtc() returned
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
-		wxLogDebug(_T("Queued: From headers: Timestamp = %s , HTTP code = %s , HTTP msg = %s , Contents-Length = %s"),
-                   m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode.c_str(),
-                   m_httpStatusText.c_str(), m_contentLenStr.c_str());
+		wxLogDebug(_T("Queued: From headers: Timestamp = %s , HTTP code = %d , HTTP msg = %s , Contents-Length = %d"),
+                   m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode,
+                   m_httpStatusText.c_str(), m_contentLen);
 #endif
 
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
@@ -1997,42 +2004,41 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 		}
 		else
 		{
-			// the buffer contains an error message -- note, the "error" of nothing being
+			// The buffer contains an error message -- note, the "error" of nothing being
 			// returned (typically because there was no new data to download) is an error
-			// as far as curl is concerned, but we don't treat it as such, and override it
-			// to be a "no error" situation - returning 0 (CURLE_OK); other errors we will
-			// save in m_error, and they can be accessed with a KbServer::GetLastError()
-			// call, returning wxString
+			// as far as HTTP is concerned, but we don't treat it as such, and override it
+			// to be a "no error" situation - returning 0 (CURLE_OK); other errors we
+			// handle as real ones
 		    buffer.Trim();// remove the final \n
-            SetErrorString(buffer);
+            SetErrorString(buffer); // don't really need this 
 
-            // Can't use an equality test here, there is a \n character after the word
-            // "found" in "No matching entry found" that makes an equality test fail.
-            // So rather than bothering to eliminate it, I'll just use a search
-            int offset = buffer.Find(m_noEntryMessage);
-            if (offset != wxNOT_FOUND)
+			if (m_httpStatusCode == 404)
             {
-                // No new entries were sent, because there were none more recent
-                // than the last saved timestamp value, so do nothing here
-                ;
+                // A "Not Found" error. No new entries were sent, because there were none
+				// more recent than the last saved timestamp value, so do nothing here
+				// except update the lastsync timestamp, there's no point in keeping the
+				// earlier value unchanged
+                UpdateLastSyncTimestamp();
             }
             else
             {
-                // some other non-CURL error presumably, report it in debug mode, and exit;
-                // caller continues
+				// some other HTTP error presumably, report it in debug mode, and return a
+				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
 #if defined (_DEBUG)
 				wxString msg;
-                msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %s  Means: %s"),
-                                  m_errorStr.c_str(), m_httpStatusCode.c_str(), m_httpStatusText.c_str());
-                wxLogDebug(msg, _T(""), wxICON_EXCLAMATION | wxOK);
+                msg  = msg.Format(_T("ChangedSince() unexpected payload error: %s   HTTP status: %d  Means: %s"),
+                                  m_errorStr.c_str(), m_httpStatusCode, m_httpStatusText.c_str());
+                wxLogDebug(msg, _T("Unexpected HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
+				str_CURLbuffer.clear();
+				str_CURLheaders.clear();
+				return CURLE_HTTP_RETURNED_ERROR; // = 22
             }
-            str_CURLbuffer.clear(); // always clear it before returning
-            str_CURLheaders.clear(); // BEW added 9Feb13
-            return 0;
 		}
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
 
+    str_CURLbuffer.clear(); // always clear it before returning
+    str_CURLheaders.clear(); // BEW added 9Feb13
 	return 0;
 }
 
