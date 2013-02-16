@@ -52,9 +52,9 @@ there is: in the #pragma interface... above, I had "MyListBox.h" instead of "The
 
 // forward declarations
 class wxThread;
-class CAdapt_ItApp;
 class CKB;
-//class KbServer;
+class KbServer;
+//class CAdapt_ItApp;
 
 class Thread_CreateEntry : public wxThread
 {

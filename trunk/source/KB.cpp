@@ -3471,37 +3471,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			// don't send to kbserver if it's a <Not In KB> entry
 			if (!bStoringNotInKB)
 			{
-				// Here's where I'll test doing this on a thread
-        /* no -- too restrictive
-				// BEW changed 4Feb13 to use KbServer sublassed off of wxThreadHelper (to avoid link errors)
-        pKbSvr->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
-				pKbSvr->m_source = key;
-				pKbSvr->m_translation = pRefString->m_translation;
-				// now create the runnable thread with explicit stack size of 10KB; it's a default
-				// kind of thread ("detached") so will destroy itself when it's done
-				wxThreadError error =  pKbSvr->Create(10240);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-					m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-          // no error, so run it
-          error = pKbSvr->GetThread()->Run();
-          if (error != wxTHREAD_NO_ERROR)
-          {
-            wxString msg;
-            msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-              (int)error);
-            wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-            m_pApp->LogUserAction(msg);
-          }
-				}
-        */
 				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
 				// populate it's public members (it only has public ones anyway)
 				pCreateEntryThread->m_pKbSvr = pKbSvr;
@@ -3517,29 +3486,19 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
 					//m_pApp->LogUserAction(msg);
 				}
-        else
-        {
-          // no error, so now run the thread (it will destroy itself when done)
-          error = pCreateEntryThread->Run();
-          if (error != wxTHREAD_NO_ERROR)
-          {
-            wxString msg;
-            msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-              (int)error);
-            wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-            m_pApp->LogUserAction(msg);
-          }
-        }
-
-				/*
-				bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
-							key, pRefString->m_translation, pKbSvr->IsCachingON());
-
-				// I've not yet decided what to do with the return value, at present we'll
-				// just ignore it even if FALSE (an internally generated message would have
-				// been seen anyway in that event)
-				bHandledOK = bHandledOK; // avoid compiler warning
-				*/
+				else
+				{
+					// no error, so now run the thread (it will destroy itself when done)
+					error = pCreateEntryThread->Run();
+					if (error != wxTHREAD_NO_ERROR)
+					{
+					wxString msg;
+					msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+					  (int)error);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					//m_pApp->LogUserAction(msg);
+					}
+				}
 			}
 		}
 #endif
@@ -3570,16 +3529,16 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	}
 	else // do next block when the map is not empty
 	{
-    // there might be a pre-existing association between this key and a CTargetUnit,
-    // so check it out
+		// there might be a pre-existing association between this key and a CTargetUnit,
+		// so check it out
 		// BEW 29Jul11, the following function had changes made today too, I removed the
 		// alternate uppercase lookup which used to be done when auto-caps is ON and the
 		// lowercase lookup (tried first) failed
 		bool bFound = AutoCapsLookup(m_pMap[nMapIndex], pTU, unchangedkey);
 
-    // if not found, then create a targetUnit, and add the refString, etc, as above;
-    // but if one is found, then check whether we add a new refString or increment the
-    // refCount of an existing one
+		// if not found, then create a targetUnit, and add the refString, etc, as above;
+		// but if one is found, then check whether we add a new refString or increment the
+		// refCount of an existing one
 		if(!bFound)
 		{
 			pTU = new CTargetUnit;
@@ -3604,11 +3563,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-      // Note: we can't reliably assume that the newly typed translation or gloss has
-      // not been, independently by some other user, added to the kbserver already,
-      // and also subsequently deleted by him before the present; therefore we must
-      // test for the absence of this src/tgt pair and only upload if the entry
-      // really is going to be a new one.
 			if (m_pApp->m_bIsKBServerProject &&
 				m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 			{
@@ -3617,45 +3571,13 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				// don't send to kbserver if it's a <Not In KB> entry
 				if(!bStoringNotInKB)
 				{
-					// Here's where I'll test doing this on a thread
-          /* no --too restrictive
-          // BEW changed 4Feb13 to use KbServer sublassed off of wxThreadHelper (to avoid link errors)
-          pKbSvr->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
-          pKbSvr->m_source = key;
-          pKbSvr->m_translation = pRefString->m_translation;
-          // now create the runnable thread with explicit stack size of 10KB; it's a default
-          // kind of thread ("detached") so will destroy itself when it's done
-          wxThreadError error =  pKbSvr->Create(10240);
-          if (error != wxTHREAD_NO_ERROR)
-          {
-            wxString msg;
-            msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-              (int)error);
-            wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-            m_pApp->LogUserAction(msg);
-          }
-          else
-          {
-            // no error, so run it
-            error = pKbSvr->GetThread()->Run();
-            if (error != wxTHREAD_NO_ERROR)
-            {
-              wxString msg;
-              msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-                (int)error);
-              wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-              m_pApp->LogUserAction(msg);
-            }
-          }
-          */
-
 					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
 					// populate it's public members (it only has public ones anyway)
 					pCreateEntryThread->m_pKbSvr = pKbSvr;
 					pCreateEntryThread->m_source = key;
 					pCreateEntryThread->m_translation = pRefString->m_translation;
 					// now create the runnable thread with explicit stack size of 10KB
-					wxThreadError error =  pCreateEntryThread->Create(10240);
+					wxThreadError error = pCreateEntryThread->Create(10240);
 					if (error != wxTHREAD_NO_ERROR)
 					{
 						wxString msg;
@@ -3674,19 +3596,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 							(int)error);
 						  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-						  m_pApp->LogUserAction(msg);
+						  //m_pApp->LogUserAction(msg);
 						}
 					}
-
-					/*
-					bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
-								key, pRefString->m_translation, pKbSvr->IsCachingON());
-
-					// I've not yet decided what to do with the return value, at present we'll
-					// just ignore it even if FALSE (an internally generated message would have
-					// been seen anyway in that event)
-					bHandledOK = bHandledOK; // avoid compiler warning
-					*/
 				}
 			}
 #endif
@@ -3891,11 +3803,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				// BEW added 5Oct12, here is a suitable place for kbserver support of
 				// CreateEntry(), since both the key and the translation (both possibly
 				// with a case adjustment for the first letter) are defined.
-				// Note: we can't reliably assume that the newly typed translation or
-				// gloss has not been, independently by some other user, added to the
-				// kbserver already, and also subsequently deleted by him before the
-				// present; therefore we must test for the absence of this src/tgt pair
-				// and only upload if the entry really is going to be a new one.
 				if (m_pApp->m_bIsKBServerProject &&
 					m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 				{
@@ -3903,38 +3810,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 
 					if (!bStoringNotInKB)
 					{
-						  // Here's where I'll test doing this on a thread
-						  /*
-						  // BEW changed 4Feb13 to use KbServer sublassed off of wxThreadHelper (to avoid link errors)
-						  pKbSvr->m_bUseCache = pKbSvr->IsCachingON(); // currently it's OFF (ie. FALSE)
-						  pKbSvr->m_source = key;
-						  pKbSvr->m_translation = pRefString->m_translation;
-						  // now create the runnable thread with explicit stack size of 10KB; it's a default
-						  // kind of thread ("detached") so will destroy itself when it's done
-						  wxThreadError error =  pKbSvr->Create(10240);
-						  if (error != wxTHREAD_NO_ERROR)
-						  {
-							wxString msg;
-							msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-							  (int)error);
-							wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-							m_pApp->LogUserAction(msg);
-						  }
-						  else
-						  {
-							// no error, so run it
-							error = pKbSvr->GetThread()->Run();
-							if (error != wxTHREAD_NO_ERROR)
-							{
-							  wxString msg;
-							  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-								(int)error);
-							  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-							  m_pApp->LogUserAction(msg);
-							}
-						  }
-						  */
-
 							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
 							// populate it's public members (it only has public ones anyway)
 							pCreateEntryThread->m_pKbSvr = pKbSvr;
@@ -3960,18 +3835,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 								(int)error);
 							  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-							  m_pApp->LogUserAction(msg);
+							  //m_pApp->LogUserAction(msg);
 							}
 						}
-						/*
-						bool bHandledOK = HandleNewPairCreated(m_pApp->GetKBTypeForServer(),
-									key, pRefString->m_translation, pKbSvr->IsCachingON());
-
-						// I've not yet decided what to do with the return value, at present we'll
-						// just ignore it even if FALSE (an internally generated message would have
-						// been seen anyway in that event)
-						bHandledOK = bHandledOK; // avoid compiler warning
-						*/
 					}
 				}
 #endif
@@ -4393,11 +4259,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW added 5Oct12, here is a suitable place for kbserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
-		// Note: we can't reliably assume that the newly typed translation or gloss has not
-		// been, independently by some other user, added to the kbserver already, and also
-		// subsequently deleted by him before the present; therefore we must test for the
-		// absence of this src/tgt pair and only upload if the entry really is going to be
-		// a new one.
 		if (m_pApp->m_bIsKBServerProject &&
 			m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
@@ -4427,17 +4288,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					error = pCreateEntryThread->Run();
 					if (error != wxTHREAD_NO_ERROR)
 					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-					m_pApp->LogUserAction(msg);
+						wxString msg;
+						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+						  (int)error);
+						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+						//m_pApp->LogUserAction(msg);
 					}
 				}
 			}
 		}
 #endif
-
 		// continue with the store to the local KB
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
@@ -4609,7 +4469,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 						  (int)error);
 						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-						m_pApp->LogUserAction(msg);
+						//m_pApp->LogUserAction(msg);
 						}
 					}
 				}
@@ -4923,7 +4783,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
 									(int)error);
 								  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-								  m_pApp->LogUserAction(msg);
+								  //m_pApp->LogUserAction(msg);
 								}
 							}
 						}
