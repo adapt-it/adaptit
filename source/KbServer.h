@@ -55,7 +55,7 @@ WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 // Not all values are needed from each entry, so I've commented out those the KB isn't
 // interested in
 struct KbServerEntry {
-	//long		id;
+	long		id; // needed, because pseudo-delete or undelete are based on the record ID
 	//wxString	srcLangCode;
 	//wxString	tgtLangCode;
 	wxString	source;
