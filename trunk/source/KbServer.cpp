@@ -1409,33 +1409,25 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			str_CURLheaders.clear();
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
-		// we extract source phrase, target phrase, deleted flag value & username
+		// we extract id, source phrase, target phrase, deleted flag value & username
 		// for index value 0 only (there should only be one json object to deal with)
 		ClearEntryStruct(); // re-initializes m_entryStruct member
+		m_entryStruct.id = jsonval[_T("id")].AsLong(); // needed, as there may be a
+					// subsequent pseudo-delete or undelete, and those are id-based
 		m_entryStruct.source = jsonval[_T("source")].AsString();
 		m_entryStruct.translation = jsonval[_T("target")].AsString();
 		m_entryStruct.username = jsonval[_T("user")].AsString();
 		m_entryStruct.deleted = jsonval[_T("deleted")].AsInt();
 
-		/*
-		m_arrID.Add(jsonval[_T("id")].AsLong()); // AsLong() is needed to avoid tripping an
-                // assert in jsonval.cpp, IsInt() fails for 64 bit machine if int is used
-                // rather than long (Linux gave the tripped assert, Windows 64 bit didn't)
-		m_arrDeleted.Add(jsonval[_T("deleted")].AsInt());
-		m_arrSource.Add(jsonval[_T("source")].AsString());
-		m_arrTarget.Add(jsonval[_T("target")].AsString());
-		m_arrUsername.Add(jsonval[_T("user")].AsString());
-		m_arrTimestamp.Add(jsonval[_T("timestamp")].AsString());
-		*/
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
-
 	return 0;
 }
 
 void KbServer::ClearEntryStruct()
 {
+	m_entryStruct.id = 0;
 	m_entryStruct.source.Empty();
 	m_entryStruct.translation.Empty();
 	m_entryStruct.username.Empty();
@@ -1585,6 +1577,8 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 	wxString container = _T("entry");
 	wxString aUrl, aPwd;
 
+	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
+
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
 
@@ -1630,17 +1624,53 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT"); // this way avoids turning on file processing
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way when no json is expected back...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 
 		result = curl_easy_perform(curl);
 
+#if defined (_DEBUG) // && defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("PseudoDeleteOrUndeleteEntry() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText, m_contentLen);
+
 		curl_slist_free_all(headers);
 		if (result) {
-			printf("PseudoDeleteOrUndeleteEntry() result code: %d\n", result);
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("PseudoDeleteOrUndelete() result code: %d Error: %s"), 
+				result, error);
+			if (op == doDelete)
+			{
+				wxMessageBox(msg, _T("Error when trying to delete an entry"), wxICON_EXCLAMATION | wxOK);
+			}
+			else
+			{
+				wxMessageBox(msg, _T("Error when trying to undelete an entry"), wxICON_EXCLAMATION | wxOK);
+			}
 			curl_easy_cleanup(curl);
+			str_CURLbuffer.clear();
 			return result;
 		}
 	}
 	curl_easy_cleanup(curl);
+	str_CURLbuffer.clear();
+
+	// handle any HTTP error code, if one was returned
+	if (m_httpStatusCode >= 400)
+	{
+		// We may get 400 "Bad Request" or 404 Not Found (both should be unlikely)
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
 	return 0;
 }
 
@@ -1737,32 +1767,36 @@ void KbServer::UploadToKbServer()
 {
 	wxString srcPhrase = _T("graun");
 	wxString tgtPhrase = _T("earth");
+	long entryID = 0; // initialize (it might not be used)
 	int rv = CreateEntry(srcPhrase,tgtPhrase);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
 		int rv2 = LookupEntryFields(srcPhrase, tgtPhrase);
-#if defined(_DEBUG)
 		KbServerEntry e = GetEntryStruct();
-		wxLogDebug(_T("LookupEntryFields: for [%s & %s]: source = %s , translation = %s , deleted = %d , username = %s"),
-			srcPhrase, tgtPhrase, e.source, e.translation, e.deleted, e.username);
+		entryID = e.id; // an undelete of a pseudo-delete will need this value
+#if defined(_DEBUG)
+		wxLogDebug(_T("LookupEntryFields: for [%s & %s]: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
+			srcPhrase, tgtPhrase, e.id, e.source, e.translation, e.deleted, e.username);
+#endif
 		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
 		{
-			wxBell();
+#if defined(_DEBUG)
+			wxBell(); // we don't expect any error
+#endif
+			;
 		}
 		else
 		{
 			if (e.deleted == 1)
 			{
-				// do an un-pseudodelete here
-
-
-// TODO - next
-
+				// do an un-pseudodelete here, use the entryID value above
+				// (reuse rv2, because if it fails we'll attempt nothing additional
+				//  here, not even to tell the user anything)
+				rv2 = PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
 			}
 		}
-		int break_here = 1;
-#endif
 
+// it all worked, and in the end {graun,earth,1} became {graun,earth,0} Yay!
 
 
 	}
@@ -2037,6 +2071,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
                 // the deleted flag, and the username be included in the KbServerEntry
                 // structs
                 pEntryStruct = new KbServerEntry;
+				pEntryStruct->id = jsonval[index][_T("id")].AsLong();
 				pEntryStruct->source = jsonval[index][_T("source")].AsString();
 				pEntryStruct->translation = jsonval[index][_T("target")].AsString();
 				pEntryStruct->deleted = jsonval[index][_T("deleted")].AsInt();
