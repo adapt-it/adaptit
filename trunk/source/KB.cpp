@@ -64,6 +64,7 @@
 #include "MainFrm.h"
 #include "StatusBar.h"
 #include "Thread_CreateEntry.h"
+#include "Thread_PseudoUndelete.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -973,7 +974,7 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 	}
 	return FALSE; // did not find a match
 }
-//*
+
 #if defined (_KBSERVER)
 
 /// \return                 nothing
@@ -1539,7 +1540,6 @@ CRefString*	CKB::GetMatchingRefString(CTargetUnit* pTU, wxString& tgtPhrase, boo
 
 
 #endif // for _KBSERVER
-//*/
 
 // BEWw added 29Aug11: overloaded version below, for use when Consistency Check
 // is being done (return pTU, pRefStr, m_bDeleted flag value by ref)
@@ -3453,7 +3453,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			// if something went wrong, just save as if gbAutoCaps was FALSE
 			pRefString->m_translation = tgtPhrase;
 		}
-//*
+
 #if defined(_KBSERVER)
     // BEW added 5Oct12, here is a suitable place for kbserver support of
     // CreateEntry(), since both the key and the translation (both possibly with a case
@@ -3502,7 +3502,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			}
 		}
 #endif
-//*/
 		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 		if (m_pApp->m_bForceAsk)
 			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
@@ -3558,7 +3557,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			{
 				pRefString->m_translation = tgtPhrase;
 			}
-//*
+
 #if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
@@ -3602,7 +3601,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				}
 			}
 #endif
-//*/
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -3681,33 +3679,62 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
-//*
 #if defined(_KBSERVER)
-						// BEW added 18Oct12, call HandleUndelete() Note: we can't reliably
-						// assume that the kbserver entry is also currently stored as a
-						// deleted entry, because some other connected user may have
-						// already just undeleted it. So we must first determine that an
+						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
 						// and that it's currently pseudo-deleted. If that's the case, we
 						// undelete it. If it's not in the remote database at all yet, then
 						// we add it instead as a normal entry. If it's in the remote
 						// database already as a normal entry, then we make no change.
+						// 
+						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
+						// and when user locally unticks the Save in KB checkbox to make
+						// that key have only <Not In KB> as the pseudo-adaptation, it
+						// makes any normal adaptations for that key become pseudo-deleted
+						// but we don't inform kbserver of that fact. Therefore, an
+						// attempt to undelete any of those pseudo-deleted entries needs
+						// to be stopped from sending anything to kbserver also. We want to
+						// keep use of <Not In KB> restricted to the particular user who
+						// wants to do that, and not propagate it and deletions /
+						// undeletions that may happen as part of it, to the kbserver.
 						if (m_pApp->m_bIsKBServerProject &&
 							m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 						{
+							KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
-								bool bHandledOK = HandlePseudoUndelete(m_pApp->GetKBTypeForServer(),
-														key, pRefString->m_translation);
-
-								// I've not yet decided what to do with the return value, at
-								// present we'll just ignore it even if FALSE (an internally
-								// generated message would have been seen anyway in that event)
-								bHandledOK = bHandledOK; // avoid compiler warning
+								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
+								// populate it's public members (it only has public ones anyway)
+								pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
+								pPseudoUndeleteThread->m_source = key;
+								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
+								// now create the runnable thread with explicit stack size of 10KB
+								wxThreadError error =  pPseudoUndeleteThread->Create(10240);
+								if (error != wxTHREAD_NO_ERROR)
+								{
+									wxString msg;
+									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
+										(int)error);
+									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+									//m_pApp->LogUserAction(msg);
+								}
+								else
+								{
+									// no error, so now run the thread (it will destroy itself when done)
+									error = pPseudoUndeleteThread->Run();
+									if (error != wxTHREAD_NO_ERROR)
+									{
+									wxString msg;
+									msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
+									  (int)error);
+									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+									//m_pApp->LogUserAction(msg);
+									}
+								}
 							}
 						}
 #endif
-//*/
 					}
 					else
 					{
@@ -3798,7 +3825,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					{
 						pRefString->m_translation = tgtPhrase;
 					}
-//*
+
 #if defined(_KBSERVER)
 				// BEW added 5Oct12, here is a suitable place for kbserver support of
 				// CreateEntry(), since both the key and the translation (both possibly
@@ -3841,7 +3868,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					}
 				}
 #endif
-//*/
 					// continue with the store to the local KB
 					pTU->m_pTranslations->Append(pRefString);
 					if (m_bGlossingKB)
@@ -4431,7 +4457,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				pRefString->m_translation = tgtPhrase;
 			}
-//*
+
 #if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
@@ -4475,7 +4501,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				}
 			}
 #endif
-//*/
 			// continue with the store to the local KB
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (m_pApp->m_bForceAsk)
@@ -4588,15 +4613,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
 
 #if defined(_KBSERVER)
-						// BEW added 18Oct12, call HandleUndelete() Note: we can't reliably
-						// assume that the kbserver entry is also currently stored as a
-						// deleted entry, because some other connected user may have
-						// already just undeleted it. So we must first determine that an
+						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
 						// and that it's currently pseudo-deleted. If that's the case, we
 						// undelete it. If it's not in the remote database at all yet, then
 						// we add it instead as a normal entry. If it's in the remote
 						// database already as a normal entry, then we make no change.
+						// 
 						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
 						// and when user locally unticks the Save in KB checkbox to make
 						// that key have only <Not In KB> as the pseudo-adaptation, it
@@ -4610,15 +4633,38 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						if (m_pApp->m_bIsKBServerProject &&
 							m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 						{
+							KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+
 							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
 							{
-								bool bHandledOK = HandlePseudoUndelete(m_pApp->GetKBTypeForServer(),
-														key, pRefString->m_translation);
-
-								// I've not yet decided what to do with the return value, at
-								// present we'll just ignore it even if FALSE (an internally
-								// generated message would have been seen anyway in that event)
-								bHandledOK = bHandledOK; // avoid compiler warning
+								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
+								// populate it's public members (it only has public ones anyway)
+								pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
+								pPseudoUndeleteThread->m_source = key;
+								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
+								// now create the runnable thread with explicit stack size of 10KB
+								wxThreadError error =  pPseudoUndeleteThread->Create(10240);
+								if (error != wxTHREAD_NO_ERROR)
+								{
+									wxString msg;
+									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
+										(int)error);
+									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+									//m_pApp->LogUserAction(msg);
+								}
+								else
+								{
+									// no error, so now run the thread (it will destroy itself when done)
+									error = pPseudoUndeleteThread->Run();
+									if (error != wxTHREAD_NO_ERROR)
+									{
+									wxString msg;
+									msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
+									  (int)error);
+									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+									//m_pApp->LogUserAction(msg);
+									}
+								}
 							}
 						}
 #endif
@@ -5959,7 +6005,7 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	// whm Note: the pProgDlg->Destroy() is done back in the caller function OnFileRestoreKb() on the App
 	errors.Clear(); // clear the array
 }
-//*
+
 #if defined(_KBSERVER)
 
 // Return TRUE if there was no error, FALSE otherwise
@@ -6062,7 +6108,6 @@ bool CKB::HandleNewPairCreated(int kbServerType, wxString srcKey, wxString trans
 		m_pApp->LogUserAction(msg);
 		rv = FALSE; // but don't abort
 	}
-//*/
 	return rv;
 }
 
@@ -6351,7 +6396,7 @@ bool  CKB::HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcK
 		return TRUE;
 	}
 	bool rv = TRUE;
-	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation);
+/*	rv = HandlePseudoDelete(kbServerType, srcKey, oldTranslation);
 	if (rv)
 	{
 		rv = HandlePseudoUndelete(kbServerType, srcKey, newTranslation);
@@ -6376,9 +6421,10 @@ bool  CKB::HandlePseudoDeleteAndUndeleteDeletion(int kbServerType, wxString srcK
 		msg += srcKey + _T(" : ") + newTranslation;
 		m_pApp->LogUserAction(msg);
 	}
+*/
 	return rv;
 }
 
 
 #endif // for _KBSERVER
-//*/
+

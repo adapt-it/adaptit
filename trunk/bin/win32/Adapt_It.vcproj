@@ -893,6 +893,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_PseudoDelete.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_PseudoUndelete.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Thread_UploadToKBServer.cpp"
 				>
 			</File>
@@ -1427,6 +1435,14 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_CreateEntry.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_PseudoDelete.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_PseudoUndelete.h"
 				>
 			</File>
 			<File
