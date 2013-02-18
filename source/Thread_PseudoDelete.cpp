@@ -93,7 +93,7 @@ void* Thread_PseudoDelete::Entry()
 		entryID = e.id; // an delete of a normal entry will need this value
 #if defined(_DEBUG)
 		wxLogDebug(_T("LookupEntryFields in Thread_PseudoDelete: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			e.id, e.source, e.translation, e.deleted, e.username);
+			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		// If the remote entry has 0 for the deleted flag's value, then go ahead and
 		// delete it; but if it has 1 already, there is nothing to do except let the

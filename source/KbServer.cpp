@@ -1167,7 +1167,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
 #if defined (_DEBUG)
 				wxString msg;
-				msg  = msg.Format(_T("ChangedSince()error: HTTP status: %d  Means: %s"),
+				msg  = msg.Format(_T("ChangedSince()error: HTTP status: %d   %s"),
                                   m_httpStatusCode, m_httpStatusText.c_str());
                 wxLogDebug(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
@@ -2118,7 +2118,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
 #if defined (_DEBUG)
 				wxString msg;
-				msg  = msg.Format(_T("ChangedSince_Queued() error:  HTTP status: %d  Means: %s"),
+				msg  = msg.Format(_T("ChangedSince_Queued() error:  HTTP status: %d   %s"),
                                   m_httpStatusCode, m_httpStatusText.c_str());
                 wxLogDebug(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
