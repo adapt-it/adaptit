@@ -908,9 +908,14 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 #endif
 
 		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("LookupEntryForSourcePhrase()() result code: %d Error: %s"), 
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when looking up for SourcePhrase"), wxICON_EXCLAMATION | wxOK);
+
 			str_CURLbuffer.clear(); // always clear it before returning
-			printf("LookupEntryForSourcePhrase() result code: %d Error: %s\n",
-				result, curl_easy_strerror(result));
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
@@ -1038,7 +1043,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("ChangedSince() result code: %d Error: %s"), 
-				result, error);
+				result, error.c_str());
 			wxMessageBox(msg, _T("Error when downloading entries"), wxICON_EXCLAMATION | wxOK);
 
             curl_easy_cleanup(curl);
@@ -1366,7 +1371,7 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("LookupEntryFields() result code: %d Error: %s"), 
-				result, error);
+				result, error.c_str());
 			wxMessageBox(msg, _T("Error when looking up an entry"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
@@ -1529,7 +1534,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("CreateEntry() result code: %d Error: %s"), 
-				result, error);
+				result, error.c_str());
 			wxMessageBox(msg, _T("Error when trying to create an entry"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
@@ -1645,7 +1650,7 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("PseudoDeleteOrUndelete() result code: %d Error: %s"), 
-				result, error);
+				result, error.c_str());
 			if (op == doDelete)
 			{
 				wxMessageBox(msg, _T("Error when trying to delete an entry"), wxICON_EXCLAMATION | wxOK);
@@ -1776,7 +1781,7 @@ void KbServer::UploadToKbServer()
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
 #if defined(_DEBUG)
 		wxLogDebug(_T("LookupEntryFields: for [%s & %s]: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			srcPhrase, tgtPhrase, e.id, e.source, e.translation, e.deleted, e.username);
+			srcPhrase.c_str(), tgtPhrase.c_str(), e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
 		{
@@ -1986,7 +1991,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("ChangedSince_Queued() result code: %d Error: %s"), 
-				result, error);
+				result, error.c_str());
 			wxMessageBox(msg, _T("Error when downloading entries"), wxICON_EXCLAMATION | wxOK);
 
             curl_easy_cleanup(curl);
