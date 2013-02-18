@@ -411,6 +411,10 @@
 		<Unit filename="../../source/Thread_ChangedSince.h" />
 		<Unit filename="../../source/Thread_CreateEntry.cpp" />
 		<Unit filename="../../source/Thread_CreateEntry.h" />
+		<Unit filename="../../source/Thread_PseudoDelete.cpp" />
+		<Unit filename="../../source/Thread_PseudoDelete.h" />
+		<Unit filename="../../source/Thread_PseudoUndelete.cpp" />
+		<Unit filename="../../source/Thread_PseudoUndelete.h" />
 		<Unit filename="../../source/Thread_UploadToKBServer.cpp" />
 		<Unit filename="../../source/Thread_UploadToKBServer.h" />
 		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
