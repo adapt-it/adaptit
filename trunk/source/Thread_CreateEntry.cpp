@@ -79,7 +79,7 @@ void* Thread_CreateEntry::Entry()
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
 #if defined(_DEBUG)
 		wxLogDebug(_T("LookupEntryFields in Thread_CreateEntry: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-					e.id, e.source, e.translation, e.deleted, e.username);
+					e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
 		{

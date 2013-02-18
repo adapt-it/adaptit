@@ -87,7 +87,7 @@ void* Thread_PseudoUndelete::Entry()
 		entryID = e.id; // an undelete of a pseudo-delete will need this value
 #if defined(_DEBUG)
 		wxLogDebug(_T("LookupEntryFields in Thread_PseudoUndelete: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			e.id, e.source, e.translation, e.deleted, e.username);
+			e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
 #endif
 		// If the remote entry has 1 for the deleted flag's value, then go ahead and
 		// undelete it; but if it has 0 already, there is nothing to do except let the
