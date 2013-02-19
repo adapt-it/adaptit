@@ -63,6 +63,7 @@
 #include "KBEditSearch.h"
 #include "Thread_KbEditorUpdateButton.h"
 #include "Thread_PseudoDelete.h"
+#include "Thread_CreateEntry.h"
 
 // for support of auto-capitalization
 
@@ -849,24 +850,48 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 												  // not already there
 	if (bOK)
 	{
-	// BEW added 26Oct12 for kbserver support
-//*
+		// BEW added 19Feb13 for kbserver support
 #if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			//KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
+			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
-			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), m_srcKeyStr, newText);
-
-			// I've not yet decided what to do with the return value, at present we'll
-			// just ignore it even if FALSE (an internally generated message would have
-			// been seen anyway in that event)
-			bHandledOK = bHandledOK; // avoid compiler warning
+			// create the thread and fire it off
+			if (!pCurTgtUnit->IsItNotInKB())
+			{
+				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+				// populate it's public members (it only has public ones anyway)
+				pCreateEntryThread->m_pKbSvr = pKbSvr;
+				pCreateEntryThread->m_source = m_srcKeyStr;
+				pCreateEntryThread->m_translation = newText;
+				// now create the runnable thread with explicit stack size of 10KB
+				wxThreadError error =  pCreateEntryThread->Create(10240);
+				if (error != wxTHREAD_NO_ERROR)
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd() for empty string: thread creation failed, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					//m_pApp->LogUserAction(msg);
+				}
+				else
+				{
+					// no error, so now run the thread (it will destroy itself when done)
+					error = pCreateEntryThread->Run();
+					if (error != wxTHREAD_NO_ERROR)
+					{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd() for empty string, Thread_Run(): cannot make the thread run, error number: %d"),
+					  (int)error);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					//m_pApp->LogUserAction(msg);
+					}
+				}
+			}
 		}
 #endif
-//*/
-		// don't add to the list if the AddRefString call did not succeed
+		// Don't add to the list if the AddRefString call did not succeed
 		wxString s;
 		s = _("<no adaptation>");
 		newText = s; // i.e. "<no adaptation>"
@@ -970,24 +995,47 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	// support if required
 	if (bOK)
 	{
-	// BEW added 26Oct12 for kbserver support
-//*
+		// BEW added 26Oct12 for kbserver support
 #if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject &&
 			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
 		{
-			//KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
+			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
-			bool bHandledOK = pKB->HandleNewPairCreated(pApp->GetKBTypeForServer(), 
-								m_srcKeyStr, newText);
-
-			// I've not yet decided what to do with the return value, at present we'll
-			// just ignore it even if FALSE (an internally generated message would have
-			// been seen anyway in that event)
-			bHandledOK = bHandledOK; // avoid compiler warning
+			// create the thread and fire it off
+			if (!pCurTgtUnit->IsItNotInKB())
+			{
+				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+				// populate it's public members (it only has public ones anyway)
+				pCreateEntryThread->m_pKbSvr = pKbSvr;
+				pCreateEntryThread->m_source = m_srcKeyStr;
+				pCreateEntryThread->m_translation = newText;
+				// now create the runnable thread with explicit stack size of 10KB
+				wxThreadError error =  pCreateEntryThread->Create(10240);
+				if (error != wxTHREAD_NO_ERROR)
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd(): thread creation failed, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					//m_pApp->LogUserAction(msg);
+				}
+				else
+				{
+					// no error, so now run the thread (it will destroy itself when done)
+					error = pCreateEntryThread->Run();
+					if (error != wxTHREAD_NO_ERROR)
+					{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry in KBEditor::OnButtonAdd(), Thread_Run(): cannot make the thread run, error number: %d"),
+					  (int)error);
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					//m_pApp->LogUserAction(msg);
+					}
+				}
+			}
 		}
 #endif
-//*/
 		if (newText.IsEmpty())
 			newText = s; // i.e. "<no adaptation>"
 		m_pListBoxExistingTranslations->Append(newText);
