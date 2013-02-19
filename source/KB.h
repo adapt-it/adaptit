@@ -168,9 +168,6 @@ public:
 	// destroyed on the fly at such times
 #if defined (_KBSERVER)
 
-	// use next for phrasebox typed adaptations or glosses, and for KBEditor's Add button
-	bool		HandleNewPairCreated(int kbServerType, wxString srcKey, wxString translation);
-
 	// Populate either a CTargetUnit instance in the local KB with anything new in the
 	// download, or many CTargetUnit instances arising from a timestamp-based download -
 	// either of the whole KB, or of those entries newly added subsequent to a stored
