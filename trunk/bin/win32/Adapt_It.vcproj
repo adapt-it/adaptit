@@ -893,6 +893,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_KbEditorUpdateButton.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Thread_PseudoDelete.cpp"
 				>
 			</File>
@@ -1435,6 +1439,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_CreateEntry.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_KbEditorUpdateButton.h"
 				>
 			</File>
 			<File

@@ -432,13 +432,11 @@ wxString KbServer::ExtractHumanReadableErrorMsg(std::string s)
 	return errorMsg;
 }
 */
-void KbServer::ExtractHttpStatusEtc(std::string s, int& httpstatuscode,
-                                    wxString& httpstatustext, int& contentLength)
+void KbServer::ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext)
 {
 	// make the standard string into a wxString
 	httpstatuscode = 200; // initialize to OK
 	httpstatustext.Empty(); // initialize
-	contentLength = 0; // initialize
 	CBString cbstr(s.c_str());
 	wxString buffer(ToUtf16(cbstr));
 
@@ -481,18 +479,6 @@ void KbServer::ExtractHttpStatusEtc(std::string s, int& httpstatuscode,
 		int offset_to_LF = buffer.Find(_T('\n'));
 		offset = wxMin(offset_to_CR, offset_to_LF);
 		httpstatustext = buffer.Left(offset);
-
-		//finally, the value for Content-Length, in case we want it for something
-        srchStr = _T("Content-Length: ");
-        length = srchStr.Len();
-        offset = buffer.Find(srchStr);
-        wxASSERT(offset != wxNOT_FOUND);
-        buffer = buffer.Mid(offset + length); // point pointing at the integer's string
-		offset_to_CR = buffer.Find(_T('\r'));
-		offset_to_LF = buffer.Find(_T('\n'));
-		offset = wxMin(offset_to_CR, offset_to_LF);
-		strValue = buffer.Left(offset);
-		contentLength = wxAtoi(strValue);
 	}
 }
 
@@ -1062,15 +1048,15 @@ int KbServer::ChangedSince(wxString timeStamp)
 	// Extract from the headers callback, the HTTP code, and the X-MySQL-Date value, the
 	// HTTP status information, and the payload's content-length value (as a string)
     ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
-    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLen);
+    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
         // show what ExtractHttpStatusEtc() returned
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
-        wxLogDebug(_T("From headers: Timestamp = %s , HTTP code = %d , HTTP msg = %s , Contents-Length = %d"),
+        wxLogDebug(_T("From headers: Timestamp = %s , HTTP code = %d , HTTP msg = %s"),
                    m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode,
-                   m_httpStatusText.c_str(), m_contentLen);
+                   m_httpStatusText.c_str());
 #endif
 
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
@@ -1360,9 +1346,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		wxLogDebug(_T("LookupEntryFields() str_CURLbuffer has: %s    , The CURLcode is: %d"), 
 					showit.c_str(), (unsigned int)result);
 #endif
-		// Get the HTTP status code, and the English message (content length too, be we
-		// don't use it)
-		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLen);
+		// Get the HTTP status code, and the English message
+		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
 
 		// If the only error was a HTTP one, then result will contain CURLE_OK, in which
 		// case the next block is skipped
@@ -1521,7 +1506,7 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 #endif
 		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
 		// (400 or higher)
-		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText, m_contentLen);
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
 		
 		curl_slist_free_all(headers);
 		str_CURLbuffer.clear();
@@ -1642,7 +1627,7 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 #endif
 		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
 		// (400 or higher)
-		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText, m_contentLen);
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
 
 		curl_slist_free_all(headers);
 		if (result) {
@@ -2004,18 +1989,18 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 	// no CURL error, so continue...
 	curl_easy_cleanup(curl);
 
-	// Extract from the headers callback, the HTTP code, and the X-MySQL-Date value, the
-	// HTTP status information, and the payload's content-length value (as a string)
+	// Extract from the headers callback, the HTTP code, and the X-MySQL-Date value,
+	// and the HTTP status information
     ExtractTimestamp(str_CURLheaders, m_kbServerLastTimestampReceived);
-    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText, m_contentLen);
+    ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
         // show what ExtractHttpStatusEtc() returned
         CBString s2(str_CURLheaders.c_str());
         wxString showit2 = ToUtf16(s2);
-		wxLogDebug(_T("Queued: From headers: Timestamp = %s , HTTP code = %d , HTTP msg = %s , Contents-Length = %d"),
+		wxLogDebug(_T("Queued: From headers: Timestamp = %s , HTTP code = %d , HTTP msg = %s"),
                    m_kbServerLastTimestampReceived.c_str(), m_httpStatusCode,
-                   m_httpStatusText.c_str(), m_contentLen);
+                   m_httpStatusText.c_str());
 #endif
 
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
