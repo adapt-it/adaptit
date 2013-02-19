@@ -171,10 +171,8 @@ protected:
 	// stored in the m_kbServerLastTimestampReceived member
 	void ExtractTimestamp(std::string s, wxString& timestamp);
 
-	// a utility for getting the HTTP status code, and human-readable result string, and
-	// content-length
-	void ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext,
-                            int& contentLength);
+	// a utility for getting the HTTP status code, and human-readable result string
+	void ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext);
 
 	// a utility for getting the English error message returned to str_CURLbuffer, after a
 	// failure such as no matching entry found, or, existing matching entry found, etc.
@@ -190,7 +188,6 @@ private:
 
 	int			m_httpStatusCode; // for OK it is 200, anything 400 or over is an error
 	wxString    m_httpStatusText; 
-	int			m_contentLen; // in case we want to display it, or wxLogDebug it
 
 	// the following 8 are used for setting up the https transport of data to/from the
 	// kbserver for a given KB type (their getters are further below)
