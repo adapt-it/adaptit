@@ -11420,9 +11420,41 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
             // inline binding endmarker is a nuisance - so check for it and remove it,
             // because if another follows, the loop must start with ptr pointing at a
             // backslash
+			// BEW 21Feb13, the above is correct, but the space(s) should only be omitted if
+			// another endmarker follows it/them - and the following test is therefore
+			// inadequate as it results in unilateral removal of space(s) - because if there
+			// is no following endmarker, then that space(s) is a word break which should
+			// halt the parse -- so I have to add code inside the TRUE block for the test
+			// to ensure that ParseOverAndIgnoreWhiteSpace() is only called after we've
+			// determined that an endmarker follows....
 			if (bBindingEndMkrFound && IsWhiteSpace(ptr))
 			{
-				len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
+				// BEW added 21Feb13
+				wxChar* ptr2 = ptr;
+				int length2 = 0;
+				// get ptr2 past the white space
+				while (IsWhiteSpace(ptr2))
+				{
+					length2++;
+					ptr2++;
+				}
+				// ptr2 is now pointing at something which is not a space; if we are to
+				// remove the space(s) we've just parsed over, ptr2 must be pointing at
+				// an endmarker - so check it out; if it's not so, we halt the parse
+				if (IsEndMarker(ptr2, pEnd))
+				{
+					// the legacy code ... using ptr; it's an endmarker, so we can
+					// abandon the whitespace preceding it
+					len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
+				}
+				else
+				{
+					// it's not an endmarker, so we must return to the caller with an
+					// updated value of len, so that ptr is point past this
+					// word-delimiting one or more whitespace characters
+					len += length2;
+					return len;
+				}
 			}
 		} while (len > saveLen); // repeat as long as there was ptr advancement each time
 
@@ -11524,6 +11556,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// what to do with it until we can work out later if an endmarker follows or not.
 		// But if we halt at a ] bracket, any punctuation parsed over is deemed to belong
 		// to the current word being parsed.
+		// BEW added 21Feb13 -- need a test here for opening quotes, if we found such, then
+		// we are at the start of the next word's punctuation and must return here, not go on
+		if (IsOpeningQuote(ptr))
+		{
+			// oops, HALT! don't parse further
+			return len;
+		}
 		nMorePunctsSpan = 1;
 		ptr++;
 		pMorePunctsEnd = ptr;
@@ -22216,6 +22255,15 @@ void CAdapt_ItDoc::ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& a
 // but pTU_OnOrig, and pRefStr_OnOrig, for pKB's knowledge base instance
 // BEW 2Nov12, fixed logic error, I'd failed to set pAutoFixRec->finalAdaptation in many
 // places, resulting in the doc's adaptation getting lost.
+// BEW note added 20Feb12: pCopyKB is temporary, for finding glitches, pKB is permanent,
+// and changes are added within it - and so there are pKB->StoreText() calls; we allow
+// kbserver support to apply to these calls, if KB sharing is turned on, and so we don't
+// make use of gbConstencyCheckCurrent to either enable or disable KB sharing during a
+// consistency check. Instead, if KB sharing is ON, it continues to be on during any
+// consistency check, and should fire off threads as needed, and those firings should
+// therefore be well motivated firings since the KB changes are those which are wanted by
+// the user. (The only pCopyKB->StoreText() calls are for support of <Not In KB> and we
+// don't care about those because <Not In KB> entries are not sent to the remote kbserver.)
 bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy,
 						AFList& afList, int& nCumulativeTotal, wxArrayString& arrSetNotInKB,
 						wxArrayString& arrRemoveNotInKB)
