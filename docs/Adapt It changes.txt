@@ -1,4 +1,12 @@
 ----------------------------------------------
+Bug fixes in 6.5.0
+----------------------------------------------
+* When creating a new document, parsing an endmarker followed 
+by space and an opening curly quote before the next word, 
+wrongly added the opening quote to the end of the preceding 
+word.
+
+----------------------------------------------
 Version 6.4.1 release 6 February 2013
 ----------------------------------------------
 
