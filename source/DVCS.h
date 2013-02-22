@@ -35,27 +35,19 @@ public:
 private:		// instance variables
 	CAdapt_ItApp*	m_pApp;
 	wxString		m_user;
-	wxString		hg_command, hg_options, hg_arguments;
-	wxArrayString	hg_output;
-	int				hg_count, hg_lineNumber;
-
-
+	wxString		git_command, git_options, git_arguments;
+	wxArrayString	git_output;
+	int				git_count, git_lineNumber;
 
 protected:		// internal functions
-
-	int  call_hg ( bool bDisplayOutput );
+	int  call_git ( bool bDisplayOutput );
 	int  init_repository ();
-	int  add_file (wxString fileName);
-	int  add_all_files();
-	int  remove_file (wxString fileName);
-	int  remove_project();
-	int  get_prev_revision ( bool bFirstTime, wxString fileName );
-//	bool  commit_valid(); - moved to Adapt_ItDoc
-	int  commit_file (wxString fileName);
-	int  commit_project();
-	int  log_file (wxString fileName);
+    int  add_file ( wxString fileName );
+	int  commit_file ( wxString fileName );
+    int  setup_versions ( wxString fileName );
+    int  get_version ( bool latest, wxString fileName );
+	int  log_file ( wxString fileName );
 	int  log_project();
-	int  revert_to_revision ( int revision );
 
 };
 

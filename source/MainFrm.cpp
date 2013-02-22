@@ -2506,32 +2506,27 @@ void CMainFrame::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 
 void CMainFrame::OnInit_Repository (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_INIT_REPOSITORY, 0);
-	lastResultCode = resultCode;
+	wxMessageBox(_T("Deprecated!"));
 }
 
 void CMainFrame::OnDVCS_Add_File (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_ADD_FILE, 0);
-	lastResultCode = resultCode;
+	wxMessageBox(_T("Deprecated!"));
 }
 
 void CMainFrame::OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_ADD_ALL_FILES, 0);
-	lastResultCode = resultCode;
+	wxMessageBox(_T("Deprecated!"));
 }
 
 void CMainFrame::OnDVCS_Remove_File (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_REMOVE_FILE, 0);
-	lastResultCode = resultCode;
+	wxMessageBox(_T("Deprecated!"));
 }
 
 void CMainFrame::OnDVCS_Remove_Project (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_REMOVE_PROJECT, 0);
-	lastResultCode = resultCode;
+	wxMessageBox(_T("Deprecated!"));
 }
 
 void CMainFrame::OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event))
