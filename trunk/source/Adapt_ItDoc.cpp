@@ -1558,6 +1558,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	wxDateTime		localDate,
 					origDate = gpApp->m_revisionDate;
 	wxString		origOwner = gpApp->m_owner;
+    int             origCommitCnt = gpApp->m_commitCount;
 
     
 // Do we need a check here that the file is really under version control??  More likely
@@ -1572,7 +1573,12 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 
 	if (!Commit_valid())
 		return -1;          // bail out if the ownership of the document isn't right
-    
+
+// Now we're using git, where adding the file does double duty to put it under version control
+//  and add it to the staging area for commit.  So we no longer bother having "add" as a separate
+//  operation.
+
+/*
     if (gpApp->m_commitCount < 0)           // The doc isn't under version control yet
 	{
         resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_ADD_FILE, 0);
@@ -1580,12 +1586,17 @@ int CAdapt_ItDoc::DoSaveAndCommit()
         if (resultCode)
             return resultCode;              // bail out if adding the doc to version control failed for some reason
 	}
-
+*/
+    
 // Now we find the date/time and the commit count, which we'll save in the file before we do the commit.
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 
 	localDate = wxDateTime::Now();
 	gpApp->m_revisionDate = localDate.ToUTC (FALSE);
+
+    if ( gpApp->m_commitCount < 0 )
+        gpApp->m_commitCount = 0;
+    
 	gpApp->m_commitCount += 1;					// bump the commit count
 
 	gpApp->m_owner = gpApp->m_AIuser;			// owner may have been NOOWNER, but must be assigned on a commit
@@ -1600,7 +1611,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	// What do we do here??  We've already saved the document with the above info updated.  I think we
 	//  should roll everything back and re-save.  The DVCS code will already have given a message.
 		gpApp->m_revisionDate = origDate;
-		gpApp->m_commitCount -= 1;
+		gpApp->m_commitCount = origCommitCnt;
 		gpApp->m_owner = origOwner;
 
 		gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
@@ -1618,26 +1629,19 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 {
-	int				commit_result;
+	int				returnCode;
 	wxCommandEvent	dummy;
 	int				trialRevNum = gpApp->m_trialRevNum;
-	int				test;
 
-	if (gpApp->m_commitCount < 0)
+	if (gpApp->m_commitCount <= 0)
 	{
-		wxMessageBox (_T("This document hasn't been put under version control yet!") );
-		return;
-	}
-
-	if (gpApp->m_commitCount == 0)
-	{
-		wxMessageBox (_T("This document hasn't been committed yet!") );
+		wxMessageBox (_T("There are no earlier version saved!") );
 		return;
 	}
 
 	if (trialRevNum == 0)
 	{
-		wxMessageBox (_T("We're already back at the first commit!") );
+		wxMessageBox (_T("We're already back at the earliest version saved!") );
 		return;
 	}
 
@@ -1647,31 +1651,29 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 
 		if (DoSaveAndCommit())  return;			// bail out on error - message should be already displayed
 
-		gpApp->m_latestRevNum = gpApp->m_pDVCS->DoDVCS (DVCS_LATEST_REVISION, 0);		// also reads the log, and hangs on to it
-		test = gpApp->m_latestRevNum;
-				// this is what we just committed - we need to hang on to it so we can come back if needed,
-				//  and the following DVCS call will give us the next version back
-		 test = test; // whm added 13Aug12 to suppress gcc warning "set but not used"
+		if ( gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0) )		// reads the log, and hangs on to it
+            return;                             // bail out on error
 	}
 
-	trialRevNum = gpApp->m_pDVCS->DoDVCS (DVCS_PREV_REVISION, 0);			// looks at the log to get the previous revision number
+	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_PREV_VERSION, 0);			// get the next previous version
 
-	if (trialRevNum == -2)  return;				// bail out on error - message should already be displayed
+	if (returnCode == -2)  return;				// bail out on error - message should already be displayed
 
-	if (trialRevNum == -1)
-	{								// no more in the log - bail out
-		gpApp->m_trialRevNum = 0;
-		wxMessageBox (_T("We're already back at the first commit!") );
+	if (returnCode == -1)
+	{                                       // no more in the log - bail out
+        if (trialRevNum >= 0)
+            gpApp->m_trialRevNum = 0;       // if a trial was actually under way, indicate we're back at the start,
+                                            // otherwise leave it as no trial
+		wxMessageBox (_T("We're already back at the earliest version saved!") );
 		return;
 	}
 
-	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_REVERT_FILE, trialRevNum);
-
-	if (!commit_result)
+	if (returnCode == 0)
 	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
-			// ReadOnlyProtection sees that m_trialRevNum is non-negative.  We skip this
-			//  if gpApp->m_pDVCS->DoDVCS() returned an error, and leave m_trialRevNum alone.
-		gpApp->m_trialRevNum = trialRevNum;
+			// ReadOnlyProtection sees that m_trialRevNum is non-negative.
+            // If an error has come up, we leave the trial status alone.
+
+		gpApp->m_trialRevNum = 1;           // 1 = trial under way
 		DocChangedExternally();
 	}
 }
@@ -1691,17 +1693,17 @@ void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 {
-	int		commit_result;
+	int		returnCode;
 
 	if (gpApp->m_trialRevNum < 0)
 	{
-		wxMessageBox (_T("We're not looking at earlier revisions - already at latest!"));
+		wxMessageBox (_T("We're not looking at earlier versions - already at latest!"));
 		return;
 	}
 
-	commit_result = gpApp->m_pDVCS->DoDVCS (DVCS_REVERT_FILE, gpApp->m_latestRevNum);
+	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_LATEST_VERSION, 0);
 
-	if (commit_result)  return;			// bail out on error - message should have been displayed
+	if (returnCode)  return;			// bail out on error - message should have been displayed
 
 	gpApp->m_trialRevNum = -1;
 	DocChangedExternally();

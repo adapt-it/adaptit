@@ -83,13 +83,10 @@ const int ID_MENU_TAKE_OWNERSHIP		= 987;
 // C/C++ config properties, the preprocessor section)
 
 // Action codes for calling the DVCS:
-enum{	DVCS_VERSION, DVCS_INIT_REPOSITORY,
-		DVCS_ADD_FILE, DVCS_ADD_ALL_FILES,
-		DVCS_REMOVE_FILE, DVCS_REMOVE_PROJECT,
-		DVCS_COMMIT_FILE, DVCS_REVERT_FILE,
-		DVCS_LOG_FILE, DVCS_LOG_PROJECT,
-		DVCS_LATEST_REVISION, DVCS_PREV_REVISION };
-				// More to be added as they come up
+enum{	DVCS_VERSION, DVCS_COMMIT_FILE,
+        DVCS_SETUP_VERSIONS, DVCS_PREV_VERSION, DVCS_LATEST_VERSION,
+        DVCS_LOG_FILE, DVCS_LOG_PROJECT };
+				// More to be added if they come up
 
 class DVCS;		// class of the object giving access to the DVCS operations
 
@@ -2207,9 +2204,8 @@ public:
 										//   -1 = not under version control
 										//    0 = under VC, but no commits done yet
                                         //    n = n commits have been done
-	int			m_trialRevNum,			// non-negative if we're trialling a look at an earlier revision, and this is
-										//  the revision number.  Negative means no trial.
-				m_latestRevNum;			// Saves the latest revision number over a trial, so we can get back
+	int			m_trialRevNum;			// non-negative if we're trialling a look at an earlier revision.  Negative means no trial.
+//				m_latestRevNum;			// Saves the latest revision number over a trial, so we can get back -- not needed any more
 
 	wxDateTime	m_revisionDate;			// when this revision was committed
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
