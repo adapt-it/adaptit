@@ -287,16 +287,14 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateExpansionKey</key>
 							<array>
 								<string>20286C29FDCF999611CA2CEA</string>
-								<string>20286C2AFDCF999611CA2CEA</string>
 								<string>1C37FBAC04509CD000000102</string>
 								<string>1C37FABC05509CD000000102</string>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>248</integer>
-									<integer>3</integer>
-									<integer>0</integer>
+									<integer>9</integer>
+									<integer>8</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
@@ -321,7 +319,7 @@
 							<real>253</real>
 						</array>
 						<key>RubberWindowFrame</key>
-						<string>177 124 1376 882 0 0 1920 1058 </string>
+						<string>145 157 1376 882 0 0 1920 1058 </string>
 					</dict>
 					<key>Module</key>
 					<string>PBXSmartGroupTreeModule</string>
@@ -349,7 +347,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>272798BC16D5B245000CFE75</string>
+										<string>2770CAA716DAED0400EF9FB7</string>
 										<key>history</key>
 										<array>
 											<string>270AC6781662196600FC5B46</string>
@@ -361,7 +359,7 @@
 											<string>2703C2A61680210000C8C7EE</string>
 											<string>2755652A16D4571D0001793A</string>
 											<string>2755652B16D4571D0001793A</string>
-											<string>2755653416D46CC80001793A</string>
+											<string>2765135E16D8C763000381C2</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -373,14 +371,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 0}, {1079, 121}}</string>
+								<string>{{0, 0}, {1079, 85}}</string>
 								<key>RubberWindowFrame</key>
-								<string>177 124 1376 882 0 0 1920 1058 </string>
+								<string>145 157 1376 882 0 0 1920 1058 </string>
 							</dict>
 							<key>Module</key>
 							<string>PBXNavigatorGroup</string>
 							<key>Proportion</key>
-							<string>121pt</string>
+							<string>85pt</string>
 						</dict>
 						<dict>
 							<key>ContentConfiguration</key>
@@ -393,14 +391,14 @@
 							<key>GeometryConfiguration</key>
 							<dict>
 								<key>Frame</key>
-								<string>{{0, 126}, {1079, 715}}</string>
+								<string>{{0, 90}, {1079, 751}}</string>
 								<key>RubberWindowFrame</key>
-								<string>177 124 1376 882 0 0 1920 1058 </string>
+								<string>145 157 1376 882 0 0 1920 1058 </string>
 							</dict>
 							<key>Module</key>
 							<string>XCDetailModule</string>
 							<key>Proportion</key>
-							<string>715pt</string>
+							<string>751pt</string>
 						</dict>
 					</array>
 					<key>Proportion</key>
@@ -419,9 +417,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>272798B916D5B23F000CFE75</string>
+				<string>2770CAA816DAED0400EF9FB7</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>272798BA16D5B23F000CFE75</string>
+				<string>2770CAA916DAED0400EF9FB7</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -542,7 +540,7 @@
 	<key>StatusbarIsVisible</key>
 	<true/>
 	<key>TimeStamp</key>
-	<real>383103557.64110702</real>
+	<real>383446276.87099499</real>
 	<key>ToolbarConfigUserDefaultsMinorVersion</key>
 	<string>2</string>
 	<key>ToolbarDisplayMode</key>
@@ -563,7 +561,7 @@
 		<string>/Users/mike/Development/Adaptit/AI_trunk/bin/mac/AdaptIt_wx28.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
-	<string>177 124 1376 882 0 0 1920 1058 </string>
+	<string>145 157 1376 882 0 0 1920 1058 </string>
 	<key>WindowToolsV3</key>
 	<array>
 		<dict>
@@ -640,7 +638,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>27D20EB916570E230083B6C0</string>
-				<string>272798BB16D5B23F000CFE75</string>
+				<string>2770CAAA16DAED0400EF9FB7</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
