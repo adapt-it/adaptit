@@ -866,18 +866,11 @@ wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 		return _T("");
 	}
 	wxString s;
-	s.Empty();
 	//wxChar* pNNNN = wxStringBuffer(nnnnStr,5); // <<-- no longer works, the buffer does
 											     // not get nnnnStr assigned to it
 	// Can't use GetWriteBug() in wxWidgets 2.9.x, it's no longer a member of wxString but
 	// GetData() is still supported, so use that
-	const wxChar* pNNNN2 = nnnnStr.GetData();
-
-	// swap the bytes if compiling on big-endian hardware
-	wxChar* pNNNN = const_cast<wxChar*>(pNNNN2);
-	wxUint32 nnnnInt = (wxUint32)pNNNN;
-	nnnnInt = wxUINT32_SWAP_ON_BE(nnnnInt);
-	pNNNN = (wxChar*)nnnnInt;
+	const wxChar* pNNNN = nnnnStr.GetData();
 
 	// calculate the integer value from the four hex bytes
 	wxChar hexDigit;
