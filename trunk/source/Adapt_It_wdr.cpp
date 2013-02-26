@@ -5812,12 +5812,12 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item7 = new wxButton( parent, IDC_TOGGLE_UNNNN_BTN, _("Show U+nnnn"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetToolTip( _("Toggle between showing the Unicode nnnn hex value codes and the actual Unicode characters") );
-    item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_PUNCT_CORRESP_PAGE, _("Where there is no corresponding punctuation character, leave that cell empty - whether it is a source or a target cell."), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item6->Add( item8, 1, wxGROW, 0 );
 
-    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 0 );
+    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxRIGHT, 5 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -6238,7 +6238,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item125 = new wxTextCtrl( parent, IDC_EDIT_TGT25, wxT(""), wxDefaultPosition, wxSize(50,24), wxTE_CENTRE );
     item13->Add( item125, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item10->Add( item13, 1, wxGROW|wxALL, 0 );
+    item10->Add( item13, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item9->Add( item10, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
@@ -6360,7 +6360,7 @@ wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item127->Add( item131, 1, wxGROW|wxALL, 0 );
 
-    item9->Add( item127, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item9->Add( item127, 0, wxALIGN_CENTER_HORIZONTAL|wxLEFT, 5 );
 
     item5->Add( item9, 1, wxALIGN_CENTER|wxALL, 0 );
 
