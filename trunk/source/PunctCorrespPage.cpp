@@ -867,7 +867,11 @@ wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 	}
 	wxString s;
 	s.Empty();
-	wxChar* pNNNN = wxStringBuffer(nnnnStr,5); //wxChar* pNNNN = nnnnStr.GetBuffer(5);
+	//wxChar* pNNNN = wxStringBuffer(nnnnStr,5); // <<-- no longer works, the buffer does
+											     // not get nnnnStr assigned to it
+	// Can't use GetWriteBug() in wxWidgets 2.9.x, it's no longer a member of wxString but
+	// GetData() is still supported, so use that
+	const wxChar* pNNNN = nnnnStr.GetData();
 	wxChar hexDigit;
 	int value = 0;
 	int part = 0;
