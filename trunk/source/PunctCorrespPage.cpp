@@ -853,10 +853,8 @@ int CPunctCorrespPageCommon::HexToInt(const wxChar hexDigit)
 	}
 }
 
-
-// mrh 27Feb13 - while chasing a bug I tried replacing use of wxStringBuffer by calls to wxString::GetChar().  The result looks nicer, so
-//  I've stuck with it:
-
+// mrh 27Feb13 - while chasing a bug I tried replacing use of wxStringBuffer by 
+// calls to wxString::GetChar().  The result looks nicer, so I've stuck with it:
 wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 {
 	int len = nnnnStr.Length();

@@ -90,19 +90,6 @@ enum DeleteOrUndeleteEnum
 /// This global is defined in Adapt_It.cpp.
 //extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
-/// The CRefString class stores the target text adaptation typed
-/// by the user for a given source word or phrase. It also keeps
-/// track of the number of times this translation was previously
-/// chosen.
-/// \derivation		The CRefString class is derived from wxObject.
-/// BEW 4Feb13, changed the base class from wxObject to be wxThread, because in the
-/// Linux version, using wxThread subclassed failed, because the vtable was not created, and
-/// so the creator and destructor of the subclass could not find the vtable, despite my having
-/// an explicit definition in the subclass for each virtual function of wxThread (which, according
-/// to the web is supposed to fix this kind of problem - but it didn't, so I'm having to try
-/// find a different waya to support threads.
-
-
 class KbServer : public wxObject
 {
 public:
@@ -120,7 +107,7 @@ public:
 
 	// The API which we expose (note:  srcPhrase & tgtPhrase are often each
 	// just a single word
-	int		 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry );
+	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
@@ -173,13 +160,6 @@ protected:
 
 	// a utility for getting the HTTP status code, and human-readable result string
 	void ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext);
-
-	// a utility for getting the English error message returned to str_CURLbuffer, after a
-	// failure such as no matching entry found, or, existing matching entry found, etc.
-	// Call this function only after determining that a HTTP error beginning with digit
-	// "4" has been received (find that out from the results of calling
-	// ExtractHttpStatusEtc() beforehand)
-	//wxString ExtractHumanReadableErrorMsg(std::string s);
 
 private:
 	// class variables
@@ -234,12 +214,6 @@ public:
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
 	void		UploadToKbServer();
-	// these three for storing human readable error messages from the php
-	//wxString	GetLastError();
-	//void		EmptyErrorString();
-	//void		SetErrorString(wxString errorStr);
-
-	// rewrite later, using wxThreadHelper   void		  UploadToKbServerThreaded();
 
 	// Functions we'll want to be able to call programmatically... (button handler
 	// versions of these will be in KBSharing.cpp)
@@ -254,6 +228,7 @@ public:
 	// and kbtype - these are constant for any given instance of KbServer, and their
 	// values are determinate from member variables m_kbSourceLanguageCode,
 	// m_kbTargetLanguageCode, and m_kbServerType, respectively.
+	// These 7 array members are used only for bulk uploads and bulk downloads.
 private:
 	CAdapt_ItApp*   m_pApp;
 	Array_of_long   m_arrID;
@@ -263,7 +238,8 @@ private:
 	wxArrayString	m_arrTarget;
 	wxArrayString	m_arrUsername;
 
-	// the incremental downloads queue
+	// the incremental downloads queue; this stores KbServerEntry structs, for the
+	// ChangedSince type of download
 	DownloadsQueue m_queue;
 
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
@@ -272,7 +248,7 @@ private:
 
 public:
 
-	// public accessors for the private arrays (these are for general uploading and/downloading)
+	// public accessors for the private arrays (these are for bulk uploading and downloading)
 	Array_of_long*	GetIDsArray();
 	wxArrayInt*		GetDeletedArray();
 	wxArrayString*	GetTimestampArray();
@@ -280,8 +256,6 @@ public:
 	wxArrayString*	GetTargetArray();
 	wxArrayString*	GetUsernameArray();
 	void			ClearAllPrivateStorageArrays();
-	//void			ClearOneIntArray(wxArrayInt* pArray); // so far unused
-	//void			ClearOneStringArray(wxArrayString* pArray); // so far unused
 	
 	void			PushToQueueEnd(KbServerEntry* pEntryStruct); // protect with a mutex
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
@@ -293,16 +267,8 @@ public:
 protected:
 
 private:
-	// boolean for enabling, and temporarily disabling, KB sharing. Temporary disabling is
-	// potentially needed for the following scenario, for example. If downloading all entries in kbserver for the
-	// current project, and syncing the local KB using that data, calls to StoreText()
-	// would, try to test for the presence of each such entry in the remote KB - which
-	// must not happen as it accomplishes nothing except to waste a heap of time. So we
-	// need a way to turn of sharing while the local KB is being synced to the
-	// remote-sourced data. I've provided this protection, but probably I'll code a
-	// StoreTextFromKbServer() function which will handle syncing from full KB downloads
-	// and from ChangedSince() requests, and it won't of course try to do any uploading.
-	bool		m_bEnableKBSharing; // default is TRUE, and only FALSE temporarily when required
+    // boolean for enabling, and temporarily disabling, KB sharing
+	bool		m_bEnableKBSharing; // default is TRUE
 
 	DECLARE_DYNAMIC_CLASS(KbServer)
 

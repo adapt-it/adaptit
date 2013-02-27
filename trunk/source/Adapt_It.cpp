@@ -338,6 +338,7 @@ extern std::string str_CURLheaders;
 
 #if defined (_KBSERVER)
 #include "KbServer.h"
+#include "Timer_KbServerChangedSince.h"
 #endif
 
 // whm added 8Oct12
@@ -5562,11 +5563,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
 
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
-#if defined(_KBSERVER)
-	EVT_TIMER(ID_KBSERVER_DOWNLOAD_TIMER, CAdapt_ItApp::OnKbServerDownloadTimer)
-	//EVT_TIMER(ID_KBSERVER_UPLOAD_TIMER, CAdapt_ItApp::OnKbServerUploadTimer) // BEW
-	//deprecated 11Feb13
-#endif
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
 	//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
@@ -14984,6 +14980,7 @@ void CAdapt_ItApp::DeleteKbServer(int whichType)
 // sharing one. Return TRUE for a successful setup, FALSE if something was not right and in
 // that case don't perform a setup.
 // BEW 3Oct12, changed from using wxString to using CBString
+// BEW 27Feb13, added instantiating a single timer for BOTH instances of KbServer to use
 bool CAdapt_ItApp::SetupForKBServer(int whichType)
 {
 	// instantiate the KbServer class
@@ -15006,6 +15003,19 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 
 	// enable it (that's default, if the project is a KB sharing one)
 	pKbSvr->EnableKBSharing(TRUE);
+
+	// instantiate a single timer instance; once instantiated, the second call of
+	// SetupForKBServer() will skip this block
+	if (m_pKbServerDownloadTimer == NULL)
+	{
+		// the first param makes CAdapt_ItApp instance the owner, and the timer's events
+		// are sent to the app's event table
+		m_pKbServerDownloadTimer = new Timer_KbServerChangedSince();
+		// the timer has to be started immediately... the default interval is 5 minutes
+		// (set in OnInit()), but subsequent user choice in the KbSharing dialog, or a
+		// stored setting in the project configuration file, may override this default
+		m_pKbServerDownloadTimer->Start(1000 * 60 * m_nKbServerIncrementalDownloadInterval);
+	}
 
 	// get the kbserver credentials we need
 	wxString credsfilename = _T("credentials.txt"); // temporary, later we will use project config file
@@ -15060,13 +15070,6 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
 	GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
-	// Start timer for incremental downloads (each call stops the timer if it
-	// was already running, and then restarts it with the passed in interval -- this is
-	// nice because SetupForKBServer() is always called twice, once for the adapting KB
-	// and the other time for the glossing KB)
-	m_KbServerDownloadTimer.Start(m_nKbServerIncrementalDownloadInterval*1000);
-	//m_KbServerUploadTimer.Start(m_nKbServerIncrementalUploadInterval*1000); // BEW deprecated 11Feb13
-
 	// all's well
 	return TRUE;
 }
@@ -15082,9 +15085,16 @@ bool CAdapt_ItApp::ReleaseKBServer(int whichType)
 	if (pKbSvr == NULL)
         return TRUE; // not currently defined
 
-	// stop the timer for incremental downloads
-	m_KbServerDownloadTimer.Stop();
-	//m_KbServerUploadTimer.Stop(); // BEW deprecated 11Feb13
+	// stop the timer for incremental downloads; the second call of
+	// ReleaseKBServer() will skip this block
+	if (m_pKbServerDownloadTimer != NULL)
+	{
+		m_pKbServerDownloadTimer->Stop();
+		// and delete the timer and set the pointer to NULL to prevent a second attempt
+		// when the instance for the glossing KB is released immediately after this call
+		delete m_pKbServerDownloadTimer; // don't leak memory
+		m_pKbServerDownloadTimer = NULL; // ensure this block is done only once
+	}
 
 	// ensure the m_kbServerLastSync timestamp value is stored to permanent storage (which
 	// is in lastsync_adaptations.txt in the project folder when dealing with adaptations KB,
@@ -15225,6 +15235,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
 	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
 	m_bIsKBServerProject = FALSE; // initialise
+	// start off with the timer not instantiated; only set a single one in first call of 
+	// SetupForKbServer(), second call (for the glossing KB) should check for NULL and do
+	// nothing if the timer already exists; use similar logic for destroying the timer in
+	// ReleaseKbServer()
+	m_pKbServerDownloadTimer = NULL;
 
 	// flag initializations
 	m_bKbServerIncrementalDownloadPending = FALSE;
@@ -42292,60 +42307,6 @@ void CAdapt_ItApp::OnTimer(wxTimerEvent& WXUNUSED(event))
 {
 	CheckLockFileOwnership();
 }
-
-#if defined(_KBSERVER)
-
-//////////////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \remarks Catches a wxTimerEvent when m_KbServerDownloadTimer is running. For each timer
-/// event it sets a flag: for instance, the flag for the adapting KbServer instance is
-/// m_bKbServerIncrementalDownloadPending, and when it is TRUE, the next OnIdle() event
-/// which also finds that an auto-insertion has just halted (ie. m_bAutoInsert has become
-/// FALSE), will initiate a DoChangedSince() download of entries from the KB server.
-/// Similarly for the glossing KbServer, if glossing mode is currently on, and it uses
-/// the same flag. There is a different flag for uploads, and a different timer handler.
-///
-/// This OnKbServerDownloadTimer() handler is called when KB Sharing is setup for a
-/// project. (I'll probably keep it running even if the user temporarily disables
-/// sharing.) It will be stopped when ReleaseKBServer() is called on one of the KbServer
-/// instances (since they are both on, or both off).
-///////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnKbServerDownloadTimer(wxTimerEvent& WXUNUSED(event))
-{
-	// set the pending flag, so that OnIdle() can prepare and send the download request
-	if (m_KbServerDownloadTimer.IsRunning())
-	{
-		m_bKbServerIncrementalDownloadPending = TRUE;
-	}
-}
-
-/* BEW deprecated 11Feb13
-//////////////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \remarks Catches a wxTimerEvent when m_KbServerUploadTimer is running. For each timer
-/// event it sets a flag: for instance, the flag for the adapting KbServer instance is
-/// m_bKbServerIncrementalUploadPending, and when it is TRUE, the next OnIdle() event
-/// will initiate a function to upload a small set of recently adapted entries to the
-/// KB server. Similarly for the glossing KbServer, if glossing mode is currently on,
-/// and it uses the same flag. There is a different flag for downloads, and a different
-/// timer handler.
-///
-/// This OnKbServerUploadTimer() handler is called when KB Sharing is setup for a
-/// project. (I'll probably keep it running even if the user temporarily disables
-/// sharing.) It will be stopped when ReleaseKBServer() is called on one of the KbServer
-/// instances (since they are both on, or both off).
-///////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::OnKbServerUploadTimer(wxTimerEvent& WXUNUSED(event))
-{
-	// set the pending flag, so that OnIdle() can prepare and send the upload request
-	if (m_KbServerUploadTimer.IsRunning())
-	{
-		m_bKbServerIncrementalUploadPending = TRUE;
-	}
-}
-*/
-
-#endif // for _KBSERVER
 
 void CAdapt_ItApp::CheckLockFileOwnership()
 {

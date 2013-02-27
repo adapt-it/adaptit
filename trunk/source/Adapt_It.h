@@ -1895,6 +1895,7 @@ public:
 
 class wxDynamicLibrary;
 class AI_Server;
+class Timer_KbServerChangedSince;
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
@@ -1916,19 +1917,15 @@ class CAdapt_ItApp : public wxApp
 	// The following is the timer for incremental downloads; defaulted to
 	// 5 minutes, but settable by the user to other values in the range 1-10 minutes,
 	// and the minutes valuewill be stored in the project config file
-	wxTimer m_KbServerDownloadTimer; // for periodic incremental download of entries from server
-	//wxTimer m_KbServerUploadTimer; // for periodic incremental upoad of entries to
-	//server, remove BEW 11Feb13
-
+	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental 
+												// download of entries from server
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
 	bool	m_bKbServerIncrementalDownloadPending;
-	//bool	m_bKbServerIncrementalUploadPending;
 
-	// Storage for the download intervals (in seconds; but for use with the
-	// timer, multiply by 1000 since the timer's units are milliseconds)
+	// Storage for the download intervals (in minutes; but for use with the
+	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
-	//int		m_nKbServerIncrementalUploadInterval; // BEW 11Feb13, deprecated
 
 #endif
 
@@ -3565,15 +3562,6 @@ public:
 // Declaration of event handlers
 
 	void OnTimer(wxTimerEvent& WXUNUSED(event));
-
-#if defined(_KBSERVER)
-
-	void OnKbServerDownloadTimer(wxTimerEvent& WXUNUSED(event));
-	void OnKbServerUploadTimer(wxTimerEvent& WXUNUSED(event));
-
-#endif
-
-
 	void CheckLockFileOwnership();
 
 	void OnFileNew(wxCommandEvent& event);
