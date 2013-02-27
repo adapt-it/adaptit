@@ -853,6 +853,10 @@ int CPunctCorrespPageCommon::HexToInt(const wxChar hexDigit)
 	}
 }
 
+
+// mrh 27Feb13 - while chasing a bug I tried replacing use of wxStringBuffer by calls to wxString::GetChar().  The result looks nicer, so
+//  I've stuck with it:
+
 wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 {
 	int len = nnnnStr.Length();
@@ -865,26 +869,15 @@ wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 		wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 		return _T("");
 	}
-	wxString s;
+
+    wxString s;
 	s.Empty();
-	wxStringBuffer pBuff(nnnnStr,5);
-	wxChar* pNNNN = pBuff;
-	wxChar hexDigit;
 	int value = 0;
-	int part = 0;
-	hexDigit = *pNNNN++;
-	part = HexToInt(hexDigit);
-	value += 4096 * part;
-	hexDigit = *pNNNN++;
-	part = HexToInt(hexDigit);
-	value += 256 * part;
-	hexDigit = *pNNNN++;
-	part = HexToInt(hexDigit);
-	value += 16 * part;
-	hexDigit = *pNNNN++;
-	part = HexToInt(hexDigit);
-	value += part;
-	s = (wxChar)value;
+    
+    value = ( HexToInt(nnnnStr.GetChar(0)) << 12) + ( HexToInt(nnnnStr.GetChar(1)) << 8 )
+            + ( HexToInt(nnnnStr.GetChar(2)) << 4 ) + HexToInt(nnnnStr.GetChar(3));
+    
+    s = (wxChar)value;
 	return s;
 }
 
@@ -895,6 +888,10 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 	wxString set = _T("0123456789abcdefABCDEF");
 	wxString hold;
 	int len = dataStr.Length();
+
+    if (len < 4)
+        return FALSE;       // mrh - sometimes I've found a len of 1 when the string should be empty
+
 	if (len > 9)
 	{
 		wxString msg;
@@ -906,8 +903,6 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 	}
 	wxString s;
 	s.Empty();
-	wxStringBuffer pBuff(dataStr,10);
-	wxChar* pNNNN = pBuff;
 	s1.Empty();
 	s2.Empty();
 
@@ -916,7 +911,7 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 	int i;
 	for (i = 0; i < 4; i++)
 	{
-		hold = *(pNNNN + i);
+        hold = dataStr.GetChar(i);
 		if (FindOneOf(hold,set) == -1)
 		{
 			wxString msg;
@@ -938,7 +933,7 @@ bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,w
 		// there is probably a second nnnn value, so try get it
 		for (i = 5; i < 9; i++)
 		{
-			hold = *(pNNNN + i);
+            hold = dataStr.GetChar(i);
 			if (FindOneOf(hold,set) == -1)
 			{
 				wxString msg;
