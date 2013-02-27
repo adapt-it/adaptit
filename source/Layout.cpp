@@ -3816,7 +3816,7 @@ void CLayout::MakeAllPilesNonCurrent()
 ///	2. In OnOpenDocument() to ensure correct initialization
 ///	3. In OnLButtonDown() - in one place to clear highlighting for a click not
 ///	   in any cell; in another place to clear highlighting for a click in a cell
-///	   not already highlighted [uses IsClickWithinAutoInsertionsHighlightedSpan()]
+///	   not already highlighted [uses IsLocationWithinAutoInsertionsHighlightedSpan()]
 ///	4. In OpenDocWithMerger()
 ///	5. In JumpForward()
 ///

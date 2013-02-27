@@ -50,7 +50,7 @@ private:
 	CAdapt_ItApp* m_pApp;
 	int	m_nRadioBoxSelection;
 	int receiveInterval; //(minutes)
-	//int sendInterval; //(minutes)
+	int oldReceiveInterval; //(minutes) to compare, to see if user changed
 
 	DECLARE_EVENT_TABLE()
 };

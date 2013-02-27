@@ -30,9 +30,6 @@
 #include <wx/utils.h> // for ::wxDirExists, ::wxSetWorkingDirectory, etc
 #include <wx/textfile.h> // for wxTextFile
 
-//#include <wx/dynarray.h>
-//WX_DEFINE_ARRAY_LONG(long, Array_of_long);
-
 #if defined(_KBSERVER)
 
 static wxMutex s_QueueMutex; // only need one, because we cannot have
@@ -48,11 +45,9 @@ using namespace std;
 #include "KB.h"
 #include "Pile.h"
 #include "SourcePhrase.h"
-//#include "AdaptitConstants.h"
 #include "RefString.h"
 #include "RefStringMetadata.h"
 #include "helpers.h"
-//#include "BString.h"
 #include "Xhtml.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
@@ -68,9 +63,6 @@ WX_DEFINE_LIST(DownloadsQueue);
 #include "jsonval.h"
 
 extern bool		gbIsGlossing;
-// whm 7Nov12 removed the static int below since it is never used and
-// generates the "defined but not used" warning from gcc
-//static int		totalBytesSent = 0;
 
 // A Note on the placement of SetupForKBServer(), and the protective wrapping boolean
 // m_bIsKBServerProject, defaulting to FALSE initially and then possibly set to TRUE by
@@ -81,22 +73,19 @@ extern bool		gbIsGlossing;
 // test. However, looking at which functionalities, at a higher level, call
 // CreateAndLoadKBs(), many of these are too early for any association of a project with
 // a kbserver to have been set up already. Therefore, possibly after a read of the
-// project configuration file may be appropriate -
-// since it's that configuration file which sets or clears the m_bIsKBServerProject app
-// member boolean.This is so: there are 5 contexts where the project config file is read:
-// in OnOpenDocument() for a MRU open which bypasses the ProjectPage of the wizard -- NO
-// LONGER, Bill has removed MRU support by approx 1 October 2012; in
-// DoUnpackDocument(), in HookUpToExistingProject() for setting up a collaboration, in
-// the OpenExistingProjectDlg.cpp file, associated with the "Access an existing
-// adaptation project" feature (for transforming adaptations to glosses); and most
-// importantly, in the frequently called OnWizardPageChanging() function of
-// ProjectPage.cpp. These are all appropriate places for calling SetupForKBServer() late
-// in such functions, in an if TRUE test block using m_bIsKBServerProject. (There is no
-// need, however, to call it in OpenExistingProjectDlg() because the project being opened
-// is not changed in the process, and since it's adaptations are being transformed to
-// glosses, it would not be appropriate to assume that the being-constructed new project
-/// should be, from it's inception, a kb sharing one. The user can later make it one if he
-// so desires.)
+// project configuration file may be appropriate - since it's that configuration file 
+// which sets or clears the m_bIsKBServerProject app member boolean. This is so: there are
+// 4 contexts where the project config file is read: in DoUnpackDocument(), in
+// HookUpToExistingProject() for setting up a collaboration, in the
+// OpenExistingProjectDlg.cpp file, associated with the "Access an existing adaptation
+// project" feature (for transforming adaptations to glosses); and most importantly, in the
+// frequently called OnWizardPageChanging() function of ProjectPage.cpp. These are all
+// appropriate places for calling SetupForKBServer() late in such functions, in an if TRUE
+// test block using m_bIsKBServerProject. (There is no need, however, to call it in
+// OpenExistingProjectDlg() because the project being opened is not changed in the process,
+// and since it's adaptations are being transformed to glosses, it would not be appropriate
+// to assume that the being-constructed new project should be, from it's inception, a kb
+// sharing one. The user can later make it one if he so desires.)
 // Scrap the above comment if we choose instead to instantiate KbServer on demand and
 // destroy it immediately afterwards.
 
@@ -110,16 +99,10 @@ IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
 {
-	// Initial Testing
-	/*
-	m_kbServerURLBase = _T("https://kbserver.jmarsden.org/entry");
-	m_kbServerUsername = _T("kevin_bradford@sil.org");
-	m_kbServerPassword = _T("password");
-	m_kbTypeForServer = 1;
-	*/
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 
-	// using the gbIsGlossing flag is the only way to set m_pKB reliably in the default constructor
+	// using the gbIsGlossing flag is the only way to set m_pKB reliably in the 
+	// default constructor
 	if (gbIsGlossing)
 	{
 		m_pKB = GetKB(2);
@@ -144,11 +127,8 @@ KbServer::KbServer(int whichType)
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = GetKB(FALSE);
 	m_queue.clear();
-	// The following English messages are hard-coded at the server end, so don't localize
-	// them, they are returned for certain error conditions and we'll want to know when
-	// one has been returned
-	m_noEntryMessage = _T("No matching entry found");
-	m_existingEntryMessage = _T("Existing matching entry found");
+	//m_noEntryMessage = _T("No matching entry found");
+	//m_existingEntryMessage = _T("Existing matching entry found");
 }
 
 
@@ -170,7 +150,6 @@ CKB* KbServer::GetKB(int whichType)
 		// get the glossing KB
 		wxASSERT(m_pApp->m_bGlossingKBReady && m_pApp->m_pGlossingKB != NULL);
 		return m_pApp->m_pGlossingKB;
-
 	}
 }
 
@@ -385,53 +364,7 @@ void KbServer::UpdateLastSyncTimestamp()
 	m_kbServerLastTimestampReceived.Empty();
 	ExportLastSyncTimestamp(); // ignore the returned boolean (if FALSE, a message will have been seen)
 }
-/* deprecated
-wxString KbServer::ExtractHumanReadableErrorMsg(std::string s)
-{
-	// make the standard string into a wxString
-	wxString errorMsg;
-	errorMsg.Empty(); // initialize
-	CBString cbstr(s.c_str());
-	wxString buffer(ToUtf16(cbstr));
 
-    // There are two "Content-Type lines, we want the second one which should be the last
-    // line with text before the one with the error we are intested in grabbing
-    wxString srchStr2 = _T("Content-Type");
-	int length2 = srchStr2.Len();
-	int offset2 = buffer.Find(srchStr2);
-	wxASSERT(offset2 != wxNOT_FOUND);
-	buffer = buffer.Mid(offset2 + length2); // bleed it off & the earlier stuff
-	// find the second one
-	offset2 = buffer.Find(srchStr2);
-	buffer = buffer.Mid(offset2 + length2); // bleed it off & the earlier stuff
-
-    // now search for the line we want -- assume it starts with "https:"
-	wxString srchStr = _T("https:");
-	int length = srchStr.Len();
-	int offset = buffer.Find(srchStr);
-	if (offset == wxNOT_FOUND)
-	{
-        // if we couldn't find it, return an empty string
-        return errorMsg;
-	}
-	else
-	{
-		// throw away everything preceding the matched string
-		buffer = buffer.Mid(offset + length); // typically what's left is "//"
-			// and the svr URL , "/entry/" followed by the entry ID, a space, then the
-			// error message we want - last in the buffer; so search for next space
-
-		int offset_to_space = buffer.Find(_T(' '));
-		wxASSERT(offset_to_space != wxNOT_FOUND);
-        buffer = buffer.Mid(offset_to_space + 1); // buffer now contains the error msg
-
-		// there may be CR+LF following, so we will Trim() the string
-		errorMsg = buffer;
-		errorMsg.Trim(); // remove following whitespace
-	}
-	return errorMsg;
-}
-*/
 void KbServer::ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext)
 {
 	// make the standard string into a wxString
@@ -541,8 +474,6 @@ bool KbServer::GetTextFileOpened(wxTextFile* pf, wxString& path)
 #endif
 	return bSuccess;
 }
-
-
 
 // Get and return the timestamp value last stored in persistent (i.e. on disk) storage.
 // Temporarily this storage is, when working with an adaptations KB, a file called
@@ -678,7 +609,7 @@ bool KbServer::ExportLastSyncTimestamp()
 }
 
 // accessors for the private arrays
-//wxArrayInt* KbServer::GetIDsArray()
+
 Array_of_long* KbServer::GetIDsArray()
 {
 	return &m_arrID;
@@ -709,71 +640,14 @@ wxArrayString* KbServer::GetTargetArray()
 	return &m_arrTarget;
 }
 
-// and those for caching... BEW 11Feb13, removed upload caching support
-/*
-wxArrayInt*	KbServer::GetCacheDeletedArray()
-{
-	return &m_arrCacheDeleted;
-}
-
-wxArrayString* KbServer::GetCacheSourceArray()
-{
-	return &m_arrCacheSource;
-}
-
-wxArrayString* KbServer::GetCacheTargetArray()
-{
-	return &m_arrCacheTarget;
-}
-
-// Remove the last entry from each array, in parralel, if the arraes are not empty
-void KbServer::RemoveLastFromCacheArrays()
-{
-	if (m_arrCacheSource.IsEmpty())
-	{
-		return;
-	}
-	size_t count = m_arrCacheSource.GetCount();
-	wxASSERT(count == m_arrCacheTarget.GetCount() && count == m_arrCacheDeleted.GetCount());
-	m_arrCacheSource.RemoveAt(count - 1);
-	m_arrCacheTarget.RemoveAt(count - 1);
-	m_arrCacheDeleted.RemoveAt(count - 1);
-}
-
-void KbServer::GetLastEntryData(wxString& sourceStr, wxString& translationStr, int& deletedFlag)
-{
-	sourceStr.Empty(); translationStr.Empty(); deletedFlag = 0; // initialization
-	if (m_arrCacheSource.IsEmpty())
-	{
-		return;
-	}
-	size_t count = m_arrCacheSource.GetCount();
-	wxASSERT(count == m_arrCacheTarget.GetCount() && count == m_arrCacheDeleted.GetCount());
-	sourceStr = m_arrCacheSource.Item(count - 1);
-	translationStr = m_arrCacheTarget.Item(count - 1);
-	deletedFlag = m_arrCacheDeleted.Item(count - 1);
-}
-
-bool KbServer::CacheHasContent()
-{
-	if (m_arrCacheSource.IsEmpty())
-		return FALSE;
-	else
-		return TRUE;
-}
-*/
-
 // callback functions for curl
 
 size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
-	//ptr = ptr; // avoid "unreferenced formal parameter" warning
 	userdata = userdata; // avoid "unreferenced formal parameter" warning
-
 	//wxString msg;
 	//msg = msg.Format(_T("In curl_read_data_callback: sending %s bytes."),(size*nmemb));
 	//wxLogDebug(msg);
-
 	str_CURLbuffer.append((char*)ptr, size*nmemb);
 	return size*nmemb;
 }
@@ -790,63 +664,19 @@ size_t curl_update_callback(void* ptr, size_t size, size_t nitems, void* userp)
 // BEW added 9Feb12
 size_t curl_headers_callback(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
-	//ptr = ptr; // avoid "unreferenced formal parameter" warning
 	userdata = userdata; // avoid "unreferenced formal parameter" warning
-
 	//wxString msg;
 	//msg = msg.Format(_T("In curl_headers_callback: sending %s bytes."),(size*nmemb));
 	//wxLogDebug(msg);
-
 	str_CURLheaders.append((char*)ptr, size*nmemb);
 	return size*nmemb;
 }
 
-
-/*
-wxString KbServer::LookupEntryForSourcePhrase( wxString wxStr_SourceEntry )
-{
-	CURL *curl;
-	CURLcode result;
-	char charUrl[1024];
-	char charUserpwd[511];
-
-	wxString wxStr_URL = GetServerURL() + '/' + GetSourceLanguageCode() + '/' + GetTargetLanguageCode() + '/' +
-		wxString::Format(_T("%d"), GetKBTypeForServer()) + '/' + wxStr_SourceEntry;
-	strncpy( charUrl , wxStr_URL.c_str() , 1024 );
-
-	wxString wxStr_Authentication = GetServerUsername() + ':' + GetServerPassword();
-	strncpy( charUserpwd , wxStr_Authentication.c_str() , 511 );
-
-	//curl_global_init(CURL_GLOBAL_ALL); whm 13Oct12 removed
-	curl = curl_easy_init();
-
-	if (curl) {
-		curl_easy_setopt(curl, CURLOPT_URL, charUrl);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
-		curl_easy_setopt(curl, CURLOPT_USERPWD, charUserpwd);
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer);
-
-		result = curl_easy_perform(curl);
-
-		if (result) {
-			printf("Result code: %d\n", result);
-		}
-		// whm 13Oct12 modified. Changed the following cleanup call to
-		// use the _easy_ version rather than the _global_ version.
-		// See the similar code in EmailReportDlg.cpp about line 758.
-		curl_easy_cleanup(curl); //curl_global_cleanup();
-	}
-
-	return str_CURLbuffer;
-
-}
-*/
 // return the CURLcode value, downloaded JSON data is extracted and stored in the private
 // arrays for that purpose, and other classes can obtain it using public getters which
 // each return a pointer to a single one of the arrays
+// BEW 28Feb13, currently, this function is not used, so until we need it, it is commented out
+/*
 int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 {
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
@@ -880,11 +710,9 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
-
 		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, str_CURLbuffer); // <-- not needed
 		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when header info is
 													  //not needed in the download (and below)
-
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
@@ -948,7 +776,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 
 	return 0;
 }
-
+*/
 // return the CURLcode value, downloaded JSON data is extracted and stored in the private
 // arrays for that purpose, and other classes can obtain it using public getters which
 // each return a pointer to a single one of the arrays.
@@ -1186,26 +1014,6 @@ void KbServer::ClearAllPrivateStorageArrays()
 	m_arrTimestamp.clear();
 }
 
-/* BEW 11Feb13 removed support for uploads caching
-void KbServer::ClearAllPrivateCacheArrays()
-{
-	m_arrCacheDeleted.clear();
-	m_arrCacheSource.clear();
-	m_arrCacheTarget.clear();
-}
-*/
-
-/* unused
-void KbServer::ClearOneIntArray(wxArrayInt* pArray)
-{
-	pArray->clear();
-}
-
-void KbServer::ClearOneStringArray(wxArrayString* pArray)
-{
-	pArray->clear();
-}
-*/
 void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 {
 	wxASSERT(pKB != NULL);
@@ -1225,7 +1033,10 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		// adjusted key from within AutoCapsLookup() which in turn would require that we
 		// modify this function to pass in the adjusted string for curKey via
 		// DownloadToKB's signature
-		rv = LookupEntriesForSourcePhrase(curKey);
+// LookupEntriesForSourcePhrase()'s code is currently commented out because we don't use it
+// and so I've commented this call out here; if we end up using it, then remove this
+// commenting out
+//		rv = LookupEntriesForSourcePhrase(curKey);
 		if (rv != 0)
 		{
 			ClearAllPrivateStorageArrays(); // don't risk passing on possibly bogus values
@@ -1723,7 +1534,7 @@ void KbServer::DoGetAll()
 	m_pKB->StoreEntriesFromKbServer(this);
 }
 
-/*  needs rewriting now that we subclass off of wxThreadHelper, rather than wxObject
+/*  we probably won't use threading for a bulk upload
 void KbServer::UploadToKbServerThreaded()
 {
 	// Here's where I'll test doing this on a thread
@@ -1753,6 +1564,7 @@ void KbServer::UploadToKbServerThreaded()
 }
 */
 
+// TODO -- the bulk upload function here; currently it's just used for testing code
 void KbServer::UploadToKbServer()
 {
 	wxString srcPhrase = _T("graun");
@@ -2118,22 +1930,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
     str_CURLheaders.clear(); // BEW added 9Feb13
 	return 0;
 }
-/* deprecated
-wxString KbServer::GetLastError()
-{
-	return m_errorStr;
-}
 
-void KbServer::EmptyErrorString()
-{
-	m_errorStr.Empty();
-}
-
-void KbServer::SetErrorString(wxString errorStr)
-{
-	m_errorStr = errorStr;
-}
-*/
 //=============================== end of KbServer class ============================
 
 #endif // for _KBSERVER

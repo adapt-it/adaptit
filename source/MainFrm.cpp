@@ -85,10 +85,14 @@
 #include "FreeTrans.h"
 #include "KB.h"
 #include "StatusBar.h" // EDB added 2Oct12
+
+#if defined(_KBSERVER)
 #include "KBSharing.h" // BEW added 14Jan13
 #include "KBSharingSetupDlg.h" // BEW added 15Jan13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
+#include "Timer_KbServerChangedSince.h"
+#endif
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -4165,17 +4169,24 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 			// Try an incremental download; if the m_KbServerDownloadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered
-			if (pKbSvr->IsKBSharingEnabled() && gpApp->m_bKbServerIncrementalDownloadPending)
+			bool bIsEnabled = pKbSvr->IsKBSharingEnabled();
+			bool bIsPending = gpApp->m_bKbServerIncrementalDownloadPending;
+			bool bTimerIsRunning = gpApp->m_pKbServerDownloadTimer->IsRunning();
+			if (bIsEnabled && bIsPending && bTimerIsRunning)
 			{
-#if defined(_DEBUG)
-				wxBell(); // temporary bells, so I can hear it working
-				wxBell();
-				wxBell();
-#endif
+				/* Yep, timer works
+				#if defined(_DEBUG)
+					wxBell(); wxBell(); // a bell, so I can hear it to verify it's working right		
+				#endif
+				*/
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
+
 				Thread_ChangedSince* pThread = new Thread_ChangedSince;
 				wxThreadError error =  pThread->Create(10240); // set stacksize of 10kb
-				// we don't expect Create() will fail, so just check with an assert
+
+				// we don't expect Create() will fail, but let the user see an English message
+				// We'll not put anything in LogUserAction() in case there are multiple
+				// failures - which would bloat the log file
 				if(error != wxTHREAD_NO_ERROR)
 				{
 					delete pThread;
@@ -4201,6 +4212,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				}
 				return; // only do this thread on one OnIdle() call, subsequent OnIdle() calls
 						// can attempt the additional kbserver actions in the code below
+			}
+			else
+			{
+				// If the user has sharing temporarily disabled, reset the boolean to FALSE;
+				// as disabling kb sharing doesn't stop the timer  (we could instead demur
+				// from setting the boolean when sharing is disabled, but then we'd have
+				// to give the timer knowledge of the KbServer instantiations, and it's simpler 
+				// not to do that)
+				gpApp->m_bKbServerIncrementalDownloadPending = FALSE;
 			}
 			
 			// Do the removing from queue of the first KbServerEntry struct pointer, and

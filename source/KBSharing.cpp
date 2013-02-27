@@ -46,6 +46,7 @@
 #include "KB.h"
 #include "KbServer.h"
 #include "KBSharing.h"
+#include "Timer_KbServerChangedSince.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -79,7 +80,8 @@ KBSharing::KBSharing(wxWindow* parent) // dialog constructor
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
-
+	oldReceiveInterval = gpApp->m_nKbServerIncrementalDownloadInterval; // get the current value (minutes)
+	receiveInterval = oldReceiveInterval; // initialize to the current value
 }
 
 KBSharing::~KBSharing() // destructor
@@ -89,10 +91,21 @@ KBSharing::~KBSharing() // destructor
 
 void KBSharing::OnOK(wxCommandEvent& myevent)
 {
-	// update the sending and receiving intervals
-	m_pApp->m_nKbServerIncrementalDownloadInterval = receiveInterval;
-	//m_pApp->m_nKbServerIncrementalUploadInterval = sendInterval; // BEW deprecated 11Feb13
+	// update the receiving interval, if the user has changed it, and if changed, then
+	// restart the timer with the new interval; but do this only provided the timer is
+	// currently instantiated and is running (KB sharing might be temporarily disabled, or
+	// enabled, we don't care which - and it doesn't matter as far as setting the interval
+	// is concerned)
+	if (receiveInterval != oldReceiveInterval && 
+		m_pApp->m_pKbServerDownloadTimer != NULL &&
+		m_pApp->m_pKbServerDownloadTimer->IsRunning())
+	{
+		// The user has changed the interval setting (minutes), so store the new value
+		m_pApp->m_nKbServerIncrementalDownloadInterval = receiveInterval;
 
+		// restart the time with the new interval
+		m_pApp->m_pKbServerDownloadTimer->Start(60000 * receiveInterval); // param is milliseconds
+	}
 	myevent.Skip();
 }
 
@@ -138,17 +151,9 @@ void KBSharing::OnSpinCtrlReceiving(wxSpinEvent& WXUNUSED(event))
 		receiveInterval = 10;
 	if (receiveInterval < 1)
 		receiveInterval = 1;
+	// units for the above are minutes; so multiply by 60,000 to get milliseconds
 }
-/* deprecated BEW 11Feb13
-void KBSharing::OnSpinCtrlSending(wxSpinEvent& WXUNUSED(event))
-{
-	sendInterval = m_pSpinSending->GetValue();
-	if (sendInterval > 10)
-		sendInterval = 10;
-	if (sendInterval < 1)
-		sendInterval = 1;
-}
-*/
+
 void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 {
 	// We shouldn't be able to see the dlg if its not a KB sharing project,

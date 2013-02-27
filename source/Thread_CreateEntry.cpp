@@ -6,7 +6,7 @@
 /// \rcs_id $Id: Thread_CreateEntry.cpp 3065 2013-01-29 02:00:00Z bruce_waters@sil.org $
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the Thread_CreateEntry class.
+/// \description	This is the implementation file for the Thread_CreateEntry class.
 /// The Thread_CreateEntry is an experimental thread class for uploading a single new
 /// kbserver entry for eventual sharing; it's an attempt to decouple the upload from the
 /// user's normal adapting work, due to high network latency causing unacceptable delays
