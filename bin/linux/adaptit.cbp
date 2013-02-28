@@ -419,6 +419,8 @@
 		<Unit filename="../../source/Thread_PseudoUndelete.h" />
 		<Unit filename="../../source/Thread_UploadToKBServer.cpp" />
 		<Unit filename="../../source/Thread_UploadToKBServer.h" />
+		<Unit filename="../../source/Timer_KbServerChangedSince.cpp" />
+		<Unit filename="../../source/Timer_KbServerChangedSince.h" />
 		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
 		<Unit filename="../../source/TransformToGlossesDlg.h" />
 		<Unit filename="../../source/UnitsDlg.cpp" />
