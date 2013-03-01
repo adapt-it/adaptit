@@ -76,6 +76,37 @@
 					<Add library="~/wx2.9/buildgtku/lib/*.*" />
 				</Linker>
 			</Target>
+			<Target title="Debug">
+				<Option output="bin/DebugWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX2.8/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_KBSERVER" />
+				</Compiler>
+				<Linker>
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
+					<Add option="-lcurl -luuid" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/ReleaseWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWX2.8/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --libs`" />
+					<Add option="-lcurl -luuid" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
