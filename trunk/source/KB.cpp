@@ -3477,7 +3477,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pCreateEntryThread->m_source = key;
 				pCreateEntryThread->m_translation = pRefString->m_translation;
 				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pCreateEntryThread->Create(10240);
+				wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					wxString msg;
@@ -3576,7 +3576,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					pCreateEntryThread->m_source = key;
 					pCreateEntryThread->m_translation = pRefString->m_translation;
 					// now create the runnable thread with explicit stack size of 10KB
-					wxThreadError error = pCreateEntryThread->Create(10240);
+					wxThreadError error = pCreateEntryThread->Create(1024); // was wxThreadError error = pCreateEntryThread->Create(10240);
 					if (error != wxTHREAD_NO_ERROR)
 					{
 						wxString msg;
@@ -3710,7 +3710,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 								pPseudoUndeleteThread->m_source = key;
 								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
 								// now create the runnable thread with explicit stack size of 10KB
-								wxThreadError error =  pPseudoUndeleteThread->Create(10240);
+								wxThreadError error =  pPseudoUndeleteThread->Create(1024); // was wxThreadError error =  pPseudoUndeleteThread->Create(10240);
 								if (error != wxTHREAD_NO_ERROR)
 								{
 									wxString msg;
@@ -3843,7 +3843,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							pCreateEntryThread->m_source = key;
 							pCreateEntryThread->m_translation = pRefString->m_translation;
 							// now create the runnable thread with explicit stack size of 10KB
-							wxThreadError error =  pCreateEntryThread->Create(10240);
+							wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
 							if (error != wxTHREAD_NO_ERROR)
 							{
 								wxString msg;
@@ -4299,7 +4299,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 				pCreateEntryThread->m_source = key;
 				pCreateEntryThread->m_translation = pRefString->m_translation;
 				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pCreateEntryThread->Create(10240);
+				wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					wxString msg;
@@ -4476,7 +4476,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					pCreateEntryThread->m_source = key;
 					pCreateEntryThread->m_translation = pRefString->m_translation;
 					// now create the runnable thread with explicit stack size of 10KB
-					wxThreadError error =  pCreateEntryThread->Create(10240);
+					wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
 					if (error != wxTHREAD_NO_ERROR)
 					{
 						wxString msg;
@@ -4643,7 +4643,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 								pPseudoUndeleteThread->m_source = key;
 								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
 								// now create the runnable thread with explicit stack size of 10KB
-								wxThreadError error =  pPseudoUndeleteThread->Create(10240);
+								wxThreadError error =  pPseudoUndeleteThread->Create(1024); // was wxThreadError error =  pPseudoUndeleteThread->Create(10240);
 								if (error != wxTHREAD_NO_ERROR)
 								{
 									wxString msg;
@@ -4805,7 +4805,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 							pCreateEntryThread->m_source = key;
 							pCreateEntryThread->m_translation = pRefString->m_translation;
 							// now create the runnable thread with explicit stack size of 10KB
-							wxThreadError error =  pCreateEntryThread->Create(10240);
+							wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
 							if (error != wxTHREAD_NO_ERROR)
 							{
 								wxString msg;

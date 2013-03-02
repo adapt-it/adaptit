@@ -67,9 +67,4 @@ void* Thread_UploadToKBServer::Entry()
 	return (void*)NULL;
 }
 
-bool Thread_UploadToKBServer::TestDestroy()
-{
-  return true;
-}
-
 #endif // for _KBSERVER

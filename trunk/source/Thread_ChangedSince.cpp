@@ -80,9 +80,4 @@ void* Thread_ChangedSince::Entry()
 	return (void*)NULL;
 }
 
-bool Thread_ChangedSince::TestDestroy()
-{
-  return true;
-}
-
 #endif // for _KBSERVER

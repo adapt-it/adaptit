@@ -51,10 +51,14 @@ using namespace std;
 #include "Xhtml.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
-#include "Thread_UploadToKBServer.h"
+//#include "Thread_UploadToKBServer.h"
+#include "Thread_UploadOne.h"
 #include "KbServer.h"
 
 WX_DEFINE_LIST(DownloadsQueue);
+WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadOne, for kbserver support
+							  // (see member m_uploadsList)
+
 
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
@@ -1245,11 +1249,88 @@ KbServerEntry KbServer::GetEntryStruct()
 	return m_entryStruct;
 }
 
+// Same as CreateEntry(), but with anything related to failure stripped out - we want this
+// to succeed as quickly as possible, and we'll ignore failures
+// Note: we pass in, by value, everything the function needs, so that it calls nothing
+// external to itself. This makes it safe to use in a thread without a mutex being needed
+// - provided the thread has public variables for those in the signature below, & those in
+// the thread get set after the thread is created and before it is run
+int KbServer::CreateEntry_Minimal(	KbServerEntry& entry,
+									wxString& kbType,
+									wxString& password,
+									wxString& username,
+									wxString& srcLangCode,
+									wxString& tgtLangCode,
+									wxString& url)
+{
+	CURL *curl;
+	CURLcode result = CURLE_OK; // initialize result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("entry");
+	wxString aUrl, aPwd;
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = username + colon + password;
+	charUserpwd = ToUtf8(aPwd);
+
+	// populate the JSON object
+	jsonval[_T("sourcelanguage")] = srcLangCode;
+	jsonval[_T("targetlanguage")] = tgtLangCode;
+	jsonval[_T("source")] = entry.source;
+	jsonval[_T("target")] = entry.translation;
+	jsonval[_T("user")] = username;
+	jsonval[_T("type")] = kbType;
+	jsonval[_T("deleted")] = (long)0; // i.e. a normal entry
+
+	// convert it to string form
+	wxJSONWriter writer; wxString str;
+	writer.Write(jsonval, str);
+	// convert it to utf-8 stored in CBString
+	strVal = ToUtf8(str);
+
+	aUrl = url + slash + container + slash;
+	charUrl = ToUtf8(aUrl);
+
+	// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		headers = curl_slist_append(headers, "Accept: application/json");
+		// set data & options
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		// transmit
+		result = curl_easy_perform(curl);		
+		curl_slist_free_all(headers);
+	}
+	curl_easy_cleanup(curl);
+//#if defined(_DEBUG)
+//	wxLogDebug(_T("CreateEntry_Minimal(): src= %s  tgt= %s  result= %d"),
+//		entry.source, entry.translation, result);
+//#endif
+	return result;
+}
+
 int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 {
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
 	CURL *curl;
-	CURLcode result; // result code
+	CURLcode result = CURLE_OK; // initialize result code
 	struct curl_slist* headers = NULL;
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
@@ -1542,7 +1623,7 @@ void KbServer::UploadToKbServerThreaded()
 	pUploadToKBServerThread->m_pKbSvr = this;
 
 	// now create the runnable thread with explicit stack size of 10KB
-	wxThreadError error =  pUploadToKBServerThread->Create();  //10240
+	wxThreadError error =  pUploadToKBServerThread->Create(1024);  // was wxThreadError error =  pUploadToKBServerThread->Create(10240);
 	if (error != wxTHREAD_NO_ERROR)
 	{
 		wxString msg;
@@ -1564,123 +1645,144 @@ void KbServer::UploadToKbServerThreaded()
 }
 */
 
-// TODO -- the bulk upload function here; currently it's just used for testing code
+// The upload function - we do it by multiple threads, each thread having one normal entry
+// as payload (we don't upload any pseudo-deleted ones); and we ignore all errors - anything
+// that goes into the remote DB will not give an error, anything which doesn't, we can just
+// ignore it and let the thread die. So there's no return value for this function.
 void KbServer::UploadToKbServer()
 {
-	wxString srcPhrase = _T("graun");
-	wxString tgtPhrase = _T("earth");
-	long entryID = 0; // initialize (it might not be used)
-	int rv = CreateEntry(srcPhrase,tgtPhrase);
-	if (rv == CURLE_HTTP_RETURNED_ERROR)
-	{
-		int rv2 = LookupEntryFields(srcPhrase, tgtPhrase);
-		KbServerEntry e = GetEntryStruct();
-		entryID = e.id; // an undelete of a pseudo-delete will need this value
 #if defined(_DEBUG)
-		wxLogDebug(_T("LookupEntryFields: for [%s & %s]: id = %d , source = %s , translation = %s , deleted = %d , username = %s"),
-			srcPhrase.c_str(), tgtPhrase.c_str(), e.id, e.source.c_str(), e.translation.c_str(), e.deleted, e.username.c_str());
+	wxDateTime now = wxDateTime::Now();
+	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
-		if (rv2 == CURLE_HTTP_RETURNED_ERROR)
-		{
-#if defined(_DEBUG)
-			wxBell(); // we don't expect any error
-#endif
-			;
-		}
-		else
-		{
-			if (e.deleted == 1)
-			{
-				// do an un-pseudodelete here, use the entryID value above
-				// (reuse rv2, because if it fails we'll attempt nothing additional
-				//  here, not even to tell the user anything)
-				rv2 = PseudoDeleteOrUndeleteEntry(entryID, doUndelete);
-			}
-		}
-
-// it all worked, and in the end {graun,earth,1} became {graun,earth,0} Yay!
-
-
-	}
-/*
-	// test queue
-	KbServerEntry* pEntry = new KbServerEntry;
-	pEntry->id = 1;
-	m_queue.push_back(pEntry);
-	pEntry = new KbServerEntry;
-	pEntry->id = 2;
-	m_queue.push_back(pEntry);
-	pEntry = new KbServerEntry;
-	pEntry->id = 3;
-	m_queue.push_back(pEntry);
-
-	KbServerEntry* pPopped = NULL;
-
-	pPopped = m_queue.front();
-	wxASSERT(pPopped->id == 1);
-	m_queue.pop_front();
-
-	pPopped = m_queue.front();
-	wxASSERT(pPopped->id == 2);
-	m_queue.pop_front();
-
-	pPopped = m_queue.front();
-	wxASSERT(pPopped->id == 3);
-	m_queue.pop_front();
-
-	wxASSERT(m_queue.GetCount() == 0);
-*/
-/*
-	wxString srcPhrase;
-	CTargetUnit* cTU;
-	wxString tgtPhrase;
-	int iTotalSent = 0;
-
-	CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
-
-	//Need to get each map
-	for (int i = 0; i< MAX_WORDS; i++)
+	if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
 	{
-		//for each map
-		for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
+		// scan the KB and store src-tgt pairs for normal entries only in KbServerEntry
+		// structs (created on the heap), in the m_uploadsList
+		wxString srcPhrase;
+		CTargetUnit* pTU;
+		
+		KbServerEntry* reference;
+		int iTotalEntries = 0;	
+		CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
+
+		//Need to get each map
+		for (int i = 0; i< MAX_WORDS; i++)
 		{
-			wxASSERT(currKB->m_pMap[i] != NULL);
-
-			if (!currKB->m_pMap[i]->empty())
+			//for each map
+			for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
 			{
-				srcPhrase = iter->first;
+				wxASSERT(currKB->m_pMap[i] != NULL);
 
-				cTU = iter->second;
-				CRefString* pRefString = NULL;
-				TranslationsList::Node* pos = cTU->m_pTranslations->GetFirst();
-				wxASSERT(pos != NULL);
-
-				wxDateTime now = wxDateTime::Now();
-				wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::CET).c_str());
-
-				while (pos != NULL)
+				if (!currKB->m_pMap[i]->empty())
 				{
-					pRefString = (CRefString*)pos->GetData();
-					wxASSERT(pRefString != NULL);
-					pos = pos->GetNext();
+					srcPhrase = iter->first;
 
-					if (!pRefString->m_translation.IsEmpty())
+					pTU = iter->second;
+					CRefString* pRefString = NULL;
+					TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+					wxASSERT(pos != NULL);
+
+					while (pos != NULL)
 					{
-						CreateEntry(srcPhrase, pRefString->m_translation, pRefString->GetDeletedFlag());
-						// test info
-						wxDateTime now = wxDateTime::Now();
-						iTotalSent++;
-						wxLogDebug(_T("%d UploadToKBServer()->CreateEntry() [time]:  %s    [source]:  %s    [target]:  %s"),
-							iTotalSent, now.Format(_T("%c"), wxDateTime::CET).c_str(),
-							srcPhrase.c_str(), pRefString->m_translation.c_str());
+						pRefString = (CRefString*)pos->GetData();
+						wxASSERT(pRefString != NULL);
+						pos = pos->GetNext();
+
+						if (pRefString->GetDeletedFlag() == FALSE)
+						{
+							// upload only "normal" entries, ignore pseudo-deleted ones
+							reference = new KbServerEntry;
+							reference->source = srcPhrase;
+							reference->translation = pRefString->m_translation;
+							// store the new struct
+							m_uploadsList.Append(reference);
+						}
 					}
 				}
 			}
-		}
-	} // for
-	wxLogDebug(_T("UploadToKBServer() Done!"));
+		} // for loop ends
+		iTotalEntries = (int)m_uploadsList.GetCount();
 
-*/
+#if defined(_DEBUG)
+		wxLogDebug(_T("UploadToKbServer(), number of KbServerEntry structs =  %d"), iTotalEntries);
+#endif
+		// In a loop, create and fire off a thread for each KbServerEntry struct (later, add a
+		// timer or whatever else may be needed)
+		UploadsList::iterator iter;
+		for (iter = m_uploadsList.begin(); iter != m_uploadsList.end(); ++iter)
+		{
+			wxThreadError error = wxTHREAD_NO_ERROR;
+			if (!m_uploadsList.empty()) // a bit of safety-first protection
+			{
+				reference = *iter; // get next KbServerEntry struct ptr from the list
+				// make a new thread for transmitting it's data to the remote DB
+				Thread_UploadOne* pThread = new Thread_UploadOne;
+				error = pThread->Create(1024); // experiment with stack sizes, start with 1kb
+				if (error != wxTHREAD_NO_ERROR)
+				{
+					// do something, we don't expect it to fail
+					wxASSERT(FALSE);
+				}
+				else
+				{
+					/* params in Thread_UploadOne for CreateEntry_Minimal()
+					KbServer*			m_pKbSvr;
+					KbServerEntry		m_entry;
+					wxString			m_kbType;
+					wxString			m_password;
+					wxString			m_username;
+					wxString			m_srcLangCode;
+					wxString			m_tgtLangCode;
+					wxString			m_url;
+					*/
+					// no error, so we can run it, after populating it with needed data
+					pThread->m_pKbSvr = this;
+					pThread->m_entry.source = reference->source;
+					pThread->m_entry.translation = reference->translation;
+					wxItoa(m_kbServerType, pThread->m_kbType);
+					pThread->m_password = GetKBServerPassword();
+					pThread->m_username = GetKBServerUsername();
+					pThread->m_srcLangCode = GetSourceLanguageCode();
+					pThread->m_tgtLangCode = GetTargetLanguageCode();
+					pThread->m_url = GetKBServerURL();
+
+					// run the thread
+					error = pThread->Run(); // ignore the error value
+                    // later delete from the heap the struct we've just used, but not here
+                    // because the thread is running in memory and may be so for a long
+                    // time after this function returns - so we need a flag to tell us when
+                    // the last one has finished (I'll try a couple of ints in global
+                    // space, one for total entries, another for the count of dead threads,
+                    // and when the two numbers match, the structs can be deleted --
+                    // testing can be done in OnIdle() -- not foolproof, for if the upload
+                    // is done just before the m_pKbSvr instance is killed - eg user
+                    // navigates to a different project or exits the app, any
+                    // still-to-finish threads will all die together, but at least that
+                    // won't break anything important)
+				}
+			}
+		}
+		DeleteUploadEntries();
+	}
+#if defined(_DEBUG)
+	now = wxDateTime::Now();
+	wxLogDebug(_T("UploadToKBServer() end time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
+#endif
+}
+
+void KbServer::DeleteUploadEntries()
+{
+	UploadsList::iterator iter;
+	KbServerEntry* pStruct = NULL;
+	for (iter = m_uploadsList.begin(); iter != m_uploadsList.end(); ++iter)
+	{
+		pStruct = *iter;
+		// delete it
+		delete pStruct;
+	}
+	// now clear the list
+	m_uploadsList.clear();
 }
 
 void KbServer::PushToQueueEnd(KbServerEntry* pEntryStruct) // protect with a mutex
@@ -1917,7 +2019,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 				wxString msg;
 				msg  = msg.Format(_T("ChangedSince_Queued() error:  HTTP status: %d   %s"),
                                   m_httpStatusCode, m_httpStatusText.c_str());
-                wxLogDebug(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
+                wxMessageBox(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
 				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
@@ -1932,6 +2034,176 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 }
 
 //=============================== end of KbServer class ============================
+
+/* valid but deprecated code - the bulk uploader
+
+int KbServer::UploadToKbServer()
+{
+	CURL *curl;
+	CURLcode result = CURLE_OK; // result code, initialize to "no error" (0)
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString kbType;
+	wxItoa(GetKBServerType(),kbType);
+	wxJSONValue jsonval; // construct JSON object
+	int index = -1; // initialize index into the JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("entry");
+	wxString aUrl, aPwd;
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	// scan the KB and convert its data to a JSON object
+	wxString srcPhrase;
+	CTargetUnit* pTU;
+	int iTotalSent = 0;	
+
+	// Get the entry parts which are constant, for quick access
+	wxString srcCode = GetSourceLanguageCode();
+	wxString tgtCode = GetTargetLanguageCode();
+	wxString username = GetKBServerUsername();
+	wxString password = GetKBServerPassword();
+#if defined(_DEBUG)
+	wxDateTime now = wxDateTime::Now();
+	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
+#endif
+	CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
+
+	//Need to get each map
+	for (int i = 0; i< MAX_WORDS; i++)
+	{
+		//for each map
+		for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
+		{
+			wxASSERT(currKB->m_pMap[i] != NULL);
+
+			if (!currKB->m_pMap[i]->empty())
+			{
+				srcPhrase = iter->first;
+
+				pTU = iter->second;
+				CRefString* pRefString = NULL;
+				TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+				wxASSERT(pos != NULL);
+
+				while (pos != NULL)
+				{
+					pRefString = (CRefString*)pos->GetData();
+					wxASSERT(pRefString != NULL);
+					pos = pos->GetNext();
+
+					if (!pRefString->m_translation.IsEmpty())
+					{
+						index++;
+						jsonval[index][_T("sourcelanguage")] = srcCode;
+						jsonval[index][_T("targetlanguage")] = tgtCode;
+						jsonval[index][_T("source")] = srcPhrase;
+						jsonval[index][_T("target")] = pRefString->m_translation;
+						jsonval[index][_T("type")] = kbType;
+						jsonval[index][_T("user")] = username;
+						jsonval[index][_T("deleted")] = pRefString->GetDeletedFlag() ? (long)1 : (long)0; 
+					}
+				}
+			}
+		}
+	} // for loop ends
+	iTotalSent = index + 1;
+#if defined(_DEBUG)
+	wxLogDebug(_T("UploadToKbServer(), JSON elements sent:  %d  7-field arrays"), iTotalSent);
+#endif
+
+	// convert the JSON object to text form, and then to UTF8, ready for transmission
+	wxJSONWriter writer; wxString str;
+	writer.Write(jsonval, str);
+	// convert it to utf-8 stored in CBString
+	strVal = ToUtf8(str);
+
+	aUrl = GetKBServerURL() + slash + container + slash;
+	charUrl = ToUtf8(aUrl);
+
+	// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		headers = curl_slist_append(headers, "Accept: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		// ask for the headers to be prepended to the body - this is a good choice here
+		// because no json data is to be returned
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		// curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("UploadToKbServer() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+		
+		curl_slist_free_all(headers);
+		str_CURLbuffer.clear();
+
+        // Typically, result will contain CURLE_OK if an error was a HTTP one and so the
+        // next block won't then be entered; don't bother to localize this one, we don't
+        // expect it will happen much if at all
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("UploadToKbServer() result code: %d Error: %s"), 
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when bulk-uploading entries"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+#if defined(_DEBUG)
+	now = wxDateTime::Now();
+	wxLogDebug(_T("UploadToKBServer() finish time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
+	wxLogDebug(_T("UploadToKBServer() Done!   Return value = %d"), result);
+#endif
+
+	// Work out what to return, depending on whether or not a HTTP error happened, and
+    // which one it was
+	if (m_httpStatusCode >= 400)
+	{
+		// Probably 400 "Bad Request" should be the only one we get.
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, I'll return 22 i.e. 
+		// CURLE_HTTP_RETURNED_ERROR to the caller
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
+	return 0;
+}
+
+
+*/
+
 
 #endif // for _KBSERVER
 

@@ -4122,8 +4122,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     }
 #endif
 
+
 #if defined(_KBSERVER)
-// TODO -- code for cached new kbserver entries to be sent to remote server
+	
+	// TODO -- code for cached new kbserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
 	if (gpApp->m_bIsKBServerProject)
@@ -4141,48 +4143,17 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// at launch time, pKbSvr will still be NULL, so test for this
 		if (pKbSvr != NULL)
 		{
-			/* BEW 11Feb13 removed caching support for uploads
-			if (pKbSvr->IsKBSharingEnabled() && pKbSvr->IsCachingON() && pKbSvr->CacheHasContent())
-			{
-				int deletedFlag;
-				wxString sourceStr;
-				wxString translationStr;
-				pKbSvr->GetLastEntryData(sourceStr, translationStr, deletedFlag);
-				bool bDeleted = deletedFlag == 1 ? TRUE : FALSE;
-				#if defined(_DEBUG)
-				wxArrayInt* pArrInt = pKbSvr->GetCacheDeletedArray();
-				size_t theCount = pArrInt->GetCount();
-				wxLogDebug(_T("                       OnIdle: count=%d  src [ %s ] tgt [ %s ] flag %d"),
-					theCount, sourceStr.c_str(), translationStr.c_str(), deletedFlag);
-				#endif
-				int returnValue = pKbSvr->CreateEntry(sourceStr, translationStr, bDeleted);
-				#if defined(_DEBUG)
-				wxLogDebug(_T("OnIdle: CreateEntry returned: %d     <<-- If 0 then NO ERROR"), returnValue);
-				#endif
-				if (returnValue == 0)
-				{
-					// the data transmission succeeded
-					pKbSvr->RemoveLastFromCacheArrays();
-				}
-			}
-			*/
-
-			// Try an incremental download; if the m_KbServerDownloadTimer has fired, the
+			// Do an incremental download; if the m_KbServerDownloadTimer has fired, the
 			// 'pending' flag will have been made TRUE so the next block can be entered
 			bool bIsEnabled = pKbSvr->IsKBSharingEnabled();
 			bool bIsPending = gpApp->m_bKbServerIncrementalDownloadPending;
 			bool bTimerIsRunning = gpApp->m_pKbServerDownloadTimer->IsRunning();
 			if (bIsEnabled && bIsPending && bTimerIsRunning)
 			{
-				/* Yep, timer works
-				#if defined(_DEBUG)
-					wxBell(); wxBell(); // a bell, so I can hear it to verify it's working right		
-				#endif
-				*/
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE; // disable tries until next timer shot
 
 				Thread_ChangedSince* pThread = new Thread_ChangedSince;
-				wxThreadError error =  pThread->Create(10240); // set stacksize of 10kb
+				wxThreadError error =  pThread->Create(1024); // was wxThreadError error =  pThread->Create(10240);
 
 				// we don't expect Create() will fail, but let the user see an English message
 				// We'll not put anything in LogUserAction() in case there are multiple
