@@ -116,7 +116,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 // adaptation project designated as one which is to support KB sharing
 
 #if defined(_KBSERVER)
-
+		
 // forward declaration
 class KbServer;
 
@@ -129,7 +129,7 @@ const int ID_MENU_SHOW_KBSERVER_DLG	= 980;
 // functionality, in the app function OnInit())
 const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // ID for m_KbServerDownloadTimer
-const int ID_KBSERVER_DOWNLOAD_TIMER = 978;
+//const int ID_KBSERVER_DOWNLOAD_TIMER = 978;
 // ID for m_KbServerUploadTimer
 //const int ID_KBSERVER_UPLOAD_TIMER = 977; // BEW deprecated 11Feb13
 

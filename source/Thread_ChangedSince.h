@@ -67,9 +67,6 @@ public:
 	// won't need to
 	virtual void*		Entry();
 
-	virtual bool    TestDestroy(); // not needed, but may avoid a link error (all virtual
-								   // functions should be defined in the subclass)
-
 protected:
 
 private:

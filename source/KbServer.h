@@ -51,6 +51,10 @@ struct KbServerEntry; // NOTE, omitting this forwards declaration and having the
 					  // definition here instead, does NOT WORK! And the WX_DEFINE_LIST() macro
 					  // in the .cpp file must be somewhere AFTER the #include "KbServer.h" line
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
+WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the app instance
+		// because kbserver upload threads may not all be finished when the two kbserver
+		// instances are released, and if they are not finished, then the KbServerEntry 
+		// structs they store will need to live on as long as possible
 
 // Not all values are needed from each entry, so I've commented out those the KB isn't
 // interested in
@@ -106,13 +110,30 @@ public:
 public:
 
 	// The API which we expose (note:  srcPhrase & tgtPhrase are often each
-	// just a single word
+	// just a single word)
+    // By passing in a copy of the required strings, we avoid mutex problems that would
+    // happen because the internal code would otherwise need to make calls to the KbServer
+	// instance to get needed params; these API kbserver functions are setup within the
+	// main thread before the containing thread is fired, and so the parameter accesses
+	// are synchronous and no mutex is required
+	
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused
+	
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
+	int		 CreateEntry_Minimal(	KbServerEntry& entry,
+									wxString& kbType,
+									wxString& password,
+									wxString& username,
+									wxString& srcLangCode,
+									wxString& tgtLangCode,
+									wxString& url);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp);
+	void	 UploadToKbServer(); // no return value, because we ignore all errors
+	void	 DeleteUploadEntries();
+
 	// public setters
 	void	 SetKBServerType(int type);
 	void	 SetKBServerURL(wxString url);
@@ -133,11 +154,11 @@ public:
 	bool	  ExportLastSyncTimestamp(); // exports it to lastsync.txt file
 									     // as an ascii string literal
 	// public helpers
-	void			ClearStrCURLbuffer();
-	void			UpdateLastSyncTimestamp();
-	void			EnableKBSharing(bool bEnable);
-	bool			IsKBSharingEnabled();
-	CKB*			GetKB(int whichType); // whichType is 1 for adapting KB, 2 for glossing KB
+	void	ClearStrCURLbuffer();
+	void	UpdateLastSyncTimestamp();
+	void	EnableKBSharing(bool bEnable);
+	bool	IsKBSharingEnabled();
+	CKB*	GetKB(int whichType); // whichType is 1 for adapting KB, 2 for glossing KB
 
 protected:
 
@@ -213,7 +234,6 @@ public:
 	wxString	GetPathSeparator();
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
-	void		UploadToKbServer();
 
 	// Functions we'll want to be able to call programmatically... (button handler
 	// versions of these will be in KBSharing.cpp)
@@ -221,14 +241,14 @@ public:
 	void		DoGetAll();
 
     // Private storage arrays (they are wxArrayString, but deleted flag and id will use
-    // wxArrayInt) for entries data returned from the server, and for uploads too),
-	// access to these arrays is by an int iterator, and the data values pertain to a
-	// single kbserver entry across the arrays for a given iterator value.
-	// Note: we don't provide storage here for source language code, target language code,
-	// and kbtype - these are constant for any given instance of KbServer, and their
-	// values are determinate from member variables m_kbSourceLanguageCode,
-	// m_kbTargetLanguageCode, and m_kbServerType, respectively.
-	// These 7 array members are used only for bulk uploads and bulk downloads.
+    // wxArrayInt) for bulk entry data returned from the server synchonously.. Access to
+    // these arrays is by an int iterator, and the data values pertain to a single kbserver
+    // entry across the arrays for a given iterator value. Note: we don't provide storage
+    // here for source language code, target language code, and kbtype - these are constant
+    // for any given instance of KbServer, and their values are determinate from member
+    // variables m_kbSourceLanguageCode, m_kbTargetLanguageCode, and m_kbServerType.
+	// These 7 array members are used only for synchronous bulk downloads - that is, only
+	// in ChangedSince(), but not in ChangedSince_Queued(). They are not used for uploads.
 private:
 	CAdapt_ItApp*   m_pApp;
 	Array_of_long   m_arrID;
@@ -241,6 +261,11 @@ private:
 	// the incremental downloads queue; this stores KbServerEntry structs, for the
 	// ChangedSince type of download
 	DownloadsQueue m_queue;
+
+	// the templated list which holds KbServerEntry structs, created on the heap, one such
+	// for each KB server DB line -- for uploading the src/tgt data in each to the remote
+	// DB in Thread_UploadOne which calls CreateEntry_Minimal()
+	UploadsList		m_uploadsList;
 
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
 	// single entry

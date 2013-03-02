@@ -101,11 +101,6 @@ void* Thread_PseudoUndelete::Entry()
 	return (void*)NULL;
 }
 
-bool Thread_PseudoUndelete::TestDestroy()
-{
-  return true;
-}
-
 #endif // for _KBSERVER
 
 

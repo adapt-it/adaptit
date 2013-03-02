@@ -905,6 +905,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_UploadOne.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Thread_UploadToKBServer.cpp"
 				>
 			</File>
@@ -1455,6 +1459,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_PseudoUndelete.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_UploadOne.h"
 				>
 			</File>
 			<File

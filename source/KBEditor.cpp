@@ -621,8 +621,8 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 				pKbEditorUpdateBtnThread->m_source = m_curKey;
 				pKbEditorUpdateBtnThread->m_oldTranslation = oldText;
 				pKbEditorUpdateBtnThread->m_newTranslation = newText;
-				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
+				// now create the runnable thread with explicit stack size of 1KB
+				wxThreadError error =  pKbEditorUpdateBtnThread->Create(1024); // was wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					wxString msg;
@@ -742,8 +742,8 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			pKbEditorUpdateBtnThread->m_source = m_curKey;
 			pKbEditorUpdateBtnThread->m_oldTranslation = oldText;
 			pKbEditorUpdateBtnThread->m_newTranslation = newText;
-			// now create the runnable thread with explicit stack size of 10KB
-			wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
+			// now create the runnable thread with explicit stack size of 1KB
+			wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240); // was wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
 			if (error != wxTHREAD_NO_ERROR)
 			{
 				wxString msg;
@@ -865,8 +865,8 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 				pCreateEntryThread->m_pKbSvr = pKbSvr;
 				pCreateEntryThread->m_source = m_srcKeyStr;
 				pCreateEntryThread->m_translation = newText;
-				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pCreateEntryThread->Create(10240);
+				// now create the runnable thread with explicit stack size of 1KB
+				wxThreadError error =  pCreateEntryThread->Create(10240); // was wxThreadError error =  pCreateEntryThread->Create(10240);
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					wxString msg;
@@ -1010,8 +1010,8 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 				pCreateEntryThread->m_pKbSvr = pKbSvr;
 				pCreateEntryThread->m_source = m_srcKeyStr;
 				pCreateEntryThread->m_translation = newText;
-				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pCreateEntryThread->Create(10240);
+				// now create the runnable thread with explicit stack size of 1KB
+				wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					wxString msg;
@@ -1432,8 +1432,8 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 			pPseudoDeleteThread->m_pKbSvr = pKbSvr;
 			pPseudoDeleteThread->m_source = m_curKey;
 			pPseudoDeleteThread->m_translation = pRefString->m_translation;
-			// now create the runnable thread with explicit stack size of 10KB
-			wxThreadError error =  pPseudoDeleteThread->Create(10240);
+			// now create the runnable thread with explicit stack size of 1KB
+			wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
 			if (error != wxTHREAD_NO_ERROR)
 			{
 				wxString msg;

@@ -65,8 +65,6 @@ public:
 	// won't need to
 	virtual void*		Entry();
 
-	virtual bool    TestDestroy();
-
 protected:
 
 private:

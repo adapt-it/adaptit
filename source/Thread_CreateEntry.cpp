@@ -7,15 +7,13 @@
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the Thread_CreateEntry class.
-/// The Thread_CreateEntry is an experimental thread class for uploading a single new
-/// kbserver entry for eventual sharing; it's an attempt to decouple the upload from the
-/// user's normal adapting work, due to high network latency causing unacceptable delays
-/// in the responsiveness of the GUI for the interlinear layout.
+/// The Thread_CreateEntry is a thread class for uploading a single new kbserver entry for
+/// eventual sharing; it decouples the upload from the user's normal adapting work --
+/// needed because of the potential for high network latency causing unacceptable delays in
+/// the responsiveness of the GUI for the interlinear layout.
 /// The thread is a "detached" type (the wx default for thread objects); that is, it will
 /// destroy itself once it completes.
 /// It is created on the heap, and uploads just a single new entry to the KB server
-/// (according to the current kbserver design, but I've asked for Jonathan to change that
-/// a bit, so this thread implementation may have only a short life!)
 /// \derivation		The Thread_CreateEntry class is derived from wxThread.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -42,7 +40,6 @@
 
 // other includes
 #include "Adapt_It.h"
-#include "KB.h"
 #include "KbServer.h"
 #include "Thread_CreateEntry.h"
 

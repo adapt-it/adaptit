@@ -61,9 +61,6 @@ public:
 	// won't need to
 	virtual void*		Entry();
 
-	// base class virtual functions must be implemented, even if they do nothing new
-	virtual bool    TestDestroy();
-
 protected:
 
 private:

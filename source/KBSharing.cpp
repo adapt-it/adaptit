@@ -116,27 +116,20 @@ void KBSharing::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pBtnGetAll = (wxButton*)FindWindowById(ID_GET_ALL);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIO_SHARING_OFF);
 	m_pSpinReceiving = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_RECEIVE);
-	//m_pSpinSending = (wxSpinCtrl*)FindWindowById(ID_SPINCTRL_SEND);
 
 	// get the current state of the two radio buttons
 	KbServer* pAdaptingSvr = m_pApp->GetKbServer(1); // both are in same state, so this one is enough
 	m_nRadioBoxSelection = pAdaptingSvr->IsKBSharingEnabled() ? 0 : 1;
 	m_pRadioBox->SetSelection(m_nRadioBoxSelection);
 
-	// initialize the spin controls to the current values (from project config file, or as
+	// initialize the spin control to the current value (from project config file, or as
 	// recently changed by the user)
 	receiveInterval = m_pApp->m_nKbServerIncrementalDownloadInterval;
-	//sendInterval = m_pApp->m_nKbServerIncrementalUploadInterval;
-	// put the values in the boxes
+	// put the value in the box
 	if (m_pSpinReceiving != NULL)
 	{
 		m_pSpinReceiving->SetValue(receiveInterval);
 	}
-	// BEW deprecated 11Feb13
-	//if (m_pSpinSending != NULL)
-	//{
-	//	m_pSpinSending->SetValue(sendInterval);
-	//}
 }
 
 void KBSharing::OnCancel(wxCommandEvent& myevent)

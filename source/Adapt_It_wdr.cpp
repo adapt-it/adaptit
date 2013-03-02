@@ -9048,11 +9048,11 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
     item8->SetToolTip( _("How often newly added entries from the remote server are downloaded") );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_SPINCTRL_RECEIVE, wxT("5"), wxDefaultPosition, wxSize(45,-1), 0, 1, 10, 5 );
+    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_SPINCTRL_RECEIVE, wxT("5"), wxDefaultPosition, wxSize(45,-1), 0, 1, 20, 5 );
     item9->SetToolTip( _("Periodic receiving interval (minutes)") );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("minutes. Minimum 1, maximum 10."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("minutes. Minimum 1, maximum 20."), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );

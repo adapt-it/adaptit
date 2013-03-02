@@ -337,9 +337,12 @@ extern std::string str_CURLheaders;
 #include "DVCS.h"
 
 #if defined (_KBSERVER)
+
 #include "KbServer.h"
 #include "Timer_KbServerChangedSince.h"
+
 #endif
+
 
 // whm added 8Oct12
 #include <curl/curl.h>
@@ -462,7 +465,7 @@ WX_DEFINE_LIST(MainMenuItemList);
 #define nU16BOMLen 2
 
 // globals
-
+ 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp
 			// (for vertical edit functionality)
@@ -15243,12 +15246,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// flag initializations
 	m_bKbServerIncrementalDownloadPending = FALSE;
-	//m_bKbServerIncrementalUploadPending = FALSE; // BEW deprecated 11Feb13
 
 	// incremental download default interval (5 seconds) - but will be overridden
-	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-10)
+	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-20)
 	m_nKbServerIncrementalDownloadInterval = 5;
-	//m_nKbServerIncrementalUploadInterval = 5; // BEW deprecated 11Feb13
 
 #endif
 
@@ -31624,11 +31625,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
 	pf->AddLine(data);
 
-	// BEW deprecated 11Feb13
-	//data.Empty();
-	//data << szKbServerUploadInterval << tab << m_nKbServerIncrementalUploadInterval;
-	//pf->AddLine(data);
-
 #endif
 	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
 
@@ -32437,19 +32433,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szKbServerDownloadInterval)
 		{
 			num = wxAtoi(strValue);
-			if (num < 1 || num > 10)
+			if (num < 1 || num > 20)
 				num = 5; // if out of range default to 5
 			m_nKbServerIncrementalDownloadInterval = num;
 		}
-		// BEW deprecated 11Feb13
-		//else if (name == szKbServerUploadInterval)
-		//{
-		//	num = wxAtoi(strValue);
-		//	if (num < 1 || num > 10)
-		//		num = 5; // if out of range default to 5
-		//	m_nKbServerIncrementalUploadInterval = num;
-		//}
-
 #else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
 		else if (name == szIsKBServerProject)
 			;	// do nothing
@@ -32459,8 +32446,6 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			;	// do nothing
 		else if (name == szKbServerDownloadInterval)
 			; // do nothing
-		//else if (name == szKbServerUploadInterval)
-		//	; // do nothing
 #endif
 		// whm 17Feb12 added the following two from the basic config file. They are
 		// used in collaboration operations too.

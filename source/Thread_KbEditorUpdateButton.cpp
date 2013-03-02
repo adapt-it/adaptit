@@ -149,11 +149,6 @@ void* Thread_KbEditorUpdateButton::Entry()
 	return (void*)NULL;
 }
 
-bool Thread_KbEditorUpdateButton::TestDestroy()
-{
-  return true;
-}
-
 #endif // for _KBSERVER
 
 
