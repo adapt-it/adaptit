@@ -905,7 +905,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Thread_UploadOne.cpp"
+				RelativePath="..\..\source\Thread_UploadMulti.cpp"
 				>
 			</File>
 			<File
@@ -1462,7 +1462,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Thread_UploadOne.h"
+				RelativePath="..\..\source\Thread_UploadMulti.h"
 				>
 			</File>
 			<File

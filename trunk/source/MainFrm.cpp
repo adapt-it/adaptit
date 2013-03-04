@@ -226,6 +226,8 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 
 // includes above
 
+extern wxMutex KBAccessMutex;
+
 /// This global is defined in Adapt_It.cpp
 extern CStartWorkingWizard* pStartWorkingWizard;
 
@@ -4203,10 +4205,17 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// the next line is protected internally by the s_QueueMutex
 				KbServerEntry* pEntryStruct = pKbSvr->PopFromQueueFront();
 
-				// the mutex is now released, so merge the data into the local KB
+				// the mutex is now released, so merge the data into the local KB; however,
+				// UploadToKbServer() may be scanning the local KB to find entries not in
+				// the remote DB, so this KB access here needs a mutext protection
+				KBAccessMutex.Lock();
+
 				bool bDeletedFlag = pEntryStruct->deleted == 1 ? TRUE: FALSE;
+
 				pKB->StoreOneEntryFromKbServer(pEntryStruct->source, pEntryStruct->translation,
 												pEntryStruct->username, bDeletedFlag);
+				KBAccessMutex.Unlock();
+
 				delete pEntryStruct; // don't leak memory
 				return; // if there are any more available, do them on subsequent idle events
 			}

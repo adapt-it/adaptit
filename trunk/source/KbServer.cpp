@@ -34,6 +34,15 @@
 
 static wxMutex s_QueueMutex; // only need one, because we cannot have
 							 // glossing & adapting modes on concurrently
+static wxMutex s_DoGetAllMutex; // UploadToKbServer() calls DoGetAll() which
+			// fills the 7 parallel arrays with remote DB data; but a manual
+			// ChangedSince() or DoChangedSince() call also fills the same
+			// arrays - so we have to enforce sequentiality on the use of
+			// these arrays
+wxMutex KBAccessMutex; // ChangedSince() may be entering entries into
+			// the local KB at while UploadToKbServer() is looping over it's entries
+			// to work out which need to be sent to the remote DB
+			
 #include <wx/listimpl.cpp>
 
 
@@ -52,11 +61,11 @@ using namespace std;
 #include "MainFrm.h"
 #include "StatusBar.h"
 //#include "Thread_UploadToKBServer.h"
-#include "Thread_UploadOne.h"
+#include "Thread_UploadMulti.h"
 #include "KbServer.h"
 
 WX_DEFINE_LIST(DownloadsQueue);
-WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadOne, for kbserver support
+WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadMulti, for kbserver support
 							  // (see member m_uploadsList)
 
 
@@ -1024,6 +1033,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	int rv = 0; // rv is "return value", initialize it
 	wxString timestamp;
 	wxString curKey;
+	s_DoGetAllMutex.Lock();
 	switch (action)
 	{
 	case getForOneKeyOnly:
@@ -1067,7 +1077,6 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		break;
 	case getAll:
 		timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
-		rv = ChangedSince(timestamp);
 		// if there was no error, update the m_kbServerLastSync value, and export it to
 		// the persistent file in the project folder
 		if (rv == 0)
@@ -1083,6 +1092,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		msg = msg.Format(_("Downloading, error code ( %d ) returned.  Nothing was downloaded, application continues.\nError code 6 may just mean a temporary problem, so try again."), rv);
 		wxMessageBox(msg, _("Downloading entries to the knowledge base failed"), wxICON_ERROR | wxOK);
 		m_pApp->LogUserAction(msg);
+		s_DoGetAllMutex.Unlock();
 		return;
 	}
 	// Merge the data received into the local KB (either to the glossingKB or adaptingKB,
@@ -1101,6 +1111,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		// its way into the KB when the phrase box moves on - so that's why we exclude
 		pKB->StoreEntriesFromKbServer(this);
 	}
+	s_DoGetAllMutex.Unlock();
 }
 
 // Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
@@ -1586,7 +1597,7 @@ void KbServer::DoChangedSince()
 	m_pKB->StoreEntriesFromKbServer(this);
 }
 
-void KbServer::DoGetAll()
+void KbServer::DoGetAll(bool bUpdateTimestampOnSuccess)
 {
 	int rv = 0; // rv is "return value", initialize it
 	// get the last sync timestamp value
@@ -1599,23 +1610,49 @@ void KbServer::DoGetAll()
 	// the persistent file in the project folder
 	if (rv == 0)
 	{
-		UpdateLastSyncTimestamp();
+		// This function is also used within the UploadToKbServer() function, to get a
+		// temporary download of the whole remote DB (for the given language pair) to be
+		// used for determining which of the local KB entries is already in the remote DB
+		// and therefore should not be uploaded (if one such were uploaded, a 401 BAD
+		// REQUEST http error would result, and any other entries in that thread would not
+		// be attempted - the upload of that part of the data would fail). So for this
+		// temporary use of DoGetAll() we want to suppress the UpadateLastSyncTimestamp()
+		// call. The flag is default TRUE, to suppress the timestamp update pass in FALSE.
+		if (bUpdateTimestampOnSuccess)
+		{
+			UpdateLastSyncTimestamp();
+		}
 	}
 	else
 	{
-		// there was a cURL error, display it
-		wxString msg;
-		msg = msg.Format(_("Downloading to the knowledge base: an error code ( %d ) was returned.  Nothing was downloaded, application continues."), rv);
-		wxMessageBox(msg, _("Downloading to the knowledge base failed"), wxICON_ERROR | wxOK);
-		m_pApp->LogUserAction(msg);
+		if (bUpdateTimestampOnSuccess)
+		{
+			// There was a cURL error, display it - but only if we were trying to do a
+			// DoGetAll() to update the local KB. It we were doing the latter for the
+			// first upload to the remote DB on kbserver, then the DoGetAll() returns a
+			// http error 404 NOT FOUND - and we don't want an error message to show in
+			// that circumstance, because the upload will deduce from the 7 parallel
+			// arrays being empty that the remote DB has nothing in it yet, and use that
+			// fact to upload the whole contents of the local KB rather than checking for
+			// only those entries in the local KB which are not already in the remote DB.
+			wxString msg;
+			msg = msg.Format(_("Downloading to the knowledge base: an error code ( %d ) was returned.  Nothing was downloaded, application continues."), rv);
+			wxMessageBox(msg, _("Downloading to the knowledge base failed"), wxICON_ERROR | wxOK);
+			m_pApp->LogUserAction(msg);
+		}
 		return;
 	}
-	// If control gets to here, we are ready to merge what was returning into the local KB
-	// or GlossingKB, as the case may be
-	m_pKB->StoreEntriesFromKbServer(this);
+	if (bUpdateTimestampOnSuccess)
+	{
+        // If control gets to here, we are ready to merge what was returning into the local
+        // KB or GlossingKB, as the case may be. We don't do this if the DoGetAll() call
+        // was just for getting temporary copies of the remoteDB contents in order to help
+        // the UploadToKbServer() call filter out entries which should not be sent
+		m_pKB->StoreEntriesFromKbServer(this);
+	}
 }
 
-/*  we probably won't use threading for a bulk upload
+/*  we probably won't use this for a bulk upload
 void KbServer::UploadToKbServerThreaded()
 {
 	// Here's where I'll test doing this on a thread
@@ -1645,53 +1682,100 @@ void KbServer::UploadToKbServerThreaded()
 }
 */
 
-// The upload function - we do it by multiple threads, each thread having one normal entry
-// as payload (we don't upload any pseudo-deleted ones); and we ignore all errors - anything
-// that goes into the remote DB will not give an error, anything which doesn't, we can just
-// ignore it and let the thread die. So there's no return value for this function.
-void KbServer::UploadToKbServer()
+// clears user data (wxStrings) from m_uploadsMap
+void KbServer::ClearUploadsMap()
 {
-#if defined(_DEBUG)
-	wxDateTime now = wxDateTime::Now();
-	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
-#endif
-	if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
+	if(m_uploadsMap.empty())
 	{
-		// scan the KB and store src-tgt pairs for normal entries only in KbServerEntry
-		// structs (created on the heap), in the m_uploadsList
-		wxString srcPhrase;
-		CTargetUnit* pTU;
-		
-		KbServerEntry* reference;
-		int iTotalEntries = 0;	
-		CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
+		return; // it's already empty
+	}
+	m_uploadsMap.clear();
+}
 
-		//Need to get each map
-		for (int i = 0; i< MAX_WORDS; i++)
+// Populate the m_uploadsList - either with the help of the remote DB's data in the
+// hashmap, or without (the latter when the remote DB has no content yet for this
+// particular language pair) - pass in a flag to handle these two options
+void KbServer::PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap, 
+								  bool bRemoteDBContentDownloaded)
+{
+	wxASSERT(m_uploadsList.IsEmpty()); // must be empty before we call this
+
+	// scan the KB and store src-tgt pairs for normal entries only in KbServerEntry
+	// structs (created on the heap), in the m_uploadsList
+	wxString srcPhrase;
+	wxString tgtPhrase;
+	CTargetUnit* pTU;
+
+	// We must populate the m_uploadsMap if the passed in flag is TRUE, for the loop below
+	// will use it in that case; we don't bother when the flag was passed in as FALSE
+	if( bRemoteDBContentDownloaded)
+	{
+		PopulateUploadsMap(this, pUploadsMap);
+		// Clearing the m_uploadsMap is done in the caller on return
+	}
+	
+	KbServerEntry* reference;
+	CKB* currKB = pKbSvr->GetKB( GetKBServerType() ); //Glossing = KB Type 2
+
+	//Need to get each map of the local KB
+	for (int i = 0; i< MAX_WORDS; i++)
+	{
+		//for each map
+		for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
 		{
-			//for each map
-			for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
+			wxASSERT(currKB->m_pMap[i] != NULL);
+
+			if (!currKB->m_pMap[i]->empty())
 			{
-				wxASSERT(currKB->m_pMap[i] != NULL);
+				srcPhrase = iter->first;
+				
+				pTU = iter->second;
+				CRefString* pRefString = NULL;
+				TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+				wxASSERT(pos != NULL);
 
-				if (!currKB->m_pMap[i]->empty())
+				while (pos != NULL)
 				{
-					srcPhrase = iter->first;
+					pRefString = (CRefString*)pos->GetData();
+					wxASSERT(pRefString != NULL);
+					pos = pos->GetNext();
 
-					pTU = iter->second;
-					CRefString* pRefString = NULL;
-					TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-					wxASSERT(pos != NULL);
-
-					while (pos != NULL)
+					if (pRefString->GetDeletedFlag() == FALSE)
 					{
-						pRefString = (CRefString*)pos->GetData();
-						wxASSERT(pRefString != NULL);
-						pos = pos->GetNext();
-
-						if (pRefString->GetDeletedFlag() == FALSE)
+						// upload only "normal" entries, ignore pseudo-deleted ones;
+						// if the passed in flag is TRUE, then we accept only those
+						// which are not in the hashmap; if false, we accept each one
+						if (bRemoteDBContentDownloaded)
 						{
-							// upload only "normal" entries, ignore pseudo-deleted ones
+							// accept only the ones which aren't already in the 
+							// remote DB
+							tgtPhrase = pRefString->m_translation; // might be empty
+
+							// In the case of a string to string hash map, if the key is
+							// not in the map, then an empty string is returned from a
+							// lookup
+							wxString temp = (*pUploadsMap)[srcPhrase];
+							if (temp.IsEmpty())
+							{
+								// the wxString src is not in the hash map, therefore
+								// this pair should be uploaded to the remote DB
+								reference = new KbServerEntry;
+								reference->source = srcPhrase;
+								reference->translation = tgtPhrase;
+								// store the new struct
+								m_uploadsList.Append(reference);
+							}
+							else
+							{
+                                // this pair exists in the remote DB, usually as a normal
+                                // entry, but it could instead by a pseudo-deleted one; in
+                                // either case, DON'T send this pair
+								continue;
+							}
+						}
+						else
+						{
+							// none downloaded, so accept everything
 							reference = new KbServerEntry;
 							reference->source = srcPhrase;
 							reference->translation = pRefString->m_translation;
@@ -1701,14 +1785,137 @@ void KbServer::UploadToKbServer()
 					}
 				}
 			}
-		} // for loop ends
-		iTotalEntries = (int)m_uploadsList.GetCount();
+		}
+	} // for loop ends
+}
 
+// Extract the source and translation strings, and use the source string as key, and
+// the translation string as value, to populate the m_uploadsMap from the downloaded
+// remote DB data (stored in the 7 parallel arrays). This is mutex protected by the
+// s_DoGetAllMutex)
+void KbServer::PopulateUploadsMap(KbServer* pKbSvr, UploadsMap* pUploadsMap)
+{
+	wxString src;
+	wxString tgt;
+	size_t count = pKbSvr->m_arrSource.GetCount();
+	size_t i;
+	for (i = 0; i < count; ++i)
+	{
+		// Some entries may be pseudo-deleted ones in the remote DB, we must accept these
+		// along with normal entries, because CreateEntry() would fail if a pseudo-deleted
+		// entry was in the DB and creation of the equivalent normal one was attempted. So
+		// we don't sent a normal entry from the local KB even if there is only a
+		// pseudo-deleted one in the remote DB
+		src = pKbSvr->m_arrSource.Item(i);
+		tgt = pKbSvr->m_arrTarget.Item(i); // could be an empty string, that's allowed
+		(*pUploadsMap)[src] = tgt;
+	}
+	// The only reason we populate this map is because once the local KB gets large, say
+	// over a thousand entries, it will be much quicker to determine a give src-tgt pair
+	// from the local KB is not in the map, than to do the same check with an array or list
+}
+
+
+// The upload function - we do it by multiple threads (50 of them), each thread having
+// approx 1/50th of the inventory of normal entries which qualify for uploading, as payload
+// (we don't upload any pseudo-deleted ones). 
+void KbServer::UploadToKbServer()
+{
+#if defined(_DEBUG)
+	wxDateTime now = wxDateTime::Now();
+	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
+#endif
+	if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
+	{
+		s_DoGetAllMutex.Lock();
+
+		ClearAllPrivateStorageArrays();
+		DoGetAll(FALSE); // populate the 7 in-parallel arrays with the remote DB contents
+		int iTotalEntries = 0;	// initialize
+
+		// If the remote DB has no content for this language pair as yet, all 7 arrays
+		// will still be empty. Check for this and preserve the state in a boolean flag
+		// for use below
+		bool bRemoteDBContentDownloaded = TRUE; // initialize
+		bRemoteDBContentDownloaded = !m_arrSource.IsEmpty();
+
+ 		ClearUploadsMap();
+
+        // The remote DB has content, so our upload will need to be smart - it must
+        // upload only entries which are not yet in the remote DB, and be mutex
+        // protected (the access we are protecting is that within
+        // ChangedSince_Queued(), called in OnIdle() - see MainFrm.cpp)
+		KBAccessMutex.Lock();
+
+		PopulateUploadList(this, &m_uploadsMap, bRemoteDBContentDownloaded);
+
+		KBAccessMutex.Unlock();
+
+		// We've no more use for the m_uploadsMap
+		ClearUploadsMap();
+		// The m_uploadsList needs no mutex, UploadToKbServer() is the only function which
+		// uses it; it's now been populated -- if the remote DB has no content from this
+		// project yet, the whole of the local KB's normal entries will be uploaded; but
+		// if it has one or more entries, only those not in the remote DB will be uploaded
+		// and so m_uploadsList will contain fewer, possibly much much fewer, entries for
+		// uploading
+
+		// We've finished using the 7 in-parallel arrays, so clear them 
+		// and release the mutex
+		ClearAllPrivateStorageArrays();
+		s_DoGetAllMutex.Unlock();
+
+		iTotalEntries = (int)m_uploadsList.GetCount(); // we use this below
 #if defined(_DEBUG)
 		wxLogDebug(_T("UploadToKbServer(), number of KbServerEntry structs =  %d"), iTotalEntries);
 #endif
+
+		// Generate and fire off the 50 threads, fewer if the entry count is not large; we
+		// will use 10 entries per thread, if there are <= 500 entries to send. If more
+		// than that, we'll apportion however many there are between the max of 50 threads
+		// we will send
+		int min_per_thread = 10;
+		int numThreadsNeeded = 1; // initialize
+		int numEntriesPerThread = min_per_thread; // initialize
+		if (iTotalEntries <= 500)
+		{
+			// carve up into <= 50 threads, with 10 entries each, except the last may have
+			// fewer
+			numThreadsNeeded = iTotalEntries / min_per_thread;
+			if (iTotalEntries % min_per_thread > 0)
+			{
+				// add an extra thread for the remainder of the entries
+				numThreadsNeeded++;
+			}
+
+
+
+
+// TODO
+		}
+		else
+		{
+			// use 50 threads, put as many entries in each as we need to cover the total
+			// which need to be sent
+			numThreadsNeeded = 50;
+			numEntriesPerThread = iTotalEntries / numThreadsNeeded;
+			if (iTotalEntries % numThreadsNeeded)
+			{
+				// add an extra entry, due to the modulo calc
+				numEntriesPerThread++;
+			}
+
+
+
+
+// TODO
+
+
+		}
+
 		// In a loop, create and fire off a thread for each KbServerEntry struct (later, add a
 		// timer or whatever else may be needed)
+		KbServerEntry* reference = NULL;
 		UploadsList::iterator iter;
 		for (iter = m_uploadsList.begin(); iter != m_uploadsList.end(); ++iter)
 		{
@@ -1717,7 +1924,7 @@ void KbServer::UploadToKbServer()
 			{
 				reference = *iter; // get next KbServerEntry struct ptr from the list
 				// make a new thread for transmitting it's data to the remote DB
-				Thread_UploadOne* pThread = new Thread_UploadOne;
+				Thread_UploadMulti* pThread = new Thread_UploadMulti;
 				error = pThread->Create(1024); // experiment with stack sizes, start with 1kb
 				if (error != wxTHREAD_NO_ERROR)
 				{
@@ -2033,11 +2240,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 	return 0;
 }
 
-//=============================== end of KbServer class ============================
-
-/* valid but deprecated code - the bulk uploader
-
-int KbServer::UploadToKbServer()
+int KbServer::BulkUpload(CBString jsonUTF8Str)
 {
 	CURL *curl;
 	CURLcode result = CURLE_OK; // result code, initialize to "no error" (0)
@@ -2201,9 +2404,7 @@ int KbServer::UploadToKbServer()
 	return 0;
 }
 
-
-*/
-
+//=============================== end of KbServer class ============================
 
 #endif // for _KBSERVER
 

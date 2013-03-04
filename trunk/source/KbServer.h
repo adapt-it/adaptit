@@ -55,6 +55,10 @@ WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the ap
 		// because kbserver upload threads may not all be finished when the two kbserver
 		// instances are released, and if they are not finished, then the KbServerEntry 
 		// structs they store will need to live on as long as possible
+// need a hashmap for quick lookup of keys for find out which src-tgt pairs are in the
+// remote KB (scanning through downloaded data from the remote KB), so as not to upload
+// pairs which already have a presence in the remote server; used when doing a full KB upload
+WX_DECLARE_STRING_HASH_MAP(wxString, UploadsMap);
 
 // Not all values are needed from each entry, so I've commented out those the KB isn't
 // interested in
@@ -131,7 +135,8 @@ public:
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp);
-	void	 UploadToKbServer(); // no return value, because we ignore all errors
+	void	 UploadToKbServer();
+	int		 BulkUpload(CBString jsonUTF8Str);
 	void	 DeleteUploadEntries();
 
 	// public setters
@@ -181,6 +186,18 @@ protected:
 
 	// a utility for getting the HTTP status code, and human-readable result string
 	void ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext);
+
+	// Extract the source and translation strings, and use the source string as key, and
+	// the translation string as value, to populate the m_uploadsMap from the downloaded
+	// remote DB data (stored in the 7 parallel arrays). This is mutex protected by the
+	// s_DoGetAllMutex)
+	void PopulateUploadsMap(KbServer* pKbSvr, UploadsMap* pUploadsMap);
+	
+	// Populate the m_uploadsList - either with the help of the remote DB's data in the
+	// hashmap, or without (the latter when the remote DB has no content yet for this
+	// particular language pair) - pass in a flag to handle these two options
+	void PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap, 
+							bool bRemoteDBContentDownloaded);
 
 private:
 	// class variables
@@ -238,7 +255,7 @@ public:
 	// Functions we'll want to be able to call programmatically... (button handler
 	// versions of these will be in KBSharing.cpp)
 	void		DoChangedSince();
-	void		DoGetAll();
+	void		DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
 
     // Private storage arrays (they are wxArrayString, but deleted flag and id will use
     // wxArrayInt) for bulk entry data returned from the server synchonously.. Access to
@@ -264,8 +281,11 @@ private:
 
 	// the templated list which holds KbServerEntry structs, created on the heap, one such
 	// for each KB server DB line -- for uploading the src/tgt data in each to the remote
-	// DB in Thread_UploadOne which calls CreateEntry_Minimal()
+	// DB in Thread_UploadMulti 
 	UploadsList		m_uploadsList;
+
+	// For use in full KB uploads
+	UploadsMap		m_uploadsMap;
 
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
 	// single entry
@@ -288,6 +308,7 @@ public:
 	void			SetEntryStruct(KbServerEntry entryStruct);
 	KbServerEntry	GetEntryStruct();
 	void			ClearEntryStruct();
+	void			ClearUploadsMap(); // clears user data (wxStrings) from m_uploadsMap
 
 protected:
 
