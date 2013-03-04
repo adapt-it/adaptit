@@ -825,7 +825,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 					else
 					{
 						msg = _("Remember to check and possibly adjust your fonts, punctuation and other settings by accessing Preferences... on the Edit menu.");
-						msg = msg.Format(msg, pApp->m_collaborationEditor.c_str(),m_projectName.c_str());
+						msg = msg.Format(msg);
 					}
 					wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK);
 					break;
