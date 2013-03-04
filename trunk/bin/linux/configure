@@ -14962,6 +14962,9 @@ if test "x$enable_debug" != xno; then :
 $as_echo "#define _DEBUG 1" >>confdefs.h
 
 
+$as_echo "#define _KBSERVER 1" >>confdefs.h
+
+
 fi
 
 CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"

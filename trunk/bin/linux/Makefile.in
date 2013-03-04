@@ -97,6 +97,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBExportImportOptionsDlg.$(OBJEXT) KBEditor.$(OBJEXT) \
 	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KbServer.$(OBJEXT) \
+	KBSharing.$(OBJEXT) KBSharingSetupDlg.$(OBJEXT) \
 	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
 	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
 	MainFrm.$(OBJEXT) md5.$(OBJEXT) MergeUpdatedSrc.$(OBJEXT) \
@@ -118,6 +119,11 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) StatusBar.$(OBJEXT) \
 	Strip.$(OBJEXT) TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
+	Thread_ChangedSince.$(OBJEXT) Thread_CreateEntry.$(OBJEXT) \
+	Thread_KbEditorUpdateButton.$(OBJEXT) \
+	Thread_PseudoDelete.$(OBJEXT) Thread_PseudoUndelete.$(OBJEXT) \
+	Thread_UploadMulti.$(OBJEXT) Thread_UploadToKBServer.$(OBJEXT) \
+	Timer_KbServerChangedSince.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) UsfmFilterPage.$(OBJEXT) \
 	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
@@ -453,7 +459,7 @@ adaptit_SOURCES = \
 	../../source/jsonwriter.cpp ../../source/jsonwriter.h \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
-	../../source/KbServer.cpp \
+	../../source/KbServer.cpp ../../source/KBSharing.cpp ../../source/KBSharingSetupDlg.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
 	../../source/MergeUpdatedSrc.cpp \
@@ -473,7 +479,12 @@ adaptit_SOURCES = \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/tellenc.cpp ../../source/TransformToGlossesDlg.cpp \
+	../../source/tellenc.cpp \
+	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
+	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
+	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
+	../../source/Thread_UploadToKBServer.cpp ../../source/Timer_KbServerChangedSince.cpp \
+	../../source/TransformToGlossesDlg.cpp \
 	../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
@@ -631,6 +642,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBExportImportOptionsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBPage.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBSharing.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBSharingSetupDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KbServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguageCodesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguagesPage.Po@am__quote@
@@ -673,6 +686,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatusBar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_ChangedSince.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_CreateEntry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_KbEditorUpdateButton.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_PseudoDelete.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_PseudoUndelete.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_UploadMulti.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_UploadToKBServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Timer_KbServerChangedSince.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsPage.Po@am__quote@
@@ -1617,6 +1638,34 @@ KbServer.obj: ../../source/KbServer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KbServer.obj `if test -f '../../source/KbServer.cpp'; then $(CYGPATH_W) '../../source/KbServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KbServer.cpp'; fi`
 
+KBSharing.o: ../../source/KBSharing.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharing.o -MD -MP -MF $(DEPDIR)/KBSharing.Tpo -c -o KBSharing.o `test -f '../../source/KBSharing.cpp' || echo '$(srcdir)/'`../../source/KBSharing.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharing.Tpo $(DEPDIR)/KBSharing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharing.cpp' object='KBSharing.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharing.o `test -f '../../source/KBSharing.cpp' || echo '$(srcdir)/'`../../source/KBSharing.cpp
+
+KBSharing.obj: ../../source/KBSharing.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharing.obj -MD -MP -MF $(DEPDIR)/KBSharing.Tpo -c -o KBSharing.obj `if test -f '../../source/KBSharing.cpp'; then $(CYGPATH_W) '../../source/KBSharing.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharing.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharing.Tpo $(DEPDIR)/KBSharing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharing.cpp' object='KBSharing.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharing.obj `if test -f '../../source/KBSharing.cpp'; then $(CYGPATH_W) '../../source/KBSharing.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharing.cpp'; fi`
+
+KBSharingSetupDlg.o: ../../source/KBSharingSetupDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharingSetupDlg.o -MD -MP -MF $(DEPDIR)/KBSharingSetupDlg.Tpo -c -o KBSharingSetupDlg.o `test -f '../../source/KBSharingSetupDlg.cpp' || echo '$(srcdir)/'`../../source/KBSharingSetupDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharingSetupDlg.Tpo $(DEPDIR)/KBSharingSetupDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharingSetupDlg.cpp' object='KBSharingSetupDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharingSetupDlg.o `test -f '../../source/KBSharingSetupDlg.cpp' || echo '$(srcdir)/'`../../source/KBSharingSetupDlg.cpp
+
+KBSharingSetupDlg.obj: ../../source/KBSharingSetupDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharingSetupDlg.obj -MD -MP -MF $(DEPDIR)/KBSharingSetupDlg.Tpo -c -o KBSharingSetupDlg.obj `if test -f '../../source/KBSharingSetupDlg.cpp'; then $(CYGPATH_W) '../../source/KBSharingSetupDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharingSetupDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharingSetupDlg.Tpo $(DEPDIR)/KBSharingSetupDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharingSetupDlg.cpp' object='KBSharingSetupDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharingSetupDlg.obj `if test -f '../../source/KBSharingSetupDlg.cpp'; then $(CYGPATH_W) '../../source/KBSharingSetupDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharingSetupDlg.cpp'; fi`
+
 LanguageCodesDlg.o: ../../source/LanguageCodesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguageCodesDlg.o -MD -MP -MF $(DEPDIR)/LanguageCodesDlg.Tpo -c -o LanguageCodesDlg.o `test -f '../../source/LanguageCodesDlg.cpp' || echo '$(srcdir)/'`../../source/LanguageCodesDlg.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/LanguageCodesDlg.Tpo $(DEPDIR)/LanguageCodesDlg.Po
@@ -2246,6 +2295,118 @@ tellenc.obj: ../../source/tellenc.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/tellenc.cpp' object='tellenc.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tellenc.obj `if test -f '../../source/tellenc.cpp'; then $(CYGPATH_W) '../../source/tellenc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/tellenc.cpp'; fi`
+
+Thread_ChangedSince.o: ../../source/Thread_ChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_ChangedSince.o -MD -MP -MF $(DEPDIR)/Thread_ChangedSince.Tpo -c -o Thread_ChangedSince.o `test -f '../../source/Thread_ChangedSince.cpp' || echo '$(srcdir)/'`../../source/Thread_ChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_ChangedSince.Tpo $(DEPDIR)/Thread_ChangedSince.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_ChangedSince.cpp' object='Thread_ChangedSince.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_ChangedSince.o `test -f '../../source/Thread_ChangedSince.cpp' || echo '$(srcdir)/'`../../source/Thread_ChangedSince.cpp
+
+Thread_ChangedSince.obj: ../../source/Thread_ChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_ChangedSince.obj -MD -MP -MF $(DEPDIR)/Thread_ChangedSince.Tpo -c -o Thread_ChangedSince.obj `if test -f '../../source/Thread_ChangedSince.cpp'; then $(CYGPATH_W) '../../source/Thread_ChangedSince.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_ChangedSince.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_ChangedSince.Tpo $(DEPDIR)/Thread_ChangedSince.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_ChangedSince.cpp' object='Thread_ChangedSince.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_ChangedSince.obj `if test -f '../../source/Thread_ChangedSince.cpp'; then $(CYGPATH_W) '../../source/Thread_ChangedSince.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_ChangedSince.cpp'; fi`
+
+Thread_CreateEntry.o: ../../source/Thread_CreateEntry.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_CreateEntry.o -MD -MP -MF $(DEPDIR)/Thread_CreateEntry.Tpo -c -o Thread_CreateEntry.o `test -f '../../source/Thread_CreateEntry.cpp' || echo '$(srcdir)/'`../../source/Thread_CreateEntry.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_CreateEntry.Tpo $(DEPDIR)/Thread_CreateEntry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_CreateEntry.cpp' object='Thread_CreateEntry.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_CreateEntry.o `test -f '../../source/Thread_CreateEntry.cpp' || echo '$(srcdir)/'`../../source/Thread_CreateEntry.cpp
+
+Thread_CreateEntry.obj: ../../source/Thread_CreateEntry.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_CreateEntry.obj -MD -MP -MF $(DEPDIR)/Thread_CreateEntry.Tpo -c -o Thread_CreateEntry.obj `if test -f '../../source/Thread_CreateEntry.cpp'; then $(CYGPATH_W) '../../source/Thread_CreateEntry.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_CreateEntry.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_CreateEntry.Tpo $(DEPDIR)/Thread_CreateEntry.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_CreateEntry.cpp' object='Thread_CreateEntry.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_CreateEntry.obj `if test -f '../../source/Thread_CreateEntry.cpp'; then $(CYGPATH_W) '../../source/Thread_CreateEntry.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_CreateEntry.cpp'; fi`
+
+Thread_KbEditorUpdateButton.o: ../../source/Thread_KbEditorUpdateButton.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_KbEditorUpdateButton.o -MD -MP -MF $(DEPDIR)/Thread_KbEditorUpdateButton.Tpo -c -o Thread_KbEditorUpdateButton.o `test -f '../../source/Thread_KbEditorUpdateButton.cpp' || echo '$(srcdir)/'`../../source/Thread_KbEditorUpdateButton.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_KbEditorUpdateButton.Tpo $(DEPDIR)/Thread_KbEditorUpdateButton.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_KbEditorUpdateButton.cpp' object='Thread_KbEditorUpdateButton.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_KbEditorUpdateButton.o `test -f '../../source/Thread_KbEditorUpdateButton.cpp' || echo '$(srcdir)/'`../../source/Thread_KbEditorUpdateButton.cpp
+
+Thread_KbEditorUpdateButton.obj: ../../source/Thread_KbEditorUpdateButton.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_KbEditorUpdateButton.obj -MD -MP -MF $(DEPDIR)/Thread_KbEditorUpdateButton.Tpo -c -o Thread_KbEditorUpdateButton.obj `if test -f '../../source/Thread_KbEditorUpdateButton.cpp'; then $(CYGPATH_W) '../../source/Thread_KbEditorUpdateButton.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_KbEditorUpdateButton.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_KbEditorUpdateButton.Tpo $(DEPDIR)/Thread_KbEditorUpdateButton.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_KbEditorUpdateButton.cpp' object='Thread_KbEditorUpdateButton.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_KbEditorUpdateButton.obj `if test -f '../../source/Thread_KbEditorUpdateButton.cpp'; then $(CYGPATH_W) '../../source/Thread_KbEditorUpdateButton.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_KbEditorUpdateButton.cpp'; fi`
+
+Thread_PseudoDelete.o: ../../source/Thread_PseudoDelete.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_PseudoDelete.o -MD -MP -MF $(DEPDIR)/Thread_PseudoDelete.Tpo -c -o Thread_PseudoDelete.o `test -f '../../source/Thread_PseudoDelete.cpp' || echo '$(srcdir)/'`../../source/Thread_PseudoDelete.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_PseudoDelete.Tpo $(DEPDIR)/Thread_PseudoDelete.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_PseudoDelete.cpp' object='Thread_PseudoDelete.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_PseudoDelete.o `test -f '../../source/Thread_PseudoDelete.cpp' || echo '$(srcdir)/'`../../source/Thread_PseudoDelete.cpp
+
+Thread_PseudoDelete.obj: ../../source/Thread_PseudoDelete.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_PseudoDelete.obj -MD -MP -MF $(DEPDIR)/Thread_PseudoDelete.Tpo -c -o Thread_PseudoDelete.obj `if test -f '../../source/Thread_PseudoDelete.cpp'; then $(CYGPATH_W) '../../source/Thread_PseudoDelete.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_PseudoDelete.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_PseudoDelete.Tpo $(DEPDIR)/Thread_PseudoDelete.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_PseudoDelete.cpp' object='Thread_PseudoDelete.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_PseudoDelete.obj `if test -f '../../source/Thread_PseudoDelete.cpp'; then $(CYGPATH_W) '../../source/Thread_PseudoDelete.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_PseudoDelete.cpp'; fi`
+
+Thread_PseudoUndelete.o: ../../source/Thread_PseudoUndelete.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_PseudoUndelete.o -MD -MP -MF $(DEPDIR)/Thread_PseudoUndelete.Tpo -c -o Thread_PseudoUndelete.o `test -f '../../source/Thread_PseudoUndelete.cpp' || echo '$(srcdir)/'`../../source/Thread_PseudoUndelete.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_PseudoUndelete.Tpo $(DEPDIR)/Thread_PseudoUndelete.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_PseudoUndelete.cpp' object='Thread_PseudoUndelete.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_PseudoUndelete.o `test -f '../../source/Thread_PseudoUndelete.cpp' || echo '$(srcdir)/'`../../source/Thread_PseudoUndelete.cpp
+
+Thread_PseudoUndelete.obj: ../../source/Thread_PseudoUndelete.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_PseudoUndelete.obj -MD -MP -MF $(DEPDIR)/Thread_PseudoUndelete.Tpo -c -o Thread_PseudoUndelete.obj `if test -f '../../source/Thread_PseudoUndelete.cpp'; then $(CYGPATH_W) '../../source/Thread_PseudoUndelete.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_PseudoUndelete.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_PseudoUndelete.Tpo $(DEPDIR)/Thread_PseudoUndelete.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_PseudoUndelete.cpp' object='Thread_PseudoUndelete.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_PseudoUndelete.obj `if test -f '../../source/Thread_PseudoUndelete.cpp'; then $(CYGPATH_W) '../../source/Thread_PseudoUndelete.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_PseudoUndelete.cpp'; fi`
+
+Thread_UploadMulti.o: ../../source/Thread_UploadMulti.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_UploadMulti.o -MD -MP -MF $(DEPDIR)/Thread_UploadMulti.Tpo -c -o Thread_UploadMulti.o `test -f '../../source/Thread_UploadMulti.cpp' || echo '$(srcdir)/'`../../source/Thread_UploadMulti.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_UploadMulti.Tpo $(DEPDIR)/Thread_UploadMulti.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_UploadMulti.cpp' object='Thread_UploadMulti.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_UploadMulti.o `test -f '../../source/Thread_UploadMulti.cpp' || echo '$(srcdir)/'`../../source/Thread_UploadMulti.cpp
+
+Thread_UploadMulti.obj: ../../source/Thread_UploadMulti.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_UploadMulti.obj -MD -MP -MF $(DEPDIR)/Thread_UploadMulti.Tpo -c -o Thread_UploadMulti.obj `if test -f '../../source/Thread_UploadMulti.cpp'; then $(CYGPATH_W) '../../source/Thread_UploadMulti.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_UploadMulti.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_UploadMulti.Tpo $(DEPDIR)/Thread_UploadMulti.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_UploadMulti.cpp' object='Thread_UploadMulti.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_UploadMulti.obj `if test -f '../../source/Thread_UploadMulti.cpp'; then $(CYGPATH_W) '../../source/Thread_UploadMulti.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_UploadMulti.cpp'; fi`
+
+Thread_UploadToKBServer.o: ../../source/Thread_UploadToKBServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_UploadToKBServer.o -MD -MP -MF $(DEPDIR)/Thread_UploadToKBServer.Tpo -c -o Thread_UploadToKBServer.o `test -f '../../source/Thread_UploadToKBServer.cpp' || echo '$(srcdir)/'`../../source/Thread_UploadToKBServer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_UploadToKBServer.Tpo $(DEPDIR)/Thread_UploadToKBServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_UploadToKBServer.cpp' object='Thread_UploadToKBServer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_UploadToKBServer.o `test -f '../../source/Thread_UploadToKBServer.cpp' || echo '$(srcdir)/'`../../source/Thread_UploadToKBServer.cpp
+
+Thread_UploadToKBServer.obj: ../../source/Thread_UploadToKBServer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_UploadToKBServer.obj -MD -MP -MF $(DEPDIR)/Thread_UploadToKBServer.Tpo -c -o Thread_UploadToKBServer.obj `if test -f '../../source/Thread_UploadToKBServer.cpp'; then $(CYGPATH_W) '../../source/Thread_UploadToKBServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_UploadToKBServer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_UploadToKBServer.Tpo $(DEPDIR)/Thread_UploadToKBServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_UploadToKBServer.cpp' object='Thread_UploadToKBServer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_UploadToKBServer.obj `if test -f '../../source/Thread_UploadToKBServer.cpp'; then $(CYGPATH_W) '../../source/Thread_UploadToKBServer.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_UploadToKBServer.cpp'; fi`
+
+Timer_KbServerChangedSince.o: ../../source/Timer_KbServerChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Timer_KbServerChangedSince.o -MD -MP -MF $(DEPDIR)/Timer_KbServerChangedSince.Tpo -c -o Timer_KbServerChangedSince.o `test -f '../../source/Timer_KbServerChangedSince.cpp' || echo '$(srcdir)/'`../../source/Timer_KbServerChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Timer_KbServerChangedSince.Tpo $(DEPDIR)/Timer_KbServerChangedSince.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Timer_KbServerChangedSince.cpp' object='Timer_KbServerChangedSince.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Timer_KbServerChangedSince.o `test -f '../../source/Timer_KbServerChangedSince.cpp' || echo '$(srcdir)/'`../../source/Timer_KbServerChangedSince.cpp
+
+Timer_KbServerChangedSince.obj: ../../source/Timer_KbServerChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Timer_KbServerChangedSince.obj -MD -MP -MF $(DEPDIR)/Timer_KbServerChangedSince.Tpo -c -o Timer_KbServerChangedSince.obj `if test -f '../../source/Timer_KbServerChangedSince.cpp'; then $(CYGPATH_W) '../../source/Timer_KbServerChangedSince.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Timer_KbServerChangedSince.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Timer_KbServerChangedSince.Tpo $(DEPDIR)/Timer_KbServerChangedSince.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Timer_KbServerChangedSince.cpp' object='Timer_KbServerChangedSince.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Timer_KbServerChangedSince.obj `if test -f '../../source/Timer_KbServerChangedSince.cpp'; then $(CYGPATH_W) '../../source/Timer_KbServerChangedSince.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Timer_KbServerChangedSince.cpp'; fi`
 
 TransformToGlossesDlg.o: ../../source/TransformToGlossesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TransformToGlossesDlg.o -MD -MP -MF $(DEPDIR)/TransformToGlossesDlg.Tpo -c -o TransformToGlossesDlg.o `test -f '../../source/TransformToGlossesDlg.cpp' || echo '$(srcdir)/'`../../source/TransformToGlossesDlg.cpp

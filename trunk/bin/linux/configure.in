@@ -19,6 +19,8 @@ AS_IF([test "x$enable_debug" != xno],
     [AC_SUBST([WXDEBUG], ["--debug"])
      AC_DEFINE([_DEBUG], [1],
                [Define for debug builds])
+     AC_DEFINE([_KBSERVER], [1],
+               [Define for KBServer builds])
     ])
 
 CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"
