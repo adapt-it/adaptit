@@ -52,6 +52,7 @@
 #include "wx/thread.h"
 
 // other includes
+#include "BString.h"
 #include "KbServer.h"
 #include "Thread_UploadMulti.h"
 #include "Adapt_It.h"
@@ -74,24 +75,23 @@ void Thread_UploadMulti::OnExit()
 
 void* Thread_UploadMulti::Entry()
 {
-	/* params for CreateEntry_Minimal()
-	KbServer*			m_pKbSvr;
-	KbServerEntry		m_entry;
-	wxString			m_kbType;
-	wxString			m_password;
-	wxString			m_username;
-	wxString			m_srcLangCode;
-	wxString			m_tgtLangCode;
-	wxString			m_url;
-	*/
-	wxASSERT(m_pKbSvr != NULL && !m_entry.source.IsEmpty());
 	int rv = CURLE_OK;
-	rv = m_pKbSvr->CreateEntry_Minimal(m_entry, m_kbType, m_password, m_username,
-										m_srcLangCode, m_tgtLangCode, m_url);
+	rv = m_pKbSvr->BulkUpload(m_threadIndex, m_url, m_username, m_password, m_jsonUtf8Str);
 	if (rv != CURLE_OK)
 	{
-		// do nothing on error
-		;
+		if (rv == CURLE_HTTP_RETURNED_ERROR)
+		{
+
+// ***** TODO  *******  -- a localizable error message -- some values didn't get stored in the remote DB,
+// try again later when noone is adapting or uploading
+		}
+		else if (rv == CURLE_COULDNT_RESOLVE_HOST)
+		{
+// ******* TODO  ****** -- a localizable error message -- tell the user the connection to the kbserver
+// has been lost, maybe temporarily, or not achieved yet, test web connectivity and make 
+// sure right url was typed in
+		}
+		; // any other errors, just ignore them? or give an 'undefined error' message
 	}
 	return (void*)NULL;
 }

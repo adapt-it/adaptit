@@ -108,6 +108,11 @@ std::string str_CURLbuffer;
 const size_t npos = (size_t)-1; // largest possible value, for use with std:find()
 std::string str_CURLheaders;
 
+// The UploadToKbServer() call, will create up to 50 threads. To permit parallel
+// processing we need an array of 50 standard buffers, so that we don't have to force
+// sequentiality on the processing of the threads
+std::string str_CURLbuff[50];
+
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
@@ -659,11 +664,25 @@ size_t curl_read_data_callback(void *ptr, size_t size, size_t nmemb, void *userd
 {
 	userdata = userdata; // avoid "unreferenced formal parameter" warning
 	//wxString msg;
-	//msg = msg.Format(_T("In curl_read_data_callback: sending %s bytes."),(size*nmemb));
+	//msg = msg.Format(_T("In curl_read_data_callback: sending %d bytes."),(size*nmemb));
 	//wxLogDebug(msg);
 	str_CURLbuffer.append((char*)ptr, size*nmemb);
 	return size*nmemb;
 }
+
+size_t curl_read_data_callback2(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	int threadIndex = *(int*)userdata; 
+	str_CURLbuff[threadIndex].append((char*)ptr, size*nmemb);
+#if defined(_DEBUG)
+	wxString msg;
+	msg = msg.Format(_T("In curl_read_data_callback2: sending %d bytes, threadIndex = %d"),
+						(size*nmemb), threadIndex);
+	wxLogDebug(msg);
+#endif
+	return size*nmemb;
+}
+
 
 size_t curl_update_callback(void* ptr, size_t size, size_t nitems, void* userp)
 {
@@ -996,7 +1015,7 @@ int KbServer::ChangedSince(wxString timeStamp)
 				wxString msg;
 				msg  = msg.Format(_T("ChangedSince()error: HTTP status: %d   %s"),
                                   m_httpStatusCode, m_httpStatusText.c_str());
-                wxLogDebug(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
+                wxMessageBox(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
 #endif
  				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
@@ -1015,6 +1034,15 @@ int KbServer::ChangedSince(wxString timeStamp)
 void KbServer::ClearStrCURLbuffer()
 {
 	str_CURLbuffer.clear();
+}
+
+void KbServer::ClearAllStrCURLbuffers2()
+{
+	int i;
+	for (i=0; i < 50; i++)
+	{
+		str_CURLbuff[i].clear();
+	}
 }
 
 void KbServer::ClearAllPrivateStorageArrays()
@@ -1271,7 +1299,7 @@ int KbServer::CreateEntry_Minimal(	KbServerEntry& entry,
 									wxString& password,
 									wxString& username,
 									wxString& srcLangCode,
-									wxString& tgtLangCode,
+									wxString& translnLangCode, // tgt code or gloss code
 									wxString& url)
 {
 	CURL *curl;
@@ -1292,7 +1320,7 @@ int KbServer::CreateEntry_Minimal(	KbServerEntry& entry,
 
 	// populate the JSON object
 	jsonval[_T("sourcelanguage")] = srcLangCode;
-	jsonval[_T("targetlanguage")] = tgtLangCode;
+	jsonval[_T("targetlanguage")] = translnLangCode;
 	jsonval[_T("source")] = entry.source;
 	jsonval[_T("target")] = entry.translation;
 	jsonval[_T("user")] = username;
@@ -1682,21 +1710,30 @@ void KbServer::UploadToKbServerThreaded()
 }
 */
 
-// clears user data (wxStrings) from m_uploadsMap
+// clears user data (wxArrayString instances on the heap, and their contents) 
+// from m_uploadsMap
 void KbServer::ClearUploadsMap()
 {
 	if(m_uploadsMap.empty())
 	{
 		return; // it's already empty
 	}
+	UploadsMap::iterator iter;
+	wxArrayString* pArrayStr = NULL;
+	for (iter = m_uploadsMap.begin(); iter != m_uploadsMap.end(); ++iter)
+	{
+		pArrayStr = iter->second;
+		pArrayStr->clear();
+		delete pArrayStr;
+	}
+	// data has been cleared, now clear the hanging ptrs
 	m_uploadsMap.clear();
 }
 
 // Populate the m_uploadsList - either with the help of the remote DB's data in the
 // hashmap, or without (the latter when the remote DB has no content yet for this
 // particular language pair) - pass in a flag to handle these two options
-void KbServer::PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap, 
-								  bool bRemoteDBContentDownloaded)
+void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloaded)
 {
 	wxASSERT(m_uploadsList.IsEmpty()); // must be empty before we call this
 
@@ -1710,25 +1747,39 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap,
 	// will use it in that case; we don't bother when the flag was passed in as FALSE
 	if( bRemoteDBContentDownloaded)
 	{
-		PopulateUploadsMap(this, pUploadsMap);
+		PopulateUploadsMap(this);
 		// Clearing the m_uploadsMap is done in the caller on return
 	}
 	
+	UploadsMap::iterator upIter;
+	wxString empty = _T("<empty>");
 	KbServerEntry* reference;
 	CKB* currKB = pKbSvr->GetKB( GetKBServerType() ); //Glossing = KB Type 2
 
-	//Need to get each map of the local KB
+	//Need to get each map of the local KB, & iterate through each
 	for (int i = 0; i< MAX_WORDS; i++)
 	{
 		//for each map
-		for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
+		for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); 
+				iter != currKB->m_pMap[i]->end(); ++iter)
 		{
 			wxASSERT(currKB->m_pMap[i] != NULL);
 
 			if (!currKB->m_pMap[i]->empty())
 			{
 				srcPhrase = iter->first;
-				
+				/*
+#if defined(_DEBUG)
+				// the three which are repeated in the 9, have srcPhrase "bikpela", or "i
+				// laikim", or "long ai bilong mipela", so break at these & step it
+				if (srcPhrase == _T("bikpela") ||
+					srcPhrase == _T("i laikim") ||
+					srcPhrase == _T("long ai bilong mipela"))
+				{
+					int break_here = 1;
+				}
+#endif
+				*/
 				pTU = iter->second;
 				CRefString* pRefString = NULL;
 				TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
@@ -1750,14 +1801,17 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap,
 							// accept only the ones which aren't already in the 
 							// remote DB
 							tgtPhrase = pRefString->m_translation; // might be empty
-
-							// In the case of a string to string hash map, if the key is
-							// not in the map, then an empty string is returned from a
-							// lookup
-							wxString temp = (*pUploadsMap)[srcPhrase];
-							if (temp.IsEmpty())
+							if (tgtPhrase.IsEmpty())
 							{
-								// the wxString src is not in the hash map, therefore
+								// use this instead for the search
+								tgtPhrase = empty;
+							}
+
+							// do a find() in the pUploadsMap
+							upIter = m_uploadsMap.find(srcPhrase);
+							if (upIter == m_uploadsMap.end())
+							{
+								// the key is not present in the map, therefore
 								// this pair should be uploaded to the remote DB
 								reference = new KbServerEntry;
 								reference->source = srcPhrase;
@@ -1767,10 +1821,43 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap,
 							}
 							else
 							{
-                                // this pair exists in the remote DB, usually as a normal
-                                // entry, but it could instead by a pseudo-deleted one; in
-                                // either case, DON'T send this pair
-								continue;
+                                // This key has a presence in the map - but a source key
+                                // may have more than one translation, so get the array of
+                                // translations and test if any match tgtPhrase - for any
+                                // that are matches with src/translation pairs in
+                                // m_uploadsMap, DON'T upload such pair to the remote DB.
+                                // Note, I've stored empty translations as _T("<empty>"),
+                                // so we are checking for that too (see above). But all the
+                                // non-matches in the loop below mean that the src/tgt pair
+                                // being checked isn't yet a pair in the remote DB, and so
+                                // we must add an entry to uploadsList so as to later
+                                // upload these to the remote DB
+								wxArrayString* pArray = upIter->second;
+								// Check if this adaptation (or gloss) from pRefString of
+								// the local KB is the same as the one or several strings
+								// in the wxArrayString formed from the downloaded remote
+								// DB data
+								int nIndex = pArray->Index(tgtPhrase);
+								if (nIndex == wxNOT_FOUND)
+								{
+									// we have a src/tgt pair which has no presence in
+									// the remote DB as yet, so upload (beware, check
+									// for the empty string designator and restore the
+									// empty string if found)
+									if (tgtPhrase == empty) // empty is _T("<empty>")
+									{
+										tgtPhrase.Empty();
+									}
+									reference = new KbServerEntry;
+									reference->source = srcPhrase;
+									reference->translation = tgtPhrase;
+									// store the new struct
+									m_uploadsList.Append(reference);
+								}
+                                // if control didn't enter the above block, then we
+                                // continue by looking at the next CRefString stored on the
+                                // currently accessed CTargetUnit instance; because the
+                                // srcPhrase/tgtPhrase pair are in the remote remote DB
 							}
 						}
 						else
@@ -1782,23 +1869,31 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap,
 							// store the new struct
 							m_uploadsList.Append(reference);
 						}
-					}
-				}
-			}
-		}
-	} // for loop ends
+					} // end of TRUE block for test: if (pRefString->GetDeletedFlag() == FALSE)
+				} // end of while loop: while (pos != NULL)  (iterating over CRefString ptrs)
+			} // end of TRUE block for test: if (!currKB->m_pMap[i]->empty())
+		} // end of for loop:
+		// 	for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); 
+		//	iter != currKB->m_pMap[i]->end(); ++iter)
+		//	which iterates over all the CTargetUnit pointers in the ith map of the KB
+	} // end of for loop: for (int i = 0; i< MAX_WORDS; i++)
+	  // which iterates over all (10) of the maps which make up the CKB
 }
 
-// Extract the source and translation strings, and use the source string as key, and
-// the translation string as value, to populate the m_uploadsMap from the downloaded
-// remote DB data (stored in the 7 parallel arrays). This is mutex protected by the
-// s_DoGetAllMutex)
-void KbServer::PopulateUploadsMap(KbServer* pKbSvr, UploadsMap* pUploadsMap)
+// Extract the source and translation strings, and use the source string as key, and value
+// is a wxArrayString, so add the translation string as an item to the array (because for a
+// give source text key, there can be more than one translation associated with it), to
+// populate the m_uploadsMap from the downloaded remote DB data (stored in the 7 parallel
+// arrays). This is mutex protected by the s_DoGetAllMutex)
+void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 {
 	wxString src;
 	wxString tgt;
+	wxString empty = _T("<empty>");
 	size_t count = pKbSvr->m_arrSource.GetCount();
 	size_t i;
+	wxArrayString* pMyTranslations = NULL;
+	UploadsMap::iterator iter;
 	for (i = 0; i < count; ++i)
 	{
 		// Some entries may be pseudo-deleted ones in the remote DB, we must accept these
@@ -1808,7 +1903,31 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr, UploadsMap* pUploadsMap)
 		// pseudo-deleted one in the remote DB
 		src = pKbSvr->m_arrSource.Item(i);
 		tgt = pKbSvr->m_arrTarget.Item(i); // could be an empty string, that's allowed
-		(*pUploadsMap)[src] = tgt;
+		// If we don't change empty translation strings to something non-empty, we may
+		// end up excluding those unwittingly, so use _T("<empty>") for them and change
+		// the latter back to an empty string when necessary
+		if (tgt.IsEmpty())
+		{
+			tgt = empty;
+		}
+		// Find this key in the map; if not there, create on the heap another
+		// wxArrayString, and store tgt as it's first item; if there, we can be certain no
+		// other value has the same string, so just add it to the array
+		iter = m_uploadsMap.find(src);
+		if (iter == m_uploadsMap.end())
+		{
+			// this key is not yet in the map, add a new wxArrayString item using it and
+			// store tgt within it
+			pMyTranslations = new wxArrayString;
+			m_uploadsMap[src] = pMyTranslations;
+		}
+		else
+		{
+			// this key is in the map, so we've got another translation string to
+			// associate with it - add it to the array
+			pMyTranslations = iter->second;
+		}
+		pMyTranslations->Add(tgt);
 	}
 	// The only reason we populate this map is because once the local KB gets large, say
 	// over a thousand entries, it will be much quicker to determine a give src-tgt pair
@@ -1830,7 +1949,10 @@ void KbServer::UploadToKbServer()
 		s_DoGetAllMutex.Lock();
 
 		ClearAllPrivateStorageArrays();
-		DoGetAll(FALSE); // populate the 7 in-parallel arrays with the remote DB contents
+		ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
+
+		// populate the 7 in-parallel arrays with the remote DB contents
+		DoGetAll(FALSE); 
 		int iTotalEntries = 0;	// initialize
 
 		// If the remote DB has no content for this language pair as yet, all 7 arrays
@@ -1847,7 +1969,7 @@ void KbServer::UploadToKbServer()
         // ChangedSince_Queued(), called in OnIdle() - see MainFrm.cpp)
 		KBAccessMutex.Lock();
 
-		PopulateUploadList(this, &m_uploadsMap, bRemoteDBContentDownloaded);
+		PopulateUploadList(this, bRemoteDBContentDownloaded);
 
 		KBAccessMutex.Unlock();
 
@@ -1869,6 +1991,23 @@ void KbServer::UploadToKbServer()
 #if defined(_DEBUG)
 		wxLogDebug(_T("UploadToKbServer(), number of KbServerEntry structs =  %d"), iTotalEntries);
 #endif
+#if defined(_DEBUG)
+		{
+			UploadsList::iterator it;
+			UploadsList::compatibility_iterator iter2;
+			int anIndex = -1;
+			for (it = m_uploadsList.begin(); it != m_uploadsList.end(); ++it)
+			{
+				anIndex++;
+				iter2 = m_uploadsList.Item((size_t)anIndex);
+				KbServerEntry* pEntry = iter2->GetData();
+				wxString srcPhr = pEntry->source;
+				wxString transPhr = pEntry->translation;
+				wxLogDebug(_T("UploadToKbServer() %d. uploadable pair =  %s / %s"), 
+					anIndex + 1, srcPhr.c_str(), transPhr.c_str());
+			}
+		}
+#endif
 
 		// Generate and fire off the 50 threads, fewer if the entry count is not large; we
 		// will use 10 entries per thread, if there are <= 500 entries to send. If more
@@ -1887,11 +2026,6 @@ void KbServer::UploadToKbServer()
 				// add an extra thread for the remainder of the entries
 				numThreadsNeeded++;
 			}
-
-
-
-
-// TODO
 		}
 		else
 		{
@@ -1904,28 +2038,101 @@ void KbServer::UploadToKbServer()
 				// add an extra entry, due to the modulo calc
 				numEntriesPerThread++;
 			}
-
-
-
-
-// TODO
-
-
 		}
-
-		// In a loop, create and fire off a thread for each KbServerEntry struct (later, add a
-		// timer or whatever else may be needed)
-		KbServerEntry* reference = NULL;
-		UploadsList::iterator iter;
-		for (iter = m_uploadsList.begin(); iter != m_uploadsList.end(); ++iter)
+		// The following are copies of parameters we need to upload in the curl calls, we
+		// will pass a copy of each of these into each thread, so that the thread is
+		// completely autonomous and no mutex is then needed; we'll get source and
+		// translation strings from the kbServerEntry structs
+		//KbServer*	pKbSvr = this;
+		wxString	kbType; // set it with next line
+		wxItoa(this->m_kbServerType, kbType);
+		wxString	password = GetKBServerPassword();
+		wxString	username = GetKBServerUsername();
+		wxString	srcLangCode = GetSourceLanguageCode();
+		wxString	translnLangCode; // set it with next test
+		if (this->m_kbServerType == 1)
 		{
-			wxThreadError error = wxTHREAD_NO_ERROR;
-			if (!m_uploadsList.empty()) // a bit of safety-first protection
+			translnLangCode = GetTargetLanguageCode();
+		}
+		else
+		{
+			translnLangCode = GetGlossLanguageCode();
+		}
+		wxString	url = GetKBServerURL();
+		wxString	source;
+		wxString	transln; // either a target text translation, or a gloss
+		wxString	jsonStr; // the wxString containing the JSON object written as a string
+		CBString	jsonUtf8Str; // we'll convert jsonStr to UTF-8 and store it here, 
+								 // ready for passing in to the bulk upload API function
+		// Iterate across the m_uploadsList of KbServerEntry structs, which are to have
+		// their src/tgt pairs uploaded in one or more threads. NumThreadsNeeded tells us
+		// how many threads we need to create as we divide up the entries, max of 50, and
+		// numEntriesPerThread is what we count off to form each subset of entries to be
+		// bulk uploaded
+		int entryIndex = -1;
+		int threadIndex = -1;
+		int entryCount = 0; // counting 1 to numEntriesPerThread for EACH thread
+		KbServerEntry* pEntryStruct = NULL;
+		Thread_UploadMulti* pThread = NULL;
+		UploadsList::iterator listIter;
+		UploadsList::compatibility_iterator anIter;
+		wxThreadError error = wxTHREAD_NO_ERROR;
+		wxJSONValue* jsonvalPtr = NULL;
+
+		// Outer loop loops over all the KbServerEntry structs, to get src/transln pairs
+		// (ie. either src/tgt pairs, or src/gloss pairs, depending on which kbType we are)
+		for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
+		{
+			++entryIndex;
+
+			// Prepare to build a JSON object
+			if (entryCount == 0)
 			{
-				reference = *iter; // get next KbServerEntry struct ptr from the list
-				// make a new thread for transmitting it's data to the remote DB
-				Thread_UploadMulti* pThread = new Thread_UploadMulti;
-				error = pThread->Create(1024); // experiment with stack sizes, start with 1kb
+				jsonvalPtr = new wxJSONValue;
+				threadIndex++;
+			}
+			++entryCount; // DO NOT put this line above the above entryCount == 0 test!
+
+			// collect the entries for one bulk-uploading thread		
+			// (this many: numEntriesPerThread)			
+
+			// Get the KbServerEntry struct & extract the src and transln strings
+			anIter = m_uploadsList.Item((size_t)entryIndex);
+			pEntryStruct = anIter->GetData();
+			source = pEntryStruct->source;
+			transln = pEntryStruct->translation; // an adaptation, or gloss, 
+												 // depending on kbserver type
+			// Build the next array of the JSON object
+			int i = entryCount - 1;
+			(*jsonvalPtr)[i][_T("sourcelanguage")] = srcLangCode;
+			(*jsonvalPtr)[i][_T("targetlanguage")] = translnLangCode;
+			(*jsonvalPtr)[i][_T("source")] = source;
+			(*jsonvalPtr)[i][_T("target")] = transln;
+			(*jsonvalPtr)[i][_T("type")] = kbType;
+			(*jsonvalPtr)[i][_T("user")] = username;
+			(*jsonvalPtr)[i][_T("deleted")] = (long)0; 
+
+			if ((entryCount == numEntriesPerThread) || (entryCount == iTotalEntries))
+			{
+				// We've collected all we need for this thread, OR, we have collected all
+				// that remain for uploading when collecting for the last thread
+				
+				// Write out the JSON string form of this jsonval object, and then to 
+				// UTF8, ready for passing in to the thread
+				wxJSONWriter writer;
+				writer.Write((*jsonvalPtr), jsonStr);
+#if defined(_DEBUG)
+				wxLogDebug(_T("Data to BulkUpload() for thread with index %d of total threads %d\n Data is....\n%s\n"),
+					threadIndex, numThreadsNeeded, jsonStr.c_str());
+#endif
+				// convert it to utf-8 stored in CBString
+				jsonUtf8Str = ToUtf8(jsonStr);
+
+				// Make the thread and populate its members -- make its stack 4KB to 
+				// be safe
+				pThread = new Thread_UploadMulti;
+				error = pThread->Create(4096); // play safe with stack sizes, give it 4kb
+											   // (half that would probably still be safe)
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					// do something, we don't expect it to fail
@@ -1933,45 +2140,37 @@ void KbServer::UploadToKbServer()
 				}
 				else
 				{
-					/* params in Thread_UploadOne for CreateEntry_Minimal()
-					KbServer*			m_pKbSvr;
-					KbServerEntry		m_entry;
-					wxString			m_kbType;
-					wxString			m_password;
-					wxString			m_username;
-					wxString			m_srcLangCode;
-					wxString			m_tgtLangCode;
-					wxString			m_url;
-					*/
-					// no error, so we can run it, after populating it with needed data
-					pThread->m_pKbSvr = this;
-					pThread->m_entry.source = reference->source;
-					pThread->m_entry.translation = reference->translation;
-					wxItoa(m_kbServerType, pThread->m_kbType);
-					pThread->m_password = GetKBServerPassword();
-					pThread->m_username = GetKBServerUsername();
-					pThread->m_srcLangCode = GetSourceLanguageCode();
-					pThread->m_tgtLangCode = GetTargetLanguageCode();
-					pThread->m_url = GetKBServerURL();
-
+					// successful instantiation, now fill its members
+					pThread->m_pKbSvr = this; 
+					pThread->m_threadIndex = threadIndex;
+					pThread->m_password = password;
+					pThread->m_username = username;
+					pThread->m_url = url;
+					pThread->m_jsonUtf8Str = jsonUtf8Str;
+				
 					// run the thread
-					error = pThread->Run(); // ignore the error value
-                    // later delete from the heap the struct we've just used, but not here
-                    // because the thread is running in memory and may be so for a long
-                    // time after this function returns - so we need a flag to tell us when
-                    // the last one has finished (I'll try a couple of ints in global
-                    // space, one for total entries, another for the count of dead threads,
-                    // and when the two numbers match, the structs can be deleted --
-                    // testing can be done in OnIdle() -- not foolproof, for if the upload
-                    // is done just before the m_pKbSvr instance is killed - eg user
-                    // navigates to a different project or exits the app, any
-                    // still-to-finish threads will all die together, but at least that
-                    // won't break anything important)
+					error = pThread->Run(); // ignore error
+					wxASSERT(error == wxTHREAD_NO_ERROR);
+
+					// delete this JSON object from the heap & zero the entryCount ready
+					// for the next thread's creation
+					delete jsonvalPtr;
+					entryCount = 0;
+
+					// TODO complete the code here, prepare for next iteration
+					// (at the moment, I think we are done)
 				}
-			}
-		}
+
+			} // end of TRUE block for test: if (entryCount == numEntriesPerThread)
+
+		} // end of for loop:
+		  // for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
+
 		DeleteUploadEntries();
-	}
+		ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
+
+	} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
+
 #if defined(_DEBUG)
 	now = wxDateTime::Now();
 	wxLogDebug(_T("UploadToKBServer() end time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
@@ -2240,99 +2439,47 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 	return 0;
 }
 
-int KbServer::BulkUpload(CBString jsonUTF8Str)
+
+/* params for BulkUpload() refactored
+CBString		m_jsonUtf8Str;
+wxString		m_password;
+wxString		m_username;
+wxString		m_url;
+*/
+
+int KbServer::BulkUpload(int threadIndex, // use for choosing which buffer to return results in
+						 wxString url, wxString username, wxString password, 
+						 CBString jsonUtf8Str)
 {
 	CURL *curl;
 	CURLcode result = CURLE_OK; // result code, initialize to "no error" (0)
 	struct curl_slist* headers = NULL;
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
-	wxString kbType;
-	wxItoa(GetKBServerType(),kbType);
-	wxJSONValue jsonval; // construct JSON object
-	int index = -1; // initialize index into the JSON object
-	CBString strVal; // to store wxString form of the jsonval object, for curl
 	wxString container = _T("entry");
 	wxString aUrl, aPwd;
-	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+
+	// Need 50 of these if I'm to get results back without forcing sequentiality
+	str_CURLbuff[threadIndex].clear(); // always make sure it is cleared for accepting new data
 
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
 
-	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
 
-	// scan the KB and convert its data to a JSON object
-	wxString srcPhrase;
-	CTargetUnit* pTU;
-	int iTotalSent = 0;	
-
-	// Get the entry parts which are constant, for quick access
-	wxString srcCode = GetSourceLanguageCode();
-	wxString tgtCode = GetTargetLanguageCode();
-	wxString username = GetKBServerUsername();
-	wxString password = GetKBServerPassword();
 #if defined(_DEBUG)
+	// try do this without a mutex - it's temporary and I may get away with it, if not
+	// delete it; same for the one at the end below
 	wxDateTime now = wxDateTime::Now();
-	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
+	wxLogDebug(_T("UploadToKBServer() thread %d , start time: %s\n"), 
+		threadIndex, now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
-	CKB* currKB = this->GetKB( GetKBServerType() ); //Glossing = KB Type 2
-
-	//Need to get each map
-	for (int i = 0; i< MAX_WORDS; i++)
-	{
-		//for each map
-		for (MapKeyStringToTgtUnit::iterator iter = currKB->m_pMap[i]->begin(); iter != currKB->m_pMap[i]->end(); ++iter)
-		{
-			wxASSERT(currKB->m_pMap[i] != NULL);
-
-			if (!currKB->m_pMap[i]->empty())
-			{
-				srcPhrase = iter->first;
-
-				pTU = iter->second;
-				CRefString* pRefString = NULL;
-				TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-				wxASSERT(pos != NULL);
-
-				while (pos != NULL)
-				{
-					pRefString = (CRefString*)pos->GetData();
-					wxASSERT(pRefString != NULL);
-					pos = pos->GetNext();
-
-					if (!pRefString->m_translation.IsEmpty())
-					{
-						index++;
-						jsonval[index][_T("sourcelanguage")] = srcCode;
-						jsonval[index][_T("targetlanguage")] = tgtCode;
-						jsonval[index][_T("source")] = srcPhrase;
-						jsonval[index][_T("target")] = pRefString->m_translation;
-						jsonval[index][_T("type")] = kbType;
-						jsonval[index][_T("user")] = username;
-						jsonval[index][_T("deleted")] = pRefString->GetDeletedFlag() ? (long)1 : (long)0; 
-					}
-				}
-			}
-		}
-	} // for loop ends
-	iTotalSent = index + 1;
-#if defined(_DEBUG)
-	wxLogDebug(_T("UploadToKbServer(), JSON elements sent:  %d  7-field arrays"), iTotalSent);
-#endif
-
-	// convert the JSON object to text form, and then to UTF8, ready for transmission
-	wxJSONWriter writer; wxString str;
-	writer.Write(jsonval, str);
-	// convert it to utf-8 stored in CBString
-	strVal = ToUtf8(str);
-
 	aUrl = GetKBServerURL() + slash + container + slash;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
 	curl = curl_easy_init();
-
 	if (curl)
 	{
 		// add headers
@@ -2346,38 +2493,41 @@ int KbServer::BulkUpload(CBString jsonUTF8Str)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_POST, 1L);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)jsonUtf8Str);
 		// ask for the headers to be prepended to the body - this is a good choice here
 		// because no json data is to be returned
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 		// get the headers stuff this way...
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback2);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*)&threadIndex);
 		// curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) // && defined (__WXGTK__)
-        CBString s(str_CURLbuffer.c_str());
+        CBString s(str_CURLbuff[threadIndex].c_str());
         wxString showit = ToUtf16(s);
-        wxLogDebug(_T("UploadToKbServer() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+        wxLogDebug(_T("UploadToKbServer() thread %d , Returned: %s    CURLcode %d"), 
+			threadIndex, showit.c_str(), (unsigned int)result);
 #endif
 		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
 		// (400 or higher)
-		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+		ExtractHttpStatusEtc(str_CURLbuff[threadIndex], m_httpStatusCode, m_httpStatusText);
 		
 		curl_slist_free_all(headers);
-		str_CURLbuffer.clear();
+		str_CURLbuff[threadIndex].clear();
 
         // Typically, result will contain CURLE_OK if an error was a HTTP one and so the
         // next block won't then be entered; don't bother to localize this one, we don't
-        // expect it will happen much if at all
+		// expect it will happen much if at all (but it would be if there was no
+		// connection to the remote server)
 		if (result) {
 			wxString msg;
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("UploadToKbServer() result code: %d Error: %s"), 
 				result, error.c_str());
-			wxMessageBox(msg, _T("Error when bulk-uploading entries"), wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, _T("Error when bulk-uploading part of the entries"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
 			return result;
@@ -2387,12 +2537,17 @@ int KbServer::BulkUpload(CBString jsonUTF8Str)
 
 #if defined(_DEBUG)
 	now = wxDateTime::Now();
-	wxLogDebug(_T("UploadToKBServer() finish time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
-	wxLogDebug(_T("UploadToKBServer() Done!   Return value = %d"), result);
+	wxLogDebug(_T("UploadToKBServer() thread %d , finish time: %s\n"), 
+		threadIndex, now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
 
 	// Work out what to return, depending on whether or not a HTTP error happened, and
-    // which one it was
+	// which one it was; if there was no connectivity, failure would happen earlier and a
+	// curl error of 6 would be returned (CURLE_COULDNT_RESOLVE_HOST). The error that we
+	// don't want is the http 400 one, which means there's an entry already in the remote
+	// DB - so the caller should check for CURLE_HTTP_RETURNED_ERROR and give the user
+	// some direction about what to do (e.g. try again later when noone else is uploading
+	// or adapting)
 	if (m_httpStatusCode >= 400)
 	{
 		// Probably 400 "Bad Request" should be the only one we get.

@@ -140,8 +140,8 @@ void KBSharing::OnCancel(wxCommandEvent& myevent)
 void KBSharing::OnSpinCtrlReceiving(wxSpinEvent& WXUNUSED(event))
 {
 	receiveInterval = m_pSpinReceiving->GetValue();
-	if (receiveInterval > 10)
-		receiveInterval = 10;
+	if (receiveInterval > 20)
+		receiveInterval = 20;
 	if (receiveInterval < 1)
 		receiveInterval = 1;
 	// units for the above are minutes; so multiply by 60,000 to get milliseconds

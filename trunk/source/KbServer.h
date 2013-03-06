@@ -58,8 +58,8 @@ WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the ap
 // need a hashmap for quick lookup of keys for find out which src-tgt pairs are in the
 // remote KB (scanning through downloaded data from the remote KB), so as not to upload
 // pairs which already have a presence in the remote server; used when doing a full KB upload
-WX_DECLARE_STRING_HASH_MAP(wxString, UploadsMap);
-
+WX_DECLARE_HASH_MAP(wxString, wxArrayString*, wxStringHash, wxStringEqual, UploadsMap); 
+													   
 // Not all values are needed from each entry, so I've commented out those the KB isn't
 // interested in
 struct KbServerEntry {
@@ -136,7 +136,11 @@ public:
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp);
 	void	 UploadToKbServer();
-	int		 BulkUpload(CBString jsonUTF8Str);
+	int		 BulkUpload(	int threadIndex, // use for choosing which buffer to return results in
+							wxString url, 
+							wxString username, 
+							wxString password, 
+							CBString jsonUtf8Str);
 	void	 DeleteUploadEntries();
 
 	// public setters
@@ -160,6 +164,7 @@ public:
 									     // as an ascii string literal
 	// public helpers
 	void	ClearStrCURLbuffer();
+	void	ClearAllStrCURLbuffers2();
 	void	UpdateLastSyncTimestamp();
 	void	EnableKBSharing(bool bEnable);
 	bool	IsKBSharingEnabled();
@@ -191,13 +196,12 @@ protected:
 	// the translation string as value, to populate the m_uploadsMap from the downloaded
 	// remote DB data (stored in the 7 parallel arrays). This is mutex protected by the
 	// s_DoGetAllMutex)
-	void PopulateUploadsMap(KbServer* pKbSvr, UploadsMap* pUploadsMap);
+	void PopulateUploadsMap(KbServer* pKbSvr);
 	
 	// Populate the m_uploadsList - either with the help of the remote DB's data in the
 	// hashmap, or without (the latter when the remote DB has no content yet for this
 	// particular language pair) - pass in a flag to handle these two options
-	void PopulateUploadList(KbServer* pKbSvr, UploadsMap* pUploadsMap, 
-							bool bRemoteDBContentDownloaded);
+	void PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloaded);
 
 private:
 	// class variables
