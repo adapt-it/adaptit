@@ -44,8 +44,9 @@
 struct KbServerEntry;
 class wxThread;
 class KbServer;
-//class CAdapt_ItApp;
-#include "KbServer.h" // needed for KbServerEntry struct definition
+class CBString;
+
+//#include "KbServer.h" // needed for KbServerEntry struct definition
 
 class Thread_UploadMulti : public wxThread
 {
@@ -54,15 +55,12 @@ public:
 	virtual ~Thread_UploadMulti(void); // destructor
 
 	// keep it simple, forget accessors, just make variables public
-	//CAdapt_ItApp*		m_pApp;
-	KbServer*			m_pKbSvr; // it knows which type it is
-	KbServerEntry		m_entry;
-	wxString			m_kbType;
+	KbServer*			m_pKbSvr;
+	int					m_threadIndex;
 	wxString			m_password;
 	wxString			m_username;
-	wxString			m_srcLangCode;
-	wxString			m_tgtLangCode;
 	wxString			m_url;
+	CBString			m_jsonUtf8Str;
 
 	// wxThread::OnExit() is called when the thread exits at termination - for self
 	// destruction termination or by Delete(), but not if Kill() is used - the latter
