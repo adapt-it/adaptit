@@ -1537,7 +1537,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 bool  CAdapt_ItDoc::Commit_valid()
 {
 	if (gpApp->m_AIuser == NOOWNER || gpApp->m_owner == NOOWNER)  return TRUE;
-    
+
 	if (gpApp->m_AIuser != gpApp->m_owner)
 	{
 		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
@@ -1560,7 +1560,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	wxString		origOwner = gpApp->m_owner;
     int             origCommitCnt = gpApp->m_commitCount;
 
-    
+
 // Do we need a check here that the file is really under version control??  More likely
 // If a trial is under way, we need a decision from the user first as to whether to accept the
 // trial or go back.
@@ -1587,7 +1587,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
             return resultCode;              // bail out if adding the doc to version control failed for some reason
 	}
 */
-    
+
 // Now we find the date/time and the commit count, which we'll save in the file before we do the commit.
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 
@@ -1596,7 +1596,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 
     if ( gpApp->m_commitCount < 0 )
         gpApp->m_commitCount = 0;
-    
+
 	gpApp->m_commitCount += 1;					// bump the commit count
 
 	gpApp->m_owner = gpApp->m_AIuser;			// owner may have been NOOWNER, but must be assigned on a commit

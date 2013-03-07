@@ -10,18 +10,18 @@
 /// It also defines a CPunctCorrespPageCommon class that
 /// contains the common elements and methods of the two above classes.
 /// These classes create a wizard page in the StartWorkingWizard and/or a panel in the
-/// EditPreferencesDlg that allow the user to edit the punctuation correspondences for a 
-/// project. 
-/// The interface resources for CPunctCorrespPageWiz and CPunctCorrespPagePrefs are 
+/// EditPreferencesDlg that allow the user to edit the punctuation correspondences for a
+/// project.
+/// The interface resources for CPunctCorrespPageWiz and CPunctCorrespPagePrefs are
 /// defined in PunctCorrespPageFunc() which was developed and is maintained by wxDesigner.
 /// \derivation		CPunctCorrespPageWiz is derived from wxWizardPage, CPunctCorrespPagePrefs from wxPanel and CPunctCorrespPageCommon from wxPanel.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in PunctCorrespPage.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -59,11 +59,11 @@
 #include "FontPage.h"
 #include "CaseEquivPage.h"
 #include "AdaptitConstants.h"
-#include "Adapt_ItView.h" 
+#include "Adapt_ItView.h"
 #include "helpers.h"
 
 // This global is defined in Adapt_It.cpp.
-//extern wxWizard* pStartWorkingWizard; 
+//extern wxWizard* pStartWorkingWizard;
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -77,7 +77,7 @@ extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 extern bool			gbIsGlossing;
 extern wxString		translation;
 
-// the following are common functions - used by the CPunctCorrespPageWiz class 
+// the following are common functions - used by the CPunctCorrespPageWiz class
 // and the CPunctCorrespPagePrefs class
 
 void CPunctCorrespPageCommon::DoSetDataAndPointers()
@@ -94,8 +94,8 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 	}
 
 	// wxGenericValidator doesn't appear to work for dialogs with complex
-	// nested panels and controls. So I've added a GetDataFromEdits() 
-	// method added code to PopulateWithGlyphs() to effect data transfer. 
+	// nested panels and controls. So I've added a GetDataFromEdits()
+	// method added code to PopulateWithGlyphs() to effect data transfer.
 
 	m_editSrcPunct[0] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC0);
 	m_editSrcPunct[1] = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC1);
@@ -210,7 +210,7 @@ void CPunctCorrespPageCommon::DoInit()
 	// save the source punctuation list, so we can figure out if the user changed the
 	// source punctuation list - and if he does, we will have to retokenize and possibly
 	// rebuild the document
-	// 
+	//
 	// whm corrected 22May09 to use m_punctuationBeforeEdit[0] and remove the remnants of pApp->m_savePunctuation[].
 	// Before this correction, DoPunctuationChanges() was always being called in the OnOk() handler even when no changes were
 	// made to punctuation in Preferences.
@@ -235,7 +235,7 @@ void CPunctCorrespPageCommon::DoInit()
 		pView->RemoveSelection();
 	}
 	strSavePhraseBox = pApp->m_targetPhrase;
-	CopyInitialPunctSets(); // fill the m_srcPunctStrBeforeEdit[], m_tgtPunctStrBeforeEdit[], 
+	CopyInitialPunctSets(); // fill the m_srcPunctStrBeforeEdit[], m_tgtPunctStrBeforeEdit[],
 							// etc arrays, so we can compare the items later to see if the
 							// user has changed anything
 }
@@ -290,7 +290,7 @@ void CPunctCorrespPageCommon::CopyInitialPunctSets()
 	{
 		m_srcPunctStrBeforeEdit[index] = m_srcPunctStr[index];
 		m_tgtPunctStrBeforeEdit[index] = m_tgtPunctStr[index];
-	}		
+	}
 	for (index = 0; index < MAXTWOPUNCTPAIRS; index++)
 	{
 		m_srcTwoPunctStrBeforeEdit[index].Empty();
@@ -318,7 +318,7 @@ void CPunctCorrespPageCommon::CopyInitialPunctSets()
 
 void CPunctCorrespPageCommon::PopulateWithGlyphs()
 // Copies the App's m_punctPairs and m_twopunctPairs char data to the
-// respective m_srcPunctStr[], m_tgtPunctStr[], m_srcTwoPunctStr[] and 
+// respective m_srcPunctStr[], m_tgtPunctStr[], m_srcTwoPunctStr[] and
 // m_tgtTwoPunctStr[] local string arrays. Since the wxGenericValidator
 // doesn't appear to be transferring data between the text ctrls and
 // the strings, I've set the text in the edit ctrls manually.
@@ -388,7 +388,7 @@ void CPunctCorrespPageCommon::PopulateWithGlyphs()
 void CPunctCorrespPageCommon::SetupForGlyphs()
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	wxASSERT(pApp); 
+	wxASSERT(pApp);
 
 	CopyFontBaseProperties(pApp->m_pSourceFont,pApp->m_pDlgSrcFont); // CopyFontBaseProperties sets encoding
 	pApp->m_pDlgSrcFont->SetPointSize(pApp->m_dialogFontSize);
@@ -398,7 +398,7 @@ void CPunctCorrespPageCommon::SetupForGlyphs()
 
 	for (int i=0; i<MAXPUNCTPAIRS; i++)
 	{
-		m_editSrcPunct[i]->SetFont(*pApp->m_pDlgSrcFont); 
+		m_editSrcPunct[i]->SetFont(*pApp->m_pDlgSrcFont);
 #ifdef _RTL_FLAGS
 		if (pApp->m_bSrcRTL)
 		{
@@ -634,7 +634,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 				// if s1 is an empty string, so we need to protect the firstStr.GetChar(0) call below
 				if (!firstStr.IsEmpty())
 					pApp->m_twopunctPairs[index].twocharSrc[0] = firstStr.GetChar(0);
-				// when firstStr is empty just keep the _T('\0') char assigned to twocharSrc[0] above 
+				// when firstStr is empty just keep the _T('\0') char assigned to twocharSrc[0] above
 				if (secondStr.IsEmpty())
 				{
 					pApp->m_twopunctPairs[index].twocharSrc[1] = _T('\0');
@@ -667,7 +667,7 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 
 					// now the second one
 					secondStr.Empty();
-					secondStr = UnMakeUNNNN(s2); 
+					secondStr = UnMakeUNNNN(s2);
 					if (secondStr.IsEmpty())
 					{
 						pApp->m_twopunctPairs[index].twocharTgt[1] = _T('\0');
@@ -682,14 +682,14 @@ void CPunctCorrespPageCommon::UpdateAppValues(bool bFromGlyphs)
 #endif // for _UNICODE defined
 	}
 
-	// next compute m_srcPunctuation and m_tgtPunctuation class variable contents, which will 
+	// next compute m_srcPunctuation and m_tgtPunctuation class variable contents, which will
 	// then be copied to m_punctuation[0] and m_punctuation[1] on the app
 	GetPunctuationSets(); // compute the derived src and tgt punctuation lists
 
 	// set, or reset, the app variables which store the punctuation lists
 	pApp->m_punctuation[0] = m_srcPunctuation;
 	pApp->m_punctuation[1] = m_tgtPunctuation;
-	
+
 	// BEW added 5May05, the tests beleow, to allow for user to change the status of ordinary
 	// single or double quote characters. I can't just use .Find() here because MS have made it
 	// a 'smart Find' in that searching for " returns a non-zero result if there is a curly
@@ -880,7 +880,7 @@ wxString CPunctCorrespPageCommon::UnMakeUNNNN(wxString& nnnnStr)
 }
 
 bool CPunctCorrespPageCommon::ExtractSubstrings(wxString& dataStr,wxString& s1,wxString& s2)
-// return TRUE if no error, FALSE if the string has extra spaces 
+// return TRUE if no error, FALSE if the string has extra spaces
 // (length should be 9 if two characters in the box, or 4 if there is only one)
 {
 	wxString set = _T("0123456789abcdefABCDEF");
@@ -1170,10 +1170,10 @@ void CPunctCorrespPageWiz::CreateControls()
 }
 
 // implement wxWizardPage functions
-wxWizardPage* CPunctCorrespPageWiz::GetPrev() const 
-{ 
+wxWizardPage* CPunctCorrespPageWiz::GetPrev() const
+{
 	// add code here to determine the previous page to show in the wizard
-	return pFontPageWiz; 
+	return pFontPageWiz;
 }
 wxWizardPage* CPunctCorrespPageWiz::GetNext() const
 {
@@ -1215,8 +1215,8 @@ void CPunctCorrespPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	// Determine which direction we're going and implement
 	// the MFC equivalent of OnWizardNext() and OnWizardBack() here
 	bool bMovingForward = event.GetDirection();
-	// The remainder of OnWizardPageChanging below was taken from 
-	// MFC's OnEditPunctCorresp() method, the part after the 
+	// The remainder of OnWizardPageChanging below was taken from
+	// MFC's OnEditPunctCorresp() method, the part after the
 	// DoEditPunctCorresp() call.
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//wxASSERT(pApp != NULL);
@@ -1246,7 +1246,7 @@ void CPunctCorrespPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		// needed to effect punctuation changes.
 		// Calling of DoPunctuationChanges taken from MFC's CPunctCorrespPageWiz::OnWizardNext()
 		//pApp->DoPunctuationChanges(&punctPgCommon, NoReparse); // NoReparse within wizard since no doc is open there
-		
+
 		// Movement through wizard pages is sequential - the next page is the caseEquivPageWiz.
 		// The pCaseEquivPageWiz's InitDialog need to be called here just before going to it
 		wxInitDialogEvent idevent;
