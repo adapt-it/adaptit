@@ -2602,11 +2602,11 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 
 	// END of code for scrolling regime "keep phrase box midscreen"
 	}
-	else 
+	else
 	{
     // COMMENCE code for scrolling regime "keep strips stationary (until an autoscroll is
     // forced on us), and move the box down the strips until it reaches the last, then do
-    // autoscroll" 
+    // autoscroll"
     // BEW comment 7Feb13.(This is legacy code, from 9May2009 (svn r500) tweaked for using
     // the refactoring's accessor functions for pile and strip and layout; but with
     // additional logic changes. A logic 'bad feature' is now fixed. A legacy variable
@@ -2642,15 +2642,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	{
 		CAdapt_ItView* pView = pApp->GetView();
 		CPile* pPile = pView->GetPile(nSequNum);
-		wxRect rectPile = pPile->GetPileRect(); //was pPile->m_rectPile; // in logical coords (pixels) from doc start
-		CStrip* pStrip = pPile->GetStrip(); // was pPile->m_pStrip;
-		wxRect rectStrip = pStrip->GetStripRect(); // was pStrip->m_rectStrip; // in logical coords (pixels) from doc start
 
 		// get the visible rectangle's coordinates
 		wxRect visRect; // wxRect rectClient;
 		// wx note: calling GetClientSize on the canvas produced different results in wxGTK
-		// and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the 
-		// main frame's client size after subtracting the controlBar's height and 
+		// and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
+		// main frame's client size after subtracting the controlBar's height and
 		// composeBar's height (if visible).
 		wxSize canvasSize;
 		canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
@@ -2658,17 +2655,17 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		visRect.height = canvasSize.GetHeight();
 
 		// calculate the window depth, and then how many strips are fully visible in it; we
-		// will use the latter in order to change the behaviour so that instead of 
+		// will use the latter in order to change the behaviour so that instead of
 		// scrolling so that the active strip is at the top (which hides preceding context
 		// and so is a nuisance), we will scroll to somewhere a little past the window
-		// center (so as to show more, rather than less, of any automatic inserted material 
+		// center (so as to show more, rather than less, of any automatic inserted material
 		// which may have background highlighting turned on)...
 
 		int nWindowDepth = visRect.GetHeight();
         // BEW 7Feb13 the following strip height calculation takes into account the height
         // adjustment required if free translation mode is currently on
 		int nStripHeight = pLayout->GetStripHeight() + pLayout->GetCurLeading();
-		
+
 		// get the current horizontal and vertical pixels currently scrolled
 		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
 		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
@@ -2685,7 +2682,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
         // distance from the start of the document to the top of the top cell for the
         // active strip (the new value was determined by a prior call to RecalcLayout)
 		int yDistFromDocStartToActiveStripTop = pPile->GetPileRect().GetTop();
-		
+
 		// if auto inserting, use a small nPrecedingContextDepth value; but if not (eg. as
 	    // when the auto insertions have just stopped) then put the box near the bottom of
 	    // the window to show more of the preceding context
@@ -2707,10 +2704,10 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 
 		// make a sanity check on the above value
 		if (desiredViewTop < 0)
-			desiredViewTop = 0; 
+			desiredViewTop = 0;
 
 		//-------------------- now the scrollTriggerLocation calculations ---------------
-		
+
 		// Determine the trigger location. If, like in the legacy calculations, we base
 		// the value on where the bottom of the active strip would be to be near the
 		// window bottom but at least a strip height's short of that, to avoid a scroll,
@@ -2731,8 +2728,8 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 
 		// sanity check on the above value
 		if (scrollTriggerLocation > virtDocSize.y)
-			scrollTriggerLocation = virtDocSize.y;	
-	       
+			scrollTriggerLocation = virtDocSize.y;
+
 	    /* legacy calc, where scrollTriggerLocation was called desiredViewBottom
 		wxSize virtDocSize;
 		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
@@ -2748,9 +2745,9 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 
 		// sanity check on the above value
 		if (scrollTriggerLocation > virtDocSize.y)
-			scrollTriggerLocation = virtDocSize.y;	
+			scrollTriggerLocation = virtDocSize.y;
 		*/
-		
+
 		//-------------------- now the current position data ------------------------
 
 		// get the current y distance to the top of the view, that is, to the top of the
@@ -2784,7 +2781,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 
 		// Third test must ensure that the phrase box isn't left above the top of the
 		// client area...
-		// handle the situation where the desiredViewTop is < (i.e., above) 
+		// handle the situation where the desiredViewTop is < (i.e., above)
 		// the current logical view top
 		if (desiredViewTop < current_yDistFromDocStartToViewTop)
 		{
@@ -2794,7 +2791,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 
 
 		/* legacy scroll code, which unfortunately worked to keep the box near window bottom
-		// handle the situation where the desiredViewTop is < (i.e., above) 
+		// handle the situation where the desiredViewTop is < (i.e., above)
 		// the current logical view top
 		if (desiredViewTop < current_yDistFromDocStartToViewTop)
 		{
@@ -2802,7 +2799,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 			return;
 		}
 
-		// handle the situation where the scrollTriggerLocation is > (i.e., above) 
+		// handle the situation where the scrollTriggerLocation is > (i.e., above)
 		// the current logical view bottom
 		if (scrollTriggerLocation > current_yDistFromDocStartToViewTop + nWindowDepth)
 		{
