@@ -2,7 +2,7 @@
 /// \project		adaptit
 /// \file			KbServer.cpp
 /// \author			Kevin Bradford, Bruce Waters
-/// \date_created	26 September 20012
+/// \date_created	26 September 2012
 /// \rcs_id $Id$
 /// \copyright		2012 Kevin Bradford, Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)

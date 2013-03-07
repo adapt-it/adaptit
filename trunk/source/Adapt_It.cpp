@@ -5826,6 +5826,15 @@ wxString szKbServerUsername = _T("KbServerUsername");
 /// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
 wxString szKbServerDownloadInterval = _T("KbServerIncrementalDownloadInterval");
 
+/// Default is TRUE, the strips then move up relative to the phrase box as the user's work
+/// moves to a new strip - this is visually unappealing to 3rd parties looking on (eg. by
+/// projection of the screen on a wall). If set FALSE (in Preferences > View), the strips
+/// are kept stationary in the vertical dimension, and the phrase box moves down as the
+/// user's work progresses to successive strips - when it reaches the last visible strip,
+/// autoscrolling is done so that the phrase box is at the second strip from the top, and
+/// moves down the client area etc.
+wxString szKeepPhraseBoxMidscreen = _T("KeepPhraseBoxMidscreen");
+
 /// The minimum interval, in minutes, from one incremental download attempt to the next
 /// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
 //wxString szKbServerUploadInterval = _T("KbServerIncrementalUploadInterval"); // deprecated 11Feb13
@@ -15225,6 +15234,10 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
   //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+
+	// BEW added 7Feb13 (see comments in Adapt_It.h where it is declared, for an
+	// explanation of why we need this)
+	m_bKeepBoxMidscreen = TRUE; // the project config file's value will override this initialization
 
 	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -31741,6 +31754,12 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szFoldersProtectedFromNavigation << tab << m_foldersProtectedFromNavigation;
 	pf->AddLine(data);
 
+	// BEW added 7Feb13
+	data.Empty();
+	data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
+	pf->AddLine(data);
+
+
 #ifndef _UNICODE
 	// ANSI
 	wxString s;
@@ -32447,6 +32466,17 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szKbServerDownloadInterval)
 			; // do nothing
 #endif
+		else if (name == szKeepPhraseBoxMidscreen)
+		{
+			if (strValue == _T("1"))
+			{
+				m_bKeepBoxMidscreen = TRUE;
+			}
+			else
+			{
+				m_bKeepBoxMidscreen = FALSE;
+			}
+		}
 		// whm 17Feb12 added the following two from the basic config file. They are
 		// used in collaboration operations too.
 		else if (name == szCurProjectName)

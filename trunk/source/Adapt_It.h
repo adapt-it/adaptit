@@ -3858,6 +3858,16 @@ public:
 	bool RestoreSelection(bool bRestoreCCellsFlagToo = FALSE);
 	void ClearSavedSelection(); // only makes the above 3 ints have the value -1
 
+	// BEW added 7Mar13, support for two scrolling regimes (Ross Jones requested the
+	// legacy 'box moves down, strips don't move until they must' ScrollIntoView()) - I
+	// recovered the latter's code from SVN revision 500, of 9th May 2009, which was about
+	// a month before the refactoring in early June 2009 which resulted in the until-now
+	// 'keep the box midscreen' behaviour - the latter is visually unhelpful if the
+	// computer screen is projected to a text-reviewing audience of mother-tongue speakers.
+	bool m_bKeepBoxMidscreen; // default is TRUE, if set FALSE in the View page of Preferences
+							  // then ScrollIntoView uses the restored legacy code; the boolean
+							  // value is stored in the project config file
+
 	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);
 	// for localization support
 	CurrLocalizationInfo ProcessUILanguageInfoFromConfig();
