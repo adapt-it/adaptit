@@ -1,4 +1,21 @@
 ----------------------------------------------
+Feature changes and new features in 6.5.0
+----------------------------------------------
+* The scroll-into-view feature now can work in one of two ways.
+The default setting keeps the phrase box about 2/3 down the window
+and when the phrase box moves from one strip to the next, it is 
+the strips which scroll - keeping the phrase box at the same
+vertical distance down. The alternative setting keeps the strips
+stationary vertically, while the phrase box moves rightwards and
+downwards, until it nears the window bottom - at which time an
+automatic scroll happens and it starts out afresh near the top
+of the window. Which setting you choose is done by Prefernces >
+View tab - two radio buttons allow you to choose. Your choice
+is saved automatically in the project configuration file and
+so is restored whenever you reenter that project.
+
+
+----------------------------------------------
 Bug fixes in 6.5.0
 ----------------------------------------------
 * When creating a new document, parsing an endmarker followed 

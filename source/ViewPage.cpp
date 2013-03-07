@@ -60,6 +60,7 @@ BEGIN_EVENT_TABLE(CViewPage, wxPanel)
 	EVT_INIT_DIALOG(CViewPage::InitDialog)
 	EVT_BUTTON(IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, CViewPage::OnButtonHighlightColor)
 	EVT_CHECKBOX(IDC_CHECK_SHOW_ADMIN_MENU, CViewPage::OnCheckShowAdminMenu)
+	EVT_RADIOBOX(ID_RADIOBOX_SCROLL_INTO_VIEW, CViewPage::OnRadioPhraseBoxMidscreen)
 END_EVENT_TABLE()
 
 CViewPage::CViewPage()
@@ -84,23 +85,20 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempMakeWelcomeVisible = TRUE;
 	tempHighlightAutoInsertions = TRUE;
 	tempShowAdminMenu = pApp->m_bShowAdministratorMenu;
+	tempPhraseBoxMidscreen = pApp->m_bKeepBoxMidscreen; // BEW added 7Feb13
 
-	// refactored 26Apr09 -- next 3 no longer required
-	//m_pEditMaxSrcWordsDisplayed = (wxTextCtrl*)FindWindowById(IDC_EDIT_MAX_DISPLAYED);
-	//m_pEditMinPrecContext = (wxTextCtrl*)FindWindowById(IDC_EDIT_MIN_PREC_CONTEXT);
-	//m_pEditMinFollContext = (wxTextCtrl*)FindWindowById(IDC_EDIT_MIN_FOLL_CONTEXT);
 	m_pEditLeading = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEADING);
 	m_pEditGapWidth = (wxTextCtrl*)FindWindowById(IDC_EDIT_GAP_WIDTH);
 	m_pEditLeftMargin = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEFTMARGIN);
 	m_pEditMultiplier = (wxTextCtrl*)FindWindowById(IDC_EDIT_MULTIPLIER);
 	m_pEditDlgFontSize = (wxTextCtrl*)FindWindowById(IDC_EDIT_DIALOGFONTSIZE);
 
-	//m_pCheckSupressFirst = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_FIRST);
-	//m_pCheckSupressLast = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_LAST);
 	m_pCheckWelcomeVisible = (wxCheckBox*)FindWindowById(IDC_CHECK_WELCOME_VISIBLE);
 	m_pCheckHighlightAutoInsertedTrans = (wxCheckBox*)FindWindowById(IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS);
 	m_pPanelAutoInsertColor = (wxPanel*)FindWindowById(ID_PANEL_AUTO_INSERT_COLOR);
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
+	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
+
 }
 
 CViewPage::~CViewPage() // destructor
@@ -306,42 +304,24 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 
 void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
-
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	// initialize our local temp variables from those on the App
-	//tempMaxToDisplay = pApp->m_nMaxToDisplay; // refactored 22Mar09 - no longer needed
-	//tempPrecCntxt = pApp->m_nPrecedingContext; // refactored 26Apr09 - no longer needed
-	//tempFollCntxt = pApp->m_nFollowingContext; // refactored 26Apr09 - no longer needed
 	tempLeading = pApp->m_curLeading;
 	tempGapWidth = pApp->m_curGapWidth;
 	tempLMargin = pApp->m_curLMargin;
 	tempMultiplier = gnExpandBox;
 	tempDlgFontSize = pApp->m_dialogFontSize; // added missed initialization
-	//tempSuppressFirst = pApp->m_bSuppressFirst;
-	//tempSuppressLast = pApp->m_bSuppressLast;
 	tempMakeWelcomeVisible = !pApp->m_bSuppressWelcome;
 	tempUseStartupWizardOnLaunch = pApp->m_bUseStartupWizardOnLaunch; // always remains true since version 3
 	tempHighlightAutoInsertions = !pApp->m_bSuppressTargetHighlighting;
 	tempAutoInsertionsHighlightColor = pApp->m_AutoInsertionsHighlightColor;
+	int nRadioBoxSelection = pApp->m_bKeepBoxMidscreen ? 0 : 1;
+	m_pRadioBox->SetSelection(nRadioBoxSelection);
 
 	// transfer initial values to controls
 	wxString strTemp;
 	strTemp.Empty();
-	// refactored 26Apr09 - no longer needed
-	//strTemp << tempMaxToDisplay;
-	//m_pEditMaxSrcWordsDisplayed->SetValue(strTemp);
-
-	// refactored 26Apr09 - no longer needed
-	//strTemp.Empty();
-	//strTemp << tempPrecCntxt;
-	//m_pEditMinPrecContext->SetValue(strTemp);
-
-	// refactored 26Apr09 - no longer needed
-	//strTemp.Empty();
-	//strTemp << tempFollCntxt;
-	//m_pEditMinFollContext->SetValue(strTemp);
 
 	strTemp.Empty();
 	strTemp << tempLeading;
@@ -364,8 +344,6 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pEditDlgFontSize->SetValue(strTemp);
 
 	// next two are no longer used, BEW 4Jun09
-	//m_pCheckSupressFirst->SetValue(tempSuppressFirst);
-	//m_pCheckSupressLast->SetValue(tempSuppressLast);
 	m_pCheckWelcomeVisible->SetValue(tempMakeWelcomeVisible);
 	m_pCheckHighlightAutoInsertedTrans->SetValue(tempHighlightAutoInsertions);
 	m_pCheckShowAdminMenu->SetValue(tempShowAdminMenu);
@@ -376,5 +354,24 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	// panel, we won't set focus to any particular control.
 }
 
+void  CViewPage::OnRadioPhraseBoxMidscreen(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
+	// Get the new state of the radiobox
+	int nRadioBoxSelection = m_pRadioBox->GetSelection();
+	// make the scroll-into-view regime match the new setting
+	if (nRadioBoxSelection == 0)
+	{
+		// This is the first button, the one for the phrase box staying midscreen
+		pApp->m_bKeepBoxMidscreen = TRUE;
+	}
+	else
+	{
+		// This is the second button, the one for the phrase box doing the moves down the
+		// strips as the user works, the strips not moving vertically until the box nears
+		// the bottom of the client area
+		pApp->m_bKeepBoxMidscreen = FALSE;
+	}
+}
 

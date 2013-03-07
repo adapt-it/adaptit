@@ -2186,6 +2186,27 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    wxBoxSizer *item35 = new wxBoxSizer( wxVERTICAL );
+
+    item4->Add( item35, 0, wxGROW|wxALL, 5 );
+
+    wxBoxSizer *item36 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxString strs37[] = 
+    {
+        _("Keep phrase box approximately mid-screen (strips move relative to the box)"), 
+        _("Keep strips stationary until a scroll happens (phrase box moves down)")
+    };
+    wxRadioBox *item37 = new wxRadioBox( parent, ID_RADIOBOX_SCROLL_INTO_VIEW, _("Options for Scroll Into View"), wxDefaultPosition, wxSize(20,-1), 2, strs37, 2, wxRA_SPECIFY_ROWS );
+    item37->SetToolTip( _("Choose whether you want the strips to move vertically, or the phrase box, while working") );
+    item36->Add( item37, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item4->Add( item36, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item38 = new wxBoxSizer( wxVERTICAL );
+
+    item4->Add( item38, 0, wxGROW|wxALL, 5 );
+
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
     item1->Add( item3, 1, wxALIGN_CENTER, 5 );
