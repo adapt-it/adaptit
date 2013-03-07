@@ -50,17 +50,16 @@ public:
 	//wxTextCtrl* m_pEditMaxSrcWordsDisplayed; // refactored 26Apr09 - next 3 not needed
 	//wxTextCtrl*	m_pEditMinPrecContext;
 	//wxTextCtrl* m_pEditMinFollContext;
-	wxTextCtrl* m_pEditLeading;
-	wxTextCtrl* m_pEditGapWidth;
-	wxTextCtrl* m_pEditLeftMargin;
-	wxTextCtrl* m_pEditMultiplier;
-	wxTextCtrl* m_pEditDlgFontSize;
-	//wxCheckBox* m_pCheckSupressFirst;
-	//wxCheckBox* m_pCheckSupressLast;
-	wxCheckBox* m_pCheckWelcomeVisible;
-	wxCheckBox* m_pCheckHighlightAutoInsertedTrans;
-	wxPanel* m_pPanelAutoInsertColor;
-	wxCheckBox* m_pCheckShowAdminMenu;
+	wxTextCtrl*		m_pEditLeading;
+	wxTextCtrl*		m_pEditGapWidth;
+	wxTextCtrl*		m_pEditLeftMargin;
+	wxTextCtrl*		m_pEditMultiplier;
+	wxTextCtrl*		m_pEditDlgFontSize;
+	wxCheckBox*		m_pCheckWelcomeVisible;
+	wxCheckBox*		m_pCheckHighlightAutoInsertedTrans;
+	wxPanel*		m_pPanelAutoInsertColor;
+	wxCheckBox*		m_pCheckShowAdminMenu;
+	wxRadioBox*		m_pRadioBox;
 	int		tempMaxToDisplay;
 	int		tempPrecCntxt;
 	int		tempFollCntxt;
@@ -75,12 +74,14 @@ public:
 	bool	tempUseStartupWizardOnLaunch;
 	bool	tempHighlightAutoInsertions;
 	bool	tempShowAdminMenu;
+	bool	tempPhraseBoxMidscreen;
 	wxColour tempAutoInsertionsHighlightColor;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& WXUNUSED(event)); 
 	void OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event));
 	void OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event));
+	void OnRadioPhraseBoxMidscreen(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes
