@@ -25,6 +25,8 @@
 		27421E8C1655CB20006729C5 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27421E8B1655CB20006729C5 /* QuickTime.framework */; };
 		27421E9F1655CBC0006729C5 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27421E9E1655CBC0006729C5 /* CoreFoundation.framework */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
+		27A17DF916E9AF0800795BF9 /* Thread_UploadMulti.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27A17DF516E9AF0800795BF9 /* Thread_UploadMulti.cpp */; };
+		27A17DFA16E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27A17DF716E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
 		27CAB9FC16D4548E00E85604 /* Adapt_ItKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CAB9FA16D4548E00E85604 /* Adapt_ItKBServer.cpp */; };
 		27CABA1116D454BC00E85604 /* KbServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CAB9FF16D454BC00E85604 /* KbServer.cpp */; };
@@ -197,6 +199,10 @@
 		27421E9E1655CBC0006729C5 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		27699F47153CEBAB009B0ADD /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
 		2791678516195D4D00744DF8 /* KBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBServer.cpp; path = ../../source/KBServer.cpp; sourceTree = SOURCE_ROOT; };
+		27A17DF516E9AF0800795BF9 /* Thread_UploadMulti.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadMulti.cpp; path = ../../source/Thread_UploadMulti.cpp; sourceTree = SOURCE_ROOT; };
+		27A17DF616E9AF0800795BF9 /* Thread_UploadMulti.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadMulti.h; path = ../../source/Thread_UploadMulti.h; sourceTree = SOURCE_ROOT; };
+		27A17DF716E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timer_KbServerChangedSince.cpp; path = ../../source/Timer_KbServerChangedSince.cpp; sourceTree = SOURCE_ROOT; };
+		27A17DF816E9AF0800795BF9 /* Timer_KbServerChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Timer_KbServerChangedSince.h; path = ../../source/Timer_KbServerChangedSince.h; sourceTree = SOURCE_ROOT; };
 		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
 		27CAB9FA16D4548E00E85604 /* Adapt_ItKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItKBServer.cpp; path = ../../source/Adapt_ItKBServer.cpp; sourceTree = SOURCE_ROOT; };
@@ -511,6 +517,10 @@
 			isa = PBXGroup;
 			children = (
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
+				27A17DF516E9AF0800795BF9 /* Thread_UploadMulti.cpp */,
+				27A17DF616E9AF0800795BF9 /* Thread_UploadMulti.h */,
+				27A17DF716E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp */,
+				27A17DF816E9AF0800795BF9 /* Timer_KbServerChangedSince.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
 				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
@@ -1081,6 +1091,8 @@
 				27CABA1916D454BC00E85604 /* Thread_PseudoDelete.cpp in Sources */,
 				27CABA1A16D454BC00E85604 /* Thread_PseudoUndelete.cpp in Sources */,
 				27CABA1B16D454BC00E85604 /* Thread_UploadToKBServer.cpp in Sources */,
+				27A17DF916E9AF0800795BF9 /* Thread_UploadMulti.cpp in Sources */,
+				27A17DFA16E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
