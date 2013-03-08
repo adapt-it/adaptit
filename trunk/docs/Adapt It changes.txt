@@ -22,6 +22,11 @@ Bug fixes in 6.5.0
 by space and an opening curly quote before the next word, 
 wrongly added the opening quote to the end of the preceding 
 word.
+* Consistency Check, with autocapitalization on, would repeatedly
+re-show a deleted upper-case initial adaptation, every time a new
+check was done, even though the user every time requested it be
+accepted for undeletion. There was a logic error in the code. Such
+entries should not be "seen" as existing, which is now the case.
 
 ----------------------------------------------
 Version 6.4.1 release 6 February 2013

@@ -1244,10 +1244,10 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		int numErrors = reader.Parse(myObject, &jsonval);
 		if (numErrors > 0)
 		{
-			// a non-localizable message will do, it's unlikely to ever be seen
-			// (but if we do get a parse error, then suspect that FromUTF8() may have
-			// inserted a BOM - in which case recompile using ToUtf16() instead)
-			wxMessageBox(_T("LookupEntryForSrcTgtPair(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+			// A non-localizable message will do, it's unlikely to happen often
+			// but if it does, there is probably a connection problem that the user should
+			// deal with if possible, before going much further. 
+			wxMessageBox(_T("In LookupEntryFields(): json reader.Parse() failed. This error does not destabilize Adapt It, but if it occurs often there may be a connection problem with the remote server that you should investigate. If necessary, disable KB sharing until connectivity is restored."),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
