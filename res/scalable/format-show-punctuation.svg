@@ -14,17 +14,29 @@
    height="48px"
    id="svg4198"
    sodipodi:version="0.32"
-   inkscape:version="0.47 r22583"
+   inkscape:version="0.48.2 r9819"
    sodipodi:docname="format-show-punctuation.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    version="1.1"
-   inkscape:export-filename="/Users/erik/Documents/Wycliffe/adaptit/images and such/AI_icons/16x16/format-show-punctuation.png"
-   inkscape:export-xdpi="31.986654"
-   inkscape:export-ydpi="31.986654">
+   inkscape:export-filename="c:\dev\adaptit\res\16x16\format-show-punctuation.png"
+   inkscape:export-xdpi="30"
+   inkscape:export-ydpi="30">
   <title
      id="title3639">format-show-punctuation</title>
   <defs
      id="defs4200">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient3786">
+      <stop
+         style="stop-color:#ff0000;stop-opacity:1;"
+         offset="0"
+         id="stop3788" />
+      <stop
+         style="stop-color:#ff0000;stop-opacity:0;"
+         offset="1"
+         id="stop3790" />
+    </linearGradient>
     <inkscape:perspective
        sodipodi:type="inkscape:persp3d"
        inkscape:vp_x="0 : 24 : 1"
@@ -150,17 +162,22 @@
          offset="1"
          id="stop2228" />
     </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3786"
+       id="linearGradient3792"
+       x1="4.9999999"
+       y1="25.547417"
+       x2="43.137923"
+       y2="25.547417"
+       gradientUnits="userSpaceOnUse" />
     <filter
        inkscape:collect="always"
-       id="filter3635"
-       x="-0.084333339"
-       width="1.1686667"
-       y="-0.21387507"
-       height="1.4277501">
+       id="filter3834">
       <feGaussianBlur
          inkscape:collect="always"
-         stdDeviation="1.3536023"
-         id="feGaussianBlur3637" />
+         stdDeviation="1.0130386"
+         id="feGaussianBlur3836" />
     </filter>
   </defs>
   <sodipodi:namedview
@@ -170,17 +187,17 @@
      borderopacity="1.0000000"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="4"
-     inkscape:cx="-87.897121"
-     inkscape:cy="12.80998"
+     inkscape:zoom="4.9715503"
+     inkscape:cx="-16.037486"
+     inkscape:cy="17.405567"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:grid-bbox="true"
      inkscape:document-units="px"
-     inkscape:window-width="1280"
+     inkscape:window-width="1064"
      inkscape:window-height="818"
-     inkscape:window-x="72"
-     inkscape:window-y="400"
+     inkscape:window-x="218"
+     inkscape:window-y="48"
      inkscape:showpageshadow="false"
      inkscape:window-maximized="0" />
   <metadata
@@ -232,25 +249,28 @@
      inkscape:groupmode="layer">
     <text
        sodipodi:linespacing="125%"
-       id="text2851"
-       y="31.5"
-       x="3.5"
-       style="font-size:22px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#2e3436;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold';filter:url(#filter3635)"
-       xml:space="preserve"><tspan
-         y="31.5"
-         x="3.5"
-         id="tspan2853"
-         sodipodi:role="line">“..!”</tspan></text>
+       id="text3014"
+       y="36.746857"
+       x="0.19613527"
+       style="font-size:50.32633209px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#555753;fill-opacity:1;stroke:none;filter:url(#filter3834);font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
+       xml:space="preserve"
+       transform="matrix(1.0464992,0,0,1,-0.06974886,0)"><tspan
+         y="36.746857"
+         x="0.19613527"
+         id="tspan3016"
+         sodipodi:role="line"
+         style="fill:#555753;fill-opacity:1">;.!</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:22px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ff0000;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
-       x="3.5"
-       y="29.5"
+       style="font-size:51.54027939000000200px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#204a87;fill-opacity:1;stroke:none;font-family:Times New Roman;-inkscape-font-specification:'Times New Roman, Bold'"
+       x="0.080531672"
+       y="35.002575"
        id="text2858"
-       sodipodi:linespacing="125%"><tspan
+       sodipodi:linespacing="125%"
+       transform="scale(1.0241215,0.97644666)"><tspan
          sodipodi:role="line"
          id="tspan4223"
-         x="3.5"
-         y="29.5">“..!”</tspan></text>
+         x="0.080531672"
+         y="35.002575">;.!</tspan></text>
   </g>
 </svg>
