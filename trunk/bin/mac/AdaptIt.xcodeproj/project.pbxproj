@@ -24,10 +24,10 @@
 		272E3D2716BF64B000566D31 /* Thread_UploadToKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D2416BF64B000566D31 /* Thread_UploadToKBServer.cpp */; };
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
-		27A65CD816E1C6C100B2478B /* Thread_UploadOne.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27A65CD616E1C6C100B2478B /* Thread_UploadOne.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
 		27BD963C16E0161700583C59 /* Thread_KbEditorUpdateButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27BD963816E0161700583C59 /* Thread_KbEditorUpdateButton.cpp */; };
 		27BD963D16E0161700583C59 /* Timer_KbServerChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */; };
+		27F3CA0216E867AE0065D2D6 /* Thread_UploadMulti.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27F3CA0016E867AE0065D2D6 /* Thread_UploadMulti.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D4E56ED142EDDE0007A4424 /* AIPrintPreviewFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4E56EB142EDDE0007A4424 /* AIPrintPreviewFrame.cpp */; };
 		7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */; };
@@ -205,14 +205,14 @@
 		2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ChangedSince.cpp; path = ../../source/Thread_ChangedSince.cpp; sourceTree = "<group>"; };
 		2783C43A16CC457300C902E7 /* Thread_ChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ChangedSince.h; path = ../../source/Thread_ChangedSince.h; sourceTree = "<group>"; };
 		2791678516195D4D00744DF8 /* KBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBServer.cpp; path = ../../source/KBServer.cpp; sourceTree = SOURCE_ROOT; };
-		27A65CD616E1C6C100B2478B /* Thread_UploadOne.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadOne.cpp; path = ../../source/Thread_UploadOne.cpp; sourceTree = "<group>"; };
-		27A65CD716E1C6C100B2478B /* Thread_UploadOne.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadOne.h; path = ../../source/Thread_UploadOne.h; sourceTree = "<group>"; };
 		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
 		27BD963816E0161700583C59 /* Thread_KbEditorUpdateButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_KbEditorUpdateButton.cpp; path = ../../source/Thread_KbEditorUpdateButton.cpp; sourceTree = "<group>"; };
 		27BD963916E0161700583C59 /* Thread_KbEditorUpdateButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_KbEditorUpdateButton.h; path = ../../source/Thread_KbEditorUpdateButton.h; sourceTree = "<group>"; };
 		27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timer_KbServerChangedSince.cpp; path = ../../source/Timer_KbServerChangedSince.cpp; sourceTree = "<group>"; };
 		27BD963B16E0161700583C59 /* Timer_KbServerChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Timer_KbServerChangedSince.h; path = ../../source/Timer_KbServerChangedSince.h; sourceTree = "<group>"; };
+		27F3CA0016E867AE0065D2D6 /* Thread_UploadMulti.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadMulti.cpp; path = ../../source/Thread_UploadMulti.cpp; sourceTree = "<group>"; };
+		27F3CA0116E867AE0065D2D6 /* Thread_UploadMulti.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadMulti.h; path = ../../source/Thread_UploadMulti.h; sourceTree = "<group>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
@@ -499,8 +499,6 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
-				27A65CD616E1C6C100B2478B /* Thread_UploadOne.cpp */,
-				27A65CD716E1C6C100B2478B /* Thread_UploadOne.h */,
 				C8C3970915D3D2670093A3CE /* Adapt_It.wdr */,
 				C8C3970A15D3D2670093A3CE /* NewDialogImplementationTemplate.txt */,
 				7DC0399B0F4672720047FCAF /* scripts */,
@@ -516,10 +514,6 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				27BD963816E0161700583C59 /* Thread_KbEditorUpdateButton.cpp */,
-				27BD963916E0161700583C59 /* Thread_KbEditorUpdateButton.h */,
-				27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */,
-				27BD963B16E0161700583C59 /* Timer_KbServerChangedSince.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -769,12 +763,18 @@
 				272E3D2316BF64B000566D31 /* Thread_CreateEntry.h */,
 				272E3D2416BF64B000566D31 /* Thread_UploadToKBServer.cpp */,
 				272E3D2516BF64B000566D31 /* Thread_UploadToKBServer.h */,
+				27F3CA0016E867AE0065D2D6 /* Thread_UploadMulti.cpp */,
+				27F3CA0116E867AE0065D2D6 /* Thread_UploadMulti.h */,
 				27093C1816D1D79200253291 /* Thread_PseudoDelete.cpp */,
 				27093C1916D1D79200253291 /* Thread_PseudoDelete.h */,
 				27093C1A16D1D79200253291 /* Thread_PseudoUndelete.cpp */,
 				27093C1B16D1D79200253291 /* Thread_PseudoUndelete.h */,
 				2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */,
 				2783C43A16CC457300C902E7 /* Thread_ChangedSince.h */,
+				27BD963816E0161700583C59 /* Thread_KbEditorUpdateButton.cpp */,
+				27BD963916E0161700583C59 /* Thread_KbEditorUpdateButton.h */,
+				27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */,
+				27BD963B16E0161700583C59 /* Timer_KbServerChangedSince.h */,
 				03CFAA09161DE73400B82F58 /* StatusBar.cpp */,
 				03CFAA0A161DE73400B82F58 /* StatusBar.h */,
 				273A30841619A853002B8AA0 /* KbServer.h */,
@@ -1093,7 +1093,7 @@
 				27093C1D16D1D79200253291 /* Thread_PseudoUndelete.cpp in Sources */,
 				27BD963C16E0161700583C59 /* Thread_KbEditorUpdateButton.cpp in Sources */,
 				27BD963D16E0161700583C59 /* Timer_KbServerChangedSince.cpp in Sources */,
-				27A65CD816E1C6C100B2478B /* Thread_UploadOne.cpp in Sources */,
+				27F3CA0216E867AE0065D2D6 /* Thread_UploadMulti.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
