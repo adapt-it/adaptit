@@ -22397,6 +22397,16 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		while (pos1 != NULL)
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
+#if defined(_DEBUG)
+			if(pSrcPhrase->m_nSequNumber == 2551 ||
+				pSrcPhrase->m_nSequNumber == 2865 ||
+				pSrcPhrase->m_nSequNumber == 2878 ||
+				pSrcPhrase->m_nSequNumber == 2958 ||
+				pSrcPhrase->m_nSequNumber == 3395)
+			{
+				int break_here = 1;
+			}
+#endif
 			key = pSrcPhrase->m_key;
 			adaption = pSrcPhrase->m_adaption; // could be an empty string
 			pos1 = pos1->GetNext();

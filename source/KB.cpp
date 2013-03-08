@@ -1553,6 +1553,8 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	bDeleted = FALSE;
 
 	// is there a targetunit for this key in the KB?
+	// Note: FindMatchInKB() internally does an AutoCapsLookup(), so that does any needed
+	// adjustment to lowercase if gAutoCaps is TRUE and an upper case key was passed in.
 	bool bFound = FindMatchInKB(nWords,key,pTgtUnit);
 	if (!bFound)
 	{
@@ -1560,6 +1562,49 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 		bDeleted = FALSE;
 		return FALSE;
 	}
+	// BEW 8Mar13 bug fix. The loop below used adaptation without any autocapitalization
+	// adjustment being done, so if it contained a word or phrase with initial upper case
+	// letter, then the loop would match only upper case ones - if there were none of
+	// them, the loop would find nothing and return bDeleted as FALSE, and pRefStr as
+	// NULL, and the caller would deal with that as an inconsistency requiring a dialog to
+	// open and the user could elect to have a KB entry made. That's sort of okay, it's a
+	// benign result. The real problem is if there is a legacy upper case adaptation, done
+	// when autocaps was not on, and the user has subsequently turned on autocaps, and
+	// done some adapting, and whenever he sees an upper-case initial word or phrase, he
+	// deletes it because he knows they are not needed in the auto-caps ON KB. So there's
+	// a pseudo delete upper case initial entry in the pTU. Typically, any subsequent
+	// lower case ones are created before it in the list - and any matches to them don't
+	// get as far as the deleted uppercase one. Except here, if there is no proper
+	// autocaps check done -- the loop below would then only match the deleted uppercase
+	// entry, and return FALSE to the caller - ie. it's not in the KB -- and then the
+	// program counter's path is different, we end with a dialog to fix it showing (ie.
+	// it's not in KB is flagged) and if the user clicks OK to undelete it; the subsequent
+	// StoreText() call does a proper autocaps job, converts the uppercase translation to
+	// lower case, matches the existing lower case entry (because it occurs earlier in the
+	// pTU's list), so it just bumps the refence count and moves on. The uppercase initial
+	// adaptation is therefore not 'seen' and doesn't get deleted. For autocaps on, we
+	// don't want to see it at all. But continuing the saga... once the consistency check
+	// completes, that uppercase entry is still there in the KB, and a subsequent
+	// consistency check will find it all over again, every time a cons. check is done -
+	// which is both annoying and confusing to the user. So, if we here do the needed
+	// conversion to lowercase before we enter the loop, we'll have squashed this bug
+	// finally. It's only taken 7 years to get it fixed!!!! (And some good data from Ross
+	// Jones, bless him.)
+	bool bNoError = TRUE;
+	gbByCopyOnly = FALSE; // restore default value (should have been done in caller, 
+						  // but this will make sure)
+	wxString adjusted = adaptation; // could have upper case initial character
+	if (gbAutoCaps)
+	{
+		// FALSE here means 'we are dealing with target text, or gloss text'
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(adjusted, FALSE);
+	}
+	if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
+	{
+		// change it to lower case
+		adjusted.SetChar(0,gcharNonSrcLC);
+	}
+
 	// check if there is a matching adaptation (or gloss if we are calling on a glossing KB)
 	// BEW 21Jun10, FindMatchInKB() only returns a pointer to a CTargetUnit instance, and
 	// that instance may contain CRefString instances marked as deleted. So matching any
@@ -1571,7 +1616,9 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 		pRefStr = (CRefString*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pRefStr);
-		if (adaptation == pRefStr->m_translation)
+		//if (adaptation == pRefStr->m_translation) // BEW removed 8Feb13, to fix the logic
+													//error discussed above
+		if (adjusted == pRefStr->m_translation)
 		{
 			if (!pRefStr->m_bDeleted)
 			{
