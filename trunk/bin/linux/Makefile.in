@@ -123,7 +123,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	Thread_KbEditorUpdateButton.$(OBJEXT) \
 	Thread_PseudoDelete.$(OBJEXT) Thread_PseudoUndelete.$(OBJEXT) \
 	Thread_UploadMulti.$(OBJEXT) Thread_UploadToKBServer.$(OBJEXT) \
-	Timer_KbServerChangedSince.$(OBJEXT) \
+	Timer_KbServerChangedSince.$(OBJEXT) ToolbarPage.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) UsfmFilterPage.$(OBJEXT) \
 	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
@@ -484,7 +484,7 @@ adaptit_SOURCES = \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
 	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
 	../../source/Thread_UploadToKBServer.cpp ../../source/Timer_KbServerChangedSince.cpp \
-	../../source/TransformToGlossesDlg.cpp \
+	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
 	../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
@@ -694,6 +694,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_UploadMulti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_UploadToKBServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Timer_KbServerChangedSince.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolbarPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsPage.Po@am__quote@
@@ -2407,6 +2408,20 @@ Timer_KbServerChangedSince.obj: ../../source/Timer_KbServerChangedSince.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Timer_KbServerChangedSince.cpp' object='Timer_KbServerChangedSince.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Timer_KbServerChangedSince.obj `if test -f '../../source/Timer_KbServerChangedSince.cpp'; then $(CYGPATH_W) '../../source/Timer_KbServerChangedSince.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Timer_KbServerChangedSince.cpp'; fi`
+
+ToolbarPage.o: ../../source/ToolbarPage.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ToolbarPage.o -MD -MP -MF $(DEPDIR)/ToolbarPage.Tpo -c -o ToolbarPage.o `test -f '../../source/ToolbarPage.cpp' || echo '$(srcdir)/'`../../source/ToolbarPage.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ToolbarPage.Tpo $(DEPDIR)/ToolbarPage.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ToolbarPage.cpp' object='ToolbarPage.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ToolbarPage.o `test -f '../../source/ToolbarPage.cpp' || echo '$(srcdir)/'`../../source/ToolbarPage.cpp
+
+ToolbarPage.obj: ../../source/ToolbarPage.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ToolbarPage.obj -MD -MP -MF $(DEPDIR)/ToolbarPage.Tpo -c -o ToolbarPage.obj `if test -f '../../source/ToolbarPage.cpp'; then $(CYGPATH_W) '../../source/ToolbarPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ToolbarPage.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ToolbarPage.Tpo $(DEPDIR)/ToolbarPage.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ToolbarPage.cpp' object='ToolbarPage.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ToolbarPage.obj `if test -f '../../source/ToolbarPage.cpp'; then $(CYGPATH_W) '../../source/ToolbarPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ToolbarPage.cpp'; fi`
 
 TransformToGlossesDlg.o: ../../source/TransformToGlossesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TransformToGlossesDlg.o -MD -MP -MF $(DEPDIR)/TransformToGlossesDlg.Tpo -c -o TransformToGlossesDlg.o `test -f '../../source/TransformToGlossesDlg.cpp' || echo '$(srcdir)/'`../../source/TransformToGlossesDlg.cpp
