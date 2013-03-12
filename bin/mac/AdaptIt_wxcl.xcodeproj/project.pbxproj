@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
+		034B73F916EFAC2D009A6389 /* ToolbarPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 034B73F716EFAC2D009A6389 /* ToolbarPage.cpp */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
@@ -169,6 +170,8 @@
 /* Begin PBXFileReference section */
 		031BF31811932FF6005223ED /* Uuid_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid_AI.cpp; path = ../../source/Uuid_AI.cpp; sourceTree = SOURCE_ROOT; };
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
+		034B73F716EFAC2D009A6389 /* ToolbarPage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolbarPage.cpp; path = ../../source/ToolbarPage.cpp; sourceTree = "<group>"; };
+		034B73F816EFAC2D009A6389 /* ToolbarPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolbarPage.h; path = ../../source/ToolbarPage.h; sourceTree = "<group>"; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
 		0386CB741140CEB9000F9E2E /* Retranslation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Retranslation.cpp; path = ../../source/Retranslation.cpp; sourceTree = SOURCE_ROOT; };
 		0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LanguageCodesDlg.cpp; path = ../../source/LanguageCodesDlg.cpp; sourceTree = SOURCE_ROOT; };
@@ -495,6 +498,8 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
+				034B73F716EFAC2D009A6389 /* ToolbarPage.cpp */,
+				034B73F816EFAC2D009A6389 /* ToolbarPage.h */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -1086,6 +1091,7 @@
 				274A841616E016E400430E08 /* Thread_KbEditorUpdateButton.cpp in Sources */,
 				274A841716E016E400430E08 /* Timer_KbServerChangedSince.cpp in Sources */,
 				27F3CA0516E9A6E50065D2D6 /* Thread_UploadMulti.cpp in Sources */,
+				034B73F916EFAC2D009A6389 /* ToolbarPage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
