@@ -15,6 +15,7 @@
 		03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03CFAA09161DE73400B82F58 /* StatusBar.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
+		03F6C91316EFAB5C008530F0 /* ToolbarPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F6C91116EFAB5C008530F0 /* ToolbarPage.cpp */; };
 		27421E7C1655CA66006729C5 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27421E7B1655CA66006729C5 /* AGL.framework */; };
 		27421E801655CB20006729C5 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27421E7F1655CB20006729C5 /* AppKit.framework */; };
 		27421E821655CB20006729C5 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27421E811655CB20006729C5 /* ApplicationServices.framework */; };
@@ -187,6 +188,8 @@
 		03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PeekAtFile.cpp; path = ../../source/PeekAtFile.cpp; sourceTree = SOURCE_ROOT; };
 		03F468AD11F759A300B3CAEC /* PeekAtFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PeekAtFile.h; path = ../../source/PeekAtFile.h; sourceTree = SOURCE_ROOT; };
 		03F468AE11F759A300B3CAEC /* tellenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tellenc.h; path = ../../source/tellenc.h; sourceTree = SOURCE_ROOT; };
+		03F6C91116EFAB5C008530F0 /* ToolbarPage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolbarPage.cpp; path = ../../source/ToolbarPage.cpp; sourceTree = SOURCE_ROOT; };
+		03F6C91216EFAB5C008530F0 /* ToolbarPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolbarPage.h; path = ../../source/ToolbarPage.h; sourceTree = SOURCE_ROOT; };
 		273A30841619A853002B8AA0 /* KbServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KbServer.h; path = ../../source/KbServer.h; sourceTree = SOURCE_ROOT; };
 		27421E7B1655CA66006729C5 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = System/Library/Frameworks/AGL.framework; sourceTree = SDKROOT; };
 		27421E7F1655CB20006729C5 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -502,6 +505,8 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
+				03F6C91116EFAB5C008530F0 /* ToolbarPage.cpp */,
+				03F6C91216EFAB5C008530F0 /* ToolbarPage.h */,
 				C8C3970915D3D2670093A3CE /* Adapt_It.wdr */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
@@ -1093,6 +1098,7 @@
 				27CABA1B16D454BC00E85604 /* Thread_UploadToKBServer.cpp in Sources */,
 				27A17DF916E9AF0800795BF9 /* Thread_UploadMulti.cpp in Sources */,
 				27A17DFA16E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp in Sources */,
+				03F6C91316EFAB5C008530F0 /* ToolbarPage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
