@@ -28,6 +28,7 @@
 class CFontPagePrefs;
 class CPunctCorrespPagePrefs;
 class CCaseEquivPagePrefs;
+class CToolbarPagePrefs;
 class CKBPage;
 class CViewPage;
 class CAutoSavingPage;
@@ -67,6 +68,7 @@ public:
 	// Pointer/Handles to notebook pages
 	CFontPagePrefs* fontPage;
 	CPunctCorrespPagePrefs* punctMapPage;
+	CToolbarPagePrefs* toolbarPage;
 	CCaseEquivPagePrefs* caseEquivPage;
 	CKBPage* kbPage;
 	CViewPage* viewPage;
@@ -97,6 +99,14 @@ public:
 	void OnRadioByMinutes(wxCommandEvent& event);
 	void OnRadioByMoves(wxCommandEvent& event); 
 	void EnableAll(bool bEnable);
+	// Wrapper handlers for ToolbarPage
+	void OnRadioToolbarSmall(wxCommandEvent& event);
+	void OnRadioToolbarMedium (wxCommandEvent& event);
+	void OnRadioToolbarLarge (wxCommandEvent& event);
+	void OnCboToolbarIcon (wxCommandEvent& event);
+	void OnBnToolbarMinimal (wxCommandEvent& event);
+	void OnBnToolbarReset (wxCommandEvent& event);
+	void OnClickLstToolbarButtons(wxListEvent& event);
 	// Wrapper handlers for unitsPage
 	void OnRadioUseInches(wxCommandEvent& event);
 	void OnRadioUseCentimeters(wxCommandEvent& event);

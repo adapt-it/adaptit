@@ -157,6 +157,7 @@ public:
 									 // of the layout should be done
 	bool		m_bPunctuationChanged; // if changed, full rebuilding
 									   // of the layout should be done
+	bool		m_bToolbarChanged; 
 	bool		m_bCaseEquivalencesChanged; // if changed, recalc pile widths
 											// and recreate the strips
 	bool		m_bFontInfoChanged; // if changed, update layout settings, recalc
