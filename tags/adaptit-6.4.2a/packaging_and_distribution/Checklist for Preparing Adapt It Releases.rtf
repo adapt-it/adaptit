@@ -1,0 +1,747 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
+{\fonttbl\f0\froman\fcharset0 TimesNewRomanPSMT;\f1\fmodern\fcharset0 CourierNewPS-BoldMT;\f2\fswiss\fcharset0 ArialMT;
+\f3\fmodern\fcharset0 CourierNewPSMT;\f4\fnil\fcharset0 Monaco;\f5\fnil\fcharset0 LucidaGrande;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue255;}
+{\info
+{\title Version _______________ Date _____________}
+{\author Bill Martin}
+{\*\company SIL}}\margl1440\margr1440\vieww18240\viewh16380\viewkind1\viewscale150
+\deftab720
+\pard\pardeftab720\ri0\qc
+
+\f0\b\fs24 \cf0 Version _______________ Date _____________\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\b0 \cf0 These guidelines are intended to be a step by step guide for preparing Adapt It incremental updates or releases for the Windows, Macintosh, and Linux platforms. The Linux packaging process is covered in a bit more detail in a separate document entitled \'93
+\f1\b\fs22 Packaging Adapt It for Ubuntu Linux <date>.rtf
+\f0\b0\fs24 \'94.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Team Sign-Off for New Version:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Check with other developers to make sure they have completed, committed, tested, and signed-off on all of their changes.\
+[    ] Run 
+\b svn update
+\b0  to make sure the code is up to date from the other developers.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Update Source Code Version and Date Items:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Adjust 
+\f1\b\fs20 #define VERSION_BUILD_PART
+\f0\b0\fs24  number and/or 
+\f1\b\fs20 VERSION_MINOR_PART
+\f0\b0\fs24  number in Adapt_It.h.\
+[    ] Adjust 
+\f1\b\fs20 #define VERSION_DATE_DAY
+\f0\b0\fs24 , 
+\f1\b\fs20 VERSION_DATE_MONTH
+\f0\b0\fs24 , and/or 
+\f1\b\fs20 VERSION_DATE_YEAR
+\f0\b0\fs24  in Adapt_It.h.\
+[    ] In Visual Studio's Adapt_It Property Pages set the Configuration: field to "All Configurations" and then change Linker > General > Version to appropriate version number, i.e., 6.x.x.0. The change should be effective for Debug, Release, Unicode Debug, and Unicode Release builds.\
+[    ] Update the version "6.x.x" value for the 
+\b appVerStr
+\b0  in Adapt_It.h source file (at about line 154).\
+[    ] Close Visual Studio and use Notepad to edit the 
+\b Adapt_It.rc
+\b0  file located at 
+\f1\b\fs20 adaptit\\bin\\win32\\Adapt_It.rc
+\f0\b0\fs24 . Change the #defines for VER_SVNVERSION_STR and VER_PRODUCTVERSION_STR to the current release\'92s version numbers. Change the "FileVersion" and "ProductVersion" fields to the current release's version numbers. Use 0 (zero) for the 4th build number part of the string, i.e., "6,x,x,0".\
+[    ] Check that your Windows system environment variables 
+\b WXVER
+\b0  is set to 
+\f1\b\fs20 29
+\f0\b0\fs24  and 
+\b WXWIN
+\b0  is set to the path to the 
+\f1\b\fs20 wxWidgets-2.9.4
+\f0\b0\fs24  folder on your system. Looking at the Adapt_It project\'92s Properties in Visual Studio for Linker > Command Line should be sufficient. For Visual Studio 
+\b 2005
+\b0  (Release build) they are 
+\b WXVER_VS05
+\b0  = 
+\b 28
+\b0  and 
+\b WXWIN_VS05
+\b0  = path to the 
+\f1\b\fs20 wxWidgets-2.8.12-vs05
+\f0\b0\fs24  folder. Note: The wxWidgets-2.8.12-vs05 library should have been built with Visual Studio 2005.\
+[    ] Update the version "6.x.x" value for the 
+\b applicationCompatibility
+\b0  attribute in the 
+\b AI_UserProfiles.xml
+\b0  file itself (located in the xml folder).\
+[    ] Update the version "6.x.x" value in wxDesigner\'92s 
+\b AboutDlgFunc
+\b0  dialog (seems to be needed for Mac to show correct values).\
+[    ] Update version numbers in 
+\b Info.plist
+\b0  file on Mac and commit the change to SVN.\
+[    ] Finalize all code changes for the new version.\
+[    ] Make sure code builds OK in Visual Studio 
+\b 2008
+\b0  for Unicode Debug and Unicode Release configurations on Windows, in CodeBlocks or command line for Linux and in Xcode for the Mac) without errors (or serious warnings). Make sure the Release configuration (on Windows only) builds OK using Visual Studio 
+\b 2005
+\b0  with the 
+\b Adapt_It_vs05.vcproj
+\b0  project loaded (builds of the Debug version in Visual Studio 
+\b 2005
+\b0  will have a linker error due to the debug data being the wrong format due to it being build with VS 2008).\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Update the following Doc Files for New Version (in docs folder):\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\f0\i0\fs24 \cf0 1. Adapt It changes.txt\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b0 \cf0 [    ]  Add a new section to top of file that reads as follows: "Version 6.x.x update ddMmmyyyy:" as first line of the file. Make the date agree with date in "changelog"\
+[    ]  Add asterisk highlighted items briefly describing the changes for the current version at top of file. \
+\pard\pardeftab720\ri0\ql\qnatural
+
+\b \cf0 2. Known Issues and Limitations.txt\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b0 \cf0 [    ]  Adjust the version number in first line of file.\
+[    ]  Add/Remove limitations/issues when appropriate.\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\b \cf0 3. Readme.txt\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b0 \cf0 [    ]  Adjust the version number near top of file.\
+[    ]  Review content for accuracy/additions.\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\b \cf0 4. Readme_Unicode_Version.txt\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b0 \cf0 [    ]  Adjust the version number near top of file.\
+[    ]  Review content for accuracy/additions.\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\b \cf0 5. Localization_Readme.txt\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b0 \cf0 [    ] Adjust for any newly added localizations (in text and charts) since previous version.\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\b \cf0 6. Adapt It Reference.doc\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b0 \cf0 [    ] Adjust content for any significant change in features since previous version.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Update Linux packaging changelog file (in the debian folder):\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Using a Linux editor (gedit, vi, nano) update the Linux packaging "changelog" file in the "debian" folder, adding a new section at the top of the file. Just copy and paste new lines and edit them so that they are patterned after the previous version's three lines that look like this:\
+\
+\pard\pardeftab720\li540\fi-576\ri0\ql\qnatural
+
+\f1\b\fs20 \cf0 adaptit (6.x.x-1) unstable; urgency=low\
+\
+  * Pull in updates\
+\
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 10 Dec 2011 16:00:00 -0600\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\b0\fs24 \cf0 \
+Note: The important things to change/update in the added lines to the debian folder's "changelog" for each new version are:\
+[    ] The version number in the first line (leave 
+\b -1
+\b0  suffixed to the version number), \
+[    ] The * [comment] in the second line (usually "Pull in updates" is sufficient if there have been no packaging changes since the last update. Any packaging changes should be documented here \'96 look down in the file for examples where changes were documented), and \
+[    ] The day-of-week, date, time and GMT offset in the third line (must follow the 
+\b exact
+\b0  date/time format as illustrated above). \
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Localization file updates (.po and .mo files):\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Sync and save the .po and .mo files in po folder with current version sources using Poedit.\
+[    ] Translate any new Tok Pisin (tpi.po) localization strings (Bill Martin does it).\
+[    ] Add any new language abbreviations to LINGUAS file which is located in the po folder.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Check for any updates to USFM markers:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Check for any updates to UBS' USFM Standard at:\
+       
+\f3\fs20 http://paratext.org/about/usfm
+\f4\fs22 \uc0\u8232 
+\f0\fs24 If there are significant changes (see USFMSty-ChangeLog.txt) do the following steps:\
+[    ] Make any marker/style changes to 
+\f1\b\fs20 .../xml/AI_USFM_full.xml
+\f0\b0\fs24 \
+[    ] Use 
+\f1\b\fs20 .../docs/CC/CCW32.exe
+\f0\b0\fs24  to process 
+\f1\b\fs20 AI_USFM_full.xml
+\f0\b0\fs24  into 
+\f1\b\fs20 AI_USFM.xml
+\f0\b0\fs24  using 
+\f1\b\fs20 .../xml/UsfmSml.cct
+\f0\b0\fs24  and 
+\f1\b\fs20 UsfmSmlTidy.cct
+\f0\b0\fs24 \
+[    ] Copy the 
+\f1\b\fs20 .../xml/AI_USFM_full.xml
+\f0\b0\fs24  file to "Adapt It Work" folder \
+[    ] Run Visual Studio and set for "Debug" build\
+[    ] In XML.h uncomment the 
+\f1\b\fs20 #define Output_Default_Style_Strings
+\f0\b0\fs24 \
+[    ] Build the Debug version and run app until the wizard starts then stop the Debug Run.\
+[    ] The App generates a file called 
+\f1\b\fs20 AI_USFM_full.txt
+\f0\b0\fs24  in Adapt It Work\
+[    ] Put the comment back on the 
+\f1\b\fs20 #define in XML.h
+\f0\b0\fs24 .\
+[    ] Open 
+\f1\b\fs20 AI_USFM_full.txt
+\f0\b0\fs24  and copy the Unix-like string and paste them into the Adapt_It.cpp source file at the appropriate place (removing last total number and comma on last line).\
+[    ] Rebuid the app with the updated Unix-like strings.\
+\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 \page Create the Windows Installers\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 Note: Generally, when preparing the Windows installers we use the local working copy of the repository which has the current svn updates, and we\'92ll use the 
+\f1\b\fs20 CallAllBatchSetups.bat
+\f0\b0\fs24  in the top level adaptit folder to produce the content for Inno Setup to use in the 10 temporary (non-versioned) \'93setup Regular\'85\'94 and \'93setup Unicode\'85\'94 folders in your working copy. If your working copy needs to use the code from the latest svn release tag (due to others committing ongoing developmental changes that shouldn\'92t go into the current release), you should to do an svn export (TortoiseSVN > Export) operation to a temporary working copy before doing the following steps in that working copy. \
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Run the CallAllBatchSetups.bat batch file to populate the temporary "setup ..." folders with the files needed for Inno Setup to create the 10 Windows installers:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Make sure any existing Adapt_It.htb file has been deleted from the docs folder. The batch file call in the next step should do the deletion, but sometimes the deletion fails, and it results in a hugely inflated Adapt_It.htb file\
+[    ] Double Click on the 
+\f1\b\fs20 CallAllBatchSetups.bat
+\f0\b0\fs24  in the top level adaptit folder. Check Progress as you press any key to advance to next batch routine till finished. The contents of the \'93setup \'85\'94 folders are disposable, but are used by Inno Setup in a section below to find the the current files needed for creating the various Windows installers.\
+[    ] Ensure that the newly created Adapt_It.htb file is of reasonable size (about 10MB). If not, remove the Adapt_It.htb file and double click on the _CopyDocs2InstallFolders.bat file in the docs folder to run it again and make sure the Adapt_It.htb file is about 10MB in size.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Do final builds, commits and Tag SVN - \'93Tagging 6.x.x\'94:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0  [    ] Do a 
+\b Build > Clean Solution
+\b0 , followed by a 
+\b Unicode Release
+\b0  build in Visual Studio 
+\b 2008
+\b0 . Also do a 
+\b Build > Clean Solution
+\b0 , followed by a 
+\b Release
+\b0  build in Visual Studio 
+\b 2005
+\b0  for the ANSI version. Make sure the Post-Event copying is done, copying the 
+\b Adapt_It.exe
+\b0  file executable file to the 3 \'93setup Regular\'85\'94 folders, and the 
+\b Adapt_It_Unicode.exe
+\b0  executable file to the \'93setup Unicode\'85\'94 folders. \
+[    ] 
+\b Commit (from Windows) all remaining changes
+\b0  for the current release to svn. The commit comment should indicate something like "Final changes for new version 6.x.x"\
+[    ] Check on 
+\b Mac
+\b0  and 
+\b Linux
+\b0  for project changes specific to those platforms that may not have been committed to svn for the current release: type 
+\f1\b\fs20 svn status
+\f0\b0\fs24  at command line from within the 
+\f1\b\fs20 ~/subversion/adaptit/
+\f0\b0\fs24  folder. Note any M = modified files. Do 
+\f1\b\fs20 svn ci -m"Note about commit"
+\f0\b0\fs24  for any changes (usually just the project files will have changed).\
+[    ] 
+\b Tag the svn repository
+\b0  with the current version for the new release with the comment 
+\b Tagging 6.x.x
+\b0 . (see "Tagging for a Release.txt" document in the adaptit folder). Note: If any on the team find it necessary to make code changes that affect this release after the tagging has been done, you will need to remove the old tag that was done for this release (use the Repo Browser), and re-tag the repository afresh using the same release number to ensure the code changes get used in the Linux packaging process - which exports the code for a particular tag that is then used to build the release packages.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Use Inno Setup to produce Windows Installers - do on Win7 desktop:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Double click on each of the 10 
+\f1\b\fs20 .iss
+\f0\b0\fs24  Inno Setup Scripts in the "Inno Setup Scripts" folder - The InnoIDE will open the script for editing and or Compiling.\
+[    ] Change the version numbers for: MyAppVersion, OutputBaseFilename, VersionInfoProductVersion, and VersionInfoVersion.\
+[    ] Prepare Windows Version Installers using the "Compile" button in InnoIDE, for each of the 10 installers. The resulting exe installer is placed in a "AIWX Installers" folder on the desktop.\
+[    ] Test the installers produced by Inno Setup by uninstalling them after uninstalling any previous Adapt It installation.\
+[    ] Create full MSI Installers (Unicode and Regular) by right-clicking on those setups in Visual Studio and "Rebuild"\
+[    ] Rename the two MSI Installers to include current version in name as for example: 
+\f1\b\fs20 Adapt_It_WX_6_3_1_Unicode.msi
+\f0\b0\fs24  and 
+\f1\b\fs20 Adapt_It_WX_6_3_1_Regular.msi
+\f0\b0\fs24  and copy them to the "AIWX Installers" folder on the desktop.\
+[    ] Test the MSI installers (can install and uninstall from the Visual Studio right-click popup menu), after uninstalling any previous Adapt It installation.\
+[    ] Upload Windows Installers to 
+\b adapt-it.org
+\b0  using WinSCP. Ask Erik Brommers to update the links within the adapt-it.org WordPress site.\
+[    ] Check the links to make sure they are correct for downloads from the adapt-it.org site.\
+[    ] Upload the 
+\b Adapt It changes.txt
+\b0 , 
+\b Readme.txt
+\b0 , 
+\b Readme_Unicode_Version.txt
+\b0 , and 
+\b Adapt It Reference.doc
+\b0  files to http://adapt-it.org. If there are any changes that were done to the HTML docs Adapt_It_Quick_Start.htm or Help_for_Administrators.htm, or any of their associated images, upload those changed files to http://adapt-it.org too.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 \page Create the Mac OS X Disk Image for Installation on Mac OS X on MacBook.\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Produce a 
+\b UnicodeReleaseWX2.8
+\b0  build of Adapt It in the Xcode IDE. There should be an 
+\b Adapt It.app
+\b0  produced in the 
+\f1\b\fs20 ~/subversion/adaptit/bin/mac/build/UnicodeReleaseWX2.8/
+\f0\b0\fs24  folder with the date and time of build you did in last step. \
+[    ] Run 
+\b Disk Utility.app
+\b0  (/Applications/Utilities/Disk Utility.app)\
+[    ] Select "
+\b New Image
+\b0 " and in "Save As" enter: "
+\f1\b\fs20 AdaptIt-6.x.x.dmg
+\f0\b0\fs24 " [Note carefully the spelling of the image name a hyphen, but no underscore or space] and insure Size is 100MB, Encryption is "none" and Format is "read/write disk image". \
+[    ] Click on "
+\b Create
+\b0 ".\
+[    ] Open Finder and navigate to the Adapt It.app built in last step above. Click on the Adapt It.app item and look at Get Info. The bundle should be about 34.4MB in size. Select the Adapt It.app file and Command-C to copy to clipboard.\
+[    ] While in Finder Select the mounted AdaptIt-6.x.x disk image which should be listed in the left column of Finder. Right pane should be empty.\
+[    ] Do Command-V (or Edit Paste) to copy the Adapt It.app bundle into the AdaptIt-6.x.x.dmg disk image.\
+\
+** [edb -- add these steps to create a .dmg with an image background and an Applications folder alias the user can drag their app to:]\
+     [  ] In the Disk Image window, click the top right rounded rectangle button to close the toolbar.\
+     [  ] With the Disk Image window still open, select File / New Finder Window and navigate the new window to the hard drive root (/). You should see the root Applications folder in the right pane.\
+     [  ] Right-mouse click (or control click) on the Applications folder and select Make Alias.\
+     [  ] Drag the Applications alias to the Disk Image window. \
+     [  ] Rename the Applications alias folder in the Disk Image window to just "Applications"\
+     [  ] Back in the other window, navigate to the Adapt It source and copy /trunk/res/ai_dmg_bg.jpg.\
+     [  ] Select the Disk Image window and hit Command+V to paste the image. At this point, there should be 3 items in the disk image window -- Adapt It.app, ai_dmg_bg.jpg and the Applications folder alias.\
+\pard\pardeftab720\li576\fi-283\ri0\ql\qnatural
+\cf0 [  ] In the Disk Image window, type Command+J to show the view options. On the dialog that appears, do the following:\
+     - Drag the Icon Size slider to 96 x 96.\
+     - Select the Picture option at the bottom of the window. \
+     - Drag the ai_dmg_bg.jpg file into the picture placeholder in the view options dialog. This should cause the background of the window to show a picture of a grey rounded rectangle with a green arrow in the middle.\
+[  ] Close the View options dialog and clean up the Disk Image window by doing the following:\
+     - Place the Adapt It.App to the left of the Applications Icon, then select View > Clean Up to align the two icons horizontally (it won't matter where the background image goes -- that will be hidden in a couple steps)\
+     - Select both the the Adapt It.app and Applications icons, then drag them together so that the Adapt It.app icon is on the left of the green arrow and the Applications icon is on the right.\
+     - Resize the Disk Image window to fit the background image. There might be a scroll bar if the background image is out of the window bounds -- that's okay, this next step takes care of it.\
+[  ] Now, open a Terminal window and type:\
+      > cd /Volumes\
+      > ls\
+     The directory listing will contain the mounted directory for the disk image. CD into that directory.\
+     > cd [Disk Image]\
+     > chFlags hidden ai_dmg_bg.jpg\
+     This last command hides the .jpg image you're using as the folder background. You can close out the Terminal at this point and adjust the Disk Image folder window's dimensions if needed.\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+\cf0 \
+[    ] Switch back to the Disk Utility program and select the AdaptIt-6.x.x.dmg item in the left column.\
+[    ] Click on the "Convert" icon in the toolbar, and in "Save As" enter: "Adapt_It-6.x.x.dmg" [Note the underscore in this name], and insure that Image Format is "compressed" and Encryption is "none" (Destination can still be "Desktop"). Click on "Save". The Disk Utility creates the newly named compressed image as "Adapt_It-6.x.x.dmg" and puts it on the Desktop. \
+[    ] Copy the "Adapt_It-6.x.x.dmg" file from the MacBook Desktop to a thumb drive, and transfer it to the Windows machine where WinSCP is installed. \
+[    ] Use WinSCP to log on to the http://adapt-it.org site and upload the new Adapt_It-6.x.x.dmg file to that site.\
+[    ] Notify Erik that the DMG file has been uploaded to the adapt-it.org site and ask him to adjust the links for it if necessary.\
+[    ] Check the link in the download section of the web site to make sure the link is valid.\
+[    ] Go to the http://code.google.com/p/adaptit/ site, sign out and back in as Administrator. Then go to the Downloads page. Click on the "summary" column of a previous similar post and copy  the "Summary" description to the clipboard. Click on the "New Download" link and paste the info from the previous post as a template, adjusting it for the current upload. Fill in the Labels info and Browse to the new .dmg upload file on the local machine. Finally click "Submit File". It takes a while before anything visible happens. Eventually the new download will appear in the Downloads list.\
+\pard\pardeftab720\ri0\ql\qnatural
+\cf0 [    ] Adjust the text in the "Description:" window of the Administer tab to reflect any needed changes (adjust the version number in the links).\
+[    ] Select "Submit file" and wait for it to upload to the GoogleCode repository.\
+[    ] Adjust the text and links in the "Administer" tab of the site and check the "Links" section. Then click the "Save changes" button at the bottom of the web page.\
+\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+\cf0 \page \
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Create the Ubuntu Packages for Installation on Linux - do on Linux machine with 64-bit (amd64) OS:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 The following steps assume that you have gone through the other steps listed above including clean builds on all platforms, and have tagged the repository for the new release. The packaging process will use the code as it exists at the time the adaptit repository is tagged for a given release. \
+
+\b Test build the sources as currently tagged in the repository.\
+
+\b0 [    ] To test that the tagged source builds cleanly before starting the lengthy packaging process, you can do the following test build:
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 cd
+\f5\b0\fs24 \uc0\u8232 
+\f0    
+\f1\b\fs20 mkdir test
+\f0\b0\fs24 		[or any directory name of your choosing]
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 cd test
+\f4\b0 \uc0\u8232 
+\f0\fs24    svn export http://adaptit.googlecode.com/svn/tags/adaptit-6.x.x
+\f4\fs20 \uc0\u8232 
+\f0\fs24    
+\f1\b\fs20 mkdir \'96p adaptit-6.x.x/bin/linux/build
+\f5\b0\fs24 \uc0\u8232 
+\f0    
+\f1\b\fs20 cd adaptit-6.x.x/bin/linux/build
+\f5\b0\fs24 \uc0\u8232 
+\f0    
+\f1\b\fs20 ../configure
+\f5\b0\fs24 \uc0\u8232 
+\f0    
+\f1\b\fs20 make
+\f0\b0\fs24 \
+\pard\pardeftab720\li576\ri0\ql\qnatural
+\cf0 Note: If the test invocation of make succeeds without error, you can discard the test folder and its contents. If invoking 
+\f1\b\fs20 make
+\f0\b0\fs24  shows that there are any errors at this point, there is no point in proceeding further down this check list. All errors must be fixed, code changes committed and the repository tag for the current version deleted and then re-tagged to reflect the new changes. The repository tag must reflect the code as it should be for the current release, and this must be the case before the Linux packages can be created using the steps in this section.\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b \cf0 Create the Linux packages using the release.sh script:\
+
+\b0 [    ] Create (or clear out) the folder at 
+\f1\b\fs20 ~/packaging/
+\f5\b0\fs24 \uc0\u8232 
+\f0    
+\f1\b\fs20 mkdir ~/packaging\
+\pard\pardeftab720\li576\ri0\ql\qnatural
+\cf0    or
+\f5\b0\fs24 \uc0\u8232 
+\f0    
+\f1\b\fs20 cd ~/packaging
+\f5\b0\fs24 \uc0\u8232 
+\f0    
+\f1\b\fs20 rm adaptit_*
+\f4\b0 \uc0\u8232 
+\f0\fs24    
+\f1\b\fs20 rm \'96r adaptit-6.x.x
+\f0\b0\fs24 \
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+\cf0 [    ] Copy the latest version of the scripts from the repository\'92s 
+\f1\b\fs20 adaptit/scripts/
+\f0\b0\fs24  folder.
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 cp ~/subversion/adaptit/scripts/* ~/packaging\
+
+\f0\b0\fs24 	Note: The above command assumes you have checked out the adaptit project from GoogleCode so that it resides at ~/subversion/adaptit/. Adjust the path in the cp command if your adaptit working directory is located elsewhere.\
+[    ] Invoke the 
+\f1\b\fs20 release.sh
+\f0\b0\fs24  script from the command line. Note: 
+\f1\b\fs20 release.sh
+\f0\b0\fs24  takes two parameters; the first is the version of the release (for example 
+\f1\b\fs20 6.3.1
+\f0\b0\fs24 ); the second is a quoted string of the distribution name(s) to build packages for (for example "
+\f1\b\fs20 precise
+\f0\b0\fs24 ")
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 ./release.sh 6.3.1 
+\f0\b0\fs24 "
+\f1\b\fs20 precise
+\f0\b0\fs24 "
+\f1\b\fs20 \
+	
+\f0\b0\fs24 Note: You can build packages for all distributions at the same time, but that will take a long time for the script to complete its work. Unless you plan to run the script overnight, I think it is usually best to build for one distribution at a time, starting with the most recent distribution ("precise") or whatever distribution of the Linux OS that is running on your development machine. Test each distribution on a real or virtual machine of the appropriate distribution and architecture. Hint: After invoking the release.sh script to build the next older distribution packages ("oneiric", "natty", "maverick" and finally "lucid"), and while a given invocation of the script is running, you can install the last set of packages and run some basic tests to make sure they are working OK (see next section below).
+\f5 \uc0\u8232 
+\f0 The 
+\f1\b\fs20 release.sh
+\f0\b0\fs24  script creates the packages for each distribution and architecture and places them in separate sub directories of the 
+\f1\b\fs20 ~/pbuilder/
+\f0\b0\fs24  folder on your development machine. The precise amd64 architecture packages will be located in the 
+\f1\b\fs20 ~/pbuilder/precise_result/ 
+\f0\b0\fs24 folder, and the precise i386 architecture packages will be located in the 
+\f1\b\fs20 ~/pbuilder/precise_i386_result/ 
+\f0\b0\fs24 folder, etc.
+\f5 \uc0\u8232 
+\f0 The manual procedures I used for building adaptit packages before Jonathan provided the 
+\f1\b\fs20 release.sh
+\f0\b0\fs24  script are now described in the Appendix of the \'93Setting up wxWidgets and Adapt It on Ubuntu Linux.rtf\'94 document.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Install and Test each package (on the current development machine and within virtual machines for other Linux distributions in VirtualBox):\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 Copy the .deb packages to a thumb drive for transfer and testing on a real or virtual machine of the appropriate distribution and architecture. The .deb package is located in the appropriate folder at; 
+\f1\b\fs22 ~/pbuilder/<DIST>_result/
+\f0\b0\fs24  for amd64 packages and 
+\f1\b\fs22 ~/pbuilder/<DIST>_i386_result/
+\f0\b0\fs24  for the i386 packages.\
+[    ] Uninstall any previous installation of Adapt It on the test machine or VM:
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 sudo dpkg \'96purge adaptit
+\f0\b0\fs24 \
+[    ] Install the package on the test machine or VM:
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 sudo dpkg \'96i /media/<USB-NAME>/\'85/adaptit_6.x.x-1+precise_i386.deb
+\f0\b0\fs24 \
+[    ] Run Adapt It on the test machine or VM (Office menu or search for adaptit on Unity) and do some basic tests of the running application. See the 
+\f1\b\fs22 Basic-tests-for-Adapt-It-packages.txt
+\f0\b0\fs24  in the repository\'92s 
+\f1\b\fs22 packaging_and_distributio
+\f0\b0\fs24 n folder.\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Sign the Packages:\
+\pard\pardeftab720\li288\fi-288\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Run the debsign.sh script to sign the packages. The script will ask you for your password for authenticating your SSH signature with the packages.sil.org repository. It is the password associated with the key you sent to Neil Mayhew for SSH access to the SIL repository.
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 ./debsign
+\f0\b0\fs24  \
+\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Upload the Binary Packages to the SIL Repository:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Run the debupload.sh script to upload the packages to the remote SIL repository. The debupload.sh script take one parameter which is the adaptit version (for example 
+\f1\b\fs20 6.3.1
+\f0\b0\fs24 ).
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 ./debupload.sh 6.3.1
+\f5\b0\fs24 \uc0\u8232 
+\f0 Note: After the script completes you should wait about 5 minutes and then check the SIL repository to ensure that it has posted the adaptit packages that were just uploaded. You can check using your browser by going to the following URLs:
+\f5 \uc0\u8232 
+\f1\b\fs20 http://packages.sil.org/ubuntu/dists/precise/main/binary-amd64/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/precise/main/binary-i386/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/oneiric/main/binary-amd64/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/oneiric/main/binary-i386/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/natty/main/binary-amd64/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/natty/main/binary-i386/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/maverick/main/binary-amd64/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/maverick/main/binary-i386/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/lucid/main/binary-amd64/Packages
+\f4\b0 \uc0\u8232 
+\f1\b http://packages.sil.org/ubuntu/dists/lucid/main/binary-i386/Packages
+\f4\b0 \uc0\u8232 
+\f0\fs24 Note: The adaptit and adaptit-docs packages are generally the first two packages listed in the Packages folder for each architecture and distribution. If the \'93Version: field shows the correct version number then you can assume the packages were correctly uploaded and recognized by the repository. \
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Test the packages by getting them and installing from the SIL Repository:\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 The final test for the release is to obtain and test the release from the SIL repository just as a user would do \'96 using the normal Ubuntu Software Update mechanism. Follow these steps:\
+[    ] 
+\b Download and install/import the GPG key
+\b0  for the SIL repository if this is your first use of the SIL repository. See {\field{\*\fldinst{HYPERLINK "http://packages.sil.org"}}{\fldrslt \cf2 \ul \ulc2 http://packages.sil.org}} for general instructions.\
+[    ] 
+\b Configure your Software Sources
+\b0  if not done previously. Make sure the test machine/VM has its Software Sources configured to point to the SIL repository. If using the Unity interface you can run the 
+\b Ubuntu Software Center
+\b0  and select the 
+\b Software Sources 
+\b0 menu item from the 
+\b Ubuntu Software Center\'92s Edit menu
+\b0 . Alternately, if the Synaptic Package Manager is installed, you can run it and select 
+\b Settings
+\b0 ->
+\b Repositories
+\b0 . In either case, once Software Sources dialog is in view, click on the 
+\b Other Software
+\b0  tab. Here, by clicking the 
+\b Add
+\b0  button, you can add additional repositories by entering the following Apt line (where <dist> is the Ubuntu distribution of the test machine, for example 
+\b precise
+\b0 ): 
+\f5 \uc0\u8232 
+\f0    
+\f1\b\fs20 deb http://packages.sil.org/ubuntu <dist> main
+\f4\b0 \uc0\u8232 
+\f0\fs24 Click on the 
+\b Add Source
+\b0  button, and 
+\b Close
+\b0  to close the Software Sources dialog.
+\f5 \uc0\u8232 
+\f0 Note: Unity\'92s Ubuntu Software Center sometime doesn\'92t automatically take notice of changes in Software Sources, so you may need to log out and back in or reboot before you can find the adaptit and or adaptit-docs packages in the steps below.\
+[    ] If Software Sources issues an error, recheck the Apt line you entered in the \'93Other Software\'94 tab of the Software Sources dialog in the previous step above and ensure that you have an active Internet connection. If using the Synaptic Package Manager you\'92ll need to click 
+\b Reload
+\b0  to refresh the software sources list. \
+[    ] Using the 
+\b Search
+\b0  icon, type in the name 
+\b adaptit*
+\b0 . The new release of adaptit should appear as two packages in the available software list, 
+\b adaptit
+\b0  and 
+\b adaptit-docs
+\b0 . The list should show the current release packages, either as packages that can be newly installed, or that can be upgraded. The upgrade option is only available if an older release of adaptit was previously installed on the machine.\
+[    ] Select the package(s) for installation, or update. In Unity click 
+\b Install
+\b0  (or from the Synaptic Package Manager right click on the package and select Mark for Installation, and click on the 
+\b Apply
+\b0  buttons) to download and install the software. \
+[    ] 
+\b Test adaptit after it has been installed from its packages
+\b0 . Start adaptit from Unity\'92s Desk home, or from the classic Gnome\'92s Applications > Office menu. Do the basic run-time tests as outlined in the 
+\f1\b\fs22 Basic-tests-for-Adapt-It-packages.txt
+\f0\b0\fs24  document in the repository\'92s 
+\f1\b\fs22 packaging_and_distributio
+\f0\b0\fs24 n folder.
+\f5 \uc0\u8232 
+\f0 \
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Upload the Source Packages to the SIL Repository:\
+\pard\pardeftab720\li720\fi-720\ri0\sa120\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ]
+\f3  
+\f0\fs22 [to be written]\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+\cf0 \
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 Notify users on the LTS, LPC and LinuxUser lists of the version update\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 [    ] Using the "LTS and Linux Lists Announce.txt" as a template.\
+\
+\
+\pard\pardeftab720\ri0\sb240\sa60\ql\qnatural
+
+\f2\i\b\fs28 \cf0 \page Deprecated Manual Packaging Steps:\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\f0\i0\b0\fs24 \cf0 \
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+\cf0 [    ] In a terminal cd to 
+\f1\b\fs20 ~/subversion/adaptit
+\f0\b0\fs24  folder and do an "
+\f1\b\fs20 svn update
+\f0\b0\fs24 ".\
+[    ] Make sure code builds OK at a command-line prompt, or in the Code Blocks IDE for Unicode Debug, and Unicode Release builds without errors.\
+Build Ubuntu 
+\b Lucid
+\b0 , 
+\b Maverick
+\b0 , 
+\b Natty
+\b0 , 
+\b Oneiric
+\b0 , and
+\b  Precise
+\b0  packages for the 
+\f1\b\fs20 packages.sil.org
+\f0\b0\fs24  repository - see the information in the "
+\f1\b\fs22 Packaging Adapt It for Ubuntu Linux [date].rtf
+\f0\b0\fs24 " file for details.\
++[    ] Create (or clear out) the ~/packaging/ folder:
+\f5 \uc0\u8232 
+\f1\b\fs20 rm adaptit_*
+\f4\b0 \uc0\u8232 
+\f1\b rm \'96r adaptit-6.x.x
+\f0\b0\fs24 \
+[    ] Export the tagged version from the googlecode repository:
+\f5 \uc0\u8232 
+\f1\b\fs20 svn export http://adaptit.googlecode.com/svn/tags/adaptit-6.x.x\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\f0\b0\fs24 \cf0 [    ] Purge Windows specific exe and dll files from the repository\
+\pard\pardeftab720\fi576\ri0\ql\qnatural
+
+\f1\b\fs20 \cf0 cd adaptit-6.x.x\
+find . -type f -iname "*.exe" -delete\
+find . -type f -iname "*.dll" \'96delete\
+cd ..\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\f0\b0\fs24 \cf0  [    ] Tar the exported repository folder, and call debuild from within the new folder
+\f5 \uc0\u8232 
+\f1\b\fs20 tar czf adaptit_6.x.x.orig.tar.gz adaptit-6.x.x
+\f5\b0\fs24 \uc0\u8232 
+\f1\b\fs20 cd adaptit-6.x.x
+\f5\b0\fs24 \uc0\u8232 
+\f1\b\fs20 debuild \'96S \'96sa \'96uc \'96us
+\f0\b0\fs24 \
+\pard\pardeftab720\ri0\ql\qnatural
+\cf0 [    ] Build the packages for each Ubuntu distribution and architecture:\
+\pard\pardeftab720\li576\ri0\ql\qnatural
+
+\b\fs20 \cf0 sudo DIST=lucid ARCH=i386 pbuilder build --binary-arch ../adaptit_6.x.x-1.dsc\
+sudo DIST=lucid ARCH=amd64 pbuilder build ../adaptit_6.x.x-1.dsc\
+sudo DIST=maverick ARCH=i386 pbuilder build --binary-arch ../adaptit_6.x.x-1.dsc\
+sudo DIST=maverick ARCH=amd64 pbuilder build ../adaptit_6.x.x-1.dsc\
+sudo DIST=natty ARCH=i386 pbuilder build --binary-arch ../adaptit_6.x.x-1.dsc\
+sudo DIST=natty ARCH=amd64 pbuilder build ../adaptit_6.x.x-1.dsc\
+sudo DIST=oneiric ARCH=i386 pbuilder build --binary-arch ../adaptit_6.x.x-1.dsc\
+sudo DIST=oneiric ARCH=amd64 pbuilder build ../adaptit_6.x.x-1.dsc\
+sudo DIST=precise ARCH=i386 pbuilder build --binary-arch ../adaptit_6.x.x-1.dsc\
+sudo DIST=precise ARCH=amd64 pbuilder build ../adaptit_6.x.x-1.dsc\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+
+\b0\fs24 \cf0 Note: The packages are now built and the package files reside in the 
+\f1\b\fs22 ~/pbuilder/
+\fs20 <DIST-ARCH>
+\fs22 / 
+\f0\b0\fs24 directory.\
+\pard\pardeftab720\ri0\ql\qnatural
+\cf0 \
+\
+\pard\pardeftab720\li288\fi-288\ri0\ql\qnatural
+\cf0 [    ] Use debsign to officially sign the packages for each distribution and architecture (Note: requires entry of gpg password for each package):\
+\pard\pardeftab720\li288\ri0\ql\qnatural
+
+\b\fs20 \cf0 sudo debsign ~/pbuilder/lucid-i386/adaptit_6.x.x-1+lucid1_i386.changes\
+sudo debsign ~/pbuilder/lucid-amd64/adaptit_6.x.x-1+lucid1_amd64.changes\
+sudo debsign ~/pbuilder/maverick-i386/adaptit_6.x.x-1+maverick1_i386.changes\
+sudo debsign ~/pbuilder/maverick-amd64/adaptit_6.x.x-1+maverick1 _amd64.changes\
+sudo debsign ~/pbuilder/natty-i386/adaptit_6.x.x-1+natty1_i386.changes\
+sudo debsign ~/pbuilder/natty-amd64/adaptit_6.x.x-1+natty1 _amd64.changes\
+sudo debsign ~/pbuilder/oneiric-i386/adaptit_6.x.x-1+oneiric1_i386.changes\
+sudo debsign ~/pbuilder/oneiric-amd64/adaptit_6.x.x-1+oneiric1 _amd64.changes\
+sudo debsign ~/pbuilder/precise-i386/adaptit_6.x.x-1+precise1_i386.changes\
+sudo debsign ~/pbuilder/precise-amd64/adaptit_6.x.x-1+precise1 _amd64.changes\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\b0\fs24 \cf0 \
+\
+\pard\pardeftab720\li576\fi-576\ri0\ql\qnatural
+\cf0 [    ] 
+\fs22 In a Terminal invoke the following 
+\b dput
+\b0  commands:\
+\pard\pardeftab720\li720\fi-720\ri0\ql\qnatural
+
+\f1\b\fs16 \cf0 dput \'96U packager:ubuntu/precise ~/pbuilder/precise-i386/adaptit_6.3.x-1+precise1_i386.changes\
+dput \'96U packager:ubuntu/precise ~/pbuilder/precise-amd64/adaptit_6.3.x-1+precise1_amd64.changes\
+dput \'96U packager:ubuntu/oneiric ~/pbuilder/oneiric-i386/adaptit_6.3.x-1+oneiric1_i386.changes\
+dput \'96U packager:ubuntu/oneiric ~/pbuilder/oneiric-amd64/adaptit_6.3.x-1+oneiric1_amd64.changes\
+dput \'96U packager:ubuntu/natty ~/pbuilder/natty-i386/adaptit_6.3.x-1+natty1_i386.changes\
+dput \'96U packager:ubuntu/natty ~/pbuilder/natty-amd64/adaptit_6.3.x-1+natty1_amd64.changes\
+dput \'96U packager:ubuntu/maverick ~/pbuilder/maverick-i386/adaptit_6.3.x-1+maverick1_i386.changes\
+\pard\pardeftab720\li720\fi-720\ri0\ql\qnatural
+
+\fs14 \cf0 dput \'96U packager:ubuntu/maverick ~/pbuilder/maverick-amd64/adaptit_6.3.x-1+maverick1_amd64.changes\
+\pard\pardeftab720\li720\fi-720\ri0\ql\qnatural
+
+\fs16 \cf0 dput \'96U packager:ubuntu/lucid ~/pbuilder/lucid-i386/adaptit_6.3.x-1+lucid1_i386.changes\
+dput \'96U packager:ubuntu/lucid ~/pbuilder/lucid-amd64/adaptit_6.3.x-1+lucid1_amd64.changes\
+\pard\pardeftab720\ri0\ql\qnatural
+
+\f0\b0\fs24 \cf0 \
+}
