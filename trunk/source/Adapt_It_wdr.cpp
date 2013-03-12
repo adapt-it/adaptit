@@ -9211,6 +9211,119 @@ wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer 
     return item0;
 }
 
+wxSizer *ToolbarPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Toolbar Buttons and Layout"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
+    item1->Add( item2, 0, wxALIGN_CENTER, 10 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Select the buttons to display, as well as their size and layout."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER, 10 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxTOP, 5 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Toolbar &Buttons:") );
+    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
+
+    wxListCtrl *item8 = new wxListCtrl( parent, ID_LST_TOOLBAR_BUTTONS, wxDefaultPosition, wxSize(275,275), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 10 );
+
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item12 = new wxStaticBox( parent, -1, _("Toolbar Layout") );
+    wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
+
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Icon Size:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxGridSizer *item14 = new wxGridSizer( 3, 0, 0 );
+
+    wxStaticBitmap *item15 = new wxStaticBitmap( parent, ID_BMP_TOOLBAR_SMALL, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(16,16) );
+    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticBitmap *item16 = new wxStaticBitmap( parent, ID_BMP_TOOLBAR_MEDIUM, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(22,22) );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticBitmap *item17 = new wxStaticBitmap( parent, ID_BMP_TOOLBAR_LARGE, AIToolBarBitmapsUnToggledFunc( 0 ), wxDefaultPosition, wxSize(32,32) );
+    item14->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxRadioButton *item18 = new wxRadioButton( parent, ID_RDO_TOOLBAR_SMALL, _("&Small"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxRadioButton *item19 = new wxRadioButton( parent, ID_RDO_TOOLBAR_MEDIUM, _("&Medium"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxRadioButton *item20 = new wxRadioButton( parent, ID_RDO_TOOLBAR_LARGE, _("&Large"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item11->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("&Display:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxString strs23[] = 
+    {
+        _("Icon and Text"), 
+        _("Icon Only")
+    };
+    wxChoice *item23 = new wxChoice( parent, ID_CBO_TOOLBAR_ICON, wxDefaultPosition, wxSize(100,-1), 2, strs23, 0 );
+    item21->Add( item23, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item11->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+
+    item10->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item9, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item24 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item0->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, 
+        _("Click Minimal Icon Set to only select a subset of useful toolbar buttons.\n"
+          "Click Default Settings to reset the toolbar to the factory default settings."),
+        wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item27 = new wxButton( parent, ID_BTN_TOOLBAR_MINIMAL, _("Mi&nimal Icon Set"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item28 = new wxButton( parent, ID_TOOLBAR_RESET, _("De&fault Settings"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()

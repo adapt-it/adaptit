@@ -67,6 +67,7 @@
 #include "Adapt_ItDoc.h"
 #include "FontPage.h"
 #include "PunctCorrespPage.h"
+#include "ToolbarPage.h"
 #include "CaseEquivPage.h"
 #include "KBPage.h"
 #include "ViewPage.h"
@@ -124,6 +125,14 @@ BEGIN_EVENT_TABLE(CEditPreferencesDlg, wxPropertySheetDialog)
 #ifdef _UNICODE
 	EVT_BUTTON(IDC_TOGGLE_UNNNN_BTN, CEditPreferencesDlg::OnBnClickedToggleUnnnn)
 #endif
+	// The following wrapper handlers are for the ToolbarPage
+	EVT_RADIOBUTTON(ID_RDO_TOOLBAR_SMALL, CEditPreferencesDlg::OnRadioToolbarSmall)
+	EVT_RADIOBUTTON(ID_RDO_TOOLBAR_MEDIUM, CEditPreferencesDlg::OnRadioToolbarMedium)
+	EVT_RADIOBUTTON(ID_RDO_TOOLBAR_LARGE, CEditPreferencesDlg::OnRadioToolbarLarge)
+	EVT_CHOICE(ID_CBO_TOOLBAR_ICON, CEditPreferencesDlg::OnCboToolbarIcon)
+	EVT_BUTTON(ID_BTN_TOOLBAR_MINIMAL, CEditPreferencesDlg::OnBnToolbarMinimal)
+	EVT_BUTTON(ID_TOOLBAR_RESET, CEditPreferencesDlg::OnBnToolbarReset)
+	EVT_LIST_ITEM_SELECTED(ID_LST_TOOLBAR_BUTTONS, CEditPreferencesDlg::OnClickLstToolbarButtons)
 	// The following wrapper handlers are for the caseEquivPage
 	EVT_BUTTON(IDC_BUTTON_CLEAR_SRC_LIST, CEditPreferencesDlg::OnBnClickedClearSrcList)
 	EVT_BUTTON(IDC_BUTTON_SRC_SET_ENGLISH, CEditPreferencesDlg::OnBnClickedSrcSetEnglish)
@@ -166,6 +175,7 @@ CEditPreferencesDlg::CEditPreferencesDlg(
 {
 	fontPage = (CFontPagePrefs*)NULL;
 	punctMapPage = (CPunctCorrespPagePrefs*)NULL;
+	toolbarPage = (CToolbarPagePrefs*)NULL;
 	caseEquivPage = (CCaseEquivPagePrefs*)NULL;
 	kbPage = (CKBPage*)NULL;
 	viewPage = (CViewPage*)NULL;
@@ -218,6 +228,16 @@ void CEditPreferencesDlg::CreateControls()
 		wxSize punctMapPageSize = punctMapPage->GetSize();
 		if (punctMapPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(punctMapPageSize.GetX());
 		if (punctMapPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(punctMapPageSize.GetY());
+	}
+
+//	if (TabIsVisibleInCurrentProfile(_("Punctuation")))
+	{
+		toolbarPage = new CToolbarPagePrefs(pNotebook);
+		wxASSERT(toolbarPage != NULL);
+		pNotebook->AddPage( toolbarPage, _("Toolbar"),FALSE );
+		wxSize toolbarPageSize = toolbarPage->GetSize();
+		if (toolbarPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(toolbarPageSize.GetX());
+		if (toolbarPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(toolbarPageSize.GetY());
 	}
 	
 	if (TabIsVisibleInCurrentProfile(_("Case")))
@@ -387,6 +407,7 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 	pLayout->m_bUSFMChanged = FALSE;
 	pLayout->m_bFilteringChanged = FALSE;
 	pLayout->m_bPunctuationChanged = FALSE;
+	pLayout->m_bToolbarChanged = FALSE;
 	pLayout->m_bCaseEquivalencesChanged = FALSE;
 	pLayout->m_bFontInfoChanged = FALSE;
 
@@ -407,6 +428,10 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 	if (TabIsVisibleInCurrentProfile(_("Punctuation")))
 	{
 		punctMapPage->InitDialog(event);
+	}
+//	if (TabIsVisibleInCurrentProfile(_("Toolbar")))
+	{
+		toolbarPage->InitDialog(event);
 	}
 	if (TabIsVisibleInCurrentProfile(_("Case")))
 	{
@@ -721,6 +746,11 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		}
 	}
 
+	if (toolbarPage != NULL)
+	{
+		// EDB TODO: validate ToolbarPage data
+	}
+
 	if (caseEquivPage != NULL)
 	{
 		// Validate caseEquivPage data
@@ -767,6 +797,8 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		fontPage->OnOK(event);
 	if (punctMapPage != NULL)
 		punctMapPage->OnOK(event);
+	if (toolbarPage != NULL)
+		toolbarPage->OnOK(event);
 	if (caseEquivPage != NULL)
 		caseEquivPage->OnOK(event);
 	if (kbPage != NULL)
@@ -835,6 +867,44 @@ void CEditPreferencesDlg::OnBnClickedToggleUnnnn(wxCommandEvent& event)
 	punctMapPage->punctPgCommon.OnBnClickedToggleUnnnn(event);
 }
 #endif
+
+// Wrapper handlers for the ToolbarPage
+void CEditPreferencesDlg::OnRadioToolbarSmall(wxCommandEvent& event)
+{
+	toolbarPage->OnRadioToolbarSmall(event);
+}
+
+void CEditPreferencesDlg::OnRadioToolbarMedium (wxCommandEvent& event)
+{
+	toolbarPage->OnRadioToolbarMedium(event);
+}
+
+void CEditPreferencesDlg::OnRadioToolbarLarge (wxCommandEvent& event)
+{
+	toolbarPage->OnRadioToolbarLarge(event);
+}
+
+void CEditPreferencesDlg::OnCboToolbarIcon (wxCommandEvent& event)
+{
+	toolbarPage->OnCboToolbarIcon(event);
+}
+
+void CEditPreferencesDlg::OnBnToolbarMinimal (wxCommandEvent& event)
+{
+	toolbarPage->OnBnToolbarMinimal(event);
+}
+
+void CEditPreferencesDlg::OnBnToolbarReset (wxCommandEvent& event)
+{
+	toolbarPage->OnBnToolbarReset(event);
+}
+
+void CEditPreferencesDlg::OnClickLstToolbarButtons (wxListEvent& event)
+{
+	toolbarPage->OnClickLstToolbarButtons(event);
+}
+
+
 
 // The following are wrapper handlers for the caseEquivPage
 void CEditPreferencesDlg::OnBnClickedClearSrcList(wxCommandEvent& event)

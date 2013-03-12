@@ -241,7 +241,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;lib\silconverters;&quot;C:\Program Files\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\lib&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_KBSERVER"
+				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="$(IntDir)/Adapt_It.pch"
@@ -917,6 +917,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ToolbarPage.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\TransformToGlossesDlg.cpp"
 				>
 			</File>
@@ -1471,6 +1475,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Timer_KbServerChangedSince.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ToolbarPage.h"
 				>
 			</File>
 			<File

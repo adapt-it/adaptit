@@ -19416,13 +19416,19 @@ void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Ignore Boundaries")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("Boundaries")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_stop_png_16));
+				break;
 			}
 		}
 	}
@@ -19431,13 +19437,19 @@ void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Stop Selection At Boundaries")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("Boundaries")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(bounds_go_png_16));
+				break;
 			}
 		}
 	}
@@ -19526,13 +19538,19 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Show Punctuation")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("Punctuation")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_hide_punctuation_png_16));
+				break;
 			}
 		}
 	}
@@ -19541,13 +19559,19 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Hide Punctuation")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("Punctuation")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(format_show_punctuation_png_16));
+				break;
 			}
 		}
 	}
@@ -19666,13 +19690,19 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Show Source And Target Text")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("View Mode")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_target_png_16));
+				break;
 			}
 		}
 	}
@@ -19681,13 +19711,19 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Show Target Text Only")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("View Mode")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(show_source_target_png_16));
+				break;
 			}
 		}
 	}
@@ -19793,13 +19829,19 @@ void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("No punctuation copy")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("Punctuation Copy")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_copy_png_16));
+				break;
 			}
 		}
 	}
@@ -19808,13 +19850,19 @@ void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event
 		if (tbi != NULL)
 		{
 			tbi->SetShortHelp(_("Enable Punctuation Copy")); // what will happen if they click the button
-			if (pApp->m_bExecutingOnXO)
+			tbi->SetLabel(_("Punctuation Copy")); // what will happen if they click the button
+			switch(pApp->m_toolbarSize)
 			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_32)); // TODO: base on size
-			}
-			else
-			{
-				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_16)); // TODO: base on size
+			case btnLarge:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_32));
+				break;
+			case btnMedium:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_22));
+				break;
+			case btnSmall:
+			default:
+				tbi->SetBitmap(pApp->wxGetBitmapFromMemory(punctuation_do_not_copy_png_16));
+				break;
 			}
 		}
 	}

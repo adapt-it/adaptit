@@ -2006,6 +2006,10 @@ class CAdapt_ItApp : public wxApp
 	// BEW added 23Nov12, for support of Cancel All Steps button in Vertical Edit mode
 	bool m_bCalledFromOnVerticalEditCancelAllSteps; // default is FALSE, initialized in OnInit()
 
+	ToolbarButtonSize m_toolbarSize;
+	bool m_bShowToolbarIconAndText; // default is FALSE
+	bool m_bToolbarButtons[50];		// which buttons to display on the toolbar
+
 private:
 
 	// whm: This enum is made private because its enumerations should not
