@@ -25,7 +25,7 @@
 
 */
 
-typedef unsigned long ULONG; // whm 14Jun12 added
+typedef unsigned long ULONG; // whm 14Jun12 added  
 
 #ifndef WXBASE64_HEADER  
    #define WXBASE64_HEADER   
