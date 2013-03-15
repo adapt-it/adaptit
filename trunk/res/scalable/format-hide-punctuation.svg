@@ -151,18 +151,6 @@
          id="stop2228" />
     </linearGradient>
     <filter
-       inkscape:collect="always"
-       id="filter3643"
-       x="-0.086168433"
-       width="1.1723369"
-       y="-0.218529"
-       height="1.437058">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="1.3830566"
-         id="feGaussianBlur3645" />
-    </filter>
-    <filter
        color-interpolation-filters="sRGB"
        inkscape:collect="always"
        id="filter3834">
@@ -181,7 +169,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1.1946463"
      inkscape:cx="-20.257078"
-     inkscape:cy="-4.0605281"
+     inkscape:cy="-11.175605"
      inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:grid-bbox="true"
@@ -214,24 +202,18 @@
           </rdf:Bag>
         </dc:subject>
         <cc:license
-           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
         <dc:source>http://adapt-it.org</dc:source>
         <dc:description>Hide punctuation</dc:description>
       </cc:Work>
       <cc:License
-         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#Reproduction" />
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#Distribution" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#Notice" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#Attribution" />
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
       </cc:License>
     </rdf:RDF>
   </metadata>

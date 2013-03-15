@@ -186,7 +186,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="8.9171552"
      inkscape:cx="12.690196"
-     inkscape:cy="21.49982"
+     inkscape:cy="20.546601"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -224,7 +224,18 @@
           </cc:Agent>
         </dc:contributor>
         <dc:description>Barrier gate down. Using gate from wikimedia image emblem-unblock-request.</dc:description>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
       </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
     </rdf:RDF>
   </metadata>
   <g

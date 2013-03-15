@@ -14,8 +14,8 @@
    height="48.000000px"
    id="svg249"
    sodipodi:version="0.32"
-   inkscape:version="0.47 r22583"
-   sodipodi:docname="retranslation-delete2.svg"
+   inkscape:version="0.48.2 r9819"
+   sodipodi:docname="retranslation-delete.svg"
    inkscape:export-filename="/Users/erik/Documents/Wycliffe/adaptit/images and such/AI_icons/16x16/retranslation-delete.png"
    inkscape:export-xdpi="29.749464"
    inkscape:export-ydpi="29.749464"
@@ -602,7 +602,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="4.2546304"
      inkscape:cx="-24.592252"
-     inkscape:cy="8.0031768"
+     inkscape:cy="6.0053534"
      inkscape:current-layer="layer4"
      showgrid="false"
      inkscape:grid-bbox="true"
@@ -629,23 +629,17 @@
         </dc:creator>
         <dc:source>http://adapt-it.org</dc:source>
         <cc:license
-           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
         <dc:description>Delete the currently selected retranslation. Uses false.svg from the RRZE icon set.</dc:description>
       </cc:Work>
       <cc:License
-         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#Reproduction" />
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#Distribution" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#Notice" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#Attribution" />
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
       </cc:License>
     </rdf:RDF>
   </metadata>
