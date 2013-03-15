@@ -14,7 +14,7 @@
    height="48.000000px"
    id="svg249"
    sodipodi:version="0.32"
-   inkscape:version="0.48.3.1 r9886"
+   inkscape:version="0.48.2 r9819"
    sodipodi:docname="text-txt.svg"
    inkscape:export-filename="/home/erik/svn/adaptit/res/48x48/text-txt.png"
    inkscape:export-xdpi="93.248848"
@@ -259,7 +259,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.98901497"
      inkscape:cx="30.61519"
-     inkscape:cy="29.785284"
+     inkscape:cy="21.190874"
      inkscape:current-layer="layer4"
      showgrid="false"
      inkscape:grid-bbox="true"
@@ -278,7 +278,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
         <dc:creator>
           <cc:Agent>
             <dc:title>Erik Brommers</dc:title>
@@ -286,24 +286,18 @@
         </dc:creator>
         <dc:source>http://www.adapt-it.org</dc:source>
         <cc:license
-           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
         <dc:date>June 8, 2012</dc:date>
         <dc:description>Uses document-new from the tango icon project.</dc:description>
       </cc:Work>
       <cc:License
-         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#Reproduction" />
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#Distribution" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#Notice" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#Attribution" />
         <cc:permits
            rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
-        <cc:requires
-           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
       </cc:License>
     </rdf:RDF>
   </metadata>
