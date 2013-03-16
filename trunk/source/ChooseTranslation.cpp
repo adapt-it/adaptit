@@ -61,8 +61,8 @@ EVT_INIT_DIALOG(CChooseTranslation::InitDialog)
 	EVT_LISTBOX_DCLICK(IDC_MYLISTBOX_TRANSLATIONS, CChooseTranslation::OnDblclkListboxTranslations)
 	EVT_BUTTON(IDC_BUTTON_REMOVE, CChooseTranslation::OnButtonRemove)
 	EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CChooseTranslation::OnUpdateButtonRemove)
-	EVT_BUTTON(IDC_BUTTON_CANCEL_ASK, CChooseTranslation::OnButtonCancelAsk)
-	EVT_BUTTON(IDC_BUTTON_CANCEL_AND_SELECT, CChooseTranslation::OnButtonCancelAndSelect)
+	EVT_BUTTON(ID_BUTTON_CANCEL_ASK, CChooseTranslation::OnButtonCancelAsk) // ID_ was IDC_
+	EVT_BUTTON(ID_BUTTON_CANCEL_AND_SELECT, CChooseTranslation::OnButtonCancelAndSelect) // ID_ was IDC_
 	EVT_KEY_DOWN(CChooseTranslation::OnKeyDown)
 END_EVENT_TABLE()
 
@@ -131,7 +131,9 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
     // sizers for the dialog. The first parameter is the parent which should normally be
     // "this". The second and third parameters should both be TRUE to utilize the sizers
     // and create the right size dialog.
-	pChooseTransSizer = ChooseTranslationDlgFunc(this, TRUE, TRUE);
+	//pChooseTransSizer = ChooseTranslationDlgFunc(this, TRUE, TRUE); <- wastes space,
+	//list too small, so I deprecated it
+	pChooseTransSizer = ChooseTranslationDlgFunc2(this, TRUE, TRUE); // BEW added 15Mar13
     // The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool
     // set_sizer );
 
@@ -159,8 +161,10 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	if (pLB != NULL) // whm 11Jun12 added NULL test
 	    delete pLB;
     // create an instance of our CMyListBox class
+    //m_pMyListBox = new CMyListBox(this, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition,
+	//								wxSize(400,-1), 0, NULL, wxLB_SINGLE);
     m_pMyListBox = new CMyListBox(this, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition,
-									wxSize(400,-1), 0, NULL, wxLB_SINGLE);
+									wxSize(300,-1), 0, NULL, wxLB_SINGLE);
     wxASSERT(m_pMyListBox != NULL);
     // Transfer the tooltip to the new custom list box.
     if (pLBToolTip != NULL)
@@ -831,7 +835,8 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
     // is true, as in the test in next line)
 	if ((numNotDeleted == 1) && pCurTargetUnit->m_bAlwaysAsk)
 	{
-		wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
+		//wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
+		wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
 		wxASSERT(pButton != NULL);
 		pButton->Show(TRUE);
 	}
@@ -935,7 +940,8 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 	// hide the Do Not Ask Again button if there is more than one item in the list
 	int nItems = m_pMyListBox->GetCount();
-	wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
+	//wxWindow* pButton = FindWindowById(IDC_BUTTON_CANCEL_ASK);
+	wxWindow* pButton = FindWindowById(ID_BUTTON_CANCEL_ASK);
 	wxASSERT(pButton != NULL);
 	if (nItems == 1 && pCurTargetUnit->m_bAlwaysAsk)
 	{
@@ -955,7 +961,8 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// or when glossing is ON
 	if (gbInspectTranslations || m_bHideCancelAndSelectButton)
 	{
-		wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
+		//wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
+		wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
 		pButton->Show(FALSE);
 	}
 
@@ -1029,7 +1036,8 @@ void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 		// a click on "Cancel And Select" button
 		if (event.GetKeyCode() == WXK_RIGHT)
 		{
-			wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
+			//wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
+			wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
 			if (pButton->IsShown())
 			{
 				wxCommandEvent evt = wxID_CANCEL;

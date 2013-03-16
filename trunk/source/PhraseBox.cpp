@@ -2470,8 +2470,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 	// within the control reflecting the keystroke that triggers OnChar(). Because
 	// of that difference in behavior, I moved the code dependent on updating
 	// pApp->m_targetPhrase from OnChar() to this OnPhraseBoxChanged() handler.
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	if (this->IsModified())
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();	if (this->IsModified())
 	{
 		CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 		// preserve cursor location, in case we merge, so we can restore it afterwards

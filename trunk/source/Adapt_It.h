@@ -180,13 +180,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 4
-#define VERSION_BUILD_PART 1
+#define VERSION_BUILD_PART 2
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define VERSION_DATE_DAY 6
-#define VERSION_DATE_MONTH 2
+#define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2013
-const wxString appVerStr(_T("6.4.1"));
+const wxString appVerStr(_T("6.4.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -3862,15 +3862,41 @@ public:
 	bool RestoreSelection(bool bRestoreCCellsFlagToo = FALSE);
 	void ClearSavedSelection(); // only makes the above 3 ints have the value -1
 
-	// BEW added 7Mar13, support for two scrolling regimes (Ross Jones requested the
-	// legacy 'box moves down, strips don't move until they must' ScrollIntoView()) - I
-	// recovered the latter's code from SVN revision 500, of 9th May 2009, which was about
-	// a month before the refactoring in early June 2009 which resulted in the until-now
-	// 'keep the box midscreen' behaviour - the latter is visually unhelpful if the
-	// computer screen is projected to a text-reviewing audience of mother-tongue speakers.
+	/// BEW added 7Mar13, support for two scrolling regimes (Ross Jones requested the
+	/// legacy 'box moves down, strips don't move until they must' ScrollIntoView()) - I
+	/// recovered the latter's code from SVN revision 500, of 9th May 2009, which was about
+	/// a month before the refactoring in early June 2009 which resulted in the until-now
+	/// 'keep the box midscreen' behaviour - the latter is visually unhelpful if the
+	/// computer screen is projected to a text-reviewing audience of mother-tongue speakers.
 	bool m_bKeepBoxMidscreen; // default is TRUE, if set FALSE in the View page of Preferences
 							  // then ScrollIntoView uses the restored legacy code; the boolean
 							  // value is stored in the project config file
+    /// BEW added 13Mar13, to support reinstating, for autocapitalization mode ON, the use
+    /// within the lookup of any pTU which is keyed by the same source word or phrase but
+    /// beginning with a capital letter. We earlier deprecated this (see explanatory
+    /// comment in CKB::AutoCapsLookup() for the details of why) because the total AI
+    /// package did not fully support the lookup of uppercase if the lower case lookup
+    /// failed - the later StoreText() would merely add the lower case target entry to the
+    /// pTU which had an upper case key - that's not good enough. The fuller solution,
+    /// implemented here, and which will be the new default, is to check for an upper case
+    /// keyed CTargetUnit, and if in the KB, make lower case copies of its translations or
+    /// glosses, and merge any which are not in the lower-case keyed CTargetUnit to the
+    /// latter. This is done at the start of AutoCapsLookup() so that the lookup code which
+    /// follows that initial merger will have the full complement of lower case entries
+    /// available in the lookup and for display in the Choose Translation dialog. This
+    /// initial check and merger will add a little overhead to the time taken for the
+    /// average lookup, but it's far quicker than having to retype otherwise unavailable
+    /// upper case translations or glosses.
+	/// A boolean is required for support of this option, and so it can optionally be
+	/// turned off - which would have lookups just do a lowercase only lookup (upper case
+	/// entries ignored, which is how it was in versions up to and including 6.4.1).
+	/// It is m_bDoLegacyLowerCaseLookup, default TRUE, and that is used in the GUI
+	/// to allow a user to switch on, or turn off, the u.case lookup attempt when a l.case
+	/// lookup has failed. This boolean is stored also in the project configuration file.
+	bool m_bDoLegacyLowerCaseLookup; // default FALSE, user-settable in the GUI, using
+								     // Preferences.../View page, saved in project 
+									 // configuration file. (New regime is the default.)
+
 
 	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);
 	// for localization support

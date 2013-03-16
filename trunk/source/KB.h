@@ -155,6 +155,18 @@ public:
 	bool			StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
 	void			DoKBRestore(int& nCount, int& nCumulativeTotal);
 	bool			UndeleteNormalEntryAndDeleteNotInKB(CSourcePhrase* pSrcPhrase, CTargetUnit* pTU, wxString& str);
+	// BEW 13Mar13, next three added for refactoring AutoCapsLookup()
+	void			UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr);
+	wxString		TransformToLowerCaseInitial(wxString& str, bool bIsSrcStr);
+	// In next one, return TRUE if str is not in a CRefString belonging to the list in
+	// pTU, OR, it does exist but as a pseudo-deleted entry and in this circumstance
+	// return TRUE in bItsPseudoDeleted, otherwise the latter should return FALSE; to
+	// save looking up which one is the deleted one in the caller a second time, return
+	// the pointer to the CRefString instance which the caller has to undelete, otherwise
+	// return NULL in that param
+	bool			IsAbsentFrom(CTargetUnit* pTU, wxString& str, bool& bItsPseudoDeleted, 
+						CRefString*& pRefStrDeleted); 
+																   
 
 	// accessors for private members
 	int				GetCurrentKBVersion();
@@ -192,6 +204,16 @@ public:
 	bool		IsMatchForKbSharing(CTargetUnit* pTU, wxString& translation,
 					int deletedFlag, CRefString*& pRefString, bool& bMatchedTranslation);
 */
+	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
+	// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
+	// encapsulated, and advisory only, so errors don't stop the app
+	void		FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString);
+
+	// Does nothing if the project is not a KB sharing one, or if it is but sharing is
+	// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
+	// encapsulated, and advisory only, so errors don't stop the app
+	void		FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString);
+
 
 #endif // for _KBSERVER
 

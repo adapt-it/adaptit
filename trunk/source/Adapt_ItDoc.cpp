@@ -22397,16 +22397,6 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		while (pos1 != NULL)
 		{
 			pSrcPhrase = (CSourcePhrase*)pos1->GetData();
-#if defined(_DEBUG)
-			if(pSrcPhrase->m_nSequNumber == 2551 ||
-				pSrcPhrase->m_nSequNumber == 2865 ||
-				pSrcPhrase->m_nSequNumber == 2878 ||
-				pSrcPhrase->m_nSequNumber == 2958 ||
-				pSrcPhrase->m_nSequNumber == 3395)
-			{
-				int break_here = 1;
-			}
-#endif
 			key = pSrcPhrase->m_key;
 			adaption = pSrcPhrase->m_adaption; // could be an empty string
 			pos1 = pos1->GetNext();
@@ -22441,21 +22431,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 			pRefStr_OnOrig = NULL;
 			bDeleted = FALSE;
 			bDeleted_OnOrig = FALSE;
-/*
-#ifdef _DEBUG
-			//if (pSrcPhrase->m_nSequNumber == 26)
-			if ((pSrcPhrase->m_key == _T("yesu") || pSrcPhrase->m_key == _T("Yesu"))
-				&& (pSrcPhrase->m_nSequNumber == 1075 ||
-					pSrcPhrase->m_nSequNumber == 1137 ||
-					pSrcPhrase->m_nSequNumber == 1163 ||
-					pSrcPhrase->m_nSequNumber == 1190 ||
-					pSrcPhrase->m_nSequNumber == 1244)
-				)
-			{
-				int break_location = 1;
-			}
-#endif
-*/
+
 			// Does key have an entry (that is, a ptr to CTargetUnit, and a CRefString
 			// within it which has a non-deleted string in its m_translation member which
 			// matches the passed in adaption parameter's contents) in the copied adaptation

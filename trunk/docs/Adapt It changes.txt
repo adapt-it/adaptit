@@ -13,6 +13,30 @@ of the window. Which setting you choose is done by Prefernces >
 View tab - two radio buttons allow you to choose. Your choice
 is saved automatically in the project configuration file and
 so is restored whenever you reenter that project.
+* Preferences > View tab also has an option for changing how the
+knowledge base (KB) lookup works when automatic capitalizing mode
+is turned on. Prior to this version, the lookup ignored upper case
+entries in the KB, and just looked up within the set of stored
+lower case entries, and capitalized the first letter as necessary.
+This was not very helpful if a lot of early work was done with
+autocaps mode turned off, and then autocaps mode was used later.
+The user had to re-enter a lot of adaptations. Now there is a
+new lookup. It takes into account all relevant entries by checking
+first for any upper case entries, merging any it finds into the
+lower case entry storage (after first converting their initial
+letter to lowercase), and then doing the lower case lookup, and
+any needed automatic capitalizing. This mode is on by default.
+You can go back to the older mode of lookup (which is a little 
+faster) by clicking the lower of the two radio buttons in the
+View tab of Preferences. Your setting is stored in the project
+configuration file.
+* The Choose Translation dialog has been improved. The list box
+is not so wide, but now is full height in the dialog and can
+be dragged larger by resizing the dialog manually. The source
+text and new translation text boxes are less wide, and 
+"Source Text:" has been shortened to "Source:", and 
+"New translation:" shorted to "New:". Resizing horizontally
+lengthens the text boxes.
 
 
 ----------------------------------------------
@@ -27,6 +51,9 @@ re-show a deleted upper-case initial adaptation, every time a new
 check was done, even though the user every time requested it be
 accepted for undeletion. There was a logic error in the code. Such
 entries should not be "seen" as existing, which is now the case.
+* If the phrase box, at the end of the document, went past the end
+(which is normal) and then the user clicked under the very first
+word of the document to put the phrase box there, Adapt It crashed.
 
 ----------------------------------------------
 Version 6.4.1 release 6 February 2013

@@ -378,6 +378,323 @@ enum KB_Entry CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptat
 	return absent;
 }
 
+// This function is only called when autocapitalization is ON, and aggregating the upper
+// and lower case entries before lookup is wanted. If these two conditions are met, this
+// function will be called at the start of every AutoCapsLookup() call, therefore make
+// its code as efficient as possible
+void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
+{
+    // First, find out if there is an uppercase key matching keyStr (convert to upper case
+    // a copy of keyStr first if keyStr is lower-case initial), and if so then get its
+    // CTargetUnit instance. If there is no such available, no aggregation is possible, and
+    // in that case just return without doing anything
+#if defined(_KBSERVER)
+	bool bStoringNotInKB = FALSE;
+#endif
+    wxString lowercaseKey;
+	wxString uppercaseKey;
+	bool bNoError = TRUE;
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	bNoError = pDoc->SetCaseParameters(keyStr);
+	if (!bNoError)
+	{
+		return; // keyStr empty, or more likely, source language case correspondences are not defined
+	}
+	if (gbSourceIsUpperCase)
+	{
+		uppercaseKey = keyStr;
+		lowercaseKey = keyStr;
+		if (gcharSrcLC != _T('\0'))
+		{
+			// provided there is a nonnull lower case equivalent, use it to make the lowercaseKey
+			lowercaseKey.SetChar(0,gcharSrcLC);
+		}
+	}
+	else if (!gbSourceIsUpperCase && (gcharSrcUC != _T('\0')))
+	{
+		lowercaseKey = keyStr;
+		uppercaseKey = keyStr;
+		if (gcharSrcUC != _T('\0'))
+		{
+			// provided there is a nonnull upper case equivalent, use it to make the uppercaseKey
+			uppercaseKey.SetChar(0,gcharSrcUC);
+		}
+	}
+	else
+	{
+		// case is indeterminate, and so we have no basis for doing conversions, so just
+		// return and the AutoCapsLookup() will just do a normal (lower case, since
+		// AutoCaps is ON) lookup
+		return;
+	}
+	// In the passed in map, do we have a CTargetUnit keyed by the uppercaseKey value
+	// we've got or constructed?
+	CTargetUnit* pTU_ForUpperCaseKey = NULL;
+	MapKeyStringToTgtUnit::iterator iter;
+	iter = pMap->find(uppercaseKey);
+	if (iter != pMap->end())
+	{
+		pTU_ForUpperCaseKey = iter->second;
+		wxASSERT(pTU_ForUpperCaseKey != NULL);
+	}
+	else
+	{
+		// There is no such CTargetUnit, with an uppercase-initial-char key, so just return
+		return;
+	}
+	// Check for a CTargetUnit instance which has a lower-case equivalent source text string
+	// as key. If we can't find one, then make one.
+	bool bLowerCaseTargetUnitExists = TRUE; // initialize by assuming one exists 
+	CTargetUnit* pTU_ForLowerCaseKey = NULL;
+	iter = pMap->find(lowercaseKey);
+	if (iter != pMap->end())
+	{
+		pTU_ForLowerCaseKey = iter->second;
+		wxASSERT(pTU_ForLowerCaseKey != NULL);
+	}
+	else
+	{
+		// There is no such CTargetUnit, with a lowercase-initial-char key, so make one
+		// and add it to the map (it's still empty, but we'll add one or more CRefString
+		// instances further below)
+		pTU_ForLowerCaseKey = new CTargetUnit;
+		(*pMap)[lowercaseKey] = pTU_ForLowerCaseKey;
+		bLowerCaseTargetUnitExists = FALSE; // we use this later to forgo tesing for matches,
+											// and instead just transform and copy all the
+											// CRefString entries from pTU_ForUpperCaseKey
+	}
+	// Scan the upper case ones, do the conversions to lower case, add them to
+	// pTU_ForLowerCaseKey whenever they are not already there
+	wxString lowerStr;
+	wxString notInKBStr = _T("<Not In KB>");
+	CRefString* pRefString_forUpper = NULL;
+	CRefString* pRefString_forLower = NULL;
+	TranslationsList::Node* pos_forUpper = pTU_ForUpperCaseKey->m_pTranslations->GetFirst();
+	if (!bLowerCaseTargetUnitExists)
+	{
+		// We've just created an empty one, so we can fill it without doing any tests to
+		// determine if the entries are already in it - except ignore any pseudo-deleted
+		// ones in pTU_ForUpperCaseKey, and don't copy <Not In KB> ones either. Transfer
+		// the ref count unchanged. 
+		while (pos_forUpper != NULL)
+		{
+			pRefString_forUpper = pos_forUpper->GetData();
+			pos_forUpper = pos_forUpper->GetNext();
+			wxASSERT(pRefString_forUpper != NULL);
+			if (pRefString_forUpper->m_bDeleted || pRefString_forUpper->m_translation == notInKBStr)
+			{
+				// We don't want pseudo-deleted ones, nor <Not In KB> ones
+				continue;
+			}
+			// In the next call, FALSE is bIsStrStr
+			lowerStr = TransformToLowerCaseInitial(pRefString_forUpper->m_translation, FALSE);
+			// Make a new CRefString to receive the lower case initial string, etc
+			pRefString_forLower = new CRefString;
+			pRefString_forLower->m_translation = lowerStr;
+			// Set the other params
+			pRefString_forLower->m_refCount = pRefString_forUpper->m_refCount;
+			pRefString_forLower->m_pTgtUnit = pTU_ForLowerCaseKey;
+			pRefString_forLower->m_bDeleted = FALSE;
+			pRefString_forLower->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+			pRefString_forLower->m_pRefStringMetadata->m_deletedDateTime.Empty();
+			pRefString_forLower->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+			// In next call, param bool bOriginatedFromTheWeb is default FALSE
+			pRefString_forLower->m_pRefStringMetadata->m_whoCreated = SetWho();
+			// Append() it to the m_pTranslations list of the CTargetUnit for lowercase keys
+			pTU_ForLowerCaseKey->m_pTranslations->Append(pRefString_forLower);
+#if defined(_KBSERVER)
+			if (!bStoringNotInKB)
+			{
+				FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
+			}
+#endif 
+		}
+	}
+	else
+	{
+		// pTU_ForLowerCaseKey already exists, so test to determine which ones need to be
+		// transferred and do so; beware, it's conceivable that the upper case entry may
+		// be non-pseudo-deleted, but pTU_ForLowerCaseKey has it as a lower case
+		// pseudo-deleted entry, and if that is the case, then we would have to undo the
+		// pseudo-deletion to make it a lower case "normal" entry. Carry over the ref
+		// count as well. Don't copy <Not In KB> ones
+		bool bItIsPseudoDeleted = FALSE;
+		CRefString* pRefStrDeleted = NULL;
+		while (pos_forUpper != NULL)
+		{
+			pRefString_forUpper = pos_forUpper->GetData();
+			pos_forUpper = pos_forUpper->GetNext();
+			wxASSERT(pRefString_forUpper != NULL);
+			if (pRefString_forUpper->m_bDeleted || pRefString_forUpper->m_translation == notInKBStr)
+			{
+				// We don't want pseudo-deleted ones, nor <Not In KB> ones
+				continue;
+			}
+			// In the next call, FALSE is bIsStrStr
+			lowerStr = TransformToLowerCaseInitial(pRefString_forUpper->m_translation, FALSE);
+			// Initalize the pseudodeletion flag and the ptr to the pseudo-deleted CRefString
+			bItIsPseudoDeleted = FALSE;
+			pRefStrDeleted = NULL; // initialize by assuming there isn't any such
+			// Test for absence from the pTU_ForLowerCaseKey
+			if (IsAbsentFrom(pTU_ForLowerCaseKey, lowerStr, bItIsPseudoDeleted, pRefStrDeleted))
+			{
+				if (bItIsPseudoDeleted)
+				{
+					// Undelete it, and no need to transform or copy the uppercase one
+					pRefStrDeleted->m_bDeleted = FALSE;
+					pRefStrDeleted->m_refCount = 1;
+					pRefStrDeleted->m_pTgtUnit = pTU_ForLowerCaseKey;
+					pRefStrDeleted->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+					pRefStrDeleted->m_pRefStringMetadata->m_deletedDateTime.Empty();
+					pRefStrDeleted->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+					// in next call, param bool bOriginatedFromTheWeb is default FALSE
+					pRefStrDeleted->m_pRefStringMetadata->m_whoCreated = SetWho();
+					lowerStr = pRefStrDeleted->m_translation;
+
+#if defined(_KBSERVER)
+					if (!bStoringNotInKB)
+					{
+						FireOffPseudoUndeleteThread(lowercaseKey, pRefStrDeleted);
+					}
+#endif 
+				}
+				else
+				{
+					// It is absent, and there is no pseudo-deleted counterpart already
+					// there, so transform and copy across this one
+					pRefString_forLower = new CRefString;
+					pRefString_forLower->m_translation = lowerStr;
+					// Set the other params
+					pRefString_forLower->m_refCount = pRefString_forUpper->m_refCount;
+					pRefString_forLower->m_pTgtUnit = pTU_ForLowerCaseKey;
+					pRefString_forLower->m_bDeleted = FALSE;
+					pRefString_forLower->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+					pRefString_forLower->m_pRefStringMetadata->m_deletedDateTime.Empty();
+					pRefString_forLower->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+					// In next call, param bool bOriginatedFromTheWeb is default FALSE
+					pRefString_forLower->m_pRefStringMetadata->m_whoCreated = SetWho();
+					// Append() it to the m_pTranslations list of the CTargetUnit for lowercase keys
+					pTU_ForLowerCaseKey->m_pTranslations->Append(pRefString_forLower);
+#if defined(_KBSERVER)
+					if (!bStoringNotInKB)
+					{
+						FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
+					}
+#endif 
+				}
+			} // end of TRUE block for test:
+			  // if (IsAbsentFrom(pTU_ForLowerCaseKey, lowerStr, bItIsPseudoDeleted))
+		} // end of loop: while (pos_forUpper != NULL)
+	} // end of else block for test: if (!bLowerCaseTargetUnitExists)
+}
+
+// In next one, return TRUE if str is not in a CRefString belonging to the list in
+// pTU, OR, it does exist but as a pseudo-deleted entry and in this circumstance
+// return TRUE in bItsPseudoDeleted, otherwise the latter should return FALSE; to
+// save looking up which one is the deleted one in the caller a second time, return
+// the pointer to the CRefString instance which the caller has to undelete, otherwise
+// return NULL in that param
+bool CKB::IsAbsentFrom(CTargetUnit* pTU, wxString& str, bool& bItsPseudoDeleted,
+					   CRefString*& pRefStrDeleted)
+{
+	CRefString* pRefString = NULL;
+	bItsPseudoDeleted = FALSE; // initialize to its default value
+	pRefStrDeleted = NULL;
+	TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+	while (pos != NULL)
+	{
+		pRefString = pos->GetData();
+		pos = pos->GetNext();
+		if (str.IsEmpty())
+		{
+			if (pRefString->m_translation.IsEmpty())
+			{
+				if (pRefString->m_bDeleted)
+				{
+					// There won't be (that is, there SHOULDN'T be), in the one pTU, a
+					// normal entry and it's pseudo-deleted counterpart; so matching a
+					// pseudo-deleted one means we must return TRUE (it's technically
+					// 'absent') but return TRUE also in bItsPseudoDeleted)
+					bItsPseudoDeleted = TRUE;
+					pRefStrDeleted = pRefString;
+					return TRUE;
+				}
+				else
+				{
+					// It's a normal entry, and so the test str is not absent from the pTU
+					return FALSE;
+				}
+			}
+		}
+		else
+		{
+			// do the default case-supporting test for equality
+			if (str == pRefString->m_translation)
+			{
+				if (pRefString->m_bDeleted)
+				{
+					// There won't be (that is, there SHOULDN'T be), in the one pTU, a
+					// normal entry and it's pseudo-deleted counterpart; so matching a
+					// pseudo-deleted one means we must return TRUE (it's technically
+					// 'absent') but return TRUE also in bItsPseudoDeleted)
+					bItsPseudoDeleted = TRUE;
+					pRefStrDeleted = pRefString;
+					return TRUE;
+				}
+				else
+				{
+					// It's a normal entry, and so the test str is not absent from the pTU
+					return FALSE;
+				}
+			}
+		}
+	}
+	return TRUE;
+}
+
+// Returns the equivalent lower-case initial string, or the same string if the one passed
+// in is already lower-case initial. This function is almost identical to
+// AutoCapsMakeStorageString(), the only real difference is that the latter assumes
+// SetCaseParameters() has already been called with the second param bIsSrc set TRUE; but
+// our function here makes no such assumption
+wxString CKB::TransformToLowerCaseInitial(wxString& str, bool bIsSrcStr)
+{
+	if (str.IsEmpty())
+	{
+		return str; // return the empty string if that's what we passed in
+	}
+	wxString lower;
+	bool bNoError = TRUE;
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	bNoError = pDoc->SetCaseParameters(str, bIsSrcStr);
+	if (!bNoError)
+	{
+		// on error, just return it unchanged, caller will treat it as lower case initial
+		return str;
+	}
+	if (bIsSrcStr)
+	{
+		// str is a source text word or phrase; it may or may not have upper case for its
+		// first character
+		lower = str;
+		if (gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
+		{
+			lower.SetChar(0,gcharSrcLC);
+		}
+	}
+	else
+	{
+        // str is a target text, or gloss text, word or phrase; it may or may not have
+        // upper case for its first character
+		lower = str;
+		if (gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
+		{
+			lower.SetChar(0,gcharNonSrcLC);
+		}
+	}
+	return lower;
+}
+
 // in this function, the keyStr parameter will always be a source string; the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
@@ -396,10 +713,57 @@ enum KB_Entry CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptat
 // changes of same date within StoreText() etc, of data entries in the KB maps.
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
+	// BEW added 13Mar13. The new default is to aggregate upper and lower case entries as
+	// a collection of lowercase-initial ones in the pTU for lowercase lookups, when
+	// autocapitalization is turned ON, prior to doing the lookup. Then data in upper case
+	// entries added to the KB at some earlier time(s) when autocapitalization was turned
+	// off, is not passed over. Instead, it remains unchanged, but lower case copies are
+	// made and stored in the lowercase pTU for any which do not already reside there,
+	// taken from the upper case equivalents when available. If KB sharing is ON, threads
+	// are fired off so that these lower case copies are also posted to the remote KB (we
+	// copy only non-deleted ones to the lower case pTU). If there is no lower case pTU
+	// yet, we create one and add it to the KB and then populate it with the copy or
+	// copies as explained above. To the user, it looks like both upper and lower KB
+	// entries are used equally. But it's not quite so - instead, the upper case ones
+	// remain as is, but the lower case ones have additional members added, with first
+	// character transformed to lower case, if any are available which are not in the
+	// lower case pTU already, and then a "normal" lower case lookup (with subsequent
+	// capitalization if needed in the document) happens. Since the user may turn auto
+	// capitalization off at some time and add many new entries which are capitalized
+	// ones, if he later turns autocaps back on, we can't assume that for any CTargetUnit
+	// instance that there are no new uppercase entries needing to be transformed to
+	// lowercase and inserted in the lowercase pTU - so we must do this check, and any
+	// needed transfers, each time AutoCapsLookup() is called.
+	// The benefit of this, although there is a smally speed penaltly, is that no data is
+	// lost to the lookup due to the user switching to auto-capitalization mode, and
+	// secondly, the consistency check will have more data at hand to work with for those
+	// lower case entries which have received transformed former upper case entries.
+	// Upper case entries which are not looked up as yet, at the time of the consistency
+	// check, will be ignored by the consistency check. This could be avoided by coding a
+	// "Tidy up KB" entry in the File menu, which does all such conversions in one hit.
+	// I've declined to add that so as not to complicate the GUI further with something
+	// few users are likely to understand well enough to have confidence to click it.
+	// Finally, even though data is moved to lowercase lookup pTU instances, we don't
+	// remove the original uppercase entries. Otherwise, if we did and the user turned
+	// autocapitalization back OFF, then all the upper case entries earier there would be
+	// gone, which he'd probably be rather peeved about. (The !gbCallerIsRemoveButton
+	// subtest is explained in another comment about 20 lines below; that explanation
+	// applies here too.)
+	if (gbAutoCaps&& !gbCallerIsRemoveButton && !m_pApp->m_bDoLegacyLowerCaseLookup)
+	{
+		// Check for a CTargetUnit keyed by an upper-case initial source text word or
+		// phrase, and if found, populate the equivalente lower-case keyed CTargetUnit
+		// with any of the adaptations, or glosses, in the former which are not already in
+		// the latter. If there is no lower-case keyed CTargetUnit yet for this keyStr
+		// passed in, then create one to receive those transformed-to-lower-case copies.
+		UpperToLowerAndTransfer(pMap, keyStr);
+	}
+
 	wxString saveKey;
 	gbMatchedKB_UCentry = FALSE; // ensure it has default value
 								 // before every first lookup
 	MapKeyStringToTgtUnit::iterator iter;
+
 
     // the test of gbCallerIsRemoveButton is to prevent a wrong change to lower case if
     // autocapitalization is on and the user clicked in the KB editor, or in Choose
@@ -419,9 +783,10 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 					// did not define any source language case correspondences
 		if (gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
-			// we will have to change the case for the first lookup attempt
-			//saveKey = keyStr; // save for an upper case lookup << BEW removed 29Jul11
-							  // if the first lookup fails
+			// we will have to change the case for the first lookup attempt, which will be 
+			// a lower case lookup; if it fails, what we do next depends on flag values above
+			saveKey = keyStr; // save for an upper case lookup if the first lookup fails
+							  // (BEW reinstated the above line, 13Mar13)
 			// make the first character of keyStr be the appropriate lower case one
 			keyStr.SetChar(0,gcharSrcLC); // gcharSrcLC is set within the
 										  // SetCaseParameters() call
@@ -436,6 +801,11 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			}
             // if we get here, then the match failed...
 
+			// BEW 13Mar13 -- LEAVE THIS COMMENT HERE because it documents what happens
+			// if we simplistically think that we should have an uppercase entry looked
+			// up, if it exists, if the lowercase lookup fails. A better way is provided
+			// with the function call at this function's start.
+			// 
 			// BEW added 29Jul11, if the lowercase lookup failed, return FALSE with pTU
 			// NULL so that caller (eg. StoreText() etc) will create a new CTargetUnit to
 			// carry the converted to initial lowercase translation keyed to the
@@ -461,32 +831,27 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			// uppercase entries laying about unused in the KB. But that's a small price
 			// to pay for management transparency. Besides, the user can see these
 			// uppercase entries and if he wants, he can remove them using the KB editor.
-			pTU = (CTargetUnit*)NULL;
-			return FALSE;
-
-
-            /* BEW removed 29Jul11
-            // in case there is an upper case entry in the knowledge base (from when
-            // autocapitalization was OFF), look it up; if there, then set the
-            // gbMatchedKB_UCentry to TRUE so the caller will know that no restoration of
-            // upper case will be required for the gloss or adaptation that it returns
+			/* deprecated, in favour of having new code for utilizing both uc and lc entries at function start
 			iter = pMap->find(saveKey);
 			if (iter != pMap->end())
 			{
 				pTU = iter->second; // we have a match, pTU now points
 									// to a CTargetUnit instance
 				wxASSERT(pTU != NULL);
-                // found a match, so we can assume its refStrings contain upper case
-                // initial strings already
+				// found a match, so we can assume its refStrings contain upper case
+				// initial strings already
 				gbMatchedKB_UCentry = TRUE;
 				return TRUE;
 			}
 			else
 			{
+				// no upper case entry exists, so just return NULL for pTU, and FALSE
 				pTU = (CTargetUnit*)NULL;
 				return FALSE;
 			}
 			*/
+			pTU = (CTargetUnit*)NULL;
+			return FALSE;
 		}
 		else
 		{
@@ -516,7 +881,7 @@ a:		iter = pMap->find(keyStr);
 }
 
 #if defined(_KBSERVER)
-// Return TRUE if a CTargetUnit instance is found with the passed in keyStr, FALSE is not.
+// Return TRUE if a CTargetUnit instance is found with the passed in keyStr, FALSE if not.
 // In this function, the keyStr parameter will always be a source string; the caller must
 // determine which particular map is to be looked up and provide it's pointer as the first
 // parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
@@ -526,7 +891,7 @@ a:		iter = pMap->find(keyStr);
 // in pTU being returned as NULL; otherwise.
 bool CKB::LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
-	wxString saveKey;
+	//wxString saveKey;
 	MapKeyStringToTgtUnit::iterator iter;
 	iter = pMap->find(keyStr);
 	if (iter != pMap->end())
@@ -541,7 +906,93 @@ bool CKB::LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxS
 	}
 	return TRUE;
 }
-#endif
+
+// Does nothing if the project is not a KB sharing one, or if it is but sharing is
+// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
+// encapsulated, and advisory only, so errors don't stop the app
+void CKB::FireOffCreateEntryThread(wxString srcStr, CRefString* pRefString)
+{
+	if (m_pApp->m_bIsKBServerProject &&
+		m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+	{
+		KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+
+		Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+		// populate it's public members (it only has public ones anyway)
+		pCreateEntryThread->m_pKbSvr = pKbSvr;
+		pCreateEntryThread->m_source = srcStr;
+		pCreateEntryThread->m_translation = pRefString->m_translation;
+		// now create the runnable thread with explicit stack size of 10KB
+		wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
+		if (error != wxTHREAD_NO_ERROR)
+		{
+			wxString msg;
+			msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+				(int)error);
+			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+			//m_pApp->LogUserAction(msg);
+		}
+		else
+		{
+			// no error, so now run the thread (it will destroy itself when done)
+			error = pCreateEntryThread->Run();
+			if (error != wxTHREAD_NO_ERROR)
+			{
+			  wxString msg;
+			  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+				(int)error);
+			  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+			  //m_pApp->LogUserAction(msg);
+			}
+		}
+	}
+}
+
+// Does nothing if the project is not a KB sharing one, or if it is but sharing is
+// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
+// encapsulated, and advisory only, so errors don't stop the app
+void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
+{
+	if (m_pApp->m_bIsKBServerProject &&
+		m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+	{
+		KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+
+		Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
+		// populate it's public members (it only has public ones anyway)
+		pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
+		pPseudoUndeleteThread->m_source = srcStr;
+		pPseudoUndeleteThread->m_translation = pRefString->m_translation;
+		// now create the runnable thread with explicit stack size of 10KB
+		wxThreadError error =  pPseudoUndeleteThread->Create(1024); // was wxThreadError error =  pPseudoUndeleteThread->Create(10240);
+		if (error != wxTHREAD_NO_ERROR)
+		{
+			wxString msg;
+			msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
+				(int)error);
+			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+			//m_pApp->LogUserAction(msg);
+		}
+		else
+		{
+			// no error, so now run the thread (it will destroy itself when done)
+			error = pPseudoUndeleteThread->Run();
+			if (error != wxTHREAD_NO_ERROR)
+			{
+			wxString msg;
+			msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
+			  (int)error);
+			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+			//m_pApp->LogUserAction(msg);
+			}
+		}
+	}
+}
+
+
+
+
+#endif // _KBSERVER
 
 // looks up the knowledge base to find if there is an entry in the map with index
 // nSrcWords-1, for the key keyStr and then searches the list in the CTargetUnit for the
@@ -837,16 +1288,14 @@ wxString CKB::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 		if (gbAutoCaps && gbSourceIsUpperCase)
 		{
 			bNoError = m_pApp->GetDocument()->SetCaseParameters(str,FALSE);
-			if (!bNoError)
-				goto a;
-			if (gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
+			if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
 			{
 				// we need to make it start with lower case for storage in the KB
 				str.SetChar(0,gcharNonSrcLC);
 			}
 		}
 	}
-a:	return str;
+	return str;
 }
 
 // BEW created 11May10, to replace several lines which always call GetRefString() and then
@@ -3312,12 +3761,14 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 14Sep11, updated to reflect the improved code in StoreText()
 // BEW 17Oct11, updated to turn off app flag m_bForceAsk before returning (but always
 // after having used the TRUE value if it's value on entry was TRUE)
+// BEW 13Mar13, updated to support the new boolean (member of app class) m_bDoLegacyLowerCaseLookup
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 	wxString strNot = m_pApp->m_strNotInKB;
 	bool bStoringNotInKB = (strNot == tgtPhrase);
+
 	if (gbAutoCaps)
 	{
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
@@ -3976,6 +4427,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // BEW 17Oct11, updated to turn of the app flag, m_bForceAsk, if it was TRUE on entry
 // before returning, (but always after having used the TRUE value of course, if passed in
 // as TRUE)
+// BEW 13Mar13, updated to support the new boolean (member of app class) m_bDoLegacyLowerCaseLookup
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -6047,4 +6499,6 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	// whm Note: the pProgDlg->Destroy() is done back in the caller function OnFileRestoreKb() on the App
 	errors.Clear(); // clear the array
 }
+
+
 
