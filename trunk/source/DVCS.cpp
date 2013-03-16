@@ -111,7 +111,6 @@ DVCS::~DVCS(void)
 }
 
 
-
 /*	call_git is the function that actually calls git.
  
 	If git isn't found, as well as a nonzero result from wxExecute, we get a message in our errors ArrayString

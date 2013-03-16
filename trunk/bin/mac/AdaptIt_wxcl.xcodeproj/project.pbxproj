@@ -498,8 +498,6 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
-				034B73F716EFAC2D009A6389 /* ToolbarPage.cpp */,
-				034B73F816EFAC2D009A6389 /* ToolbarPage.h */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -774,6 +772,8 @@
 				274A841316E016E400430E08 /* Thread_KbEditorUpdateButton.h */,
 				274A841416E016E400430E08 /* Timer_KbServerChangedSince.cpp */,
 				274A841516E016E400430E08 /* Timer_KbServerChangedSince.h */,
+				034B73F716EFAC2D009A6389 /* ToolbarPage.cpp */,
+				034B73F816EFAC2D009A6389 /* ToolbarPage.h */,
 				03CFAA09161DE73400B82F58 /* StatusBar.cpp */,
 				03CFAA0A161DE73400B82F58 /* StatusBar.h */,
 				273A30841619A853002B8AA0 /* KbServer.h */,
