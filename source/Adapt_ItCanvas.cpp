@@ -1689,8 +1689,22 @@ x:					CCell* pCell = 0;
 						}
 						else
 						{
-							pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
-								// KB access is done at both leaving and landing locations)
+							// BEW changed 14Mar13. If selector = default 0, then
+							// attempting to access the KB when the previous location did
+							// not exist (i.e. sn = -1 for that location) will give a
+							// crash. Therefore test for this and do a different
+							// PlacePhraseBox() call if that is the case
+							if (gnOldSequNum == -1)
+							{
+								pView->PlacePhraseBox(pCell, 2); // selector = 2 (meaning
+									// KB access is not done at the leaving location, but
+									// is done at the landing location
+							}
+							else
+							{
+								pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
+									// KB access is done at both leaving and landing locations)
+							}
 						}
 						ScrollIntoView(pApp->m_nActiveSequNum);
 					}

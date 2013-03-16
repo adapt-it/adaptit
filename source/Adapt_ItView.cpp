@@ -2883,6 +2883,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	{
 		int sequNum = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
 		pApp->m_pActivePile = GetPile(sequNum);
+		pApp->m_nActiveSequNum = sequNum; // BEW added 14Mar13, now the GetPile() call five
+										  // lines down won't give a crash!
 	}
 
 	CSourcePhrase* pOldActiveSrcPhrase = NULL;

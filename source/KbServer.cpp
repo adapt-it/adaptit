@@ -2104,13 +2104,13 @@ void KbServer::UploadToKbServer()
 												 // depending on kbserver type
 			// Build the next array of the JSON object
 			int i = entryCount - 1;
-			(*jsonvalPtr)[i][_T("sourcelanguage")] = srcLangCode;
-			(*jsonvalPtr)[i][_T("targetlanguage")] = translnLangCode;
-			(*jsonvalPtr)[i][_T("source")] = source;
 			(*jsonvalPtr)[i][_T("target")] = transln;
+			(*jsonvalPtr)[i][_T("source")] = source;
 			(*jsonvalPtr)[i][_T("type")] = kbType;
 			(*jsonvalPtr)[i][_T("user")] = username;
 			(*jsonvalPtr)[i][_T("deleted")] = (long)0; 
+			(*jsonvalPtr)[i][_T("sourcelanguage")] = srcLangCode;
+			(*jsonvalPtr)[i][_T("targetlanguage")] = translnLangCode;
 
 			if ((entryCount == numEntriesPerThread) || (entryCount == iTotalEntries))
 			{
@@ -2475,7 +2475,7 @@ int KbServer::BulkUpload(int threadIndex, // use for choosing which buffer to re
 	wxLogDebug(_T("UploadToKBServer() thread %d , start time: %s\n"), 
 		threadIndex, now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
-	aUrl = GetKBServerURL() + slash + container + slash;
+	aUrl = url + slash + container + slash;
 	charUrl = ToUtf8(aUrl);
 
 	// prepare curl
