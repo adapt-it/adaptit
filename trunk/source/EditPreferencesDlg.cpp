@@ -230,7 +230,7 @@ void CEditPreferencesDlg::CreateControls()
 		if (punctMapPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(punctMapPageSize.GetY());
 	}
 
-//	if (TabIsVisibleInCurrentProfile(_("Punctuation")))
+	if (TabIsVisibleInCurrentProfile(_("Toolbar")))
 	{
 		toolbarPage = new CToolbarPagePrefs(pNotebook);
 		wxASSERT(toolbarPage != NULL);

@@ -335,7 +335,6 @@ extern std::string str_CURLheaders;
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
-#include "ToolbarPage.h"
 
 #if defined (_KBSERVER)
 
@@ -1975,6 +1974,16 @@ const wxString defaultProfileItems[] =
 	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Custom\":itemVisibility=\"1\":factory=\"1\":"),
+	_T("/PROFILE:"),
+	_T("/MENU:"),
+	_T("MENU:itemID=\"ID_NONE\":itemType=\"preferencesTab\":itemText=\"Toolbar\":itemDescr=\"Tab in Preferences dialog\":adminCanChange=\"1\":"),
+	_T("PROFILE:userProfile=\"Novice\":itemVisibility=\"0\":factory=\"0\":"),
+	_T("/PROFILE:"),
+	_T("PROFILE:userProfile=\"Experienced\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
 	_T("PROFILE:userProfile=\"Skilled\":itemVisibility=\"1\":factory=\"1\":"),
 	_T("/PROFILE:"),
@@ -6237,6 +6246,19 @@ wxString szUseSuffixExportDateTimeOnFilename = _T("UseSuffixExportDateTimeOnFile
 /// FALSE in the App's m_bUsePrefixExportProjectNameOnFilename member variable.
 wxString szUsePrefixExportProjectNameOnFilename = _T("UsePrefixExportProjectNameOnFilename");
 
+// EDB Toolbar customization
+/// Controls the toolbar button size displayed in the toolbar. This can be small (16x16), medium
+/// (22x22) or large (32x32). Adapt It stores this value as an enum in the App's m_toolbarSize
+/// member variable.
+wxString szToolbarSize = _T("ToolbarSize");
+/// Controls whether or not labels are displayed below each button in the toolbar. This setting
+/// tends to take up a lot of screen real estate, so the default setting is FALSE (0). Adapt It
+/// stores this value as a boolean TRUE or FALSE in the App's m_bShowToolbarText member variable.
+wxString szShowToolbarText = _T("ShowToolbarText");
+/// Controls which buttons are displayed in the toolbar. Adapt It stores this value as an array
+/// of boolean in the App's m_bToolbarButtons member variable.
+wxString szToolbarButtons = _T("ToolbarButtons");
+
 /// The label that identifies the following string encoded number as the application's
 /// "SuppressTargetHighlighting". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this path in the App's
@@ -8811,7 +8833,7 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 	}
 
 	wxAuiToolBar *pAuiToolbar = pMainFrame->m_auiToolbar;
-	bool bJustAddedSeparator = false;	// make sure we don't add 2 separators in a row
+	bool bJustAddedSeparator = true;	// make sure we don't add 2 separators in a row
 	int index = 0;
 	wxBitmap bmp;
 
@@ -8828,55 +8850,64 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
 		{wxID_PRINT, _("Print"), _("Print"), _("Print the active document"), gpApp->wxGetBitmapFromMemory(document_print_png_16), gpApp->wxGetBitmapFromMemory(document_print_png_22), gpApp->wxGetBitmapFromMemory(document_print_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_GUESSER, _("Change Guesser Settings"), _("Change Guesser Settings"), _("Change settings for guessing the translation text"), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_16), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_22), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_32)},
+		{ID_BUTTON_GUESSER, _("Guesser"), _("Change Guesser Settings"), _("Change settings for guessing the translation text"), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_16), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_22), gpApp->wxGetBitmapFromMemory(dialog_guesser_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_CREATE_NOTE, _("Open a Note dialog"), _("Open a Note dialog"), _("Create a note dialog and open it for typing"), gpApp->wxGetBitmapFromMemory(dialog_notes_png_16), gpApp->wxGetBitmapFromMemory(dialog_notes_png_22), gpApp->wxGetBitmapFromMemory(dialog_notes_png_32)},
-		{ID_BUTTON_PREV_NOTE, _("Jump to the previous Note"), _("Jump to the previous Note"), _("Go back and open the previous note"), gpApp->wxGetBitmapFromMemory(note_prev_png_16), gpApp->wxGetBitmapFromMemory(note_prev_png_22), gpApp->wxGetBitmapFromMemory(note_prev_png_32)},
-		{ID_BUTTON_NEXT_NOTE, _("Jump to the next Note"), _("Jump to the next Note"), _("Go forward and open the next note"), gpApp->wxGetBitmapFromMemory(note_next_png_16), gpApp->wxGetBitmapFromMemory(note_next_png_22), gpApp->wxGetBitmapFromMemory(note_next_png_32)},
+		{ID_BUTTON_CREATE_NOTE, _("Notes"), _("Open a Note dialog"), _("Create a note dialog and open it for typing"), gpApp->wxGetBitmapFromMemory(dialog_notes_png_16), gpApp->wxGetBitmapFromMemory(dialog_notes_png_22), gpApp->wxGetBitmapFromMemory(dialog_notes_png_32)},
+		{ID_BUTTON_PREV_NOTE, _("Previous Note"), _("Jump to the previous Note"), _("Go back and open the previous note"), gpApp->wxGetBitmapFromMemory(note_prev_png_16), gpApp->wxGetBitmapFromMemory(note_prev_png_22), gpApp->wxGetBitmapFromMemory(note_prev_png_32)},
+		{ID_BUTTON_NEXT_NOTE, _("Next Note"), _("Jump to the next Note"), _("Go forward and open the next note"), gpApp->wxGetBitmapFromMemory(note_next_png_16), gpApp->wxGetBitmapFromMemory(note_next_png_22), gpApp->wxGetBitmapFromMemory(note_next_png_32)},
 		{ID_BUTTON_DELETE_ALL_NOTES, _("Delete All Notes"), _("Delete All Notes"), _("Delete all the notes currently in the document"), gpApp->wxGetBitmapFromMemory(note_delete_all_png_16), gpApp->wxGetBitmapFromMemory(note_delete_all_png_22), gpApp->wxGetBitmapFromMemory(note_delete_all_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_RESPECTING_BDRY, _("Ignore Boundaries"), _("Ignore Boundaries"), _("Ignore boundaries when making selections"), gpApp->wxGetBitmapFromMemory(bounds_stop_png_16), gpApp->wxGetBitmapFromMemory(bounds_stop_png_22), gpApp->wxGetBitmapFromMemory(bounds_stop_png_32)},
-		{ID_BUTTON_SHOWING_PUNCT, _("Hide Punctuation"), _("Hide Punctuation"), _("Don't show punctuation with the text"), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_16), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_22), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_32)},
+		{ID_BUTTON_RESPECTING_BDRY, _("Boundaries"), _("Ignore Boundaries"), _("Ignore boundaries when making selections"), gpApp->wxGetBitmapFromMemory(bounds_stop_png_16), gpApp->wxGetBitmapFromMemory(bounds_stop_png_22), gpApp->wxGetBitmapFromMemory(bounds_stop_png_32)},
+		{ID_BUTTON_SHOWING_PUNCT, _("Punctuation"), _("Hide Punctuation"), _("Don't show punctuation with the text"), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_16), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_22), gpApp->wxGetBitmapFromMemory(format_show_punctuation_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_TO_END, _("Advance to End"), _("Advance to End"), _("Advance to the end of the data"), gpApp->wxGetBitmapFromMemory(go_last_png_16), gpApp->wxGetBitmapFromMemory(go_last_png_22), gpApp->wxGetBitmapFromMemory(go_last_png_32)},
-		{ID_BUTTON_TO_START, _("Back to Start"), _("Back to Start"), _("Go back to the start of the data"), gpApp->wxGetBitmapFromMemory(go_first_png_16), gpApp->wxGetBitmapFromMemory(go_first_png_22), gpApp->wxGetBitmapFromMemory(go_first_png_32)},
-		{ID_BUTTON_STEP_DOWN, _("Move down one step"), _("Move down one step"), _("Move the bundle down one step towards the bottom of the file"), gpApp->wxGetBitmapFromMemory(go_down_png_16), gpApp->wxGetBitmapFromMemory(go_down_png_22), gpApp->wxGetBitmapFromMemory(go_down_png_32)},
-		{ID_BUTTON_STEP_UP, _("Move up one step"), _("Move up one step"), _("Move bundle back up one step towards the start of the file"), gpApp->wxGetBitmapFromMemory(go_up_png_16), gpApp->wxGetBitmapFromMemory(go_up_png_22), gpApp->wxGetBitmapFromMemory(go_up_png_32)},
-		{ID_BUTTON_BACK, _("Jump back"), _("Jump back"), _("Jump back to the last active location"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), gpApp->wxGetBitmapFromMemory(go_previous_png_22), gpApp->wxGetBitmapFromMemory(go_previous_png_32)},
+		{ID_BUTTON_TO_END, _("End"), _("Advance to End"), _("Advance to the end of the data"), gpApp->wxGetBitmapFromMemory(go_last_png_16), gpApp->wxGetBitmapFromMemory(go_last_png_22), gpApp->wxGetBitmapFromMemory(go_last_png_32)},
+		{ID_BUTTON_TO_START, _("Start"), _("Back to Start"), _("Go back to the start of the data"), gpApp->wxGetBitmapFromMemory(go_first_png_16), gpApp->wxGetBitmapFromMemory(go_first_png_22), gpApp->wxGetBitmapFromMemory(go_first_png_32)},
+		{ID_BUTTON_STEP_DOWN, _("Down"), _("Move down one step"), _("Move the bundle down one step towards the bottom of the file"), gpApp->wxGetBitmapFromMemory(go_down_png_16), gpApp->wxGetBitmapFromMemory(go_down_png_22), gpApp->wxGetBitmapFromMemory(go_down_png_32)},
+		{ID_BUTTON_STEP_UP, _("Up"), _("Move up one step"), _("Move bundle back up one step towards the start of the file"), gpApp->wxGetBitmapFromMemory(go_up_png_16), gpApp->wxGetBitmapFromMemory(go_up_png_22), gpApp->wxGetBitmapFromMemory(go_up_png_32)},
+		{ID_BUTTON_BACK, _("Back"), _("Jump back"), _("Jump back to the last active location"), gpApp->wxGetBitmapFromMemory(go_previous_png_16), gpApp->wxGetBitmapFromMemory(go_previous_png_22), gpApp->wxGetBitmapFromMemory(go_previous_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_MERGE, _("Make a phrase"), _("Make a phrase"), _("Merge selected words into a phrase"), gpApp->wxGetBitmapFromMemory(phrase_new_png_16), gpApp->wxGetBitmapFromMemory(phrase_new_png_22), gpApp->wxGetBitmapFromMemory(phrase_new_png_32)},
-		{ID_BUTTON_RESTORE, _("Unmake A Phrase"), _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(phrase_remove_png_16), gpApp->wxGetBitmapFromMemory(phrase_remove_png_22), gpApp->wxGetBitmapFromMemory(phrase_remove_png_32)},
+		{ID_BUTTON_MERGE, _("New Phrase"), _("Make a phrase"), _("Merge selected words into a phrase"), gpApp->wxGetBitmapFromMemory(phrase_new_png_16), gpApp->wxGetBitmapFromMemory(phrase_new_png_22), gpApp->wxGetBitmapFromMemory(phrase_new_png_32)},
+		{ID_BUTTON_RESTORE, _("Delete Phrase"), _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(phrase_remove_png_16), gpApp->wxGetBitmapFromMemory(phrase_remove_png_22), gpApp->wxGetBitmapFromMemory(phrase_remove_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_RETRANSLATION, _("Do A Retranslation"), _("Do A Retranslation"), _("The selected section is a retranslation, not an adaptation"), gpApp->wxGetBitmapFromMemory(retranslation_new_png_16), gpApp->wxGetBitmapFromMemory(retranslation_new_png_22), gpApp->wxGetBitmapFromMemory(retranslation_new_png_32)},
-		{ID_BUTTON_EDIT_RETRANSLATION, _("Edit A Retranslation"), _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location"), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_16), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_22), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_32)},
-		{ID_REMOVE_RETRANSLATION, _("Remove A Retranslation"), _("Remove A Retranslation"), _("Remove the whole of the retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_22), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_32)},
+		{ID_BUTTON_RETRANSLATION, _("New Retranslation"), _("Do A Retranslation"), _("The selected section is a retranslation, not an adaptation"), gpApp->wxGetBitmapFromMemory(retranslation_new_png_16), gpApp->wxGetBitmapFromMemory(retranslation_new_png_22), gpApp->wxGetBitmapFromMemory(retranslation_new_png_32)},
+		{ID_BUTTON_EDIT_RETRANSLATION, _("Edit Retranslation"), _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location"), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_16), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_22), gpApp->wxGetBitmapFromMemory(retranslation_edit_png_32)},
+		{ID_REMOVE_RETRANSLATION, _("Delete Retranslation"), _("Remove A Retranslation"), _("Remove the whole of the retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_22), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_NULL_SRC, _("Insert A Placeholder"), _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), gpApp->wxGetBitmapFromMemory(placeholder_new_png_22), gpApp->wxGetBitmapFromMemory(placeholder_new_png_32)},
-		{ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove A Placeholder"), _("Remove A Placeholder"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_22), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_32)},
+		{ID_BUTTON_NULL_SRC, _("New Placeholder"), _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), gpApp->wxGetBitmapFromMemory(placeholder_new_png_22), gpApp->wxGetBitmapFromMemory(placeholder_new_png_32)},
+		{ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Delete Placeholder"), _("Remove A Placeholder"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_22), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
-		{ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_22), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_32)},
-		{ID_SHOWING_ALL, _("Show Target Text Only"), _("Show Target Text Only"), _("Show target text only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), gpApp->wxGetBitmapFromMemory(show_source_target_png_22), gpApp->wxGetBitmapFromMemory(show_source_target_png_32)},
-		{ID_BUTTON_EARLIER_TRANSLATION, _("View Translation or Glosses Elsewhere in the Document"), _("View Translation or Glosses Elsewhere in the Document"),
+		{ID_BUTTON_CHOOSE_TRANSLATION, _("Choose Translation"), _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_22), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_32)},
+		{ID_SHOWING_ALL, _("View Mode"), _("Show Target Text Only"), _("Show target text only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), gpApp->wxGetBitmapFromMemory(show_source_target_png_22), gpApp->wxGetBitmapFromMemory(show_source_target_png_32)},
+		{ID_BUTTON_EARLIER_TRANSLATION, _("View Translations"), _("View Translation or Glosses Elsewhere in the Document"),
 			_("View translation or glosses elsewhere in the document; locate them by chapter and verse"), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_16), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_22), gpApp->wxGetBitmapFromMemory(dialog_view_translation_or_glosses_png_32)},
-		{ID_BUTTON_NO_PUNCT_COPY, _("No Punctuation Copy"), _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily"), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_16), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_22), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_32)},
+		{ID_BUTTON_NO_PUNCT_COPY, _("Punctuation Copy"), _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily"), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_16), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_22), gpApp->wxGetBitmapFromMemory(punctuation_copy_png_32)},
 		{wxID_HELP, _("Help"), _("Help"), _("Display Adapt It program help topics"), gpApp->wxGetBitmapFromMemory(help_browser_png_16), gpApp->wxGetBitmapFromMemory(help_browser_png_22), gpApp->wxGetBitmapFromMemory(help_browser_png_32)},
 		{-1, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
 	};
 
-	// TODO: implement small / regular / large button support UI that allows the user
-	// to choose the preferred button size. This could be expanded to include the
-	// button label below the icon on the button if desired.
-	ToolbarButtonSize btnSize;
-	if (gpApp->m_bExecutingOnXO)
+	// set the toolbar size
+	if (m_toolbarSize == btnLarge)
 	{
-		btnSize = btnLarge;
 		pAuiToolbar->SetToolBitmapSize(wxSize(32, 32));
+	}
+	else if (m_toolbarSize == btnMedium)
+	{
+		pAuiToolbar->SetToolBitmapSize(wxSize(22, 22));
 	}
 	else
 	{
-		btnSize = btnSmall;
 		pAuiToolbar->SetToolBitmapSize(wxSize(16, 16));
 	}
+
+	// set the toolbar style
+	long lStyle = pAuiToolbar->GetWindowStyleFlag();
+	// if the style needs changing...
+	if ((m_bShowToolbarIconAndText) != (lStyle & wxAUI_TB_TEXT))
+	{
+		// use bitwise xor to toggle the wxAUI_TB_TEXT style bit
+		lStyle ^= wxAUI_TB_TEXT;
+	}
+	pAuiToolbar->SetWindowStyleFlag(lStyle);
 
 	// loop through the tbInfo array and add the toolbar buttons / separators for the current user profile
 	while (tbInfo[index].toolId != -1)
@@ -8892,11 +8923,15 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 				bJustAddedSeparator = true;
 			}
 		}
+		else if (m_bToolbarButtons[index] == false)
+		{
+			; // don't display this button
+		}
 		else if ((m_nWorkflowProfile == 0) || (ToolBarItemIsVisibleInThisProfile(m_nWorkflowProfile, tbInfo[index].longHelpString)))
 		{
 			// this toolbar item is visible in this profile -- add it to the toolbar
 			// get the right bitmap
-			switch (btnSize)
+			switch (m_toolbarSize)
 			{
 			case btnLarge:
 				bmp = tbInfo[index].bmpLarge;
@@ -15299,7 +15334,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bStatusBarVisible = TRUE; // Status Bar is visible unless changed by value in basic config file
 	m_bToolBarVisible = TRUE; // Tool Bar is visible unless changed by value in basic config file
 	m_bModeBarVisible = TRUE; // Control/Mode Bar is visible unless changed by value in basic config file
-
+	m_bShowToolbarIconAndText = FALSE;
+	std::fill_n(m_bToolbarButtons, sizeof(m_bToolbarButtons), true); // initialize all values to true
+	
 	// default substring delimiters possibly used within LIFT file <text> elements - we
 	// assume only two, comma and semicolon
 	m_LIFT_subfield_delimiters = _T(",;");
@@ -15809,6 +15846,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by
 							  // use of command-line parameter -xo
+	m_toolbarSize = btnSmall; // set initial value of the toolbar size
 
 	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
 	/*
@@ -17262,6 +17300,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		if (m_pParser->Found(_T("xo")))
 		{
 			m_bExecutingOnXO = TRUE;
+			m_toolbarSize = btnLarge;
 		}
 
 		// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
@@ -28688,6 +28727,38 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szUsePrefixExportProjectNameOnFilename << tab << number;
 	pf->AddLine(data);
+
+	// EDB toolbar customization
+	if (m_toolbarSize == btnLarge)
+		number = _T("2");
+	else if (m_toolbarSize == btnMedium)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szToolbarSize << tab << number;
+	pf->AddLine(data);
+
+	if (m_bShowToolbarIconAndText)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szShowToolbarText << tab << number;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szToolbarButtons << tab;
+	// iterate through m_ToolbarButtons and emit each value into data (no space)
+	for (int index = 0; index < 50; index++)
+	{
+		if (m_bToolbarButtons[index])
+			number = _T("1");
+		else
+			number = _T("0");
+		data << number;
+	}
+	pf->AddLine(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -30608,6 +30679,41 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			;	// disregard the sfm esc char read in from config as of version 3
 				// gSFescapechar is always backslash
+		}
+
+		else if (name==szToolbarSize)
+		{
+			num = wxAtoi(strValue);
+			if (num == 2)
+				m_toolbarSize = btnLarge;
+			else if (num == 1)
+				m_toolbarSize = btnMedium;
+			else
+				m_toolbarSize = btnSmall;
+		}
+
+		else if (name==szShowToolbarText)
+		{
+			num = wxAtoi(strValue);
+			if (num == 1)
+				m_bShowToolbarIconAndText = TRUE;
+			else
+				m_bShowToolbarIconAndText = FALSE;
+		}
+
+		else if (name==szToolbarButtons)
+		{
+			for (int index = 0; index < (int)strValue.Len(); index++)
+			{
+				if (wxStrcmp(strValue.GetChar(index), _T("0")) == 0)
+				{
+					m_bToolbarButtons[index] = false;
+				}
+				else // also defaults to true, in case there's a problem
+				{
+					m_bToolbarButtons[index] = true;
+				}
+			}
 		}
 
 		else

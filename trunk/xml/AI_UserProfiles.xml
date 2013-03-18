@@ -1522,6 +1522,33 @@ Description:	This file contains the user profile definitions and
 </MENU>
 <MENU itemID="ID_NONE"
 	itemType="preferencesTab"
+	itemText="Toolbar"
+	itemDescr="Tab in Preferences dialog"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_NONE"
+	itemType="preferencesTab"
 	itemText="Case"
 	itemDescr="Tab in Preferences dialog"
 	adminCanChange="1"
