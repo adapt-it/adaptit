@@ -9250,7 +9250,7 @@ wxSizer *ToolbarPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Toolbar &Buttons:") );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
 
-    wxListCtrl *item8 = new wxListCtrl( parent, ID_LST_TOOLBAR_BUTTONS, wxDefaultPosition, wxSize(275,275), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item8 = new wxListCtrl( parent, ID_LST_TOOLBAR_BUTTONS, wxDefaultPosition, wxSize(275,300), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 10 );
@@ -9313,23 +9313,23 @@ wxSizer *ToolbarPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticLine *item24 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, 
-        _("Click Minimal Icon Set to only select a subset of useful toolbar buttons.\n"
-          "Click Default Settings to reset the toolbar to the factory default settings."),
-        wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("Click Minimal Icon Set to only select a subset of useful toolbar buttons."), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Click Default Settings to reset the toolbar to the factory default settings."), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxButton *item27 = new wxButton( parent, ID_BTN_TOOLBAR_MINIMAL, _("Mi&nimal Icon Set"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item28 = new wxButton( parent, ID_TOOLBAR_RESET, _("De&fault Settings"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item28 = new wxButton( parent, ID_BTN_TOOLBAR_MINIMAL, _("Mi&nimal Icon Set"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item29 = new wxButton( parent, ID_TOOLBAR_RESET, _("De&fault Settings"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {
@@ -9466,6 +9466,45 @@ wxSizer *ChooseTranslationDlgFunc2( wxWindow *parent, bool call_fit, bool set_si
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *DVCSDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
+    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("You can enter a comment in the box above.  When you click OK, this document will be saved and this version of the document will be remembered in the document history.  Later you will be able to look at this version and if you need to, you will be able to return to this version, exactly as it is now."), wxDefaultPosition, wxSize(400,100), wxGROW );
+    item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 10 );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item6 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetDefault();
+    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item7 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( item2, 0, wxALL, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {
