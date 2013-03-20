@@ -30705,7 +30705,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			for (int index = 0; index < (int)strValue.Len(); index++)
 			{
-				if (wxStrcmp(strValue.GetChar(index), _T("0")) == 0)
+				if (wxStrcmp(strValue.Mid(index, 1), _T("0")) == 0)
 				{
 					m_bToolbarButtons[index] = false;
 				}
