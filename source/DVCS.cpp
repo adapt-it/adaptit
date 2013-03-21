@@ -284,12 +284,17 @@ int  DVCS::commit_file (wxString fileName)
 	git_command = _T("commit");
 	git_arguments.Clear();
 	git_options << _T("-m \"");
-	git_options << commitCount;
-
-	if (commitCount == 1)
-		git_options << _T(" commit\"");
-	else
-		git_options << _T(" commits\"");
+    
+    if ( wxIsEmpty(m_commit_comment) )
+    {                   // user didn't enter a comment.  We just put "n commits"
+        git_options << commitCount;
+        if (commitCount == 1)
+            git_options << _T(" commit\"");
+        else
+            git_options << _T(" commits\"");
+    }
+    else                // we use the user's comment
+        git_options << m_commit_comment;
 
 	return call_git (FALSE);
 }
@@ -430,7 +435,12 @@ int  DVCS::DoDVCS ( int action )
 class DVCSDlg : public AIModalDialog
 {
 public:
-    DVCSDlg (wxWindow *parent);
+    DVCSDlg (wxWindow *parent);         // constructor
+    
+    wxSizer*        m_dlgSizer;
+    wxTextCtrl*     m_comment;
+    wxStaticText*   m_blurb;
+
 };
 
 // Implement the DVCSDlg class
@@ -441,22 +451,36 @@ DVCSDlg::DVCSDlg(wxWindow *parent)
                                     wxDefaultSize,
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	wxSizer* pDVCSDlgSizer;
-	pDVCSDlgSizer = DVCSDlgFunc ( this, TRUE, TRUE );
-	// First parameter is the parent which is usually 'this'.
-	// The second and third parameters should both be TRUE to utilize the sizers and create the right
-	// size dialog.
-	// The declaration is: DVCSDlgFunc ( wxWindow *parent, bool call_fit, bool set_sizer ).
+	m_dlgSizer = DVCSDlgFunc ( this, TRUE, TRUE );
+
+    m_comment = (wxTextCtrl*) FindWindowById(IDC_COMMIT_COMMENT);
+    m_blurb = (wxStaticText*) FindWindowById(IDC_COMMIT_BLURB);
 }
 
 
-bool DVCS::AskSaveAndCommit()
+bool DVCS::AskSaveAndCommit (wxString blurb)
 {
+    wxString comment;
+    
     CAdapt_ItApp* pApp = &wxGetApp();
     
     DVCSDlg dlg ( pApp->GetMainFrame() );
 	dlg.Centre();
+    
+// Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave what's already there.
+    if ( !wxIsEmpty(blurb) )
+        dlg.m_blurb->SetLabel (blurb);
 
-    return (dlg.ShowModal() == wxID_OK);    // return TRUE if user clicked OK, otherwise FALSE
+    if (dlg.ShowModal() != wxID_OK)
+        return FALSE;                   // Bail out if user cancelled, and return FALSE to caller
+
+// Now let's get the comment:
+    m_commit_comment = dlg.m_comment->GetValue();
+//    wxMessageBox(comment);
+//    wxMessageBox ( dlg.m_blurb->GetLabel() );
+ //   dlg.m_blurb->SetLabel(_T("hi there one and all!!!"));
+//    wxMessageBox ( dlg.m_blurb->GetLabel() );
+
+    return TRUE;
 }
 
