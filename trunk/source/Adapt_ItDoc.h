@@ -448,7 +448,7 @@ public:
 	void OnTakeOwnership (wxCommandEvent& WXUNUSED(event));
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
     bool Commit_valid();
-	int  DoSaveAndCommit();
+	int  DoSaveAndCommit (wxString blurb);
 	void OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event));
 	void OnAcceptRevision (wxCommandEvent& WXUNUSED(event));
 	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));

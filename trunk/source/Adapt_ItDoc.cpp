@@ -1551,7 +1551,7 @@ bool  CAdapt_ItDoc::Commit_valid()
 
 //  (Feb 2013) - similarly to what Paratext does, if the doc isn't under version control yet, we add it silently.
 
-int CAdapt_ItDoc::DoSaveAndCommit()
+int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 {
 	int				resultCode;
 	wxCommandEvent	dummy;
@@ -1573,7 +1573,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	if (!Commit_valid())
 		return -1;              // bail out if the ownership of the document isn't right
     
-    if (!gpApp->m_pDVCS->AskSaveAndCommit())
+    if ( !gpApp->m_pDVCS->AskSaveAndCommit (blurb) )
         return -1;              // or if user cancelled dialog
 
 
@@ -1629,7 +1629,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 
 void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 {
-	if (DoSaveAndCommit())  return;			// bail out on error
+	if (DoSaveAndCommit(_T("")))  return;			// bail out on error
 }
 
 void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
@@ -1658,7 +1658,9 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 
         if ( IsModified() || !gpApp->m_saved_with_commit )
         {
-            if (DoSaveAndCommit())  return;			// bail out on error - message should be already displayed
+            if (DoSaveAndCommit(_T("Before we can go back to previous revisions we must save the document as it is now.  You can enter a comment in the \
+box above to identify this version of the document, then click OK to proceed.")))
+                return;			// bail out on error or if user cancelled - message should be already displayed
         }
 
 		if ( gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS) )		// reads the log, and hangs on to it

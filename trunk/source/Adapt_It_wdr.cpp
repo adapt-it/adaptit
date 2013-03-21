@@ -9485,10 +9485,10 @@ wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, IDC_COMMIT_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("You can enter a comment in the box above.  When you click OK, this document will be saved and this version of the document will be remembered in the document history.  Later you will be able to look at this version and if you need to, you will be able to return to this version, exactly as it is now."), wxDefaultPosition, wxSize(400,100), wxGROW );
+    wxStaticText *item4 = new wxStaticText( parent, IDC_COMMIT_BLURB, _("You can enter a comment in the box above to identify this version of the document.  When you click OK, the document will be saved and remembered in the document history.  Later you will be able to look at this version and return to it if you need to, exactly as it is now."), wxDefaultPosition, wxSize(400,100), wxGROW );
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 10 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
