@@ -2212,6 +2212,7 @@ public:
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
 										// m_owner and m_AIuser must match before a commit is allowed,
 										// unless either is "no owner".
+    bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
 

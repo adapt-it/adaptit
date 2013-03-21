@@ -971,6 +971,7 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 		gpApp->m_commitCount = -1;			//  means not under version control (yet)
 		gpApp->m_revisionDate = wxInvalidDateTime;
 		gpApp->m_nActiveSequNum = 0;		// sensible default if we don't get a "real" value
+        gpApp->m_saved_with_commit = FALSE; // not saved/committed yet
 
 		wxStructStat status;
 		if (wxStat(path, &status))
