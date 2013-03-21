@@ -1560,7 +1560,6 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	wxString		origOwner = gpApp->m_owner;
     int             origCommitCnt = gpApp->m_commitCount;
 
-
 // Do we need a check here that the file is really under version control??  More likely
 // If a trial is under way, we need a decision from the user first as to whether to accept the
 // trial or go back.
@@ -1572,7 +1571,11 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	}
 
 	if (!Commit_valid())
-		return -1;          // bail out if the ownership of the document isn't right
+		return -1;              // bail out if the ownership of the document isn't right
+    
+    if (!gpApp->m_pDVCS->AskSaveAndCommit())
+        return -1;              // or if user cancelled dialog
+
 
 // Now we're using git, where adding the file does double duty to put it under version control
 //  and add it to the staging area for commit.  So we no longer bother having "add" as a separate
@@ -1604,7 +1607,7 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
 
-	resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
+	resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE);
 
 	if (resultCode)
 	{
@@ -1619,7 +1622,9 @@ int CAdapt_ItDoc::DoSaveAndCommit()
 		return -2;
 	}
 
-	return 0;			// all OK
+// all OK
+    gpApp->m_saved_with_commit = TRUE;
+	return 0;
 }
 
 void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
@@ -1647,15 +1652,20 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 
 	if (trialRevNum < 0)
 	{			// We don't already have a previous revision under trial.  We need to save and commit the current
-				// revision, so we can come back to it if necessary.
+				// revision, so we can come back to it if necessary.  But we don't need to do this if the doc
+                //  has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
+                //  we set m_saved_with_commit false for this test, since calling IsModified() will return false.
 
-		if (DoSaveAndCommit())  return;			// bail out on error - message should be already displayed
+        if ( IsModified() || !gpApp->m_saved_with_commit )
+        {
+            if (DoSaveAndCommit())  return;			// bail out on error - message should be already displayed
+        }
 
-		if ( gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0) )		// reads the log, and hangs on to it
+		if ( gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS) )		// reads the log, and hangs on to it
             return;                             // bail out on error
 	}
 
-	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_PREV_VERSION, 0);			// get the next previous version
+	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_PREV_VERSION);			// get the next previous version
 
 	if (returnCode == -2)  return;				// bail out on error - message should already be displayed
 
@@ -1689,6 +1699,7 @@ void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
 	gpApp->m_trialRevNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
+    gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
 }
 
 void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
@@ -1701,12 +1712,13 @@ void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_LATEST_VERSION, 0);
+	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_LATEST_VERSION);
 
 	if (returnCode)  return;			// bail out on error - message should have been displayed
 
 	gpApp->m_trialRevNum = -1;
 	DocChangedExternally();
+    gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
 }
 
 
@@ -2689,6 +2701,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	}
 	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was
 												   // used for this save operation
+    gpApp->m_saved_with_commit = FALSE;            // mrh - this was a plain save, no commit
 
 	// Do the document backup if required (This call supports a docVersion 4 choice, and
 	// also a request to rename the document; by internally accessing the private members

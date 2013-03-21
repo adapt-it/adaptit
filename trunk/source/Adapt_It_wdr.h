@@ -942,7 +942,7 @@ const int ID_BUTTON_CANCEL_ASK = 715;
 const int ID_BUTTON_CANCEL_AND_SELECT = 716;
 wxSizer *ChooseTranslationDlgFunc2( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
-wxSizer *DVCSDialogFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
+wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 // Declare menubar functions
 

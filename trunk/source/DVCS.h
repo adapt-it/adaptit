@@ -30,7 +30,9 @@ public:
 	DVCS (void);		// constructor
 	~DVCS (void);		// destructor
 
-	int DoDVCS ( int action, int parm );		// all DVCS operations are done via this function
+	int DoDVCS ( int action );		// all actual DVCS operations are done via this function
+
+    bool AskSaveAndCommit ();       // dialog asking user if he/she wants to go ahead
 
 private:		// instance variables
 	CAdapt_ItApp*	m_pApp;
@@ -50,6 +52,11 @@ protected:		// internal functions
 	int  log_project();
 
 };
+
+
+//  Function to call the Save and Commit dialog:
+
+bool AskSaveAndCommit();
 
 
 #endif /* DVCS_h */

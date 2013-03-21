@@ -79,8 +79,8 @@
 	This is conceptually very simple, so originally I just wrote procedural code.  But now that we want everything to be as OOP as
 	possible, we have a DVCS class which just has one object, gpApp->m_pDVCS, instantiated in the application's OnInit() function.
 
-	All DVCS calls from the application are made via the function gpApp->m_pDVCS->DoDVCS().  This function takes two int parms,
-	action and parm.  action is a code telling us what to do, and parm is used for various things depending on the action.
+	All DVCS calls from the application are made via the function gpApp->m_pDVCS->DoDVCS().  This function takes an int parms,
+	action, which is a code telling us what to do.
 
 	Now the git command line has the form
 
@@ -370,7 +370,7 @@ int  DVCS::log_project()
 //  appropriate function to do the work.  We return as a result whatever that function returns.
 //  If the cd fails, this means that AdaptIt doesn't have a current project yet.  We complain and bail out.
 
-int  DVCS::DoDVCS ( int action, int parm )
+int  DVCS::DoDVCS ( int action )
 {
 	wxString		str;
 	int				result = 0;
@@ -416,5 +416,47 @@ int  DVCS::DoDVCS ( int action, int parm )
 
 	wxSetWorkingDirectory (saveWorkDir);		// restore working directory back to what it was
 	return result;
+}
+
+
+//  =================================================================================================
+//
+//                              Save and commit dialog
+//
+//  =================================================================================================
+
+// Declare the DVCSDlg class
+
+class DVCSDlg : public AIModalDialog
+{
+public:
+    DVCSDlg (wxWindow *parent);
+};
+
+// Implement the DVCSDlg class
+
+DVCSDlg::DVCSDlg(wxWindow *parent)
+                : AIModalDialog (   parent, -1, wxString(_T("Save in History")),
+                                    wxDefaultPosition,
+                                    wxDefaultSize,
+                                    wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+	wxSizer* pDVCSDlgSizer;
+	pDVCSDlgSizer = DVCSDlgFunc ( this, TRUE, TRUE );
+	// First parameter is the parent which is usually 'this'.
+	// The second and third parameters should both be TRUE to utilize the sizers and create the right
+	// size dialog.
+	// The declaration is: DVCSDlgFunc ( wxWindow *parent, bool call_fit, bool set_sizer ).
+}
+
+
+bool DVCS::AskSaveAndCommit()
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+    
+    DVCSDlg dlg ( pApp->GetMainFrame() );
+	dlg.Centre();
+
+    return (dlg.ShowModal() == wxID_OK);    // return TRUE if user clicked OK, otherwise FALSE
 }
 
