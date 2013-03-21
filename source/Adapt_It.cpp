@@ -24287,7 +24287,17 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		if (bOK)
 		{
 			m_bKBReady = TRUE;
-			LoadGuesser(m_pKB); // whm added 29Oct10
+			// BEW 19Feb13, added a wrapping test, because if LoadGuesser() fails, the
+			// wizard crashes before the project can be entered and so even manually
+			// setting the UseAdaptationsGuesser flag in the project config file to 0
+			// (off) doesn't help, because the crash happens first. The user needs a
+			// way to turn off the LoadGuesser() when it fails, so wrapping it with the
+			// appropriate flag accomplishes that - he just now can manually change the
+			// project config file
+			if (m_bUseAdaptationsGuesser)
+			{
+				LoadGuesser(m_pKB); // whm added 29Oct10
+			}
 		}
 		else
 		{
@@ -24359,7 +24369,17 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		if (bOK)
 		{
 			m_bGlossingKBReady = TRUE;
-			LoadGuesser(m_pGlossingKB); // whm added 29Oct10
+			// BEW 19Feb13, added a wrapping test, because if LoadGuesser() fails, the
+			// wizard crashes before the project can be entered and so even manually
+			// setting the UseAdaptationsGuesser flag in the project config file to 0
+			// (off) doesn't help, because the crash happens first. The user needs a
+			// way to turn off the LoadGuesser() when it fails, so wrapping it with the
+			// appropriate flag accomplishes that - he just now can manually change the
+			// project config file
+			if (m_bUseAdaptationsGuesser)
+			{
+				LoadGuesser(m_pGlossingKB); // whm added 29Oct10
+			}
 		}
 		else
 		{
@@ -24416,6 +24436,78 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 	return TRUE;
 }
 
+// Called only in LoadGuesser()
+void CAdapt_ItApp::RemoveEmptiesFromMaps(CKB* pKB)
+{
+	wxArrayString emptiesArr[MAX_WORDS]; // MAX_WORDS is 10, set in AdaptitConstants.h
+	// Scan all the maps, and for each collect the source text keys for the associated
+	// CTargetUnit pointers which have an empty m_pTranslations list (that list stores one
+	// or more CRefString pointers - it is not an error for the only one to be a
+	// pseudo-deleted entry; the pTU instances we want to remove are those for which
+	// m_pTranslations is empty). The emptiesArr[i] collects the keys for map[i] which
+	// have empty m_pTranslations. If we scan the map, we can use erase() only once,
+	// and thereafter the iterator is invalidated. So we scan and store the keys, then we
+	// can do as many lookups as are needed in order to remove the empties safely.
+	wxString aKey;
+	MapKeyStringToTgtUnit::iterator iter;
+	CTargetUnit* pTU = NULL;
+	size_t i;
+	size_t numWords;
+	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
+	{
+		i = numWords - 1;
+		if (pKB->m_pMap[i]->size() == 0)
+			continue;
+		else
+		{
+			iter = pKB->m_pMap[i]->begin();
+			do
+			{
+				aKey = iter->first;
+				pTU = (CTargetUnit*)iter->second;
+				wxASSERT(pTU != NULL);
+				// Store any keys for which the associated CRefString's list is empty
+				if (pTU->m_pTranslations->IsEmpty())
+				{
+					emptiesArr[i].Add(aKey);
+				}
+				++iter;
+			} while (iter != pKB->m_pMap[i]->end());
+
+			// Now remove the bogus ones from map[i]
+			if (!emptiesArr[i].IsEmpty())
+			{
+				size_t j;
+				for(j = 0; j < emptiesArr[i].GetCount(); j++)
+				{
+//#if defined(_DEBUG)
+//					wxLogDebug(_T("RemoveEmptiesFromMaps() Will remove pTU for the key:  %s  from map with index %d  Map size, BEFORE: %d"),
+//						emptiesArr[i].Item(j).c_str(), i, pKB->m_pMap[i]->size());
+//#endif
+					// Remove it from the map
+					MapKeyStringToTgtUnit::iterator anIter;
+					aKey = emptiesArr[i].Item(j);
+					anIter = pKB->m_pMap[i]->find(aKey);
+					if (anIter != pKB->m_pMap[i]->end())
+					{
+						pTU = (CTargetUnit*)anIter->second;
+						size_t aSize = pKB->m_pMap[i]->erase(aKey);
+						if (aSize == 1 && pTU != NULL)
+						{
+							delete pTU;
+						}
+					}
+				}
+//#if defined(_DEBUG)
+//					wxLogDebug(_T("RemoveEmptiesFromMaps() Map size, AFTER: %d"), pKB->m_pMap[i]->size());
+//#endif
+			}
+		} // end of block for scanning non-empty map
+	} // end of numWords outer loop
+}
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      -> m_pKB the knowledge base from which correspondences are taken for this Guesser
@@ -24425,9 +24517,20 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 /// the View's OnCreate(), and CProjectPage::OnWizardPageChanging() when moving forward.
 /// Initializes the appropriate Guesser, then reads the appropriate KB to populate the
 /// correspondence list of the guesser object.
+/// BEW 19Mar13 refactored to improve the inventory of correspondences, and to remove a
+/// bug (i.e. use of wxHashMap .erase() member within a loop - it invalidates the loop
+/// index, which caused a crash if the loop iteration was continued. Added function
+/// RemoveEmptiesFromMaps(CKB* pKB) to preprocess removal of any pTU's with an empty list.
+/// The inventory was improved by searching for the first which is not pseudo-deleled in
+/// the pTU's list, if the first CRefString was a pseudo-deleted one.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 {
+	// BEW added 19Mar13, to remove empty CTargetUnit instances from the maps before
+	// populating the Guesser is attempted (can't do that in a scan of a map, as just a
+	// single deletion invalidates the loop's iterator)
+	RemoveEmptiesFromMaps(m_pKB);
+
 	// whm added 29Oct10 for Guesser support
 	if (m_pKB->IsThisAGlossingKB())
 		m_pGlossesGuesser->Init(m_nGuessingLevel);
@@ -24443,8 +24546,10 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	CRefString* pRefStr;
 	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
 	{
-		if (m_pKB->IsThisAGlossingKB() && numWords > 1)
-			continue; // when glossing we want to consider only the first map, the others
+		// BEW 19Mar13, next two lines are deprecated. Glossing KB now potentially
+		// uses all 10 maps.
+		//if (m_pKB->IsThisAGlossingKB() && numWords > 1)
+		//	continue; // when glossing we want to consider only the first map, the others
 					  // are all empty
 		if (m_pKB->m_pMap[numWords-1]->size() == 0)
 			continue;
@@ -24454,6 +24559,14 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 			do
 			{
 				counter++;
+				/*
+#if defined(_DEBUG)
+				if (counter >= 12962)
+				{
+					int breakpoint_here = 1;
+				}
+#endif
+				*/
 				key = iter->first;
 				pTU = (CTargetUnit*)iter->second;
 				wxASSERT(pTU != NULL);
@@ -24461,33 +24574,45 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 
 				// get the reference strings
 				TranslationsList::Node* posRef = 0;
-
-				// if the data somehow got corrupted by a CTargetUnit being retained in the
-				// list but which has an empty list of reference strings, this illegal
-				// instance would cause a crash - so test for it and if such occurs, then
-				// remove it from the list and then just continue looping
 				if (pTU->m_pTranslations->IsEmpty())
 				{
-					m_pKB->m_pMap[numWords-1]->erase(baseKey); // the map now lacks this
-														// invalid association
-					if (pTU != NULL) // whm 11Jun12 added NULL test
-						delete pTU; // its memory chunk is freed (don't leak memory)
+					// Skip it (this block should never be entered now, as of 19Mar13)
+//#if defined(_DEBUG)
+//					wxLogDebug(_T("LoadGuesser() EMPTY LIST, map index %d ,  Map size:: %d"), numWords-1, m_pKB->m_pMap[numWords-1]->size());
+//#endif
+					++iter;
 					continue;
 				}
 				else
 				{
 					posRef = pTU->m_pTranslations->GetFirst();
+					wxASSERT(posRef != 0);
 				}
-				wxASSERT(posRef != 0);
 
-				// if control gets here, there will be at least one non-null posRef
+                // If control gets here, there will be at least one non-null posRef 
+                // 
+                // BEW added to comment on 19Mar13: But if the user has been doing removals
+                // of KB entries (e.g. by editing a KB entry's source text and typing the
+                // Update button), the pseudo-deleted CRefString typically is stored
+                // preceding it's replacement. So just taking the first, whatever it is,
+                // may waste a lot of good chances for useful correspondences to be added
+                // to the guesser. So I'll code a function that, if the first is a deleted
+                // entry, then it searches further in the list of CRefString instances for
+                // a non-deleted one, and uses the first such that it finds.
 				pRefStr = (CRefString*)posRef->GetData();
 				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
 				wxASSERT(pRefStr != NULL);
 				gloss = pRefStr->m_translation;
 				baseGloss = gloss;
+//#if defined(_DEBUG)
+//					wxLogDebug(_T("LoadGuesser() iteration %d [ %s ]<->[ %s ]  map index: %d  numCorrespondencesLoaded = %d  deleted? %s"),
+//						counter, key.c_str(), gloss.c_str(), numWords - 1, numCorrespondencesLoaded,
+//						pRefStr->GetDeletedFlag() ? _T("YES") : _T("NO"));
+//#endif
 				// Don't add correspondences for deleted or "<Not In KB>"
-				if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+				bool bNotNotFound = baseGloss.Find(strNotInKB) == wxNOT_FOUND;
+				bool bSkipIt_ItsEmpty = FALSE;
+				if (!pRefStr->GetDeletedFlag() && bNotNotFound)
 				{
 					// Add correspondence to the Guesser
 					if (m_pKB->IsThisAGlossingKB())
@@ -24495,6 +24620,40 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					else
 						m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
 					numCorrespondencesLoaded++;
+				}
+				else if (bNotNotFound)
+				{
+					// It was a pseudo-deleted first CRefString instance, so try find
+					// first which isn't pseudo-deleted, and use that
+					gloss.Empty();
+					bSkipIt_ItsEmpty = TRUE; // initialize
+					while (posRef != NULL)
+					{
+						// find the first non-deleted one, remember, it may be an empty
+						// string, which is a perfectly valid adaptation or gloss
+						pRefStr = (CRefString*)posRef->GetData();
+						posRef = posRef->GetNext(); // prepare for possibility of another CRefString
+						wxASSERT(pRefStr != NULL);
+						if (pRefStr->GetDeletedFlag())
+						{
+							continue;
+						}
+						else
+						{
+							gloss = pRefStr->m_translation;
+							bSkipIt_ItsEmpty = FALSE; // got one which is not pseudo-deleted
+							break;
+						}
+					} // end of loop: while (posRef != NULL)
+					if (!bSkipIt_ItsEmpty)
+					{
+						// Add correspondence to the Guesser
+						if (m_pKB->IsThisAGlossingKB())
+							m_pGlossesGuesser->AddCorrespondence(key,gloss);
+						else
+							m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+						numCorrespondencesLoaded++;
+					}
 				}
 				// According to Alan Buseman, he says, "I recommend for the guesser that you only
 				// give it one equivalent for each word, preferably the most frequent. Giving the

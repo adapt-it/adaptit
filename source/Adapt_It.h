@@ -182,8 +182,8 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 #define VERSION_MINOR_PART 4
 #define VERSION_BUILD_PART 2
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 6
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 19
 #define VERSION_DATE_MONTH 3
 #define VERSION_DATE_YEAR 2013
 const wxString appVerStr(_T("6.4.2"));
@@ -3313,6 +3313,7 @@ public:
 	int m_nCorrespondencesLoadedInGlossingGuesser;
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)
+	void	RemoveEmptiesFromMaps(CKB* pKB);
 
 	// BEW added 20 Apr 05 in support of toggling suppression/enabling of copying of
 	// source text punctuation on a CSourcePhrase instance at the active location down

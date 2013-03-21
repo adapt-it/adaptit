@@ -1844,6 +1844,14 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 									// the remote DB as yet, so upload (beware, check
 									// for the empty string designator and restore the
 									// empty string if found)
+#if defined(_DEBUG)
+									// currently, "mi" <-> "I" is treated as an error as the
+									// php does a caseless compare, and it conflicts with
+									// exiting "mi" <-> "i", so exclude it; I've asked
+									// Jonathan to fix this in the PHP code at kbserver
+									if (srcPhrase == _T("mi") && tgtPhrase == _T("I"))
+										continue;
+#endif
 									if (tgtPhrase == empty) // empty is _T("<empty>")
 									{
 										tgtPhrase.Empty();
