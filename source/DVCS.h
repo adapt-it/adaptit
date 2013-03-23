@@ -30,9 +30,9 @@ public:
 	DVCS (void);		// constructor
 	~DVCS (void);		// destructor
     
-	int DoDVCS ( int action );		// all actual DVCS operations are done via this function
+	int DoDVCS ( int action, int parm );                // all actual DVCS operations are done via this function
 
-    bool AskSaveAndCommit (wxString blurb);       // dialog asking user if he/she wants to go ahead
+    bool AskSaveAndCommit (wxString blurb);         // dialog asking user if he/she wants to go ahead
 
 private:		// instance variables
 	CAdapt_ItApp*	m_pApp;
@@ -40,7 +40,7 @@ private:		// instance variables
 	wxString		git_command, git_options, git_arguments;
 	wxArrayString	git_output;
 	int				git_count, git_lineNumber;
-    wxString        m_commit_comment;       // public because we set it from outside the class
+    wxString        m_commit_comment;
 
 protected:		// internal functions
     
@@ -49,7 +49,7 @@ protected:		// internal functions
     int  add_file ( wxString fileName );
 	int  commit_file ( wxString fileName );
     int  setup_versions ( wxString fileName );
-    int  get_version ( bool latest, wxString fileName );
+    int  get_version ( int version_num, wxString fileName );
 	int  log_file ( wxString fileName );
 	int  log_project();
 };

@@ -301,14 +301,13 @@ int  DVCS::commit_file (wxString fileName)
 
 
 // Changing to git, we've completely revamped this bit.  To get earlier versions, the first thing is to call
-// setup_versions().  This reads the log and initializes things.  Then we call get_prev_version() to keep going
-// back.  Both these functions return something negative if there's no more.  If we want to return to the latest
-// version, we call get_latest_version().
+// setup_versions().  This reads the log and initializes things, and returns the number of versions, or
+// a negative number on error.
+// Then we call get_version() to get a specific version.
 
 int  DVCS::setup_versions ( wxString fileName )
 {
 	wxString	nextLine, str;
-    //	int			test;
     
     git_output.Clear();
     git_command = _T("log");
@@ -318,13 +317,13 @@ int  DVCS::setup_versions ( wxString fileName )
     if (call_git (FALSE))
         return -2;				// maybe git's not installed!
     
-    git_lineNumber = 0;
+//    git_lineNumber = 0;
     git_count = git_output.GetCount();
 
-    return 0;
+    return git_count;
 }
 
-int  DVCS::get_version ( bool latest, wxString fileName )
+int  DVCS::get_version ( int version_num, wxString fileName )
 {
 	wxString	nextLine, str;
     
@@ -332,16 +331,11 @@ int  DVCS::get_version ( bool latest, wxString fileName )
     // <40 hex digits> <comment for that commit>
     // We get the next line as given by git_lineNumber.  If there aren't any
     // more lines, we return -1.  Otherwise we return the result of the call_git() call.
-
-    if (latest)
-        git_lineNumber = 0;
-    else
-        git_lineNumber += 1;
     
-    if ( git_lineNumber >= git_count )
-        return -1;
+    if ( version_num >= git_count || version_num < 0)
+        return -1;                  // shouldn't happen, but return -1 on out of bounds
 
-    nextLine = git_output.Item(git_lineNumber);
+    nextLine = git_output.Item (version_num);
     str = nextLine.BeforeFirst(_T(' '));
 
     if ( wxIsEmpty(str) )       // shouldn't really happen
@@ -375,7 +369,7 @@ int  DVCS::log_project()
 //  appropriate function to do the work.  We return as a result whatever that function returns.
 //  If the cd fails, this means that AdaptIt doesn't have a current project yet.  We complain and bail out.
 
-int  DVCS::DoDVCS ( int action )
+int  DVCS::DoDVCS ( int action, int parm )
 {
 	wxString		str;
 	int				result = 0;
@@ -408,8 +402,8 @@ int  DVCS::DoDVCS ( int action )
 		case DVCS_COMMIT_FILE:		result = commit_file (m_pApp->m_curOutputFilename);             break;
 
         case DVCS_SETUP_VERSIONS:   result = setup_versions (m_pApp->m_curOutputFilename);          break;
-        case DVCS_PREV_VERSION:     result = get_version (FALSE, m_pApp->m_curOutputFilename);		break;
-        case DVCS_LATEST_VERSION:   result = get_version (TRUE, m_pApp->m_curOutputFilename);		break;
+        case DVCS_GET_VERSION:      result = get_version (parm, m_pApp->m_curOutputFilename);		break;
+//      case DVCS_LATEST_VERSION:   result = get_version (TRUE, m_pApp->m_curOutputFilename);		break;
  
 		case DVCS_LOG_FILE:			result = log_file (m_pApp->m_curOutputFilename);	break;
 		case DVCS_LOG_PROJECT:		result = log_project();								break;
@@ -430,7 +424,11 @@ int  DVCS::DoDVCS ( int action )
 //
 //  =================================================================================================
 
-// Declare the DVCSDlg class
+//  This dialog could be moved to separate .h and .cpp files, but it's short and simple, so I
+//  haven't bothered yet.
+
+
+// Declaration of the DVCSDlg class
 
 class DVCSDlg : public AIModalDialog
 {
@@ -443,7 +441,7 @@ public:
 
 };
 
-// Implement the DVCSDlg class
+// Implementation of the DVCSDlg class
 
 DVCSDlg::DVCSDlg(wxWindow *parent)
                 : AIModalDialog (   parent, -1, wxString(_T("Save in History")),
@@ -460,27 +458,24 @@ DVCSDlg::DVCSDlg(wxWindow *parent)
 
 bool DVCS::AskSaveAndCommit (wxString blurb)
 {
-    wxString comment;
-    
-    CAdapt_ItApp* pApp = &wxGetApp();
-    
-    DVCSDlg dlg ( pApp->GetMainFrame() );
+    wxString        comment;
+    CAdapt_ItApp*   pApp = &wxGetApp();
+    DVCSDlg         dlg ( pApp->GetMainFrame() );
+
+    pApp->ReverseOkCancelButtonsForMac(&dlg);           // doing the right thing here
 	dlg.Centre();
     
-// Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave what's already there.
+// Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave the
+//  default text which is already there.
+
     if ( !wxIsEmpty(blurb) )
         dlg.m_blurb->SetLabel (blurb);
 
     if (dlg.ShowModal() != wxID_OK)
         return FALSE;                   // Bail out if user cancelled, and return FALSE to caller
 
-// Now let's get the comment:
+// Now we get the comment, and save in our instance variable:
     m_commit_comment = dlg.m_comment->GetValue();
-//    wxMessageBox(comment);
-//    wxMessageBox ( dlg.m_blurb->GetLabel() );
- //   dlg.m_blurb->SetLabel(_T("hi there one and all!!!"));
-//    wxMessageBox ( dlg.m_blurb->GetLabel() );
-
     return TRUE;
 }
 

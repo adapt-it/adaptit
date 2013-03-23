@@ -2506,7 +2506,7 @@ void CMainFrame::OnUpdateDVCS_Version (wxUpdateUIEvent& event)
 
 void CMainFrame::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_VERSION);
+	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_VERSION, 0);
 	lastResultCode = resultCode;		// avoid compiler warning about unused variable
 }
 
@@ -2537,13 +2537,13 @@ void CMainFrame::OnDVCS_Remove_Project (wxCommandEvent& WXUNUSED(event))
 
 void CMainFrame::OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_LOG_FILE);
+	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_LOG_FILE, 0);
 	lastResultCode = resultCode;
 }
 
 void CMainFrame::OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event))
 {
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT);
+	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT, 0);
 	lastResultCode = resultCode;
 }
 

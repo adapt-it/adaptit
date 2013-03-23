@@ -1044,12 +1044,11 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 				return TRUE;	// return TRUE to app member m_bReadOnlyAccess
 			}
 			
-			if (m_pApp->m_trialRevNum >= 0) 
+			if (m_pApp->m_trialRevNum > 0) 
 			{
 #ifdef _DEBUG_ROP
 				wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but earlier version than latest, so returning TRUE"));
 #endif
-// maybe we don't need this:			wxMessageBox (_("This is an earlier version of this document so you have READ-ONLY access."), _("Earlier version"));
 				return TRUE;
 			}
 

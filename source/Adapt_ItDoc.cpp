@@ -1550,6 +1550,8 @@ bool  CAdapt_ItDoc::Commit_valid()
 
 
 //  (Feb 2013) - similarly to what Paratext does, if the doc isn't under version control yet, we add it silently.
+//  (Mar 2013) - added a parameter "blurb" which gives the informative text that appears in the "save and commit"
+//      dialog.  If left empty, the default text appears.mac
 
 int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 {
@@ -1607,7 +1609,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
 
-	resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE);
+	resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
 
 	if (resultCode)
 	{
@@ -1663,20 +1665,27 @@ box above to identify this version of the document, then click OK to proceed."))
                 return;			// bail out on error or if user cancelled - message should be already displayed
         }
 
-		if ( gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS) )		// reads the log, and hangs on to it
+		returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
+        if (returnCode < 0)
             return;                             // bail out on error
+
+        gpApp->m_RevCount = returnCode;         // success - now we have the current total number of revisions
+        trialRevNum = 0;                        // and we're at the latest
 	}
 
-	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_PREV_VERSION);			// get the next previous version
+    if ( (trialRevNum+1) >= gpApp->m_RevCount )
+    {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
+        wxMessageBox (_T("We're already back at the earliest version saved!") );
+		return;
+    }
+    
+ 	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, trialRevNum + 1);			// get the next previous version
 
-	if (returnCode == -2)  return;				// bail out on error - message should already be displayed
+	if (returnCode == -2)  return;			// bail out on error - message should already be displayed
 
 	if (returnCode == -1)
-	{                                       // no more in the log - bail out
-        if (trialRevNum >= 0)
-            gpApp->m_trialRevNum = 0;       // if a trial was actually under way, indicate we're back at the start,
-                                            // otherwise leave it as no trial
-		wxMessageBox (_T("We're already back at the earliest version saved!") );
+	{                                       // BUG!!!
+		wxMessageBox (_T("We shouldn't have got here!!!!") );
 		return;
 	}
 
@@ -1685,7 +1694,7 @@ box above to identify this version of the document, then click OK to proceed."))
 			// ReadOnlyProtection sees that m_trialRevNum is non-negative.
             // If an error has come up, we leave the trial status alone.
 
-		gpApp->m_trialRevNum = 1;           // 1 = trial under way
+		gpApp->m_trialRevNum = trialRevNum + 1;           // successfully got to previous revision
 		DocChangedExternally();
 	}
 }
@@ -1714,7 +1723,7 @@ void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_LATEST_VERSION);
+	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, 0);      // version zero is latest
 
 	if (returnCode)  return;			// bail out on error - message should have been displayed
 
