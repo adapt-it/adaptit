@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			DVCS.cpp
+/// \file			DVCS.h
 /// \author			Mike Hore
 /// \date_created	22 December 2011
 /// \rcs_id $Id$
