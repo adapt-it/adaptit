@@ -340,6 +340,8 @@
 		<Unit filename="../../source/CreateNewAIProjForCollab.h" />
 		<Unit filename="../../source/DVCS.cpp" />
 		<Unit filename="../../source/DVCS.h" />
+		<Unit filename="../../source/DVCSNavDlg.cpp" />
+		<Unit filename="../../source/DVCSNavDlg.h" />
 		<Unit filename="../../source/DocPage.cpp" />
 		<Unit filename="../../source/DocPage.h" />
 		<Unit filename="../../source/EarlierTranslationDlg.cpp" />

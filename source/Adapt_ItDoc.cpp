@@ -99,6 +99,7 @@
 #include "ConsChk_Empty_noTU_Dlg.h"
 #include "conschk_exists_notu_dlg.h"
 #include "DVCS.h"
+#include "DVCSNavDlg.h"
 #include "StatusBar.h"
 
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
@@ -1579,20 +1580,6 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
         return -1;              // or if user cancelled dialog
 
 
-// Now we're using git, where adding the file does double duty to put it under version control
-//  and add it to the staging area for commit.  So we no longer bother having "add" as a separate
-//  operation.
-
-/*
-    if (gpApp->m_commitCount < 0)           // The doc isn't under version control yet
-	{
-        resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_ADD_FILE, 0);
-                                            // add the doc to version control, and set commit count to zero
-        if (resultCode)
-            return resultCode;              // bail out if adding the doc to version control failed for some reason
-	}
-*/
-
 // Now we find the date/time and the commit count, which we'll save in the file before we do the commit.
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 
@@ -1639,6 +1626,7 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 	int				returnCode;
 	wxCommandEvent	dummy;
 	int				trialRevNum = gpApp->m_trialRevNum;
+    DVCSNavDlg*     pNavDlg;
 
 	if (gpApp->m_commitCount <= 0)
 	{
@@ -1671,6 +1659,12 @@ box above to identify this version of the document, then click OK to proceed."))
 
         gpApp->m_RevCount = returnCode;         // success - now we have the current total number of revisions
         trialRevNum = 0;                        // and we're at the latest
+        
+        pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
+        pNavDlg->Move(200, 200);
+        pNavDlg->Show();                                           // show it, non-modally
+        
+        gpApp->m_pDVCSNavDlg = pNavDlg;
 	}
 
     if ( (trialRevNum+1) >= gpApp->m_RevCount )
@@ -1694,8 +1688,11 @@ box above to identify this version of the document, then click OK to proceed."))
 			// ReadOnlyProtection sees that m_trialRevNum is non-negative.
             // If an error has come up, we leave the trial status alone.
 
-		gpApp->m_trialRevNum = trialRevNum + 1;           // successfully got to previous revision
+		gpApp->m_trialRevNum = trialRevNum + 1;         // successfully got to previous revision
 		DocChangedExternally();
+        
+        pNavDlg->Raise();                               // want the dialog on top -- must come after DocSavedExternally() call
+
 	}
 }
 
@@ -1739,6 +1736,7 @@ void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 // DoConsistencyCheck(), and SplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 // DoSplitIntoChapters(). Created 29Apr10.
 // whm added pProgDlg 24Aug11
+
 bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progressItem)
 {
 	wxString pathToSaveFolder;

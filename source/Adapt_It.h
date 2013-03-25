@@ -88,7 +88,8 @@ enum{	DVCS_VERSION, DVCS_COMMIT_FILE,
         DVCS_LOG_FILE, DVCS_LOG_PROJECT };
 				// More to be added if they come up
 
-class DVCS;		// class of the object giving access to the DVCS operations
+class DVCS;         // class of the object giving access to the DVCS operations
+class DVCSNavDlg;   // dialog for navigating through previous versions
 
 
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
@@ -2215,6 +2216,7 @@ public:
     bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
+    DVCSNavDlg* m_pDVCSNavDlg;
 
 
 	/////////////////////////////////////////////////////////////////////////////////
