@@ -589,6 +589,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\DVCSNavDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\EarlierTranslationDlg.cpp"
 				>
 			</File>
@@ -1143,6 +1147,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\DVCS.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\DVCSNavDlg.h"
 				>
 			</File>
 			<File
