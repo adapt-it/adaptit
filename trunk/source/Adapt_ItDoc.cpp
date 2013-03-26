@@ -1621,6 +1621,46 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 	if (DoSaveAndCommit(_T("")))  return;			// bail out on error
 }
 
+void CAdapt_ItDoc::DoChangeRevision ( int revNum )
+{
+    int returnCode;
+    
+    if ( revNum >= gpApp->m_RevCount )
+    {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
+        wxMessageBox (_T("We're already back at the earliest version saved!") );
+		return;
+    }
+    
+ 	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
+    
+	if (returnCode == -2)  return;			// bail out on error - message should already be displayed
+    
+	if (returnCode == -1)
+	{                                       // BUG!!!
+		wxMessageBox (_T("We shouldn't have got here!!!!") );
+		return;
+	}
+    
+	if (returnCode == 0)
+	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
+        // ReadOnlyProtection sees that m_trialRevNum is non-negative.
+        // If an error has come up, we leave the trial status alone.
+        
+		gpApp->m_trialRevNum = revNum;          // successfully got to requested revision
+		DocChangedExternally();
+        
+        if (revNum == 0)
+        {                                       // we're at the latest revision, so the trial's over
+            gpApp->m_pDVCSNavDlg->Destroy();
+            gpApp->m_pDVCSNavDlg = NULL;
+            gpApp->m_trialRevNum = -1;
+        }
+        else
+            gpApp->m_pDVCSNavDlg->Raise();      // put the dialog back on top -- DocSavedExternally() puts the doc on top
+	}
+}
+
+
 void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 {
 	int				returnCode;
@@ -1661,39 +1701,13 @@ box above to identify this version of the document, then click OK to proceed."))
         trialRevNum = 0;                        // and we're at the latest
         
         pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
-        pNavDlg->Move(200, 200);
-        pNavDlg->Show();                                           // show it, non-modally
+        pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
+        pNavDlg->Show();                                            // show it, non-modally
         
         gpApp->m_pDVCSNavDlg = pNavDlg;
 	}
 
-    if ( (trialRevNum+1) >= gpApp->m_RevCount )
-    {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
-        wxMessageBox (_T("We're already back at the earliest version saved!") );
-		return;
-    }
-    
- 	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, trialRevNum + 1);			// get the next previous version
-
-	if (returnCode == -2)  return;			// bail out on error - message should already be displayed
-
-	if (returnCode == -1)
-	{                                       // BUG!!!
-		wxMessageBox (_T("We shouldn't have got here!!!!") );
-		return;
-	}
-
-	if (returnCode == 0)
-	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
-			// ReadOnlyProtection sees that m_trialRevNum is non-negative.
-            // If an error has come up, we leave the trial status alone.
-
-		gpApp->m_trialRevNum = trialRevNum + 1;         // successfully got to previous revision
-		DocChangedExternally();
-        
-        pNavDlg->Raise();                               // want the dialog on top -- must come after DocSavedExternally() call
-
-	}
+    DoChangeRevision(1);                    // "revision 1" is the immediately previous revision saved
 }
 
 void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))

@@ -22,14 +22,23 @@
 class DVCSNavDlg : public AIModalDialog
 {
 public:
-    DVCSNavDlg (wxWindow *parent);         // constructor
+    DVCSNavDlg (wxWindow *parent);          // constructor
+    virtual ~DVCSNavDlg (void);             // destructor
     
-    int ShowNavDlg();
+//    int ShowNavDlg();
     
+    CAdapt_ItApp*   m_pApp;
     wxSizer*        m_dlgSizer;
     wxStaticText*   m_version_comment;
     wxStaticText*   m_version_date;
 
+protected:
+//	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+    void OnPrev(wxCommandEvent& event);
+	void OnNext(wxCommandEvent& event);
+
+private:
+	DECLARE_EVENT_TABLE()
 };
 
 

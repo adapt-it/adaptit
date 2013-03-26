@@ -28,38 +28,18 @@
 #endif
 
 // other includes
-#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-#include <wx/valgen.h> // for wxGenericValidator
-#include <wx/wizard.h>
-#include <wx/filesys.h> // for wxFileName
-
-// whm 14Jun12 modified to #include <wx/fontdate.h> for wxWidgets 2.9.x and later
-#if wxCHECK_VERSION(2,9,0)
-#include <wx/fontdata.h>
-#endif
 
 #include "Adapt_It.h"
-#include "MainFrm.h"
 #include "Adapt_ItDoc.h"
-#include "Adapt_ItView.h"
-#include "Adapt_ItCanvas.h"
-#include "ProjectPage.h"
-#include "LanguagesPage.h"
-#include "FontPage.h"
-#include "PunctCorrespPage.h"
-#include "CaseEquivPage.h"
-#include "UsfmFilterPage.h"
-#include "DocPage.h"
-#if wxCHECK_VERSION(2,9,0)
-	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
-#else
-	// The wxWidgets library being used is pre-2.9.x, so use our own modified
-	// version named wxScrollingWizard located in scrollingwizard.h
-#include "scrollingwizard.h" // whm added 13Nov11 - needs to be included before "StartWorkingWizard.h" below
-#endif
-
 #include "DVCSNavDlg.h"
 
+
+// event handler table
+
+BEGIN_EVENT_TABLE (DVCSNavDlg, AIModalDialog)
+    EVT_BUTTON (ID_BTN_PREV, DVCSNavDlg::OnPrev)
+    EVT_BUTTON (ID_BTN_NEXT, DVCSNavDlg::OnNext)
+END_EVENT_TABLE()
 
 
 
@@ -73,26 +53,24 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
 
     m_version_comment = (wxStaticText*) FindWindowById(ID_VERSION_COMMENT);
     m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
+    m_pApp            = &wxGetApp();
 }
 
+DVCSNavDlg::~DVCSNavDlg(void)
+{ }
 
-int DVCSNavDlg::ShowNavDlg()
+void DVCSNavDlg::OnPrev(wxCommandEvent& event)
 {
-    wxString        comment;
-    CAdapt_ItApp*   pApp = &wxGetApp();
-//    DVCSNavDlg      dlg ( pApp->GetMainFrame() );
-
-//	dlg.Centre();
+    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
     
-// Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave the
-//  default text which is already there.
+    pDoc->DoChangeRevision(m_pApp->m_trialRevNum + 1);
+};
 
+void DVCSNavDlg::OnNext(wxCommandEvent& event)
+{
+    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+    
+    pDoc->DoChangeRevision(m_pApp->m_trialRevNum - 1);
+};
 
-    if (ShowModal() != wxID_OK)
-        return FALSE;                   // Bail out if user cancelled, and return FALSE to caller
-
-// Now we get the comment, and save in our instance variable:
-//    m_commit_comment = dlg.m_comment->GetValue();
-    return TRUE;
-}
 
