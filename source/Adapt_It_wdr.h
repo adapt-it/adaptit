@@ -948,8 +948,8 @@ wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = t
 
 const int ID_VERSION_COMMENT = 719;
 const int ID_VERSION_DATE = 720;
-const int ID_PREV = 721;
-const int ID_NEXT = 722;
+const int ID_BTN_PREV = 721;
+const int ID_BTN_NEXT = 722;
 const int ID_ACCEPT = 723;
 const int ID_LATEST = 724;
 wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );

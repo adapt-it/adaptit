@@ -9536,21 +9536,21 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item7 = new wxButton( parent, ID_PREV, _("Previous version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item7 = new wxButton( parent, ID_BTN_PREV, _("< Previous version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item7, 5, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item8 = new wxButton( parent, ID_NEXT, _("Next version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item8 = new wxButton( parent, ID_BTN_NEXT, _("Next version >"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item8, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item10 = new wxButton( parent, ID_ACCEPT, _("Accept this version as current"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item9->Add( item10, 5, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item11 = new wxButton( parent, ID_LATEST, _("Return to latest version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    item9->Add( item11, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 

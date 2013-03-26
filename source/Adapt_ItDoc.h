@@ -148,6 +148,7 @@ struct	AutoFixRecordG
 /// separate from and independent of the view class's in-memory data structures. 
 /// This schema is an implementation of the document/view framework. 
 /// \derivation		The CAdapt_ItDoc class is derived from wxDocument.
+
 class CAdapt_ItDoc : public wxDocument
 {
   protected: // MFC version comment: create from serialization only
@@ -449,6 +450,7 @@ public:
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
     bool Commit_valid();
 	int  DoSaveAndCommit (wxString blurb);
+    void DoChangeRevision ( int revNum );
 	void OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event));
 	void OnAcceptRevision (wxCommandEvent& WXUNUSED(event));
 	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
