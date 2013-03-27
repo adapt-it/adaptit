@@ -54,6 +54,11 @@ entries should not be "seen" as existing, which is now the case.
 * If the phrase box, at the end of the document, went past the end
 (which is normal) and then the user clicked under the very first
 word of the document to put the phrase box there, Adapt It crashed.
+* Some edge cases for retreival of adaptation text from the 
+knowledge base when automatic capitalization was turned on, 
+returned an uncapitalized adaptation when a capitalized equivalent
+was needed. This was most easily observed when doing a consistency
+check. It now works correctly.
 
 ----------------------------------------------
 Version 6.4.1 release 6 February 2013

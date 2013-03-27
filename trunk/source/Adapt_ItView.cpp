@@ -14161,11 +14161,27 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			bool bEmptyTarget = FALSE;
 			if (!str.IsEmpty() && pApp->m_bCopySourcePunctuation)
 			{
-                // check for any medial punctuation, if there is any, see if it is all in
+                // Check for any medial punctuation, if there is any, see if it is all in
                 // the targetStr already; if not, ask user for whatever is missing (if he
                 // wants he can then place the extra stuff, or ignore it).
 				if (pSrcPhrase->m_bHasInternalPunct)
 				{
+					// BEW added this initial note, 27Mar13. Internal punctuation support,
+					// by definition of 'internal' means that we are looking at
+					// punctuation which lies between words in a phrase, and we include
+					// final punctuation for good measure, but definitely we exclude word
+					// initial punctuation. So, auto-capitalization is NEVER done at a
+					// medial or final location in a phrase, nor at the end of a single
+					// word. Consequently, THERE IS NO AUTO-CAPITALIZATION SUPPORT IN
+					// THIS BLOCK - BY DESIGN! It's not needed here. Another corollary of
+					// this fact is that pattern strings for where ambiguous punctuation
+					// placement is done, are going to be lower case initial - because
+					// ambiguous placement can only happen at phrase-final location, or
+					// for single words, at word final location. Hence, the pattern will
+					// always be relevant -- it won't be the case that we store a
+					// lower-case-initial pattern and somewhere else an upper-case-initial
+					// pattern will be wanted and we won't have such an animal available.
+					 
 					// BEW 23Feb12, added code for docVersion 6 support of suppression of
 					// redundant showings of the placement dialog for puncts (and if the
 					// new storage strings for preserving state are cleared here, then
@@ -14337,11 +14353,47 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
             // phrase box elsewhere
 			if (!pApp->m_bCopySourcePunctuation)
 			{
+                // BEW addition 27Mar13. If AutoCaps is turned on, and the source text
+                // commences with a capital letter, check if capitalization is needed here.
+                // Beware, str may have initial punctuation (e.g. the user may have typed
+                // it) so remove and replace it after any needed capitalization is done.
+                // Then control can exit here, after a little housekeeping. Any puncts
+                // stored in m_precPunct etc won't be copied in this block, so we only
+                // have to consider that the user may have typed some
+                punctLen = 0; // for auto caps support
+				wxString punctlessStr;
+				if (!bEmptyTarget && bWantChangeToUC)
+				{
+					// span using target lang's punctuation - wxWidgets version
+					// SpanIncluding() in helpers.h; spanning done in tgt text puncts
+					wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]);
+					if (!strInitialPunct.IsEmpty())
+					{
+						// first, remove and store the initial punctuation
+						punctLen = strInitialPunct.Length();
+						punctlessStr = str.Mid(punctLen); // it's irrelevant if there are word-final
+														  // puncts on punctlessStr
+
+						// now check if punctlessStr commences with a lower case letter,
+						// if so, convert to upper case and then re-attach the intial
+						// punctuation character/s (FALSE in next line means "bIsSrcText")
+						bNoError = pDoc->SetCaseParameters(punctlessStr,FALSE);
+						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+						{
+							// do the change to upper case
+							punctlessStr.SetChar(0,gcharNonSrcUC);
+						}
+						str = strInitialPunct + punctlessStr; // 
+					}
+				}
 				pSrcPhrase->m_targetStr = str;
+				// do housekeeping (for explanation, see end of the function's comment)
+				pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
+				return;
 			}
 			else
 			{
-                // preceding punctuation can be handled silently. If the user typed
+                // Preceding punctuation can be handled silently. If the user typed
                 // different punctuation, then the user's must override the original
                 // punctuation. The target text string might be a phrase and hence contain
                 // spaces, but space is a delimiter in m_punctSet from version 1.3.6
@@ -14353,11 +14405,40 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				punctLen = 0; // for auto caps support
 				if (!bEmptyTarget)
 				{
+					// BEW 27Mar13, moved the autocapitalization support out of the
+					// preceding punctuation block below, so that it applies to any
+					// non-empty target string
+					
+					// span using target lang's punctuation - wxWidgets version
+					// SpanIncluding() in helpers.h
+					wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]);
+					// If strInitialPunct is non-empty, then the user must have typed some
+					// initial punctuation intending it be retained rather than whatever is
+					// in m_prevPuncts being copied to the start of str
+					if (!strInitialPunct.IsEmpty())
+					{
+						punctLen = strInitialPunct.Len();
+					}
+					// Do any needed capitalizing of the first non-punctuation letter
+					if (bWantChangeToUC)
+					{
+						// check first that the change to upper case is possible, and if
+						// needed then do it
+						wxString noInitialPunctStr = str.Mid(punctLen);
+						bNoError = pDoc->SetCaseParameters(noInitialPunctStr,FALSE);
+						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+						{
+							// do the change to upper case for the wxChar at [punctLen] index
+							str.SetChar(punctLen,gcharNonSrcUC);
+						}
+					}
+					// Remember, when control gets to here, str may have user-typed initial
+					// punctuation added already
 					if (!pSrcPhrase->m_precPunct.IsEmpty())
 					{
-						// span using target lang's punctuation - wxWidgets version
-						// SpanIncluding() in helpers.h
-						wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]);
+						// If the user did not manually type any initial punctuation, then
+						// we want to later have the m_prevPuncts contents copied tothe
+						// start of str, later on below (i.e. set bWantPrevCopy to TRUE)
 						if (strInitialPunct.IsEmpty())
 						{
 							// there was no initial punctuation typed, so silently copy
@@ -14367,27 +14448,17 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						}
 						else
 						{
-							// let the punctuation typed by the user stand unchanged, but for
-							// auto caps ON get the case change done if it is required
-							punctLen = strInitialPunct.Length();
-						}
-
-						if (bWantChangeToUC)
-						{
-							// check first that the change to upper case is possible
-							wxString noInitialPunctStr = str.Mid(punctLen);
-							bNoError = pDoc->SetCaseParameters(noInitialPunctStr,FALSE);
-							if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-							{
-								// do the change to upper case at the wxChar at [punctLen] index
-								str.SetChar(punctLen,gcharNonSrcUC);
-							}
+							// let the punctuation typed by the user stand unchanged, if
+							// there was any typed that is
 						}
 					}
-                    // if the word or phrase in the source had no preceding punctuation,
-                    // then MakeTargetStringIncludingPunctuation will do nothing, so that
-                    // if the user elects to explicitly type some preceding punctuation, it
-                    // will be accepted unconditionally
+                    // If the word or phrase in the source had no preceding punctuation,
+                    // then MakeTargetStringIncludingPunctuation will do nothing at the
+                    // start of the word or phrase, so that if the user elects to
+                    // explicitly type some preceding punctuation, it will be accepted
+                    // unconditionally in that location
+                    
+                    // NOTE: str has had any needed auto-capitalization already done by now
 
 					// ditto, for following punctuation
 					if (!pSrcPhrase->m_follPunct.IsEmpty())
