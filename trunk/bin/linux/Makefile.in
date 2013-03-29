@@ -87,7 +87,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	CreateNewAIProjForCollab.$(OBJEXT) DocPage.$(OBJEXT) \
 	EarlierTranslationDlg.$(OBJEXT) EditPreferencesDlg.$(OBJEXT) \
 	EditSourceTextDlg.$(OBJEXT) EmailReportDlg.$(OBJEXT) \
-	DVCS.$(OBJEXT) ExportFunctions.$(OBJEXT) \
+	DVCS.$(OBJEXT) DVCSNavDlg.$(OBJEXT) ExportFunctions.$(OBJEXT) \
 	ExportInterlinearDlg.$(OBJEXT) ExportOptionsDlg.$(OBJEXT) \
 	ExportSaveAsDlg.$(OBJEXT) FilenameConflictDlg.$(OBJEXT) \
 	FindReplace.$(OBJEXT) FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
@@ -448,7 +448,7 @@ adaptit_SOURCES = \
 	../../source/CorGuess.cpp ../../source/CreateNewAIProjForCollab.cpp \
 	../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
-	../../source/DVCS.cpp \
+	../../source/DVCS.cpp ../../source/DVCSNavDlg.cpp \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
@@ -619,6 +619,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CorGuess.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CreateNewAIProjForCollab.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DVCS.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DVCSNavDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DocPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EarlierTranslationDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EditPreferencesDlg.Po@am__quote@
@@ -1330,6 +1331,20 @@ DVCS.obj: ../../source/DVCS.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/DVCS.cpp' object='DVCS.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o DVCS.obj `if test -f '../../source/DVCS.cpp'; then $(CYGPATH_W) '../../source/DVCS.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/DVCS.cpp'; fi`
+
+DVCSNavDlg.o: ../../source/DVCSNavDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT DVCSNavDlg.o -MD -MP -MF $(DEPDIR)/DVCSNavDlg.Tpo -c -o DVCSNavDlg.o `test -f '../../source/DVCSNavDlg.cpp' || echo '$(srcdir)/'`../../source/DVCSNavDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/DVCSNavDlg.Tpo $(DEPDIR)/DVCSNavDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/DVCSNavDlg.cpp' object='DVCSNavDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o DVCSNavDlg.o `test -f '../../source/DVCSNavDlg.cpp' || echo '$(srcdir)/'`../../source/DVCSNavDlg.cpp
+
+DVCSNavDlg.obj: ../../source/DVCSNavDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT DVCSNavDlg.obj -MD -MP -MF $(DEPDIR)/DVCSNavDlg.Tpo -c -o DVCSNavDlg.obj `if test -f '../../source/DVCSNavDlg.cpp'; then $(CYGPATH_W) '../../source/DVCSNavDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/DVCSNavDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/DVCSNavDlg.Tpo $(DEPDIR)/DVCSNavDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/DVCSNavDlg.cpp' object='DVCSNavDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o DVCSNavDlg.obj `if test -f '../../source/DVCSNavDlg.cpp'; then $(CYGPATH_W) '../../source/DVCSNavDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/DVCSNavDlg.cpp'; fi`
 
 ExportFunctions.o: ../../source/ExportFunctions.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExportFunctions.o -MD -MP -MF $(DEPDIR)/ExportFunctions.Tpo -c -o ExportFunctions.o `test -f '../../source/ExportFunctions.cpp' || echo '$(srcdir)/'`../../source/ExportFunctions.cpp
