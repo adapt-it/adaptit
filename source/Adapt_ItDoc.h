@@ -451,8 +451,8 @@ public:
     bool Commit_valid();
 	int  DoSaveAndCommit (wxString blurb);
     void DoChangeRevision ( int revNum );
-	void OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event));
-	void OnAcceptRevision (wxCommandEvent& WXUNUSED(event));
+	void OnShowPreviousRevisions (wxCommandEvent& WXUNUSED(event));
+    void DoAcceptRevision (void);
 	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
 	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);

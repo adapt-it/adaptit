@@ -311,9 +311,9 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU(wxID_SAVE, CAdapt_ItDoc::OnFileSave)
 	EVT_UPDATE_UI(wxID_SAVE, CAdapt_ItDoc::OnUpdateFileSave)
 	EVT_MENU (ID_MENU_SAVE_COMMIT_FILE, CAdapt_ItDoc::OnSaveAndCommit)
-	EVT_MENU (ID_MENU_REVERT_FILE, CAdapt_ItDoc::OnRevertToPreviousRevision)
-	EVT_MENU (ID_MENU_ACCEPT_REVISION, CAdapt_ItDoc::OnAcceptRevision)
-	EVT_MENU (ID_MENU_RETURN_TO_LATEST, CAdapt_ItDoc::OnReturnToLatestRevision)
+	EVT_MENU (ID_MENU_REVERT_FILE, CAdapt_ItDoc::OnShowPreviousRevisions)
+//	EVT_MENU (ID_MENU_ACCEPT_REVISION, CAdapt_ItDoc::OnAcceptRevision)
+//	EVT_MENU (ID_MENU_RETURN_TO_LATEST, CAdapt_ItDoc::OnReturnToLatestRevision)
 	EVT_MENU (ID_MENU_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
@@ -1654,6 +1654,7 @@ void CAdapt_ItDoc::DoChangeRevision ( int revNum )
             gpApp->m_pDVCSNavDlg->Destroy();
             gpApp->m_pDVCSNavDlg = NULL;
             gpApp->m_trialRevNum = -1;
+            gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
         }
         else
             gpApp->m_pDVCSNavDlg->Raise();      // put the dialog back on top -- DocSavedExternally() puts the doc on top
@@ -1661,7 +1662,7 @@ void CAdapt_ItDoc::DoChangeRevision ( int revNum )
 }
 
 
-void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItDoc::OnShowPreviousRevisions (wxCommandEvent& WXUNUSED(event))
 {
 	int				returnCode;
 	wxCommandEvent	dummy;
@@ -1679,38 +1680,42 @@ void CAdapt_ItDoc::OnRevertToPreviousRevision (wxCommandEvent& WXUNUSED(event))
 		wxMessageBox (_T("We're already back at the earliest version saved!") );
 		return;
 	}
+    
+    if (trialRevNum > 0)
+    {
+        wxMessageBox (_T("We're shouldn't have got here!") );
+		return;
+    }
 
-	if (trialRevNum < 0)
-	{			// We don't already have a previous revision under trial.  We need to save and commit the current
-				// revision, so we can come back to it if necessary.  But we don't need to do this if the doc
-                //  has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
-                //  we set m_saved_with_commit false for this test, since calling IsModified() will return false.
+// We're initiating a trial review of previoius versions.  We need to save and commit the current
+// version, so we can come back to it if necessary.  But we don't need to do this if the doc
+// has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
+// we set m_saved_with_commit false for this test, since calling IsModified() will return false.
 
-        if ( IsModified() || !gpApp->m_saved_with_commit )
-        {
-            if (DoSaveAndCommit(_T("Before we can go back to previous revisions we must save the document as it is now.  You can enter a comment in the \
-box above to identify this version of the document, then click OK to proceed.")))
-                return;			// bail out on error or if user cancelled - message should be already displayed
-        }
+    if ( IsModified() || !gpApp->m_saved_with_commit )
+    {
+        if (DoSaveAndCommit(_T("Before we can go back to previous versions we must save and remember the document as it is now.  You can enter a \
+comment in the box above to identify this version of the document, then click OK to proceed.")))
+            return;			// bail out on error or if user cancelled - message should be already displayed
+    }
 
-		returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
-        if (returnCode < 0)
-            return;                             // bail out on error
+    returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
+    if (returnCode < 0)
+        return;                             // bail out on error
 
-        gpApp->m_RevCount = returnCode;         // success - now we have the current total number of revisions
-        trialRevNum = 0;                        // and we're at the latest
-        
-        pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
-        pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
-        pNavDlg->Show();                                            // show it, non-modally
-        
-        gpApp->m_pDVCSNavDlg = pNavDlg;
-	}
-
-    DoChangeRevision(1);                    // "revision 1" is the immediately previous revision saved
+    gpApp->m_RevCount = returnCode;         // success - now we have the current total number of revisions
+    gpApp->m_trialRevNum = 0;                        // and we're at the latest
+    
+    pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
+    pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
+    pNavDlg->Show();                                            // show it, non-modally
+    
+    gpApp->m_pDVCSNavDlg = pNavDlg;
+	
+    pNavDlg->OnPrev(dummy);         // rather than call DoChangeRevision(1) we get the prev version via the dialog so all its fields get set up properly
 }
 
-void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItDoc::DoAcceptRevision (void)
 {
 	if (gpApp->m_trialRevNum < 0)
 	{
@@ -1718,10 +1723,14 @@ void CAdapt_ItDoc::OnAcceptRevision (wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+// ***** need a messagebox here to give them a chance to bail out
+    
 	gpApp->m_trialRevNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
     gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
+    gpApp->m_pDVCSNavDlg->Destroy();    // take down the navigation dialog
+    gpApp->m_pDVCSNavDlg = NULL;
 }
 
 void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))

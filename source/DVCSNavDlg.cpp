@@ -31,14 +31,17 @@
 
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
+#include "DVCS.h"
 #include "DVCSNavDlg.h"
 
 
 // event handler table
 
 BEGIN_EVENT_TABLE (DVCSNavDlg, AIModalDialog)
-    EVT_BUTTON (ID_BTN_PREV, DVCSNavDlg::OnPrev)
-    EVT_BUTTON (ID_BTN_NEXT, DVCSNavDlg::OnNext)
+    EVT_BUTTON (ID_BTN_PREV,   DVCSNavDlg::OnPrev)
+    EVT_BUTTON (ID_BTN_NEXT,   DVCSNavDlg::OnNext)
+    EVT_BUTTON (ID_ACCEPT,     DVCSNavDlg::OnAccept)
+    EVT_BUTTON (ID_LATEST,     DVCSNavDlg::OnLatest)
 END_EVENT_TABLE()
 
 
@@ -59,18 +62,34 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
 DVCSNavDlg::~DVCSNavDlg(void)
 { }
 
-void DVCSNavDlg::OnPrev(wxCommandEvent& event)
+void DVCSNavDlg::OnPrev (wxCommandEvent& event)
 {
     CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
     
-    pDoc->DoChangeRevision(m_pApp->m_trialRevNum + 1);
+    pDoc->DoChangeRevision (m_pApp->m_trialRevNum + 1);
+    m_version_comment->SetLabel (m_pApp->m_pDVCS->GetComment());
+    m_version_date->SetLabel (m_pApp->m_pDVCS->GetDate());
 };
 
-void DVCSNavDlg::OnNext(wxCommandEvent& event)
+void DVCSNavDlg::OnNext (wxCommandEvent& event)
 {
     CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
     
-    pDoc->DoChangeRevision(m_pApp->m_trialRevNum - 1);
+    pDoc->DoChangeRevision (m_pApp->m_trialRevNum - 1);
+    m_version_comment->SetLabel (m_pApp->m_pDVCS->GetComment());
+    m_version_date->SetLabel (m_pApp->m_pDVCS->GetDate());
+};
+
+void DVCSNavDlg::OnAccept (wxCommandEvent& event)
+{
+    m_pApp->GetDocument()->DoAcceptRevision();      // handles everything, so all we do here is call it
+};
+
+void DVCSNavDlg::OnLatest (wxCommandEvent& event)
+{
+    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+    
+    pDoc->DoChangeRevision (0);     // zero is the latest - this also removes the dialog and cleans up
 };
 
 

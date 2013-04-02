@@ -32,10 +32,12 @@ public:
     wxStaticText*   m_version_comment;
     wxStaticText*   m_version_date;
 
+    void OnPrev (wxCommandEvent& event);
+	void OnNext (wxCommandEvent& event);
+
 protected:
-//	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-    void OnPrev(wxCommandEvent& event);
-	void OnNext(wxCommandEvent& event);
+    void OnAccept (wxCommandEvent& event);
+    void OnLatest (wxCommandEvent& event);
 
 private:
 	DECLARE_EVENT_TABLE()

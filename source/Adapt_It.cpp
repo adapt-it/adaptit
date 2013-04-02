@@ -21179,9 +21179,12 @@ int ii = 1;
 
 	wxMenuBar* pAIMenuBar = NULL;
 	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
+	int nIndexOfFileMenu = pAIMenuBar->FindMenu(_T("File"));
 	int nIndexOfEditMenu = pAIMenuBar->FindMenu(_T("Edit"));
+	wxASSERT(nIndexOfFileMenu != wxNOT_FOUND);
 	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
 	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
+    wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
 
 	pEditMenu->AppendSeparator();
 
@@ -21193,9 +21196,16 @@ int ii = 1;
 	pEditMenu->Append (ID_MENU_REVERT_FILE, _T("Look at previously committed version of this file"));
 	pEditMenu->Append (ID_MENU_ACCEPT_REVISION, _T("Accept this revision as CURRENT, and DISCARD any later changes"));
 	pEditMenu->Append (ID_MENU_RETURN_TO_LATEST, _T("Return to the latest revision of this file"));
-	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show version log for this file"));
+	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show version log for this document"));
 	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));
-	pEditMenu->Append (ID_MENU_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this file"));
+//	pEditMenu->Append (ID_MENU_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this file"));
+    
+// now moving items to the File menu ready for prime time...
+    pFileMenu->AppendSeparator();
+
+    pFileMenu->Append (ID_MENU_SAVE_COMMIT_FILE, _T("Save and remember in history"));
+    pFileMenu->Append (ID_MENU_REVERT_FILE, _T("Look at previously remembered version of this document"));
+	pFileMenu->Append (ID_MENU_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this document"));
 
 #endif
 	// end of code for supporting Mike's DVCS work
