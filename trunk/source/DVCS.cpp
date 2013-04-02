@@ -159,9 +159,15 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	if (!local_arguments.IsEmpty())
 	str = str + _T(" ") + local_arguments;
 
-// wxMessageBox (str);		// debugging
+//wxMessageBox (str);		// debugging
 
 	result = wxExecute (str, git_output, errors, 0);
+    
+    if (result == -1)       // sometimes I get this on the Mac, but it's not an error!
+    {
+        result = 0;
+        wxMessageBox(_T("-1 result"));
+    }
 
 	// The only indication we get that something went wrong, is a nonzero result.  It seems to always be 255, whatever the error.
 	// It may mean that git wasn't found, or it could be an illegal git command.  The details will appear in a separate wx message or
@@ -279,7 +285,7 @@ int  DVCS::commit_file (wxString fileName)
     if (returnCode)
         return returnCode;
 
-// now we commit it -- soon we'll have to accept a passed-in string for the commit message.
+// now we commit it
     
 	git_command = _T("commit");
 	git_arguments.Clear();
@@ -289,12 +295,13 @@ int  DVCS::commit_file (wxString fileName)
     {                   // user didn't enter a comment.  We just put "n commits"
         git_options << commitCount;
         if (commitCount == 1)
-            git_options << _T(" commit\"");
+            git_options << _T(" commit");
         else
-            git_options << _T(" commits\"");
+            git_options << _T(" commits");
     }
     else                // we use the user's comment
         git_options << m_commit_comment;
+    git_options << _T("\"");
 
 	return call_git (FALSE);
 }
@@ -326,6 +333,7 @@ int  DVCS::setup_versions ( wxString fileName )
 int  DVCS::get_version ( int version_num, wxString fileName )
 {
 	wxString	nextLine, str;
+    int         returnCode;
     
     // The log has multiple entries, each one line long, with the format
     // <40 hex digits> <comment for that commit>
@@ -345,8 +353,26 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     git_options.Clear();
     git_arguments = fileName;
     
-    return call_git(FALSE);
+    returnCode = call_git(FALSE);
+    if (returnCode)
+        return returnCode;              // bail out on error
+    
+    str = nextLine.AfterFirst(_T(' '));
+    m_commit_comment = str;
+    m_commit_date = _T("date goes here eventually");
+    return 0;
 }
+
+wxString    DVCS::GetComment()
+{
+    return m_commit_comment;
+}
+
+wxString    DVCS::GetDate()
+{
+    return m_commit_date;
+}
+
 
 int  DVCS::log_file (wxString fileName)
 {
