@@ -291,7 +291,7 @@ int  DVCS::commit_file (wxString fileName)
 	git_arguments.Clear();
 	git_options << _T("-m \"");
     
-    if ( wxIsEmpty(m_commit_comment) )
+    if ( wxIsEmpty(m_version_comment) )
     {                   // user didn't enter a comment.  We just put "n commits"
         git_options << commitCount;
         if (commitCount == 1)
@@ -300,7 +300,7 @@ int  DVCS::commit_file (wxString fileName)
             git_options << _T(" commits");
     }
     else                // we use the user's comment
-        git_options << m_commit_comment;
+        git_options << m_version_comment;
     git_options << _T("\"");
 
 	return call_git (FALSE);
@@ -318,7 +318,8 @@ int  DVCS::setup_versions ( wxString fileName )
     
     git_output.Clear();
     git_command = _T("log");
-    git_options = _T("--pretty=oneline");
+    git_options = _T("--pretty=format:'%H#%cn#%cd#%s'");    // hash, committer name, commit date, comment - using # as a separator
+                                                            // since it can't appear in any of the fields except maybe the last.
     git_arguments = fileName;
 
     if (call_git (FALSE))
@@ -335,8 +336,8 @@ int  DVCS::get_version ( int version_num, wxString fileName )
 	wxString	nextLine, str;
     int         returnCode;
     
-    // The log has multiple entries, each one line long, with the format
-    // <40 hex digits> <comment for that commit>
+    // The log has multiple entries, each one line long, with the format we asked for in setup_versions:
+    // <40 hex digits hash>#<committer name>#commit date#<commit comment>
     // We get the next line as given by git_lineNumber.  If there aren't any
     // more lines, we return -1.  Otherwise we return the result of the call_git() call.
     
@@ -344,7 +345,7 @@ int  DVCS::get_version ( int version_num, wxString fileName )
         return -1;                  // shouldn't happen, but return -1 on out of bounds
 
     nextLine = git_output.Item (version_num);
-    str = nextLine.BeforeFirst(_T(' '));
+    str = nextLine.BeforeFirst(_T('#'));        // get the version hash for checkout call
 
     if ( wxIsEmpty(str) )       // shouldn't really happen
         return -1;
@@ -355,22 +356,15 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     
     returnCode = call_git(FALSE);
     if (returnCode)
-        return returnCode;              // bail out on error
+        return returnCode;                          // bail out on error
     
-    str = nextLine.AfterFirst(_T(' '));
-    m_commit_comment = str;
-    m_commit_date = _T("date goes here eventually");
+    str = nextLine.AfterFirst(_T('#'));             // skip version hash
+    m_version_committer = str.BeforeFirst(_T('#'));    // get committer name
+    str = str.AfterFirst(_T('#'));                  // now skip the name
+    m_version_date = str.BeforeFirst(_T('#'));       // get commit date
+    m_version_comment = str.AfterFirst(_T('#'));     // and the rest of the string, after the separator, is the comment.
+                                                    // By making this the last field, it can contain anything, even our # separator
     return 0;
-}
-
-wxString    DVCS::GetComment()
-{
-    return m_commit_comment;
-}
-
-wxString    DVCS::GetDate()
-{
-    return m_commit_date;
 }
 
 
@@ -500,8 +494,8 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
     if (dlg.ShowModal() != wxID_OK)
         return FALSE;                   // Bail out if user cancelled, and return FALSE to caller
 
-// Now we get the comment, and save in our instance variable:
-    m_commit_comment = dlg.m_comment->GetValue();
+// Now we get the comment, and save it in our instance variable:
+    m_version_comment = dlg.m_comment->GetValue();
     return TRUE;
 }
 

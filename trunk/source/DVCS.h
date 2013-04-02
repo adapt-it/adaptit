@@ -30,21 +30,20 @@ public:
 	DVCS (void);		// constructor
 	~DVCS (void);		// destructor
     
-	int         DoDVCS ( int action, int parm );                // all actual DVCS operations are done via this function
+	int         DoDVCS ( int action, int parm );             // all actual DVCS operations are done via this function
 
-    bool        AskSaveAndCommit (wxString blurb);             // dialog asking user if he/she wants to go ahead
-    wxString    GetComment();
-    wxString    GetDate();
+    bool        AskSaveAndCommit (wxString blurb);          // dialog asking user if he/she wants to go ahead
 
+    wxString        m_version_comment;                       // these 3 are public so the Nav dialog can get them
+    wxString        m_version_date;
+    wxString        m_version_committer;
+    
 private:		// instance variables
 	CAdapt_ItApp*	m_pApp;
 	wxString		m_user;
 	wxString		git_command, git_options, git_arguments;
 	wxArrayString	git_output;
-	int				git_count, git_lineNumber;
-    wxString        m_commit_comment;                       // these 2 are public so the Nav dialog can get them
-    wxString        m_commit_date;
-
+	int				git_count;
 
 protected:		// internal functions
     

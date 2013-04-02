@@ -56,6 +56,7 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
 
     m_version_comment = (wxStaticText*) FindWindowById(ID_VERSION_COMMENT);
     m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
+    m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
     m_pApp            = &wxGetApp();
 }
 
@@ -67,8 +68,10 @@ void DVCSNavDlg::OnPrev (wxCommandEvent& event)
     CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
     
     pDoc->DoChangeRevision (m_pApp->m_trialRevNum + 1);
-    m_version_comment->SetLabel (m_pApp->m_pDVCS->GetComment());
-    m_version_date->SetLabel (m_pApp->m_pDVCS->GetDate());
+    
+    m_version_comment->SetLabel (m_pApp->m_pDVCS->m_version_comment);
+    m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
+    m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
 };
 
 void DVCSNavDlg::OnNext (wxCommandEvent& event)
@@ -76,8 +79,10 @@ void DVCSNavDlg::OnNext (wxCommandEvent& event)
     CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
     
     pDoc->DoChangeRevision (m_pApp->m_trialRevNum - 1);
-    m_version_comment->SetLabel (m_pApp->m_pDVCS->GetComment());
-    m_version_date->SetLabel (m_pApp->m_pDVCS->GetDate());
+
+    m_version_comment->SetLabel (m_pApp->m_pDVCS->m_version_comment);
+    m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
+    m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
 };
 
 void DVCSNavDlg::OnAccept (wxCommandEvent& event)

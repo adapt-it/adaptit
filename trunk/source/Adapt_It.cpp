@@ -21189,15 +21189,15 @@ int ii = 1;
 	pEditMenu->AppendSeparator();
 
 	pEditMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));						// defaults for final 2 params for all these
-	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _T("Set up version control"));
-	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _T("Put this file under version control"));
-	pEditMenu->Append (ID_MENU_DVCS_REMOVE_FILE, _T("Remove this file from version control (file won't be deleted)"));
-	pEditMenu->Append (ID_MENU_SAVE_COMMIT_FILE, _T("Save and Commit changes to this file"));
-	pEditMenu->Append (ID_MENU_REVERT_FILE, _T("Look at previously committed version of this file"));
-	pEditMenu->Append (ID_MENU_ACCEPT_REVISION, _T("Accept this revision as CURRENT, and DISCARD any later changes"));
-	pEditMenu->Append (ID_MENU_RETURN_TO_LATEST, _T("Return to the latest revision of this file"));
-	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show version log for this document"));
-	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));
+//	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _T("Set up version control"));
+//	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _T("Put this file under version control"));
+//	pEditMenu->Append (ID_MENU_DVCS_REMOVE_FILE, _T("Remove this file from version control (file won't be deleted)"));
+//	pEditMenu->Append (ID_MENU_SAVE_COMMIT_FILE, _T("Save and Commit changes to this file"));
+//	pEditMenu->Append (ID_MENU_REVERT_FILE, _T("Look at previously committed version of this file"));
+//	pEditMenu->Append (ID_MENU_ACCEPT_REVISION, _T("Accept this revision as CURRENT, and DISCARD any later changes"));
+//	pEditMenu->Append (ID_MENU_RETURN_TO_LATEST, _T("Return to the latest revision of this file"));
+//	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show version log for this document"));
+//	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));
 //	pEditMenu->Append (ID_MENU_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this file"));
     
 // now moving items to the File menu ready for prime time...
