@@ -1224,6 +1224,13 @@ void CAdapt_ItView::UpdateAppearance (void)
 		ptrLayout->Redraw();		// Not actually needed on Mac, but doesn't hurt
 		ptrLayout->PlaceBox();		// Sets the parameters for the updated placement of the phrase box if changing
 									//  direction, also gets rid of all the pink if making doc editable!
+
+    // Under OSX/Cocoa, it seems we have to do all this bit again!!
+        if (canvas != NULL)
+            canvas->ClearBackground();
+        else
+            wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with canvas == NULL"));
+        ptrLayout->Redraw();
 	}
 	else
 		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
