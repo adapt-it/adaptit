@@ -9486,6 +9486,7 @@ wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, IDC_COMMIT_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
+    item3->SetBackgroundColour( *wxCYAN );
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, IDC_COMMIT_BLURB, _("You can enter a comment in the box above to identify this version of the document.  When you click OK, the document will be saved and remembered in the document history.  Later you will be able to look at this version and return to it if you need to, exactly as it is now."), wxDefaultPosition, wxSize(400,100), wxGROW );
@@ -9524,38 +9525,55 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item4 = new wxStaticBox( parent, -1, _("Author:") );
+    item4->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
+    wxStaticBoxSizer *item3 = new wxStaticBoxSizer( item4, wxHORIZONTAL );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(400,-1), wxALIGN_CENTRE );
-    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(400,-1), wxALIGN_CENTRE );
+    item5->SetBackgroundColour( *wxLIGHT_GREY );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_VERSION_DATE, _("version date goes here"), wxDefaultPosition, wxSize(400,30), wxALIGN_CENTRE );
-    item2->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Date:") );
+    item7->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
+    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_VERSION_COMMENT, _("version comment goes here"), wxDefaultPosition, wxSize(400,60), wxALIGN_CENTRE );
+    wxStaticText *item8 = new wxStaticText( parent, ID_VERSION_DATE, _("version date goes here"), wxDefaultPosition, wxSize(400,20), wxALIGN_CENTRE );
+    item8->SetBackgroundColour( *wxLIGHT_GREY );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item10 = new wxStaticBox( parent, -1, _("Comment:") );
+    item10->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
+    wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxHORIZONTAL );
 
-    wxButton *item8 = new wxButton( parent, ID_BTN_PREV, _("< Previous version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item8, 5, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_VERSION_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE|wxTE_READONLY );
+    item11->SetBackgroundColour( *wxCYAN );
+    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item9 = new wxButton( parent, ID_BTN_NEXT, _("Next version >"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item9, 5, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item9, 0, wxALIGN_CENTER|wxALL, 15 );
 
-    item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item13 = new wxButton( parent, ID_BTN_PREV, _("< Previous version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 5, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item11 = new wxButton( parent, ID_ACCEPT, _("Accept this version as current"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item11, 5, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item14 = new wxButton( parent, ID_BTN_NEXT, _("Next version >"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item14, 5, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item12 = new wxButton( parent, ID_LATEST, _("Return to latest version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 5, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item2->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item16 = new wxButton( parent, ID_ACCEPT, _("Accept this version as current"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 5, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item17 = new wxButton( parent, ID_LATEST, _("Return to latest version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 5, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item2, 0, wxALL, 5 );
 
@@ -9597,6 +9615,10 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_SAVEKB, _("Save &Knowledge Base"), _("Update the knowledge base file for this project") );
     item1->Append( ID_FILE_BACKUP_KB, _("&Backup Knowledge Base"), _("Make a new knowledge base backup immediately") );
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
+    item1->AppendSeparator();
+    item1->Append( ID_FILE_SAVE_COMMIT, _("Save and remember in history..."), _("Saves the current document and remembers its state in the history.") );
+    item1->Append( ID_FILE_REVERT_FILE, _("Look at previous versions in the document history..."), _("Shows the previously remembered version, and allows you to go back to earlier versions.") );
+    item1->Append( ID_FILE_TAKE_OWNERSHIP, _("Take ownership of this document"), _("Allows you, the logged-in user, to become the owner of this document so you can edit it.") );
     item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
     item0->Append( item1, _("&File") );

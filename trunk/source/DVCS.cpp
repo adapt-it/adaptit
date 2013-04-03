@@ -90,8 +90,8 @@
 	We set them up with separate functions depending on the actual command we want to perform, before calling wxExecute in the
 	main function which does the work, call_git().
 
-	When git is called, the current directory is our current repository.  Therefore, whenever our main function is called, the 
-    first thing we do is cd to the Adaptations directory which is our repository.  We use wxSetWorkingDirectory() for this.  
+	When git is called, the current directory is our current repository.  Therefore, whenever our main function is called, the
+    first thing we do is cd to the Adaptations directory which is our repository.  We use wxSetWorkingDirectory() for this.
  */
 
 
@@ -112,7 +112,7 @@ DVCS::~DVCS(void)
 
 
 /*	call_git is the function that actually calls git.
- 
+
 	If git isn't found, as well as a nonzero result from wxExecute, we get a message in our errors ArrayString
 	on the Mac and Windows, saying the command gave an error (2 in both cases).  But on Linux we don't get
 	a message back at all.
@@ -150,7 +150,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	local_arguments.Replace (_T(" "), _T("\\ "), TRUE);
 #endif
 
-	// git complains if there are trailing blanks on the command line, so we only add the options and arguments if
+	// hg used to complain if there were trailing blanks on the command line, so we only add the options and arguments if
 	//  they're actually there:
 
 	str = str + git_command;
@@ -162,7 +162,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 //wxMessageBox (str);		// debugging
 
 	result = wxExecute (str, git_output, errors, 0);
-    
+
     if (result == -1)       // sometimes I get this on the Mac, but it's not an error!
     {
         result = 0;
@@ -280,17 +280,17 @@ int  DVCS::commit_file (wxString fileName)
 #endif
 
 // first we add the file to the staging area, and bail out on error.
-    
+
     returnCode = add_file(fileName);
     if (returnCode)
         return returnCode;
 
 // now we commit it
-    
+
 	git_command = _T("commit");
 	git_arguments.Clear();
 	git_options << _T("-m \"");
-    
+
     if ( wxIsEmpty(m_version_comment) )
     {                   // user didn't enter a comment.  We just put "n commits"
         git_options << commitCount;
@@ -315,19 +315,17 @@ int  DVCS::commit_file (wxString fileName)
 int  DVCS::setup_versions ( wxString fileName )
 {
 	wxString	nextLine, str;
-    
+
     git_output.Clear();
     git_command = _T("log");
-    git_options = _T("--pretty=format:'%H#%cn#%cd#%s'");    // hash, committer name, commit date, comment - using # as a separator
+    git_options = _T("--pretty=format:%H#%cn#%cd#%s");      // hash, committer name, commit date, comment - using # as a separator
                                                             // since it can't appear in any of the fields except maybe the last.
     git_arguments = fileName;
 
     if (call_git (FALSE))
         return -2;				// maybe git's not installed!
-    
-//    git_lineNumber = 0;
-    git_count = git_output.GetCount();
 
+    git_count = git_output.GetCount();
     return git_count;
 }
 
@@ -335,35 +333,35 @@ int  DVCS::get_version ( int version_num, wxString fileName )
 {
 	wxString	nextLine, str;
     int         returnCode;
-    
+
     // The log has multiple entries, each one line long, with the format we asked for in setup_versions:
     // <40 hex digits hash>#<committer name>#commit date#<commit comment>
     // We get the next line as given by git_lineNumber.  If there aren't any
     // more lines, we return -1.  Otherwise we return the result of the call_git() call.
-    
+
     if ( version_num >= git_count || version_num < 0)
         return -1;                  // shouldn't happen, but return -1 on out of bounds
 
     nextLine = git_output.Item (version_num);
     str = nextLine.BeforeFirst(_T('#'));        // get the version hash for checkout call
 
-    if ( wxIsEmpty(str) )       // shouldn't really happen
+    if ( wxIsEmpty(str) )                       // shouldn't really happen
         return -1;
-    
+
     git_command = _T("checkout ") + str;
     git_options.Clear();
     git_arguments = fileName;
-    
+
     returnCode = call_git(FALSE);
     if (returnCode)
         return returnCode;                          // bail out on error
-    
-    str = nextLine.AfterFirst(_T('#'));             // skip version hash
-    m_version_committer = str.BeforeFirst(_T('#'));    // get committer name
-    str = str.AfterFirst(_T('#'));                  // now skip the name
-    m_version_date = str.BeforeFirst(_T('#'));       // get commit date
-    m_version_comment = str.AfterFirst(_T('#'));     // and the rest of the string, after the separator, is the comment.
-                                                    // By making this the last field, it can contain anything, even our # separator
+
+    str = nextLine.AfterFirst(_T('#'));                 // skip version hash
+    m_version_committer = str.BeforeFirst(_T('#'));     // get committer name
+    str = str.AfterFirst(_T('#'));                      // now skip the name
+    m_version_date = str.BeforeFirst(_T('#'));          // get commit date
+    m_version_comment = str.AfterFirst(_T('#'));        // and the rest of the string, after the separator, is the comment.
+                                                        // By making this the last field, it can contain anything, even our # separator
     return 0;
 }
 
@@ -424,7 +422,7 @@ int  DVCS::DoDVCS ( int action, int parm )
         case DVCS_SETUP_VERSIONS:   result = setup_versions (m_pApp->m_curOutputFilename);          break;
         case DVCS_GET_VERSION:      result = get_version (parm, m_pApp->m_curOutputFilename);		break;
 //      case DVCS_LATEST_VERSION:   result = get_version (TRUE, m_pApp->m_curOutputFilename);		break;
- 
+
 		case DVCS_LOG_FILE:			result = log_file (m_pApp->m_curOutputFilename);	break;
 		case DVCS_LOG_PROJECT:		result = log_project();								break;
 
@@ -454,7 +452,7 @@ class DVCSDlg : public AIModalDialog
 {
 public:
     DVCSDlg (wxWindow *parent);         // constructor
-    
+
     wxSizer*        m_dlgSizer;
     wxTextCtrl*     m_comment;
     wxStaticText*   m_blurb;
@@ -484,7 +482,7 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
 
     pApp->ReverseOkCancelButtonsForMac(&dlg);           // doing the right thing here
 	dlg.Centre();
-    
+
 // Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave the
 //  default text which is already there.
 

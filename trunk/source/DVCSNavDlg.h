@@ -31,7 +31,7 @@ public:
     wxSizer*        m_dlgSizer;
     wxStaticText*   m_version_committer;
     wxStaticText*   m_version_date;
-    wxStaticText*   m_version_comment;
+    wxTextCtrl*     m_version_comment;
 
     void OnPrev (wxCommandEvent& event);
 	void OnNext (wxCommandEvent& event);
