@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding='UTF-8'?>
+<?ifndef Version?>
+<?define Version = "6.4.2" ?>
+<?endif ?>
+
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product Id="9D2095A8-9C1F-4CEA-ABC6-DDFE35B5A593"
              Name="Adapt It WX"
              Language="1033"
 			 Codepage="1252"
-             Version="6.4.1"
+             Version="$(var.Version)"
              Manufacturer="SIL"
              UpgradeCode="12266E65-1D48-4090-BC83-9069A2DEA219">
 
@@ -254,7 +258,7 @@
 		</DirectoryRef>
 
 		<!-- Bring it all together; these are the components that define the feature -->
-        <Feature Id='Complete' Title='Adapt It WX 6.4.0' Description='Adapt It 6.4.0 Regular (Ansi).'
+        <Feature Id='Complete' Title='Adapt It WX $(var.Version)' Description='Adapt It $(var.Version) Regular (Ansi).'
       Display='expand' Level='1' ConfigurableDirectory='APPLICATIONFOLDER'>
 			<ComponentRef Id="ADAPT_IT.EXE" />
             <ComponentRef Id="_adapt_it_wx_regular" />

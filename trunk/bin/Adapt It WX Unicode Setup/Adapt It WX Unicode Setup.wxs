@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<?ifndef Version?>
+<?define Version = "6.4.2" ?>
+<?endif ?>
+
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product Id="482A2761-5034-41C1-8399-4696C3763D71" Language="1033" Name="Adapt It WX Unicode" Codepage="1252" Version="6.4.1" Manufacturer="SIL" UpgradeCode="64C9A09B-737D-4B47-BF3A-ED7EFAF5831B">
+    <Product Id="482A2761-5034-41C1-8399-4696C3763D71" Language="1033" Name="Adapt It WX Unicode" Codepage="1252" Version="$(var.Version)" Manufacturer="SIL" UpgradeCode="64C9A09B-737D-4B47-BF3A-ED7EFAF5831B">
         <Package Id="*" Keywords="Installer" Description="Adapt It WX Unicode Installer" InstallerVersion="100" Languages="1033" Compressed="yes" InstallScope="perMachine" SummaryCodepage="1252" />
         <Media Id="1" Cabinet="product.cab" CompressionLevel="high" EmbedCab="yes" />
-		
+
 		<Property Id="ApplicationFolderName" Value="Adapt It WX Unicode" />
 		<Property Id="WixAppFolder" Value="WixPerMachineFolder" />
 		
@@ -264,7 +268,7 @@
 		</DirectoryRef>
 
 		<!-- Bring it all together; these are the components that define the feature -->
-        <Feature Id='Complete' Title='Adapt It WX 6.4.0' Description='Adapt It 6.4.0 Unicode.'
+        <Feature Id='Complete' Title='Adapt It WX $(var.Version)' Description='Adapt It $(var.Version) Unicode.'
       Display='expand' Level='1' ConfigurableDirectory='APPLICATIONFOLDER'>
 			<ComponentRef Id="ADAPT_IT_UNICODE.EXE" />
             <ComponentRef Id="_adapt_it_wx_unicode" />
