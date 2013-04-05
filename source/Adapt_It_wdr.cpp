@@ -9616,10 +9616,6 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_BACKUP_KB, _("&Backup Knowledge Base"), _("Make a new knowledge base backup immediately") );
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->AppendSeparator();
-    item1->Append( ID_FILE_SAVE_COMMIT, _("Save and remember in history..."), _("Saves the current document and remembers its state in the history.") );
-    item1->Append( ID_FILE_REVERT_FILE, _("Look at previous versions in the document history..."), _("Shows the previously remembered version, and allows you to go back to earlier versions.") );
-    item1->Append( ID_FILE_TAKE_OWNERSHIP, _("Take ownership of this document"), _("Allows you, the logged-in user, to become the owner of this document so you can edit it.") );
-    item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
     item0->Append( item1, _("&File") );
     

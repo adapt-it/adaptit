@@ -1225,6 +1225,7 @@ void CAdapt_ItView::UpdateAppearance (void)
 		ptrLayout->PlaceBox();		// Sets the parameters for the updated placement of the phrase box if changing
 									//  direction, also gets rid of all the pink if making doc editable!
 
+#ifdef __WXMAC__
     // Under OSX/Cocoa, it seems we have to do all this bit again!!
         if (canvas != NULL)
             canvas->ClearBackground();
@@ -1234,7 +1235,8 @@ void CAdapt_ItView::UpdateAppearance (void)
 	}
 	else
 		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
-
+#endif
+    
 	Invalidate();					// only needed on Windows to really get rid of all the pink!!
 }
 

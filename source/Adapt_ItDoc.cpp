@@ -1642,16 +1642,16 @@ void CAdapt_ItDoc::DoChangeRevision ( int revNum )
 	}
     
 	if (returnCode == 0)
-	{		// So far so good.  But we need to re-read the doc.  It becomes read-only since
-        // ReadOnlyProtection sees that m_trialRevNum is non-negative.
-        // If an error has come up, we leave the trial status alone.
+	{		// So far so good.  But we need to re-read the doc.  If we're not at the latest revision,
+            // the doc becomes read-only since ReadOnlyProtection sees that m_trialRevNum is non-negative.
+            // If an error has come up, we leave the trial status alone.
         
 		gpApp->m_trialRevNum = revNum;          // successfully got to requested revision
 		DocChangedExternally();
         
         if (revNum == 0)
         {                                       // we're at the latest revision, so the trial's over
-            gpApp->m_pDVCSNavDlg->Destroy();
+            gpApp->m_pDVCSNavDlg->Destroy();    // take down the dialog
             gpApp->m_pDVCSNavDlg = NULL;
             gpApp->m_trialRevNum = -1;
             gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
