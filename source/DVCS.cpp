@@ -163,10 +163,10 @@ int  DVCS::call_git ( bool bDisplayOutput )
 
 	result = wxExecute (str, git_output, errors, 0);
 
-    if (result == -1)       // sometimes I get this on the Mac, but it's not an error!
+    if (result == -1)       // sometimes I get this on the Mac, but it seems to be spurious.
     {
-        result = 0;
         wxMessageBox(_T("-1 result"));
+        result = wxExecute (str, git_output, errors, 0);        // just retry once!
     }
 
 	// The only indication we get that something went wrong, is a nonzero result.  It seems to always be 255, whatever the error.
@@ -174,9 +174,8 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	// will land in our errors wxArrayString.  See below.
 
 	if (result)		// An error occurred
-	{
 		returnCode = result;
-	}
+
 	else
 	{		// git's stdout will land in our git_output wxArrayString.  There can be a number of strings.
 			// Just concatenating them with a newline between looks OK so far.  We only display a message
