@@ -21200,14 +21200,17 @@ int ii = 1;
 //	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));
 //	pEditMenu->Append (ID_FILE_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this file"));
 
-/*
-// now moving items to the File menu ready for prime time...
+
+// now moving items to the File menu ready for prime time
     pFileMenu->AppendSeparator();
 
     pFileMenu->Append (ID_FILE_SAVE_COMMIT, _T("Save and remember in history"));
     pFileMenu->Append (ID_FILE_REVERT_FILE, _T("Look at previously remembered version of this document"));
 	pFileMenu->Append (ID_FILE_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this document"));
-*/
+    pFileMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show history for this document"));
+    pFileMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show history for whole project"));
+
+
 #endif
 	// end of code for supporting Mike's DVCS work
 
