@@ -1,43 +1,41 @@
-<Project ToolsVersion="3.5" DefaultTargets="BuildWix" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-        <PropertyGroup>
-                <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-                <Cultures>en-US</Cultures>
-				<DefineSolutionProperties>False</DefineSolutionProperties>
-        </PropertyGroup>
-		<PropertyGroup>
-			<WixToolPath Condition="!HasTrailingSlash('$(WixToolPath)') ">$(WixToolPath)\</WixToolPath>
-			<WixTasksPath>$(WixToolPath)WixTasks.dll</WixTasksPath>
-			<WixTargetsPath>$(WixToolPath)Wix.targets</WixTargetsPath>
-			<OutputPath Condition="'$(MsiOutputPath)' != ''">$(MsiOutputPath)</OutputPath>
-			<OutputPath Condition="!HasTrailingSlash('$(OutputPath)') ">$(OutputPath)\</OutputPath>
-		 
-			<WixVariables>WixUILicenseRtf=$(LicenseFile);WixUIDialogBmp=$(WixUIDialogBmp);WixUIBannerBmp=$(WixUIBannerBmp)</WixVariables>
-			<DefineConstants>
-				 INSTALLVERSION=$(InstallVersion)
-				 ;APPLICATIONNAME=$(ApplicationName)
-				 ;COMPANYNAME=$(CompanyName)
-				 ;COMPANYUID=$(CompanyUID)
-				 ;UPGRADECODE=$(UpgradeCode)
-				 ;PRODUCTID=$(ProductId)
-				 ;COMPRESSED=$(Compressed)
-				 ;DESCRIPTION=$(Description)
-			</DefineConstants>
-		</PropertyGroup>		
-		<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-			<DebugSymbols Condition="'$(DebugSymbols)' == ''" >True</DebugSymbols>
-			<DebugType Condition="'$(DebugType)' == ''" >Full</DebugType>
-			<Optimize Condition="'$(Optimize)' == ''" >False</Optimize>
-		</PropertyGroup>
-	 
-		<PropertyGroup Condition="'$(DebugSymbols)' == 'Release' ">
-			<DebugSymbols Condition="'$(DebugSymbols)' == ''" >False</DebugSymbols>
-			<DebugType Condition=" '$(DebugType)' == ''" >None</DebugType>
-			<Optimize Condition=" '$(Optimize)' == ''" >True</Optimize>
-		</PropertyGroup>
-
-        <Import Project="$(WixTargetsPath)" />
-
-		<ItemGroup>
-            <Compile Include="Adapt It WX Regular Setup.wxs" />
-        </ItemGroup>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.7</ProductVersion>
+    <ProjectGuid>86f0f0d7-8146-4e32-b2df-2aafca7a1dc3</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>Adapt It WX Regular Setup</OutputName>
+    <OutputType>Package</OutputType>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Adapt It WX Regular Setup.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WixExtension Include="WixUIExtension">
+      <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
+      <Name>WixUIExtension</Name>
+    </WixExtension>
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" />
+  <!--
+	To modify your build process, add your task inside one of the targets below and uncomment it.
+	Other similar extension points exist, see Wix.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
 </Project>
