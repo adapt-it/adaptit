@@ -310,11 +310,17 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU(wxID_NEW, CAdapt_ItDoc::OnFileNew)
 	EVT_MENU(wxID_SAVE, CAdapt_ItDoc::OnFileSave)
 	EVT_UPDATE_UI(wxID_SAVE, CAdapt_ItDoc::OnUpdateFileSave)
+
 	EVT_MENU (ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnSaveAndCommit)
-	EVT_MENU (ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnShowPreviousRevisions)
-//	EVT_MENU (ID_MENU_ACCEPT_REVISION, CAdapt_ItDoc::OnAcceptRevision)
-//	EVT_MENU (ID_MENU_RETURN_TO_LATEST, CAdapt_ItDoc::OnReturnToLatestRevision)
-	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
+    EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateSaveAndCommit)
+	EVT_MENU (ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnShowPreviousRevisions)
+    EVT_UPDATE_UI(ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnUpdateShowPreviousRevisions)
+	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)        // this can stay always enabled
+    EVT_MENU (ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnShowFileLog)
+    EVT_UPDATE_UI(ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnUpdateShowFileLog)
+    EVT_MENU (ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnShowProjectLog)
+    EVT_UPDATE_UI(ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnUpdateShowProjectLog)
+
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
 	EVT_MENU(ID_SAVE_AS, CAdapt_ItDoc::OnFileSaveAs)
@@ -1733,6 +1739,52 @@ void CAdapt_ItDoc::DoAcceptRevision (void)
     gpApp->m_pDVCSNavDlg = NULL;
 }
 
+void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
+{
+    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_FILE, 0);
+}
+
+void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
+{
+    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT, 0);
+}
+
+
+// Update handlers for DVCS-related menu items -- these are all enabled if git is installed, disabled otherwise.
+
+void CAdapt_ItDoc::Enable_if_DVCS_installed (wxUpdateUIEvent& event)
+{
+    CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+
+    if (pApp->m_DVCS_installed)
+        event.Enable(TRUE);
+    else
+        event.Enable(FALSE);
+}
+
+void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)
+{
+    Enable_if_DVCS_installed (event);
+}
+
+void CAdapt_ItDoc::OnUpdateShowPreviousRevisions (wxUpdateUIEvent& event)
+{
+    Enable_if_DVCS_installed (event);
+}
+
+void CAdapt_ItDoc::OnUpdateShowFileLog (wxUpdateUIEvent& event)
+{
+    Enable_if_DVCS_installed (event);
+}
+
+void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
+{
+    Enable_if_DVCS_installed (event);
+}
+
+
+/*
 void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 {
 	int		returnCode;
@@ -1751,7 +1803,7 @@ void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
 	DocChangedExternally();
     gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
 }
-
+*/
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
 // Is called from the following 8 functions: the App's DoAutoSaveDoc(), OnFileSave(),

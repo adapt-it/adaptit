@@ -69,11 +69,9 @@ const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
 const int ID_MENU_DVCS_REMOVE_FILE		= 995;
 const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
 const int ID_FILE_SAVE_COMMIT           = 993;
-const int ID_FILE_REVERT_FILE			= 992;
-const int ID_MENU_ACCEPT_REVISION		= 991;
-//const int ID_MENU_RETURN_TO_LATEST		= 990;
-const int ID_MENU_DVCS_LOG_FILE			= 989;
-const int ID_MENU_DVCS_LOG_PROJECT		= 988;
+const int ID_FILE_SHOW_REVISIONS		= 992;
+const int ID_DVCS_LOG_FILE              = 989;
+const int ID_DVCS_LOG_PROJECT           = 988;
 const int ID_FILE_TAKE_OWNERSHIP		= 987;
 
 // BEW note 14Jan13, for the KB sharing menu item in Advanced menu will use value 980 for
@@ -83,7 +81,7 @@ const int ID_FILE_TAKE_OWNERSHIP		= 987;
 // C/C++ config properties, the preprocessor section)
 
 // Action codes for calling the DVCS:
-enum{	DVCS_VERSION, DVCS_COMMIT_FILE,
+enum{	DVCS_CHECK, DVCS_COMMIT_FILE,
         DVCS_SETUP_VERSIONS, DVCS_GET_VERSION,
         DVCS_LOG_FILE, DVCS_LOG_PROJECT };
 				// More to be added if they come up
@@ -2214,9 +2212,10 @@ public:
 										// m_owner and m_AIuser must match before a commit is allowed,
 										// unless either is "no owner".
     bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
+    bool        m_DVCS_installed;       // true if our DVCS engine (git) is actually installed
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
-    DVCSNavDlg* m_pDVCSNavDlg;
+    DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
 
 
 	/////////////////////////////////////////////////////////////////////////////////

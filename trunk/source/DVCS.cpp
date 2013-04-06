@@ -163,9 +163,9 @@ int  DVCS::call_git ( bool bDisplayOutput )
 
 	result = wxExecute (str, git_output, errors, 0);
 
-    if (result == -1)       // sometimes I get this on the Mac, but it seems to be spurious.
+    if (result == -1)       // sometimes I get this on the Mac, but it seems to be spurious, and a retry works.
     {
-        wxMessageBox(_T("-1 result"));
+//        wxMessageBox(_T("-1 result"));
         result = wxExecute (str, git_output, errors, 0);        // just retry once!
     }
 
@@ -210,7 +210,6 @@ int  DVCS::call_git ( bool bDisplayOutput )
 			wxMessageBox (_T("An error occurred -- further information should follow."));
 		}
 	}
-
 	return returnCode;
 }
 
@@ -369,6 +368,7 @@ int  DVCS::log_file (wxString fileName)
 {
 	git_output.Clear();
 	git_command = _T("log");
+    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using space as a separator
 	git_arguments = fileName;
 	return call_git (TRUE);
 }
@@ -377,6 +377,7 @@ int  DVCS::log_project()
 {
 	git_output.Clear();
 	git_command = _T("log");
+    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using space as a separator
 	return call_git (TRUE);
 }
 
@@ -395,35 +396,37 @@ int  DVCS::DoDVCS ( int action, int parm )
 
 	git_command.Clear();  git_options.Clear();  git_arguments.Clear();				// Clear the globals
 
+// Now if we're just checking for git being there, we don't have to do much:
+
+    if (action == DVCS_CHECK)
+    {   git_output.Clear();
+        git_command = _T("version");
+        result = call_git (parm != 0);      // Only display the version if the parm is nonzero
+        return result;
+    }
+
 // Next we cd into our repository.  We use wxSetWorkingDirectory() and spaces in pathnames are OK.
 
-	str = m_pApp->m_curAdaptionsPath;
-	bResult = ::wxSetWorkingDirectory (str);
+    str = m_pApp->m_curAdaptionsPath;
+    bResult = ::wxSetWorkingDirectory (str);
 
-	if (!bResult)
-	{
-		wxMessageBox ( _T("There doesn't appear to be a current project!") );
-		return 99;
-	}
+    if (!bResult)
+    {
+        wxMessageBox ( _T("There doesn't appear to be a current project!") );
+        return 99;
+    }
 
 // Now, what have we been asked to do?
 
 	switch (action)
 	{
-		case DVCS_VERSION:
-			git_output.Clear();
-			git_command = _T("version");
-			result = call_git (TRUE);
-			break;
-
 		case DVCS_COMMIT_FILE:		result = commit_file (m_pApp->m_curOutputFilename);             break;
 
         case DVCS_SETUP_VERSIONS:   result = setup_versions (m_pApp->m_curOutputFilename);          break;
         case DVCS_GET_VERSION:      result = get_version (parm, m_pApp->m_curOutputFilename);		break;
-//      case DVCS_LATEST_VERSION:   result = get_version (TRUE, m_pApp->m_curOutputFilename);		break;
 
-		case DVCS_LOG_FILE:			result = log_file (m_pApp->m_curOutputFilename);	break;
-		case DVCS_LOG_PROJECT:		result = log_project();								break;
+		case DVCS_LOG_FILE:			result = log_file (m_pApp->m_curOutputFilename);                break;
+		case DVCS_LOG_PROJECT:		result = log_project();                                         break;
 
 		default:
 			wxMessageBox (_T("Internal error - illegal DVCS command"));
