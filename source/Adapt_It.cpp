@@ -15275,6 +15275,7 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 /// anything with the main frame or variables it initializes until the CMainFrame is
 /// created in OnInit().
 //////////////////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
   //bool bMain = wxThread::IsMain(); // yep, correctly returns true
@@ -15322,6 +15323,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_trialRevNum = -1;			// negative means no trial going on - the normal case
 
 	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
+
+// Now we check if git is actually installed:
+    m_DVCS_installed = ( m_pDVCS->DoDVCS (DVCS_CHECK, 0) == 0 );       // if this call returns an error, assume DVCS not installed
 
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
@@ -21205,10 +21209,10 @@ int ii = 1;
     pFileMenu->AppendSeparator();
 
     pFileMenu->Append (ID_FILE_SAVE_COMMIT, _T("Save and remember in history"));
-    pFileMenu->Append (ID_FILE_REVERT_FILE, _T("Look at previously remembered version of this document"));
+    pFileMenu->Append (ID_FILE_SHOW_REVISIONS, _T("Look at previously remembered version of this document"));
 	pFileMenu->Append (ID_FILE_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this document"));
-    pFileMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show history for this document"));
-    pFileMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show history for whole project"));
+    pFileMenu->Append (ID_DVCS_LOG_FILE, _T("Show history for this document"));
+    pFileMenu->Append (ID_DVCS_LOG_PROJECT, _T("Show history for whole project"));
 
 
 #endif

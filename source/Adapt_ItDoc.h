@@ -435,6 +435,10 @@ protected:
 						// m_bHasNote flag set TRUE -- run at start of OnOpenDocument()
 	bool			ForceAnEmptyUSFMBreakHere(wxString tokBuffer, CSourcePhrase* pSrcPhrase, 
 									wxChar* ptr); // BEW added 15Aug12
+    
+    void            Enable_if_DVCS_installed (wxUpdateUIEvent& event);
+    bool            Commit_valid();
+
 
 #ifdef CONSCHK
 	void ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
@@ -446,14 +450,22 @@ public:
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
 	void DocChangedExternally();
+
+    // functions related in some way to DVCS:
 	void OnTakeOwnership (wxCommandEvent& WXUNUSED(event));
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
-    bool Commit_valid();
+    void OnUpdateSaveAndCommit (wxUpdateUIEvent& event);
 	int  DoSaveAndCommit (wxString blurb);
     void DoChangeRevision ( int revNum );
 	void OnShowPreviousRevisions (wxCommandEvent& WXUNUSED(event));
+    void OnUpdateShowPreviousRevisions (wxUpdateUIEvent& event);
     void DoAcceptRevision (void);
-	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
+//	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
+    void OnShowFileLog (wxCommandEvent& WXUNUSED(event));
+    void OnUpdateShowFileLog (wxUpdateUIEvent& event);
+    void OnShowProjectLog (wxCommandEvent& WXUNUSED(event));
+    void OnUpdateShowProjectLog (wxUpdateUIEvent& event);
+
 	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);
 	void OnFileOpen(wxCommandEvent& WXUNUSED(event));
