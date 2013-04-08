@@ -278,7 +278,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
         <dc:creator>
           <cc:Agent>
             <dc:title>Erik Brommers</dc:title>
@@ -426,14 +426,14 @@
      inkscape:label="new"
      style="display:inline">
     <rect
-       style="fill:#5c3566;stroke:#5c3566;stroke-width:0.99965084;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:#5c3566;stroke:#a40000;stroke-width:0.99965084000000004;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect3045"
        width="28.000349"
        height="14.000349"
        x="19.499825"
        y="11.499826" />
     <rect
-       style="fill:#75507b;stroke:#ad7fa8;stroke-width:0.9945904;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:#cc0000;stroke:#ef2929;stroke-width:0.99459040000000021;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect3047"
        width="26.005411"
        height="12.005409"
@@ -442,13 +442,13 @@
     <text
        xml:space="preserve"
        style="font-size:12px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#eeeeec;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
-       x="20.898438"
+       x="21.126953"
        y="23"
        id="text3049"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan3051"
-         x="20.898438"
-         y="23">RTF</tspan></text>
+         x="21.126953"
+         y="23">PDF</tspan></text>
   </g>
 </svg>
