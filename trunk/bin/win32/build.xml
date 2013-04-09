@@ -137,7 +137,7 @@
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="${root}/bin/win32/Adapt_It_vs08.sln" />
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Unicode Debug" />
     </exec>
@@ -164,7 +164,7 @@
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
+		<arg value="${root}/bin/win32/Adapt_It_vs08.sln" />
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Unicode Release" />
     </exec>
