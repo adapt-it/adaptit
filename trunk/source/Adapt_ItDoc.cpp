@@ -321,6 +321,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
     EVT_UPDATE_UI(ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnUpdateShowFileLog)
     EVT_MENU (ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnShowProjectLog)
     EVT_UPDATE_UI(ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnUpdateShowProjectLog)
+    EVT_MENU (ID_MENU_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
 
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
@@ -1542,6 +1543,16 @@ void CAdapt_ItDoc::DocChangedExternally()
 }
 
 
+bool  CAdapt_ItDoc::Git_installed()
+{
+    if (!gpApp->m_DVCS_installed)
+    {
+        wxMessageBox(_T("Adapt It cannot maintain a history of its documents because your administrator has not yet installed the Git program on this computer. Please talk to your administrator."));
+        return FALSE;
+    }
+    return TRUE;
+}
+
 bool  CAdapt_ItDoc::Commit_valid()
 {
 	if (gpApp->m_AIuser == NOOWNER || gpApp->m_owner == NOOWNER)  return TRUE;
@@ -1625,7 +1636,10 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 
 void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 {
-	if (DoSaveAndCommit(_T("")))  return;			// bail out on error
+    if (!Git_installed())
+        return;
+
+	DoSaveAndCommit(_T(""));        // Ignore returned result - if an error occurred, a message will have been shown.
 }
 
 void CAdapt_ItDoc::DoChangeVersion ( int revNum )
@@ -1727,6 +1741,9 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( int startHere )
 
 void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
 {
+    if (!Git_installed())
+        return;
+
     DoShowPreviousVersions (1);
 }
 
@@ -1752,6 +1769,9 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 {
     int     returnCode;
 
+    if (!Git_installed())
+        return;
+
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
         return;                             // bail out on error - don't even show the dialog
@@ -1764,21 +1784,26 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
 {
+    if (!Git_installed())
+        return;
+
     gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT, 0);
 }
 
+void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
+{
+    if (!Git_installed())
+        return;
+    
+    gpApp->m_pDVCS->DoDVCS (DVCS_CHECK, 1);     // nonzero parm means display the returned result
+}
 
-// Update handlers for DVCS-related menu items -- these are all enabled if git is installed, disabled otherwise.
+// Update handlers for DVCS-related menu items -- these used to be disabled if git wasn't installed, but now they're
+//  always enabled, and we give a message if git isn't installed.
 
 void CAdapt_ItDoc::Enable_if_DVCS_installed (wxUpdateUIEvent& event)
 {
-    CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-
-    if (pApp->m_DVCS_installed)
-        event.Enable(TRUE);
-    else
-        event.Enable(FALSE);
+    event.Enable(TRUE);
 }
 
 void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)

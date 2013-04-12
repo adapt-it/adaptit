@@ -445,12 +445,6 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_MENU(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUseToolTips)
 	EVT_UPDATE_UI(ID_HELP_USE_TOOLTIPS, CMainFrame::OnUpdateUseToolTips)
 
-	// support Mike's TEST_DVCS menu item
-#if defined(TEST_DVCS)
-	EVT_MENU (ID_MENU_DVCS_VERSION,			CMainFrame::OnDVCS_Version)
-	EVT_UPDATE_UI(ID_MENU_DVCS_VERSION,		CMainFrame::OnUpdateUseToolTips)
-#endif
-
 	// support the KB Sharing dialog which is on the Advanced menu, BEW 14Jan13
 #if defined(_KBSERVER)
 
@@ -2481,37 +2475,6 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pConfig->SetPath(oldPath);
 }
 
-// Support Mike's testing of DVCS:
-
-#if defined(TEST_DVCS)
-
-int lastResultCode;
-
-void CMainFrame::OnUpdateDVCS_Version (wxUpdateUIEvent& event)
-{
-	// always available
-	event.Enable(TRUE);
-}
-
-void CMainFrame::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
-{
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_CHECK, 1);    // nonzero parm means display the returned result
-	lastResultCode = resultCode;		// avoid compiler warning about unused variable
-}
-
-void CMainFrame::OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event))
-{
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_LOG_FILE, 0);
-	lastResultCode = resultCode;
-}
-
-void CMainFrame::OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event))
-{
-	int resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT, 0);
-	lastResultCode = resultCode;
-}
-
-#endif
 
 // BEW added 14Jan13, to support KB Sharing dialog on Advanced menu
 #if defined(_KBSERVER)

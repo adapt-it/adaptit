@@ -21190,9 +21190,9 @@ int ii = 1;
 	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
     wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
 
-	pEditMenu->AppendSeparator();
+//	pEditMenu->AppendSeparator();
 
-	pEditMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));						// defaults for final 2 params for all these
+//	pEditMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));						// defaults for final 2 params for all these
 //	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _T("Set up version control"));
 //	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _T("Put this file under version control"));
 //	pEditMenu->Append (ID_MENU_DVCS_REMOVE_FILE, _T("Remove this file from version control (file won't be deleted)"));
@@ -21213,7 +21213,7 @@ int ii = 1;
 	pFileMenu->Append (ID_FILE_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this document"));
     pFileMenu->Append (ID_DVCS_LOG_FILE, _T("Show history for this document"));
     pFileMenu->Append (ID_DVCS_LOG_PROJECT, _T("Show history for whole project"));
-
+    pFileMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));
 
 #endif
 	// end of code for supporting Mike's DVCS work
