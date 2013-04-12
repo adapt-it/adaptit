@@ -456,10 +456,11 @@ public:
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
     void OnUpdateSaveAndCommit (wxUpdateUIEvent& event);
 	int  DoSaveAndCommit (wxString blurb);
-    void DoChangeRevision ( int revNum );
-	void OnShowPreviousRevisions (wxCommandEvent& WXUNUSED(event));
-    void OnUpdateShowPreviousRevisions (wxUpdateUIEvent& event);
-    void DoAcceptRevision (void);
+    void DoChangeVersion ( int revNum );
+    void DoShowPreviousVersions ( int startHere );
+	void OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event));
+    void OnUpdateShowPreviousVersions (wxUpdateUIEvent& event);
+    void DoAcceptVersion (void);
 //	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
     void OnShowFileLog (wxCommandEvent& WXUNUSED(event));
     void OnUpdateShowFileLog (wxUpdateUIEvent& event);

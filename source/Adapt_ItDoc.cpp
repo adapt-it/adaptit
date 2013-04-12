@@ -100,6 +100,7 @@
 #include "conschk_exists_notu_dlg.h"
 #include "DVCS.h"
 #include "DVCSNavDlg.h"
+#include "DVCSLogDlg.h"
 #include "StatusBar.h"
 
 // GDLC Removed conditionals for PPC Mac (with gcc4.0 they are no longer needed)
@@ -313,8 +314,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 
 	EVT_MENU (ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnSaveAndCommit)
     EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateSaveAndCommit)
-	EVT_MENU (ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnShowPreviousRevisions)
-    EVT_UPDATE_UI(ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnUpdateShowPreviousRevisions)
+	EVT_MENU (ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnShowPreviousVersions)
+    EVT_UPDATE_UI(ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnUpdateShowPreviousVersions)
 	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)        // this can stay always enabled
     EVT_MENU (ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnShowFileLog)
     EVT_UPDATE_UI(ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnUpdateShowFileLog)
@@ -1627,10 +1628,12 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 	if (DoSaveAndCommit(_T("")))  return;			// bail out on error
 }
 
-void CAdapt_ItDoc::DoChangeRevision ( int revNum )
+void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 {
     int returnCode;
     
+    wxASSERT (revNum >= 0);
+
     if ( revNum >= gpApp->m_RevCount )
     {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
         wxMessageBox (_T("We're already back at the earliest version saved!") );
@@ -1662,66 +1665,72 @@ void CAdapt_ItDoc::DoChangeRevision ( int revNum )
             gpApp->m_trialRevNum = -1;
             gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
         }
-        else
-            gpApp->m_pDVCSNavDlg->Raise();      // put the dialog back on top -- DocSavedExternally() puts the doc on top
-	}
+    }
 }
 
-
-void CAdapt_ItDoc::OnShowPreviousRevisions (wxCommandEvent& WXUNUSED(event))
+void CAdapt_ItDoc::DoShowPreviousVersions ( int startHere )
 {
-	int				returnCode;
-	wxCommandEvent	dummy;
-	int				trialRevNum = gpApp->m_trialRevNum;
+    int				returnCode;
+    wxCommandEvent	dummy;
+    int				trialRevNum = gpApp->m_trialRevNum;
     DVCSNavDlg*     pNavDlg;
 
-	if (gpApp->m_commitCount <= 0)
-	{
-		wxMessageBox (_T("There are no earlier version saved!") );
-		return;
-	}
+    wxASSERT (startHere > 0);
 
-	if (trialRevNum == 0)
-	{
-		wxMessageBox (_T("We're already back at the earliest version saved!") );
-		return;
-	}
+    if (gpApp->m_commitCount <= 0)
+    {
+        wxMessageBox (_T("There are no earlier version saved!") );
+        return;
+    }
+    
+    if (trialRevNum == 0)
+    {
+        wxMessageBox (_T("We're already back at the earliest version saved!") );
+        return;
+    }
     
     if (trialRevNum > 0)
     {
         wxMessageBox (_T("We're shouldn't have got here!") );
-		return;
+        return;
     }
-
-// We're initiating a trial review of previoius versions.  We need to save and commit the current
-// version, so we can come back to it if necessary.  But we don't need to do this if the doc
-// has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
-// we set m_saved_with_commit false for this test, since calling IsModified() will return false.
-
+    
+    // We're initiating a trial review of previoius versions.  We need to save and commit the current
+    // version, so we can come back to it if necessary.  But we don't need to do this if the doc
+    // has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
+    // we set m_saved_with_commit false for this test, since calling IsModified() will return false.
+    
     if ( IsModified() || !gpApp->m_saved_with_commit )
     {
         if (DoSaveAndCommit(_T("Before we can go back to previous versions we must save and remember the document as it is now.  You can enter a \
-comment in the box above to identify this version of the document, then click OK to proceed.")))
+                               comment in the box above to identify this version of the document, then click OK to proceed.")))
             return;			// bail out on error or if user cancelled - message should be already displayed
     }
-
+    
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
         return;                             // bail out on error
-
+    
     gpApp->m_RevCount = returnCode;         // success - now we have the current total number of revisions
-    gpApp->m_trialRevNum = 0;                        // and we're at the latest
+    gpApp->m_trialRevNum = startHere;                           // and here's where we'll start from
     
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
-    pNavDlg->Show();                                            // show it, non-modally
-    
+    pNavDlg->ChooseVersion (startHere);                         // changes the doc version, and sets fields in the dialog
+    pNavDlg->Show();                                            // show it, non-modally.  By showing it after changing the
+                                                                // doc version, it appears on top so we avoid having to Raise()
+                                                                //  it which would look uglier.
     gpApp->m_pDVCSNavDlg = pNavDlg;
-	
-    pNavDlg->OnPrev(dummy);         // rather than call DoChangeRevision(1) we get the prev version via the dialog so all its fields get set up properly
 }
 
-void CAdapt_ItDoc::DoAcceptRevision (void)
+// The "look at previous version" menu item takes us to the last one saved, which is item 1 in the log.
+
+void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
+{
+    DoShowPreviousVersions (1);
+}
+
+void CAdapt_ItDoc::DoAcceptVersion (void)
 {
 	if (gpApp->m_trialRevNum < 0)
 	{
@@ -1741,7 +1750,16 @@ void CAdapt_ItDoc::DoAcceptRevision (void)
 
 void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 {
-    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_FILE, 0);
+    int     returnCode;
+
+    returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
+    if (returnCode < 0)
+        return;                             // bail out on error - don't even show the dialog
+
+    DVCSLogDlg*  pLogDlg = new(DVCSLogDlg) ( gpApp->GetMainFrame() );
+    
+    pLogDlg->ShowModal();
+//    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_FILE, 0);
 }
 
 void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
@@ -1768,7 +1786,7 @@ void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)
     Enable_if_DVCS_installed (event);
 }
 
-void CAdapt_ItDoc::OnUpdateShowPreviousRevisions (wxUpdateUIEvent& event)
+void CAdapt_ItDoc::OnUpdateShowPreviousVersions (wxUpdateUIEvent& event)
 {
     Enable_if_DVCS_installed (event);
 }

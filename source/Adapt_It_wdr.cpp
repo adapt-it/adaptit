@@ -9589,6 +9589,27 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxListCtrl *item2 = new wxListCtrl( parent, ID_LST_VERSIONS, wxDefaultPosition, wxSize(400,120), wxLC_REPORT|wxSUNKEN_BORDER );
+    item1->Add( item2, 20, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 5, wxALIGN_CENTER|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()

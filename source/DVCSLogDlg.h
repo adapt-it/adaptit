@@ -11,42 +11,31 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef DVCSNavDlg_h
-#define DVCSNavDlg_h
+#ifndef DVCSLogDlg_h
+#define DVCSLogDlg_h
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma interface "DVCSNavDlg.h"
+    #pragma interface "DVCSLogDlg.h"
 #endif
 
-class DVCSNavDlg : public AIModalDialog
+class DVCSLogDlg : public AIModalDialog
 {
 public:
-    DVCSNavDlg (wxWindow* parent);          // constructor
-    virtual ~DVCSNavDlg (void);             // destructor
-    
-//    int ShowNavDlg();
+    DVCSLogDlg (wxWindow*  parent);         // constructor
+    virtual ~DVCSLogDlg (void);             // destructor
     
     CAdapt_ItApp*   m_pApp;
     CAdapt_ItDoc*   m_pDoc;
-    
     wxSizer*        m_dlgSizer;
-    wxStaticText*   m_version_committer;
-    wxStaticText*   m_version_date;
-    wxTextCtrl*     m_version_comment;
-
-    void OnPrev (wxCommandEvent& event);
-	void OnNext (wxCommandEvent& event);
-
-    void ChooseVersion ( int version );
 
 protected:
-    void OnAccept (wxCommandEvent& event);
-    void OnLatest (wxCommandEvent& event);
 
 private:
+    void PopulateList();
+
 	DECLARE_EVENT_TABLE()
 };
 
 
-#endif /* DVCSNavDlg_h */
+#endif /* DVCSLogDlg_h */

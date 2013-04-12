@@ -7,7 +7,7 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public
 ///                 License (see license directory)
-/// \description This is the implementation file for the DVCS interface.
+/// \description This is the implementation file for the DVCS version navigation dialog.
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -57,44 +57,44 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
     m_version_comment = (wxTextCtrl*) FindWindowById(ID_VERSION_COMMENT);
     m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
     m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
-    m_pApp            = &wxGetApp();
+    
+    m_pApp = &wxGetApp();
+    m_pDoc = m_pApp->GetDocument();
 }
 
 DVCSNavDlg::~DVCSNavDlg(void)
 { }
 
-void DVCSNavDlg::OnPrev (wxCommandEvent& event)
+void DVCSNavDlg::ChooseVersion ( int version )
 {
-    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-    
-    pDoc->DoChangeRevision (m_pApp->m_trialRevNum + 1);
+    m_pDoc->DoChangeVersion (version);
     
     m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
     m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
     m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
+
+}
+
+void DVCSNavDlg::OnPrev (wxCommandEvent& event)
+{    
+    ChooseVersion (m_pApp->m_trialRevNum + 1);
+    Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 
 void DVCSNavDlg::OnNext (wxCommandEvent& event)
-{
-    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-    
-    pDoc->DoChangeRevision (m_pApp->m_trialRevNum - 1);
-
-    m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
-    m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
-    m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
+{    
+    ChooseVersion (m_pApp->m_trialRevNum - 1);
+    Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 
 void DVCSNavDlg::OnAccept (wxCommandEvent& event)
 {
-    m_pApp->GetDocument()->DoAcceptRevision();      // handles everything, so all we do here is call it
+    m_pApp->GetDocument()->DoAcceptVersion();      // handles everything, so all we do here is call it
 };
 
 void DVCSNavDlg::OnLatest (wxCommandEvent& event)
-{
-    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-    
-    pDoc->DoChangeRevision (0);     // zero is the latest - this also removes the dialog and cleans up
+{    
+    m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
 };
 
 

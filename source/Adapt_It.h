@@ -2216,6 +2216,8 @@ public:
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
+    
+    wxArrayString* m_DVCS_log;          // points to the log returned from git, so our log dialog can get at it
 
 
 	/////////////////////////////////////////////////////////////////////////////////

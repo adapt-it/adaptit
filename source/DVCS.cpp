@@ -130,12 +130,9 @@ int  DVCS::call_git ( bool bDisplayOutput )
     long			result;
 	int				count, i;
 	int				returnCode = 0;		// 0 = no error.  Let's be optimistic here
+    wxLogNull       logNo;              // avoid unwanted system messages
 
-//#ifdef	__WXMAC__
-//	str = _T("/usr/local/bin/git ");
-//#else
 	str = _T("git ");
-//#endif
 
 	// If there's a file or directory path in the arguments string, we need to escape any spaces with backslash space.
 	// We do this in a local copy so the caller can reuse the arguments string if needed.  But on Windows this doesn't
@@ -174,8 +171,12 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	// will land in our errors wxArrayString.  See below.
 
 	if (result)		// An error occurred
-		returnCode = result;
+    {
+        if (!bDisplayOutput)            // if we're not to display output, we just get straight out, returning the error code.
+            return result;
 
+        returnCode = result;
+    }
 	else
 	{		// git's stdout will land in our git_output wxArrayString.  There can be a number of strings.
 			// Just concatenating them with a newline between looks OK so far.  We only display a message
@@ -323,6 +324,8 @@ int  DVCS::setup_versions ( wxString fileName )
     if (call_git (FALSE))
         return -2;				// maybe git's not installed!
 
+    m_pApp->m_DVCS_log = &git_output;       // save pointer to log in app global for our dialog.  This is OK since this
+                                            //  DVCS object lasts for the whole application run.
     git_count = git_output.GetCount();
     return git_count;
 }
@@ -368,17 +371,21 @@ int  DVCS::log_file (wxString fileName)
 {
 	git_output.Clear();
 	git_command = _T("log");
-    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using space as a separator
+    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using # as a separator
 	git_arguments = fileName;
-	return call_git (TRUE);
+	return call_git (FALSE);
+    m_pApp->m_DVCS_log = &git_output;       // save pointer to log in app global for our dialog.  This is OK since this
+                                            //  DVCS object lasts for the whole application run.
 }
 
 int  DVCS::log_project()
 {
 	git_output.Clear();
 	git_command = _T("log");
-    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using space as a separator
+    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using # as a separator
 	return call_git (TRUE);
+    m_pApp->m_DVCS_log = &git_output;       // save pointer to log in app global for our dialog.  This is OK since this
+                                            //  DVCS object lasts for the whole application run.
 }
 
 
