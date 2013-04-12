@@ -438,6 +438,7 @@ protected:
     
     void            Enable_if_DVCS_installed (wxUpdateUIEvent& event);
     bool            Commit_valid();
+    bool            Git_installed();
 
 
 #ifdef CONSCHK
@@ -466,6 +467,7 @@ public:
     void OnUpdateShowFileLog (wxUpdateUIEvent& event);
     void OnShowProjectLog (wxCommandEvent& WXUNUSED(event));
     void OnUpdateShowProjectLog (wxUpdateUIEvent& event);
+    void OnDVCS_Version (wxCommandEvent& WXUNUSED(event));
 
 	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);

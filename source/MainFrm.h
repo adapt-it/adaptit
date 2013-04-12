@@ -217,22 +217,7 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
-
-	// support Mike's TEST_DVCS menu item
-#if defined(TEST_DVCS)
-	void OnDVCS_Version (wxCommandEvent& WXUNUSED(event));
-	void OnUpdateDVCS_Version(wxUpdateUIEvent& event);
-
-	void OnInit_Repository (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Add_File (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Add_All_Files (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Remove_File (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Remove_Project (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Save_Commit_File (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Log_File (wxCommandEvent& WXUNUSED(event));
-	void OnDVCS_Log_Project (wxCommandEvent& WXUNUSED(event));
-#endif
-
+    
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
