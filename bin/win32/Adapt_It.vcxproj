@@ -361,7 +361,7 @@ echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;C:\Program Files (x86)\Visual Leak Detector\include;lib\silconverters;C:\Program Files\Visual Leak Detector\include;C:\Program Files\Visual Leak Detector\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
@@ -476,7 +476,7 @@ echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
