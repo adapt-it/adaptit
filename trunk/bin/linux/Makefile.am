@@ -81,7 +81,7 @@ adaptit_SOURCES = \
 	../../source/CorGuess.cpp ../../source/CreateNewAIProjForCollab.cpp \
 	../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/EmailReportDlg.cpp \
-	../../source/DVCS.cpp ../../source/DVCSNavDlg.cpp \
+	../../source/DVCS.cpp ../../source/DVCSNavDlg.cpp ../../source/DVCSLogDlg.cpp \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
