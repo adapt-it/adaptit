@@ -3995,7 +3995,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			if (bDocForcedToClose)
 			{
 				bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,
-					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+					savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 				bOK = bOK; // avoid warning TODO: Check for failures? (BEW 2Jan12, No, let the
 						   // user act on the message above - & so permit him to continue)
@@ -4038,7 +4038,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		if (bDocForcedToClose)
 		{
 			bOK = pDoc->ReOpenDocument(m_pApp, strSaveCurrentDirectoryFullPath,
-				savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+				savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 				savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 		}
 		m_pApp->m_bRetransReportInProgress = FALSE;
@@ -4127,7 +4127,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				if (bDocForcedToClose)
 				{
 					bOK = pDoc->ReOpenDocument(m_pApp, strSaveCurrentDirectoryFullPath,
-						savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+						savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 						savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 				}
 				m_pApp->m_bRetransReportInProgress = FALSE;
@@ -4171,7 +4171,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 				if (bDocForcedToClose)
 				{
 					bOK = pDoc->ReOpenDocument(m_pApp, strSaveCurrentDirectoryFullPath,
-						savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+						savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 						savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 				}
 				m_pApp->m_bRetransReportInProgress = FALSE;
@@ -4348,7 +4348,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	if (bDocForcedToClose)
 	{
 		bOK = pDoc->ReOpenDocument(	m_pApp, strSaveCurrentDirectoryFullPath,
-			savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+			savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE); // bMarkAsDirty = TRUE
 	}
 	m_pApp->m_bRetransReportInProgress = FALSE;

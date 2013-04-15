@@ -234,7 +234,7 @@ public:
 									wxString savedWorkFolderPath,			// for setting current working directory
 									wxString curOutputPath,					// includes filename
 									wxString curOutputFilename,				// to help get window Title remade
-									int		 curSequNum,						// for resetting the box location
+        //                          int		 curSequNum,		// for resetting the box location - mrh: now not needed since the seq num is saved in the xml.
 									bool	 savedBookmodeFlag,				// for ensuring correct mode
 									bool	 savedDisableBookmodeFlag,		// ditto
 									BookNamePair*	pSavedCurBookNamePair,  // for restoring the pointed at struct
