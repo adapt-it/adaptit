@@ -75,24 +75,24 @@ void DVCSNavDlg::ChooseVersion ( int version )
 
 }
 
-void DVCSNavDlg::OnPrev (wxCommandEvent& event)
+void DVCSNavDlg::OnPrev (wxCommandEvent& WXUNUSED(event))
 {    
     ChooseVersion (m_pApp->m_trialRevNum + 1);
     Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 
-void DVCSNavDlg::OnNext (wxCommandEvent& event)
+void DVCSNavDlg::OnNext (wxCommandEvent& WXUNUSED(event))
 {    
     ChooseVersion (m_pApp->m_trialRevNum - 1);
     Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 
-void DVCSNavDlg::OnAccept (wxCommandEvent& event)
+void DVCSNavDlg::OnAccept (wxCommandEvent& WXUNUSED(event))
 {
     m_pApp->GetDocument()->DoAcceptVersion();      // handles everything, so all we do here is call it
 };
 
-void DVCSNavDlg::OnLatest (wxCommandEvent& event)
+void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))
 {    
     m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
 };

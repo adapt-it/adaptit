@@ -21187,7 +21187,7 @@ int ii = 1;
 	int nIndexOfEditMenu = pAIMenuBar->FindMenu(_T("Edit"));
 	wxASSERT(nIndexOfFileMenu != wxNOT_FOUND);
 	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
-	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
+//	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
     wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
 
 //	pEditMenu->AppendSeparator();
