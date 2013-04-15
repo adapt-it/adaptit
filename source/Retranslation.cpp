@@ -3949,7 +3949,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
     // then proceed as before.
 	wxString savedCurOutputPath = m_pApp->m_curOutputPath;	// includes filename
 	wxString savedCurOutputFilename = m_pApp->m_curOutputFilename;
-	int		 savedCurSequNum = m_pApp->m_nActiveSequNum;
+//	int		 savedCurSequNum = m_pApp->m_nActiveSequNum;
 	bool	 savedBookmodeFlag = m_pApp->m_bBookMode;
 	bool	 savedDisableBookmodeFlag = m_pApp->m_bDisableBookMode;
 	int		 savedBookIndex = m_pApp->m_nBookIndex;

@@ -26850,7 +26850,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	// long as the relevant CKB is ready
 	wxString savedCurOutputPath = m_curOutputPath;	// includes filename
 	wxString savedCurOutputFilename = m_curOutputFilename;
-	int		 savedCurSequNum = m_nActiveSequNum;	// for resetting the box location
+//	int		 savedCurSequNum = m_nActiveSequNum;	// for resetting the box location
 	bool	 savedBookmodeFlag = m_bBookMode;	// for ensuring correct mode
 	bool	 savedDisableBookmodeFlag = m_bDisableBookMode;		// ditto
 	int		 savedBookIndex = m_nBookIndex;
