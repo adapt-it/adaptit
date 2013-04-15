@@ -369,23 +369,31 @@ int  DVCS::get_version ( int version_num, wxString fileName )
 
 int  DVCS::log_file (wxString fileName)
 {
+    int         returnCode;
+
 	git_output.Clear();
 	git_command = _T("log");
     git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using # as a separator
 	git_arguments = fileName;
-	return call_git (FALSE);
-    m_pApp->m_DVCS_log = &git_output;       // save pointer to log in app global for our dialog.  This is OK since this
-                                            //  DVCS object lasts for the whole application run.
+    returnCode = call_git(FALSE);
+    if (returnCode)
+        return returnCode;                          // bail out on error
+    m_pApp->m_DVCS_log = &git_output;               // save pointer to log in app global for our dialog.  This is OK since this
+                                                    //  DVCS object lasts for the whole application run.
 }
 
 int  DVCS::log_project()
 {
+    int         returnCode;
+
 	git_output.Clear();
 	git_command = _T("log");
     git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using # as a separator
-	return call_git (TRUE);
-    m_pApp->m_DVCS_log = &git_output;       // save pointer to log in app global for our dialog.  This is OK since this
-                                            //  DVCS object lasts for the whole application run.
+    returnCode = call_git(FALSE);
+    if (returnCode)
+        return returnCode;                          // bail out on error
+    m_pApp->m_DVCS_log = &git_output;               // save pointer to log in app global for our dialog.  This is OK since this
+                                                    //  DVCS object lasts for the whole application run.
 }
 
 

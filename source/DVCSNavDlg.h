@@ -35,14 +35,14 @@ public:
     wxStaticText*   m_version_date;
     wxTextCtrl*     m_version_comment;
 
-    void OnPrev (wxCommandEvent& event);
-	void OnNext (wxCommandEvent& event);
+    void OnPrev (wxCommandEvent& WXUNUSED(event));
+	void OnNext (wxCommandEvent& WXUNUSED(event));
 
     void ChooseVersion ( int version );
 
 protected:
-    void OnAccept (wxCommandEvent& event);
-    void OnLatest (wxCommandEvent& event);
+    void OnAccept (wxCommandEvent& WXUNUSED(event));
+    void OnLatest (wxCommandEvent& WXUNUSED(event));
 
 private:
 	DECLARE_EVENT_TABLE()
