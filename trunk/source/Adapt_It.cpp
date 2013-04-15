@@ -27067,7 +27067,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			if (bDocForcedToClose)
 			{
 				bOK = pDoc->ReOpenDocument(	this, strSaveCurrentDirectoryFullPath,
-					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+					savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
 			}
 			pView->canvas->Thaw();
@@ -27127,7 +27127,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		if (bDocForcedToClose)
 		{
 			bOK = pDoc->ReOpenDocument(	this, strSaveCurrentDirectoryFullPath,
-				savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+				savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 				savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
 		}
 		// let the view respond again to updates
@@ -27167,7 +27167,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			if (bDocForcedToClose)
 			{
 				bOK = pDoc->ReOpenDocument(	this, strSaveCurrentDirectoryFullPath,
-					savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+					savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 					savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, FALSE); // bMarkAsDirty = FALSE
 			}
 			// let the view respond again to updates
@@ -27385,7 +27385,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			    strSaveCurrentDirectoryFullPath,   // for setting current working directory
 				savedCurOutputPath,				   // includes filename
 				savedCurOutputFilename,			   // to help get window Title remade
-				savedCurSequNum,			       // for resetting the box location
+	//			savedCurSequNum,			       // for resetting the box location
 				savedBookmodeFlag,				   // for ensuring correct mode
 				savedDisableBookmodeFlag,		   // ditto
 				pSavedCurBookNamePair,             // for restoring the pointed at struct

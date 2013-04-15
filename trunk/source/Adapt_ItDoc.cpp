@@ -1529,7 +1529,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 							strSaveCurrentDirectoryFullPath,
 							savedCurOutputPath,
 							savedCurOutputFilename,
-							savedCurSequNum,
+//							savedCurSequNum,
 							savedBookmodeFlag,
 							savedDisableBookmodeFlag,
 							pSavedCurBookNamePair,
@@ -21385,7 +21385,7 @@ bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
     wxString savedWorkFolderPath,			// for setting current working directory
 	wxString curOutputPath,					// includes filename
 	wxString curOutputFilename,				// to help get window Title remade
-	int		 curSequNum,						// for resetting the box location
+//	int		 curSequNum,						// for resetting the box location - mrh: now not needed since the seq num is saved in the xml.
 	bool	 savedBookmodeFlag,				// for ensuring correct mode
 	bool	 savedDisableBookmodeFlag,		// ditto
 	BookNamePair*	pSavedCurBookNamePair,  // for repointing at the correct struct
@@ -21434,15 +21434,15 @@ bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
 	wxASSERT(bOK);
 	*/
 
-	pApp->m_nActiveSequNum = curSequNum;
+//	pApp->m_nActiveSequNum = curSequNum;
 	bOK = OnOpenDocument(curOutputPath, false);
 	SetFilename(curOutputPath,TRUE); // get the window Title set
-	if (curSequNum == -1)
-	{
-		// if the phrase box wasn't visible, relocate it to the doc's start
-		curSequNum = 0;
-	}
-	pApp->m_nActiveSequNum = curSequNum;
+//	if (curSequNum == -1)
+//	{
+//		// if the phrase box wasn't visible, relocate it to the doc's start
+//		curSequNum = 0;
+//	}
+//	pApp->m_nActiveSequNum = curSequNum;
 
 	// we need a totally new layout, we can't assume piles or strips are valid
 	CLayout* pLayout = pApp->GetLayout();
@@ -22052,7 +22052,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 						{
 							// reopen the doc with all as it was before; bMarkAsDirty = TRUE
 							bOK = ReOpenDocument(	pApp, strSaveCurrentDirectoryFullPath,
-								savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+								savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 								savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
 						}
 						// erase the copied CKB which is no longer needed
@@ -22139,7 +22139,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	{
 		// reopen the doc with all as it was before; bMarkAsDirty = TRUE
 		bOK = ReOpenDocument(	pApp, strSaveCurrentDirectoryFullPath,
-			savedCurOutputPath, savedCurOutputFilename, savedCurSequNum, savedBookmodeFlag,
+			savedCurOutputPath, savedCurOutputFilename, /*savedCurSequNum,*/ savedBookmodeFlag,
 			savedDisableBookmodeFlag, pSavedCurBookNamePair, savedBookIndex, TRUE);
 	}
 
