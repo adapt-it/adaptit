@@ -1499,7 +1499,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 
 	wxString		savedCurOutputPath = gpApp->m_curOutputPath;			// includes filename
 	wxString		savedCurOutputFilename = gpApp->m_curOutputFilename;
-	int				savedCurSequNum = gpApp->m_nActiveSequNum;				// for resetting the box location
+//	int				savedCurSequNum = gpApp->m_nActiveSequNum;				// for resetting the box location
 	bool			savedBookmodeFlag = gpApp->m_bBookMode;					// for ensuring correct mode
 	bool			savedDisableBookmodeFlag = gpApp->m_bDisableBookMode;	// ditto
 	int				savedBookIndex = gpApp->m_nBookIndex;
@@ -21746,7 +21746,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
 	wxString savedCurOutputPath = pApp->m_curOutputPath;	// includes filename
 	wxString savedCurOutputFilename = pApp->m_curOutputFilename;
-	int		 savedCurSequNum = pApp->m_nActiveSequNum;	// for resetting the box location
+//	int		 savedCurSequNum = pApp->m_nActiveSequNum;	// for resetting the box location
 	bool	 savedBookmodeFlag = pApp->m_bBookMode;	// for ensuring correct mode
 	bool	 savedDisableBookmodeFlag = pApp->m_bDisableBookMode;		// ditto
 	int		 savedBookIndex = pApp->m_nBookIndex;
