@@ -1779,15 +1779,14 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
     DVCSLogDlg*  pLogDlg = new(DVCSLogDlg) ( gpApp->GetMainFrame() );
     
     pLogDlg->ShowModal();
-//    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_FILE, 0);
 }
 
 void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
 {
     if (!Git_installed())
         return;
-
-    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT, 0);
+// We might be going to deprecate this one...
+//    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT, 0);
 }
 
 void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))

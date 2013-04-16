@@ -82,9 +82,8 @@ const int ID_FILE_TAKE_OWNERSHIP		= 987;
 
 // Action codes for calling the DVCS:
 enum{	DVCS_CHECK, DVCS_COMMIT_FILE,
-        DVCS_SETUP_VERSIONS, DVCS_GET_VERSION,
-        DVCS_LOG_FILE, DVCS_LOG_PROJECT };
-				// More to be added if they come up
+        DVCS_SETUP_VERSIONS, DVCS_GET_VERSION };
+				// More to be added if they come up, though actually I seem to be removing them!
 
 class DVCS;         // class of the object giving access to the DVCS operations
 class DVCSNavDlg;   // dialog for navigating through previous versions
