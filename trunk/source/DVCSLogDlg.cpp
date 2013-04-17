@@ -74,7 +74,7 @@ void DVCSNavDlg::OnPrev (wxCommandEvent& event)
 {
     CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
     
-    pDoc->DoChangeRevision (m_pApp->m_trialRevNum + 1);
+    pDoc->DoChangeRevision (m_pApp->m_trialVersionNum + 1);
     
     m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
     m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
@@ -85,7 +85,7 @@ void DVCSNavDlg::OnNext (wxCommandEvent& event)
 {
     CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
     
-    pDoc->DoChangeRevision (m_pApp->m_trialRevNum - 1);
+    pDoc->DoChangeRevision (m_pApp->m_trialVersionNum - 1);
 
     m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
     m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);

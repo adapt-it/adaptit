@@ -1506,7 +1506,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 	BookNamePair*	pSavedCurBookNamePair = gpApp->m_pCurrBookNamePair;
 	int				savedCommitCount = gpApp->m_commitCount;				// We'll have this count up monotonically, not
 																			//  use the value we read in.  Change if necessary.
-	int				savedTrialRevNum = gpApp->m_trialRevNum;
+	int				savedTrialVersionNum = gpApp->m_trialVersionNum;
 	wxString		dirPath;
 
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
@@ -1539,7 +1539,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 
 	gpApp->m_bDocReopeningInProgress = FALSE;
 	gpApp->m_commitCount = savedCommitCount;
-	gpApp->m_trialRevNum = savedTrialRevNum;
+	gpApp->m_trialVersionNum = savedTrialVersionNum;
 }
 
 
@@ -1577,7 +1577,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	int				resultCode;
 	wxCommandEvent	dummy;
 	wxDateTime		localDate,
-					origDate = gpApp->m_revisionDate;
+					origDate = gpApp->m_versionDate;
 	wxString		origOwner = gpApp->m_owner;
     int             origCommitCnt = gpApp->m_commitCount;
 
@@ -1585,7 +1585,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 // If a trial is under way, we need a decision from the user first as to whether to accept the
 // trial or go back.
 
-	if (gpApp->m_trialRevNum >= 0)
+	if (gpApp->m_trialVersionNum >= 0)
 	{
 		wxMessageBox (_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
@@ -1602,7 +1602,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 
 	localDate = wxDateTime::Now();
-	gpApp->m_revisionDate = localDate.ToUTC (FALSE);
+	gpApp->m_versionDate = localDate.ToUTC (FALSE);
 
     if ( gpApp->m_commitCount < 0 )
         gpApp->m_commitCount = 0;
@@ -1620,7 +1620,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	{
 	// What do we do here??  We've already saved the document with the above info updated.  I think we
 	//  should roll everything back and re-save.  The DVCS code will already have given a message.
-		gpApp->m_revisionDate = origDate;
+		gpApp->m_versionDate = origDate;
 		gpApp->m_commitCount = origCommitCnt;
 		gpApp->m_owner = origOwner;
 
@@ -1648,7 +1648,7 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     
     wxASSERT (revNum >= 0);
 
-    if ( revNum >= gpApp->m_RevCount )
+    if ( revNum >= gpApp->m_versionCount )
     {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
         wxMessageBox (_T("We're already back at the earliest version saved!") );
 		return;
@@ -1666,17 +1666,17 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     
 	if (returnCode == 0)
 	{		// So far so good.  But we need to re-read the doc.  If we're not at the latest revision,
-            // the doc becomes read-only since ReadOnlyProtection sees that m_trialRevNum is non-negative.
+            // the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
             // If an error has come up, we leave the trial status alone.
         
-		gpApp->m_trialRevNum = revNum;          // successfully got to requested revision
+		gpApp->m_trialVersionNum = revNum;          // successfully got to requested revision
 		DocChangedExternally();
         
         if (revNum == 0)
         {                                       // we're at the latest revision, so the trial's over
             gpApp->m_pDVCSNavDlg->Destroy();    // take down the dialog
             gpApp->m_pDVCSNavDlg = NULL;
-            gpApp->m_trialRevNum = -1;
+            gpApp->m_trialVersionNum = -1;
             gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
         }
     }
@@ -1699,7 +1699,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 {
     int				returnCode;
     wxCommandEvent	dummy;
-    int				trialRevNum = gpApp->m_trialRevNum;
+    int				trialRevNum = gpApp->m_trialVersionNum;
     DVCSNavDlg*     pNavDlg;
     bool            didCommit = FALSE;
 
@@ -1742,14 +1742,14 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
         if (returnCode < 0)
             return;                             // bail out on error
     
-        gpApp->m_RevCount = returnCode;         // success - now we have the current total number of log entries
+        gpApp->m_versionCount = returnCode;         // success - now we have the current total number of log entries
         if (fromLogDialog)  startHere++;        // log versions will have gone up by 1
     }
     
     if (startHere == 0)  return;                // presumably the latest version was chosen in the log dialog,
                                                 // and we didn't commit a later one, so there's nothing more to do!
 
-    gpApp->m_trialRevNum = startHere;                           // and here's where we'll start from
+    gpApp->m_trialVersionNum = startHere;                           // and here's where we'll start from
     
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
@@ -1772,7 +1772,7 @@ void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::DoAcceptVersion (void)
 {
-	if (gpApp->m_trialRevNum < 0)
+	if (gpApp->m_trialVersionNum < 0)
 	{
 		wxMessageBox (_T("We're not looking at earlier revisions!"));
 		return;
@@ -1780,7 +1780,7 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 
 // ***** need a messagebox here to give them a chance to bail out
     
-	gpApp->m_trialRevNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
+	gpApp->m_trialVersionNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
     gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
@@ -1801,7 +1801,7 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
     if (returnCode < 0)
         return;                             // bail out on error - don't even show the dialog
 
-    gpApp->m_RevCount = returnCode;         // this is the total number of log entries
+    gpApp->m_versionCount = returnCode;         // this is the total number of log entries
 
     DVCSLogDlg  logDlg ( gpApp->GetMainFrame() );
     returnCode = logDlg.ShowModal();
@@ -3934,8 +3934,8 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	bstr += "=\"";
 	bstr += numStr;						// add the commit count
 
-	if (gpApp->m_revisionDate.IsValid())
-		numStr = gpApp->Convert16to8 (gpApp->m_revisionDate.Format (_T("%Y-%m-%d %H:%M:%S")));
+	if (gpApp->m_versionDate.IsValid())
+		numStr = gpApp->Convert16to8 (gpApp->m_versionDate.Format (_T("%Y-%m-%d %H:%M:%S")));
 																	// %T gives an error on Windows, so we have to spell it out!
 	else
 		numStr = "";

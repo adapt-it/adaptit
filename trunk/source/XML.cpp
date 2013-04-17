@@ -969,7 +969,7 @@ bool ParseXML(wxString& path, const wxString& progressTitle, wxUint32 nProgMax,
 	{
 		gpApp->m_owner = NOOWNER;			// mrh - initial defaults.  If we read the appropriate tags, these will be replaced.
 		gpApp->m_commitCount = -1;			//  means not under version control (yet)
-		gpApp->m_revisionDate = wxInvalidDateTime;
+		gpApp->m_versionDate = wxInvalidDateTime;
 		gpApp->m_nActiveSequNum = 0;		// sensible default if we don't get a "real" value
         gpApp->m_saved_with_commit = FALSE; // not saved/committed yet
 
@@ -3112,9 +3112,9 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 #else
 			wxString	tmp = attrValue;
 #endif
-			const wxChar*  result = gpApp->m_revisionDate.ParseDateTime (tmp);
+			const wxChar*  result = gpApp->m_versionDate.ParseDateTime (tmp);
 			if (result == NULL)
-				gpApp->m_revisionDate = wxInvalidDateTime;		// this may actually be redundant
+				gpApp->m_versionDate = wxInvalidDateTime;		// this may actually be redundant
 		}
 
 	// mrh Oct12   - docVersion 8 adds the active sequence number, no longer in the basic config.
