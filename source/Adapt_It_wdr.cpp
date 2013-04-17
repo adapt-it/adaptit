@@ -9600,6 +9600,19 @@ wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item0->Add( item1, 20, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item4 = new wxButton( parent, wxID_OK, _("Look at selected version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->SetDefault();
+    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item5 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
     if (set_sizer)
     {
         parent->SetSizer( item0 );

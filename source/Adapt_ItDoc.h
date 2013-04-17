@@ -458,7 +458,7 @@ public:
     void OnUpdateSaveAndCommit (wxUpdateUIEvent& event);
 	int  DoSaveAndCommit (wxString blurb);
     void DoChangeVersion ( int revNum );
-    void DoShowPreviousVersions ( int startHere );
+    void DoShowPreviousVersions ( bool fromLogDialog, int startHere );
 	void OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event));
     void OnUpdateShowPreviousVersions (wxUpdateUIEvent& event);
     void DoAcceptVersion (void);
