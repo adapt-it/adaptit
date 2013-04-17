@@ -316,7 +316,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
     EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateSaveAndCommit)
 	EVT_MENU (ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnShowPreviousVersions)
     EVT_UPDATE_UI(ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnUpdateShowPreviousVersions)
-	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)        // this can stay always enabled
+	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
+    EVT_UPDATE_UI(ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnUpdateTakeOwnership)
     EVT_MENU (ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnShowFileLog)
     EVT_UPDATE_UI(ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnUpdateShowFileLog)
     EVT_MENU (ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnShowProjectLog)
@@ -1835,29 +1836,36 @@ void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 // Update handlers for DVCS-related menu items -- these used to be disabled if git wasn't installed, but now they're
 //  always enabled, and we give a message if git isn't installed.
 
-void CAdapt_ItDoc::Enable_if_DVCS_installed (wxUpdateUIEvent& event)
+void CAdapt_ItDoc::Enable_DVCS_item (wxUpdateUIEvent& event)
 {
-    event.Enable(TRUE);
+    int	 trialRevNum = gpApp->m_trialVersionNum;
+
+    event.Enable (trialRevNum < 0);         // item gets enabled iff no trial current
 }
 
 void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)
 {
-    Enable_if_DVCS_installed (event);
+    Enable_DVCS_item (event);
 }
 
 void CAdapt_ItDoc::OnUpdateShowPreviousVersions (wxUpdateUIEvent& event)
 {
-    Enable_if_DVCS_installed (event);
+    Enable_DVCS_item (event);
 }
 
 void CAdapt_ItDoc::OnUpdateShowFileLog (wxUpdateUIEvent& event)
 {
-    Enable_if_DVCS_installed (event);
+    Enable_DVCS_item (event);
 }
 
 void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
 {
-    Enable_if_DVCS_installed (event);
+    Enable_DVCS_item (event);
+}
+
+void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
+{
+    Enable_DVCS_item (event);
 }
 
 

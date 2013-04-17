@@ -436,7 +436,7 @@ protected:
 	bool			ForceAnEmptyUSFMBreakHere(wxString tokBuffer, CSourcePhrase* pSrcPhrase, 
 									wxChar* ptr); // BEW added 15Aug12
     
-    void            Enable_if_DVCS_installed (wxUpdateUIEvent& event);
+    void            Enable_DVCS_item (wxUpdateUIEvent& event);
     bool            Commit_valid();
     bool            Git_installed();
 
@@ -454,6 +454,7 @@ public:
 
     // functions related in some way to DVCS:
 	void OnTakeOwnership (wxCommandEvent& WXUNUSED(event));
+    void OnUpdateTakeOwnership (wxUpdateUIEvent& event);
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
     void OnUpdateSaveAndCommit (wxUpdateUIEvent& event);
 	int  DoSaveAndCommit (wxString blurb);
