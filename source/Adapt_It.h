@@ -2203,10 +2203,10 @@ public:
 										//   -1 = not under version control
 										//    0 = under VC, but no commits done yet
                                         //    n = n commits have been done
-	int			m_trialRevNum;			// non-negative if we're trialling a look at an earlier revision.  Negative means no trial.
-    int         m_RevCount;             // total number of revisions (applies to current trial)
+	int			m_trialVersionNum;		// non-negative if we're trialling a look at an earlier version.  Negative means no trial.
+    int         m_versionCount;         // total number of versions in the log (applies to current trial)
 
-	wxDateTime	m_revisionDate;			// when this revision was committed
+	wxDateTime	m_versionDate;			// when this version was committed
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
 										// m_owner and m_AIuser must match before a commit is allowed,
 										// unless either is "no owner".

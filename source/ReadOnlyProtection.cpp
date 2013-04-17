@@ -1031,7 +1031,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 			// permission.  But if m_owner is NOOWNER, anything goes.  This also happens if version control hasn't
 			// been enabled for this document.
 			// Also, if we're looking at a previous revision as a trial, we need to be read-only.  The condition for
-			//  this is m_trialRevNum being non-negative.
+			//  this is m_trialVersionNum being non-negative.
 			
 			if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_AIuser) )
 			{
@@ -1044,7 +1044,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 				return TRUE;	// return TRUE to app member m_bReadOnlyAccess
 			}
 			
-			if (m_pApp->m_trialRevNum > 0) 
+			if (m_pApp->m_trialVersionNum > 0) 
 			{
 #ifdef _DEBUG_ROP
 				wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but earlier version than latest, so returning TRUE"));

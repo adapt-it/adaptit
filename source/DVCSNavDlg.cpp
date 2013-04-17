@@ -77,13 +77,13 @@ void DVCSNavDlg::ChooseVersion ( int version )
 
 void DVCSNavDlg::OnPrev (wxCommandEvent& WXUNUSED(event))
 {    
-    ChooseVersion (m_pApp->m_trialRevNum + 1);
+    ChooseVersion (m_pApp->m_trialVersionNum + 1);
     Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 
 void DVCSNavDlg::OnNext (wxCommandEvent& WXUNUSED(event))
 {    
-    ChooseVersion (m_pApp->m_trialRevNum - 1);
+    ChooseVersion (m_pApp->m_trialVersionNum - 1);
     Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 

@@ -15320,7 +15320,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
-	m_trialRevNum = -1;			// negative means no trial going on - the normal case
+	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
 
 	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
 
