@@ -1682,15 +1682,29 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     }
 }
 
-void CAdapt_ItDoc::DoShowPreviousVersions ( int startHere )
+/*
+    DoShowPreviousVersions() does the main work for setting up a "trial" of looking at earlier versions and
+    deciding what to do.  It's either called directly from the menu choice, or via the "show history" dialog
+    where we can select any earlier version and look at it.  In this case we pass TRUE for fromLogDialog.
+    If we haven't just done a commit, we need to do one so that we can come back to the latest version if we
+    need to.  In this case, and always if we're called directly, we need to call DVCS to (re-)read the version log.  
+    If we're called from the dialog, OnShowFileLog() below has already read the log, so we don't need to do it 
+    again unless we do another commit.
+    startHere gives the version number we're to show initially, with zero as the latest.  If we're called
+    directly, we'll always start with version 1.  If called from the dialog, any version can be asked for,
+    but if we do another commit and re-read the log, all the numbers will go up by 1 so we also increment
+    startHere.
+*/
+void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 {
     int				returnCode;
     wxCommandEvent	dummy;
     int				trialRevNum = gpApp->m_trialRevNum;
     DVCSNavDlg*     pNavDlg;
+    bool            didCommit = FALSE;
 
-    wxASSERT (startHere > 0);
-
+    wxASSERT (startHere >= 0);
+    
     if (gpApp->m_commitCount <= 0)
     {
         wxMessageBox (_T("There are no earlier version saved!") );
@@ -1719,13 +1733,22 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( int startHere )
         if (DoSaveAndCommit(_T("Before we can go back to previous versions we must save and remember the document as it is now.  You can enter a \
                                comment in the box above to identify this version of the document, then click OK to proceed.")))
             return;			// bail out on error or if user cancelled - message should be already displayed
+        didCommit = TRUE;
     }
     
-    returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
-    if (returnCode < 0)
-        return;                             // bail out on error
+    if (!fromLogDialog || didCommit)
+    {
+        returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
+        if (returnCode < 0)
+            return;                             // bail out on error
     
-    gpApp->m_RevCount = returnCode;         // success - now we have the current total number of revisions
+        gpApp->m_RevCount = returnCode;         // success - now we have the current total number of log entries
+        if (fromLogDialog)  startHere++;        // log versions will have gone up by 1
+    }
+    
+    if (startHere == 0)  return;                // presumably the latest version was chosen in the log dialog,
+                                                // and we didn't commit a later one, so there's nothing more to do!
+
     gpApp->m_trialRevNum = startHere;                           // and here's where we'll start from
     
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
@@ -1744,7 +1767,7 @@ void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
     if (!Git_installed())
         return;
 
-    DoShowPreviousVersions (1);
+    DoShowPreviousVersions (FALSE, 1);
 }
 
 void CAdapt_ItDoc::DoAcceptVersion (void)
@@ -1767,18 +1790,30 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 
 void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 {
-    int     returnCode;
+    int     returnCode, itemIndex = -1;
 
     if (!Git_installed())
         return;
+    
+// need to check if a trial is already under way, and if so, bail out
 
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
         return;                             // bail out on error - don't even show the dialog
 
-    DVCSLogDlg*  pLogDlg = new(DVCSLogDlg) ( gpApp->GetMainFrame() );
+    gpApp->m_RevCount = returnCode;         // this is the total number of log entries
+
+    DVCSLogDlg  logDlg ( gpApp->GetMainFrame() );
+    returnCode = logDlg.ShowModal();
     
-    pLogDlg->ShowModal();
+// now, which button was hit?
+    if (returnCode == wxID_OK)
+    {                   // Show selected version
+        itemIndex = logDlg.m_pList->GetNextItem (itemIndex, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+        if (itemIndex == -1) return;
+
+        DoShowPreviousVersions (TRUE, itemIndex);          // easy!
+    }
 }
 
 void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
@@ -1825,27 +1860,6 @@ void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
     Enable_if_DVCS_installed (event);
 }
 
-
-/*
-void CAdapt_ItDoc::OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event))
-{
-	int		returnCode;
-
-	if (gpApp->m_trialRevNum < 0)
-	{
-		wxMessageBox (_T("We're not looking at earlier versions - already at latest!"));
-		return;
-	}
-
-	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, 0);      // version zero is latest
-
-	if (returnCode)  return;			// bail out on error - message should have been displayed
-
-	gpApp->m_trialRevNum = -1;
-	DocChangedExternally();
-    gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
-}
-*/
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
 // Is called from the following 8 functions: the App's DoAutoSaveDoc(), OnFileSave(),
