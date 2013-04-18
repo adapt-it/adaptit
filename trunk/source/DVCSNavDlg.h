@@ -19,6 +19,7 @@
     #pragma interface "DVCSNavDlg.h"
 #endif
 
+
 class DVCSNavDlg : public AIModalDialog
 {
 public:
@@ -35,6 +36,7 @@ public:
     wxStaticText*   m_version_date;
     wxTextCtrl*     m_version_comment;
 
+    void OnClose (wxCloseEvent& WXUNUSED(event));
     void OnPrev (wxCommandEvent& WXUNUSED(event));
 	void OnNext (wxCommandEvent& WXUNUSED(event));
 
