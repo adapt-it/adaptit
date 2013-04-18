@@ -42,6 +42,7 @@ BEGIN_EVENT_TABLE (DVCSNavDlg, AIModalDialog)
     EVT_BUTTON (ID_BTN_NEXT,   DVCSNavDlg::OnNext)
     EVT_BUTTON (ID_ACCEPT,     DVCSNavDlg::OnAccept)
     EVT_BUTTON (ID_LATEST,     DVCSNavDlg::OnLatest)
+    EVT_CLOSE  (               DVCSNavDlg::OnClose)
 END_EVENT_TABLE()
 
 
@@ -97,4 +98,12 @@ void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))
     m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
 };
 
+
+// We need to catch the situation where the user clicks the dialog's close box while a trial is under way
+//  -- the most harmless thing to do is just to treat it as if "return to latest version" had been clicked.
+
+void DVCSNavDlg::OnClose (wxCloseEvent& WXUNUSED(event))
+{
+    m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
+}
 
