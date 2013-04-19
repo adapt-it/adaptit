@@ -9365,7 +9365,7 @@ wxSizer *ChooseTranslationDlgFunc2( wxWindow *parent, bool call_fit, bool set_si
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 

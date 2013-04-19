@@ -503,7 +503,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 			// Append() it to the m_pTranslations list of the CTargetUnit for lowercase keys
 			pTU_ForLowerCaseKey->m_pTranslations->Append(pRefString_forLower);
 #if defined(_KBSERVER)
-			if (!bStoringNotInKB)
+			if (!bStoringNotInKB && m_pApp->m_bIsKBServerProject)
 			{
 				FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
 			}
@@ -552,7 +552,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					lowerStr = pRefStrDeleted->m_translation;
 
 #if defined(_KBSERVER)
-					if (!bStoringNotInKB)
+					if (!bStoringNotInKB && m_pApp->m_bIsKBServerProject)
 					{
 						FireOffPseudoUndeleteThread(lowercaseKey, pRefStrDeleted);
 					}
@@ -576,7 +576,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					// Append() it to the m_pTranslations list of the CTargetUnit for lowercase keys
 					pTU_ForLowerCaseKey->m_pTranslations->Append(pRefString_forLower);
 #if defined(_KBSERVER)
-					if (!bStoringNotInKB)
+					if (!bStoringNotInKB && m_pApp->m_bIsKBServerProject)
 					{
 						FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
 					}
@@ -734,7 +734,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 	// instance that there are no new uppercase entries needing to be transformed to
 	// lowercase and inserted in the lowercase pTU - so we must do this check, and any
 	// needed transfers, each time AutoCapsLookup() is called.
-	// The benefit of this, although there is a smally speed penaltly, is that no data is
+	// The benefit of this, although there is a small speed penalty, is that no data is
 	// lost to the lookup due to the user switching to auto-capitalization mode, and
 	// secondly, the consistency check will have more data at hand to work with for those
 	// lower case entries which have received transformed former upper case entries.
@@ -743,16 +743,24 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 	// "Tidy up KB" entry in the File menu, which does all such conversions in one hit.
 	// I've declined to add that so as not to complicate the GUI further with something
 	// few users are likely to understand well enough to have confidence to click it.
+	// 
 	// Finally, even though data is moved to lowercase lookup pTU instances, we don't
 	// remove the original uppercase entries. Otherwise, if we did and the user turned
 	// autocapitalization back OFF, then all the upper case entries earier there would be
-	// gone, which he'd probably be rather peeved about. (The !gbCallerIsRemoveButton
-	// subtest is explained in another comment about 20 lines below; that explanation
-	// applies here too.)
-	if (gbAutoCaps&& !gbCallerIsRemoveButton && !m_pApp->m_bDoLegacyLowerCaseLookup)
+	// gone, which he'd probably be rather peeved about. 
+    // We do, however, let him explicitly click a Remove button (in KB Editor or Choose
+    // Translation dialog) to have an adaptation removed if it's lower case exponent
+    // (visible in the list of adaptations and so will appear with lower case initial
+	// letter) originated in a CTargetUnit instance which has upper-case initial key; and
+	// of course, if the m_bDoLegacyLowerCaseLookup flag is FALSE (ie. default value) then
+	// removal may require removal in two (not just one) CTargetUnit instances - one with
+	// upper case key, the other with the corresponding lower case key.
+    // Note: (The !gbCallerIsRemoveButton subtest is explained in another comment about 20
+    // lines below; that explanation applies here too.)
+	if (gbAutoCaps && !gbCallerIsRemoveButton && !m_pApp->m_bDoLegacyLowerCaseLookup)
 	{
 		// Check for a CTargetUnit keyed by an upper-case initial source text word or
-		// phrase, and if found, populate the equivalente lower-case keyed CTargetUnit
+		// phrase, and if found, populate the equivalent lower-case keyed CTargetUnit
 		// with any of the adaptations, or glosses, in the former which are not already in
 		// the latter. If there is no lower-case keyed CTargetUnit yet for this keyStr
 		// passed in, then create one to receive those transformed-to-lower-case copies.

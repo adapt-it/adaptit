@@ -79,7 +79,19 @@ extern int  gnOldSequNum;
 extern bool gbConsistencyCheckCurrent;
 extern bool gbInhibitMakeTargetStringCall;
 
+// globals needed due to moving functions here from mainly the view class
+// next group for auto-capitalization support
 extern bool	gbAutoCaps;
+extern bool	gbSourceIsUpperCase;
+extern bool	gbNonSourceIsUpperCase;
+extern bool	gbMatchedKB_UCentry;
+extern bool	gbNoSourceCaseEquivalents;
+extern bool	gbNoTargetCaseEquivalents;
+extern bool	gbNoGlossCaseEquivalents;
+extern wxChar gcharNonSrcLC;
+extern wxChar gcharNonSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharSrcUC;
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -9163,6 +9175,120 @@ bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase
 	}
 	// if control gets to here, it's pretty certain the strings are identical
 	return TRUE;
+}
+
+// BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation 
+// dialog; used only when the app member boolean, m_bDoLegacyLowerCaseLookup is FALSE (FALSE
+// is the default, this member did not exist for versions 6.4.1 and earlier) - needed because
+// this new member can result in legacy upper case initial keys being made lower case and
+// transferred to the CTargetUnit storing lower case ones (when gAutoCaps is TRUE, i.e. when
+// auto-capitalization is turned on), and if the lower case one is removed, we must check for
+// a parallel upper case CTargetUnit and if found, remove (ie. pseudo-delete) the parallel
+// entry within that too -- otherwise, if we just pseudo-delete the lower case one, the next
+// AutoCapsLookup() call for that source text key will restore the deletion to active
+// service - which we don't want to happen, so we must remove both together to prevent
+// this bogus restoration happening, and that's what this function does
+void RemoveParallelEntriesViaRemoveButton(
+	CKB*   pKB,      // ptr to which KB is currently active, either glossing one, or adapting one
+	int    mapIndex, // 0 is first map in pKB, 1 is second, etc
+	wxString keyStr, // Choose Translation's list entry, or in KBEditor's list entry, being 
+					 // removed from the knowledge base (either context could have UCase or
+					 // LCase for first letter of phrase)
+	wxString adaption) // when this function is called, adaption will be a LC-initial string
+{
+	CAdapt_ItApp* pApp = &wxGetApp(); 
+	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[mapIndex];
+#if defined(_KBSERVER)
+	bool bStoringNotInKB = FALSE;
+#endif
+    wxString lowercaseKey;
+	wxString uppercaseKey;
+    wxString lowercaseNonSource;
+	wxString uppercaseNonSource;
+	bool bNoError = TRUE;
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+
+	// Get the first letter of key's case setting, and define the key with opposite case setting
+	bNoError = pDoc->SetCaseParameters(keyStr);
+	if (!bNoError)
+	{
+		return; // keyStr empty, or more likely, source language case correspondences are not defined
+	}
+	//bool keyStrIsUpperCase = gbSourceIsUpperCase;
+	if (gbSourceIsUpperCase)
+	{
+		uppercaseKey = keyStr;
+		lowercaseKey = keyStr;
+		if (gcharSrcLC != _T('\0'))
+		{
+			// provided there is a nonnull lower case equivalent, use it to make the lowercaseKey
+			lowercaseKey.SetChar(0,gcharSrcLC);
+		}
+	}
+	else if (!gbSourceIsUpperCase && (gcharSrcUC != _T('\0')))
+	{
+		lowercaseKey = keyStr;
+		uppercaseKey = keyStr;
+		if (gcharSrcUC != _T('\0'))
+		{
+			// provided there is a nonnull upper case equivalent, use it to make the uppercaseKey
+			uppercaseKey.SetChar(0,gcharSrcUC);
+		}
+	}
+
+	// Get the first letter of adaptation's case setting, and define the adaptation with 
+	// opposite case setting
+	bNoError = pDoc->SetCaseParameters(adaption);
+	if (!bNoError)
+	{
+		return; // adaption empty, or target language case correspondences are not defined
+	}
+	//bool nonSourceIsUpperCase = gbNonSourceIsUpperCase;
+	if (gbNonSourceIsUpperCase)
+	{
+		uppercaseNonSource = adaption;
+		lowercaseNonSource = adaption;
+		if (gcharNonSrcLC != _T('\0'))
+		{
+			// provided there is a nonnull lower case equivalent, 
+			// use it to make the lowercaseNonSource
+			lowercaseNonSource.SetChar(0,gcharNonSrcLC);
+		}
+	}
+	else if (!gbNonSourceIsUpperCase)
+	{
+		lowercaseNonSource = adaption;
+		uppercaseNonSource = adaption;
+		if (gcharNonSrcUC != _T('\0'))
+		{
+			// provided there is a nonnull upper case equivalent, use it to make the uppercaseNonSource
+			uppercaseNonSource.SetChar(0,gcharNonSrcUC);
+		}
+	}
+
+	CTargetUnit* pTU_forLC = NULL; // for LowerCase
+	CTargetUnit* pTU_forUC = NULL; // for UpperCase
+	if (!lowercaseKey.IsEmpty())
+	{
+		MapKeyStringToTgtUnit::iterator iter;
+		iter = pMap->find(lowercaseKey);
+		if (iter != pMap->end())
+		{
+			pTU_forLC = iter->second;
+			wxASSERT(pTU_forLC != NULL);
+		}
+		else
+		{
+			return;
+		}
+
+
+
+
+
+	// ** TODO **
+
+	} // end of TRUE block for test: if (!lowercaseKey.IsEmpty())
 }
 
 /*
