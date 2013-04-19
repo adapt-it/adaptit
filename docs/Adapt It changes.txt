@@ -1,5 +1,5 @@
 ----------------------------------------------
-Feature changes and new features in 6.5.0
+Feature changes and new features in 6.4.2
 ----------------------------------------------
 * The scroll-into-view feature now can work in one of two ways.
 The default setting keeps the phrase box about 2/3 down the window
@@ -40,7 +40,7 @@ lengthens the text boxes.
 
 
 ----------------------------------------------
-Bug fixes in 6.5.0
+Bug fixes in 6.4.2
 ----------------------------------------------
 * When creating a new document, parsing an endmarker followed 
 by space and an opening curly quote before the next word, 
