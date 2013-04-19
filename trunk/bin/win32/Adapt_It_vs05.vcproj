@@ -872,6 +872,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ToolbarPage.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\TransformToGlossesDlg.cpp"
 				>
 			</File>
@@ -1378,6 +1382,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ToolbarPage.h"
 				>
 			</File>
 			<File
