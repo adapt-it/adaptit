@@ -65,6 +65,7 @@
 #include "StatusBar.h"
 #include "Thread_CreateEntry.h"
 #include "Thread_PseudoUndelete.h"
+#include "Thread_PseudoDelete.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -486,7 +487,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 				// We don't want pseudo-deleted ones, nor <Not In KB> ones
 				continue;
 			}
-			// In the next call, FALSE is bIsStrStr
+			// In the next call, FALSE is bIsSrcStr
 			lowerStr = TransformToLowerCaseInitial(pRefString_forUpper->m_translation, FALSE);
 			// Make a new CRefString to receive the lower case initial string, etc
 			pRefString_forLower = new CRefString;
@@ -997,6 +998,46 @@ void CKB::FireOffPseudoUndeleteThread(wxString srcStr, CRefString* pRefString)
 	}
 }
 
+// Does nothing if the project is not a KB sharing one, or if it is but sharing is
+// currently disabled. Otherwise, it creates the thread and runs it. Error handling is
+// encapsulated, and advisory only, so errors don't stop the app
+void CKB::FireOffPseudoDeleteThread(wxString srcStr, CRefString* pRefString)
+{
+	if (m_pApp->m_bIsKBServerProject &&
+		m_pApp->GetKbServer(m_pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+	{
+		KbServer* pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
+
+		Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
+		// populate it's public members (it only has public ones anyway)
+		pPseudoDeleteThread->m_pKbSvr = pKbSvr;
+		pPseudoDeleteThread->m_source = srcStr;
+		pPseudoDeleteThread->m_translation = pRefString->m_translation;
+		// now create the runnable thread with explicit stack size of 10KB
+		wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
+		if (error != wxTHREAD_NO_ERROR)
+		{
+			wxString msg;
+			msg = msg.Format(_T("Thread_PseudoDelete(): thread creation failed, error number: %d"),
+				(int)error);
+			wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+			//m_pApp->LogUserAction(msg);
+		}
+		else
+		{
+			// no error, so now run the thread (it will destroy itself when done)
+			error = pPseudoDeleteThread->Run();
+			if (error != wxTHREAD_NO_ERROR)
+			{
+			wxString msg;
+			msg = msg.Format(_T("PseudoDelete, Thread_Run(): cannot make the thread run, error number: %d"),
+			  (int)error);
+			wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+			//m_pApp->LogUserAction(msg);
+			}
+		}
+	}
+}
 
 
 

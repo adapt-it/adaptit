@@ -57,6 +57,9 @@
 #include "RefString.h"
 #include "helpers.h"
 #include "tellenc.h"
+#include "RefStringMetadata.h"
+#include "Thread_PseudoDelete.h"
+
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
 
@@ -9214,7 +9217,6 @@ void RemoveParallelEntriesViaRemoveButton(
 	{
 		return; // keyStr empty, or more likely, source language case correspondences are not defined
 	}
-	//bool keyStrIsUpperCase = gbSourceIsUpperCase;
 	if (gbSourceIsUpperCase)
 	{
 		uppercaseKey = keyStr;
@@ -9225,7 +9227,7 @@ void RemoveParallelEntriesViaRemoveButton(
 			lowercaseKey.SetChar(0,gcharSrcLC);
 		}
 	}
-	else if (!gbSourceIsUpperCase && (gcharSrcUC != _T('\0')))
+	else
 	{
 		lowercaseKey = keyStr;
 		uppercaseKey = keyStr;
@@ -9237,13 +9239,12 @@ void RemoveParallelEntriesViaRemoveButton(
 	}
 
 	// Get the first letter of adaptation's case setting, and define the adaptation with 
-	// opposite case setting
-	bNoError = pDoc->SetCaseParameters(adaption);
+	// opposite case setting (FALSE is bIsSrcText in next call)
+	bNoError = pDoc->SetCaseParameters(adaption, FALSE);
 	if (!bNoError)
 	{
 		return; // adaption empty, or target language case correspondences are not defined
 	}
-	//bool nonSourceIsUpperCase = gbNonSourceIsUpperCase;
 	if (gbNonSourceIsUpperCase)
 	{
 		uppercaseNonSource = adaption;
@@ -9255,7 +9256,7 @@ void RemoveParallelEntriesViaRemoveButton(
 			lowercaseNonSource.SetChar(0,gcharNonSrcLC);
 		}
 	}
-	else if (!gbNonSourceIsUpperCase)
+	else
 	{
 		lowercaseNonSource = adaption;
 		uppercaseNonSource = adaption;
@@ -9270,24 +9271,95 @@ void RemoveParallelEntriesViaRemoveButton(
 	CTargetUnit* pTU_forUC = NULL; // for UpperCase
 	if (!lowercaseKey.IsEmpty())
 	{
+		// First find the made-earlier lower-case entry, it's key will be lowercase, 
+		// get its pTU
 		MapKeyStringToTgtUnit::iterator iter;
 		iter = pMap->find(lowercaseKey);
 		if (iter != pMap->end())
 		{
 			pTU_forLC = iter->second;
-			wxASSERT(pTU_forLC != NULL);
+			if (pTU_forLC != NULL)
+			{
+				wxString notInKBStr = _T("<Not In KB>");
+				CRefString* pRefString_forLower = NULL;
+				TranslationsList::Node* pos_forLower = pTU_forLC->m_pTranslations->GetFirst();
+				while (pos_forLower != NULL)
+				{
+					pRefString_forLower = pos_forLower->GetData();
+					pos_forLower = pos_forLower->GetNext(); // point at next node
+					wxASSERT(pRefString_forLower != NULL);
+					if (pRefString_forLower->GetDeletedFlag() || pRefString_forLower->m_translation == notInKBStr)
+					{
+						// We don't want pseudo-deleted ones, nor <Not In KB> ones
+						continue;
+					}
+					if (pRefString_forLower->m_translation == lowercaseNonSource)
+					{
+						// We've matched the entry to be removed, so do it
+						pRefString_forLower->SetDeletedFlag(TRUE);
+						pRefString_forLower->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+						pRefString_forLower->m_refCount = 0;
+#if defined(_KBSERVER)
+						if (!bStoringNotInKB && pApp->m_bIsKBServerProject)
+						{
+							pKB->FireOffPseudoDeleteThread(lowercaseKey, pRefString_forLower);
+						}
+#endif 
+					}
+				}
+			} // end TRUE block for test: if (pTU_forLC != NULL)
 		}
 		else
 		{
 			return;
 		}
-
-
-
-
-
-	// ** TODO **
-
+		// Second find a parallel upper-case entry, it's key will be uppercase, get its
+		// pTU (if there is no upper-case entry, the pTO_forUC returned will be NULL, in
+		// which case we only need the lower case entry removed, so we'd then have nothing
+		// to do here and so can return. Do this block only if bAutoCaps is TRUE
+		iter = pMap->find(uppercaseKey);
+		if (gbAutoCaps && iter != pMap->end())
+		{
+			pTU_forUC = iter->second;
+			if (pTU_forUC != NULL)
+			{
+				wxString notInKBStr = _T("<Not In KB>");
+				CRefString* pRefString_forUpper = NULL;
+				TranslationsList::Node* pos_forUpper = pTU_forUC->m_pTranslations->GetFirst();
+				while (pos_forUpper != NULL)
+				{
+					pRefString_forUpper = pos_forUpper->GetData();
+					pos_forUpper = pos_forUpper->GetNext(); // point at next node
+					wxASSERT(pRefString_forUpper != NULL);
+					if (pRefString_forUpper->GetDeletedFlag() || pRefString_forUpper->m_translation == notInKBStr)
+					{
+						// We don't want pseudo-deleted ones, nor <Not In KB> ones
+						continue;
+					}
+					if (pRefString_forUpper->m_translation == uppercaseNonSource)
+					{
+						// We've matched the entry to be removed, so do it
+                        // (It would be possible to also have an upper-case-inital keyStr
+                        // (e.g. I) and a lower case adaption (e.g. mi), but any of this
+                        // type we'll just ignore - they should be rare or not occur at
+                        // all)
+						pRefString_forUpper->SetDeletedFlag(TRUE);
+						pRefString_forUpper->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+						pRefString_forUpper->m_refCount = 0;
+#if defined(_KBSERVER)
+						if (!bStoringNotInKB && pApp->m_bIsKBServerProject)
+						{
+							pKB->FireOffPseudoDeleteThread(uppercaseKey, pRefString_forUpper);
+						}
+#endif 
+					}
+				}
+			} // end TRUE block for test: if (pTU_forUC != NULL)
+		}
+		else
+		{
+			return;
+		}
 	} // end of TRUE block for test: if (!lowercaseKey.IsEmpty())
 }
 

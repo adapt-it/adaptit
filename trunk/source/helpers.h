@@ -486,7 +486,6 @@ int CountSpaceDelimitedWords(wxString& str);
 // service - which we don't want to happen, so we must remove both together to prevent
 // this bogus restoration happening, and that's what this function does
 void RemoveParallelEntriesViaRemoveButton(
-		bool bIsGlossing, // FALSE if adapting mode is currently on
 		CKB* pKB, // ptr to which KB is currently active, either glossing one, or adapting one
 		int  mapIndex, // 0 is first map in pKB, 1 is second, etc
 		wxString keyStr, // Choose Translation's list entry, or in KBEditor's list entry, being 
