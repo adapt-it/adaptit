@@ -34263,6 +34263,20 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 										  wxString destinationFolder,ConfigFileType configType)
 {
+	// BEW added 17Apr13, to help with debugging config file errors at launch
+	{
+	wxString msg;
+	if (configType == basicConfigFile)
+	{
+		msg = _T("WriteConfigurationFile() entered. Config type is 'basic'");
+	}
+	else
+	{
+		msg = _T("WriteConfigurationFile() entered. Config type is 'project'");
+	}
+	this->LogUserAction(msg);
+	}
+
 	if (m_bReadOnlyAccess || (IsURI(destinationFolder) && configFilename.Find(_T("AI-Admin")) != 0))
 	{
 		// BEW added 13Nov09, we don't allow the local user, if he has read-only access
@@ -34416,6 +34430,19 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	bIsOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 	wxCHECK_MSG(bIsOK, FALSE, _T("WriteConfigurationFile(): ::wxSetWorkingDirectory() failed, line 29,117 in Adapt_It.cpp"));
 
+	{
+	wxString msg;
+	if (configType == basicConfigFile)
+	{
+		msg = _T("WriteConfigurationFile() closing. Config type is 'basic'");
+	}
+	else
+	{
+		msg = _T("WriteConfigurationFile() closing. Config type is 'project'");
+	}
+	this->LogUserAction(msg);
+	}
+
 	return bIsOK;
 }
 
@@ -34433,6 +34460,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 /// (as a wxTextFile) by calling the appropriate helper functions: GetFontConfiguration()
 /// and either GetBasicSettingsConfiguration() or GetProjectSettingsConfiguration().
 /// whm 24Feb10 modified to move the font mismatch checking to FixConfigFileFonts().
+/// BEW 17Apr13, added some LogUserAction() calls for log feedback when launching.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString sourceFolder,
 										ConfigFileType configFType)
@@ -34450,6 +34478,19 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	bool	bEmptyConfigFile = FALSE;
 	wxString  strValue;
 	wxString dummy;
+	// BEW added 17Apr13, to help with debugging config file errors at launch
+	{
+	wxString msg;
+	if (configFType == basicConfigFile)
+	{
+		msg = _T("GetConfigurationFile() entered. Config type is 'basic'");
+	}
+	else
+	{
+		msg = _T("GetConfigurationFile() entered. Config type is 'project'");
+	}
+	this->LogUserAction(msg);
+	}
 
 	// make the working directory the "Adapt It Work" one
 	bool bOK = ::wxSetWorkingDirectory(sourceFolder);
@@ -34670,6 +34711,19 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 
 
 	f.Close(); // closes the wxTextFile and frees memory used for it
+	// BEW added 17Apr13, to help with debugging config file errors at launch
+	{
+	wxString msg;
+	if (configFType == basicConfigFile)
+	{
+		msg = _T("GetConfigurationFile() closing. Config type is 'basic'");
+	}
+	else
+	{
+		msg = _T("GetConfigurationFile() closing. Config type is 'project'");
+	}
+	this->LogUserAction(msg);
+	}
 	return bIsOK;
 }
 

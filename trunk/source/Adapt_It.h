@@ -3894,10 +3894,12 @@ public:
 	/// A boolean is required for support of this option, and so it can optionally be
 	/// turned off - which would have lookups just do a lowercase only lookup (upper case
 	/// entries ignored, which is how it was in versions up to and including 6.4.1).
-	/// It is m_bDoLegacyLowerCaseLookup, default TRUE, and that is used in the GUI
+	/// It is m_bDoLegacyLowerCaseLookup, default FALSE, and that is used in the GUI
 	/// to allow a user to switch on, or turn off, the u.case lookup attempt when a l.case
 	/// lookup has failed. This boolean is stored also in the project configuration file.
-	bool m_bDoLegacyLowerCaseLookup; // default FALSE, user-settable in the GUI, using
+	bool m_bDoLegacyLowerCaseLookup; // default FALSE (i.e. attempts to also use an upper
+									 // case keyed pTU instances as well, as described
+									 // above), user-settable in the GUI, using
 								     // Preferences.../View page, saved in project 
 									 // configuration file. (New regime is the default.)
 
