@@ -4157,6 +4157,7 @@ public:
 private:
 	void	EnsureWorkFolderPresent();
 	bool	SetupCustomWorkFolderLocation();
+	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
 	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
 	// dialog, at the once location, from being shown twice
