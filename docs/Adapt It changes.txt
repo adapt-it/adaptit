@@ -30,6 +30,16 @@ You can go back to the older mode of lookup (which is a little
 faster) by clicking the lower of the two radio buttons in the
 View tab of Preferences. Your setting is stored in the project
 configuration file.
+* If the new default for lookups (see item immediately above) is
+in effect, then the Remove button in either the Choose Translation
+dialog, or the Knowledge Base Editor dialog, will remove, when the
+Automatic Capitalization option is ON, both any legacy 
+upper-case-initial KB entry (provided it exists) along with the
+corresponding lower-case-initial entry. If this double-removal
+didn't happen, then a subsequentlookup of the lower-case-initial
+entry in the KB would (as a side effect) replace the item just 
+removed, which would certainly not be what the user would be 
+wanting to happen!
 * The Choose Translation dialog has been improved. The list box
 is not so wide, but now is full height in the dialog and can
 be dragged larger by resizing the dialog manually. The source
@@ -37,6 +47,13 @@ text and new translation text boxes are less wide, and
 "Source Text:" has been shortened to "Source:", and 
 "New translation:" shorted to "New:". Resizing horizontally
 lengthens the text boxes.
+* For versions up to 6.4.1, the old AI_UserProfiles.xml files, 
+when replaced by a newer one, were being stored with a modified
+name (_Old_ inserted into the filename, and also a datetime 
+added) - and accumulating in the work folder. This was wasting
+disk space unnecessarily. From 6.4.2 and onwards, only the 
+most recent of the old ones are retained (currently, the last
+four).
 
 
 ----------------------------------------------
@@ -54,7 +71,7 @@ entries should not be "seen" as existing, which is now the case.
 * If the phrase box, at the end of the document, went past the end
 (which is normal) and then the user clicked under the very first
 word of the document to put the phrase box there, Adapt It crashed.
-* Some edge cases for retreival of adaptation text from the 
+* Some edge cases for retrieval of adaptation text from the 
 knowledge base when automatic capitalization was turned on, 
 returned an uncapitalized adaptation when a capitalized equivalent
 was needed. This was most easily observed when doing a consistency

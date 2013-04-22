@@ -21252,6 +21252,10 @@ int ii = 1;
 	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
 	//	m_pTargetBox->GetCancelAndSelectFlag());
 
+	// Next call prevents old userprofiles files from accumulating on disk
+	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
+				// in this OnInit() function at lines 19780 to 20,420 approximately)
+
 	GetMainFrame()->SendSizeEvent(); // needed to force redraw
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
@@ -22829,6 +22833,73 @@ bool CAdapt_ItApp::SetupDirectories()
 	return m_bKBReady;
 }
 
+// A function, called at end of OnInit() to prevent accumulation of lots of old
+// AI_UserProfiles.xml files. When a new one is made, the current one is renamed to
+// something like: AI_UserProfiles_Old_2013_04_19T08_02_03Z.xml  and these are stored in
+// the work folder. Since each is about 40kb, we need a function to cull all but the few
+// which are most recent. AdaptItConstants.h has a #define for how many we keep: it is
+// NUM_OLD_USERPROFILES_FILES_TO_KEEP and is set to 4.
+// BEW created 22Apr13 
+void CAdapt_ItApp::RemoveUnwantedOldUserProfilesFiles()
+{
+	// Procedure: enumerate their filenames as wxString objects, sort them in reverse
+	// order (only the datetime stamp at the end distinguishes one from another), and
+	// then remove them from the end backwards, retaining the most recent 
+	// NUM_OLD_USERPROFILES_FILES_TO_KEEP ones
+	wxString path = m_userProfileFileWorkFolderPath;
+	wxSortedArrayString filenames;
+	wxString wildcardFilename = _T("AI_UserProfiles_Old_*");
+	if (!path.IsEmpty())
+	{
+		wxFileName fn(path);
+		fn.Normalize(); // with flags = wxPATH_NORM_ALL
+		int flags = wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR;
+		wxString dirPath = fn.GetPath(flags); // gets it in native format, including final separator
+		wxString searchStr = dirPath + wildcardFilename;
+		wxString aFilename = wxFindFirstFile(searchStr);
+		while (!aFilename.IsEmpty())
+		{
+			filenames.Add(aFilename);
+			aFilename = wxFindNextFile();
+		}
+		if (!filenames.IsEmpty())
+		{
+#if defined(_DEBUG)
+			int i; int num;
+			num = filenames.GetCount();
+			for (i=0; i<num; i++)
+			{
+				wxString aName = filenames.Item(i);
+				wxLogDebug(_T("RemoveUnwantedOldUserProfilesFiles(): wxSortedArrayString items:  index %d   filename  %s"),
+					i, aName.c_str());
+			}
+			int counter = 0;
+#endif
+
+			int numberToDelete = filenames.GetCount() - NUM_OLD_USERPROFILES_FILES_TO_KEEP;
+			if (numberToDelete < 0)
+			{
+				numberToDelete = 0;
+				return; // nothing to do yet
+			}
+			int index;
+			for (index = 0; index < numberToDelete; index++)
+			{
+				wxString deleteThisOne = filenames.Item(index);
+				bool bFileExists = wxFileExists(deleteThisOne);
+				if (bFileExists)
+				{
+#if defined(_DEBUG)
+					wxLogDebug(_T("Removing file:  %s   deletion count:  %d"), deleteThisOne.c_str(), ++counter);
+#endif
+					wxRemoveFile(deleteThisOne);
+
+				}
+			} // end of loop: for (index = 0; index < numberToDelete; index++)
+			filenames.Clear();
+		} // end of TRUE block for test: if (!filenames.IsEmpty())
+	} // end of TRUE block for test: if (!path.IsEmpty())
+}
 
 bool CAdapt_ItApp::CreateInputsAndOutputsDirectories(wxString curProjectPath, wxString& pathCreationErrors)
 {
