@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+	 Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file.
+	 Instead, use NotePad or WordPad. -->
+<AdaptItDoc>
+	<Settings docVersion="5" sizex="1343" sizey="0" specialcolor="255"
+	retranscolor="32896" navcolor="6447616" curchap="1:" srcname="X" tgtname="Y"
+	others="@#@#:F:-1:0:\pro \ca \_footnote_caller \_notes_base \efm \xot \_unknown_para_style \_annotation_text \h1 \__normal \_nav_lang_interlinear \rem \_table_grid \_hdr_ftr_interlinear \_horiz_rule \xt \_dft_para_font \xnt \_peripherals_base \xq \note \cp \mr \ef \_body_text \ib \_header \ide \_double_boxed_para \h3 \_unknown_char_style \fig \vp \_hidden_note \h2 \_tgt_lang_interlinear \restore \_src_lang_interlinear \_list_base \cl \_annotation_ref \_gls_lang_interlinear \ie \free \va \xk \x \r \_intro_base \_small_para_break \_footer \h \xo \_heading_base \_single_boxed_para \lit \sts \rq \bt \_vernacular_base \xdc \_normal_table :\y=0 :"/>
+	<S s="space~“ ‘Inner" k="space~Inner" t="space~“ ‘Inner" a="space~Inner"
+	f="0000000000000000000001" sn="0" w="2" ty="1">
+		<S s="space" k="space"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+		<S s="“ ‘Inner" k="Inner"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘">
+		</S>
+	</S>
+	<S s="space~between" k="space~between" t="space~between" a="space~between"
+	f="0000000000000000000001" sn="1" w="2" ty="1">
+		<S s="space" k="space"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+		<S s="between" k="between"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+	</S>
+	<S s="“ ‘is’ ”~eminently" k="is~eminently" t="“ ‘is’ ”~eminently" a="is~eminently"
+	f="0000000000000000000001" sn="2" w="2" ty="1"
+	pp="“ ‘">
+		<S s="“ ‘is’ ”" k="is"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘" fp="’ ”">
+		</S>
+		<S s="eminently" k="eminently"
+		f="0000000000000000000000" sn="0" w="1" ty="1">
+		</S>
+	</S>
+	<S s="“ ‘sundry’ ”~“diverse”" k="sundry~diverse" t="“ ‘sundry’ ”~“diverse”" a="sundry~diverse"
+	f="0000000000000000100001" sn="3" w="2" ty="1"
+	pp="“ ‘" fp="”">
+		<S s="“ ‘sundry’ ”" k="sundry"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘" fp="’ ”">
+		</S>
+		<S s="“diverse”" k="diverse"
+		f="0000000000000000100000" sn="0" w="1" ty="1"
+		pp="“" fp="”">
+		</S>
+	</S>
+	<S s="is~eternal" k="is~eternal" t="is~forever" a="is~forever"
+	f="0000000000000000100101" sn="4" w="2" ty="1"
+	g="be~forever"
+	iBM="\k " iBEM="\it*">
+		<S s="is" k="is"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		iBM="\k " iBEM="\k*">
+		</S>
+		<S s="eternal" k="eternal"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		iBM="\it " iBEM="\it*">
+		</S>
+	</S>
+	<S s="the one source" k="the one source" t="the easily single source" a="the easily single source"
+	f="0000000000000000000001" sn="5" w="3" ty="1">
+		<S s="the" k="the" t="the" a="the"
+		f="0000000000000000000000" sn="5" w="1" ty="1">
+		</S>
+		<S s="one" k="one" t="one" a="one"
+		f="0000000000000000000000" sn="6" w="1" ty="1">
+		</S>
+		<S s="source" k="source" t="source" a="source"
+		f="0000000000000000000000" sn="7" w="1" ty="1">
+		</S>
+	</S>
+	<S s="“ ‘extreme’ ”" k="extreme" t="“ ‘emotive lexeme’ ”" a="emotive lexeme"
+	f="0000000000000000000101" sn="6" w="1" ty="1"
+	pp="“ ‘" fp="’ ”"
+	g="emotive lexeme"
+	iBM="\k " iBEM="\k*">
+	</S>
+	<S s="is~“effeminate”" k="is~effeminate" t="is~“lady-like”" a="is~lady-like"
+	f="0000000000000000100100" sn="7" w="2" ty="1"
+	fp="”"
+	g="be~forever"
+	iBM="\k " iBEM="\it*">
+		<S s="is" k="is"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		iBM="\k " iBEM="\k*">
+		</S>
+		<S s="“effeminate”" k="effeminate"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“" fp="”"
+		iBM="\it " iBEM="\it*">
+		</S>
+	</S>
+	<S s="“ ‘ease’ ”~“ ‘emertine’ ”" k="ease~emertine" t="“ ‘facile’ ”~“ ‘modern-life’ ”" a="facile~modern-life"
+	f="0000000000000000100100" sn="7" w="2" ty="1"
+	pp="“ ‘" fp="’ ”"
+	g="early~defence"
+	iBM="\k " iBEM="\it*">
+		<S s="“ ‘ease’ ”" k="ease"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘" fp="’ ”"
+		iBM="\k " iBEM="\k*">
+		</S>
+		<S s="“ ‘emertine’ ”" k="emertine"
+		f="0000000000000000000000" sn="0" w="1" ty="1"
+		pp="“ ‘" fp="’ ”"
+		iBM="\it " iBEM="\it*">
+		</S>
+	</S>
+</AdaptItDoc>

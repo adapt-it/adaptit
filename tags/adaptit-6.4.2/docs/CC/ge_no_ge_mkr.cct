@@ -1,0 +1,36 @@
+begin > use(starter)
+group(starter)
+"\lx " > dup back(4) use(maingroup)
+"\ge " > dup back(4) use(maingroup)
+"\" > dup back(1) use(maingroup)
+c "" > omit(1)
+use(maingroup)
+
+group(maingroup)
+"\lx " > use(skip)
+"\lx ..." nl > fwd(7) use(skip)
+"\ge " nl > use(starter)
+"\ge " > store(ge) use(targetscan)
+"\del " > fwd(5) use(skip)
+"\del 0" nl > use(starter)
+"\del 1" nl > use(starter)
+"\wc " > use(skip)
+"\cdt " > use(skip)
+"\ddt " > use(skip)
+"\mdt " > use(skip)
+nl > fwd(1) use(starter)
+endfile > endfile
+nl endfile > endstore endfile
+
+c group(sourcescan)
+c "" > fwd(1)
+c nl > dup endstore use(maingroup)
+
+group(targetscan)
+"" > fwd(1)
+c nl > dup endstore "\lx " out(lx) "\ge " out(ge) nl use(starter)
+nl > endstore out(ge) nl use(starter)
+
+group(skip)
+"" > omit(1)
+"\" > dup back(1) use(starter)
