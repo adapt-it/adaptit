@@ -66,6 +66,8 @@
 		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
 		7DEAF5EA14FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DEAF5E614FF24A000D6E871 /* ChooseCollabOptionsDlg.cpp */; };
 		7DEAF5EB14FF24A100D6E871 /* CreateNewAIProjForCollab.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DEAF5E814FF24A000D6E871 /* CreateNewAIProjForCollab.cpp */; };
+		7DF9FAF2172C3885007B65A2 /* DVCSLogDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DF9FAEE172C3885007B65A2 /* DVCSLogDlg.cpp */; };
+		7DF9FAF3172C3885007B65A2 /* DVCSNavDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DF9FAF0172C3885007B65A2 /* DVCSNavDlg.cpp */; };
 		C80016911410923A009BA61F /* conschk_exists_notu_dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C80016901410923A009BA61F /* conschk_exists_notu_dlg.cpp */; };
 		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
 		C805DBF011705519006919E2 /* Placeholder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C805DBEF11705519006919E2 /* Placeholder.cpp */; };
@@ -273,6 +275,10 @@
 		7DEAF5E714FF24A000D6E871 /* ChooseCollabOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChooseCollabOptionsDlg.h; path = ../../source/ChooseCollabOptionsDlg.h; sourceTree = SOURCE_ROOT; };
 		7DEAF5E814FF24A000D6E871 /* CreateNewAIProjForCollab.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CreateNewAIProjForCollab.cpp; path = ../../source/CreateNewAIProjForCollab.cpp; sourceTree = SOURCE_ROOT; };
 		7DEAF5E914FF24A000D6E871 /* CreateNewAIProjForCollab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CreateNewAIProjForCollab.h; path = ../../source/CreateNewAIProjForCollab.h; sourceTree = SOURCE_ROOT; };
+		7DF9FAEE172C3885007B65A2 /* DVCSLogDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSLogDlg.cpp; path = ../../source/DVCSLogDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7DF9FAEF172C3885007B65A2 /* DVCSLogDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSLogDlg.h; path = ../../source/DVCSLogDlg.h; sourceTree = SOURCE_ROOT; };
+		7DF9FAF0172C3885007B65A2 /* DVCSNavDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSNavDlg.cpp; path = ../../source/DVCSNavDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7DF9FAF1172C3885007B65A2 /* DVCSNavDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSNavDlg.h; path = ../../source/DVCSNavDlg.h; sourceTree = SOURCE_ROOT; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../../../AI_trunk/bin/mac/Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C800168F1410923A009BA61F /* conschk_exists_notu_dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = conschk_exists_notu_dlg.h; path = ../../source/conschk_exists_notu_dlg.h; sourceTree = SOURCE_ROOT; };
@@ -805,6 +811,10 @@
 				7DC038D30F462A570047FCAF /* books.xml */,
 				C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */,
 				8D0C4E960486CD37000505A6 /* Info.plist */,
+				7DF9FAEE172C3885007B65A2 /* DVCSLogDlg.cpp */,
+				7DF9FAEF172C3885007B65A2 /* DVCSLogDlg.h */,
+				7DF9FAF0172C3885007B65A2 /* DVCSNavDlg.cpp */,
+				7DF9FAF1172C3885007B65A2 /* DVCSNavDlg.h */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -1095,6 +1105,8 @@
 				27A17DF916E9AF0800795BF9 /* Thread_UploadMulti.cpp in Sources */,
 				27A17DFA16E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp in Sources */,
 				03F6C91316EFAB5C008530F0 /* ToolbarPage.cpp in Sources */,
+				7DF9FAF2172C3885007B65A2 /* DVCSLogDlg.cpp in Sources */,
+				7DF9FAF3172C3885007B65A2 /* DVCSNavDlg.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
