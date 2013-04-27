@@ -176,6 +176,12 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // 7. The Linux's changelog file in the debian folder
 // 8. Various docs folder files including: Adapt It changes.txt, Readme.txt,
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
+// 9. Within the AboutDlgFunc in wxDesigner change the version number for the
+//    ID_ABOUT_VERSION_NUM wxStaticText to the current version number. 
+//    TODO:
+//    Find out why for the Mac bio;d this wxStaticText value is not getting 
+//    updated from the code in MainFrm.cpp to use the current version number 
+//    which includes the build number.
 #define VERSION_MAJOR_PART 6
 #define VERSION_MINOR_PART 4
 #define VERSION_BUILD_PART 2
