@@ -308,6 +308,8 @@
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
 		C8C3970715D3D2670093A3CE /* BookNameDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BookNameDlg.h; path = ../../source/BookNameDlg.h; sourceTree = SOURCE_ROOT; };
 		C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BookNameDlg.cpp; path = ../../source/BookNameDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8C3970915D3D2670093A3CE /* Adapt_It.wdr */ = {isa = PBXFileReference; lastKnownFileType = file; name = Adapt_It.wdr; path = ../../source/Adapt_It.wdr; sourceTree = SOURCE_ROOT; };
+		C8C3970A15D3D2670093A3CE /* NewDialogImplementationTemplate.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = NewDialogImplementationTemplate.txt; path = ../../source/NewDialogImplementationTemplate.txt; sourceTree = SOURCE_ROOT; };
 		C8DC8FF014A3331200EA1D5C /* DVCS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCS.h; path = ../../source/DVCS.h; sourceTree = SOURCE_ROOT; };
 		C8DC8FF114A3331200EA1D5C /* DVCS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCS.cpp; path = ../../source/DVCS.cpp; sourceTree = SOURCE_ROOT; };
 		C8DE45651323679C0030EC9B /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../source/base64.h; sourceTree = SOURCE_ROOT; };
@@ -517,6 +519,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */,
+				034B73FB16EFAC53009A6389 /* ToolbarPage.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -782,8 +786,6 @@
 				27BD963916E0161700583C59 /* Thread_KbEditorUpdateButton.h */,
 				27BD963A16E0161700583C59 /* Timer_KbServerChangedSince.cpp */,
 				27BD963B16E0161700583C59 /* Timer_KbServerChangedSince.h */,
-				034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */,
-				034B73FB16EFAC53009A6389 /* ToolbarPage.h */,
 				03CFAA09161DE73400B82F58 /* StatusBar.cpp */,
 				03CFAA0A161DE73400B82F58 /* StatusBar.h */,
 				273A30841619A853002B8AA0 /* KbServer.h */,
@@ -1126,7 +1128,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
-				SDKROOT = macosx10.6;
+				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(inherited)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -1165,14 +1167,7 @@
 				LIBRARY_SEARCH_PATHS = "$(WXLIB)/Debug";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"-I$(WXWIN)/buildosxud/lib/wx/include/osx_cocoa-unicode-static-2.9",
-					"-I$(WXWIN)/include",
-					"-D_FILE_OFFSET_BITS=64",
-					"-D__WXMAC__",
-					"-D__WXOSX__",
-					"-D__WXOSX_COCOA__",
-				);
+				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
 				OTHER_LDFLAGS = (
 					"-liconv",
@@ -1181,7 +1176,7 @@
 					"-lz",
 				);
 				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx10.6;
+				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
 				VALID_ARCHS = "x86_64 i386";
 				WARNING_CFLAGS = (
@@ -1209,7 +1204,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				SDKROOT = macosx10.6;
+				SDKROOT = "";
 				WARNING_CFLAGS = "";
 			};
 			name = CocoaReleaseWX2.9;
@@ -1246,14 +1241,7 @@
 				LIBRARY_SEARCH_PATHS = "$(WXLIB)/Release";
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"-I$(WXWIN)/buildosxu/lib/wx/include/osx_cocoa-unicode-static-2.9",
-					"-I$(WXWIN)/include",
-					"-D_FILE_OFFSET_BITS=64",
-					"-D__WXMAC__",
-					"-D__WXOSX__",
-					"-D__WXOSX_COCOA__",
-				);
+				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"-Wno-sign-compare",
 					"$(OTHER_CFLAGS)",
@@ -1265,7 +1253,7 @@
 					"-lcurl",
 				);
 				PRODUCT_NAME = "Adapt It";
-				SDKROOT = macosx10.6;
+				SDKROOT = "";
 				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
 				VALID_ARCHS = "x86_64 i386";
 				VERSIONING_SYSTEM = "apple-generic";
