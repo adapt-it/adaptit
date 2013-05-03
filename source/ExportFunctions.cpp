@@ -3278,7 +3278,15 @@ void DoExportInterlinearRTF()
 	// cell, and so forth. The default is 1 (table cell). Since most of our
 	// output is in tables, we will only use \itap0 to mark the style of the Normal
 	// paragraphs that are between the tables
-	wxString Sparnestlvl = _T("\\itap0");
+	// whm removed 2May13. We've been using \itap0 but the default value is
+	// \itap1 for text within a table cell, and that is the DEFAULT value. 
+	// The \itapN value is not used in LibreOffice output of a manually
+	// constructed table document. Apparently, having this set to \itap0
+	// within AI's Interlinear export RTF code, is the reason why newer
+	// versions of LibreOffice (from version 3.5.x and newer) do not interpret
+	// AI's Interlinear RTF correctly. To fix the rendering problem we only
+	// need to omit this key word from the RTF output.
+	//wxString Sparnestlvl = _T("\\itap0");
 
 	// Font size is in half points for RTF \fsN code word (the default is 24 for 12 point text)
 	// Version 3 note: The style attribute for \fs (font size) now comes mainly from the AI_USFM.xml file
@@ -4209,7 +4217,7 @@ void DoExportInterlinearRTF()
 		+SParaAlignNrm+Sleftindent+Srightindent
 		+Swidowcontrol+Sautospacingalpha
 		+Sautospacingnum+SfontalignNrm+SadjustrightNrm
-		+SrindentNrm+SlindentNrm+Sparnestlvl
+		+SrindentNrm+SlindentNrm //+Sparnestlvl // whm 2May13 inclusion of \itap0 causes bad rendering in LibreOffice >= v3.5
 		+_T(" ")
 		+SfontsizeNrm
 		+_T(" \\snext")+STsNumTblNrm
@@ -4225,7 +4233,7 @@ void DoExportInterlinearRTF()
 		+SParaAlignNrm+Sleftindent+Srightindent
 		+Swidowcontrol+Sautospacingalpha
 		+Sautospacingnum+SfontalignNrm+SadjustrightNrm
-		+SrindentNrm+SlindentNrm+Sparnestlvl
+		+SrindentNrm+SlindentNrm //+Sparnestlvl // whm 2May13 inclusion of \itap0 causes bad rendering in LibreOffice >= v3.5
 		+_T(" ")
 		+_T("\\f")+FNumNrm
 		+SfontsizeNrm
@@ -5940,6 +5948,1055 @@ a:
 				}
 			}
 
+#if defined (USE_OLD_WORD_RTF_TABLE_SPECS)
+
+			// Process Row 0 PREFIXED DATA (this is not absolutely required for newer word processors,
+			// but is done for compatibility with older RTF readers - including Word 97 and earlier).
+			 if (nCurrentRow == 0)					// need Table defs prefixed only for row index zero
+			{										// of each table
+				hstr = PardPlain					// start of hstr output string for this table
+				+Trowd	
+				// \trowd
+				+_T(" ")
+				+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+				+TtsN+TtrgaphN						// \ts21\trgaph108
+				+TStartPos							// \trleft0
+				+Tjust								// \trqc if centered table, otherwise ""
+				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+				// the tags above are output once for a given row
+
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+				CellDimsSrc.Empty();
+				CellDimsTgt.Empty();
+				CellDimsGls.Empty();
+				CellDimsNav.Empty();
+				// below two added for version 3
+				cellDimsFree.Empty();
+				cellDimsBack.Empty();
+				CellxNum.Empty(); // holds the N value string for the current cell being processed
+				// the tags below are output as many times as there are cells in this row, with
+				// increasing values for N. Save the whole string in the CellDims... variables for
+				// use in the other rows in the table
+
+				for (int count=0; count < (int)cellxNList.GetCount(); count++)
+				{
+
+					CellxNum = cellxNList.Item(count); // Get N from cellxNList
+
+					CellDimsNav += gpApp->m_eolStr
+					+Tcellx+CellxNum;
+
+					CellDimsSrc += gpApp->m_eolStr
+					+Tcellx+CellxNum;
+
+					CellDimsTgt += gpApp->m_eolStr
+					+Tcellx+CellxNum;
+
+					CellDimsGls += gpApp->m_eolStr
+					+Tcellx+CellxNum;
+				}
+
+				wxString nullStr = _T("");
+				int cellCount;
+				if (bInclFreeTransRow)
+				{
+					// Ensure that any Free Tranlsation row gets assigned the same overall width as
+					// the other rows above in the table.
+					cellCount = cellxNListFree.GetCount();
+					if (cellCount == 0)
+					{
+						// There are no cells in cellxNListFree, so just add one to
+						// ensure the Free Trans row ends at same width as the other rows above.
+						cellxNListFree.Add(CellxNum); //cellxNListFree.AddTail(CellxNum);
+						// wx note: wxList works with pointers to wxStrings on the heap so must use new in
+						// the Append call below; wxList::DeleteContents(true) then deletes the list's client
+						// contents (wxStrings).
+						freeTransList.Add(nullStr); // keep lists in sync
+					}
+					else
+					{
+						// The Free list has one or more cells, so check the last entry in cellxNListFree
+						// and if it is not the same as CellxNum above, add the CellxNum value to
+						// cellxNListFree (thus making it extend to the same width as rows above it).
+						wxASSERT(cellxNListFree.GetCount() > 0);
+						wxString TCellNTest = cellxNListFree.Item(cellxNListFree.GetCount()-1);
+						if (TCellNTest != CellxNum)
+						{
+							cellxNListFree.Add(CellxNum);
+							// wx note: wxList works with pointers to wxStrings on the heap so must use new in
+							// the Append call below; wxList::DeleteContents(true) then deletes the list's client
+							// contents (wxStrings).
+							freeTransList.Add(nullStr); // keep lists in sync
+						}
+					}
+					// now fill cellDimsFree with the RTF "\cellxN \n" tag lines
+					for (int count=0; count < (int)cellxNListFree.GetCount(); count++)
+					{
+
+						wxString CellxNumFree = cellxNListFree.Item(count); // Get N from cellxNList
+						if (CellxNumFree != _T("0") && CellxNumFree != _T(""))
+						{
+							// don't list the \cellx0 forms
+							cellDimsFree += gpApp->m_eolStr // version 3
+							+Tcellx+CellxNumFree;
+						}
+
+					}
+				}
+
+				if (bInclBackTransRow)
+				{
+					// Ensure that any Back Tranlsation row gets assigned the same overall width as
+					// the other rows above in the table.
+					cellCount = cellxNListBT.GetCount();
+					if (cellCount == 0)
+					{
+						// There are no cells in cellxNListBT, so just add one to
+						// ensure the Back Trans row ends at same width as the other rows above.
+						cellxNListBT.Add(CellxNum);
+						// wx note: wxList works with pointers to wxStrings on the heap so must use new in
+						// the Append call below; wxList::DeleteContents(true) then deletes the list's client
+						// contents (wxStrings).
+						backTransList.Add(nullStr); // keep lists in sync
+					}
+					else
+					{
+						// The Back list has one or more cells, so check the last entry in cellxNListBT
+						// and, if its value is not the same as CellxNum above, add the CellxNum value to
+						// cellxNListBT (thus making it extend to the same width as rows above it).
+						wxASSERT(cellxNListBT.GetCount() > 0);
+						wxString TCellNTest = cellxNListBT.Item(cellxNListBT.GetCount()-1); 
+						if (TCellNTest != CellxNum) 
+						{
+							cellxNListBT.Add(CellxNum);
+							// wx note: wxList works with pointers to wxStrings on the heap so must use new in
+							// the Append call below; wxList::DeleteContents(true) then deletes the list's client
+							// contents (wxStrings).
+							backTransList.Add(nullStr); // keep lists in sync
+						}
+					}
+					// now fill cellDimsBack with the RTF "\cellxN \n" tag lines
+					for (int count=0; count < (int)cellxNListBT.GetCount(); count++)
+					{
+
+						wxString CellxNumBT = cellxNListBT.Item(count); // Get N from cellxNList
+						if (CellxNumBT != _T("0") && CellxNumBT != _T(""))
+						{
+							cellDimsBack += gpApp->m_eolStr // version 3
+							+Tcellx+CellxNumBT;
+						}
+					}
+				}
+
+				// output the prefix position \cellxN lines (arbitrarily using CellDimsNav as representative)
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,CellDimsNav))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+			}// end of if nCurrentRow == 0
+
+			// Process Row 0 Data for 1st row selected for output. If bInclNavLangRow is TRUE
+			// this would be the Nav Lang row.
+			if (bInclNavLangRow && !bNavProcessed)
+			{
+				// don't increment nCurrentRow here because it would still be row zero if
+				// the Nav Lang row is included
+				TRowNum.Empty();
+				TRowNum << nCurrentRow; 
+
+				wxString TLastRow;
+				if (nCurrentRow == nNumRowsInTable-1)
+					TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+				else
+				TLastRow = _T("");
+
+				bNavProcessed = TRUE;
+				hstr = gpApp->m_eolStr
+				+PardPlain
+				+SintblNav							// Nav Style
+				+ gpApp->m_eolStr
+				+_T("{");
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+				// Output the actual Nav row text delimited by \cell tags
+				// TODO: check if Unicode version needs to separate actual text of
+				// \free and \bt... from the system encoded stuff, with the actual
+				// text written as vernacular encoding
+				for (int count=0; count < (int)navList.GetCount(); count++)
+				{
+					// Output each nav string with its own encoding. The NavList contains
+					// the cell contents for this given cell in the row.
+					// Use m_systemEncoding for the nav text row.
+					wxString testStr = navList.Item(count);
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,testStr))	// Nav text string
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+					// whm 8Nov07 note: Unlike the case with source, target and gloss text lists,
+					// We cannot here use the tgt encoding, but must retain the m_systemEncoding,
+					// because ProcessAnaWriteDestinationText() formats the nav text. If we were
+					// to call WriteOutputString with anything other than m_systemEncoding, it would
+					// double convert the control words and make a general mess of the destination
+					// text.
+					// Note: \cell delimiter follows cell contents for each cell in row
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))					// \cell delimiter
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+				}
+
+				hstr = _T("}")
+				+gpApp->m_eolStr
+				+PardPlain
+				+SintblNrm							// in-table Normal style
+				+gpApp->m_eolStr //_T("\n")
+				+_T("{")
+				+_T("\\f")+FNumNav					// Nav associated font
+				+_T(" ")
+				+Trowd								// \trowd
+				+_T(" ")
+				+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+				+TStartPos							// \trleft0
+				+Tjust								// \trqc if centered table, otherwise ""
+				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+				//
+				// CellDimsNav below contains as many \cellxN items as there are cells in this row, with
+				// increasing values for N
+				hstr = CellDimsNav
+				+Trow
+				+_T(" ")
+				+_T('}');							// end of row
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+			}// end of if (bInclNavLangRow && !NavProcessed)
+
+			// Process Row 1 Data for 2nd row selected for output. If bInclSrcLangRow is TRUE
+			// this would be the Src Lang row.
+			if (bInclSrcLangRow && !bSrcProcessed)
+			{
+				// if the Nav Lang row above is included then this would be row index 1,
+				// otherwise this Src Lang row would still be row index 0
+				if (bInclNavLangRow)
+					nCurrentRow++;
+				TRowNum.Empty();
+				TRowNum << nCurrentRow;
+
+				wxString TLastRow;
+				if (nCurrentRow == nNumRowsInTable-1)
+					TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+				else
+				TLastRow = _T("");
+
+				bSrcProcessed = TRUE;
+				hstr = gpApp->m_eolStr
+				+PardPlain
+				+SintblSrc							// Src Style
+				+gpApp->m_eolStr 
+				+_T("{");
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+				// Output the actual Src row text delimited by \cell tags
+				for (int count=0; count < (int)srcList.GetCount(); count++)
+				{
+					if (!WriteOutputString(f,gpApp->m_srcEncoding,srcList.Item(count)))	// Src text string
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+				}
+
+				hstr = _T("}")
+				+gpApp->m_eolStr
+				+PardPlain
+				+SintblNrm							// in-table Normal style
+				+gpApp->m_eolStr
+				+_T("{")
+				+_T("\\f")+FNumSrc					// Src associated font
+				+_T(" ")
+				+Trowd								// \trowd
+				+_T(" ")
+				+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+				+TStartPos							// \trleft0
+				+Tjust								// \trqc if centered table, otherwise ""
+				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+				//
+				// CellDimsSrc below contains as many \cellxN items as there are cells in this row, with
+				// increasing values for N
+				hstr = CellDimsSrc
+				+Trow
+				+_T(" ")
+				+_T('}');							// end of row
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+			}// end of if (bInclSrcLangRow && !SrcProcessed)
+
+			// Process Rows 2 & 3 Data for 3rd and 4th rows selected for output. If gbIsGlossing this
+			// would be Gls Lang and Tgt Lang (assuming bInclGlsLangRow and bInclTgtRow are TRUE); or
+			// reversed order of Tgt Lang and Gls Lang (assuming bInclTgtRow and bInclGlsLangRow are
+			// TRUE).
+			if (gbIsGlossing)
+			{
+				// When Glossing place the Gls language row above the Tgt language row
+				if (bInclGlsLangRow && !bGlsProcessed)
+				{
+					//
+					if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow)
+						nCurrentRow++;
+					TRowNum.Empty();
+					TRowNum << nCurrentRow;
+
+					wxString TLastRow;
+					if (nCurrentRow == nNumRowsInTable-1)
+						TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+					else
+					TLastRow = _T("");
+
+					bGlsProcessed = TRUE;
+					hstr = gpApp->m_eolStr
+					+PardPlain
+					+SintblGls							// Gls Style
+					+gpApp->m_eolStr
+					+_T("{");
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+					// Output the actual Gls row text delimited by \cell tags
+					if (gbGlossingUsesNavFont)
+					{
+						for (int count=0; count < (int)glsList.GetCount(); count++)
+						{
+							// whm 8Nov07 note: We'll use the tgt encoding for gloss text which
+							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count)))	// Gls text string
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+						}
+					}
+					else
+					{
+						for (int count=0; count < (int)glsList.GetCount(); count++)
+						{
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count)))		// Gls uses Tgt encoding
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+						}
+					}
+
+					hstr = _T("}")
+					+gpApp->m_eolStr
+					+PardPlain
+					+SintblNrm							// in-table Normal style
+					+gpApp->m_eolStr //_T("\n")
+					+_T("{")
+					+_T("\\f")+FNumGls					// Gls associated font
+					+_T(" ")
+					+Trowd								// \trowd
+					+_T(" ")
+					+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+					+TStartPos							// \trleft0
+					+Tjust								// \trqc if centered table, otherwise ""
+					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+					//
+					// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
+					// in this row, with increasing values for N
+					if (gbGlossingUsesNavFont)
+					{
+						hstr = CellDimsNav
+						+Trow
+						+_T(" ")
+						+_T('}');						// end of row
+					}
+					else
+					{
+						hstr = CellDimsTgt
+						+Trow
+						+_T(" ")
+						+_T('}');						// end of row
+					}
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+				}// end of if (bInclGlsLangRow && !GlsProcessed)
+
+				if (bInclTgtLangRow && !bTgtProcessed)
+				{
+					if (bInclNavLangRow || bInclSrcLangRow)
+						nCurrentRow++;
+					TRowNum.Empty();
+					TRowNum << nCurrentRow;
+
+					wxString TLastRow;
+					if (nCurrentRow == nNumRowsInTable-1)
+						TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+					else
+					TLastRow = _T("");
+
+					bTgtProcessed = TRUE;
+					hstr = gpApp->m_eolStr
+					+PardPlain
+					+SintblTgt							// Tgt Style
+					+gpApp->m_eolStr
+					+_T("{");
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+					// Output the actual Tgt row text delimited by \cell tags
+					for (int count=0; count < (int)tgtList.GetCount(); count++)
+					{
+						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count)))	// Tgt text string
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+					}
+
+					hstr = _T("}")
+					+gpApp->m_eolStr
+					+PardPlain
+					+SintblNrm							// in-table Normal style
+					+gpApp->m_eolStr
+					+_T("{")
+					+_T("\\f")+FNumTgt					// Tgt associated font
+					+_T(" ")
+					+Trowd								// \trowd
+					+_T(" ")
+					+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+					+TStartPos							// \trleft0
+					+Tjust								// \trqc if centered table, otherwise ""
+					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+					//
+					// CellDimsTgt below contains as many \cellxN items as there are cells in this row, with
+					// increasing values for N
+					hstr = CellDimsTgt
+					+Trow
+					+_T(" ")
+					+_T('}');							// end of row
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+				}// end of if (bInclTgtLangRow && !TgtProcessed)
+
+			}
+			else
+			{
+				// When not Glossing place Target Row then Gloss Row last
+				if (bInclTgtLangRow && !bTgtProcessed)
+				{
+					if (bInclNavLangRow || bInclSrcLangRow)
+						nCurrentRow++;
+					TRowNum.Empty();
+					TRowNum << nCurrentRow;
+
+					wxString TLastRow;
+					if (nCurrentRow == nNumRowsInTable-1)
+						TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+					else
+					TLastRow = _T("");
+
+					bTgtProcessed = TRUE;
+					hstr = gpApp->m_eolStr 
+					+PardPlain
+					+SintblTgt							// Tgt Style
+					+gpApp->m_eolStr 
+					+_T("{");
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+					// Output the actual Tgt row text delimited by \cell tags
+					for (int count=0; count < (int)tgtList.GetCount(); count++)
+					{
+						if (!WriteOutputString(f,gpApp->m_tgtEncoding,tgtList.Item(count)))	// Tgt text string
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+					}
+
+					hstr = _T("}")
+					+gpApp->m_eolStr
+					+PardPlain
+					+SintblNrm							// in-table Normal style
+					+gpApp->m_eolStr
+					+_T("{")
+					+_T("\\f")+FNumTgt					// Tgt associated font
+					+_T(" ")
+					+Trowd								// \trowd
+					+_T(" ")
+					+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+					+TStartPos							// \trleft0
+					+Tjust								// \trqc if centered table, otherwise ""
+					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+					//
+					// CellDimsTgt below contains as many \cellxN items as there are cells in this row, with
+					// increasing values for N
+					hstr = CellDimsTgt
+					+Trow
+					+_T(" ")
+					+_T('}');							// end of row
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+				}// end of if (bInclTgtLangRow && !TgtProcessed)
+
+				if (bInclGlsLangRow && !bGlsProcessed)
+				{
+					if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow)
+						nCurrentRow++;
+					TRowNum.Empty();
+					TRowNum << nCurrentRow;
+
+					wxString TLastRow;
+					if (nCurrentRow == nNumRowsInTable-1)
+						TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+					else
+					TLastRow = _T("");
+
+					bGlsProcessed = TRUE;
+					hstr = gpApp->m_eolStr 
+					+PardPlain
+					+SintblGls							// Gls Style
+					+gpApp->m_eolStr
+					+_T("{");
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+					// Output the actual Gls row text delimited by \cell tags
+					if (gbGlossingUsesNavFont)
+					{
+						for (int count=0; count < (int)glsList.GetCount(); count++)
+						{
+							//if (!WriteOutputString(f,gpApp->m_systemEncoding,*glspos->GetData()))	// Gls text string
+							//	return;
+							// whm 8Nov07 note: We'll use the tgt encoding for gloss text which
+							// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count)))	// Gls text string
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))			// \cell delimiter
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+						}
+					}
+					else
+					{
+						for (int count=0; count < (int)glsList.GetCount(); count++)
+						{
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,glsList.Item(count)))		// Gls uses Tgt encoding
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell))				// \cell delimiter
+							{	
+								pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+								return;
+							}
+						}
+					}
+
+					hstr = _T("}")
+					+gpApp->m_eolStr
+					+PardPlain
+					+SintblNrm							// in-table Normal style
+					+gpApp->m_eolStr
+					+_T("{")
+					+_T("\\f")+FNumGls					// Gls associated font
+					+_T(" ")
+					+Trowd								// \trowd
+					+_T(" ")
+					+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+					+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+					+TStartPos							// \trleft0
+					+Tjust								// \trqc if centered table, otherwise ""
+					+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+					+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+					+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+					// CellDimsNav and CellDimsTgt below contains as many \cellxN items as there are cells
+					// in this row, with increasing values for N
+					if (gbGlossingUsesNavFont)
+					{
+						hstr = CellDimsNav
+						+Trow
+						+_T(" ")
+						+_T('}');						// end of row
+					}
+					else
+					{
+						hstr = CellDimsTgt
+						+Trow
+						+_T(" ")
+						+_T('}');						// end of row
+					}
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					{	
+						pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+						return;
+					}
+
+				}// end of if (bInclGlsLangRow && !GlsProcessed)
+			}// end of else when not glossing
+
+			// added for version 3
+			// Process Row 4 Data for 5th row when Free translation is selected in export options
+			// for output as a table row. When the export option is selected, bInclFreeTransRow
+			// is TRUE.
+			if (bInclFreeTransRow && !bFreeTransProcessed)
+			{
+				if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow || bInclGlsLangRow)
+					nCurrentRow++;
+				TRowNum.Empty();
+				TRowNum << nCurrentRow;
+
+				wxString TLastRow;
+				if (nCurrentRow == nNumRowsInTable-1)
+					TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+				else
+				TLastRow = _T("");
+
+				bFreeTransProcessed = TRUE;
+				hstr = gpApp->m_eolStr
+				+PardPlain
+				+ SintblNav
+				+gpApp->m_eolStr
+				+_T("{")
+				+SintblFree;						// Free Trans Style
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+				// Output the actual Free Translation row text delimited by \cell tag(s).
+				// Note: The cellxNListFree has a list of cell borders with a minimum of one
+				// for the right end of the row that has same \cellxN value as the non-free
+				// trans rows above it. cellxNListFree operates parallel with and has the
+				// same number of items as freeTransList. When cells do not have \free material,
+				// there is only a null string for a given cell in both lists.
+				int freepos = 0;
+				int cellxNListCount = cellxNListFree.GetCount();
+				int freeTransListCount;
+				freeTransListCount = freeTransList.GetCount();
+				wxASSERT(cellxNListCount == freeTransListCount);
+				freeTransListCount = freeTransListCount; // avoid warining 
+				for (int count=0; count < cellxNListCount; count++)
+				{
+					wxString numAtFree = cellxNListFree.Item(count);
+					freepos++;
+					wxString strAtFree = freeTransList.Item(count);
+
+					if (numAtFree != _T("0") && numAtFree != _T(""))
+					{
+						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+					}
+					if (!strAtFree.IsEmpty())
+					{
+						// Write the strAtFree into this free trans row. If not all of the strAtFree
+						// will fit in the remainder of this row, and there is no additional free
+						// trans material starting at a subsequent cell in this row nor at the
+						// beginning of the following row (whose src phrase has just been read),
+						// put any remaining part of the string into the FreeTransSpillOverStr for
+						// the next table to process into the beginning of its free translation row.
+
+						wxString numAtFreeEndCell;
+						numAtFreeEndCell = _T("0");
+						// save our current position in list and scan ahead to find the next non-zero
+						// non-null item in the list
+						int savepos = freepos;
+						while (freepos != (int)cellxNListFree.GetCount() && (numAtFreeEndCell == _T("0") || numAtFreeEndCell.IsEmpty()))
+						{
+							// scan the cellxNListFree entires until we come to either the
+							// end of the list or to any following non-zero, non-null item
+							numAtFreeEndCell = cellxNListFree.Item(freepos);
+							freepos++;
+						}
+						// at this point numAtFreeEndCell should contain the cellxN of either the
+						// end of the row or the beginning of another free trans item. If freepos
+						// is NULL, it signals that we are at the end of the current table's row
+						// and we can potentially wrap any excess text over to the next table's
+						// free trans row, providing the first cell of that row does not itself
+						// start a new free trans element. Since the first source phrase of the
+						// next table has just been read (and its extent was too wide to fit the
+						// current table), we can just check the status of its bHasFreeMarker. If
+						// bHasFreeMarker is FALSE, we can wrap any excess text from strAtFree to
+						// the beginning of the next table's free trans row.
+						if (freepos == (int)cellxNListFree.GetCount() && !bHasFreeMarker)
+						{
+							// first, check if the space we have available in the current row
+							// is too short for the existing text to fit without wrapping
+							int intNumAtFree = wxAtoi(numAtFree); 
+							int intNumAtFreeEndCell = wxAtoi(numAtFreeEndCell);
+							int extentRemaining = intNumAtFreeEndCell - intNumAtFree - 400;
+							// We need to wrap some text to the next table, so we divide up
+							// strAtFree into FreeTransFitsInRowStr and FreeTransSpillOverStr.
+							// The FreeTransFitsInRowStr we output below, but the
+							// FreeTransSpillOverStr will output first in the free trans row
+							// of the next table that is created.
+							// Ensure dC is selected for the pRtfFreeFnt text font.
+							dC.SetFont(*pRtfFreeFnt); // whm 8Nov07 corrected to use rtfFreeFnt
+							DivideTextForExtentRemaining(dC, extentRemaining, strAtFree,
+								FreeTransFitsInRowStr, FreeTransSpillOverStr);
+							// Note: When the DivideTextForExtentRemaining() call above
+							// allocates text to FreeTransSpillOverStr, it is fed into
+							// the free trans row text for the upcoming table. See below.
+
+						}
+						else
+						{
+							FreeTransFitsInRowStr = strAtFree;
+						}
+						// return to our last position at numAtFree in the list
+						freepos = 0;
+						while (freepos != (int)cellxNListFree.GetCount() && freepos != savepos)
+						{
+							freepos++;
+						}
+						wxASSERT(freepos == savepos);
+
+						// Free translation uses m_systemEncoding
+						// whm 8Nov07 note: We'll use the tgt encoding for Free Trans text which
+						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
+						if (!WriteOutputString(f,gpApp->m_tgtEncoding,FreeTransFitsInRowStr))
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+					}
+
+				}
+
+				hstr = _T("}")
+				+gpApp->m_eolStr
+				+PardPlain
+				+SintblNrm							// in-table Normal style
+				+gpApp->m_eolStr //_T("\n")
+				+_T("{")
+				+_T("\\f")+FNumNav					// Free translation uses Nav associated font
+				+_T(" ")
+				+Trowd								// \trowd
+				+_T(" ")
+				+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+				+TStartPos							// \trleft0
+				+Tjust								// \trqc if centered table, otherwise ""
+				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+				//
+				// cellDimsFree below contains as many \cellxN items as there are cells in this row, with
+				// increasing values for N
+				hstr = cellDimsFree
+				+Trow
+				+_T(" ")
+				+_T('}');							// end of row
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+			}
+
+			// added for version 3
+			// Process Row 5 Data for 6th row when Back translation is selected in export options
+			// for output as a table row. When the export option is selected, bInclBackTransRow
+			// is TRUE.
+			if (bInclBackTransRow && !bBackTransProcessed)
+			{
+				if (bInclNavLangRow || bInclSrcLangRow || bInclTgtLangRow || bInclGlsLangRow)
+					nCurrentRow++;
+				TRowNum.Empty();
+				TRowNum << nCurrentRow; //_itot(nCurrentRow,rbuf,10);
+
+				wxString TLastRow;
+				if (nCurrentRow == nNumRowsInTable-1)
+					TLastRow = _T("\\lastrow");		// generate \lastrow tag if processing last row
+				else
+				TLastRow = _T("");
+
+				bBackTransProcessed = TRUE;
+				hstr = gpApp->m_eolStr
+				+PardPlain
+				+ SintblNav
+				+gpApp->m_eolStr
+				+_T("{")
+				+SintblBack;							// Back Trans Style
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{	
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+
+				// Output the actual Back Translation row text delimited by \cell tag(s).
+				// Note: The cellxNListBT has a list of cell borders with a minimum of one
+				// for the right end of the row that has the same \cellxN value as the non-bt
+				// trans rows above it. cellxNListBT operates in parallel with and has the
+				// same number of items as backTransList. When cells do not have \bt... material,
+				// there is only a null string for a given cell in both lists.
+				int btpos = 0;
+				int cellxNListCount = cellxNListBT.GetCount();
+				int backTransListCount;
+				backTransListCount = backTransList.GetCount();
+				wxASSERT(cellxNListCount == backTransListCount);
+				backTransListCount = backTransListCount; // avoid warning
+				for (int count=0; count < cellxNListCount; count++)
+				{
+					wxString numAtBT = cellxNListBT.Item(count);
+					btpos++;
+					wxString strAtBT = backTransList.Item(count);
+
+					if (numAtBT != _T("0") && numAtBT != _T(""))
+					{
+						if (!WriteOutputString(f,gpApp->m_systemEncoding,Tcell)) // \cell delimiter
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+					}
+					if (!strAtBT.IsEmpty())
+					{
+						// Write the strAtBT into this back trans row. If not all of the strAtBT
+						// will fit in the remainder of this row, and there is no additional back
+						// trans material starting at a subsequent cell in this row nor at the
+						// beginning of the following row (whose src phrase has just been read),
+						// put any remaining part of the string into the BackTransSpillOverStr for
+						// the next table to process into the beginning of its back translation row.
+
+						wxString numAtBackEndCell;
+						numAtBackEndCell = _T("0");
+						// save our current position in list and scan ahead to find the next non-zero
+						// non-null item in the list
+						int savepos = btpos;
+						while (btpos != (int)cellxNListBT.GetCount() && (numAtBackEndCell == _T("0") || numAtBackEndCell.IsEmpty()))
+						{
+							// scan the cellxNListBT entires until we come to either the
+							// end of the list or to any following non-zero, non-null item
+							numAtBackEndCell = cellxNListBT.Item(btpos);
+							btpos++; 
+						}
+						// At this point numAtBackEndCell should contain the cellxN of either the
+						// end of the row or the beginning of another back trans item. If btpos
+						// is NULL, it signals that we are at the end of the current table's row
+						// and we can potentially wrap any excess text over to the next table's
+						// back trans row, providing the first cell of that row does not itself
+						// start a new back trans element. Since the first source phrase of the
+						// next table has just been read (and its extent was too wide to fit the
+						// current table), we can just check the status of its bHasBTMarker. If
+						// bHasBTMarker is FALSE, we can wrap any excess text from strAtBT to
+						// the beginning of the next table's back trans row.
+						if (btpos == (int)cellxNListBT.GetCount() && !bHasBTMarker)
+						{
+							// First, check if the space we have available in the current row
+							// is too short for the existing text to fit without wrapping
+							int intNumAtBT = wxAtoi(numAtBT);
+							int intNumAtBTEndCell = wxAtoi(numAtBackEndCell);
+							int extentRemaining = intNumAtBTEndCell - intNumAtBT - 400;
+							// We need to wrap some text to the next table, so we divide up
+							// strAtBT into BackTransFitsInRowStr and BackTransSpillOverStr.
+							// The BackTransFitsInRowStr we output below, but the
+							// BackTransSpillOverStr will output first in the free trans row
+							// of the next table that is created.
+							// Ensure dC is selected for the pRtfBtFnt font.
+							dC.SetFont(*pRtfBtFnt); // whm 8Nov07 corrected to use pRtfBtFnt
+							DivideTextForExtentRemaining(dC, extentRemaining, strAtBT,
+								BackTransFitsInRowStr, BackTransSpillOverStr);
+							// Note: When the DivideTextForExtentRemaining() call above
+							// allocates text to BackTransSpillOverStr, it is fed into
+							// the back trans row text for the upcoming table. See below.
+
+						}
+						else
+						{
+							BackTransFitsInRowStr = strAtBT;
+						}
+						// return to our last position at numAtBT in the list
+						btpos = 0;
+						while (btpos != (int)cellxNListBT.GetCount() && btpos != savepos)
+						{
+							btpos++;
+						}
+						wxASSERT(btpos == savepos);
+
+						// whm 8Nov07 note: We'll use the tgt encoding for Back Trans text which
+						// forces WriteOutputString to use the \uN\'f3 RTF Unicode char format
+						if (!WriteOutputString(f,gpApp->m_tgtEncoding,BackTransFitsInRowStr))
+						{	
+							pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+							return;
+						}
+					}
+
+				}
+
+				hstr = _T("}")
+				+gpApp->m_eolStr
+				+PardPlain
+				+SintblNrm							// in-table Normal style
+				+gpApp->m_eolStr //_T("\n")
+				+_T("{")
+				+_T("\\f")+FNumNav					// Back translation uses Nav associated font
+				+_T(" ")
+				+Trowd								// \trowd
+				+_T(" ")
+				+Tirow+TRowNum+Tirowband+TRowNum	// \irow0\irowband0
+				+TtsN+TtrgaphN+TLastRow				// \ts21\trgaph108[\lastrow]
+				+TStartPos							// \trleft0
+				+Tjust								// \trqc if centered table, otherwise ""
+				+TRowPrecedence						// \rtlrow or \ltrrow depending on bReverseLayout
+				+TRautoFit							// whm added 11Nov07 \trautofit to prevent excessive wrapping
+				+TDirection;						// \taprtl if bReverseLayout is TRUE "" otherwise
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+				{
+					pStatusBar->FinishProgress(_("Export to Interlinear RTF"));
+					return;
+				}
+				//
+				// cellDimsBack below contains as many \cellxN items as there are cells in this row, with
+				// increasing values for N
+				hstr = cellDimsBack
+				+Trow
+				+_T(" ")
+				+_T('}');							// end of row
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,hstr))
+					return;
+			}
+#endif // if defined (USE_OLD_WORD_RTF_TABLE_SPECS)
+
+#if !defined (USE_OLD_WORD_RTF_TABLE_SPECS) // when USE_OLD_WORD_RTF_TABLE_SPECS is NOT defined
 
 			if (nCurrentRow == 0)					// need Table defs prefixed only for row index zero
 			{										// of each table
@@ -6931,6 +7988,7 @@ a:
 				}
 			}
 
+#endif // end of when NOT DEFINED USE_OLD_WORD_RTF_TABLE_SPECS
 
 			// We're at the end of the current table's output, so now output a separating paragraph
 			// between the tables to prevent them from fusing together
@@ -13934,8 +14992,11 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 		tempSdef += _T("\\nooverflow");
 		// always add the \rinN value (this seems to override \riN to make it work right for RTL)
 		AddAnyRinLin(tempSdef,save_ri_N_value, save_li_N_value);
+		
 		// always add the \itap0 and space
-		tempSdef += _T("\\itap0 "); // needs the following space
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		// add any character bold, italic, underline, smallcaps, etc
 		AddAnyCharEnhancements(tempSdef,pSfm);
 		// If paragraph style needed a superscript attribute it would go here
@@ -14079,8 +15140,11 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 		// add some other constantly occurring Normal Table tags
 		tempSdef += _T("\\widctlpar\\aspalpha\\aspnum\\faauto\\adjustright");
 		AddAnyRinLin(tempSdef,save_ri_N_value,save_li_N_value);
+		
 		// add the \itap0 and space
-		tempSdef += _T("\\itap0 "); // needs the following space
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		if (pSfm->marker == _T("_table_grid"))
 			tempSdef += _T("\\f0"); // add the Normal (Arial) font to Table Grid (get overridden in real data)
 		AddAnyFontSizeColor(tempSdef,pSfm, colorTblIndxStr);
@@ -14194,7 +15258,10 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 		tempSdef += Sltr_precedence;
 		tempSdef += _T("\\nooverflow");
 		AddAnyRinLin(tempSdef,save_ri_N_value, save_li_N_value);
-		tempSdef += _T("\\itap0 "); // needs the following space
+		
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		AddAnyCharEnhancements(tempSdef,pSfm);
 		tempSdef += outputFontStr; // already has backslash
 		AddAnyFontSizeColor(tempSdef,pSfm, colorTblIndxStr);
@@ -14300,7 +15367,10 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 
 		tempSdef += _T("\\nooverflow");
 		AddAnyRinLin(tempSdef,save_ri_N_value, save_li_N_value);
-		tempSdef += _T("\\itap0 "); // needs the following space
+		
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		AddAnyCharEnhancements(tempSdef,pSfm);
 		tempSdef += outputFontStr; // already has backslash
 		AddAnyFontSizeColor(tempSdef,pSfm, colorTblIndxStr);
@@ -14359,7 +15429,10 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 
 		tempSdef += _T("\\nooverflow");
 		AddAnyRinLin(tempSdef,save_ri_N_value, save_li_N_value);
-		tempSdef += _T("\\itap0 "); // needs the following space
+		
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		AddAnyCharEnhancements(tempSdef,pSfm);
 		tempSdef += outputFontStr; // already has backslash
 		AddAnyFontSizeColor(tempSdef,pSfm, colorTblIndxStr);
@@ -14419,7 +15492,9 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 		// Word also puts a gutter control tag here so we'll do the same
 		tempSdef += _T("\\rtlgutter");
 
-		tempSdef += _T("\\itap0 "); // needs the following space
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		AddAnyCharEnhancements(tempSdef,pSfm);
 		// Note: Word does not add font \fN to the horiz_rule
 		//tempSdef += outputFontStr; // already has backslash
@@ -14499,7 +15574,9 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 		// Word also puts a gutter control tag here so we'll do the same
 		tempSdef += _T("\\rtlgutter");
 
-		tempSdef += _T("\\itap0 "); // needs the following space
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		AddAnyCharEnhancements(tempSdef,pSfm); // \b should be added
 		// Note: Word does not add font \fN to the boxed_para style
 		//tempSdef += outputFontStr; // already has backslash
@@ -14551,7 +15628,10 @@ void BuildRTFStyleTagString(USFMAnalysis* pSfm, wxString& Sdef, wxString& Sindoc
 		tempSdef += Sltr_precedence;
 		tempSdef += _T("\\nooverflow");
 		AddAnyRinLin(tempSdef,save_ri_N_value, save_li_N_value);
-		tempSdef += _T("\\itap0 "); // needs the following space
+		
+		// whm 2May13 removed the addition of \itap0 tag below. It is
+		// incorrect and causes LibreOffice to foul up Interlinear tables
+		//tempSdef += _T("\\itap0 "); // needs the following space
 		AddAnyCharEnhancements(tempSdef,pSfm);
 
 		// Word adds the hidden attribute right after the char enhancements so we'll do the same
