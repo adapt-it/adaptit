@@ -57,6 +57,11 @@
 #define SCROLLPOS
 #endif
 
+// The following define makes the Interlinear RTF export routine use the older
+// MS Word compatibility structure for RTF Tables (which AI used before 22Jul11, 
+// i.e., before svn r. 1633).
+//#define USE_OLD_WORD_RTF_TABLE_SPECS
+
 // a temporary #define for Mike to use when working on DVCS:
 #define TEST_DVCS
 
