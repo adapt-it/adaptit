@@ -34,20 +34,7 @@ problems if you use these shortcuts instead.
 
 All Versions:
 
-1. LibreOffice up to version 3.4.5 has been able to open Adapt 
-It's interlinear RTF export files and render them correctly. With
-version 3.5 of LibreOffice (released in early 2012), however, a 
-different RTF parser was introduced in LibreOffice which is not 
-able to correctly render Adapt It's interlinear RTF files. The 
-problem is not with Adapt It's RTF output, but is due to apparent
-bugs in LibreOffice's current rendering of files containing tables. 
-Since MS Word can readily render Adapt It's interlinear RTF export, 
-one work-around is to open Adapt It's Interlinear output in MS Word 
-and access it from there (if MS Word is available). If the RTF 
-file is resaved in MS Word, it can sometimes be subsequently opened 
-(mostly) correctly within LibreOffice.
-
-2. Sync Scrolling should work on the Windows port, but has not 
+1. Sync Scrolling should work on the Windows port, but has not 
 been implemented on the non-Windows ports because the 
 mechanism that controls synchronized scrolling in application 
 such as TW and Paratext was designed with only the Windows 
@@ -58,7 +45,7 @@ Adapt It running on those ports to sync scroll with other
 applications capable of sync scrolling that run natively on 
 those other ports.
 
-3. Adapt It WX does not have a splitter window with ability to 
+2. Adapt It WX does not have a splitter window with ability to 
 split the main window horizontally into two separately scrolled 
 windows into the view. This would take a fair bit of work to 
 implement on the cross platform version, but could probably be 
