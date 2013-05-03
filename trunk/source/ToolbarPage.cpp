@@ -297,7 +297,7 @@ void CToolbarPagePrefs::PopulateList()
 			wxListItem li;
 			li.SetId(lItem);
 			li.SetImage((m_bToolbarButtons[index] == true) ? 1 : 0); // set the check by setting the first column image
-			li.SetText(_(""));
+			li.SetText(_T(""));
 			li.SetData((long)index);
 			long something = pLst->InsertItem(li);
 			pLst->SetItem(something, 1, tbInfo[index].shortHelpString, ((int)lItem + 2 /* slot 0 and 1 are checkbox images */));
