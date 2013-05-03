@@ -1,5 +1,83 @@
 ----------------------------------------------
-Version 6.4.0 release 9 January 2013
+Version 6.4.2 release 3 May 2013
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.4.2
+----------------------------------------------
+* The scroll-into-view feature now can work in one of two ways.
+The default setting keeps the phrase box about 2/3 down the window
+and when the phrase box moves from one strip to the next, it is 
+the strips which scroll - keeping the phrase box at the same
+vertical distance down. The alternative setting keeps the strips
+stationary vertically, while the phrase box moves rightwards and
+downwards, until it nears the window bottom - at which time an
+automatic scroll happens and it starts out afresh near the top
+of the window. Which setting you choose is done by Prefernces >
+View tab - two radio buttons allow you to choose. Your choice
+is saved automatically in the project configuration file and
+so is restored whenever you reenter that project.
+* Preferences > View tab also has an option for changing how the
+knowledge base (KB) lookup works when automatic capitalizing mode
+is turned on. Prior to this version, the lookup ignored upper case
+entries in the KB, and just looked up within the set of stored
+lower case entries, and capitalized the first letter as necessary.
+This was not very helpful if a lot of early work was done with
+autocaps mode turned off, and then autocaps mode was used later.
+The user had to re-enter a lot of adaptations. Now there is a
+new lookup. It takes into account all relevant entries by checking
+first for any upper case entries, merging any it finds into the
+lower case entry storage (after first converting their initial
+letter to lowercase), and then doing the lower case lookup, and
+any needed automatic capitalizing. This mode is on by default.
+You can go back to the older mode of lookup (which is a little 
+faster) by clicking the lower of the two radio buttons in the
+View tab of Preferences. Your setting is stored in the project
+configuration file.
+* If the new default for lookups (see item immediately above) is
+in effect, then the Remove button in either the Choose Translation
+dialog, or the Knowledge Base Editor dialog, will remove, when the
+Automatic Capitalization option is ON, both any legacy 
+upper-case-initial KB entry (provided it exists) along with the
+corresponding lower-case-initial entry. If this double-removal
+didn't happen, then a subsequent lookup of the lower-case-initial
+entry in the KB would (as a side effect) replace the item just 
+removed, which would certainly not be what the user would be 
+wanting to happen!
+* The Choose Translation dialog has been improved. The list box
+is not so wide, but now is full height in the dialog and can
+be dragged larger by resizing the dialog manually. The source
+text and new translation text boxes are less wide, and 
+"Source Text:" has been shortened to "Source:", and 
+"New translation:" shorted to "New:". Resizing horizontally
+lengthens the text boxes.
+
+----------------------------------------------
+Bug fixes in 6.4.2
+----------------------------------------------
+* Interlinear RTF Exports were not rendering correctly within
+LibreOffice versions 3.5.0 and newer versions of LibreOffice.
+This has now been fixed and the Interlinear RTF export files
+should open and render correctly in all editors on all platforms.
+* When creating a new document, parsing an endmarker followed 
+by space and an opening curly quote before the next word, 
+wrongly added the opening quote to the end of the preceding 
+word.
+* Consistency Check, with autocapitalization on, would repeatedly
+re-show a deleted upper-case initial adaptation, every time a new
+check was done, even though the user every time requested it be
+accepted for undeletion. There was a logic error in the code. Such
+entries should not be "seen" as existing, which is now the case.
+* If the phrase box, at the end of the document, went past the end
+(which is normal) and then the user clicked under the very first
+word of the document to put the phrase box there, Adapt It crashed.
+* Some edge cases for retrieval of adaptation text from the 
+knowledge base when automatic capitalization was turned on, 
+returned an uncapitalized adaptation when a capitalized equivalent
+was needed. This was most easily observed when doing a consistency
+check. It now works correctly.
+
+----------------------------------------------
+Version 6.4.1 release 6 February 2013
 ----------------------------------------------
 
 *** WARNING*** Known Issue for Linux Unity users
@@ -16,6 +94,21 @@ problems if you use these shortcuts instead.
 The problem does not arise on other *buntus, nor on other distros
 such as Linux Mint.
 
+----------------------------------------------
+Bug fixes in 6.4.1
+----------------------------------------------
+* fixed a problem where deleting / renaming an adaptations project,
+then selecting "New Project" would cause the wizard to jump ahead
+to the doc page instead of the language page.
+* Fixed the problem of project settings from a previously opened
+project being carried over to a <New Project> scenario which was
+accessed via the wizard's <Back button. New project defaults are
+now set in the <New Project> code block of the 
+CProjectPage::OnWizardPageChanging() function using some new 
+consolidation functions created on the App.
+----------------------------------------------
+Version 6.4.0 release 25 January 2013
+----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.4.0
 ----------------------------------------------

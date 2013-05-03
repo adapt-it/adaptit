@@ -1,4 +1,7 @@
 ----------------------------------------------
+Version 6.4.2 release 3 May 2013
+----------------------------------------------
+----------------------------------------------
 Feature changes and new features in 6.4.2
 ----------------------------------------------
 * The scroll-into-view feature now can work in one of two ways.
@@ -36,7 +39,7 @@ dialog, or the Knowledge Base Editor dialog, will remove, when the
 Automatic Capitalization option is ON, both any legacy 
 upper-case-initial KB entry (provided it exists) along with the
 corresponding lower-case-initial entry. If this double-removal
-didn't happen, then a subsequentlookup of the lower-case-initial
+didn't happen, then a subsequent lookup of the lower-case-initial
 entry in the KB would (as a side effect) replace the item just 
 removed, which would certainly not be what the user would be 
 wanting to happen!
@@ -47,18 +50,14 @@ text and new translation text boxes are less wide, and
 "Source Text:" has been shortened to "Source:", and 
 "New translation:" shorted to "New:". Resizing horizontally
 lengthens the text boxes.
-* For versions up to 6.4.1, the old AI_UserProfiles.xml files, 
-when replaced by a newer one, were being stored with a modified
-name (_Old_ inserted into the filename, and also a datetime 
-added) - and accumulating in the work folder. This was wasting
-disk space unnecessarily. From 6.4.2 and onwards, only the 
-most recent of the old ones are retained (currently, the last
-four).
-
 
 ----------------------------------------------
 Bug fixes in 6.4.2
 ----------------------------------------------
+* Interlinear RTF Exports were not rendering correctly within
+LibreOffice versions 3.5.0 and newer versions of LibreOffice.
+This has now been fixed and the Interlinear RTF export files
+should open and render correctly in all editors on all platforms.
 * When creating a new document, parsing an endmarker followed 
 by space and an opening curly quote before the next word, 
 wrongly added the opening quote to the end of the preceding 
