@@ -900,7 +900,7 @@
 				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "SIL Australia";
 			};
-			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt_wxcl" */;
+			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
@@ -1138,7 +1138,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)-wxcl";
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_DYNAMIC_NO_PIC = YES;
@@ -1154,7 +1154,6 @@
 					"wxUSE_BASE=1",
 					"_FILE_OFFSET_BITS=64",
 					_LARGE_FILES,
-					MACOS_CLASSIC,
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					"wxUSE_UNICODE=1",
@@ -1163,23 +1162,16 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib";
+				LIBRARY_SEARCH_PATHS = "$(WXLIB)/Debug";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "";
 				OTHER_LDFLAGS = (
-					"-L$(WXWIN)/buildosxud/lib",
-					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau-2.9.a",
-					"-lexpat",
-					"-lwxregexu-2.9",
-					"-lwxtiff-2.9",
-					"-lwxjpeg-2.9",
-					"-lwxpng-2.9",
-					"-lz",
-					"-lpthread",
 					"-liconv",
 					"-lcurl",
+					"-lwx_osx_cocoa_static",
+					"-lz",
 				);
 				PRODUCT_NAME = "Adapt It";
 				SDKROOT = "";
@@ -1221,7 +1213,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COMBINE_HIDPI_IMAGES = YES;
-				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)-wxcl";
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
@@ -1236,7 +1228,6 @@
 					"wxUSE_BASE=1",
 					"_FILE_OFFSET_BITS=64",
 					_LARGE_FILES,
-					MACOS_CLASSIC,
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					"wxUSE_UNICODE=1",
@@ -1245,23 +1236,13 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxu/lib";
+				LIBRARY_SEARCH_PATHS = "$(WXLIB)/Release";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "";
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-sign-compare",
-					"$(OTHER_CFLAGS)",
-				);
+				OTHER_CPLUSPLUSFLAGS = "";
 				OTHER_LDFLAGS = (
-					"-L$(WXWIN)/buildosxu/lib",
-					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau-2.9.a",
-					"-lexpat",
-					"-lwxregexu-2.9",
-					"-lwxtiff-2.9",
-					"-lwxjpeg-2.9",
-					"-lwxpng-2.9",
-					"-lpthread",
+					"-lwx_osx_cocoa_static",
 					"-liconv",
 					"-lz",
 					"-lcurl",
@@ -1296,7 +1277,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = CocoaDebugWX2.9;
 		};
-		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt_wxcl" */ = {
+		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				03E7D7161643090C008C2CFC /* CocoaDebugWX2.9 */,
