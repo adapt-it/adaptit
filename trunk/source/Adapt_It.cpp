@@ -465,7 +465,7 @@ WX_DEFINE_LIST(MainMenuItemList);
 #define nU16BOMLen 2
 
 // globals
- 
+
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp
 			// (for vertical edit functionality)
@@ -5846,7 +5846,7 @@ wxString szKbServerDownloadInterval = _T("KbServerIncrementalDownloadInterval");
 wxString szKeepPhraseBoxMidscreen = _T("KeepPhraseBoxMidscreen");
 
 /// Default is FALSE, auto-caps lookup only looks up lower case keys; if user sets the
-/// boolean to TRUE, on fail an auto-caps upper case lookup is attempted - if it 
+/// boolean to TRUE, on fail an auto-caps upper case lookup is attempted - if it
 /// succeeds, a boolean is set to TRUE temporarily - and StoreText() and
 /// StoreTextGoingBack() use that boolean to create a new CTargetUnit instance and store
 /// lower case source and target strings in it. Consistency Check also works a little
@@ -15300,7 +15300,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
 	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
 	m_bIsKBServerProject = FALSE; // initialise
-	// start off with the timer not instantiated; only set a single one in first call of 
+	// start off with the timer not instantiated; only set a single one in first call of
 	// SetupForKbServer(), second call (for the glossing KB) should check for NULL and do
 	// nothing if the timer already exists; use similar logic for destroying the timer in
 	// ReleaseKbServer()
@@ -15340,7 +15340,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bModeBarVisible = TRUE; // Control/Mode Bar is visible unless changed by value in basic config file
 	m_bShowToolbarIconAndText = FALSE;
 	std::fill_n(m_bToolbarButtons, sizeof(m_bToolbarButtons), true); // initialize all values to true
-	
+
 	// default substring delimiters possibly used within LIFT file <text> elements - we
 	// assume only two, comma and semicolon
 	m_LIFT_subfield_delimiters = _T(",;");
@@ -21188,7 +21188,7 @@ int ii = 1;
 	wxASSERT(nIndexOfFileMenu != wxNOT_FOUND);
 	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
 //	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
-    wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
+//    wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
 
 //	pEditMenu->AppendSeparator();
 
@@ -21206,6 +21206,7 @@ int ii = 1;
 
 
 // now moving items to the File menu ready for prime time
+/*
     pFileMenu->AppendSeparator();
 
     pFileMenu->Append (ID_FILE_SAVE_COMMIT, _T("Save and remember in history"));
@@ -21214,7 +21215,7 @@ int ii = 1;
     pFileMenu->Append (ID_DVCS_LOG_FILE, _T("Show history for this document"));
     pFileMenu->Append (ID_DVCS_LOG_PROJECT, _T("Show history for whole project"));
     pFileMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));
-
+*/
 #endif
 	// end of code for supporting Mike's DVCS work
 
@@ -22839,12 +22840,12 @@ bool CAdapt_ItApp::SetupDirectories()
 // the work folder. Since each is about 40kb, we need a function to cull all but the few
 // which are most recent. AdaptItConstants.h has a #define for how many we keep: it is
 // NUM_OLD_USERPROFILES_FILES_TO_KEEP and is set to 4.
-// BEW created 22Apr13 
+// BEW created 22Apr13
 void CAdapt_ItApp::RemoveUnwantedOldUserProfilesFiles()
 {
 	// Procedure: enumerate their filenames as wxString objects, sort them in reverse
 	// order (only the datetime stamp at the end distinguishes one from another), and
-	// then remove them from the end backwards, retaining the most recent 
+	// then remove them from the end backwards, retaining the most recent
 	// NUM_OLD_USERPROFILES_FILES_TO_KEEP ones
 	wxString path = m_userProfileFileWorkFolderPath;
 	wxSortedArrayString filenames;
@@ -24678,8 +24679,8 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					wxASSERT(posRef != 0);
 				}
 
-                // If control gets here, there will be at least one non-null posRef 
-                // 
+                // If control gets here, there will be at least one non-null posRef
+                //
                 // BEW added to comment on 19Mar13: But if the user has been doing removals
                 // of KB entries (e.g. by editing a KB entry's source text and typing the
                 // Update button), the pseudo-deleted CRefString typically is stored
@@ -32849,7 +32850,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			}
 		}
 		// BEW added 13Mar13
-		else if (name == szDoLegacyLowerCaseLookup) 
+		else if (name == szDoLegacyLowerCaseLookup)
 		{
 			if (strValue == _T("1"))
 			{

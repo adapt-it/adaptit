@@ -73,11 +73,13 @@ const int ID_MENU_DVCS_ADD_FILE			= 997;
 const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
 const int ID_MENU_DVCS_REMOVE_FILE		= 995;
 const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
+/*
 const int ID_FILE_SAVE_COMMIT           = 993;
 const int ID_FILE_SHOW_REVISIONS		= 992;
 const int ID_DVCS_LOG_FILE              = 989;
 const int ID_DVCS_LOG_PROJECT           = 988;
 const int ID_FILE_TAKE_OWNERSHIP		= 987;
+*/
 
 // BEW note 14Jan13, for the KB sharing menu item in Advanced menu will use value 980 for
 // the present and add the menu item and preceding separator only in the _DEBUG build while

@@ -9650,6 +9650,11 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_BACKUP_KB, _("&Backup Knowledge Base"), _("Make a new knowledge base backup immediately") );
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->AppendSeparator();
+    item1->Append( ID_FILE_SAVE_COMMIT, _("Save and remember in history..."), _("Saves the current document and remembers its state in the history.") );
+    item1->Append( ID_FILE_REVERT_FILE, _("Look at previous versions in the document history..."), _("Shows the previously remembered version, and allows you to go back to earlier versions as well.") );
+    item1->Append( ID_FILE_LIST_VERSIONS, _("View list of previously remembered versions..."), _("Shows a list of all remembered versions, and allows you to select and view any of them.") );
+    item1->Append( ID_FILE_TAKE_OWNERSHIP, _("Take ownership of this document"), _("Allows you, the logged-in user, to become the owner of this document so you can edit it.") );
+    item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
     item0->Append( item1, _("&File") );
     
@@ -9780,6 +9785,8 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_LOCK_CUSTOM_LOCATION, _("&Lock Custom Location"), _("Make the custom work folder location permanent until explicitly changed") );
     item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
     item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
+    item9->AppendSeparator();
+    item9->Append( ID_DVCS_VERSION, _("Show DVCS version"), wxT("") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;

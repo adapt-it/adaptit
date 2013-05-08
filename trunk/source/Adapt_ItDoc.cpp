@@ -314,15 +314,13 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 
 	EVT_MENU (ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnSaveAndCommit)
     EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateSaveAndCommit)
-	EVT_MENU (ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnShowPreviousVersions)
-    EVT_UPDATE_UI(ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnUpdateShowPreviousVersions)
+    EVT_MENU (ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnShowPreviousVersions)
+    EVT_UPDATE_UI(ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnUpdateShowPreviousVersions)
+	EVT_MENU (ID_FILE_LIST_VERSIONS, CAdapt_ItDoc::OnShowFileLog)
+    EVT_UPDATE_UI(ID_FILE_LIST_VERSIONS, CAdapt_ItDoc::OnUpdateShowFileLog)
 	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
     EVT_UPDATE_UI(ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnUpdateTakeOwnership)
-    EVT_MENU (ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnShowFileLog)
-    EVT_UPDATE_UI(ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnUpdateShowFileLog)
-    EVT_MENU (ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnShowProjectLog)
-    EVT_UPDATE_UI(ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnUpdateShowProjectLog)
-    EVT_MENU (ID_MENU_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
+    EVT_MENU (ID_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
 
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
@@ -1827,10 +1825,12 @@ void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 {
-    if (!Git_installed())
+    if (!gpApp->m_DVCS_installed)
+    {
+        wxMessageBox(_T("Git is apparently not yet installed on this computer."));
         return;
-    
-    gpApp->m_pDVCS->DoDVCS (DVCS_CHECK, 1);     // nonzero parm means display the returned result
+    }
+    gpApp->m_pDVCS->DoDVCS (DVCS_CHECK, 1);     // nonzero parm means display the returned result in a wxMessageBox.
 }
 
 // Update handlers for DVCS-related menu items -- these used to be disabled if git wasn't installed, but now they're
