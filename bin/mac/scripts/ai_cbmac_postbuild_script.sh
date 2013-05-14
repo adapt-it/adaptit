@@ -27,14 +27,16 @@
 #				- Adapt It.htb
 #-------------------------------------------------------------------------------
 
-# Sanity check -- make sure we have the output directory passed in as a parameter
-if [ $# -ne 1 ]
+# Sanity check -- make sure we have the right number of parameters passed in
+if [ $# -ne 3 ]
 then
-    echo "No output dir parameter specified -- exiting..."
+    echo "Wrong number of parameters -- exiting..."
     exit 1
 fi
 
 outputDir=$1
+PROJECT_DIR=$2
+PRODUCT_NAME=$3
 
 # uncomment the commented out lines below for better debugging of this shell script
 set -v on
@@ -90,16 +92,6 @@ cp "${basedir}/xml/books.xml" "${PROJECT_DIR}/${outputDir}/${PRODUCT_NAME}.app/C
 # Binary application file
 mv "${PROJECT_DIR}/${outputDir}${PRODUCT_NAME}" "${PROJECT_DIR}/${outputDir}${PRODUCT_NAME}.app/Contents/MacOS/"
 
-# Iterate through the languages in aiMoLangs creating dirs if necessary, and copying 
-# the lang.mo files to the appropriate locale dirs with appropriate Adapt It.mo name.
-count=0
-for lang in $aiMoLangs
-do
-   echo "Copying localization files for language $lang to bundle."
-   mkdir -p "${localeDir}/${lang}/LC_MESSAGES"
-   cp "${poDir}/${lang}.mo" "${localeDir}/${lang}/LC_MESSAGES/Adapt It.mo"
-done
-
 # Iterate through the languages in wxMoLangs creating dirs if necessary, and copying 
 # the wxstd-lang.mo files to the appropriate locale dirs with appropriate wxstd.mo name.
 count=0
@@ -109,6 +101,10 @@ do
    mkdir -p "${localeDir}/${lang}/LC_MESSAGES"
    cp "${poDir}/wxstd-${lang}.mo" "${localeDir}/${lang}/LC_MESSAGES/wxstd.mo"
 done
+
+# uncomment the commented out lines below for better debugging of this shell script
+#set -v on
+#set -x on
 
 # Set up variables for HTML Help file processing
 hlpDir="${PROJECT_DIR}/../../hlp"
@@ -132,7 +128,7 @@ then
 	rm "$htbFile"
 fi
 
-# Use the tar command to get a "clean" set of dirs and files from hlp into
+# Use the gnutar command to get a "clean" set of dirs and files from hlp into
 # the hlp_temp directory, leaving out the .svn dirs and other stuff specified
 # in the excludeFiles file.
 cd "$hlpDir"
@@ -148,17 +144,19 @@ rm "$tarFile"
 cd "$tempDir"
 zip -r "$htbFile" *
 
-# Copy the .htb html help file to Adapt It.app/Contents/SharedSupport/
-cp "$htbFile" "${PROJECT_DIR}/${outputDir}/${PRODUCT_NAME}.app/Contents/SharedSupport/${PRODUCT_NAME}.htb"
+#Finally copy the .htb html help file to Adapt It.app/Contents/SharedResources/
+sharedSuppDir="${CONFIGURATION_BUILD_DIR}/${SHARED_SUPPORT_FOLDER_PATH}"
+mkdir -p "$sharedSuppDir"
+cp "$htbFile" "$sharedSuppDir/${PRODUCT_NAME}.htb"
 
 # Set up variables for copying of docs to Resources
-resourcesDir="${PROJECT_DIR}/${outputDir}/${PRODUCT_NAME}.app/Contents/Resources"
+resourcesDir="${PROJECT_DIR}${outputDir}${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.app/Contents/Resources"
 docsDir="${PROJECT_DIR}/../../docs"
 licenseDirSrc="${PROJECT_DIR}/../../license"
 licenseDir="${resourcesDir}/license"
-imagesDir="${resourcesDir}/images/Adapt It Quick Start"
-imagesDirSrc="${docsDir}/images/Adapt It Quick Start"
 
+cp "$docsDir/iso639-3codes.txt" "$resourcesDir"
+cp "$docsDir/curl-ca-bundle.crt" "$resourcesDir"
 cp "$docsDir/Adapt It Reference.doc" "$resourcesDir"
 cp "$docsDir/Adapt It Tutorial.doc" "$resourcesDir"
 cp "$docsDir/Adapt It changes.txt" "$resourcesDir"
@@ -172,24 +170,17 @@ cp "$licenseDirSrc/LICENSING.txt" "$licenseDir"
 cp "$licenseDirSrc/License_CPLv05.txt" "$licenseDir"
 cp "$licenseDirSrc/License_GPLv2.txt" "$licenseDir"
 cp "$licenseDirSrc/License_LGPLv21.txt" "$licenseDir"
-mkdir -p "$imagesDir"
-cp "$imagesDirSrc/back_button.gif" "$imagesDir"
-cp "$imagesDirSrc/Image2.gif" "$imagesDir"
-cp "$imagesDirSrc/Image3.gif" "$imagesDir"
-cp "$imagesDirSrc/Image4.gif" "$imagesDir"
-cp "$imagesDirSrc/Image5.gif" "$imagesDir"
-cp "$imagesDirSrc/Image6.gif" "$imagesDir"
-cp "$imagesDirSrc/Image7.gif" "$imagesDir"
-cp "$imagesDirSrc/Image8.gif" "$imagesDir"
-cp "$imagesDirSrc/Image9.gif" "$imagesDir"
-cp "$imagesDirSrc/Image10.gif" "$imagesDir"
-cp "$imagesDirSrc/Image11.gif" "$imagesDir"
-cp "$imagesDirSrc/Image12.gif" "$imagesDir"
-cp "$imagesDirSrc/Image13.gif" "$imagesDir"
-cp "$imagesDirSrc/Image14.gif" "$imagesDir"
-cp "$imagesDirSrc/Image15.gif" "$imagesDir"
-cp "$imagesDirSrc/Image16.gif" "$imagesDir"
-cp "$imagesDirSrc/Image17.gif" "$imagesDir"
-cp "$imagesDirSrc/Image19.gif" "$imagesDir"
-cp "$imagesDirSrc/Image20.gif" "$imagesDir"
 
+# Set up variables for copying of Quick Start help files and images to Shared Support
+imagesQSDir="${sharedSuppDir}/images/Adapt_It_Quick_Start"
+imagesQSDirSrc="${docsDir}/images/Adapt_It_Quick_Start"
+mkdir -p "$imagesQSDir"
+cp "$docsDir/Adapt_It_Quick_Start.htm" "$sharedSuppDir"
+cp $imagesQSDirSrc/*.gif "$imagesQSDir"
+
+# Set up variables for copying of Help for Admin help files and images to Shared Support
+imagesHADir="${sharedSuppDir}/images/Admin_help"
+imagesHADirSrc="${docsDir}/images/Admin_help"
+mkdir -p "$imagesHADir"
+cp "$docsDir/Help_for_Administrators.htm" "$sharedSuppDir"
+cp $imagesHADirSrc/*.gif "$imagesHADir"
