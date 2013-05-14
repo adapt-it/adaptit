@@ -1775,11 +1775,8 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 	{
 		wxMessageBox (_T("We're not looking at earlier revisions!"));
 		return;
-	}
-
-// ***** need a messagebox here to give them a chance to bail out
-    
-	gpApp->m_trialVersionNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
+	}    
+	gpApp->m_trialVersionNum = -1;		// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
     gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
@@ -1865,7 +1862,7 @@ void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
 {
-    Enable_DVCS_item (event);
+    event.Enable ( gpApp->m_owner != gpApp->m_AIuser );     // if user is already the owner, we disable the menu item
 }
 
 

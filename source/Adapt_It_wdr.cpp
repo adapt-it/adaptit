@@ -9486,7 +9486,6 @@ wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, IDC_COMMIT_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
-    item3->SetBackgroundColour( *wxCYAN );
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, IDC_COMMIT_BLURB, _("You can enter a comment in the box above to identify this version of the document.  When you click OK, the document will be saved and remembered in the document history.  Later you will be able to look at this version and return to it if you need to, exactly as it is now."), wxDefaultPosition, wxSize(400,100), wxGROW );
@@ -9550,7 +9549,6 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxHORIZONTAL );
 
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_VERSION_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE|wxTE_READONLY );
-    item11->SetBackgroundColour( *wxCYAN );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item9, 0, wxALIGN_CENTER|wxALL, 15 );
@@ -9574,6 +9572,14 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item15->Add( item17, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(200,-1), 0 );
+    item19->SetDefault();
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item2, 0, wxALL, 5 );
 
@@ -9653,6 +9659,7 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_SAVE_COMMIT, _("Save and remember in history..."), _("Saves the current document and remembers its state in the history.") );
     item1->Append( ID_FILE_REVERT_FILE, _("Look at previous versions in the document history..."), _("Shows the previously remembered version, and allows you to go back to earlier versions as well.") );
     item1->Append( ID_FILE_LIST_VERSIONS, _("View list of previously remembered versions..."), _("Shows a list of all remembered versions, and allows you to select and view any of them.") );
+    item1->AppendSeparator();
     item1->Append( ID_FILE_TAKE_OWNERSHIP, _("Take ownership of this document"), _("Allows you, the logged-in user, to become the owner of this document so you can edit it.") );
     item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
