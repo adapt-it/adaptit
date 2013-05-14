@@ -42,7 +42,9 @@ BEGIN_EVENT_TABLE (DVCSNavDlg, AIModalDialog)
     EVT_BUTTON (ID_BTN_NEXT,   DVCSNavDlg::OnNext)
     EVT_BUTTON (ID_ACCEPT,     DVCSNavDlg::OnAccept)
     EVT_BUTTON (ID_LATEST,     DVCSNavDlg::OnLatest)
-    EVT_CLOSE  (               DVCSNavDlg::OnClose)
+    EVT_BUTTON (wxID_CANCEL,   DVCSNavDlg::OnLatest)        // Cancel button is exactly the same as "return to latest"
+    EVT_CLOSE  (               DVCSNavDlg::OnClose)         // Likewise clicking the dialog's close box,
+                                                            //  but parm is different so we can't just call OnLatest() here!
 END_EVENT_TABLE()
 
 
