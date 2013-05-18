@@ -2208,7 +2208,14 @@ public:
 #define  NOCODE		_T("qqq")			// no language code defined.  qaa - qtz are defined in ISO 639-2
 										//  as being for private use, so this can never be a real language code
 
-	wxString	m_AIuser;				// e.g. joe bloggs@joesMachine
+	wxString	m_AIuser;				// the currently logged-in user - e.g. joe bloggs@joesMachine.  This may go west soon...
+
+    wxString	m_strUserID;            // for the unique username for the kb server and DVCS, typically
+                                        // the user's email address if he has one, if not, any
+                                        // unique string will do provided the server administrator
+                                        // approves it
+    wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which we'll use
+                                        // m_strUserID
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
@@ -2805,10 +2812,6 @@ public:
 									  // two instances are created, one for adaptations, the
 									  // other for glosses
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
-	wxString	m_strKbServerUsername; // for the unique username known to the server, typically
-									// the user's email address if he has one, if not, any
-									// unique string will do provided the server administrator
-									// approves it
 
 #endif // for _KBSERVER
 

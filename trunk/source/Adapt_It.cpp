@@ -15092,7 +15092,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 
 	// Deprecated 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetupDlg
 	// now, and we store url and username as app variables m_strKbServerURL and
-	// m_strKbServerUsername from now on (these are saved in the project config file too),
+	// m_strUserID from now on (these are saved in the project config file too),
 	// and we get those here now, instead of from the credentials.txt file; the password
 	// from the password dialog is stored in CMainFrame class as the member
 	// m_kbserverPassword, private, and so accessed with GetKBSvrPassword()
@@ -15109,9 +15109,9 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		return FALSE;
 	}
 	*/
-	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strKbServerUsername.IsEmpty());
+	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
 	url = m_strKbServerURL;
-	username = m_strKbServerUsername;
+	username = m_strUserID;
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
@@ -31999,7 +31999,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKbServerUsername << tab << m_strKbServerUsername;
+	data << szKbServerUsername << tab << m_strUserID;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -32819,7 +32819,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szKbServerUsername)
 		{
-			m_strKbServerUsername = strValue;
+			m_strUserID = strValue;
 		}
 		else if (name == szKbServerDownloadInterval)
 		{

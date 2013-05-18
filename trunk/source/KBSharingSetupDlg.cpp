@@ -91,7 +91,7 @@ KBSharingSetupDlg::~KBSharingSetupDlg() // destructor
 void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	m_saveOldURLStr = m_pApp->m_strKbServerURL; // save existing value (could be empty)
-	m_saveOldUsernameStr = m_pApp->m_strKbServerUsername; // ditto
+	m_saveOldUsernameStr = m_pApp->m_strUserID; // ditto
 	m_savePassword = m_pApp->GetMainFrame()->GetKBSvrPassword(); // might be empty
 	m_saveIsONflag = m_pApp->m_bIsKBServerProject;
 
@@ -105,9 +105,9 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		m_pURLCtrl->ChangeValue(m_pApp->m_strKbServerURL);
 	}
-	if (!m_pApp->m_strKbServerUsername.IsEmpty())
+	if (!m_pApp->m_strUserID.IsEmpty())
 	{
-		m_pUsernameCtrl->ChangeValue(m_pApp->m_strKbServerUsername);
+		m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID);
 	}
 }
 
@@ -164,7 +164,7 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 		// project configuration file can store them permanently, and SetupForKBServer()
 		// will need to call them too
 		m_pApp->m_strKbServerURL = strURL;
-		m_pApp->m_strKbServerUsername = strUsername;
+		m_pApp->m_strUserID = strUsername;
 
 		if (m_saveOldURLStr == strURL && m_saveOldUsernameStr == strUsername)
 		{
@@ -237,7 +237,7 @@ void KBSharingSetupDlg::OnCancel(wxCommandEvent& myevent)
 {
 	// Do nothing, change no settings; so restore what was saved
 	m_pApp->m_strKbServerURL = m_saveOldURLStr;
-	m_pApp->m_strKbServerUsername = m_saveOldUsernameStr;
+	m_pApp->m_strUserID = m_saveOldUsernameStr;
 	m_pApp->GetMainFrame()->SetKBSvrPassword(m_savePassword);
 	m_pApp->m_bIsKBServerProject = m_saveIsONflag;
 
@@ -268,7 +268,7 @@ void KBSharingSetupDlg::OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event))
     // For temporary removal & later re-enabling it is better to use the Disable Sharing /
     // Enable Sharing button though, because the password doesn't need to be retyped
 	//m_pApp->m_strKbServerURL.Empty();
-	//m_pApp->m_strKbServerUsername.Empty();
+	//m_pApp->m_strUserID.Empty();
 	
 	// While we don't change the app members, the removal should clear the text boxes in
 	// the dialog so that the user has feedback that the removal has been effected. To
