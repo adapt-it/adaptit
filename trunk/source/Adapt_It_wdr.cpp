@@ -1445,7 +1445,18 @@ wxSizer *ProjectPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 20, 4, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticBox *item9 = new wxStaticBox( parent, -1, _("Unique Username (obligatory):") );
+    wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_MSG, _("Type a username. A unique one is best, but whatever you type will be accepted. You only need do this once, but if you ever want to change it, you can change it only here. Your full email addess is a good choice. If you use an email address, it will NOT be used for sending any emails from within Adapt It. Something must be in this field before you can go further in the wizard."), wxDefaultPosition, wxSize(-1,65), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    item8->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(-1,24), wxGROW );
+    item8->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    item1->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 

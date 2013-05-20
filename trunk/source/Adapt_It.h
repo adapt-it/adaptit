@@ -2214,8 +2214,20 @@ public:
                                         // the user's email address if he has one, if not, any
                                         // unique string will do provided the server administrator
                                         // approves it
-    wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which we'll use
-                                        // m_strUserID
+    wxString	m_strSessionUsername;	// BEW added 20May13, for support of a per-session temporary
+										// different username than what is stored in m_strUserID, so
+										// that KB Sharing can for the current session operate
+										// with a different user's name (which has to be
+										// in the mysql user table of course, otherwise KB Sharing
+										// would be shut down for the sesssion, or till a valid
+										// username is re-supplied. This variable is not
+										// used for DVCS support nor in xhtml export. The
+										// value in this variable is only copied from the
+										// m_strUserID variable, never coped TO the m_strUserID
+										// variable, and so does not alter what the basic config
+										// file stores - to do the latter, use ProjectPage of wizard.)
+    wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which
+                                        // we'll use m_strUserID
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check

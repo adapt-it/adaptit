@@ -92,6 +92,15 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	m_saveOldURLStr = m_pApp->m_strKbServerURL; // save existing value (could be empty)
 	m_saveOldUsernameStr = m_pApp->m_strUserID; // ditto
+
+	// BEW added 20May13, use m_strSessionUsername, which is a user-resettable copy
+	// of m_strUserID (the latter is set or changed only in Project Page of the wizard),
+	// and if the user changes what is shown to him in the KBSharingSetupDlg username
+	// textbox, then that new setting persists only for the session or till this dialog is
+	// reopened, and we never copy m_strSessionUsername into m_strUserID, the latter is
+	// what gets stored in the basic config file
+	m_pApp->m_strSessionUsername = m_pApp->m_strUserID;
+
 	m_savePassword = m_pApp->GetMainFrame()->GetKBSvrPassword(); // might be empty
 	m_saveIsONflag = m_pApp->m_bIsKBServerProject;
 
@@ -105,9 +114,10 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		m_pURLCtrl->ChangeValue(m_pApp->m_strKbServerURL);
 	}
-	if (!m_pApp->m_strUserID.IsEmpty())
+	//if (!m_pApp->m_strUserID.IsEmpty()) BEW deprecated 20May13
+	if (!m_pApp->m_strSessionUsername.IsEmpty())
 	{
-		m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID);
+		m_pUsernameCtrl->ChangeValue(m_pApp->m_strSessionUsername);
 	}
 }
 
@@ -164,8 +174,13 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 		// project configuration file can store them permanently, and SetupForKBServer()
 		// will need to call them too
 		m_pApp->m_strKbServerURL = strURL;
-		m_pApp->m_strUserID = strUsername;
-
+		// BEW 20May13, don't make whatever was in the username box be able to update the
+		// m_strUserID value; that variable must only be reset from ProjectPage in the
+		// Start Working... wizard, so comment out next line & set m_strSessionUsername 
+		// instead
+		//m_pApp->m_strUserID = strUsername;
+		m_pApp->m_strSessionUsername = strUsername; // this is what kbserver will use
+													// for authenticating in this session
 		if (m_saveOldURLStr == strURL && m_saveOldUsernameStr == strUsername)
 		{
 			// user has unchanged credentials, maybe he needs to retype the password; so
@@ -179,7 +194,9 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 			}
 			m_pApp->m_bIsKBServerProject = TRUE;
 			m_pApp->LogUserAction(_T("SetupForKBServer() re-attempted in setup dialog"));
-			// instantiate an adapting and a glossing KbServer class instance
+			// instantiate an adapting and a glossing KbServer class instance (note:
+			// m_strSessionUsername is used internally, and unchanged, in the calls
+			// SetupForKBServer(1) and ...(2) below)
 			if (!m_pApp->SetupForKBServer(1) || !m_pApp->SetupForKBServer(2))
 			{
 				// an error message will have been shown, so just log the failure
@@ -189,11 +206,13 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 		}
 		else if(m_pApp->m_bIsKBServerProject)
 		{
-			// This project is a KB sharing one, and the settings wanted have changed, so
+			// This project is a KB sharing one, and the username has been changed (for
+			// this session only, thereafter it reverts to m_strUserID unlesss that gets
+			// changed manually at the ProjectPage of the wizard), so
 			// remove the old settings and set up with the new credentials
 			m_pApp->ReleaseKBServer(1); // the adaptations one
 			m_pApp->ReleaseKBServer(2); // the glossings one
-			m_pApp->LogUserAction(_T("Switching server or correcting mistyped credentials: SetupForKBServer() is about to be called"));
+			m_pApp->LogUserAction(_T("Switching server or using different username for this session only: calling SetupForKBServer() again"));
 			// instantiate an adapting and a glossing KbServer class instance
 			if (!m_pApp->SetupForKBServer(1) || !m_pApp->SetupForKBServer(2))
 			{
@@ -205,14 +224,19 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 		else
 		{
 			// This project is not currently one designated for KB sharing, so use the
-			// credentials supplied to turn KB sharing ON
+			// credentials supplied to turn KB sharing ON. The caller will have verified
+			// the following:
+			// The m_strSessionUsername (which may be identical to what's in
+			// m_strUserID) has an entry in the mysql database's user table, and the
+			// kb table has the needed languagecode pair for making this particular AI
+			// project be one that supports KB Sharing
 			m_pApp->m_bIsKBServerProject = TRUE;
-			m_pApp->LogUserAction(_T("Not currently sharing, and SetupForKBServer() is about to be called"));
+			m_pApp->LogUserAction(_T("Not currently sharing, authorized to call SetupForKBServer() now"));
 			// instantiate an adapting and a glossing KbServer class instance
 			if (!m_pApp->SetupForKBServer(1) || !m_pApp->SetupForKBServer(2))
 			{
 				// an error message will have been shown, so just log the failure
-				m_pApp->LogUserAction(_T("SetupForKBServer(): setup failed"));
+				m_pApp->LogUserAction(_T("SetupForKBServer(): authorized setup failed"));
 				return;
 			}
 		}
@@ -238,6 +262,7 @@ void KBSharingSetupDlg::OnCancel(wxCommandEvent& myevent)
 	// Do nothing, change no settings; so restore what was saved
 	m_pApp->m_strKbServerURL = m_saveOldURLStr;
 	m_pApp->m_strUserID = m_saveOldUsernameStr;
+	m_pApp->m_strSessionUsername.Empty();
 	m_pApp->GetMainFrame()->SetKBSvrPassword(m_savePassword);
 	m_pApp->m_bIsKBServerProject = m_saveIsONflag;
 

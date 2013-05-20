@@ -924,6 +924,7 @@ CBString Xhtml::ToUtf8(const wxString& str)
 	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
 	return CBString(tempBuf);
 }
+
 wxString Xhtml::ToUtf16(CBString& bstr)
 {
 	// whm 21Aug12 modified. No need for #ifdef _UNICODE and #else
@@ -934,11 +935,26 @@ wxString Xhtml::ToUtf16(CBString& bstr)
 
 CBString Xhtml::GetExporterID()
 {
-	wxString myID = ::wxGetUserId();
+	// BEW refactored 20May13, to give priority to the app-wide username string, which is
+	// stored in the m_strUserID wxString variable; the latter is used for DVCS, and 
+	// KbServer support, and since it's supposed to be a unique string, we'll use it here
+	// too. Typically it's the user's full email address string, but it can be any string
+	// the user types at the ProjectPage of the wizard, where it can be reset to a
+	// different string if designed, and only can be changed there. Stored in basic config.
+	wxString myID;
+	if (!m_pApp->m_strUserID.IsEmpty())
+	{
+		myID = m_pApp->m_strUserID;
+	}
+	else
+	{
+		myID = ::wxGetUserId();
+	}
 	CBString s = ToUtf8(myID);
 	ReplaceEntities(s);
 	return s;
 }
+
 CBString Xhtml::GetLanguageCode()
 {
 	return ToUtf8(m_languageCode);
@@ -1022,7 +1038,7 @@ CBString Xhtml::GetRunningHeader(wxString* pBuffer)
 	}
 }
 */
-
+/* This isn't used anywhere, so I removed it on 20May13
 CBString Xhtml::GetMachineName()
 {
 	CBString emptyStr = "";
@@ -1036,7 +1052,7 @@ CBString Xhtml::GetMachineName()
 	ReplaceEntities(s);
 	return s;
 }
-
+*/
 // This is a filtering function, used on the wxString of USFM marked up text data, to
 // remove substrings (such as markers we don't want), or to change substrings (typically 
 // markers we don't support and so they are to be replaced with other markers we do

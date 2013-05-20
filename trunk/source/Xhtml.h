@@ -402,7 +402,7 @@ private:
 	CBString GetMyBookName(); // grab's what is in the app's member, m_bookName_Current
 	CBString GetTargetLanguageName();
 	//CBString GetRunningHeader(wxString* pBuffer); // pass in m_pBuffer member
-	CBString GetMachineName();
+	//CBString GetMachineName(); <<-- removed 20May13, this is not used anywhere
 	CBString InsertCallerIntoTitleAttr(CBString templateStr);
 
 	// iterator for use with the Enum2LabelMap
