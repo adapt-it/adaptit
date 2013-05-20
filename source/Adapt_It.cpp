@@ -5825,12 +5825,14 @@ wxString szIsKBServerProject = _T("IsKBServerProject");
 /// used server for knowledge base sharing within a project designated as one for sharing
 wxString szKbServerURL = _T("KbServerURL");
 
-/// The label for the project configuration file's line which stores the login username
+/// The label for the project configuration file's line which stores the assigned username
 /// for the last used server for knowledge base sharing within a project designated as one
 /// for sharing. Because an email address is unique, we recommend the user's email address
 /// be used for the username (full address, including domain); however not all users will
-/// have email access, so any likely-to-be-unique name would be acceptable
-wxString szKbServerUsername = _T("KbServerUsername");
+/// have email access, so any likely-to-be-unique name would be acceptable;
+/// 20May13, this name was made app-wide in scope, and so it to be used for DVCS, KB 
+/// sharing, and xhtml & Pathway export, and any other future feature needing a username
+wxString szUniqueUsername = _T("UniqueUsername");
 
 /// The minimum interval, in minutes, from one incremental download attempt to the next
 /// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
@@ -15074,7 +15076,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	}
 
 	// get the kbserver credentials we need
-	wxString credsfilename = _T("credentials.txt"); // temporary, later we will use project config file
+	//wxString credsfilename = _T("credentials.txt"); // temporary, later we will use project config file
 	wxString syncfilename; // probably use this file permanently
 	if (whichType == 1)
 	{
@@ -15109,9 +15111,16 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		return FALSE;
 	}
 	*/
-	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
+    // Use m_strSessionUsername rather than m_strUserID (the former should not be empty,
+    // it's either set when the basic config file is read in, or when the KBSharingSetupDlg
+	// is opened; and since the latter dialog's OK() handler may call SetupForKBServer()
+	// internally, we don't here reset m_strSessionUsername to whatever m_strUserID is, but
+	// just use whatever the dialog has set m_strSessionUsername to)
+	//wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
+	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strSessionUsername.IsEmpty());
 	url = m_strKbServerURL;
-	username = m_strUserID;
+	//username = m_strUserID; BEW changed 20May13
+	username = m_strSessionUsername;
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
@@ -15287,6 +15296,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW added 13Mar13 (see comments in Adapt_It.h where it is declared, for extra details)
 	m_bDoLegacyLowerCaseLookup = FALSE;
 
+	// Mike & BEW added 20May13, for across-the-app username support
+	m_strUserID.Empty(); // it's set from the basic config file, or if still empty, then
+						 // at the wxTextCtrl on the ProjectPage of the wizard
+	m_strSessionUsername.Empty(); // A copy of m_strUserID is put in here for use by KB Sharing,
+						 // and if the user wants, the KB sharing setup dialog will allow this
+						 // variable to have a different username - but it is volatile, it will
+						 // last only while control is in the current project, or until
+						 // the dialog for setting up KB Sharing is reopened
 
 	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -21178,7 +21195,8 @@ int ii = 1;
 #endif
 */
 
-	// support Mike's testing of DVCS work (inspired by Chorus) (TEST_DVCS is #defined at line 25 of Adapt_It.h)
+	// support Mike's testing of DVCS work (inspired by Chorus) 
+	// (TEST_DVCS is #defined at line 66 of Adapt_It.h)
 #if defined(TEST_DVCS) && defined(_DEBUG)
 
 	wxMenuBar* pAIMenuBar = NULL;
@@ -28191,6 +28209,11 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szUniqueUsername << tab << m_strUserID;
+	// BEW 20May13 NEVER store what's in m_strSessionUsername in any config file, basic or project
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
 
@@ -29644,6 +29667,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		else if (name == szFreeTransLanguageCode)
 		{
 			m_freeTransLanguageCode = strValue;
+		}
+		else if (name == szUniqueUsername)
+		{
+			m_strUserID = strValue;
+			m_strSessionUsername = strValue;
 		}
 		else if (name == szAdaptitPath)
 		{
@@ -31999,10 +32027,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKbServerUsername << tab << m_strUserID;
-	pf->AddLine(data);
-
-	data.Empty();
 	data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
 	pf->AddLine(data);
 
@@ -32817,10 +32841,6 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_strKbServerURL = strValue;
 		}
-		else if (name == szKbServerUsername)
-		{
-			m_strUserID = strValue;
-		}
 		else if (name == szKbServerDownloadInterval)
 		{
 			num = wxAtoi(strValue);
@@ -32832,8 +32852,6 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szIsKBServerProject)
 			;	// do nothing
 		else if (name == szKbServerURL)
-			;	// do nothing
-		else if (name == szKbServerUsername)
 			;	// do nothing
 		else if (name == szKbServerDownloadInterval)
 			; // do nothing

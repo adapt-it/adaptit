@@ -141,6 +141,11 @@ CProjectPage::CProjectPage(wxWizard* parent)
 	//pTextCtrlAsStaticProjectPage->SetBackgroundColour(backgrndColor);
 	pTextCtrlAsStaticProjectPage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
+	// BEW added 20May13, for the msg box and text control for the username to be typed in
+	pUsernameMsgTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_MSG);
+	pUsernameMsgTextCtrl->SetBackgroundColour(gpApp->sysColorBtnFace);
+	pUsernameTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME);
+
 	m_curLBSelection = 0; // default to select the first item in list
 	// default to <New Project> -- this will be updated in InitDialog
 	if (gpApp->m_bShowNewProjectItem)
@@ -162,6 +167,7 @@ bool CProjectPage::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
+
 	return TRUE;
 }
 
@@ -252,6 +258,12 @@ void CProjectPage::OnLBSelectItem(wxCommandEvent& WXUNUSED(event))
 
 void CProjectPage::OnCallWizardNext(wxCommandEvent& WXUNUSED(event))
 {
+	// BEW added 20May13, don't advance if the username textctrl is empty
+	if (pUsernameTextCtrl->IsEmpty())
+	{
+		wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
+		return;
+	}
 	// simulate a doubleclick as a click on "Next >" button by calling the appropriate ShowPage
 	// Note: ShowPage() triggers OnWizardPageChanging, etc.
 	if (gbWizardNewProject)
@@ -337,6 +349,8 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
+	usernameMsgTitle = _T("Warning: No Username");
+	usernameMsg = _T("You must supply a username in the Unique Username text box.");
 
 	//wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
 
@@ -350,12 +364,20 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 
 	// first, use the current navigation text font for the list box
 	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, NULL, NULL,
-								m_pListBox, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bNavTextRTL);
+	pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, NULL, NULL,
+								m_pListBox, NULL, pApp->m_pDlgSrcFont, pApp->m_bNavTextRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, NULL, NULL,
-								m_pListBox, NULL, gpApp->m_pDlgSrcFont);
+	pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, NULL, NULL,
+								m_pListBox, NULL, pApp->m_pDlgSrcFont);
 	#endif
+
+	// BEW added 20May13, transfer the m_strUserID username string (loaded from basic
+	// config file before InitDialog() is called) to the pUsernameTextCtrl textbox
+	// where the user can do nothing if it is correct, type something different if
+	// necessary, or if the box is empty, add a (preferably unique) string for the first time
+	pUsernameTextCtrl->ChangeValue(pApp->m_strUserID); // note, it could be empty (& if the
+							// user leaves it empty, control won't advance past the 
+							// ProjectPage of the wizard)
 
 	// generate a CStringList of all the possible adaption projects
 	wxArrayString possibleAdaptions;
@@ -509,6 +531,8 @@ void CProjectPage::OnWizardPageChanged(wxWizardEvent& event)
 			gpApp->m_bFictitiousReadOnlyAccess = FALSE; // ditto
 			gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 		}
+		// BEW 20May13, also restore the m_strUserID to its textctrl box
+		pUsernameTextCtrl->ChangeValue(gpApp->m_strUserID);
 	}
 }
 
@@ -523,6 +547,14 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 	bool bMovingForward = event.GetDirection();
 	wxASSERT(bMovingForward == TRUE); // we can only move forward from the projectPage
+
+	// BEW added 20May13, don't advance if the username textctrl is empty
+	if (pUsernameTextCtrl->IsEmpty())
+	{
+		wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
+		event.Veto();
+		return;
+	}
 
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 	{
@@ -701,7 +733,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// When the collaboration-related settings were stored app-wide in the basic
 			// configuration file, it would have been read in its entirety before invoking
 			// the GetSourceTextFromEditorDlg dialog.
-			gpApp->GetProjectConfiguration(pApp->m_curProjectPath);
+			pApp->GetProjectConfiguration(pApp->m_curProjectPath);
 
 			// whm modified 18Feb12. Now that the project config file has been read we
 			// can determine what the collaboration settings are for this AI project. If
@@ -1303,7 +1335,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
 					{
 						// an error message will have been shown, so just log the failure
-						gpApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+						pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
 						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 					}
 				}
