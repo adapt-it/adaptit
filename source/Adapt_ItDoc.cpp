@@ -21207,20 +21207,40 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
         // what is in it. A normal Open command can also be tried too.
 		gpApp->LogUserAction(thismsg);
 	}
-//*
+
 #if defined(_KBSERVER)
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
 	{
-		gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
-		// instantiate both adapting and glossing KbServer class instances, enabled by default
-		if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
+		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
+		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
+		bool bUserCancelled = FALSE;
+		// we want to ensure valid codes four source, target and glosses languages,
+		// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+		bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
+		if (!bDidItOK && bUserCancelled)
 		{
-			// an error message will have been shown, so just log the failure
-			gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
+			// We must assume the codes are wrong or incomplete, or that the
+			// user has changed his mind about KB Sharing being on - so turn
+			// it off
+			gpApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
+			gpApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
+			gpApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
+			gpApp->m_bIsKBServerProject = FALSE;
+		}
+		else
+		{
+			// Go ahead...
+			gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
+			// instantiate both adapting and glossing KbServer class instances, enabled by default
+			if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
+			{
+				// an error message will have been shown, so just log the failure
+				gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
+			}
 		}
 	}
 #endif
-//*/
+
 	return TRUE;
 }
 

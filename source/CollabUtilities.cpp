@@ -1960,22 +1960,42 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	wxString pathCreationErrors = _T("");
 	pApp->CreateInputsAndOutputsDirectories(pApp->m_curProjectPath, pathCreationErrors);
 	// ignore dealing with any unlikely pathCreationErrors at this point
-//*
+
 #if defined(_KBSERVER)
 	// BEW 28Sep12. If kbserver support was in effect and the project hasn't changed (see
     // the note above immediately after the GetProjectConfiguration() call), then we must
     // restore the KB setup
 	if (pApp->m_bIsKBServerProject)
 	{
-		pApp->LogUserAction(_T("SetupForKBServer() called in HookUpToExistingAIProject()"));
-		if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // enables each by default
+		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
+		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
+		bool bUserCancelled = FALSE;
+		// we want to ensure valid codes four source, target and glosses languages,
+		// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+		bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
+		if (!bDidItOK && bUserCancelled)
 		{
-			// an error message will have been shown, so just log the failure
-			gpApp->LogUserAction(_T("SetupForKBServer() failed in HookUpToExistingAIProject()"));
+			// We must assume the codes are wrong or incomplete, or that the
+			// user has changed his mind about KB Sharing being on - so turn
+			// it off
+			pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
+			pApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
+			pApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
+			pApp->m_bIsKBServerProject = FALSE;
+		}
+		else
+		{
+			// Go ahead...
+			pApp->LogUserAction(_T("SetupForKBServer() called in HookUpToExistingAIProject()"));
+			if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // enables each by default
+			{
+				// an error message will have been shown, so just log the failure
+				gpApp->LogUserAction(_T("SetupForKBServer() failed in HookUpToExistingAIProject()"));
+			}
 		}
 	}
 #endif
-//*/
+
 	return TRUE;
 }
 
