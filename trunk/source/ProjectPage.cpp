@@ -1327,9 +1327,13 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				// there will be a beep if no password was typed
 				if (!pwd.IsEmpty())
 				{
-
+                    // BEW 21May13 added the CheckLanguageCodes() call and the if-else
+                    // block, to ensure valid codes and if not, or if user cancelled, then
+                    // turn off KB Sharing
 					bool bUserCancelled = FALSE;
-					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
+					// we want valid codes four source, target and glosses languages, so
+					// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
 					if (!bDidItOK && bUserCancelled)
 					{
 						// We must assume the codes are wrong or incomplete, or that the
