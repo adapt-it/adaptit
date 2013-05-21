@@ -1312,7 +1312,6 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
-//*
 #if defined(_KBSERVER)
             // BEW 28Sep12, this seems to be the appropriate place, if this project has
             // been designated as one for support of KB sharing, to put the
@@ -1328,15 +1327,32 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				// there will be a beep if no password was typed
 				if (!pwd.IsEmpty())
 				{
-					pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-												   // ready for SetupForKBServer() below to use it
-					pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
-					// instantiate an adapting and a glossing KbServer class instance
-					if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+
+					bool bUserCancelled = FALSE;
+					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
+					if (!bDidItOK && bUserCancelled)
 					{
-						// an error message will have been shown, so just log the failure
-						pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
-						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+						// We must assume the codes are wrong or incomplete, or that the
+						// user has changed his mind about KB Sharing being on - so turn
+						// it off
+						pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
+						pApp->ReleaseKBServer(1); // the adapting one
+						pApp->ReleaseKBServer(2); // the glossing one
+						pApp->m_bIsKBServerProject = FALSE;
+					}
+					else
+					{
+						// All's well, go ahead
+						pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
+													   // ready for SetupForKBServer() below to use it
+						pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
+						// instantiate an adapting and a glossing KbServer class instance
+						if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+						{
+							// an error message will have been shown, so just log the failure
+							pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+							pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+						}
 					}
 				}
 				else
@@ -1348,7 +1364,6 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				}
 			}
 #endif
-//*/
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;
