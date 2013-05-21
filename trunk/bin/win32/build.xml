@@ -45,6 +45,8 @@
     <delete dir="${root}\setup Unicode - No Html Help"/>
     <delete dir="${root}\setup Unicode Documentation Only"/>
     <delete dir="${root}\setup Unicode Localizations Only"/>
+    <delete dir="${root}\bin\Adapt It WX Regular Setup\bin"/>
+    <delete dir="${root}\bin\Adapt It WX Unicode Setup\bin"/>
   </target>
   
   <!-- quick test to see if the 3rd party libs have been expanded yet -->
@@ -112,6 +114,7 @@
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
     <copy file="${3pt}/wxwidgets/current/wxWidgets/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets/include/wx/setup.h"/>
+    <copy file="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/setup.h"/>
     <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
 	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
@@ -205,12 +208,12 @@
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.wixobj" />
 		<arg value="-out" />
-		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_1_Unicode.msi" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_2_Unicode.msi" />
 		<arg value="-ext" />
 		<arg value="WixUIExtension" />
     </exec>
 	<!-- copy the installer into the AIWX Installers directory -->
-    <copy file="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.msi" tofile="${dist}/Adapt It WX Unicode Setup.msi"/>
+    <copy file="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_2_Unicode.msi" tofile="${dist}/Adapt_It_WX_6_4_2_Unicode.msi"/>
   </target>
   
   <!-- 
@@ -250,41 +253,12 @@
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixobj" />
 		<arg value="-out" />
-		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_1_Regular.msi" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_2_Regular.msi" />
 		<arg value="-ext" />
 		<arg value="-WixUIExtension" />
     </exec>
 	<!-- copy the installer into the AIWX Installers directory -->
-    <copy file="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.msi" tofile="${dist}/Adapt It WX Regular Setup.msi"/>
-  </target>
-
-  <!-- 
-  - compile_debug target
-  - Compiles AI in ANSI Debug mode.
-  -->
-  <target name="compile_debug" depends="init"
-        description="compile the source " >
-	<!-- set the appropriate environment variables -->
-	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
-    <!-- build wxwidgets for wxwin -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Debug" />
-	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
-    </exec>
-    <!-- build Adapt It -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="28"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
-		<env key="WXVER_VS05" value="28"/>
-		<env key="WXWIN_VS05" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
-		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
-		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/win32/Adapt_It_vs05.sln" />
-		<arg value="/target:rebuild" />
-		<arg value="/p:Configuration=Debug" />
-    </exec>
+    <copy file="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_2_Regular.msi" tofile="${dist}/Adapt_It_WX_6_4_2_Regular.msi"/>
   </target>
 
   <!-- 
@@ -299,6 +273,7 @@
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
+ 	<!--  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_05.sln" /> -->
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
     </exec>
     <!-- build Adapt It -->
@@ -421,7 +396,7 @@
   - build_legacy target
   - Compiles the regular (ansi) Debug and Release builds using the VS 2005 compiler.
   -->
-  <target name="build_ansi" depends="clean, init, compile_debug, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
+  <target name="build_ansi" depends="clean, init, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
   </target>
 
 </project>
