@@ -349,6 +349,13 @@ wxString  MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang
 // function; 
 bool	  IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase);
 
+// A helper for KB Sharing, to check certain language codes exist, and if they don't, to
+// let the user set them using the language codes dialog
+bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled);
+
+
+
+
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at
 // new CSourcePhrase instance (param 3) at the same Node, returning that Node's pointer.

@@ -59,6 +59,7 @@
 #include "tellenc.h"
 #include "RefStringMetadata.h"
 #include "Thread_PseudoDelete.h"
+#include "LanguageCodesDlg.h"
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -9472,4 +9473,140 @@ wxMemorySize MacGetFreeMemory()
 
 #endif	/* __WXMAC__ */
 
+/// A helper for KB Sharing, to check certain language codes exist, and if they don't, to
+/// let the user set them using the language codes dialog
+/// \return             TRUE if the wanted codes exist at exit, FALSE otherwise
+/// \param  bSrc        ->  TRUE if this one is to be checked, FALSE if to be ignored
+/// \param  bTgt        ->  TRUE if this one is to be checked, FALSE if to be ignored
+/// \param  bGloss      ->  TRUE if this one is to be checked, FALSE if to be ignored
+/// \param  bFreeTrans  ->  TRUE if this one is to be checked, FALSE if to be ignored
+/// \param  bUserCancelled -> TRUE if the user cancels out of the function explicitly,
+///                           FALSE if neither of the two cancellation chances are taken
+/// \remarks
+/// Checks the app's members m_sourceLanguageCode, m_targetLanguageCode,
+/// m_glossesLanguageCode, m_freeTransLanguageCode, according to which of the four input
+/// paramaters are TRUE, and if one or more of the chosen ones is empty, it puts up the
+/// language codes dialog for the user to set the desired codes. Before the dialog is put
+/// up, a message is shown explaining what is wanted of the user. The user is free to set
+/// codes for text types not being asked for, such settings are stored in the app, but
+/// only the wanted codes are actually used by the feature requesting that certain codes
+/// be set. For instance, kbserver of type 1 (an adaptation KB) will want only bSrc and
+/// bTgt checked, while kbserver of type 2 (a glossing KB) will want only bSrc and bGloss
+/// checked. In either case, if the user sets a code for bFreeTrans, it would be stored in
+/// the app in the appropriate place, but the KB Sharing feature would ignore that one's
+/// setting. The user can cancel out, and so we can't interpret a returned FALSE as a
+/// cancel, and therefore we track user's manual cancellation option with bUserCancelled;
+/// but currently, return FALSE can only happen when bUserCancelled = TRUE, because either
+/// the user supplies the needed codes, and is nagged till he does, or he cancels.
+/// We also check when one or more codes are NOCODE (i.e. "qqq"), but if the user then
+/// elects to retain one or more NOCODE values, we accept them.
+bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled)
+{
+	bUserCancelled = FALSE; // default
+	if ( ((gpApp->m_sourceLanguageCode.IsEmpty() && bSrc) || ((gpApp->m_sourceLanguageCode == NOCODE) && bSrc)) || 
+		 (gpApp->m_targetLanguageCode.IsEmpty() && bTgt || ((gpApp->m_targetLanguageCode == NOCODE) && bTgt)) ||
+		 (gpApp->m_glossesLanguageCode.IsEmpty() && bGloss || ((gpApp->m_glossesLanguageCode == NOCODE) && bGloss)) || 
+		 (gpApp->m_freeTransLanguageCode.IsEmpty() && bFreeTrans || ((gpApp->m_freeTransLanguageCode == NOCODE) && bFreeTrans)) )
+	{
+		wxString srcCode;
+		wxString tgtCode;
+		wxString glossCode;
+		wxString freeTransCode;
 
+		bool bCodesEntered = FALSE;
+		while (!bCodesEntered)
+		{
+			// Call up CLanguageCodesDlg here so the user can enter language 
+			// codes which are needed
+			CLanguageCodesDlg lcDlg((wxWindow*)gpApp->GetMainFrame());
+			lcDlg.Center();
+			// Load any lang codes already stored on the App into the dialog's edit boxes
+			lcDlg.m_sourceLangCode = gpApp->m_sourceLanguageCode;
+			lcDlg.m_targetLangCode = gpApp->m_targetLanguageCode;
+			lcDlg.m_glossLangCode = gpApp->m_glossesLanguageCode;
+			lcDlg.m_freeTransLangCode = gpApp->m_freeTransLanguageCode;
+            // The language code dialog allows the user to setup codes for src, tgt, gloss
+            // and/or free translation languages
+			int returnValue = lcDlg.ShowModal();
+			if (returnValue == wxID_CANCEL)
+			{
+				// user cancelled
+				bUserCancelled = TRUE;
+				return FALSE;
+			}
+			// Get the results of the user's settings of the codes
+			srcCode = lcDlg.m_sourceLangCode;
+			tgtCode = lcDlg.m_targetLangCode;
+			glossCode = lcDlg.m_glossLangCode;
+			freeTransCode = lcDlg.m_freeTransLangCode;
+
+			wxString message,langStr;
+			langStr = _T("");
+			// Check that codes have been entered in the boxes required according to which
+			// passed in booleans were TRUE
+			if ( (bSrc && srcCode.IsEmpty()) ||
+				 (bTgt && tgtCode.IsEmpty()) ||
+				 (bGloss && glossCode.IsEmpty()) ||
+				 (bFreeTrans && freeTransCode.IsEmpty()) )
+			{
+				if (bSrc && srcCode.IsEmpty())
+				{
+					langStr += _("Source, ");
+				}
+				if (bTgt && tgtCode.IsEmpty())
+				{
+					langStr += _("Target, ");
+				}
+				if (bGloss && glossCode.IsEmpty())
+				{
+					langStr += _("Glosses, ");
+				}
+				if (bFreeTrans && freeTransCode.IsEmpty())
+				{
+					langStr += _("Free translation");
+				}
+				// Remove final space if present, and final comma if present
+				langStr.Trim(); // trim at right end (ie. will be at left if RTL script)
+				int thelength = langStr.Len();
+				wxChar lastChar = langStr.GetChar(thelength - 1); // get last character
+				if (lastChar == _T(','))
+				{
+					// Remove the final comma
+					langStr = langStr.Left(thelength - 1);
+				}
+				message = message.Format(_("Missing language code for the following language(s):\n\n%s\n\nA code is required for each language that you missed.\nDo you want to try again?"),langStr.c_str());
+				int response = wxMessageBox(message, _("Language code(s) missing"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+
+				// Accept whatever we've got so far, at least
+				gpApp->m_sourceLanguageCode = srcCode;
+				gpApp->m_targetLanguageCode = tgtCode;
+				gpApp->m_glossesLanguageCode = glossCode;
+				gpApp->m_freeTransLanguageCode = freeTransCode;
+				
+				// Check the user's response to the message; either have another go, or
+				// cancel out
+				if (response == wxNO)
+				{
+					// user wants to abort
+					bUserCancelled = TRUE;
+					return FALSE;
+				}
+				else
+				{
+					bCodesEntered = FALSE;
+				}
+			}
+			else
+			{
+				bCodesEntered = TRUE;
+			}
+		} // loop, while (!bCodesEntered) is TRUE
+
+		// update the App's members with the final results
+		gpApp->m_sourceLanguageCode = srcCode;
+		gpApp->m_targetLanguageCode = tgtCode;
+		gpApp->m_glossesLanguageCode = glossCode;
+		gpApp->m_freeTransLanguageCode = freeTransCode;
+	}
+	return TRUE;
+}

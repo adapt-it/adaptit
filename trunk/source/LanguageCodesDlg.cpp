@@ -65,7 +65,7 @@ BEGIN_EVENT_TABLE(CLanguageCodesDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Choose the 3-letter language codes for Source and Target Languages"),
+	: AIModalDialog(parent, -1, _("Choose language codes for at least the Source and Target languages"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
