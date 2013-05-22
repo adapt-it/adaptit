@@ -548,12 +548,19 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 	bool bMovingForward = event.GetDirection();
 	wxASSERT(bMovingForward == TRUE); // we can only move forward from the projectPage
 
-	// BEW added 20May13, don't advance if the username textctrl is empty
+	// BEW added 20May13, don't advance if the username textctrl is empty; but if not
+	// empty then set m_strUserID to what it contains, and put a copy in the session
+	// variable m_strSessionUsername for kbserver's OnKBSharingSetupDlg() etc to use
 	if (pUsernameTextCtrl->IsEmpty())
 	{
 		wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
 		event.Veto();
 		return;
+	}
+	else
+	{
+		pApp->m_strUserID = pUsernameTextCtrl->GetValue();
+		pApp->m_strSessionUsername = pApp->m_strUserID;
 	}
 
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
