@@ -2513,15 +2513,41 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	{
 		return;
 	}
-	KBSharingSetupDlg dlg(this);
-	dlg.Center();
-	if (dlg.ShowModal() == wxID_OK)
+	// BEW added 22May13, check that needed language codes are defined for source, target
+	// and gloss languages - get them set up if not so. If user cancels, don't go
+	// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE, 
+	// make it FALSE
+	
+    // BEW 21May13 added the CheckLanguageCodes() call and the if-else
+    // block, to ensure valid codes and if not, or if user cancelled, then
+    // turn off KB Sharing
+	bool bUserCancelled = FALSE;
+	// we want valid codes four source, target and glosses languages, so
+	// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+	bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
+	if (!bDidItOK && bUserCancelled)
 	{
-		gpApp->LogUserAction(_T("Closed OnKBSharingSetupDlg()"));
+		// We must assume the codes are wrong or incomplete, or that the
+		// user has changed his mind about KB Sharing being on - so turn
+		// it off
+		gpApp->LogUserAction(_T("User cancelled in CheckLanguageCodes() in CMainFrame::OnKBSharingSetupDlg()"));
+		gpApp->ReleaseKBServer(1); // the adapting one
+		gpApp->ReleaseKBServer(2); // the glossing one
+		gpApp->m_bIsKBServerProject = FALSE;
 	}
 	else
 	{
-		gpApp->LogUserAction(_T("Cancelled OnKBSharingSetupDlg()"));
+		// CheckLanguageCodes() succeeded, so go ahead
+		KBSharingSetupDlg dlg(this);
+		dlg.Center();
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			gpApp->LogUserAction(_T("Closed OnKBSharingSetupDlg()"));
+		}
+		else
+		{
+			gpApp->LogUserAction(_T("Cancelled OnKBSharingSetupDlg()"));
+		}
 	}
 }
 
