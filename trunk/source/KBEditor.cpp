@@ -1485,7 +1485,25 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		// initial letter key strings for AutoCapsLookup(), and so the Remove button must
 		// remove from both the upper and lower case pTU instances when two such exist in
 		// parallel (one for upper case initial key, the other for lower case initial key)
-		RemoveParallelEntriesViaRemoveButton(pKB, m_nCurPage, m_curKey, pRefString->m_translation);
+		// BEW 23May13, needs test here for the adaptation (or gloss in glossing mode)
+		// being empty, because we can't get upper case and lower case variants of an
+		// empty string, so test for an empty string, and if so, then just do the setting
+		// of the m_bDeleted flag on pRefString, etc.
+		if (pRefString->m_translation.IsEmpty())
+		{
+			// Remove the corresponding CRefString instance from the knowledge base...as
+			// explained a little ways above, in the TRUE block
+			wxASSERT(pRefString != NULL);
+			pRefString->SetDeletedFlag(TRUE);
+			pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+			pRefString->m_refCount = 0;
+		}
+		else
+		{
+			// calls of SetCaseParameters() will be meaningful for source and tgt or
+			// gloss, so go ahead with the following call
+			RemoveParallelEntriesViaRemoveButton(pKB, m_nCurPage, m_curKey, pRefString->m_translation);
+		}
 	}
 
 #if defined(_DEBUG) && defined(DUALS_BUG)
