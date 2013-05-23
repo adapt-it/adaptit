@@ -6764,8 +6764,7 @@ wxString szGuessingLevel = _T("GuessingLevel");
 
 /// The label that identifies the following string encoded number as the application's
 /// "AllowCConUnchangedGuesserOutput". Adapt It stores this value in the App's
-/// m_bAllowGuesseronUnchangedCCOutput.
-/// member  variable.
+/// m_bAllowCConUnchangedGuesserOutput member variable.
 wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput");
 
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
@@ -16038,7 +16037,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// default is 50 unless changed by config file settings
 	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
 	m_nCorrespondencesLoadedInGlossingGuesser = 0;
-	m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE Consistent Changes can operate on unchanged
+	m_bAllowCConUnchangedGuesserOutput = FALSE; // If TRUE Consistent Changes can operate on unchanged
 									// guesser output; default is FALSE unless changed by config file
 									// settings
 	m_pAdaptationsGuesser = (Guesser*)NULL;
@@ -24629,7 +24628,7 @@ void CAdapt_ItApp::RemoveEmptiesFromMaps(CKB* pKB)
 /// bug (i.e. use of wxHashMap .erase() member within a loop - it invalidates the loop
 /// index, which caused a crash if the loop iteration was continued. Added function
 /// RemoveEmptiesFromMaps(CKB* pKB) to preprocess removal of any pTU's with an empty list.
-/// The inventory was improved by searching for the first which is not pseudo-deleled in
+/// The inventory was improved by searching for the first which is not pseudo-deleted in
 /// the pTU's list, if the first CRefString was a pseudo-deleted one.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
@@ -32551,7 +32550,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	if (m_bAllowGuesseronUnchangedCCOutput)
+	if (m_bAllowCConUnchangedGuesserOutput)
 		number = _T("1");
 	else
 		number = _T("0");
@@ -33538,9 +33537,9 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			if (!(num == 0 || num == 1))
 				num = 1;
 			if (num == 1)
-				m_bAllowGuesseronUnchangedCCOutput = TRUE;
+				m_bAllowCConUnchangedGuesserOutput = TRUE;
 			else
-				m_bAllowGuesseronUnchangedCCOutput = FALSE;
+				m_bAllowCConUnchangedGuesserOutput = FALSE;
 		}
 		else if (name == szRTL_Layout)
 		{

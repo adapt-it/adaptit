@@ -1961,7 +1961,7 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 /// Guesser (if m_bUseAdaptationsGuesser is TRUE) before inserting the string to the
 /// m_targetPhrase. The Guesser cannot be used if the SIL Converters is being used.
 /// Also, the Guesser can be used only if Consistent Changes is not being used
-/// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput was set to true by the
+/// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput was set to true by the
 /// administrator checking the appropriate checkbox in the GuesserSettingsDlg.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
@@ -2018,13 +2018,13 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	{
 		// The Guesser cannot be used if the SIL Converters is being used.
 		// Also, the Guesser can be used only if Consistent Changes is not being used
-		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
+		// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput
 		// was set to true by the administrator checking the appropriate checkbox
 		// in the GuesserSettingsDlg.
-		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
+		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowCConUnchangedGuesserOutput))
 		{
 			// We don't need to query the user in this case because the
-			// m_bAllowGuesseronUnchangedCCOutput flag would have been changed
+			// m_bAllowCConUnchangedGuesserOutput flag would have been changed
 			// explicitly by the administrator ticking the checkbox in the
 			// GuesserSettingsDlg.
 			insertionText = DoGuess(pasteStr,bIsGuess);
@@ -13241,7 +13241,7 @@ CKB* CAdapt_ItView::GetKB()
 /// SIL Converters (if m_bUseSilConverter if TRUE) before returning the final string to the
 /// caller. The Guesser cannot be used if the SIL Converters is being used.
 /// Also, the Guesser can be used only if Consistent Changes is not being used
-/// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput was set to true by the
+/// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput was set to true by the
 /// administrator checking the appropriate checkbox in the GuesserSettingsDlg.
 /// CopySourceKey() is the primary place where Consistent Changes are done, where the SIL
 /// Converter changes are done and where Guesser changes are done within the Adapt It
@@ -13325,10 +13325,10 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	{
 		// The Guesser cannot be used if the SIL Converters is being used.
 		// Also, the Guesser can be used only if Consistent Changes is not being used
-		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
+		// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput
 		// was set to true by the administrator checking the appropriate checkbox
 		// in the GuesserSettingsDlg.
-		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
+		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowCConUnchangedGuesserOutput))
 		{
 			str2 = DoGuess(str,bIsGuess);
 			pApp->m_bIsGuess = bIsGuess;
@@ -20454,6 +20454,9 @@ void CAdapt_ItView::OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event)
 ///                         tool bar button is pressed
 /// \remarks
 /// Calls up the GuesserSettingsDlg dialog.
+/// BEW 23May13, added an extra line to reset the bUseAdaptationsGuesser local variable in
+/// the handler for the guesser settings dialog, because the changed value of the checkbox
+/// was not being picked up when going from set to unset.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 {
@@ -20480,7 +20483,7 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 		pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
 		pApp->m_GuessHighlightColor = gsDlg.tempGuessHighlightColor;
 
-		pApp->m_bAllowGuesseronUnchangedCCOutput = gsDlg.bAllowCConUnchangedGuesserOutput;
+		pApp->m_bAllowCConUnchangedGuesserOutput = gsDlg.bAllowCConUnchangedGuesserOutput;
 	}
 }
 

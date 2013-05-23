@@ -3336,7 +3336,7 @@ public:
 	bool m_bUseAdaptationsGuesser;	// If TRUE(the default) use the Guesser for adaptations
 	bool m_bIsGuess;				// If TRUE there is a guess for the current target text
 	int m_nGuessingLevel;			// The guesser level (can range from 0 to 100, default is 50)
-	bool m_bAllowGuesseronUnchangedCCOutput; // If TRUE Consistent Changes can operate on unchanged
+	bool m_bAllowCConUnchangedGuesserOutput; // If TRUE Consistent Changes can operate on unchanged
 									// guesser output; default is FALSE
 	Guesser* m_pAdaptationsGuesser;	// our Guesser object for adaptations
 	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
