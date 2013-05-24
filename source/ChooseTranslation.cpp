@@ -828,7 +828,20 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		// initial letter key strings for AutoCapsLookup(), and so the Remove button must
 		// remove from both the upper and lower case pTU instances when two such exist in
 		// parallel (one for upper case initial key, the other for lower case initial key)
-		RemoveParallelEntriesViaRemoveButton(m_pKB, m_nWordsInPhrase - 1, curKey, str);
+		// BEW 23May13, need more logic here to handle when adaptation or gloss is an
+		// empty string
+		if (str.IsEmpty())
+		{
+			// remove the corresponding CRefString instance from the knowledge base...
+			wxASSERT(pRefString != NULL);
+			pRefString->SetDeletedFlag(TRUE);
+			pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+			pRefString->m_refCount = 0;
+		}
+		else
+		{
+			RemoveParallelEntriesViaRemoveButton(m_pKB, m_nWordsInPhrase - 1, curKey, str);
+		}
 	}
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance

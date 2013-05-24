@@ -941,15 +941,20 @@ CBString Xhtml::GetExporterID()
 	// too. Typically it's the user's full email address string, but it can be any string
 	// the user types at the ProjectPage of the wizard, where it can be reset to a
 	// different string if designed, and only can be changed there. Stored in basic config.
+	// BEW changed my mind, 24May13 -- the email address could put people at risk from 
+	// hostile unfriendlies; the userid from the computer account is less likely to
+	// unambiguously identify the person, and since the xhtml could turn up anywhere, I
+	// would rather reduce the security risk, so I'll reinstate the old code
 	wxString myID;
-	if (!m_pApp->m_strUserID.IsEmpty())
-	{
-		myID = m_pApp->m_strUserID;
-	}
-	else
-	{
-		myID = ::wxGetUserId();
-	}
+	//if (!m_pApp->m_strUserID.IsEmpty())
+	//{
+	//	myID = m_pApp->m_strUserID;
+	//}
+	//else
+	//{
+	//	myID = ::wxGetUserId();
+	//}
+	myID = ::wxGetUserId();
 	CBString s = ToUtf8(myID);
 	ReplaceEntities(s);
 	return s;

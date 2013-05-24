@@ -2227,7 +2227,8 @@ public:
 										// variable, and so does not alter what the basic config
 										// file stores - to do the latter, use ProjectPage of wizard.)
     wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which
-                                        // we'll use m_strUserID
+										// we'll use m_strUserID; kbserver will also use
+										// this as an "informal human-readable username"
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
