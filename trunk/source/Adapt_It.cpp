@@ -5833,6 +5833,9 @@ wxString szKbServerURL = _T("KbServerURL");
 /// 20May13, this name was made app-wide in scope, and so it to be used for DVCS, KB 
 /// sharing, and xhtml & Pathway export, and any other future feature needing a username
 wxString szUniqueUsername = _T("UniqueUsername");
+/// The following one is an informal one, can be a pseudonom, for the user - but needed
+/// for kbserver, and git
+wxString szInformalUsername = _T("InformalUsername");
 
 /// The minimum interval, in minutes, from one incremental download attempt to the next
 /// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
@@ -15298,6 +15301,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Mike & BEW added 20May13, for across-the-app username support
 	m_strUserID.Empty(); // it's set from the basic config file, or if still empty, then
 						 // at the wxTextCtrl on the ProjectPage of the wizard
+	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in kbserver
+						   // and is stored in the basic config file as is m_strUserID
 	m_strSessionUsername.Empty(); // A copy of m_strUserID is put in here for use by KB Sharing,
 						 // and if the user wants, the KB sharing setup dialog will allow this
 						 // variable to have a different username - but it is volatile, it will
@@ -28213,6 +28218,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szInformalUsername << tab << m_strUsername;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
 
@@ -29671,6 +29680,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_strUserID = strValue;
 			m_strSessionUsername = strValue;
+		}
+		else if (name == szInformalUsername)
+		{
+			m_strUsername = strValue;
 		}
 		else if (name == szAdaptitPath)
 		{

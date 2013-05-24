@@ -1,3 +1,37 @@
+
+
+
+----------------------------------------------
+Feature changes and new features in 6.??.??
+----------------------------------------------
+* Added a text box to the Projects Page of the wizard for the
+user to add a (preferably unique) username identifier. To be 
+used for KB sharing, and document history saves, at least.
+* Added a further text box under the above, for a more human
+readable informal name, which can be a pseudonym. Not for
+transmission from Adapt It except securely in data for shared
+KB entries, or documents saved to the GIT repository.
+* Changed Find when searching in the source text, if it matches 
+the source text at a "hole", it doesn't copy down the source 
+text there to the phrase box. This is safer.
+* Altered the Find, and Find and Replace dialogs, to change the
+checkbox text "Search, retaining target text's punctuation" to be
+instead "Search, retaining the text's punctuation", because this
+checkbox applies equally to source or target text.
+
+----------------------------------------------
+Bug fixes in 6.??.??
+----------------------------------------------
+* Once the Guesser was turned on, the GUI button for it would
+not allow it to be turned off, even if the checkbox in it was
+clicked. Now it works right.
+* The Remove button in the KB Editor, and also in the Choose
+Translation dialog, would not remove a <no adaptation> entry
+if Automatic Capitalization was turned on. Now it works right.
+* Fixed a file path bug when doing Export Knowledge Base for
+a SFM export, which was crashing in Linux, but not Windows.
+
+
 ----------------------------------------------
 Version 6.4.2 release 3 May 2013
 ----------------------------------------------

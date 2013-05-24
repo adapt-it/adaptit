@@ -77,8 +77,11 @@ private:
 	// BEW added 20May13, for the msg box and text control for the username to be typed in
 	wxTextCtrl* pUsernameMsgTextCtrl;
 	wxTextCtrl* pUsernameTextCtrl;
+	wxTextCtrl* pInformalUsernameTextCtrl;
 	wxString usernameMsgTitle;
 	wxString usernameMsg;
+	wxString usernameInformalMsgTitle;
+	wxString usernameInformalMsg;
 
     DECLARE_DYNAMIC_CLASS( CProjectPage )
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
