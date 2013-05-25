@@ -129,6 +129,7 @@ CFindDlg::CFindDlg()
 
 CFindDlg::~CFindDlg()
 {
+	gbFind = FALSE;
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
