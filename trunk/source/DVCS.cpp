@@ -100,7 +100,7 @@
 DVCS::DVCS(void)
 {
 	m_pApp = &wxGetApp();
-	m_user = m_pApp->m_AIuser;
+	m_user = m_pApp->m_strUserID;
 }
 
 // destructor:
@@ -156,7 +156,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	if (!local_arguments.IsEmpty())
 	str = str + _T(" ") + local_arguments;
 
-//wxMessageBox (str);		// debugging
+//wxMessageBox (str);		// uncomment for debugging
 
 	result = wxExecute (str, git_output, errors, 0);
 
@@ -172,7 +172,8 @@ int  DVCS::call_git ( bool bDisplayOutput )
 
 	if (result)		// An error occurred
     {
-        if (!bDisplayOutput)            // if we're not to display output, we just get straight out, returning the error code.
+//wxMessageBox(_T("an error came up!"));      // uncomment for debugging
+        if (!bDisplayOutput)                // if we're not to display output, we just get straight out, returning the error code.
             return result;
 
         returnCode = result;
@@ -217,7 +218,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 
 // Setup functions:
 
-// We now init the repository automatically the first time we commit a file.  We want to do this silently, so if everything succeeds
+// We init the repository automatically the first time we commit a file.  We want to do this silently, so if everything succeeds
 //  we no longer show a message.
 
 int  DVCS::init_repository ()
@@ -235,12 +236,47 @@ int  DVCS::init_repository ()
     if (returnCode)         // git init failed -- most likely git isn't installed.
         wxMessageBox(_T("We couldn't set up version control.  Possibly Git has not been installed yet.  You could contact your administrator for help."));
 
-//    else
-//        wxMessageBox(_T("Version control is now set up for this project.")); -- we now don't need a message here
-
     return returnCode;
 }
 
+
+// update_user_details() sets the user.email and user.name items in a git config call.  These have to be correctly set before a commit.
+// Since our m_strUserID and m_strUsername strings may have changed, or our current directory may have changed, we just query
+// git for the current values, and change them if they differ from those strings.
+
+int  DVCS::update_user_details ()
+{
+    int     returnCode;
+    
+
+    git_command = _T("config");
+    git_arguments.Clear();
+
+// check user.email agrees with m_strUserID
+    git_output.Clear();
+    git_options = _T("--get user.email");
+    returnCode = call_git(FALSE);
+
+    if ( returnCode || ( git_output.Item(0) != m_pApp->m_strUserID ) )      // an error might just mean there's no user.email yet
+    {   git_options = _T("user.email");
+        git_arguments = m_pApp->m_strUserID;    // this can contain spaces but it works like a filename and we handle that properly
+        returnCode = call_git (FALSE);
+        if (returnCode)  return returnCode;
+    }
+
+// check user.name agrees with m_strUsername
+    git_output.Clear();
+    git_options = _T("--get user.name");
+    returnCode = call_git(FALSE);
+    if ( returnCode || ( git_output.Item(0) != m_pApp->m_strUsername ) )      // an error might just mean there's no user.name yet
+    {   git_options = _T("user.name");
+        git_arguments = m_pApp->m_strUsername;  // this can contain spaces but it works like a filename and we handle that properly
+        returnCode = call_git (FALSE);
+        if (returnCode)  return returnCode;
+    }
+
+    return 0;
+}
 
 // add_file() adds the file to the staging area, ready for a commit.  This works even if the doc isn't being tracked yet,
 //  in which case it starts tracking, then does the add.
@@ -252,8 +288,7 @@ int  DVCS::add_file (wxString fileName)
 // First we init the repository if necessary.  This does nothing if it's already initialized.
 
     returnCode = init_repository();
-    if (returnCode)
-        return returnCode;
+    if (returnCode)  return returnCode;
 
 	git_command = _T("add");
 	git_arguments = fileName;
@@ -270,25 +305,24 @@ int  DVCS::add_file (wxString fileName)
 
 int  DVCS::commit_file (wxString fileName)
 {
-	wxString		local_owner = m_pApp->m_owner;
-	int				commitCount = m_pApp->m_commitCount,
-                    returnCode;
-
-#ifndef __WXMSW__
-	local_owner.Replace (_T(" "), _T("\\ "), TRUE);
-#endif
+	int     commitCount = m_pApp->m_commitCount,
+            returnCode;
 
 // first we add the file to the staging area, and bail out on error.
 
     returnCode = add_file(fileName);
-    if (returnCode)
-        return returnCode;
+    if (returnCode)  return returnCode;
 
-// now we commit it
+// next, before the commit, we update the user's details if necessary:
+    
+    returnCode = update_user_details();
+    if (returnCode)  return returnCode;
+
+// now we commit the file:
 
 	git_command = _T("commit");
 	git_arguments.Clear();
-	git_options << _T("-m \"");
+	git_options = _T("-m \"");
 
     if ( wxIsEmpty(m_version_comment) )
     {                   // user didn't enter a comment.  We just put "n commits"

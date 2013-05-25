@@ -49,6 +49,7 @@ protected:		// internal functions
     
 	int  call_git ( bool bDisplayOutput );
 	int  init_repository ();
+    int  update_user_details ();
     int  add_file ( wxString fileName );
 	int  commit_file ( wxString fileName );
     int  setup_versions ( wxString fileName );

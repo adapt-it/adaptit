@@ -3096,6 +3096,19 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 #else
 			gpApp->m_owner = attrValue;
 #endif	
+// (May 2013) For testing we've been previously using the logged-in username for the owner.  If this document has this for the
+//  owner, we'll just use m_strUserID instead.  These 2 lines will just be temporary.
+            if (gpApp->m_owner == gpApp->m_AIuser)
+                gpApp->m_owner = gpApp->m_strUserID;
+            
+// (May 2013)  From now on a document always has an owner.  So if we've read the owner as NOOWNER, we change it to the current user.
+            if (gpApp->m_owner == NOOWNER)
+                gpApp->m_owner = gpApp->m_strUserID;
+
+// NOTE - even if we made either of the above changes, we haven't bothered to mark the doc dirty.  If it's closed without saving,
+//  that doesn't matter since we'll just catch it again next time.  This way we don't bother the user with a save query, if
+//  they didn't actually do any adapting.
+
 		}
 
 		else if (gnDocVersion >= 7 && attrName == xml_commitcnt)

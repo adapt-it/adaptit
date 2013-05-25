@@ -527,13 +527,6 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				27462BD317474EBE005605DA /* json_defs.h */,
-				27462BD417474EBE005605DA /* jsonreader.cpp */,
-				27462BD517474EBE005605DA /* jsonreader.h */,
-				27462BD617474EBE005605DA /* jsonval.cpp */,
-				27462BD717474EBE005605DA /* jsonval.h */,
-				27462BD817474EBE005605DA /* jsonwriter.cpp */,
-				27462BD917474EBE005605DA /* jsonwriter.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -682,6 +675,13 @@
 				C8F82DFA0F3F9CAB007579B8 /* helpers.h */,
 				C8F82DFB0F3F9CAB007579B8 /* JoinDialog.cpp */,
 				C8F82DFC0F3F9CAB007579B8 /* JoinDialog.h */,
+				27462BD317474EBE005605DA /* json_defs.h */,
+				27462BD417474EBE005605DA /* jsonreader.cpp */,
+				27462BD517474EBE005605DA /* jsonreader.h */,
+				27462BD617474EBE005605DA /* jsonval.cpp */,
+				27462BD717474EBE005605DA /* jsonval.h */,
+				27462BD817474EBE005605DA /* jsonwriter.cpp */,
+				27462BD917474EBE005605DA /* jsonwriter.h */,
 				C8F82DFD0F3F9CAB007579B8 /* KB.cpp */,
 				C8F82DFE0F3F9CAB007579B8 /* KB.h */,
 				C8F82DFF0F3F9CAB007579B8 /* KBEditor.cpp */,

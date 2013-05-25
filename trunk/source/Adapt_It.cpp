@@ -15339,8 +15339,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
-	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
+	// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
+    //  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
+    //  and we want to change them over to use m_strUserID automatically.
+    
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
+    
 	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
 
 	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops

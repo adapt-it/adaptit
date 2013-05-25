@@ -2208,7 +2208,7 @@ public:
 #define  NOCODE		_T("qqq")			// no language code defined.  qaa - qtz are defined in ISO 639-2
 										//  as being for private use, so this can never be a real language code
 
-	wxString	m_AIuser;				// the currently logged-in user - e.g. joe bloggs@joesMachine.  This may go west soon...
+	wxString	m_AIuser;				// the currently logged-in user - e.g. joe bloggs@joesMachine.  Going west soon...
 
     wxString	m_strUserID;            // for the unique username for the kb server and DVCS, typically
                                         // the user's email address if he has one, if not, any
@@ -2241,7 +2241,7 @@ public:
 
 	wxDateTime	m_versionDate;			// when this version was committed
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
-										// m_owner and m_AIuser must match before a commit is allowed,
+										// m_owner and m_strUserID must match before a commit is allowed,
 										// unless either is "no owner".
     bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
     bool        m_DVCS_installed;       // true if our DVCS engine (git) is actually installed
