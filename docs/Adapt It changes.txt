@@ -18,6 +18,13 @@ text there to the phrase box. This is safer.
 checkbox text "Search, retaining target text's punctuation" to be
 instead "Search, retaining the text's punctuation", because this
 checkbox applies equally to source or target text.
+* Find dialog, when search in source text, if matches were made
+in locations that were adaptable "holes", the ChooseTranslation
+dialog might show, or a merger be done, or source text be copied
+down to the phrasebox. These are unhelpful in such a circumstance
+and the behaviour is now changed. The phrasebox just stays empty,
+preserving the hole. (The user can still click in the document
+there to add text to the phrasebox if he wants.)
 
 ----------------------------------------------
 Bug fixes in 6.??.??
@@ -30,6 +37,9 @@ Translation dialog, would not remove a <no adaptation> entry
 if Automatic Capitalization was turned on. Now it works right.
 * Fixed a file path bug when doing Export Knowledge Base for
 a SFM export, which was crashing in Linux, but not Windows.
+* Export Knowledge Base... with the SFM export crashed, but only
+in the Linux build, when forming the path string for the file
+dialog.
 
 
 ----------------------------------------------

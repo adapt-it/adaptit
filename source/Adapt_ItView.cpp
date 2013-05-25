@@ -3248,8 +3248,23 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
     // the passed in str parameter, which will then on return be used for the phrase box
     // contents which are to be shown in the box when it becomes visible at the new
     // location
-	DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
+    // BEW addition 25May13, don't call DoGetSuitableText_ForPlacePhraseBox() when
+    // the Find operation is in progress for a search of source text, and the match
+	// was made at a "hole" - because otherwise we could be shown a ChooseTranslation
+	// dialog, or have a merge forced on us, or a copy of source text if we cancel.
+	// I've put code to suppress the copy of source text in this circumstance, so just
+	// need a test here, and if it is true, set str to the empty string instead; we
+	// need do this only for a Find dialog (ie. gbFind is TRUE) because the Replace dlg
+	// will not permit source text searching.
+	if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
+	{
+		str.Empty();
+	}
+	else
+	{
+		DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
 										bHasNothing, bNoValidText, bSomethingIsCopied);
+	}
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),11,pApp->m_nActiveSequNum);
 //#endif
@@ -13247,6 +13262,10 @@ CKB* CAdapt_ItView::GetKB()
 /// Converter changes are done and where Guesser changes are done within the Adapt It
 /// application. See also DoTargetBoxPaste() for where these operations can also take
 /// place.
+/// BEW 25May13, altered so as not to copy source text to the phrasebox when the phrase
+/// box as landed at a hole; this is needed only for Find dialog searching in src text, so
+/// that condition is gbFind == TRUE, and the "hole" condition is pSrcPhrase->m_adaption
+/// is empty
 /////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsistentChanges)
 {
@@ -13254,7 +13273,14 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString str = pSrcPhrase->m_key;
 	if (str.IsEmpty())
+	{
 		return _T("");
+	}
+	// BEW added 25May13
+	if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
+	{
+		return _T("");
+	}
 
 	if (!gbLegacySourceTextCopy)
 	{
