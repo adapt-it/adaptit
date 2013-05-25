@@ -1474,10 +1474,10 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 {
 	wxCommandEvent	dummy;
 
-	if (gpApp->m_owner == gpApp->m_AIuser)
+	if (gpApp->m_owner == gpApp->m_strUserID)
 		return;								// if we're already the owner, there's nothing to do
 
-	gpApp->m_owner = gpApp->m_AIuser;		// force doc's owner to be logged-in user, no matter what
+	gpApp->m_owner = gpApp->m_strUserID;	// force doc's owner to be logged-in user, no matter what
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
 	Modify (TRUE);							// mark doc dirty, to ensure new owner gets saved
 
@@ -1554,12 +1554,12 @@ bool  CAdapt_ItDoc::Git_installed()
 
 bool  CAdapt_ItDoc::Commit_valid()
 {
-	if (gpApp->m_AIuser == NOOWNER || gpApp->m_owner == NOOWNER)  return TRUE;
+	if (gpApp->m_owner == NOOWNER)  return TRUE;
 
-	if (gpApp->m_AIuser != gpApp->m_owner)
+	if (gpApp->m_strUserID != gpApp->m_owner)
 	{
 		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
-					  + _T(" but the currently logged in user is ") + gpApp->m_AIuser
+					  + _T(" but the currently logged in user is ") + gpApp->m_strUserID
 					  + _T(".  Only the document's owner can commit changes to it.") );
 		return FALSE;
 	}
@@ -1608,7 +1608,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 
 	gpApp->m_commitCount += 1;					// bump the commit count
 
-	gpApp->m_owner = gpApp->m_AIuser;			// owner may have been NOOWNER, but must be assigned on a commit
+	gpApp->m_owner = gpApp->m_strUserID;		// owner may have been NOOWNER, but must be assigned on a commit
 
 	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
@@ -1795,7 +1795,10 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
-        return;                             // bail out on error - don't even show the dialog
+    {                                           // an error probably means this is a new repository so there's nothing there yet.
+        wxMessageBox (_T("There are no previous versions in the history!"));
+        return;                                 // in this case we don't show the dialog
+    }
 
     gpApp->m_versionCount = returnCode;         // this is the total number of log entries
 
@@ -1862,7 +1865,7 @@ void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
 {
-    event.Enable ( gpApp->m_owner != gpApp->m_AIuser );     // if user is already the owner, we disable the menu item
+    event.Enable ( gpApp->m_owner != gpApp->m_strUserID );     // if user is already the owner, we disable the menu item
 }
 
 
