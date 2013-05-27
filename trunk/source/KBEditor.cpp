@@ -2184,6 +2184,13 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 // one showable entry - that won't be the case if the user deletes all the list's entries,
 // which would otherwise produce an unwanted trip of the assert because no error has been
 // produced by such a deletion, it's an allowed user operation
+// BEW bug fix 27May13, old code erased pTU within the loop if it's m_translations wxList
+// member was empty. But erasure invalidates the iterator, leading to a crash. So instead
+// I collect source text strings for bad entries, don't enter those to the in-memory KB
+// and after the loop use the stored entries to find and delete the bad entries. (To test
+// this, go to the xml and in a page, remove the <RS ... /RS> element for a few entries.
+// And then in the KB Editor try entering that page. App will crash if the fix does not
+// work.)
 void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 {
     // In the wx version wxDesigner has created identical sets of controls for each page
@@ -2331,6 +2338,9 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	DoRestoreSearchStrings();
 	gpApp->m_arrSearches.Empty();
 	UpdateComboInEachPage();
+	// BEW added 27May13 to properly delete entries with no CRefString instances in them
+	// by doing the deletions after the loop is finished
+	wxArrayString arrBadEntries; arrBadEntries.clear();
 
 	// get the list of source keys filled
 	if (pMap->size() > 0)
@@ -2347,15 +2357,14 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
             // make trouble later
 			if (pCurTgtUnit->m_pTranslations->IsEmpty())
 			{
+				// BEW changed 27May13, don't erase, it invalidates the iterator. Store
+				// the key for later erasure of its CTargetUnit when the loop is done
+				arrBadEntries.Add(srcKeyStr);
+				/* removed, 27May13
 				pMap->erase(srcKeyStr); // the map now lacks this invalid association
-
-				// BEW removed 28May10, because TUList is redundant & is now removed
-				//TUList::Node* pos = pKB->m_pTargetUnits->Find(pCurTgtUnit);
-				//wxASSERT(pos != NULL);
-				//pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now
-													  // gone from list
 				if (pCurTgtUnit != NULL) // whm 11Jun12 added NULL test
 					delete pCurTgtUnit; // and its memory chunk is freed
+				*/
 				continue;
 			}
 			int index;
@@ -2372,6 +2381,35 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				index = m_pListBoxKeys->Append(srcKeyStr,(void*)pCurTgtUnit);
 				index = index; // avoid warning (retain, as is)
 			}
+		}
+		// BEW 27May13, the loop has finished; remove any bad entries that were skipped over
+		if (!arrBadEntries.IsEmpty())
+		{
+			size_t badCount = arrBadEntries.GetCount();
+			size_t i;
+			for (i=0; i< badCount; i++)
+			{
+				MapKeyStringToTgtUnit::iterator iter2; // need a freshly defined iterator per deletion
+				wxString aSrcKey = arrBadEntries.Item(i);
+				// Look up the CTargetUnit instance for this key
+				iter2 = pMap->find(aSrcKey);
+				srcKeyStr = iter2->first; // should be same value as is in aSrcKey
+				wxASSERT(srcKeyStr == aSrcKey);
+				CTargetUnit* pTgtUnit = iter2->second; // the associated ptr to CTargetUnit
+				wxASSERT(pTgtUnit != NULL);
+
+				// Remove pTgtUnit from the map which is in memory (at next save, this deletion
+				// will go into the on-disk persistent copy of the kb)
+				if (pTgtUnit->m_pTranslations->IsEmpty())
+				{
+					if (pTgtUnit != NULL) // free the mem chunk, don't leak memory
+					{
+						delete pTgtUnit;
+					}
+					pMap->erase(aSrcKey); // the map now lacks this invalid association
+				}
+			}
+			arrBadEntries.clear();
 		}
 	}
 	else

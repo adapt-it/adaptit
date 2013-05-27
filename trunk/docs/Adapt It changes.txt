@@ -39,7 +39,10 @@ if Automatic Capitalization was turned on. Now it works right.
 a SFM export, which was crashing in Linux, but not Windows.
 * Export Knowledge Base... with the SFM export crashed, but only
 in the Linux build, when forming the path string for the file
-dialog.
+dialog. Fixed.
+* The KB Editor would crash when loading a page, if there was
+a KB element for that page which did not have any translations
+in it's list associated with that source text key. It's safe now.
 
 
 ----------------------------------------------
