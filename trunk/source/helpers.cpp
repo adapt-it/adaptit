@@ -9515,9 +9515,9 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 {
 	bUserCancelled = FALSE; // default
 	if ( ((gpApp->m_sourceLanguageCode.IsEmpty() && bSrc) || ((gpApp->m_sourceLanguageCode == NOCODE) && bSrc)) || 
-		 (gpApp->m_targetLanguageCode.IsEmpty() && bTgt || ((gpApp->m_targetLanguageCode == NOCODE) && bTgt)) ||
-		 (gpApp->m_glossesLanguageCode.IsEmpty() && bGloss || ((gpApp->m_glossesLanguageCode == NOCODE) && bGloss)) || 
-		 (gpApp->m_freeTransLanguageCode.IsEmpty() && bFreeTrans || ((gpApp->m_freeTransLanguageCode == NOCODE) && bFreeTrans)) )
+		 ((gpApp->m_targetLanguageCode.IsEmpty() && bTgt) || ((gpApp->m_targetLanguageCode == NOCODE) && bTgt)) ||
+		 ((gpApp->m_glossesLanguageCode.IsEmpty() && bGloss) || ((gpApp->m_glossesLanguageCode == NOCODE) && bGloss)) || 
+		 ((gpApp->m_freeTransLanguageCode.IsEmpty() && bFreeTrans) || ((gpApp->m_freeTransLanguageCode == NOCODE) && bFreeTrans)) )
 	{
 		wxString srcCode;
 		wxString tgtCode;
