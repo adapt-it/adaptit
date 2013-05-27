@@ -321,6 +321,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
     EVT_UPDATE_UI(ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnUpdateTakeOwnership)
     EVT_MENU (ID_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
+    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_Version)
 
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
@@ -1654,30 +1655,26 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     }
     
  	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
-    
-	if (returnCode == -2)  return;			// bail out on error - message should already be displayed
-    
-	if (returnCode == -1)
-	{                                       // BUG!!!
-		wxMessageBox (_T("We shouldn't have got here!!!!") );
-		return;
-	}
-    
-	if (returnCode == 0)
-	{		// So far so good.  But we need to re-read the doc.  If we're not at the latest revision,
-            // the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
-            // If an error has come up, we leave the trial status alone.
+
+// a negative returnCode means a bug, so let's catch it:
+    wxASSERT(returnCode >= 0);
+
+    if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
+                                    //  message should have been displayed already.
+
+// So far so good.  But we need to re-read the doc.  If we're not at the latest revision,
+// the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
+// If an error has come up, we've already bailed out, leaving the trial status alone.
         
-		gpApp->m_trialVersionNum = revNum;          // successfully got to requested revision
-		DocChangedExternally();
-        
-        if (revNum == 0)
-        {                                       // we're at the latest revision, so the trial's over
-            gpApp->m_pDVCSNavDlg->Destroy();    // take down the dialog
-            gpApp->m_pDVCSNavDlg = NULL;
-            gpApp->m_trialVersionNum = -1;
-            gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
-        }
+    gpApp->m_trialVersionNum = revNum;          // successfully got to requested revision
+    DocChangedExternally();
+    
+    if (revNum == 0)
+    {                                       // we're at the latest revision, so the trial's over
+        gpApp->m_pDVCSNavDlg->Destroy();    // take down the dialog
+        gpApp->m_pDVCSNavDlg = NULL;
+        gpApp->m_trialVersionNum = -1;
+        gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
     }
 }
 
@@ -1706,7 +1703,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     
     if (gpApp->m_commitCount <= 0)
     {
-        wxMessageBox (_T("There are no earlier version saved!") );
+        wxMessageBox (_T("There are no earlier versions saved!") );
         return;
     }
     
@@ -1840,7 +1837,11 @@ void CAdapt_ItDoc::Enable_DVCS_item (wxUpdateUIEvent& event)
 {
     int	 trialRevNum = gpApp->m_trialVersionNum;
 
+#ifdef _DEBUG       // for 6.4.3, we're still not enabling these
     event.Enable (trialRevNum < 0);         // item gets enabled iff no trial current
+#else
+    event.Enable (FALSE);
+#endif
 }
 
 void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)
@@ -1859,6 +1860,11 @@ void CAdapt_ItDoc::OnUpdateShowFileLog (wxUpdateUIEvent& event)
 }
 
 void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
+{
+    Enable_DVCS_item (event);
+}
+
+void CAdapt_ItDoc::OnUpdateDVCS_Version (wxUpdateUIEvent& event)
 {
     Enable_DVCS_item (event);
 }

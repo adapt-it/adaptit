@@ -364,18 +364,24 @@ int  DVCS::setup_versions ( wxString fileName )
     return git_count;
 }
 
+/*  get_version() calls git to checkout the given version number, defined by the line number in the log which we should
+    have already read.  The log has multiple entries, each one line long, with the format we asked for in setup_versions():
+ 
+        <40 hex digits hash>#<committer name>#commit date#<commit comment>
+ 
+    The caller should ensure we're not being asked for a nonexistent line, but we check anyway, and return -1 on out of bounds
+    of if for some reason the line is empty.  This will be a bug...
+    Otherwise we return zero normally, or if git returns an error, we return that (which must be positive).
+*/
+ 
 int  DVCS::get_version ( int version_num, wxString fileName )
 {
 	wxString	nextLine, str;
     int         returnCode;
 
-    // The log has multiple entries, each one line long, with the format we asked for in setup_versions:
-    // <40 hex digits hash>#<committer name>#commit date#<commit comment>
-    // We get the next line as given by git_lineNumber.  If there aren't any
-    // more lines, we return -1.  Otherwise we return the result of the call_git() call.
 
     if ( version_num >= git_count || version_num < 0)
-        return -1;                  // shouldn't happen, but return -1 on out of bounds
+        return -1;                  // return -1 on out of bounds, which shouldn't happen anyway
 
     nextLine = git_output.Item (version_num);
     str = nextLine.BeforeFirst(_T('#'));        // get the version hash for checkout call
@@ -388,8 +394,7 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     git_arguments = fileName;
 
     returnCode = call_git(FALSE);
-    if (returnCode)
-        return returnCode;                          // bail out on error
+    if (returnCode)  return returnCode;                 // bail out on error, returning the error code
 
     str = nextLine.AfterFirst(_T('#'));                 // skip version hash
     m_version_committer = str.BeforeFirst(_T('#'));     // get committer name
@@ -397,7 +402,7 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     m_version_date = str.BeforeFirst(_T('#'));          // get commit date
     m_version_comment = str.AfterFirst(_T('#'));        // and the rest of the string, after the separator, is the comment.
                                                         // By making this the last field, it can contain anything, even our # separator
-    return 0;
+    return 0;                                           // return no error
 }
 
 /*

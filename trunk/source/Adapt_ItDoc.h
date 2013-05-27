@@ -469,6 +469,7 @@ public:
     void OnShowProjectLog (wxCommandEvent& WXUNUSED(event));
     void OnUpdateShowProjectLog (wxUpdateUIEvent& event);
     void OnDVCS_Version (wxCommandEvent& WXUNUSED(event));
+    void OnUpdateDVCS_Version (wxUpdateUIEvent& event);
 
 	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);
