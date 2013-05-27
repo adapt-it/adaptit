@@ -11,7 +11,6 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
@@ -28,7 +27,6 @@
 				<Option object_output="obj/Release/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
@@ -39,11 +37,85 @@
 					<Add option="-lcurl -luuid" />
 				</Linker>
 			</Target>
+			<Target title="DebugWX2.8">
+				<Option output="bin/DebugWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX2.8/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Option projectIncludeDirsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_KBSERVER" />
+					<Add directory="/wx28/include" />
+				</Compiler>
+				<Linker>
+					<Add option="`/wx28/buildgtkud/wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
+					<Add option="-lcurl -luuid" />
+					<Add library="/wx28/buildgtkud/lib/*.*" />
+				</Linker>
+			</Target>
+			<Target title="ReleaseWX2.8">
+				<Option output="bin/ReleaseWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWX2.8/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Option projectIncludeDirsRelation="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
+					<Add directory="/wx28/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`/wx28/buildgtku/wx-config  --version=2.8 --unicode=yes --debug=no --libs`" />
+					<Add option="-lcurl -luuid" />
+					<Add library="/wx28/buildgtku/lib/*.*" />
+				</Linker>
+			</Target>
+			<Target title="DebugWX-svn">
+				<Option output="bin/DebugWX-svn/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX-svn/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="`/wx-svn/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_KBSERVER" />
+					<Add directory="/wx-svn/include" />
+				</Compiler>
+				<Linker>
+					<Add option="`/wx-svn/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --libs`" />
+					<Add option="-lcurl -luuid" />
+					<Add library="/wx-svn/buildgtkud/lib/*.*" />
+				</Linker>
+			</Target>
+			<Target title="ReleaseWX-svn">
+				<Option output="bin/ReleaseWX-svn/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWX-svn/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="`/wx-svn/buildgtku/wx-config  --version=2.9 --unicode=yes --debug=no --cppflags`" />
+					<Add directory="/wx-svn/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="`/wx-svn/buildgtku/wx-config  --version=2.9 --unicode=yes --debug=no --libs`" />
+					<Add option="-lcurl -luuid" />
+					<Add library="/wx-svn/buildgtku/lib/*.*" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add directory="$(WXWIN)/include" />
-			<Add directory="$(WXWIN)/contrib/include" />
 		</Compiler>
 		<ExtraCommands>
 			<Add before="#define __WXGTK__" />
@@ -209,6 +281,8 @@
 		<Unit filename="../../source/Adapt_ItCanvas.h" />
 		<Unit filename="../../source/Adapt_ItDoc.cpp" />
 		<Unit filename="../../source/Adapt_ItDoc.h" />
+		<Unit filename="../../source/Adapt_ItKBServer.cpp" />
+		<Unit filename="../../source/Adapt_ItKBServer.h" />
 		<Unit filename="../../source/Adapt_ItView.cpp" />
 		<Unit filename="../../source/Adapt_ItView.h" />
 		<Unit filename="../../source/Adapt_It_Resources.h" />
@@ -270,6 +344,10 @@
 		<Unit filename="../../source/CreateNewAIProjForCollab.h" />
 		<Unit filename="../../source/DVCS.cpp" />
 		<Unit filename="../../source/DVCS.h" />
+		<Unit filename="../../source/DVCSLogDlg.cpp" />
+		<Unit filename="../../source/DVCSLogDlg.h" />
+		<Unit filename="../../source/DVCSNavDlg.cpp" />
+		<Unit filename="../../source/DVCSNavDlg.h" />
 		<Unit filename="../../source/DocPage.cpp" />
 		<Unit filename="../../source/DocPage.h" />
 		<Unit filename="../../source/EarlierTranslationDlg.cpp" />
@@ -417,12 +495,14 @@
 		<Unit filename="../../source/Thread_PseudoDelete.h" />
 		<Unit filename="../../source/Thread_PseudoUndelete.cpp" />
 		<Unit filename="../../source/Thread_PseudoUndelete.h" />
-		<Unit filename="../../source/Thread_UploadOne.cpp" />
-		<Unit filename="../../source/Thread_UploadOne.h" />
+		<Unit filename="../../source/Thread_UploadMulti.cpp" />
+		<Unit filename="../../source/Thread_UploadMulti.h" />
 		<Unit filename="../../source/Thread_UploadToKBServer.cpp" />
 		<Unit filename="../../source/Thread_UploadToKBServer.h" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.cpp" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.h" />
+		<Unit filename="../../source/ToolbarPage.cpp" />
+		<Unit filename="../../source/ToolbarPage.h" />
 		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
 		<Unit filename="../../source/TransformToGlossesDlg.h" />
 		<Unit filename="../../source/UnitsDlg.cpp" />
@@ -476,15 +556,13 @@
 		<Unit filename="../../source/scrollingwizard.cpp" />
 		<Unit filename="../../source/scrollingwizard.h" />
 		<Unit filename="../../source/tellenc.cpp" />
-		<Unit filename="../../source/wxUUID.cpp" />
+		<Unit filename="../../source/tellenc.h" />
 		<Unit filename="../../source/wxUUID.h" />
 		<Extensions>
-			<code_completion>
-				<search_path add="../../../wxGTK-2.8.12" />
-			</code_completion>
+			<code_completion />
 			<envvars />
 			<debugger>
-				<search_path add="~/packages/wxwidgets2.8/src" />
+				<search_path add="/wx-svn/src" />
 			</debugger>
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
