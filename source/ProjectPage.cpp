@@ -141,13 +141,6 @@ CProjectPage::CProjectPage(wxWizard* parent)
 	//pTextCtrlAsStaticProjectPage->SetBackgroundColour(backgrndColor);
 	pTextCtrlAsStaticProjectPage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
-	// BEW added 20May13, for the msg box and text control for the username to be typed in
-	pUsernameMsgTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_MSG);
-	pUsernameMsgTextCtrl->SetBackgroundColour(gpApp->sysColorBtnFace);
-	pUsernameTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME);
-	// and for the informal username text box
-	pInformalUsernameTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_INFORMAL);
-
 	m_curLBSelection = 0; // default to select the first item in list
 	// default to <New Project> -- this will be updated in InitDialog
 	if (gpApp->m_bShowNewProjectItem)
@@ -260,18 +253,6 @@ void CProjectPage::OnLBSelectItem(wxCommandEvent& WXUNUSED(event))
 
 void CProjectPage::OnCallWizardNext(wxCommandEvent& WXUNUSED(event))
 {
-	// BEW added 20May13, don't advance if the username textctrl is empty
-	if (pUsernameTextCtrl->IsEmpty())
-	{
-		wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
-		return;
-	}
-	// BEW added 24May13, don't advance if the informal username textctrl is empty
-	if (pInformalUsernameTextCtrl->IsEmpty())
-	{
-		wxMessageBox(usernameInformalMsg, usernameInformalMsgTitle, wxICON_WARNING | wxOK);
-		return;
-	}
 	// simulate a doubleclick as a click on "Next >" button by calling the appropriate ShowPage
 	// Note: ShowPage() triggers OnWizardPageChanging, etc.
 	if (gbWizardNewProject)
@@ -357,10 +338,6 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
-	usernameMsgTitle = _T("Warning: No Identification Username");
-	usernameMsg = _T("You must supply a username in the Unique Username text box.");
-	usernameInformalMsgTitle = _T("Warning: No Informal Username");
-	usernameInformalMsg = _T("You must supply an informal username in the Informal Username text box.\nIt will not be made public.\nA false name is acceptable if your co-workers know it.");
 
 	//wxASSERT(!pApp->m_collaborationEditor.IsEmpty());
 
@@ -380,18 +357,6 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, NULL, NULL,
 								m_pListBox, NULL, pApp->m_pDlgSrcFont);
 	#endif
-
-	// BEW added 20May13, transfer the m_strUserID username string (loaded from basic
-	// config file before InitDialog() is called) to the pUsernameTextCtrl textbox
-	// where the user can do nothing if it is correct, type something different if
-	// necessary, or if the box is empty, add a (preferably unique) string for the first time
-	pUsernameTextCtrl->ChangeValue(pApp->m_strUserID); // note, it could be empty (& if the
-							// user leaves it empty, control won't advance past the 
-							// ProjectPage of the wizard)
-	// Likewise, transfer the m_strUsername informal human-readable name to the
-	// pInformalUsernameTextCtrl edit box - box has to have a value for progress in the
-	// wizard to be possible 
-	pInformalUsernameTextCtrl->ChangeValue(pApp->m_strUsername);
 
 	// generate a CStringList of all the possible adaption projects
 	wxArrayString possibleAdaptions;
@@ -545,10 +510,11 @@ void CProjectPage::OnWizardPageChanged(wxWizardEvent& event)
 			gpApp->m_bFictitiousReadOnlyAccess = FALSE; // ditto
 			gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 		}
+		// following is deprecated, now handled in UsernameInputDlg handler
 		// BEW 20May13, also restore the m_strUserID to its textctrl box
-		pUsernameTextCtrl->ChangeValue(gpApp->m_strUserID);
+		//pUsernameTextCtrl->ChangeValue(gpApp->m_strUserID);
 		// BEW 24May13, also restore the m_strUsername to its textctrl box
-		pInformalUsernameTextCtrl->ChangeValue(gpApp->m_strUsername);
+		//pInformalUsernameTextCtrl->ChangeValue(gpApp->m_strUsername);
 	}
 }
 
@@ -563,34 +529,6 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 
 	bool bMovingForward = event.GetDirection();
 	wxASSERT(bMovingForward == TRUE); // we can only move forward from the projectPage
-
-	// BEW added 20May13, don't advance if the username textctrl is empty; but if not
-	// empty then set m_strUserID to what it contains, and put a copy in the session
-	// variable m_strSessionUsername for kbserver's OnKBSharingSetupDlg() etc to use
-	if (pUsernameTextCtrl->IsEmpty())
-	{
-		wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
-		event.Veto();
-		return;
-	}
-	else
-	{
-		pApp->m_strUserID = pUsernameTextCtrl->GetValue();
-		pApp->m_strSessionUsername = pApp->m_strUserID;
-	}
-
-	// BEW added 24May13, don't advance if the informal username textctrl is empty; but if not
-	// empty then set m_strUsername to what it contains
-	if (pInformalUsernameTextCtrl->IsEmpty())
-	{
-		wxMessageBox(usernameInformalMsg, usernameInformalMsgTitle, wxICON_WARNING | wxOK);
-		event.Veto();
-		return;
-	}
-	else
-	{
-		pApp->m_strUsername = pInformalUsernameTextCtrl->GetValue();
-	}
 
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 	{
@@ -1367,6 +1305,15 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
                     // block, to ensure valid codes and if not, or if user cancelled, then
                     // turn off KB Sharing
 					bool bUserCancelled = FALSE;
+
+					// BEW added 28May13, check the m_strUserID, m_strUsername, and m_strUsernameInformal
+					// strings are setup up, if not, open the dialog to get them set up -- the dialog
+					// cannot be closed except by providing non-empty strings for the two text controls
+					// in it. Setting the strings once from any project, sets them for all projects
+					// forever unless the user deliberately opens the dialog using the command in the View
+					// menu.
+					CheckUsername();
+
 					// we want valid codes four source, target and glosses languages, so
 					// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
 					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);

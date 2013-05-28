@@ -945,6 +945,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\UsernameInput.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\UsfmFilterPage.cpp"
 				>
 			</File>
@@ -1511,6 +1515,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\UnpackWarningDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\UsernameInput.h"
 				>
 			</File>
 			<File

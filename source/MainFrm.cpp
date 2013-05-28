@@ -92,6 +92,7 @@
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"
+#include "UsernameInput.h" // BEW added 28May13
 #endif
 
 #if wxCHECK_VERSION(2,9,0)
@@ -2513,6 +2514,14 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	{
 		return;
 	}
+	// BEW added 28May13, check the m_strUserID, m_strUsername, and m_strUsernameInformal
+	// strings are setup up, if not, open the dialog to get them set up -- the dialog
+	// cannot be closed except by providing non-empty strings for the two text controls
+	// in it. Setting the strings once from any project, sets them for all projects
+	// forever unless the user deliberately opens the dialog using the command in the View
+	// menu.
+	CheckUsername();
+
 	// BEW added 22May13, check that needed language codes are defined for source, target
 	// and gloss languages - get them set up if not so. If user cancels, don't go
 	// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE, 

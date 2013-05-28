@@ -15043,6 +15043,15 @@ void CAdapt_ItApp::DeleteKbServer(int whichType)
 // BEW 27Feb13, added instantiating a single timer for BOTH instances of KbServer to use
 bool CAdapt_ItApp::SetupForKBServer(int whichType)
 {
+	/* no, put it at higher level, in the OnWizardPageChanging() handler for ProjectPage of wizard
+
+	// ensure there is a non-empty m_strUserID, and non-empty m_strSessionUsername (the
+	// latter is what we rely on here, it's a copy of latest m_strUserID value), and a
+	// non-empty m_strUsername (the "human readable informal one")
+	CheckUsername(); // see helpers.cpp, the 3 strings must be non-empty and if not, 
+					 // a dialog opens in order for setting them, and must do so 
+					 // before dismissal succeeds
+	*/
 	// instantiate the KbServer class
 	KbServer* pKbSvr = GetKbServer(whichType); // get the pointer
 	wxASSERT(pKbSvr == NULL);

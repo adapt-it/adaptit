@@ -21223,6 +21223,15 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
 		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
 		bool bUserCancelled = FALSE;
+
+		// BEW added 28May13, check the m_strUserID, m_strUsername, and m_strUsernameInformal
+		// strings are setup up, if not, open the dialog to get them set up -- the dialog
+		// cannot be closed except by providing non-empty strings for the two text controls
+		// in it. Setting the strings once from any project, sets them for all projects
+		// forever unless the user deliberately opens the dialog using the command in the View
+		// menu.
+		CheckUsername();
+
 		// we want to ensure valid codes four source, target and glosses languages,
 		// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
 		bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
