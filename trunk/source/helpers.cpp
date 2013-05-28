@@ -60,6 +60,7 @@
 #include "RefStringMetadata.h"
 #include "Thread_PseudoDelete.h"
 #include "LanguageCodesDlg.h"
+#include "UsernameInput.h"
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -9620,4 +9621,20 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 		gpApp->m_freeTransLanguageCode = freeTransCode;
 	}
 	return TRUE;
+}
+
+void CheckUsername()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// Don't permit control to return to the caller unless there is a value for each of
+	// these three; we only set m_strUserID and if nessessary m_strUsername, since
+	// m_strSessionUsername is a copy of m_strUserID whenever the latter is changed
+	if (pApp->m_strUserID.IsEmpty() || pApp->m_strUsername.IsEmpty() || pApp->m_strSessionUsername.IsEmpty())
+	{
+		UsernameInputDlg dlg((wxWindow*)pApp->GetMainFrame());
+		dlg.Center();
+		dlg.ShowModal();
+		// don't need toget the values back to the storage variables on the app
+		// because OnOK() has done it directly, once all are non-empty
+	}
 }

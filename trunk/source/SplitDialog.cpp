@@ -93,7 +93,7 @@ CSplitDialog::CSplitDialog(wxWindow* parent) // dialog constructor
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	pSplitDialogSizer = SplitDialogFunc(this, TRUE, TRUE);
-	// The declaration is: UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	// The declaration is: SplitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 }
 
 CSplitDialog::~CSplitDialog() // destructor

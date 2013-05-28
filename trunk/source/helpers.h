@@ -352,7 +352,9 @@ bool	  IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhra
 // A helper for KB Sharing, to check certain language codes exist, and if they don't, to
 // let the user set them using the language codes dialog
 bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled);
-
+// A helper for checking if username strings needed are set, and if not, to open dialog
+// for doing so, we'll also make it possible to do this from the view menu
+void CheckUsername();
 
 
 
