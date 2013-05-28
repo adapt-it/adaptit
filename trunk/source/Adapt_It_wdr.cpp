@@ -9733,8 +9733,6 @@ wxMenuBar *AIMenuBarFunc()
     item3->AppendSeparator();
     item3->Append( ID_CHANGE_INTERFACE_LANGUAGE, _("Change Interface Language..."), _("Change the language of the program interface. You may need to restart Adapt It for the change to take effect") );
     item3->AppendSeparator();
-    item3->Append( ID_MENU_CHANGE_USERNAME, _("Change User&name"), _("Type or edit the (unique) username or the informal username") );
-    item3->AppendSeparator();
     item3->Append( ID_VIEW_SHOW_ADMIN_MENU, _("Show Administrator Menu... (Password protected)"), _("Password protected. When ticked, Administrator menu shows"), wxITEM_CHECK );
     item0->Append( item3, _("&View") );
     
