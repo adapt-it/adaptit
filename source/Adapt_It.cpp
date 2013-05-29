@@ -15308,8 +15308,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bDoLegacyLowerCaseLookup = FALSE;
 
 	// Mike & BEW added 20May13, for across-the-app username support
-	m_strUserID.Empty(); // it's set from the basic config file, or if still empty, then
-						 // at the wxTextCtrl on the ProjectPage of the wizard
+	m_strUserID = NOOWNER;  // it's set from the basic config file, or if still empty, then
+                            // at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
+                            // anonymous value and simplifies some later tests.
 	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in kbserver
 						   // and is stored in the basic config file as is m_strUserID
 	m_strSessionUsername.Empty(); // A copy of m_strUserID is put in here for use by KB Sharing,
@@ -29692,6 +29693,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		else if (name == szUniqueUsername)
 		{
 			m_strUserID = strValue;
+            if (m_strUserID.IsEmpty())  m_strUserID = NOOWNER;      // sanity check
 			m_strSessionUsername = strValue;
 		}
 		else if (name == szInformalUsername)

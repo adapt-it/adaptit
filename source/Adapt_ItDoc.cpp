@@ -414,6 +414,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
+    
+    pApp->m_owner = pApp->m_strUserID;  // this is our doc
 
 	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
