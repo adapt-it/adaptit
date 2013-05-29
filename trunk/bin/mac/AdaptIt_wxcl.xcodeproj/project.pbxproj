@@ -32,6 +32,7 @@
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
+		27B396421755D5C60034E461 /* UsernameInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27B396401755D5C60034E461 /* UsernameInput.cpp */; };
 		27D9C4341717A68C00917D0F /* DVCSLogDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27D9C4321717A68C00917D0F /* DVCSLogDlg.cpp */; };
 		27F3CA0516E9A6E50065D2D6 /* Thread_UploadMulti.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27F3CA0316E9A6E50065D2D6 /* Thread_UploadMulti.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
@@ -226,6 +227,8 @@
 		2791678516195D4D00744DF8 /* KBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBServer.cpp; path = ../../source/KBServer.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
+		27B396401755D5C60034E461 /* UsernameInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UsernameInput.cpp; path = ../../source/UsernameInput.cpp; sourceTree = "<group>"; };
+		27B396411755D5C60034E461 /* UsernameInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UsernameInput.h; path = ../../source/UsernameInput.h; sourceTree = "<group>"; };
 		27D9C4321717A68C00917D0F /* DVCSLogDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSLogDlg.cpp; path = ../../source/DVCSLogDlg.cpp; sourceTree = "<group>"; };
 		27D9C4331717A68C00917D0F /* DVCSLogDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSLogDlg.h; path = ../../source/DVCSLogDlg.h; sourceTree = "<group>"; };
 		27F3CA0316E9A6E50065D2D6 /* Thread_UploadMulti.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadMulti.cpp; path = ../../source/Thread_UploadMulti.cpp; sourceTree = "<group>"; };
@@ -514,6 +517,8 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
+				27B396401755D5C60034E461 /* UsernameInput.cpp */,
+				27B396411755D5C60034E461 /* UsernameInput.h */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -1124,6 +1129,7 @@
 				27462BE417474EFA005605DA /* jsonreader.cpp in Sources */,
 				27462BE517474EFA005605DA /* jsonval.cpp in Sources */,
 				27462BE617474EFA005605DA /* jsonwriter.cpp in Sources */,
+				27B396421755D5C60034E461 /* UsernameInput.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
