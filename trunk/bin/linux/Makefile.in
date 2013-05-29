@@ -125,13 +125,13 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	Thread_PseudoDelete.$(OBJEXT) Thread_PseudoUndelete.$(OBJEXT) \
 	Thread_UploadMulti.$(OBJEXT) Thread_UploadToKBServer.$(OBJEXT) \
 	Timer_KbServerChangedSince.$(OBJEXT) ToolbarPage.$(OBJEXT) \
-	TransformToGlossesDlg.$(OBJEXT) UsfmFilterPage.$(OBJEXT) \
-	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
-	UnpackWarningDlg.$(OBJEXT) Uuid_AI.$(OBJEXT) \
-	ViewFilteredMaterialDlg.$(OBJEXT) ViewPage.$(OBJEXT) \
-	WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) WhichBook.$(OBJEXT) \
-	WhichFilesDlg.$(OBJEXT) Xhtml.$(OBJEXT) XML.$(OBJEXT) \
-	XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
+	TransformToGlossesDlg.$(OBJEXT) UsernameInput.$(OBJEXT) \
+	UsfmFilterPage.$(OBJEXT) UnitsDlg.$(OBJEXT) \
+	UnitsPage.$(OBJEXT) UnpackWarningDlg.$(OBJEXT) \
+	Uuid_AI.$(OBJEXT) ViewFilteredMaterialDlg.$(OBJEXT) \
+	ViewPage.$(OBJEXT) WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) \
+	WhichBook.$(OBJEXT) WhichFilesDlg.$(OBJEXT) Xhtml.$(OBJEXT) \
+	XML.$(OBJEXT) XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
 adaptit_OBJECTS = $(am_adaptit_OBJECTS)
 adaptit_LDADD = $(LDADD)
 adaptit_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
@@ -486,7 +486,7 @@ adaptit_SOURCES = \
 	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
 	../../source/Thread_UploadToKBServer.cpp ../../source/Timer_KbServerChangedSince.cpp \
 	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
-	../../source/UsfmFilterPage.cpp \
+	../../source/UsernameInput.cpp ../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/Uuid_AI.cpp ../../source/ViewFilteredMaterialDlg.cpp \
 	../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
@@ -702,6 +702,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnpackWarningDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UsernameInput.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UsfmFilterPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Uuid_AI.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ViewFilteredMaterialDlg.Po@am__quote@
@@ -2467,6 +2468,20 @@ TransformToGlossesDlg.obj: ../../source/TransformToGlossesDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/TransformToGlossesDlg.cpp' object='TransformToGlossesDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TransformToGlossesDlg.obj `if test -f '../../source/TransformToGlossesDlg.cpp'; then $(CYGPATH_W) '../../source/TransformToGlossesDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/TransformToGlossesDlg.cpp'; fi`
+
+UsernameInput.o: ../../source/UsernameInput.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UsernameInput.o -MD -MP -MF $(DEPDIR)/UsernameInput.Tpo -c -o UsernameInput.o `test -f '../../source/UsernameInput.cpp' || echo '$(srcdir)/'`../../source/UsernameInput.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UsernameInput.Tpo $(DEPDIR)/UsernameInput.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/UsernameInput.cpp' object='UsernameInput.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UsernameInput.o `test -f '../../source/UsernameInput.cpp' || echo '$(srcdir)/'`../../source/UsernameInput.cpp
+
+UsernameInput.obj: ../../source/UsernameInput.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UsernameInput.obj -MD -MP -MF $(DEPDIR)/UsernameInput.Tpo -c -o UsernameInput.obj `if test -f '../../source/UsernameInput.cpp'; then $(CYGPATH_W) '../../source/UsernameInput.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/UsernameInput.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UsernameInput.Tpo $(DEPDIR)/UsernameInput.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/UsernameInput.cpp' object='UsernameInput.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UsernameInput.obj `if test -f '../../source/UsernameInput.cpp'; then $(CYGPATH_W) '../../source/UsernameInput.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/UsernameInput.cpp'; fi`
 
 UsfmFilterPage.o: ../../source/UsfmFilterPage.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UsfmFilterPage.o -MD -MP -MF $(DEPDIR)/UsfmFilterPage.Tpo -c -o UsfmFilterPage.o `test -f '../../source/UsfmFilterPage.cpp' || echo '$(srcdir)/'`../../source/UsfmFilterPage.cpp
