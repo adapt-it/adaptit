@@ -511,6 +511,8 @@
 		<Unit filename="../../source/UnitsPage.h" />
 		<Unit filename="../../source/UnpackWarningDlg.cpp" />
 		<Unit filename="../../source/UnpackWarningDlg.h" />
+		<Unit filename="../../source/UsernameInput.cpp" />
+		<Unit filename="../../source/UsernameInput.h" />
 		<Unit filename="../../source/UsfmFilterPage.cpp" />
 		<Unit filename="../../source/UsfmFilterPage.h" />
 		<Unit filename="../../source/Uuid_AI.cpp" />

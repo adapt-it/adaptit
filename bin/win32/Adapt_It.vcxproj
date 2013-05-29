@@ -687,6 +687,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\UnitsDlg.cpp" />
     <ClCompile Include="..\..\source\UnitsPage.cpp" />
     <ClCompile Include="..\..\source\UnpackWarningDlg.cpp" />
+    <ClCompile Include="..\..\source\UsernameInput.cpp" />
     <ClCompile Include="..\..\source\UsfmFilterPage.cpp" />
     <ClCompile Include="..\..\source\Uuid_AI.cpp" />
     <ClCompile Include="..\..\source\ViewFilteredMaterialDlg.cpp" />
@@ -752,6 +753,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\EditPreferencesDlg.h" />
     <ClInclude Include="..\..\source\EditSourceTextDlg.h" />
     <ClInclude Include="..\..\source\EmailReportDlg.h" />
+    <ClInclude Include="..\..\source\UsernameInput.h" />
     <ClInclude Include="Equivalents_for_reference.h" />
     <ClInclude Include="..\..\source\ExportFunctions.h" />
     <ClInclude Include="..\..\source\ExportInterlinearDlg.h" />
