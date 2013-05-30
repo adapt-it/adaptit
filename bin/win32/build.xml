@@ -208,12 +208,12 @@
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.wixobj" />
 		<arg value="-out" />
-		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_2_Unicode.msi" />
+		<arg value="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_3_Unicode.msi" />
 		<arg value="-ext" />
 		<arg value="WixUIExtension" />
     </exec>
 	<!-- copy the installer into the AIWX Installers directory -->
-    <copy file="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_2_Unicode.msi" tofile="${dist}/Adapt_It_WX_6_4_2_Unicode.msi"/>
+    <copy file="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_6_4_3_Unicode.msi" tofile="${dist}/Adapt_It_WX_6_4_3_Unicode.msi"/>
   </target>
   
   <!-- 
@@ -253,12 +253,12 @@
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixobj" />
 		<arg value="-out" />
-		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_2_Regular.msi" />
+		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_3_Regular.msi" />
 		<arg value="-ext" />
 		<arg value="-WixUIExtension" />
     </exec>
 	<!-- copy the installer into the AIWX Installers directory -->
-    <copy file="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_2_Regular.msi" tofile="${dist}/Adapt_It_WX_6_4_2_Regular.msi"/>
+    <copy file="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_3_Regular.msi" tofile="${dist}/Adapt_It_WX_6_4_3_Regular.msi"/>
   </target>
 
   <!-- 
