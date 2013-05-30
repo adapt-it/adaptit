@@ -335,6 +335,7 @@ extern std::string str_CURLheaders;
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
+#include "UsernameInput.h" // BEW added 28May13
 
 #if defined (_KBSERVER)
 
@@ -5464,6 +5465,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
 	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnFileExportKb)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnUpdateFileExportKb)
+	EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is always enabled, needs no update handler
 	//whm removed 1Oct12
 	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)
 
@@ -9526,6 +9528,32 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
     // according to the current value of m_bUseToolTips
 	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
 		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
+}
+
+// This menu item, Change Username, on the Edit menu, lets the user edit or type afresh a
+// (hopepfully unique) username for use by the DVCS and / or KB Sharing features (and
+// anything else which later may require a username within secure data or secure data
+// transfers), and in a second text control, a human-friendly informal name (which can be a
+// pseudonom) to enable easy identification of the human contributing the data. These are
+// stored on the app as m_strUserID for the former, and m_strUsername for the latter. (The
+// app also has m_strSessionUsername which usually is a copy of what's in m_strUserID, but
+// the KB Sharing feature allows the user to use a different name for the session, the
+// different one is stored in m_strSessionUsername, but persists only until the user shuts
+// down, it is never stored permanently.) If m_strUserID or m_strUsername is empty when
+// the user tries to use DVCS or KB Sharing, the utility function in helpers.cpp,
+// CheckUsername() will detect the problem and force the UsernameInputDlg open so the user
+// can type in whatever is appropriate - the dialog won't allow itself to be dismissed
+// until there is something in both checkboxes. But if both names are defined, and the
+// user wants to change one, it's not possible to do so without a GUI widget that acts to
+// get the UsernameInputDlg open; so that's what this menu command is for. It's the only
+// place to change the names, other than directly editing the basic config file.
+void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
+{
+	UsernameInputDlg dlg((wxWindow*)GetMainFrame());
+	dlg.Center();
+	dlg.ShowModal();
+	// don't need toget the values back to the storage variables on the app
+	// because OnOK() has done it directly, once all are non-empty
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

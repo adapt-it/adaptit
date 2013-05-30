@@ -3536,7 +3536,7 @@ public:
 				// while OnInit() is running
 	bool	m_bForceFullConsistencyCheck;
 
-	public:
+public:
 
 	// arrays for storing (size_t)wxChar for when the user uses the Punctuation tab of
 	// Preferences to change the project's punctuation settings, either source or
@@ -3653,6 +3653,8 @@ public:
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
 	void OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateHelpForAdministrators(wxUpdateUIEvent& event);
+
+	void OnEditChangeUsername(wxCommandEvent& WXUNUSED(event)); // BEW added 30May13
 
 protected:
 
