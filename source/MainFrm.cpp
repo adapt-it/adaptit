@@ -92,7 +92,6 @@
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"
-#include "UsernameInput.h" // BEW added 28May13
 #endif
 
 #if wxCHECK_VERSION(2,9,0)
