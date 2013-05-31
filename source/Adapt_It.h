@@ -173,7 +173,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 154).
+// 1. The appVerStr const defined below (about line 207).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
@@ -186,12 +186,19 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // 9. Within the AboutDlgFunc in wxDesigner change the version number for the
 //    ID_ABOUT_VERSION_NUM wxStaticText to the current version number. 
 //    TODO:
-//    Find out why for the Mac bio;d this wxStaticText value is not getting 
+//    Find out why for the Mac build this wxStaticText value is not getting 
 //    updated from the code in MainFrm.cpp to use the current version number 
 //    which includes the build number.
-#define VERSION_MAJOR_PART 6
-#define VERSION_MINOR_PART 4
-#define VERSION_BUILD_PART 2
+// ******** IF YOU CHANGE VERSION NUMBERS BELOW FOR ANY REASON   *************************
+// ******** YOU SHOULD ALSO DO 1 AND 2 IN THE COMMENTS ABOVE AS  *************************
+// ******** A MINIMUM FOR A PRE-RELEASE VERSION, OTHERWISE ON    *************************
+// ******** ON YOUR DEVELOPER MACHINE YOU WILL SEE COMPLAINTS    *************************
+// ******** ABOUT THE AI_UserProfiles.xml FILE AND WILL THEN     *************************
+// ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
+// ******** FILE.                                                *************************
+#define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_MINOR_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define VERSION_DATE_DAY 3
