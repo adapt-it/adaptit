@@ -23,11 +23,11 @@
 		272E3D2116BF647D00566D31 /* KBSharingSetupDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D1E16BF647D00566D31 /* KBSharingSetupDlg.cpp */; };
 		272E3D2616BF64B000566D31 /* Thread_CreateEntry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D2216BF64B000566D31 /* Thread_CreateEntry.cpp */; };
 		272E3D2716BF64B000566D31 /* Thread_UploadToKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D2416BF64B000566D31 /* Thread_UploadToKBServer.cpp */; };
-		27462BE417474EFA005605DA /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BDE17474EFA005605DA /* jsonreader.cpp */; };
-		27462BE517474EFA005605DA /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BE017474EFA005605DA /* jsonval.cpp */; };
-		27462BE617474EFA005605DA /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BE217474EFA005605DA /* jsonwriter.cpp */; };
 		274A841616E016E400430E08 /* Thread_KbEditorUpdateButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 274A841216E016E400430E08 /* Thread_KbEditorUpdateButton.cpp */; };
 		274A841716E016E400430E08 /* Timer_KbServerChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 274A841416E016E400430E08 /* Timer_KbServerChangedSince.cpp */; };
+		2767AA81175604AC0044897B /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2767AA7B175604AC0044897B /* jsonreader.cpp */; };
+		2767AA82175604AC0044897B /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2767AA7D175604AC0044897B /* jsonval.cpp */; };
+		2767AA83175604AC0044897B /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2767AA7F175604AC0044897B /* jsonwriter.cpp */; };
 		277D3B74170FB39000781935 /* DVCSNavDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 277D3B72170FB39000781935 /* DVCSNavDlg.cpp */; };
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
@@ -208,17 +208,17 @@
 		272E3D2416BF64B000566D31 /* Thread_UploadToKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadToKBServer.cpp; path = ../../source/Thread_UploadToKBServer.cpp; sourceTree = "<group>"; };
 		272E3D2516BF64B000566D31 /* Thread_UploadToKBServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadToKBServer.h; path = ../../source/Thread_UploadToKBServer.h; sourceTree = "<group>"; };
 		273A30841619A853002B8AA0 /* KbServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KbServer.h; path = ../../source/KbServer.h; sourceTree = SOURCE_ROOT; };
-		27462BDD17474EFA005605DA /* json_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = json_defs.h; path = ../../source/json_defs.h; sourceTree = "<group>"; };
-		27462BDE17474EFA005605DA /* jsonreader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = ../../source/jsonreader.cpp; sourceTree = "<group>"; };
-		27462BDF17474EFA005605DA /* jsonreader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonreader.h; path = ../../source/jsonreader.h; sourceTree = "<group>"; };
-		27462BE017474EFA005605DA /* jsonval.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = ../../source/jsonval.cpp; sourceTree = "<group>"; };
-		27462BE117474EFA005605DA /* jsonval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonval.h; path = ../../source/jsonval.h; sourceTree = "<group>"; };
-		27462BE217474EFA005605DA /* jsonwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonwriter.cpp; path = ../../source/jsonwriter.cpp; sourceTree = "<group>"; };
-		27462BE317474EFA005605DA /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = "<group>"; };
 		274A841216E016E400430E08 /* Thread_KbEditorUpdateButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_KbEditorUpdateButton.cpp; path = ../../source/Thread_KbEditorUpdateButton.cpp; sourceTree = "<group>"; };
 		274A841316E016E400430E08 /* Thread_KbEditorUpdateButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_KbEditorUpdateButton.h; path = ../../source/Thread_KbEditorUpdateButton.h; sourceTree = "<group>"; };
 		274A841416E016E400430E08 /* Timer_KbServerChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timer_KbServerChangedSince.cpp; path = ../../source/Timer_KbServerChangedSince.cpp; sourceTree = "<group>"; };
 		274A841516E016E400430E08 /* Timer_KbServerChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Timer_KbServerChangedSince.h; path = ../../source/Timer_KbServerChangedSince.h; sourceTree = "<group>"; };
+		2767AA7A175604AC0044897B /* json_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = json_defs.h; path = ../../source/json_defs.h; sourceTree = "<group>"; };
+		2767AA7B175604AC0044897B /* jsonreader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = ../../source/jsonreader.cpp; sourceTree = "<group>"; };
+		2767AA7C175604AC0044897B /* jsonreader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonreader.h; path = ../../source/jsonreader.h; sourceTree = "<group>"; };
+		2767AA7D175604AC0044897B /* jsonval.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = ../../source/jsonval.cpp; sourceTree = "<group>"; };
+		2767AA7E175604AC0044897B /* jsonval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonval.h; path = ../../source/jsonval.h; sourceTree = "<group>"; };
+		2767AA7F175604AC0044897B /* jsonwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonwriter.cpp; path = ../../source/jsonwriter.cpp; sourceTree = "<group>"; };
+		2767AA80175604AC0044897B /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = "<group>"; };
 		27699F47153CEBAB009B0ADD /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
 		277D3B72170FB39000781935 /* DVCSNavDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSNavDlg.cpp; path = ../../source/DVCSNavDlg.cpp; sourceTree = "<group>"; };
 		277D3B73170FB39000781935 /* DVCSNavDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSNavDlg.h; path = ../../source/DVCSNavDlg.h; sourceTree = "<group>"; };
@@ -517,8 +517,6 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
-				27B396401755D5C60034E461 /* UsernameInput.cpp */,
-				27B396411755D5C60034E461 /* UsernameInput.h */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -532,13 +530,6 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				27462BDD17474EFA005605DA /* json_defs.h */,
-				27462BDE17474EFA005605DA /* jsonreader.cpp */,
-				27462BDF17474EFA005605DA /* jsonreader.h */,
-				27462BE017474EFA005605DA /* jsonval.cpp */,
-				27462BE117474EFA005605DA /* jsonval.h */,
-				27462BE217474EFA005605DA /* jsonwriter.cpp */,
-				27462BE317474EFA005605DA /* jsonwriter.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -549,6 +540,8 @@
 				27D9C4331717A68C00917D0F /* DVCSLogDlg.h */,
 				277D3B72170FB39000781935 /* DVCSNavDlg.cpp */,
 				277D3B73170FB39000781935 /* DVCSNavDlg.h */,
+				27B396401755D5C60034E461 /* UsernameInput.cpp */,
+				27B396411755D5C60034E461 /* UsernameInput.h */,
 				C8F82E580F3F9CAB007579B8 /* XML.h */,
 				C8F82E570F3F9CAB007579B8 /* XML.cpp */,
 				C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */,
@@ -687,6 +680,13 @@
 				C8F82DFA0F3F9CAB007579B8 /* helpers.h */,
 				C8F82DFB0F3F9CAB007579B8 /* JoinDialog.cpp */,
 				C8F82DFC0F3F9CAB007579B8 /* JoinDialog.h */,
+				2767AA7A175604AC0044897B /* json_defs.h */,
+				2767AA7B175604AC0044897B /* jsonreader.cpp */,
+				2767AA7C175604AC0044897B /* jsonreader.h */,
+				2767AA7D175604AC0044897B /* jsonval.cpp */,
+				2767AA7E175604AC0044897B /* jsonval.h */,
+				2767AA7F175604AC0044897B /* jsonwriter.cpp */,
+				2767AA80175604AC0044897B /* jsonwriter.h */,
 				C8F82DFD0F3F9CAB007579B8 /* KB.cpp */,
 				C8F82DFE0F3F9CAB007579B8 /* KB.h */,
 				C8F82DFF0F3F9CAB007579B8 /* KBEditor.cpp */,
@@ -1126,10 +1126,10 @@
 				034B73F916EFAC2D009A6389 /* ToolbarPage.cpp in Sources */,
 				277D3B74170FB39000781935 /* DVCSNavDlg.cpp in Sources */,
 				27D9C4341717A68C00917D0F /* DVCSLogDlg.cpp in Sources */,
-				27462BE417474EFA005605DA /* jsonreader.cpp in Sources */,
-				27462BE517474EFA005605DA /* jsonval.cpp in Sources */,
-				27462BE617474EFA005605DA /* jsonwriter.cpp in Sources */,
 				27B396421755D5C60034E461 /* UsernameInput.cpp in Sources */,
+				2767AA81175604AC0044897B /* jsonreader.cpp in Sources */,
+				2767AA82175604AC0044897B /* jsonval.cpp in Sources */,
+				2767AA83175604AC0044897B /* jsonwriter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
