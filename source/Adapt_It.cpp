@@ -44650,12 +44650,17 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 /// handler disables the "Export Knowledge Base..." item in the File menu, otherwise it
 /// enables the "Export Knowledge Base..." item on the File menu.
 /////////////////////////////////////////////////////////////////////////////////
+
+// mrh TEMP CHANGE - to work around an apparent bug in wxWidgets 2.8.x on the Mac, we permanently enable
+//  the item for the OSX Carbon build (for which MACOS_CLASSIC is #define'd).
+
 void CAdapt_ItApp::OnUpdateFileExportKb(wxUpdateUIEvent& event)
 {
-	if ((!gbIsGlossing && m_pKB != NULL) || (gbIsGlossing && m_pGlossingKB != NULL))
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
+#ifndef MACOS_CLASSIC
+	event.Enable ((!gbIsGlossing && m_pKB != NULL) || (gbIsGlossing && m_pGlossingKB != NULL));
+#else
+    event.Enable (TRUE);
+#endif
 }
 
 void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
