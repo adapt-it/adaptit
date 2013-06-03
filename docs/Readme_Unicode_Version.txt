@@ -1,12 +1,12 @@
 IMPORTANT NOTES: (1) YOU MUST HAVE ADMINISTRATOR OR POWERUSER 
 PRIVILEGES TO INSTALL THIS SOFTWARE ON WINDOWS 7, WINDOWS 
 VISTA AND WINDOWS XP; (2) YOU SHOULD UNINSTALL ANY VERSION
-5.X.X OF ADAPT IT BEFORE INSTALLING VERSION 6.4.2. YOUR DATA 
+5.X.X OF ADAPT IT BEFORE INSTALLING VERSION 6.4.3. YOUR DATA 
 IS NOT AFFECTED BY UNINSTALLING.
 ---------------------------------------------------------------------
 Adapt It WX Unicode
 ---------------------------------------------------------------------
-Version 6.4.2
+Version 6.4.3
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
