@@ -2513,48 +2513,64 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	{
 		return;
 	}
-	// BEW added 28May13, check the m_strUserID, m_strUsername, and m_strUsernameInformal
-	// strings are setup up, if not, open the dialog to get them set up -- the dialog
-	// cannot be closed except by providing non-empty strings for the two text controls
-	// in it. Setting the strings once from any project, sets them for all projects
-	// forever unless the user deliberately opens the dialog using the command in the View
-	// menu.
-	CheckUsername();
-
-	// BEW added 22May13, check that needed language codes are defined for source, target
-	// and gloss languages - get them set up if not so. If user cancels, don't go
-	// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE, 
-	// make it FALSE
-	
-    // BEW 21May13 added the CheckLanguageCodes() call and the if-else
-    // block, to ensure valid codes and if not, or if user cancelled, then
-    // turn off KB Sharing
-	bool bUserCancelled = FALSE;
-	// we want valid codes four source, target and glosses languages, so
-	// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-	bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-	if (!bDidItOK && bUserCancelled)
+    // BEW added 28May13, check the m_strUserID and m_strUsername strings are setup up,
+    // if not, open the dialog to get them set up -- the dialog cannot be closed except
+    // by providing non-empty strings for the two text controls in it. Setting the
+    // strings once from any project, sets them for all projects forever unless the
+	// user deliberately opens the dialog using the command in the View menu. (The
+	// strings are not set up if one is empty, or is the  ****  (NOOWNER) string)
+	bool bUserDidNotCancel = CheckUsername();
+	if (!bUserDidNotCancel)
 	{
-		// We must assume the codes are wrong or incomplete, or that the
-		// user has changed his mind about KB Sharing being on - so turn
-		// it off
-		gpApp->LogUserAction(_T("User cancelled in CheckLanguageCodes() in CMainFrame::OnKBSharingSetupDlg()"));
+		// He or she cancelled. So remove KB sharing for this project
+		gpApp->LogUserAction(_T("User cancelled from CheckUsername() in OnKBSharingSetupDlg() in MainFrm.cpp"));
 		gpApp->ReleaseKBServer(1); // the adapting one
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
+		wxMessageBox(_(
+"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
+		_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
 	}
 	else
 	{
-		// CheckLanguageCodes() succeeded, so go ahead
-		KBSharingSetupDlg dlg(this);
-		dlg.Center();
-		if (dlg.ShowModal() == wxID_OK)
+		// Valid m_strUserID and m_strUsername should be in place now, so
+		// go ahead with next step which is to check for valid language codes
+
+		// BEW added 22May13, check that needed language codes are defined for source, target
+		// and gloss languages - get them set up if not so. If user cancels, don't go
+		// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE, 
+		// make it FALSE
+
+		// BEW 21May13 added the CheckLanguageCodes() call and the if-else
+		// block, to ensure valid codes and if not, or if user cancelled, then
+		// turn off KB Sharing
+		bool bUserCancelled = FALSE;
+		// we want valid codes four source, target and glosses languages, so
+		// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+		bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
+		if (!bDidItOK && bUserCancelled)
 		{
-			gpApp->LogUserAction(_T("Closed OnKBSharingSetupDlg()"));
+			// We must assume the codes are wrong or incomplete, or that the
+			// user has changed his mind about KB Sharing being on - so turn
+			// it off
+			gpApp->LogUserAction(_T("User cancelled in CheckLanguageCodes() in CMainFrame::OnKBSharingSetupDlg()"));
+			gpApp->ReleaseKBServer(1); // the adapting one
+			gpApp->ReleaseKBServer(2); // the glossing one
+			gpApp->m_bIsKBServerProject = FALSE;
 		}
 		else
 		{
-			gpApp->LogUserAction(_T("Cancelled OnKBSharingSetupDlg()"));
+			// CheckLanguageCodes() succeeded, so go ahead
+			KBSharingSetupDlg dlg(this);
+			dlg.Center();
+			if (dlg.ShowModal() == wxID_OK)
+			{
+				gpApp->LogUserAction(_T("Closed OnKBSharingSetupDlg()"));
+			}
+			else
+			{
+				gpApp->LogUserAction(_T("Cancelled OnKBSharingSetupDlg()"));
+			}
 		}
 	}
 }

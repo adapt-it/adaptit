@@ -37,6 +37,8 @@ public:
 	wxString usernameMsg;
 	wxString usernameInformalMsgTitle;
 	wxString usernameInformalMsg;
+	wxString m_finalUsername;
+	wxString m_finalInformalUsername;
 
 protected:
 

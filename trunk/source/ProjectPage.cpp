@@ -1306,39 +1306,58 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
                     // turn off KB Sharing
 					bool bUserCancelled = FALSE;
 
-					// BEW added 28May13, check the m_strUserID, m_strUsername, and m_strUsernameInformal
-					// strings are setup up, if not, open the dialog to get them set up -- the dialog
-					// cannot be closed except by providing non-empty strings for the two text controls
-					// in it. Setting the strings once from any project, sets them for all projects
-					// forever unless the user deliberately opens the dialog using the command in the View
-					// menu.
-					CheckUsername();
-
-					// we want valid codes four source, target and glosses languages, so
-					// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-					if (!bDidItOK && bUserCancelled)
+                    // BEW added 28May13, check the m_strUserID and m_strUsername strings
+                    // are setup up, if not, open the dialog to get them set up -- the
+                    // dialog cannot be closed except by providing non-empty strings for
+                    // the two text controls in it. Setting the strings once from any
+                    // project, sets them for all projects forever unless the user
+                    // deliberately opens the dialog using the command in the View menu.
+                    // (The strings are not set up if one is empty)
+					// If the user elects to hit the Cancel button, then we must unset
+					// this project from being a KB Sharing one, and tell the user so
+					bool bUserDidNotCancel = CheckUsername();
+					if (!bUserDidNotCancel)
 					{
-						// We must assume the codes are wrong or incomplete, or that the
-						// user has changed his mind about KB Sharing being on - so turn
-						// it off
-						pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
+						// He or she cancelled. So remove KB sharing for this project
+						pApp->LogUserAction(_T("User cancelled from CheckUsername() in ProjectPage.cpp"));
 						pApp->ReleaseKBServer(1); // the adapting one
 						pApp->ReleaseKBServer(2); // the glossing one
 						pApp->m_bIsKBServerProject = FALSE;
+						wxMessageBox(_(
+"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
+						_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
 					}
 					else
 					{
-						// All's well, go ahead
-						pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-													   // ready for SetupForKBServer() below to use it
-						pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
-						// instantiate an adapting and a glossing KbServer class instance
-						if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+						// Valid m_strUserID and m_strUsername should be in place now, so
+						// go ahead with next step which is to check for valid language codes
+						
+						// we want valid codes four source, target and glosses languages, so
+						// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+						bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
+						if (!bDidItOK && bUserCancelled)
 						{
-							// an error message will have been shown, so just log the failure
-							pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
-							pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+							// We must assume the codes are wrong or incomplete, or that the
+							// user has changed his mind about KB Sharing being on - so turn
+							// it off
+							pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
+							pApp->ReleaseKBServer(1); // the adapting one
+							pApp->ReleaseKBServer(2); // the glossing one
+							pApp->m_bIsKBServerProject = FALSE;
+						}
+						else
+						{
+							// All's well, go ahead
+							pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
+														   // ready for SetupForKBServer() below to use it
+							pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
+							// instantiate an adapting and a glossing KbServer class instance
+							if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+							{
+								// an error message will have been shown, so just log the failure
+								pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+								pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+							}
 						}
 					}
 				}
