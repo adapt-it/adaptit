@@ -111,8 +111,8 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
 void UsernameInputDlg::OnOK(wxCommandEvent& event)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
+//	CAdapt_ItApp* pApp = &wxGetApp();
+//	wxASSERT(pApp != NULL);
 
     // Don't allow dialog dismissal if the username textctrl is empty , or **** is there;
     // but if not so then set m_strUserID to what it contains
