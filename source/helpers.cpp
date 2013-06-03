@@ -9623,18 +9623,42 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 	return TRUE;
 }
 
-void CheckUsername()
+// returns TRUE if all's well, FALSE if user hit Cancel button in the internal dialog
+bool CheckUsername()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	// Save current values, in case the user cancels
+	wxString saveUserID = pApp->m_strUsername;
+	wxString saveInformalUsername = pApp->m_strUsername;
+	// If the current setting is the default NOOWNER, (#defined as **** string), then
+	// convert **** to an empty string - we don't show **** to the user in any GUI widget
+	if(pApp->m_strUserID == _T("****"))
+	{
+		pApp->m_strUserID.Empty();
+	}
+	// Ditto for the informal username
+	if(pApp->m_strUsername == _T("****"))
+	{
+		pApp->m_strUsername.Empty();
+	}
 	// Don't permit control to return to the caller unless there is a value for each of
-	// these three; we only set m_strUserID and if nessessary m_strUsername, since
-	// m_strSessionUsername is a copy of m_strUserID whenever the latter is changed
-	if (pApp->m_strUserID.IsEmpty() || pApp->m_strUsername.IsEmpty() || pApp->m_strSessionUsername.IsEmpty())
+	// these three, if the user exits with an OK button click
+	if (pApp->m_strUserID.IsEmpty() || pApp->m_strUsername.IsEmpty() )
 	{
 		UsernameInputDlg dlg((wxWindow*)pApp->GetMainFrame());
 		dlg.Center();
-		dlg.ShowModal();
-		// don't need toget the values back to the storage variables on the app
-		// because OnOK() has done it directly, once all are non-empty
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			pApp->m_strUserID = dlg.m_finalUsername;
+			pApp->m_strUsername = dlg.m_finalInformalUsername;
+		}
+		else
+		{
+			// user cancelled, so restore the saved original values & return FALSE
+			pApp->m_strUsername = saveUserID;
+			pApp->m_strUsername = saveInformalUsername;
+			return FALSE;
+		}
 	}
+	return TRUE;
 }

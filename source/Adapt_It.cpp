@@ -9535,25 +9535,29 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
 // anything else which later may require a username within secure data or secure data
 // transfers), and in a second text control, a human-friendly informal name (which can be a
 // pseudonom) to enable easy identification of the human contributing the data. These are
-// stored on the app as m_strUserID for the former, and m_strUsername for the latter. (The
-// app also has m_strSessionUsername which usually is a copy of what's in m_strUserID, but
-// the KB Sharing feature allows the user to use a different name for the session, the
-// different one is stored in m_strSessionUsername, but persists only until the user shuts
-// down, it is never stored permanently.) If m_strUserID or m_strUsername is empty when
-// the user tries to use DVCS or KB Sharing, the utility function in helpers.cpp,
-// CheckUsername() will detect the problem and force the UsernameInputDlg open so the user
-// can type in whatever is appropriate - the dialog won't allow itself to be dismissed
-// until there is something in both checkboxes. But if both names are defined, and the
-// user wants to change one, it's not possible to do so without a GUI widget that acts to
-// get the UsernameInputDlg open; so that's what this menu command is for. It's the only
-// place to change the names, other than directly editing the basic config file.
+// stored on the app as m_strUserID for the former, and m_strUsername for the latter.
+// If m_strUserID or m_strUsername is empty when the user tries to use DVCS or KB Sharing,
+// the utility function in helpers.cpp, CheckUsername() will detect the problem and force
+// the UsernameInputDlg open so the user can type in whatever is appropriate - the dialog
+// won't allow itself to be dismissed until there is something in both checkboxes. But if
+// both names are defined, and the user wants to change one, it's not possible to do so
+// without a GUI widget that acts to get the UsernameInputDlg open; so that's what this
+// menu command is for. It's the only place to change the names, other than directly
+// editing the basic config file.
 void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
 {
 	UsernameInputDlg dlg((wxWindow*)GetMainFrame());
 	dlg.Center();
-	dlg.ShowModal();
-	// don't need toget the values back to the storage variables on the app
-	// because OnOK() has done it directly, once all are non-empty
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		m_strUserID = dlg.m_finalUsername;
+		m_strUsername = dlg.m_finalInformalUsername;
+	}
+	else
+	{
+		// user cancelled, so do nothing
+		;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -15071,15 +15075,6 @@ void CAdapt_ItApp::DeleteKbServer(int whichType)
 // BEW 27Feb13, added instantiating a single timer for BOTH instances of KbServer to use
 bool CAdapt_ItApp::SetupForKBServer(int whichType)
 {
-	/* no, put it at higher level, in the OnWizardPageChanging() handler for ProjectPage of wizard
-
-	// ensure there is a non-empty m_strUserID, and non-empty m_strSessionUsername (the
-	// latter is what we rely on here, it's a copy of latest m_strUserID value), and a
-	// non-empty m_strUsername (the "human readable informal one")
-	CheckUsername(); // see helpers.cpp, the 3 strings must be non-empty and if not, 
-					 // a dialog opens in order for setting them, and must do so 
-					 // before dismissal succeeds
-	*/
 	// instantiate the KbServer class
 	KbServer* pKbSvr = GetKbServer(whichType); // get the pointer
 	wxASSERT(pKbSvr == NULL);
@@ -15150,16 +15145,9 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		return FALSE;
 	}
 	*/
-    // Use m_strSessionUsername rather than m_strUserID (the former should not be empty,
-    // it's either set when the basic config file is read in, or when the KBSharingSetupDlg
-	// is opened; and since the latter dialog's OK() handler may call SetupForKBServer()
-	// internally, we don't here reset m_strSessionUsername to whatever m_strUserID is, but
-	// just use whatever the dialog has set m_strSessionUsername to)
-	//wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
-	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strSessionUsername.IsEmpty());
+	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
 	url = m_strKbServerURL;
-	//username = m_strUserID; BEW changed 20May13
-	username = m_strSessionUsername;
+	username = m_strUserID;
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
@@ -15339,13 +15327,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_strUserID = NOOWNER;  // it's set from the basic config file, or if still empty, then
                             // at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
                             // anonymous value and simplifies some later tests.
+                            // NOTE: NOOWNER is #defined as _T("****")
 	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in kbserver
 						   // and is stored in the basic config file as is m_strUserID
-	m_strSessionUsername.Empty(); // A copy of m_strUserID is put in here for use by KB Sharing,
-						 // and if the user wants, the KB sharing setup dialog will allow this
-						 // variable to have a different username - but it is volatile, it will
-						 // last only while control is in the current project, or until
-						 // the dialog for setting up KB Sharing is reopened
 
 	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -21405,7 +21389,6 @@ int CAdapt_ItApp::OnExit(void)
 	// 2. CNotes
 	// 3.
 	//wxEvtHandler* pHdlr = NULL;
-
 	// delete the Guesser objects
 	if (m_pAdaptationsGuesser != NULL)
 		delete m_pAdaptationsGuesser;
@@ -28255,8 +28238,13 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+    // BEW changed 33Jun13, If m_strUserID has been defaulted to NOOWNER, that is, to
+    // _T("****") then we won't save ****, instead we'll save the empty string
+    if (m_strUserID == _T("****"))
+	{
+		m_strUserID.Empty();
+	}
 	data << szUniqueUsername << tab << m_strUserID;
-	// BEW 20May13 NEVER store what's in m_strSessionUsername in any config file, basic or project
 	pf->AddLine(data);
 
 	data.Empty();
@@ -29722,7 +29710,6 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_strUserID = strValue;
             if (m_strUserID.IsEmpty())  m_strUserID = NOOWNER;      // sanity check
-			m_strSessionUsername = strValue;
 		}
 		else if (name == szInformalUsername)
 		{

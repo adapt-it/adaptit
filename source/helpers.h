@@ -354,9 +354,8 @@ bool	  IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhra
 bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled);
 // A helper for checking if username strings needed are set, and if not, to open dialog
 // for doing so, we'll also make it possible to do this from the view menu
-void CheckUsername();
-
-
+bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
+					  // Cancel button in the internal dialog
 
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at

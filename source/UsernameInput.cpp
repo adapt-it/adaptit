@@ -81,22 +81,32 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// and for the informal username text box
 	pInformalUsernameTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_INFORMAL);
 
-	usernameMsgTitle = _T("Warning: No Identification Username");
+	usernameMsgTitle = _T("Warning: No Unique Username");
 	usernameMsg = _T("You must supply a username in the Unique Username text box.");
 	usernameInformalMsgTitle = _T("Warning: No Informal Username");
-	usernameInformalMsg = _T("You must supply an informal username in the Informal Username text box.\nIt will not be made public.\nA false name is acceptable if your co-workers know it.");
+	usernameInformalMsg = _T("You must supply an informal username in the Informal Username text box.\nWhat you type will not be made public.\nA false name is acceptable if your co-workers know it.");
 
     // Transfer the m_strUserID username string (loaded from basic config file before
     // InitDialog() is called) to the pUsernameTextCtrl textbox where the user can do
     // nothing if it is correct, type something different if necessary, or if the box is
-    // empty, add a (preferably unique) string for the first time
+	// empty, add a (preferably unique) string for the first time. If "****" is currently
+	// set (that's the NOOWNER #define), then convert it to an empty string first. We
+	// don't want users to see **** in the GUI anywhere.
+	if (pApp->m_strUserID == _T("****"))
+	{
+		pApp->m_strUserID.Empty();
+	}
 	pUsernameTextCtrl->ChangeValue(pApp->m_strUserID); // note, it could be empty (& if the
-							// user leaves it empty, the dialog will persist)
+							// user leaves it empty, the dialog will persist; the only way
+							// round that is to instead Cancel)
 	// Likewise, transfer the m_strUsername informal human-readable name to the
 	// pInformalUsernameTextCtrl edit box - box has to have a value before the dialog can
-	// be closed 
+	// be closed, or user must Cancel. Convert **** to empty string if the former is current.
+	if (pApp->m_strUsername == _T("****"))
+	{
+		pApp->m_strUsername.Empty();
+	}
 	pInformalUsernameTextCtrl->ChangeValue(pApp->m_strUsername);
-
 }
 
 void UsernameInputDlg::OnOK(wxCommandEvent& event)
@@ -104,34 +114,33 @@ void UsernameInputDlg::OnOK(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
-	// Don't allow dialog dismissal if the username textctrl is empty; but if not
-	// empty then set m_strUserID to what it contains, and put a copy in the session
-	// variable m_strSessionUsername for kbserver's OnKBSharingSetupDlg() etc to use
-	if (pUsernameTextCtrl->IsEmpty())
+    // Don't allow dialog dismissal if the username textctrl is empty , or **** is there;
+    // but if not so then set m_strUserID to what it contains
+	wxString strBox1 = pUsernameTextCtrl->GetValue();
+	if (strBox1.IsEmpty())
 	{
 		wxMessageBox(usernameMsg, usernameMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
 	else
 	{
-		pApp->m_strUserID = pUsernameTextCtrl->GetValue();
-		pApp->m_strSessionUsername = pApp->m_strUserID;
+		m_finalUsername = pUsernameTextCtrl->GetValue();
 	}
 
-    // Don't allow dialog dismissal if the informal username textctrl is empty; but if not
-    // empty then set m_strUsername to what it contains
-	if (pInformalUsernameTextCtrl->IsEmpty())
+    // Don't allow dialog dismissal if the informal username textctrl is empty, or *** is
+    // there; but if not so then set m_strUsername to what it contains
+	wxString strBox2 = pInformalUsernameTextCtrl->GetValue();
+	if (strBox2.IsEmpty())
 	{
 		wxMessageBox(usernameInformalMsg, usernameInformalMsgTitle, wxICON_WARNING | wxOK);
 		return;
 	}
 	else
 	{
-		pApp->m_strUsername = pInformalUsernameTextCtrl->GetValue();
+		m_finalInformalUsername = pInformalUsernameTextCtrl->GetValue();
 	}
 	event.Skip();
 }
-
 
 // other class methods
 
