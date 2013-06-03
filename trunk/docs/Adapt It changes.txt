@@ -1,8 +1,9 @@
 
-
-
 ----------------------------------------------
-Feature changes and new features in 6.??.??
+Version 6.4.3 release 3 June 2013
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.4.3
 ----------------------------------------------
 * Added a dialog with two text controls, and on the Edit menu
 a new item "Change Username..." for opening it on demand. In it
@@ -31,8 +32,12 @@ preserving the hole. (The user can still click in the document
 there to add text to the phrasebox if he wants.)
 
 ----------------------------------------------
-Bug fixes in 6.??.??
+Bug fixes in 6.4.3
 ----------------------------------------------
+* Fixed a broken link in the help file topic "Edit or Examine
+the Knowledge Base dialog."
+* Updated screen shots for the toolbar in the help files. The
+toolbar icons were updated earlier.
 * Once the Guesser was turned on, the GUI button for it would
 not allow it to be turned off, even if the checkbox in it was
 clicked. Now it works right.
