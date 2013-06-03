@@ -31,7 +31,8 @@
 	<!-- Delete expanded 3pt directories -->
 	<delete dir="${3pt}\boost\current\boost" />
 	<delete dir="${3pt}\wxWidgets\2.8.12\wxWidgets-2.8.12" /> 
-	<delete dir="${3pt}\wxWidgets\current\wxWidgets" /> 
+	<!-- edb remove 2.9.x for now -->
+	<!-- <delete dir="${3pt}\wxWidgets\current\wxWidgets" /> --> 
 	<delete dir="${3pt}\openssl\current\openssl" /> 
 	<delete dir="${3pt}\curl\current\curl" /> 
     <!-- Delete ALL intermediate setup directories -->
@@ -101,12 +102,15 @@
 	<arg value="-o${3pt}/boost/current" />
 	<arg value="-y" />
     </exec>
+	<!-- edb remove 2.9.x for now -->
+	<!--
     <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/wxwidgets/current/wxWidgets-2.9.4.7z" />
 	<arg value="-o${3pt}/wxwidgets/current/wxWidgets" />
 	<arg value="-y" />
     </exec>
+	-->
     <unzip src="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.zip" 
 		dest="${3pt}/wxwidgets/2.8.12">
     </unzip>
@@ -130,13 +134,13 @@
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Debug" />
-	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+	  <arg value="/p:Configuration=Unicode Debug" />
+ 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
     </exec>
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="29"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
+		<env key="WXVER" value="28"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
@@ -157,13 +161,13 @@
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Release" />
-	  <arg value="${3pt}/wxwidgets/current/wxWidgets/build/msw/wx_vc9.sln" />
+	  <arg value="/p:Configuration=Unicode Release" />
+ 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
     </exec>
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="29"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets"/>
+		<env key="WXVER" value="28"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
