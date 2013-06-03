@@ -280,7 +280,7 @@
 		7DF9FAEF172C3885007B65A2 /* DVCSLogDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSLogDlg.h; path = ../../source/DVCSLogDlg.h; sourceTree = SOURCE_ROOT; };
 		7DF9FAF0172C3885007B65A2 /* DVCSNavDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSNavDlg.cpp; path = ../../source/DVCSNavDlg.cpp; sourceTree = SOURCE_ROOT; };
 		7DF9FAF1172C3885007B65A2 /* DVCSNavDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSNavDlg.h; path = ../../source/DVCSNavDlg.h; sourceTree = SOURCE_ROOT; };
-		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../../../AI_trunk/bin/mac/Info.plist; sourceTree = "<group>"; };
+		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C800168F1410923A009BA61F /* conschk_exists_notu_dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = conschk_exists_notu_dlg.h; path = ../../source/conschk_exists_notu_dlg.h; sourceTree = SOURCE_ROOT; };
 		C80016901410923A009BA61F /* conschk_exists_notu_dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = conschk_exists_notu_dlg.cpp; path = ../../source/conschk_exists_notu_dlg.cpp; sourceTree = SOURCE_ROOT; };
