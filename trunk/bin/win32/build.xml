@@ -224,8 +224,7 @@
   - compile_msi target
   - Builds the AI msi installers (ANSI and Unicode).
   -->
-  <target name="compile_msi_ansi" depends="compile_release, copy"
-        description="compile the ansi msi installer" >
+  <target name="compile_msi_ansi" description="compile the ansi msi installer" >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build the regular (ANSI) msi installer -->
@@ -250,7 +249,7 @@
 		<arg value="-out" />
 		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixobj" />
 		<arg value="-ext" />
-		<arg value="-WixUIExtension" />
+		<arg value="WixUIExtension" />
     </exec>
 	<!-- light.exe: WiX linker -->
     <exec executable="light.exe" failonerror="yes">
@@ -259,7 +258,7 @@
 		<arg value="-out" />
 		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_3_Regular.msi" />
 		<arg value="-ext" />
-		<arg value="-WixUIExtension" />
+		<arg value="WixUIExtension" />
     </exec>
 	<!-- copy the installer into the AIWX Installers directory -->
     <copy file="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_6_4_3_Regular.msi" tofile="${dist}/Adapt_It_WX_6_4_3_Regular.msi"/>
@@ -278,7 +277,7 @@
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
  	<!--  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_05.sln" /> -->
- 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx.sln" />
+ 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_05.sln" />
     </exec>
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
