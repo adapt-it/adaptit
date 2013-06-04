@@ -24,7 +24,7 @@ Description:	This file contains the user profile definitions and
   -->
 <UserProfilesSupport
 	profileVersion="1.0"
-	applicationCompatibility="6.4.3"
+	applicationCompatibility="6.4.2"
 	adminModified="No"
 	definedProfile1="Novice"
 	descriptionProfile1="The Novice profile hides most of the menu items and other interface items that are not needed for basic adaptation work. The default Novice profile can be further customized to suit the preferences of the administrator."
@@ -326,6 +326,7 @@ Description:	This file contains the user profile definitions and
 			factory="0"
 		>
 		</PROFILE>
+
 		<PROFILE userProfile="Custom"
 			itemVisibility="0"
 			factory="0"

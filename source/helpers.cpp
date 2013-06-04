@@ -580,7 +580,7 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 	// 1:3:4:5:6:9:10-12:13:14:20:22:24:25,26:30:
 	// changing it to this abbreviated from:
 	// 1, 3-6, 9, 10-12, 13-14, 20, 22, 24-26, 30
-	// Note: Bridged verses in the original are not combined with their contiguous 
+	// Note: Bridged verses in the original are not combined with their contiguous
 	// neighbors, so 9, 10-12, 13-14 does not become 9-14.
 	wxString tempStr;
 	tempStr.Empty();
@@ -609,7 +609,7 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 		if (aToken.Find(_T('-')) != wxNOT_FOUND || bHasNonDigitChar)
 		{
 			// the token is a bridged verse number string, i.e., 2-3
-			// or has an unrecognized non-digit char in it, so we let 
+			// or has an unrecognized non-digit char in it, so we let
 			// it stand by itself in the abbriviated tempStr
 			tempStr += _T(", ") + aToken;
 			bBridgingVerses = FALSE;
@@ -625,7 +625,7 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 			}
 			else if (currentVerseValue - lastVerseValue == 1)
 			{
-				// the current verse is in sequence with the last verse, continue 
+				// the current verse is in sequence with the last verse, continue
 				bBridgingVerses = TRUE;
 			}
 			else
@@ -661,7 +661,7 @@ bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 	// whm 18Jul12 moved from GetSourceTextFromEditor sources to helpers.
 	// The incoming emptyVersesStr will be of the abbreviated form created by the
 	// AbbreviateColonSeparatedVerses() function, i.e., "1, 2-6, 28-29" when the
-	// chapter has been partly drafted, or "1-29" when all verses are empty. To 
+	// chapter has been partly drafted, or "1-29" when all verses are empty. To
 	// determine whether the empty verse range includes all verses of the chapter
 	// or not, we parse the incoming emptyVersesStr to see if it is of the later
 	// "1-29" form. There will be a single '-' character and no comma delimiters.
@@ -684,7 +684,7 @@ bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 			return FALSE;
 		tokCt++;
 	}
-	
+
 	// Check if there is no comma in the emptyVersesStr. Lack of a comma indicates
 	// that all verses are empty
 	if (tempStr.Find(',') == wxNOT_FOUND)
@@ -858,7 +858,7 @@ bool FileIsEmpty(wxString path)
 			return bIsEmpty;
 		}
 		free((void*)pByteBuf);
-		
+
 	}
 	return bIsEmpty;
 }
@@ -911,7 +911,7 @@ bool FileExists(wxString Path)
 bool FileHasNewerModTime(wxString fileAndPathTrueIfNewer, wxString fileAndPathFalseIfNewer)
 {
 #ifdef Output_Default_Style_Strings
-	// Whenever we are building the Unix-default strings we don't want the app to determine 
+	// Whenever we are building the Unix-default strings we don't want the app to determine
 	// if there is a newer version of the AI_USFM_full.xml file, so return FALSE
 	return FALSE;
 #else
@@ -1196,7 +1196,7 @@ bool IsAnsiLetterOrDigit(wxChar c)
 ///			returns false.
 /// \param	s			-> the string to be examined
 /// \remarks
-/// BEW added 24May12, 
+/// BEW added 24May12,
 /// The wxWidgets function calls IsAnsiLetterOrDigit() internally
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool IsAnsiLettersOrDigitsOnly(wxString s)
@@ -2477,11 +2477,11 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a wxString with consecutive whitespace characters reduced to a 
+/// \return		a wxString with consecutive whitespace characters reduced to a
 ///             single space wherever the whitespace occurs
 /// \param		rString		-> the string we are reading characters from
 /// \remarks
-/// Called from: used in BuildFootnoteOrEndnoteParts() in Xhtml.cpp 
+/// Called from: used in BuildFootnoteOrEndnoteParts() in Xhtml.cpp
 /// Searches for whitespace, converts each such to a single space, and then calls
 /// RemoveMultipleSpaces() to reduce multiple spaces to a single space
 ///////////////////////////////////////////////////////////////////////////////
@@ -2496,11 +2496,11 @@ wxString ChangeWhitespaceToSingleSpace(wxString& rString)
 		size_t i;
 		wxChar aChar;
 		for (i = 0; i < length; i++)
-		{	
+		{
 			aChar = destStr[i];
 			if (pDoc->IsWhiteSpace(&aChar))
 			{
-				destStr.SetChar(i, aSpace); 
+				destStr.SetChar(i, aSpace);
 			}
 		}
 		destStr = RemoveMultipleSpaces(destStr);
@@ -2615,7 +2615,7 @@ void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
 	{
 		// Remove the \f and \fe markers as well as their associated content markers: \fr \fk \fq \fqa \fl
-		// \fp \ft \fdc \fv \fm 
+		// \fp \ft \fdc \fv \fm
 		// Use the wxArrayString m_footnoteMarkerSet which contains the footnote and endnote markers
 		// plus all of the associated content markers; each includes the initial backslash and following
 		// space.
@@ -2638,7 +2638,7 @@ void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 		if (posn != -1)
 		{
 			// The wholeMarker does exist in the string, so remove it.
-			// NOTE: By removing a marker from the filter marker string we are creating a 
+			// NOTE: By removing a marker from the filter marker string we are creating a
 			// string that can no longer be compared with other filter marker strings by
 			// means of the == or != operators. Comparison of such filter marker strings will now
 			// necessarily require a special function StringsContainSameMarkers() be used
@@ -2657,7 +2657,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 	wxASSERT(!wholeMarker.IsEmpty());
 	// then add the necessary final space
 	wholeMarker += _T(' ');
-	
+
 	if (wholeMarker == _T("\\x "))
 	{
 		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
@@ -2674,7 +2674,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
 			{
 				// The wholeMarker doesn't already exist in the string, so append it.
-				// NOTE: By appending a marker to the filter marker string we are creating a 
+				// NOTE: By appending a marker to the filter marker string we are creating a
 				// string that can no longer be compared with other filter marker strings by
 				// means of the == or != operators. Comparison of such filter marker strings will now
 				// necessarily require a special function StringsContainSameMarkers() be used
@@ -2700,7 +2700,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
 			{
 				// The wholeMarker doesn't already exist in the string, so append it.
-				// NOTE: By appending a marker to the filter marker string we are creating a 
+				// NOTE: By appending a marker to the filter marker string we are creating a
 				// string that can no longer be compared with other filter marker strings by
 				// means of the == or != operators. Comparison of such filter marker strings will now
 				// necessarily require a special function StringsContainSameMarkers() be used
@@ -2715,7 +2715,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 		if (filterMkrStr.Find(wholeMarker) == wxNOT_FOUND)
 		{
 			// The wholeMarker doesn't already exist in the string, so append it.
-			// NOTE: By appending a marker to the filter marker string we are creating a 
+			// NOTE: By appending a marker to the filter marker string we are creating a
 			// string that can no longer be compared with other filter marker strings by
 			// means of the == or != operators. Comparison of such filter marker strings will now
 			// necessarily require a special function StringsContainSameMarkers() be used
@@ -4446,7 +4446,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 
 				// get the post-placement resulting string
 				Gstr = dlg.GetPostPlacementString();
-			
+
                 // as of version 6.2.0, we store the result whenever produced, so that the
                 // placement dialog isn't opened again (unless the user puts phrase box at
                 // this CSourcePhrase's location and edits either puncts or word(s) to be
@@ -4521,7 +4521,7 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	return appendHere;
 }
 
-// a handy check for whether or not the wxChar which ptr points at is ~ 
+// a handy check for whether or not the wxChar which ptr points at is ~
 // BEW created 25Jan11, used in FindParseHaltLocation() of doc class
 bool IsFixedSpace(wxChar* ptr)
 {
@@ -5086,7 +5086,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// is ambiguity but markersToPlaceArray is empty, and so no placement dialog shows
 		// and the endmarker and outer punctuation just get lost. So I'm fixing this here.
 		bool bAddOuterPuncts = FALSE;
-		if (finalPuncts.IsEmpty() && !pSP->GetEndMarkers().IsEmpty() 
+		if (finalPuncts.IsEmpty() && !pSP->GetEndMarkers().IsEmpty()
 			&& !pSP->GetFollowingOuterPunct().IsEmpty())
 		{
 			// this following outer punctuation hasn't been placed yet
@@ -5192,7 +5192,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 
 				// get the post-placement resulting string
 				Tstr = dlg.GetPostPlacementString();
-				
+
 				// as of version  6.2.0, we store the result whenever produced, so that
 				// the placement dialog isn't opened again (unless the user puts phrase
 				// box at this CSourcePhrase's location and edits either puncts or word(s)
@@ -9193,7 +9193,7 @@ bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase
 	return TRUE;
 }
 
-// BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation 
+// BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation
 // dialog; used only when the app member boolean, m_bDoLegacyLowerCaseLookup is FALSE (FALSE
 // is the default, this member did not exist for versions 6.4.1 and earlier) - needed because
 // this new member can result in legacy upper case initial keys being made lower case and
@@ -9207,12 +9207,12 @@ bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase
 void RemoveParallelEntriesViaRemoveButton(
 	CKB*   pKB,      // ptr to which KB is currently active, either glossing one, or adapting one
 	int    mapIndex, // 0 is first map in pKB, 1 is second, etc
-	wxString keyStr, // Choose Translation's list entry, or in KBEditor's list entry, being 
+	wxString keyStr, // Choose Translation's list entry, or in KBEditor's list entry, being
 					 // removed from the knowledge base (either context could have UCase or
 					 // LCase for first letter of phrase)
 	wxString adaption) // when this function is called, adaption will be a LC-initial string
 {
-	CAdapt_ItApp* pApp = &wxGetApp(); 
+	CAdapt_ItApp* pApp = &wxGetApp();
 	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[mapIndex];
 #if defined(_KBSERVER)
 	bool bStoringNotInKB = FALSE;
@@ -9251,7 +9251,7 @@ void RemoveParallelEntriesViaRemoveButton(
 		}
 	}
 
-	// Get the first letter of adaptation's case setting, and define the adaptation with 
+	// Get the first letter of adaptation's case setting, and define the adaptation with
 	// opposite case setting (FALSE is bIsSrcText in next call)
 	bNoError = pDoc->SetCaseParameters(adaption, FALSE);
 	if (!bNoError)
@@ -9264,7 +9264,7 @@ void RemoveParallelEntriesViaRemoveButton(
 		lowercaseNonSource = adaption;
 		if (gcharNonSrcLC != _T('\0'))
 		{
-			// provided there is a nonnull lower case equivalent, 
+			// provided there is a nonnull lower case equivalent,
 			// use it to make the lowercaseNonSource
 			lowercaseNonSource.SetChar(0,gcharNonSrcLC);
 		}
@@ -9284,7 +9284,7 @@ void RemoveParallelEntriesViaRemoveButton(
 	CTargetUnit* pTU_forUC = NULL; // for UpperCase
 	if (!lowercaseKey.IsEmpty())
 	{
-		// First find the made-earlier lower-case entry, it's key will be lowercase, 
+		// First find the made-earlier lower-case entry, it's key will be lowercase,
 		// get its pTU
 		MapKeyStringToTgtUnit::iterator iter;
 		iter = pMap->find(lowercaseKey);
@@ -9317,7 +9317,7 @@ void RemoveParallelEntriesViaRemoveButton(
 						{
 							pKB->FireOffPseudoDeleteThread(lowercaseKey, pRefString_forLower);
 						}
-#endif 
+#endif
 					}
 				}
 			} // end TRUE block for test: if (pTU_forLC != NULL)
@@ -9364,7 +9364,7 @@ void RemoveParallelEntriesViaRemoveButton(
 						{
 							pKB->FireOffPseudoDeleteThread(uppercaseKey, pRefString_forUpper);
 						}
-#endif 
+#endif
 					}
 				}
 			} // end TRUE block for test: if (pTU_forUC != NULL)
@@ -9528,7 +9528,7 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 		bool bCodesEntered = FALSE;
 		while (!bCodesEntered)
 		{
-			// Call up CLanguageCodesDlg here so the user can enter language 
+			// Call up CLanguageCodesDlg here so the user can enter language
 			// codes which are needed
 			CLanguageCodesDlg lcDlg((wxWindow*)gpApp->GetMainFrame());
 			lcDlg.Center();
@@ -9594,7 +9594,7 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 				gpApp->m_targetLanguageCode = tgtCode;
 				gpApp->m_glossesLanguageCode = glossCode;
 				gpApp->m_freeTransLanguageCode = freeTransCode;
-				
+
 				// Check the user's response to the message; either have another go, or
 				// cancel out
 				if (response == wxNO)

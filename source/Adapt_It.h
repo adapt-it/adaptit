@@ -58,7 +58,7 @@
 #endif
 
 // The following define makes the Interlinear RTF export routine use the older
-// MS Word compatibility structure for RTF Tables (which AI used before 22Jul11, 
+// MS Word compatibility structure for RTF Tables (which AI used before 22Jul11,
 // i.e., before svn r. 1633).
 //#define USE_OLD_WORD_RTF_TABLE_SPECS
 
@@ -121,7 +121,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 // adaptation project designated as one which is to support KB sharing
 
 #if defined(_KBSERVER)
-		
+
 // forward declaration
 class KbServer;
 
@@ -184,10 +184,10 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // 8. Various docs folder files including: Adapt It changes.txt, Readme.txt,
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 // 9. Within the AboutDlgFunc in wxDesigner change the version number for the
-//    ID_ABOUT_VERSION_NUM wxStaticText to the current version number. 
+//    ID_ABOUT_VERSION_NUM wxStaticText to the current version number.
 //    TODO:
-//    Find out why for the Mac build this wxStaticText value is not getting 
-//    updated from the code in MainFrm.cpp to use the current version number 
+//    Find out why for the Mac build this wxStaticText value is not getting
+//    updated from the code in MainFrm.cpp to use the current version number
 //    which includes the build number.
 // ******** IF YOU CHANGE VERSION NUMBERS BELOW FOR ANY REASON   *************************
 // ******** YOU SHOULD ALSO DO 1 AND 2 IN THE COMMENTS ABOVE AS  *************************
@@ -198,13 +198,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
 #define VERSION_DATE_DAY 3
-#define VERSION_DATE_MONTH 6
+#define VERSION_DATE_MONTH 5
 #define VERSION_DATE_YEAR 2013
-const wxString appVerStr(_T("6.4.3"));
+const wxString appVerStr(_T("6.4.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -1935,7 +1935,7 @@ class CAdapt_ItApp : public wxApp
 	// The following is the timer for incremental downloads; defaulted to
 	// 5 minutes, but settable by the user to other values in the range 1-10 minutes,
 	// and the minutes valuewill be stored in the project config file
-	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental 
+	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental
 												// download of entries from server
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
@@ -2243,7 +2243,7 @@ public:
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
-    
+
     wxArrayString* m_DVCS_log;          // points to the log returned from git, so our log dialog can get at it
 
 
@@ -3926,7 +3926,7 @@ public:
 	bool m_bDoLegacyLowerCaseLookup; // default FALSE (i.e. attempts to also use an upper
 									 // case keyed pTU instances as well, as described
 									 // above), user-settable in the GUI, using
-								     // Preferences.../View page, saved in project 
+								     // Preferences.../View page, saved in project
 									 // configuration file. (New regime is the default.)
 
 
