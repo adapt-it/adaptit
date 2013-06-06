@@ -74,6 +74,15 @@ struct KbServerEntry {
 	int			deleted; // the only values allowed are 0 (not pseudo-deleted) or 1 (pseudo-deleted)
 };
 
+struct KbServerUser {
+	long		id; // 1-based, from the user table
+	wxString	username; // the unique one, or we would like it to be unique (but it doesn't have to be)
+	wxString	fullname; // the informal name, such as John Nerd
+	bool		kbadmin;
+	bool		useradmin;
+	wxString	timestamp;
+};
+
 
 enum ClientAction {
 	getForOneKeyOnly,
@@ -125,6 +134,8 @@ public:
 	
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
+	int		 LookupUser(wxString username);
+	/* commented out by BEW 5Jun13
 	int		 CreateEntry_Minimal(	KbServerEntry& entry,
 									wxString& kbType,
 									wxString& password,
@@ -132,6 +143,7 @@ public:
 									wxString& srcLangCode,
 									wxString& tgtLangCode,
 									wxString& url);
+	*/
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp);
@@ -294,6 +306,8 @@ private:
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
 	// single entry
 	KbServerEntry	m_entryStruct;
+	// Ditto, but for a single entry from the user table
+	KbServerUser	m_userStruct;
 
 public:
 
@@ -309,9 +323,15 @@ public:
 	void			PushToQueueEnd(KbServerEntry* pEntryStruct); // protect with a mutex
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();
+
 	void			SetEntryStruct(KbServerEntry entryStruct);
 	KbServerEntry	GetEntryStruct();
 	void			ClearEntryStruct();
+
+	void			SetUserStruct(KbServerUser userStruct);
+	KbServerUser	GetUserStruct();
+	void			ClearUserStruct();
+
 	void			ClearUploadsMap(); // clears user data (wxStrings) from m_uploadsMap
 
 protected:
