@@ -21580,6 +21580,9 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	pApp->GetView()->RemoveSelection(); // BEW 6Jun13 removed it from Layout::PlaceBox()where
+			// calling it is too late (it's after a layout change, leading to a crash), to be
+			// here instead
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE;			// this is a global boolean

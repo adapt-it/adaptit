@@ -1288,6 +1288,29 @@ KbServerEntry KbServer::GetEntryStruct()
 	return m_entryStruct;
 }
 
+void KbServer::ClearUserStruct()
+{
+	m_userStruct.id = 0;
+	m_userStruct.username.Empty();
+	m_userStruct.fullname.Empty();
+	m_userStruct.timestamp.Empty();
+	m_userStruct.kbadmin = false;
+	m_userStruct.useradmin = false;
+}
+
+void KbServer::SetUserStruct(KbServerUser userStruct)
+{
+	m_userStruct = userStruct;
+}
+
+KbServerUser KbServer::GetUserStruct()
+{
+	return m_userStruct;
+}
+
+
+
+/* Not used, commented out by BEW 5Jun13
 // Same as CreateEntry(), but with anything related to failure stripped out - we want this
 // to succeed as quickly as possible, and we'll ignore failures
 // Note: we pass in, by value, everything the function needs, so that it calls nothing
@@ -1364,7 +1387,7 @@ int KbServer::CreateEntry_Minimal(	KbServerEntry& entry,
 //#endif
 	return result;
 }
-
+*/
 int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 {
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
