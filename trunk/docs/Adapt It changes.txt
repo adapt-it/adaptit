@@ -54,6 +54,8 @@ a KB element for that page which did not have any translations
 in it's list associated with that source text key. It's safe now,
 any such bad entries are detected and removed before they can
 do damage to the data loading for the KB Editor.
+* If the Consistency Check... was invoked while one or more
+source text words were selected, it application crashed.
 
 ----------------------------------------------
 Version 6.4.2 release 3 May 2013
