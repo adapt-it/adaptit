@@ -201,7 +201,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 #define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 3
+#define VERSION_DATE_DAY 7
 #define VERSION_DATE_MONTH 6
 #define VERSION_DATE_YEAR 2013
 const wxString appVerStr(_T("6.4.3"));

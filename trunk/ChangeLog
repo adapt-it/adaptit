@@ -1,3 +1,62 @@
+
+----------------------------------------------
+Version 6.4.3 release 7 June 2013
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.4.3
+----------------------------------------------
+* Added a dialog with two text controls, and on the Edit menu
+a new item "Change Username..." for opening it on demand. In it
+the user can add or edit a (preferably unique) username string
+identifier (his full email address is recommended but any unique
+string of letters is acceptable). The second text control is to
+add or edit a human-friendly informal name, like "John Smith".
+The dialog also shows itself if one or both names are not set
+at the time that either document history, or sharing of the KB,
+is turned on within any Adapt It project. Once shown, something
+must be in each text control before the dialog will let you
+dismiss it. 
+* Changed Find when searching in the source text, if it matches 
+the source text at a "hole", it doesn't copy down the source 
+text there to the phrase box. This is safer.
+* Altered the Find, and Find and Replace dialogs, to change the
+checkbox text "Search, retaining target text's punctuation" to be
+instead "Search, retaining the text's punctuation", because this
+checkbox applies equally to source or target text.
+* Find dialog, when search in source text, if matches were made
+in locations that were adaptable "holes", the ChooseTranslation
+dialog might show, or a merger be done, or source text be copied
+down to the phrasebox. These are unhelpful in such a circumstance
+and the behaviour is now changed. The phrasebox just stays empty,
+preserving the hole. (The user can still click in the document
+there to add text to the phrasebox if he wants.)
+
+----------------------------------------------
+Bug fixes in 6.4.3
+----------------------------------------------
+* Fixed a broken link in the help file topic "Edit or Examine
+the Knowledge Base dialog."
+* Updated screen shots for the toolbar in the help files. The
+toolbar icons were updated earlier.
+* Once the Guesser was turned on, the GUI button for it would
+not allow it to be turned off, even if the checkbox in it was
+clicked. Now it works right.
+* The Remove button in the KB Editor, and also in the Choose
+Translation dialog, would not remove a <no adaptation> entry
+if Automatic Capitalization was turned on. Now it works right.
+* Fixed a file path bug when doing Export Knowledge Base for
+a SFM export, which was crashing in Linux, but not Windows.
+* Export Knowledge Base... with the SFM export crashed, but only
+in the Linux build, when forming the path string for the file
+dialog. Fixed.
+* The KB Editor would crash when loading a page, if there was
+a KB element for that page which did not have any translations
+in it's list associated with that source text key. It's safe now,
+any such bad entries are detected and removed before they can
+do damage to the data loading for the KB Editor.
+* If the Consistency Check... was invoked while one or more
+source text words were selected, it application crashed.
+
 ----------------------------------------------
 Version 6.4.2 release 3 May 2013
 ----------------------------------------------
