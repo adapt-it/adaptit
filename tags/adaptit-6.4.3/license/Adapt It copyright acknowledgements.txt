@@ -1,0 +1,33 @@
+Adapt It uses these code sources by permission which are copyrighted by others (see any licenses mentioned in the sources) :
+
+wxWidgets Library: Copyright (c) 1998-2005 Julian Smart, Robert Roebling et al. wxWindows Library Licence, Version 3.1.
+
+Boost Library - Boost Software License - Version 1.0 - August 17th, 2003. See Boost source files for individual copyright information.
+Note: The following Boost library sources are included in the Windows and Mac (but not Linux) ports of Adapt It: <boost/uuid/uuid_generators.hpp> and <boost/uuid/uuid_io.hpp>.
+
+Curl Library - Copyright (c) 1996 - 2010, Daniel Stenberg, <daniel@haxx.se>. All rights reserved. The Curl library is licensed as described in the file COPYING. The terms
+ are also available at http://curl.haxx.se/docs/copyright.html.
+
+base64.cpp and base64.h: Copyright (C) 2004-2008 René Nyffenegger. Used according to the permission granted in the base64 sources.
+
+CCModule.cpp and CCModule.h Modified and adapted by Permission from Consistent Changes (cc). COPYRIGHT NOTICE:  Copyright <C> 1980, 1983, 1987, 1988, 1991, 1993, 1994, 1995, 1996,1997, 1998 an unpublished work by the Summer Institute of Linguistics, Inc.
+
+convauto.cpp and convauto.h: Copyright (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>. wxWindows licence.
+Note: The above convauto sources are included separately in Adapt It builds when built against the wxWidgets 2.8.12 library, but are not included as separate sources when built against the wxWidgets 2.9.4 library (which includes their functionality in other library classes).
+
+CorGuess.cpp and CorGuess.h: Copyright 2010 SIL International. The Common Public License or the GNU Lesser General Public License (see license directory).
+
+scrollingdialog.cpp and scrollingdialog.h: Copyright (c) Julian Smart. New BSD License.
+scrollingwizard.cpp and scrollingwizard.h: Copyright (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>. wxWindows license. New BSD License.
+Note: The above scrollingdialog and scrollingwizard sources are included separately in Adapt It builds when built against the wxWidgets 2.8.12 library, but are not included as separate sources when built against the wxWidgets 2.9.4 library (which includes their functionality in other library classes).
+
+
+md5.cpp and md5.h: Copyright (c) 2005 Francesco Montorsi, based on earlier work Copyright (C) 1990, RSA Data Security, Inc. All rights reserved.
+
+tellenc.cpp and tellenc.h: Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>. Unlicensed, but see tellenc.cpp for permissions statement by author.
+
+json_defs.h, jsonreader.h, jsonval.h, and jsonwriter.h: Copyright (c) 2007 Luciona Cattani Licence: wxWidgets licence.
+
+vld.h - Visual Leak Detector. Copyright (c) 2005-2012 VLD Team. Originally created by Dan Moulding, but the features of version 2.0 were implemented by Arkadiy Shapkin and the VLD Team. It is used under the LGPL 2.1 or later.
+Note: The Vld's code is not compiled into the program in release versions. The Visual Leak Decector is used only during Debug builds of Adapt It. The VLD sources and libraries are not distributed in any way in the Adapt It open source project's repository.
+
