@@ -61,8 +61,8 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
     m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
     m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
     
-    m_pApp = &wxGetApp();
-    m_pDoc = m_pApp->GetDocument();
+    m_pApp = &wxGetApp();  wxASSERT (m_pApp != NULL);
+    m_pDoc = m_pApp->GetDocument();  wxASSERT (m_pDoc != NULL);
 }
 
 DVCSNavDlg::~DVCSNavDlg(void)
@@ -92,7 +92,7 @@ void DVCSNavDlg::OnNext (wxCommandEvent& WXUNUSED(event))
 
 void DVCSNavDlg::OnAccept (wxCommandEvent& WXUNUSED(event))
 {
-    m_pApp->GetDocument()->DoAcceptVersion();      // handles everything, so all we do here is call it
+    m_pDoc->DoAcceptVersion();      // handles everything, so all we do here is call it
 };
 
 void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))

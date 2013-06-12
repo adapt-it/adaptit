@@ -9686,6 +9686,7 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( wxID_OPEN, _("&Open...\tCtrl-O"), _("Open an existing document") );
     item1->Append( wxID_SAVE, _("&Save\tCtrl-S"), _("Save the active document") );
     item1->Append( ID_SAVE_AS, _("Save &As...\tCtrl-A"), _("Save the document with different xml format, or different filename") );
+    item1->Append( ID_FILE_SAVE_COMMIT, _("Save and remember in history..."), _("Saves the current document and remembers its state in the history.") );
     item1->Append( wxID_CLOSE, _("&Close"), _("Close the active document") );
     item1->Append( ID_FILE_PACK_DOC, _("Pack Document..."), _("Pack document for transfer to another computer") );
     item1->Append( ID_FILE_UNPACK_DOC, _("Unpack Document..."), _("Unpack a document that was packed on another computer") );
@@ -9702,7 +9703,6 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_BACKUP_KB, _("&Backup Knowledge Base"), _("Make a new knowledge base backup immediately") );
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->AppendSeparator();
-    item1->Append( ID_FILE_SAVE_COMMIT, _("Save and remember in history..."), _("Saves the current document and remembers its state in the history.") );
     item1->Append( ID_FILE_REVERT_FILE, _("Look at previous versions in the document history..."), _("Shows the previously remembered version, and allows you to go back to earlier versions as well.") );
     item1->Append( ID_FILE_LIST_VERSIONS, _("View list of previously remembered versions..."), _("Shows a list of all remembered versions, and allows you to select and view any of them.") );
     item1->AppendSeparator();

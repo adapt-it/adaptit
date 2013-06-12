@@ -35,15 +35,10 @@
 #include "DVCSLogDlg.h"
 
 
-// event handler table
+// event handler table -- we don't need to modify the default
 
 BEGIN_EVENT_TABLE (DVCSLogDlg, AIModalDialog)
-//    EVT_BUTTON (ID_BTN_PREV,   DVCSNavDlg::OnPrev)
-//    EVT_BUTTON (ID_BTN_NEXT,   DVCSNavDlg::OnNext)
-//    EVT_BUTTON (ID_ACCEPT,     DVCSNavDlg::OnAccept)
-//    EVT_BUTTON (ID_LATEST,     DVCSNavDlg::OnLatest)
 END_EVENT_TABLE()
-
 
 
 DVCSLogDlg::DVCSLogDlg (wxWindow* parent)
@@ -53,11 +48,6 @@ DVCSLogDlg::DVCSLogDlg (wxWindow* parent)
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	m_dlgSizer = DVCSLogDlgFunc ( this, TRUE, TRUE );
-    
-//    m_version_comment = (wxTextCtrl*) FindWindowById(ID_VERSION_COMMENT);
-//    m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
-//    m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
-    
     m_pApp = &wxGetApp();
     wxASSERT(m_pApp != NULL);
 
@@ -68,42 +58,6 @@ DVCSLogDlg::DVCSLogDlg (wxWindow* parent)
 
 DVCSLogDlg::~DVCSLogDlg(void)
 { }
-
-/*
-void DVCSNavDlg::OnPrev (wxCommandEvent& event)
-{
-    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-    
-    pDoc->DoChangeRevision (m_pApp->m_trialVersionNum + 1);
-    
-    m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
-    m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
-    m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
-};
-
-void DVCSNavDlg::OnNext (wxCommandEvent& event)
-{
-    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-    
-    pDoc->DoChangeRevision (m_pApp->m_trialVersionNum - 1);
-
-    m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
-    m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
-    m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
-};
-
-void DVCSNavDlg::OnAccept (wxCommandEvent& event)
-{
-    m_pApp->GetDocument()->DoAcceptRevision();      // handles everything, so all we do here is call it
-};
-
-void DVCSNavDlg::OnLatest (wxCommandEvent& event)
-{
-    CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-    
-    pDoc->DoChangeRevision (0);     // zero is the latest - this also removes the dialog and cleans up
-};
-*/
 
 void DVCSLogDlg::PopulateList()
 {        
@@ -138,8 +92,6 @@ void DVCSLogDlg::PopulateList()
     {        
         wxListItem item;
         item.SetId(n);
-//        item.SetText( _T("hahahaha") );
-        
         m_pList->InsertItem( item );
 
         nextLine = m_pApp->m_DVCS_log->Item (n);    // hash#name#date#comment
