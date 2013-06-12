@@ -1297,7 +1297,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				// Ask for the password --- we no longer use a "credentials.txt" 
 				// temporary file. Returns an empty string if nothing is typed
 				CMainFrame* pFrame = pApp->GetMainFrame();
-				wxString pwd = pFrame->GetKBSvrPasswordFromUser();
+				wxString pwd = pFrame->GetKBSvrPasswordFromUser(); // user types pwd in dialog
 				// there will be a beep if no password was typed
 				if (!pwd.IsEmpty())
 				{
@@ -1329,44 +1329,73 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					}
 					else
 					{
-						// Valid m_strUserID and m_strUsername should be in place now, so
-						// go ahead with next step which is to check for valid language codes
+						// A m_strUserID and m_strUsername should be in place now due to
+						// the above call of CheckUsername, so go ahead with next steps:
+						// a) to check the user is authorized to use the kbserver, and
+						// b) to check for valid language codes
+						pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
+													   // ready for SetupForKBServer() below to use it
 						
-						// we want valid codes four source, target and glosses languages, so
-						// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-						bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-						if (!bDidItOK && bUserCancelled)
+						// test for an authorized user; since we are coming via the
+						// wizard, not from the SetupForKBServer() dialog, the username
+						// and url will come from the project config file. The password
+						// has been obtained from the dialog called above. The following
+						// call will set up a temporary instance of the adapting KbServer
+						// in order to call it's LookupUser() member, to check that this
+						// user has an entry in the entry table; and delete the temporary
+						// instance before returning
+						bool bUserIsValid = CheckForValidUsernameForKbServer(pApp->m_strKbServerURL, pApp->m_strUserID, pwd);
+						if (!bUserIsValid)
 						{
-							// We must assume the codes are wrong or incomplete, or that the
-							// user has changed his mind about KB Sharing being on - so turn
-							// it off
-							pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-							pApp->ReleaseKBServer(1); // the adapting one
-							pApp->ReleaseKBServer(2); // the glossing one
+							// Access is denied to this user, so turn off the setting
+							// which says that this project is one for sharing, and tell
+							// the user
+							pApp->LogUserAction(_T("Kbserver user is invalid; in OnWizardPageChanging() in ProjectPage.cpp"));
+							pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
+							pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 							pApp->m_bIsKBServerProject = FALSE;
+							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.");
+							msg = msg.Format(msg, pApp->m_strUserID);
+							wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 						}
 						else
 						{
-							// All's well, go ahead
-							pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-														   // ready for SetupForKBServer() below to use it
-							pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
-							// instantiate an adapting and a glossing KbServer class instance
-							if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+							// The username is valid for this kbserver, so check language codes
+							
+							// we want valid codes four source, target and glosses languages, so
+							// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+							bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
+							if (!bDidItOK && bUserCancelled)
 							{
-								// an error message will have been shown, so just log the failure
-								pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
-								pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+								// We must assume the codes are wrong or incomplete, or that the
+								// user has changed his mind about KB Sharing being on - so turn
+								// it off
+								pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
+								pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
+								pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
+								pApp->m_bIsKBServerProject = FALSE;
 							}
-						}
-					}
+							else
+							{
+								// All's well, go ahead
+								pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
+								// instantiate an adapting and a glossing KbServer class instance
+								if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+								{
+									// an error message will have been shown, so just log the failure
+									pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+									pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+								}
+							}
+						} // end of else block for test: if (!bUserIsValid)
+					} // end of else block for test: if (!bUserDidNotCancel)
 				}
 				else
 				{
-					wxString msg = _("No password was typed. Knowledge base sharing setup is cancelled.\nUse the command on the Advanced menu to setup manually.");
+					wxString msg = _("No password was typed. Knowledge base sharing setup is cancelled.\nUse the command on the Advanced menu to setup manually; but you must first find out your correct password. Ask your kbserver administrator.");
 					pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 					wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
-					pApp->LogUserAction(msg);
+					pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed"));
 				}
 			}
 #endif

@@ -1945,6 +1945,14 @@ class CAdapt_ItApp : public wxApp
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
 
+	// storage of username's value for the boolean flags, kbadmin, and useradmin; we store
+	// them here rather than in the KbServer class itself, because the value of these
+	// flags need to be known before either of the adapting or glossing KbServer classes
+	// are instantiated (i.e. when checking if the user is in user table, and if the user
+	// is authorized to create an entry in the kb table)
+	bool	m_kbserver_kbadmin;  // initialize to default FALSE in OnInit()
+	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
+
 #endif
 
 	wxUint32 maxProgDialogValue; // whm added 25Aug11 as a temporary measure until we can
@@ -3332,8 +3340,8 @@ public:
 	bool m_bUseAdaptationsGuesser;	// If TRUE(the default) use the Guesser for adaptations
 	bool m_bIsGuess;				// If TRUE there is a guess for the current target text
 	int m_nGuessingLevel;			// The guesser level (can range from 0 to 100, default is 50)
-	bool m_bAllowCConUnchangedGuesserOutput; // If TRUE Consistent Changes can operate on unchanged
-									// guesser output; default is FALSE
+	bool m_bAllowGuesseronUnchangedCCOutput; // If TRUE the Guesser can operate on unchanged
+									// Consistent Changes output; default is FALSE
 	Guesser* m_pAdaptationsGuesser;	// our Guesser object for adaptations
 	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
 	int m_nCorrespondencesLoadedInAdaptationsGuesser;

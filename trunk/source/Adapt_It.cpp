@@ -6768,9 +6768,16 @@ wxString szUseAdaptationsGuesser = _T("UseAdaptationsGuesser");
 wxString szGuessingLevel = _T("GuessingLevel");
 
 /// The label that identifies the following string encoded number as the application's
-/// "AllowCConUnchangedGuesserOutput". Adapt It stores this value in the App's
-/// m_bAllowCConUnchangedGuesserOutput member variable.
+/// "AllowGuesserOnUnchangedCCOutput". Adapt It stores this value in the App's
+/// m_bAllowGuesserOnUnchangedCCOutput member variable.
 wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput");
+//  BEW 10Jun13, for version 6.4.3, due to a misunderstanding on my part, I altered the
+//  internal code to be m_bAllowCConUnchangedGuesserOutput so as to match the label above,
+//  but the label above was misleading. I should have just altered the label. I'm now
+//  fixing this: henceforth the internal variable will be
+//  m_bAllowGuesseronUnchangedCCOutput, and the label to be used for subsequent project
+//  config file writes will be the one below.
+wxString szAllowGuesseronUnchangedCCOutput = _T("AllowGuesseronUnchangedCCOutput");
 
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
 wxDynamicLibrary ecDriverDynamicLibrary;
@@ -15356,6 +15363,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-20)
 	m_nKbServerIncrementalDownloadInterval = 5;
 
+    // initialize kbadmin and useradmin flags associated with username (both being false
+    // constitutes 'minimal' privilege level for access to the KB sharing remote database;
+    // these values may be overridden by ascertaining the username has increased privileges
+    // when a CheckForValidUsernameForKbServer() call, see helpers.cpp, is done)
+	m_kbserver_kbadmin = FALSE;
+	m_kbserver_useradmin = FALSE;
+
+
 #endif
 
 #if defined(_DEBUG) && defined(__WXGTK__)
@@ -16068,9 +16083,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// default is 50 unless changed by config file settings
 	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
 	m_nCorrespondencesLoadedInGlossingGuesser = 0;
-	m_bAllowCConUnchangedGuesserOutput = FALSE; // If TRUE Consistent Changes can operate on unchanged
-									// guesser output; default is FALSE unless changed by config file
-									// settings
+	m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE the Guesser can operate on unchanged
+									// Consistent Chantes output; default is FALSE unless changed
+									// by config file settings
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
 
@@ -32593,11 +32608,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	if (m_bAllowCConUnchangedGuesserOutput)
+	if (m_bAllowGuesseronUnchangedCCOutput)
 		number = _T("1");
 	else
 		number = _T("0");
-	data << szAllowCConUnchangedGuesserOutput << tab << number;
+	data << szAllowGuesseronUnchangedCCOutput << tab << number;
 	pf->AddLine(data);
 
 	if (m_bRTL_Layout)
@@ -33574,15 +33589,27 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				num = 50;
 			m_nGuessingLevel = num;
 		}
+		// BEW 10Jun13, the next is the legacy code, it has a mislabelling, so I'll follow
+		// it with an alternative which has the changed correct labelling
 		else if (name == szAllowCConUnchangedGuesserOutput) // whm added 28Oct10 for Guesser support
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
 				num = 1;
 			if (num == 1)
-				m_bAllowCConUnchangedGuesserOutput = TRUE;
+				m_bAllowGuesseronUnchangedCCOutput = TRUE;
 			else
-				m_bAllowCConUnchangedGuesserOutput = FALSE;
+				m_bAllowGuesseronUnchangedCCOutput = FALSE;
+		}
+		else if (name == szAllowGuesseronUnchangedCCOutput) // BEW added 10Jun13 for Guesser 
+		{													// support, using correct label
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1;
+			if (num == 1)
+				m_bAllowGuesseronUnchangedCCOutput = TRUE;
+			else
+				m_bAllowGuesseronUnchangedCCOutput = FALSE;
 		}
 		else if (name == szRTL_Layout)
 		{

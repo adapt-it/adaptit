@@ -61,6 +61,7 @@
 #include "Thread_PseudoDelete.h"
 #include "LanguageCodesDlg.h"
 #include "UsernameInput.h"
+#include "KbServer.h"
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -9662,3 +9663,79 @@ bool CheckUsername()
 	}
 	return TRUE;
 }
+
+#if defined(_KBSERVER)
+
+// checks app's string member m_strUserID is in entry table of kbserver
+bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password) 
+{
+	// This function can be called before the app member pointers, m_pKbServer[0] and
+	// m_pKbServer[1] are instantiated, so we have to pass in the url, username and
+	// password in order to be able to call KbServer::LookupUser(). We must temporarily
+	// set up a KbServer instance, use the LookupUser() member, and pass the result back
+	// to the caller after deleting the temporary KbServer instance 
+	wxString msg = _T("Error: the helper function CheckForValidUsernameForKbServer(1) failed to instantiate.\nThe username could not be checked for validity, so KB sharing is OFF.");
+	wxString msg1 = _T("Error: LookupUser() failed in CheckForValidUsernameForKbServer().\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
+	wxString title = _T("KbServer error");
+	CAdapt_ItApp* pApp = &wxGetApp();
+
+	// instantiate an adaptation KbServer instance (doesn't matter which type we use)
+	KbServer* pKbSvr = NULL;
+	pKbSvr = new KbServer(1); // 1 is an adaptations one, 2 would be a glossing one
+	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
+	if (pKbSvr == NULL)
+	{
+		// warn developer, message does not need to be localizable; show it only in 
+		// debug mode, because a Release version is unlikely to get this error
+#if defined(_DEBUG)
+		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
+#endif
+		msg = msg; // avoid compiler warning in Release build
+		pApp->m_kbserver_kbadmin = FALSE;
+		pApp->m_kbserver_useradmin = FALSE;
+		pKbSvr->ClearUserStruct();
+		return FALSE;
+	}
+	int cURLerror = pKbSvr->LookupUser(url,username,password);
+	if (cURLerror > CURLE_OK)
+	{
+		// Warn developer, message does not need to be localizable - but only warn in
+		// debug mode. The Release version should treat the 404 not found, (reinterpretted
+		// as curl error 22) as simply a FALSE, and the caller can give the appropriate
+		// message for a username which was not found in the user table
+#if defined(_DEBUG)
+		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
+#endif
+		msg1 = msg1; // avoid compiler warning in Release build
+		pApp->m_kbserver_kbadmin = FALSE;
+		pApp->m_kbserver_useradmin = FALSE;
+		pKbSvr->ClearUserStruct();
+		delete pKbSvr;
+		return FALSE;
+	}
+	// Get the entry, and check it matches the m_strUserID passed in as username
+	KbServerUser astruct = pKbSvr->GetUserStruct();
+	wxString theUsername = astruct.username;
+	//wxString theUsername = pKbSvr->GetUserStruct().username;
+	// Store this username's kbadmin and useradmin flag values in the app members:
+	// m_kbserver_kbadmin and m_kbserver_useradmin booleans
+	if (theUsername == username)
+	{
+		pApp->m_kbserver_kbadmin = astruct.kbadmin;
+		pApp->m_kbserver_useradmin = astruct.useradmin;
+		// cleanup
+		pKbSvr->ClearUserStruct(); 
+		delete pKbSvr;
+		return TRUE;
+	}
+	// Unmatched username, so set privilege level to safest (i.e. minimal) 
+	pApp->m_kbserver_kbadmin = FALSE;
+	pApp->m_kbserver_useradmin = FALSE;
+	// cleanup
+	pKbSvr->ClearUserStruct(); 
+	delete pKbSvr;
+	return FALSE;
+}
+
+#endif
+

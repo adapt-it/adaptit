@@ -1961,7 +1961,7 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 /// Guesser (if m_bUseAdaptationsGuesser is TRUE) before inserting the string to the
 /// m_targetPhrase. The Guesser cannot be used if the SIL Converters is being used.
 /// Also, the Guesser can be used only if Consistent Changes is not being used
-/// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput was set to true by the
+/// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput was set to true by the
 /// administrator checking the appropriate checkbox in the GuesserSettingsDlg.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
@@ -2018,13 +2018,13 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	{
 		// The Guesser cannot be used if the SIL Converters is being used.
 		// Also, the Guesser can be used only if Consistent Changes is not being used
-		// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput
+		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
 		// was set to true by the administrator checking the appropriate checkbox
 		// in the GuesserSettingsDlg.
-		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowCConUnchangedGuesserOutput))
+		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
 		{
 			// We don't need to query the user in this case because the
-			// m_bAllowCConUnchangedGuesserOutput flag would have been changed
+			// m_bAllowGuesseronUnchangedCCOutput flag would have been changed
 			// explicitly by the administrator ticking the checkbox in the
 			// GuesserSettingsDlg.
 			insertionText = DoGuess(pasteStr,bIsGuess);
@@ -2644,6 +2644,9 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
             // if user cancelled a Choose Translation merge, then pSrcPhrase will be
             // invalid, so we have to make sure the pointer is valid before we proceed
 			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			// BEW 12Jun13, pActivePile is now invalid, which leads to a crash if the user
+			// Canceled from the ChooseTranslation() dialog, so reset it here to fix this
+			pActivePile = pApp->m_pActivePile;
 
             // BEW added test 20Dec07: Reviewing mode must not copy down source text into
             // holes (ie. we assume the holes are there by choice, and we don't want
@@ -3308,14 +3311,44 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			if (selector != 1 && selector != 3) // see comments under the function header
 												// for an explanation of the selector values
 			{
-				// do this for selector values 0 or 2
-				wxString emptyStr = _T("");
-				if (gbIsGlossing)
-					pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase,
+				// do this for selector values 0 or 2, 
+                // (BEW addition 12Jun13) but do so only if the pile which pSrcPhrase is at
+                // is the current active pile - if it isn't so, then the active location
+                // has become shifted, and the removal shouldn't be attempted; so I've
+                // added the test on the next line of code. (A Cancel from
+                // ChooseTranslation() at a phrase hole would result in the active location
+                // being the new location, and so that shift would cause a crash here. This
+                // is prevented now by the test for non-moved location.)
+				if (pSrcPhrase == pApp->m_pActivePile->GetSrcPhrase())
+				{
+					wxString emptyStr = _T("");
+					if (gbIsGlossing)
+						pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase,
 												emptyStr, useGlossOrAdaptationForLookup);
+					else
+						pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,
+												emptyStr, useGlossOrAdaptationForLookup);
+				}
 				else
-					pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,
-												emptyStr, useGlossOrAdaptationForLookup);
+				{
+                    // BEW 12Jun13, If the ref string removal is skipped, then make the
+                    // location abandonable if the m_adaption is empty in the source phrase
+                    // instance; and the application will have become in a passive event
+                    // loop (ie. not calling OnIdle()) and so a subsequent Enter keypress
+                    // would not advance the phrase box, because OnePass() which is in
+                    // OnIdle() wouldn't get called because OnIdle() wouldn't be called. So
+                    // we have to wake up idle event processing - this can be done by
+                    // calling RequestMore() from within the idle event handler itself, but
+                    // once in passive mode, that won't work, so we need an explicit
+                    // command to awaken idle event posting again, and wxWakeUpIdle() is that
+                    // command.
+					if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
+					{
+						pApp->m_pTargetBox->m_bAbandonable = TRUE;
+					}
+					// make sure idle events are continuing
+					wxWakeUpIdle();
+				}
 			}
 		}
 	}
@@ -13256,7 +13289,7 @@ CKB* CAdapt_ItView::GetKB()
 /// SIL Converters (if m_bUseSilConverter if TRUE) before returning the final string to the
 /// caller. The Guesser cannot be used if the SIL Converters is being used.
 /// Also, the Guesser can be used only if Consistent Changes is not being used
-/// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput was set to true by the
+/// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput was set to true by the
 /// administrator checking the appropriate checkbox in the GuesserSettingsDlg.
 /// CopySourceKey() is the primary place where Consistent Changes are done, where the SIL
 /// Converter changes are done and where Guesser changes are done within the Adapt It
@@ -13351,10 +13384,10 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	{
 		// The Guesser cannot be used if the SIL Converters is being used.
 		// Also, the Guesser can be used only if Consistent Changes is not being used
-		// OR if it is being used AND m_bAllowCConUnchangedGuesserOutput
+		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
 		// was set to true by the administrator checking the appropriate checkbox
 		// in the GuesserSettingsDlg.
-		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowCConUnchangedGuesserOutput))
+		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
 		{
 			str2 = DoGuess(str,bIsGuess);
 			pApp->m_bIsGuess = bIsGuess;
@@ -20509,7 +20542,7 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 		pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
 		pApp->m_GuessHighlightColor = gsDlg.tempGuessHighlightColor;
 
-		pApp->m_bAllowCConUnchangedGuesserOutput = gsDlg.bAllowCConUnchangedGuesserOutput;
+		pApp->m_bAllowGuesseronUnchangedCCOutput = gsDlg.bAllowGuesseronUnchangedCCOutput;
 	}
 }
 
