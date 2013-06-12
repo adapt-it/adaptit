@@ -461,15 +461,11 @@ public:
     void DoChangeVersion ( int revNum );
     void DoShowPreviousVersions ( bool fromLogDialog, int startHere );
 	void OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event));
-    void OnUpdateShowPreviousVersions (wxUpdateUIEvent& event);
     void DoAcceptVersion (void);
-//	void OnReturnToLatestRevision (wxCommandEvent& WXUNUSED(event));
     void OnShowFileLog (wxCommandEvent& WXUNUSED(event));
-    void OnUpdateShowFileLog (wxUpdateUIEvent& event);
     void OnShowProjectLog (wxCommandEvent& WXUNUSED(event));
-    void OnUpdateShowProjectLog (wxUpdateUIEvent& event);
     void OnDVCS_Version (wxCommandEvent& WXUNUSED(event));
-    void OnUpdateDVCS_Version (wxUpdateUIEvent& event);
+    void OnUpdateDVCS_item (wxUpdateUIEvent& event);
 
 	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);

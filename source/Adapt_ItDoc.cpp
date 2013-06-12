@@ -313,15 +313,15 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(wxID_SAVE, CAdapt_ItDoc::OnUpdateFileSave)
 
 	EVT_MENU (ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnSaveAndCommit)
-    EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateSaveAndCommit)
+    EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateDVCS_item)
     EVT_MENU (ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnShowPreviousVersions)
-    EVT_UPDATE_UI(ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnUpdateShowPreviousVersions)
+    EVT_UPDATE_UI(ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnUpdateDVCS_item)
 	EVT_MENU (ID_FILE_LIST_VERSIONS, CAdapt_ItDoc::OnShowFileLog)
-    EVT_UPDATE_UI(ID_FILE_LIST_VERSIONS, CAdapt_ItDoc::OnUpdateShowFileLog)
+    EVT_UPDATE_UI(ID_FILE_LIST_VERSIONS, CAdapt_ItDoc::OnUpdateDVCS_item)
 	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
     EVT_UPDATE_UI(ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnUpdateTakeOwnership)
     EVT_MENU (ID_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
-    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_Version)
+    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_item)
 
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
@@ -1842,40 +1842,11 @@ void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 // Update handlers for DVCS-related menu items -- these used to be disabled if git wasn't installed, but now they're
 //  always enabled, and we give a message if git isn't installed.
 
-void CAdapt_ItDoc::Enable_DVCS_item (wxUpdateUIEvent& event)
+void CAdapt_ItDoc::OnUpdateDVCS_item (wxUpdateUIEvent& event)
 {
     int	 trialRevNum = gpApp->m_trialVersionNum;
-
-#ifdef _DEBUG       // for 6.4.3, we're still not enabling these
-    event.Enable (trialRevNum < 0);         // item gets enabled iff no trial current
-#else
-    event.Enable (FALSE);
-#endif
-}
-
-void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)
-{
-    Enable_DVCS_item (event);
-}
-
-void CAdapt_ItDoc::OnUpdateShowPreviousVersions (wxUpdateUIEvent& event)
-{
-    Enable_DVCS_item (event);
-}
-
-void CAdapt_ItDoc::OnUpdateShowFileLog (wxUpdateUIEvent& event)
-{
-    Enable_DVCS_item (event);
-}
-
-void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
-{
-    Enable_DVCS_item (event);
-}
-
-void CAdapt_ItDoc::OnUpdateDVCS_Version (wxUpdateUIEvent& event)
-{
-    Enable_DVCS_item (event);
+    
+    event.Enable ( trialRevNum < 0 );         // item gets enabled iff no trial current
 }
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
