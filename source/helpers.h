@@ -480,6 +480,8 @@ bool     GetLanguageCodePrintName(wxString code, wxString& printName);
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
 
+bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
+
 #endif
 
 // BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation 

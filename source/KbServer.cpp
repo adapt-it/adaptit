@@ -953,7 +953,7 @@ int KbServer::ChangedSince(wxString timeStamp)
             if (numErrors > 0)
             {
                 // a non-localizable message will do, it's unlikely to ever be seen
-                wxMessageBox(_T("ChangedSince(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+                wxMessageBox(_T("ChangedSince(): json reader.Parse() failed. Unexpected bad data from server"),
                     _T("kbserver error"), wxICON_ERROR | wxOK);
                 str_CURLbuffer.clear(); // always clear it before returning
                 str_CURLheaders.clear(); // always clear it before returning
@@ -1142,6 +1142,354 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	s_DoGetAllMutex.Unlock();
 }
 
+// Note: before running LookupUser(), ClearStrCURLbuffer() should be called,
+// and always remember to clear str_CURLbuffer before returning.
+// Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
+// be returned even when there is no entry in the database. It's the HTTP status codes we
+// need to get.
+// Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
+// HTTP error - such as no matching entry, or a badly formed request
+// Note: url, username and password are passed in, because this request can be made before
+// the app's m_pKbServer[2] pointers have been instantiated
+int KbServer::LookupUser(wxString url, wxString username, wxString password)
+{
+	CURL *curl;
+	CURLcode result;
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+	str_CURLbuffer.clear();
+	str_CURLheaders.clear();
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString container = _T("user");
+
+	aUrl = url + slash + container + slash + username;
+	charUrl = ToUtf8(aUrl);
+	aPwd = username + colon + password;
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		// We want separate storage for headers to be returned, to get the HTTP status code
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
+
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
+													//headers separately
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+        CBString s2(str_CURLheaders.c_str());
+        wxString showit2 = ToUtf16(s2);
+		wxLogDebug(_T("LookupUser(): Returned headers: %s"), showit2.c_str());
+
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+		wxLogDebug(_T("LookupUser() str_CURLbuffer has: %s    , The CURLcode is: %d"), 
+					showit.c_str(), (unsigned int)result);
+#endif
+		// Get the HTTP status code, and the English message
+		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
+
+		// If the only error was a HTTP one, then result will contain CURLE_OK, in which
+		// case the next block is skipped
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("LookupUser() result code: %d cURL Error: %s"), 
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return (int)result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+	// If there was a HTTP error (typically, it would be 404 Not Found, because the
+	// username is not in the entry table yet, but 100 Bad Request may also be possible I
+	// guess) then exit early, there won't be json data to handle if that was the case
+	if (m_httpStatusCode >= 400)
+	{
+		// whether 400 or 404, return CURLE_HTTP_RETURNED_ERROR (ie. 22) to the caller
+		ClearUserStruct();
+		str_CURLbuffer.clear();
+		str_CURLheaders.clear();
+		return CURLE_HTTP_RETURNED_ERROR; // 22
+	}
+
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//  We requested separate headers callback be used, so str_CURLbuffer should only have
+	//  the json string for the looked up entry
+	if (!str_CURLbuffer.empty())
+	{
+		// Note: normally before calling LookupEntryForSrcTgtPair() the storage arrays
+		// should be cleared with a call of ClearAllPrivateStorageArrays()
+		wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxJSONValue jsonval;
+		wxJSONReader reader;
+		int numErrors = reader.Parse(myObject, &jsonval);
+		if (numErrors > 0)
+		{
+			// A non-localizable message will do, it's unlikely to happen (we hope)
+			wxMessageBox(_T("In LookupUser(): json reader.Parse() failed. Unexpected bad data from server."),
+				_T("kbserver error"), wxICON_ERROR | wxOK);
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear();
+			return CURLE_HTTP_RETURNED_ERROR;
+		}
+		// We extract id, username, fullname, kbadmin flag value, useradmin flag value,
+		// and the timestamp at which the username was added to the entry table.
+		ClearUserStruct(); // re-initializes m_userStruct member to be empty
+		m_userStruct.id = jsonval[0][_T("id")].AsLong();
+		m_userStruct.username = jsonval[0][_T("username")].AsString();
+		m_userStruct.fullname = jsonval[0][_T("fullname")].AsString();
+		// do the following fiddle to avoid a compiler "performance warning" by instead 
+		// using a (bool) cast
+		unsigned long val = jsonval[0][_T("kbadmin")].AsLong();
+		m_userStruct.kbadmin = val == 1L ? TRUE : FALSE;
+		val = jsonval[0][_T("useradmin")].AsLong();
+		m_userStruct.useradmin = val == 1L ? TRUE : FALSE;
+		m_userStruct.timestamp = jsonval[0][_T("timestamp")].AsString();
+
+		str_CURLbuffer.clear(); // always clear it before returning
+		str_CURLheaders.clear();
+	}
+	return 0;
+}
+
+// Note: I have coded LookupSingleKb() so that it does return a curlCode value, but
+// actually, failure to find what we look up can happen in several ways -- there may be a
+// curl error, a http error, a json data error, or none of those but rather the KB is not
+// yet in the kb table of the server. So I've got a bMatchedKB param in the
+// signature which will return a FALSE value if any of those errors occurs, or the KB
+// entry is absent in the server. It is TRUE if there were no errors and the lookup
+// succeeded. Because we don't want confusing HTTP to be shown to the user, a 404 result
+// won't trigger an error message in the caller, because we'll instead return 0 (ie.
+// CURLE_OK) and bMatchedKB FALSE. The caller should just look at the bMatchedKB value. A
+// cURL error is a bit more important, so I will return that.
+int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
+					wxString srcLangCode, wxString tgtLangCode, int kbType, bool& bMatchedKB)
+{
+	bMatchedKB = FALSE; // initialize
+	CURL *curl;
+	CURLcode result;
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+	str_CURLbuffer.clear();
+	str_CURLheaders.clear();
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString container = _T("kb");
+
+	aUrl = url + slash + container + slash + username + slash + srcLangCode;
+	charUrl = ToUtf8(aUrl);
+	aPwd = username + colon + password;
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		// We want separate storage for headers to be returned, to get the HTTP status code
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
+
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
+													//headers separately
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+        CBString s2(str_CURLheaders.c_str());
+        wxString showit2 = ToUtf16(s2);
+		wxLogDebug(_T("LookupSingleKb(): Returned headers: %s"), showit2.c_str());
+
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+		wxLogDebug(_T("LookupSingleKb() str_CURLbuffer has: %s    , The CURLcode is: %d"), 
+					showit.c_str(), (unsigned int)result);
+#endif
+		// Get the HTTP status code, and the English message
+		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
+
+		// If the only error was a HTTP one, then result will contain CURLE_OK, in which
+		// case the next block is skipped; cURL errors should be seen by the user, because
+		// they suggest some transmission problem that may need attention by an administrator
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_("Error when looking up a KB. Result code: %d cURL error: %s"), 
+				result, error.c_str());
+			wxMessageBox(msg, _("cURL error"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return (int)result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+	// If there was a HTTP error (typically, it would be 404 Not Found, because the
+	// looked for KB is not in the kb table yet, but 100 Bad Request may also be possible I
+	// guess) then exit early, there won't be json data to handle if that was the case;
+	// bMatchedKB is still FALSE at this point; and we don't want the user to see an
+	// alarming 404 error, so change it to CURLE_OK so the caller will behave nicely
+	if (m_httpStatusCode >= 400)
+	{
+		// whether 400 or 404, return CURLE_OK (ie. 0) to the caller, since bMatchedKB
+		// being FALSE is all that matters to the caller for a 404 Not Found error
+		str_CURLbuffer.clear();
+		str_CURLheaders.clear();
+		return CURLE_OK;
+	}
+
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//  We requested separate headers callback be used, so str_CURLbuffer should only have
+	//  the json string for the looked up one or more lines of the KB table
+	//  (There will generally be zero, if no such entry yet, or two (one for adapting KB,
+	//  the other for the parallel glossing KB), or some higher multiple of two - as when
+	//  the same source language is adapted into more than one target language)
+	if (!str_CURLbuffer.empty())
+	{
+        // json array data begins with "[{", so test for the payload starting this way, if
+        // it doesn't, then there is only an error string to grab -- quite possibly "No
+        // matching entry found"
+        wxString strStartJSON = _T("[{");
+		CBString cbstr(str_CURLbuffer.c_str());
+		wxString buffer(ToUtf16(cbstr));
+		int offset = buffer.Find(strStartJSON);
+		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
+		{		
+			wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+			wxJSONValue jsonval;
+			wxJSONReader reader;
+			int numErrors = reader.Parse(myObject, &jsonval);
+			if (numErrors > 0)
+			{
+				// A non-localizable message will do, it's unlikely to happen often
+				// but if it does, there is probably a connection problem that the user should
+				// deal with if possible, before going much further. 
+				wxMessageBox(_T("In LookupSingleKb(): json reader.Parse() failed. Unexpected bad data from server."),
+					_T("kbserver error"), wxICON_ERROR | wxOK);
+				str_CURLbuffer.clear(); // always clear it before returning
+				str_CURLheaders.clear();
+				return -1; // this is better, neither curl nor http failed
+				//return CURLE_HTTP_RETURNED_ERROR;
+			}
+			unsigned int listSize = jsonval.Size();
+#if defined (_DEBUG)
+			// get feedback about now many table lines we got, in debug mode - we expect
+			// multiples of 2, from which we later must match the one with same type as was
+			// passed in, and same targetlanguage code as was passed in
+			if (listSize > 0)
+			{
+				wxLogDebug(_T("LookupSingleKb() returned %d KBs from the kb table with matching sourcelanguage code"), listSize);
+			}
+#endif
+			wxArrayPtrVoid kbStructsArray;
+			unsigned int index;
+			KbServerKb* pKbStruct = NULL;
+			for (index = 0; index < listSize; index++)
+			{
+				// We extract all fields for each of the KB lines in the kb table
+				pKbStruct = new KbServerKb;
+				kbStructsArray.Add(pKbStruct);
+				// We extract id, username, fullname, kbadmin flag value, useradmin flag value,
+				// and the timestamp at which the username was added to the entry table.
+				pKbStruct->id = jsonval[index][_T("id")].AsLong();
+				pKbStruct->sourceLanguageCode = jsonval[index][_T("sourcelanguage")].AsString();
+				pKbStruct->targetLanguageCode = jsonval[index][_T("targetlanguage")].AsString();
+				pKbStruct->kbType = jsonval[index][_T("type")].AsInt();
+				pKbStruct->username = jsonval[index][_T("username")].AsString(); // this is who created
+									// this particular entry in the kb table; which is not something
+									// we particularly care about for the client API functions
+				pKbStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
+				pKbStruct->deleted = jsonval[index][_T("deleted")].AsInt();
+
+#if defined (_DEBUG)
+				// list what fields we extracted for each line of the kb table matched
+				wxLogDebug(_T("LookupSingleKb matched: id: %d , src: %s , transln: %s , type: %d, deleted: %d , username & timestamp: (not interested)"),
+					pKbStruct->id, pKbStruct->sourceLanguageCode.c_str(), pKbStruct->targetLanguageCode.c_str(),
+					pKbStruct->kbType, pKbStruct->deleted);
+#endif
+			} // loop ends
+
+			// Now check if the passed in kbType and tgtLangCode have a match in the structs
+			// saved in the kbStructsArray. If so, the lookup succeeded. Either way, inform the
+			// caller of the result using the bMatchedKB boolean param of the signature; then
+			// delete the structs from the heap before returning
+			size_t count = kbStructsArray.GetCount();
+			size_t i;
+			for (i = 0; i < count; i++)
+			{
+				KbServerKb* pKbStruct = (KbServerKb*)kbStructsArray.Item(i);
+				wxASSERT(pKbStruct != NULL);
+				if ((pKbStruct->targetLanguageCode == tgtLangCode) && (pKbStruct->kbType == kbType))
+				{
+					bMatchedKB = TRUE; // the looked up KB exists in the kb table of this kbserver
+				}
+				// no longer need the struct once it has been tested
+				delete pKbStruct;
+			}
+			kbStructsArray.clear();
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear(); // ditto
+
+		} // end of TRUE block for test: if (offset == 0
+		else
+		{
+            // str_CURLbuffer contains an error message, such as "No matching entry found",
+            // but we will ignore it, the HTTP status code should be 404. Either way, since
+            // this is a lookup function which we want to fail gracefully when the looked
+            // up KB is not actually present, the only thing we want to return to the
+            // caller is bMatchedKB = FALSE when control enters this block. (It's that
+            // already.) We return a curlcode of 0 so that no error message is triggered in
+            // the caller.
+#if defined (_DEBUG)
+            // But in debug mode we might was well log the error to check all is
+			// working as expected 
+			wxString msg;
+			msg  = msg.Format(_T("LookupSingleKb(): Found no KB lines matching the sourcelanguage code.  HTTP status: %d %s;\n   nevertheless returning 0 and bMatchedKB FALSE"),
+                              m_httpStatusCode, m_httpStatusText.c_str());
+            wxLogDebug(msg);
+#endif
+			str_CURLbuffer.clear();
+			str_CURLheaders.clear();
+			return 0;
+		} // end of else block for test: if (offset == 0)
+
+	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
+	else
+	{
+		// Control should not get to here, a HTTP 404 Not Found error should have
+		// occurred, but just in case... str_CURLbuffer empty means no JSON data returned, 
+		// which means the looked for KB can't be present, so return bMatchedKB FALSE
+		// via the signature - it's already defaulted to FALSE, so just make sure the
+		// headers are cleared
+		str_CURLheaders.clear();
+	} // end of else block for test: if (!str_CURLbuffer.empty())
+	return 0;
+}
+
 // Note: before running LookupEntryFields(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
 // Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
@@ -1244,10 +1592,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		int numErrors = reader.Parse(myObject, &jsonval);
 		if (numErrors > 0)
 		{
-			// A non-localizable message will do, it's unlikely to happen often
-			// but if it does, there is probably a connection problem that the user should
-			// deal with if possible, before going much further. 
-			wxMessageBox(_T("In LookupEntryFields(): json reader.Parse() failed. This error does not destabilize Adapt It, but if it occurs often there may be a connection problem with the remote server that you should investigate. If necessary, disable KB sharing until connectivity is restored."),
+			// A non-localizable message will do, it's unlikely to happen (we hope)
+			wxMessageBox(_T("In LookupEntryFields(): json reader.Parse() failed. Unexpected bad data from server."),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
@@ -2363,21 +2709,17 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
     //  return 0 (CURLE_OK)
 	if (!str_CURLbuffer.empty())
 	{
-        // json data beginswith "[{", so test for the payload starting this way, if it
-        // doesn't, then there is only an error string to grab -- quite possibly
-        // "No matching entry found", in which case, don't do any of the json stuff, and
-        // the value in m_kbServerLastTimestampReceived will be correct and can be used
-        // to update the persistent storage file for the time of the lastsync
+        // json array data begins with "[{", so test for the payload starting this way, if
+        // it doesn't, then there is only an error string to grab -- quite possibly "No
+        // matching entry found", in which case, don't do any of the json stuff, and the
+        // value in m_kbServerLastTimestampReceived will be correct and can be used to
+        // update the persistent storage file for the time of the lastsync
         wxString strStartJSON = _T("[{");
 		CBString cbstr(str_CURLbuffer.c_str());
 		wxString buffer(ToUtf16(cbstr));
 		int offset = buffer.Find(strStartJSON);
 		if (offset == 0) // TRUE means JSON data starts at the buffer's beginning
 		{
-            // Before extracting the substrings from the JSON data, the storage arrays must be
-            // cleared with a call of ClearAllPrivateStorageArrays()
-            ClearAllPrivateStorageArrays(); // always must start off empty
-
             wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
 
             wxJSONValue jsonval;
@@ -2387,13 +2729,13 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
             if (numErrors > 0)
             {
                 // a non-localizable message will do, it's unlikely to ever be seen
-                wxMessageBox(_T("ChangedSince_Queued(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
+                wxMessageBox(_T("ChangedSince_Queued(): json reader.Parse() failed. Unexpected bad data from server"),
                     _T("kbserver error"), wxICON_ERROR | wxOK);
                 str_CURLbuffer.clear(); // always clear it before returning
                 str_CURLheaders.clear(); // always clear it before returning
                return -1;
             }
-            int listSize = jsonval.Size();
+            unsigned int listSize = jsonval.Size();
 #if defined (_DEBUG)
             // get feedback about now many entries we got, in debug mode
             if (listSize > 0)
@@ -2402,7 +2744,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
                     listSize, timeStamp.c_str());
             }
 #endif
-            int index;
+            unsigned int index;
 			KbServerEntry* pEntryStruct = NULL;
             for (index = 0; index < listSize; index++)
             {
@@ -2423,7 +2765,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
                 // released)
 				PushToQueueEnd(pEntryStruct);
 #if defined (_DEBUG)
-                // list what entries were returned
+                // list what fields we extracted for each line of the entry table matched
 				wxLogDebug(_T("Queued: Downloaded:  %s  ,  %s  ,  deleted = %d  ,  username = %s"),
                     pEntryStruct->source.c_str(), pEntryStruct->translation.c_str(),
 					pEntryStruct->deleted, pEntryStruct->username.c_str());
@@ -2435,7 +2777,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 
 			// since all went successfully, update the lastsync timestamp
 			UpdateLastSyncTimestamp();
-		}
+		} // end of TRUE block for test: if (offset == 0)
 		else
 		{
 			// buffer contains an error message, such as "No matching entry found",

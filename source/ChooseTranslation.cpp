@@ -1066,7 +1066,6 @@ void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 		// a click on "Cancel And Select" button
 		if (event.GetKeyCode() == WXK_RIGHT)
 		{
-			//wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
 			wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
 			if (pButton->IsShown())
 			{
@@ -1082,7 +1081,7 @@ void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 
 void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
-	// don't need to do anything
+	// don't need to do anything except
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 }
 

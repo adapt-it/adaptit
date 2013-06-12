@@ -1964,7 +1964,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 #if defined(_KBSERVER)
 	// BEW 28Sep12. If kbserver support was in effect and the project hasn't changed (see
     // the note above immediately after the GetProjectConfiguration() call), then we must
-    // restore the KB setup
+    // restore the KB sharing status to ON if it previously was ON
 	if (pApp->m_bIsKBServerProject)
 	{
 		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
@@ -1981,10 +1981,10 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		if (!bUserDidNotCancel)
 		{
 			// He or she cancelled. So remove KB sharing for this project
-			gpApp->LogUserAction(_T("User cancelled from CheckUsername() in HookupToExistingAIProject() in CollabUtilities.cpp"));
-			gpApp->ReleaseKBServer(1); // the adapting one
-			gpApp->ReleaseKBServer(2); // the glossing one
-			gpApp->m_bIsKBServerProject = FALSE;
+			pApp->LogUserAction(_T("User cancelled from CheckUsername() in HookupToExistingAIProject() in CollabUtilities.cpp"));
+			pApp->ReleaseKBServer(1); // the adapting one
+			pApp->ReleaseKBServer(2); // the glossing one
+			pApp->m_bIsKBServerProject = FALSE;
 			wxMessageBox(_(
 "This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
 			_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
@@ -1992,33 +1992,72 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 		else
 		{
 			// Valid m_strUserID and m_strUsername should be in place now, so
-			// go ahead with next step which is to check for valid language codes
-
-			// we want to ensure valid codes four source, target and glosses languages,
-			// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-			bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-			if (!bDidItOK && bUserCancelled)
+			// go ahead with next steps which are to get the password to this server, and
+			// then to check for valid language codes
+			
+			// Get the server password. Returns an empty string if nothing is typed, or if the
+			// user Cancels from the dialog
+			CMainFrame* pFrame = pApp->GetMainFrame();
+			wxString pwd = pFrame->GetKBSvrPasswordFromUser();
+			// there will be a beep if no password was typed, or it the user cancelled; and an
+			// empty string is returned if so
+			if (!pwd.IsEmpty())
 			{
-				// We must assume the codes are wrong or incomplete, or that the
-				// user has changed his mind about KB Sharing being on - so turn
-				// it off
-				pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-				pApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
-				pApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
-				pApp->m_bIsKBServerProject = FALSE;
-			}
-			else
-			{
-				// Go ahead...
-				pApp->LogUserAction(_T("SetupForKBServer() called in HookUpToExistingAIProject()"));
-				if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // enables each by default
+				pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
+											   // ready for SetupForKBServer() below to use it
+                // Since a password has now been typed, we can check if the username is
+                // listed in the user table. If he isn't, the hookup can still succeed, but
+                // we must turn KB sharing to be OFF
+				
+                // The following call will set up a temporary instance of the adapting
+                // KbServer in order to call it's LookupUser() member, to check that this
+                // user has an entry in the entry table; and delete the temporary instance
+                // before returning
+				bool bUserIsValid = CheckForValidUsernameForKbServer(pApp->m_strKbServerURL, pApp->m_strUserID, pwd);
+				if (!bUserIsValid)
 				{
-					// an error message will have been shown, so just log the failure
-					gpApp->LogUserAction(_T("SetupForKBServer() failed in HookUpToExistingAIProject()"));
+                    // Access is denied to this user, so turn off the setting which says
+                    // that this project is one for sharing, and tell the user
+					pApp->LogUserAction(_T("Kbserver user is invalid; in HookUpToExistingAIProject() in CollabUtilities.cpp"));
+					pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
+					pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
+					pApp->m_bIsKBServerProject = FALSE;
+					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
+					msg = msg.Format(msg, pApp->m_strUserID);
+					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
+					return TRUE; // failure to reinstate KB sharing doesn't constitute a
+					// failure to hook up to an existing Adapt It project, so return
+					// TRUE here
 				}
-			}
-		}
-	}
+				else
+				{
+					// we want to ensure valid codes four source, target and glosses languages,
+					// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
+					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
+					if (!bDidItOK && bUserCancelled)
+					{
+						// We must assume the codes are wrong or incomplete, or that the
+						// user has changed his mind about KB Sharing being on - so turn
+						// it off
+						pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
+						pApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
+						pApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
+						pApp->m_bIsKBServerProject = FALSE;
+					}
+					else
+					{
+						// Go ahead...
+						pApp->LogUserAction(_T("SetupForKBServer() called in HookUpToExistingAIProject()"));
+						if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // enables each by default
+						{
+							// an error message will have been shown, so just log the failure
+							gpApp->LogUserAction(_T("SetupForKBServer() failed in HookUpToExistingAIProject()"));
+						}
+					}
+				} // end of else block for test: if (!bUserIsValid)
+			} // end of TRUE block for test: if (!pwd.IsEmpty())
+		} // end of else block for test: if (!bUserDidNotCancel)
+	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject)
 #endif
 
 	return TRUE;

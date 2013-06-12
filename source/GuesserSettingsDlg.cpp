@@ -72,9 +72,9 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	wxASSERT(pSlider != NULL);
 	//pSlider->SetValidator(wxGenericValidator(&nGuessingLevel));
 
-	pAllowCCtoOperateOnUnchangedOutput = (wxCheckBox*)FindWindowById(ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT);
-	wxASSERT(pAllowCCtoOperateOnUnchangedOutput != NULL);
-	//pAllowCCtoOperateOnUnchangedOutput->SetValidator(wxGenericValidator(&bAllowCConUnchangedGuesserOutput));
+	pAllowGuessertoOperateOnUnchangedOutput = (wxCheckBox*)FindWindowById(ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT);
+	wxASSERT(pAllowGuessertoOperateOnUnchangedOutput != NULL);
+	//pAllowGuessertoOperateOnUnchangedOutput->SetValidator(wxGenericValidator(&bAllowGuesseronUnchangedCCOutput));
 
 	pStaticTextNumCorInAdaptationsGuesser = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_NUM_CORRESP_ADAPTATIONS_GUESSER);
 	wxASSERT(pStaticTextNumCorInAdaptationsGuesser != NULL);
@@ -103,10 +103,10 @@ void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	//InitDialog() is not virtual, no call needed to a base class
 	bUseAdaptationsGuesser = pApp->m_bUseAdaptationsGuesser;
 	nGuessingLevel = pApp->m_nGuessingLevel;
-	bAllowCConUnchangedGuesserOutput = pApp->m_bAllowCConUnchangedGuesserOutput;
+	bAllowGuesseronUnchangedCCOutput = pApp->m_bAllowGuesseronUnchangedCCOutput;
 	pCheckUseGuesser->SetValue(bUseAdaptationsGuesser);
 	pSlider->SetValue(nGuessingLevel);
-	pAllowCCtoOperateOnUnchangedOutput->SetValue(bAllowCConUnchangedGuesserOutput);
+	pAllowGuessertoOperateOnUnchangedOutput->SetValue(bAllowGuesseronUnchangedCCOutput);
 	tempGuessHighlightColor = pApp->m_GuessHighlightColor;
 	nCorrespondencesLoadedInAdaptationsGuesser = pApp->m_nCorrespondencesLoadedInAdaptationsGuesser;
 	nCorrespondencesLoadedInGlossingGuesser = pApp->m_nCorrespondencesLoadedInGlossingGuesser;
