@@ -1564,7 +1564,19 @@ bool  CAdapt_ItDoc::Git_installed()
 
 bool  CAdapt_ItDoc::Commit_valid()
 {
-    wxASSERT ( gpApp->m_strUserID != NOOWNER );         // we shouldn't get here if we don't have a proper username
+    wxCommandEvent	dummy;
+    
+    if ( gpApp->m_strUserID == NOOWNER )
+    {
+		wxMessageBox (_T("Before saving in the document history, you must enter a username for yourself."));
+        gpApp->OnEditChangeUsername (dummy);
+        
+        if ( gpApp->m_strUserID == NOOWNER )           // did we get a username?
+        {                                              // nope - whinge and bail out.
+            wxMessageBox(_T("No username entered -- document not saved."));
+            return FALSE;
+        }
+    }
 
 	if (gpApp->m_owner == NOOWNER)  return TRUE;        // if the doc doesn't have an owner, it's always OK to commit it
 
@@ -1572,7 +1584,7 @@ bool  CAdapt_ItDoc::Commit_valid()
 	{
 		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
 					  + _T(" but the currently logged in user is ") + gpApp->m_strUserID
-					  + _T(".  Only the document's owner can commit changes to it.") );
+					  + _T(".  Only the document's owner can save in the document history.") );
 		return FALSE;
 	}
 	else  return TRUE;
@@ -1597,16 +1609,10 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 		wxMessageBox (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
-    
-    if ( gpApp->m_strUserID == NOOWNER )
-    {
-		wxMessageBox (_T("Before saving in the document history, you must enter a username for yourself."));
-		return -1;        
-    }
 
-	if (!Commit_valid())
-		return -1;              // bail out if the ownership of the document isn't right
-    
+    if (!Commit_valid())
+		return -1;              // bail out if the ownership etc. isn't right
+
     if ( !gpApp->m_pDVCS->AskSaveAndCommit (blurb) )
         return -1;              // or if user cancelled dialog
 

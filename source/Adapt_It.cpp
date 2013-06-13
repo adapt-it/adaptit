@@ -28255,7 +28255,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
     // BEW changed 33Jun13, If m_strUserID has been defaulted to NOOWNER, that is, to
     // _T("****") then we won't save ****, instead we'll save the empty string
-    if (m_strUserID == _T("****"))
+    if ( m_strUserID == NOOWNER )
 	{
 		m_strUserID.Empty();
 	}
@@ -28263,6 +28263,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+    if ( m_strUsername == NOOWNER )
+	{
+		m_strUsername.Empty();
+	}
 	data << szInformalUsername << tab << m_strUsername;
 	pf->AddLine(data);
 
@@ -29724,12 +29728,13 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		else if (name == szUniqueUsername)
 		{
 			m_strUserID = strValue;
-            if (m_strUserID.IsEmpty())  m_strUserID = NOOWNER;      // sanity check
+            if (m_strUserID.IsEmpty())  m_strUserID = NOOWNER;      // this is what we use internally for empty
 		}
 		else if (name == szInformalUsername)
 		{
 			m_strUsername = strValue;
-		}
+            if (m_strUsername.IsEmpty())  m_strUsername = NOOWNER;  // ditto
+        }
 		else if (name == szAdaptitPath)
 		{
             // BEW changed 12Oct09, we come here when reading either the
