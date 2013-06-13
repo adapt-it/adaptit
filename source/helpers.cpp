@@ -9669,6 +9669,68 @@ bool CheckUsername()
 
 #if defined(_KBSERVER)
 
+bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
+					wxString srcLangCode, wxString tgtLangCode, int kbType)
+{
+    // This function can be called before the app member pointers, m_pKbServer[0] and
+    // m_pKbServer[1] are instantiated, so we have to pass in the url, username, password
+    // and other params in order to be able to call KbServer::LookupSingleKb(). We must
+    // temporarily set up a KbServer instance (type = 1 will do, since a parallel glossing
+    // instance is always created or removed together with the adapting one), use the
+    // LookupSingleKb() member, and pass the result back to the caller after deleting the
+    // temporary KbServer instance; however, we set a boolean bMatchedKB and return it by
+    // the signature from LookupSingleKb(), and that is what really matters. The normal
+    // return is just for the curlcode, so we can do an error check. bMatchedKB will be
+    // TRUE only if there is an adapting shared KB listed in the server's kb table. We
+    // return the value of bMatchedKB.
+	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForSharedKbInKbServer.\nThe existence of the remote shared knowledge base could not be checked for, so KB sharing is OFF.");
+	wxString msg1 = _T("Error: LookupSingleKb failed in CheckForSharedKbInKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
+	wxString title = _T("KbServer error");
+	CAdapt_ItApp* pApp = &wxGetApp();
+
+	// instantiate an adaptation KbServer instance (doesn't matter which type we use)
+	KbServer* pKbSvr = NULL;
+	pKbSvr = new KbServer(1); // 1 is an adaptations one, 2 would be a glossing one
+	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
+	if (pKbSvr == NULL)
+	{
+		// warn developer, message does not need to be localizable; show it only in 
+		// debug mode, because a Release version is unlikely to get this error
+#if defined(_DEBUG)
+		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
+#endif
+		msg = msg; // avoid compiler warning in Release build
+		return FALSE;
+	}
+	bool bMatchedKB = FALSE; // initialize
+	int cURLerror = pKbSvr->LookupSingleKb(url,username,password,srcLangCode,tgtLangCode,kbType,bMatchedKB);
+	if (cURLerror > CURLE_OK)
+	{
+		// Warn developer, message does not need to be localizable - but only warn in
+		// debug mode. The Release version should treat the 404 not found, (reinterpretted
+		// as curl error 22) as simply a FALSE, and the caller can give the appropriate
+		// message for a kb which was not found in the kb table
+#if defined(_DEBUG)
+		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
+#endif
+		msg1 = msg1; // avoid compiler warning in Release build
+		delete pKbSvr;
+		return FALSE;
+	}
+	// Get the bMatchedKB value, return it to the caller, and cleanup
+	if (bMatchedKB)
+	{
+		// The lookup up adaptations KB does have an entry line in the kb table, so we are
+		// good to go
+		delete pKbSvr;
+		return TRUE;
+	}
+    // No matching adaptations KB in the kb table on the server. Actively sharing the local
+    // KB is not possible for this Adapt It project as yet.
+	delete pKbSvr;
+	return FALSE;
+}
+
 // checks app's string member m_strUserID is in entry table of kbserver
 bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password) 
 {
@@ -9677,8 +9739,8 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	// password in order to be able to call KbServer::LookupUser(). We must temporarily
 	// set up a KbServer instance, use the LookupUser() member, and pass the result back
 	// to the caller after deleting the temporary KbServer instance 
-	wxString msg = _T("Error: the helper function CheckForValidUsernameForKbServer(1) failed to instantiate.\nThe username could not be checked for validity, so KB sharing is OFF.");
-	wxString msg1 = _T("Error: LookupUser() failed in CheckForValidUsernameForKbServer().\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
+	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForValidUsernameForKbServer .\nThe username could not be checked for validity, so KB sharing is OFF.");
+	wxString msg1 = _T("Error: LookupUser failed in CheckForValidUsernameForKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
 	wxString title = _T("KbServer error");
 	CAdapt_ItApp* pApp = &wxGetApp();
 
@@ -9696,7 +9758,6 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 		msg = msg; // avoid compiler warning in Release build
 		pApp->m_kbserver_kbadmin = FALSE;
 		pApp->m_kbserver_useradmin = FALSE;
-		pKbSvr->ClearUserStruct();
 		return FALSE;
 	}
 	int cURLerror = pKbSvr->LookupUser(url,username,password);

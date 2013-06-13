@@ -482,6 +482,9 @@ int CountSpaceDelimitedWords(wxString& str);
 
 bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
 
+bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
+					wxString srcLangCode, wxString tgtLangCode, int kbType);
+
 #endif
 
 // BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation 

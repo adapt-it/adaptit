@@ -1,5 +1,14 @@
 
 ----------------------------------------------
+Bug fixes in 6.?.?
+----------------------------------------------
+* If the user clicked in an unadapted location where there
+was two or more suitable phrasal adaptations in the KB,
+and the Choose Translation dialog opens to display them, if
+he then clicked Cancel or Cancel and Select buttons, the
+application crashed.
+
+----------------------------------------------
 Version 6.4.3 release 7 June 2013
 ----------------------------------------------
 ----------------------------------------------

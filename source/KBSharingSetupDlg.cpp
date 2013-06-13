@@ -213,9 +213,9 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 			if (strUsername != m_saveOldUsernameStr)
 			{
 				wxString msg = _("The username is incorrect.\n Click the Remove Setup button. Then open the Change Username dialog from the Edit menu.\nType the correct username there, also type an informal name in the second text box.\nThen try to set up knowledge base sharing again.");
-				wxString title = _("Wrong Username");
+				wxString title = _("Wrong username");
 				wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-				return;
+				return; // stay in the dialog so the user can do what the above message says
 			}
 			
 			if (m_saveOldURLStr == strURL)
@@ -230,14 +230,13 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 					m_pApp->ReleaseKBServer(1); // the adaptations one
 					m_pApp->ReleaseKBServer(2); // the glossings one
 				}
-				m_pApp->m_bIsKBServerProject = TRUE;
 				m_pApp->LogUserAction(_T("SetupForKBServer() re-attempted in setup dialog"));
 				// instantiate an adapting and a glossing KbServer class instance
 				if (!m_pApp->SetupForKBServer(1) || !m_pApp->SetupForKBServer(2))
 				{
 					// an error message will have been shown, so just log the failure
 					m_pApp->LogUserAction(_T("SetupForKBServer() failed when maybe trying different password)"));
-					return;
+					m_pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 				}
 			}
 			else if(m_pApp->m_bIsKBServerProject)
@@ -253,7 +252,7 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 				{
 					// an error message will have been shown, so just log the failure
 					m_pApp->LogUserAction(_T("SetupForKBServer(): setup failed when trying to switch server"));
-					return;
+					m_pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 				}
 			}
 			else
@@ -271,17 +270,23 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 				{
 					// an error message will have been shown, so just log the failure
 					m_pApp->LogUserAction(_T("SetupForKBServer(): authorized setup failed"));
-					return;
+					m_pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 				}
-				m_pApp->m_bIsKBServerProject = TRUE;
 			}
-
-			// ensure sharing starts off enabled
-			m_pApp->GetKbServer(1)->EnableKBSharing(TRUE);
-			m_pApp->GetKbServer(2)->EnableKBSharing(TRUE);
-
-			myevent.Skip(); // the dialog will be exited now
-
+			// ensure sharing starts off enabled; but if we've not succeeded in
+			// instantiating, then jump these
+			if (m_pApp->GetKbServer(1) != NULL)
+			{
+				// Success if control gets to this line (only needs to be set in one
+				// place, since adapting and glossing setups are done together, or
+				// destroyed together
+				m_pApp->m_bIsKBServerProject = TRUE;
+				m_pApp->GetKbServer(1)->EnableKBSharing(TRUE);
+			}
+			if (m_pApp->GetKbServer(2) != NULL)
+			{
+				m_pApp->GetKbServer(2)->EnableKBSharing(TRUE);
+			}
 		} // end of else block for test: if (!bUserIsValid)
 	}
 	else
@@ -290,8 +295,9 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 		wxString msg = _("No password was typed. Setup is incomplete without a correct password.\nIf you do not know the password, click the Remove Setup button, then ask your administrator to help you setup.");
 		wxString title = _("Type The Password");
 		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
-		return;
+		return; // stay in the dialog
 	}
+	myevent.Skip(); // the dialog will be exited now
 }
 
 void KBSharingSetupDlg::OnCancel(wxCommandEvent& myevent)

@@ -15169,6 +15169,39 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
 	GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
+	// BEW 12Jun13, the last test is to make sure that in the kb table of the remote
+	// server, there is an appropriate kb line for this particular Adapt It project. If
+	// there isn't, then we must tell the user and say what to do, and remove the
+	// instantiations of the adapting and glossing KbServer classes, and set the app's
+	// pointers m_pKbServer[0] and m_pKbServer[1] to NULL -- the latter two tasks are done
+	// by two calls of DeleteKbServer(int whichType). The following function is in helpers.cpp
+	if (whichType == 1)
+	{
+        // We test only for the adapting kb being in the table. This is sufficient because
+        // we always create, and remove access to, or delete, both adapting and glossing
+		// remote kbs together. We instantiate in an if-block, the adapting one first, so
+		// if it fails then the glossing one is not instantiated, and we then need not
+		// remove it. (A curl error is seen by the user, but the call below will return
+		// FALSE. However, unlike absence of the kb in the kb table of the server, a curl
+		// error might not happen on a later try, and thereby grant success for the
+		// attempt to establish sharing.)
+		bool bSharedKbExists = CheckForSharedKbInKbServer(url, username, password,
+									m_sourceLanguageCode, m_targetLanguageCode, 1);
+		if (!bSharedKbExists)
+		{
+			// Remove our installation -- return FALSE, and the caller will clear to FALSE
+			// the CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
+			// message first though.
+			wxString msg;
+			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'KB administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nOne entry for each of the adapting and glossing knowledge bases is required.\nUntil this is done, sharing this project's local knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+								m_sourceLanguageCode, m_targetLanguageCode);
+			wxString title = _T("Remote adapting and glossing knowledge bases are absent");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			DeleteKbServer(1);
+			wxASSERT(GetKbServer(2) == NULL); // ensure the glossing one's pointer is still NULL
+			return FALSE;
+		}
+	}
 	// all's well
 	return TRUE;
 }
