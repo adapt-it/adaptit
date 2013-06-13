@@ -9631,20 +9631,23 @@ bool CheckUsername()
 	// Save current values, in case the user cancels
 	wxString saveUserID = pApp->m_strUsername;
 	wxString saveInformalUsername = pApp->m_strUsername;
+
+/* don't need this bit any more, since the dialog handles it, and we mustn't empty m_strUserID.
 	// If the current setting is the default NOOWNER, (#defined as **** string), then
 	// convert **** to an empty string - we don't show **** to the user in any GUI widget
-	if(pApp->m_strUserID == _T("****"))
+	if ( pApp->m_strUserID == NOOWNER )
 	{
 		pApp->m_strUserID.Empty();
 	}
 	// Ditto for the informal username
-	if(pApp->m_strUsername == _T("****"))
+	if ( pApp->m_strUsername == NOOWNER )
 	{
 		pApp->m_strUsername.Empty();
 	}
+*/
 	// Don't permit control to return to the caller unless there is a value for each of
 	// these three, if the user exits with an OK button click
-	if (pApp->m_strUserID.IsEmpty() || pApp->m_strUsername.IsEmpty() )
+	if (pApp->m_strUserID == NOOWNER || pApp->m_strUsername == NOOWNER )
 	{
 		UsernameInputDlg dlg((wxWindow*)pApp->GetMainFrame());
 		dlg.Center();
