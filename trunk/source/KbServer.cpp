@@ -385,6 +385,14 @@ void KbServer::UpdateLastSyncTimestamp()
 
 void KbServer::ExtractHttpStatusEtc(std::string s, int& httpstatuscode, wxString& httpstatustext)
 {
+	// if no headers are returned, then assume the lookup failed with a 404 "Not Found"
+	// error, and bleed that out first
+	if (s.empty())
+	{
+		httpstatuscode = 404;
+		httpstatustext = _T("Not Found");
+		return;
+	}
 	// make the standard string into a wxString
 	httpstatuscode = 200; // initialize to OK
 	httpstatustext.Empty(); // initialize
@@ -502,13 +510,37 @@ bool KbServer::GetTextFileOpened(wxTextFile* pf, wxString& path)
 // instance)
 wxString KbServer::ImportLastSyncTimestamp()
 {
-	wxString dateTimeStr; dateTimeStr.Empty();
+	wxString dateTimeStr;
+	dateTimeStr = _T("2012-01-01 00:00::00"); // initialize to a safe "early" value
 
 	wxString path = GetPathToPersistentDataStore() + GetPathSeparator() + GetLastSyncFilename();
 	bool bLastSyncFileExists = ::wxFileExists(path);
 	if (!bLastSyncFileExists)
 	{
 		// couldn't find lastsync... .txt file in project folder
+		// BEW 13Jun13, don't just show an error message, do the job for the user - make a
+		// file and put an "early" timestamp in it guaranteed to be earlier than anyone's
+		// actual work using a shared KB. E.g. "2012-01-01 00:00::00" as above
+		wxTextFile myTimestampFile;
+		bool bDidIt = myTimestampFile.Create(path);
+		if (bDidIt)
+		{
+			// assume there will be no error on the following three calls (risk is very small)
+			myTimestampFile.AddLine(dateTimeStr);
+			myTimestampFile.Write();
+			myTimestampFile.Close();
+		}
+		else
+		{
+			// warn developer
+			wxString msg;
+			msg = msg.Format(_T("Failed to create last sync file with path: %s\n\"2012-01-01 00:00::00\" will be used for the imported timestamp, so you can continue working."),
+								dateTimeStr.c_str());
+			wxMessageBox(msg, _T("Text File Creation Error"), wxICON_ERROR | wxOK);
+			return dateTimeStr; // send something useful
+		}
+
+		/* deprecated 13Jun13
 		wxString msg;
 		if (GetKBServerType() == 1)
 		{
@@ -521,6 +553,7 @@ wxString KbServer::ImportLastSyncTimestamp()
 		m_pApp->LogUserAction(msg);
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
 		return dateTimeStr; // it's empty still
+		*/
 	}
 	wxTextFile f;
 	bool bSuccess = FALSE;
@@ -532,7 +565,7 @@ wxString KbServer::ImportLastSyncTimestamp()
 		// warn developer that the wxTextFile could not be opened
 		wxString msg = _T("GetTextFileOpened() called in ImportLastSyncTimestamp(): The wxTextFile could not be opened");
 		wxMessageBox(msg, _T("Error in support for kbserver"), wxICON_ERROR | wxOK);
-		return dateTimeStr; // it's empty still
+		return dateTimeStr; // it will be the early safe default value hard coded above, i.e. start of 2012
 	}
 	size_t numLines = f.GetLineCount();
 	if (numLines == 0)
@@ -1297,7 +1330,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 	wxString colon(_T(':'));
 	wxString container = _T("kb");
 
-	aUrl = url + slash + container + slash + username + slash + srcLangCode;
+	aUrl = url + slash + container + slash + srcLangCode;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
