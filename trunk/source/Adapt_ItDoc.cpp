@@ -1564,7 +1564,9 @@ bool  CAdapt_ItDoc::Git_installed()
 
 bool  CAdapt_ItDoc::Commit_valid()
 {
-	if (gpApp->m_owner == NOOWNER)  return TRUE;
+    wxASSERT ( gpApp->m_strUserID != NOOWNER );         // we shouldn't get here if we don't have a proper username
+
+	if (gpApp->m_owner == NOOWNER)  return TRUE;        // if the doc doesn't have an owner, it's always OK to commit it
 
 	if (gpApp->m_strUserID != gpApp->m_owner)
 	{
@@ -1590,15 +1592,17 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	wxString		origOwner = gpApp->m_owner;
     int             origCommitCnt = gpApp->m_commitCount;
 
-// Do we need a check here that the file is really under version control??  More likely
-// If a trial is under way, we need a decision from the user first as to whether to accept the
-// trial or go back.
-
 	if (gpApp->m_trialVersionNum >= 0)
 	{
-		wxMessageBox (_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
+		wxMessageBox (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
+    
+    if ( gpApp->m_strUserID == NOOWNER )
+    {
+		wxMessageBox (_T("Before saving in the document history, you must enter a username for yourself."));
+		return -1;        
+    }
 
 	if (!Commit_valid())
 		return -1;              // bail out if the ownership of the document isn't right

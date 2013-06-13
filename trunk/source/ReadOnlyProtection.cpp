@@ -928,7 +928,7 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 #ifdef _DEBUG_ROP
 		wxLogDebug(_T("In IsTheProjectFolderOwnedForWriting: There is no read-only protection file in project folder")); 
 #endif
-		return FALSE; // tell caller I now have qualified to own it for writing
+		return FALSE;       // tell caller we don't own it for writing, but we're qualified to get to own it
 	}
 	else
 	{
@@ -973,7 +973,7 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 /// CAdapt_ItApp::m_bReadOnlyAccess. TRUE is returned if the folder is already owned by
 /// someone else, FALSE is returned if the local machine succeeds in getting ownership of
 /// the project folder for write purposes. If two instances of Adapt It access the same
-/// projrect folder, the winner as far as getting ownership of writing permission is the
+/// project folder, the winner as far as getting ownership of writing permission is the
 /// instance that enters the project first. Ownership is relinquished briefly while the
 /// owning instance closes a document and then opens a different document in the same
 /// project. This gives a remote instance a brief window of opportunity to get full
@@ -983,15 +983,46 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 /// accordingly .
 /// Call this function when the running instance enters a project project or opens or
 /// creates a document
-//////////////////////////////////////////////////////////////////////////////////////////// 
+////////////////////////////////////////////////////////////////////////////////////////////
+
 bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath) 
 {
+    
+    // mrh 20Apr12, moved up to here 30Jun13.  Before we do anything else, we check if the current user (m_strUserID)
+    // is the same as the document's owner for version control (in m_owner).  A mismatch must disallow write
+    // permission.  But if m_owner is NOOWNER, anything goes.
+    // Also, if we're looking at a previous revision as a trial, we need to be read-only.  The condition for
+    //  this is m_trialVersionNum being non-negative.
+    // If this section doesn't return FALSE (making the doc read-only), we fall through and do all the other
+    //  tests on whether we can write to the project folder, etc.
+    
+    if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_strUserID) )
+    {
+#ifdef _DEBUG_ROP
+        wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but doc's owner mismatches, so returning TRUE"));
+#endif
+        wxMessageBox (
+                      _("This document is owned by someone else, so you have READ-ONLY access."), _("Another person owns write permission"),
+                      wxICON_INFORMATION | wxOK);
+        return TRUE;	// return TRUE to app member m_bReadOnlyAccess
+    }
+    
+    if (m_pApp->m_trialVersionNum > 0)
+    {
+#ifdef _DEBUG_ROP
+        wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but earlier version than latest, so returning TRUE"));
+#endif
+        return TRUE;
+    }
+
+// So far so good...
+    
 	bool bIsOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath); // removes any zombies
 #ifdef _DEBUG_ROP
 	wxLogDebug(_T("\n **BEGIN** SetReadOnlyProtection:  Is the folder owned? bIsOwned = %s"), 
 			bIsOwned ? _T("TRUE") : _T("FALSE"));
 #endif
-	if (bIsOwned)
+	if (bIsOwned)       // it's owned, but by whom?
 	{
 		// we need to distinguish me on my machine in my running process, from
 		// another user/machine/or process (even if the process is a second one
@@ -1026,10 +1057,12 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 		}
 		else
 		{
+/*
+// mrh 30Jun13. -- moved up to the start of the function, since it wasn't always being called when it should.
+
 			// mrh 20Apr12 - it's apparently me, but now we have to check if the currently logged-in user (m_strUserID)
 			// is the same as the document's owner for version control (in m_owner).  A mismatch must disallow write
-			// permission.  But if m_owner is NOOWNER, anything goes.  This also happens if version control hasn't
-			// been enabled for this document.
+			// permission.  But if m_owner is NOOWNER, anything goes.
 			// Also, if we're looking at a previous revision as a trial, we need to be read-only.  The condition for
 			//  this is m_trialVersionNum being non-negative.
 			
@@ -1051,7 +1084,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 #endif
 				return TRUE;
 			}
-
+*/
             // it's really me, in the same process which originally got ownership so just return
             // FALSE as I have full write permission already, and FALSE maintains that
 #ifdef _DEBUG_ROP
@@ -1098,6 +1131,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 #endif
 		wxASSERT(m_pApp->m_pROPwxFile->IsOpened()); // check it got opened
 	}
+
 #ifdef _DEBUG_ROP
 	wxLogDebug(_T("SetReadOnlyProtection:  Nobody owns it yet,  so returning FALSE"));
 #endif
