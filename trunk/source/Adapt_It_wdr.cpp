@@ -9632,7 +9632,7 @@ wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Unique Username (obligatory):") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_MSG, _("Type a username. A unique one is best, but whatever you type will be accepted. You only need do this once, but if you ever want to change it, you can change it only here, or from the Edit menu. Your full email addess is a good choice. If you use an email address, it will NOT be used for sending any emails from within Adapt It. Something must be in this field before you can go further in the wizard."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_MSG, _("Type a username. A unique one is best, but whatever you type will be accepted. You only need do this once, but if you ever want to change it, you can change it only here. Your full email addess is a good choice. If you use an email address, it will NOT be used for sending any emails from within Adapt It."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(-1,24), wxGROW );
@@ -9643,7 +9643,7 @@ wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Informal Username (obligatory):") );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_INFORMAL_MSG, _("Type a human-friendly username. It can be your real name, or a false one. You only need do this once, but if you ever want to change it, you can change it only here, or from the Edit menu. It will NOT be sent in any emails from within Adapt It. It will be sent, securely, in data going to a shared knowledge base server, or to a Git repository for document history."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_INFORMAL_MSG, _("Type a human-friendly username. It can be your real name, or a false one. You only need do this once, but if you ever want to change it, you can change it only here. It will NOT be sent in any emails from within Adapt It. It will be sent, securely, in data going to a shared knowledge base server, or to a Git repository for document history."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_INFORMAL, wxT(""), wxDefaultPosition, wxSize(-1,24), wxGROW );
