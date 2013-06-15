@@ -5832,7 +5832,7 @@ wxString szKbServerURL = _T("KbServerURL");
 /// for sharing. Because an email address is unique, we recommend the user's email address
 /// be used for the username (full address, including domain); however not all users will
 /// have email access, so any likely-to-be-unique name would be acceptable;
-/// 20May13, this name was made app-wide in scope, and so it to be used for DVCS, KB 
+/// 20May13, this name was made app-wide in scope, and so it to be used for DVCS, KB
 /// sharing, and xhtml & Pathway export, and any other future feature needing a username
 wxString szUniqueUsername = _T("UniqueUsername");
 /// The following one is an informal one, can be a pseudonom, for the user - but needed
@@ -15194,7 +15194,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 			// message first though.
 			wxString msg;
 			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'KB administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nOne entry for each of the adapting and glossing knowledge bases is required.\nUntil this is done, sharing this project's local knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-								m_sourceLanguageCode, m_targetLanguageCode);
+								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str());
 			wxString title = _T("Remote adapting and glossing knowledge bases are absent");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			DeleteKbServer(1);
@@ -15412,9 +15412,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
     //  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
     //  and we want to change them over to use m_strUserID automatically.
-    
+
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
-    
+
 	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
 
 	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
@@ -21273,7 +21273,7 @@ int ii = 1;
 #endif
 */
 
-	// support Mike's testing of DVCS work (inspired by Chorus) 
+	// support Mike's testing of DVCS work (inspired by Chorus)
 	// (TEST_DVCS is #defined at line 66 of Adapt_It.h)
 #if defined(TEST_DVCS) && defined(_DEBUG)
 
@@ -33639,7 +33639,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bAllowGuesseronUnchangedCCOutput = FALSE;
 		}
-		else if (name == szAllowGuesseronUnchangedCCOutput) // BEW added 10Jun13 for Guesser 
+		else if (name == szAllowGuesseronUnchangedCCOutput) // BEW added 10Jun13 for Guesser
 		{													// support, using correct label
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
