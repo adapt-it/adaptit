@@ -207,7 +207,7 @@ wxWizardPage* CProjectPage::GetNext() const
 {
 	// Determine if existing project is selected and, if so, return the docPage.
 	// If <New Project> was selected then return the next page in the longer wizard,
-	if (!m_projectName.IsEmpty() && m_projectName.GetChar(0) == _T('<')) 
+	if (!m_projectName.IsEmpty() && m_projectName.GetChar(0) == _T('<'))
 	//if (gbWizardNewProject)
 		return pLanguagesPage;
 	else
@@ -583,7 +583,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
             // is selected. Not setting any default value here will allow the
             // value for m_foldersProtectedFromNavigatio of the previously
             // opened project to stand.
-            
+
 			// Note: Fonts, Font colors, Punctuation correspondences, Guesser
 			// settings, Backup settings, USFM settings, etc. can all keep any
 			// settings from any previously opened project before doing <New
@@ -597,7 +597,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// There are 15 of these m_last... paths that are associated with
 			// each project.
 			pApp->SetAllProjectLastPathStringsToEmpty();
-			
+
 			// whm 26Jan13 added. A new project should start with all of the
 			// App's language name and code variables reset to empty strings.
 			pApp->SetLanguageNamesAndCodesStringsToEmpty();
@@ -630,8 +630,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// initial part of <New Project> creation. If we got here via <
 			// Back in the wizard and selection of <New Project>, the
 			// m_curProjectPath could have an invalid path. It might also have
-			// an invalid path if an AI project folder were moved or deleted. 
-			// The m_curProjectPath will be created after the wizard's 
+			// an invalid path if an AI project folder were moved or deleted.
+			// The m_curProjectPath will be created after the wizard's
 			// LanguagesPage is processed with language name information.
 			pApp->m_curProjectPath.Empty();
 
@@ -1294,7 +1294,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
             // variables defined in the CAdapt_ItApp class
 			if (pApp->m_bIsKBServerProject)
 			{
-				// Ask for the password --- we no longer use a "credentials.txt" 
+				// Ask for the password --- we no longer use a "credentials.txt"
 				// temporary file. Returns an empty string if nothing is typed
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				wxString pwd = pFrame->GetKBSvrPasswordFromUser(); // user types pwd in dialog
@@ -1335,7 +1335,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 						// b) to check for valid language codes
 						pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
 													   // ready for SetupForKBServer() below to use it
-						
+
 						// test for an authorized user; since we are coming via the
 						// wizard, not from the SetupForKBServer() dialog, the username
 						// and url will come from the project config file. The password
@@ -1355,13 +1355,13 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 							pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 							pApp->m_bIsKBServerProject = FALSE;
 							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.");
-							msg = msg.Format(msg, pApp->m_strUserID);
+							msg = msg.Format(msg, pApp->m_strUserID.c_str());
 							wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 						}
 						else
 						{
 							// The username is valid for this kbserver, so check language codes
-							
+
 							// we want valid codes four source, target and glosses languages, so
 							// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
 							bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);

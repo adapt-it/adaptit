@@ -1994,7 +1994,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 			// Valid m_strUserID and m_strUsername should be in place now, so
 			// go ahead with next steps which are to get the password to this server, and
 			// then to check for valid language codes
-			
+
 			// Get the server password. Returns an empty string if nothing is typed, or if the
 			// user Cancels from the dialog
 			CMainFrame* pFrame = pApp->GetMainFrame();
@@ -2008,7 +2008,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
                 // Since a password has now been typed, we can check if the username is
                 // listed in the user table. If he isn't, the hookup can still succeed, but
                 // we must turn KB sharing to be OFF
-				
+
                 // The following call will set up a temporary instance of the adapting
                 // KbServer in order to call it's LookupUser() member, to check that this
                 // user has an entry in the entry table; and delete the temporary instance
@@ -2023,7 +2023,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 					pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 					pApp->m_bIsKBServerProject = FALSE;
 					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
-					msg = msg.Format(msg, pApp->m_strUserID);
+					msg = msg.Format(msg, pApp->m_strUserID.c_str());
 					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 					return TRUE; // failure to reinstate KB sharing doesn't constitute a
 					// failure to hook up to an existing Adapt It project, so return

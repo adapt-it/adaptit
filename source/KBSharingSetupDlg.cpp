@@ -109,7 +109,7 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	}
 	if (!m_pApp->m_strUserID.IsEmpty())
 	{
-		m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID); // note: this could setup **** 
+		m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID); // note: this could setup ****
 														   // which is invalid as a username
 	}
 }
@@ -159,7 +159,7 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 		// dialog after giving him an instruction to either Cancel there, or hit the
 		// Remove Setup button - either of which will land him out of the dialog with no
 		// kb sharing turned on currently, at least, for this project.
-		
+
         // The following call will set up a temporary instance of the adapting KbServer in
         // order to call it's LookupUser() member, to check that this user has an entry in
         // the entry table; and delete the temporary instance before returning
@@ -174,19 +174,19 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 			m_pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 			m_pApp->m_bIsKBServerProject = FALSE;
 			wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n Click Cancel, or click Remove Setup.\n(The username box is read-only. To change the username, use the Change Username item in the Edit menu.");
-			msg = msg.Format(msg, m_pApp->m_strUserID);
+			msg = msg.Format(msg, m_pApp->m_strUserID.c_str());
 			wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
 			return;
 		}
 		else
 		{
 			// What we do next will depend on what the current state is for KB Sharing within
-			// this project. There are 3 possibilities. 
+			// this project. There are 3 possibilities.
 			// 1. This server url and username are already in effect and this project is a kb
 			// sharing one already - that is, there was no point in the user opening the
 			// dialog unless he misspelled the password and needs to make a second attempt at it.
 			// 2. This project is not a KB sharing one yet, or KB sharing was previously
-			// defined for it, but whichever is the case, KB sharing is turned off (ie. 
+			// defined for it, but whichever is the case, KB sharing is turned off (ie.
 			// m_bIsKBServerProject is currently FALSE. This setup therefore turns it on with
 			// the credentials supplied. (If the credentials have typos, error messages when
 			// transmissions are done will indicate the problem. It would be good to have a
@@ -195,7 +195,7 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 			// the user wants to use a different KB server - in this case, detect that the
 			// settings have changed, and if so, shut down the old setup and establish the new
 			// one with the new credentials just typed.
-			
+
 			// set the url and username into the app's member variables for these, so that the
 			// project configuration file can store them permanently, and SetupForKBServer()
 			// will need to call them too
@@ -206,7 +206,7 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 			// Username" item, and the current username reset there - that's the only place to
 			// do it (but a manual edit of the basic config file would also work)
 			// strUsername; <<-- this is what kbserver will use for authenticating in this session
-			
+
 			// Test that whatever is in the username text control matches m_strUserID. If it
 			// doesn't, then don't go further. And tell the user to use Change Username dialog
 			// to get the name right and then try setting up KB Sharing again
@@ -217,7 +217,7 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 				wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
 				return; // stay in the dialog so the user can do what the above message says
 			}
-			
+
 			if (m_saveOldURLStr == strURL)
 			{
 				// The user has unchanged credentials for username and url, maybe he needs to
@@ -336,7 +336,7 @@ void KBSharingSetupDlg::OnButtonRemoveSetup(wxCommandEvent& WXUNUSED(event))
     // Enable Sharing button though, because the password doesn't need to be retyped
 	//m_pApp->m_strKbServerURL.Empty();
 	//m_pApp->m_strUserID.Empty();
-	
+
 	// While we don't change the app members, the removal should clear the text boxes in
 	// the dialog so that the user has feedback that the removal has been effected. To
 	// reinstate the setup immediately he either must retype the information into the text
