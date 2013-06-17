@@ -104,7 +104,14 @@ class CBString
 	void		ReleaseBuffer(int nNewLength = -1);
 	operator 	char*();
 	//operator	const char*();
-
+	// BEW 17Jun13 added
+	operator    unsigned char*();
+	// BEW 17Jun13 added, because the operator unsigned char*() just above prevents an
+	// unambiguous implicit conversion of a CBString param to char*; and that resulted in
+	// wxMemoryBuffer class's AppendData(const void* data, size_t len) failing to compile
+	// because there was no unambiguous way to do the implicit conversions to const void*,
+	// so I have provided an explicit cast to handle that
+	operator	const void*();
 
 	// overrides and operators
 	CBString& 		operator=(const CBString& s);

@@ -9686,7 +9686,7 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForSharedKbInKbServer.\nThe existence of the remote shared knowledge base could not be checked for, so KB sharing is OFF.");
 	wxString msg1 = _T("Error: LookupSingleKb failed in CheckForSharedKbInKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
 	wxString title = _T("KbServer error");
-	CAdapt_ItApp* pApp = &wxGetApp();
+	//CAdapt_ItApp* pApp = &wxGetApp();
 
 	// instantiate an adaptation KbServer instance (doesn't matter which type we use)
 	KbServer* pKbSvr = NULL;

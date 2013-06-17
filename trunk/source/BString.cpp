@@ -420,6 +420,26 @@ CBString::operator char*()
 		return (char*)NULL;
 }
 
+// BEW 17Jun13 added
+CBString::operator unsigned char*()
+{
+	if (pstr)
+		return (unsigned char*)pstr;
+	else
+		return (unsigned char*)NULL;
+}
+
+// BEW 17Jun13 also added
+CBString::operator	const void*()
+{
+	if (pstr)
+		return reinterpret_cast<const void*>(pstr);
+	else
+		return reinterpret_cast<const void*>(NULL);
+}
+
+
+
 /*********************************************
 *
 * operator const char*()
