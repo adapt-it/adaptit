@@ -1205,38 +1205,30 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 }
 
 // UpdateAppearance() is simply intended to cause the view to redraw itself, if something that affects the visual
-// appearance might have changed, e.g. the read-only status.  It's proved surprisingly tricky to get this
-// to actually update everything completely!
+// appearance might have changed, e.g. the read-only status.  It's proved surprisingly tricky to get this to
+// actually update everything completely!  In particular, on the Mac, we need the 1-pixel scroll, to really get
+// rid of the pink!
+// We also need the PlaceBox() so the box actually gets placed.
 
 void CAdapt_ItView::UpdateAppearance (void)
 {
 	CLayout*	ptrLayout;
+    wxWindow*   pMyWind = GetFrame();
 
-	Invalidate();
-	if (canvas != NULL)
-		canvas->ClearBackground();    // On Mac this does the redraw rather than merely clearing the background!
-	else
-		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with canvas == NULL"));
-
-	ptrLayout = GetLayout();
+    ptrLayout = GetLayout();
 	if (ptrLayout != NULL)
 	{
 		ptrLayout->Redraw();		// Not actually needed on Mac, but doesn't hurt
 		ptrLayout->PlaceBox();		// Sets the parameters for the updated placement of the phrase box if changing
-									//  direction, also gets rid of all the pink if making doc editable!
-#ifdef __WXMAC__
-    // Under OSX/Cocoa, it seems we have to do all this bit again!!
-        if (canvas != NULL)
-            canvas->ClearBackground();
-        else
-            wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with canvas == NULL"));
-        ptrLayout->Redraw();
-#endif
-	}
-	else
-		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
-    
-	Invalidate();					// only needed on Windows to really get rid of all the pink!!
+        //  direction, also gets rid of all the pink if making doc editable!
+    }
+    else
+        wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
+
+    pMyWind->Refresh();         // mark whole window area dirty
+    pMyWind->Update();          // force redraw
+    pMyWind->ScrollWindow (0, 1);
+            // for some unaccountable reason we need this on the Mac at least, to really get rid of all the pink!!
 }
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;
