@@ -553,6 +553,8 @@
 		<Unit filename="../../source/jsonwriter.h" />
 		<Unit filename="../../source/md5.cpp" />
 		<Unit filename="../../source/md5.h" />
+		<Unit filename="../../source/md5_SB.cpp" />
+		<Unit filename="../../source/md5_SB.h" />
 		<Unit filename="../../source/scrollingdialog.cpp" />
 		<Unit filename="../../source/scrollingdialog.h" />
 		<Unit filename="../../source/scrollingwizard.cpp" />
