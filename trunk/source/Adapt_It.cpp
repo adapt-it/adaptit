@@ -337,6 +337,8 @@ extern std::string str_CURLheaders;
 #include "DVCS.h"
 #include "UsernameInput.h" // BEW added 28May13
 
+#include "md5.h"
+
 #if defined (_KBSERVER)
 
 #include "KbServer.h"
@@ -16122,6 +16124,38 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
 
+/*
+#if defined(_DEBUG)
+	// md5 tests - official results from rfc1321
+	//The MD5 test suite (driver option "-x") should print the following
+    //results:
+	//MD5 test suite:
+	//MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
+	//MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
+	//MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
+	//MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
+	//MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
+	//MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
+	//MD5 ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
+
+
+	// Check MD5 sums
+	wxMD5* pmd5 = new wxMD5;
+	wxString str = _T("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+	wxString sum = pmd5->GetMD5(str);
+	wxLogDebug(_T("md5sum = %s"), sum.c_str());
+	delete pmd5;
+	int ii=1;
+
+
+	// Results of md5 tests
+	// empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct
+	// "a":  md5sum = 4144e195f46de78a3623da7364d04f11  ;bad
+	// "message digest": md5sum = 6f9ab83227f65f9b86c380e2c9c33031  ;bad
+	// "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = 86056d805455c8448f6c09404c3db624  ;bad
+
+#endif
+*/
 	// whm 24Jan13. The following functions set up new project defaults and
 	// should be called in OnInit() and the <New Project> clode block of the ProjectPage
 	// whm 24Jan13 added. A new project should start with all of the

@@ -41,7 +41,7 @@
 #include "wx/string.h"
 #include "wx/wfstream.h"
 
-#include "helpers.h"
+
 
 // 
 // MD5 from RSA
@@ -63,42 +63,21 @@ char * MD5End(MD5_CTX *, char *);
 
 
 
-//! A utility class to calculate MD5 checksums from files or strings
-// but extended from Casey O'Donnel's wxMD5.h/.cpp by adding the function
-// GetDigest
+//! A utility class to calculate MD5 checksums from files or strings.
 class wxMD5
 {
 public:
-//	wxMD5() {}
-//	virtual ~wxMD5() {}
-	wxMD5();
-	wxMD5(const wxString& szText);
-	~wxMD5();
-	
+	wxMD5() {}
+	virtual ~wxMD5() {}
+
 public:
 
 	//! Returns the MD5 checksum for the given file
 	static wxString GetFileMD5(wxInputStream &str);
 	static wxString GetFileMD5(const wxString &filename);
 
-	// Static Methods
-
 	//! Returns the MD5 for the given string.
 	static wxString GetMD5(const wxString &str);
-
-	// Other Methods
-	void SetText(const wxString& szText);
-	
-	const wxString GetDigest();
-	
-	// Returns the md5 digest for the given string
-	static const wxString GetDigest(const wxString& szText);
-	
-protected:
-	bool		m_bCalculatedDigest;
-	wxUint8		m_arrDigest[16];
-	wxChar		m_pszDigestString[33];
-	wxString	m_szText;
 };
 
 #endif		// _WX_MD5_H_
