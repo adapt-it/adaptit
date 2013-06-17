@@ -4164,7 +4164,7 @@ CBString Xhtml::BuildPictureProductions(CBString strPictureID, CBString langCode
 		strSize = right.Left(offset);
 		right = right.Mid(offset + 1); // next will start from char following third bar (LOCation range info)
 		wxASSERT(!right.IsEmpty());
-		if (strSize = col)
+		if (strSize == col)
 		{
 			// fit picture to current column
 			strSize = "pictureColumn";

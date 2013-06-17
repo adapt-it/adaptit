@@ -737,6 +737,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\md5_SB.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\MergeUpdatedSrc.cpp"
 				>
 			</File>
@@ -1311,6 +1315,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\md5.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\md5_SB.h"
 				>
 			</File>
 			<File

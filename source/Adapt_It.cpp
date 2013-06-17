@@ -337,7 +337,8 @@ extern std::string str_CURLheaders;
 #include "DVCS.h"
 #include "UsernameInput.h" // BEW added 28May13
 
-#include "md5.h"
+//#include "md5.h"
+#include "md5_SB.h"
 
 #if defined (_KBSERVER)
 
@@ -16124,7 +16125,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
 
-/*
+/*  MD5 SUM TESTING
 #if defined(_DEBUG)
 	// md5 tests - official results from rfc1321
 	//The MD5 test suite (driver option "-x") should print the following
@@ -16139,20 +16140,55 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//MD5 ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
 
 
-	// Check MD5 sums
-	wxMD5* pmd5 = new wxMD5;
-	wxString str = _T("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-	wxString sum = pmd5->GetMD5(str);
-	wxLogDebug(_T("md5sum = %s"), sum.c_str());
+	// Check MD5 sums -- the sums are based on string data converted to utf8, and so do
+	// not match the rfc1321 standard's results
+	// This stuff using wxMD5 class, needs an #include "md5.h"
+	//wxMD5* pmd5 = new wxMD5;
+	//wxString str = _T("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+	//wxString str = _T("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
+	//wxString str = _T("message digest");
+	//wxString str = _T("a");
+	//wxString str = _T("");
+	//wxString sum = pmd5->GetMD5(str);
+	//wxLogDebug(_T("md5sum = %s"), sum.c_str());
+	//delete pmd5;
+	//int ii=1;
+	
+	//This re-implementation using CBString needs an #include "md5_SB.h"; 
+	//and matches the rfc1321 standard's results 
+	md5_SB* pmd5 = new md5_SB;
+	//CBString str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	//CBString str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
+	//CBString str = "message digest";
+	//CBString str = "a";
+	//CBString str = "";
+	//CBString str = "bruce_waters@sil.org:kbserver:XXXXXXX"; <<-- password obfuscated
+	//wxString s = _T("message digest"); // <<-- when starting from a wxString, use these two lines
+	//CBString str(Convert16to8(s));
+	CBString str = "message digest";
+	CBString sum = pmd5->GetMD5(str);
+	wxLogDebug(_T("md5sum = %s"), sum.Convert8To16().c_str());
 	delete pmd5;
-	int ii=1;
-
-
-	// Results of md5 tests
+	int ii=1; // put a break point here to halt execution, & then examine Ouput window result
+	
+	// Results of md5 tests, using md5_SB and CBString
 	// empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct
-	// "a":  md5sum = 4144e195f46de78a3623da7364d04f11  ;bad
-	// "message digest": md5sum = 6f9ab83227f65f9b86c380e2c9c33031  ;bad
-	// "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = 86056d805455c8448f6c09404c3db624  ;bad
+	// "a":  md5sum = 0cc175b9c0f1b6a831c399e269772661  ;correct
+	// "message digest": md5sum = f96b697d7cb7938d525a2f31aaf161d0  ;correct
+	// "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = d174ab98d277d9f5a5611c2c9f419d9f  ;correct
+	// "12345678901234567890123456789012345678901234567890123456789012345678901234567890": md5sum = 57edf4a22be3c955ac49da2e2107b67a  ;correct
+	// and most importantly...
+	// "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178   
+	// Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool): 
+	// bruce_waters@sil.org:kbserver:b9b0c1de14f16080c72a5497f806b178
+	// So I'm getting the correct password generated from the htdigest string.
+	// Starting from a wxString, this also gives the same (correct) result (and it also
+	// did for the digest string using my password):
+	//wxString s = _T("message digest");
+	//CBString str(Convert16to8(s));
+	//CBString sum = pmd5->GetMD5(str);
+	// that gives the result: f96b697d7cb7938d525a2f31aaf161d0 which is correct
+
 
 #endif
 */
