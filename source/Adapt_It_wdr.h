@@ -963,6 +963,8 @@ const int ID_TEXTCTRL_USERNAME_INFORMAL_MSG = 728;
 const int ID_TEXTCTRL_USERNAME_INFORMAL = 729;
 wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
+wxSizer *SharedKBManagerNotebookFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
+
 // Declare menubar functions
 
 const int ID_FILE_MENU = 730;

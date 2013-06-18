@@ -484,6 +484,7 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 
 bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
 					wxString srcLangCode, wxString tgtLangCode, int kbType);
+CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
 #endif
 

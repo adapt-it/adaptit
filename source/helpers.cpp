@@ -62,6 +62,7 @@
 #include "LanguageCodesDlg.h"
 #include "UsernameInput.h"
 #include "KbServer.h"
+#include "md5_SB.h"
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -9668,6 +9669,17 @@ bool CheckUsername()
 }
 
 #if defined(_KBSERVER)
+
+CBString MakeDigestPassword(const wxString& user, const wxString& password)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxString colon = _T(':');
+	wxString realm = _T("kbserver"); // always this realm
+	wxString strForDigest = user + colon + realm + colon + password;
+	CBString sbDigest(pApp->Convert16to8(strForDigest));
+	CBString digestPassword(md5_SB::GetMD5(sbDigest));
+	return digestPassword;
+}
 
 bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
 					wxString srcLangCode, wxString tgtLangCode, int kbType)
