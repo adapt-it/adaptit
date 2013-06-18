@@ -30,6 +30,7 @@
 		2767AA83175604AC0044897B /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2767AA7F175604AC0044897B /* jsonwriter.cpp */; };
 		277D3B74170FB39000781935 /* DVCSNavDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 277D3B72170FB39000781935 /* DVCSNavDlg.cpp */; };
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
+		2790BD8D176FF9F5005A0780 /* md5_SB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2790BD8B176FF9F5005A0780 /* md5_SB.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
 		27B396421755D5C60034E461 /* UsernameInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27B396401755D5C60034E461 /* UsernameInput.cpp */; };
@@ -224,6 +225,8 @@
 		277D3B73170FB39000781935 /* DVCSNavDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSNavDlg.h; path = ../../source/DVCSNavDlg.h; sourceTree = "<group>"; };
 		2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ChangedSince.cpp; path = ../../source/Thread_ChangedSince.cpp; sourceTree = "<group>"; };
 		2783C43A16CC457300C902E7 /* Thread_ChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ChangedSince.h; path = ../../source/Thread_ChangedSince.h; sourceTree = "<group>"; };
+		2790BD8B176FF9F5005A0780 /* md5_SB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5_SB.cpp; path = ../../source/md5_SB.cpp; sourceTree = "<group>"; };
+		2790BD8C176FF9F5005A0780 /* md5_SB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5_SB.h; path = ../../source/md5_SB.h; sourceTree = "<group>"; };
 		2791678516195D4D00744DF8 /* KBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBServer.cpp; path = ../../source/KBServer.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
@@ -575,6 +578,8 @@
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
 				7D98196A139C7002009F4E93 /* md5.cpp */,
 				7D98196B139C7002009F4E93 /* md5.h */,
+				2790BD8B176FF9F5005A0780 /* md5_SB.cpp */,
+				2790BD8C176FF9F5005A0780 /* md5_SB.h */,
 				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
 				7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */,
 				7DB6FCA1135BE401006CC95A /* SetupEditorCollaboration.h */,
@@ -1130,6 +1135,7 @@
 				2767AA81175604AC0044897B /* jsonreader.cpp in Sources */,
 				2767AA82175604AC0044897B /* jsonval.cpp in Sources */,
 				2767AA83175604AC0044897B /* jsonwriter.cpp in Sources */,
+				2790BD8D176FF9F5005A0780 /* md5_SB.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

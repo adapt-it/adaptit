@@ -27,6 +27,7 @@
 		27462BDA17474EBE005605DA /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD417474EBE005605DA /* jsonreader.cpp */; };
 		27462BDB17474EBE005605DA /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD617474EBE005605DA /* jsonval.cpp */; };
 		27462BDC17474EBE005605DA /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD817474EBE005605DA /* jsonwriter.cpp */; };
+		27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27501E2C176FD106000AC145 /* md5_SB.cpp */; };
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
@@ -217,6 +218,8 @@
 		27462BD717474EBE005605DA /* jsonval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonval.h; path = ../../source/jsonval.h; sourceTree = "<group>"; };
 		27462BD817474EBE005605DA /* jsonwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonwriter.cpp; path = ../../source/jsonwriter.cpp; sourceTree = "<group>"; };
 		27462BD917474EBE005605DA /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = "<group>"; };
+		27501E2C176FD106000AC145 /* md5_SB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5_SB.cpp; path = ../../source/md5_SB.cpp; sourceTree = "<group>"; };
+		27501E2D176FD106000AC145 /* md5_SB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5_SB.h; path = ../../source/md5_SB.h; sourceTree = "<group>"; };
 		27699F47153CEBAB009B0ADD /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
 		2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ChangedSince.cpp; path = ../../source/Thread_ChangedSince.cpp; sourceTree = "<group>"; };
 		2783C43A16CC457300C902E7 /* Thread_ChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ChangedSince.h; path = ../../source/Thread_ChangedSince.h; sourceTree = "<group>"; };
@@ -558,6 +561,10 @@
 				7D66132814D87232007A2C30 /* ClientServerConnection.h */,
 				7D6612D11495C70C007A2C30 /* KBExportImportOptionsDlg.cpp */,
 				7D6612D21495C70C007A2C30 /* KBExportImportOptionsDlg.h */,
+				7D98196A139C7002009F4E93 /* md5.cpp */,
+				7D98196B139C7002009F4E93 /* md5.h */,
+				27501E2C176FD106000AC145 /* md5_SB.cpp */,
+				27501E2D176FD106000AC145 /* md5_SB.h */,
 				7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */,
 				7D4EEBBE1471932C003B4CC2 /* scrollingdialog.h */,
 				7D4EEBBF1471932C003B4CC2 /* scrollingwizard.cpp */,
@@ -577,8 +584,6 @@
 				7D8A044F13ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp */,
 				7D8A045013ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.h */,
 				C8442B85135FADD300981EB2 /* MergeUpdatedSrc.cpp */,
-				7D98196A139C7002009F4E93 /* md5.cpp */,
-				7D98196B139C7002009F4E93 /* md5.h */,
 				C8442B8D135FAF2A00981EB2 /* MergeUpdatedSrc.h */,
 				7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */,
 				7DB6FCA1135BE401006CC95A /* SetupEditorCollaboration.h */,
@@ -1130,6 +1135,7 @@
 				27462BDB17474EBE005605DA /* jsonval.cpp in Sources */,
 				27462BDC17474EBE005605DA /* jsonwriter.cpp in Sources */,
 				27B3963F1754B69A0034E461 /* UsernameInput.cpp in Sources */,
+				27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
