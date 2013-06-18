@@ -8089,7 +8089,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		tab2 = _T("\t\t");
 		tab3 = _T("\t\t\t");
 		GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
-		composeXmlStr = wxString::FromAscii ( (const char*)xmlPrologue ); // first string in xml file
+		composeXmlStr = wxString::FromAscii(xmlPrologue); // first string in xml file
 		composeXmlStr.Replace(_T("\r\n"),_T("")); // remove the ending \r\n added by GetEncodingStringForXmlFiles wxTextFile::AddLine adds its own eol
 		textFile->AddLine(composeXmlStr);
 		int nCommentItems;
@@ -16153,10 +16153,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//wxLogDebug(_T("md5sum = %s"), sum.c_str());
 	//delete pmd5;
 	//int ii=1;
-
-	//This re-implementation using CBString needs an #include "md5_SB.h";
-	//and matches the rfc1321 standard's results
-	md5_SB* pmd5 = new md5_SB;
+	
+	//This re-implementation using CBString needs an #include "md5_SB.h"; 
+	//and matches the rfc1321 standard's results 
+	//md5_SB* pmd5 = new md5_SB;
 	//CBString str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	//CBString str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
 	//CBString str = "message digest";
@@ -16165,21 +16165,26 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//CBString str = "bruce_waters@sil.org:kbserver:XXXXXXX"; <<-- password obfuscated
 	//wxString s = _T("message digest"); // <<-- when starting from a wxString, use these two lines
 	//CBString str(Convert16to8(s));
-	CBString str = "message digest";
-	CBString sum = pmd5->GetMD5(str);
+	//CBString str = "message digest";
+	//CBString sum = pmd5->GetMD5(str);
+	wxString user = _T("bruce_waters@sil.org");
+	wxString password = _T("XXXXXXXXXXX"); // <<- password obfuscated
+	CBString sum = MakeDigestPassword(user, password); // from helpers.cpp
 	wxLogDebug(_T("md5sum = %s"), sum.Convert8To16().c_str());
-	delete pmd5;
+	//delete pmd5;
 	int ii=1; // put a break point here to halt execution, & then examine Ouput window result
 
+	// 1st run: MakeDigestPassword() produced  b9b0c1de14f16080c72a5497f806b178  (it's correct)
+	
 	// Results of md5 tests, using md5_SB and CBString
 	// empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct
 	// "a":  md5sum = 0cc175b9c0f1b6a831c399e269772661  ;correct
-	// "message digest": md5sum = f96b697d7cb7938d525a2f31aaf161d0  ;correct (and same when run in Ubuntu)
+	// "message digest": md5sum = f96b697d7cb7938d525a2f31aaf161d0  ;correct
 	// "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = d174ab98d277d9f5a5611c2c9f419d9f  ;correct
 	// "12345678901234567890123456789012345678901234567890123456789012345678901234567890": md5sum = 57edf4a22be3c955ac49da2e2107b67a  ;correct
 	// and most importantly...
-	// "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178
-	// Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool):
+	// "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178   
+	// Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool): 
 	// bruce_waters@sil.org:kbserver:b9b0c1de14f16080c72a5497f806b178
 	// So I'm getting the correct password generated from the htdigest string.
 	// Starting from a wxString, this also gives the same (correct) result (and it also
@@ -46139,7 +46144,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 	} // end of if (wxFileExists(pathAndName))
 	if (bFoundCode && bookCd.GetLength() == 3)
 	{
-		bookCode = wxString ( (const char*)bookCd, wxConvUTF8 );
+		bookCode = wxString(bookCd,wxConvUTF8);
 	}
 	return bookCode;
 }

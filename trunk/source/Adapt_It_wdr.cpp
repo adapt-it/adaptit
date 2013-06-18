@@ -9675,6 +9675,63 @@ wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *SharedKBManagerNotebookFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("You can administer users (add, remove or edit), or administer the shared knowledge bases which are stored remotely (add, remove or edit). The Users tab may only be opened by users who have \"User administrator\" privilege level. The Knowledge Bases tab may only be opened by users who have \"Knowledge base administrator\" privilege level, or higher. The person who set up the remote server is its first user, and always has User administrator privilege, and this user cannot be removed from the list of users. Users with neither privilege level will not be able to open this Shared Knowledge Base Manager dialog. Anyone with User administrator privilege automatically has Knowledge Base administrator privilege too."), wxDefaultPosition, wxSize(80,50), wxTE_MULTILINE|wxTE_READONLY );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxNotebook *item5 = new wxNotebook( parent, ID_CC_TABBED_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+wxWindow *item4 = item5;
+
+    wxPanel *item6 = new wxPanel( item5, -1 );
+    CCTablePageFunc( item6, FALSE );
+    item5->AddPage( item6, _("Table 1") );
+
+    wxPanel *item7 = new wxPanel( item5, -1 );
+    CCTablePageFunc( item7, FALSE );
+    item5->AddPage( item7, _("Table 2") );
+
+    wxPanel *item8 = new wxPanel( item5, -1 );
+    CCTablePageFunc( item8, FALSE );
+    item5->AddPage( item8, _("Table 3") );
+
+    wxPanel *item9 = new wxPanel( item5, -1 );
+    CCTablePageFunc( item9, FALSE );
+    item5->AddPage( item9, _("Table 4") );
+
+    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item11 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetDefault();
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item10, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
