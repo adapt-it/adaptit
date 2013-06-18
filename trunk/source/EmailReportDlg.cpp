@@ -1201,7 +1201,7 @@ bool CEmailReportDlg::BuildEmailReportXMLFile(wxString filePathAndName, bool bRe
 				tab2 = _T("\t\t");
 				tab3 = _T("\t\t\t");
 				pApp->GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
-				composeXmlStr = wxString::FromAscii(xmlPrologue); // first string in xml file
+				composeXmlStr = wxString::FromAscii ( (const char*)xmlPrologue ); // first string in xml file
 				composeXmlStr.Replace(_T("\r\n"),_T("")); // remove the ending \r\n added by GetEncodingStringForXmlFiles wxTextFile::AddLine adds its own eol
 				textFile.AddLine(composeXmlStr);
 				// now we start building the actual xml part of the file (remainder of file)

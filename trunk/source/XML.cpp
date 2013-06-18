@@ -6444,7 +6444,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 					// .NET support for xml parsing of KB file;
 					// *ATTENTION BOB*  add any bool setting you need here
 					// TODO: whm check the following conversion
-					wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+					wxString thePath ( (const char*)attrValue, wxConvUTF8 ); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 														// here in a local wxString for now, in case you need to use it
 				}
 				else
@@ -6867,7 +6867,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 					// .NET support for xml parsing of KB file;
 					// *ATTENTION BOB*  add any bool setting you need here
 					// TODO: whm check the following conversion
-					wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+					wxString thePath ( (const char*)attrValue, wxConvUTF8 ); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 														// here in a local wxString for now, in case you need to use it
 				}
 				else
