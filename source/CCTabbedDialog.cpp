@@ -143,13 +143,15 @@ void CCCTabbedDialog::LoadDataForPage(int pageNumSel)
 	// page (nbPage) in our wxNotebook. We need to associate the pointers with the correct
 	// controls here within LoadDataForPage() which is called initially and for each
 	// tab page selected. The pointers to controls will differ for each page, hence
-	// they need to be reassociated for each page. Note the nbPage-> pefix on
+	// they need to be reassociated for each page. Note the nbPage-> prefix on
 	// FindWindow(). I've chosen not to use Validators here because of the complications
 	// of having pointers to controls differ on each page of the notebook; instead we
 	// manually transfer data between dialog controls and their variables.
 
 	// set the page selection and get pointer to the page in wxNotebook
-	m_pCCTabbedNotebook->SetSelection(pageNumSel);
+	//m_pCCTabbedNotebook->SetSelection(pageNumSel); // deprecated, ChangeSelection()
+	//sends no page-changing events, so that is what should be used now (BEW 19Jun13)
+	m_pCCTabbedNotebook->ChangeSelection(pageNumSel);
 	wxNotebookPage* nbPage = m_pCCTabbedNotebook->GetPage(pageNumSel);
 
 	// Get pointers to the controls created in CCTablePageFunc() by wxDesigner.
