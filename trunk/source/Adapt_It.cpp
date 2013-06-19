@@ -8089,7 +8089,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		tab2 = _T("\t\t");
 		tab3 = _T("\t\t\t");
 		GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
-		composeXmlStr = wxString::FromAscii ( (const char*) xmlPrologue ); // first string in xml file
+		composeXmlStr = wxString::FromAscii((const char*)xmlPrologue); // first string in xml file
 		composeXmlStr.Replace(_T("\r\n"),_T("")); // remove the ending \r\n added by GetEncodingStringForXmlFiles wxTextFile::AddLine adds its own eol
 		textFile->AddLine(composeXmlStr);
 		int nCommentItems;
@@ -46144,7 +46144,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 	} // end of if (wxFileExists(pathAndName))
 	if (bFoundCode && bookCd.GetLength() == 3)
 	{
-		bookCode = wxString ( (const char*)bookCd, wxConvUTF8 );
+		bookCode = wxString((const char*)bookCd,wxConvUTF8);
 	}
 	return bookCode;
 }

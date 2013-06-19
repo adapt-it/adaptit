@@ -9688,39 +9688,141 @@ wxSizer *SharedKBManagerNotebookFunc( wxWindow *parent, bool call_fit, bool set_
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxNotebook *item5 = new wxNotebook( parent, ID_CC_TABBED_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+    wxNotebook *item5 = new wxNotebook( parent, ID_SHAREDKB_MANAGER_DLG, wxDefaultPosition, wxDefaultSize, 0 );
 wxWindow *item4 = item5;
 
     wxPanel *item6 = new wxPanel( item5, -1 );
-    CCTablePageFunc( item6, FALSE );
-    item5->AddPage( item6, _("Table 1") );
-
-    wxPanel *item7 = new wxPanel( item5, -1 );
-    CCTablePageFunc( item7, FALSE );
-    item5->AddPage( item7, _("Table 2") );
-
-    wxPanel *item8 = new wxPanel( item5, -1 );
-    CCTablePageFunc( item8, FALSE );
-    item5->AddPage( item8, _("Table 3") );
-
-    wxPanel *item9 = new wxPanel( item5, -1 );
-    CCTablePageFunc( item9, FALSE );
-    item5->AddPage( item9, _("Table 4") );
+    SharedKBManagerPageFunc( item6, FALSE );
+    item5->AddPage( item6, _("Users") );
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item11 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetDefault();
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetDefault();
+    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item10, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *SharedKBManagerPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Current Users"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxString *strs5 = (wxString*) NULL;
+    wxListBox *item5 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(232,-1), 0, strs5, wxLB_SINGLE );
+    item3->Add( item5, 1, wxALIGN_CENTER|wxALL, 0 );
+
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Username (preferably user's email address):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
+    item8->SetToolTip( _("Type or edit a username here") );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Informal username (for example: Joe Bloggs):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_INFORMAL_NAME, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
+    item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_MULTI, _("Type in or edit a password, then make a written copy of the password for safekeeping! Once this Manager dialog is closed, the human readable form of the password cannot be seen again, nor recovered. You can type a new password, however."), wxDefaultPosition, wxSize(220,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item6->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("A personal password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORDX, _("Unknown, or not able to be recovered"), wxDefaultPosition, wxSize(220,-1), 0 );
+    item13->SetToolTip( _("Type in the password. You can type a new one if unknown.") );
+    item6->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
+
+    item14->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit other users of this server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxCheckBox *item16 = new wxCheckBox( parent, ID_CHECK_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item14->Add( 20, 13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit knowledge base definitions stored in the server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item14->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxCheckBox *item18 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Knowledge base administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 0 );
+
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+
+    item19->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item20 = new wxButton( parent, ID_BUTTON_VIEW_NEW_PASSWORDS, _("View New Passwords"), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("See a list of each added or edited password and its username (in parentheses)") );
+    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item21 = new wxButton( parent, _CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Empty all the controls, except the list box and the temporarily stored list of new passwords") );
+    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item22 = new wxButton( parent, ID_BUTTON, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
+    item19->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item23 = new wxButton( parent, ID_BUTTON_EDIT_USER, _("Edit User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Change the selected user's details to be what the controls currently contrain") );
+    item19->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item24 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Remove this user from the list, this user cannot access the server again (unless the details are retyped later on)") );
+    item19->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
     if (set_sizer)
     {
