@@ -7,6 +7,21 @@ was two or more suitable phrasal adaptations in the KB,
 and the Choose Translation dialog opens to display them, if
 he then clicked Cancel or Cancel and Select buttons, the
 application crashed.
+* Collaboration: if a punctuation character (e.g comma, period
+but not quotes) was typed detached from its word, and that
+word and the punctuation was in a merged phrase, trying to
+open the document in collaboration mode caused a crash.
+* Collaboration: Free translation information was not being
+displayed in the dialog for selecting a chapter.
+* Collaboration: a structurally simple document with a 
+chapter marker for chapter 1 followed by no other content but
+a chapter marker for chapter 2 which does have verse content 
+was causing a crash of the application when the user attempted
+to load it for further work in collaboration mode. (It could
+be created, but once closed, would not be openable again.)
+* If a document was manually shortened, the app would crash
+if the phrase box had previously been located within the 
+material omitted in the shorting.
 
 ----------------------------------------------
 Version 6.4.3 release 7 June 2013
