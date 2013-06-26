@@ -686,9 +686,7 @@ void CLayout::PlaceBox()
 			}
 		case consistency_check_op:
 			{
-				// m_pView->RemoveSelection(); <<-- BEW 6Jun13 removed, leads to crash if
-				// selection is current; use SetupCursorGlobals() instead
-				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				m_pView->RemoveSelection();
 				break;
 			}
 /*		case split_op:

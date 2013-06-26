@@ -11,6 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Option projectIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
@@ -49,7 +50,6 @@
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D_KBSERVER" />
-					<Add directory="/wx28/include" />
 				</Compiler>
 				<Linker>
 					<Add option="`/wx28/buildgtkud/wx-config  --version=2.8 --unicode=yes --debug=yes --libs`" />
@@ -63,11 +63,9 @@
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
-				<Option projectIncludeDirsRelation="1" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
-					<Add directory="/wx28/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -87,7 +85,6 @@
 					<Add option="`/wx-svn/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --cppflags`" />
 					<Add option="-D_DEBUG" />
 					<Add option="-D_KBSERVER" />
-					<Add directory="/wx-svn/include" />
 				</Compiler>
 				<Linker>
 					<Add option="`/wx-svn/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --libs`" />
@@ -104,7 +101,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`/wx-svn/buildgtku/wx-config  --version=2.9 --unicode=yes --debug=no --cppflags`" />
-					<Add directory="/wx-svn/include" />
+					<Add directory="~/wx-svn/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -511,8 +508,6 @@
 		<Unit filename="../../source/UnitsPage.h" />
 		<Unit filename="../../source/UnpackWarningDlg.cpp" />
 		<Unit filename="../../source/UnpackWarningDlg.h" />
-		<Unit filename="../../source/UsernameInput.cpp" />
-		<Unit filename="../../source/UsernameInput.h" />
 		<Unit filename="../../source/UsfmFilterPage.cpp" />
 		<Unit filename="../../source/UsfmFilterPage.h" />
 		<Unit filename="../../source/Uuid_AI.cpp" />
@@ -553,8 +548,6 @@
 		<Unit filename="../../source/jsonwriter.h" />
 		<Unit filename="../../source/md5.cpp" />
 		<Unit filename="../../source/md5.h" />
-		<Unit filename="../../source/md5_SB.cpp" />
-		<Unit filename="../../source/md5_SB.h" />
 		<Unit filename="../../source/scrollingdialog.cpp" />
 		<Unit filename="../../source/scrollingdialog.h" />
 		<Unit filename="../../source/scrollingwizard.cpp" />

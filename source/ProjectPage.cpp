@@ -162,7 +162,6 @@ bool CProjectPage::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
-
 	return TRUE;
 }
 
@@ -207,7 +206,7 @@ wxWizardPage* CProjectPage::GetNext() const
 {
 	// Determine if existing project is selected and, if so, return the docPage.
 	// If <New Project> was selected then return the next page in the longer wizard,
-	if (!m_projectName.IsEmpty() && m_projectName.GetChar(0) == _T('<'))
+	if (!m_projectName.IsEmpty() && m_projectName.GetChar(0) == _T('<')) 
 	//if (gbWizardNewProject)
 		return pLanguagesPage;
 	else
@@ -351,11 +350,11 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 
 	// first, use the current navigation text font for the list box
 	#ifdef _RTL_FLAGS
-	pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, NULL, NULL,
-								m_pListBox, NULL, pApp->m_pDlgSrcFont, pApp->m_bNavTextRTL);
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, NULL, NULL,
+								m_pListBox, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bNavTextRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pNavTextFont, NULL, NULL,
-								m_pListBox, NULL, pApp->m_pDlgSrcFont);
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, NULL, NULL,
+								m_pListBox, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 
 	// generate a CStringList of all the possible adaption projects
@@ -510,11 +509,6 @@ void CProjectPage::OnWizardPageChanged(wxWizardEvent& event)
 			gpApp->m_bFictitiousReadOnlyAccess = FALSE; // ditto
 			gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 		}
-		// following is deprecated, now handled in UsernameInputDlg handler
-		// BEW 20May13, also restore the m_strUserID to its textctrl box
-		//pUsernameTextCtrl->ChangeValue(gpApp->m_strUserID);
-		// BEW 24May13, also restore the m_strUsername to its textctrl box
-		//pInformalUsernameTextCtrl->ChangeValue(gpApp->m_strUsername);
 	}
 }
 
@@ -583,7 +577,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
             // is selected. Not setting any default value here will allow the
             // value for m_foldersProtectedFromNavigatio of the previously
             // opened project to stand.
-
+            
 			// Note: Fonts, Font colors, Punctuation correspondences, Guesser
 			// settings, Backup settings, USFM settings, etc. can all keep any
 			// settings from any previously opened project before doing <New
@@ -597,7 +591,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// There are 15 of these m_last... paths that are associated with
 			// each project.
 			pApp->SetAllProjectLastPathStringsToEmpty();
-
+			
 			// whm 26Jan13 added. A new project should start with all of the
 			// App's language name and code variables reset to empty strings.
 			pApp->SetLanguageNamesAndCodesStringsToEmpty();
@@ -630,8 +624,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// initial part of <New Project> creation. If we got here via <
 			// Back in the wizard and selection of <New Project>, the
 			// m_curProjectPath could have an invalid path. It might also have
-			// an invalid path if an AI project folder were moved or deleted.
-			// The m_curProjectPath will be created after the wizard's
+			// an invalid path if an AI project folder were moved or deleted. 
+			// The m_curProjectPath will be created after the wizard's 
 			// LanguagesPage is processed with language name information.
 			pApp->m_curProjectPath.Empty();
 
@@ -707,7 +701,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// When the collaboration-related settings were stored app-wide in the basic
 			// configuration file, it would have been read in its entirety before invoking
 			// the GetSourceTextFromEditorDlg dialog.
-			pApp->GetProjectConfiguration(pApp->m_curProjectPath);
+			gpApp->GetProjectConfiguration(pApp->m_curProjectPath);
 
 			// whm modified 18Feb12. Now that the project config file has been read we
 			// can determine what the collaboration settings are for this AI project. If
@@ -1286,6 +1280,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 					_T(""), wxICON_INFORMATION | wxOK);
 				}
 			}
+//*
 #if defined(_KBSERVER)
             // BEW 28Sep12, this seems to be the appropriate place, if this project has
             // been designated as one for support of KB sharing, to put the
@@ -1294,111 +1289,34 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
             // variables defined in the CAdapt_ItApp class
 			if (pApp->m_bIsKBServerProject)
 			{
-				// Ask for the password --- we no longer use a "credentials.txt"
+				// Ask for the password --- we no longer use a "credentials.txt" 
 				// temporary file. Returns an empty string if nothing is typed
 				CMainFrame* pFrame = pApp->GetMainFrame();
-				wxString pwd = pFrame->GetKBSvrPasswordFromUser(); // user types pwd in dialog
+				wxString pwd = pFrame->GetKBSvrPasswordFromUser();
 				// there will be a beep if no password was typed
 				if (!pwd.IsEmpty())
 				{
-                    // BEW 21May13 added the CheckLanguageCodes() call and the if-else
-                    // block, to ensure valid codes and if not, or if user cancelled, then
-                    // turn off KB Sharing
-					bool bUserCancelled = FALSE;
-
-                    // BEW added 28May13, check the m_strUserID and m_strUsername strings
-                    // are setup up, if not, open the dialog to get them set up -- the
-                    // dialog cannot be closed except by providing non-empty strings for
-                    // the two text controls in it. Setting the strings once from any
-                    // project, sets them for all projects forever unless the user
-                    // deliberately opens the dialog using the command in the View menu.
-                    // (The strings are not set up if one is empty)
-					// If the user elects to hit the Cancel button, then we must unset
-					// this project from being a KB Sharing one, and tell the user so
-					bool bUserDidNotCancel = CheckUsername();
-					if (!bUserDidNotCancel)
+					pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
+												   // ready for SetupForKBServer() below to use it
+					pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
+					// instantiate an adapting and a glossing KbServer class instance
+					if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
 					{
-						// He or she cancelled. So remove KB sharing for this project
-						pApp->LogUserAction(_T("User cancelled from CheckUsername() in ProjectPage.cpp"));
-						pApp->ReleaseKBServer(1); // the adapting one
-						pApp->ReleaseKBServer(2); // the glossing one
-						pApp->m_bIsKBServerProject = FALSE;
-						wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
-						_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
+						// an error message will have been shown, so just log the failure
+						gpApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+						pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 					}
-					else
-					{
-						// A m_strUserID and m_strUsername should be in place now due to
-						// the above call of CheckUsername, so go ahead with next steps:
-						// a) to check the user is authorized to use the kbserver, and
-						// b) to check for valid language codes
-						pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-													   // ready for SetupForKBServer() below to use it
-
-						// test for an authorized user; since we are coming via the
-						// wizard, not from the SetupForKBServer() dialog, the username
-						// and url will come from the project config file. The password
-						// has been obtained from the dialog called above. The following
-						// call will set up a temporary instance of the adapting KbServer
-						// in order to call it's LookupUser() member, to check that this
-						// user has an entry in the entry table; and delete the temporary
-						// instance before returning
-						bool bUserIsValid = CheckForValidUsernameForKbServer(pApp->m_strKbServerURL, pApp->m_strUserID, pwd);
-						if (!bUserIsValid)
-						{
-							// Access is denied to this user, so turn off the setting
-							// which says that this project is one for sharing, and tell
-							// the user
-							pApp->LogUserAction(_T("Kbserver user is invalid; in OnWizardPageChanging() in ProjectPage.cpp"));
-							pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-							pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
-							pApp->m_bIsKBServerProject = FALSE;
-							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.");
-							msg = msg.Format(msg, pApp->m_strUserID.c_str());
-							wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
-						}
-						else
-						{
-							// The username is valid for this kbserver, so check language codes
-
-							// we want valid codes four source, target and glosses languages, so
-							// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-							bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-							if (!bDidItOK && bUserCancelled)
-							{
-								// We must assume the codes are wrong or incomplete, or that the
-								// user has changed his mind about KB Sharing being on - so turn
-								// it off
-								pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-								pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-								pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
-								pApp->m_bIsKBServerProject = FALSE;
-							}
-							else
-							{
-								// All's well, go ahead
-								pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
-								// instantiate an adapting and a glossing KbServer class instance
-								if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
-								{
-									// an error message will have been shown, so just log the failure
-									pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
-									pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-								}
-							}
-						} // end of else block for test: if (!bUserIsValid)
-					} // end of else block for test: if (!bUserDidNotCancel)
 				}
 				else
 				{
-					wxString msg = _("No password was typed. Knowledge base sharing setup is cancelled.\nUse the command on the Advanced menu to setup manually; but you must first find out your correct password. Ask your kbserver administrator.");
+					wxString msg = _("No password was typed. Knowledge base sharing setup is cancelled.\nUse the command on the Advanced menu to setup manually.");
 					pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
 					wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
-					pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed"));
+					pApp->LogUserAction(msg);
 				}
 			}
 #endif
+//*/
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;

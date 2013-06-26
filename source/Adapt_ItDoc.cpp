@@ -313,15 +313,16 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_UPDATE_UI(wxID_SAVE, CAdapt_ItDoc::OnUpdateFileSave)
 
 	EVT_MENU (ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnSaveAndCommit)
-    EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateDVCS_item)
-    EVT_MENU (ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnShowPreviousVersions)
-    EVT_UPDATE_UI(ID_FILE_REVERT_FILE, CAdapt_ItDoc::OnUpdateDVCS_item)
-	EVT_MENU (ID_FILE_LIST_VERSIONS, CAdapt_ItDoc::OnShowFileLog)
-    EVT_UPDATE_UI(ID_FILE_LIST_VERSIONS, CAdapt_ItDoc::OnUpdateDVCS_item)
+    EVT_UPDATE_UI(ID_FILE_SAVE_COMMIT, CAdapt_ItDoc::OnUpdateSaveAndCommit)
+	EVT_MENU (ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnShowPreviousVersions)
+    EVT_UPDATE_UI(ID_FILE_SHOW_REVISIONS, CAdapt_ItDoc::OnUpdateShowPreviousVersions)
 	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
     EVT_UPDATE_UI(ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnUpdateTakeOwnership)
-    EVT_MENU (ID_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
-    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_item)
+    EVT_MENU (ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnShowFileLog)
+    EVT_UPDATE_UI(ID_DVCS_LOG_FILE, CAdapt_ItDoc::OnUpdateShowFileLog)
+    EVT_MENU (ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnShowProjectLog)
+    EVT_UPDATE_UI(ID_DVCS_LOG_PROJECT, CAdapt_ItDoc::OnUpdateShowProjectLog)
+    EVT_MENU (ID_MENU_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
 
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
@@ -414,8 +415,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
-
-    pApp->m_owner = pApp->m_strUserID;  // this is our doc
 
 	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
@@ -1477,18 +1476,10 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 {
 	wxCommandEvent	dummy;
 
-    // BEW comment 3Jun13. This function works to support NOOWNER (#defined as the string
-    // ****) as a default owner so long as KB Sharing, or DVCS, is not invoked. Once one of
-    // those is invoked, a unique owner (e.g. a full email address, or other unique name
-    // string) and an informal username (such as "John Doe") need to be supplied - and the
-    // dialog for doing that won't allow dismissal of itself without something other than
-    // **** being typed in each of its two wxTextCtl widgets. The function which checks for
-    // empty string or **** is CheckUsername() - it's in helpers.cpp.
-
-	if (gpApp->m_owner == gpApp->m_strUserID)
+	if (gpApp->m_owner == gpApp->m_AIuser)
 		return;								// if we're already the owner, there's nothing to do
 
-	gpApp->m_owner = gpApp->m_strUserID;	// force doc's owner to be logged-in user, no matter what
+	gpApp->m_owner = gpApp->m_AIuser;		// force doc's owner to be logged-in user, no matter what
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
 	Modify (TRUE);							// mark doc dirty, to ensure new owner gets saved
 
@@ -1565,27 +1556,13 @@ bool  CAdapt_ItDoc::Git_installed()
 
 bool  CAdapt_ItDoc::Commit_valid()
 {
-    wxCommandEvent	dummy;
+	if (gpApp->m_AIuser == NOOWNER || gpApp->m_owner == NOOWNER)  return TRUE;
 
-    if ( gpApp->m_strUserID == NOOWNER )
-    {
-		wxMessageBox (_T("Before saving in the document history, you must enter a username for yourself."));
-        gpApp->OnEditChangeUsername (dummy);
-
-        if ( gpApp->m_strUserID == NOOWNER )           // did we get a username?
-        {                                              // nope - whinge and bail out.
-            wxMessageBox(_T("No username entered -- document not saved."));
-            return FALSE;
-        }
-    }
-
-	if (gpApp->m_owner == NOOWNER)  return TRUE;        // if the doc doesn't have an owner, it's always OK to commit it
-
-	if (gpApp->m_strUserID != gpApp->m_owner)
+	if (gpApp->m_AIuser != gpApp->m_owner)
 	{
 		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
-					  + _T(" but the currently logged in user is ") + gpApp->m_strUserID
-					  + _T(".  Only the document's owner can save in the document history.") );
+					  + _T(" but the currently logged in user is ") + gpApp->m_AIuser
+					  + _T(".  Only the document's owner can commit changes to it.") );
 		return FALSE;
 	}
 	else  return TRUE;
@@ -1605,15 +1582,19 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	wxString		origOwner = gpApp->m_owner;
     int             origCommitCnt = gpApp->m_commitCount;
 
+// Do we need a check here that the file is really under version control??  More likely
+// If a trial is under way, we need a decision from the user first as to whether to accept the
+// trial or go back.
+
 	if (gpApp->m_trialVersionNum >= 0)
 	{
-		wxMessageBox (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
+		wxMessageBox (_T("Before committing you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
 
-    if (!Commit_valid())
-		return -1;              // bail out if the ownership etc. isn't right
-
+	if (!Commit_valid())
+		return -1;              // bail out if the ownership of the document isn't right
+    
     if ( !gpApp->m_pDVCS->AskSaveAndCommit (blurb) )
         return -1;              // or if user cancelled dialog
 
@@ -1629,7 +1610,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 
 	gpApp->m_commitCount += 1;					// bump the commit count
 
-	gpApp->m_owner = gpApp->m_strUserID;		// owner may have been NOOWNER, but must be assigned on a commit
+	gpApp->m_owner = gpApp->m_AIuser;			// owner may have been NOOWNER, but must be assigned on a commit
 
 	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
@@ -1665,7 +1646,7 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 {
     int returnCode;
-
+    
     wxASSERT (revNum >= 0);
 
     if ( revNum >= gpApp->m_versionCount )
@@ -1673,28 +1654,32 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
         wxMessageBox (_T("We're already back at the earliest version saved!") );
 		return;
     }
-
+    
  	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
-
-// a negative returnCode means a bug, so let's catch it:
-    wxASSERT(returnCode >= 0);
-
-    if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
-                                    //  message should have been displayed already.
-
-// So far so good.  But we need to re-read the doc.  If we're not at the latest revision,
-// the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
-// If an error has come up, we've already bailed out, leaving the trial status alone.
-
-    gpApp->m_trialVersionNum = revNum;          // successfully got to requested revision
-    DocChangedExternally();
-
-    if (revNum == 0)
-    {                                       // we're at the latest revision, so the trial's over
-        gpApp->m_pDVCSNavDlg->Destroy();    // take down the dialog
-        gpApp->m_pDVCSNavDlg = NULL;
-        gpApp->m_trialVersionNum = -1;
-        gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
+    
+	if (returnCode == -2)  return;			// bail out on error - message should already be displayed
+    
+	if (returnCode == -1)
+	{                                       // BUG!!!
+		wxMessageBox (_T("We shouldn't have got here!!!!") );
+		return;
+	}
+    
+	if (returnCode == 0)
+	{		// So far so good.  But we need to re-read the doc.  If we're not at the latest revision,
+            // the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
+            // If an error has come up, we leave the trial status alone.
+        
+		gpApp->m_trialVersionNum = revNum;          // successfully got to requested revision
+		DocChangedExternally();
+        
+        if (revNum == 0)
+        {                                       // we're at the latest revision, so the trial's over
+            gpApp->m_pDVCSNavDlg->Destroy();    // take down the dialog
+            gpApp->m_pDVCSNavDlg = NULL;
+            gpApp->m_trialVersionNum = -1;
+            gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
+        }
     }
 }
 
@@ -1703,8 +1688,8 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     deciding what to do.  It's either called directly from the menu choice, or via the "show history" dialog
     where we can select any earlier version and look at it.  In this case we pass TRUE for fromLogDialog.
     If we haven't just done a commit, we need to do one so that we can come back to the latest version if we
-    need to.  In this case, and always if we're called directly, we need to call DVCS to (re-)read the version log.
-    If we're called from the dialog, OnShowFileLog() below has already read the log, so we don't need to do it
+    need to.  In this case, and always if we're called directly, we need to call DVCS to (re-)read the version log.  
+    If we're called from the dialog, OnShowFileLog() below has already read the log, so we don't need to do it 
     again unless we do another commit.
     startHere gives the version number we're to show initially, with zero as the latest.  If we're called
     directly, we'll always start with version 1.  If called from the dialog, any version can be asked for,
@@ -1720,30 +1705,30 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     bool            didCommit = FALSE;
 
     wxASSERT (startHere >= 0);
-
+    
     if (gpApp->m_commitCount <= 0)
     {
-        wxMessageBox (_T("There are no earlier versions saved!") );
+        wxMessageBox (_T("There are no earlier version saved!") );
         return;
     }
-
+    
     if (trialRevNum == 0)
     {
         wxMessageBox (_T("We're already back at the earliest version saved!") );
         return;
     }
-
+    
     if (trialRevNum > 0)
     {
         wxMessageBox (_T("We're shouldn't have got here!") );
         return;
     }
-
+    
     // We're initiating a trial review of previoius versions.  We need to save and commit the current
     // version, so we can come back to it if necessary.  But we don't need to do this if the doc
     // has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
     // we set m_saved_with_commit false for this test, since calling IsModified() will return false.
-
+    
     if ( IsModified() || !gpApp->m_saved_with_commit )
     {
         if (DoSaveAndCommit(_T("Before we can go back to previous versions we must save and remember the document as it is now.  You can enter a \
@@ -1751,22 +1736,22 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
             return;			// bail out on error or if user cancelled - message should be already displayed
         didCommit = TRUE;
     }
-
+    
     if (!fromLogDialog || didCommit)
     {
         returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
         if (returnCode < 0)
             return;                             // bail out on error
-
+    
         gpApp->m_versionCount = returnCode;         // success - now we have the current total number of log entries
         if (fromLogDialog)  startHere++;        // log versions will have gone up by 1
     }
-
+    
     if (startHere == 0)  return;                // presumably the latest version was chosen in the log dialog,
                                                 // and we didn't commit a later one, so there's nothing more to do!
 
     gpApp->m_trialVersionNum = startHere;                           // and here's where we'll start from
-
+    
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
     pNavDlg->ChooseVersion (startHere);                         // changes the doc version, and sets fields in the dialog
@@ -1793,7 +1778,10 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 		wxMessageBox (_T("We're not looking at earlier revisions!"));
 		return;
 	}
-	gpApp->m_trialVersionNum = -1;		// cancel trialling.  m_commitCount should be OK as we read it from
+
+// ***** need a messagebox here to give them a chance to bail out
+    
+	gpApp->m_trialVersionNum = -1;			// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
     gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
@@ -1807,21 +1795,18 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 
     if (!Git_installed())
         return;
-
+    
 // need to check if a trial is already under way, and if so, bail out
 
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
-    {                                           // an error probably means this is a new repository so there's nothing there yet.
-        wxMessageBox (_T("There are no previous versions in the history!"));
-        return;                                 // in this case we don't show the dialog
-    }
+        return;                             // bail out on error - don't even show the dialog
 
     gpApp->m_versionCount = returnCode;         // this is the total number of log entries
 
     DVCSLogDlg  logDlg ( gpApp->GetMainFrame() );
     returnCode = logDlg.ShowModal();
-
+    
 // now, which button was hit?
     if (returnCode == wxID_OK)
     {                   // Show selected version
@@ -1842,28 +1827,45 @@ void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 {
-    if (!gpApp->m_DVCS_installed)
-    {
-        wxMessageBox(_T("Git is apparently not yet installed on this computer."));
+    if (!Git_installed())
         return;
-    }
-    gpApp->m_pDVCS->DoDVCS (DVCS_CHECK, 1);     // nonzero parm means display the returned result in a wxMessageBox.
+    
+    gpApp->m_pDVCS->DoDVCS (DVCS_CHECK, 1);     // nonzero parm means display the returned result
 }
 
-// Update handler for DVCS-related menu items -- these used to be disabled if git wasn't installed, but now they're
-//  always enabled, and we give a message if git isn't installed.  We just disable the items if a trial is current,
-//  and just have one handler for all the items.
+// Update handlers for DVCS-related menu items -- these used to be disabled if git wasn't installed, but now they're
+//  always enabled, and we give a message if git isn't installed.
 
-void CAdapt_ItDoc::OnUpdateDVCS_item (wxUpdateUIEvent& event)
+void CAdapt_ItDoc::Enable_DVCS_item (wxUpdateUIEvent& event)
 {
     int	 trialRevNum = gpApp->m_trialVersionNum;
 
-    event.Enable ( trialRevNum < 0 );         // item gets enabled iff no trial current
+    event.Enable (trialRevNum < 0);         // item gets enabled iff no trial current
+}
+
+void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)
+{
+    Enable_DVCS_item (event);
+}
+
+void CAdapt_ItDoc::OnUpdateShowPreviousVersions (wxUpdateUIEvent& event)
+{
+    Enable_DVCS_item (event);
+}
+
+void CAdapt_ItDoc::OnUpdateShowFileLog (wxUpdateUIEvent& event)
+{
+    Enable_DVCS_item (event);
+}
+
+void CAdapt_ItDoc::OnUpdateShowProjectLog (wxUpdateUIEvent& event)
+{
+    Enable_DVCS_item (event);
 }
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
 {
-    event.Enable ( gpApp->m_owner != gpApp->m_strUserID );     // if user is already the owner, we disable the menu item
+    Enable_DVCS_item (event);
 }
 
 
@@ -5276,21 +5278,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		return FALSE;
 	}
 
-	// BEW 25Jun13, test the activesequnum value, because if it is large but the user has
-	// manually fiddled with the document to make it have fewer piles, then the doc's
-	// carried value of the active location may be beyond the end of the shortened
-	// document, and then trying to set it returns NULL as the m_pActivePile value. So
-	// check and if necessary give it a safe smaller value
-	int nMaxCurrentSequNum = pApp->m_pSourcePhrases->GetCount() - 1;
-	if (pApp->m_nActiveSequNum > nMaxCurrentSequNum)
-	{
-		pApp->m_nActiveSequNum = 0; // generally the most safe value it can have
-	}
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);	// seq num was initially zero but should have been set
 															// to a "real" value when the xml was read in
-
-	pApp->m_pLayout = pApp->m_pLayout; // for debugging
-
 
 	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
 	// because each document, on opening it, it must start with a truly empty EditRecord; and
@@ -5301,7 +5290,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
 	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
 
-	// whm added 1Oct12. After removing the MRU stuff from
+    // whm added 1Oct12. After removing the MRU stuff from
     // OnOpenDocument(), I've retained the initial test, i.e., if
     // (pApp->m_pKB == NULL), and if that test passes, then there may
     // be something more that needs to be accounted for in the removal
@@ -5312,7 +5301,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxASSERT_MSG(FALSE,_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 		pApp->LogUserAction(_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 	}
-
     // whm 1Oct12 removed MRU code
 	/*
 	// if we get here by having chosen a document file from the Recent_File_List, then it is
@@ -5722,11 +5710,6 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletio
 	// defaulting to FALSE because the deep copied sublists never have partner piles
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//wxASSERT(pApp != NULL);
-	// BEW 25Jun13 added next two lines, somehow on a new project this pList pointer would
-	// go NULL, when first opening a doc file copied from elsewhere as the first doc of
-	// the project
-	if (pList == NULL)
-		return;
 	if (pList != NULL)
 	{
 		if (!pList->IsEmpty())
@@ -21227,104 +21210,20 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
         // what is in it. A normal Open command can also be tried too.
 		gpApp->LogUserAction(thismsg);
 	}
-
+//*
 #if defined(_KBSERVER)
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
 	{
-		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
-		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
-		bool bUserCancelled = FALSE;
-
-        // BEW added 28May13, check the m_strUserID and m_strUsername strings are setup up,
-        // if not, open the dialog to get them set up -- the dialog cannot be closed except
-        // by providing non-empty strings for the two text controls in it. Setting the
-        // strings once from any project, sets them for all projects forever unless the
-		// user deliberately opens the dialog using the command in the View menu. (The
-		// strings are not set up if one is empty, or was the  ****  (NOOWNER) string)
-		bool bUserDidNotCancel = CheckUsername();
-		if (!bUserDidNotCancel)
+		gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
+		// instantiate both adapting and glossing KbServer class instances, enabled by default
+		if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
 		{
-			// He or she cancelled. So remove KB sharing for this project
-			gpApp->LogUserAction(_T("User cancelled from CheckUsername() in DoUnpackDocument() in Adapt_ItDoc.cpp"));
-			gpApp->ReleaseKBServer(1); // the adapting one
-			gpApp->ReleaseKBServer(2); // the glossing one
-			gpApp->m_bIsKBServerProject = FALSE;
-			wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
-			_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
+			// an error message will have been shown, so just log the failure
+			gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
 		}
-		else
-		{
-			// Valid m_strUserID and m_strUsername should be in place now, so
-			// go ahead with next steps which are to get the password to this server, and
-			// then to check for valid language codes
-
-			// Get the server password. Returns an empty string if nothing is typed, or if the
-			// user Cancels from the dialog
-			CMainFrame* pFrame = gpApp->GetMainFrame();
-			wxString pwd = pFrame->GetKBSvrPasswordFromUser();
-			// there will be a beep if no password was typed, or it the user cancelled; and an
-			// empty string is returned if so
-			if (!pwd.IsEmpty())
-		{
-				pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-											   // ready for SetupForKBServer() below to use it
-                // Since a password has now been typed, we can check if the username is
-                // listed in the user table. If he isn't, the hookup can still succeed, but
-                // we must turn KB sharing to be OFF
-
-                // The following call will set up a temporary instance of the adapting
-                // KbServer in order to call it's LookupUser() member, to check that this
-                // user has an entry in the entry table; and delete the temporary instance
-                // before returning
-				bool bUserIsValid = CheckForValidUsernameForKbServer(gpApp->m_strKbServerURL, gpApp->m_strUserID, pwd);
-				if (!bUserIsValid)
-				{
-                    // Access is denied to this user, so turn off the setting which says
-                    // that this project is one for sharing, and tell the user
-					gpApp->LogUserAction(_T("Kbserver user is invalid; in DoUnpackDocument() in Adapt_ItDoc.cpp"));
-					gpApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-					gpApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
-					gpApp->m_bIsKBServerProject = FALSE;
-					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
-					msg = msg.Format(msg, gpApp->m_strUserID.c_str());
-					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
-					return TRUE; // failure to reinstate KB sharing doesn't constitute a
-					// failure to unpack, so return TRUE here
-				}
-				else
-				{
-					// we want to ensure valid codes four source, target and glosses languages,
-					// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-					if (!bDidItOK && bUserCancelled)
-					{
-						// We must assume the codes are wrong or incomplete, or that the
-						// user has changed his mind about KB Sharing being on - so turn
-						// it off
-						gpApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-						gpApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
-						gpApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
-						gpApp->m_bIsKBServerProject = FALSE;
-					}
-					else
-					{
-						// Go ahead...
-						gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
-						// instantiate both adapting and glossing KbServer class instances, enabled by default
-						if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
-						{
-							// an error message will have been shown, so just log the failure
-							gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
-							gpApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-						}
-					}
-				} // end of else block for test: if (!bUserIsValid)
-			} // end of TRUE block for test: if (!pwd.IsEmpty())
-		} // end of else block for test: if (!bUserDidNotCancel)
-	} // end of TRUE block for test: if (bGotItOK && gpApp->m_bIsKBServerProject)
+	}
 #endif
-
+//*/
 	return TRUE;
 }
 
@@ -21621,9 +21520,6 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	pApp->GetView()->RemoveSelection(); // BEW 6Jun13 removed it from Layout::PlaceBox()where
-			// calling it is too late (it's after a layout change, leading to a crash), to be
-			// here instead
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE;			// this is a global boolean

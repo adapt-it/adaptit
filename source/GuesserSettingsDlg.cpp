@@ -72,9 +72,9 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	wxASSERT(pSlider != NULL);
 	//pSlider->SetValidator(wxGenericValidator(&nGuessingLevel));
 
-	pAllowGuessertoOperateOnUnchangedOutput = (wxCheckBox*)FindWindowById(ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT);
-	wxASSERT(pAllowGuessertoOperateOnUnchangedOutput != NULL);
-	//pAllowGuessertoOperateOnUnchangedOutput->SetValidator(wxGenericValidator(&bAllowGuesseronUnchangedCCOutput));
+	pAllowCCtoOperateOnUnchangedOutput = (wxCheckBox*)FindWindowById(ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT);
+	wxASSERT(pAllowCCtoOperateOnUnchangedOutput != NULL);
+	//pAllowCCtoOperateOnUnchangedOutput->SetValidator(wxGenericValidator(&bAllowCConUnchangedGuesserOutput));
 
 	pStaticTextNumCorInAdaptationsGuesser = (wxStaticText*)FindWindowById(ID_TEXT_STATIC_NUM_CORRESP_ADAPTATIONS_GUESSER);
 	wxASSERT(pStaticTextNumCorInAdaptationsGuesser != NULL);
@@ -103,10 +103,10 @@ void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	//InitDialog() is not virtual, no call needed to a base class
 	bUseAdaptationsGuesser = pApp->m_bUseAdaptationsGuesser;
 	nGuessingLevel = pApp->m_nGuessingLevel;
-	bAllowGuesseronUnchangedCCOutput = pApp->m_bAllowGuesseronUnchangedCCOutput;
+	bAllowCConUnchangedGuesserOutput = pApp->m_bAllowGuesseronUnchangedCCOutput;
 	pCheckUseGuesser->SetValue(bUseAdaptationsGuesser);
 	pSlider->SetValue(nGuessingLevel);
-	pAllowGuessertoOperateOnUnchangedOutput->SetValue(bAllowGuesseronUnchangedCCOutput);
+	pAllowCCtoOperateOnUnchangedOutput->SetValue(bAllowCConUnchangedGuesserOutput);
 	tempGuessHighlightColor = pApp->m_GuessHighlightColor;
 	nCorrespondencesLoadedInAdaptationsGuesser = pApp->m_nCorrespondencesLoadedInAdaptationsGuesser;
 	nCorrespondencesLoadedInGlossingGuesser = pApp->m_nCorrespondencesLoadedInGlossingGuesser;
@@ -153,13 +153,8 @@ void CGuesserSettingsDlg::OnChooseGuessHighlightColor(wxCommandEvent& WXUNUSED(e
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-// 
 void CGuesserSettingsDlg::OnOK(wxCommandEvent& event) 
 {
-    // BEW 23May13, Added next line because if the user unticked the checkbox, the new
-    // value of FALSE was not picked up, and the setting stayed TRUE
-	bUseAdaptationsGuesser = pCheckUseGuesser->GetValue();
-
 	// Note: The App's member values are updated in CAdapt_ItView::OnButtonGuesserSettings()
 	// and LoadGuesser() called if necessary, by comparing this local class' values with 
 	// those on the App (for detecting changes made in this dialog class).

@@ -3096,24 +3096,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 #else
 			gpApp->m_owner = attrValue;
 #endif	
-            
-// (May 2013) If m_strUserID is not NOOWNER, it's the unique user ID for DVCS or kbserver.  If the incoming doc has a real
-// owner, we leave that alone.  Otherwise the incoming doc's owner becomes m_strUserID, NOOWNER or otherwise.
-            
-            if (gpApp->m_owner == NOOWNER)
-                gpApp->m_owner = gpApp->m_strUserID;
-
-// (TEMP CHANGE May 2013) For testing we've been previously using the logged-in username for the owner.  If this document
-//  has this for the owner, we'll just change it to m_strUserID.  This should only affect doc files we've been testing
-//  with.  Soon these 2 lines won't ever execute, and we can then remove them.
-                         
-if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
-                gpApp->m_owner = gpApp->m_strUserID;
-            
-// NOTE - even if we changed the owner, we haven't bothered to mark the doc dirty.  If it's closed without saving,
-//  that doesn't matter since we'll just catch it again next time.  This way we don't bother the user with a save query, if
-//  they didn't actually do any adapting.
-
 		}
 
 		else if (gnDocVersion >= 7 && attrName == xml_commitcnt)
@@ -6444,7 +6426,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 					// .NET support for xml parsing of KB file;
 					// *ATTENTION BOB*  add any bool setting you need here
 					// TODO: whm check the following conversion
-					wxString thePath ( (const char*)attrValue, wxConvUTF8 ); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+					wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 														// here in a local wxString for now, in case you need to use it
 				}
 				else
@@ -6867,7 +6849,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 					// .NET support for xml parsing of KB file;
 					// *ATTENTION BOB*  add any bool setting you need here
 					// TODO: whm check the following conversion
-					wxString thePath ( (const char*)attrValue, wxConvUTF8 ); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+					wxString thePath(attrValue,wxConvUTF8); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
 														// here in a local wxString for now, in case you need to use it
 				}
 				else

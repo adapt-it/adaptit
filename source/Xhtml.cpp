@@ -924,7 +924,6 @@ CBString Xhtml::ToUtf8(const wxString& str)
 	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
 	return CBString(tempBuf);
 }
-
 wxString Xhtml::ToUtf16(CBString& bstr)
 {
 	// whm 21Aug12 modified. No need for #ifdef _UNICODE and #else
@@ -935,31 +934,11 @@ wxString Xhtml::ToUtf16(CBString& bstr)
 
 CBString Xhtml::GetExporterID()
 {
-	// BEW refactored 20May13, to give priority to the app-wide username string, which is
-	// stored in the m_strUserID wxString variable; the latter is used for DVCS, and 
-	// KbServer support, and since it's supposed to be a unique string, we'll use it here
-	// too. Typically it's the user's full email address string, but it can be any string
-	// the user types at the ProjectPage of the wizard, where it can be reset to a
-	// different string if designed, and only can be changed there. Stored in basic config.
-	// BEW changed my mind, 24May13 -- the email address could put people at risk from 
-	// hostile unfriendlies; the userid from the computer account is less likely to
-	// unambiguously identify the person, and since the xhtml could turn up anywhere, I
-	// would rather reduce the security risk, so I'll reinstate the old code
-	wxString myID;
-	//if (!m_pApp->m_strUserID.IsEmpty())
-	//{
-	//	myID = m_pApp->m_strUserID;
-	//}
-	//else
-	//{
-	//	myID = ::wxGetUserId();
-	//}
-	myID = ::wxGetUserId();
+	wxString myID = ::wxGetUserId();
 	CBString s = ToUtf8(myID);
 	ReplaceEntities(s);
 	return s;
 }
-
 CBString Xhtml::GetLanguageCode()
 {
 	return ToUtf8(m_languageCode);
@@ -1043,7 +1022,7 @@ CBString Xhtml::GetRunningHeader(wxString* pBuffer)
 	}
 }
 */
-/* This isn't used anywhere, so I removed it on 20May13
+
 CBString Xhtml::GetMachineName()
 {
 	CBString emptyStr = "";
@@ -1057,7 +1036,7 @@ CBString Xhtml::GetMachineName()
 	ReplaceEntities(s);
 	return s;
 }
-*/
+
 // This is a filtering function, used on the wxString of USFM marked up text data, to
 // remove substrings (such as markers we don't want), or to change substrings (typically 
 // markers we don't support and so they are to be replaced with other markers we do
@@ -4164,7 +4143,7 @@ CBString Xhtml::BuildPictureProductions(CBString strPictureID, CBString langCode
 		strSize = right.Left(offset);
 		right = right.Mid(offset + 1); // next will start from char following third bar (LOCation range info)
 		wxASSERT(!right.IsEmpty());
-		if (strSize == col)
+		if (strSize = col)
 		{
 			// fit picture to current column
 			strSize = "pictureColumn";

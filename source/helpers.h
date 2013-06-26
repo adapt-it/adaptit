@@ -349,14 +349,6 @@ wxString  MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang
 // function; 
 bool	  IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase);
 
-// A helper for KB Sharing, to check certain language codes exist, and if they don't, to
-// let the user set them using the language codes dialog
-bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled);
-// A helper for checking if username strings needed are set, and if not, to open dialog
-// for doing so, we'll also make it possible to do this from the view menu
-bool CheckUsername(); // returns TRUE if all's well, FALSE if user hit 
-					  // Cancel button in the internal dialog
-
 // A helper for the wxList class (legacy class, using Node*) - to replace the pointed at original
 // CSourcePhrase instance (param 2) at whatever Node it is stored on, with the pointed at
 // new CSourcePhrase instance (param 3) at the same Node, returning that Node's pointer.
@@ -479,12 +471,6 @@ bool     GetLanguageCodePrintName(wxString code, wxString& printName);
 #if defined (_KBSERVER)
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
-
-bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
-
-bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
-					wxString srcLangCode, wxString tgtLangCode, int kbType);
-CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
 #endif
 

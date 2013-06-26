@@ -100,7 +100,7 @@
 DVCS::DVCS(void)
 {
 	m_pApp = &wxGetApp();
-	m_user = m_pApp->m_strUserID;
+	m_user = m_pApp->m_AIuser;
 }
 
 // destructor:
@@ -156,7 +156,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	if (!local_arguments.IsEmpty())
 	str = str + _T(" ") + local_arguments;
 
-//wxMessageBox (str);		// uncomment for debugging
+//wxMessageBox (str);		// debugging
 
 	result = wxExecute (str, git_output, errors, 0);
 
@@ -172,8 +172,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 
 	if (result)		// An error occurred
     {
-//wxMessageBox(_T("an error came up!"));      // uncomment for debugging
-        if (!bDisplayOutput)                // if we're not to display output, we just get straight out, returning the error code.
+        if (!bDisplayOutput)            // if we're not to display output, we just get straight out, returning the error code.
             return result;
 
         returnCode = result;
@@ -218,7 +217,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 
 // Setup functions:
 
-// We init the repository automatically the first time we commit a file.  We want to do this silently, so if everything succeeds
+// We now init the repository automatically the first time we commit a file.  We want to do this silently, so if everything succeeds
 //  we no longer show a message.
 
 int  DVCS::init_repository ()
@@ -236,47 +235,12 @@ int  DVCS::init_repository ()
     if (returnCode)         // git init failed -- most likely git isn't installed.
         wxMessageBox(_T("We couldn't set up version control.  Possibly Git has not been installed yet.  You could contact your administrator for help."));
 
+//    else
+//        wxMessageBox(_T("Version control is now set up for this project.")); -- we now don't need a message here
+
     return returnCode;
 }
 
-
-// update_user_details() sets the user.email and user.name items in a git config call.  These have to be correctly set before a commit.
-// Since our m_strUserID and m_strUsername strings may have changed, or our current directory may have changed, we just query
-// git for the current values, and change them if they differ from those strings.
-
-int  DVCS::update_user_details ()
-{
-    int     returnCode;
-    
-
-    git_command = _T("config");
-    git_arguments.Clear();
-
-// check user.email agrees with m_strUserID
-    git_output.Clear();
-    git_options = _T("--get user.email");
-    returnCode = call_git(FALSE);
-
-    if ( returnCode || ( git_output.Item(0) != m_pApp->m_strUserID ) )      // an error might just mean there's no user.email yet
-    {   git_options = _T("user.email");
-        git_arguments = m_pApp->m_strUserID;    // this can contain spaces but it works like a filename and we handle that properly
-        returnCode = call_git (FALSE);
-        if (returnCode)  return returnCode;
-    }
-
-// check user.name agrees with m_strUsername
-    git_output.Clear();
-    git_options = _T("--get user.name");
-    returnCode = call_git(FALSE);
-    if ( returnCode || ( git_output.Item(0) != m_pApp->m_strUsername ) )      // an error might just mean there's no user.name yet
-    {   git_options = _T("user.name");
-        git_arguments = m_pApp->m_strUsername;  // this can contain spaces but it works like a filename and we handle that properly
-        returnCode = call_git (FALSE);
-        if (returnCode)  return returnCode;
-    }
-
-    return 0;
-}
 
 // add_file() adds the file to the staging area, ready for a commit.  This works even if the doc isn't being tracked yet,
 //  in which case it starts tracking, then does the add.
@@ -288,7 +252,8 @@ int  DVCS::add_file (wxString fileName)
 // First we init the repository if necessary.  This does nothing if it's already initialized.
 
     returnCode = init_repository();
-    if (returnCode)  return returnCode;
+    if (returnCode)
+        return returnCode;
 
 	git_command = _T("add");
 	git_arguments = fileName;
@@ -305,24 +270,25 @@ int  DVCS::add_file (wxString fileName)
 
 int  DVCS::commit_file (wxString fileName)
 {
-	int     commitCount = m_pApp->m_commitCount,
-            returnCode;
+	wxString		local_owner = m_pApp->m_owner;
+	int				commitCount = m_pApp->m_commitCount,
+                    returnCode;
+
+#ifndef __WXMSW__
+	local_owner.Replace (_T(" "), _T("\\ "), TRUE);
+#endif
 
 // first we add the file to the staging area, and bail out on error.
 
     returnCode = add_file(fileName);
-    if (returnCode)  return returnCode;
+    if (returnCode)
+        return returnCode;
 
-// next, before the commit, we update the user's details if necessary:
-    
-    returnCode = update_user_details();
-    if (returnCode)  return returnCode;
-
-// now we commit the file:
+// now we commit it
 
 	git_command = _T("commit");
 	git_arguments.Clear();
-	git_options = _T("-m \"");
+	git_options << _T("-m \"");
 
     if ( wxIsEmpty(m_version_comment) )
     {                   // user didn't enter a comment.  We just put "n commits"
@@ -364,24 +330,18 @@ int  DVCS::setup_versions ( wxString fileName )
     return git_count;
 }
 
-/*  get_version() calls git to checkout the given version number, defined by the line number in the log which we should
-    have already read.  The log has multiple entries, each one line long, with the format we asked for in setup_versions():
- 
-        <40 hex digits hash>#<committer name>#commit date#<commit comment>
- 
-    The caller should ensure we're not being asked for a nonexistent line, but we check anyway, and return -1 on out of bounds
-    of if for some reason the line is empty.  This will be a bug...
-    Otherwise we return zero normally, or if git returns an error, we return that (which must be positive).
-*/
- 
 int  DVCS::get_version ( int version_num, wxString fileName )
 {
 	wxString	nextLine, str;
     int         returnCode;
 
+    // The log has multiple entries, each one line long, with the format we asked for in setup_versions:
+    // <40 hex digits hash>#<committer name>#commit date#<commit comment>
+    // We get the next line as given by git_lineNumber.  If there aren't any
+    // more lines, we return -1.  Otherwise we return the result of the call_git() call.
 
     if ( version_num >= git_count || version_num < 0)
-        return -1;                  // return -1 on out of bounds, which shouldn't happen anyway
+        return -1;                  // shouldn't happen, but return -1 on out of bounds
 
     nextLine = git_output.Item (version_num);
     str = nextLine.BeforeFirst(_T('#'));        // get the version hash for checkout call
@@ -394,7 +354,8 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     git_arguments = fileName;
 
     returnCode = call_git(FALSE);
-    if (returnCode)  return returnCode;                 // bail out on error, returning the error code
+    if (returnCode)
+        return returnCode;                          // bail out on error
 
     str = nextLine.AfterFirst(_T('#'));                 // skip version hash
     m_version_committer = str.BeforeFirst(_T('#'));     // get committer name
@@ -402,7 +363,7 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     m_version_date = str.BeforeFirst(_T('#'));          // get commit date
     m_version_comment = str.AfterFirst(_T('#'));        // and the rest of the string, after the separator, is the comment.
                                                         // By making this the last field, it can contain anything, even our # separator
-    return 0;                                           // return no error
+    return 0;
 }
 
 /*

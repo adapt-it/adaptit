@@ -28,7 +28,7 @@ public:
 	// other methods
 	wxCheckBox* pCheckUseGuesser;
 	wxSlider* pSlider;
-	wxCheckBox* pAllowGuessertoOperateOnUnchangedOutput;
+	wxCheckBox* pAllowCCtoOperateOnUnchangedOutput;
 	wxStaticText* pStaticTextNumCorInAdaptationsGuesser;
 	wxStaticText* pStaticTextNumCorInGlossingGuesser;
 	wxPanel* pPanelGuessColorDisplay;
@@ -36,7 +36,7 @@ public:
 	int nGuessingLevel;
 	int nCorrespondencesLoadedInAdaptationsGuesser;
 	int nCorrespondencesLoadedInGlossingGuesser;
-	bool bAllowGuesseronUnchangedCCOutput;
+	bool bAllowCConUnchangedGuesserOutput;
 	wxColour tempGuessHighlightColor;
 
 protected:

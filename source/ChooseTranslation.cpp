@@ -828,20 +828,7 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		// initial letter key strings for AutoCapsLookup(), and so the Remove button must
 		// remove from both the upper and lower case pTU instances when two such exist in
 		// parallel (one for upper case initial key, the other for lower case initial key)
-		// BEW 23May13, need more logic here to handle when adaptation or gloss is an
-		// empty string
-		if (str.IsEmpty())
-		{
-			// remove the corresponding CRefString instance from the knowledge base...
-			wxASSERT(pRefString != NULL);
-			pRefString->SetDeletedFlag(TRUE);
-			pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
-			pRefString->m_refCount = 0;
-		}
-		else
-		{
-			RemoveParallelEntriesViaRemoveButton(m_pKB, m_nWordsInPhrase - 1, curKey, str);
-		}
+		RemoveParallelEntriesViaRemoveButton(m_pKB, m_nWordsInPhrase - 1, curKey, str);
 	}
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
@@ -1066,6 +1053,7 @@ void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 		// a click on "Cancel And Select" button
 		if (event.GetKeyCode() == WXK_RIGHT)
 		{
+			//wxButton* pButton = (wxButton*)FindWindowById(IDC_BUTTON_CANCEL_AND_SELECT);
 			wxButton* pButton = (wxButton*)FindWindowById(ID_BUTTON_CANCEL_AND_SELECT);
 			if (pButton->IsShown())
 			{
@@ -1081,7 +1069,7 @@ void CChooseTranslation::OnKeyDown(wxKeyEvent& event)
 
 void CChooseTranslation::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
-	// don't need to do anything except
+	// don't need to do anything
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 }
 

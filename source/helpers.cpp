@@ -59,10 +59,6 @@
 #include "tellenc.h"
 #include "RefStringMetadata.h"
 #include "Thread_PseudoDelete.h"
-#include "LanguageCodesDlg.h"
-#include "UsernameInput.h"
-#include "KbServer.h"
-#include "md5_SB.h"
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -582,7 +578,7 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 	// 1:3:4:5:6:9:10-12:13:14:20:22:24:25,26:30:
 	// changing it to this abbreviated from:
 	// 1, 3-6, 9, 10-12, 13-14, 20, 22, 24-26, 30
-	// Note: Bridged verses in the original are not combined with their contiguous
+	// Note: Bridged verses in the original are not combined with their contiguous 
 	// neighbors, so 9, 10-12, 13-14 does not become 9-14.
 	wxString tempStr;
 	tempStr.Empty();
@@ -611,7 +607,7 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 		if (aToken.Find(_T('-')) != wxNOT_FOUND || bHasNonDigitChar)
 		{
 			// the token is a bridged verse number string, i.e., 2-3
-			// or has an unrecognized non-digit char in it, so we let
+			// or has an unrecognized non-digit char in it, so we let 
 			// it stand by itself in the abbriviated tempStr
 			tempStr += _T(", ") + aToken;
 			bBridgingVerses = FALSE;
@@ -627,7 +623,7 @@ wxString AbbreviateColonSeparatedVerses(const wxString str)
 			}
 			else if (currentVerseValue - lastVerseValue == 1)
 			{
-				// the current verse is in sequence with the last verse, continue
+				// the current verse is in sequence with the last verse, continue 
 				bBridgingVerses = TRUE;
 			}
 			else
@@ -663,7 +659,7 @@ bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 	// whm 18Jul12 moved from GetSourceTextFromEditor sources to helpers.
 	// The incoming emptyVersesStr will be of the abbreviated form created by the
 	// AbbreviateColonSeparatedVerses() function, i.e., "1, 2-6, 28-29" when the
-	// chapter has been partly drafted, or "1-29" when all verses are empty. To
+	// chapter has been partly drafted, or "1-29" when all verses are empty. To 
 	// determine whether the empty verse range includes all verses of the chapter
 	// or not, we parse the incoming emptyVersesStr to see if it is of the later
 	// "1-29" form. There will be a single '-' character and no comma delimiters.
@@ -686,7 +682,7 @@ bool EmptyVerseRangeIncludesAllVersesOfChapter(wxString emptyVersesStr)
 			return FALSE;
 		tokCt++;
 	}
-
+	
 	// Check if there is no comma in the emptyVersesStr. Lack of a comma indicates
 	// that all verses are empty
 	if (tempStr.Find(',') == wxNOT_FOUND)
@@ -860,7 +856,7 @@ bool FileIsEmpty(wxString path)
 			return bIsEmpty;
 		}
 		free((void*)pByteBuf);
-
+		
 	}
 	return bIsEmpty;
 }
@@ -913,7 +909,7 @@ bool FileExists(wxString Path)
 bool FileHasNewerModTime(wxString fileAndPathTrueIfNewer, wxString fileAndPathFalseIfNewer)
 {
 #ifdef Output_Default_Style_Strings
-	// Whenever we are building the Unix-default strings we don't want the app to determine
+	// Whenever we are building the Unix-default strings we don't want the app to determine 
 	// if there is a newer version of the AI_USFM_full.xml file, so return FALSE
 	return FALSE;
 #else
@@ -1198,7 +1194,7 @@ bool IsAnsiLetterOrDigit(wxChar c)
 ///			returns false.
 /// \param	s			-> the string to be examined
 /// \remarks
-/// BEW added 24May12,
+/// BEW added 24May12, 
 /// The wxWidgets function calls IsAnsiLetterOrDigit() internally
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool IsAnsiLettersOrDigitsOnly(wxString s)
@@ -2464,26 +2460,15 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 		// change the filename by adding a suffix or incStr.
 		uniqueName = folderPathOnly + PathSeparator + fileTitleOnly + _T(".") + fileExtensionOnly;;
 	}
-	// BEW added 24May13, folderPathOnly may be empty, in which case the PathSeparator
-	// ends up first in the string. Windows will accept this in a wxFileDialog, but Linux
-	// won't, and it crashes the app (an assert from deep in wxWidgets, & error message
-	// "...the filename shouldn't contain the path". So test for initial PathSeparator and
-	// remove it if there and then return the result
-	int offset = uniqueName.Find(PathSeparator);
-	if (offset == 0)
-	{
-		// remove it
-		uniqueName = uniqueName.Mid(1);
-	}
 	return uniqueName;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \return		a wxString with consecutive whitespace characters reduced to a
+/// \return		a wxString with consecutive whitespace characters reduced to a 
 ///             single space wherever the whitespace occurs
 /// \param		rString		-> the string we are reading characters from
 /// \remarks
-/// Called from: used in BuildFootnoteOrEndnoteParts() in Xhtml.cpp
+/// Called from: used in BuildFootnoteOrEndnoteParts() in Xhtml.cpp 
 /// Searches for whitespace, converts each such to a single space, and then calls
 /// RemoveMultipleSpaces() to reduce multiple spaces to a single space
 ///////////////////////////////////////////////////////////////////////////////
@@ -2498,11 +2483,11 @@ wxString ChangeWhitespaceToSingleSpace(wxString& rString)
 		size_t i;
 		wxChar aChar;
 		for (i = 0; i < length; i++)
-		{
+		{	
 			aChar = destStr[i];
 			if (pDoc->IsWhiteSpace(&aChar))
 			{
-				destStr.SetChar(i, aSpace);
+				destStr.SetChar(i, aSpace); 
 			}
 		}
 		destStr = RemoveMultipleSpaces(destStr);
@@ -2617,7 +2602,7 @@ void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 	else if (wholeMarker == _T("\\f ") || wholeMarker == _T("\\fe "))
 	{
 		// Remove the \f and \fe markers as well as their associated content markers: \fr \fk \fq \fqa \fl
-		// \fp \ft \fdc \fv \fm
+		// \fp \ft \fdc \fv \fm 
 		// Use the wxArrayString m_footnoteMarkerSet which contains the footnote and endnote markers
 		// plus all of the associated content markers; each includes the initial backslash and following
 		// space.
@@ -2640,7 +2625,7 @@ void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 		if (posn != -1)
 		{
 			// The wholeMarker does exist in the string, so remove it.
-			// NOTE: By removing a marker from the filter marker string we are creating a
+			// NOTE: By removing a marker from the filter marker string we are creating a 
 			// string that can no longer be compared with other filter marker strings by
 			// means of the == or != operators. Comparison of such filter marker strings will now
 			// necessarily require a special function StringsContainSameMarkers() be used
@@ -2659,7 +2644,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 	wxASSERT(!wholeMarker.IsEmpty());
 	// then add the necessary final space
 	wholeMarker += _T(' ');
-
+	
 	if (wholeMarker == _T("\\x "))
 	{
 		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
@@ -2676,7 +2661,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
 			{
 				// The wholeMarker doesn't already exist in the string, so append it.
-				// NOTE: By appending a marker to the filter marker string we are creating a
+				// NOTE: By appending a marker to the filter marker string we are creating a 
 				// string that can no longer be compared with other filter marker strings by
 				// means of the == or != operators. Comparison of such filter marker strings will now
 				// necessarily require a special function StringsContainSameMarkers() be used
@@ -2702,7 +2687,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 			if (filterMkrStr.Find(marker) == wxNOT_FOUND)
 			{
 				// The wholeMarker doesn't already exist in the string, so append it.
-				// NOTE: By appending a marker to the filter marker string we are creating a
+				// NOTE: By appending a marker to the filter marker string we are creating a 
 				// string that can no longer be compared with other filter marker strings by
 				// means of the == or != operators. Comparison of such filter marker strings will now
 				// necessarily require a special function StringsContainSameMarkers() be used
@@ -2717,7 +2702,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 		if (filterMkrStr.Find(wholeMarker) == wxNOT_FOUND)
 		{
 			// The wholeMarker doesn't already exist in the string, so append it.
-			// NOTE: By appending a marker to the filter marker string we are creating a
+			// NOTE: By appending a marker to the filter marker string we are creating a 
 			// string that can no longer be compared with other filter marker strings by
 			// means of the == or != operators. Comparison of such filter marker strings will now
 			// necessarily require a special function StringsContainSameMarkers() be used
@@ -4448,7 +4433,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 
 				// get the post-placement resulting string
 				Gstr = dlg.GetPostPlacementString();
-
+			
                 // as of version 6.2.0, we store the result whenever produced, so that the
                 // placement dialog isn't opened again (unless the user puts phrase box at
                 // this CSourcePhrase's location and edits either puncts or word(s) to be
@@ -4523,7 +4508,7 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	return appendHere;
 }
 
-// a handy check for whether or not the wxChar which ptr points at is ~
+// a handy check for whether or not the wxChar which ptr points at is ~ 
 // BEW created 25Jan11, used in FindParseHaltLocation() of doc class
 bool IsFixedSpace(wxChar* ptr)
 {
@@ -5088,7 +5073,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		// is ambiguity but markersToPlaceArray is empty, and so no placement dialog shows
 		// and the endmarker and outer punctuation just get lost. So I'm fixing this here.
 		bool bAddOuterPuncts = FALSE;
-		if (finalPuncts.IsEmpty() && !pSP->GetEndMarkers().IsEmpty()
+		if (finalPuncts.IsEmpty() && !pSP->GetEndMarkers().IsEmpty() 
 			&& !pSP->GetFollowingOuterPunct().IsEmpty())
 		{
 			// this following outer punctuation hasn't been placed yet
@@ -5194,7 +5179,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 
 				// get the post-placement resulting string
 				Tstr = dlg.GetPostPlacementString();
-
+				
 				// as of version  6.2.0, we store the result whenever produced, so that
 				// the placement dialog isn't opened again (unless the user puts phrase
 				// box at this CSourcePhrase's location and edits either puncts or word(s)
@@ -9195,7 +9180,7 @@ bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase
 	return TRUE;
 }
 
-// BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation
+// BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation 
 // dialog; used only when the app member boolean, m_bDoLegacyLowerCaseLookup is FALSE (FALSE
 // is the default, this member did not exist for versions 6.4.1 and earlier) - needed because
 // this new member can result in legacy upper case initial keys being made lower case and
@@ -9209,12 +9194,12 @@ bool IsPhraseBoxAdaptionUnchanged(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase
 void RemoveParallelEntriesViaRemoveButton(
 	CKB*   pKB,      // ptr to which KB is currently active, either glossing one, or adapting one
 	int    mapIndex, // 0 is first map in pKB, 1 is second, etc
-	wxString keyStr, // Choose Translation's list entry, or in KBEditor's list entry, being
+	wxString keyStr, // Choose Translation's list entry, or in KBEditor's list entry, being 
 					 // removed from the knowledge base (either context could have UCase or
 					 // LCase for first letter of phrase)
 	wxString adaption) // when this function is called, adaption will be a LC-initial string
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItApp* pApp = &wxGetApp(); 
 	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[mapIndex];
 #if defined(_KBSERVER)
 	bool bStoringNotInKB = FALSE;
@@ -9253,7 +9238,7 @@ void RemoveParallelEntriesViaRemoveButton(
 		}
 	}
 
-	// Get the first letter of adaptation's case setting, and define the adaptation with
+	// Get the first letter of adaptation's case setting, and define the adaptation with 
 	// opposite case setting (FALSE is bIsSrcText in next call)
 	bNoError = pDoc->SetCaseParameters(adaption, FALSE);
 	if (!bNoError)
@@ -9266,7 +9251,7 @@ void RemoveParallelEntriesViaRemoveButton(
 		lowercaseNonSource = adaption;
 		if (gcharNonSrcLC != _T('\0'))
 		{
-			// provided there is a nonnull lower case equivalent,
+			// provided there is a nonnull lower case equivalent, 
 			// use it to make the lowercaseNonSource
 			lowercaseNonSource.SetChar(0,gcharNonSrcLC);
 		}
@@ -9286,7 +9271,7 @@ void RemoveParallelEntriesViaRemoveButton(
 	CTargetUnit* pTU_forUC = NULL; // for UpperCase
 	if (!lowercaseKey.IsEmpty())
 	{
-		// First find the made-earlier lower-case entry, it's key will be lowercase,
+		// First find the made-earlier lower-case entry, it's key will be lowercase, 
 		// get its pTU
 		MapKeyStringToTgtUnit::iterator iter;
 		iter = pMap->find(lowercaseKey);
@@ -9319,7 +9304,7 @@ void RemoveParallelEntriesViaRemoveButton(
 						{
 							pKB->FireOffPseudoDeleteThread(lowercaseKey, pRefString_forLower);
 						}
-#endif
+#endif 
 					}
 				}
 			} // end TRUE block for test: if (pTU_forLC != NULL)
@@ -9366,7 +9351,7 @@ void RemoveParallelEntriesViaRemoveButton(
 						{
 							pKB->FireOffPseudoDeleteThread(uppercaseKey, pRefString_forUpper);
 						}
-#endif
+#endif 
 					}
 				}
 			} // end TRUE block for test: if (pTU_forUC != NULL)
@@ -9487,331 +9472,4 @@ wxMemorySize MacGetFreeMemory()
 
 #endif	/* __WXMAC__ */
 
-/// A helper for KB Sharing, to check certain language codes exist, and if they don't, to
-/// let the user set them using the language codes dialog
-/// \return             TRUE if the wanted codes exist at exit, FALSE otherwise
-/// \param  bSrc        ->  TRUE if this one is to be checked, FALSE if to be ignored
-/// \param  bTgt        ->  TRUE if this one is to be checked, FALSE if to be ignored
-/// \param  bGloss      ->  TRUE if this one is to be checked, FALSE if to be ignored
-/// \param  bFreeTrans  ->  TRUE if this one is to be checked, FALSE if to be ignored
-/// \param  bUserCancelled -> TRUE if the user cancels out of the function explicitly,
-///                           FALSE if neither of the two cancellation chances are taken
-/// \remarks
-/// Checks the app's members m_sourceLanguageCode, m_targetLanguageCode,
-/// m_glossesLanguageCode, m_freeTransLanguageCode, according to which of the four input
-/// paramaters are TRUE, and if one or more of the chosen ones is empty, it puts up the
-/// language codes dialog for the user to set the desired codes. Before the dialog is put
-/// up, a message is shown explaining what is wanted of the user. The user is free to set
-/// codes for text types not being asked for, such settings are stored in the app, but
-/// only the wanted codes are actually used by the feature requesting that certain codes
-/// be set. For instance, kbserver of type 1 (an adaptation KB) will want only bSrc and
-/// bTgt checked, while kbserver of type 2 (a glossing KB) will want only bSrc and bGloss
-/// checked. In either case, if the user sets a code for bFreeTrans, it would be stored in
-/// the app in the appropriate place, but the KB Sharing feature would ignore that one's
-/// setting. The user can cancel out, and so we can't interpret a returned FALSE as a
-/// cancel, and therefore we track user's manual cancellation option with bUserCancelled;
-/// but currently, return FALSE can only happen when bUserCancelled = TRUE, because either
-/// the user supplies the needed codes, and is nagged till he does, or he cancels.
-/// We also check when one or more codes are NOCODE (i.e. "qqq"), but if the user then
-/// elects to retain one or more NOCODE values, we accept them.
-bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled)
-{
-	bUserCancelled = FALSE; // default
-	if ( ((gpApp->m_sourceLanguageCode.IsEmpty() && bSrc) || ((gpApp->m_sourceLanguageCode == NOCODE) && bSrc)) || 
-		 ((gpApp->m_targetLanguageCode.IsEmpty() && bTgt) || ((gpApp->m_targetLanguageCode == NOCODE) && bTgt)) ||
-		 ((gpApp->m_glossesLanguageCode.IsEmpty() && bGloss) || ((gpApp->m_glossesLanguageCode == NOCODE) && bGloss)) || 
-		 ((gpApp->m_freeTransLanguageCode.IsEmpty() && bFreeTrans) || ((gpApp->m_freeTransLanguageCode == NOCODE) && bFreeTrans)) )
-	{
-		wxString srcCode;
-		wxString tgtCode;
-		wxString glossCode;
-		wxString freeTransCode;
-
-		bool bCodesEntered = FALSE;
-		while (!bCodesEntered)
-		{
-			// Call up CLanguageCodesDlg here so the user can enter language
-			// codes which are needed
-			CLanguageCodesDlg lcDlg((wxWindow*)gpApp->GetMainFrame());
-			lcDlg.Center();
-			// Load any lang codes already stored on the App into the dialog's edit boxes
-			lcDlg.m_sourceLangCode = gpApp->m_sourceLanguageCode;
-			lcDlg.m_targetLangCode = gpApp->m_targetLanguageCode;
-			lcDlg.m_glossLangCode = gpApp->m_glossesLanguageCode;
-			lcDlg.m_freeTransLangCode = gpApp->m_freeTransLanguageCode;
-            // The language code dialog allows the user to setup codes for src, tgt, gloss
-            // and/or free translation languages
-			int returnValue = lcDlg.ShowModal();
-			if (returnValue == wxID_CANCEL)
-			{
-				// user cancelled
-				bUserCancelled = TRUE;
-				return FALSE;
-			}
-			// Get the results of the user's settings of the codes
-			srcCode = lcDlg.m_sourceLangCode;
-			tgtCode = lcDlg.m_targetLangCode;
-			glossCode = lcDlg.m_glossLangCode;
-			freeTransCode = lcDlg.m_freeTransLangCode;
-
-			wxString message,langStr;
-			langStr = _T("");
-			// Check that codes have been entered in the boxes required according to which
-			// passed in booleans were TRUE
-			if ( (bSrc && srcCode.IsEmpty()) ||
-				 (bTgt && tgtCode.IsEmpty()) ||
-				 (bGloss && glossCode.IsEmpty()) ||
-				 (bFreeTrans && freeTransCode.IsEmpty()) )
-			{
-				if (bSrc && srcCode.IsEmpty())
-				{
-					langStr += _("Source, ");
-				}
-				if (bTgt && tgtCode.IsEmpty())
-				{
-					langStr += _("Target, ");
-				}
-				if (bGloss && glossCode.IsEmpty())
-				{
-					langStr += _("Glosses, ");
-				}
-				if (bFreeTrans && freeTransCode.IsEmpty())
-				{
-					langStr += _("Free translation");
-				}
-				// Remove final space if present, and final comma if present
-				langStr.Trim(); // trim at right end (ie. will be at left if RTL script)
-				int thelength = langStr.Len();
-				wxChar lastChar = langStr.GetChar(thelength - 1); // get last character
-				if (lastChar == _T(','))
-				{
-					// Remove the final comma
-					langStr = langStr.Left(thelength - 1);
-				}
-				message = message.Format(_("Missing language code for the following language(s):\n\n%s\n\nA code is required for each language that you missed.\nDo you want to try again?"),langStr.c_str());
-				int response = wxMessageBox(message, _("Language code(s) missing"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
-
-				// Accept whatever we've got so far, at least
-				gpApp->m_sourceLanguageCode = srcCode;
-				gpApp->m_targetLanguageCode = tgtCode;
-				gpApp->m_glossesLanguageCode = glossCode;
-				gpApp->m_freeTransLanguageCode = freeTransCode;
-
-				// Check the user's response to the message; either have another go, or
-				// cancel out
-				if (response == wxNO)
-				{
-					// user wants to abort
-					bUserCancelled = TRUE;
-					return FALSE;
-				}
-				else
-				{
-					bCodesEntered = FALSE;
-				}
-			}
-			else
-			{
-				bCodesEntered = TRUE;
-			}
-		} // loop, while (!bCodesEntered) is TRUE
-
-		// update the App's members with the final results
-		gpApp->m_sourceLanguageCode = srcCode;
-		gpApp->m_targetLanguageCode = tgtCode;
-		gpApp->m_glossesLanguageCode = glossCode;
-		gpApp->m_freeTransLanguageCode = freeTransCode;
-	}
-	return TRUE;
-}
-
-// returns TRUE if all's well, FALSE if user hit Cancel button in the internal dialog
-bool CheckUsername()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	// Save current values, in case the user cancels
-	wxString saveUserID = pApp->m_strUsername;
-	wxString saveInformalUsername = pApp->m_strUsername;
-
-/* don't need this bit any more, since the dialog handles it, and we mustn't empty m_strUserID.
-	// If the current setting is the default NOOWNER, (#defined as **** string), then
-	// convert **** to an empty string - we don't show **** to the user in any GUI widget
-	if ( pApp->m_strUserID == NOOWNER )
-	{
-		pApp->m_strUserID.Empty();
-	}
-	// Ditto for the informal username
-	if ( pApp->m_strUsername == NOOWNER )
-	{
-		pApp->m_strUsername.Empty();
-	}
-*/
-	// Don't permit control to return to the caller unless there is a value for each of
-	// these three, if the user exits with an OK button click
-	if (pApp->m_strUserID == NOOWNER || pApp->m_strUsername == NOOWNER )
-	{
-		UsernameInputDlg dlg((wxWindow*)pApp->GetMainFrame());
-		dlg.Center();
-		if (dlg.ShowModal() == wxID_OK)
-		{
-			pApp->m_strUserID = dlg.m_finalUsername;
-			pApp->m_strUsername = dlg.m_finalInformalUsername;
-		}
-		else
-		{
-			// user cancelled, so restore the saved original values & return FALSE
-			pApp->m_strUsername = saveUserID;
-			pApp->m_strUsername = saveInformalUsername;
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
-#if defined(_KBSERVER)
-
-CBString MakeDigestPassword(const wxString& user, const wxString& password)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxString colon = _T(':');
-	wxString realm = _T("kbserver"); // always this realm
-	wxString strForDigest = user + colon + realm + colon + password;
-	CBString sbDigest(pApp->Convert16to8(strForDigest));
-	CBString digestPassword(md5_SB::GetMD5(sbDigest));
-	return digestPassword;
-}
-
-bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString password,
-					wxString srcLangCode, wxString tgtLangCode, int kbType)
-{
-    // This function can be called before the app member pointers, m_pKbServer[0] and
-    // m_pKbServer[1] are instantiated, so we have to pass in the url, username, password
-    // and other params in order to be able to call KbServer::LookupSingleKb(). We must
-    // temporarily set up a KbServer instance (type = 1 will do, since a parallel glossing
-    // instance is always created or removed together with the adapting one), use the
-    // LookupSingleKb() member, and pass the result back to the caller after deleting the
-    // temporary KbServer instance; however, we set a boolean bMatchedKB and return it by
-    // the signature from LookupSingleKb(), and that is what really matters. The normal
-    // return is just for the curlcode, so we can do an error check. bMatchedKB will be
-    // TRUE only if there is an adapting shared KB listed in the server's kb table. We
-    // return the value of bMatchedKB.
-	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForSharedKbInKbServer.\nThe existence of the remote shared knowledge base could not be checked for, so KB sharing is OFF.");
-	wxString msg1 = _T("Error: LookupSingleKb failed in CheckForSharedKbInKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
-	wxString title = _T("KbServer error");
-	//CAdapt_ItApp* pApp = &wxGetApp();
-
-	// instantiate an adaptation KbServer instance (doesn't matter which type we use)
-	KbServer* pKbSvr = NULL;
-	pKbSvr = new KbServer(1); // 1 is an adaptations one, 2 would be a glossing one
-	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
-	if (pKbSvr == NULL)
-	{
-		// warn developer, message does not need to be localizable; show it only in 
-		// debug mode, because a Release version is unlikely to get this error
-#if defined(_DEBUG)
-		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
-#endif
-		msg = msg; // avoid compiler warning in Release build
-		return FALSE;
-	}
-	bool bMatchedKB = FALSE; // initialize
-	int cURLerror = pKbSvr->LookupSingleKb(url,username,password,srcLangCode,tgtLangCode,kbType,bMatchedKB);
-	if (cURLerror > CURLE_OK)
-	{
-		// Warn developer, message does not need to be localizable - but only warn in
-		// debug mode. The Release version should treat the 404 not found, (reinterpretted
-		// as curl error 22) as simply a FALSE, and the caller can give the appropriate
-		// message for a kb which was not found in the kb table
-#if defined(_DEBUG)
-		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
-#endif
-		msg1 = msg1; // avoid compiler warning in Release build
-		delete pKbSvr;
-		return FALSE;
-	}
-	// Get the bMatchedKB value, return it to the caller, and cleanup
-	if (bMatchedKB)
-	{
-		// The lookup up adaptations KB does have an entry line in the kb table, so we are
-		// good to go
-		delete pKbSvr;
-		return TRUE;
-	}
-    // No matching adaptations KB in the kb table on the server. Actively sharing the local
-    // KB is not possible for this Adapt It project as yet.
-	delete pKbSvr;
-	return FALSE;
-}
-
-// checks app's string member m_strUserID is in entry table of kbserver
-bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password) 
-{
-	// This function can be called before the app member pointers, m_pKbServer[0] and
-	// m_pKbServer[1] are instantiated, so we have to pass in the url, username and
-	// password in order to be able to call KbServer::LookupUser(). We must temporarily
-	// set up a KbServer instance, use the LookupUser() member, and pass the result back
-	// to the caller after deleting the temporary KbServer instance 
-	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForValidUsernameForKbServer .\nThe username could not be checked for validity, so KB sharing is OFF.");
-	wxString msg1 = _T("Error: LookupUser failed in CheckForValidUsernameForKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
-	wxString title = _T("KbServer error");
-	CAdapt_ItApp* pApp = &wxGetApp();
-
-	// instantiate an adaptation KbServer instance (doesn't matter which type we use)
-	KbServer* pKbSvr = NULL;
-	pKbSvr = new KbServer(1); // 1 is an adaptations one, 2 would be a glossing one
-	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
-	if (pKbSvr == NULL)
-	{
-		// warn developer, message does not need to be localizable; show it only in 
-		// debug mode, because a Release version is unlikely to get this error
-#if defined(_DEBUG)
-		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
-#endif
-		msg = msg; // avoid compiler warning in Release build
-		pApp->m_kbserver_kbadmin = FALSE;
-		pApp->m_kbserver_useradmin = FALSE;
-		return FALSE;
-	}
-	int cURLerror = pKbSvr->LookupUser(url,username,password);
-	if (cURLerror > CURLE_OK)
-	{
-		// Warn developer, message does not need to be localizable - but only warn in
-		// debug mode. The Release version should treat the 404 not found, (reinterpretted
-		// as curl error 22) as simply a FALSE, and the caller can give the appropriate
-		// message for a username which was not found in the user table
-#if defined(_DEBUG)
-		wxMessageBox(msg1, title, wxICON_ERROR | wxOK);
-#endif
-		msg1 = msg1; // avoid compiler warning in Release build
-		pApp->m_kbserver_kbadmin = FALSE;
-		pApp->m_kbserver_useradmin = FALSE;
-		pKbSvr->ClearUserStruct();
-		delete pKbSvr;
-		return FALSE;
-	}
-	// Get the entry, and check it matches the m_strUserID passed in as username
-	KbServerUser astruct = pKbSvr->GetUserStruct();
-	wxString theUsername = astruct.username;
-	//wxString theUsername = pKbSvr->GetUserStruct().username;
-	// Store this username's kbadmin and useradmin flag values in the app members:
-	// m_kbserver_kbadmin and m_kbserver_useradmin booleans
-	if (theUsername == username)
-	{
-		pApp->m_kbserver_kbadmin = astruct.kbadmin;
-		pApp->m_kbserver_useradmin = astruct.useradmin;
-		// cleanup
-		pKbSvr->ClearUserStruct(); 
-		delete pKbSvr;
-		return TRUE;
-	}
-	// Unmatched username, so set privilege level to safest (i.e. minimal) 
-	pApp->m_kbserver_kbadmin = FALSE;
-	pApp->m_kbserver_useradmin = FALSE;
-	// cleanup
-	pKbSvr->ClearUserStruct(); 
-	delete pKbSvr;
-	return FALSE;
-}
-
-#endif
 

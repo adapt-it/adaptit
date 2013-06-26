@@ -1205,30 +1205,38 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 }
 
 // UpdateAppearance() is simply intended to cause the view to redraw itself, if something that affects the visual
-// appearance might have changed, e.g. the read-only status.  It's proved surprisingly tricky to get this to
-// actually update everything completely!  In particular, on the Mac, we need the 1-pixel scroll, to really get
-// rid of the pink!
-// We also need the PlaceBox() so the box actually gets placed.
+// appearance might have changed, e.g. the read-only status.  It's proved surprisingly tricky to get this
+// to actually update everything completely!
 
 void CAdapt_ItView::UpdateAppearance (void)
 {
 	CLayout*	ptrLayout;
-    wxWindow*   pMyWind = GetFrame();
 
-    ptrLayout = GetLayout();
+	Invalidate();
+	if (canvas != NULL)
+		canvas->ClearBackground();    // On Mac this does the redraw rather than merely clearing the background!
+	else
+		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with canvas == NULL"));
+
+	ptrLayout = GetLayout();
 	if (ptrLayout != NULL)
 	{
 		ptrLayout->Redraw();		// Not actually needed on Mac, but doesn't hurt
 		ptrLayout->PlaceBox();		// Sets the parameters for the updated placement of the phrase box if changing
-        //  direction, also gets rid of all the pink if making doc editable!
-    }
-    else
-        wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
-
-    pMyWind->Refresh();         // mark whole window area dirty
-    pMyWind->Update();          // force redraw
-    pMyWind->ScrollWindow (0, 1);
-            // for some unaccountable reason we need this on the Mac at least, to really get rid of all the pink!!
+									//  direction, also gets rid of all the pink if making doc editable!
+#ifdef __WXMAC__
+    // Under OSX/Cocoa, it seems we have to do all this bit again!!
+        if (canvas != NULL)
+            canvas->ClearBackground();
+        else
+            wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with canvas == NULL"));
+        ptrLayout->Redraw();
+#endif
+	}
+	else
+		wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
+    
+	Invalidate();					// only needed on Windows to really get rid of all the pink!!
 }
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;
@@ -2636,9 +2644,6 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
             // if user cancelled a Choose Translation merge, then pSrcPhrase will be
             // invalid, so we have to make sure the pointer is valid before we proceed
 			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			// BEW 12Jun13, pActivePile is now invalid, which leads to a crash if the user
-			// Canceled from the ChooseTranslation() dialog, so reset it here to fix this
-			pActivePile = pApp->m_pActivePile;
 
             // BEW added test 20Dec07: Reviewing mode must not copy down source text into
             // holes (ie. we assume the holes are there by choice, and we don't want
@@ -3243,23 +3248,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
     // the passed in str parameter, which will then on return be used for the phrase box
     // contents which are to be shown in the box when it becomes visible at the new
     // location
-    // BEW addition 25May13, don't call DoGetSuitableText_ForPlacePhraseBox() when
-    // the Find operation is in progress for a search of source text, and the match
-	// was made at a "hole" - because otherwise we could be shown a ChooseTranslation
-	// dialog, or have a merge forced on us, or a copy of source text if we cancel.
-	// I've put code to suppress the copy of source text in this circumstance, so just
-	// need a test here, and if it is true, set str to the empty string instead; we
-	// need do this only for a Find dialog (ie. gbFind is TRUE) because the Replace dlg
-	// will not permit source text searching.
-	if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
-	{
-		str.Empty();
-	}
-	else
-	{
-		DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
+	DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str,
 										bHasNothing, bNoValidText, bSomethingIsCopied);
-	}
 //#ifdef _DEBUG
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),11,pApp->m_nActiveSequNum);
 //#endif
@@ -3303,44 +3293,14 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			if (selector != 1 && selector != 3) // see comments under the function header
 												// for an explanation of the selector values
 			{
-				// do this for selector values 0 or 2, 
-                // (BEW addition 12Jun13) but do so only if the pile which pSrcPhrase is at
-                // is the current active pile - if it isn't so, then the active location
-                // has become shifted, and the removal shouldn't be attempted; so I've
-                // added the test on the next line of code. (A Cancel from
-                // ChooseTranslation() at a phrase hole would result in the active location
-                // being the new location, and so that shift would cause a crash here. This
-                // is prevented now by the test for non-moved location.)
-				if (pSrcPhrase == pApp->m_pActivePile->GetSrcPhrase())
-				{
-					wxString emptyStr = _T("");
-					if (gbIsGlossing)
-						pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase,
+				// do this for selector values 0 or 2
+				wxString emptyStr = _T("");
+				if (gbIsGlossing)
+					pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase,
 												emptyStr, useGlossOrAdaptationForLookup);
-					else
-						pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,
-												emptyStr, useGlossOrAdaptationForLookup);
-				}
 				else
-				{
-                    // BEW 12Jun13, If the ref string removal is skipped, then make the
-                    // location abandonable if the m_adaption is empty in the source phrase
-                    // instance; and the application will have become in a passive event
-                    // loop (ie. not calling OnIdle()) and so a subsequent Enter keypress
-                    // would not advance the phrase box, because OnePass() which is in
-                    // OnIdle() wouldn't get called because OnIdle() wouldn't be called. So
-                    // we have to wake up idle event processing - this can be done by
-                    // calling RequestMore() from within the idle event handler itself, but
-                    // once in passive mode, that won't work, so we need an explicit
-                    // command to awaken idle event posting again, and wxWakeUpIdle() is that
-                    // command.
-					if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty())
-					{
-						pApp->m_pTargetBox->m_bAbandonable = TRUE;
-					}
-					// make sure idle events are continuing
-					wxWakeUpIdle();
-				}
+					pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,
+												emptyStr, useGlossOrAdaptationForLookup);
 			}
 		}
 	}
@@ -13287,10 +13247,6 @@ CKB* CAdapt_ItView::GetKB()
 /// Converter changes are done and where Guesser changes are done within the Adapt It
 /// application. See also DoTargetBoxPaste() for where these operations can also take
 /// place.
-/// BEW 25May13, altered so as not to copy source text to the phrasebox when the phrase
-/// box as landed at a hole; this is needed only for Find dialog searching in src text, so
-/// that condition is gbFind == TRUE, and the "hole" condition is pSrcPhrase->m_adaption
-/// is empty
 /////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsistentChanges)
 {
@@ -13298,14 +13254,7 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString str = pSrcPhrase->m_key;
 	if (str.IsEmpty())
-	{
 		return _T("");
-	}
-	// BEW added 25May13
-	if (gbFind && gbFindIsCurrent && pSrcPhrase->m_adaption.IsEmpty())
-	{
-		return _T("");
-	}
 
 	if (!gbLegacySourceTextCopy)
 	{
@@ -20505,9 +20454,6 @@ void CAdapt_ItView::OnUpdateButtonGuesserSettings(wxUpdateUIEvent& event)
 ///                         tool bar button is pressed
 /// \remarks
 /// Calls up the GuesserSettingsDlg dialog.
-/// BEW 23May13, added an extra line to reset the bUseAdaptationsGuesser local variable in
-/// the handler for the guesser settings dialog, because the changed value of the checkbox
-/// was not being picked up when going from set to unset.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 {
@@ -20534,7 +20480,7 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 		pApp->m_nGuessingLevel = gsDlg.nGuessingLevel;
 		pApp->m_GuessHighlightColor = gsDlg.tempGuessHighlightColor;
 
-		pApp->m_bAllowGuesseronUnchangedCCOutput = gsDlg.bAllowGuesseronUnchangedCCOutput;
+		pApp->m_bAllowGuesseronUnchangedCCOutput = gsDlg.bAllowCConUnchangedGuesserOutput;
 	}
 }
 

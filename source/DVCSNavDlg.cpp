@@ -42,9 +42,7 @@ BEGIN_EVENT_TABLE (DVCSNavDlg, AIModalDialog)
     EVT_BUTTON (ID_BTN_NEXT,   DVCSNavDlg::OnNext)
     EVT_BUTTON (ID_ACCEPT,     DVCSNavDlg::OnAccept)
     EVT_BUTTON (ID_LATEST,     DVCSNavDlg::OnLatest)
-    EVT_BUTTON (wxID_CANCEL,   DVCSNavDlg::OnLatest)        // Cancel button is exactly the same as "return to latest"
-    EVT_CLOSE  (               DVCSNavDlg::OnClose)         // Likewise clicking the dialog's close box,
-                                                            //  but parm is different so we can't just call OnLatest() here!
+    EVT_CLOSE  (               DVCSNavDlg::OnClose)
 END_EVENT_TABLE()
 
 
@@ -61,8 +59,8 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
     m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
     m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
     
-    m_pApp = &wxGetApp();  wxASSERT (m_pApp != NULL);
-    m_pDoc = m_pApp->GetDocument();  wxASSERT (m_pDoc != NULL);
+    m_pApp = &wxGetApp();
+    m_pDoc = m_pApp->GetDocument();
 }
 
 DVCSNavDlg::~DVCSNavDlg(void)
@@ -92,7 +90,7 @@ void DVCSNavDlg::OnNext (wxCommandEvent& WXUNUSED(event))
 
 void DVCSNavDlg::OnAccept (wxCommandEvent& WXUNUSED(event))
 {
-    m_pDoc->DoAcceptVersion();      // handles everything, so all we do here is call it
+    m_pApp->GetDocument()->DoAcceptVersion();      // handles everything, so all we do here is call it
 };
 
 void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))

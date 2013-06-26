@@ -335,10 +335,6 @@ extern std::string str_CURLheaders;
 #include "AssignLocationsForInputsAndOutputs.h"
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
-#include "UsernameInput.h" // BEW added 28May13
-
-//#include "md5.h"
-#include "md5_SB.h"
 
 #if defined (_KBSERVER)
 
@@ -469,7 +465,7 @@ WX_DEFINE_LIST(MainMenuItemList);
 #define nU16BOMLen 2
 
 // globals
-
+ 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp
 			// (for vertical edit functionality)
@@ -5468,7 +5464,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
 	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnFileExportKb)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItApp::OnUpdateFileExportKb)
-	EVT_MENU(ID_MENU_CHANGE_USERNAME, CAdapt_ItApp::OnEditChangeUsername) // is always enabled, needs no update handler
 	//whm removed 1Oct12
 	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)
 
@@ -5830,17 +5825,12 @@ wxString szIsKBServerProject = _T("IsKBServerProject");
 /// used server for knowledge base sharing within a project designated as one for sharing
 wxString szKbServerURL = _T("KbServerURL");
 
-/// The label for the project configuration file's line which stores the assigned username
+/// The label for the project configuration file's line which stores the login username
 /// for the last used server for knowledge base sharing within a project designated as one
 /// for sharing. Because an email address is unique, we recommend the user's email address
 /// be used for the username (full address, including domain); however not all users will
-/// have email access, so any likely-to-be-unique name would be acceptable;
-/// 20May13, this name was made app-wide in scope, and so it to be used for DVCS, KB
-/// sharing, and xhtml & Pathway export, and any other future feature needing a username
-wxString szUniqueUsername = _T("UniqueUsername");
-/// The following one is an informal one, can be a pseudonom, for the user - but needed
-/// for kbserver, and git
-wxString szInformalUsername = _T("InformalUsername");
+/// have email access, so any likely-to-be-unique name would be acceptable
+wxString szKbServerUsername = _T("KbServerUsername");
 
 /// The minimum interval, in minutes, from one incremental download attempt to the next
 /// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
@@ -5856,7 +5846,7 @@ wxString szKbServerDownloadInterval = _T("KbServerIncrementalDownloadInterval");
 wxString szKeepPhraseBoxMidscreen = _T("KeepPhraseBoxMidscreen");
 
 /// Default is FALSE, auto-caps lookup only looks up lower case keys; if user sets the
-/// boolean to TRUE, on fail an auto-caps upper case lookup is attempted - if it
+/// boolean to TRUE, on fail an auto-caps upper case lookup is attempted - if it 
 /// succeeds, a boolean is set to TRUE temporarily - and StoreText() and
 /// StoreTextGoingBack() use that boolean to create a new CTargetUnit instance and store
 /// lower case source and target strings in it. Consistency Check also works a little
@@ -6771,16 +6761,10 @@ wxString szUseAdaptationsGuesser = _T("UseAdaptationsGuesser");
 wxString szGuessingLevel = _T("GuessingLevel");
 
 /// The label that identifies the following string encoded number as the application's
-/// "AllowGuesserOnUnchangedCCOutput". Adapt It stores this value in the App's
-/// m_bAllowGuesserOnUnchangedCCOutput member variable.
+/// "AllowCConUnchangedGuesserOutput". Adapt It stores this value in the App's
+/// m_bAllowGuesseronUnchangedCCOutput.
+/// member  variable.
 wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput");
-//  BEW 10Jun13, for version 6.4.3, due to a misunderstanding on my part, I altered the
-//  internal code to be m_bAllowCConUnchangedGuesserOutput so as to match the label above,
-//  but the label above was misleading. I should have just altered the label. I'm now
-//  fixing this: henceforth the internal variable will be
-//  m_bAllowGuesseronUnchangedCCOutput, and the label to be used for subsequent project
-//  config file writes will be the one below.
-wxString szAllowGuesseronUnchangedCCOutput = _T("AllowGuesseronUnchangedCCOutput");
 
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
 wxDynamicLibrary ecDriverDynamicLibrary;
@@ -8089,7 +8073,7 @@ void CAdapt_ItApp::BuildUserProfileXMLFile(wxTextFile* textFile)
 		tab2 = _T("\t\t");
 		tab3 = _T("\t\t\t");
 		GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
-		composeXmlStr = wxString::FromAscii((const char*)xmlPrologue); // first string in xml file
+		composeXmlStr = wxString::FromAscii(xmlPrologue); // first string in xml file
 		composeXmlStr.Replace(_T("\r\n"),_T("")); // remove the ending \r\n added by GetEncodingStringForXmlFiles wxTextFile::AddLine adds its own eol
 		textFile->AddLine(composeXmlStr);
 		int nCommentItems;
@@ -9538,36 +9522,6 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
     // according to the current value of m_bUseToolTips
 	if (pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS) != NULL)
 		pMenuBar->Check(ID_HELP_USE_TOOLTIPS,m_bUseToolTips);
-}
-
-// This menu item, Change Username, on the Edit menu, lets the user edit or type afresh a
-// (hopepfully unique) username for use by the DVCS and / or KB Sharing features (and
-// anything else which later may require a username within secure data or secure data
-// transfers), and in a second text control, a human-friendly informal name (which can be a
-// pseudonom) to enable easy identification of the human contributing the data. These are
-// stored on the app as m_strUserID for the former, and m_strUsername for the latter.
-// If m_strUserID or m_strUsername is empty when the user tries to use DVCS or KB Sharing,
-// the utility function in helpers.cpp, CheckUsername() will detect the problem and force
-// the UsernameInputDlg open so the user can type in whatever is appropriate - the dialog
-// won't allow itself to be dismissed until there is something in both checkboxes. But if
-// both names are defined, and the user wants to change one, it's not possible to do so
-// without a GUI widget that acts to get the UsernameInputDlg open; so that's what this
-// menu command is for. It's the only place to change the names, other than directly
-// editing the basic config file.
-void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
-{
-	UsernameInputDlg dlg((wxWindow*)GetMainFrame());
-	dlg.Center();
-	if (dlg.ShowModal() == wxID_OK)
-	{
-		m_strUserID = dlg.m_finalUsername;
-		m_strUsername = dlg.m_finalInformalUsername;
-	}
-	else
-	{
-		// user cancelled, so do nothing
-		;
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -15120,7 +15074,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	}
 
 	// get the kbserver credentials we need
-	//wxString credsfilename = _T("credentials.txt"); // temporary, later we will use project config file
+	wxString credsfilename = _T("credentials.txt"); // temporary, later we will use project config file
 	wxString syncfilename; // probably use this file permanently
 	if (whichType == 1)
 	{
@@ -15138,7 +15092,7 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 
 	// Deprecated 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetupDlg
 	// now, and we store url and username as app variables m_strKbServerURL and
-	// m_strUserID from now on (these are saved in the project config file too),
+	// m_strKbServerUsername from now on (these are saved in the project config file too),
 	// and we get those here now, instead of from the credentials.txt file; the password
 	// from the password dialog is stored in CMainFrame class as the member
 	// m_kbserverPassword, private, and so accessed with GetKBSvrPassword()
@@ -15155,9 +15109,9 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 		return FALSE;
 	}
 	*/
-	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strUserID.IsEmpty());
+	wxASSERT(!m_strKbServerURL.IsEmpty() && !m_strKbServerUsername.IsEmpty());
 	url = m_strKbServerURL;
-	username = m_strUserID;
+	username = m_strKbServerUsername;
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
@@ -15172,39 +15126,6 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	GetKbServer(whichType)->SetLastSyncFilename(syncfilename);
 	GetKbServer(whichType)->SetKBServerLastSync(GetKbServer(whichType)->ImportLastSyncTimestamp());
 
-	// BEW 12Jun13, the last test is to make sure that in the kb table of the remote
-	// server, there is an appropriate kb line for this particular Adapt It project. If
-	// there isn't, then we must tell the user and say what to do, and remove the
-	// instantiations of the adapting and glossing KbServer classes, and set the app's
-	// pointers m_pKbServer[0] and m_pKbServer[1] to NULL -- the latter two tasks are done
-	// by two calls of DeleteKbServer(int whichType). The following function is in helpers.cpp
-	if (whichType == 1)
-	{
-        // We test only for the adapting kb being in the table. This is sufficient because
-        // we always create, and remove access to, or delete, both adapting and glossing
-		// remote kbs together. We instantiate in an if-block, the adapting one first, so
-		// if it fails then the glossing one is not instantiated, and we then need not
-		// remove it. (A curl error is seen by the user, but the call below will return
-		// FALSE. However, unlike absence of the kb in the kb table of the server, a curl
-		// error might not happen on a later try, and thereby grant success for the
-		// attempt to establish sharing.)
-		bool bSharedKbExists = CheckForSharedKbInKbServer(url, username, password,
-									m_sourceLanguageCode, m_targetLanguageCode, 1);
-		if (!bSharedKbExists)
-		{
-			// Remove our installation -- return FALSE, and the caller will clear to FALSE
-			// the CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
-			// message first though.
-			wxString msg;
-			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'KB administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nOne entry for each of the adapting and glossing knowledge bases is required.\nUntil this is done, sharing this project's local knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
-								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str());
-			wxString title = _T("Remote adapting and glossing knowledge bases are absent");
-			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-			DeleteKbServer(1);
-			wxASSERT(GetKbServer(2) == NULL); // ensure the glossing one's pointer is still NULL
-			return FALSE;
-		}
-	}
 	// all's well
 	return TRUE;
 }
@@ -15366,13 +15287,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW added 13Mar13 (see comments in Adapt_It.h where it is declared, for extra details)
 	m_bDoLegacyLowerCaseLookup = FALSE;
 
-	// Mike & BEW added 20May13, for across-the-app username support
-	m_strUserID = NOOWNER;  // it's set from the basic config file, or if still empty, then
-                            // at the wxTextCtrl on Bruce's dialog.  If not set, NOOWNER is a good
-                            // anonymous value and simplifies some later tests.
-                            // NOTE: NOOWNER is #defined as _T("****")
-	m_strUsername.Empty(); // GIT uses it, also used as a human-readable informal name in kbserver
-						   // and is stored in the basic config file as is m_strUserID
 
 	m_bClosingDown = FALSE; // gets set to TRUE at start of OnExit()
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -15386,7 +15300,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
 	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
 	m_bIsKBServerProject = FALSE; // initialise
-	// start off with the timer not instantiated; only set a single one in first call of
+	// start off with the timer not instantiated; only set a single one in first call of 
 	// SetupForKbServer(), second call (for the glossing KB) should check for NULL and do
 	// nothing if the timer already exists; use similar logic for destroying the timer in
 	// ReleaseKbServer()
@@ -15399,25 +15313,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// by whatever is in the project config file, or defaulted to 5 there if out of range (1-20)
 	m_nKbServerIncrementalDownloadInterval = 5;
 
-    // initialize kbadmin and useradmin flags associated with username (both being false
-    // constitutes 'minimal' privilege level for access to the KB sharing remote database;
-    // these values may be overridden by ascertaining the username has increased privileges
-    // when a CheckForValidUsernameForKbServer() call, see helpers.cpp, is done)
-	m_kbserver_kbadmin = FALSE;
-	m_kbserver_useradmin = FALSE;
-
-
 #endif
 
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
-	// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
-    //  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
-    //  and we want to change them over to use m_strUserID automatically.
-
+	// mrh - the user is initially Joe Bloggs@JoesMachine.  DVCS uses this.
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
-
 	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
 
 	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
@@ -15438,7 +15340,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bModeBarVisible = TRUE; // Control/Mode Bar is visible unless changed by value in basic config file
 	m_bShowToolbarIconAndText = FALSE;
 	std::fill_n(m_bToolbarButtons, sizeof(m_bToolbarButtons), true); // initialize all values to true
-
+	
 	// default substring delimiters possibly used within LIFT file <text> elements - we
 	// assume only two, comma and semicolon
 	m_LIFT_subfield_delimiters = _T(",;");
@@ -16119,84 +16021,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// default is 50 unless changed by config file settings
 	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
 	m_nCorrespondencesLoadedInGlossingGuesser = 0;
-	m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE the Guesser can operate on unchanged
-									// Consistent Chantes output; default is FALSE unless changed
-									// by config file settings
+	m_bAllowGuesseronUnchangedCCOutput = FALSE; // If TRUE Consistent Changes can operate on unchanged
+									// guesser output; default is FALSE unless changed by config file
+									// settings
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
 
-/*  MD5 SUM TESTING
-#if defined(_DEBUG)
-	// md5 tests - official results from rfc1321
-	//The MD5 test suite (driver option "-x") should print the following
-    //results:
-	//MD5 test suite:
-	//MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
-	//MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
-	//MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
-	//MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
-	//MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
-	//MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") = d174ab98d277d9f5a5611c2c9f419d9f
-	//MD5 ("12345678901234567890123456789012345678901234567890123456789012345678901234567890") = 57edf4a22be3c955ac49da2e2107b67a
-
-
-	// Check MD5 sums -- the sums are based on string data converted to utf8, and so do
-	// not match the rfc1321 standard's results
-	// This stuff using wxMD5 class, needs an #include "md5.h"
-	//wxMD5* pmd5 = new wxMD5;
-	//wxString str = _T("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-	//wxString str = _T("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
-	//wxString str = _T("message digest");
-	//wxString str = _T("a");
-	//wxString str = _T("");
-	//wxString sum = pmd5->GetMD5(str);
-	//wxLogDebug(_T("md5sum = %s"), sum.c_str());
-	//delete pmd5;
-	//int ii=1;
-	
-	//This re-implementation using CBString needs an #include "md5_SB.h"; 
-	//and matches the rfc1321 standard's results 
-	//md5_SB* pmd5 = new md5_SB;
-	//CBString str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	//CBString str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
-	//CBString str = "message digest";
-	//CBString str = "a";
-	//CBString str = "";
-	//CBString str = "bruce_waters@sil.org:kbserver:XXXXXXX"; <<-- password obfuscated
-	//wxString s = _T("message digest"); // <<-- when starting from a wxString, use these two lines
-	//CBString str(Convert16to8(s));
-	//CBString str = "message digest";
-	//CBString sum = pmd5->GetMD5(str);
-	wxString user = _T("bruce_waters@sil.org");
-	wxString password = _T("XXXXXXXXXXX"); // <<- password obfuscated
-	CBString sum = MakeDigestPassword(user, password); // from helpers.cpp
-	wxLogDebug(_T("md5sum = %s"), sum.Convert8To16().c_str());
-	//delete pmd5;
-	int ii=1; // put a break point here to halt execution, & then examine Ouput window result
-
-	// 1st run: MakeDigestPassword() produced  b9b0c1de14f16080c72a5497f806b178  (it's correct)
-	
-	// Results of md5 tests, using md5_SB and CBString
-	// empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct
-	// "a":  md5sum = 0cc175b9c0f1b6a831c399e269772661  ;correct
-	// "message digest": md5sum = f96b697d7cb7938d525a2f31aaf161d0  ;correct
-	// "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = d174ab98d277d9f5a5611c2c9f419d9f  ;correct
-	// "12345678901234567890123456789012345678901234567890123456789012345678901234567890": md5sum = 57edf4a22be3c955ac49da2e2107b67a  ;correct
-	// and most importantly...
-	// "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178   
-	// Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool): 
-	// bruce_waters@sil.org:kbserver:b9b0c1de14f16080c72a5497f806b178
-	// So I'm getting the correct password generated from the htdigest string.
-	// Starting from a wxString, this also gives the same (correct) result (and it also
-	// did for the digest string using my password):
-	//wxString s = _T("message digest");
-	//CBString str(Convert16to8(s));
-	//CBString sum = pmd5->GetMD5(str);
-	// that gives the result: f96b697d7cb7938d525a2f31aaf161d0 which is correct
-
-
-#endif
-*/
 	// whm 24Jan13. The following functions set up new project defaults and
 	// should be called in OnInit() and the <New Project> clode block of the ProjectPage
 	// whm 24Jan13 added. A new project should start with all of the
@@ -21348,8 +21178,7 @@ int ii = 1;
 #endif
 */
 
-	// support Mike's testing of DVCS work (inspired by Chorus)
-	// (TEST_DVCS is #defined at line 66 of Adapt_It.h)
+	// support Mike's testing of DVCS work (inspired by Chorus) (TEST_DVCS is #defined at line 25 of Adapt_It.h)
 #if defined(TEST_DVCS) && defined(_DEBUG)
 
 	wxMenuBar* pAIMenuBar = NULL;
@@ -21359,7 +21188,7 @@ int ii = 1;
 	wxASSERT(nIndexOfFileMenu != wxNOT_FOUND);
 	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
 //	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
-//    wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
+    wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
 
 //	pEditMenu->AppendSeparator();
 
@@ -21377,7 +21206,6 @@ int ii = 1;
 
 
 // now moving items to the File menu ready for prime time
-/*
     pFileMenu->AppendSeparator();
 
     pFileMenu->Append (ID_FILE_SAVE_COMMIT, _T("Save and remember in history"));
@@ -21386,7 +21214,7 @@ int ii = 1;
     pFileMenu->Append (ID_DVCS_LOG_FILE, _T("Show history for this document"));
     pFileMenu->Append (ID_DVCS_LOG_PROJECT, _T("Show history for whole project"));
     pFileMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));
-*/
+
 #endif
 	// end of code for supporting Mike's DVCS work
 
@@ -21512,6 +21340,7 @@ int CAdapt_ItApp::OnExit(void)
 	// 2. CNotes
 	// 3.
 	//wxEvtHandler* pHdlr = NULL;
+
 	// delete the Guesser objects
 	if (m_pAdaptationsGuesser != NULL)
 		delete m_pAdaptationsGuesser;
@@ -23010,12 +22839,12 @@ bool CAdapt_ItApp::SetupDirectories()
 // the work folder. Since each is about 40kb, we need a function to cull all but the few
 // which are most recent. AdaptItConstants.h has a #define for how many we keep: it is
 // NUM_OLD_USERPROFILES_FILES_TO_KEEP and is set to 4.
-// BEW created 22Apr13
+// BEW created 22Apr13 
 void CAdapt_ItApp::RemoveUnwantedOldUserProfilesFiles()
 {
 	// Procedure: enumerate their filenames as wxString objects, sort them in reverse
 	// order (only the datetime stamp at the end distinguishes one from another), and
-	// then remove them from the end backwards, retaining the most recent
+	// then remove them from the end backwards, retaining the most recent 
 	// NUM_OLD_USERPROFILES_FILES_TO_KEEP ones
 	wxString path = m_userProfileFileWorkFolderPath;
 	wxSortedArrayString filenames;
@@ -24781,7 +24610,7 @@ void CAdapt_ItApp::RemoveEmptiesFromMaps(CKB* pKB)
 /// bug (i.e. use of wxHashMap .erase() member within a loop - it invalidates the loop
 /// index, which caused a crash if the loop iteration was continued. Added function
 /// RemoveEmptiesFromMaps(CKB* pKB) to preprocess removal of any pTU's with an empty list.
-/// The inventory was improved by searching for the first which is not pseudo-deleted in
+/// The inventory was improved by searching for the first which is not pseudo-deleled in
 /// the pTU's list, if the first CRefString was a pseudo-deleted one.
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
@@ -24849,8 +24678,8 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					wxASSERT(posRef != 0);
 				}
 
-                // If control gets here, there will be at least one non-null posRef
-                //
+                // If control gets here, there will be at least one non-null posRef 
+                // 
                 // BEW added to comment on 19Mar13: But if the user has been doing removals
                 // of KB entries (e.g. by editing a KB entry's source text and typing the
                 // Update button), the pseudo-deleted CRefString typically is stored
@@ -28361,24 +28190,6 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-    // BEW changed 33Jun13, If m_strUserID has been defaulted to NOOWNER, that is, to
-    // _T("****") then we won't save ****, instead we'll save the empty string
-    if ( m_strUserID == NOOWNER )
-	{
-		m_strUserID.Empty();
-	}
-	data << szUniqueUsername << tab << m_strUserID;
-	pf->AddLine(data);
-
-	data.Empty();
-    if ( m_strUsername == NOOWNER )
-	{
-		m_strUsername.Empty();
-	}
-	data << szInformalUsername << tab << m_strUsername;
-	pf->AddLine(data);
-
-	data.Empty();
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
 
@@ -29833,16 +29644,6 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		{
 			m_freeTransLanguageCode = strValue;
 		}
-		else if (name == szUniqueUsername)
-		{
-			m_strUserID = strValue;
-            if (m_strUserID.IsEmpty())  m_strUserID = NOOWNER;      // this is what we use internally for empty
-		}
-		else if (name == szInformalUsername)
-		{
-			m_strUsername = strValue;
-            if (m_strUsername.IsEmpty())  m_strUsername = NOOWNER;  // ditto
-        }
 		else if (name == szAdaptitPath)
 		{
             // BEW changed 12Oct09, we come here when reading either the
@@ -32197,6 +31998,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szKbServerUsername << tab << m_strKbServerUsername;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
 	pf->AddLine(data);
 
@@ -32725,7 +32530,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 		number = _T("1");
 	else
 		number = _T("0");
-	data << szAllowGuesseronUnchangedCCOutput << tab << number;
+	data << szAllowCConUnchangedGuesserOutput << tab << number;
 	pf->AddLine(data);
 
 	if (m_bRTL_Layout)
@@ -33011,6 +32816,10 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_strKbServerURL = strValue;
 		}
+		else if (name == szKbServerUsername)
+		{
+			m_strKbServerUsername = strValue;
+		}
 		else if (name == szKbServerDownloadInterval)
 		{
 			num = wxAtoi(strValue);
@@ -33022,6 +32831,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szIsKBServerProject)
 			;	// do nothing
 		else if (name == szKbServerURL)
+			;	// do nothing
+		else if (name == szKbServerUsername)
 			;	// do nothing
 		else if (name == szKbServerDownloadInterval)
 			; // do nothing
@@ -33038,7 +32849,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			}
 		}
 		// BEW added 13Mar13
-		else if (name == szDoLegacyLowerCaseLookup)
+		else if (name == szDoLegacyLowerCaseLookup) 
 		{
 			if (strValue == _T("1"))
 			{
@@ -33702,20 +33513,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				num = 50;
 			m_nGuessingLevel = num;
 		}
-		// BEW 10Jun13, the next is the legacy code, it has a mislabelling, so I'll follow
-		// it with an alternative which has the changed correct labelling
 		else if (name == szAllowCConUnchangedGuesserOutput) // whm added 28Oct10 for Guesser support
 		{
-			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 1))
-				num = 1;
-			if (num == 1)
-				m_bAllowGuesseronUnchangedCCOutput = TRUE;
-			else
-				m_bAllowGuesseronUnchangedCCOutput = FALSE;
-		}
-		else if (name == szAllowGuesseronUnchangedCCOutput) // BEW added 10Jun13 for Guesser
-		{													// support, using correct label
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
 				num = 1;
@@ -44777,17 +44576,12 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 /// handler disables the "Export Knowledge Base..." item in the File menu, otherwise it
 /// enables the "Export Knowledge Base..." item on the File menu.
 /////////////////////////////////////////////////////////////////////////////////
-
-// mrh TEMP CHANGE - to work around an apparent bug in wxWidgets 2.8.x on the Mac, we permanently enable
-//  the item for the OSX Carbon build (for which MACOS_CLASSIC is #define'd).
-
 void CAdapt_ItApp::OnUpdateFileExportKb(wxUpdateUIEvent& event)
 {
-#ifndef MACOS_CLASSIC
-	event.Enable ((!gbIsGlossing && m_pKB != NULL) || (gbIsGlossing && m_pGlossingKB != NULL));
-#else
-    event.Enable (TRUE);
-#endif
+	if ((!gbIsGlossing && m_pKB != NULL) || (gbIsGlossing && m_pGlossingKB != NULL))
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
 }
 
 void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
@@ -46144,7 +45938,7 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 	} // end of if (wxFileExists(pathAndName))
 	if (bFoundCode && bookCd.GetLength() == 3)
 	{
-		bookCode = wxString((const char*)bookCd,wxConvUTF8);
+		bookCode = wxString(bookCd,wxConvUTF8);
 	}
 	return bookCode;
 }

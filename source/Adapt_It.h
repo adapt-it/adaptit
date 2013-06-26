@@ -58,7 +58,7 @@
 #endif
 
 // The following define makes the Interlinear RTF export routine use the older
-// MS Word compatibility structure for RTF Tables (which AI used before 22Jul11,
+// MS Word compatibility structure for RTF Tables (which AI used before 22Jul11, 
 // i.e., before svn r. 1633).
 //#define USE_OLD_WORD_RTF_TABLE_SPECS
 
@@ -73,13 +73,11 @@ const int ID_MENU_DVCS_ADD_FILE			= 997;
 const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
 const int ID_MENU_DVCS_REMOVE_FILE		= 995;
 const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
-/*
 const int ID_FILE_SAVE_COMMIT           = 993;
 const int ID_FILE_SHOW_REVISIONS		= 992;
 const int ID_DVCS_LOG_FILE              = 989;
 const int ID_DVCS_LOG_PROJECT           = 988;
 const int ID_FILE_TAKE_OWNERSHIP		= 987;
-*/
 
 // BEW note 14Jan13, for the KB sharing menu item in Advanced menu will use value 980 for
 // the present and add the menu item and preceding separator only in the _DEBUG build while
@@ -121,7 +119,7 @@ class NavProtectNewDoc; // for user navigation protection feature
 // adaptation project designated as one which is to support KB sharing
 
 #if defined(_KBSERVER)
-
+		
 // forward declaration
 class KbServer;
 
@@ -173,7 +171,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 207).
+// 1. The appVerStr const defined below (about line 154).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
@@ -184,27 +182,20 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // 8. Various docs folder files including: Adapt It changes.txt, Readme.txt,
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 // 9. Within the AboutDlgFunc in wxDesigner change the version number for the
-//    ID_ABOUT_VERSION_NUM wxStaticText to the current version number.
+//    ID_ABOUT_VERSION_NUM wxStaticText to the current version number. 
 //    TODO:
-//    Find out why for the Mac build this wxStaticText value is not getting
-//    updated from the code in MainFrm.cpp to use the current version number
+//    Find out why for the Mac bio;d this wxStaticText value is not getting 
+//    updated from the code in MainFrm.cpp to use the current version number 
 //    which includes the build number.
-// ******** IF YOU CHANGE VERSION NUMBERS BELOW FOR ANY REASON   *************************
-// ******** YOU SHOULD ALSO DO 1 AND 2 IN THE COMMENTS ABOVE AS  *************************
-// ******** A MINIMUM FOR A PRE-RELEASE VERSION, OTHERWISE ON    *************************
-// ******** ON YOUR DEVELOPER MACHINE YOU WILL SEE COMPLAINTS    *************************
-// ******** ABOUT THE AI_UserProfiles.xml FILE AND WILL THEN     *************************
-// ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
-// ******** FILE.                                                *************************
-#define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_MINOR_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_MAJOR_PART 6
+#define VERSION_MINOR_PART 4
+#define VERSION_BUILD_PART 2
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 7
-#define VERSION_DATE_MONTH 6
+#define VERSION_DATE_DAY 3
+#define VERSION_DATE_MONTH 5
 #define VERSION_DATE_YEAR 2013
-const wxString appVerStr(_T("6.4.3"));
+const wxString appVerStr(_T("6.4.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -1935,7 +1926,7 @@ class CAdapt_ItApp : public wxApp
 	// The following is the timer for incremental downloads; defaulted to
 	// 5 minutes, but settable by the user to other values in the range 1-10 minutes,
 	// and the minutes valuewill be stored in the project config file
-	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental
+	Timer_KbServerChangedSince* m_pKbServerDownloadTimer; // for periodic incremental 
 												// download of entries from server
 	// OnIdle() will be used for initiating a download of the incremental type.
 	// It will happen only after a boolean flag goes TRUE; the flag is the following
@@ -1944,14 +1935,6 @@ class CAdapt_ItApp : public wxApp
 	// Storage for the download intervals (in minutes; but for use with the
 	// timer, multiply by 1000*60 since the timer's units are milliseconds)
 	int		m_nKbServerIncrementalDownloadInterval;
-
-	// storage of username's value for the boolean flags, kbadmin, and useradmin; we store
-	// them here rather than in the KbServer class itself, because the value of these
-	// flags need to be known before either of the adapting or glossing KbServer classes
-	// are instantiated (i.e. when checking if the user is in user table, and if the user
-	// is authorized to create an entry in the kb table)
-	bool	m_kbserver_kbadmin;  // initialize to default FALSE in OnInit()
-	bool	m_kbserver_useradmin; // initialize to default FALSE in OnInit()
 
 #endif
 
@@ -2223,15 +2206,7 @@ public:
 #define  NOCODE		_T("qqq")			// no language code defined.  qaa - qtz are defined in ISO 639-2
 										//  as being for private use, so this can never be a real language code
 
-	wxString	m_AIuser;				// the currently logged-in user - e.g. joe bloggs@joesMachine.  Going west soon...
-
-    wxString	m_strUserID;            // for the unique username for the kb server and DVCS, typically
-                                        // the user's email address if he has one, if not, any
-                                        // unique string will do provided the server administrator
-                                        // approves it
-    wxString    m_strUsername;          // needed by git (DVCS), as well as "email address" for which
-										// we'll use m_strUserID; kbserver will also use
-										// this as an "informal human-readable username"
+	wxString	m_AIuser;				// e.g. joe bloggs@joesMachine
 
 	// Version control variables, relating to the current document
 	int			m_commitCount;			// Counts commits done on this file.  At present just used to check
@@ -2244,14 +2219,14 @@ public:
 
 	wxDateTime	m_versionDate;			// when this version was committed
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
-										// m_owner and m_strUserID must match before a commit is allowed,
+										// m_owner and m_AIuser must match before a commit is allowed,
 										// unless either is "no owner".
     bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
     bool        m_DVCS_installed;       // true if our DVCS engine (git) is actually installed
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
-
+    
     wxArrayString* m_DVCS_log;          // points to the log returned from git, so our log dialog can get at it
 
 
@@ -2828,6 +2803,10 @@ public:
 									  // two instances are created, one for adaptations, the
 									  // other for glosses
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
+	wxString	m_strKbServerUsername; // for the unique username known to the server, typically
+									// the user's email address if he has one, if not, any
+									// unique string will do provided the server administrator
+									// approves it
 
 #endif // for _KBSERVER
 
@@ -3340,8 +3319,8 @@ public:
 	bool m_bUseAdaptationsGuesser;	// If TRUE(the default) use the Guesser for adaptations
 	bool m_bIsGuess;				// If TRUE there is a guess for the current target text
 	int m_nGuessingLevel;			// The guesser level (can range from 0 to 100, default is 50)
-	bool m_bAllowGuesseronUnchangedCCOutput; // If TRUE the Guesser can operate on unchanged
-									// Consistent Changes output; default is FALSE
+	bool m_bAllowGuesseronUnchangedCCOutput; // If TRUE Consistent Changes can operate on unchanged
+									// guesser output; default is FALSE
 	Guesser* m_pAdaptationsGuesser;	// our Guesser object for adaptations
 	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
 	int m_nCorrespondencesLoadedInAdaptationsGuesser;
@@ -3539,7 +3518,7 @@ public:
 				// while OnInit() is running
 	bool	m_bForceFullConsistencyCheck;
 
-public:
+	public:
 
 	// arrays for storing (size_t)wxChar for when the user uses the Punctuation tab of
 	// Preferences to change the project's punctuation settings, either source or
@@ -3656,8 +3635,6 @@ public:
 	void OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event);
 	void OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateHelpForAdministrators(wxUpdateUIEvent& event);
-
-	void OnEditChangeUsername(wxCommandEvent& WXUNUSED(event)); // BEW added 30May13
 
 protected:
 
@@ -3934,7 +3911,7 @@ public:
 	bool m_bDoLegacyLowerCaseLookup; // default FALSE (i.e. attempts to also use an upper
 									 // case keyed pTU instances as well, as described
 									 // above), user-settable in the GUI, using
-								     // Preferences.../View page, saved in project
+								     // Preferences.../View page, saved in project 
 									 // configuration file. (New regime is the default.)
 
 

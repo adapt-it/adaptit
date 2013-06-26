@@ -737,10 +737,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\md5_SB.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\MergeUpdatedSrc.cpp"
 				>
 			</File>
@@ -946,10 +942,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\UnpackWarningDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\UsernameInput.cpp"
 				>
 			</File>
 			<File
@@ -1318,10 +1310,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\md5_SB.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\MergeUpdatedSrc.h"
 				>
 			</File>
@@ -1523,10 +1511,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\UnpackWarningDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\UsernameInput.h"
 				>
 			</File>
 			<File

@@ -73,10 +73,10 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.4.3"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.4.2"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("June 7, 2013"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("May 3, 2013"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -1419,29 +1419,35 @@ wxSizer *ProjectPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Choose a Project"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
     item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
-    item1->Add( item2, 0, wxALIGN_CENTER, 5 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_PROJECTPAGE, _("If you do not have your project set up yet, double click <New Project>. If it is already set up, you will see its name in the list - double click the name to open that project."), wxDefaultPosition, wxSize(-1,38), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_PROJECTPAGE, _("If you do not have your project set up yet, double click <New Project>. If it is already set up, you will see its name in the list - double click the name to open that project."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
     wxButton *item5 = new wxButton( parent, IDC_BUTTON_WHAT_IS_PROJECT, _("What is a project? ..."), wxDefaultPosition, wxDefaultSize, 0 );
     item5->SetToolTip( _("Click here for more information about Adapt It projects") );
-    item1->Add( item5, 0, wxALIGN_CENTER, 0 );
+    item1->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs7 = (wxString*) NULL;
     wxListBox *item7 = new wxListBox( parent, IDC_LIST_NEW_AND_EXISTING, wxDefaultPosition, wxDefaultSize, 0, strs7, wxLB_SINGLE );
     item7->SetToolTip( _("List of Adapt It projects on this computer") );
-    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 1, wxGROW|wxLEFT|wxRIGHT, 5 );
+    item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -5049,7 +5055,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_FIND, _("Search, retaining the text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_FIND, _("Search, retaining target text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Search lines that include punctuation") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -5251,7 +5257,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_REPLACE, _("Search, retaining the text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_REPLACE, _("Search, retaining target text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Search lines that include punctuation") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9171,10 +9177,10 @@ wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL, _("This is your username. (To change it, use Change Username from the Edit menu.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL, _("Type your username (email address is best):"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(360,-1), wxTE_READONLY );
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
     item9->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9480,6 +9486,7 @@ wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, IDC_COMMIT_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
+    item3->SetBackgroundColour( *wxCYAN );
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, IDC_COMMIT_BLURB, _("You can enter a comment in the box above to identify this version of the document.  When you click OK, the document will be saved and remembered in the document history.  Later you will be able to look at this version and return to it if you need to, exactly as it is now."), wxDefaultPosition, wxSize(400,100), wxGROW );
@@ -9543,6 +9550,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxHORIZONTAL );
 
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_VERSION_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE|wxTE_READONLY );
+    item11->SetBackgroundColour( *wxCYAN );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item9, 0, wxALIGN_CENTER|wxALL, 15 );
@@ -9566,14 +9574,6 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item15->Add( item17, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(200,-1), 0 );
-    item19->SetDefault();
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item2->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item2, 0, wxALL, 5 );
 
@@ -9623,367 +9623,6 @@ wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
-wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Unique Username (obligatory):") );
-    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
-
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_MSG, _("Type a username. A unique one is best, but whatever you type will be accepted. You only need do this once, but if you ever want to change it, you can change it only here. Your full email addess is a good choice. If you use an email address, it will NOT be used for sending any emails from within Adapt It."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(-1,24), wxGROW );
-    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Informal Username (obligatory):") );
-    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
-
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_INFORMAL_MSG, _("Type a human-friendly username. It can be your real name, or a false one. You only need do this once, but if you ever want to change it, you can change it only here. It will NOT be sent in any emails from within Adapt It. It will be sent, securely, in data going to a shared knowledge base server, or to a Git repository for document history."), wxDefaultPosition, wxSize(600,68), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
-    item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_INFORMAL, wxT(""), wxDefaultPosition, wxSize(-1,24), wxGROW );
-    item6->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-    item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item11 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item10->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
-wxSizer *SharedKBManagerNotebookFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("You can administer users (add, remove or edit), or administer the shared knowledge bases which are stored remotely (add, remove or edit). The Users tab may only be opened by users who have \"User administrator\" privilege level. The Knowledge Bases tab may only be opened by users who have \"Knowledge base administrator\" privilege level, or higher. The person who set up the remote server is its first user, and always has User administrator privilege, and this user cannot be removed from the list of users. Users with neither privilege level will not be able to open this Shared Knowledge Base Manager dialog. Anyone with User administrator privilege automatically has Knowledge Base administrator privilege too."), wxDefaultPosition, wxSize(80,50), wxTE_MULTILINE|wxTE_READONLY );
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxNotebook *item5 = new wxNotebook( parent, ID_SHAREDKB_MANAGER_DLG, wxDefaultPosition, wxDefaultSize, 0 );
-wxWindow *item4 = item5;
-
-    wxPanel *item6 = new wxPanel( item5, -1 );
-    SharedKBManagerPageFunc( item6, FALSE );
-    item5->AddPage( item6, _("Users") );
-
-    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetDefault();
-    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( item1, 1, wxGROW|wxALL, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
-wxSizer *SharedKBManagerPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Current Users"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxString *strs5 = (wxString*) NULL;
-    wxListBox *item5 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(232,-1), 0, strs5, wxLB_SINGLE );
-    item3->Add( item5, 1, wxALIGN_CENTER|wxALL, 0 );
-
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
-
-    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Username (preferably user's email address):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
-    item8->SetToolTip( _("Type or edit a username here") );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Informal username (for example: Joe Bloggs):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_INFORMAL_NAME, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
-    item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_MULTI, _("Type in or edit a password, then make a written copy of the password for safekeeping! Once this Manager dialog is closed, the human readable form of the password cannot be seen again, nor recovered. You can type a new password, however."), wxDefaultPosition, wxSize(220,-1), wxTE_MULTILINE|wxTE_READONLY );
-    item6->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("A personal password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORDX, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_PASSWORD );
-    item13->SetToolTip( _("Type in the password. You can type a new one if unknown.") );
-    item6->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
-
-    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
-
-    item14->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit other users of this server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
-    item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxCheckBox *item16 = new wxCheckBox( parent, ID_CHECK_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item14->Add( 20, 13, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit knowledge base definitions stored in the server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
-    item14->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxCheckBox *item18 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Knowledge base administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
-
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 0 );
-
-    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
-
-    item19->Add( 2, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item20 = new wxButton( parent, ID_BUTTON_VIEW_NEW_PASSWORDS, _("View New Passwords"), wxDefaultPosition, wxDefaultSize, 0 );
-    item20->SetToolTip( _("See a list of each added or edited password and its username (in parentheses)") );
-    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item21 = new wxButton( parent, _CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->SetToolTip( _("Empty all the controls, except the list box and the temporarily stored list of new passwords") );
-    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item22 = new wxButton( parent, ID_BUTTON, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
-    item19->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item23 = new wxButton( parent, ID_BUTTON_EDIT_USER, _("Edit User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Change the selected user's details to be what the controls currently contrain") );
-    item19->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Remove this user from the list, this user cannot access the server again (unless the details are retyped later on)") );
-    item19->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
-wxSizer *SharedKBManagerKbsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Knowledge Base Definitions"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs6, wxLB_SINGLE );
-    item6->SetToolTip( _("Lists the source language's code for the current set of definitions") );
-    item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 5 );
-
-    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-    item3->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Adaptation language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    wxString *strs9 = (wxString*) NULL;
-    wxListBox *item9 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs9, wxLB_SINGLE );
-    item9->SetToolTip( _("Lists the target text language codes for adaptation knowledge bases associated with the selected source language") );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Gloss language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    wxString *strs11 = (wxString*) NULL;
-    wxListBox *item11 = new wxListBox( parent, ID_LISTBOX_GLOSS_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs11, wxLB_SINGLE );
-    item11->SetToolTip( _("Lists the gloss text's language codes for glossing knowledge bases associated with the source language. (Needs a value even if you don't use Glossing mode.)") );
-    item7->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item3->Add( item7, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
-
-    item12->Add( 20, 18, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item13 = new wxButton( parent, ID_BUTTON_NO_UPPER_SELECTION, _("No Selection"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("Remove selection from upper list") );
-    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item12->Add( 20, 28, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item14 = new wxButton( parent, ID_BUTTON_NO_LOWER_SELECTION, _("No Selection"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("Remove selections from lower list") );
-    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item3->Add( item12, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL, _("To Update an adaptation knowledge base definition, clear the selection from the lower list on the right, then select the source language code, and in the top right box select the associated adaptation language code. To Update a glossing knowledge base for the same project, leave the source language code selected, clear the selection in the top right list, and select the correct glossing language code from the lower list on the right.  To Add a new  knowledge base definition pair, type codes in the three text boxes below, or click Lookup Codes. (A code for a glossing knowledge base is needed, even if you do not use the 'glossing mode' feature.)"), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
-    item15->Add( item16, 1, wxALIGN_CENTER|wxALL, 0 );
-
-    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Source:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item18, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
-
-    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item19->SetToolTip( _("Type a language code for the new source language") );
-    item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item17->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_TGT, _("Adaptations:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item20, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
-
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item21->SetToolTip( _("Type a language code for the adaptations language") );
-    item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item17->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Glosses:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->Add( item22, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
-
-    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_GLOSSES, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item17->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item17->Add( 3, 16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item24 = new wxButton( parent, ID_BUTTON, _("Lookup Codes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Open the dialog for finding codes for source, target, and gloss languages") );
-    item17->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
-
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item26 = new wxButton( parent, ID_BUTTON_RFC5654, _("Using RFC5646 codes..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
-    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item25->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item27 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Add Definition"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->SetToolTip( _("Add the new knowledge base defined by the source, adaptations and glosses codes above  ") );
-    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item25->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item28 = new wxButton( parent, ID_BUTTON_UPDATE_DEFINITION, _("Update Definition"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetToolTip( _("Change the selected definition to have the updated values in the boxes above") );
-    item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item25->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item29 = new wxButton( parent, ID_BUTTON_REMOVE_DEFINITION, _("Remove Definition"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Remove the selected knowledge base definition (and delete all its entries). [Use with care.]") );
-    item25->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, _("Warning: Updating, or Removing, may take a while if the knowledge base contains many entries."), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item1->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -9995,7 +9634,6 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( wxID_OPEN, _("&Open...\tCtrl-O"), _("Open an existing document") );
     item1->Append( wxID_SAVE, _("&Save\tCtrl-S"), _("Save the active document") );
     item1->Append( ID_SAVE_AS, _("Save &As...\tCtrl-A"), _("Save the document with different xml format, or different filename") );
-    item1->Append( ID_FILE_SAVE_COMMIT, _("Save and remember in history..."), _("Saves the current document and remembers its state in the history.") );
     item1->Append( wxID_CLOSE, _("&Close"), _("Close the active document") );
     item1->Append( ID_FILE_PACK_DOC, _("Pack Document..."), _("Pack document for transfer to another computer") );
     item1->Append( ID_FILE_UNPACK_DOC, _("Unpack Document..."), _("Unpack a document that was packed on another computer") );
@@ -10012,11 +9650,6 @@ wxMenuBar *AIMenuBarFunc()
     item1->Append( ID_FILE_BACKUP_KB, _("&Backup Knowledge Base"), _("Make a new knowledge base backup immediately") );
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->AppendSeparator();
-    item1->Append( ID_FILE_REVERT_FILE, _("Look at previous versions in the document history..."), _("Shows the previously remembered version, and allows you to go back to earlier versions as well.") );
-    item1->Append( ID_FILE_LIST_VERSIONS, _("View list of previously remembered versions..."), _("Shows a list of all remembered versions, and allows you to select and view any of them.") );
-    item1->AppendSeparator();
-    item1->Append( ID_FILE_TAKE_OWNERSHIP, _("Take ownership of this document"), _("Allows you, the logged-in user, to become the owner of this document so you can edit it.") );
-    item1->AppendSeparator();
     item1->Append( wxID_EXIT, _("E&xit"), _("Quit the application; prompts to save documents") );
     item0->Append( item1, _("&File") );
     
@@ -10030,9 +9663,8 @@ wxMenuBar *AIMenuBarFunc()
     item2->Append( ID_GO_TO, _("&Go To...\tCtrl-G"), _("Go to a specific chapter and verse") );
     item2->Append( ID_EDIT_SOURCE_TEXT, _("Edit &Source Text...\tCtrl-Q"), _("Edit the selected source text") );
     item2->Append( ID_EDIT_CONSISTENCY_CHECK, _("Consist&ency Check..."), _("Check all translations with those in the knowledge base for consistency") );
-    item2->Append( ID_MENU_CHANGE_USERNAME, _("Change User&name..."), _("Add or change the unique username or the informal username") );
     item2->AppendSeparator();
-    item2->Append( ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE, _("Change Punctuation or Markers Placement"), _("Clear this location's stored punctuation and markers placements so Place... dialogs can open again here") );
+    item2->Append( ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE, _("Change Punctuation or Markers Placement"), _("Clear this location's stored punctuation and markers placements so Place... dialogs can open here again") );
     item2->AppendSeparator();
     item2->Append( ID_EDIT_MOVE_NOTE_FORWARD, _("Move Note Forward\tCtrl-3"), _("Move the note forward in the document to the next word or phrase") );
     item2->Append( ID_EDIT_MOVE_NOTE_BACKWARD, _("Move Note Backward\tCtrl-2"), _("Move the note backward in the document to the previous word or phrase") );
@@ -10148,8 +9780,6 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_LOCK_CUSTOM_LOCATION, _("&Lock Custom Location"), _("Make the custom work folder location permanent until explicitly changed") );
     item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
     item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
-    item9->AppendSeparator();
-    item9->Append( ID_DVCS_VERSION, _("Show DVCS version"), wxT("") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;
