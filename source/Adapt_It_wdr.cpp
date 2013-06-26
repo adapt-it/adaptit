@@ -9760,7 +9760,7 @@ wxSizer *SharedKBManagerPageFunc( wxWindow *parent, bool call_fit, bool set_size
     wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("A personal password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORDX, _("Unknown, or not able to be recovered"), wxDefaultPosition, wxSize(220,-1), 0 );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORDX, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_PASSWORD );
     item13->SetToolTip( _("Type in the password. You can type a new one if unknown.") );
     item6->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9823,6 +9823,156 @@ wxSizer *SharedKBManagerPageFunc( wxWindow *parent, bool call_fit, bool set_size
     item1->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *SharedKBManagerKbsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Knowledge Base Definitions"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs6 = (wxString*) NULL;
+    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs6, wxLB_SINGLE );
+    item6->SetToolTip( _("Lists the source language's code for the current set of definitions") );
+    item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item3->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Adaptation language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs9 = (wxString*) NULL;
+    wxListBox *item9 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs9, wxLB_SINGLE );
+    item9->SetToolTip( _("Lists the target text language codes for adaptation knowledge bases associated with the selected source language") );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Gloss language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs11 = (wxString*) NULL;
+    wxListBox *item11 = new wxListBox( parent, ID_LISTBOX_GLOSS_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs11, wxLB_SINGLE );
+    item11->SetToolTip( _("Lists the gloss text's language codes for glossing knowledge bases associated with the source language. (Needs a value even if you don't use Glossing mode.)") );
+    item7->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item7, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+
+    item12->Add( 20, 18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item13 = new wxButton( parent, ID_BUTTON_NO_UPPER_SELECTION, _("No Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Remove selection from upper list") );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( 20, 28, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item14 = new wxButton( parent, ID_BUTTON_NO_LOWER_SELECTION, _("No Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Remove selections from lower list") );
+    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item12, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL, _("To Update an adaptation knowledge base definition, clear the selection from the lower list on the right, then select the source language code, and in the top right box select the associated adaptation language code. To Update a glossing knowledge base for the same project, leave the source language code selected, clear the selection in the top right list, and select the correct glossing language code from the lower list on the right.  To Add a new  knowledge base definition pair, type codes in the three text boxes below, or click Lookup Codes. (A code for a glossing knowledge base is needed, even if you do not use the 'glossing mode' feature.)"), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
+    item15->Add( item16, 1, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Source:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item18, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    item19->SetToolTip( _("Type a language code for the new source language") );
+    item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item17->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_TGT, _("Adaptations:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item20, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    item21->SetToolTip( _("Type a language code for the adaptations language") );
+    item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item17->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Glosses:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item22, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_GLOSSES, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    item17->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item17->Add( 3, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item24 = new wxButton( parent, ID_BUTTON, _("Lookup Codes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Open the dialog for finding codes for source, target, and gloss languages") );
+    item17->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_RFC5654, _("Using RFC5646 codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item25->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Add Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Add the new knowledge base defined by the source, adaptations and glosses codes above  ") );
+    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item25->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item28 = new wxButton( parent, ID_BUTTON_UPDATE_DEFINITION, _("Update Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetToolTip( _("Change the selected definition to have the updated values in the boxes above") );
+    item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item25->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_REMOVE_DEFINITION, _("Remove Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Remove the selected knowledge base definition (and delete all its entries). [Use with care.]") );
+    item25->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, _("Warning: Updating, or Removing, may take a while if the knowledge base contains many entries."), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {

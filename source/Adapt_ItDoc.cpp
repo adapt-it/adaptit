@@ -5276,8 +5276,21 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		return FALSE;
 	}
 
+	// BEW 25Jun13, test the activesequnum value, because if it is large but the user has
+	// manually fiddled with the document to make it have fewer piles, then the doc's
+	// carried value of the active location may be beyond the end of the shortened
+	// document, and then trying to set it returns NULL as the m_pActivePile value. So
+	// check and if necessary give it a safe smaller value
+	int nMaxCurrentSequNum = pApp->m_pSourcePhrases->GetCount() - 1;
+	if (pApp->m_nActiveSequNum > nMaxCurrentSequNum)
+	{
+		pApp->m_nActiveSequNum = 0; // generally the most safe value it can have
+	}
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);	// seq num was initially zero but should have been set
 															// to a "real" value when the xml was read in
+
+	pApp->m_pLayout = pApp->m_pLayout; // for debugging
+
 
 	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
 	// because each document, on opening it, it must start with a truly empty EditRecord; and
@@ -5288,7 +5301,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
 	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
 
-    // whm added 1Oct12. After removing the MRU stuff from
+	// whm added 1Oct12. After removing the MRU stuff from
     // OnOpenDocument(), I've retained the initial test, i.e., if
     // (pApp->m_pKB == NULL), and if that test passes, then there may
     // be something more that needs to be accounted for in the removal
@@ -5299,6 +5312,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxASSERT_MSG(FALSE,_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 		pApp->LogUserAction(_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 	}
+
     // whm 1Oct12 removed MRU code
 	/*
 	// if we get here by having chosen a document file from the Recent_File_List, then it is
@@ -5708,6 +5722,11 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletio
 	// defaulting to FALSE because the deep copied sublists never have partner piles
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//wxASSERT(pApp != NULL);
+	// BEW 25Jun13 added next two lines, somehow on a new project this pList pointer would
+	// go NULL, when first opening a doc file copied from elsewhere as the first doc of
+	// the project
+	if (pList == NULL)
+		return;
 	if (pList != NULL)
 	{
 		if (!pList->IsEmpty())

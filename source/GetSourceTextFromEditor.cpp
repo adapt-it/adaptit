@@ -1073,15 +1073,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				bDoMerger = FALSE;
 				m_bUsfmStructureChanged = m_bUsfmStructureChanged; // avoid compiler warning
 #endif
-#else
-				if (m_bTextOrPunctsChanged || m_bUsfmStructureChanged)
-				{
-					bDoMerger = TRUE; // merge the from-editor source text into the AI document
-				}
-				else
-				{
-					bDoMerger = FALSE; // use the AI document 'as is'
-				}
 #endif
 				nStep = 6;
 				msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
@@ -2219,7 +2210,10 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 		wxArrayString chapterListFromFreeTransBook;
 		wxArrayString chapterStatusFromFreeTransBook;
 		bBookIsEmpty = FALSE; // assume book has some content. This will be modified by GetChapterListAndVerseStatusFromBook() below
-		GetChapterListAndVerseStatusFromBook(collabSrcText,
+		// BEW 24Jun13 - Bill cloned the src txt call, and forgot to change 1st param from
+		// collabSrcText to collabFreeTransText
+		//GetChapterListAndVerseStatusFromBook(collabSrcText,
+		GetChapterListAndVerseStatusFromBook(collabFreeTransText,
 			FreeTransTextUsfmStructureAndExtentArray,
 			m_TempCollabProjectForFreeTransExports,
 			fullBookName,

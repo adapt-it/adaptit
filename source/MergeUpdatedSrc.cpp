@@ -47,7 +47,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 // uncomment out the #define ShowConversionItems just preceding the helpers.cpp function
 // void ConvertSPList2SPArray(SPList* pList, SPArray* pArray), at about line 8772
 
-/* If you don't know what you need to look at for debugging, turn on the first six below...
+//* If you don't know what you need to look at for debugging, turn on the first six below...
 #define myLogDebugCalls       // probably the most useful one overall, and for counting spans & their deletions
 #define myMilestoneDebugCalls // useful for outer loop and MergeRecursively() calls
 #define LOOPINDEX             // this one gives the loop indices at the start of each iteration
@@ -60,7 +60,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 							  // to quickly find in-common span pairings
 //#define LEFTRIGHT			  // displays results of extending in-common matches to left or right
 							  //(this one has limited usefulness, only use if extending issues are your focus)
-*/
+//*/
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
@@ -1002,6 +1002,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
 	}
 #endif
+
 	// BEW 25Oct12, augmented the tests for entry to this block, to cover difficult
 	// situations robustly...
     // If there was no SFM or USFM data, need a limit = -1 merger, plus a progress bar In
@@ -1116,6 +1117,7 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 		} // end of else block for test:
 		  // if (pOldChunk->type == bookInitialChunk && pNewChunk->type == bookInitialChunk)
 
+
 		// next, handle any introduction information, if present
 		oldChunkIndex = oldLastChunkIndex + 1;
 		newChunkIndex = newLastChunkIndex + 1;
@@ -1211,17 +1213,9 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
                 // One of, or both of, the array's preFirstChapterChunk instances are
                 // absent. If arrOld's is absent, but arrNew's is present, then just copy
                 // the introduction material straight to pMergedList. If arrNew's is
-                // absent, but arrOld's is present, then try not to loose the arrOld
-                // material unless it really should be removed. It the new chunk is a
-                // chapter and verse chunk, the it's likely that the user added a missing
-                // chapter marker when doing the external edit, and so we want to keep any
-                // subheading adaptations etc. The way to do this is to do no merge here,
-                // but instead take the next "old" chunk and give it the present old
-                // chunk's starting index number, so that a later matchup will incorporate
-                // the material which can't be handled here. For any other situatin, assume
-                // this preliminary material is no longer wanted. So do nothing (except get
-                // the oldLastChunkIndex and newLastChunkIndex set ready for the next test
-                // - which should be milestoned material)
+                // absent, but arrOld's is present, then it should be removed. For any
+                // other situation, do nothing (except get the oldLastChunkIndex and newLastChunkIndex
+                // set ready for the next test - which should be milestoned material)
 				if (pNewChunk->type == preFirstChapterChunk)
 				{
 					// copy to pMergedList, no recursive merge is required
@@ -1238,20 +1232,35 @@ void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedLi
 						gpApp->GetDocument()->UpdateSequNumbers(nStartingSequNum, pMergedList);
 					}
 				}
-				else if ( oldChunkIndex < oldMaxIndex && (
-					(pNewChunk->type == chapterPlusVerseChunk) ||
-					(pNewChunk->type == subheadingPlusVerseChunk) ||
-					(pNewChunk->type == verseChunk)))
+				else if (pOldChunk->type == preFirstChapterChunk)
 				{
-					SfmChunk* pNextOldChunk = (SfmChunk*)pChunksOld->Item(oldChunkIndex + 1);
-					pNextOldChunk->startsAt = pOldChunk->startsAt;
+					// we get rid of this material simply by updating oldLastChunkIndex to
+					// the current oldChunkIndex, and nothing more
+					oldLastChunkIndex = oldChunkIndex;
 				}
 				// the other option can be safely ignored (ie. neither array has
 				// preFirstChapterChunk)
 			}
 		} // end of TRUE block for test:
 		  // if (oldChunkIndex < countOldChunks && newChunkIndex < countNewChunks)
-
+/*
+#if defined(_DEBUG) && defined( myMilestoneDebugCalls)
+	{
+		// old chunk at index == 2 is getting its startsAt value of 173 overwritten by 1,
+		// find out where this is happening
+	int count = pChunksOld->GetCount();
+	SfmChunk* pChunk = NULL;
+	int index = 2;
+	if (index < count)
+	{
+		wxLogDebug(_T("\n"));
+		pChunk = (SfmChunk*)pChunksOld->Item(index);
+		wxLogDebug(_T("Old Chunk: at index =  %d  [ start , end ] =  [ %d , %d ]   in  chapter:  %s  verse_start:  %s  verse_end  %s"),
+		index, pChunk->startsAt, pChunk->endsAt, pChunk->strChapter.c_str(), pChunk->strStartingVerse.c_str(), pChunk->strEndingVerse.c_str());
+	}
+	}
+#endif
+	*/
 		// next, handle any milestoned material - this is done in a loop
 		oldChunkIndex = oldLastChunkIndex + 1;
 		newChunkIndex = newLastChunkIndex + 1;
@@ -5405,18 +5414,18 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 
 	} while (oldIndex < oldArr_EndAt - numGroupWords);
 
-	// If control gets here, no subspan pairing qualities for the arrOld's subspan being
+	// If control gets here, no subspan pairing qualifies for the arrOld's subspan being
 	// more than half the possible size, and so we have had to collect all possible
 	// pairings and now we must obtain the one which is the largest.
 	int widthsCount = pWidthsArray->GetCount();
 	#if defined(_DEBUG) && defined(_INCOMMON)
 		wxLogDebug(_T("*** Count of pWidthsArray = %d , Count of pSubspansArray = %d "),widthsCount,pSubspansArray->GetCount());
 	#endif
+	int lastIndexForMax = 0; // initialize
 
 	// get the maximum width
 	int maxWidth = pWidthsArray->Item(0); // initialize to width of first matched pair,
 										  // using the arrOld's subarray's width
-	int lastIndexForMax = 0; // initialize
 	int w;
 	for (w = 1; w < widthsCount; w++)
 	{
@@ -5434,6 +5443,7 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 			lastIndexForMax = w;
 		}
 	}
+
 	// Define pMaxSubspan
 	pMaxSubspan = (Subspan*)pSubspansArray->Item(lastIndexForMax);
 	#if defined(_INCOMMON) && defined(_DEBUG)
@@ -6410,15 +6420,64 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 			// adjoining words either side match those in the arrOld's merger & if they do
 			// then we have a successful matchup
 			wxString thePhrase = pOldSrcPhrase->m_key;
-			int numWords = pOldSrcPhrase->m_nSrcWords;
+			// BEW 24Jun13, beware the next line. Kim Blewett had a file of source text in
+			// which the user had a detached comma, and so the source was "hanon<SP>emu<SP>,<SP>"
+			// that is, "hanon emu , " and so the AI parser made 3 CSourcePhrase
+			// instances, the last having m_key empty, m_srcPhrase ",", etc. And it had
+			// been made into a phrase by the user, so that the phrase's m_key string was 
+			// "hanon emu " which, when run through SmartTokenize() below, produced just 2
+			// words. Then the wxASSERT that howmanywords == numWords fails, since 2 == 3
+			// is FALSE. I'll try get control safely past this problem, by getting the
+			// list of keys by accessing the m_key value on each CSourcePhrase, so that if
+			// one is an empty string, we can legally test it for a match with "word"
+			int numWords = pOldSrcPhrase->m_nSrcWords; // see note above, can be greater than expected
 			wxArrayString arrKeys; // store the individual word tokens here
+			// BEW 24Jun13, use this loop to get the key strings safely, even empty ones
+			SPList::Node* pos = pOldSrcPhrase->m_pSavedWords->GetFirst();
+			while (pos != NULL)
+			{
+				CSourcePhrase* pSP = pos->GetData();
+				wxString aKey = pSP->m_key; // accept empty ones, shouldn't happen, but could if
+							// a newbie user typed detached punctuation like a comma or period etc
+				arrKeys.Add(aKey);
+				pos = pos->GetNext();
+			}
+
+
+			/* dangerous code if punctuation was detached from the word, so don't use it
 			wxString delimiters = _T(' ');
 			// in the next call, FALSE is bStoreEmptyStringsToo value
 			long howmanywords = SmartTokenize(delimiters, thePhrase, arrKeys, FALSE);
 			howmanywords = howmanywords; // avoid compiler warning in release version
 			wxASSERT((int)howmanywords == numWords);
 			wxASSERT(howmanywords > 1L);
+			*/
 			// find the index for the word which matches the one passed in
+			int i;
+			wxString aWord;
+			for (i = 0; i < numWords; i++)
+			{
+				// BEW 24Jun13 added some code to handle empty string matching safely too
+				aWord = arrKeys.Item(i);
+				if (aWord.IsEmpty())
+				{
+					if (word.IsEmpty())
+					{
+						// that's a match of two empty strings
+						break;
+					}
+					// if word isn't empty, then no match, so iterate
+				}
+				else
+				{
+					// arrKeys item is a non-empty string, check for a match
+					if (aWord == word)
+					{
+						break;
+					}
+				}
+			}
+			/* old code, deprecated 24Jun13
 			int i;
 			wxString aWord;
 			for (i = 0; i < numWords; i++)
@@ -6429,6 +6488,7 @@ bool GetNextMatchup(wxString& word, SPArray& arrOld, SPArray& arrNew, int oldSta
 					break;
 				}
 			}
+			*/
 			wxASSERT(i < numWords); // must match one of them!
 			int numBefore = i;
 			int numAfter = numWords - i - 1;

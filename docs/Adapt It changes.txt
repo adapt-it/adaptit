@@ -22,9 +22,7 @@ string of letters is acceptable). The second text control is to
 add or edit a human-friendly informal name, like "John Smith".
 The dialog also shows itself if one or both names are not set
 at the time that either document history, or sharing of the KB,
-is turned on within any Adapt It project. Once shown, something
-must be in each text control before the dialog will let you
-dismiss it. 
+is turned on within any Adapt It project. 
 * Changed Find when searching in the source text, if it matches 
 the source text at a "hole", it doesn't copy down the source 
 text there to the phrase box. This is safer.
@@ -64,7 +62,7 @@ in it's list associated with that source text key. It's safe now,
 any such bad entries are detected and removed before they can
 do damage to the data loading for the KB Editor.
 * If the Consistency Check... was invoked while one or more
-source text words were selected, it application crashed.
+source text words were selected, the application crashed.
 
 ----------------------------------------------
 Version 6.4.2 release 3 May 2013
