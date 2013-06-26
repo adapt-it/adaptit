@@ -5278,6 +5278,16 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		return FALSE;
 	}
 
+	// BEW 25Jun13, test the activesequnum value, because if it is large but the user has
+	// manually fiddled with the document to make it have fewer piles, then the doc's
+	// carried value of the active location may be beyond the end of the shortened
+	// document, and then trying to set it returns NULL as the m_pActivePile value. So
+	// check and if necessary give it a safe smaller value
+	int nMaxCurrentSequNum = pApp->m_pSourcePhrases->GetCount() - 1;
+	if (pApp->m_nActiveSequNum > nMaxCurrentSequNum)
+	{
+		pApp->m_nActiveSequNum = 0; // generally the most safe value it can have
+	}
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);	// seq num was initially zero but should have been set
 															// to a "real" value when the xml was read in
 
@@ -21520,6 +21530,9 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	pApp->GetView()->RemoveSelection(); // BEW 6Jun13 removed it from Layout::PlaceBox()where
+			// calling it is too late (it's after a layout change, leading to a crash), to be
+			// here instead
 	pApp->LogUserAction(_T("Initiated OnEditConsistencyCheck()"));
 	pApp->m_acceptedFilesList.Clear();
 	bUserCancelled = FALSE;			// this is a global boolean
