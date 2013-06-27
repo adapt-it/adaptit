@@ -17615,9 +17615,16 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 	// that is the CSourcePhrase instance on to which they are to be moved.
 
 	bool bHasFilteredMaterial = FALSE;
+#if defined (_DEBUG)
+	int counter = 0;
+#endif
 	while (pos != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+#if defined (_DEBUG)
+		counter++;
+		wxLogDebug(_T("RebuildFreeTransText() iteration number %d   m_srcPhrase =  %s"), counter, pSrcPhrase->m_srcPhrase.c_str());
+#endif
 		pos = pos->GetNext();
 
 		wxASSERT(pSrcPhrase != 0);
@@ -17828,11 +17835,25 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 		wholeMkr.Empty();
 		bool bIsMkrOfTypeToRemove = FALSE;
 		int itemLen; // stores length of parsed marker
+#if defined (_DEBUG)
+	int counter = 0;
+	wxLogDebug(_T("RemoveMarkersOfType() text =  %s\n\n"), text.c_str());
+#endif
 		while (*pOld != (wxChar)0 && pOld < pEnd)
 		{
 			// scan & copy across until next backslash (this test assumes we will no longer
 			// support the legacy feature that \ is to be interpretted as a SF escape
 			// character only before newlines)
+#if defined (_DEBUG)
+		counter++;
+		wxChar aChar = *pOld;
+		wxString strChar = aChar;
+		wxLogDebug(_T("RemoveMarkersOfType() theTextType = none, iteration number %d   m_srcPhrase =  %s"), counter, strChar.c_str());
+		if (counter > 100)
+		{
+			abort();
+		}
+#endif
 			while (*pOld != gSFescapechar && pOld < pEnd)
 			{
 				*pNew++ = *pOld++;
@@ -17923,6 +17944,20 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 					}
 				}
 			} // end of TRUE block for test: if (pDoc->IsMarker(pOld, pBufStart))
+			else
+			{
+				// BEW 27Jun13 added this else block, because a bare \ followed by a space
+				// would yield False at the test, and the loop would iterate forever
+				// without moving pOld forward. So test for this and skip it. Also, \
+				// before a word also is 'wrong' but the code above doesn't skip unknown
+				// markers and so that won't generate an infinite loop. So we only need
+				// deal with \<SP>
+				if (*(pOld + 1) == _T(' '))
+				{
+					// advance over the \ isolate character, making it not be in the output
+					pOld++;
+				}
+			}
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
 		*pNew = (wxChar)0; // terminate the new buffer string with null char
 	} // end of special scoping block
