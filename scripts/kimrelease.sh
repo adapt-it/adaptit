@@ -177,8 +177,6 @@ cd adaptit-${RELEASE}
 debuild -S -sa -us -uc || exit 4
 cd ..
 
-echo TESTING TESTING WILL DIE NOW && exit 5
-
 for i in $OSRELEASES; do
   export DIST=$i	# $DIST is used in .pbuilderrc
   # Ensure pbuilder-dist symlinks for relevant releases exist
@@ -195,9 +193,9 @@ for i in $OSRELEASES; do
   pbuilder-$i clean
   pbuilder-$i-i386 clean
 
-  # Build in each pbuilder
-  pbuilder-$i build adaptit_${RELEASE}-1.dsc
-  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-1.dsc
+  # Build in each pbuilder (now using -2 for Kim)
+  pbuilder-$i build adaptit_${RELEASE}-2.dsc
+  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-2.dsc
 
   # Copy the resulting .deb files to a results folder under the current directory
   # No longer done 2012-10-05 JM
