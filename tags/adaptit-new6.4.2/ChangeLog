@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.4.2 release 3 May 2013
+Version 6.4.2 release 26 June 2013
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.4.2
@@ -75,6 +75,8 @@ knowledge base when automatic capitalization was turned on,
 returned an uncapitalized adaptation when a capitalized equivalent
 was needed. This was most easily observed when doing a consistency
 check. It now works correctly.
+* Multiple collaboration-related fixes regarding lack of verse
+markers and handling of unexpected "\ " in USFM text.
 
 ----------------------------------------------
 Version 6.4.1 release 6 February 2013
