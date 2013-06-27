@@ -1,3 +1,11 @@
+adaptit (6.4.2-2) unstable; urgency=low
+
+  * Fixes by Bruce for collaboration issues found during
+    Kim's worksthop in PNG.
+
+ -- Jonathan Marsden <jmarsden@fastmail.fm>  Wed, 26 Jun 2013 23:43:57 -0700
+  
+
 adaptit (6.4.2-1) unstable; urgency=low
 
   * Pull in updates
