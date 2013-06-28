@@ -22,6 +22,12 @@ be created, but once closed, would not be openable again.)
 * If a document was manually shortened, the app would crash
 if the phrase box had previously been located within the 
 material omitted in the shorting.
+* A backslash typed into a free translation prior to a space
+character, made an export of the free translation go into an
+infinite loop. (This also made trying to open the document
+in collaboration mode hang indefinitely if there was a free 
+translation project being supported within Paratext or 
+Bibledit for that collaboration.)
 
 ----------------------------------------------
 Version 6.4.3 release 7 June 2013

@@ -1371,7 +1371,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 			wxString msg;
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
-			msg = msg.Format(_("Error when looking up a KB. Result code: %d cURL error: %s"), 
+			msg = msg.Format(_("Error when looking up a KB definition in the kb table. Result code: %d cURL error: %s"), 
 				result, error.c_str());
 			wxMessageBox(msg, _("cURL error"), wxICON_EXCLAMATION | wxOK);
 

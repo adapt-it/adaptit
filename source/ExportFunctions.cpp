@@ -17923,6 +17923,20 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 					}
 				}
 			} // end of TRUE block for test: if (pDoc->IsMarker(pOld, pBufStart))
+			else
+			{
+				// BEW 27Jun13 added this else block, because a bare \ followed by a space
+				// would yield False at the test, and the loop would iterate forever
+				// without moving pOld forward. So test for this and skip it. Also, \
+				// before a word also is 'wrong' but the code above doesn't skip unknown
+				// markers and so that won't generate an infinite loop. So we only need
+				// deal with \<SP>
+				if (*(pOld + 1) == _T(' '))
+				{
+					// advance over the \ isolate character, making it not be in the output
+					pOld++;
+				}
+			}
 		} // end of while (*pOld != (wxChar)0 && pOld < pEnd)
 		*pNew = (wxChar)0; // terminate the new buffer string with null char
 	} // end of special scoping block
