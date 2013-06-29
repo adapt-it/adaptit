@@ -76,8 +76,9 @@
 	Our DVCS engine is Git.  It uses a command-line interface.  So our job here is to create the command line, then
 	send it to git using wxExecute(), then handle the return results.
 
-	This is conceptually very simple, so originally I just wrote procedural code.  But now that we want everything to be as OOP as
-	possible, we have a DVCS class which just has one object, gpApp->m_pDVCS, instantiated in the application's OnInit() function.
+	This is conceptually very simple, so originally I just wrote procedural code.  But we want everything to be as OOP as
+	possible, so we have a DVCS class which just has one object, gpApp->m_pDVCS, instantiated in the application's 
+    OnInit() function.
 
 	All DVCS calls from the application are made via the function gpApp->m_pDVCS->DoDVCS().  This function takes an int parms,
 	action, which is a code telling us what to do.
