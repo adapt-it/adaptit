@@ -2961,9 +2961,210 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 /// "tempSave_<filename>.xml" is saved in the project folder, and restored from there if
 /// needed. Doing this means that the GUI never reveals it to the user, which is how it
 /// should behave.
+/// BEW 1Jul13, refactored so as to work happily in a DVCS context. The earlier versio of
+/// this function aimed to keep just one copy of the data (to avoid user confusion), so it
+/// did the rename by renaming the current document only, and in the evente of failurer or
+/// Cancel, it restored the document (and filename) to it's original state. This old
+/// protocol is dangerous in a DVCS environment, we don't want to give the user the
+/// capability of renaming a currently open document, which could be under version
+/// control, to something else - that would require us to complicate DVCS to accomodate
+/// such a possibility. It's likely the user wants a copy for some reason, such as for
+/// training purposes or similar, and so a renamed copy which can be removed from the
+/// project without damaging anything is a better idea. So the refactored version renames
+/// a COPY of the current document, and does not switch the open document to be this
+/// renamed copy. Therefore, the name of the open document, after a successful SaveAs...,
+/// is the same and all that's happened is a second, renamed, copy now resides on disk .
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 {
+	SaveType saveType = save_as;
+	wxString renamedFilename; renamedFilename.Empty();
+	wxString* pRenamedFilename = &renamedFilename;
+
+	wxString pathToSaveFolder;
+	wxULongLong originalSize = 0;
+	wxULongLong copiedSize = 0;
+	bool bRemovedSuccessfully = TRUE;
+	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
+	m_bDocRenameRequestedForSaveAs = FALSE; // restore default (ValidateFilenameAndPath()
+											// may have set it to TRUE)
+	bool bOutputFileExists = ::wxFileExists(gpApp->m_curOutputPath); // original doc file
+
+	// In the following call, if pRenamedFilename returns an empty string, then no rename has been
+	// requested; first param, value being TRUE, means "show wait/progress dialog"
+	bool bUserCancelled = FALSE; // it's initialized to FALSE inside the DoFileSave() call to
+	if (bOutputFileExists)
+	{
+		gpApp->LogUserAction(_T("Initiated Save As..."));
+	}
+	else
+	{
+		gpApp->LogUserAction(_T("Initiated Save As... but no doc file exists, so returning"));
+		return;
+	}
+	// Now make a copy with a different name, which we can later rename; put it in the
+	// project folder - otherwise when the DoSaveFile() dialog opens, it would be listed
+	// with all the document names (which we don't want to happen, it would confuse the
+	// user), so later when we've renamed it, we'll move it to the pathToSaveFolder
+	wxString prefixStr = _T("tempSave_"); // don't localize this, it's never seen
+	wxString newNameStr = prefixStr + gpApp->m_curOutputFilename;
+	wxString tempFileAbsPath = gpApp->m_curProjectPath + gpApp->PathSeparator + newNameStr;
+	bool bCopiedSuccessfully = TRUE;
+	if (bOutputFileExists)
+	{
+		bCopiedSuccessfully = ::wxCopyFile(gpApp->m_curOutputPath, tempFileAbsPath);
+		wxASSERT(bCopiedSuccessfully);
+		wxFileName fn(gpApp->m_curOutputPath);
+		originalSize = fn.GetSize();
+		if (bCopiedSuccessfully)
+		{
+			wxFileName fnNew(tempFileAbsPath);
+			copiedSize = fnNew.GetSize();
+			wxASSERT( copiedSize == originalSize);
+		}
+	}
+
+	// whm 26Aug11 Open a wxProgressDialog instance here for transform to glosses operations.
+	// The dialog's pProgDlg pointer is passed along through various functions that
+	// get called in the process.
+	// whm WARNING: The maximum range of the wxProgressDialog (nTotal below) cannot
+	// be changed after the dialog is created. So any routine that gets passed the
+	// pProgDlg pointer, must make sure that value in its Update() function does not
+	// exceed the same maximum value (nTotal).
+	// BEW 1Jul13, the above warning of Bill's no longer applies, because the renamed file will
+	// not be the current document, but will be a copy thereof, and the current document will
+	// stay 'as is' and so it's nTotal value will not change, and the view will not switch to
+	// displaying the renamed document on return, but retain the current one unchanged.
+	wxString msgDisplayed;
+	const int nTotal = gpApp->GetMaxRangeForProgressDialog(App_SourcePhrases_Count) + 1;
+	wxString progMsg = _("Saving File %s  - %d of %d Total words and phrases");
+	wxFileName fn(gpApp->m_curOutputFilename);
+	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
+	wxString newAbsPath; newAbsPath.Empty(); // renamed file (including its path) will be put here
+
+	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename, bUserCancelled, _T(""));
+	if (bSuccess)
+	{
+        // BEW 1Jul13, we do the rename on a copy, and only provided the save was
+        // successful (there won't be a filename clash because that was checked for and
+        // prevented within DoFileSave())
+		if (!pRenamedFilename->IsEmpty())
+		{
+			// a rename is wanted, make the renamed copy from the temp copy created above
+			// by moving and renaming (::wxRenameFile() does both at the one time)
+            // FALSE is bool overwrite, which defaults to TRUE, but we want FALSE here
+			newAbsPath = pathToSaveFolder + gpApp->PathSeparator + renamedFilename;
+			bool bSuccess = ::wxRenameFile(tempFileAbsPath, newAbsPath, FALSE);
+			if (bSuccess)
+			{
+				// The renamed file copy was created, nothing to do but make sure no temp
+				// copy remains, then then return
+				bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
+				if (bSomethingOfThatNameExists)
+				{
+					bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+					wxASSERT(bRemovedSuccessfully);
+				}
+				return;
+			}
+			else
+			{
+				// the rename failed, tell the user and exit; remove any fragment if present
+				wxString msg;
+				if (renamedFilename.IsEmpty())
+				{
+					msg = _("Warning: the SaveAs... attempt failed for some reason, the file was not created.");
+					wxMessageBox(msg,_("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
+					gpApp->LogUserAction(_T("Warning: SaveAs failed at ::wxRenameFile() call, empty filename."));
+				}
+				else
+				{
+					msg = _("Warning: the SaveAs... attempt failed for some reason, the file: %s was not created.");
+					msg = msg.Format(renamedFilename.c_str());
+					wxMessageBox(msg,_("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
+					gpApp->LogUserAction(_T("Warning: SaveAs failed at ::wxRenameFile() call."));
+				}
+				bool bSomethingOfThatNameExists = ::wxFileExists(newAbsPath);
+				if (bSomethingOfThatNameExists)
+				{
+					bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
+					wxASSERT(bRemovedSuccessfully);
+				}
+				// and also the temp copy
+				bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
+				if (bSomethingOfThatNameExists)
+				{
+					bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+					wxASSERT(bRemovedSuccessfully);
+				}
+				return;
+			}
+		}
+		else
+		{
+			// an empty filename'd file should not have been created, so just remove the
+			// temporary copy & return; similarly for one with same name
+			bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
+			if (bSomethingOfThatNameExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				wxASSERT(bRemovedSuccessfully);
+				wxString msg = _("Warning: a SaveAs... file with the same name is illegal, so nothing was done.");
+				wxMessageBox(msg,_("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
+				gpApp->LogUserAction(msg);
+			}
+			return;
+		}
+	}
+	else // handle failure at the DoSaveFile dialog, or a user Cancel button click
+	{
+		if (bUserCancelled)
+		{
+			// nothing to do except make sure any temporary fragment is gone, & then return
+			bool bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
+			if (bSomethingOfThatNameExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				wxASSERT(bRemovedSuccessfully);
+			}
+			return;
+		}
+		else
+		{
+			// something went wrong, tell the user and remove any fragmet, then return
+			wxString msg;
+			if (renamedFilename.IsEmpty())
+			{
+				msg = _("Warning: the SaveAs... attempt failed for some reason, the file was not created.");
+				wxMessageBox(msg,_("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
+				gpApp->LogUserAction(_T("Warning: SaveAs failed at ::wxRenameFile() call, empty filename."));
+			}
+			else
+			{
+				msg = _("Warning: the SaveAs... attempt failed for some reason, the file: %s was not created.");
+				msg = msg.Format(renamedFilename.c_str());
+				wxMessageBox(msg,_("SaveAs... failed"), wxICON_EXCLAMATION | wxOK);
+				gpApp->LogUserAction(_T("Warning: SaveAs failed at ::wxRenameFile() call."));
+			}
+			bool bSomethingOfThatNameExists = ::wxFileExists(newAbsPath);
+			if (bSomethingOfThatNameExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
+				wxASSERT(bRemovedSuccessfully);
+			}
+			// and also the temp copy
+			bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
+			if (bSomethingOfThatNameExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(tempFileAbsPath);
+				wxASSERT(bRemovedSuccessfully);
+			}
+			return;
+		}
+
+	} // end else block for test: if (bSuccess) 
+
+/*  Legacy Code... at 1Jul13, retain for a while before culling
 	SaveType saveType = save_as;
 	wxString renamedFilename; renamedFilename.Empty();
 	wxString* pRenamedFilename = &renamedFilename;
@@ -3183,6 +3384,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	m_bDocRenameRequestedForSaveAs = FALSE; // restore default
+*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////
