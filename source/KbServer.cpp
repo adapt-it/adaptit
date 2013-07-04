@@ -1307,9 +1307,9 @@ int KbServer::ListUsers(wxString username, wxString password)
 									// rid of these pointers once their job is done, if not,
 									// memory will be leaked
 #if defined (_DEBUG)
-			wxLogDebug(_T("ListUsers(): id = %d username = %s , fullname = %s useradmin = %d , kbadmin = %d"),
+			wxLogDebug(_T("ListUsers(): id = %d username = %s , fullname = %s useradmin = %d , kbadmin = %d  timestamp = %s"),
 				pUserStruct->id, pUserStruct->username.c_str(), pUserStruct->fullname.c_str(),
-				pUserStruct->useradmin ? 1 : 0, pUserStruct->kbadmin ? 1 : 0);
+				pUserStruct->useradmin ? 1 : 0, pUserStruct->kbadmin ? 1 : 0, pUserStruct->timestamp.c_str());
 #endif
 		}
 
@@ -1850,8 +1850,10 @@ void KbServer::ClearUsersList(UsersList* pUsrList)
 		anIndex++;
 		c_iter = pUsrList->Item((size_t)anIndex);
 		KbServerUser* pEntry = c_iter->GetData();
-		delete pEntry;
+		delete pEntry; // frees its memory block
 	}
+	// The list's stored pointers are now hanging, so clear them
+	pUsrList->clear();
 }
 
 
@@ -2047,6 +2049,120 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 		return CURLE_HTTP_RETURNED_ERROR; 
 	}
 	return 0;
+}
+
+int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin)
+{
+	CURL *curl;
+	CURLcode result = CURLE_OK; // initialize result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("user");
+	wxString aUrl, aPwd;
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	// populate the JSON object
+	jsonval[_T("username")] = username;
+	jsonval[_T("fullname")] = fullname;
+	jsonval[_T("password")] = hisPassword;
+	long kbadmin = bKbadmin ? 1L : 0L;
+	jsonval[_T("kbadmin")] = kbadmin;
+	long useradmin = bUseradmin ? 1L : 0L;
+	jsonval[_T("useradmin")] = useradmin;
+
+	// convert it to string form
+	wxJSONWriter writer; wxString str;
+	writer.Write(jsonval, str);
+	// convert it to utf-8 stored in CBString
+	strVal = ToUtf8(str);
+
+	aUrl = GetKBServerURL() + slash + container + slash;
+	charUrl = ToUtf8(aUrl);
+
+	// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		headers = curl_slist_append(headers, "Accept: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		// ask for the headers to be prepended to the body - this is a good choice here
+		// because no json data is to be returned
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("CreateUser() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+		
+		curl_slist_free_all(headers);
+		str_CURLbuffer.clear();
+
+        // Typically, result will contain CURLE_OK if an error was a HTTP one and so the
+        // next block won't then be entered; don't bother to localize this one, we don't
+        // expect it will happen much if at all
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("CreateUser() result code: %d Error: %s"), 
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when creating a user in the user table"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+    // Work out what to return, depending on whether or not a HTTP error happened, and
+    // which one it was
+	if (m_httpStatusCode >= 400)
+	{
+		// For a CreateEntry() call, 400 "Bad Request" should be the only one we get.
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+
+        // We found an existing entry, so it could be a normal one, or a pseudo-deleted
+        // one, and therefore we'll return CURLE_HTTP_RETURNED_ERROR (22); this allows us
+        // to check for this code in the caller and when it has been returned, to do
+        // further calls in the thread before it destructs. For CreateEntry() this would
+        // mean a LookupFields() to determine what the deleted flag value is, and if it's a
+        // pseudo deleted entry, then we can call the function for restoring it to be a
+        // normal entry - 3 calls, and heaps of latency delay, but it would be a rare
+        // scenario.
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
+	return 0; // no error
 }
 
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
