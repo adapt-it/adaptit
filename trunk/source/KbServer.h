@@ -152,6 +152,7 @@ public:
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
+	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
 	int		 ListUsers(wxString url, wxString username);
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
