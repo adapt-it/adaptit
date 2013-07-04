@@ -344,6 +344,7 @@ extern std::string str_CURLheaders;
 
 #include "KbServer.h"
 #include "Timer_KbServerChangedSince.h"
+#include "KBSharingMgrTabbedDlg.h"
 
 #endif
 
@@ -5579,6 +5580,9 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
 	EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
 	EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
+
+	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
+	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
 
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
@@ -26769,6 +26773,72 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
+#if defined (_KBSERVER)
+///////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
+///                         menu item is selected
+/// \remarks
+/// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." 
+/// menu item is selected. 
+///////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
+{
+	// define and load one or more consistent change tables
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
+
+	KBSharingMgrTabbedDlg kbSharingPropertySheet(pApp->GetMainFrame());
+
+	// make the font show only 12 point size in the dialog
+	CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);
+	m_pDlgSrcFont->SetPointSize(12);
+
+#if defined(_DEBUG)
+	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
+		pApp->m_pKbServer[0]->GetUsersList()->GetCount());
+#endif
+	// show the property sheet
+	if(kbSharingPropertySheet.ShowModal() == wxID_OK)
+	{
+
+
+
+
+	}
+}
+#endif
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the Administrator
+///                          menu is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// If the application is in currently in vertical edit mode, the "Knowledge Base Sharing
+/// Manager..." item on the Administrator menu is disabled and this event handler returns
+/// immediately. Likewise, if the flag indicating whether or not the current project is one
+/// for KB Sharing is FALSE, or the pointer to the KbServer instance for the adaptations is
+/// still NULL, then that menu item is disabled. Otherwise, it is enabled.
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
+{
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+    // Don't enable the Knowledge Base Sharing Manager... item interface unless the current
+    // project is a KB Sharing one, and the m_pKbServer[0] is not NULL - we use the latter
+    // to get the various calls we need for the Manager tabbed dialog
+	if (m_bIsKBServerProject && (m_pKbServer[0] != NULL))
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

@@ -2810,7 +2810,9 @@ public:
 	// BEW deprecated 31Jan13
 	//bool	  GetCredentials(wxString filename, wxString& url, wxString& username, wxString& password);
 
-
+	// These next two are not part of the AI_UserProfiles feature, we want them for every profile
+	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
+	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
 
 
 
