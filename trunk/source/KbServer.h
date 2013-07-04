@@ -50,11 +50,15 @@ WX_DEFINE_ARRAY_LONG(long, Array_of_long);
 struct KbServerEntry; // NOTE, omitting this forwards declaration and having the KbServerEntry
 					  // definition here instead, does NOT WORK! And the WX_DEFINE_LIST() macro
 					  // in the .cpp file must be somewhere AFTER the #include "KbServer.h" line
+struct KbServerUser;  // ditto, for this one
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the app instance
 		// because kbserver upload threads may not all be finished when the two kbserver
 		// instances are released, and if they are not finished, then the KbServerEntry 
 		// structs they store will need to live on as long as possible
+WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser structs for 
+										  // the ListUsers() client
+
 // need a hashmap for quick lookup of keys for find out which src-tgt pairs are in the
 // remote KB (scanning through downloaded data from the remote KB), so as not to upload
 // pairs which already have a presence in the remote server; used when doing a full KB upload
@@ -93,7 +97,6 @@ struct KbServerKb {
 	int			deleted; // 0 if not deleted, 1 if deleted (i.e. 'not in use, until deleted status is changed')
 };
 
-
 enum ClientAction {
 	getForOneKeyOnly,
 	changedSince,
@@ -127,27 +130,39 @@ public:
 	KbServer(int whichType); // the constructor we'll use, pass 1 for adapting KB, 2 for glossingKB
 	virtual	~KbServer(void); // destructor (should be virtual)
 
-	void	DownloadToKB(CKB* pKB, enum ClientAction action);
 
 	// attributes
 public:
 
-	// The API which we expose (note:  srcPhrase & tgtPhrase are often each
-	// just a single word)
+	// ///////// The API which we expose ////////////////////////////////////////////
+	// (note:  srcPhrase & tgtPhrase are often each just a single word)
+	
     // By passing in a copy of the required strings, we avoid mutex problems that would
     // happen because the internal code would otherwise need to make calls to the KbServer
 	// instance to get needed params; these API kbserver functions are setup within the
 	// main thread before the containing thread is fired, and so the parameter accesses
 	// are synchronous and no mutex is required
 	
-	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused
 	
-	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
+	int		 BulkUpload(	int threadIndex, // use for choosing which buffer to return results in
+							wxString url, 
+							wxString username, 
+							wxString password, 
+							CBString jsonUtf8Str);
+	int		 ChangedSince(wxString timeStamp);
+	int		 ChangedSince_Queued(wxString timeStamp);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
-	int		 LookupUser(wxString url, wxString username, wxString password);
+	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
+	int		 ListUsers(wxString url, wxString username);
+	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);
-	/* commented out by BEW 5Jun13
+	int		 LookupUser(wxString url, wxString username, wxString password);
+	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
+	void	 UploadToKbServer();
+	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
+	// it gets all tgt words and phrases for a given source text word or phrase
+	/* deprecated by BEW 5Jun13
 	int		 CreateEntry_Minimal(	KbServerEntry& entry,
 									wxString& kbType,
 									wxString& password,
@@ -156,15 +171,13 @@ public:
 									wxString& tgtLangCode,
 									wxString& url);
 	*/
-	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
-	int		 ChangedSince(wxString timeStamp);
-	int		 ChangedSince_Queued(wxString timeStamp);
-	void	 UploadToKbServer();
-	int		 BulkUpload(	int threadIndex, // use for choosing which buffer to return results in
-							wxString url, 
-							wxString username, 
-							wxString password, 
-							CBString jsonUtf8Str);
+	// Functions we'll want to be able to call programmatically... (button handlers
+	// for these will be in KBSharing.cpp)
+	void		DoChangedSince();
+	void		DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
+
+	// ///////////// end of API /////////////////////////////////////////////////////
+	
 	void	 DeleteUploadEntries();
 
 	// public setters
@@ -280,11 +293,6 @@ public:
 	wxString	GetCredentialsFilename();
 	wxString	GetLastSyncFilename();
 
-	// Functions we'll want to be able to call programmatically... (button handler
-	// versions of these will be in KBSharing.cpp)
-	void		DoChangedSince();
-	void		DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
-
     // Private storage arrays (they are wxArrayString, but deleted flag and id will use
     // wxArrayInt) for bulk entry data returned from the server synchonously.. Access to
     // these arrays is by an int iterator, and the data values pertain to a single kbserver
@@ -315,6 +323,9 @@ private:
 	// For use in full KB uploads
 	UploadsMap		m_uploadsMap;
 
+	// For use when listing all the user definitions in the kbserver
+	UsersList       m_usersList;
+
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
 	// single entry
 	KbServerEntry	m_entryStruct;
@@ -323,7 +334,11 @@ private:
 
 public:
 
-	// public accessors for the private arrays (these are for bulk uploading and downloading)
+    // public accessors for the private arrays (these are for bulk uploading and
+    // downloading; UploadToKbServer() uses DoGetAll(), and the downloaders are
+    // OnBtnGetAll() and OnBtnChangedSince() which use DoChangedSince() and DownloadToKB()
+    // -- and all of these use CKB's StoreEntriesFromKbServer() function which uses the
+    // accessors below)
 	Array_of_long*	GetIDsArray();
 	wxArrayInt*		GetDeletedArray();
 	wxArrayString*	GetTimestampArray();
@@ -343,6 +358,9 @@ public:
 	void			SetUserStruct(KbServerUser userStruct);
 	KbServerUser	GetUserStruct();
 	void			ClearUserStruct();
+
+	UsersList*		GetUsersList();
+	void			ClearUsersList(UsersList* pUsrList); // deletes from the heap all KbServerUser struct ptrs within
 
 	void			ClearUploadsMap(); // clears user data (wxStrings) from m_uploadsMap
 

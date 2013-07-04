@@ -9742,7 +9742,7 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
     item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(232,-1), 0, strs6, wxLB_SINGLE );
+    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(232,-1), 0, strs6, wxLB_SINGLE|wxLB_SORT );
     item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 0 );
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
@@ -9768,7 +9768,7 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("A personal password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORDX, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_PASSWORD );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_PASSWORD );
     item14->SetToolTip( _("Type in the password. You can type a new one if unknown.") );
     item7->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9798,13 +9798,13 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item21 = new wxButton( parent, _CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->SetToolTip( _("Empty all the controls, except the list box and the temporarily stored list of new passwords") );
     item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item20->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item22 = new wxButton( parent, ID_BUTTON, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item22 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
     item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9852,7 +9852,7 @@ wxSizer *SharedKBManagerKbsPageFunc( wxWindow *parent, bool call_fit, bool set_s
     item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs6, wxLB_SINGLE );
+    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs6, wxLB_SINGLE|wxLB_SORT );
     item6->SetToolTip( _("Lists the source language's code for the current set of definitions") );
     item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9866,7 +9866,7 @@ wxSizer *SharedKBManagerKbsPageFunc( wxWindow *parent, bool call_fit, bool set_s
     item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs9 = (wxString*) NULL;
-    wxListBox *item9 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs9, wxLB_SINGLE );
+    wxListBox *item9 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs9, wxLB_SINGLE|wxLB_SORT );
     item9->SetToolTip( _("Lists the target text language codes for adaptation knowledge bases associated with the selected source language") );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9874,7 +9874,7 @@ wxSizer *SharedKBManagerKbsPageFunc( wxWindow *parent, bool call_fit, bool set_s
     item7->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs11 = (wxString*) NULL;
-    wxListBox *item11 = new wxListBox( parent, ID_LISTBOX_GLOSS_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs11, wxLB_SINGLE );
+    wxListBox *item11 = new wxListBox( parent, ID_LISTBOX_GLOSS_LANG_CODE, wxDefaultPosition, wxSize(200,-1), 0, strs11, wxLB_SINGLE|wxLB_SORT );
     item11->SetToolTip( _("Lists the gloss text's language codes for glossing knowledge bases associated with the source language. (Needs a value even if you don't use Glossing mode.)") );
     item7->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9928,12 +9928,12 @@ wxSizer *SharedKBManagerKbsPageFunc( wxWindow *parent, bool call_fit, bool set_s
     wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Glosses:"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item22, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_GLOSSES, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_GLOSSES, wxT(""), wxDefaultPosition, wxSize(90,-1), 0 );
     item17->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item17->Add( 3, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item24 = new wxButton( parent, ID_BUTTON, _("Lookup Codes"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item24 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES, _("Lookup Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Open the dialog for finding codes for source, target, and gloss languages") );
     item17->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -10144,6 +10144,8 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
     item9->AppendSeparator();
     item9->Append( ID_DVCS_VERSION, _("Show DVCS version"), wxT("") );
+    item9->AppendSeparator();
+    item9->Append( ID_MENU_KBSHARINGMGR, _("&Knowledge Base Sharing Manager..."), _("Open the Manager for knowledge base sharing configuration") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;

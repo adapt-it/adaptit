@@ -709,6 +709,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KBSharingMgrTabbedDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\KBSharingSetupDlg.cpp"
 				>
 			</File>
@@ -1287,6 +1291,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBSharing.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KBSharingMgrTabbedDlg.h"
 				>
 			</File>
 			<File

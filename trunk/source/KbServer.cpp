@@ -67,7 +67,7 @@ using namespace std;
 WX_DEFINE_LIST(DownloadsQueue);
 WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadMulti, for kbserver support
 							  // (see member m_uploadsList)
-
+WX_DEFINE_LIST(UsersList);    // for use by the ListUsers() client, stores KbServerUser structs
 
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
@@ -976,11 +976,11 @@ int KbServer::ChangedSince(wxString timeStamp)
             // cleared with a call of ClearAllPrivateStorageArrays()
             ClearAllPrivateStorageArrays(); // always must start off empty
 
-            wxString myList = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
+            wxString jsonArray = wxString::FromUTF8(str_CURLbuffer.c_str()); // I'm assuming no BOM gets inserted
 
             wxJSONValue jsonval;
             wxJSONReader reader;
-            int numErrors = reader.Parse(myList, &jsonval);
+            int numErrors = reader.Parse(jsonArray, &jsonval);
             pStatusBar->UpdateProgress(_("Receiving..."), 4);
 
             if (numErrors > 0)
@@ -993,17 +993,17 @@ int KbServer::ChangedSince(wxString timeStamp)
                 pStatusBar->FinishProgress(_("Receiving..."));
                 return -1;
             }
-            int listSize = jsonval.Size();
+            size_t arraySize = jsonval.Size();
 #if defined (_DEBUG)
             // get feedback about now many entries we got
-            if (listSize > 0)
+            if (arraySize > 0)
             {
                 wxLogDebug(_T("ChangedSince() returned %d entries, for data added to kbserver since %s"),
-                    listSize, timeStamp.c_str());
+                    arraySize, timeStamp.c_str());
             }
 #endif
-            int index;
-            for (index = 0; index < listSize; index++)
+            size_t index;
+            for (index = 0; index < arraySize; index++)
             {
                 // We can extract id, source phrase, target phrase, deleted flag value,
                 // username, and timestamp string; but for supporting the sync of a local KB we
@@ -1175,6 +1175,151 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	s_DoGetAllMutex.Unlock();
 }
 
+// Note: before running ListUsers(), ClearStrCURLbuffer() should be called,
+// and always remember to clear str_CURLbuffer before returning.
+// Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
+// be returned even when there is no entry in the database. It's the HTTP status codes we
+// need to get.
+// Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
+// HTTP error - such as no matching entry, or a badly formed request
+int KbServer::ListUsers(wxString username, wxString password)
+{
+	CURL *curl;
+	CURLcode result;
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+	str_CURLbuffer.clear();
+	str_CURLheaders.clear();
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString container = _T("user");
+
+	aUrl = GetKBServerURL() + slash + container;
+	charUrl = ToUtf8(aUrl);
+	aPwd = username + colon + password;
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback); // writes to str_CURLbuffer
+		// We want separate storage for headers to be returned, to get the HTTP status code
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
+
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
+													  //headers separately
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+        CBString s2(str_CURLheaders.c_str());
+        wxString showit2 = ToUtf16(s2);
+		wxLogDebug(_T("LookupUser(): Returned headers: %s"), showit2.c_str());
+
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+		wxLogDebug(_T("ListUsers() str_CURLbuffer has: %s    , The CURLcode is: %d"), 
+					showit.c_str(), (unsigned int)result);
+#endif
+		// Get the HTTP status code, and the English message
+		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
+
+		// If the only error was a HTTP one, then result will contain CURLE_OK, in which
+		// case the next block is skipped
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("LookupUser() result code: %d cURL Error: %s"), 
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return (int)result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+	// If there was a HTTP error (typically, it would be 404 Not Found, because the
+	// username is not in the entry table yet, but 100 Bad Request may also be possible I
+	// guess) then exit early, there won't be json data to handle if that was the case
+	if (m_httpStatusCode >= 400)
+	{
+		// whether 400 or 404, return CURLE_HTTP_RETURNED_ERROR (ie. 22) to the caller
+		ClearUserStruct();
+		str_CURLbuffer.clear();
+		str_CURLheaders.clear();
+		return CURLE_HTTP_RETURNED_ERROR; // 22
+	}
+
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//  We requested separate headers callback be used, so str_CURLbuffer should only have
+	//  the json string for the constructed list of user entries
+	if (!str_CURLbuffer.empty())
+	{
+		// Note: normally before calling LookupEntryForSrcTgtPair() the storage arrays
+		// should be cleared with a call of ClearAllPrivateStorageArrays()
+		wxString myArray = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxJSONValue jsonval;
+		wxJSONReader reader;
+		int numErrors = reader.Parse(myArray, &jsonval);
+		if (numErrors > 0)
+		{
+			// A non-localizable message will do, it's unlikely to happen (we hope)
+			wxMessageBox(_T("In ListUsers(): json reader.Parse() failed. Unexpected bad data from server."),
+				_T("kbserver error"), wxICON_ERROR | wxOK);
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear();
+			return CURLE_HTTP_RETURNED_ERROR;
+		}
+        // We extract everything: id, username, fullname, kbadmin flag value, useradmin
+        // flag value, and the timestamp at which the username was added to the entry table
+		ClearUsersList(&m_usersList); // deletes from the heap any KbServerUser structs still in m_userList
+		wxASSERT(m_usersList.empty());
+        size_t arraySize = jsonval.Size();
+		wxASSERT(arraySize > 0);
+        size_t index;
+        for (index = 0; index < arraySize; index++)
+        {
+			KbServerUser* pUserStruct = new KbServerUser;
+			// Extract the field values, store them in pUserStruct
+			pUserStruct->id = jsonval[index][_T("id")].AsLong();
+			pUserStruct->username = jsonval[index][_T("username")].AsString();
+			pUserStruct->fullname = jsonval[index][_T("fullname")].AsString();
+			// do the following fiddle to avoid a compiler "performance warning" 
+			// if a (bool) cast was used instead
+			unsigned long val = jsonval[index][_T("kbadmin")].AsLong();
+			pUserStruct->kbadmin = val == 1L ? TRUE : FALSE;
+			val = jsonval[index][_T("useradmin")].AsLong();
+			pUserStruct->useradmin = val == 1L ? TRUE : FALSE;
+			pUserStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
+			// Add the pUserStruct to the m_usersList stored in the KbServer instance
+			// which is this (Caller should only use the adaptations instance of KbServer)
+			m_usersList.Append(pUserStruct); // Caller must later use ClearUsersList() to get
+									// rid of these pointers once their job is done, if not,
+									// memory will be leaked
+#if defined (_DEBUG)
+			wxLogDebug(_T("ListUsers(): id = %d username = %s , fullname = %s useradmin = %d , kbadmin = %d"),
+				pUserStruct->id, pUserStruct->username.c_str(), pUserStruct->fullname.c_str(),
+				pUserStruct->useradmin ? 1 : 0, pUserStruct->kbadmin ? 1 : 0);
+#endif
+		}
+
+		str_CURLbuffer.clear(); // always clear it before returning
+		str_CURLheaders.clear();
+	}
+	return 0;
+}
+
+
 // Note: before running LookupUser(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
 // Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
@@ -1288,8 +1433,8 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password)
 		m_userStruct.id = jsonval[0][_T("id")].AsLong();
 		m_userStruct.username = jsonval[0][_T("username")].AsString();
 		m_userStruct.fullname = jsonval[0][_T("fullname")].AsString();
-		// do the following fiddle to avoid a compiler "performance warning" by instead 
-		// using a (bool) cast
+		// do the following fiddle to avoid a compiler "performance warning" 
+		// if a (bool) cast was used instead
 		unsigned long val = jsonval[0][_T("kbadmin")].AsLong();
 		m_userStruct.kbadmin = val == 1L ? TRUE : FALSE;
 		val = jsonval[0][_T("useradmin")].AsLong();
@@ -1687,6 +1832,27 @@ KbServerUser KbServer::GetUserStruct()
 	return m_userStruct;
 }
 
+UsersList* KbServer::GetUsersList()
+{
+	return &m_usersList;
+}
+
+// deletes from the heap all KbServerUser struct ptrs within m_usersList
+void KbServer::ClearUsersList(UsersList* pUsrList)
+{
+	if (pUsrList->empty())
+		return;
+	UsersList::iterator iter;
+	UsersList::compatibility_iterator c_iter;
+	int anIndex = -1;
+	for (iter = pUsrList->begin(); iter != pUsrList->end(); ++iter)
+	{
+		anIndex++;
+		c_iter = pUsrList->Item((size_t)anIndex);
+		KbServerUser* pEntry = c_iter->GetData();
+		delete pEntry;
+	}
+}
 
 
 /* Not used, commented out by BEW 5Jun13
