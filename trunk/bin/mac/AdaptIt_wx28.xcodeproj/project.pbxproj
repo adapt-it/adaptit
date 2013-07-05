@@ -31,7 +31,6 @@
 		27A17DFA16E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27A17DF716E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
 		27CAB9FC16D4548E00E85604 /* Adapt_ItKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CAB9FA16D4548E00E85604 /* Adapt_ItKBServer.cpp */; };
-		27CABA1116D454BC00E85604 /* KbServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CAB9FF16D454BC00E85604 /* KbServer.cpp */; };
 		27CABA1216D454BC00E85604 /* KBSharing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0016D454BC00E85604 /* KBSharing.cpp */; };
 		27CABA1316D454BC00E85604 /* KBSharingSetupDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0216D454BC00E85604 /* KBSharingSetupDlg.cpp */; };
 		27CABA1716D454BC00E85604 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0716D454BC00E85604 /* Thread_ChangedSince.cpp */; };
@@ -91,11 +90,16 @@
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */ = {isa = PBXBuildFile; fileRef = C853F9991222543700334B95 /* iso639-3codes.txt */; };
 		C85CE18314103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */; };
+		C883D76E17863FAD009AF1FC /* KBSharingMgrTabbedDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C883D76D17863FAD009AF1FC /* KBSharingMgrTabbedDlg.cpp */; };
 		C8A144BC1429F5D20022E0F1 /* convauto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A144BA1429F5D20022E0F1 /* convauto.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8C3970C15D3D2670093A3CE /* BookNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8C3970815D3D2670093A3CE /* BookNameDlg.cpp */; };
 		C8DC8FF214A3331200EA1D5C /* DVCS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DC8FF114A3331200EA1D5C /* DVCS.cpp */; };
 		C8DE45671323679C0030EC9B /* base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8DE45661323679C0030EC9B /* base64.cpp */; };
+		C8E750291786E17B009F7FCE /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E750231786E17B009F7FCE /* jsonreader.cpp */; };
+		C8E7502A1786E17B009F7FCE /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E750251786E17B009F7FCE /* jsonval.cpp */; };
+		C8E7502B1786E17B009F7FCE /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E750271786E17B009F7FCE /* jsonwriter.cpp */; };
+		C8E750341786E35A009F7FCE /* Thread_KbEditorUpdateButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8E750331786E35A009F7FCE /* Thread_KbEditorUpdateButton.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
 		C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */; };
 		C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */; };
@@ -215,7 +219,6 @@
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
 		27CAB9FA16D4548E00E85604 /* Adapt_ItKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItKBServer.cpp; path = ../../source/Adapt_ItKBServer.cpp; sourceTree = SOURCE_ROOT; };
 		27CAB9FB16D4548E00E85604 /* Adapt_ItKBServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_ItKBServer.h; path = ../../source/Adapt_ItKBServer.h; sourceTree = SOURCE_ROOT; };
-		27CAB9FF16D454BC00E85604 /* KbServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KbServer.cpp; path = ../../source/KbServer.cpp; sourceTree = SOURCE_ROOT; };
 		27CABA0016D454BC00E85604 /* KBSharing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharing.cpp; path = ../../source/KBSharing.cpp; sourceTree = SOURCE_ROOT; };
 		27CABA0116D454BC00E85604 /* KBSharing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSharing.h; path = ../../source/KBSharing.h; sourceTree = SOURCE_ROOT; };
 		27CABA0216D454BC00E85604 /* KBSharingSetupDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharingSetupDlg.cpp; path = ../../source/KBSharingSetupDlg.cpp; sourceTree = SOURCE_ROOT; };
@@ -317,6 +320,8 @@
 		C853F9991222543700334B95 /* iso639-3codes.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "iso639-3codes.txt"; path = "../../docs/iso639-3codes.txt"; sourceTree = SOURCE_ROOT; };
 		C85CE18114103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ConsChk_Empty_noTU_Dlg.h; path = ../../source/ConsChk_Empty_noTU_Dlg.h; sourceTree = SOURCE_ROOT; };
 		C85CE18214103FB400E6A06A /* ConsChk_Empty_noTU_Dlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ConsChk_Empty_noTU_Dlg.cpp; path = ../../source/ConsChk_Empty_noTU_Dlg.cpp; sourceTree = SOURCE_ROOT; };
+		C883D76C17863FAD009AF1FC /* KBSharingMgrTabbedDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KBSharingMgrTabbedDlg.h; path = ../../source/KBSharingMgrTabbedDlg.h; sourceTree = SOURCE_ROOT; };
+		C883D76D17863FAD009AF1FC /* KBSharingMgrTabbedDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBSharingMgrTabbedDlg.cpp; path = ../../source/KBSharingMgrTabbedDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BA1429F5D20022E0F1 /* convauto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = convauto.cpp; path = ../../source/convauto.cpp; sourceTree = SOURCE_ROOT; };
 		C8A144BB1429F5D20022E0F1 /* convauto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = convauto.h; path = ../../source/convauto.h; sourceTree = SOURCE_ROOT; };
 		C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ReadOnlyProtection.cpp; path = ../../source/ReadOnlyProtection.cpp; sourceTree = SOURCE_ROOT; };
@@ -326,6 +331,15 @@
 		C8DC8FF114A3331200EA1D5C /* DVCS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCS.cpp; path = ../../source/DVCS.cpp; sourceTree = SOURCE_ROOT; };
 		C8DE45651323679C0030EC9B /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = base64.h; path = ../../source/base64.h; sourceTree = SOURCE_ROOT; };
 		C8DE45661323679C0030EC9B /* base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = base64.cpp; path = ../../source/base64.cpp; sourceTree = SOURCE_ROOT; };
+		C8E750221786E17B009F7FCE /* json_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = json_defs.h; path = ../../source/json_defs.h; sourceTree = SOURCE_ROOT; };
+		C8E750231786E17B009F7FCE /* jsonreader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonreader.cpp; path = ../../source/jsonreader.cpp; sourceTree = SOURCE_ROOT; };
+		C8E750241786E17B009F7FCE /* jsonreader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonreader.h; path = ../../source/jsonreader.h; sourceTree = SOURCE_ROOT; };
+		C8E750251786E17B009F7FCE /* jsonval.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonval.cpp; path = ../../source/jsonval.cpp; sourceTree = SOURCE_ROOT; };
+		C8E750261786E17B009F7FCE /* jsonval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonval.h; path = ../../source/jsonval.h; sourceTree = SOURCE_ROOT; };
+		C8E750271786E17B009F7FCE /* jsonwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonwriter.cpp; path = ../../source/jsonwriter.cpp; sourceTree = SOURCE_ROOT; };
+		C8E750281786E17B009F7FCE /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = SOURCE_ROOT; };
+		C8E750321786E35A009F7FCE /* Thread_KbEditorUpdateButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_KbEditorUpdateButton.h; path = ../../source/Thread_KbEditorUpdateButton.h; sourceTree = SOURCE_ROOT; };
+		C8E750331786E35A009F7FCE /* Thread_KbEditorUpdateButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_KbEditorUpdateButton.cpp; path = ../../source/Thread_KbEditorUpdateButton.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_Resources.h; path = ../../source/Adapt_It_Resources.h; sourceTree = SOURCE_ROOT; };
 		C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It_wdr.cpp; path = ../../source/Adapt_It_wdr.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_wdr.h; path = ../../source/Adapt_It_wdr.h; sourceTree = SOURCE_ROOT; };
@@ -528,6 +542,17 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C8E750321786E35A009F7FCE /* Thread_KbEditorUpdateButton.h */,
+				C8E750331786E35A009F7FCE /* Thread_KbEditorUpdateButton.cpp */,
+				C8E750221786E17B009F7FCE /* json_defs.h */,
+				C8E750231786E17B009F7FCE /* jsonreader.cpp */,
+				C8E750241786E17B009F7FCE /* jsonreader.h */,
+				C8E750251786E17B009F7FCE /* jsonval.cpp */,
+				C8E750261786E17B009F7FCE /* jsonval.h */,
+				C8E750271786E17B009F7FCE /* jsonwriter.cpp */,
+				C8E750281786E17B009F7FCE /* jsonwriter.h */,
+				C883D76C17863FAD009AF1FC /* KBSharingMgrTabbedDlg.h */,
+				C883D76D17863FAD009AF1FC /* KBSharingMgrTabbedDlg.cpp */,
 				C84ADBA71755BA4B008199AB /* UsernameInput.cpp */,
 				C84ADBA81755BA4B008199AB /* UsernameInput.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
@@ -780,7 +805,6 @@
 				03D7A718112A2601004F6D39 /* Notes.cpp */,
 				27AC52F8159802C4009E7C07 /* Xhtml.h */,
 				27AC52F61598029E009E7C07 /* Xhtml.cpp */,
-				27CAB9FF16D454BC00E85604 /* KbServer.cpp */,
 				27CABA0016D454BC00E85604 /* KBSharing.cpp */,
 				27CABA0116D454BC00E85604 /* KBSharing.h */,
 				27CABA0216D454BC00E85604 /* KBSharingSetupDlg.cpp */,
@@ -1104,7 +1128,6 @@
 				2791678616195D4D00744DF8 /* KBServer.cpp in Sources */,
 				03CFAA0B161DE73400B82F58 /* StatusBar.cpp in Sources */,
 				27CAB9FC16D4548E00E85604 /* Adapt_ItKBServer.cpp in Sources */,
-				27CABA1116D454BC00E85604 /* KbServer.cpp in Sources */,
 				27CABA1216D454BC00E85604 /* KBSharing.cpp in Sources */,
 				27CABA1316D454BC00E85604 /* KBSharingSetupDlg.cpp in Sources */,
 				27CABA1716D454BC00E85604 /* Thread_ChangedSince.cpp in Sources */,
@@ -1119,6 +1142,11 @@
 				7DF9FAF3172C3885007B65A2 /* DVCSNavDlg.cpp in Sources */,
 				C84ADBA91755BA4B008199AB /* UsernameInput.cpp in Sources */,
 				27787FE5176FFD1A00789F43 /* md5_SB.cpp in Sources */,
+				C883D76E17863FAD009AF1FC /* KBSharingMgrTabbedDlg.cpp in Sources */,
+				C8E750291786E17B009F7FCE /* jsonreader.cpp in Sources */,
+				C8E7502A1786E17B009F7FCE /* jsonval.cpp in Sources */,
+				C8E7502B1786E17B009F7FCE /* jsonwriter.cpp in Sources */,
+				C8E750341786E35A009F7FCE /* Thread_KbEditorUpdateButton.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1166,6 +1194,7 @@
 					"__WXMAC_XCODE__=1",
 					MACOS_CLASSIC,
 					"WX_PRECOMP=1",
+					_KBSERVER,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.0;
