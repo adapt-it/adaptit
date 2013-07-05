@@ -144,11 +144,8 @@ public:
 	// are synchronous and no mutex is required
 	
 	
-	int		 BulkUpload(	int threadIndex, // use for choosing which buffer to return results in
-							wxString url, 
-							wxString username, 
-							wxString password, 
-							CBString jsonUtf8Str);
+	int		 BulkUpload(int threadIndex, // use for choosing which buffer to return results in
+					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
@@ -160,6 +157,7 @@ public:
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);
 	int		 LookupUser(wxString url, wxString username, wxString password);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
+	int		 RemoveUser(int userID);
 	void	 UploadToKbServer();
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
 	// it gets all tgt words and phrases for a given source text word or phrase

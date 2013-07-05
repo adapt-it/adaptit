@@ -89,11 +89,13 @@ protected:
 	KbServerUser* GetUserStructFromList(UsersList* pUsersList, size_t index);
 	void          LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList);
 	void		  CopyUsersList(UsersList* pSrcList, UsersList* pDestList);
-
+	KbServerUser* CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct);
+	void		  DeleteClonedKbServerUserStruct();
 
 	// event handlers
 	void		  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));
 	void		  OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event));
 
 private:
@@ -109,14 +111,20 @@ private:
 	KbServer*         m_pKbServer; // we'll assign the one for adaptations to this pointer
 	KbServerUser*     m_pUserStruct; // scratch variable to get at returned values 
 								     // for a user entry's fields
+	KbServerUser*     m_pOriginalUserStruct; // scratch variable to get at returned values 
+								     // for a user entry's fields, this one stores the 
+								     // struct immediately after the user's click on the
+									 // user item in the listbox, freeing up the
+									 // m_pUserStruct to be given values as edited by
+									 // the user
 	// All the lists, users or kbs, are SORTED. So we must track the name matchups so that
 	// we don't lose track of which usernames are respelled, or added, or removed -- so
 	// use wxArrayString instances,  and for respelled ones an old and a new which are in
 	// parallel
-	wxArrayString     m_arrOriginalUsernames; 
-	wxArrayString     m_arrEditedUsernames; 
-	wxArrayString     m_arrAddedUsernames; 
-	wxArrayString     m_arrRemovedUsernames;
+	//wxArrayString     m_arrOriginalUsernames; 
+	//wxArrayString     m_arrEditedUsernames; 
+	//wxArrayString     m_arrAddedUsernames; 
+	//wxArrayString     m_arrRemovedUsernames;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

@@ -26808,7 +26808,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 
 	}
 }
-#endif
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -26838,7 +26838,7 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
-
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

@@ -2165,6 +2165,91 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 	return 0; // no error
 }
 
+int KbServer::RemoveUser(int userID)
+{
+	wxString userIDStr;
+	wxItoa(userID, userIDStr);
+	CURL *curl;
+	CURLcode result; // result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("user");
+	wxString aUrl, aPwd;
+
+	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	aUrl = GetKBServerURL() + slash + container + slash + userIDStr;
+	charUrl = ToUtf8(aUrl);
+
+		// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Accept: application/json");
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way when no json is expected back...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("RemoveUser() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+
+		curl_slist_free_all(headers);
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("RemoveUser() result code: %d Error: %s"), result, error.c_str());
+			wxMessageBox(msg, _T("Error when deleting a user"), wxICON_EXCLAMATION | wxOK);
+			curl_easy_cleanup(curl);
+			str_CURLbuffer.clear();
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+	str_CURLbuffer.clear();
+
+	// handle any HTTP error code, if one was returned
+	if (m_httpStatusCode >= 400)
+	{
+		// We may get 400 "Bad Request" or 404 Not Found (both should be unlikely)
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
+	return (CURLcode)0; // no error
+}
+
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
 int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
 {
