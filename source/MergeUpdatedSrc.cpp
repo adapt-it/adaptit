@@ -5226,7 +5226,7 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 		#if defined(_DEBUG) && defined(_INCOMMON)
 			wxString words = pWordGroupArray->Item(0); int j;
 			for (j=1; j < nActualNumGroupWords; j++){words += _T(" ") + pWordGroupArray->Item(j);}
-			wxLogDebug(_T("GetMaxInCommonSubspan(): location = %d , nActualNumGroupWords = %d  , wordGroup:  %s"),oldIndex,nActualNumGroupWords,words);
+			wxLogDebug(_T("GetMaxInCommonSubspan(): location = %d , nActualNumGroupWords = %d  , wordGroup:  %s"),oldIndex,nActualNumGroupWords,words.c_str());
 		#endif
 				
         // Find how many matches of the nActualNumGroupWords words there are in the arrNew
@@ -5302,7 +5302,7 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 						#if defined(_DEBUG) && defined(_INCOMMON)
 							wxString words = pWordGroupArray_New->Item(0);int j;
 							for (j=1; j < nActualNumGroupWords_New; j++){words += _T(" ") + pWordGroupArray_New->Item(j);}
-							wxLogDebug(_T("      arrNew: INNER LOOP MATCHUP: location = %d , nActualNumGroupWords_New = %d  , wordGroup:  %s"),newIndex,nActualNumGroupWords_New, words);
+							wxLogDebug(_T("      arrNew: INNER LOOP MATCHUP: location = %d , nActualNumGroupWords_New = %d  , wordGroup:  %s"),newIndex,nActualNumGroupWords_New, words.c_str());
 						#endif
                         // throw away this matchup if it is nested within an existing
                         // in-common subarray matchup
@@ -5321,7 +5321,7 @@ Subspan* GetMaxInCommonSubspan_ByWordGroupSampling(SPArray& arrOld, SPArray& arr
 							#if defined(_DEBUG) && defined(_INCOMMON)
 								wxString words = pWordGroupArray_New->Item(0);int j;
 								for (j=1; j < nActualNumGroupWords_New; j++){words += _T(" ") + pWordGroupArray_New->Item(j);}
-								wxLogDebug(_T("      REMOVED subarray in arrNew (nested): loc'n = %d , wordcount = %d , wordGroup:  %s"),newIndex, nActualNumGroupWords_New, words);
+								wxLogDebug(_T("      REMOVED subarray in arrNew (nested): loc'n = %d , wordcount = %d , wordGroup:  %s"),newIndex, nActualNumGroupWords_New, words.c_str());
 							#endif
 
 							delete pWordGroupArray_New;
