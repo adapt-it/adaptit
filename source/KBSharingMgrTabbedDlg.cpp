@@ -61,6 +61,7 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_CLEAR_CONTROLS, KBSharingMgrTabbedDlg::OnButtonUserPageClearControls)
 	EVT_LISTBOX(ID_LISTBOX_CUR_USERS, KBSharingMgrTabbedDlg::OnSelchangeUsersList)
 	EVT_BUTTON(ID_BUTTON_ADD_USER, KBSharingMgrTabbedDlg::OnButtonUserPageAddUser)
+	EVT_BUTTON(ID_BUTTON_REMOVE_USER, KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser)
 
 END_EVENT_TABLE()
 
@@ -178,9 +179,37 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_bKbAdmin = m_pApp->m_kbserver_kbadmin;
 	m_bUserAdmin = m_pApp->m_kbserver_useradmin;
 
+	// Start m_pOriginalUserStruct off with a value of NULL. Each time this is updated,
+	// the function which does so first deletes the struct stored in it (it's on the
+	// heap), and then deep copies the one resulting from the user's listbox click and
+	// stores it here. When deleted, this pointer should be reset to NULL. And the
+	// OnCancel() and OnOK() functions must check here for a non-null value, and if found,
+	// delete it from the heap before they return (to avoid a memory leak)
+	m_pOriginalUserStruct = NULL;
 
 	m_nCurPage = 0;
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
+}
+
+KbServerUser* KBSharingMgrTabbedDlg::CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct)
+{
+	KbServerUser* pClone = new KbServerUser;
+	pClone->id = pExistingStruct->id;
+	pClone->username = pExistingStruct->username;
+	pClone->fullname = pExistingStruct->fullname;
+	pClone->useradmin = pExistingStruct->useradmin;
+	pClone->kbadmin = pExistingStruct->kbadmin;
+	pClone->timestamp = pExistingStruct->timestamp;
+	return pClone;
+}
+
+void KBSharingMgrTabbedDlg::DeleteClonedKbServerUserStruct()
+{
+	if (m_pOriginalUserStruct != NULL)
+	{
+		delete m_pOriginalUserStruct;
+		m_pOriginalUserStruct = NULL;
+	}
 }
 
 // This is called each time the page to be viewed is switched to; note: removed user
@@ -344,6 +373,7 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	delete m_pOriginalUsersList;
 	m_pKbServer->ClearUsersList(m_pUsersList); // this one is in the adaptations 
 									// KbServer instance & don't delete this one
+	DeleteClonedKbServerUserStruct();
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -355,7 +385,7 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 	delete m_pOriginalUsersList;
 	m_pKbServer->ClearUsersList(m_pUsersList); // this one is in the adaptations 
 									// KbServer instance & don't delete this one
-
+	DeleteClonedKbServerUserStruct();
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -369,6 +399,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageClearControls(wxCommandEvent& WXUNUS
 	m_pEditPersonalPassword->ChangeValue(emptyStr);
 	m_pCheckUserAdmin->SetValue(FALSE);
 	m_pCheckKbAdmin->SetValue(FALSE);
+	DeleteClonedKbServerUserStruct();
 }
 
 void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event))
@@ -416,6 +447,37 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 			OnButtonUserPageClearControls(dummy);
 		}
 	}
+	DeleteClonedKbServerUserStruct();
+}
+
+void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event))
+{
+	// Get the ID value, if we can't get it, return
+	if (m_pOriginalUserStruct == NULL)
+	{
+		wxBell();
+		return;
+	}
+	else
+	{
+		int nID = (int)m_pOriginalUserStruct->id;
+		// Remove the selected user from the kbserver's user table
+		CURLcode result = CURLE_OK;
+		result = (CURLcode)m_pKbServer->RemoveUser(nID);	
+		// Update the page if we had success, if no success, just clear the controls
+		if (result == CURLE_OK)
+		{
+			LoadDataForPage(m_nCurPage);
+		}
+		else
+		{
+			// The removal did not succeed -- an error message will have been shown
+			// from within the above RemoveUser() call
+			wxCommandEvent dummy;
+			OnButtonUserPageClearControls(dummy);
+		}
+		DeleteClonedKbServerUserStruct();
+	}
 }
 
 void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event))
@@ -437,6 +499,14 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// also get the username string from the ListBox because the struct's username field
 	// contains the same string)
 	m_pUserStruct = (KbServerUser*)m_pUsersListBox->GetClientData(m_nSel);
+
+	// Put a copy in m_pOriginalUserStruct, in case the administrator clicks the
+	// Edit User button - the latter would use what's in this variable to compare
+	// the user's edits to see what has changed, and proceed accordingly. The
+	// Remove User button also uses the struct in m_pOriginalUserStruct to get
+	// at the ID value for the user to be removed
+	DeleteClonedKbServerUserStruct();
+	m_pOriginalUserStruct = CloneACopyOfKbServerUserStruct(m_pUserStruct);
 
 	// Use the struct to fill the Users page's controls with their required data
 	m_pEditUsername->ChangeValue(m_pUserStruct->username);
