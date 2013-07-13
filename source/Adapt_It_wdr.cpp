@@ -9683,7 +9683,7 @@ wxSizer *SharedKBManagerNotebookFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("You can administer users (add, remove or edit), or administer the shared knowledge bases which are stored remotely (add or edit). The Users tab may only be opened by users who have \"User administrator\" privilege level. The Knowledge Bases tab may only be opened by users who have \"Knowledge base administrator\" privilege level, or higher. The person who set up the remote server is its first user, and always has User administrator privilege, and this user cannot be removed from the list of users. Users with neither privilege level will not be able to open this Shared Knowledge Base Manager dialog. Anyone with User administrator privilege automatically has Knowledge Base administrator privilege too."), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("You can administer users (add, remove or edit), or administer the shared knowledge bases which are stored remotely (add or edit). The Users tab only supports viewing, if you do not have \"User administrator\" privilege level. The two Knowledge Base tabs only support viewing, if you do not have \"Knowledge base administrator\" privilege level, or higher. The person who set up the remote server is its first user, and always has User administrator privilege, and this user cannot be removed from the list of users by anyone. Anyone with User administrator privilege automatically has Knowledge base administrator privilege too."), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY );
     item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -9696,21 +9696,25 @@ wxWindow *item4 = item5;
     item5->AddPage( item6, _("User Definitions") );
 
     wxPanel *item7 = new wxPanel( item5, -1 );
-    SharedKBManagerKbsPageFunc( item7, FALSE );
-    item5->AddPage( item7, _("Knowledge Base Definitions") );
+    SharedKBManager_CreateKbsPageFunc( item7, FALSE );
+    item5->AddPage( item7, _("Create Knowledge Base Definitions") );
+
+    wxPanel *item8 = new wxPanel( item5, -1 );
+    SharedKBManager_EditKbsPageFunc( item8, FALSE );
+    item5->AddPage( item8, _("Update Knowledge Base Definitions") );
 
     item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetDefault();
-    item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item10 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetDefault();
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -9762,7 +9766,7 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_INFORMAL_NAME, wxT(""), wxDefaultPosition, wxSize(220,-1), 0 );
     item7->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_MULTI, _("First make a written copy of the passwords you intend to create, for safekeeping! Once each password entry is accepted the human readable form of the password cannot be seen again, nor recovered. However if you forget a password, you can type a new password for any user. (Be sure you inform the user of the change!)"), wxDefaultPosition, wxSize(220,86), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_MULTI, _("First make a written copy of the passwords you intend to create, for safekeeping! Once each password entry is accepted the human readable form of the password cannot be seen again, nor recovered. However if you forget a password, you can type a new password for any user. (Be sure you inform the user of the change!)  When editing an existing user definition, the old password is retained if you leave the password text boxes blank."), wxDefaultPosition, wxSize(220,86), wxTE_MULTILINE|wxTE_READONLY );
     item7->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("A personal password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -9772,55 +9776,61 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
     item14->SetToolTip( _("Type in the password. You can type a new one if unknown.") );
     item7->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Type the password again:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD_TWO, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_PASSWORD );
+    item7->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item3->Add( item7, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
 
-    item15->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit other users of this server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
-    item15->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit other users of this server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item17->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item17 = new wxCheckBox( parent, ID_CHECK_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item15->Add( 20, 13, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add( 20, 13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit knowledge base definitions stored in the server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
-    item15->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit knowledge base definitions stored in the server."), wxDefaultPosition, wxSize(180,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item17->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Knowledge base administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item21 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Knowledge base administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item3->Add( item15, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item3->Add( item17, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item21 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->SetToolTip( _("Empty all the controls, except the list box and the temporarily stored list of new passwords") );
-    item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item23 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Empty all the controls, except the list box and the temporarily stored list of new passwords") );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item20->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item22 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
-    item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item24 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item20->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item23 = new wxButton( parent, ID_BUTTON_EDIT_USER, _("Edit User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Change the selected user's details to be what the controls currently contrain") );
-    item20->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item25 = new wxButton( parent, ID_BUTTON_EDIT_USER, _("Edit User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Change the selected user's details to be what the controls currently contrain") );
+    item22->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item20->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Remove this user from the list, this user cannot access the server again (unless the details are retyped later on)") );
-    item20->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Remove this user from the list, this user cannot access the server again (unless the details are retyped later on)") );
+    item22->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxBOTTOM, 5 );
 
@@ -9967,6 +9977,318 @@ wxSizer *SharedKBManagerKbsPageFunc( wxWindow *parent, bool call_fit, bool set_s
     item1->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Create Definitions for Shared Knowledge Bases"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Use the two radio buttons below, in sequence. The top one is for creating a definition for a shared target knowledge base; the lower one is for a shared glossing knowledge base. Always create one of each. The list boxes below show only the shared knowledge base codes stored within the currently accessed kbserver."), wxDefaultPosition, wxSize(-1,38), wxTE_MULTILINE|wxTE_READONLY );
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Do first: "), wxDefaultPosition, wxSize(70,-1), 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER, 5 );
+
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: define which knowledge base is for sharing target language adaptations (in normal mode)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetValue( TRUE );
+    item6->Add( item8, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Do second: "), wxDefaultPosition, wxSize(70,-1), 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER, 5 );
+
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: define which knowledge base is for sharing glosses (do this even if glossing mode will be unused)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item11, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Existing source language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs15 = (wxString*) NULL;
+    wxListBox *item15 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,80), 0, strs15, wxLB_SINGLE|wxLB_SORT );
+    item15->SetToolTip( _("Lists the source language's code for the current set of definitions") );
+    item13->Add( item15, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item12->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Existing target language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs18 = (wxString*) NULL;
+    wxListBox *item18 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE, wxDefaultPosition, wxSize(200,80), 0, strs18, wxLB_SINGLE|wxLB_SORT );
+    item18->SetToolTip( _("Lists the target text language codes for adaptation knowledge bases associated with the selected source language") );
+    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( item16, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item12->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
+
+    item19->Add( 20, 14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item20 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES, _("Lookup ISO639 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("Open the dialog for finding codes for source, target, and gloss languages") );
+    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_RFC5654, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
+    item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( item19, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item1->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Setup a new definition for a shared knowledge base using the two text boxes below. Type the needed language code for the source box, and the needed different code in the other box, then click Add Definition. The Lookup ISO639 Codes... button lets you find the relevant Ethnologue code for a given language name. (Ethnologue 3-letter codes are the ISO639 standard.) If you are working with dialects, be sure to read the information in the window shown when you click Using RFC5646 Codes..."), wxDefaultPosition, wxSize(-1,38), wxTE_MULTILINE|wxTE_READONLY );
+    item22->Add( item23, 1, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
+
+    item24->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    item26->SetToolTip( _("Type a language code for the new source language") );
+    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT_TGT, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item27, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    item28->SetToolTip( _("Type a language code for the adaptations language") );
+    item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Add Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Add the new knowledge base defined by the source, adaptations and glosses codes above  ") );
+    item24->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES, _("Clear Both Text Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
+    item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item30->Add( 60, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Selected Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Change the selected definition to have the updated values in the boxes above") );
+    item30->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item30, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item34 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Please note: (1) Your two new definitions, one for the adaptations knowledge base, and the other for the glossing knowledge base, must have the same source language code. (2) The Remove Selected Definition button can only remove definitions added while this Manager dialog is open. After the dialog is closed, added definitions become permanent."), wxDefaultPosition, wxSize(-1,38), wxTE_MULTILINE|wxTE_READONLY );
+    item33->Add( item34, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 10 );
+
+    item1->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Edit Definitions for Shared Knowledge Bases"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Either, or both, of the two radio buttons below may be used, in sequence. The top one is for viewing or editing a listed definition for a shared target knowledge base; the lower one is for the same purpose, but for a shared glossing knowledge base. Either type of definition may be edited. The list boxes show the shared knowledge base definitions currently stored within the accessed kbserver - including any added while this Manager dialog has been open."), wxDefaultPosition, wxSize(-1,38), wxTE_MULTILINE|wxTE_READONLY );
+    item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: edit one or both codes of a selected definition for an adaptations knowledge base (used in normal mode)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetValue( TRUE );
+    item6->Add( item7, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: edit one or both codes of a selected definition for a glossing knowledge base (used in glossing mode)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Existing source language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs13 = (wxString*) NULL;
+    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,80), 0, strs13, wxLB_SINGLE|wxLB_SORT );
+    item13->SetToolTip( _("Lists the source language's code for the current set of definitions") );
+    item11->Add( item13, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item10->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Existing target language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item15, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs16 = (wxString*) NULL;
+    wxListBox *item16 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE, wxDefaultPosition, wxSize(200,80), 0, strs16, wxLB_SINGLE|wxLB_SORT );
+    item16->SetToolTip( _("Lists the target text language codes for adaptation knowledge bases associated with the selected source language") );
+    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item10->Add( item14, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item10->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
+
+    item17->Add( 20, 14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item18 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES, _("Lookup ISO639 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("Open the dialog for finding codes for source, target, and gloss languages") );
+    item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item19 = new wxButton( parent, ID_BUTTON_RFC5654, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
+    item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item10->Add( item17, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item1->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL, _("You may edit the source, or the non-source language code, or possibly both codes, in any definition you select. Do not edit anything if you are unsure about why you need to do it, and what you need to do. Once your changes are accepted by you clicking the Update Definition button, the entries of the relevant stored knowledge base will also be scanned and all the entries within it which have the older code, or codes, will be updated to have the new code, or codes, instead.  Prior to this the Lookup ISO639 Codes... button can be used to check that your altered Ethnologue code is correct. (Ethnologue 3-letter codes are the ISO639 standard.) The most likely change you may want to make is to extend an Ethnologue code by the addition of a private subtag, in order to more accurately define a dialect. For this you need to read the information in the window shown when you click Using RFC5646 Codes... and follow the guidelines there."), wxDefaultPosition, wxSize(-1,38), wxTE_MULTILINE|wxTE_READONLY );
+    item20->Add( item21, 1, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(124,-1), 0 );
+    item24->SetToolTip( _("Type a language code for the new source language") );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item22->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_TGT, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT, wxT(""), wxDefaultPosition, wxSize(124,-1), 0 );
+    item26->SetToolTip( _("Type a language code for the adaptations language") );
+    item22->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item22->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_UPDATE_DEFINITION, _("Update Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Add the new knowledge base defined by the source, adaptations and glosses codes above  ") );
+    item22->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("Original Creator: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item30 = new wxTextCtrl( parent, ID_TEXTCTRL_CREATED_BY, wxT(""), wxDefaultPosition, wxSize(220,-1), wxTE_READONLY );
+    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item28->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_CLEAR_SELECTION, _("Clear Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
+    item28->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item28->Add( 12, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Selected Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Change the selected definition to have the updated values in the boxes above") );
+    item28->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item28, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item34 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Please note:  (1) The Remove Selected Definition button can only remove definitions added, or added and then updated, while this Manager dialog has been open. After it is closed, all the listed definitions are permanent. (Editing of their codes is permitted at any later time, but removal of the definition is impossible.) (2) The Original Creator text box is read-only. The creator of a definition cannot ever be changed."), wxDefaultPosition, wxSize(-1,38), wxTE_MULTILINE|wxTE_READONLY );
+    item33->Add( item34, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 10 );
+
+    item1->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     if (set_sizer)
     {

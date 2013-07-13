@@ -51,6 +51,8 @@ struct KbServerEntry; // NOTE, omitting this forwards declaration and having the
 					  // definition here instead, does NOT WORK! And the WX_DEFINE_LIST() macro
 					  // in the .cpp file must be somewhere AFTER the #include "KbServer.h" line
 struct KbServerUser;  // ditto, for this one
+struct KbServerKb;	  // ditto again
+
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the app instance
 		// because kbserver upload threads may not all be finished when the two kbserver
@@ -58,6 +60,8 @@ WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the ap
 		// structs they store will need to live on as long as possible
 WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser structs for 
 										  // the ListUsers() client
+WX_DECLARE_LIST(KbServerKb, KbsList); // stores pointers to KbServerKb structs for 
+										  // the ListKbs() client
 
 // need a hashmap for quick lookup of keys for find out which src-tgt pairs are in the
 // remote KB (scanning through downloaded data from the remote KB), so as not to upload
@@ -95,6 +99,9 @@ struct KbServerKb {
 	wxString	username; // the unique one, or we would like it to be unique (but it doesn't have to be)
 	wxString	timestamp;
 	int			deleted; // 0 if not deleted, 1 if deleted (i.e. 'not in use, until deleted status is changed')
+						// BEW 10Jul13, Currently we do not support deleted = 1. We don't want
+						// either pseudo-deletion, or real deletion of a KB at present, and
+						// perhaps permanently. So deleted will always be 0.
 };
 
 enum ClientAction {
@@ -151,6 +158,7 @@ public:
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
+	int		 ListKbs(wxString url, wxString username);
 	int		 ListUsers(wxString url, wxString username);
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
@@ -158,6 +166,11 @@ public:
 	int		 LookupUser(wxString url, wxString username, wxString password);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 RemoveUser(int userID);
+	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
+						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin, 
+						KbServerUser* pEditedUserStruct, wxString password);
+	int		 UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
+						int kbType, KbServerKb* pEditedKbStruct);
 	void	 UploadToKbServer();
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
 	// it gets all tgt words and phrases for a given source text word or phrase
@@ -324,12 +337,16 @@ private:
 
 	// For use when listing all the user definitions in the kbserver
 	UsersList       m_usersList;
+	// For use when listing all the kb definitions in the kbserver
+	KbsList         m_kbsList;
 
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
 	// single entry
 	KbServerEntry	m_entryStruct;
 	// Ditto, but for a single entry from the user table
 	KbServerUser	m_userStruct;
+	// Ditto, but for a single entry from the kb table
+	KbServerKb	m_kbStruct;
 
 public:
 
@@ -350,16 +367,23 @@ public:
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();
 
-	void			SetEntryStruct(KbServerEntry entryStruct);
+	//void			SetEntryStruct(KbServerEntry entryStruct);
 	KbServerEntry	GetEntryStruct();
 	void			ClearEntryStruct();
 
-	void			SetUserStruct(KbServerUser userStruct);
+	//void			SetUserStruct(KbServerUser userStruct);
 	KbServerUser	GetUserStruct();
 	void			ClearUserStruct();
 
+	KbServerKb		GetKbStruct();
+	void			ClearKbStruct();
+
+
 	UsersList*		GetUsersList();
 	void			ClearUsersList(UsersList* pUsrList); // deletes from the heap all KbServerUser struct ptrs within
+
+	KbsList*		GetKbsList();
+	void			ClearKbsList(KbsList* pKbsList); // deletes from the heap all KbServerKb struct ptrs within
 
 	void			ClearUploadsMap(); // clears user data (wxStrings) from m_uploadsMap
 

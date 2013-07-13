@@ -47,7 +47,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 // uncomment out the #define ShowConversionItems just preceding the helpers.cpp function
 // void ConvertSPList2SPArray(SPList* pList, SPArray* pArray), at about line 8772
 
-//* If you don't know what you need to look at for debugging, turn on the first six below...
+/* If you don't know what you need to look at for debugging, turn on the first six below...
 #define myLogDebugCalls       // probably the most useful one overall, and for counting spans & their deletions
 #define myMilestoneDebugCalls // useful for outer loop and MergeRecursively() calls
 #define LOOPINDEX             // this one gives the loop indices at the start of each iteration
@@ -60,7 +60,7 @@ WX_DEFINE_OBJARRAY(SPArray);
 							  // to quickly find in-common span pairings
 //#define LEFTRIGHT			  // displays results of extending in-common matches to left or right
 							  //(this one has limited usefulness, only use if extending issues are your focus)
-//*/
+*/
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 

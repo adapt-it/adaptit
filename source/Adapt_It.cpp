@@ -26779,8 +26779,13 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// \param      event   ->  the wxCommandEvent that is generated when the associated
 ///                         menu item is selected
 /// \remarks
-/// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." 
-/// menu item is selected. 
+/// People with kb administrator privilege can set up a new KB definition, or people with
+/// user administrator privilege can do things on the Users page. We can't assume the
+/// current Adapt It project is a shared one when someone may want to do such things, so
+/// the menu item needs to be available to them pretty much at any time (but not when
+/// vertically editing). 
+/// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." menu
+/// item is clicked.
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -26789,6 +26794,9 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 
+// ************ TODO **********************  ask for url, username & password, and open
+// only if this authentication succeeds - this locks out anyone not listed as a user
+
 	KBSharingMgrTabbedDlg kbSharingPropertySheet(pApp->GetMainFrame());
 
 	// make the font show only 12 point size in the dialog
@@ -26796,16 +26804,14 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
+/* Until Jonathan restores my kbserver access, this generates a crash
 	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
 		pApp->m_pKbServer[0]->GetUsersList()->GetCount());
+*/
 #endif
 	// show the property sheet
 	if(kbSharingPropertySheet.ShowModal() == wxID_OK)
 	{
-
-
-
-
 	}
 }
 
@@ -26819,9 +26825,10 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 /// and before the menu is displayed.
 /// If the application is in currently in vertical edit mode, the "Knowledge Base Sharing
 /// Manager..." item on the Administrator menu is disabled and this event handler returns
-/// immediately. Likewise, if the flag indicating whether or not the current project is one
-/// for KB Sharing is FALSE, or the pointer to the KbServer instance for the adaptations is
-/// still NULL, then that menu item is disabled. Otherwise, it is enabled.
+/// immediately. Otherwise, it is enabled, so that people with kb administrator privilege
+/// can set up a new KB definition, or people with user administrator privilege can do
+/// things on the Users page. We can't assume the current Adapt It project is a shared one
+/// when someone may want to do such things, so the item needs to be available to them.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 {
@@ -26830,13 +26837,13 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-    // Don't enable the Knowledge Base Sharing Manager... item interface unless the current
-    // project is a KB Sharing one, and the m_pKbServer[0] is not NULL - we use the latter
-    // to get the various calls we need for the Manager tabbed dialog
-	if (m_bIsKBServerProject && (m_pKbServer[0] != NULL))
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
+	// The menu item should be enabled to everyone, but the handler for it should require
+	// the url, username, and password from the user - and anyone who can authenticate can
+	// then see the Manager and at least view it's tabs, and see which users and kbs are
+	// defined. But only users with heightened privilege level (i.e. not minimal) can
+	// add or change a Shared KB definition, or with user privilege leve can add, change
+	// or remove user definitions.
+	event.Enable(TRUE);
 }
 #endif
 

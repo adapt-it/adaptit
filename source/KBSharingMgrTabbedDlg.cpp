@@ -62,6 +62,11 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_LISTBOX(ID_LISTBOX_CUR_USERS, KBSharingMgrTabbedDlg::OnSelchangeUsersList)
 	EVT_BUTTON(ID_BUTTON_ADD_USER, KBSharingMgrTabbedDlg::OnButtonUserPageAddUser)
 	EVT_BUTTON(ID_BUTTON_REMOVE_USER, KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser)
+	EVT_BUTTON(ID_BUTTON_EDIT_USER, KBSharingMgrTabbedDlg::OnButtonUserPageEditUser)
+	EVT_CHECKBOX(ID_CHECKBOX_USERADMIN, KBSharingMgrTabbedDlg::OnCheckboxUseradmin)
+	EVT_CHECKBOX(ID_CHECKBOX_KBADMIN, KBSharingMgrTabbedDlg::OnCheckboxKbadmin)
+	EVT_BUTTON(wxID_OK, KBSharingMgrTabbedDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, KBSharingMgrTabbedDlg::OnCancel)
 
 END_EVENT_TABLE()
 
@@ -113,10 +118,11 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pUsersListBox != NULL);
 	m_pSourceKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_SRC_LANG_CODE);
 	wxASSERT(m_pSourceKbsListBox != NULL);
-	m_pTargetKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_TGT_LANG_CODE);
-	wxASSERT(m_pTargetKbsListBox != NULL);
-	m_pGlossKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_GLOSS_LANG_CODE);
-	wxASSERT(m_pGlossKbsListBox != NULL);
+	m_pNonSourceKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_TGT_LANG_CODE);
+	wxASSERT(m_pNonSourceKbsListBox != NULL);
+	// Radio buttons
+	m_pRadioButton_Type1KB = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
+	m_pRadioButton_Type2KB = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
 	// wxTextCtrls
 	m_pEditUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_USERNAME);
 	wxASSERT(m_pEditUsername != NULL);
@@ -124,14 +130,14 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pEditInformalUsername != NULL);
 	m_pEditPersonalPassword = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD);
 	wxASSERT(m_pEditPersonalPassword != NULL);
+	m_pEditPasswordTwo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD_TWO);
+	wxASSERT(m_pEditPasswordTwo != NULL);
 	m_pEditSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SRC);
 	wxASSERT(m_pEditSourceCode != NULL);
-	m_pEditTargetCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_TGT);
-	wxASSERT(m_pEditTargetCode != NULL);
-	m_pEditGlossCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_GLOSSES);
-	wxASSERT(m_pEditGlossCode != NULL);
+	m_pEditNonSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_TGT);
+	wxASSERT(m_pEditNonSourceCode != NULL);
 	// Checkboxes
-	m_pCheckUserAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECK_USERADMIN);
+	m_pCheckUserAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_USERADMIN);
 	wxASSERT(m_pCheckUserAdmin != NULL);
 	m_pCheckKbAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_KBADMIN);
 	wxASSERT(m_pCheckKbAdmin != NULL);
@@ -144,31 +150,35 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pBtnUsersEditUser != NULL);
 	m_pBtnUsersRemoveUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_USER);
 	wxASSERT(m_pBtnUsersRemoveUser != NULL);
-	m_pBtnTargetListNoSelection = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_NO_UPPER_SELECTION);
-	wxASSERT(m_pBtnTargetListNoSelection != NULL);
-	m_pBtnGlossListNoSelection = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_NO_LOWER_SELECTION);
-	wxASSERT(m_pBtnGlossListNoSelection != NULL);
 	m_pBtnUsingRFC5654Codes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_RFC5654);
 	wxASSERT(m_pBtnUsingRFC5654Codes != NULL);
 	m_pBtnAddKbDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ADD_DEFINITION);
 	wxASSERT(m_pBtnAddKbDefinition != NULL);
-	m_pBtnUpdateKbDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_UPDATE_DEFINITION);
-	wxASSERT(m_pBtnUpdateKbDefinition != NULL);
+	m_pBtnClearBothLangCodeBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_BOXES);
+	wxASSERT(m_pBtnClearBothLangCodeBoxes != NULL);
 	m_pBtnLookupLanguageCodes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_LOOKUP_THE_CODES);
 	wxASSERT(m_pBtnLookupLanguageCodes != NULL);
+	m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
+	wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
 
 	// For an instantiated KbServer class instance to use, we'll use the one for
 	// adaptations, and ignore the one for glossing. Be sure there is one available! The
 	// menu item should be disabled if the project is not yet a kb sharing one.
+/* temporary
 	m_pKbServer = m_pApp->GetKbServer(1); // 1 is adaptations KbServer instance, 2 is  glosses KbServer instance
 	wxASSERT(m_pKbServer != NULL);
+*/
+	m_pKbServer = NULL; // remove when Jonathan restores my access to kbserver
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
 	m_pCheckKbAdmin->SetValue(FALSE);
-
+/* temporary
 	// Hook up to the m_usersList member of the adaptations KbServer instance
 	m_pUsersList = m_pKbServer->GetUsersList();
+	m_nUsersListCount = 0;
+*/
+	m_pUsersList = NULL; // remove both these when Jonathan restores my access to kbserver
 	m_nUsersListCount = 0;
 
 	// Create the 2nd UsersList to store original copies before user's edits etc
@@ -188,7 +198,9 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pOriginalUserStruct = NULL;
 
 	m_nCurPage = 0;
+/* temporary
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
+*/
 }
 
 KbServerUser* KBSharingMgrTabbedDlg::CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct)
@@ -224,6 +236,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		m_pUsersListBox->Clear();
 		wxCommandEvent dummy;
 		OnButtonUserPageClearControls(dummy);
+		DeleteClonedKbServerUserStruct(); // ensure it's freed & ptr is NULL
 		m_pKbServer->ClearUsersList(m_pOriginalUsersList);
 		m_nUsersListCount = 0;
 		// The m_pUsersList will be cleared within the ListUsers() call done below, so it
@@ -237,6 +250,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		CURLcode result = CURLE_OK;
 		if (!username.IsEmpty() && !password.IsEmpty())
 		{
+/* Temporarily disable until Jonathan restores my kbserver access
 			result = (CURLcode)m_pKbServer->ListUsers(username, password);
 			if (result == CURLE_OK)
 			{
@@ -261,8 +275,6 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
                 // the ptr to the KbServerUser struct itself which supplied the username
                 // string, the struct coming from m_pUsersList
 				LoadUsersListBox(m_pUsersListBox, m_nUsersListCount, m_pUsersList);
-
-// TODO -- any more?
 			}
 			else
 			{
@@ -270,6 +282,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				// ListUsers() already, so that will suffice
 				;
 			}
+*/
 		}
 		else
 		{
@@ -278,13 +291,13 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
 		}
 	}
-	else // must be Kbs page
+	else // must be first Kbs page
 	{
 		m_pSourceKbsListBox->Clear();
-		m_pTargetKbsListBox->Clear();
-		m_pGlossKbsListBox->Clear();
+		m_pNonSourceKbsListBox->Clear();
 
 
+// TODO  the rest of it
 	}
 }
 
@@ -397,9 +410,41 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageClearControls(wxCommandEvent& WXUNUS
 	m_pEditUsername->ChangeValue(emptyStr);
 	m_pEditInformalUsername->ChangeValue(emptyStr);
 	m_pEditPersonalPassword->ChangeValue(emptyStr);
+	m_pEditPasswordTwo->ChangeValue(emptyStr);
 	m_pCheckUserAdmin->SetValue(FALSE);
 	m_pCheckKbAdmin->SetValue(FALSE);
-	DeleteClonedKbServerUserStruct();
+}
+
+bool KBSharingMgrTabbedDlg::AreBothPasswordsEmpty(wxString password1, wxString password2)
+{
+	if (password1.IsEmpty() && password2.IsEmpty())
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+// Return TRUE if the passwords match and are non-empty (both boxes empty is handled by
+// the function AreBothPasswordsEmpty(), not this function), FALSE if mismatched
+bool KBSharingMgrTabbedDlg::CheckThatPasswordsMatch(wxString password1, wxString password2)
+{
+	if (	(password1.IsEmpty() && !password2.IsEmpty()) ||
+			(!password1.IsEmpty() && password2.IsEmpty()) ||
+			(password1 != password2))
+	{
+		// The passwords are not matching, tell the user and force him to retype
+		wxString msg = _("The passwords in the two boxes are not identical. Try again.");
+		wxString title = _("Error: different passwords");
+		wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+		// Clear the two password boxes
+		wxString emptyStr = _T("");
+		m_pEditPersonalPassword->ChangeValue(emptyStr);
+		m_pEditPasswordTwo->ChangeValue(emptyStr);
+		return FALSE;
+	}
+	else
+		return TRUE;
 }
 
 void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event))
@@ -416,17 +461,27 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	wxString strUsername = m_pEditUsername->GetValue();
 	wxString strFullname = m_pEditInformalUsername->GetValue();
 	wxString strPassword = m_pEditPersonalPassword->GetValue();
+	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
 	bool bKbadmin = FALSE; // initialize to default value
 	bool bUseradmin = FALSE; // initialize to default value
-	if (strUsername.IsEmpty() || strFullname.IsEmpty() || strPassword.IsEmpty())
+	if (strUsername.IsEmpty() || strFullname.IsEmpty() || strPassword.IsEmpty() || strPasswordTwo.IsEmpty())
 	{
-		wxString msg = _("One or more of the text boxes: Username, Informal username, and password, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.");
+		wxString msg = _("One or more of the text boxes: Username, Informal username, or one or both password boxes, are empty.\nEach of these must have appropriate text typed into them before an Add User request will be honoured. Do so now.\nIf you want to give this new user more than minimal privileges, use the checkboxes also.");
 		wxString title = _("Warning: Incomplete user definition");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		return;
 	}
 	else
 	{
+		// Test the passwords match (if they don't match, or a box is empty, then the call
+		// will show an exclamation message from within it, and clear both password text boxes)
+		bool bMatchedPasswords = CheckThatPasswordsMatch(strPassword, strPasswordTwo);
+		if (!bMatchedPasswords)
+		{
+			// Unmatched passwords, the user has been told to try again
+			return;
+		}
+
 		// Get the checkbox values
 		bKbadmin = m_pCheckKbAdmin->GetValue();
 		bUseradmin = m_pCheckUserAdmin->GetValue();
@@ -450,6 +505,12 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	DeleteClonedKbServerUserStruct();
 }
 
+// When I checked the kbserver at kbserver.jmarsden.org, I found that the earliest user
+// (using timestamp values) was not Jonathan as expected, but me - and I didn't set up
+// that server instance, he did. So preventing the earliest user from being deleted may
+// not be a robust way to ensure someone with useradmin = true privilege level is always
+// retained in the user table. My fallback, unless Jonathan gives me some other clue, will
+// be to simply prevent any user with useradmin = true privilege level from being deleted.
 void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event))
 {
 	// Get the ID value, if we can't get it, return
@@ -460,6 +521,19 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 	}
 	else
 	{
+		// Prevent removal if the user is a useradmin == true one, and tell the user
+		// that's why his attempt was rejected
+		if (m_pOriginalUserStruct->useradmin)
+		{
+			// This guy must not be deleted
+			wxBell();
+			wxString msg = _("This user has user administrator privilege level. Deleting this user may leave the server with nobody having permission to add, change or remove users. So we do not allow such removals.");
+			wxString title = _("Warning: Illegal user deletion attempt");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			return;
+
+
+		}
 		int nID = (int)m_pOriginalUserStruct->id;
 		// Remove the selected user from the kbserver's user table
 		CURLcode result = CURLE_OK;
@@ -478,6 +552,233 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 		}
 		DeleteClonedKbServerUserStruct();
 	}
+}
+
+// The box state will have already been changed by the time control enters the handler's body
+void KBSharingMgrTabbedDlg::OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event))
+{
+	bool bCurrentUseradminValue = m_pCheckUserAdmin->GetValue();
+	// We set kbadmin value to TRUE if the Useradmin checkbox has just been ticked, but if
+	// unticked, we leave the kbadmin value untouched. We must avoid having useradmin TRUE
+	// but kbadmin FALSE
+	if (bCurrentUseradminValue)
+	{
+		m_pCheckKbAdmin->SetValue(TRUE);
+	}
+}
+
+// The box state will have already been changed by the time control enters the handler's body
+void KBSharingMgrTabbedDlg::OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event))
+{
+	bool bCurrentKbadminValue = m_pCheckKbAdmin->GetValue();
+	// We set useradmin value to FALSE if the Kbadmin checkbox has just been unticked, but if
+	// ticked, we leave the useradmin value untouched. We must avoid having useradmin TRUE
+	// but kbadmin FALSE
+	if (bCurrentKbadminValue == FALSE)
+	{
+		m_pCheckUserAdmin->SetValue(FALSE);
+	}
+}
+
+
+// The API call to kbserver should only generate a json field for those fields which have
+// been changed; in the case of a password, leave the two edit boxes empty to retain the
+// use of the old password, but if a password change is required, both boxes must have the
+// same new password. The function works out what's changed by comparing the old values
+// (obtained when the administrator clicks the user's entry in the list) with the values
+// in the controls when the Edit User button is pressed.
+void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(event))
+{
+	// The way to do this is like in the PseudoDeleteOrUndeleteEntry() function, except
+	// that more fields are potentially editable - only the ID and timestamp are not editable.
+
+    // A selection in the list is mandatory because only if an existing user has been
+    // selected is it possible to be editing an existing user. So check there is a
+    // selection current. Note: if an existing user is a parent of entries in the entry
+    // table, then his username cannot be edited and attempting to do so will generate an
+    // sql error. When such an error happens, the administrator should be told to give this
+    // user a whole new entry and leave the old one untouched.
+	m_nSel = m_pUsersListBox->GetSelection();
+	if (m_nSel == wxNOT_FOUND)
+	{
+		wxBell();
+		wxString msg = _("No user in the list is selected. The only way to edit an existing user's properties is to first select that user's entry in the list box. Do so now, and try again.");
+		wxString title = _("Warning: No selection");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		return;
+		
+	}
+	// Who's logged in? If I'm logged in, it would be an error to try change my username.
+	// In the same vein, if I'm logged in and I've just added user XXX, then I can't
+	// possibly be logged in as XXX - so changing XXX's username would be permissable,
+	// provided XXX is not yet parent of any records. So the crucial test here is for
+	// whether or not I'm trying to edit myself or not -- if I am, I must reject any
+	// attempt at a username change
+	wxString loggedInUser = m_pApp->GetKbServer(1)->GetKBServerUsername();
+	wxString originalUsername = m_pOriginalUserStruct->username;
+	bool bIAmEditingMyself = loggedInUser == originalUsername ? TRUE : FALSE;
+
+	// Get the administrator's edited values - get every field, and check against the
+	// original values (already stored in m_pOriginalUserStruct which was populated when
+	// the administrator clicked on the list box's entry) to find which have changed. We
+	// will use a bool to track which ones are to be used for constructing the appropriate
+	// json string to be PUT to the server's entry for this user.
+	wxString strUsername = m_pEditUsername->GetValue();
+	wxString strFullname = m_pEditInformalUsername->GetValue();
+	wxString strPassword = m_pEditPersonalPassword->GetValue();
+	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
+	wxString emptyStr = _T("");
+
+	// First check, prevent me editing my username if I'm the one currently logged in
+	if (bIAmEditingMyself)
+	{
+		// If my 'before' and 'after' username strings are different, I'm about to create
+		// chaos, so prevent it  -- and automatically restore my earlier username to the
+		// box; but if I'm not changing my username, then control can progress and I can
+		// legally change one or any or all of my password, fullname, useradmin & kbadmin
+		// fields
+		if (strUsername != originalUsername)
+		{
+			// Oops, prevent this!!
+			wxBell();
+			wxString msg = _("You are the currently logged in user, so you are not permitted to change your username. Your original username will be restored to the text box.\nIf you really want to have a different username, Add yourself under your new name and with a new password, and also give yourself appropriate privileges using the checkboxes, and then leave the project and re-enter it - authenticating with your new credentials.");
+			wxString title = _("Warning: Illegal username change");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			m_pEditUsername->ChangeValue(originalUsername);
+			return;
+
+		}
+	}
+
+	// Deal with the passwords first. Acceptable situations are:
+	// 1. Both password boxes empty -- in this case, retain the old password
+	// 2. Both password boxes non-empty, and the password strings are identical - in
+	//    this case the user can be safely assigned the new password
+	// 3. Any variation from 1 or 2 is an error, warn the user to fix it first
+	bool bBothEmpty = AreBothPasswordsEmpty(strPassword, strPasswordTwo);
+	if (!bBothEmpty)
+	{
+		bool bMatched = CheckThatPasswordsMatch(strPassword, strPasswordTwo);
+		if (!bMatched)
+		{
+			// A message has been seen, and the two password boxes cleared, so just return
+			return;
+		}
+	}
+
+	// Get the checkbox values; if the useradmin one has been ticked, the
+	// kbadmin one will have been forced to be ticked as well (but the administrator is
+	// free to untick the latter which will force the former to also be unticked)
+	bool bUseradmin = m_pCheckUserAdmin->GetValue();
+	bool bKbadmin = m_pCheckKbAdmin->GetValue();
+	// Pass the values to the API call via a KbServerUser struct, store it in
+	//  m_pUserStruct after cleaning out what's currently there
+	m_pKbServer->ClearUserStruct(); // clears m_userStruct member, it's in stack frame
+	// our m_pUserStruct member points that m_userStruct, so set it's contents below
+	
+	// We are ready to roll...
+	int nID = (int)m_pOriginalUserStruct->id;  // this value never changes
+	CURLcode result = CURLE_OK;
+	// Initialize the booleans to safe defaults
+	bool bUpdateUsername = FALSE;
+	bool bUpdateFullName = FALSE;
+	bool bUpdatePassword = FALSE;
+	bool bUpdateKbadmin = FALSE;
+	bool bUpdateUseradmin = FALSE;
+    // Set m_pUserStruct to the current values, some or all of which may have been
+    // edited; we pass this in to UpdateUser() below
+	m_pUserStruct->id = nID;
+	m_pUserStruct->username = strUsername;
+	m_pUserStruct->fullname = strFullname;
+	m_pUserStruct->kbadmin = bKbadmin;
+	m_pUserStruct->useradmin = bUseradmin;
+	// Set the booleans... 
+    // Note: in the case of a successful attempt to update the password of the person who
+    // is currently logged in, on return from the UpdateUser() call, and provided it
+    // returned CURLE_OK and there was no HTTP error, then subsequent accesses of kbserver
+    // will fail unless the password change is immediately propagated to the KbServers'
+    // private m_kbServerPassword member for both adapting and glossing KbServer instances.
+    // So we must check for these conditions being in effect, and make the changes with the
+	// help of the bLoggedInUserJustChangedThePassword boolean
+    bool bLoggedInUserJustChangedThePassword = FALSE;
+	if (!strPassword.IsEmpty())
+	{
+		bUpdatePassword = TRUE;
+
+		// Control can only get here if the logged in user, even if editing his own user
+		// entry, isn't trying to change his username, so we can just rely below on the
+		// value of bLoggedInUserJustChangedThePassword to guide what happens 
+		bLoggedInUserJustChangedThePassword = TRUE;
+	}
+	if (bBothEmpty)
+	{
+		strPassword = emptyStr;
+		bUpdatePassword = FALSE;
+	}
+	bUpdateUsername = m_pUserStruct->username == m_pOriginalUserStruct->username ? FALSE : TRUE;
+	bUpdateFullName = m_pUserStruct->fullname == m_pOriginalUserStruct->fullname ? FALSE : TRUE;
+	bUpdateUseradmin = m_pUserStruct->useradmin == m_pOriginalUserStruct->useradmin ? FALSE : TRUE;
+	bUpdateKbadmin = m_pUserStruct->kbadmin == m_pOriginalUserStruct->kbadmin ? FALSE : TRUE;
+
+	// We must prevent an attempt to edit the username, as most likely it owns some
+	// records in the entry table. If we allow the attempt, nothing happens anyway, curl
+	// returns CURLE_OK, an HTTP's 204 No Content is returned, so it's not treated as an
+	// error, even thought sql has rejected the request. The problem with leaving it
+	// happen is that the user gets no feedback that attempting an edit of the username
+	// for one which is parent to entries, will fail. We can't unilaterally prevent it
+	// either, because editing a username which has no entries yet because it's just been
+	// created should succeed - and we'd want that; likewise we'd want to be able to have
+	// Remove User succeed in such a case. So here we will test for bUpdateUsername being
+	// TRUE, and if so give an information message to explain to the user that if the edit
+	// hasn't succeeded, there's a good reason and tell him what it is.
+	if (bUpdateUsername)
+	{
+		wxBell();
+		wxString title = _("This edit attempt might fail...");
+		wxString msg = _("Warning: editing the username for an existing entry may not succeed. The reason for success or failure is given below.\n\nIf the old username already 'owns' stored KB entries, no change to the user entry will be made - including no change to other parameters you may have edited (but no harm is done by you trying to do so).\nHowever, if the old username does not 'own' any stored KB entries yet, your attempt to change the username will succeed - and if you are changing other parameters as well in this attempt, those changes will succeed too.");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+	}
+	
+	// Remove the selected user from the kbserver's user table
+	result = (CURLcode)m_pKbServer->UpdateUser(nID, bUpdateUsername, bUpdateFullName, 
+										bUpdatePassword, bUpdateKbadmin, bUpdateUseradmin, 
+										m_pUserStruct, strPassword);	
+	if (result == CURLE_OK)
+	{
+		// see what we've done and be ready for a new administrator action; but
+		// LoadDataForPage() does a ListUsers() call, and if the password has been
+		// changed, using the old password will give a failure - so made the needed
+		// password updates in the rest of the application before calling it
+		if (bLoggedInUserJustChangedThePassword)
+		{
+			// strPassword is the new password which has just been made the current one -
+			// this is just the password string itself, not a digest (the digest form of
+			// it was created at the point of need, within the UpdateUser) call itself)
+			m_pApp->GetKbServer(1)->SetKBServerPassword(strPassword);
+			m_pApp->GetKbServer(2)->SetKBServerPassword(strPassword);
+		}
+		LoadDataForPage(m_nCurPage); // calls OnButtonUserPageClearControls() internally
+	}
+	else
+	{
+        // The UpdateUser() call did not succeed -- an error message will have been shown
+        // from within it; and since KbServer's m_userStruct member has the tweaked values
+        // for the edit, rather than the original, and the list's selected entry's
+        // ClientData ptr is pointing at the current contents of m_userStruct, we also have
+        // to restore the original values to that pointer's contents in memory
+		wxCommandEvent dummy;
+		OnButtonUserPageClearControls(dummy); // clears selection too
+		//Restore the contents of the entry's ClientData as explained above
+		m_pUserStruct->id = m_pOriginalUserStruct->id;
+		m_pUserStruct->username = m_pOriginalUserStruct->username;
+		m_pUserStruct->fullname = m_pOriginalUserStruct->fullname;
+		m_pUserStruct->useradmin = m_pOriginalUserStruct->useradmin;
+		m_pUserStruct->kbadmin = m_pOriginalUserStruct->kbadmin;
+        // The old password is still in effect; it is only changed in the storage within
+        // the two KbServer instances m_pKbServer[0] and m_pKbServer[1] if a new one was
+        // typed and the UpdateUser() call suceeded
+	}
+	DeleteClonedKbServerUserStruct();
 }
 
 void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event))
