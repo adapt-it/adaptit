@@ -2256,7 +2256,29 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 	// populate the JSON object
 	jsonval[_T("username")] = username;
 	jsonval[_T("fullname")] = fullname;
-	jsonval[_T("password")] = hisPassword;
+
+	//jsonval[_T("password")] = hisPassword; // IS THIS CORRECT ************ ???????????? ******************* see below
+
+// *** TODO **** possibly I need to make a digest password here, using my md5 function,
+// and username, realm, and the passed in password -- I've asked Jonathan, no
+// reply yet ********************************************************************************************************************************************	
+		//jsonval[_T("password")] = password;
+		
+		// trial code... using digest created here from password passed in; sb
+		// prefix means 'single byte (encoded)'
+		CBString sbPassword = ToUtf8(hisPassword);
+		CBString sbUsername = ToUtf8(username);
+		CBString realm = "kbserver";
+		CBString sbColon = ":";
+		CBString sbDigest = sbUsername + sbColon + realm + sbColon + sbPassword;
+		sbDigest = md5_SB::GetMD5(sbDigest);
+		// wxJson will need it as a UTF-16 string
+		wxString myDigest = ToUtf16(sbDigest); // it's null-byte extended to UTF16 format
+		jsonval[_T("password")] = myDigest;
+/*
+************ BE sure to verify with Jonathan that the above is the right thing to do !!!! **************
+*/
+
 	long kbadmin = bKbadmin ? 1L : 0L;
 	jsonval[_T("kbadmin")] = kbadmin;
 	long useradmin = bUseradmin ? 1L : 0L;
