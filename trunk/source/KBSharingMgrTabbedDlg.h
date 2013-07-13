@@ -39,30 +39,30 @@ protected:
 	wxListBox* m_pUsersListBox;
 
 	wxListBox* m_pSourceKbsListBox;
-	wxListBox* m_pTargetKbsListBox;
-	wxListBox* m_pGlossKbsListBox;
+	wxListBox* m_pNonSourceKbsListBox;
+	wxRadioButton* m_pRadioButton_Type1KB;
+	wxRadioButton* m_pRadioButton_Type2KB;
 
 	wxTextCtrl* m_pEditUsername;
 	wxTextCtrl* m_pEditInformalUsername;
 	wxTextCtrl* m_pEditPersonalPassword;
+	wxTextCtrl* m_pEditPasswordTwo;
 	wxCheckBox* m_pCheckUserAdmin;
 	wxCheckBox* m_pCheckKbAdmin;
 
 	wxTextCtrl* m_pEditSourceCode;
-	wxTextCtrl* m_pEditTargetCode;
-	wxTextCtrl* m_pEditGlossCode;
+	wxTextCtrl* m_pEditNonSourceCode;
 
 	wxButton* m_pBtnUsersClearControls;
 	wxButton* m_pBtnUsersAddUser;
 	wxButton* m_pBtnUsersEditUser;
 	wxButton* m_pBtnUsersRemoveUser;
 
-	wxButton* m_pBtnTargetListNoSelection;
-	wxButton* m_pBtnGlossListNoSelection;
 	wxButton* m_pBtnUsingRFC5654Codes;
 	wxButton* m_pBtnAddKbDefinition;
-	wxButton* m_pBtnUpdateKbDefinition;
+	wxButton* m_pBtnClearBothLangCodeBoxes;
 	wxButton* m_pBtnLookupLanguageCodes;
+	wxButton* m_pBtnRemoveSelectedKBDefinition;
 
 	
 	// local copies of globals on the App, for the person using the Manager dialog
@@ -91,12 +91,18 @@ protected:
 	void		  CopyUsersList(UsersList* pSrcList, UsersList* pDestList);
 	KbServerUser* CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct);
 	void		  DeleteClonedKbServerUserStruct();
+	bool		  CheckThatPasswordsMatch(wxString password1, wxString password2);
+	bool		  AreBothPasswordsEmpty(wxString password1, wxString password2);
 
 	// event handlers
 	void		  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(event));
 	void		  OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event));
+	void		  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event));
+	void		  OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event));
+
 
 private:
 	CAdapt_ItApp*     m_pApp;
@@ -117,14 +123,7 @@ private:
 									 // user item in the listbox, freeing up the
 									 // m_pUserStruct to be given values as edited by
 									 // the user
-	// All the lists, users or kbs, are SORTED. So we must track the name matchups so that
-	// we don't lose track of which usernames are respelled, or added, or removed -- so
-	// use wxArrayString instances,  and for respelled ones an old and a new which are in
-	// parallel
-	//wxArrayString     m_arrOriginalUsernames; 
-	//wxArrayString     m_arrEditedUsernames; 
-	//wxArrayString     m_arrAddedUsernames; 
-	//wxArrayString     m_arrRemovedUsernames;
+	// All the lists, users or kbs, are SORTED.
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
