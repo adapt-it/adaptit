@@ -134,6 +134,7 @@ public:
 	// creation & destruction
 
 	KbServer(void); // default constructor
+	KbServer(bool bStateless); // the constructor we'll use for the KB Sharing Manager's use
 	KbServer(int whichType); // the constructor we'll use, pass 1 for adapting KB, 2 for glossingKB
 	virtual	~KbServer(void); // destructor (should be virtual)
 
@@ -141,6 +142,8 @@ public:
 	// attributes
 public:
 
+	bool m_bStateless; // TRUE when this instance is needed for the KB Sharing Manager's use
+					   // otherwise FALSE
 	// ///////// The API which we expose ////////////////////////////////////////////
 	// (note:  srcPhrase & tgtPhrase are often each just a single word)
 	

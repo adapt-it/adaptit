@@ -336,6 +336,7 @@ extern std::string str_CURLheaders;
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
 #include "UsernameInput.h" // BEW added 28May13
+#include "KBSharingSetupDlg.h"
 
 //#include "md5.h"
 #include "md5_SB.h"
@@ -26786,6 +26787,10 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// vertically editing). 
 /// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." menu
 /// item is clicked.
+/// The authentication dialog (KBSharingSetupDlg -- I should rename this to 
+/// KBSharingAuthenticationDlg sometime) produces a stateless KbServer instance which the
+/// KB Sharing Manager GUI uses; it is produced on the heap, and deleted by the destructor
+/// of KBSharingSetupDlg when this handler function returns
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -26794,10 +26799,30 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 
-// ************ TODO **********************  ask for url, username & password, and open
-// only if this authentication succeeds - this locks out anyone not listed as a user
+	// The administrator must authenticate to whichever kbserver he wants to adjust or view
+	bool bStateless = TRUE;
+
+
+
+// TODO ************* Jonathan must restore access to his kbserver, or I must make one myself, to test the following code......
+
+
+	KBSharingSetupDlg dlg(GetMainFrame(), bStateless);
+	dlg.Center();
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		gpApp->LogUserAction(_T("Authenticated for opening the KB Sharing Manager dlg"));
+	}
+	else
+	{
+		gpApp->LogUserAction(_T("Cancelled authenticating for KB Sharing Manager dlg"));
+		return;
+	}
 
 	KBSharingMgrTabbedDlg kbSharingPropertySheet(pApp->GetMainFrame());
+	// Point the stateless KbServer instance created on the heap by the constructor of
+	// KBSharingSetupDlg at the m_pKbServer member of KBSharingMgrTabbedDlg
+	kbSharingPropertySheet.SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
 
 	// make the font show only 12 point size in the dialog
 	CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);

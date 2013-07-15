@@ -135,8 +135,9 @@ KbServer::KbServer()
 	// The following English messages are hard-coded at the server end, so don't localize
 	// them, they are returned for certain error conditions and we'll want to know when
 	// one has been returned
-	m_noEntryMessage = _T("No matching entry found");
-	m_existingEntryMessage = _T("Existing matching entry found");
+	//m_noEntryMessage = _T("No matching entry found");
+	//m_existingEntryMessage = _T("Existing matching entry found");
+	m_bStateless = FALSE;
 }
 
 KbServer::KbServer(int whichType)
@@ -145,10 +146,18 @@ KbServer::KbServer(int whichType)
 	wxASSERT(whichType == 1 || whichType == 2);
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
-	m_pKB = GetKB(FALSE);
+	m_pKB = GetKB(m_kbServerType);
 	m_queue.clear();
-	//m_noEntryMessage = _T("No matching entry found");
-	//m_existingEntryMessage = _T("Existing matching entry found");
+	m_bStateless = FALSE;
+}
+
+KbServer::KbServer(bool bStateless)
+{
+	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+	m_pKB = NULL; // There may be no KB loaded yet, and we don't need 
+				  // it for the KB Sharing Manager GUI's use
+	m_queue.clear();
+	m_bStateless = bStateless;
 }
 
 

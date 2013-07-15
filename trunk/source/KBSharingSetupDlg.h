@@ -25,12 +25,29 @@
 class KBSharingSetupDlg : public AIModalDialog
 {
 public:
-	KBSharingSetupDlg(wxWindow* parent); // constructor
+	// constructor (this one defaults m_bStateless to FALSE)
+	KBSharingSetupDlg(wxWindow* parent);
+	// stateless constructor (use this to set m_bStateless to TRUE)
+	KBSharingSetupDlg(wxWindow* parent, bool bStateless);
+
 	virtual ~KBSharingSetupDlg(void); // destructor
 
+	// A public boolean member to specify whether stateless (ie. opened by anyone
+	// regardless of whether a project is open or whether it is one for kb sharing), or
+	// not (default is not to be stateless). The stateless instantiation if for use by
+	// the KB Sharing Manager - which needs to get a temporary instance of KbServer class
+	// open (just the adapting one will do) in order to get access to it's methods and the
+	// stateless storage - i.e. wxString stateless_username, etc. And also 3 strings for
+	// storing url, username, and password when running stateless, so that the person
+	// using the Manager dialog can be accessing any kbserver accessible to him and in which
+	// he's a listed user 
+	bool m_bStateless;
+	wxString m_strStatelessUsername;
+	wxString m_strStatelessURL;
+	wxString m_strStatelessPassword;
+	KbServer* m_pStatelessKbServer;
+
 	// other methods
-	wxTextCtrl*	m_pURLCtrl;
-	wxTextCtrl*	m_pUsernameCtrl;
 
 	// Next two are needed because the user can invoke this dialog on an existing setup
 	// not realizing it is already running, and so we need to be able to check for that
@@ -49,7 +66,10 @@ protected:
 	void OnUpdateButtonRemoveSetup(wxUpdateUIEvent& event);
 
 	CAdapt_ItApp* m_pApp;
-	
+
+	wxTextCtrl*	m_pURLCtrl;
+	wxTextCtrl*	m_pUsernameCtrl;
+	wxButton*   m_pRemoveSetupBtn; //ID_KB_SHARING_REMOVE_SETUP
 
 	// Note: I've stored the to-be-typed-just-once kb server password in the CMainFrame
 	// instance, and the dialog for getting the user to type it in is there too, and a
