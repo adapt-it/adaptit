@@ -161,14 +161,11 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
 	wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
 
-	// For an instantiated KbServer class instance to use, we'll use the one for
-	// adaptations, and ignore the one for glossing. Be sure there is one available! The
-	// menu item should be disabled if the project is not yet a kb sharing one.
-/* temporary
-	m_pKbServer = m_pApp->GetKbServer(1); // 1 is adaptations KbServer instance, 2 is  glosses KbServer instance
-	wxASSERT(m_pKbServer != NULL);
-*/
-	m_pKbServer = NULL; // remove when Jonathan restores my access to kbserver
+	// For an instantiated KbServer class instance to use, we'll use the stateless one created within
+	// KBSharingSetupDlg's creator function; and assign it to
+	// KBSharingMgrTabbedDlg::m_pKbServer by the setter SetStatelessKbServerPtr() after
+	// KBSsharingMgrTabbedDlg is instantiated
+	m_pKbServer = NULL; // temporarily
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
@@ -202,6 +199,14 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
 */
 }
+
+// Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
+// (that KbServer instance will internally have it's m_bStateless member set to TRUE)
+void KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(KbServer* pKbServer)
+{
+	m_pKbServer = pKbServer;
+}
+
 
 KbServerUser* KBSharingMgrTabbedDlg::CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct)
 {
