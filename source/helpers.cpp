@@ -9517,9 +9517,9 @@ wxMemorySize MacGetFreeMemory()
 bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled)
 {
 	bUserCancelled = FALSE; // default
-	if ( ((gpApp->m_sourceLanguageCode.IsEmpty() && bSrc) || ((gpApp->m_sourceLanguageCode == NOCODE) && bSrc)) || 
+	if ( ((gpApp->m_sourceLanguageCode.IsEmpty() && bSrc) || ((gpApp->m_sourceLanguageCode == NOCODE) && bSrc)) ||
 		 ((gpApp->m_targetLanguageCode.IsEmpty() && bTgt) || ((gpApp->m_targetLanguageCode == NOCODE) && bTgt)) ||
-		 ((gpApp->m_glossesLanguageCode.IsEmpty() && bGloss) || ((gpApp->m_glossesLanguageCode == NOCODE) && bGloss)) || 
+		 ((gpApp->m_glossesLanguageCode.IsEmpty() && bGloss) || ((gpApp->m_glossesLanguageCode == NOCODE) && bGloss)) ||
 		 ((gpApp->m_freeTransLanguageCode.IsEmpty() && bFreeTrans) || ((gpApp->m_freeTransLanguageCode == NOCODE) && bFreeTrans)) )
 	{
 		wxString srcCode;
@@ -9706,7 +9706,7 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
 	if (pKbSvr == NULL)
 	{
-		// warn developer, message does not need to be localizable; show it only in 
+		// warn developer, message does not need to be localizable; show it only in
 		// debug mode, because a Release version is unlikely to get this error
 #if defined(_DEBUG)
 		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
@@ -9744,13 +9744,13 @@ bool CheckForSharedKbInKbServer(wxString url, wxString username, wxString passwo
 }
 
 // checks app's string member m_strUserID is in entry table of kbserver
-bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password) 
+bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password)
 {
 	// This function can be called before the app member pointers, m_pKbServer[0] and
 	// m_pKbServer[1] are instantiated, so we have to pass in the url, username and
 	// password in order to be able to call KbServer::LookupUser(). We must temporarily
 	// set up a KbServer instance, use the LookupUser() member, and pass the result back
-	// to the caller after deleting the temporary KbServer instance 
+	// to the caller after deleting the temporary KbServer instance
 	wxString msg = _T("Error: KbServer class failed to instantiate in CheckForValidUsernameForKbServer .\nThe username could not be checked for validity, so KB sharing is OFF.");
 	wxString msg1 = _T("Error: LookupUser failed in CheckForValidUsernameForKbServer.\ncURL error: probably 404 Not Found, so KB sharing is OFF.");
 	wxString title = _T("KbServer error");
@@ -9762,7 +9762,7 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
 	if (pKbSvr == NULL)
 	{
-		// warn developer, message does not need to be localizable; show it only in 
+		// warn developer, message does not need to be localizable; show it only in
 		// debug mode, because a Release version is unlikely to get this error
 #if defined(_DEBUG)
 		wxMessageBox(msg, title, wxICON_ERROR | wxOK);
@@ -9772,6 +9772,10 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 		pApp->m_kbserver_useradmin = FALSE;
 		return FALSE;
 	}
+#if defined(_DEBUG)
+		wxLogDebug(_T("CheckForVaidUsernameForKbServer() url = %s , username = %s , password = %s"), url.c_str(), username.c_str(), password.c_str());
+#endif
+
 	int cURLerror = pKbSvr->LookupUser(url,username,password);
 	if (cURLerror > CURLE_OK)
 	{
@@ -9800,15 +9804,15 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 		pApp->m_kbserver_kbadmin = astruct.kbadmin;
 		pApp->m_kbserver_useradmin = astruct.useradmin;
 		// cleanup
-		pKbSvr->ClearUserStruct(); 
+		pKbSvr->ClearUserStruct();
 		delete pKbSvr;
 		return TRUE;
 	}
-	// Unmatched username, so set privilege level to safest (i.e. minimal) 
+	// Unmatched username, so set privilege level to safest (i.e. minimal)
 	pApp->m_kbserver_kbadmin = FALSE;
 	pApp->m_kbserver_useradmin = FALSE;
 	// cleanup
-	pKbSvr->ClearUserStruct(); 
+	pKbSvr->ClearUserStruct();
 	delete pKbSvr;
 	return FALSE;
 }

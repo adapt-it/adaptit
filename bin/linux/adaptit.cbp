@@ -396,6 +396,8 @@
 		<Unit filename="../../source/KBPage.h" />
 		<Unit filename="../../source/KBSharing.cpp" />
 		<Unit filename="../../source/KBSharing.h" />
+		<Unit filename="../../source/KBSharingMgrTabbedDlg.cpp" />
+		<Unit filename="../../source/KBSharingMgrTabbedDlg.h" />
 		<Unit filename="../../source/KBSharingSetupDlg.cpp" />
 		<Unit filename="../../source/KBSharingSetupDlg.h" />
 		<Unit filename="../../source/KbServer.cpp" />

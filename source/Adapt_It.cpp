@@ -16158,9 +16158,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//wxLogDebug(_T("md5sum = %s"), sum.c_str());
 	//delete pmd5;
 	//int ii=1;
-	
-	//This re-implementation using CBString needs an #include "md5_SB.h"; 
-	//and matches the rfc1321 standard's results 
+
+	//This re-implementation using CBString needs an #include "md5_SB.h";
+	//and matches the rfc1321 standard's results
 	//md5_SB* pmd5 = new md5_SB;
 	//CBString str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	//CBString str = "12345678901234567890123456789012345678901234567890123456789012345678901234567890";
@@ -16180,7 +16180,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int ii=1; // put a break point here to halt execution, & then examine Ouput window result
 
 	// 1st run: MakeDigestPassword() produced  b9b0c1de14f16080c72a5497f806b178  (it's correct)
-	
+
 	// Results of md5 tests, using md5_SB and CBString
 	// empty:   md5sum = d41d8cd98f00b204e9800998ecf8427e  ;correct
 	// "a":  md5sum = 0cc175b9c0f1b6a831c399e269772661  ;correct
@@ -16188,8 +16188,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789":  md5sum = d174ab98d277d9f5a5611c2c9f419d9f  ;correct
 	// "12345678901234567890123456789012345678901234567890123456789012345678901234567890": md5sum = 57edf4a22be3c955ac49da2e2107b67a  ;correct
 	// and most importantly...
-	// "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178   
-	// Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool): 
+	// "bruce_waters@sil.org:kbserver:<my pwd here>": generates: b9b0c1de14f16080c72a5497f806b178
+	// Comparing with, e.g. from the web (http://jesin.tk/htdigest-generator-tool):
 	// bruce_waters@sil.org:kbserver:b9b0c1de14f16080c72a5497f806b178
 	// So I'm getting the correct password generated from the htdigest string.
 	// Starting from a wxString, this also gives the same (correct) result (and it also
@@ -26784,10 +26784,10 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// user administrator privilege can do things on the Users page. We can't assume the
 /// current Adapt It project is a shared one when someone may want to do such things, so
 /// the menu item needs to be available to them pretty much at any time (but not when
-/// vertically editing). 
+/// vertically editing).
 /// Called from: the Administrator menu when the "Knowledge Base Sharing Manager..." menu
 /// item is clicked.
-/// The authentication dialog (KBSharingSetupDlg -- I should rename this to 
+/// The authentication dialog (KBSharingSetupDlg -- I should rename this to
 /// KBSharingAuthenticationDlg sometime) produces a stateless KbServer instance which the
 /// KB Sharing Manager GUI uses; it is produced on the heap, and deleted by the destructor
 /// of KBSharingSetupDlg when this handler function returns
@@ -26801,12 +26801,6 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 
 	// The administrator must authenticate to whichever kbserver he wants to adjust or view
 	bool bStateless = TRUE;
-
-
-
-// TODO ************* Jonathan must restore access to his kbserver, or I must make one myself, to test the following code......
-
-
 	KBSharingSetupDlg dlg(GetMainFrame(), bStateless);
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
@@ -26829,10 +26823,10 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
-/* Until Jonathan restores my kbserver access, this generates a crash
+//* Until Jonathan restores my kbserver access, this generates a crash
 	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
-		pApp->m_pKbServer[0]->GetUsersList()->GetCount());
-*/
+		kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
+//*/
 #endif
 	// show the property sheet
 	if(kbSharingPropertySheet.ShowModal() == wxID_OK)

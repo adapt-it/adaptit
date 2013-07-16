@@ -9,7 +9,7 @@
 /// \description	This is the implementation file for the KBSharingMgrTabbedDlg class.
 /// The KBSharingMgrTabbedDlg class provides a dialog with tabbed pages in which an
 /// appropriately authenticated user/manager of a remote kbserver installation may add,
-/// edit or remove users stored in the user table of the mysql server, and/or add or 
+/// edit or remove users stored in the user table of the mysql server, and/or add or
 /// remove knowledge base definitions stored in the kb table of the mysql server.
 /// \derivation		The KBSharingMgrTabbedDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
@@ -170,11 +170,11 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
 	m_pCheckKbAdmin->SetValue(FALSE);
-/* temporary
+//* temporary
 	// Hook up to the m_usersList member of the adaptations KbServer instance
 	m_pUsersList = m_pKbServer->GetUsersList();
 	m_nUsersListCount = 0;
-*/
+//*/
 	m_pUsersList = NULL; // remove both these when Jonathan restores my access to kbserver
 	m_nUsersListCount = 0;
 
@@ -195,9 +195,9 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pOriginalUserStruct = NULL;
 
 	m_nCurPage = 0;
-/* temporary
+//* temporary
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
-*/
+//*/
 }
 
 // Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
@@ -248,14 +248,14 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		// is unnecessary to do it here now
 		// ==================================================================
 
-		// Get the users data from the server, store in the list of KbServerUser structs, 
+		// Get the users data from the server, store in the list of KbServerUser structs,
 		// the call will clear the list first before storing what the server returns
 		wxString username = m_pKbServer->GetKBServerUsername();
 		wxString password = m_pKbServer->GetKBServerPassword();
 		CURLcode result = CURLE_OK;
 		if (!username.IsEmpty() && !password.IsEmpty())
 		{
-/* Temporarily disable until Jonathan restores my kbserver access
+//* Temporarily disable until Jonathan restores my kbserver access
 			result = (CURLcode)m_pKbServer->ListUsers(username, password);
 			if (result == CURLE_OK)
 			{
@@ -287,7 +287,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				// ListUsers() already, so that will suffice
 				;
 			}
-*/
+//*/
 		}
 		else
 		{
@@ -389,7 +389,7 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	// Tidy up
 	m_pKbServer->ClearUsersList(m_pOriginalUsersList); // this one is local to this
 	delete m_pOriginalUsersList;
-	m_pKbServer->ClearUsersList(m_pUsersList); // this one is in the adaptations 
+	m_pKbServer->ClearUsersList(m_pUsersList); // this one is in the adaptations
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerUserStruct();
 
@@ -397,11 +397,11 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 }
 
 void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
-{	
+{
 	// Tidy up
 	m_pKbServer->ClearUsersList(m_pOriginalUsersList); // this one is local to this
 	delete m_pOriginalUsersList;
-	m_pKbServer->ClearUsersList(m_pUsersList); // this one is in the adaptations 
+	m_pKbServer->ClearUsersList(m_pUsersList); // this one is in the adaptations
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerUserStruct();
 
@@ -542,7 +542,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 		int nID = (int)m_pOriginalUserStruct->id;
 		// Remove the selected user from the kbserver's user table
 		CURLcode result = CURLE_OK;
-		result = (CURLcode)m_pKbServer->RemoveUser(nID);	
+		result = (CURLcode)m_pKbServer->RemoveUser(nID);
 		// Update the page if we had success, if no success, just clear the controls
 		if (result == CURLE_OK)
 		{
@@ -611,7 +611,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 		wxString title = _("Warning: No selection");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		return;
-		
+
 	}
 	// Who's logged in? If I'm logged in, it would be an error to try change my username.
 	// In the same vein, if I'm logged in and I've just added user XXX, then I can't
@@ -680,7 +680,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	//  m_pUserStruct after cleaning out what's currently there
 	m_pKbServer->ClearUserStruct(); // clears m_userStruct member, it's in stack frame
 	// our m_pUserStruct member points that m_userStruct, so set it's contents below
-	
+
 	// We are ready to roll...
 	int nID = (int)m_pOriginalUserStruct->id;  // this value never changes
 	CURLcode result = CURLE_OK;
@@ -697,7 +697,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	m_pUserStruct->fullname = strFullname;
 	m_pUserStruct->kbadmin = bKbadmin;
 	m_pUserStruct->useradmin = bUseradmin;
-	// Set the booleans... 
+	// Set the booleans...
     // Note: in the case of a successful attempt to update the password of the person who
     // is currently logged in, on return from the UpdateUser() call, and provided it
     // returned CURLE_OK and there was no HTTP error, then subsequent accesses of kbserver
@@ -712,7 +712,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 
 		// Control can only get here if the logged in user, even if editing his own user
 		// entry, isn't trying to change his username, so we can just rely below on the
-		// value of bLoggedInUserJustChangedThePassword to guide what happens 
+		// value of bLoggedInUserJustChangedThePassword to guide what happens
 		bLoggedInUserJustChangedThePassword = TRUE;
 	}
 	if (bBothEmpty)
@@ -743,11 +743,11 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 		wxString msg = _("Warning: editing the username for an existing entry may not succeed. The reason for success or failure is given below.\n\nIf the old username already 'owns' stored KB entries, no change to the user entry will be made - including no change to other parameters you may have edited (but no harm is done by you trying to do so).\nHowever, if the old username does not 'own' any stored KB entries yet, your attempt to change the username will succeed - and if you are changing other parameters as well in this attempt, those changes will succeed too.");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 	}
-	
+
 	// Remove the selected user from the kbserver's user table
-	result = (CURLcode)m_pKbServer->UpdateUser(nID, bUpdateUsername, bUpdateFullName, 
-										bUpdatePassword, bUpdateKbadmin, bUpdateUseradmin, 
-										m_pUserStruct, strPassword);	
+	result = (CURLcode)m_pKbServer->UpdateUser(nID, bUpdateUsername, bUpdateFullName,
+										bUpdatePassword, bUpdateKbadmin, bUpdateUseradmin,
+										m_pUserStruct, strPassword);
 	if (result == CURLE_OK)
 	{
 		// see what we've done and be ready for a new administrator action; but
@@ -784,6 +784,11 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
         // typed and the UpdateUser() call suceeded
 	}
 	DeleteClonedKbServerUserStruct();
+}
+
+KbServer*KBSharingMgrTabbedDlg::GetKbServer()
+{
+    return m_pKbServer;
 }
 
 void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event))
@@ -825,7 +830,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 					// wanted to do (in which case the old one remains in effect)
 	m_pCheckUserAdmin->SetValue(m_pUserStruct->useradmin);
 	m_pCheckKbAdmin->SetValue(m_pUserStruct->kbadmin);
-	
+
 	// Note 1: selecting in the list does NOT make any change to the user table in the mysql
 	// database, nor does editing any of the control values. The user table is only
 	// affected when the user clicks one of the buttons Add User, Edit User, or Remove
