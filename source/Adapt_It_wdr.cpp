@@ -9760,86 +9760,82 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Username (preferably user's email address):"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_CTRL, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_THE_USERNAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetToolTip( _("Type or edit the username here") );
     item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_THE_USERNAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetToolTip( _("Type or edit the username here") );
-    item7->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Informal username (for example: Joe Bloggs):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Informal username (for example: Joe Bloggs):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_INFORMAL_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_INFORMAL_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_MULTI, _("First make a written copy of the passwords you intend to create, for safekeeping! Once each password entry is accepted the human readable form of the password cannot be seen again, nor recovered. However if you forget a password, you can type a new password for any user. (Be sure you inform the user of the change!)  When editing an existing user definition, the old password is retained if you leave the password text boxes blank."), wxDefaultPosition, wxSize(260,100), wxTE_MULTILINE|wxTE_READONLY );
+    item7->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_MULTI, _("First make a written copy of the passwords you intend to create, for safekeeping! Once each password entry is accepted the human readable form of the password cannot be seen again, nor recovered. However if you forget a password, you can type a new password for any user. (Be sure you inform the user of the change!)  When editing an existing user definition, the old password is retained if you leave the password text boxes blank."), wxDefaultPosition, wxSize(260,100), wxTE_MULTILINE|wxTE_READONLY );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("A personal password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("A personal password for this user:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD, wxT(""), wxDefaultPosition, wxSize(220,26), wxTE_PASSWORD );
+    item14->SetToolTip( _("Type in the password. You can type a new one if unknown.") );
+    item7->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD, wxT(""), wxDefaultPosition, wxSize(220,26), wxTE_PASSWORD );
-    item15->SetToolTip( _("Type in the password. You can type a new one if unknown.") );
-    item7->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Type the password again:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Type the password again:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD_TWO, wxT(""), wxDefaultPosition, wxSize(220,26), wxTE_PASSWORD );
-    item17->SetToolTip( _("Verify the spelling is the same as the first time") );
-    item7->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXTCTRL_PASSWORD_TWO, wxT(""), wxDefaultPosition, wxSize(220,26), wxTE_PASSWORD );
+    item16->SetToolTip( _("Verify the spelling is the same as the first time") );
+    item7->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item3->Add( item7, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
 
-    item18->Add( 20, 40, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add( 20, 40, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit other users of this server."), wxDefaultPosition, wxSize(240,66), wxTE_MULTILINE|wxTE_READONLY );
-    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit other users of this server."), wxDefaultPosition, wxSize(240,66), wxTE_MULTILINE|wxTE_READONLY );
+    item17->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item20 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_USERADMIN, _("User administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item18->Add( 20, 13, 0, wxALIGN_CENTER|wxALL, 5 );
+    item17->Add( 20, 13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit knowledge base definitions stored in the server."), wxDefaultPosition, wxSize(240,66), wxTE_MULTILINE|wxTE_READONLY );
-    item18->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Tick this box to allow this user the permission to add, remove, or edit knowledge base definitions stored in the server."), wxDefaultPosition, wxSize(240,66), wxTE_MULTILINE|wxTE_READONLY );
+    item17->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item22 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Knowledge base administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxCheckBox *item21 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Knowledge base administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item3->Add( item18, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item3->Add( item17, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item23 = new wxButton( parent, ID_BUTTON_CLEAR_CONTROLS, _("Clear Controls"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Empty all the text box controls, clear the checkboxes, remove the selection from the list box") );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item25 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
-    item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item24 = new wxButton( parent, ID_BUTTON_ADD_USER, _("Add User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Add a new user to the list box using the details typed in the controls") );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item26 = new wxButton( parent, ID_BUTTON_EDIT_USER, _("Edit User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetToolTip( _("Change the selected user's details to be what the controls currently contain") );
-    item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item25 = new wxButton( parent, ID_BUTTON_EDIT_USER, _("Edit User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Change the selected user's details to be what the controls currently contain") );
+    item22->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item22->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->SetToolTip( _("Remove this user from the list, provided this is allowed") );
-    item23->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_REMOVE_USER, _("Remove User"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Remove this user from the list, provided this is allowed") );
+    item22->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxBOTTOM, 5 );
 
