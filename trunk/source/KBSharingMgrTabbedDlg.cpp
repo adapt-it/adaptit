@@ -124,13 +124,13 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pRadioButton_Type1KB = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
 	m_pRadioButton_Type2KB = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
 	// wxTextCtrls
-	m_pEditUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_USERNAME_CTRL);
-	wxASSERT(m_pEditUsername != NULL);
-
+	
 	// Temporary extra one due to problem in Linux the control won't show its text
+	//m_pEditUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_USERNAME_CTRL);
+	//wxASSERT(m_pEditUsername != NULL);
+
 	m_pTheUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
 	wxASSERT(m_pTheUsername != NULL);
-
 	m_pEditInformalUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
 	wxASSERT(m_pEditInformalUsername != NULL);
 	m_pEditPersonalPassword = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD);
@@ -432,7 +432,8 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageClearControls(wxCommandEvent& WXUNUS
 {
 	wxString emptyStr = _T("");
 	m_pUsersListBox->SetSelection(wxNOT_FOUND);
-	m_pEditUsername->ChangeValue(emptyStr);
+	//m_pEditUsername->ChangeValue(emptyStr);
+	m_pTheUsername->ChangeValue(emptyStr);
 	m_pEditInformalUsername->ChangeValue(emptyStr);
 	m_pEditPersonalPassword->ChangeValue(emptyStr);
 	m_pEditPasswordTwo->ChangeValue(emptyStr);
@@ -483,7 +484,8 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	{
 		m_pUsersListBox->SetSelection(wxNOT_FOUND);
 	}
-	wxString strUsername = m_pEditUsername->GetValue();
+	//wxString strUsername = m_pEditUsername->GetValue();
+	wxString strUsername = m_pTheUsername->GetValue();
 	wxString strFullname = m_pEditInformalUsername->GetValue();
 	wxString strPassword = m_pEditPersonalPassword->GetValue();
 	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
@@ -648,7 +650,8 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	// the administrator clicked on the list box's entry) to find which have changed. We
 	// will use a bool to track which ones are to be used for constructing the appropriate
 	// json string to be PUT to the server's entry for this user.
-	wxString strUsername = m_pEditUsername->GetValue();
+	//wxString strUsername = m_pEditUsername->GetValue();
+	wxString strUsername = m_pTheUsername->GetValue();
 	wxString strFullname = m_pEditInformalUsername->GetValue();
 	wxString strPassword = m_pEditPersonalPassword->GetValue();
 	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
@@ -669,7 +672,8 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 			wxString msg = _("You are the currently logged in user, so you are not permitted to change your username. Your original username will be restored to the text box.\nIf you really want to have a different username, Add yourself under your new name and with a new password, and also give yourself appropriate privileges using the checkboxes, and then leave the project and re-enter it - authenticating with your new credentials.");
 			wxString title = _("Warning: Illegal username change");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-			m_pEditUsername->ChangeValue(originalUsername);
+			//m_pEditUsername->ChangeValue(originalUsername);
+			m_pTheUsername->ChangeValue(originalUsername);
 			return;
 
 		}
@@ -833,7 +837,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
     wxLogDebug(_T("OnSelchangeUsersList(): from list... theUsername = %s"), theUsername.c_str());
 #endif
 	// Try putting theUsername into a 2nd textbox after the first
-	m_pTheUsername->ChangeValue(theUsername);
+	//m_pTheUsername->ChangeValue(theUsername);
 
 	// Get the entry's KbServerUser struct which is its associated client data (no need to
 	// also get the username string from the ListBox because the struct's username field
@@ -858,16 +862,16 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// Use the struct to fill the Users page's controls with their required data
 
 #if defined(_DEBUG)
-    wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pEditUsername->GetValue().c_str());
+    //wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pEditUsername->GetValue().c_str());
+    wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pTheUsername->GetValue().c_str());
 #endif
-	m_pEditUsername->ChangeValue(m_pUserStruct->username);
+	m_pTheUsername->ChangeValue(theUsername);
+	//m_pEditUsername->ChangeValue(m_pUserStruct->username);
 	// Test if not using the struct solves the problem...
 	//m_pEditUsername->ChangeValue(theUsername);
-	//wxRect aRect = m_pEditUsername->GetRect();
-	//m_pEditUsername->RefreshRect(aRect);
-	//m_pEditUsername->Update();
 #if defined(_DEBUG)
-    wxLogDebug(_T("OnSelchangeUsersList(): username box AFTER contains: %s"), m_pEditUsername->GetValue().c_str());
+    //wxLogDebug(_T("OnSelchangeUsersList(): username box AFTER contains: %s"), m_pEditUsername->GetValue().c_str());
+    wxLogDebug(_T("OnSelchangeUsersList(): username box AFTER contains: %s"), m_pTheUsername->GetValue().c_str());
 #endif
 
 	m_pEditInformalUsername->ChangeValue(m_pUserStruct->fullname);

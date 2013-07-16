@@ -48,8 +48,8 @@ protected:
 	wxRadioButton* m_pRadioButton_Type1KB;
 	wxRadioButton* m_pRadioButton_Type2KB;
 
-	wxTextCtrl* m_pEditUsername;
-	wxTextCtrl* m_pTheUsername; // <-  temporary ***********************************************************************
+	//wxTextCtrl* m_pEditUsername;// <-  temporary ********it was obstreperous ******************************************
+	wxTextCtrl* m_pTheUsername; 
 	wxTextCtrl* m_pEditInformalUsername;
 	wxTextCtrl* m_pEditPersonalPassword;
 	wxTextCtrl* m_pEditPasswordTwo;
