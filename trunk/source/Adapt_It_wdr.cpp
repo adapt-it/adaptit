@@ -9171,46 +9171,50 @@ wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL, _("This is your username. (To change it, use Change Username from the Edit menu.)"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item9->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL, _("This is your username. (To change it, use Change Username from the Edit menu.)"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item10->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
+    item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item6->Add( item7, 0, wxALIGN_CENTER|wxRIGHT, 5 );
 
     item5->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item5->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item5->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item13 = new wxButton( parent, ID_KB_SHARING_REMOVE_SETUP, _("Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("No longer share this project's knowledge base") );
-    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item14 = new wxButton( parent, ID_KB_SHARING_REMOVE_SETUP, _("Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("No longer share this project's knowledge base") );
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item12->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item13->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item12->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item13->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item15 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item0->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT_PWD_CAUTION_LABEL, _("You must also give the server's password if you setup again after a Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_PWD_CAUTION_LABEL, _("You must also give the server's password if you setup again after a Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -9756,8 +9760,8 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Username (preferably user's email address):"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetToolTip( _("Type or edit a username here") );
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_CTRL, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item9->SetToolTip( _("Type or edit the username here") );
     item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Informal username (for example: Joe Bloggs):"), wxDefaultPosition, wxDefaultSize, 0 );
