@@ -6,10 +6,10 @@
 /// \rcs_id $Id: KBSharingMgrTabbedDlg.h 2883 2012-11-12 03:58:57Z adaptit.bruce@gmail.com $
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the KBSharingMgrTabbedDlg class. 
+/// \description	This is the header file for the KBSharingMgrTabbedDlg class.
 /// The KBSharingMgrTabbedDlg class provides a dialog with tabbed pages in which an
 /// appropriately authenticated user/manager of a remote kbserver installation may add,
-/// edit or remove users stored in the user table of the mysql server, and/or add or 
+/// edit or remove users stored in the user table of the mysql server, and/or add or
 /// remove knowledge base definitions stored in the kb table of the mysql server.
 /// \derivation		The KBSharingMgrTabbedDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
@@ -37,8 +37,9 @@ public:
 	// Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
 	// (that KbServer instance will internally have it's m_bStateless member set to TRUE)
 	void SetStatelessKbServerPtr(KbServer* pKbServer);
+	KbServer* GetKbServer();
 
-protected:	
+protected:
 	wxNotebook* m_pKBSharingMgrTabbedDlg;
 	wxListBox* m_pUsersListBox;
 
@@ -68,13 +69,13 @@ protected:
 	wxButton* m_pBtnLookupLanguageCodes;
 	wxButton* m_pBtnRemoveSelectedKBDefinition;
 
-	
+
 	// local copies of globals on the App, for the person using the Manager dialog
 	bool m_bKbAdmin; // for m_kbserver_kbadmin
 	bool m_bUserAdmin; // for m_kbserver_useradmin
-	
-	wxString rfc5654guidelines; // read in from "RFC56554_guidelines.txt in adaptit\docs\ 
-								// folder, & is a versioned file
+
+	wxString rfc5654guidelines; // read in from "RFC56554_guidelines.txt in adaptit\docs\ folder,
+								// & is a versioned file
 	int m_nCurPage;
 #ifdef __WXGTK__
 	bool			m_bUsersListBoxBeingCleared;
@@ -82,7 +83,7 @@ protected:
 	bool			m_bTargetKbsListBoxBeingCleared;
 	bool			m_bGlossKbsListBoxBeingCleared;
 #endif
-	
+
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
@@ -110,19 +111,19 @@ protected:
 
 private:
 	CAdapt_ItApp*     m_pApp;
-	int				  m_nSel; // index value (0 based) for selection in the users listbox, 
+	int				  m_nSel; // index value (0 based) for selection in the users listbox,
 							  // and has value wxNOT_FOUND when nothing is selected
 	UsersList*        m_pUsersList; // initialize in OnInit() as the KbServer instance has the list
 	size_t            m_nUsersListCount; // stores how many entries are in the m_pUsersList
-	UsersList*        m_pOriginalUsersList; // store copies of KbServerUser structs at 
+	UsersList*        m_pOriginalUsersList; // store copies of KbServerUser structs at
 									        // entry, for comparison with final list
 											// after the edits, removals and additions
 											// are done
 	KbServer*         m_pKbServer; // we'll assign the stateless one to this pointer
-	KbServerUser*     m_pUserStruct; // scratch variable to get at returned values 
+	KbServerUser*     m_pUserStruct; // scratch variable to get at returned values
 								     // for a user entry's fields
-	KbServerUser*     m_pOriginalUserStruct; // scratch variable to get at returned values 
-								     // for a user entry's fields, this one stores the 
+	KbServerUser*     m_pOriginalUserStruct; // scratch variable to get at returned values
+								     // for a user entry's fields, this one stores the
 								     // struct immediately after the user's click on the
 									 // user item in the listbox, freeing up the
 									 // m_pUserStruct to be given values as edited by
