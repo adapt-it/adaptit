@@ -26828,6 +26828,13 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
 //*/
 #endif
+
+	// Get the "stateless" strings into the relevant storage in the stateless m_pKbServer
+	KbServer* pStatelessKbServer = kbSharingPropertySheet.GetKbServer();
+	pStatelessKbServer->SetKBServerUsername(dlg.m_strStatelessUsername);
+	pStatelessKbServer->SetKBServerURL(dlg.m_strStatelessURL);
+	pStatelessKbServer->SetKBServerPassword(dlg.m_strStatelessPassword);
+
 	// show the property sheet
 	if(kbSharingPropertySheet.ShowModal() == wxID_OK)
 	{
