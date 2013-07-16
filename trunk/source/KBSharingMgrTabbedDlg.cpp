@@ -161,11 +161,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
 	wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
 
-	// For an instantiated KbServer class instance to use, we'll use the stateless one created within
-	// KBSharingSetupDlg's creator function; and assign it to
+	// For an instantiated KbServer class instance to use, we use the stateless one created within
+	// KBSharingSetupDlg's creator function; and it has been assigned to
 	// KBSharingMgrTabbedDlg::m_pKbServer by the setter SetStatelessKbServerPtr() after
-	// KBSsharingMgrTabbedDlg is instantiated
-	m_pKbServer = NULL; // temporarily
+	// KBSsharingMgrTabbedDlg was instantiated
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
@@ -205,8 +204,20 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 void KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(KbServer* pKbServer)
 {
 	m_pKbServer = pKbServer;
+#if defined(_DEBUG)
+	wxLogDebug(_T("KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(): settting ptr = %x , m_bStateless = %d"),
+		pKbServer, (int)pKbServer->m_bStateless);
+#endif
 }
 
+KbServer*KBSharingMgrTabbedDlg::GetKbServer()
+{
+#if defined(_DEBUG)
+	wxLogDebug(_T("KBSharingMgrTabbedDlg::GetKbServer(): gettting ptr = %x , m_bStateless = %d"),
+		m_pKbServer, (int)m_pKbServer->m_bStateless);
+#endif
+   return m_pKbServer;
+}
 
 KbServerUser* KBSharingMgrTabbedDlg::CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct)
 {
@@ -250,6 +261,10 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 
 		// Get the users data from the server, store in the list of KbServerUser structs,
 		// the call will clear the list first before storing what the server returns
+#if defined(_DEBUG)
+	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %x , m_bStateless = %d"),
+		m_pKbServer, (int)m_pKbServer->m_bStateless);
+#endif
 		wxString username = m_pKbServer->GetKBServerUsername();
 		wxString password = m_pKbServer->GetKBServerPassword();
 		CURLcode result = CURLE_OK;
@@ -784,11 +799,6 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
         // typed and the UpdateUser() call suceeded
 	}
 	DeleteClonedKbServerUserStruct();
-}
-
-KbServer*KBSharingMgrTabbedDlg::GetKbServer()
-{
-    return m_pKbServer;
 }
 
 void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event))

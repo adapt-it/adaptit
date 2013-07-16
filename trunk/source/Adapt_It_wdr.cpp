@@ -9209,7 +9209,7 @@ wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer 
 
     item0->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("You must also give the server's password if you setup again after a Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT_PWD_CAUTION_LABEL, _("You must also give the server's password if you setup again after a Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)

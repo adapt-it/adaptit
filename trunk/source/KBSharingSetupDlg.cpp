@@ -121,7 +121,12 @@ KBSharingSetupDlg::KBSharingSetupDlg(wxWindow* parent, bool bStateless) // dialo
 	m_strStatelessUsername.Empty();
 	m_strStatelessURL.Empty();
 	m_strStatelessPassword.Empty();
-	m_pStatelessKbServer = new KbServer(TRUE); // TRUE is what KbServer::m_bStateless value is to be
+	// The 1 param is a hack, (it's int whichType) to enable the compiler to distinguish
+	// this constructor apart from the KbServer(int whichType) one which it was wrongly
+	// calling when I had this additional constructor as just KbServer(bool bStateless).
+	// This contructor doesn't make any attempt to link to any CKB instance, or to support
+	// only the hardware's current user
+	m_pStatelessKbServer = new KbServer(1, bStateless); // we should pass only TRUE
 }
 
 KBSharingSetupDlg::~KBSharingSetupDlg() // destructor
@@ -161,25 +166,44 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// and without any project yet having become a KB Sharing one
 	if (!m_bStateless)
 	{
-		m_pUsernameCtrl->SetEditable(FALSE);
+		m_pUsernameCtrl->SetEditable(FALSE); // it's read-only when we are not in KB Sharing Mgr handler
 	}
 	else
 	{
 		// When stateless, we don't need nor want to see the Remove Setup button as there
 		// is no setup being done, just someone using the KB Sharing Manager
 		m_pRemoveSetupBtn->Hide(); // same as Show(FALSE)
+
+		// we also want to change the label over the username box
+		wxStaticText* pUserTextLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_LABEL);
+		wxString newLabelStr = _("Type your username:");
+		pUserTextLabel->SetLabel(newLabelStr);
+
+		// and we want to hide the caution at the bottom about the Remove Setup button
+		wxStaticText* pCautionTextLabel = (wxStaticText*)FindWindowById(ID_TEXT_PWD_CAUTION_LABEL);
+		pCautionTextLabel->Hide();
+	
 	}
 	// If the app members have values for the url and username already (from having been
 	// just set earlier, or from the project config file, then reinstate them so that if
 	// the kb sharing was turned off it can be quickly re-enabled
-	if (!m_pApp->m_strKbServerURL.IsEmpty())
+	// When running statelessly, don't try initialize these boxes, they start off empty
+	if (m_bStateless)
 	{
-		m_pURLCtrl->ChangeValue(m_pApp->m_strKbServerURL);
+		wxString emptyStr = _T("");
+		m_pURLCtrl->ChangeValue(emptyStr);
+		m_pUsernameCtrl->ChangeValue(emptyStr);
 	}
-	if (!m_pApp->m_strUserID.IsEmpty())
+	else
 	{
-		m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID); // note: this could setup ****
-														   // which is invalid as a username
+		if (!m_pApp->m_strKbServerURL.IsEmpty())
+		{
+			m_pURLCtrl->ChangeValue(m_pApp->m_strKbServerURL);
+		}
+		if (!m_pApp->m_strUserID.IsEmpty())
+		{
+			m_pUsernameCtrl->ChangeValue(m_pApp->m_strUserID);
+		}
 	}
 }
 
@@ -284,7 +308,7 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 				// can now be done -- but first, get the URL and password and username
 				// into the stateless KbServer instance we've created on the heap using
 				// the creator function for the present class's instance
-// temporary -- m_bStateless is false for some unknown reason, so far				wxASSERT(m_pStatelessKbServer->m_bStateless);
+				wxASSERT(m_pStatelessKbServer->m_bStateless);
 				m_pStatelessKbServer->SetKBServerPassword(m_strStatelessPassword);
 				m_pStatelessKbServer->SetKBServerUsername(m_strStatelessUsername);
 				m_pStatelessKbServer->SetKBServerURL(m_strStatelessURL);

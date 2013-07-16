@@ -151,11 +151,21 @@ KbServer::KbServer(int whichType)
 	m_bStateless = FALSE;
 }
 
-KbServer::KbServer(bool bStateless)
+// I had to give the next contructor the int whichType param, because just having a single
+// bool param isn't enough to distinguish it from KbServer(int whichType) above, and the
+// compiler was wrongly calling the above, instead KbServer(bool bStateless)
+KbServer::KbServer(int whichType, bool bStateless)
 {
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	m_pKB = NULL; // There may be no KB loaded yet, and we don't need 
 				  // it for the KB Sharing Manager GUI's use
+	// do something trivial with the parameter whichType to avoid a compiler warning 
+	// about an unused variable
+	if (whichType != 1)
+	{
+		whichType = 1; // we don't want any CKB instance, 
+					   // but if we did, we'd just use an adapting one
+	}
 	m_queue.clear();
 	m_bStateless = bStateless;
 }

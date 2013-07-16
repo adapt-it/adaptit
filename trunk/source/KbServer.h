@@ -134,7 +134,7 @@ public:
 	// creation & destruction
 
 	KbServer(void); // default constructor
-	KbServer(bool bStateless); // the constructor we'll use for the KB Sharing Manager's use
+	KbServer(int whichType, bool bStateless); // the constructor we'll use for the KB Sharing Manager's use
 	KbServer(int whichType); // the constructor we'll use, pass 1 for adapting KB, 2 for glossingKB
 	virtual	~KbServer(void); // destructor (should be virtual)
 
