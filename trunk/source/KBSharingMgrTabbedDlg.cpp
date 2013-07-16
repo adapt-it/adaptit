@@ -126,6 +126,11 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// wxTextCtrls
 	m_pEditUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_USERNAME_CTRL);
 	wxASSERT(m_pEditUsername != NULL);
+
+	// Temporary extra one due to problem in Linux the control won't show its text
+	m_pTheUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
+	wxASSERT(m_pTheUsername != NULL);
+
 	m_pEditInformalUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
 	wxASSERT(m_pEditInformalUsername != NULL);
 	m_pEditPersonalPassword = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD);
@@ -805,7 +810,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 {
 	// some minimal sanity checks - can't use Bill's helpers.cpp function
 	// ListBoxSanityCheck() because it clobbers the user's selection just made
-	if (m_pUsersListBox == NULL)
+    if (m_pUsersListBox == NULL)
 	{
 		m_nSel = wxNOT_FOUND; // -1
 		return;
@@ -816,10 +821,27 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 		return;
 	}
 	m_nSel = m_pUsersListBox->GetSelection();
+
+#if defined(_DEBUG)
+    wxLogDebug(_T("OnSelchangeUsersList(): selection index m_nSel = %d"), m_nSel);
+#endif
+
+	// On Linux, text controls are not getting populated, so maybe a logic error. Test the
+	// hypothesis by getting the username value direct from the selection
+	wxString theUsername = m_pUsersListBox->GetString(m_nSel);
+#if defined(_DEBUG)
+    wxLogDebug(_T("OnSelchangeUsersList(): from list... theUsername = %s"), theUsername.c_str());
+#endif
+	// Try putting theUsername into a 2nd textbox after the first
+	m_pTheUsername->ChangeValue(theUsername);
+
 	// Get the entry's KbServerUser struct which is its associated client data (no need to
 	// also get the username string from the ListBox because the struct's username field
 	// contains the same string)
 	m_pUserStruct = (KbServerUser*)m_pUsersListBox->GetClientData(m_nSel);
+#if defined(_DEBUG)
+    wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pUserStruct = %x"), (void*)m_pUserStruct);
+#endif
 
 	// Put a copy in m_pOriginalUserStruct, in case the administrator clicks the
 	// Edit User button - the latter would use what's in this variable to compare
@@ -828,9 +850,26 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// at the ID value for the user to be removed
 	DeleteClonedKbServerUserStruct();
 	m_pOriginalUserStruct = CloneACopyOfKbServerUserStruct(m_pUserStruct);
+#if defined(_DEBUG)
+    wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pOriginalUserStruct = %x"), (void*)m_pOriginalUserStruct);
+    wxLogDebug(_T("OnSelchangeUsersList(): m_pUserStruct->username = %s  ,  useradmin = %d"), m_pUserStruct->username.c_str(), m_pUserStruct->useradmin);
+#endif
 
 	// Use the struct to fill the Users page's controls with their required data
+
+#if defined(_DEBUG)
+    wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pEditUsername->GetValue().c_str());
+#endif
 	m_pEditUsername->ChangeValue(m_pUserStruct->username);
+	// Test if not using the struct solves the problem...
+	//m_pEditUsername->ChangeValue(theUsername);
+	//wxRect aRect = m_pEditUsername->GetRect();
+	//m_pEditUsername->RefreshRect(aRect);
+	//m_pEditUsername->Update();
+#if defined(_DEBUG)
+    wxLogDebug(_T("OnSelchangeUsersList(): username box AFTER contains: %s"), m_pEditUsername->GetValue().c_str());
+#endif
+
 	m_pEditInformalUsername->ChangeValue(m_pUserStruct->fullname);
 	m_pEditPersonalPassword->ChangeValue(_T("")); // we can't recover it, so user must
 					// look up his records if he can't remember what it was, too bad if he
@@ -849,7 +888,6 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// Note 2: Remove User does a real deletion; the entry is not retained in the user
 	// table
 }
-
 
 
 
