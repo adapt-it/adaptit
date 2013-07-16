@@ -113,7 +113,7 @@ private:
 	CAdapt_ItApp*     m_pApp;
 	int				  m_nSel; // index value (0 based) for selection in the users listbox,
 							  // and has value wxNOT_FOUND when nothing is selected
-	UsersList*        m_pUsersList; // initialize in OnInit() as the KbServer instance has the list
+	UsersList*        m_pUsersList; // initialize in InitDialog() as the KbServer instance has the list
 	size_t            m_nUsersListCount; // stores how many entries are in the m_pUsersList
 	UsersList*        m_pOriginalUsersList; // store copies of KbServerUser structs at
 									        // entry, for comparison with final list

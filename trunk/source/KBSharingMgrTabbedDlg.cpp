@@ -174,8 +174,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pUsersList = m_pKbServer->GetUsersList();
 	m_nUsersListCount = 0;
 //*/
-	m_pUsersList = NULL; // remove both these when Jonathan restores my access to kbserver
-	m_nUsersListCount = 0;
+	//m_pUsersList = NULL; // remove both these when Jonathan restores my access to kbserver
+	//m_nUsersListCount = 0;
 
 	// Create the 2nd UsersList to store original copies before user's edits etc
 	// (destroy it in OnOK() and OnCancel())
