@@ -36,7 +36,7 @@ public:
 
 	// Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
 	// (that KbServer instance will internally have it's m_bStateless member set to TRUE)
-	void SetStatelessKbServerPtr(KbServer* pKbServer);
+	void      SetStatelessKbServerPtr(KbServer* pKbServer);
 	KbServer* GetKbServer();
 
 protected:

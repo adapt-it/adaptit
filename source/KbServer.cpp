@@ -2027,7 +2027,10 @@ void KbServer::ClearUsersList(UsersList* pUsrList)
 		anIndex++;
 		c_iter = pUsrList->Item((size_t)anIndex);
 		KbServerUser* pEntry = c_iter->GetData();
-		delete pEntry; // frees its memory block
+		if (pEntry != NULL)
+		{
+			delete pEntry; // frees its memory block
+		}
 	}
 	// The list's stored pointers are now hanging, so clear them
 	pUsrList->clear();
@@ -2051,7 +2054,10 @@ void KbServer::ClearKbsList(KbsList* pKbsList)
 		anIndex++;
 		c_iter = pKbsList->Item((size_t)anIndex);
 		KbServerKb* pEntry = c_iter->GetData();
-		delete pEntry; // frees its memory block
+		if (pEntry != NULL)
+		{
+			delete pEntry; // frees its memory block
+		}
 	}
 	// The list's stored pointers are now hanging, so clear them
 	pKbsList->clear();

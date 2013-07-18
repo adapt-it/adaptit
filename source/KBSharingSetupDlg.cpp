@@ -282,12 +282,12 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 			// The following call will set up a temporary instance of the adapting KbServer in
 			// order to call it's LookupUser() member, to check that this user has an entry in
 			// the entry table; and delete the temporary instance before returning
-/* TODO  fix this - it's failing, and so is jonathan's lookupuser c-client
+//* TODO    fix this - it's failing, and so is jonathan's lookupuser c-client in the
+//          LubuntuVM accessing my localhost kbserver there
 			bool bUserIsValid = CheckForValidUsernameForKbServer(m_strStatelessURL,
 											m_strStatelessUsername, m_strStatelessPassword);
-*/
-
-            bool bUserIsValid = TRUE; // this is temporary, see just above
+//*/
+            //bool bUserIsValid = TRUE; // this is temporary, see just above
 
 
 			if (!bUserIsValid)
