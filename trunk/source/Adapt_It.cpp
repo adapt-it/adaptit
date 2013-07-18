@@ -26837,7 +26837,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
-//* Until Jonathan restores my kbserver access, this generates a crash
+//* 
 	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
 		kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
 //*/

@@ -9204,6 +9204,7 @@ wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer 
     item13->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetDefault();
     item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item13->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -9863,7 +9864,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Use the two radio buttons below, in sequence. The top one is for creating a definition for a shared target knowledge base; the lower one is for a shared glossing knowledge base. Always create one of each. The list boxes below show only the shared knowledge base codes stored within the currently accessed kbserver."), wxDefaultPosition, wxSize(580,48), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Use the two radio buttons below, in sequence. The top one is for creating a definition for a shared target knowledge base; the lower one is for a shared glossing knowledge base. Always create one of each. The list boxes below show only the shared knowledge base codes stored within the currently accessed kbserver."), wxDefaultPosition, wxSize(-1,56), wxTE_MULTILINE|wxTE_READONLY );
     item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
@@ -9988,7 +9989,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
 
     wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item34 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Please note: (1) Your two new definitions, one for the adaptations knowledge base, and the other for the glossing knowledge base, must have the same source language code. (2) The Remove Selected Definition button can only remove definitions added while this Manager dialog is open. After the dialog is closed, added definitions become permanent."), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item34 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Please note: (1) Your two new definitions, one for the adaptations knowledge base, and the other for the glossing knowledge base, must have the same source language code. (2) The Remove Selected Definition button can only remove definitions added while this Manager dialog is open. After the dialog is closed, added definitions become permanent."), wxDefaultPosition, wxSize(-1,56), wxTE_MULTILINE|wxTE_READONLY );
     item33->Add( item34, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 10 );
 
     item1->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -10019,7 +10020,7 @@ wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool 
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Either, or both, of the two radio buttons below may be used, in sequence. The top one is for viewing or editing a listed definition for a shared target knowledge base; the lower one is for the same purpose, but for a shared glossing knowledge base. Either type of definition may be edited. The list boxes show the shared knowledge base definitions currently stored within the accessed kbserver - including any added while this Manager dialog has been open."), wxDefaultPosition, wxSize(580,-1), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("Either, or both, of the two radio buttons below may be used, in sequence. The top one is for viewing or editing a listed definition for a shared target knowledge base; the lower one is for the same purpose, but for a shared glossing knowledge base. Either type of definition may be edited. The list boxes show the shared knowledge base definitions currently stored within the accessed kbserver - including any added while this Manager dialog has been open."), wxDefaultPosition, wxSize(-1,56), wxTE_MULTILINE|wxTE_READONLY );
     item4->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );

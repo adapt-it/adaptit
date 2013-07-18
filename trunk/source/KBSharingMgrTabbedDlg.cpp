@@ -31,6 +31,8 @@
 #include <wx/wx.h>
 #endif
 
+#define _WANT_DEBUGLOG // comment out to suppress wxLogDebug() calls
+
 // other includes
 //#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
@@ -166,21 +168,18 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
 	wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
 
-	// For an instantiated KbServer class instance to use, we use the stateless one created within
-	// KBSharingSetupDlg's creator function; and it has been assigned to
-	// KBSharingMgrTabbedDlg::m_pKbServer by the setter SetStatelessKbServerPtr() after
-	// KBSsharingMgrTabbedDlg was instantiated
+    // For an instantiated KbServer class instance to use, we use the stateless one created
+    // within KBSharingSetupDlg's creator function; and it has been assigned to
+    // KBSharingMgrTabbedDlg::m_pKbServer by the setter SetStatelessKbServerPtr() after
+    // KBSsharingMgrTabbedDlg was instantiated
 
 	// Initialize the User page's checkboxes to OFF
 	m_pCheckUserAdmin->SetValue(FALSE);
 	m_pCheckKbAdmin->SetValue(FALSE);
-//* temporary
+
 	// Hook up to the m_usersList member of the adaptations KbServer instance
 	m_pUsersList = m_pKbServer->GetUsersList();
 	m_nUsersListCount = 0;
-//*/
-	//m_pUsersList = NULL; // remove both these when Jonathan restores my access to kbserver
-	//m_nUsersListCount = 0;
 
 	// Create the 2nd UsersList to store original copies before user's edits etc
 	// (destroy it in OnOK() and OnCancel())
@@ -199,9 +198,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pOriginalUserStruct = NULL;
 
 	m_nCurPage = 0;
-//* temporary
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
-//*/
 }
 
 // Setter for the stateless instance of KbServer created by KBSharingSetupDlg's creator
@@ -209,7 +206,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 void KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(KbServer* pKbServer)
 {
 	m_pKbServer = pKbServer;
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 	wxLogDebug(_T("KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(): settting ptr = %x , m_bStateless = %d"),
 		pKbServer, (int)pKbServer->m_bStateless);
 #endif
@@ -217,7 +214,7 @@ void KBSharingMgrTabbedDlg::SetStatelessKbServerPtr(KbServer* pKbServer)
 
 KbServer*KBSharingMgrTabbedDlg::GetKbServer()
 {
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 	wxLogDebug(_T("KBSharingMgrTabbedDlg::GetKbServer(): gettting ptr = %x , m_bStateless = %d"),
 		m_pKbServer, (int)m_pKbServer->m_bStateless);
 #endif
@@ -266,7 +263,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 
 		// Get the users data from the server, store in the list of KbServerUser structs,
 		// the call will clear the list first before storing what the server returns
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %x , m_bStateless = %d"),
 		m_pKbServer, (int)m_pKbServer->m_bStateless);
 #endif
@@ -275,7 +272,6 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		CURLcode result = CURLE_OK;
 		if (!username.IsEmpty() && !password.IsEmpty())
 		{
-//* Temporarily disable until Jonathan restores my kbserver access
 			result = (CURLcode)m_pKbServer->ListUsers(username, password);
 			if (result == CURLE_OK)
 			{
@@ -307,7 +303,6 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				// ListUsers() already, so that will suffice
 				;
 			}
-//*/
 		}
 		else
 		{
@@ -343,6 +338,11 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 		anIndex++;
 		c_iter = pUsersList->Item((size_t)anIndex);
 		KbServerUser* pEntry = c_iter->GetData();
+// Check if there are any NULL ptrs here
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %x , username = %s"),
+			anIndex, (void*)pEntry, pEntry == NULL ? _T("null pointer") : pEntry->username);
+#endif
 		// Make pEntry the client data, and the pListBox visible string be pEntry's
 		// username member
 		pListBox->Append(pEntry->username, (void*)pEntry); // param 2 is clientData ptr
@@ -592,6 +592,26 @@ void KBSharingMgrTabbedDlg::OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event))
 	{
 		m_pCheckKbAdmin->SetValue(TRUE);
 	}
+	else
+	{
+        // It's not permitted to lower a user's privilege level from useradmin to either just
+        // kbadmin privilege or no privilege. Check,and if that is being attempted, warn
+        // the user and clear the controls and selection in the list, and return having
+        // restored useradmin privilege
+        
+		// Get the privilege level value as it was when the user was clicked in the listbox
+		bool bSelectedUsersExistingUserAdminValue = m_pOriginalUserStruct->useradmin;
+		if (bSelectedUsersExistingUserAdminValue)
+		{
+			if (bSelectedUsersExistingUserAdminValue != bCurrentUseradminValue)
+			{
+				wxString title = _("Illegal attempt to lower privilege level");
+				wxString msg = _("Warning: you cannot reduce someone's user administrator privilege to a lower privilege level. The reason for this is that it is too dangerous.\n\nIf you mistakenly lowered the privilege level of the only person with user administator authority, the next time this dialog is entered nobody would have authority to add, edit or remove users.");
+				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+				m_pCheckUserAdmin->SetValue(TRUE);
+			}
+		}
+	}
 }
 
 // The box state will have already been changed by the time control enters the handler's body
@@ -641,7 +661,7 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	// provided XXX is not yet parent of any records. So the crucial test here is for
 	// whether or not I'm trying to edit myself or not -- if I am, I must reject any
 	// attempt at a username change
-	wxString loggedInUser = m_pApp->GetKbServer(1)->GetKBServerUsername();
+	wxString loggedInUser = m_pKbServer->GetKBServerUsername(); // it will have been set to m_statelessUsername
 	wxString originalUsername = m_pOriginalUserStruct->username;
 	bool bIAmEditingMyself = loggedInUser == originalUsername ? TRUE : FALSE;
 
@@ -695,9 +715,9 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 		}
 	}
 
-	// Get the checkbox values; if the useradmin one has been ticked, the
-	// kbadmin one will have been forced to be ticked as well (but the administrator is
-	// free to untick the latter which will force the former to also be unticked)
+    // Get the checkbox values; if the useradmin one has been ticked, the kbadmin one will
+    // have been forced to be ticked as well (but the administrator is free to untick the
+    // latter which will force the former to also be unticked)
 	bool bUseradmin = m_pCheckUserAdmin->GetValue();
 	bool bKbadmin = m_pCheckKbAdmin->GetValue();
 	// Pass the values to the API call via a KbServerUser struct, store it in
@@ -732,12 +752,15 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
     bool bLoggedInUserJustChangedThePassword = FALSE;
 	if (!strPassword.IsEmpty())
 	{
-		bUpdatePassword = TRUE;
+		if (bIAmEditingMyself)
+		{
+			bUpdatePassword = TRUE;
 
-		// Control can only get here if the logged in user, even if editing his own user
-		// entry, isn't trying to change his username, so we can just rely below on the
-		// value of bLoggedInUserJustChangedThePassword to guide what happens
-		bLoggedInUserJustChangedThePassword = TRUE;
+			// Control can only get here if the logged in user, even if editing his own user
+			// entry, isn't trying to change his username, so we can just rely below on the
+			// value of bLoggedInUserJustChangedThePassword to guide what happens
+			bLoggedInUserJustChangedThePassword = TRUE;
+		}
 	}
 	if (bBothEmpty)
 	{
@@ -768,23 +791,22 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 	}
 
-	// Remove the selected user from the kbserver's user table
+	// Update the user's details in the kbserver's user table
 	result = (CURLcode)m_pKbServer->UpdateUser(nID, bUpdateUsername, bUpdateFullName,
 										bUpdatePassword, bUpdateKbadmin, bUpdateUseradmin,
 										m_pUserStruct, strPassword);
 	if (result == CURLE_OK)
 	{
-		// see what we've done and be ready for a new administrator action; but
+		// See what we've done and be ready for a new administrator action; but
 		// LoadDataForPage() does a ListUsers() call, and if the password has been
-		// changed, using the old password will give a failure - so made the needed
+		// changed, using the old password will give a failure - so make the needed
 		// password updates in the rest of the application before calling it
 		if (bLoggedInUserJustChangedThePassword)
 		{
 			// strPassword is the new password which has just been made the current one -
 			// this is just the password string itself, not a digest (the digest form of
 			// it was created at the point of need, within the UpdateUser) call itself)
-			m_pApp->GetKbServer(1)->SetKBServerPassword(strPassword);
-			m_pApp->GetKbServer(2)->SetKBServerPassword(strPassword);
+			m_pKbServer->SetKBServerPassword(strPassword);
 		}
 		LoadDataForPage(m_nCurPage); // calls OnButtonUserPageClearControls() internally
 	}
@@ -803,9 +825,6 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 		m_pUserStruct->fullname = m_pOriginalUserStruct->fullname;
 		m_pUserStruct->useradmin = m_pOriginalUserStruct->useradmin;
 		m_pUserStruct->kbadmin = m_pOriginalUserStruct->kbadmin;
-        // The old password is still in effect; it is only changed in the storage within
-        // the two KbServer instances m_pKbServer[0] and m_pKbServer[1] if a new one was
-        // typed and the UpdateUser() call suceeded
 	}
 	DeleteClonedKbServerUserStruct();
 }
@@ -824,26 +843,32 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 		m_nSel = wxNOT_FOUND; // -1
 		return;
 	}
+	// The GetSelection() call returns -1 if there is no selection current, so check for
+	// this and return (with a beep) if that's what got returned
 	m_nSel = m_pUsersListBox->GetSelection();
+	if (m_nSel == wxNOT_FOUND)
+	{
+		wxBell();
+		return;
+	}
 
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): selection index m_nSel = %d"), m_nSel);
 #endif
-
-	// On Linux, text controls are not getting populated, so maybe a logic error. Test the
-	// hypothesis by getting the username value direct from the selection
+	// Get the username - the one clicked in the list is a reasonable way to do this, but
+	// we could alternatively get it from the client data's stored struct, further below
 	wxString theUsername = m_pUsersListBox->GetString(m_nSel);
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): from list... theUsername = %s"), theUsername.c_str());
 #endif
-	// Try putting theUsername into a 2nd textbox after the first
-	//m_pTheUsername->ChangeValue(theUsername);
+	// Try putting theUsername into a 2nd textbox after the first -- this was necessary on
+	// Linux to get past a bug in which Linux stubbornly refused to display the text in
+	// it, even though it accepted it being inserted. After that I removed the pesky top
+	// edit box and just retained the newer one, and Linux then behaved itself
 
-	// Get the entry's KbServerUser struct which is its associated client data (no need to
-	// also get the username string from the ListBox because the struct's username field
-	// contains the same string)
+	// Get the entry's KbServerUser struct which is its associated client data
 	m_pUserStruct = (KbServerUser*)m_pUsersListBox->GetClientData(m_nSel);
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pUserStruct = %x"), (void*)m_pUserStruct);
 #endif
 
@@ -854,23 +879,20 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// at the ID value for the user to be removed
 	DeleteClonedKbServerUserStruct();
 	m_pOriginalUserStruct = CloneACopyOfKbServerUserStruct(m_pUserStruct);
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pOriginalUserStruct = %x"), (void*)m_pOriginalUserStruct);
-    wxLogDebug(_T("OnSelchangeUsersList(): m_pUserStruct->username = %s  ,  useradmin = %d"), m_pUserStruct->username.c_str(), m_pUserStruct->useradmin);
+    wxLogDebug(_T("OnSelchangeUsersList(): m_pUserStruct->username = %s  ,  useradmin = %d , kbadmin = %d"), 
+		m_pUserStruct->username.c_str(), m_pUserStruct->useradmin, m_pUserStruct->kbadmin);
 #endif
 
-	// Use the struct to fill the Users page's controls with their required data
-
-#if defined(_DEBUG)
-    //wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pEditUsername->GetValue().c_str());
+	// Use the struct to fill the Users page's controls with their required data; the
+	// logged in user can then edit the parameters
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pTheUsername->GetValue().c_str());
 #endif
 	m_pTheUsername->ChangeValue(theUsername);
-	//m_pEditUsername->ChangeValue(m_pUserStruct->username);
-	// Test if not using the struct solves the problem...
-	//m_pEditUsername->ChangeValue(theUsername);
-#if defined(_DEBUG)
-    //wxLogDebug(_T("OnSelchangeUsersList(): username box AFTER contains: %s"), m_pEditUsername->GetValue().c_str());
+
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): username box AFTER contains: %s"), m_pTheUsername->GetValue().c_str());
 #endif
 
