@@ -12017,8 +12017,10 @@ wxString CAdapt_ItApp::GetBibleditProjectsDirPath()
 	// the user's ~/ folder where the .bibledit folder is located. We augment
 	// that path by pointing to its projects subdirectory, i.e., ~/.bibledit/projects.
 	// Get the "documents" directory for the current system/platform.
-	wxStandardPaths stdPaths;
-	path = stdPaths.GetDocumentsDir() + PathSeparator + _T(".bibledit") + PathSeparator + _T("projects");
+	//	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
+	//	wxStandardPaths stdPaths;
+	// TODO: Review the following line if we ever interact with BibleEdit on Mac
+	path = wxStandardPaths::Get().GetDocumentsDir() + PathSeparator + _T(".bibledit") + PathSeparator + _T("projects");
 	return path;
 }
 
@@ -17163,26 +17165,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString dataDir, localDataDir, documentsDir;
 	wxString userConfigDir, userDataDir, userLocalDataDir;
 	wxString executablePath;
-#ifndef __WXMSW__
+#ifdef __WXGTK__
 	wxString installPrefix;
 #endif
-	wxStandardPaths stdPaths;
+	//	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
+	wxStandardPathsBase& stdPaths = wxStandardPaths::Get();
 	resourcesDir = stdPaths.GetResourcesDir(); // GetResourcesDir() is new with wxWidgets 2.7.0
 	wxLogDebug(_T("The wxStandardPaths::GetResourcesDir()  = %s"),resourcesDir.c_str());
 	dataDir = stdPaths.GetDataDir();
 	wxLogDebug(_T("The wxStandardPaths::GetDataDir() = %s"),dataDir.c_str());
 	localDataDir = stdPaths.GetLocalDataDir();
 	wxLogDebug(_T("The wxStandardPaths::GetLocalDataDir() = %s"),localDataDir.c_str());
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
+	// GDLC 18JUL13 The change in wxStandardPaths means that we need to go back to the
+	// wxGetHomeDir() function for the Mac but use GetDocumentsDir() for the others.
+	// This is done in order to keep putting the Adapt It Work folder in the same place on
+	// Mac as AI since version 4 has been using.
     // whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
     // crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
     // ::wxGetHomeDir() function for the Mac which should return the same directory string
     // on the Mac that wxStandardPaths::GetDocumentsDir() does.
 	// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
-//	documentsDir = ::wxGetHomeDir();
-//#else
+	documentsDir = ::wxGetHomeDir();
+#else
 	documentsDir = stdPaths.GetDocumentsDir();
-//#endif
+#endif
 	wxLogDebug(_T("The wxStandardPaths::GetDocumentsDir() = %s"),documentsDir.c_str());
 	userConfigDir = stdPaths.GetUserConfigDir();
 	wxLogDebug(_T("The wxStandardPaths::GetUserConfigDir() = %s"),userConfigDir.c_str());
@@ -17192,7 +17199,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetUserLocalDataDir() = %s"),userLocalDataDir.c_str());
 	executablePath = stdPaths.GetExecutablePath();
 	wxLogDebug(_T("The wxStandardPaths::GetExecutablePath() = %s"),executablePath.c_str());
-#ifndef __WXMSW__
+#ifdef __WXGTK__
+	// Only available on Linux
 	installPrefix = stdPaths.GetInstallPrefix();
 	wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"),installPrefix.c_str());
 #endif
@@ -26204,23 +26212,29 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// whether the user has "moved" it or not.
 
 	// Get the "documents" directory for the current system/platform.
-	wxStandardPaths stdPaths;
-//#ifdef __WXMAC__
+	//	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
+	// wxStandardPaths stdPaths;
+	#ifdef __WXMAC__
+	// GDLC 18JUL13 The change in wxStandardPaths means that we need to go back to the
+	// wxGetHomeDir() function for the Mac but use GetDocumentsDir() for the others.
+	// This is done in order to keep putting the Adapt It Work folder in the same place on
+	// Mac as AI since version 4 has been using.
 	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
 	// crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
 	// ::wxGetHomeDir() function for the Mac which should return the same directory string
 	// on the Mac that wxStandardPaths::GetDocumentsDir() does.
 	// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
-//	stdDocsDir = ::wxGetHomeDir();
-//#else
-	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since
+	stdDocsDir = ::wxGetHomeDir();
+	#else
+	stdDocsDir = wxStandardPaths::Get().GetDocumentsDir(); // The GetDocumentsDir() function is new since
 											 // wxWidgets version 2.7.0
-//#endif
+	#endif
 	// Typically the "documents" directory depends on the system:
 	// Unix: ~/(the home directory, i.e., /home/<username>/)
 	// Windows (earlier and Vista): C:\Documents and Settings\username\Documents
 	// Windows (2000 and XP): C:\Documents and Settings\username\My Documents
-	// Mac: ~/(the home directory, i.e., /Users/<username>/
+	// Mac: ~/Documents (i.e., /Users/<username>/Documents	GDLC 18JUL13 Corrected to the
+	// standard Mac placement of the users documents.
 
 	// whm note: In the cross-platform version we never refer to a specific "Documents" or
 	// "My Documents" folder and so we do not need to localize the name of the folder that
@@ -42477,18 +42491,25 @@ bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
 			// use standard documents directory - in portable way using the wxWidgets
 			// class wxStandardPaths (code plagiarized from EnsureWorkFolderPresent())
 a:			wxString stdDocsDir = _T("");
-			wxStandardPaths stdPaths;
-//			#ifdef __WXMAC__
+			//	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
+			// wxStandardPaths stdPaths;
+			#ifdef __WXMAC__
+			// GDLC 18JUL13 The change in wxStandardPaths means that we need to go back to the
+			// wxGetHomeDir() function for the Mac but use GetDocumentsDir() for the others.
+			// This is done in order to keep putting the Adapt It Work folder in the same place on
+			// Mac as AI since version 4 has been using. Some of the older commentary below is a
+			// bit confusing about what is the "standard docs directory".
+			// TODO: Make a final decision about Mac placement and clean up these docs!
 			// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
 			// crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
 			// ::wxGetHomeDir() function for the Mac which should return the same directory string
 			// on the Mac that wxStandardPaths::GetDocumentsDir() does.
 			// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
-//			stdDocsDir = ::wxGetHomeDir();
-//			#else
-			stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function
+			stdDocsDir = ::wxGetHomeDir();
+			#else
+			stdDocsDir = wxStandardPaths::Get().GetDocumentsDir(); // The GetDocumentsDir() function
 												// is new since wxWidgets version 2.7.0
-//			#endif
+			#endif
 			// Typically the "documents" directory depends on the system:
 			// Unix: ~/(the home directory, i.e., /home/<username>/)
 			// Windows (earlier and Vista): C:\Documents and Settings\username\Documents
@@ -43943,19 +43964,23 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// Get the "home" directory for the current system/platform. This would typically be:
 		// For Windows: C:\Documents and Settings\<UserName>
 		// For Linux: /usr/home
-		wxStandardPaths stdPaths;
+		// For Mac:  /Users/<UserName>
+		//	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
+		// wxStandardPaths stdPaths;
 		wxString homeDir;
-//		#ifdef __WXMAC__
+		#ifdef __WXMAC__
+		// GDLC 18JUL13 The change in wxStandardPaths means that we need to go back to the
+		// wxGetHomeDir() function for the Mac but use GetDocumentsDir() for the others.
 		// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
 		// crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
 		// ::wxGetHomeDir() function for the Mac which should return the same directory string
 		// on the Mac that wxStandardPaths::GetDocumentsDir() does.
 		// GDLC 29Sep11 Not needed now that we are not targeting MacOS Panther or PPC.
-//		homeDir = ::wxGetHomeDir();
-//		#else
-		homeDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since
-											  // wxWidgets version 2.7.0
-//		#endif
+		homeDir = ::wxGetHomeDir();
+		#else
+		homeDir = wxStandardPaths::Get().GetDocumentsDir(); // The GetDocumentsDir() function is new since
+		// wxWidgets version 2.7.0
+		#endif
 		// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
 		if (folderPath.GetChar(folderPath.Length() - 1) == PathSeparator)
 		{
