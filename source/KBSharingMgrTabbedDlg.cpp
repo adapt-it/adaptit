@@ -500,15 +500,30 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 {
 	// Username box with a value, informal username box with a value, password box with a
 	// value, are mandatory. Test for these and if one is not set, abort the button press
-	// and inform the user why. Also, a selection in the list is irrelevant, and would be
-	// confusing, so if there is one, just remove it before proceeding
+	// and inform the user why. Also, a selection in the list is irrelevant, and it may
+	// mean that the logged in person is about to try to add the selected user a second
+	// time - which is illegal, so test for this and if so, warn, and remove the
+	// selection, and clear the controls & return
 	m_nSel = m_pUsersListBox->GetSelection();
+	wxString strUsername = m_pTheUsername->GetValue();
 	if (m_nSel != wxNOT_FOUND)
 	{
-		m_pUsersListBox->SetSelection(wxNOT_FOUND);
+		m_nSel = m_pUsersListBox->GetSelection();
+		wxString selectedUser = m_pUsersListBox->GetString(m_nSel);
+		if (selectedUser == strUsername)
+		{
+			// Oops, he's trying to add someone who is already there. Warn, and probably
+			// best to clear the controls to force him to start over
+			wxBell();
+			wxString title = _("This user already exists");
+			wxString msg = _("Warning: you are trying to add an entry which already exists in the server. This is illegal, each username must be unique.\n To add a new user, do not make any selection in the list; just use the text boxes, the checkboxes too if appropriate, and the Add User button.");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			wxCommandEvent dummy;
+			OnButtonUserPageClearControls(dummy);
+			//m_pUsersListBox->SetSelection(wxNOT_FOUND);
+			return;
+		}
 	}
-	//wxString strUsername = m_pEditUsername->GetValue();
-	wxString strUsername = m_pTheUsername->GetValue();
 	wxString strFullname = m_pEditInformalUsername->GetValue();
 	wxString strPassword = m_pEditPersonalPassword->GetValue();
 	wxString strPasswordTwo = m_pEditPasswordTwo->GetValue();
@@ -811,6 +826,17 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 		wxString title = _("This edit attempt might fail...");
 		wxString msg = _("Warning: editing the username for an existing entry may not succeed. The reason for success or failure is given below.\n\nIf the old username already 'owns' stored KB entries, no change to the user entry will be made - including no change to other parameters you may have edited (but no harm is done by you trying to do so).\nHowever, if the old username does not 'own' any stored KB entries yet, your attempt to change the username will succeed - and if you are changing other parameters as well in this attempt, those changes will succeed too.");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+	}
+
+	// If nothing is to be changed, return, after telling the user
+	if ((bUpdateUsername == FALSE) && (bUpdateFullName == FALSE) && (bUpdatePassword == FALSE) &&
+		(bUpdateKbadmin == FALSE) && (bUpdateUseradmin == FALSE))
+	{
+		wxBell();
+		wxString title = _("There is nothing to do");
+		wxString msg = _("Warning: you have not made any changes. Make at least one change, then click Edit User again.\nIf you no longer want to edit this user, click Clear Controls.");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		return;
 	}
 
 	// Update the user's details in the kbserver's user table
