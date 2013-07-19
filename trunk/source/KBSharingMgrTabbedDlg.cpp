@@ -69,6 +69,11 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_CHECKBOX(ID_CHECKBOX_KBADMIN, KBSharingMgrTabbedDlg::OnCheckboxKbadmin)
 	EVT_BUTTON(wxID_OK, KBSharingMgrTabbedDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, KBSharingMgrTabbedDlg::OnCancel)
+	// For page 2: Create KB Definitions page
+	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE1_KB, KBSharingMgrTabbedDlg::OnRadioButton1CreateKbsPageType1)
+	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE2_KB, KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2)
+
+
 
 END_EVENT_TABLE()
 
@@ -122,9 +127,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pSourceKbsListBox != NULL);
 	m_pNonSourceKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_TGT_LANG_CODE);
 	wxASSERT(m_pNonSourceKbsListBox != NULL);
-	// Radio buttons
-	m_pRadioButton_Type1KB = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
-	m_pRadioButton_Type2KB = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
 	// wxTextCtrls
 	
 	// Temporary extra one due to problem in Linux the control won't show its text
@@ -168,6 +170,11 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
 	wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
 
+	// Radiobuttons & wxStaticText
+	m_pRadioKBType1 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
+	m_pRadioKBType2 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
+	m_pNonSrcLabel  = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_TGT_LANG_CODE);
+
     // For an instantiated KbServer class instance to use, we use the stateless one created
     // within KBSharingSetupDlg's creator function; and it has been assigned to
     // KBSharingMgrTabbedDlg::m_pKbServer by the setter SetStatelessKbServerPtr() after
@@ -197,6 +204,12 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// delete it from the heap before they return (to avoid a memory leak)
 	m_pOriginalUserStruct = NULL;
 
+	m_bKBisType1 = TRUE; // initialize
+	m_tgtLanguageCodeLabel = _("Target language code");
+	m_glossesLanguageCodeLabel = _("Glosses language code");
+
+
+	// Start by showing Users page
 	m_nCurPage = 0;
 	LoadDataForPage(m_nCurPage); // start off showing the Users page (for now)
 }
@@ -311,10 +324,17 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
 		}
 	}
-	else // must be first Kbs page
+	else if (pageNumSelected == 1)// must be first Kbs page -- the one for creating new KB definitions
 	{
 		m_pSourceKbsListBox->Clear();
 		m_pNonSourceKbsListBox->Clear();
+
+
+// TODO  the rest of it
+	}
+	else // must be second Kbs page -- the one for editing existing KB definitions
+	{
+
 
 
 // TODO  the rest of it
@@ -395,6 +415,9 @@ void KBSharingMgrTabbedDlg::OnTabPageChanging(wxNotebookEvent& event)
 	}
 	// if we get to here user selected a different page
 	m_nCurPage = pageNumSelected;
+
+	//Set up new page data by populating list boxes and controls
+	LoadDataForPage(pageNumSelected);
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
@@ -752,10 +775,9 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
     bool bLoggedInUserJustChangedThePassword = FALSE;
 	if (!strPassword.IsEmpty())
 	{
+		bUpdatePassword = TRUE;
 		if (bIAmEditingMyself)
 		{
-			bUpdatePassword = TRUE;
-
 			// Control can only get here if the logged in user, even if editing his own user
 			// entry, isn't trying to change his username, so we can just rely below on the
 			// value of bLoggedInUserJustChangedThePassword to guide what happens
@@ -914,6 +936,45 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// Note 2: Remove User does a real deletion; the entry is not retained in the user
 	// table
 }
+
+
+//*******************************************************************************************
+//
+//************************** Functions for Create KB Definitions page ***********************
+//
+//*******************************************************************************************
+
+
+void KBSharingMgrTabbedDlg::OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXUNUSED(event))
+{
+	// The user's click has already changed the value held by the radio button
+	m_pRadioKBType1->SetValue(TRUE);
+	m_pRadioKBType2->SetValue(FALSE);
+
+	// Set the appropriate label text for the second text control
+	m_pNonSrcLabel->SetLabel(m_tgtLanguageCodeLabel);
+
+	// Record which type of KB we are defining
+	m_bKBisType1 = TRUE;
+}
+
+void KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event))
+{
+	// The user's click has already changed the value held by the radio button
+	m_pRadioKBType2->SetValue(TRUE);
+	m_pRadioKBType1->SetValue(FALSE);
+
+	// Set the appropriate label text for the second text control
+	m_pNonSrcLabel->SetLabel(m_glossesLanguageCodeLabel);
+
+	// Record which type of KB we are defining
+	m_bKBisType1 = FALSE;
+}
+
+
+
+
+
 
 
 

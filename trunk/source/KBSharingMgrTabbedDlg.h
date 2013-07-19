@@ -40,40 +40,44 @@ public:
 	KbServer* GetKbServer();
 
 protected:
-	wxNotebook* m_pKBSharingMgrTabbedDlg;
-	wxListBox* m_pUsersListBox;
+	wxNotebook*    m_pKBSharingMgrTabbedDlg;
+	wxListBox*     m_pUsersListBox;
 
-	wxListBox* m_pSourceKbsListBox;
-	wxListBox* m_pNonSourceKbsListBox;
-	wxRadioButton* m_pRadioButton_Type1KB;
-	wxRadioButton* m_pRadioButton_Type2KB;
+	wxTextCtrl*    m_pTheUsername; 
+	wxTextCtrl*    m_pEditInformalUsername;
+	wxTextCtrl*    m_pEditPersonalPassword;
+	wxTextCtrl*    m_pEditPasswordTwo;
+	wxCheckBox*    m_pCheckUserAdmin;
+	wxCheckBox*    m_pCheckKbAdmin;
 
-	//wxTextCtrl* m_pEditUsername;// <-  temporary ********it was obstreperous ******************************************
-	wxTextCtrl* m_pTheUsername; 
-	wxTextCtrl* m_pEditInformalUsername;
-	wxTextCtrl* m_pEditPersonalPassword;
-	wxTextCtrl* m_pEditPasswordTwo;
-	wxCheckBox* m_pCheckUserAdmin;
-	wxCheckBox* m_pCheckKbAdmin;
+	wxButton*      m_pBtnUsersClearControls;
+	wxButton*      m_pBtnUsersAddUser;
+	wxButton*      m_pBtnUsersEditUser;
+	wxButton*      m_pBtnUsersRemoveUser;
 
-	wxTextCtrl* m_pEditSourceCode;
-	wxTextCtrl* m_pEditNonSourceCode;
 
-	wxButton* m_pBtnUsersClearControls;
-	wxButton* m_pBtnUsersAddUser;
-	wxButton* m_pBtnUsersEditUser;
-	wxButton* m_pBtnUsersRemoveUser;
+	// For Create KB Definitions page
+	// 
+	wxRadioButton* m_pRadioKBType1;
+	wxRadioButton* m_pRadioKBType2;
+	wxListBox*     m_pSourceKbsListBox;
+	wxListBox*     m_pNonSourceKbsListBox;
+	wxStaticText*  m_pNonSrcLabel;
 
-	wxButton* m_pBtnUsingRFC5654Codes;
-	wxButton* m_pBtnAddKbDefinition;
-	wxButton* m_pBtnClearBothLangCodeBoxes;
-	wxButton* m_pBtnLookupLanguageCodes;
-	wxButton* m_pBtnRemoveSelectedKBDefinition;
+	wxTextCtrl*    m_pSrcText;
+	wxTextCtrl*    m_pEditSourceCode;
+	wxTextCtrl*    m_pEditNonSourceCode;
+	wxButton*	   m_pBtnUsingRFC5654Codes;
+	wxButton*      m_pBtnAddKbDefinition;
+	wxButton*      m_pBtnClearBothLangCodeBoxes;
+	wxButton*      m_pBtnLookupLanguageCodes;
+	wxButton*      m_pBtnRemoveSelectedKBDefinition;
+
 
 
 	// local copies of globals on the App, for the person using the Manager dialog
-	bool m_bKbAdmin; // for m_kbserver_kbadmin
-	bool m_bUserAdmin; // for m_kbserver_useradmin
+	bool           m_bKbAdmin;   // for m_kbserver_kbadmin
+	bool		   m_bUserAdmin; // for m_kbserver_useradmin
 
 	wxString rfc5654guidelines; // read in from "RFC56554_guidelines.txt in adaptit\docs\ folder,
 								// & is a versioned file
@@ -100,7 +104,7 @@ protected:
 	bool		  CheckThatPasswordsMatch(wxString password1, wxString password2);
 	bool		  AreBothPasswordsEmpty(wxString password1, wxString password2);
 
-	// event handlers
+	// event handlers - Users page
 	void		  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event));
@@ -109,8 +113,13 @@ protected:
 	void		  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event));
 	void		  OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event));
 
+	// event handlers - Create KB Definitions page
+	void		  OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXUNUSED(event));
+	void		  OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event));
+
 
 private:
+	// All the lists, users or kbs, are SORTED.
 	CAdapt_ItApp*     m_pApp;
 	int				  m_nSel; // index value (0 based) for selection in the users listbox,
 							  // and has value wxNOT_FOUND when nothing is selected
@@ -129,7 +138,11 @@ private:
 									 // user item in the listbox, freeing up the
 									 // m_pUserStruct to be given values as edited by
 									 // the user
-	// All the lists, users or kbs, are SORTED.
+	// Next members are additional ones needed for the Create KB definitions page (and
+	// some will be also used in the 3rd page for editing KB definitions)
+	bool m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
+	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code"
+	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glosses language code"
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
