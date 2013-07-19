@@ -9776,7 +9776,7 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 		wxLogDebug(_T("CheckForVaidUsernameForKbServer() url = %s , username = %s , password = %s"), url.c_str(), username.c_str(), password.c_str());
 #endif
 
-	int cURLerror = pKbSvr->LookupUser(url,username,password);
+	int cURLerror = pKbSvr->LookupUser(url,username,password,username);
 	if (cURLerror > CURLE_OK)
 	{
 		// Warn developer, message does not need to be localizable - but only warn in

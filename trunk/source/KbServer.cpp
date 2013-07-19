@@ -1489,7 +1489,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 // HTTP error - such as no matching entry, or a badly formed request
 // Note: url, username and password are passed in, because this request can be made before
 // the app's m_pKbServer[2] pointers have been instantiated
-int KbServer::LookupUser(wxString url, wxString username, wxString password)
+int KbServer::LookupUser(wxString url, wxString username, wxString password, wxString whichusername)
 {
 	CURL *curl;
 	CURLcode result;
@@ -1505,7 +1505,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password)
 	wxString colon(_T(':'));
 	wxString container = _T("user");
 
-	aUrl = url + slash + container + slash + username;
+	aUrl = url + slash + container + slash + whichusername;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);

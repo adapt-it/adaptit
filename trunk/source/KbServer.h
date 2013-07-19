@@ -166,7 +166,7 @@ public:
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);
-	int		 LookupUser(wxString url, wxString username, wxString password);
+	int		 LookupUser(wxString url, wxString username, wxString password, wxString whichusername);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 RemoveUser(int userID);
 	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
