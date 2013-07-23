@@ -67,7 +67,7 @@ protected:
 	//wxTextCtrl*    m_pSrcText;
 	wxTextCtrl*    m_pEditSourceCode;
 	wxTextCtrl*    m_pEditNonSourceCode;
-	wxButton*	   m_pBtnUsingRFC5654Codes;
+	wxButton*	   m_pBtnUsingRFC5646Codes;
 	wxButton*      m_pBtnAddKbDefinition;
 	wxButton*      m_pBtnClearBothLangCodeBoxes;
 	wxButton*      m_pBtnLookupLanguageCodes;
@@ -120,6 +120,7 @@ protected:
 	void		  OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXUNUSED(event));
 	void		  OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event));
 	void		  OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(event));
+	void		  OnBtnCreatePageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// All the lists, users or kbs, are SORTED.
