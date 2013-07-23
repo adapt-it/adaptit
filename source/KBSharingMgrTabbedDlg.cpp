@@ -74,8 +74,7 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE1_KB, KBSharingMgrTabbedDlg::OnRadioButton1CreateKbsPageType1)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE2_KB, KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2)
 	EVT_BUTTON(ID_BUTTON_LOOKUP_THE_CODES, KBSharingMgrTabbedDlg::OnBtnCreatePageLookupCodes) // whm added 10May10
-
-
+	EVT_BUTTON(ID_BUTTON_RFC5646, KBSharingMgrTabbedDlg::OnBtnCreatePageRFC5646Codes)
 
 END_EVENT_TABLE()
 
@@ -156,8 +155,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pBtnUsersEditUser != NULL);
 	m_pBtnUsersRemoveUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_USER);
 	wxASSERT(m_pBtnUsersRemoveUser != NULL);
-	m_pBtnUsingRFC5654Codes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_RFC5654);
-	wxASSERT(m_pBtnUsingRFC5654Codes != NULL);
+	m_pBtnUsingRFC5646Codes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_RFC5646);
+	wxASSERT(m_pBtnUsingRFC5646Codes != NULL);
 	m_pBtnAddKbDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ADD_DEFINITION);
 	wxASSERT(m_pBtnAddKbDefinition != NULL);
 	m_pBtnClearBothLangCodeBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_BOXES);
@@ -1211,6 +1210,12 @@ void KBSharingMgrTabbedDlg::OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(
 		m_pEditSourceCode->ChangeValue(_T(""));
 		m_pEditNonSourceCode->ChangeValue(_T(""));
 	}
+}
+
+void KBSharingMgrTabbedDlg::OnBtnCreatePageRFC5646Codes(wxCommandEvent& WXUNUSED(event))
+{
+	// Display the RFC5646message.htm file in the platform's web browser
+
 }
 
 

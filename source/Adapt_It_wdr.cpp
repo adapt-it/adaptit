@@ -9930,7 +9930,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
     item20->SetToolTip( _("Open the dialog for finding codes for source, and target or glossing languages") );
     item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item21 = new wxButton( parent, ID_BUTTON_RFC5654, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_RFC5646, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
     item21->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
     item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
 
