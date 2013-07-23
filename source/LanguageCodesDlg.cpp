@@ -74,7 +74,64 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	LanguageCodesDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+	SetPointers();
+	m_enumLangCodesChoice = all_possibilities;
+}
+
+
+CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choice)
+	: AIModalDialog(parent, -1, 
+	(choice == source_and_target_only ? _("Choose language codes for Source and Target languages") : 
+		_("Choose language codes for Source and Glossing languages")),	
+			wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+{
+	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
+	// for the dialog. The first parameter is the parent which should normally be "this";
+	// second is the language codes choice - either we are particilarly intested in
+	// scrd-tgt, versus src-glosses, codes. The KB Sharing Manager's kb pages allow either
+	// of these modes, but not the composite all_possibilities choice (ie. src, tgt,
+	// glosses and free translations).
+	// *** DO NOT CALL THIS CONTRUCTOR & PASS IN all_possibilities for the enum value ***
+	// The third and fourth parameters should both be TRUE to utilize the sizers and create the right
+	// size dialog.
+	LanguageCodesDlgFunc(this, TRUE, TRUE);
+	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	SetPointers();
+	m_enumLangCodesChoice = choice;
+
+	// For use in the KB Sharing Manager gui, certain buttons are hidden depending on the
+	// LangCodesChoice modality - do the button hiding here now
+	wxString msg1 = _("Enter 2-letter or 3-letter language codes for source and target languages:");
+	wxString msg2 = _("Enter 2-letter or 3-letter language codes for source and glossing languages:");
+	switch (m_enumLangCodesChoice)
+	{
+	case source_and_target_only:
+		pEditGlossLangCode->Show(FALSE);
+		pEditFreeTransLangCode->Show(FALSE);
+		pStaticGlsLangName->Show(FALSE);
+		pStaticFTrLangName->Show(FALSE);
+
+		pEditCodeMsg1->SetLabel(msg1);
+		pBtnUseSelectionAsGloss->Show(FALSE);
+		pBtnUseSelectionAsFreeTrans->Show(FALSE);
+		break;
+	case source_and_glosses_only:
+		pEditTargetLangCode->Show(FALSE);
+		pEditFreeTransLangCode->Show(FALSE);
+		pStaticTgtLangName->Show(FALSE);
+		pStaticFTrLangName->Show(FALSE);
+
+		pEditCodeMsg1->SetLabel(msg2);
+		pBtnUseSelectionAsTarget->Show(FALSE);
+		pBtnUseSelectionAsFreeTrans->Show(FALSE);
+		break;
+	case all_possibilities:
+		break;
+	}
+}
+
+void CLanguageCodesDlg::SetPointers()
+{
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning (retain this line as is)
@@ -119,6 +176,18 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 
 	pStaticSearchForLangName = (wxStaticText*)FindWindowById(ID_STATICTEXT_SEARCH_FOR_LANG_NAME);
 	wxASSERT(pStaticSearchForLangName != NULL);
+
+	// Next, needed for KB Sharing Manager gui
+	pStaticTgtLangName = (wxStaticText*)FindWindowById(ID_TGT_LANGUAGE_CODE);
+	wxASSERT(pStaticTgtLangName != NULL);
+	pStaticGlsLangName = (wxStaticText*)FindWindowById(ID_GLS_LANGUAGE_CODE);
+	wxASSERT(pStaticGlsLangName != NULL);
+	pStaticFTrLangName = (wxStaticText*)FindWindowById(ID_TEXT_FRTR);
+	wxASSERT(pStaticFTrLangName != NULL);
+	pEditCodeMsg1 = (wxStaticText*)FindWindowById(ID_TEXT_CODES_MSG1);
+	wxASSERT(pEditCodeMsg1 != NULL);
+	//pEditCodeMsg2 = (wxStaticText*)FindWindowById(ID_TEXT_CODES_MSG2);
+	//wxASSERT(pEditCodeMsg2 != NULL);
 }
 
 CLanguageCodesDlg::~CLanguageCodesDlg() // destructor

@@ -43,6 +43,7 @@
 #include "Adapt_It.h"
 #include "helpers.h"
 #include "KbServer.h"
+#include "LanguageCodesDlg.h"
 #include "KBSharingMgrTabbedDlg.h"
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -72,6 +73,7 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	// For page 2: Create KB Definitions page
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE1_KB, KBSharingMgrTabbedDlg::OnRadioButton1CreateKbsPageType1)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE2_KB, KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2)
+	EVT_BUTTON(ID_BUTTON_LOOKUP_THE_CODES, KBSharingMgrTabbedDlg::OnBtnCreatePageLookupCodes) // whm added 10May10
 
 
 
@@ -128,11 +130,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pNonSourceKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_TGT_LANG_CODE);
 	wxASSERT(m_pNonSourceKbsListBox != NULL);
 	// wxTextCtrls
-	
-	// Temporary extra one due to problem in Linux the control won't show its text
-	//m_pEditUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_USERNAME_CTRL);
-	//wxASSERT(m_pEditUsername != NULL);
-
 	m_pTheUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
 	wxASSERT(m_pTheUsername != NULL);
 	m_pEditInformalUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_INFORMAL_NAME);
@@ -141,9 +138,9 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pEditPersonalPassword != NULL);
 	m_pEditPasswordTwo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD_TWO);
 	wxASSERT(m_pEditPasswordTwo != NULL);
-	m_pEditSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SRC);
+	m_pEditSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SRC); // src lang code on Create Kbs page
 	wxASSERT(m_pEditSourceCode != NULL);
-	m_pEditNonSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_TGT);
+	m_pEditNonSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_TGT); // non-src lang code on Create Kbs page
 	wxASSERT(m_pEditNonSourceCode != NULL);
 	// Checkboxes
 	m_pCheckUserAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_USERADMIN);
@@ -208,6 +205,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_tgtLanguageCodeLabel = _("Target language code");
 	m_glossesLanguageCodeLabel = _("Glosses language code");
 
+	m_sourceLangCode.Empty();
+	m_targetLangCode.Empty();
+	m_glossLangCode.Empty();
+
 
 	// Start by showing Users page
 	m_nCurPage = 0;
@@ -253,6 +254,29 @@ void KBSharingMgrTabbedDlg::DeleteClonedKbServerUserStruct()
 		delete m_pOriginalUserStruct;
 		m_pOriginalUserStruct = NULL;
 	}
+}
+
+wxString KBSharingMgrTabbedDlg::GetEarliestUseradmin(UsersList* pUsersList)
+{
+	size_t count = pUsersList->size();
+	wxString earliestUseradmin;
+	wxString aUser;
+	int nEarliestID = 99999; // initialize
+	int anID = 0;
+	KbServerUser* pUserStruct = NULL;
+	size_t index;
+	for (index = 0; index < count; index++)
+	{
+		pUserStruct = GetUserStructFromList(pUsersList, index);
+		aUser = pUserStruct->username;
+		anID = pUserStruct->id;
+		if (anID < nEarliestID)
+		{
+			nEarliestID = anID;
+			earliestUseradmin = aUser;
+		}
+	}
+	return earliestUseradmin;
 }
 
 // This is called each time the page to be viewed is switched to; note: removed user
@@ -301,6 +325,17 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				}
 				m_nUsersListCount = m_pUsersList->size();
 
+				// BEW 21Jul13, find the user who is useradmin = 1, and has the lowest ID.
+				// This user must then have his username stored in m_earliestUseradmin,
+				// and the Delete User button must disallow deleting this one, and the
+				// Edit User button must disallow demoting this user's privileges. This is
+				// so there is always at least one user who is able to add, edit or remove
+				// users.
+				m_earliestUseradmin = GetEarliestUseradmin(m_pUsersList);
+#if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
+				wxLogDebug(_T("LoadUsersListBox(): earliest (by ID value) username who is a useradmin = %s"),
+				m_earliestUseradmin);
+#endif
 				// Copy the list, before user gets a chance to modify anything
 				CopyUsersList(m_pUsersList, m_pOriginalUsersList); // param 1 is src list, param2 is dest list
 
@@ -341,14 +376,13 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 	}
 }
 
-// Returns nothing. The ListBox is in sorted order, so Append() returns the index of where
-// it actually ended up in the list, but we don't need it because the client data can be
-// set within the Append() call
-void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList)
+// Return the pointer to the struct - this should never fail, but we'll return NULL if it does
+KbServerUser* KBSharingMgrTabbedDlg::GetThisUsersStructPtr(wxString& username, UsersList* pUsersList)
 {
-	wxASSERT(count != 0); wxASSERT(pListBox); wxASSERT(pUsersList);
+	wxASSERT(pUsersList);
+	KbServerUser* pEntry = NULL;
 	if (pUsersList->empty())
-		return;
+		return (KbServerUser*)NULL;
 	UsersList::iterator iter;
 	UsersList::compatibility_iterator c_iter;
 	int anIndex = -1;
@@ -357,15 +391,109 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 		// Assign the KbServerUser struct's pointer to pEntry
 		anIndex++;
 		c_iter = pUsersList->Item((size_t)anIndex);
+		pEntry = c_iter->GetData();
+		if (pEntry->username == username)
+		{
+			// We found the struct, so return it
+			return pEntry;
+		}
+	}
+	// control should not get here, but if it does, return NULL
+	return (KbServerUser*)NULL;
+}
+
+// Returns nothing. The ListBox is in sorted order by the usernames. This is achieved by
+// having the wxListBox be unsorted, and pre-storing the usernames in a
+// wxSortedArrayString, and then adding the ID values at the time the array entries are
+// added to the wxLixBox. The KbServerUser struct pointer is added, for each username,
+// after the lines are added to the list
+void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList)
+{
+	wxASSERT(count != 0); wxASSERT(pListBox); wxASSERT(pUsersList);
+	if (pUsersList->empty())
+		return;
+
+	// Get the usernames into sorted order, by adding them to a wxSortedArrayString
+	wxSortedArrayString sorted_arrUsernames;
+	UsersList::iterator iter;
+	UsersList::compatibility_iterator c_iter;
+	int anIndex = -1;
+	int maxID = 0;
+	wxString strID;
+	wxString tab = _T('\t');
+	wxString username;
+	for (iter = pUsersList->begin(); iter != pUsersList->end(); ++iter)
+	{
+		// Get the max ID value
+		anIndex++;
+		c_iter = pUsersList->Item((size_t)anIndex);
 		KbServerUser* pEntry = c_iter->GetData();
 // Check if there are any NULL ptrs here
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %x , username = %s"),
-			anIndex, (void*)pEntry, pEntry == NULL ? _T("null pointer") : pEntry->username);
+		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %x , username = %s , ID = %d"),
+			anIndex, (void*)pEntry, pEntry == NULL ? _T("null pointer") : pEntry->username, pEntry->id);
 #endif
-		// Make pEntry the client data, and the pListBox visible string be pEntry's
-		// username member
-		pListBox->Append(pEntry->username, (void*)pEntry); // param 2 is clientData ptr
+		if (pEntry->id > maxID)
+		{
+			maxID = pEntry->id;
+		}
+	}
+	int maxChars = 0;
+	if (maxID <= 9)          {maxChars = 1;}
+	else if (maxID < 99)     {maxChars = 2;}
+	else if (maxID < 999)    {maxChars = 3;}
+	else if (maxID < 9999)   {maxChars = 4;}
+	else if (maxID < 99999)  {maxChars = 5;}
+	else if (maxID < 999999) {maxChars = 6;}
+	else if (maxID < 9999999){maxChars = 7;}
+	else                     {maxChars = 8;}	
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+		wxLogDebug(_T("LoadUsersListBox(): maxID = %d , number of characters in maxID = %d"), maxID, maxChars);
+#endif
+
+	anIndex = -1;
+	for (iter = pUsersList->begin(); iter != pUsersList->end(); ++iter)
+	{
+		// Assign the KbServerUser struct's pointer to pEntry, add the ID as a string at
+		// the end of the username with TAB character as a delimiter (we'll later move it
+		// to the front of the string to be inserted into the listbox)
+		anIndex++;
+		c_iter = pUsersList->Item((size_t)anIndex);
+		KbServerUser* pEntry = c_iter->GetData();
+		username = pEntry->username;
+		username += tab;
+		wxItoa(pEntry->id, strID);
+        // Add preceding spaces, so that there are a const number, maxChars, of characters
+        // up to the end of each ID, and then 3 spaces following each (assume IDs can go up
+        // to any ID value, actually, < 99,999,999)
+		int idLen = strID.Len();
+		int spacesToAdd = maxChars - idLen;
+		wxString spaces = _T("");
+		if (spacesToAdd > 0)
+		{
+			int i;
+			for (i = 0; i<spacesToAdd; i++) { spaces += _T(' ');}
+			strID = spaces + strID;
+		}
+		username += strID;
+		username += _T("   "); // 3 spaces (will be the delimiter between the 
+							   // ID and the username which follows
+		// Now add the composite string to the sorted array
+		sorted_arrUsernames.Add(username);
+	}
+	// Now load the list box, the ID values will appear first, followed by 3 spaces, then
+	// the usernames
+	int index;
+	for (index = 0; index < (int)count; index++)
+	{
+		wxString usernamePlusID = sorted_arrUsernames.Item(index);
+		int offset = usernamePlusID.Find(tab);
+		wxASSERT(offset != wxNOT_FOUND);
+		username = usernamePlusID.Left(offset);
+		wxString prefix = usernamePlusID.Mid(offset + 1);
+		KbServerUser* pClientData = GetThisUsersStructPtr(username, pUsersList);
+		wxASSERT(pClientData != NULL);
+		pListBox->Append(prefix + username, pClientData);
 	}
 }
 
@@ -586,13 +714,13 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 	}
 	else
 	{
-		// Prevent removal if the user is a useradmin == true one, and tell the user
-		// that's why his attempt was rejected
-		if (m_pOriginalUserStruct->useradmin)
+		// Prevent removal if the user is the useradmin == true one which is the earliest
+		// (ie. the lowest ID value), and tell the user that's why his attempt was rejected
+		if (m_pOriginalUserStruct->username == m_earliestUseradmin)
 		{
 			// This guy must not be deleted
 			wxBell();
-			wxString msg = _("This user has user administrator privilege level. Deleting this user may leave the server with nobody having permission to add, change or remove users. So we do not allow such removals.");
+			wxString msg = _("This user is the earliest user with administrator privilege level. This user cannot be removed.");
 			wxString title = _("Warning: Illegal user deletion attempt");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			return;
@@ -610,8 +738,9 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 		}
 		else
 		{
-			// The removal did not succeed -- an error message will have been shown
-			// from within the above RemoveUser() call
+            // The removal did not succeed- probably because it is parent to entries in the
+            // entry table -- an error message will have been shown from within the above
+            // RemoveUser() call
 			wxCommandEvent dummy;
 			OnButtonUserPageClearControls(dummy);
 		}
@@ -623,31 +752,47 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 void KBSharingMgrTabbedDlg::OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event))
 {
 	bool bCurrentUseradminValue = m_pCheckUserAdmin->GetValue();
-	// We set kbadmin value to TRUE if the Useradmin checkbox has just been ticked, but if
-	// unticked, we leave the kbadmin value untouched. We must avoid having useradmin TRUE
-	// but kbadmin FALSE
+    // We set kbadmin value to TRUE if the Useradmin checkbox has just been ticked, but if
+    // unticked (i.e. it was ticked earlier and now isn't) then we only allow the privilege
+    // demotion to apply to a user who is not the earliest one (ie. has lowest ID value)
+    // who also has administrator privilege level. Why? We must ensure there is always at
+    // least one user who can add, edit or remove users. This particular special user is
+    // the one in the m_earliestUsername member variable. If that's not the one we are
+    // demoting we leave the kbadmin value untouched.
+	// 
+	// Also, we must avoid having useradmin TRUE but kbadmin FALSE, for any one username.
 	if (bCurrentUseradminValue)
 	{
+		// This click was a promotion to user administrator privilege level, so he must
+		// also be given kb privilege level as well
 		m_pCheckKbAdmin->SetValue(TRUE);
 	}
 	else
 	{
-        // It's not permitted to lower a user's privilege level from useradmin to either just
-        // kbadmin privilege or no privilege. Check,and if that is being attempted, warn
-        // the user and clear the controls and selection in the list, and return having
+		// The click was to demote from user administrator privilege level...
+		//
+        // But it's not permitted to demote the user who is the earliest with useradmin
+        // privilege level to either just kbadmin privilege or no privilege. 
+        // Check, and if that is being attempted. If so, warn the user and return having
         // restored useradmin privilege
         
 		// Get the privilege level value as it was when the user was clicked in the listbox
-		bool bSelectedUsersExistingUserAdminValue = m_pOriginalUserStruct->useradmin;
-		if (bSelectedUsersExistingUserAdminValue)
+		if (m_pOriginalUserStruct->username != m_earliestUseradmin)
 		{
-			if (bSelectedUsersExistingUserAdminValue != bCurrentUseradminValue)
-			{
-				wxString title = _("Illegal attempt to lower privilege level");
-				wxString msg = _("Warning: you cannot reduce someone's user administrator privilege to a lower privilege level. The reason for this is that it is too dangerous.\n\nIf you mistakenly lowered the privilege level of the only person with user administator authority, the next time this dialog is entered nobody would have authority to add, edit or remove users.");
-				wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-				m_pCheckUserAdmin->SetValue(TRUE);
-			}
+			// This guy (on the left of the inequality test) can be safely demoted, because
+			// he's not the lowest ID value'd useradmin person
+			m_pCheckUserAdmin->SetValue(FALSE);
+		}
+		else
+		{
+			// The click was on the useradmin == TRUE user who has lowest ID value - this
+			// guy has to retain his useradmin == TRUE permission level
+			wxString title = _("Illegal demotion");
+			wxString msg = _("Warning: you are not permitted to demote whoever was first added with user administrator permission. That user is: %s\n\n(There must be at least one user with user administrator privilege, and this protection ensures that this condition is satisfied.)");
+			msg = msg.Format(msg, m_earliestUseradmin.c_str());
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+
+			m_pCheckUserAdmin->SetValue(TRUE); // restore the ticked state of the useradmin checkbox			
 		}
 	}
 }
@@ -708,7 +853,6 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	// the administrator clicked on the list box's entry) to find which have changed. We
 	// will use a bool to track which ones are to be used for constructing the appropriate
 	// json string to be PUT to the server's entry for this user.
-	//wxString strUsername = m_pEditUsername->GetValue();
 	wxString strUsername = m_pTheUsername->GetValue();
 	wxString strFullname = m_pEditInformalUsername->GetValue();
 	wxString strPassword = m_pEditPersonalPassword->GetValue();
@@ -809,8 +953,8 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	bUpdateUseradmin = m_pUserStruct->useradmin == m_pOriginalUserStruct->useradmin ? FALSE : TRUE;
 	bUpdateKbadmin = m_pUserStruct->kbadmin == m_pOriginalUserStruct->kbadmin ? FALSE : TRUE;
 
-	// We must prevent an attempt to edit the username, as most likely it owns some
-	// records in the entry table. If we allow the attempt, nothing happens anyway, curl
+	// We could prevent an attempt to edit the username, as most likely it owns some
+	// records in the entry table. But if we allow the attempt, nothing happens anyway, curl
 	// returns CURLE_OK, an HTTP's 204 No Content is returned, so it's not treated as an
 	// error, even thought sql has rejected the request. The problem with leaving it
 	// happen is that the user gets no feedback that attempting an edit of the username
@@ -903,11 +1047,12 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): selection index m_nSel = %d"), m_nSel);
 #endif
-	// Get the username - the one clicked in the list is a reasonable way to do this, but
-	// we could alternatively get it from the client data's stored struct, further below
+	// Get the username - the one clicked in the list is not helpful because we'd
+	// need to remove the ID and spaces preceding the username, so better to get it
+	// from the client data's stored struct
 	wxString theUsername = m_pUsersListBox->GetString(m_nSel);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-    wxLogDebug(_T("OnSelchangeUsersList(): from list... theUsername = %s"), theUsername.c_str());
+    wxLogDebug(_T("OnSelchangeUsersList(): from list... ID & username = %s"), theUsername.c_str());
 #endif
 	// Try putting theUsername into a 2nd textbox after the first -- this was necessary on
 	// Linux to get past a bug in which Linux stubbornly refused to display the text in
@@ -919,6 +1064,8 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pUserStruct = %x"), (void*)m_pUserStruct);
 #endif
+	// Set the username from the struct, it doesn't have the ID prefixed to it
+	theUsername = m_pUserStruct->username;
 
 	// Put a copy in m_pOriginalUserStruct, in case the administrator clicks the
 	// Edit User button - the latter would use what's in this variable to compare
@@ -934,7 +1081,8 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 #endif
 
 	// Use the struct to fill the Users page's controls with their required data; the
-	// logged in user can then edit the parameters
+	// logged in user can then edit the parameters (m_pTheUsername is the ptr to the
+	// username wxTextCtrl)
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeUsersList(): username box BEFORE contains: %s"), m_pTheUsername->GetValue().c_str());
 #endif
@@ -997,7 +1145,73 @@ void KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXU
 	m_bKBisType1 = FALSE;
 }
 
-
+void KBSharingMgrTabbedDlg::OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(event))
+{
+	// Call up CLanguageCodesDlg here so the user can enter language codes for
+	// the source and target languages, or for the source and glossing languages, accoring
+	// to the LangCodesChoice modality.
+	LangCodesChoice whichPairType = source_and_target_only; 
+	if (m_bKBisType1 != TRUE)
+	{
+		// It's not source-to-target that we are dealing with, but glossing mode - that
+		// is, source-to-glosses, so choose the other enum value to pass in
+		whichPairType = source_and_glosses_only;
+	}
+	CLanguageCodesDlg lcDlg(this, whichPairType); // make the parent be
+								// SharedKBManager_CreateUsersPageFunc
+	lcDlg.Center();
+	
+	if (whichPairType == source_and_target_only)
+	{
+		lcDlg.m_sourceLangCode = m_pEditSourceCode->GetValue();
+		lcDlg.m_targetLangCode = m_pEditNonSourceCode->GetValue();
+	}
+	else if (whichPairType == source_and_glosses_only)
+	{
+		lcDlg.m_sourceLangCode = m_pEditSourceCode->GetValue();
+		lcDlg.m_glossLangCode  = m_pEditNonSourceCode->GetValue();
+	}
+	else
+	{
+		// Hopefully, this block should never be entered
+		m_pEditSourceCode->Clear();
+		lcDlg.m_sourceLangCode.Empty();
+		lcDlg.m_targetLangCode.Empty();
+		m_pEditNonSourceCode->Clear();
+		lcDlg.m_glossLangCode.Empty();
+	}
+	lcDlg.m_freeTransLangCode.Empty(); // not used in KB Sharing Manager gui
+	
+	int returnValue = lcDlg.ShowModal();
+	if (returnValue == wxID_CANCEL)
+	{
+		// user cancelled
+		return;
+	}
+	// user pressed OK so update the edit boxes & string members
+	if (whichPairType == source_and_target_only)
+	{
+		m_sourceLangCode = lcDlg.m_sourceLangCode;
+		m_targetLangCode = lcDlg.m_targetLangCode;
+		m_pEditSourceCode->ChangeValue(m_sourceLangCode);
+		m_pEditNonSourceCode->ChangeValue(m_targetLangCode);
+	}
+	else if (whichPairType == source_and_glosses_only)
+	{
+		m_sourceLangCode = lcDlg.m_sourceLangCode;
+		m_glossLangCode = lcDlg.m_glossLangCode;
+		m_pEditSourceCode->ChangeValue(m_sourceLangCode);
+		m_pEditNonSourceCode->ChangeValue(m_glossLangCode);
+	}
+	else
+	{
+		// We've wrongly called the constructor for not KB Sharing Manager instance so
+		// just clear the boxes
+		wxBell();
+		m_pEditSourceCode->ChangeValue(_T(""));
+		m_pEditNonSourceCode->ChangeValue(_T(""));
+	}
+}
 
 
 

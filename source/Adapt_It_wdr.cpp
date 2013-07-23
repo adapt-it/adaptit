@@ -7005,10 +7005,10 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item23 = new wxStaticBox( parent, -1, wxT("") );
     wxStaticBoxSizer *item22 = new wxStaticBoxSizer( item23, wxVERTICAL );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("Enter 2-letter or 3-letter language codes for source, target,  gloss and free translation  languages:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_CODES_MSG1, _("Enter 2-letter or 3-letter language codes for source, target,  gloss and free translation  languages:"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("If you know the 2-letter or 3-letter codes enter them directly below or search the list above"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_CODES_MSG2, _("If you know the 2-letter or 3-letter codes enter them directly below or search the list above"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxFlexGridSizer *item26 = new wxFlexGridSizer( 4, 0, 10 );
@@ -9688,7 +9688,7 @@ wxSizer *SharedKBManagerNotebookFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Note: users with user administrator privilege cannot be removed once added"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Note: you will be unable to delete the user administrator who has the lowest ID value."), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -9747,11 +9747,11 @@ wxSizer *SharedKBManagerUsersPageFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Current Users"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _(" ID          Current Users"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(232,-1), 0, strs6, wxLB_SINGLE|wxLB_SORT );
+    wxListBox *item6 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(232,-1), 0, strs6, wxLB_SINGLE );
     item4->Add( item6, 1, wxALIGN_CENTER|wxALL, 0 );
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
@@ -9927,7 +9927,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
     item19->Add( 20, 14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item20 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES, _("Lookup ISO639 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item20->SetToolTip( _("Open the dialog for finding codes for source, target, and gloss languages") );
+    item20->SetToolTip( _("Open the dialog for finding codes for source, and target or glossing languages") );
     item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item21 = new wxButton( parent, ID_BUTTON_RFC5654, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -10077,7 +10077,7 @@ wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool 
     item17->Add( 20, 14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item18 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES_EDITS, _("Lookup ISO639 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->SetToolTip( _("Open the dialog for finding codes for source, target, and gloss languages") );
+    item18->SetToolTip( _("Open the dialog for finding codes for source, and target or glossing languages") );
     item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item19 = new wxButton( parent, wxID_OK, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );

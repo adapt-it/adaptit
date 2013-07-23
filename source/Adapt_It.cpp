@@ -42182,7 +42182,7 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 	// accessed at the same time the administrator is doing his setup using
 	// modal dialogs within Adapt It. He might need to switch back and forth
 	// between AI and the browser, of course, depending on how much screen
-	// disktop is available to work with.
+	// desktop is available to work with.
 	//
 	// The "Help for Administrators.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
