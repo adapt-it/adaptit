@@ -64,7 +64,7 @@ protected:
 	wxListBox*     m_pNonSourceKbsListBox;
 	wxStaticText*  m_pNonSrcLabel;
 
-	wxTextCtrl*    m_pSrcText;
+	//wxTextCtrl*    m_pSrcText;
 	wxTextCtrl*    m_pEditSourceCode;
 	wxTextCtrl*    m_pEditNonSourceCode;
 	wxButton*	   m_pBtnUsingRFC5654Codes;
@@ -96,6 +96,7 @@ protected:
 	void OnTabPageChanging(wxNotebookEvent& event);
 
 protected:
+	// Functions needed by the Users page
 	KbServerUser* GetUserStructFromList(UsersList* pUsersList, size_t index);
 	void          LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList);
 	void		  CopyUsersList(UsersList* pSrcList, UsersList* pDestList);
@@ -103,6 +104,8 @@ protected:
 	void		  DeleteClonedKbServerUserStruct();
 	bool		  CheckThatPasswordsMatch(wxString password1, wxString password2);
 	bool		  AreBothPasswordsEmpty(wxString password1, wxString password2);
+	wxString	  GetEarliestUseradmin(UsersList* pUsersList);
+	KbServerUser* GetThisUsersStructPtr(wxString& username, UsersList* pUsersList);
 
 	// event handlers - Users page
 	void		  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event));
@@ -116,13 +119,14 @@ protected:
 	// event handlers - Create KB Definitions page
 	void		  OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXUNUSED(event));
 	void		  OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event));
-
+	void		  OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// All the lists, users or kbs, are SORTED.
 	CAdapt_ItApp*     m_pApp;
 	int				  m_nSel; // index value (0 based) for selection in the users listbox,
 							  // and has value wxNOT_FOUND when nothing is selected
+	wxString		  m_earliestUseradmin; // this person cannot be deleted or demoted
 	UsersList*        m_pUsersList; // initialize in InitDialog() as the KbServer instance has the list
 	size_t            m_nUsersListCount; // stores how many entries are in the m_pUsersList
 	UsersList*        m_pOriginalUsersList; // store copies of KbServerUser structs at
@@ -143,6 +147,9 @@ private:
 	bool m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
 	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code"
 	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glosses language code"
+	wxString m_sourceLangCode;
+	wxString m_targetLangCode;
+	wxString m_glossLangCode;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

@@ -2,6 +2,7 @@ The 2-letter or 3-letter codes available from the Lookup Codes button come from 
 The 3-letter codes come from the SIL Ethnologue. Sometimes those short codes are not enough.
 The Ethnologue often has no codes for dialects of a language, which is a problem when sharing knowledge bases for adaptations done between dialects of a language. 
 Handling this situation requires codes from the RFC5646 standard, and in particular, using the "Private Use Subtags" part of the standard.
+
 The private use subtags can be defined by you. The ISO639 2-letter or 3-letter code comes first, then -x- and after that the private use tag.
 The private use tag may only be letters or numbers or both, and must not exceed 8 characters in length.
 For example: the Barai (PNG) language ISO369-3 code is bbb. Bariai has two dialects, Birarie, and Muguani.
@@ -9,5 +10,5 @@ Here are two suitable RFC5654 codes which comply with the standard:  bbb-x-birar
 It is good practice to just use lower case letters. Avoid using short tags, because private use tags should be unique.
 
 Defining language codes should be done by someone with linguistics training. 
-If necessary, define your own RFC5654 codes following the above guidelines, and then type the extra code letters into the Knowledge Base Definitions' text boxes where needed.
+If necessary, define your own RFC5654 codes following the above guidelines, and then type the extra code letters into the text boxes of the Create Definitions for Shared Knowledge Bases page, where needed.
 If you do that, you must inform your co-workers about the codes which are to be used, because knowledge base sharing relies on each person in the one translation project using exactly the same codes.

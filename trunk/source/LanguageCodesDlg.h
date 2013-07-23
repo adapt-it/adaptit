@@ -22,10 +22,17 @@
     #pragma interface "LanguageCodesDlg.h"
 #endif
 
+enum LangCodesChoice {
+	all_possibilities,
+	source_and_target_only,
+	source_and_glosses_only
+};
+
 class CLanguageCodesDlg : public AIModalDialog
 {
 public:
 	CLanguageCodesDlg(wxWindow* parent); // constructor
+	CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choice); // constructor for use in KB Sharing Manager GUI
 	virtual ~CLanguageCodesDlg(void); // destructor
 	// other methods
 	wxString m_sourceLangCode;
@@ -35,6 +42,7 @@ public:
 
 	wxString m_glossesLangName; // BEW added 23Jul12
 	wxString m_freeTransLangName; // BEW added 23Jul12
+	LangCodesChoice m_enumLangCodesChoice;
 
 	wxString m_searchString;
 	int m_curSel;
@@ -59,9 +67,16 @@ public:
 	wxStaticText* pStaticScrollList;
 	wxStaticText* pStaticSearchForLangName;
 
+	wxStaticText* pStaticGlsLangName;
+	wxStaticText* pStaticFTrLangName;
+	wxStaticText* pStaticTgtLangName;
+	wxStaticText* pEditCodeMsg1;
+	//wxStaticText* pEditCodeMsg2; <<-- unneeded, it's same for either radio button choice
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void SetPointers();
 	
 	void OnFindCode(wxCommandEvent& WXUNUSED(event));
 	void OnFindLanguage(wxCommandEvent& WXUNUSED(event));
