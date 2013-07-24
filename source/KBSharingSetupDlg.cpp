@@ -121,6 +121,17 @@ KBSharingSetupDlg::KBSharingSetupDlg(wxWindow* parent, bool bStateless) // dialo
 	m_strStatelessUsername.Empty();
 	m_strStatelessURL.Empty();
 	m_strStatelessPassword.Empty();
+#if defined(_DEBUG)
+	// For my use, to save time getting authenticated to kbserver.jmarsden.org, I'll
+	// initialize to me and his server here, for the debug build, & my personal pwd too
+	if (bStateless)
+	{
+		m_strStatelessUsername = _T("bruce_waters@sil.org");
+		m_strStatelessURL = _T("https://kbserver.jmarsden.org");
+		// m_strStatelessPassword <- similarly set to my personal password in Mainfrm.cpp
+		// line 2630, within GetKBSvrPasswordFromUser()
+	}
+#endif
 	// The 1 param is a hack, (it's int whichType) to enable the compiler to distinguish
 	// this constructor apart from the KbServer(int whichType) one which it was wrongly
 	// calling when I had this additional constructor as just KbServer(bool bStateless).
@@ -182,7 +193,6 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		// and we want to hide the caution at the bottom about the Remove Setup button
 		wxStaticText* pCautionTextLabel = (wxStaticText*)FindWindowById(ID_TEXT_PWD_CAUTION_LABEL);
 		pCautionTextLabel->Hide();
-	
 	}
 	// If the app members have values for the url and username already (from having been
 	// just set earlier, or from the project config file, then reinstate them so that if
@@ -193,6 +203,13 @@ void KBSharingSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		wxString emptyStr = _T("");
 		m_pURLCtrl->ChangeValue(emptyStr);
 		m_pUsernameCtrl->ChangeValue(emptyStr);
+
+#if defined(_DEBUG)
+		// Simplify my life during development
+		m_pURLCtrl->ChangeValue(m_strStatelessURL);
+		m_pUsernameCtrl->ChangeValue(m_strStatelessUsername);
+#endif
+	
 	}
 	else
 	{
@@ -282,14 +299,8 @@ void KBSharingSetupDlg::OnOK(wxCommandEvent& myevent)
 			// The following call will set up a temporary instance of the adapting KbServer in
 			// order to call it's LookupUser() member, to check that this user has an entry in
 			// the entry table; and delete the temporary instance before returning
-//* TODO    fix this - it's failing, and so is jonathan's lookupuser c-client in the
-//          LubuntuVM accessing my localhost kbserver there
 			bool bUserIsValid = CheckForValidUsernameForKbServer(m_strStatelessURL,
 											m_strStatelessUsername, m_strStatelessPassword);
-//*/
-            //bool bUserIsValid = TRUE; // this is temporary, see just above
-
-
 			if (!bUserIsValid)
 			{
 				// Access to the Manager GUI is denied to this user

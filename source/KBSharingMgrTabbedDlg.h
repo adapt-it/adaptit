@@ -63,6 +63,7 @@ protected:
 	wxListBox*     m_pSourceKbsListBox;
 	wxListBox*     m_pNonSourceKbsListBox;
 	wxStaticText*  m_pNonSrcLabel;
+	wxStaticText*  m_pNonSrcCorrespCodesListLabel;
 
 	//wxTextCtrl*    m_pSrcText;
 	wxTextCtrl*    m_pEditSourceCode;
@@ -92,7 +93,7 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
-	void LoadDataForPage(int pageNumSel);
+	void LoadDataForPage(int pageNumSelected);
 	void OnTabPageChanging(wxNotebookEvent& event);
 
 protected:
@@ -116,11 +117,24 @@ protected:
 	void		  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event));
 	void		  OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event));
 
+	// Functions needed by the Create Kb Definitions page
+	KbServerKb*	  CloneACopyOfKbServerKbStruct(KbServerKb* pExistingStruct);
+	void		  CopyKbsList(KbsList* pSrcList, KbsList* pDestList);
+	void		  DeleteClonedKbServerKbStruct();
+	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList, 
+							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList);
+	void		  LoadLanguageCodePairsInListBoxes_CreatePage(bool bKBTypeIsSrcTgt,
+							KbsList* pSrcTgtKbsList, KbsList* pSrcGlsKbsList,
+							wxListBox* pSrcCodeListBox, wxListBox* pNonSrcCodeListBox);
+		
+		
+
 	// event handlers - Create KB Definitions page
 	void		  OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXUNUSED(event));
 	void		  OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event));
 	void		  OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(event));
 	void		  OnBtnCreatePageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonCreateKbsPageClearControls(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// All the lists, users or kbs, are SORTED.
@@ -129,11 +143,22 @@ private:
 							  // and has value wxNOT_FOUND when nothing is selected
 	wxString		  m_earliestUseradmin; // this person cannot be deleted or demoted
 	UsersList*        m_pUsersList; // initialize in InitDialog() as the KbServer instance has the list
-	size_t            m_nUsersListCount; // stores how many entries are in the m_pUsersList
 	UsersList*        m_pOriginalUsersList; // store copies of KbServerUser structs at
 									        // entry, for comparison with final list
 											// after the edits, removals and additions
 											// are done
+	KbsList*		  m_pKbsList; // initialize in InitDialog() as the KbServer instance has the list
+	KbsList*		  m_pOriginalKbsList; // store copies of KbServerKb structs at
+										  // entry, for comparison with final list after
+										  // edits or additions are done
+	// NOTE: the next two are required so we can separate out the Type1 KBs (adaptation
+	// ones) from the Type2 KBs (glossing ones) into separate lists - and when we populate
+	// these lists, we'll do so with deep copies of the structs, so that we can call
+	// ClearKbsList() on these as we do on the m_pOriginalKbsList and m_pKbsList
+	KbsList*		  m_pKbsList_Tgt;
+	KbsList*		  m_pKbsList_Gls;
+
+
 	KbServer*         m_pKbServer; // we'll assign the stateless one to this pointer
 	KbServerUser*     m_pUserStruct; // scratch variable to get at returned values
 								     // for a user entry's fields
@@ -143,11 +168,20 @@ private:
 									 // user item in the listbox, freeing up the
 									 // m_pUserStruct to be given values as edited by
 									 // the user
+	KbServerKb*		  m_pKbStruct; // scratch variable to get at returned values for
+									 // a kb entry's pair of language codes, etc
+	KbServerKb*		  m_pOriginalKbStruct; // performs the same service for m_pKbStruct that
+									 // m_pOriginalUserStruct does for m_pUserStruct
+									 
+
+
 	// Next members are additional ones needed for the Create KB definitions page (and
 	// some will be also used in the 3rd page for editing KB definitions)
 	bool m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
-	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code"
-	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glosses language code"
+	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code:"
+	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glosses language code:"
+	wxString m_correspTgtLanguageCodesLabel; // InitDialog() sets it to "Corresponding target language codes:"
+	wxString m_correspGlsLanguageCodesLabel; // InitDialog() sets it to "Corresponding glossing language codes:"
 	wxString m_sourceLangCode;
 	wxString m_targetLangCode;
 	wxString m_glossLangCode;

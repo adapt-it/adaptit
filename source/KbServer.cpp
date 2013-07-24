@@ -1425,7 +1425,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 
 	//  Make the json data accessible (result is CURLE_OK if control gets to here)
 	//  We requested separate headers callback be used, so str_CURLbuffer should only have
-	//  the json string for the constructed list of user entries
+	//  the json string for the constructed json array of kb entries
 	if (!str_CURLbuffer.empty())
 	{
 		wxString myArray = wxString::FromUTF8(str_CURLbuffer.c_str());
@@ -1441,8 +1441,9 @@ int KbServer::ListKbs(wxString username, wxString password)
 			str_CURLheaders.clear();
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
-		// We extract everything: id, sourcelanguage, targetlanguage, type,username, deleted
-		// flag value, and the timestamp at which the definition was added to the kb table
+        // We extract everything: id, sourcelanguage, targetlanguage, type, username,
+        // deleted flag value, and the timestamp at which the definition was added to the
+        // kb table
 		ClearKbsList(&m_kbsList); // deletes from the heap any KbServerKb structs still in m_kbsList
 		wxASSERT(m_kbsList.empty());
         size_t arraySize = jsonval.Size();
