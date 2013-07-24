@@ -161,8 +161,8 @@ public:
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
-	int		 ListKbs(wxString url, wxString username);
-	int		 ListUsers(wxString url, wxString username);
+	int		 ListKbs(wxString username, wxString password);
+	int		 ListUsers(wxString username, wxString password);
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);

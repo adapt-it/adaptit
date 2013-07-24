@@ -9874,7 +9874,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("First: "), wxDefaultPosition, wxSize(70,-1), 0 );
     item6->Add( item7, 0, wxALIGN_CENTER, 5 );
 
-    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: define which knowledge base is for sharing target language adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: define the knowledge base for sharing target language adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->SetValue( TRUE );
     item6->Add( item8, 0, wxALIGN_CENTER, 5 );
 
@@ -9885,7 +9885,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Second: "), wxDefaultPosition, wxSize(70,-1), 0 );
     item9->Add( item10, 0, wxALIGN_CENTER, 5 );
 
-    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: define which knowledge base is for sharing glosses (do this even if unwanted)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: define the knowledge base for sharing glosses (do this even if glossing support is unwanted)"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item11, 0, wxALIGN_CENTER, 5 );
 
     item3->Add( item9, 0, wxALIGN_CENTER_VERTICAL, 5 );
@@ -9900,7 +9900,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
     item13->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs15 = (wxString*) NULL;
-    wxListBox *item15 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,98), 0, strs15, wxLB_SINGLE|wxLB_SORT );
+    wxListBox *item15 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE, wxDefaultPosition, wxSize(200,98), 0, strs15, wxLB_SINGLE );
     item15->SetToolTip( _("Lists the source language's code for the current set of definitions") );
     item13->Add( item15, 1, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9910,11 +9910,11 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
 
     wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Existing target language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_NONSOURCE_CODES_LABEL, _("Corresponding target language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->Add( item17, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs18 = (wxString*) NULL;
-    wxListBox *item18 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE, wxDefaultPosition, wxSize(200,98), 0, strs18, wxLB_SINGLE|wxLB_SORT );
+    wxListBox *item18 = new wxListBox( parent, ID_LISTBOX_NONSRC_LANG_CODE, wxDefaultPosition, wxSize(200,98), 0, strs18, wxLB_SINGLE );
     item18->SetToolTip( _("Lists the target text language codes for adaptation knowledge bases associated with the selected source language") );
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9961,7 +9961,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc( wxWindow *parent, bool call_fit, boo
     wxStaticText *item27 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->Add( item27, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
     item28->SetToolTip( _("Type a language code for the adaptations language") );
     item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -10050,7 +10050,7 @@ wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool 
     item11->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs13 = (wxString*) NULL;
-    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE_EDITS, wxDefaultPosition, wxSize(200,98), 0, strs13, wxLB_SINGLE|wxLB_SORT );
+    wxListBox *item13 = new wxListBox( parent, ID_LISTBOX_SRC_LANG_CODE_EDITS, wxDefaultPosition, wxSize(200,98), 0, strs13, wxLB_SINGLE );
     item13->SetToolTip( _("Lists the source language's code for the current set of definitions") );
     item11->Add( item13, 1, wxALIGN_CENTER|wxALL, 5 );
 
@@ -10060,11 +10060,11 @@ wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool 
 
     wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Existing target language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT_NONSOURCE_CODES_LABEL_EDITS, _("Corresponding target language codes:"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs16 = (wxString*) NULL;
-    wxListBox *item16 = new wxListBox( parent, ID_LISTBOX_TGT_LANG_CODE_EDITS, wxDefaultPosition, wxSize(200,98), 0, strs16, wxLB_SINGLE|wxLB_SORT );
+    wxListBox *item16 = new wxListBox( parent, ID_LISTBOX_NONSRC_LANG_CODE_EDITS, wxDefaultPosition, wxSize(200,98), 0, strs16, wxLB_SINGLE );
     item16->SetToolTip( _("Lists the target text language codes for adaptation knowledge bases associated with the selected source language") );
     item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -10080,7 +10080,7 @@ wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool 
     item18->SetToolTip( _("Open the dialog for finding codes for source, and target or glossing languages") );
     item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item19 = new wxButton( parent, wxID_OK, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item19 = new wxButton( parent, ID_BUTTON_RFC5646_EDITS, _("Using RFC5646 Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
     item19->SetToolTip( _("View a window explaining how to setup codes for dialects not in the Ethnologue") );
     item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -10109,7 +10109,7 @@ wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool 
     wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE_EDITS, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_TGT_EDITS, wxT(""), wxDefaultPosition, wxSize(124,-1), 0 );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC_EDITS, wxT(""), wxDefaultPosition, wxSize(124,-1), 0 );
     item26->SetToolTip( _("Type a language code for the adaptations language") );
     item22->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
