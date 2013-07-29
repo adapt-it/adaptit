@@ -362,7 +362,7 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 				m_earliestUseradmin = GetEarliestUseradmin(m_pUsersList);
 #if defined (_DEBUG) && defined(_WANT_DEBUGLOG)
 				wxLogDebug(_T("LoadUsersListBox(): earliest (by ID value) username who is a useradmin = %s"),
-				m_earliestUseradmin);
+				m_earliestUseradmin.c_str());
 #endif
 				// Copy the list, before user gets a chance to modify anything
 				CopyUsersList(m_pUsersList, m_pOriginalUsersList); // param 1 is src list, param2 is dest list
@@ -556,7 +556,7 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 // Check if there are any NULL ptrs here
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %x , username = %s , ID = %d"),
-			anIndex, (void*)pEntry, pEntry == NULL ? _T("null pointer") : pEntry->username, pEntry->id);
+			anIndex, (void*)pEntry, pEntry == NULL ? _T("null pointer") : pEntry->username.c_str(), pEntry->id);
 #endif
 		if (pEntry->id > maxID)
 		{
@@ -1521,7 +1521,7 @@ void KBSharingMgrTabbedDlg::LoadLanguageCodePairsInListBoxes_CreatePage(bool bKB
 					// either in the KbServerKb struct)
 			pSrcCodeListBox->Append(compositeStr, (void*)pEntry);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-    wxLogDebug(_T("LoadLanguageCodePairsInListBoxes(): compositeStr = %s , KbServerKb* pEntry = %x"), compositeStr, (void*)pEntry);
+    wxLogDebug(_T("LoadLanguageCodePairsInListBoxes(): compositeStr = %s , KbServerKb* pEntry = %x"), compositeStr.c_str(), (void*)pEntry);
 #endif
 		}
 	}
@@ -1561,7 +1561,7 @@ void KBSharingMgrTabbedDlg::LoadLanguageCodePairsInListBoxes_CreatePage(bool bKB
 		// Append target language code, or gloss language code, to the right list
 		pNonSrcCodeListBox->Append(nonsrcLangCode);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-		wxLogDebug(_T("LoadLanguageCodePairsInListBoxes():  appending nonsrc:  %s  [to pNonSrcCodeListBox]"), nonsrcLangCode);
+		wxLogDebug(_T("LoadLanguageCodePairsInListBoxes():  appending nonsrc:  %s  [to pNonSrcCodeListBox]"), nonsrcLangCode.c_str());
 #endif
 	}
 
