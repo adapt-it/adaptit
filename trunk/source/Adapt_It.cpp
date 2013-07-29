@@ -17167,9 +17167,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString executablePath;
 #ifdef __WXGTK__
 	wxString installPrefix;
-#endif
+	wxStandardPaths stdPaths;
+#else
 	//	GDLC 11JUL13 In WX2.9.5 we can no longer create a wxStandardPaths object
 	wxStandardPathsBase& stdPaths = wxStandardPaths::Get();
+#endif
 	resourcesDir = stdPaths.GetResourcesDir(); // GetResourcesDir() is new with wxWidgets 2.7.0
 	wxLogDebug(_T("The wxStandardPaths::GetResourcesDir()  = %s"),resourcesDir.c_str());
 	dataDir = stdPaths.GetDataDir();
