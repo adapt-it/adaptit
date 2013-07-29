@@ -92,10 +92,11 @@ adaptit_SOURCES = \
 	../../source/jsonwriter.cpp ../../source/jsonwriter.h \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
-	../../source/KbServer.cpp ../../source/KBSharing.cpp ../../source/KBSharingSetupDlg.cpp \
+	../../source/KbServer.cpp ../../source/KBSharing.cpp ../../source/KBSharingMgrTabbedDlg.cpp \
+	../../source/KBSharingSetupDlg.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
-	../../source/MergeUpdatedSrc.cpp \
+	../../source/md5_SB.cpp ../../source/MergeUpdatedSrc.cpp \
 	../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NavProtectNewDoc.cpp \
 	../../source/NoteDlg.cpp ../../source/Notes.cpp \
