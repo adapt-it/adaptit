@@ -17927,8 +17927,8 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 			{
 				// BEW 27Jun13 added this else block, because a bare \ followed by a space
 				// would yield False at the test, and the loop would iterate forever
-				// without moving pOld forward. So test for this and skip it. Also, \
-				// before a word also is 'wrong' but the code above doesn't skip unknown
+				// without moving pOld forward. So test for this and skip it. Also,
+				// \ before a word also is 'wrong' but the code above doesn't skip unknown
 				// markers and so that won't generate an infinite loop. So we only need
 				// deal with \<SP>
 				if (*(pOld + 1) == _T(' '))
