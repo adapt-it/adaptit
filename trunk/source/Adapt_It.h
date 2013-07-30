@@ -3913,33 +3913,6 @@ public:
 	bool m_bKeepBoxMidscreen; // default is TRUE, if set FALSE in the View page of Preferences
 							  // then ScrollIntoView uses the restored legacy code; the boolean
 							  // value is stored in the project config file
-    /// BEW added 13Mar13, to support reinstating, for autocapitalization mode ON, the use
-    /// within the lookup of any pTU which is keyed by the same source word or phrase but
-    /// beginning with a capital letter. We earlier deprecated this (see explanatory
-    /// comment in CKB::AutoCapsLookup() for the details of why) because the total AI
-    /// package did not fully support the lookup of uppercase if the lower case lookup
-    /// failed - the later StoreText() would merely add the lower case target entry to the
-    /// pTU which had an upper case key - that's not good enough. The fuller solution,
-    /// implemented here, and which will be the new default, is to check for an upper case
-    /// keyed CTargetUnit, and if in the KB, make lower case copies of its translations or
-    /// glosses, and merge any which are not in the lower-case keyed CTargetUnit to the
-    /// latter. This is done at the start of AutoCapsLookup() so that the lookup code which
-    /// follows that initial merger will have the full complement of lower case entries
-    /// available in the lookup and for display in the Choose Translation dialog. This
-    /// initial check and merger will add a little overhead to the time taken for the
-    /// average lookup, but it's far quicker than having to retype otherwise unavailable
-    /// upper case translations or glosses.
-	/// A boolean is required for support of this option, and so it can optionally be
-	/// turned off - which would have lookups just do a lowercase only lookup (upper case
-	/// entries ignored, which is how it was in versions up to and including 6.4.1).
-	/// It is m_bDoLegacyLowerCaseLookup, default FALSE, and that is used in the GUI
-	/// to allow a user to switch on, or turn off, the u.case lookup attempt when a l.case
-	/// lookup has failed. This boolean is stored also in the project configuration file.
-	bool m_bDoLegacyLowerCaseLookup; // default FALSE (i.e. attempts to also use an upper
-									 // case keyed pTU instances as well, as described
-									 // above), user-settable in the GUI, using
-								     // Preferences.../View page, saved in project
-									 // configuration file. (New regime is the default.)
 
 
 	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);
@@ -4271,6 +4244,10 @@ public:
 						 // from trying to access a deleted CSourcePhrase instance
 						 // while the app is shutting down in collab mode
 
+	bool m_bDoLegacyLowerCaseLookup; // no longer supported, no longer used, but we'll keep it
+									 // because project config files for versions 6.4.3 contain
+									 // this boolean (as 1 or 0) and so we'll read it if there,
+									 // but not write it anymore
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12

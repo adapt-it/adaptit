@@ -61,7 +61,6 @@ BEGIN_EVENT_TABLE(CViewPage, wxPanel)
 	EVT_BUTTON(IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, CViewPage::OnButtonHighlightColor)
 	EVT_CHECKBOX(IDC_CHECK_SHOW_ADMIN_MENU, CViewPage::OnCheckShowAdminMenu)
 	EVT_RADIOBOX(ID_RADIOBOX_SCROLL_INTO_VIEW, CViewPage::OnRadioPhraseBoxMidscreen)
-	EVT_RADIOBOX(ID_RADIOBOX_LEGACY_LOOKUP, CViewPage::OnRadioLegacyLookup)
 END_EVENT_TABLE()
 
 CViewPage::CViewPage()
@@ -98,7 +97,6 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pPanelAutoInsertColor = (wxPanel*)FindWindowById(ID_PANEL_AUTO_INSERT_COLOR);
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
-	m_pRadioBoxLegacyLookup = (wxRadioBox*)FindWindowById(ID_RADIOBOX_LEGACY_LOOKUP);
 }
 
 CViewPage::~CViewPage() // destructor
@@ -318,8 +316,6 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	tempAutoInsertionsHighlightColor = pApp->m_AutoInsertionsHighlightColor;
 	int nRadioBoxSelection = pApp->m_bKeepBoxMidscreen ? 0 : 1;
 	m_pRadioBox->SetSelection(nRadioBoxSelection);
-	int nRadioBoxLegacyLookupSelection = pApp->m_bDoLegacyLowerCaseLookup ? 1 : 0; // if TRUE, 2nd button is ON
-	m_pRadioBoxLegacyLookup->SetSelection(nRadioBoxLegacyLookupSelection);
 
 
 	// transfer initial values to controls
@@ -378,27 +374,4 @@ void  CViewPage::OnRadioPhraseBoxMidscreen(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-void  CViewPage::OnRadioLegacyLookup(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
-	// Get the new state of the radiobox
-	int nRadioBoxSelection = m_pRadioBoxLegacyLookup->GetSelection();
-	// make the lookup regime match the state of the button
-	if (nRadioBoxSelection == 0)
-	{
-		// This is the first button, the one for the lookup using both lower and upper
-		// case entries by making a parallel set of lower case entries for any upper case
-		// ones found, and doing the lookup as lower case in that aggregate of lower case 
-		// entries, and then capitalize as needed
-		pApp->m_bDoLegacyLowerCaseLookup = FALSE;
-	}
-	else
-	{
-		// This is the second button, the one for reverting to the legacy (6.4.1 &
-		// earlier) lookup only lower case entries, and capitalize as needed, and totally
-		// ignore any upper case entries sitting in the KB
-		pApp->m_bDoLegacyLowerCaseLookup = TRUE;
-	}
-}
 

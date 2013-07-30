@@ -488,25 +488,6 @@ CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
 #endif
 
-// BEW 18Apr13, a helper for use by the Remove button in KBEditor and/or Choose Translation 
-// dialog; used only when the app member boolean, m_bDoLegacyLowerCaseLookup is FALSE (FALSE
-// is the default, this member did not exist for versions 6.4.1 and earlier) - needed because
-// this new member can result in legacy upper case initial keys being made lower case and
-// transferred to the CTargetUnit storing lower case ones (when gAutoCaps is TRUE, i.e. when
-// auto-capitalization is turned on), and if the lower case one is removed, we must check for
-// a parallel upper case CTargetUnit and if found, remove (ie. pseudo-delete) the parallel
-// entry within that too -- otherwise, if we just pseudo-delete the lower case one, the next
-// AutoCapsLookup() call for that source text key will restore the deletion to active
-// service - which we don't want to happen, so we must remove both together to prevent
-// this bogus restoration happening, and that's what this function does
-void RemoveParallelEntriesViaRemoveButton(
-		CKB* pKB, // ptr to which KB is currently active, either glossing one, or adapting one
-		int  mapIndex, // 0 is first map in pKB, 1 is second, etc
-		wxString keyStr, // Choose Translation's list entry, or in KBEditor's list entry, being 
-						 // removed from the knowledge base (either context could have UCase or
-						 // LCase for first letter of phrase)
-		wxString adaption); // when this function is called, adaption will be a LC-initial string
-
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
 // m_pSrcPhrase and m_pOwningPile, and so not being properly in sync with the doc list;
