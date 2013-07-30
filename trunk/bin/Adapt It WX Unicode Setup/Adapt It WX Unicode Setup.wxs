@@ -213,6 +213,7 @@
 				<File Source="..\..\setup Unicode\Adapt It changes.txt" />
 				<File Source="..\..\setup Unicode\Adapt_It_Quick_Start.htm" />
 				<File Source="..\..\setup Unicode\Help_for_Administrators.htm" />
+				<File Source="..\..\setup Unicode\RFC5646message.htm" />
 				<File Source="..\..\setup Unicode\Adapt It Reference.doc" />
 				<File Source="..\..\setup Unicode\Adapt It Tutorial.doc" />
 				<File Source="..\..\setup Unicode\Adapt_It_Unicode.htb" />

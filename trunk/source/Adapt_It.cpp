@@ -15506,6 +15506,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_adminHelpFileName = _T("Help_for_Administrators.htm");
 	m_quickStartHelpFileName = _T("Adapt_It_Quick_Start.htm");
+	m_rfc5646MessageFileName = _T("RFC5646message.htm"); // whm added 30Jul13 for BEW
 
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
@@ -42284,7 +42285,7 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 	// between AI and the browser, of course, depending on how much screen
 	// desktop is available to work with.
 	//
-	// The "Help for Administrators.htm" file should go into the m_helpInstallPath
+	// The "Help_for_Administrators.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	wxString adminHelpFilePath = GetDefaultPathForHelpFiles() + PathSeparator + m_adminHelpFileName;
 	// Create a wxHtmlWindow to display the Help for Administrators.htm help file
@@ -42314,7 +42315,7 @@ void CAdapt_ItApp::OnHelpForAdministrators(wxCommandEvent& WXUNUSED(event))
 			wxString title = _("Help for Administrators");
 			m_pHtmlFileViewer = new CHtmlFileViewer(this->GetMainFrame(),&title,&adminHelpFilePath);
 			m_pHtmlFileViewer->Show(TRUE);
-			LogUserAction(_T("Launched Help_for_Administrators.htm in browser"));
+			LogUserAction(_T("Launched Help_for_Administrators.htm in HTML Viewer"));
 		}
 	}
 	else

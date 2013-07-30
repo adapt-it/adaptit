@@ -62,6 +62,7 @@ Source: "{#SvnBase}\setup Regular - No Html Help\Adapt_It.exe"; DestDir: "{app}"
 Source: "{#SvnBase}\setup Regular - No Html Help\Adapt It changes.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - No Html Help\Adapt_It_Quick_Start.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - No Html Help\Help_for_Administrators.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Regular - No Html Help\RFC5646message.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Regular - No Html Help\Adapt It Reference.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - No Html Help\Adapt It Tutorial.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Regular - No Html Help\AI_UserProfiles.xml"; DestDir: "{app}"; Flags: ignoreversion

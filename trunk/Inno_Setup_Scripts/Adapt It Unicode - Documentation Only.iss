@@ -59,6 +59,7 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt It changes.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt_It_Quick_Start.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode Documentation Only\Help_for_Administrators.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode Documentation Only\RFC5646message.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt It Reference.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt It Tutorial.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode Documentation Only\Adapt_It_Unicode.htb"; DestDir: "{app}"; Flags: ignoreversion
