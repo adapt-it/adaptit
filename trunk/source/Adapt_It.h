@@ -3633,6 +3633,8 @@ public:
 	void OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEvent& event);
 	void OnToolsAutoCapitalization(wxCommandEvent& event);
 	void OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event);
+	void OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& event);
+	void OnUpdateMakeAllKnowledgeBaseEntriesAvailable(wxUpdateUIEvent& event);
 
 	void OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event);
 	void OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event));

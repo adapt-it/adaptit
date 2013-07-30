@@ -39,6 +39,8 @@
 #include <wx/filesys.h> // for wxFileName
 //#include <wx/dir.h> // for wxDir
 //#include <wx/choicdlg.h> // for wxGetSingleChoiceIndex
+//
+#if defined(_KBSERVER)
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -73,9 +75,23 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	// For page 2: Create KB Definitions page
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE1_KB, KBSharingMgrTabbedDlg::OnRadioButton1CreateKbsPageType1)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE2_KB, KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2)
-	EVT_BUTTON(ID_BUTTON_LOOKUP_THE_CODES, KBSharingMgrTabbedDlg::OnBtnCreatePageLookupCodes) // whm added 10May10
+	EVT_BUTTON(ID_BUTTON_LOOKUP_THE_CODES, KBSharingMgrTabbedDlg::OnBtnCreatePageLookupCodes)
 	EVT_BUTTON(ID_BUTTON_RFC5646, KBSharingMgrTabbedDlg::OnBtnCreatePageRFC5646Codes)
 	EVT_BUTTON(ID_BUTTON_CLEAR_BOXES, KBSharingMgrTabbedDlg::OnButtonCreateKbsPageClearControls)
+	EVT_BUTTON(ID_BUTTON_ADD_DEFINITION, KBSharingMgrTabbedDlg::OnButtonCreateKbsPageAddKBDefinition)
+	EVT_LISTBOX(ID_LISTBOX_SRC_LANG_CODE, KBSharingMgrTabbedDlg::OnSelchangeSrcLangCodesList)
+	EVT_LISTBOX(ID_LISTBOX_NONSRC_LANG_CODE, KBSharingMgrTabbedDlg::OnSelchangeNonSrcLangCodesList)
+	EVT_BUTTON(ID_BUTTON_REMOVE_SELECTED_DEFINITION, KBSharingMgrTabbedDlg::OnButtonCreateKbsPageRemoveKb)
+	// For page 3: Edit KB Definitions page
+	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE1_KB_EDITS, KBSharingMgrTabbedDlg::OnRadioButton1EditKbsPageType1)
+	EVT_RADIOBUTTON(ID_RADIOBUTTON_TYPE2_KB_EDITS, KBSharingMgrTabbedDlg::OnRadioButton2EditKbsPageType2)
+	EVT_BUTTON(ID_BUTTON_LOOKUP_THE_CODES_EDITS, KBSharingMgrTabbedDlg::OnBtnEditKbsPageLookupCodes)
+	EVT_BUTTON(ID_BUTTON_RFC5646_EDITS, KBSharingMgrTabbedDlg::OnBtnEditKbsPageRFC5646Codes)
+	EVT_BUTTON(ID_BUTTON_UPDATE_DEFINITION, KBSharingMgrTabbedDlg::OnButtonEditKbsPageUpdateKBDefinition)
+	EVT_BUTTON(ID_BUTTON_CLEAR_SELECTION, KBSharingMgrTabbedDlg::OnButtonEditKbsPageClearControls)
+	EVT_LISTBOX(ID_LISTBOX_SRC_LANG_CODE_EDITS, KBSharingMgrTabbedDlg::OnSelchangeEditSrcLangCodesList)
+	EVT_LISTBOX(ID_LISTBOX_NONSRC_LANG_CODE_EDITS, KBSharingMgrTabbedDlg::OnSelchangeEditNonSrcLangCodesList)
+	EVT_BUTTON(ID_BUTTON_REMOVE_SELECTED_DEFINITION_EDITS, KBSharingMgrTabbedDlg::OnButtonEditKbsPageRemoveKb)
 
 END_EVENT_TABLE()
 
@@ -129,6 +145,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pSourceKbsListBox != NULL);
 	m_pNonSourceKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_NONSRC_LANG_CODE);
 	wxASSERT(m_pNonSourceKbsListBox != NULL);
+	m_pEditSourceKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_SRC_LANG_CODE_EDITS);
+	wxASSERT(m_pEditSourceKbsListBox != NULL);
+	m_pEditNonSourceKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_NONSRC_LANG_CODE_EDITS);
+	wxASSERT(m_pEditNonSourceKbsListBox != NULL);
 	// wxTextCtrls
 	m_pTheUsername = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_THE_USERNAME);
 	wxASSERT(m_pTheUsername != NULL);
@@ -142,6 +162,12 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pEditSourceCode != NULL);
 	m_pEditNonSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_NONSRC); // non-src lang code on Create Kbs page
 	wxASSERT(m_pEditNonSourceCode != NULL);
+	m_pEditEditSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SRC_EDITS); // src lang code on Edit Kbs page
+	wxASSERT(m_pEditEditSourceCode != NULL);
+	m_pEditEditNonSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_NONSRC_EDITS); // non-src lang code on Edit Kbs page
+	wxASSERT(m_pEditEditNonSourceCode != NULL);
+	m_pEditKbDefinitionCreator = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_CREATED_BY);
+	wxASSERT(m_pEditKbDefinitionCreator != NULL);
 	// Checkboxes
 	m_pCheckUserAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_USERADMIN);
 	wxASSERT(m_pCheckUserAdmin != NULL);
@@ -156,6 +182,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pBtnUsersEditUser != NULL);
 	m_pBtnUsersRemoveUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_USER);
 	wxASSERT(m_pBtnUsersRemoveUser != NULL);
+
 	m_pBtnUsingRFC5646Codes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_RFC5646);
 	wxASSERT(m_pBtnUsingRFC5646Codes != NULL);
 	m_pBtnAddKbDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ADD_DEFINITION);
@@ -167,11 +194,28 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
 	wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
 
+	m_pBtnEditUsingRFC5646Codes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_RFC5646_EDITS);
+	wxASSERT(m_pBtnEditUsingRFC5646Codes != NULL);
+	m_pBtnEditUpdateKbDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_UPDATE_DEFINITION);
+	wxASSERT(m_pBtnEditUpdateKbDefinition != NULL);
+	m_pBtnClearSelectionAndBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_SELECTION);
+	wxASSERT(m_pBtnClearSelectionAndBoxes != NULL);
+	m_pBtnEditLookupLanguageCodes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_LOOKUP_THE_CODES_EDITS);
+	wxASSERT(m_pBtnEditLookupLanguageCodes != NULL);
+	m_pBtnEditRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION_EDITS);
+	wxASSERT(m_pBtnEditRemoveSelectedKBDefinition != NULL);
+
 	// Radiobuttons & wxStaticText
 	m_pRadioKBType1 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
 	m_pRadioKBType2 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
 	m_pNonSrcLabel  = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_TGT_LANG_CODE);
 	m_pNonSrcCorrespCodesListLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_NONSOURCE_CODES_LABEL);
+
+	m_pRadioEditKBType1 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB_EDITS);
+	m_pRadioEditKBType2 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB_EDITS);
+	m_pEditNonSrcLabel  = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_TGT_LANG_CODE_EDITS);
+	m_pEditNonSrcCorrespCodesListLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_NONSOURCE_CODES_LABEL_EDITS);
+
 
     // For an instantiated KbServer class instance to use, we use the stateless one created
     // within KBSharingSetupDlg's creator function; and it has been assigned to
@@ -196,6 +240,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// (i.e. adapting KB versus glossing KB definitions)
 	m_pKbsList_Tgt = new KbsList; // destroy it in OnOK() and OnCancel()
 	m_pKbsList_Gls = new KbsList; // destroy it in OnOK() and OnCancel()
+	m_pKbsAddedInSession = new KbsList; // destroy it in OnOK() and OnCancel()
 
 	// Get the administrator's kbadmin and useradmin values from the app members for same
 	m_bKbAdmin = m_pApp->m_kbserver_kbadmin;
@@ -208,7 +253,10 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// OnCancel() and OnOK() functions must check here for a non-null value, and if found,
 	// delete it from the heap before they return (to avoid a memory leak)
 	m_pOriginalUserStruct = NULL;
+	// Ditto for the one for the Create Kbs page and the Edit Kbs page
+	m_pOriginalKbStruct = NULL;
 
+	// Next 8 for Create Kbs page and Edit Kbs page
 	m_bKBisType1 = TRUE; // initialize
 	m_tgtLanguageCodeLabel = _("Target language code:");
 	m_glossesLanguageCodeLabel = _("Glosses language code:");
@@ -312,8 +360,9 @@ wxString KBSharingMgrTabbedDlg::GetEarliestUseradmin(UsersList* pUsersList)
 }
 
 // This is called each time the page to be viewed is switched to; note: removed user
-// entries are actually only pseudo-removed, their deleted field is set to 1;  these are
-// included in the ListUsers() call, but we do not put them into the Users page's list box
+// entries are really removed/deleted, their deleted field is not used & their line in the
+// database becomes empty (and unusable); ditto for any kb definitions we succeed in
+// removing
 void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 {
 	if (pageNumSelected == 0) // Users page
@@ -494,10 +543,108 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 	}
 	else // must be second Kbs page -- the one for editing existing KB definitions
 	{
+		// To keep the code simpler, we'll call LoadDataForPage() for this page, every
+		// time the radio button choice is changed. Strictly speaking, one listing of the
+		// KB definitions gets all the adapting ones, and all the glossing ones, in one
+		// hit - so once called for, say, to see the adapting KB definitions, we don't
+		// need to make another call of ListKbs() to the kbserver to get the glossing ones
+		// - we already have those in a separate list. But it convolutes the code if we
+		// want to inhibit a second ListKbs() call when, say, the glossing KB definitions
+		// radio button is clicked. Much easier just to recall it, and separate into
+		// types, and show the wanted set of KB definitions (ignoring the ones not
+		// requested). 
+		
+		// Clear out anything from a previous button press done on this page
+		// ==================================================================
+		m_pEditSourceKbsListBox->Clear();
+		m_pEditNonSourceKbsListBox->Clear();
+		wxCommandEvent dummy;
+		OnButtonEditKbsPageClearControls(dummy);
+		DeleteClonedKbServerKbStruct(); // ensure it's freed & ptr is NULL
+		m_pKbServer->ClearKbsList(m_pOriginalKbsList);
+		if (!m_pKbsList_Tgt->empty())
+		{
+			m_pKbsList_Tgt->clear(); // remove the ptr copies
+		}
+		if (!m_pKbsList_Gls->empty())
+		{
+			m_pKbsList_Gls->clear(); // remove the ptr copies
+		}
+		// The m_pKbsList will be cleared within the ListKbs() call done below, so it
+		// is unnecessary to do it here now
+		// ==================================================================
 
-// TODO ***************  this block
+		// Get the kbs data from the server, store in the list of KbServerKb structs,
+		// the call will clear the list first before storing what the server returns;
+		// then separate the structs into two lists, by type (adapting versus glossing)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage() Edits page: m_pKbServer = %x , m_bStateless = %d, page (1-based) = %d"),
+		m_pKbServer, (int)m_pKbServer->m_bStateless, pageNumSelected + 1);
+#endif
+		wxString username = m_pKbServer->GetKBServerUsername(); // for authentication, and for the username 
+																// field in the KB definition
+		wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
+		CURLcode result = CURLE_OK;
+		if (!username.IsEmpty() && !password.IsEmpty())
+		{
+			result = (CURLcode)m_pKbServer->ListKbs(username, password);
+			if (result == CURLE_OK)
+			{
+				if (m_pKbsList->empty())
+				{
+					// Don't expect an empty list, so an English message will suffice
+					wxMessageBox(_T("LoadDataForPage() error, Edit KBs page, the returned list of KBs was empty. Fix this."),
+					_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
+					m_pKbServer->ClearKbsList(m_pKbsList);
+					return;
+				}
 
+				// Copy the list, before user gets a chance to modify anything
+				CopyKbsList(m_pKbsList, m_pOriginalKbsList); // param 1 is src list, param2 is dest list
 
+				// Separate into lists of adapting versus glossing KB definition structs
+				SeparateKbServerKbStructsByType(m_pKbsList, m_pKbsList_Tgt, m_pKbsList_Gls);
+
+				// Load according to the page's state: either adapting KB definitions, or
+				// glossing KB definitions - as determined by the state of the radio
+				// buttons.
+                // Load the source code strings into m_pSourceKbsListBox, and the
+                // m_pNonSourceKbsListBox; neither of these listboxes is sorted, but the
+                // codes in the left one are in sorted order by src code followed by space
+                // then the non-source code - so the right hand list shows sorting by the
+                // non-source code, whenever there are more than one source codes which are
+                // the same. We do that by preloading them into a sorted wxListBox
+                // temporary instance created internally, and then having gotten the
+                // required order, we scan this internal temporary list box and create the
+                // entries in the two visible list boxes in the top down (sorted) order
+                // that we want the user to see. This enables us to easily keep the
+                // correspondences between src-tgt, or src-gloss pairs for the two list
+                // boxes. The corresponding tgt or glosses codes are listed in the
+                // "Corresponding..." list - that one is on the right of the two.
+                // Note 1: the client data for each KB source code string added to the left
+                // list box is the ptr to the KbServerKb struct itself which supplied the
+                // KB source code string, the struct coming from m_pKbsList.
+				// Note 2: the first param, m_bKBisType1 selects which of the following
+				// params are used internally: if TRUE is passed in, then the two lists
+				// are populated using the contents of m_pKbsList_Tgt list. If FALSE is
+				// passed in, then instead the two lists are populated by the
+				// m_pKbsList_Gls list
+				LoadLanguageCodePairsInListBoxes_CreatePage(m_bKBisType1, m_pKbsList_Tgt, 
+							m_pKbsList_Gls, m_pEditSourceKbsListBox, m_pEditNonSourceKbsListBox);
+			}
+			else
+			{
+				// If there was a cURL error, it will have been generated from within
+				// ListUsers() already, so that will suffice
+				;
+			}
+		}
+		else
+		{
+			// Don't expect this error, so an English message will do
+			wxMessageBox(_T("LoadDataForPage() unable to call ListKbs(), for edit KB definitions page, because password or username is empty, or both. This Manager page won't work properly until this is fixed."),
+				_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
+		}
 	}
 }
 
@@ -701,7 +848,7 @@ void KBSharingMgrTabbedDlg::SeparateKbServerKbStructsByType(KbsList* pAllKbStruc
 		anIndex++;
 		c_iter = pAllKbStructsList->Item((size_t)anIndex);
 		KbServerKb* pEntry = c_iter->GetData();
-		/* try just doing shallow copies
+		/* just store ptr copies, that's enough for populating the list boxes
 		KbServerKb* pNew = new KbServerKb; // we make deep copies on the heap
 		pNew->id = pEntry->id;
 		pNew->sourceLanguageCode = pEntry->sourceLanguageCode;
@@ -713,13 +860,13 @@ void KBSharingMgrTabbedDlg::SeparateKbServerKbStructsByType(KbsList* pAllKbStruc
 		*/
 		if (pEntry->kbType == (int)1)
 		{
-			//pKbStructs_TgtList->Append(pNew);
-			pKbStructs_TgtList->Append(pEntry); // shallow copy
+			//pKbStructs_TgtList->Append(pNew); // for deep copies only, so comment out
+			pKbStructs_TgtList->Append(pEntry); // store the ptr copy instead
 		}
 		else
 		{
 			//pKbStructs_GlsList->Append(pNew);
-			pKbStructs_GlsList->Append(pEntry); // shallow copy
+			pKbStructs_GlsList->Append(pEntry); // store the ptr copy
 		}
 	}
 	// Note, we cannot assume everyone will create a glossing KB definition to match each
@@ -760,7 +907,8 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerUserStruct();
 
-	// Tidy up for the Create KB Definitions page
+	// Tidy up for the Create KB Definitions page and/or the Edit KB Definitions page -
+	// the same storage is used for either, so the last one used is what we are cleaning up
 	m_pKbServer->ClearKbsList(m_pOriginalKbsList); // this one is local to this
 	delete m_pOriginalKbsList;
 	if (!m_pKbsList_Tgt->empty())
@@ -776,6 +924,11 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	m_pKbServer->ClearKbsList(m_pKbsList); // this one is in the stateless
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerKbStruct();
+
+	// Remove from the heap any KB definitions added in this session of the dialog
+	m_pKbServer->ClearKbsList(m_pKbsAddedInSession);
+	// and also delete their storage list from the heap (created in InitDialog())
+	delete m_pKbsAddedInSession;
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -789,7 +942,7 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerUserStruct();
 
-	// Tidy up for the Create KB Definitions page
+	// Tidy up for the Create KB Definitions page or Edit KB Definitions page
 	m_pKbServer->ClearKbsList(m_pOriginalKbsList); // this one is local to this
 	delete m_pOriginalKbsList;
 	if (!m_pKbsList_Tgt->empty())
@@ -805,6 +958,11 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 	m_pKbServer->ClearKbsList(m_pKbsList); // this one is in the stateless
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerKbStruct();
+
+	// Remove from the heap any KB definitions added in this session of the dialog
+	m_pKbServer->ClearKbsList(m_pKbsAddedInSession);
+	// and also delete their storage list from the heap (created in InitDialog())
+	delete m_pKbsAddedInSession;
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -831,6 +989,15 @@ void KBSharingMgrTabbedDlg::OnButtonCreateKbsPageClearControls(wxCommandEvent& W
 	m_pEditNonSourceCode->ChangeValue(emptyStr);
 }
 
+void KBSharingMgrTabbedDlg::OnButtonEditKbsPageClearControls(wxCommandEvent& WXUNUSED(event))
+{
+	wxString emptyStr = _T("");
+	m_pEditSourceKbsListBox->SetSelection(wxNOT_FOUND);
+	m_pEditNonSourceKbsListBox->SetSelection(wxNOT_FOUND);
+
+	m_pEditEditSourceCode->ChangeValue(emptyStr);
+	m_pEditEditNonSourceCode->ChangeValue(emptyStr);
+}
 
 bool KBSharingMgrTabbedDlg::AreBothPasswordsEmpty(wxString password1, wxString password2)
 {
@@ -938,12 +1105,223 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageAddUser(wxCommandEvent& WXUNUSED(eve
 	DeleteClonedKbServerUserStruct();
 }
 
+void KBSharingMgrTabbedDlg::OnButtonCreateKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event))
+{
+    // Source language code box with a value, target or gloss language code box with a
+    // value, are mandatory. Test for these and if one is not set, abort the button press
+    // and inform the user why. Also, a selection in the list is irrelevant, and it may
+    // mean that the logged in person is about to try to add the selected kb definition a
+    // second time - which is illegal, so test for this and if so, warn, and remove the
+    // selection, and clear the controls & return
+	m_nSel =  m_pSourceKbsListBox->GetSelection(); // get selection from left list box (note:
+				// there might be no selection in the lists, which would be normal; we only
+				// need the two wxTextCtrl contents for the CreateKb() call; we are just
+				// checking for administrator or user confusion here...)
+	wxString textCtrl_SrcLangCode = m_pEditSourceCode->GetValue(); // source lang code wxTextCtrl
+	wxString textCtrl_NonSrcLangCode = m_pEditNonSourceCode->GetValue(); // non-source lang code wxTextCtrl
+	if (m_nSel != wxNOT_FOUND)
+	{
+		// There is a selection - so check the two editboxs' contents don't match any
+		// listed src code - non-src code pair -- if they do, disallow & warn user
+		if (MatchExistingKBDefinition(m_pSourceKbsListBox, m_pNonSourceKbsListBox,
+									  textCtrl_SrcLangCode, textCtrl_NonSrcLangCode))
+		{
+			// Oops, he's trying to add a KB which is already there. Warn, and probably
+			// best to clear the controls to force him to start over
+			wxBell();
+			wxString title = _("This Knowledge Base definition already exists");
+			wxString msg = _("Warning: you are trying to add a knowledge base definition which already exists in the server. This is illegal, each pair of codes must be unique.\n To add a new definition, one or both of the codes, in the text entry boxes at the bottom, must be different in some way from the listed pairs in the two list boxes.\nEdit the codes as necessary then use the Add Definition button.\nIf what you are trying to do is to edit one or both codes of an existing knowledge base definition, you can do that only in the next page of the dialog, not this one.");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			wxCommandEvent dummy;
+			OnButtonCreateKbsPageClearControls(dummy);
+			return;
+		}
+	}
+	// Clear the selections, they can play no further part
+	m_pSourceKbsListBox->SetSelection(wxNOT_FOUND);
+	m_pNonSourceKbsListBox->SetSelection(wxNOT_FOUND);
+
+	// Test that neither wxTextCtrl has an empty string in it, and that each string is at
+	// least 2 chars in length
+	int srcCodeLength = textCtrl_SrcLangCode.Len();
+	int nonsrcCodeLength = textCtrl_NonSrcLangCode.Len();
+	if ((srcCodeLength < 2) || (nonsrcCodeLength < 2))
+	{
+		wxString msg;
+		msg = _("One or more of the two text boxes (next to the Add Definition button) contain too short a code, or no code.\nEach of these must have an appropriate language code typed into them before an Add Definition request will be honoured. Do so now.\nIt may help if you find the correct codes by using the Lookup ISO639 Codes button, and if you are dealing with dialects, reading the information in Using RFC5646 Codes is important too.");
+		wxString title = _("Warning: Illegal or empty code");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		return;
+	}
+	else
+	{
+		// Create the new KB definition in the kbserver's kb table
+		CURLcode result = CURLE_OK;
+		result = (CURLcode)m_pKbServer->CreateKb(textCtrl_SrcLangCode, textCtrl_NonSrcLangCode, m_bKBisType1);
+		// Update the page if we had success, if no success, just clear the controls
+		if (result == CURLE_OK)
+		{
+			// Add a KbServerKb struct to m_pKbsAddedInSession so that we can test for
+			// which ones have been added in the tabbed dialog's session (not all fields
+			// of the struct will be filled out) -- Remove Selected Definition button will
+			// use this list
+			KbServerKb* pAddedKbDef = new KbServerKb;
+			pAddedKbDef->sourceLanguageCode = textCtrl_SrcLangCode;
+			pAddedKbDef->targetLanguageCode = textCtrl_NonSrcLangCode;
+			int itsType = m_bKBisType1 ? 1 : 2;
+			pAddedKbDef->kbType = itsType;
+			m_pKbsAddedInSession->Append(pAddedKbDef);
+
+			// Update the page to show what has happened
+			LoadDataForPage(m_nCurPage);
+		}
+		else
+		{
+			// The creation did not succeed -- an error message will have been shown
+			// from within the above CreateUser() call
+			wxCommandEvent dummy;
+			OnButtonCreateKbsPageClearControls(dummy);
+		}
+	}
+	DeleteClonedKbServerKbStruct();
+}
+
+void KBSharingMgrTabbedDlg::OnButtonEditKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event))
+{
+	// Calls:
+	// int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
+	//					int kbType, KbServerKb* pEditedKbStruct)
+
+	// Only src or non-src, or both, codes may be changed. KB type cannot be changed (that
+	// would not make sense). The KbServerKb* stored as client data in the src code
+	// entries of the left box have the kb definition ID value for each definition, so we
+	// use the selection to get the ID we need for the update. The two text boxes supply
+	// the new codes. We don't try to make any test for validity of the new code or codes.
+	// If the administrator gets it wrong, he can come back later and edit again to make
+	// the codes what they should be.
+	m_nSel = m_pEditSourceKbsListBox->GetSelection(); // get selection from left list box
+	wxString textCtrl_SrcLangCode = m_pEditEditSourceCode->GetValue(); // source lang code wxTextCtrl
+	wxString textCtrl_NonSrcLangCode = m_pEditEditNonSourceCode->GetValue(); // non-source lang code wxTextCtrl
+
+	// Get the KbServerKb struct for the definition selected. It has the ID, and also what
+	// the earlier values of the codes were. We need construct JSON data only for what has
+	// changed, so we'll pass an empty string for a code which is unchanged.
+    // m_pKbStruct has the KbServerKb struct ptr value which is that for the just-selected
+	// KB definition; and m_pOriginalKbStruct is a copy of it. We don't want to change
+	// either - in case the UpdateKb() call fails, in that scenario since we won't have
+	// done a LoadDataForPage(), we want the page data to be still correct. So we'll
+	// create a temporary KbServerKb* on the heap, copying m_pKbStruct to it, and
+	// immediately after the UpdateKb() call, delete it from the heap. That's more robust.
+	wxASSERT(m_pKbStruct != NULL);
+	long theKbID = m_pKbStruct->id; // must not be changed
+	int theKbType = m_pKbStruct->kbType; // must not be changed
+
+	wxString oldSrcCode = m_pKbStruct->sourceLanguageCode;
+	wxString oldNonSrcCode = m_pKbStruct->targetLanguageCode;
+	bool bUpdateSourceLanguageCode = FALSE; // initialize
+	bool bUpdateNonSourceLanguageCode = FALSE; // initialize
+
+	// Make the temporary KbserverKb struct on the heap
+	KbServerKb* pTempKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
+
+	// Make the needed changes
+	if (textCtrl_SrcLangCode != oldSrcCode)
+	{
+		bUpdateSourceLanguageCode = TRUE;
+		pTempKbStruct->sourceLanguageCode = textCtrl_SrcLangCode; // replace with new value
+	}
+	if (textCtrl_NonSrcLangCode != oldNonSrcCode)
+	{
+		bUpdateNonSourceLanguageCode = TRUE;
+		pTempKbStruct->targetLanguageCode = textCtrl_NonSrcLangCode; // replace with new value
+	}
+	if (!bUpdateNonSourceLanguageCode && !bUpdateSourceLanguageCode)
+	{
+		wxBell();
+		wxString title = _("Nothing to do");
+		wxString msg = _("Warning: you did not edit either of the language codes in the text boxes. Edit one or both codes as necessary then use the Update Definition button.\nIf what you are trying to do is to add a new knowledge base definition, you can do that only in the previous page of the dialog, not this one.");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		wxCommandEvent dummy;
+		OnButtonEditKbsPageClearControls(dummy);
+		delete pTempKbStruct; // don't leak memory
+		return;
+	}
+	// Clear the selections, they can play no further part
+	m_pEditSourceKbsListBox->SetSelection(wxNOT_FOUND);
+	m_pEditNonSourceKbsListBox->SetSelection(wxNOT_FOUND);
+
+	// Test that neither wxTextCtrl has an empty string in it, and that each string is at
+	// least 2 chars in length
+	int srcCodeLength = textCtrl_SrcLangCode.Len();
+	int nonsrcCodeLength = textCtrl_NonSrcLangCode.Len();
+	if ((srcCodeLength < 2) || (nonsrcCodeLength < 2))
+	{
+		wxBell();
+		wxString msg;
+		msg = _("One or more of the two text boxes (next to the Add Definition button) contain too short a code, or no code.\nEach of these must have an appropriate language code typed into them before an Update Definition request will be honoured. Do so now.\nIt may help if you find the correct codes by using the Lookup ISO639 Codes button, and if you are dealing with dialects, reading the information in Using RFC5646 Codes is important too.");
+		wxString title = _("Warning: Illegal or empty code");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		delete pTempKbStruct; // don't leak memory
+		return;
+	}
+	else
+	{
+		// Update the KB definition in the kbserver's kb table
+		CURLcode result = CURLE_OK;
+		result = (CURLcode)m_pKbServer->UpdateKb(theKbID, bUpdateSourceLanguageCode,  
+								bUpdateNonSourceLanguageCode, theKbType, pTempKbStruct);
+		delete pTempKbStruct; // don't leak memory
+		// Update the page if we had success, if no success, just clear the controls
+		if (result == CURLE_OK)
+		{
+			// Update the page to show what has happened
+			LoadDataForPage(m_nCurPage);
+		}
+		else
+		{
+			// The update did not succeed -- an error message will have been shown
+			// from within the above CreateUser() call
+			wxCommandEvent dummy;
+			OnButtonEditKbsPageClearControls(dummy); // m_pKbStruct & m_pOriginalKbStruct remain 
+								// valid until a new click to select a definition happens
+		}
+	}
+	DeleteClonedKbServerKbStruct();
+}
+
+// Return TRUE if the KB definition defined by pKbDefToTest matches one of those stored
+// in pKbsList, FALSE otherwise
+bool KBSharingMgrTabbedDlg::IsThisKBDefinitionInSessionList(KbServerKb* pKbDefToTest, KbsList* pKbsList)
+{
+	if (pKbsList == NULL || pKbsList->empty())
+		return FALSE;
+	KbsList::iterator iter;
+	KbsList::compatibility_iterator c_iter;
+	int anIndex = -1;
+	for (iter = pKbsList->begin(); iter != pKbsList->end(); ++iter)
+	{
+		anIndex++;
+		c_iter = pKbsList->Item((size_t)anIndex);
+		KbServerKb* pEntry = c_iter->GetData();
+		bool bsrcCodeIsSame = pKbDefToTest->sourceLanguageCode == pEntry->sourceLanguageCode;
+		bool bnonsrcCodeIsSame = pKbDefToTest->targetLanguageCode == pEntry->targetLanguageCode;
+		bool bTypeIsAMatch = pKbDefToTest->kbType == pEntry->kbType;
+		if (bsrcCodeIsSame && bnonsrcCodeIsSame && bTypeIsAMatch)
+		{
+			return TRUE;
+		}
+	}
+	// If control gets to here, there was no match
+	return FALSE;
+}
+
 // When I checked the kbserver at kbserver.jmarsden.org, I found that the earliest user
 // (using timestamp values) was not Jonathan as expected, but me - and I didn't set up
 // that server instance, he did. So preventing the earliest user from being deleted may
 // not be a robust way to ensure someone with useradmin = true privilege level is always
-// retained in the user table. My fallback, unless Jonathan gives me some other clue, will
-// be to simply prevent any user with useradmin = true privilege level from being deleted.
+// retained in the user table. So Jonathan said the way to do it is to look at all the
+// users with useradmin privilege, and protect the one with the lowest ID value from being
+// deleted, which is the way I've chosen to go
 void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(event))
 {
 	// Get the ID value, if we can't get it, return
@@ -985,6 +1363,98 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 			OnButtonUserPageClearControls(dummy);
 		}
 		DeleteClonedKbServerUserStruct();
+	}
+}
+
+void KBSharingMgrTabbedDlg::OnButtonCreateKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event))
+{
+	// Get the ID value, if we can't get it, return
+	if (m_pOriginalKbStruct == NULL)
+	{
+		wxBell();
+		return;
+	}
+	else
+	{
+		wxString msg = _("This KB definition is not able to be removed.\n(Assume it is a parent definition to one or more knowledge base adaptation entries).");
+		wxString title = _("Warning: Illegal KB definition deletion attempt");
+
+		// Test for absence of the selected definition being in the list of KB definitions
+		// added in this session of the KB Sharing Manager gui; (comment out this test and
+		// the TRUE block which follows, to have the deletion tried anyway)
+		if (!IsThisKBDefinitionInSessionList(m_pOriginalKbStruct, m_pKbsAddedInSession))
+		{
+			// This definition should not be deleted
+			wxBell();
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			return;
+		}
+		int nID = (int)m_pOriginalKbStruct->id;
+		// Remove the selected kb definition from the kbserver's kb table
+		CURLcode result = CURLE_OK;
+		result = (CURLcode)m_pKbServer->RemoveKb(nID);
+		// Update the page if we had success, if no success, just clear the controls
+		if (result == CURLE_OK)
+		{
+			LoadDataForPage(m_nCurPage);
+		}
+		else
+		{
+            // The removal did not succeed- probably because it is parent to entries in the
+            // entry table -- an error message will have been shown from within the above
+            // RemoveKb() call
+			wxCommandEvent dummy;
+			OnButtonCreateKbsPageClearControls(dummy);
+			wxBell();
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		}
+		DeleteClonedKbServerKbStruct();
+	}
+}
+
+void KBSharingMgrTabbedDlg::OnButtonEditKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event))
+{
+	// Get the ID value, if we can't get it, return
+	if (m_pOriginalKbStruct == NULL)
+	{
+		wxBell();
+		return;
+	}
+	else
+	{
+		wxString msg = _("This KB definition is not able to be removed.\n(Assume it is a parent definition to one or more knowledge base adaptation entries).");
+		wxString title = _("Warning: Illegal KB definition deletion attempt");
+
+		// Test for absence of the selected definition being in the list of KB definitions
+		// added in this session of the KB Sharing Manager gui; (comment out this test and
+		// the TRUE block which follows, to have the deletion tried anyway)
+		if (!IsThisKBDefinitionInSessionList(m_pOriginalKbStruct, m_pKbsAddedInSession))
+		{
+			// This definition should not be deleted
+			wxBell();
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			return;
+		}
+		int nID = (int)m_pOriginalKbStruct->id;
+		// Remove the selected kb definition from the kbserver's kb table
+		CURLcode result = CURLE_OK;
+		result = (CURLcode)m_pKbServer->RemoveKb(nID);
+		// Update the page if we had success, if no success, just clear the controls
+		if (result == CURLE_OK)
+		{
+			LoadDataForPage(m_nCurPage);
+		}
+		else
+		{
+            // The removal did not succeed- probably because it is parent to entries in the
+            // entry table -- an error message will have been shown from within the above
+            // RemoveKb() call
+			wxCommandEvent dummy;
+			OnButtonCreateKbsPageClearControls(dummy);
+			wxBell();
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		}
+		DeleteClonedKbServerKbStruct();
 	}
 }
 
@@ -1261,6 +1731,276 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageEditUser(wxCommandEvent& WXUNUSED(ev
 	DeleteClonedKbServerUserStruct();
 }
 
+// Return TRUE if the code pair (srcLangCodeStr,nonsrcLangCodeStr) match the pair in any
+// row of the two listboxes pSrcCodeList and pNonSrcCodeList. FALSE if there is at least
+// one difference. The listboxes have the same number of rows, that's guaranteed
+bool KBSharingMgrTabbedDlg::MatchExistingKBDefinition(wxListBox* pSrcCodeList, wxListBox* pNonSrcCodeList,
+							wxString& srcLangCodeStr, wxString& nonsrcLangCodeStr)
+{
+	unsigned int count = pSrcCodeList->GetCount();
+	wxString srcCodeVal;
+	wxString nonsrcCodeVal;
+	unsigned int index;
+	for (index = 0; index < count; index++)
+	{
+		srcCodeVal = pSrcCodeList->GetString(index);
+		wxASSERT(!srcCodeVal.IsEmpty());
+		nonsrcCodeVal = pNonSrcCodeList->GetString(index);
+		wxASSERT(!nonsrcCodeVal.IsEmpty());
+		if ( (srcCodeVal == srcLangCodeStr) && (nonsrcCodeVal == nonsrcLangCodeStr) )
+		{
+			return TRUE;
+		}
+	}
+	// If control gets to here, there was no match
+	return FALSE;
+}
+
+// When the administrator clicks on a kb definition line in one or the other listboxes of
+// the Create Kbs page of the Manager, follow through on populating the various structs
+// etc, even though it is only the final contents of the two text boxes that the CreateKb()
+// call relies on. This handler is only called when the left list is clicked to make a
+// selection
+void KBSharingMgrTabbedDlg::OnSelchangeSrcLangCodesList(wxCommandEvent& WXUNUSED(event))
+{
+    if (m_pSourceKbsListBox == NULL)
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	if (m_pSourceKbsListBox->IsEmpty())
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+    // The GetSelection() call returns -1 if there is no selection current. The CreateKb()
+    // call doesn't rely on a selection having been made, since at least one of the
+    // language codes for the newly created KB definition will need to be different from
+    // the definition selected. However the selection will populate KbServerKb structs, and
+    // the administrator may want to spin off a new KB definition by editing value(s)
+    // obtained from such a struct
+	m_nSel = m_pSourceKbsListBox->GetSelection();
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeSourceLangCodesList(): selection index m_nSel = %d"), m_nSel);
+#endif
+	// Get the source language code
+	wxString theSrcLangCode = m_pSourceKbsListBox->GetString(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeSourceLangCodesList(): from list... source_lang_code = %s"), theSrcLangCode.c_str());
+#endif
+	// Get the entry's KbServerKb struct which is its associated client data
+	m_pKbStruct = (KbServerKb*)m_pSourceKbsListBox->GetClientData(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeSourceLangCodesList(): ptr to client data... m_pKbStruct = %x"), (void*)m_pKbStruct);
+#endif
+	wxASSERT(theSrcLangCode == m_pKbStruct->sourceLanguageCode);
+
+	// Get the non-source language code, and set the selection in the other list to the
+	// same row index
+	wxString nonSrcLangCode = m_pKbStruct->targetLanguageCode;
+	m_pNonSourceKbsListBox->SetSelection(m_nSel);
+	// Check, in debug build, we got it right
+	wxString fromRHS_List = m_pNonSourceKbsListBox->GetString(m_nSel);
+	wxASSERT(nonSrcLangCode == fromRHS_List);
+	fromRHS_List = nonSrcLangCode; // avoid compiler warning in Release build
+
+	// Put a copy in m_pOriginalKbStruct
+	DeleteClonedKbServerKbStruct();
+	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)"), 
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+#endif
+
+	// Fill the Create KB definition page's controls with their required data; the
+	// logged in user can then edit the parameters
+	m_pEditSourceCode->ChangeValue(theSrcLangCode);
+	m_pEditNonSourceCode->ChangeValue(nonSrcLangCode);
+}
+
+// A user/administrator click to make a selection in the left or right list is mandatory
+// for the correct functioning of the Edit Kb Definitions page of the Manager gui
+void KBSharingMgrTabbedDlg::OnSelchangeEditSrcLangCodesList(wxCommandEvent& WXUNUSED(event))
+{
+    if (m_pEditSourceKbsListBox == NULL)
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	if (m_pEditSourceKbsListBox->IsEmpty())
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	// The GetSelection() call returns -1 if there is no selection current, so check for
+	// this and return (with a beep) if that's what got returned
+	m_nSel = m_pEditSourceKbsListBox->GetSelection();
+	if (m_nSel == wxNOT_FOUND)
+	{
+		wxBell();
+		return;
+	}
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditSourceLangCodesList(): selection index m_nSel = %d   on Page3"), m_nSel);
+#endif
+	// Get the source language code
+	wxString theSrcLangCode = m_pEditSourceKbsListBox->GetString(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditSourceLangCodesList(): from list... source_lang_code = %s   on Page3"), theSrcLangCode.c_str());
+#endif
+	// Get the entry's KbServerKb struct which is its associated client data
+	m_pKbStruct = (KbServerKb*)m_pEditSourceKbsListBox->GetClientData(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditSourceLangCodesList(): ptr to client data... m_pKbStruct = %x   on Page3"), (void*)m_pKbStruct);
+#endif
+	wxASSERT(theSrcLangCode == m_pKbStruct->sourceLanguageCode);
+	// Put who created the definition originally in the "Original Creator" read-only text
+	// box
+	m_pEditKbDefinitionCreator->ChangeValue(m_pKbStruct->username);
+
+	// Get the non-source language code, and set the selection in the other list to the
+	// same row index
+	wxString nonSrcLangCode = m_pKbStruct->targetLanguageCode;
+	m_pEditNonSourceKbsListBox->SetSelection(m_nSel);
+	// Check, in debug build, we got it right
+	wxString fromRHS_List = m_pEditNonSourceKbsListBox->GetString(m_nSel);
+	wxASSERT(nonSrcLangCode == fromRHS_List);
+	fromRHS_List = nonSrcLangCode; // avoid compiler warning in Release build
+
+	// Put a copy in m_pOriginalKbStruct
+	DeleteClonedKbServerKbStruct();
+	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)  on Page3"), 
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+#endif
+
+	// Fill the Create KB definition page's controls with their required data; the
+	// logged in user can then edit the parameters
+	m_pEditEditSourceCode->ChangeValue(theSrcLangCode);
+	m_pEditEditNonSourceCode->ChangeValue(nonSrcLangCode);
+}
+
+// When the administrator clicks on a kb definition line in one or the other listboxes of
+// the Create Kbs page of the Manager, follow through on populating the various structs
+// etc, even though it is only the final contents of the two text boxes that the CreateKb()
+// call relies on. This handler is only called when the right list is clicked to make a
+// selection
+void KBSharingMgrTabbedDlg::OnSelchangeNonSrcLangCodesList(wxCommandEvent& WXUNUSED(event))
+{
+    if (m_pNonSourceKbsListBox == NULL)
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	if (m_pNonSourceKbsListBox->IsEmpty())
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	// The GetSelection() call returns -1 if there is no selection current, so check for
+	// this and return (with a beep) if that's what got returned
+	m_nSel = m_pNonSourceKbsListBox->GetSelection();
+	if (m_nSel == wxNOT_FOUND)
+	{
+		wxBell();
+		return;
+	}
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeNonSourceLangCodesList(): selection index m_nSel = %d"), m_nSel);
+#endif
+	// Get the non-source language code
+	wxString theNonSrcLangCode = m_pNonSourceKbsListBox->GetString(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeNonSourceLangCodesList(): from list... non-source_lang_code = %s"), theNonSrcLangCode.c_str());
+#endif
+	// Get the source language code, and set the selection in the src list to the
+	// same row index
+	m_pSourceKbsListBox->SetSelection(m_nSel);
+	wxString srcLangCode = m_pSourceKbsListBox->GetString(m_nSel);
+	// Get the KbServerKb struct pointer, which is client data associated with the left
+	// box's entries
+	m_pKbStruct = (KbServerKb*)m_pSourceKbsListBox->GetClientData(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeSourceLangCodesList(): ptr to client data... m_pKbStruct = %x"), (void*)m_pKbStruct);
+#endif
+	wxASSERT(srcLangCode == m_pKbStruct->sourceLanguageCode);
+	wxASSERT(theNonSrcLangCode == m_pKbStruct->targetLanguageCode);
+
+	// Put a copy in m_pOriginalKbStruct
+	DeleteClonedKbServerKbStruct();
+	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeNonSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)"), 
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+#endif
+
+	// Fill the Create KB definition page's controls with their required data; the
+	// logged in user can then edit the parameters
+	m_pEditSourceCode->ChangeValue(srcLangCode);
+	m_pEditNonSourceCode->ChangeValue(theNonSrcLangCode);
+}
+
+// A user/administrator click to make a selection in the left or right list is mandatory
+// for the correct functioning of the Edit Kb Definitions page of the Manager gui
+void KBSharingMgrTabbedDlg::OnSelchangeEditNonSrcLangCodesList(wxCommandEvent& WXUNUSED(event))
+{
+    if (m_pEditNonSourceKbsListBox == NULL)
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	if (m_pEditNonSourceKbsListBox->IsEmpty())
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	// The GetSelection() call returns -1 if there is no selection current, so check for
+	// this and return (with a beep) if that's what got returned
+	m_nSel = m_pEditNonSourceKbsListBox->GetSelection();
+	if (m_nSel == wxNOT_FOUND)
+	{
+		wxBell();
+		return;
+	}
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditNonSourceLangCodesList(): selection index m_nSel = %d   on Page3"), m_nSel);
+#endif
+	// Get the non-source language code
+	wxString theNonSrcLangCode = m_pEditNonSourceKbsListBox->GetString(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditNonSourceLangCodesList(): from list... non-source_lang_code = %s   on Page3"), theNonSrcLangCode.c_str());
+#endif
+	// Get the source language code, and set the selection in the src list to the
+	// same row index
+	m_pEditSourceKbsListBox->SetSelection(m_nSel);
+	wxString srcLangCode = m_pEditSourceKbsListBox->GetString(m_nSel);
+	// Get the KbServerKb struct pointer, which is client data associated with the left
+	// box's entries
+	m_pKbStruct = (KbServerKb*)m_pEditSourceKbsListBox->GetClientData(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditSourceLangCodesList(): ptr to client data... m_pKbStruct = %x   on Page3"), (void*)m_pKbStruct);
+#endif
+	wxASSERT(srcLangCode == m_pKbStruct->sourceLanguageCode);
+	wxASSERT(theNonSrcLangCode == m_pKbStruct->targetLanguageCode);
+	// Put who created the definition originally in the "Original Creator" read-only text
+	// box
+	m_pEditKbDefinitionCreator->ChangeValue(m_pKbStruct->username);
+
+	// Put a copy in m_pOriginalKbStruct
+	DeleteClonedKbServerKbStruct();
+	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+    wxLogDebug(_T("OnSelchangeEditNonSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)  on Page3"), 
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+#endif
+
+	// Fill the Create KB definition page's controls with their required data; the
+	// logged in user can then edit the parameters
+	m_pEditEditSourceCode->ChangeValue(srcLangCode);
+	m_pEditEditNonSourceCode->ChangeValue(theNonSrcLangCode);
+}
+
 void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event))
 {
 	// some minimal sanity checks - can't use Bill's helpers.cpp function
@@ -1354,7 +2094,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 
 //*******************************************************************************************
 //
-//************************** Functions for Create KB Definitions page ***********************
+//*********** Functions for Create KB Definitions & Edit KB Defs page ***********************
 //
 //*******************************************************************************************
 
@@ -1383,6 +2123,31 @@ void KBSharingMgrTabbedDlg::OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXU
 	LoadDataForPage(m_nCurPage);
 }
 
+void KBSharingMgrTabbedDlg::OnRadioButton1EditKbsPageType1(wxCommandEvent& WXUNUSED(event))
+{
+	// The user's click has already changed the value held by the radio button
+	m_pRadioEditKBType1->SetValue(TRUE);
+	m_pRadioEditKBType2->SetValue(FALSE);
+
+	// Set the appropriate label for the non-source listbox
+	m_pEditNonSrcCorrespCodesListLabel->SetLabel(m_correspTgtLanguageCodesLabel);
+
+	// Set the appropriate label text for the second text control
+	m_pEditNonSrcLabel->SetLabel(m_tgtLanguageCodeLabel);
+
+	// Record which type of KB we are defining
+	m_bKBisType1 = TRUE;
+
+	// Get it's data displayed (each such call "wastes" one of the sublists, we only
+	// display the sublist wanted, and a new ListKbs() call is done each time -- not
+	// optimal for efficiency, but it greatly simplifies our code)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+	wxLogDebug(_T("OnRadioButton1EditKbsPageType1(): This page # (m_nCurPage + 1) = %d"), m_nCurPage + 1);
+#endif
+	LoadDataForPage(m_nCurPage);
+}
+
+
 void KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event))
 {
 	// The user's click has already changed the value held by the radio button
@@ -1403,6 +2168,30 @@ void KBSharingMgrTabbedDlg::OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXU
 	// optimal for efficiency, but it greatly simplifies our code)
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 	wxLogDebug(_T("OnRadioButton2CreateKbsPageType2(): This page # (m_nCurPage + 1) = %d"), m_nCurPage + 1);
+#endif
+	LoadDataForPage(m_nCurPage);
+}
+
+void KBSharingMgrTabbedDlg::OnRadioButton2EditKbsPageType2(wxCommandEvent& WXUNUSED(event))
+{
+	// The user's click has already changed the value held by the radio button
+	m_pRadioEditKBType2->SetValue(TRUE);
+	m_pRadioEditKBType1->SetValue(FALSE);
+
+	// Set the appropriate label for the non-source listbox
+	m_pEditNonSrcCorrespCodesListLabel->SetLabel(m_correspGlsLanguageCodesLabel);
+
+	// Set the appropriate label text for the second text control
+	m_pEditNonSrcLabel->SetLabel(m_glossesLanguageCodeLabel);
+
+	// Record which type of KB we are defining
+	m_bKBisType1 = FALSE;
+
+	// Get it's data displayed (each such call "wastes" one of the sublists, we only
+	// display the sublist wanted, and a new ListKbs() call is done each time -- not
+	// optimal for efficiency, but it greatly simplifies our code)
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+	wxLogDebug(_T("OnRadioButton2EditKbsPageType2(): This page # (m_nCurPage + 1) = %d"), m_nCurPage + 1);
 #endif
 	LoadDataForPage(m_nCurPage);
 }
@@ -1475,6 +2264,76 @@ void KBSharingMgrTabbedDlg::OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(
 	}
 }
 
+void KBSharingMgrTabbedDlg::OnBtnEditKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event))
+{
+	// Call up CLanguageCodesDlg here so the user can enter language codes for
+	// the source and target languages, or for the source and glossing languages, accoring
+	// to the LangCodesChoice modality.
+	LangCodesChoice whichPairType = source_and_target_only; 
+	if (m_bKBisType1 != TRUE)
+	{
+		// It's not source-to-target that we are dealing with, but glossing mode - that
+		// is, source-to-glosses, so choose the other enum value to pass in
+		whichPairType = source_and_glosses_only;
+	}
+	CLanguageCodesDlg lcDlg(this, whichPairType); // make the parent be
+								// SharedKBManager_CreateUsersPageFunc
+	lcDlg.Center();
+	
+	if (whichPairType == source_and_target_only)
+	{
+		lcDlg.m_sourceLangCode = m_pEditEditSourceCode->GetValue();
+		lcDlg.m_targetLangCode = m_pEditEditNonSourceCode->GetValue();
+	}
+	else if (whichPairType == source_and_glosses_only)
+	{
+		lcDlg.m_sourceLangCode = m_pEditEditSourceCode->GetValue();
+		lcDlg.m_glossLangCode  = m_pEditEditNonSourceCode->GetValue();
+	}
+	else
+	{
+		// Hopefully, this block should never be entered
+		m_pEditEditSourceCode->Clear();
+		lcDlg.m_sourceLangCode.Empty();
+		lcDlg.m_targetLangCode.Empty();
+		m_pEditEditNonSourceCode->Clear();
+		lcDlg.m_glossLangCode.Empty();
+	}
+	lcDlg.m_freeTransLangCode.Empty(); // not used in KB Sharing Manager gui
+	
+	int returnValue = lcDlg.ShowModal();
+	if (returnValue == wxID_CANCEL)
+	{
+		// user cancelled
+		return;
+	}
+	// user pressed OK so update the edit boxes & string members
+	if (whichPairType == source_and_target_only)
+	{
+		m_sourceLangCode = lcDlg.m_sourceLangCode;
+		m_targetLangCode = lcDlg.m_targetLangCode;
+		m_pEditEditSourceCode->ChangeValue(m_sourceLangCode);
+		m_pEditEditNonSourceCode->ChangeValue(m_targetLangCode);
+	}
+	else if (whichPairType == source_and_glosses_only)
+	{
+		m_sourceLangCode = lcDlg.m_sourceLangCode;
+		m_glossLangCode = lcDlg.m_glossLangCode;
+		m_pEditEditSourceCode->ChangeValue(m_sourceLangCode);
+		m_pEditEditNonSourceCode->ChangeValue(m_glossLangCode);
+	}
+	else
+	{
+		// We've wrongly called the constructor for not KB Sharing Manager instance so
+		// just clear the boxes
+		wxBell();
+		m_pEditEditSourceCode->ChangeValue(_T(""));
+		m_pEditEditNonSourceCode->ChangeValue(_T(""));
+	}
+}
+
+// Next function needs no changes to work with Page 2 or 3 of the GUI, only the input
+// params change
 void KBSharingMgrTabbedDlg::LoadLanguageCodePairsInListBoxes_CreatePage(bool bKBTypeIsSrcTgt,
 							KbsList* pSrcTgtKbsList, KbsList* pSrcGlsKbsList,
 							wxListBox* pSrcCodeListBox, wxListBox* pNonSrcCodeListBox)
@@ -1578,7 +2437,13 @@ void KBSharingMgrTabbedDlg::OnBtnCreatePageRFC5646Codes(wxCommandEvent& WXUNUSED
 
 }
 
+void KBSharingMgrTabbedDlg::OnBtnEditKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event))
+{
+	// Display the RFC5646message.htm file in the platform's web browser
 
+}
+
+#endif
 
 
 

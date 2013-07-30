@@ -10137,7 +10137,7 @@ wxSizer *SharedKBManager_EditKbsPageFunc( wxWindow *parent, bool call_fit, bool 
 
     item28->Add( 12, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item32 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Selected Definition"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION_EDITS, _("Remove Selected Definition"), wxDefaultPosition, wxDefaultSize, 0 );
     item32->SetToolTip( _("Change the selected definition to have the updated values in the boxes above") );
     item28->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -10248,6 +10248,7 @@ wxMenuBar *AIMenuBarFunc()
     item4->Append( ID_TOOLS_KB_EDITOR, _("&Knowledge Base Editor...\tCtrl-K"), _("Display dialog for editing the knowledge base") );
     item4->AppendSeparator();
     item4->Append( ID_TOOLS_AUTO_CAPITALIZATION, _("Use Automatic Capitalization"), _("Use automatic capitalization when copying source text"), wxITEM_CHECK );
+    item4->Append( ID_MENU_UPPER_AVAIL, _("Make All Knowledge Base Entries Available"), _("In AutoCapitalization mode, make entries with upper case keys accessible to lookups (this is not a setting, it does a once only action)") );
     item4->AppendSeparator();
     item4->Append( ID_RETRANS_REPORT, _("Re&translation Report..."), _("Output a file listing all retranslations") );
     item4->AppendSeparator();
