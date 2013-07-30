@@ -714,60 +714,6 @@ wxString CKB::TransformToLowerCaseInitial(wxString& str, bool bIsSrcStr)
 // changes of same date within StoreText() etc, of data entries in the KB maps.
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
-	// BEW added 13Mar13. The new default is to aggregate upper and lower case entries as
-	// a collection of lowercase-initial ones in the pTU for lowercase lookups, when
-	// autocapitalization is turned ON, prior to doing the lookup. Then data in upper case
-	// entries added to the KB at some earlier time(s) when autocapitalization was turned
-	// off, is not passed over. Instead, it remains unchanged, but lower case copies are
-	// made and stored in the lowercase pTU for any which do not already reside there,
-	// taken from the upper case equivalents when available. If KB sharing is ON, threads
-	// are fired off so that these lower case copies are also posted to the remote KB (we
-	// copy only non-deleted ones to the lower case pTU). If there is no lower case pTU
-	// yet, we create one and add it to the KB and then populate it with the copy or
-	// copies as explained above. To the user, it looks like both upper and lower KB
-	// entries are used equally. But it's not quite so - instead, the upper case ones
-	// remain as is, but the lower case ones have additional members added, with first
-	// character transformed to lower case, if any are available which are not in the
-	// lower case pTU already, and then a "normal" lower case lookup (with subsequent
-	// capitalization if needed in the document) happens. Since the user may turn auto
-	// capitalization off at some time and add many new entries which are capitalized
-	// ones, if he later turns autocaps back on, we can't assume that for any CTargetUnit
-	// instance that there are no new uppercase entries needing to be transformed to
-	// lowercase and inserted in the lowercase pTU - so we must do this check, and any
-	// needed transfers, each time AutoCapsLookup() is called.
-	// The benefit of this, although there is a small speed penalty, is that no data is
-	// lost to the lookup due to the user switching to auto-capitalization mode, and
-	// secondly, the consistency check will have more data at hand to work with for those
-	// lower case entries which have received transformed former upper case entries.
-	// Upper case entries which are not looked up as yet, at the time of the consistency
-	// check, will be ignored by the consistency check. This could be avoided by coding a
-	// "Tidy up KB" entry in the File menu, which does all such conversions in one hit.
-	// I've declined to add that so as not to complicate the GUI further with something
-	// few users are likely to understand well enough to have confidence to click it.
-	// 
-	// Finally, even though data is moved to lowercase lookup pTU instances, we don't
-	// remove the original uppercase entries. Otherwise, if we did and the user turned
-	// autocapitalization back OFF, then all the upper case entries earier there would be
-	// gone, which he'd probably be rather peeved about. 
-    // We do, however, let him explicitly click a Remove button (in KB Editor or Choose
-    // Translation dialog) to have an adaptation removed if it's lower case exponent
-    // (visible in the list of adaptations and so will appear with lower case initial
-	// letter) originated in a CTargetUnit instance which has upper-case initial key; and
-	// of course, if the m_bDoLegacyLowerCaseLookup flag is FALSE (ie. default value) then
-	// removal may require removal in two (not just one) CTargetUnit instances - one with
-	// upper case key, the other with the corresponding lower case key.
-    // Note: (The !gbCallerIsRemoveButton subtest is explained in another comment about 20
-    // lines below; that explanation applies here too.)
-	if (gbAutoCaps && !gbCallerIsRemoveButton && !m_pApp->m_bDoLegacyLowerCaseLookup)
-	{
-		// Check for a CTargetUnit keyed by an upper-case initial source text word or
-		// phrase, and if found, populate the equivalent lower-case keyed CTargetUnit
-		// with any of the adaptations, or glosses, in the former which are not already in
-		// the latter. If there is no lower-case keyed CTargetUnit yet for this keyStr
-		// passed in, then create one to receive those transformed-to-lower-case copies.
-		UpperToLowerAndTransfer(pMap, keyStr);
-	}
-
 	wxString saveKey;
 	gbMatchedKB_UCentry = FALSE; // ensure it has default value
 								 // before every first lookup
@@ -3810,7 +3756,6 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 // BEW 14Sep11, updated to reflect the improved code in StoreText()
 // BEW 17Oct11, updated to turn off app flag m_bForceAsk before returning (but always
 // after having used the TRUE value if it's value on entry was TRUE)
-// BEW 13Mar13, updated to support the new boolean (member of app class) m_bDoLegacyLowerCaseLookup
 bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -4476,7 +4421,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // BEW 17Oct11, updated to turn of the app flag, m_bForceAsk, if it was TRUE on entry
 // before returning, (but always after having used the TRUE value of course, if passed in
 // as TRUE)
-// BEW 13Mar13, updated to support the new boolean (member of app class) m_bDoLegacyLowerCaseLookup
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on

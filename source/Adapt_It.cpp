@@ -288,6 +288,7 @@ extern std::string str_CURLheaders;
 #include "ProjectPage.h"
 #include "DocPage.h"
 #include "StatusBar.h"
+#include "WaitDlg.h"
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -15380,9 +15381,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW added 7Feb13 (see comments in Adapt_It.h where it is declared, for an
 	// explanation of why we need this)
 	m_bKeepBoxMidscreen = TRUE; // the project config file's value will override this initialization
-
-	// BEW added 13Mar13 (see comments in Adapt_It.h where it is declared, for extra details)
-	m_bDoLegacyLowerCaseLookup = FALSE;
 
 	// Mike & BEW added 20May13, for across-the-app username support
 	m_strUserID = NOOWNER;  // it's set from the basic config file, or if still empty, then
@@ -32451,10 +32449,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
 	pf->AddLine(data);
 
-	// BEW added 13Mar13
-	data.Empty();
-	data << szDoLegacyLowerCaseLookup << tab << (int)m_bDoLegacyLowerCaseLookup;
-	pf->AddLine(data);
+	// BEW added 13Mar13 and removed support for it on 30Jul13; we no longer
+	// write it, but we'll read it if it occurs in anyone's projecct config file
+	//data.Empty();
+	//data << szDoLegacyLowerCaseLookup << tab << (int)m_bDoLegacyLowerCaseLookup;
+	//pf->AddLine(data);
 
 #ifndef _UNICODE
 	// ANSI
@@ -33167,16 +33166,19 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bKeepBoxMidscreen = FALSE;
 			}
 		}
-		// BEW added 13Mar13
+		// BEW added 13Mar13 and removed support on 30Jul13, we'll read it
+		// if present in an older project config file, but not use it anywhere
 		else if (name == szDoLegacyLowerCaseLookup)
 		{
 			if (strValue == _T("1"))
 			{
-				m_bDoLegacyLowerCaseLookup = TRUE;
+				m_bDoLegacyLowerCaseLookup = TRUE; // app uses this nowhere now, 
+									// and does not write out the value anymore
 			}
 			else
 			{
-				m_bDoLegacyLowerCaseLookup = FALSE;
+				m_bDoLegacyLowerCaseLookup = FALSE; // app uses this nowhere now, 
+									// and does not write out the value anymore
 			}
 		}
 		// whm 17Feb12 added the following two from the basic config file. They are
@@ -37250,9 +37252,58 @@ void CAdapt_ItApp::OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUSED(event))
 {
-	int here = 1;
-
-
+	// Initializations...
+	wxString srcKey = _T("");
+	CTargetUnit* pTU = NULL;
+	int mapIndex = wxNOT_FOUND;
+	// maxWords is the max number of MapKeyStringToTgtUnit maps allowed
+	int maxWords;
+	maxWords = (int)MAX_WORDS;
+	CKB* pKB = NULL;
+	if (gbIsGlossing)
+	{
+		wxASSERT(m_pGlossingKB != NULL);
+		pKB = m_pGlossingKB;
+	}
+	else
+	{
+		wxASSERT(m_pKB != NULL);
+		pKB = m_pKB;
+	}
+	int curMaxWords = pKB->m_nMaxWords; // how many of the maps are currently 
+										// in use for this type of KB
+	{
+	CWaitDlg wait(GetMainFrame());
+	wait.Show(); // The function, even for a large KB, is very speedy, 
+				 // so the wait dialog may not be needed. However,
+				 // seeing it, however briefly, does clearly indicate
+				 // the end of the operation
+	// Iterate over all the maps potentially with content
+	MapKeyStringToTgtUnit::iterator iter;
+	for (mapIndex = 0; mapIndex < curMaxWords; mapIndex++)
+	{
+		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[mapIndex];
+		if (!pMap->empty())
+		{
+			for (iter = pMap->begin(); iter != pMap->end(); ++iter)
+			{
+				// For every CTargetUnit instance in this map, make an upper-case key and
+				// search for a CTargetUnit which matches, and if so, make it's
+				// adaptations or glosses lower case and transfer them to lower-case-keyed
+				// equivalent CTargetUnit, making the latter first if it does not yet exist 
+				srcKey = iter->first;
+				wxASSERT(!srcKey.IsEmpty());
+				pTU = iter->second;
+				wxASSERT(pTU != NULL);
+				// Because we are working with hash tables, the following call will do a
+				// lookup within the passed in pMap - it will find at most only two
+				// matches (one if there is no upper-case-keyed CTargetUnit with the
+				// needed key), and so the loops are not order-N-squared, but order-N only
+				pKB->UpperToLowerAndTransfer(pMap, srcKey); // supports kbserver createentry etc
+			} // end of loop: for (iter = pMap->begin(); iter != pMap->end(); ++iter)
+		} // end of TRUE block for test: if (!pMap->empty())
+	} // end of loop: for (mapIndex = 0; mapIndex < curMaxWords; mapIndex++)
+	}
 }
 
 void CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable(wxUpdateUIEvent& event)

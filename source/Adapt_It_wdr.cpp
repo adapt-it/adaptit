@@ -2201,23 +2201,6 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item38, 0, wxGROW|wxALL, 5 );
 
-    wxBoxSizer *item39 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxString strs40[] = 
-    {
-        _("Lookup uses lower and upper case entries. (Slower. Uses all relevant entries.)"), 
-        _("Uses lower case entries, capitalizes as needed. (Faster. Ignores upper case entries.)")
-    };
-    wxRadioBox *item40 = new wxRadioBox( parent, ID_RADIOBOX_LEGACY_LOOKUP, _("Automatic Capitalization Options for Knowledge Base Lookups"), wxDefaultPosition, wxSize(20,-1), 2, strs40, 2, wxRA_SPECIFY_ROWS );
-    item40->SetToolTip( _("The second option makes use of upper case entries, if present in the KB") );
-    item39->Add( item40, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-    item4->Add( item39, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
-
-    wxBoxSizer *item41 = new wxBoxSizer( wxVERTICAL );
-
-    item4->Add( item41, 0, wxGROW|wxALL, 5 );
-
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
     item1->Add( item3, 1, wxALIGN_CENTER, 5 );

@@ -765,84 +765,54 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// in KBEditor.cpp for a full explanation of the need for this flag
 	gbCallerIsRemoveButton = TRUE;
 
-	// BEW added 19Apr13 to support Remove button in ChooseTranslation.dlg and/or the
-	// KBEditor.cpp's Remove button, when the user has the option of two lookup KB regimes
-	if (gpApp->m_bDoLegacyLowerCaseLookup || gbAutoCaps == FALSE)
-	{
-		// This is the option, for versions prior to 6.4.2, if gbAutoCaps is TRUE then it
-		// will ignore any pTU's for which the key string starts with an upper case
-		// letter; of if gbAutoCaps is FALSE, it will do the lookup for the src key 'as is'
 
-		// BEW added 19Feb13 for kbserver support
+	// BEW added 19Feb13 for kbserver support
 #if defined(_KBSERVER)
-		if (gpApp->m_bIsKBServerProject &&
-			gpApp->GetKbServer(gpApp->GetKBTypeForServer())->IsKBSharingEnabled())
-		{
-			KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
+	if (gpApp->m_bIsKBServerProject &&
+		gpApp->GetKbServer(gpApp->GetKBTypeForServer())->IsKBSharingEnabled())
+	{
+		KbServer* pKbSvr = gpApp->GetKbServer(gpApp->GetKBTypeForServer());
 
-			// create the thread and fire it off
-			if (!pCurTargetUnit->IsItNotInKB())
+		// create the thread and fire it off
+		if (!pCurTargetUnit->IsItNotInKB())
+		{
+			Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
+			// populate it's public members (it only has public ones anyway)
+			pPseudoDeleteThread->m_pKbSvr = pKbSvr;
+			pPseudoDeleteThread->m_source = curKey; // curKey is a global wxString
+			pPseudoDeleteThread->m_translation = pRefString->m_translation;
+			// now create the runnable thread with explicit stack size of 10KB
+			wxThreadError error =  pPseudoDeleteThread->Create(10240);
+			if (error != wxTHREAD_NO_ERROR)
 			{
-				Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
-				// populate it's public members (it only has public ones anyway)
-				pPseudoDeleteThread->m_pKbSvr = pKbSvr;
-				pPseudoDeleteThread->m_source = curKey; // curKey is a global wxString
-				pPseudoDeleteThread->m_translation = pRefString->m_translation;
-				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pPseudoDeleteThread->Create(10240);
+				wxString msg;
+				msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(): thread creation failed, error number: %d"),
+					(int)error);
+				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+				//m_pApp->LogUserAction(msg);
+			}
+			else
+			{
+				// no error, so now run the thread (it will destroy itself when done)
+				error = pPseudoDeleteThread->Run();
 				if (error != wxTHREAD_NO_ERROR)
 				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(): thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pPseudoDeleteThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-					//m_pApp->LogUserAction(msg);
-					}
+				wxString msg;
+				msg = msg.Format(_T("Thread_PseudoDelete in ChooseTranslation::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
+				  (int)error);
+				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+				//m_pApp->LogUserAction(msg);
 				}
 			}
 		}
+	}
 #endif
-
-		// remove the corresponding CRefString instance from the knowledge base...
-		// BEW 25Jun10, 'remove' now means, set m_bDeleted = TRUE, etc, and hide it in the GUI
-		wxASSERT(pRefString != NULL);
-		pRefString->SetDeletedFlag(TRUE);
-		pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
-		pRefString->m_refCount = 0;
-	}
-	else
-	{
-		// This is the 6.4.2 and later default situation -- it makes use of upper-case
-		// initial letter key strings for AutoCapsLookup(), and so the Remove button must
-		// remove from both the upper and lower case pTU instances when two such exist in
-		// parallel (one for upper case initial key, the other for lower case initial key)
-		// BEW 23May13, need more logic here to handle when adaptation or gloss is an
-		// empty string
-		if (str.IsEmpty())
-		{
-			// remove the corresponding CRefString instance from the knowledge base...
-			wxASSERT(pRefString != NULL);
-			pRefString->SetDeletedFlag(TRUE);
-			pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
-			pRefString->m_refCount = 0;
-		}
-		else
-		{
-			RemoveParallelEntriesViaRemoveButton(m_pKB, m_nWordsInPhrase - 1, curKey, str);
-		}
-	}
+	// remove the corresponding CRefString instance from the knowledge base...
+	// BEW 25Jun10, 'remove' now means, set m_bDeleted = TRUE, etc, and hide it in the GUI
+	wxASSERT(pRefString != NULL);
+	pRefString->SetDeletedFlag(TRUE);
+	pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+	pRefString->m_refCount = 0;
 
 	// get the count of non-deleted CRefString instances for this CTargetUnit instance
 	int numNotDeleted = pCurTargetUnit->CountNonDeletedRefStringInstances();

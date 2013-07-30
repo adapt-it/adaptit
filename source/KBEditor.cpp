@@ -1418,93 +1418,57 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		m_pListBoxExistingTranslations->Clear();
 	}
 
-	// BEW added 19Apr13 to support Remove button in ChooseTranslation.dlg and/or the
-	// KBEditor.cpp's Remove button, when the user has the option of two lookup KB regimes
-	if (gpApp->m_bDoLegacyLowerCaseLookup || gbAutoCaps == FALSE)
-	{
-		// This is the option, for versions prior to 6.4.2, if gbAutoCaps is TRUE then it
-		// will ignore any pTU's for which the key string starts with an upper case
-		// letter; of if gbAutoCaps is FALSE, it will do the lookup for the src key 'as is'
-
-	
-		// BEW added 22Oct12 for kbserver support
+	// BEW added 22Oct12 for kbserver support
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject &&
-			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
-		{
-			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
+	if (pApp->m_bIsKBServerProject &&
+		pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+	{
+		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
-			// create the thread and fire it off
-			if (!pCurTgtUnit->IsItNotInKB())
+		// create the thread and fire it off
+		if (!pCurTgtUnit->IsItNotInKB())
+		{
+			Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
+			// populate it's public members (it only has public ones anyway)
+			pPseudoDeleteThread->m_pKbSvr = pKbSvr;
+			pPseudoDeleteThread->m_source = m_curKey;
+			pPseudoDeleteThread->m_translation = pRefString->m_translation;
+			// now create the runnable thread with explicit stack size of 1KB
+			wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
+			if (error != wxTHREAD_NO_ERROR)
 			{
-				Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
-				// populate it's public members (it only has public ones anyway)
-				pPseudoDeleteThread->m_pKbSvr = pKbSvr;
-				pPseudoDeleteThread->m_source = m_curKey;
-				pPseudoDeleteThread->m_translation = pRefString->m_translation;
-				// now create the runnable thread with explicit stack size of 1KB
-				wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
+				wxString msg;
+				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(): thread creation failed, error number: %d"),
+					(int)error);
+				wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+				//m_pApp->LogUserAction(msg);
+			}
+			else
+			{
+				// no error, so now run the thread (it will destroy itself when done)
+				error = pPseudoDeleteThread->Run();
 				if (error != wxTHREAD_NO_ERROR)
 				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(): thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pPseudoDeleteThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-					//m_pApp->LogUserAction(msg);
-					}
+				wxString msg;
+				msg = msg.Format(_T("Thread_PseudoDelete in KBEditor::OnButtonRemove(), Thread_Run(): cannot make the thread run, error number: %d"),
+				  (int)error);
+				wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+				//m_pApp->LogUserAction(msg);
 				}
 			}
 		}
+	}
 #endif
-		// Remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
-		// 'remove' in the context of kbVersion 2 just means to retain storage of the
-		// CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata
-		// class's m_deletedDateTime value to the current datetime (when the list is refreshed
-		// by the call to LoadDataForPage() below, the deleted instance won't then appear in
-		// the list), and give it a m_refCount value of 0
-		wxASSERT(pRefString != NULL);
-		pRefString->SetDeletedFlag(TRUE);
-		pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
-		pRefString->m_refCount = 0;
-	}
-	else
-	{
-		// This is the 6.4.2 and later default situation -- it makes use of upper-case
-		// initial letter key strings for AutoCapsLookup(), and so the Remove button must
-		// remove from both the upper and lower case pTU instances when two such exist in
-		// parallel (one for upper case initial key, the other for lower case initial key)
-		// BEW 23May13, needs test here for the adaptation (or gloss in glossing mode)
-		// being empty, because we can't get upper case and lower case variants of an
-		// empty string, so test for an empty string, and if so, then just do the setting
-		// of the m_bDeleted flag on pRefString, etc.
-		if (pRefString->m_translation.IsEmpty())
-		{
-			// Remove the corresponding CRefString instance from the knowledge base...as
-			// explained a little ways above, in the TRUE block
-			wxASSERT(pRefString != NULL);
-			pRefString->SetDeletedFlag(TRUE);
-			pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
-			pRefString->m_refCount = 0;
-		}
-		else
-		{
-			// calls of SetCaseParameters() will be meaningful for source and tgt or
-			// gloss, so go ahead with the following call
-			RemoveParallelEntriesViaRemoveButton(pKB, m_nCurPage, m_curKey, pRefString->m_translation);
-		}
-	}
+	// Remove the corresponding CRefString instance from the knowledge base... BEW 22Jun10,
+	// 'remove' in the context of kbVersion 2 just means to retain storage of the
+	// CRefString instance, but set its m_bDeleted flag to TRUE, and set it's metadata
+	// class's m_deletedDateTime value to the current datetime (when the list is refreshed
+	// by the call to LoadDataForPage() below, the deleted instance won't then appear in
+	// the list), and give it a m_refCount value of 0
+	wxASSERT(pRefString != NULL);
+	pRefString->SetDeletedFlag(TRUE);
+	pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+	pRefString->m_refCount = 0;
 
 #if defined(_DEBUG) && defined(DUALS_BUG)
 	flag = pRefString->GetDeletedFlag() ? _T("TRUE") : _T("FALSE");

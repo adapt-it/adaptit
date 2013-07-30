@@ -60,7 +60,6 @@ public:
 	wxPanel*		m_pPanelAutoInsertColor;
 	wxCheckBox*		m_pCheckShowAdminMenu;
 	wxRadioBox*		m_pRadioBox;
-	wxRadioBox*		m_pRadioBoxLegacyLookup;
 	int		tempMaxToDisplay;
 	int		tempPrecCntxt;
 	int		tempFollCntxt;
@@ -82,7 +81,6 @@ public:
 	void OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event));
 	void OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event));
 	void OnRadioPhraseBoxMidscreen(wxCommandEvent& WXUNUSED(event));
-	void OnRadioLegacyLookup(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes
