@@ -1809,7 +1809,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeSrcLangCodesList(wxCommandEvent& WXUNUSED
 	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)"), 
-		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode.c_str(), m_pKbStruct->kbType);
 #endif
 
 	// Fill the Create KB definition page's controls with their required data; the
@@ -1872,7 +1872,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeEditSrcLangCodesList(wxCommandEvent& WXUN
 	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeEditSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)  on Page3"), 
-		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode.c_str(), m_pKbStruct->kbType);
 #endif
 
 	// Fill the Create KB definition page's controls with their required data; the
@@ -1932,7 +1932,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeNonSrcLangCodesList(wxCommandEvent& WXUNU
 	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeNonSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)"), 
-		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode.c_str(), m_pKbStruct->kbType);
 #endif
 
 	// Fill the Create KB definition page's controls with their required data; the
@@ -1992,7 +1992,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeEditNonSrcLangCodesList(wxCommandEvent& W
 	m_pOriginalKbStruct = CloneACopyOfKbServerKbStruct(m_pKbStruct);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
     wxLogDebug(_T("OnSelchangeEditNonSourceLangCodesList(): m_pKbStruct->sourcelanguage = %s , non-source language code = %s , kbType %d (1 or 2)  on Page3"), 
-		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode, m_pKbStruct->kbType);
+		m_pKbStruct->sourceLanguageCode.c_str(), m_pKbStruct->targetLanguageCode.c_str(), m_pKbStruct->kbType);
 #endif
 
 	// Fill the Create KB definition page's controls with their required data; the
