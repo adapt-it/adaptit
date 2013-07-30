@@ -114,5 +114,6 @@ imagesHADir="${sharedSuppDir}/images/Admin_help"
 imagesHADirSrc="${docsDir}/images/Admin_help"
 mkdir -p "$imagesHADir"
 cp "$docsDir/Help_for_Administrators.htm" "$sharedSuppDir"
+cp "$docsDir/RFC5646.htm" "$sharedSuppDir"
 cp $imagesHADirSrc/*.gif "$imagesHADir"
 
