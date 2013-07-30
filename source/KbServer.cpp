@@ -2282,29 +2282,18 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 	// populate the JSON object
 	jsonval[_T("username")] = username;
 	jsonval[_T("fullname")] = fullname;
-
-	//jsonval[_T("password")] = hisPassword; // IS THIS CORRECT ************ ???????????? ******************* see below
-
-// *** TODO **** possibly I need to make a digest password here, using my md5 function,
-// and username, realm, and the passed in password -- I've asked Jonathan, no
-// reply yet ********************************************************************************************************************************************	
-		//jsonval[_T("password")] = password;
-		
-		// trial code... using digest created here from password passed in; sb
-		// prefix means 'single byte (encoded)'
-		CBString sbPassword = ToUtf8(hisPassword);
-		CBString sbUsername = ToUtf8(username);
-		CBString realm = "kbserver";
-		CBString sbColon = ":";
-		CBString sbDigest = sbUsername + sbColon + realm + sbColon + sbPassword;
-		sbDigest = md5_SB::GetMD5(sbDigest);
-		// wxJson will need it as a UTF-16 string
-		wxString myDigest = ToUtf16(sbDigest); // it's null-byte extended to UTF16 format
-		jsonval[_T("password")] = myDigest;
-/*
-************ BE sure to verify with Jonathan that the above is the right thing to do !!!! **************
-*/
-
+	// *******************************************
+	// Create digest hash here from password passed in; sb prefix means 'single byte (encoded)'
+	CBString sbPassword = ToUtf8(hisPassword);
+	CBString sbUsername = ToUtf8(username);
+	CBString realm = "kbserver";
+	CBString sbColon = ":";
+	CBString sbDigest = sbUsername + sbColon + realm + sbColon + sbPassword;
+	sbDigest = md5_SB::GetMD5(sbDigest);
+	// wxJson will need it as a UTF-16 string
+	wxString myDigest = ToUtf16(sbDigest); // it's null-byte extended to UTF16 format
+	// *******************************************
+	jsonval[_T("password")] = myDigest;
 	long kbadmin = bKbadmin ? 1L : 0L;
 	jsonval[_T("kbadmin")] = kbadmin;
 	long useradmin = bUseradmin ? 1L : 0L;
@@ -2394,6 +2383,112 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 		return CURLE_HTTP_RETURNED_ERROR; 
 	}
 	return 0; // no error
+}
+
+int KbServer::CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt)
+{
+	// entries are always created as "normal" entries, that is, not pseudo-deleted
+	wxASSERT(!srcLangCode.IsEmpty() && !nonsrcLangCode.IsEmpty());
+	CURL *curl;
+	CURLcode result = CURLE_OK; // initialize result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString kbType;
+	if (bKbTypeIsScrTgt) { kbType = _T("1"); } else { kbType = _T("2"); }
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("kb");
+	wxString aUrl, aPwd;
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	// populate the JSON object
+	jsonval[_T("sourcelanguage")] = srcLangCode;
+	jsonval[_T("targetlanguage")] = nonsrcLangCode;
+	jsonval[_T("type")] = kbType;
+	jsonval[_T("user")] = GetKBServerUsername();
+	// No need for the "deleted" flag, for a new KB definition it defaults to 0
+
+	// convert it to string form
+	wxJSONWriter writer; wxString str;
+	writer.Write(jsonval, str);
+	// convert it to utf-8 stored in CBString
+	strVal = ToUtf8(str);
+
+	aUrl = GetKBServerURL() + slash + container;
+	charUrl = ToUtf8(aUrl);
+
+	// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		headers = curl_slist_append(headers, "Accept: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		// ask for the headers to be prepended to the body - this is a good choice here
+		// because no json data is to be returned
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("CreateKb() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+		
+		curl_slist_free_all(headers);
+		str_CURLbuffer.clear();
+
+        // Typically, result will contain CURLE_OK if an error was a HTTP one and so the
+        // next block won't then be entered; don't bother to localize this one, we don't
+        // expect it will happen much if at all
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("CreateKb() result code: %d Error: %s"), 
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error creating a KB definition for kb table"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+    // Work out what to return, depending on whether or not a HTTP error happened, and
+    // which one it was
+	if (m_httpStatusCode >= 400)
+	{
+		// For a CreateEntry() call, 400 "Bad Request" should be the only one we get.
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
+	return 0;
 }
 
 int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
@@ -2544,7 +2639,7 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 // Advanced menu item "Transform adaptations into glosses..." - this takes a src-tgt
 // project and makes the tgt adaptations become glosses in a new project, and it
 // transforms the adapting KB in the original project into the glossing KB in the new
-// project. Then if the user is authorized to make the new project a shared one anad does
+// project. Then if the user is authorized to make the new project a shared one and does
 // so, he can do a bulk upload from the new project, and thereby populate the remote
 // shared KB with adaptions-now-turned-into-glosses). 
 // 
@@ -2586,7 +2681,6 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	{
 		jsonval[_T("targetlanguage")] = pEditedKbStruct->targetLanguageCode;
 	}
-
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
 	writer.Write(jsonval, str);
@@ -2721,6 +2815,91 @@ int KbServer::RemoveUser(int userID)
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("RemoveUser() result code: %d Error: %s"), result, error.c_str());
 			wxMessageBox(msg, _T("Error when deleting a user"), wxICON_EXCLAMATION | wxOK);
+			curl_easy_cleanup(curl);
+			str_CURLbuffer.clear();
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+	str_CURLbuffer.clear();
+
+	// handle any HTTP error code, if one was returned
+	if (m_httpStatusCode >= 400)
+	{
+		// We may get 400 "Bad Request" or 404 Not Found (both should be unlikely)
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
+	return (CURLcode)0; // no error
+}
+
+int KbServer::RemoveKb(int kbID)
+{
+	wxString kbIDStr;
+	wxItoa(kbID, kbIDStr);
+	CURL *curl;
+	CURLcode result; // result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("kb");
+	wxString aUrl, aPwd;
+
+	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	aUrl = GetKBServerURL() + slash + container + slash + kbIDStr;
+	charUrl = ToUtf8(aUrl);
+
+		// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Accept: application/json");
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way when no json is expected back...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("\n\n *** RemoveKb() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+
+		curl_slist_free_all(headers);
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("RemoveKb() result code: %d Error: %s"), result, error.c_str());
+			wxMessageBox(msg, _T("Error when deleting a KB definition"), wxICON_EXCLAMATION | wxOK);
 			curl_easy_cleanup(curl);
 			str_CURLbuffer.clear();
 			return result;

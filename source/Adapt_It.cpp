@@ -5538,6 +5538,17 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// now that there is a tab in Edit / Preferences for Capitalization
 	EVT_MENU(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnToolsAutoCapitalization)
 	EVT_UPDATE_UI(ID_TOOLS_AUTO_CAPITALIZATION, CAdapt_ItApp::OnUpdateToolsAutoCapitalization)
+	// BEW added 30Jul13, took the radio button choice out of Misc tab of preferences, to
+	// make it a choosable menu item for anytime the user wants to ensure his KB lookups
+	// can access as much data as possible. This isn't a setting. It's an operation that
+	// is done on the KB each time it is called. (Calling it a second time after having
+	// called it once will do nothing but waste some time if the user has not, since last
+	// calling it, had Auto Caps turned off and produced some new upper-case-keyed
+	// CTargetUnit instances (which would no be accessed in an Auto Caps lookup without
+	// this feature being available
+	EVT_MENU(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable)
+	EVT_UPDATE_UI(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable)
+	
 	//OnRetransReport is in the View
 	//OnUpdateRetransReport is in the View
 
@@ -5581,10 +5592,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_EDIT_USER_MENU_SETTINGS_PROFILE, CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles)
 	EVT_MENU(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnHelpForAdministrators)
 	EVT_UPDATE_UI(ID_MENU_HELP_FOR_ADMINISTRATORS, CAdapt_ItApp::OnUpdateHelpForAdministrators)
-
+#if defined(_KBSERVER)
 	EVT_MENU(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnKBSharingManagerTabbedDlg) // always potentially needed
 	EVT_UPDATE_UI(ID_MENU_KBSHARINGMGR, CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg)
-
+#endif
 	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
@@ -37237,6 +37248,38 @@ void CAdapt_ItApp::OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event)
 	}
 }
 
+void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUSED(event))
+{
+	int here = 1;
+
+
+}
+
+void CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable(wxUpdateUIEvent& event)
+{
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+
+	if (gbIsGlossing)
+	{
+		if (m_bGlossingKBReady && gbAutoCaps)
+			event.Enable(TRUE);
+		else
+			event.Enable(FALSE);
+	}
+	else
+	{
+		if (m_bKBReady & gbAutoCaps)
+			event.Enable(TRUE);
+		else
+			event.Enable(FALSE);
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   ->  the wxCommandEvent that is generated when the associated
@@ -37256,6 +37299,10 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& event)
 	// upper/lower case definition pane in wizard and Edit Preferences). Some
 	// of the code below should be transferred to the LowerToUpperCaseEquivalencesDlg
 	// and/or LowerToUpperCaseEquivalencesPage routines.
+    // BEW comment 30July13: I think being able to turn this feature on or off at will is
+    // important, and I feel any move towards making the setting 'automatic' would be not
+    // in the best interests of some users. We should have a good discussion before we
+    // change this.
 	CMainFrame *pFrame = GetMainFrame();
 	wxASSERT(pFrame != NULL);
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();

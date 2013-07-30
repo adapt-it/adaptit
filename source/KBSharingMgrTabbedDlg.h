@@ -21,7 +21,7 @@
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "KBSharingMgrTabbedDlg.h"
 #endif
-
+#if defined(_KBSERVER)
 // needed for the KbServerUser and KbServerKb structures
 #include "KbServer.h"
 
@@ -65,7 +65,6 @@ protected:
 	wxStaticText*  m_pNonSrcLabel;
 	wxStaticText*  m_pNonSrcCorrespCodesListLabel;
 
-	//wxTextCtrl*    m_pSrcText;
 	wxTextCtrl*    m_pEditSourceCode;
 	wxTextCtrl*    m_pEditNonSourceCode;
 	wxButton*	   m_pBtnUsingRFC5646Codes;
@@ -74,6 +73,22 @@ protected:
 	wxButton*      m_pBtnLookupLanguageCodes;
 	wxButton*      m_pBtnRemoveSelectedKBDefinition;
 
+	// For Edit KB Definitions page
+	wxRadioButton* m_pRadioEditKBType1;
+	wxRadioButton* m_pRadioEditKBType2;
+	wxListBox*     m_pEditSourceKbsListBox;
+	wxListBox*     m_pEditNonSourceKbsListBox;
+	wxStaticText*  m_pEditNonSrcLabel;
+	wxStaticText*  m_pEditNonSrcCorrespCodesListLabel;
+
+	wxTextCtrl*    m_pEditEditSourceCode;
+	wxTextCtrl*    m_pEditEditNonSourceCode;
+	wxTextCtrl*    m_pEditKbDefinitionCreator;
+	wxButton*	   m_pBtnEditUsingRFC5646Codes;
+	wxButton*      m_pBtnEditUpdateKbDefinition;
+	wxButton*      m_pBtnClearSelectionAndBoxes;
+	wxButton*      m_pBtnEditLookupLanguageCodes;
+	wxButton*      m_pBtnEditRemoveSelectedKBDefinition;
 
 
 	// local copies of globals on the App, for the person using the Manager dialog
@@ -117,24 +132,40 @@ protected:
 	void		  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event));
 	void		  OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event));
 
-	// Functions needed by the Create Kb Definitions page
+	// Functions needed by the Create Kb Definitions page & Edit Kb Definitions page
 	KbServerKb*	  CloneACopyOfKbServerKbStruct(KbServerKb* pExistingStruct);
 	void		  CopyKbsList(KbsList* pSrcList, KbsList* pDestList);
 	void		  DeleteClonedKbServerKbStruct();
-	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList, 
-							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList);
+	bool		  IsThisKBDefinitionInSessionList(KbServerKb* pKbDefToTest, KbsList* pKbsList);
 	void		  LoadLanguageCodePairsInListBoxes_CreatePage(bool bKBTypeIsSrcTgt,
 							KbsList* pSrcTgtKbsList, KbsList* pSrcGlsKbsList,
 							wxListBox* pSrcCodeListBox, wxListBox* pNonSrcCodeListBox);
+	bool		  MatchExistingKBDefinition(wxListBox* pSrcCodeList, wxListBox* pNonSrcCodeList,
+							wxString& srcLangCodeStr, wxString& nonsrcLangCodeStr);
+	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList, 
+							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList);
 		
-		
-
 	// event handlers - Create KB Definitions page
 	void		  OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXUNUSED(event));
 	void		  OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event));
 	void		  OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(event));
 	void		  OnBtnCreatePageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonCreateKbsPageClearControls(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonCreateKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
+	void		  OnSelchangeSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // these two should
+	void		  OnSelchangeNonSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // be in sync
+	void		  OnButtonCreateKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
+
+	// event handlers - Edit KB Definitions page
+	void		  OnRadioButton1EditKbsPageType1(wxCommandEvent& WXUNUSED(event));
+	void		  OnRadioButton2EditKbsPageType2(wxCommandEvent& WXUNUSED(event));
+	void		  OnBtnEditKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event));
+	void		  OnBtnEditKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonEditKbsPageClearControls(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonEditKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event));
+	void		  OnSelchangeEditSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // these two should
+	void		  OnSelchangeEditNonSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // be in sync
+	void		  OnButtonEditKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// All the lists, users or kbs, are SORTED.
@@ -151,6 +182,7 @@ private:
 	KbsList*		  m_pOriginalKbsList; // store copies of KbServerKb structs at
 										  // entry, for comparison with final list after
 										  // edits or additions are done
+	KbsList*		  m_pKbsAddedInSession; // store KbKbserverKb struct ptrs for those added
 	// NOTE: the next two are required so we can separate out the Type1 KBs (adaptation
 	// ones) from the Type2 KBs (glossing ones) into separate lists - and when we populate
 	// these lists, we'll do so with deep copies of the structs, so that we can call
@@ -188,5 +220,5 @@ private:
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
-
+#endif
 #endif /* KBSharingMgrTabbedDlg_h */

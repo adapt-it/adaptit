@@ -160,6 +160,7 @@ public:
 	int		 ChangedSince_Queued(wxString timeStamp);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
+	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
 	int		 ListKbs(wxString username, wxString password);
 	int		 ListUsers(wxString username, wxString password);
@@ -169,6 +170,7 @@ public:
 	int		 LookupUser(wxString url, wxString username, wxString password, wxString whichusername);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
 	int		 RemoveUser(int userID);
+	int		 RemoveKb(int kbID);
 	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin, 
 						KbServerUser* pEditedUserStruct, wxString password);
