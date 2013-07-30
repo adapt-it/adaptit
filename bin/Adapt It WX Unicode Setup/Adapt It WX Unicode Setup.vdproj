@@ -903,6 +903,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_DF2F9DAF4C5D48C2AD28A009EED7216F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_DF52AC20D5A24ABDBCEA034CFE7AEF24"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1030,13 +1036,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_3907672D41004AC39679802E789B45F1"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_3BC76DABF50A421993A3F0FB248810FB"
+        "OwnerKey" = "8:_985039C791B1D541FB08FAE6D0A694A8"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1048,7 +1048,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_985039C791B1D541FB08FAE6D0A694A8"
+        "OwnerKey" = "8:_3BC76DABF50A421993A3F0FB248810FB"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_3907672D41004AC39679802E789B45F1"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -4153,6 +4159,26 @@
             "TargetName" = "8:Image4.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DF2F9DAF4C5D48C2AD28A009EED7216F"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\RFC5646message.htm"
+            "TargetName" = "8:RFC5646message.htm"
+            "Tag" = "8:"
+            "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"

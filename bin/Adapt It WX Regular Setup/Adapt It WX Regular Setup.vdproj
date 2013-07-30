@@ -177,6 +177,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_42D0944DBFFD467A8021575B9A0C30F2"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_44D929360E7A4E4998B49DD0EFD30082"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -790,25 +796,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_32C60601F53F4FCDA814A7AF6371B9E1"
+        "OwnerKey" = "8:_ADB48A2C441F4386A545A0312CD2D162"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_842956BE682946869C96B4CD03B9E5C0"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_30946A1586AF4A6FBD13DCEE62230C71"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_ADB48A2C441F4386A545A0312CD2D162"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -839,6 +833,18 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_CD9B54CB2294CB9E7FA3DC55144482B3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_32C60601F53F4FCDA814A7AF6371B9E1"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_30946A1586AF4A6FBD13DCEE62230C71"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -1463,6 +1469,26 @@
             {
             "SourcePath" = "8:..\\..\\setup Regular\\Localization_Readme.txt"
             "TargetName" = "8:Localization_Readme.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_1CAE16ACBEAC4B628FED36CBC8B4F112"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_42D0944DBFFD467A8021575B9A0C30F2"
+            {
+            "SourcePath" = "8:..\\..\\setup Regular\\RFC5646message.htm"
+            "TargetName" = "8:RFC5646message.htm"
             "Tag" = "8:"
             "Folder" = "8:_1CAE16ACBEAC4B628FED36CBC8B4F112"
             "Condition" = "8:"

@@ -39,7 +39,8 @@
 #include <wx/filesys.h> // for wxFileName
 //#include <wx/dir.h> // for wxDir
 //#include <wx/choicdlg.h> // for wxGetSingleChoiceIndex
-//
+#include <wx/html/htmlwin.h> // for display of the "Help for Administrators.htm" file from the Administrator menu
+
 #if defined(_KBSERVER)
 
 #include "Adapt_It.h"
@@ -47,6 +48,7 @@
 #include "KbServer.h"
 #include "LanguageCodesDlg.h"
 #include "KBSharingMgrTabbedDlg.h"
+#include "HtmlFileViewer.h"
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -647,6 +649,39 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		}
 	}
 }
+
+void KBSharingMgrTabbedDlg::DisplayRFC5646Message()
+{
+	// Display the RFC5646message.htm file in the platform's web browser
+	// The "RFC5646message.htm" file should go into the m_helpInstallPath
+	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
+	wxString helpFilePath = m_pApp->GetDefaultPathForHelpFiles() + m_pApp->PathSeparator + m_pApp->m_rfc5646MessageFileName;
+
+	bool bSuccess = TRUE;
+
+	wxLogNull nogNo;
+	bSuccess = wxLaunchDefaultBrowser(helpFilePath,wxBROWSER_NEW_WINDOW); // result of using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
+
+	if (!bSuccess)
+	{
+		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
+		msg = msg.Format(msg, helpFilePath.c_str());
+		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+		m_pApp->LogUserAction(msg);
+		if (response == wxYES)
+		{
+			wxString title = _("RFC 5646 Guidelines");
+			m_pApp->m_pHtmlFileViewer = new CHtmlFileViewer(this,&title,&helpFilePath);
+			m_pApp->m_pHtmlFileViewer->Show(TRUE);
+			m_pApp->LogUserAction(_T("Launched RFC5646message.htm in HTML Viewer"));
+		}
+	}
+	else
+	{
+		m_pApp->LogUserAction(_T("Launched RFC5646message.htm in browser"));
+	}
+}
+
 
 // Return the pointer to the struct - this should never fail, but we'll return NULL if it does
 KbServerUser* KBSharingMgrTabbedDlg::GetThisUsersStructPtr(wxString& username, UsersList* pUsersList)
@@ -2434,13 +2469,13 @@ void KBSharingMgrTabbedDlg::LoadLanguageCodePairsInListBoxes_CreatePage(bool bKB
 void KBSharingMgrTabbedDlg::OnBtnCreatePageRFC5646Codes(wxCommandEvent& WXUNUSED(event))
 {
 	// Display the RFC5646message.htm file in the platform's web browser
-
+	DisplayRFC5646Message();
 }
 
 void KBSharingMgrTabbedDlg::OnBtnEditKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event))
 {
 	// Display the RFC5646message.htm file in the platform's web browser
-
+	DisplayRFC5646Message();
 }
 
 #endif

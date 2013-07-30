@@ -109,6 +109,7 @@ protected:
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
 	void LoadDataForPage(int pageNumSelected);
+	void DisplayRFC5646Message();
 	void OnTabPageChanging(wxNotebookEvent& event);
 
 protected:

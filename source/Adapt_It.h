@@ -3166,6 +3166,11 @@ public:
 	/// This name is _T("Adapt_It_Quick_Start.htm") on all platforms.
 	wxString m_quickStartHelpFileName;
 
+	/// m_rfc5646MessageFileName stores the actual name of the RFC5646message.htm message file
+	/// for the given platform.
+	/// This name is _T("RFC5646message.htm") on all platforms.
+	wxString m_rfc5646MessageFileName; // whm added 30Jul13 for BEW
+
     /// m_licenseInstallPath stores the path where the license files are installed on the
     /// given platform.
 	/// On wxMSW:   "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"

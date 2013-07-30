@@ -62,6 +62,7 @@ Source: "{#SvnBase}\setup Unicode\Adapt_It_Unicode.exe"; DestDir: "{app}"; Flags
 Source: "{#SvnBase}\setup Unicode\Adapt It changes.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\Adapt_It_Quick_Start.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\Help_for_Administrators.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode\RFC5646message.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\Adapt It Reference.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\Adapt It Tutorial.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode\Adapt_It_Unicode.htb"; DestDir: "{app}"; Flags: ignoreversion
