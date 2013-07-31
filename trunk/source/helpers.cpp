@@ -9573,10 +9573,14 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 	wxString title = _T("KbServer error");
 	CAdapt_ItApp* pApp = &wxGetApp();
 
-	// instantiate an adaptation KbServer instance (doesn't matter which type we use)
+    // Instantiate an adaptation KbServer instance -- doesn't matter which type we use, but
+    // we'll use the 'adaptations' one, however we use a stateless constructor which omits
+    // trying to find currently loaded adapting and glossing local KBs, because we can do
+	// the username validation when no project is open (and so no local KB is loaded yet) -
+	// for example, when the administrator is wanting to access the KB Sharing Manager gui
 	KbServer* pKbSvr = NULL;
-	pKbSvr = new KbServer(1); // 1 is an adaptations one, 2 would be a glossing one
-	// if instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
+	pKbSvr = new KbServer(1,TRUE); // 1 is an adaptations one, TRUE means "it is stateless"
+	// If instantiation failed, then CAdapt_ItApp::m_pKbServer will be NULL still
 	if (pKbSvr == NULL)
 	{
 		// warn developer, message does not need to be localizable; show it only in
