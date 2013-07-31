@@ -2676,10 +2676,18 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	if (bUpdateSourceLanguageCode)
 	{
 		jsonval[_T("sourcelanguage")] = pEditedKbStruct->sourceLanguageCode;
+#if defined(_DEBUG)
+		wxLogDebug(_T("||!@#!@#||  UpdateKb(): updating sourcelanguage code to:  %s  ,  kbType %s"),
+			pEditedKbStruct->sourceLanguageCode.c_str(), kbTypeStr.c_str()); 
+#endif
 	}
 	if (bUpdateNonSourceLanguageCode)
 	{
 		jsonval[_T("targetlanguage")] = pEditedKbStruct->targetLanguageCode;
+#if defined(_DEBUG)
+		wxLogDebug(_T("||!@#!@#||  UpdateKb(): updating non-sourcelanguage code to:  %s  ,  kbType %s"),
+			pEditedKbStruct->sourceLanguageCode.c_str(), kbTypeStr.c_str()); 
+#endif
 	}
 	// convert it to string form
 	wxJSONWriter writer; wxString str;
