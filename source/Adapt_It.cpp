@@ -5549,7 +5549,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// this feature being available
 	EVT_MENU(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable)
 	EVT_UPDATE_UI(ID_MENU_UPPER_AVAIL, CAdapt_ItApp::OnUpdateMakeAllKnowledgeBaseEntriesAvailable)
-	
+
 	//OnRetransReport is in the View
 	//OnUpdateRetransReport is in the View
 
@@ -26849,7 +26849,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
-//* 
+//*
 	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
 		kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
 //*/
@@ -33173,12 +33173,12 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			if (strValue == _T("1"))
 			{
-				m_bDoLegacyLowerCaseLookup = TRUE; // app uses this nowhere now, 
+				m_bDoLegacyLowerCaseLookup = TRUE; // app uses this nowhere now,
 									// and does not write out the value anymore
 			}
 			else
 			{
-				m_bDoLegacyLowerCaseLookup = FALSE; // app uses this nowhere now, 
+				m_bDoLegacyLowerCaseLookup = FALSE; // app uses this nowhere now,
 									// and does not write out the value anymore
 			}
 		}
@@ -37258,8 +37258,6 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 	CTargetUnit* pTU = NULL;
 	int mapIndex = wxNOT_FOUND;
 	// maxWords is the max number of MapKeyStringToTgtUnit maps allowed
-	int maxWords;
-	maxWords = (int)MAX_WORDS;
 	CKB* pKB = NULL;
 	if (gbIsGlossing)
 	{
@@ -37271,11 +37269,11 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 		wxASSERT(m_pKB != NULL);
 		pKB = m_pKB;
 	}
-	int curMaxWords = pKB->m_nMaxWords; // how many of the maps are currently 
+	int curMaxWords = pKB->m_nMaxWords; // how many of the maps are currently
 										// in use for this type of KB
 	{
 	CWaitDlg wait(GetMainFrame());
-	wait.Show(); // The function, even for a large KB, is very speedy, 
+	wait.Show(); // The function, even for a large KB, is very speedy,
 				 // so the wait dialog may not be needed. However,
 				 // seeing it, however briefly, does clearly indicate
 				 // the end of the operation
@@ -37291,7 +37289,7 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 				// For every CTargetUnit instance in this map, make an upper-case key and
 				// search for a CTargetUnit which matches, and if so, make it's
 				// adaptations or glosses lower case and transfer them to lower-case-keyed
-				// equivalent CTargetUnit, making the latter first if it does not yet exist 
+				// equivalent CTargetUnit, making the latter first if it does not yet exist
 				srcKey = iter->first;
 				wxASSERT(!srcKey.IsEmpty());
 				pTU = iter->second;
