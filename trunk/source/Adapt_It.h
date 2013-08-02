@@ -2278,6 +2278,12 @@ public:
 	CPile* m_pActivePile;	// where the phrase box is to be located
 	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
 							// pile location
+#if defined(_DEBUG)
+	// for trying to diagnose a rare 'non stick' bug of edited value in phrase box
+	// observed by Bill and JerryPfaff on Linux, RossJones on Win7, me once only on Win7
+	int      lastActiveSequNum;
+	wxString lastPreEditPhraseBoxStr;
+#endif
 
 	// for selection (other parameters are also involved besides this one)
 	CCellList	m_selection; // list of selected CCell instances
