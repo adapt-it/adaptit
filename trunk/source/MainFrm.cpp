@@ -225,7 +225,7 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 //*)
 
 // includes above
- 
+
 #if defined(_DEBUG)
 extern bool gbPassedAppInitialization;
 #endif
@@ -2542,7 +2542,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 
 		// BEW added 22May13, check that needed language codes are defined for source, target
 		// and gloss languages - get them set up if not so. If user cancels, don't go
-		// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE, 
+		// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE,
 		// make it FALSE
 
 		// BEW 21May13 added the CheckLanguageCodes() call and the if-else
@@ -4115,7 +4115,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 
 #if defined(_KBSERVER)
-	
+
 	// TODO -- code for cached new kbserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
@@ -4165,7 +4165,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 					{
 						delete pThread;
 						wxString msg;
-						msg = msg.Format( _T("Thread_ChangedSince::Run() failed, error: %d  So thread was deleted."), 
+						msg = msg.Format( _T("Thread_ChangedSince::Run() failed, error: %d  So thread was deleted."),
 										(int)mythreaderror);
 						wxString title = _T("Unexpected thread run error");
 						wxMessageBox(msg, title, wxICON_WARNING | wxOK);
@@ -4180,11 +4180,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// If the user has sharing temporarily disabled, reset the boolean to FALSE;
 				// as disabling kb sharing doesn't stop the timer  (we could instead demur
 				// from setting the boolean when sharing is disabled, but then we'd have
-				// to give the timer knowledge of the KbServer instantiations, and it's simpler 
+				// to give the timer knowledge of the KbServer instantiations, and it's simpler
 				// not to do that)
 				gpApp->m_bKbServerIncrementalDownloadPending = FALSE;
 			}
-			
+
 			// Do the removing from queue of the first KbServerEntry struct pointer, and
 			// merge it's contents into the local KB storage, here in main thread. (The
 			// access to the queue is mutex protected, with s_QueueMutex.)  We remove and
@@ -4226,6 +4226,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			// hard to make this error happen
 		CAdapt_ItView* pView = pApp->GetView();
 		int sn = pApp->m_nActiveSequNum - 1;
+		if (sn < 0)
+		{
+		    sn = 0;
+		}
 		CPile* pPile = pView->GetPile(sn);
 		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 		int offset = wxNOT_FOUND;
@@ -4241,7 +4245,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			offset = tgtStr.Find(adaptn);
 			if (offset != wxNOT_FOUND)
 			{
-				// found m_adaption within m_targetStr 
+				// found m_adaption within m_targetStr
 				bOK = TRUE;
 			}
 			else
