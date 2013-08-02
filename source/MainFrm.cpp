@@ -225,6 +225,10 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 //*)
 
 // includes above
+ 
+#if defined(_DEBUG)
+extern bool gbPassedAppInitialization;
+#endif
 
 extern wxMutex KBAccessMutex;
 
@@ -3812,6 +3816,10 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 	event.Skip();
 }
 
+#if defined(_DEBUG)
+int limiter = 0;
+#endif
+
 // OnIdle moved here from the App. When it was in the App it was causing
 // the File | Exit and App x cancel commands to not be responsive there
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -4203,8 +4211,61 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
-
+#endif // for _KBSERVER #defined
+///*
+#if defined(_DEBUG)
+	if (gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1 && limiter == 0)
+	{
+			// Check if the m_pPhrase being written at the last active location is the
+			// same as what is in the CSourcePhrase's m_targetStr at that location.
+			// There's a strange (rare, but maybe more often in Linux) bug that an
+			// edit made in the phrase box goes into the KB normally but when the box
+			// moves on the pre-edited form of the string gets shown at the last box
+			// location. Putting the box there makes the edited form reappear in it,
+			// and then it will 'stick' after the box is moved a second time. It's
+			// hard to make this error happen
+		CAdapt_ItView* pView = pApp->GetView();
+		int sn = pApp->m_nActiveSequNum - 1;
+		CPile* pPile = pView->GetPile(sn);
+		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+		int offset = wxNOT_FOUND;
+		wxString adaptn = pSrcPhrase->m_adaption;
+		wxString tgtStr = pSrcPhrase->m_targetStr;
+		bool bOK = TRUE;
+		if (tgtStr.IsEmpty())
+		{
+			bOK = TRUE; // assume user cleared the phrasebox, so it's okay
+		}
+		else
+		{
+			offset = tgtStr.Find(adaptn);
+			if (offset != wxNOT_FOUND)
+			{
+				// found m_adaption within m_targetStr 
+				bOK = TRUE;
+			}
+			else
+			{
+				// couldn't find m_adaption within m_targetStr ( not expected, unless the
+				// bug has manifested, else m_adapting and m_targetStr should have same
+				// form except for punctuation in the latter sometimes)
+				bOK = FALSE;
+			}
+		}
+		if (bOK)
+		{
+			wxLogDebug(_T("  OK (they are different)   sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
+				sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
+		}
+		else
+		{
+			wxLogDebug(_T("** BAD ** (similar or same, or tgtStr NULL)    sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
+				sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
+		}
+		limiter = 1;
+	}
 #endif
+//*/
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)

@@ -5054,7 +5054,6 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	m_bAbandonable = FALSE;
 	pApp->m_bUserTypedSomething = TRUE;
 	gbRetainBoxContents = TRUE;
-
 	event.Skip();
 	GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
