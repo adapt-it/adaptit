@@ -11,7 +11,7 @@
 /// The CRetranslation class presents retranslation-related functionality to the user.
 /// The code in the CRetranslation class was originally contained in
 /// the CAdapt_ItView class.
-/// BEW 24Jan13, made the 3 update handlers more robust (avoids false positive 
+/// BEW 24Jan13, made the 3 update handlers more robust (avoids false positive
 /// for test of selection)
 /// \derivation		The CNotes class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
@@ -944,7 +944,8 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 				// In case the RossJones m_targetStr not sticking bug comes from here
 		wxLogDebug(_T("BuildRetranslationSourcePhraseInstances(), line 942 Retranslation.cpp, m_targetStr:  %s"),
 					pSrcPhrase->m_targetStr.c_str());
-#endif			m_pView->RemovePunctuation(pDoc,&pIncompleteSrcPhrase->m_key,from_target_text);
+#endif
+			m_pView->RemovePunctuation(pDoc,&pIncompleteSrcPhrase->m_key,from_target_text);
 			pSrcPhrase->m_adaption = pIncompleteSrcPhrase->m_key;
 			//check that all is well
 			wxASSERT(pSrcPhrase->m_nSequNumber == pIncompleteSrcPhrase->m_nSequNumber);
