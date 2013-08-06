@@ -203,14 +203,13 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	// being viewed
 	m_nWordsInPhrase = nWordsInPhrase; // RHS is a global we need to eliminate eventually,
 									   // as also is gbIsGlossing, and gpApp too
+	wxASSERT( m_nWordsInPhrase <= MAX_WORDS && m_nWordsInPhrase > 0);
 	if (gbIsGlossing)
 	{
-		wxASSERT(m_nWordsInPhrase == 1);
 		m_pKB = gpApp->m_pGlossingKB;
 	}
 	else
 	{
-		wxASSERT( m_nWordsInPhrase <= MAX_WORDS && m_nWordsInPhrase > 0);
 		m_pKB = gpApp->m_pKB;
 	}
 	m_pMap = m_pKB->m_pMap[m_nWordsInPhrase-1];

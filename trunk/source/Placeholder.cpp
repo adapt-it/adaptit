@@ -875,6 +875,11 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 					// lost its preceding punctuation (tranferred to placeholder): the simplest
 					// solution is to make it same as the m_adaption member
 					pSrcPhraseInsLoc->m_targetStr = pSrcPhraseInsLoc->m_adaption;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+		wxLogDebug(_T("InsertNullSourcePhrase, line 880 PhraseBox.cpp, m_targetStr:  %s"),
+					pSrcPhraseInsLoc->m_targetStr.c_str());
+#endif
 				}	
 			}
 			else // next block for Left-Association effects
@@ -920,6 +925,11 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
                     // its following punctuation to the placeholder), simplest solution is
                     // to make it same as the m_adaption member
 					pPrevSrcPhrase->m_targetStr = pPrevSrcPhrase->m_adaption;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+		wxLogDebug(_T("InsertNullSourcePhrase, line 927 PhraseBox.cpp, m_targetStr:  %s"),
+					pPrevSrcPhrase->m_adaption.c_str());
+#endif
 				}	
                 // left association when the text to the left is a footnote makes the
                 // inserted text part of the footnote; so get the TextType set correctly

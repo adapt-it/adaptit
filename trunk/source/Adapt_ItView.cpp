@@ -13662,19 +13662,17 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 
 	CKB* pKB;
 	int nCurLongest;
+	// BEW changed next few lines, 6Aug13, because it was not refactored earlier to agree
+	// with the change to use all tabs of the glossing KB in glossing mode
 	if (gbIsGlossing)
 	{
-		pKB = pApp->m_pGlossingKB;
-		nCurLongest = 1; // only one map in the glossing KB, so treat as
-						 // "one word" case whether or not src words or
-						 // phrases are put into this one map
+		pKB = pApp->m_pGlossingKB; 
 	}
 	else
 	{
 		pKB = pApp->m_pKB;
-		nCurLongest = pKB->m_nMaxWords; // no matches are possible for phrases
-										// longer than nCurLongest
 	}
+	nCurLongest = pKB->m_nMaxWords; // no matches are possible for phrases longer than nCurLongest
 
     // BEW added 2July10 if a selection is current, tell the user that the phrase box must
     // first be placed there in order to make the Choose Translation dialog accessible from
@@ -13703,10 +13701,9 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 
 	// check we are within bounds
 	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-	if (gbIsGlossing)
-		nWordsInPhrase = 1;
-	else
-		nWordsInPhrase = pSrcPhrase->m_nSrcWords;
+	// BEW removed test here, 6Aug13 - it was setting nWordsInPhrase to 1 in glossing
+	// mode, and so phrasal lookups never succeeded
+	nWordsInPhrase = pSrcPhrase->m_nSrcWords;
 
 	if (nWordsInPhrase > nCurLongest)
 	{
@@ -14161,6 +14158,13 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			{
 				// it is still empty, so do the restoration etc.
 				pSrcPhrase->m_targetStr = gStrSavedTargetStringWithPunctInReviewingMode;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), m_targetPhrase was empty, Reviewing??\n \
+      sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
+					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), 
+					gStrSavedTargetStringWithPunctInReviewingMode.c_str());
+#endif
 				gStrSavedTargetStringWithPunctInReviewingMode.Empty();
 				gbSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
 				return;
@@ -14290,6 +14294,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// targetStr parameter, with the m_lastAdaptionsPattern member of
 						// the current active pSrcPhrase instance passed in
 						bool bNoChange =  IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str);
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,299 IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str) returns %d  for sequnum  %d"),
+					bNoChange ? 1 : 0, pSrcPhrase->m_nSequNumber);
+#endif
 						if (bNoChange)
 						{
 							// let control continue to the block further below
@@ -14446,11 +14455,16 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					}
 				}
 				pSrcPhrase->m_targetStr = str;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,460 Setting m_targetStr with:  %s   [& then returns]"),
+					str.c_str());
+#endif
 				// do housekeeping (for explanation, see end of the function's comment)
 				pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
 				return;
 			}
-			else
+			else // *Do* copy the source punctuation
 			{
                 // Preceding punctuation can be handled silently. If the user typed
                 // different punctuation, then the user's must override the original
@@ -14615,6 +14629,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				}
 				// now add the final form of the target string to the source phrase
 				pSrcPhrase->m_targetStr = str;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,637, after copying src puncts (if any), Setting m_targetStr with:  %s   [& then returns]"),
+					str.c_str());
+#endif
 			} // end of else block for test: if (!pApp->m_bCopySourcePunctuation)
 		} // end of TRUE block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 		else
@@ -14702,8 +14721,18 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
 					pSrcPhrWord1->m_adaption = word1Proper;
 					pSrcPhrWord1->m_targetStr = word1Proper;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), conjoined_first, line 14,729 Setting m_targetStr with:  %s   [& then returns]"),
+					word1Proper.c_str());
+#endif
 					pSrcPhrWord2->m_adaption = word2Proper;
 					pSrcPhrWord2->m_targetStr = word2Proper;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), conjoined_second, line 14,740 Setting m_targetStr with:  %s   [& then returns]"),
+					word2Proper.c_str());
+#endif
 				}
 				// and the parent should then be empty for m_adaption and m_targetStr
 				pSrcPhrase->m_adaption.Empty();
@@ -14870,12 +14899,16 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 
 				// now add the final form of the target string to the source phrase
 				pSrcPhrase->m_targetStr = str;
-
 			}
 			else
 			{
 				// best we can do in this circumstance is just use targetStr 'as is'
 				pSrcPhrase->m_targetStr = targetStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), conjoined at end, line 14,907 Setting m_targetStr with:  %s   [& then returns]"),
+					targetStr.c_str());
+#endif
 			}
 
 		} // end of else block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))

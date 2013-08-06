@@ -345,9 +345,16 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 	// be active, and the src word at that location will be glossable no matter what.
 	if (gbIsGlossing)
 	{
+		// BEW 6Aug13, I previously missed altering this block when I refactored in order
+		// to have glossing KB use all ten tabs. So instead of putting the key into
+		// phrases[0] as before, it now must be put into whichever one of the array
+		// pertains to how many words, less one, are indicated by m_nSourceWords, and
+		// counter needs to be set to the latter's valuem rather than to 1 as used to be
+		// the case
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		phrases[0] = pSrcPhrase->m_key;
-		return counter = 1;
+		int theIndex = pSrcPhrase->m_nSrcWords - 1;
+		phrases[theIndex] = pSrcPhrase->m_key;
+		return counter = pSrcPhrase->m_nSrcWords;
 	}
 	while (pos != NULL && index < MAX_WORDS)
 	{
@@ -1481,6 +1488,11 @@ b:	pApp->m_bSaveToKB = TRUE;
 				pSrcPhr->m_targetStr = pSrcPhr->m_precPunct + str;
 				pSrcPhr->m_targetStr += pSrcPhr->m_follPunct;
 				translation = pSrcPhr->m_targetStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+		wxLogDebug(_T("MoveToNextPile_InTransliterationMode(), line 1483 PhraseBox.cpp, sets translation global too:  %s"),
+					pSrcPhr->m_targetStr.c_str());
+#endif
 				pApp->m_targetPhrase = translation;
 				gSaveTargetPhrase = translation; // to make it available on
 												 // next auto call of OnePass()
@@ -1741,19 +1753,37 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 	// overwrite the merger's translation - to prevent this, we'll detect this state of affairs
 	// and cause the box to halt, but with the correct (old) adaptation showing. Then we have
 	// unexpected behaviour (ie. the halt), but not an unexpected adaptation string.
+	// BEW 6Aug13, added a gbIsGlossing == TRUE block to the next test
 	if (numPhrases == 0)
 	{
-		if (pSrcPhrase->m_nSrcWords > 1 && !pSrcPhrase->m_adaption.IsEmpty())
+		if (gbIsGlossing)
 		{
-			translation = pSrcPhrase->m_adaption;
-			nWordsInPhrase = 1; // strictly speaking not correct, but it's the value we want
-								// on return to the caller so it doesn't try a merger
-			pApp->m_bAutoInsert = FALSE; // cause a halt
-			return TRUE;
+			if (pSrcPhrase->m_nSrcWords > 1 && !pSrcPhrase->m_gloss.IsEmpty())
+			{
+				translation = pSrcPhrase->m_gloss;
+				nWordsInPhrase = 1;
+				pApp->m_bAutoInsert = FALSE; // cause a halt
+				return TRUE;
+			}
+			else
+			{
+				return FALSE; // return empty string in the translation global wxString
+			}
 		}
 		else
 		{
-			return FALSE; // return empty string in the translation global wxString
+			if (pSrcPhrase->m_nSrcWords > 1 && !pSrcPhrase->m_adaption.IsEmpty())
+			{
+				translation = pSrcPhrase->m_adaption;
+				nWordsInPhrase = 1; // strictly speaking not correct, but it's the value we want
+									// on return to the caller so it doesn't try a merger
+				pApp->m_bAutoInsert = FALSE; // cause a halt
+				return TRUE;
+			}
+			else
+			{
+				return FALSE; // return empty string in the translation global wxString
+			}
 		}
 	}
 
