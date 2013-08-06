@@ -3630,6 +3630,11 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				// m_adaption
 				pSrcPhrase->m_adaption = pOrig->m_adaption;
 				pSrcPhrase->m_targetStr = targetStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("ReplaceMedialPunctuationAndMarkersInMerger(), line 3632 MergeUpdatedSrc.cpp, Setting m_targetStr with:  %s"),
+					targetStr.c_str());
+#endif
 			}
 
 			// the first instance contributes only from stored end-marker fields, and
@@ -3680,6 +3685,11 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				// m_adaption
 				pSrcPhrase->m_adaption = pOrig->m_adaption;
 				pSrcPhrase->m_targetStr = targetStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("ReplaceMedialPunctuationAndMarkersInMerger(), line 3687 MergeUpdatedSrc.cpp, Setting m_targetStr with:  %s"),
+					targetStr.c_str());
+#endif
 			}
 
 			// the last instance contributes only from stored begin-marker fields, and
@@ -3727,6 +3737,11 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				// m_adaption
 				pSrcPhrase->m_adaption = pOrig->m_adaption;
 				pSrcPhrase->m_targetStr = targetStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("ReplaceMedialPunctuationAndMarkersInMerger(), line 3739 MergeUpdatedSrc.cpp, Setting m_targetStr with:  %s"),
+					targetStr.c_str());
+#endif
 			}
 
 			// any other instances contribute from both begin-marker fields and end-marker
@@ -7405,6 +7420,11 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 				tgtStr += pOldSP->m_follPunct;
 				tgtStr += pOldSP->GetFollowingOuterPunct();
 				pOldSP->m_targetStr = tgtStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("TransferForFixedSpaceConjoinedPair(), line 7422 MergeUpdatedSrc.cpp, Setting m_targetStr with:  %s"),
+					tgtStr.c_str());
+#endif
 			}
 			else
 			{
@@ -7418,6 +7438,11 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 				tgtStr += pOldNextSP->m_follPunct;
 				tgtStr += pOldNextSP->GetFollowingOuterPunct();
 				pOldNextSP->m_targetStr = tgtStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("TransferForFixedSpaceConjoinedPair(), line 7440 MergeUpdatedSrc.cpp, Setting m_targetStr with:  %s"),
+					tgtStr.c_str());
+#endif
 			}
 			else
 			{
@@ -7580,6 +7605,11 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 				tgtStr.Empty();
 			}
 			pOldSP->m_targetStr = tgtStr;
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("TransferForFixedSpaceConjoinedPair(), line 7607 MergeUpdatedSrc.cpp, Setting m_targetStr with:  %s"),
+					tgtStr.c_str());
+#endif
 
 			// get the indices right for where to kick off from in the parent
 			oldDoneToIncluding = oldIndex;
@@ -7934,6 +7964,11 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 	pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
 	if (!pOldSP->m_bRetranslation)
 	{
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+		wxLogDebug(_T("TransferToSingleton(), line 7972 MergeUpdatedSrc.cpp, then calls MakeTargetStringIncludingPunctuation()  passing in targetStr as:  %s"),
+					pOldSP->m_targetStr.c_str());
+#endif
 		pView->MakeTargetStringIncludingPunctuation(pOldSP, pOldSP->m_targetStr);
 	}
 	return TRUE;

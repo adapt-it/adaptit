@@ -940,7 +940,11 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
             // the attributes which otherwise would hold source text, due to the use of
             // TokenizeText for parsing what the user typed)
 			pSrcPhrase->m_targetStr = pIncompleteSrcPhrase->m_srcPhrase; //with punctuation
-			m_pView->RemovePunctuation(pDoc,&pIncompleteSrcPhrase->m_key,from_target_text);
+#if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+		wxLogDebug(_T("BuildRetranslationSourcePhraseInstances(), line 942 Retranslation.cpp, m_targetStr:  %s"),
+					pSrcPhrase->m_targetStr.c_str());
+#endif			m_pView->RemovePunctuation(pDoc,&pIncompleteSrcPhrase->m_key,from_target_text);
 			pSrcPhrase->m_adaption = pIncompleteSrcPhrase->m_key;
 			//check that all is well
 			wxASSERT(pSrcPhrase->m_nSequNumber == pIncompleteSrcPhrase->m_nSequNumber);
