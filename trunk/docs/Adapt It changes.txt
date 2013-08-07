@@ -28,6 +28,14 @@ infinite loop. (This also made trying to open the document
 in collaboration mode hang indefinitely if there was a free 
 translation project being supported within Paratext or 
 Bibledit for that collaboration.)
+* In glossing mode, KB lookup failed to find phrases of two or
+more words, even though in the glossing KB.
+* If AI was in glossing mode, and the user entered free translation
+mode, and clicked in a the phrasebox at an anchor location, the
+box was filled with the adaptation, rather than the gloss.
+* The "To End" and "To Start" buttons carried the old location's
+phrase box contents to the phrasebox at the new location,
+instead of displaying the correct contents at the new location.
 
 ----------------------------------------------
 Version 6.4.3 release 7 June 2013
