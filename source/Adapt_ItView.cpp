@@ -8113,6 +8113,7 @@ void CAdapt_ItView::OnUpdateButtonToEnd(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+// BEW 7Aug13 changed, because it was carrying the old phrasebox value to the new location
 void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 {
     // refactored 9Apr09 **** TODO **** can be restructured to have only one RecalcLayout()
@@ -8195,27 +8196,53 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	}
 
 	// handle the possibility that the new active location might be a "<Not In KB>" one
-	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
+	if (gbIsGlossing)
 	{
-        // this ensures user has to explicitly type into the box and explicitly check the
-        // checkbox if he wants to override the "not in kb" earlier setting at this
-        // location
-		pApp->m_bSaveToKB = FALSE;
-		pApp->m_targetPhrase.Empty();
-		pApp->m_pTargetBox->m_bAbandonable = TRUE;
+		// A block omitted there, because <Not In KB> entries are not supported in
+		// glossing mode
+		if (!pSrcPhrase->m_gloss.IsEmpty())
+		{
+			pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		}
+		else // the location is a "hole" (ie. empty)
+		{
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			pApp->m_targetPhrase.Empty();// added 31Jul03
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			// the above is better, since then the user can use the To End button and not get
+			// spurious copied source text entered into the KB if he does not remember to
+			// delete the copied text before stepping elsewhere
+		}
 	}
-	else if (!pSrcPhrase->m_adaption.IsEmpty())
+	else
 	{
-		pApp->m_targetPhrase = pSrcPhrase->m_adaption;
-		pApp->m_pTargetBox->m_bAbandonable = FALSE;
-	}
-	else // the location is a "hole" (ie. empty)
-	{
-		pApp->m_pTargetBox->m_bAbandonable = TRUE;
-		pApp->m_targetPhrase.Empty();// added 31Jul03
-        // the above is better, since then the user can use the To End button and not get
-        // spurious copied source text entered into the KB if he does not remember to
-        // delete the copied text before stepping elsewhere
+		if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
+		{
+			// this ensures user has to explicitly type into the box and explicitly check the
+			// checkbox if he wants to override the "not in kb" earlier setting at this
+			// location
+			pApp->m_bSaveToKB = FALSE;
+			pApp->m_targetPhrase.Empty();
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+		}
+		else if (!pSrcPhrase->m_adaption.IsEmpty())
+		{
+			pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		}
+		else // the location is a "hole" (ie. empty)
+		{
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			pApp->m_targetPhrase.Empty();// added 31Jul03
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			// the above is better, since then the user can use the To End button and not get
+			// spurious copied source text entered into the KB if he does not remember to
+			// delete the copied text before stepping elsewhere
+		}
 	}
 
 	// update the layout and get a fresh active pile pointer
@@ -8266,6 +8293,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
             // location
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
 		}
 		else
@@ -8274,12 +8302,14 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 			{
 				// there is an adaptation
 				pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 				pApp->m_pTargetBox->m_bAbandonable = FALSE;
 			}
 			else if (gbIsGlossing && !pSrcPhrase->m_gloss.IsEmpty())
 			{
 				// there is a gloss
 				pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 				pApp->m_pTargetBox->m_bAbandonable = FALSE;
 			}
 			else
@@ -8293,6 +8323,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 				{
 					pApp->m_targetPhrase.Empty();
 				}
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 			}
 		}
 	}
@@ -8454,6 +8485,9 @@ void CAdapt_ItView::OnUpdateButtonToStart(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+// BEW 7Aug13, old location's phrase box value was being copied to the new location,
+// because there was no call of pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+// so I added it and all was well
 void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 {
     // refactored 9Apr09 **** TODO **** can be restructured to have only one RecalcLayout()
@@ -8501,7 +8535,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
     // navigate back to the start of the document; instead, just ignore the bOK value
 	if (!bOK)
 	{
-		; // just do nothing (avoids compiler warning baout bOK not being accessed)
+		; // just do nothing (avoids compiler warning about bOK not being accessed)
 	}
 
 	int nSequNum = 0; // active element is first one in the list
@@ -8511,26 +8545,52 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)spos->GetData();
 
 	// handle the possibility that the new active location might be a "<Not In KB>" one
-	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
+	// BEW 7Aug13, added test for gbIsGlossing
+	if (gbIsGlossing)
 	{
-		// this ensures user has to explicitly type into the box and explicitly check the
-		// checkbox if he wants to override the "not in kb" earlier setting at this location
-		pApp->m_bSaveToKB = FALSE;
-		pApp->m_targetPhrase.Empty();
-		pApp->m_pTargetBox->m_bAbandonable = TRUE;
-	}
-	else if (!pSrcPhrase->m_adaption.IsEmpty())
-	{
-		pApp->m_targetPhrase = pSrcPhrase->m_adaption;
-		pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		// Glossing mode doesn't support <Not In KB> so that block is omitted here
+		if (!pSrcPhrase->m_gloss.IsEmpty())
+		{
+			pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		}
+		else
+		{
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			pApp->m_targetPhrase.Empty(); // added 31Jul03
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			// the above is better, since then the user can use the To Start button and not get
+			// spurious copied source text entered into the KB if he does not remember to
+			// delete the copied text before stepping elsewhere
+		}
 	}
 	else
 	{
-		pApp->m_pTargetBox->m_bAbandonable = TRUE;
-		pApp->m_targetPhrase.Empty(); // added 31Jul03
-        // the above is better, since then the user can use the To Start button and not get
-        // spurious copied source text entered into the KB if he does not remember to
-        // delete the copied text before stepping elsewhere
+		if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
+		{
+			// this ensures user has to explicitly type into the box and explicitly check the
+			// checkbox if he wants to override the "not in kb" earlier setting at this location
+			pApp->m_bSaveToKB = FALSE;
+			pApp->m_targetPhrase.Empty();
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+		}
+		else if (!pSrcPhrase->m_adaption.IsEmpty())
+		{
+			pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		}
+		else
+		{
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			pApp->m_targetPhrase.Empty(); // added 31Jul03
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
+			// the above is better, since then the user can use the To Start button and not get
+			// spurious copied source text entered into the KB if he does not remember to
+			// delete the copied text before stepping elsewhere
+		}
 	}
 
 	// update the layout and get a fresh active pile pointer
@@ -8581,6 +8641,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
             // location
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
+			pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
 		}
 		else
@@ -8589,12 +8650,14 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 			{
 				// there is an adaptation
 				pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 				pApp->m_pTargetBox->m_bAbandonable = FALSE;
 			}
 			else if (gbIsGlossing && !pSrcPhrase->m_gloss.IsEmpty())
 			{
 				// there is a gloss
 				pApp->m_targetPhrase = pSrcPhrase->m_gloss;
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 				pApp->m_pTargetBox->m_bAbandonable = FALSE;
 			}
 			else
@@ -8608,6 +8671,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 				{
 					pApp->m_targetPhrase.Empty();
 				}
+				pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 			}
 		}
 	}
