@@ -462,6 +462,8 @@ public:
     void DoShowPreviousVersions ( bool fromLogDialog, int startHere );
 	void OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event));
     void DoAcceptVersion (void);
+    bool RecoverLatestVersion (void);
+    void OnRecoverDoc (wxCommandEvent& WXUNUSED(event));
     void OnShowFileLog (wxCommandEvent& WXUNUSED(event));
     void OnShowProjectLog (wxCommandEvent& WXUNUSED(event));
     void OnDVCS_Version (wxCommandEvent& WXUNUSED(event));

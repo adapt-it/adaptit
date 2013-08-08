@@ -367,6 +367,7 @@ DEFINE_EVENT_TYPE(wxEVT_Back_Translations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_End_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
+DEFINE_EVENT_TYPE(wxEVT_Recover_Doc)
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -423,6 +424,13 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
         (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
         (wxObject *) NULL \
     ),
+
+#define EVT_RECOVER_DOC(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Recover_Doc, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
 
 BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_IDLE(CMainFrame::OnIdle) // this is now used in wxWidgets instead of a virtual function
@@ -490,6 +498,7 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
+    EVT_RECOVER_DOC(-1, CAdapt_ItDoc::OnRecoverDoc)
 
 	//BEW added 10Dec12
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -513,6 +522,7 @@ int		gnMatchedSequNumber = -1; // set to the sequence number when a matching ch:
 
 /// A temporary store for parsed in AI document's list of CSourcePhrase pointers.
 SPList* gpDocList = NULL;
+
 
 /*******************************
 *	ExtractScriptureReferenceParticulars
@@ -4214,6 +4224,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 #endif // for _KBSERVER #defined
 ///*
 #if defined(_DEBUG)
+    
+// mrh - if doc recovery is pending, we must skip all this:
+    if (pApp->m_recovery_pending)  return;
+
 	if (gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1 && limiter == 0)
 	{
 			// Check if the m_pPhrase being written at the last active location is the

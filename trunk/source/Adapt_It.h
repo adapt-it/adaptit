@@ -2248,7 +2248,8 @@ public:
 										// unless either is "no owner".
     bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
     bool        m_DVCS_installed;       // true if our DVCS engine (git) is actually installed
-
+    bool        m_recovery_pending;     // true if we hit an error reading a document, but it's under version control so
+                                        //  we'll be trying to restore the latest revision
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
 

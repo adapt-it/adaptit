@@ -536,8 +536,6 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C8C8E0C817883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp */,
-				C8C8E0C917883B6F00ABDFBC /* KBSharingMgrTabbedDlg.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -703,6 +701,8 @@
 				C8F82E000F3F9CAB007579B8 /* KBEditor.h */,
 				C8F82E010F3F9CAB007579B8 /* KBPage.cpp */,
 				C8F82E020F3F9CAB007579B8 /* KBPage.h */,
+				C8C8E0C817883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp */,
+				C8C8E0C917883B6F00ABDFBC /* KBSharingMgrTabbedDlg.h */,
 				C8F82E030F3F9CAB007579B8 /* LanguagesPage.cpp */,
 				C8F82E040F3F9CAB007579B8 /* LanguagesPage.h */,
 				7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */,
@@ -1156,6 +1156,7 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -1309,6 +1310,182 @@
 			};
 			name = "CocoaRelease-wx2.9";
 		};
+		2774D9B217AF57A1004B4EE6 /* CocoaDebug-wx-svn-cl */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				SDKROOT = "";
+				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "CocoaDebug-wx-svn-cl";
+		};
+		2774D9B317AF57A1004B4EE6 /* CocoaDebug-wx-svn-cl */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"$(WXPLATFORM)",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					"wxUSE_UNICODE=1",
+					_KBSERVER,
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxud/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-L$(WXWIN)/buildosxud/lib",
+					"$(WXWIN)/buildosxud/lib/libwx_osx_cocoau-2.9.a",
+					"-lexpat",
+					"-lwxregexu-2.9",
+					"-lwxtiff-2.9",
+					"-lwxjpeg-2.9",
+					"-lwxpng-2.9",
+					"-lz",
+					"-lpthread",
+					"-liconv",
+					"-lcurl",
+				);
+				PRODUCT_NAME = "Adapt It";
+				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				SDKROOT = "";
+				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
+				VALID_ARCHS = "x86_64 i386";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKIT = cocoa;
+				WXTOOLKITUPPER = COCOA;
+				WX_PREPROCESSOR_DEFINITIONS = "_DEBUG=1";
+			};
+			name = "CocoaDebug-wx-svn-cl";
+		};
+		2774D9B417AF57A8004B4EE6 /* CocoaRelease-wx-svn-cl */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				SDKROOT = "";
+				WARNING_CFLAGS = "";
+			};
+			name = "CocoaRelease-wx-svn-cl";
+		};
+		2774D9B517AF57A8004B4EE6 /* CocoaRelease-wx-svn-cl */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CODE_SIGN_IDENTITY = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(WX_PREPROCESSOR_DEFINITIONS)",
+					"$(WXPLATFORM)",
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					"wxUSE_UNICODE=1",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/buildosxu/lib";
+				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-L$(WXWIN)/buildosxu/lib",
+					"$(WXWIN)/buildosxu/lib/libwx_osx_cocoau-2.9.a",
+					"-lexpat",
+					"-lwxregexu-2.9",
+					"-lwxtiff-2.9",
+					"-lwxjpeg-2.9",
+					"-lwxpng-2.9",
+					"-lz",
+					"-lpthread",
+					"-liconv",
+					"-lcurl",
+				);
+				PRODUCT_NAME = "Adapt It";
+				PRODUCT_NAME_NO_SPACE = AdaptIt;
+				SDKROOT = "";
+				USER_HEADER_SEARCH_PATHS = "$(WXWIN)/build/osx/setup/cocoa/include ${BOOST_ROOT} ${WXWIN}/include .";
+				VALID_ARCHS = "x86_64 i386";
+				VERSIONING_SYSTEM = "apple-generic";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				WXPLATFORM = "__WXOSX_$(WXTOOLKITUPPER)__";
+				WXTOOLKIT = cocoa;
+				WXTOOLKITUPPER = COCOA;
+				WX_PREPROCESSOR_DEFINITIONS = "wxDEBUG_LEVEL=0";
+			};
+			name = "CocoaRelease-wx-svn-cl";
+		};
 		27E312D217AF168F00A395FC /* CocoaDebug-wx-svn */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1317,6 +1494,7 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -1478,8 +1656,10 @@
 			buildConfigurations = (
 				03E7D7171643090C008C2CFC /* CocoaDebug-wx2.9 */,
 				27E312D317AF168F00A395FC /* CocoaDebug-wx-svn */,
+				2774D9B317AF57A1004B4EE6 /* CocoaDebug-wx-svn-cl */,
 				03E7D75516431777008C2CFC /* CocoaRelease-wx2.9 */,
 				27E312D517AF169600A395FC /* CocoaRelease-wx-svn */,
+				2774D9B517AF57A8004B4EE6 /* CocoaRelease-wx-svn-cl */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "CocoaDebug-wx-svn";
@@ -1489,8 +1669,10 @@
 			buildConfigurations = (
 				03E7D7161643090C008C2CFC /* CocoaDebug-wx2.9 */,
 				27E312D217AF168F00A395FC /* CocoaDebug-wx-svn */,
+				2774D9B217AF57A1004B4EE6 /* CocoaDebug-wx-svn-cl */,
 				03E7D75416431777008C2CFC /* CocoaRelease-wx2.9 */,
 				27E312D417AF169600A395FC /* CocoaRelease-wx-svn */,
+				2774D9B417AF57A8004B4EE6 /* CocoaRelease-wx-svn-cl */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "CocoaDebug-wx-svn";

@@ -366,7 +366,9 @@ int  DVCS::setup_versions ( wxString fileName )
 }
 
 /*  get_version() calls git to checkout the given version number, defined by the line number in the log which we should
-    have already read.  The log has multiple entries, each one line long, with the format we asked for in setup_versions():
+    have already read.  The log has multiple entries, each one line long.  The first line is line zero, giving the most 
+    recent version.
+    The log line format is what we asked for in setup_versions():
  
         <40 hex digits hash>#<committer name>#commit date#<commit comment>
  
