@@ -793,6 +793,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 							  // shown selected
 	// store the translation in the knowledge base
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bOK;
@@ -1202,6 +1203,7 @@ bool CPhraseBox::MoveToNextPile_InTransliterationMode(CPile* pCurPile)
 							  // shown selected
 	// store the translation in the knowledge base
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bOK;
@@ -1488,11 +1490,6 @@ b:	pApp->m_bSaveToKB = TRUE;
 				pSrcPhr->m_targetStr = pSrcPhr->m_precPunct + str;
 				pSrcPhr->m_targetStr += pSrcPhr->m_follPunct;
 				translation = pSrcPhr->m_targetStr;
-#if defined(_DEBUG)
-				// In case the RossJones m_targetStr not sticking bug comes from here
-		wxLogDebug(_T("MoveToNextPile_InTransliterationMode(), line 1483 PhraseBox.cpp, sets translation global too:  %s"),
-					pSrcPhr->m_targetStr.c_str());
-#endif
 				pApp->m_targetPhrase = translation;
 				gSaveTargetPhrase = translation; // to make it available on
 												 // next auto call of OnePass()
@@ -3250,6 +3247,7 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
     // (perhaps in edited form, if user changed the string before moving back again)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
 	CAdapt_ItView *pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pView->GetDocument();
 	gbByCopyOnly = FALSE; // restore default setting
@@ -3620,6 +3618,7 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 	// (perhaps in edited form, if user changed the string before moving back again)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
 	CAdapt_ItView *pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pView->GetDocument();
 	gbByCopyOnly = FALSE; // restore default setting

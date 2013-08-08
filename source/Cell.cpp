@@ -1022,39 +1022,3 @@ wxString* CCell::GetCellText()
 	}
 	return m_pPhrase;
 }
-/*
-#if defined(_DEBUG)
-			// Check if the m_pPhrase being written at the last active location is the
-			// same as what is in the CSourcePhrase's m_targetStr at that location.
-			// There's a strange (rare, but maybe more often in Linux) bug that an
-			// edit made in the phrase box goes into the KB normally but when the box
-			// moves on the pre-edited form of the string gets shown at the last box
-			// location. Putting the box there makes the edited form reappear in it,
-			// and then it will 'stick' after the box is moved a second time. It's
-			// hard to make this error happen
-			if (m_nCell == 1 && (m_pOwningPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->lastActiveSequNum)
-				&& (m_pLayout->m_pApp->lastActiveSequNum == m_pLayout->m_pApp->m_nActiveSequNum - 1))
-			{
-				// test for drawing of the string at that location with the value the
-				// phrasebox had
-				CPile* pPile = m_pLayout->GetPile(m_pLayout->m_pApp->lastActiveSequNum);
-				if (m_pLayout->m_pApp->lastPreEditPhraseBoxStr != pPile->m_pSrcPhrase->m_targetStr)
-				{
-					wxLogDebug(_T("DISPARITY!!    sequnum = %d ;  key =  %s  ;  BOX=  %s   ;  m_targetStr=  %s"),
-						m_pOwningPile->m_pSrcPhrase->m_nSequNumber,
-						m_pOwningPile->m_pSrcPhrase->m_key,
-						m_pLayout->m_pApp->lastPreEditPhraseBoxStr.c_str(),
-						m_pOwningPile->m_pSrcPhrase->m_targetStr.c_str());
-					//wxASSERT(FALSE);
-				}
-				else
-				{
-					wxLogDebug(_T("  OK    sequnum = %d ;  key =  %s  ;  BOX=  %s   ;  m_targetStr=  %s"),
-						m_pOwningPile->m_pSrcPhrase->m_nSequNumber,
-						m_pOwningPile->m_pSrcPhrase->m_key,
-						m_pLayout->m_pApp->lastPreEditPhraseBoxStr.c_str(),
-						m_pOwningPile->m_pSrcPhrase->m_targetStr.c_str());
-				}
-			}
-#endif
-*/

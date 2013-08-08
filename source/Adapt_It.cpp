@@ -15377,6 +15377,24 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
   //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+  
+	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
+                 // being done more than once in a series of OnIdle() calls. It's reset to
+                 // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
+                 // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
+                 // has worked once, before its block is exitted limiter is set to be 1,
+                 // and a test at the block's start for limiter == 0 then prevents further
+                 // running of the hack until the above places restore the 0 value. Used to
+                 // get round a problem first reported by Ross Jones (ex-SIM) who noticed
+                 // that an edited phrasebox value, when the box moved on, would not be
+                 // displayed as edited, but the pre-edit value (always identical to
+                 // pre-edit value of m_adaption) of m_targetStr is shown. But the correct
+                 // m_adaption value goes to the KB for storage, and putting the phrasebox
+                 // back at that location shows the edited value correctly - this used to
+                 // be the only way to fix the problem. The problem is very rare, but
+                 // happens enough to be noticed now and then, and no cause has been found;
+                 // it occurs on both Linux and Windows versions (probably Mac too but not
+                 // enough users to get it manifested and reported there)
 
 	// BEW added 7Feb13 (see comments in Adapt_It.h where it is declared, for an
 	// explanation of why we need this)
