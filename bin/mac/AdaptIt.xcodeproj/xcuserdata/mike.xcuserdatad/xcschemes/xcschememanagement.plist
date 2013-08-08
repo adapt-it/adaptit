@@ -4,6 +4,16 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>AdaptIt-wx-svn-cl-debug.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>AdaptIt-wx-svn-cl-release.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 		<key>AdaptIt-wx-svn-debug.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -12,17 +22,17 @@
 		<key>AdaptIt-wx-svn-release.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>2</integer>
 		</dict>
 		<key>AdaptIt-wx29-debug.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>4</integer>
 		</dict>
 		<key>AdaptIt-wx29-release.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>3</integer>
+			<integer>5</integer>
 		</dict>
 		<key>AdaptIt_wxcl-debug.xcscheme</key>
 		<dict>

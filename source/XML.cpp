@@ -770,10 +770,25 @@ void MakeStrFromPtrs(char* pStart,char* pFinish,CBString& s)
 }
 
 void ShowXMLErrorDialog(CBString& badElement,Int32 offset,bool bCallbackSucceeded)
-{	wxString msg;
-	wxString offsetStr;
-	CXMLErrorDlg dlg((wxWindow*) wxGetApp().GetMainFrame());
-	
+{
+    wxString        msg;
+	wxString        offsetStr;
+	CXMLErrorDlg    dlg((wxWindow*) wxGetApp().GetMainFrame());
+    
+// we suppress the dialog if we're going to recover the document
+    if (gpApp->m_recovery_pending)  return;
+
+// if this is the first error, and the doc is under version control,
+//  we post a "recover document" event and then suppress the dialog
+    if ( gpApp->m_commitCount > 0 )
+    {
+        wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
+        wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+
+        gpApp->m_recovery_pending = TRUE;
+        return;
+    }
+
 	// get the appropriate message for the top of the dialog
 	if (bCallbackSucceeded)
 	{	

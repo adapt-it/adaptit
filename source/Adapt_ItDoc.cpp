@@ -1506,7 +1506,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::DocChangedExternally()
 {
 	bool			bOK;
-
+    
 	wxString		savedCurOutputPath = gpApp->m_curOutputPath;			// includes filename
 	wxString		savedCurOutputFilename = gpApp->m_curOutputFilename;
 //	int				savedCurSequNum = gpApp->m_nActiveSequNum;				// for resetting the box location
@@ -1657,7 +1657,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 {
     if (!Git_installed())
-        return;
+        return;                     // Shows message if git not installed
 
 	DoSaveAndCommit(_T(""));        // Ignore returned result - if an error occurred, a message will have been shown.
 }
@@ -1690,11 +1690,11 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     DocChangedExternally();
 
     if (revNum == 0)
-    {                                       // we're at the latest revision, so the trial's over
-        gpApp->m_pDVCSNavDlg->Destroy();    // take down the dialog
+    {                                           // we're at the latest revision, so the trial's over
+        gpApp->m_pDVCSNavDlg->Destroy();        // take down the dialog
         gpApp->m_pDVCSNavDlg = NULL;
         gpApp->m_trialVersionNum = -1;
-        gpApp->m_saved_with_commit = TRUE;  // in effect, a commit has just been done
+        gpApp->m_saved_with_commit = TRUE;      // in effect, a commit has just been done
     }
 }
 
@@ -1758,14 +1758,14 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
         if (returnCode < 0)
             return;                             // bail out on error
 
-        gpApp->m_versionCount = returnCode;         // success - now we have the current total number of log entries
+        gpApp->m_versionCount = returnCode;     // success - now we have the current total number of log entries
         if (fromLogDialog)  startHere++;        // log versions will have gone up by 1
     }
 
     if (startHere == 0)  return;                // presumably the latest version was chosen in the log dialog,
                                                 // and we didn't commit a later one, so there's nothing more to do!
 
-    gpApp->m_trialVersionNum = startHere;                           // and here's where we'll start from
+    gpApp->m_trialVersionNum = startHere;                       // and here's where we'll start from
 
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
@@ -1781,7 +1781,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
 {
     if (!Git_installed())
-        return;
+        return;                     // Shows message if git not installed
 
     DoShowPreviousVersions (FALSE, 1);
 }
@@ -1801,12 +1801,70 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
     gpApp->m_pDVCSNavDlg = NULL;
 }
 
+/*  RecoverLatestVersion() is called when an xml error comes up while reading a document.  If we can, we
+    revert to the latest committed version.  We return TRUE on success, FALSE otherwise.
+*/
+bool CAdapt_ItDoc::RecoverLatestVersion (void)
+{
+    int             returnCode;
+    wxCommandEvent  dummyEvent;
+    wxString        docPath, docName;
+
+
+//    wxMessageBox(_T("RecoverLatestVersion() called!"));
+    
+    gpApp->m_recovery_pending = FALSE;                  // restore normal default
+
+    if (!gpApp->m_DVCS_installed)  return FALSE;        // can't do it if git not installed -- don't want a message
+    
+    if (gpApp->m_commitCount <= 0)  return FALSE;       // can't do it if there are no saved versions
+    
+    returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
+    if (returnCode < 0)  return FALSE;                  // can't do it if an error came up here
+    
+// OK, so far so good...
+    returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION,  0);		// get the latest revision (zero is the latest)
+    
+// a negative returnCode would normally be a bug, but it can come up here if the corrupted doc has a wrong name.  So on any
+//  nonzero returnCode we return FALSE since we can't recover the doc.
+
+    if (returnCode)  return FALSE;
+    
+/*  At this point we'd like to call DocChangedExternally() and display the doc, but since the opening process has been partly started, this doesn't work.  
+    What works is to completely close the doc and re-activate the "start working" wizard.
+*/
+
+    wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history.  You can choose this document again from the next dialog, and it should open successfully."));
+
+    docPath = gpApp->m_curOutputPath;
+    docName = gpApp->m_curOutputFilename;
+    
+    gpApp->GetDocument()->OnFileClose(dummyEvent);
+    gpApp->GetMainFrame()->canvas->Update(); // force immediate repaint
+    gpApp->GetDocument()->Modify(FALSE);
+
+    gpApp->DoStartWorkingWizard (dummyEvent);
+    
+    gpApp->m_saved_with_commit = TRUE;      // no changes since the restored version was committed
+    
+    return TRUE;
+}
+
+void CAdapt_ItDoc::OnRecoverDoc (wxCommandEvent& WXUNUSED(event))
+{
+    if (!RecoverLatestVersion())
+    {
+// We can get here if the doc appears to have a DVCS history, but maybe its name has been corrupted, so we couldn't access the history.
+        wxMessageBox(_T("Sorry, this document appears to be corrupt, and can't be opened.  Possibly its name is wrong."));
+    }
+}
+
 void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 {
     int     returnCode, itemIndex = -1;
 
     if (!Git_installed())
-        return;
+        return;                    // Shows message if git not installed
 
 // need to check if a trial is already under way, and if so, bail out
 
@@ -1835,7 +1893,8 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::OnShowProjectLog (wxCommandEvent& WXUNUSED(event))
 {
     if (!Git_installed())
-        return;
+        return;                    // Shows message if git not installed
+
 // We might be going to deprecate this one...
 //    gpApp->m_pDVCS->DoDVCS (DVCS_LOG_PROJECT, 0);
 }
@@ -5348,44 +5407,59 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxFileName fn(thePath);
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
-		bool bReadOK = ReadDoc_XML(thePath,this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
+		bool bReadOK = ReadDoc_XML (thePath,this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
 		if (!bReadOK)
 		{
-			wxString s;
-			// whm 1Oct12 removed MRU code
-			/*
-			if (gbTryingMRUOpen)
+// if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
+            if ( pApp->m_commitCount > 0 && !pApp->m_recovery_pending)
+            {
+                wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
+                wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+                
+                pApp->m_recovery_pending = TRUE;
+            }
+        
+        // at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,
+        //  we skip this block and continue with initialization, which we're going to need later.
+            
+            if (!pApp->m_recovery_pending)
 			{
-				// a nice warm & comfy message about the file perhaps not actually existing
-				// any longer will keep the user from panic
-				// IDS_MRU_NO_FILE
-				s = _(
-"The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead.");
-				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-				gpApp->LogUserAction(s);
-				wxCommandEvent dummyevent;
-				OnFileOpen(dummyevent); // have another go, via the Start Working wizard
-				if (nTotal > 0 && bShowProgress)
-				{
-					pStatusBar->FinishProgress(_("Opening the Document"));
-				}
-				return TRUE;
-			}
-			else
-			{
-			*/
-				// uglier message because we expect a good read, but we allow the user to continue
-				// IDS_XML_READ_ERR
-			s = _(
-"There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-				gpApp->LogUserAction(s);
-			//}
-			if (nTotal > 0 && bShowProgress)
-			{
-				pStatusBar->FinishProgress(_("Opening the Document"));
-			}
-			return TRUE; // return TRUE to allow the user another go at it
+                wxString s;
+                // whm 1Oct12 removed MRU code
+                /*
+                if (gbTryingMRUOpen)
+                {
+                    // a nice warm & comfy message about the file perhaps not actually existing
+                    // any longer will keep the user from panic
+                    // IDS_MRU_NO_FILE
+                    s = _(
+    "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead.");
+                    wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+                    gpApp->LogUserAction(s);
+                    wxCommandEvent dummyevent;
+                    OnFileOpen(dummyevent); // have another go, via the Start Working wizard
+                    if (nTotal > 0 && bShowProgress)
+                    {
+                        pStatusBar->FinishProgress(_("Opening the Document"));
+                    }
+                    return TRUE;
+                }
+                else
+                {
+                */
+                    // uglier message because we expect a good read, but we allow the user to continue
+                    // IDS_XML_READ_ERR
+                s = _(
+    "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
+                    wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+                    gpApp->LogUserAction(s);
+                //}
+                if (nTotal > 0 && bShowProgress)
+                {
+                    pStatusBar->FinishProgress(_("Opening the Document"));
+                }
+                return FALSE;     // mrh - returning TRUE causes mayhem higher up!
+            }
 		}
 	}
 
@@ -5440,6 +5514,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		pApp->m_docSize = wxSize(width - 40,600); // ensure a correctly sized document
 		pApp->GetMainFrame()->canvas->SetVirtualSize(pApp->m_docSize);
 	}
+
+// if the doc's corrupt, but we're going to attempt recovery, we bail out here:
+    if (pApp->m_recovery_pending)
+        return FALSE;           // there was an error, though we're trying a recovery
 
 	// refactored version: try the following here
 	CLayout* pLayout = GetLayout();
@@ -21705,18 +21783,22 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& e
 // BEW created 24Aug11
 // Used in OnFileRestoreKb(), and in OnRetranslationReport() as well
 
-bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
-    wxString savedWorkFolderPath,			// for setting current working directory
-	wxString curOutputPath,					// includes filename
-	wxString curOutputFilename,				// to help get window Title remade
-//	int		 curSequNum,						// for resetting the box location - mrh: now not needed since the seq num is saved in the xml.
-	bool	 savedBookmodeFlag,				// for ensuring correct mode
-	bool	 savedDisableBookmodeFlag,		// ditto
-	BookNamePair*	pSavedCurBookNamePair,  // for repointing at the correct struct
-	int		 savedBookIndex,				// for recovering the correct folder's index
-	bool	 bMarkAsDirty)					// might want it instantly saveable
+bool CAdapt_ItDoc::ReOpenDocument (
+                CAdapt_ItApp* pApp,
+                wxString savedWorkFolderPath,			// for setting current working directory
+                wxString curOutputPath,					// includes filename
+                wxString curOutputFilename,				// to help get window Title remade
+                bool	 savedBookmodeFlag,				// for ensuring correct mode
+                bool	 savedDisableBookmodeFlag,		// ditto
+                BookNamePair*	pSavedCurBookNamePair,  // for repointing at the correct struct
+                int		 savedBookIndex,				// for recovering the correct folder's index
+                bool	 bMarkAsDirty					// might want it instantly saveable
+            )
+
 {
-	wxASSERT(pApp->m_pSourcePhrases->GetCount() == 0);
+    if (!pApp->m_recovery_pending)
+        wxASSERT(pApp->m_pSourcePhrases->GetCount() == 0);
+
 	bool bOK = TRUE;
 	pApp->m_acceptedFilesList.Clear();
 	pApp->LogUserAction(_T("Initiated ReOpenDocument()"));
@@ -21757,10 +21839,11 @@ bool CAdapt_ItDoc::ReOpenDocument(	CAdapt_ItApp* pApp,
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	wxASSERT(bOK);
 	*/
-
+    
 //	pApp->m_nActiveSequNum = curSequNum;
-	bOK = OnOpenDocument(curOutputPath, false);
-	SetFilename(curOutputPath,TRUE); // get the window Title set
+	bOK = OnOpenDocument (curOutputPath, false);
+	SetFilename (curOutputPath,TRUE); // get the window Title set
+    
 //	if (curSequNum == -1)
 //	{
 //		// if the phrase box wasn't visible, relocate it to the doc's start
