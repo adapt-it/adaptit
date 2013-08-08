@@ -61,11 +61,6 @@
 
 //#define _FT_ADJUST
 
-#if defined(_DEBUG)
-extern int limiter;
-#endif
-
-
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress;
 
@@ -1527,14 +1522,12 @@ x:					CCell* pCell = 0;
 
 					// save old sequ number in case required for toolbar's Back button
 					gnOldSequNum = pApp->m_nActiveSequNum;
-#if defined(_DEBUG)
-						// For support of trying to debug the failure of an edited form to
-						// "stick" when the phrase box moves on. RossJones, Bill,
-						// JerryPfaff, and me (once) have observed it, and also nation
-						// translators on Linux netbooks -- see AI.h at lines 2284-5 also
-//						pApp->lastActiveSequNum = pApp->m_nActiveSequNum;
-						limiter = 0;
-#endif
+
+                    // BEW 8Aug13, For support of "The HACK" (see end of OnIdle()) --
+                    // trying to debug the failure of an edited form to "stick" when the
+                    // phrase box moves on. RossJones, Bill, JerryPfaff, and me (once) have
+                    // observed it, and also nation translators on Linux netbooks
+					pApp->limiter = 0;
 
 					// set up a temporary pile pointer
 					CPile* pile = NULL;

@@ -36,6 +36,18 @@ box was filled with the adaptation, rather than the gloss.
 * The "To End" and "To Start" buttons carried the old location's
 phrase box contents to the phrasebox at the new location,
 instead of displaying the correct contents at the new location.
+* The following rare bug has been mentioned by a few users. If
+adapting, and the phrasebox contents have just been edited, when
+the interlinear layout is updated after the phrase box has moved
+the adaptation shown at the old phrasebox location does not show
+the edited value expected, but instead shows the adaptation as
+it was prior to the edits being done. (Clicking back at the 
+location was a way to fix the problem.) Now, while the cause of 
+that rare bug is still unknown, a test in Adapt It detects when 
+it happens and automatically corrects the value shown on the
+screen. This 'fix' happens so fast the user does not realize 
+an automatic correction was made, but we ring the bell once to 
+give a little audible feedback.
 
 ----------------------------------------------
 Version 6.4.3 release 7 June 2013

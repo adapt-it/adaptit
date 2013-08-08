@@ -2279,12 +2279,12 @@ public:
 	CPile* m_pActivePile;	// where the phrase box is to be located
 	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active
 							// pile location
-#if defined(_DEBUG)
-	// for trying to diagnose a rare 'non stick' bug of edited value in phrase box
-	// observed by Bill and JerryPfaff on Linux, RossJones on Win7, me once only on Win7
-	int      lastActiveSequNum;
-	wxString lastPreEditPhraseBoxStr;
-#endif
+
+    // For "The HACK", BEEW 8Aug13, trying to diagnose & fix a rare m_targetStr value 'non
+    // stick' bug after edited phrase box value was edited; observed first by RossJones on
+    // Win7, and then by Bill and JerryPfaff on Linux, me a few times Win7 and not at all
+    // on Linux. The hack is a block at the end of OnIdle(), where if (limiter == 0) is tested
+	int limiter;
 
 	// for selection (other parameters are also involved besides this one)
 	CCellList	m_selection; // list of selected CCell instances

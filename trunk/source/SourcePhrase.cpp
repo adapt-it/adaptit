@@ -220,11 +220,6 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_bRetranslation = sp.m_bRetranslation;
 	m_bNotInKB = sp.m_bNotInKB;
 	m_targetStr = sp.m_targetStr;
-#if defined(_DEBUG)
-				// In case the RossJones m_targetStr not sticking bug comes from here
-		wxLogDebug(_T("CSourcePhrase() copy constructor, line 222 SourcePhrase.cpp, m_targetStr:  %s"),
-					m_targetStr.c_str());
-#endif
 	m_gloss = sp.m_gloss; // VERSION_NUMBER == 3
 	m_bHasGlossingKBEntry = sp.m_bHasGlossingKBEntry; // VERSION_NUMBER == 3
 	m_bNullSourcePhrase = sp.m_bNullSourcePhrase;
@@ -347,11 +342,6 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_bNotInKB = sp.m_bNotInKB;
 	m_adaption = sp.m_adaption;
 	m_targetStr = sp.m_targetStr;
-#if defined(_DEBUG)
-				// In case the RossJones m_targetStr not sticking bug comes from here
-		wxLogDebug(_T("CSourcePhrase() operator=, line 350 SourcePhrase.cpp, m_targetStr:  %s"),
-					m_targetStr.c_str());
-#endif
 	m_bNullSourcePhrase = sp.m_bNullSourcePhrase;
 	m_bHasKBEntry = sp.m_bHasKBEntry;
 	

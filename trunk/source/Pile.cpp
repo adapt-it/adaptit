@@ -192,14 +192,6 @@ CPile::CPile(const CPile& pile)
 	{
 		m_pCell[i] = new CCell(*(pile.m_pCell[i]));
 	}
-
-#ifdef _DEBUG
-	int nDebugIndex = 4;
-	wxLogDebug(_T("DebugIndex = %d  CPile, copy creator, CPile pointer  %x"),
-				nDebugIndex,this);
-#endif
-
-
 	m_nPile = pile.m_nPile;
 	m_nWidth = pile.m_nWidth;
 	m_nMinWidth = pile.m_nMinWidth;

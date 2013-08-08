@@ -226,9 +226,9 @@ const long CMainFrame::ID_AUI_TOOLBAR = wxNewId();
 
 // includes above
 
-#if defined(_DEBUG)
-extern bool gbPassedAppInitialization;
-#endif
+
+extern bool gbPassedAppInitialization; // for RossJones m_targetStr value not sticking bug
+extern int  gnOldSequNum;
 
 extern wxMutex KBAccessMutex;
 
@@ -3826,10 +3826,6 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 	event.Skip();
 }
 
-#if defined(_DEBUG)
-int limiter = 0;
-#endif
-
 // OnIdle moved here from the App. When it was in the App it was causing
 // the File | Exit and App x cancel commands to not be responsive there
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -4222,68 +4218,166 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
 #endif // for _KBSERVER #defined
-///*
-#if defined(_DEBUG)
     
-// mrh - if doc recovery is pending, we must skip all this:
+	// mrh - if doc recovery is pending, we must skip all the following:
     if (pApp->m_recovery_pending)  return;
 
-	if (gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1 && limiter == 0)
+	if (pApp->limiter == 0 && gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1)
 	{
-			// Check if the m_pPhrase being written at the last active location is the
-			// same as what is in the CSourcePhrase's m_targetStr at that location.
-			// There's a strange (rare, but maybe more often in Linux) bug that an
-			// edit made in the phrase box goes into the KB normally but when the box
-			// moves on the pre-edited form of the string gets shown at the last box
-			// location. Putting the box there makes the edited form reappear in it,
-			// and then it will 'stick' after the box is moved a second time. It's
-			// hard to make this error happen
-		CAdapt_ItView* pView = pApp->GetView();
-		int sn = pApp->m_nActiveSequNum - 1;
+        // THE HACK (BEW 8Aug13) A hack fix for RossJones reported bug, of m_targetStr
+        // edited value not sticking when the phrase box moves on.
+        // Check if the m_pPhrase being written at the last active location is the same as
+        // what is in the CSourcePhrase's m_targetStr at that location. There's a strange
+        // bug that an edit made in the phrase box goes into the KB normally but when the
+        // box moves on the pre-edited form of the string gets shown at the last box
+        // location. Putting the box there makes the edited form reappear in it, and then
+        // it will 'stick' after the box is moved a second time. It's hard to make this
+		// error happen. One day it happened 4 times in 280 words tested, next day, once
+		// on same data, next day, not at all on same data plus and extra 300 words, and
+		// tested on Linux by me - didn't happen at all.
+		int sn = gnOldSequNum;
 		if (sn < 0)
 		{
 		    sn = 0;
 		}
 		CPile* pPile = pView->GetPile(sn);
 		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-		int offset = wxNOT_FOUND;
-		wxString adaptn = pSrcPhrase->m_adaption;
-		wxString tgtStr = pSrcPhrase->m_targetStr;
-		bool bOK = TRUE;
-		if (tgtStr.IsEmpty())
+
+		// Test here for what calls we need to make it work, "day" is the source text at
+		// sequ num == 16 in my test file, so my replacement text is larger - we need a
+		// recalc of the pile width, at whatever is the old sequ numb (gnOldSequNum) if we
+		// find that the m_targetStr value is wrong (of course, we force it in this test,
+		// but use the results further below) It works if we have the following...
+		/*
+		if (pSrcPhrase->m_nSequNumber == 16)
 		{
-			bOK = TRUE; // assume user cleared the phrasebox, so it's okay
+			pSrcPhrase->m_targetStr = _T("!Daybreak?;"); // my replacement text
+			pApp->limiter = 1;
+#ifdef _NEW_LAYOUT
+			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+			pDoc->ResetPartnerPileWidth(pSrcPhrase,FALSE); // FALSE is the boolean
+						// bNoActiveLocationCalculation, we want the pile width recalculated
+						// at the pSrcPhrase location
+			pView->Invalidate();
+			pApp->GetLayout()->PlaceBox();
+			return;
 		}
-		else
+		*/
+
+		// Don't do the check if a) this pSrcPhrase is a merger, or b) it's a fixed space
+		// conjoining - why? because the bug is rare and we've no proof yet that it
+		// manifests in either of these cases, so since it would take a lot more work to
+		// support these, we'll not bother until we have to
+		if (!((pSrcPhrase->m_nSrcWords > 1) || (IsFixedSpaceSymbolWithin(pSrcPhrase))))
 		{
-			offset = tgtStr.Find(adaptn);
-			if (offset != wxNOT_FOUND)
+			int offset = wxNOT_FOUND;
+			wxString adaptn = pSrcPhrase->m_adaption;
+			wxString tgtStr = pSrcPhrase->m_targetStr;
+			// The check is better if we remove any punctuation in m_targetStr
+			pView->RemovePunctuation(pDoc, &tgtStr, 1); // 3rd param being 1 selects 'use target punctuation chars'
+			bool bOK = TRUE;
+			if (tgtStr.IsEmpty())
 			{
-				// found m_adaption within m_targetStr
-				bOK = TRUE;
+				bOK = TRUE; // assume user cleared the phrasebox, so it's okay
 			}
 			else
 			{
-				// couldn't find m_adaption within m_targetStr ( not expected, unless the
-				// bug has manifested, else m_adapting and m_targetStr should have same
-				// form except for punctuation in the latter sometimes)
-				bOK = FALSE;
+				offset = tgtStr.Find(adaptn);
+				if (offset != wxNOT_FOUND)
+				{
+					// Found m_adaption within m_targetStr, so all's well
+					bOK = TRUE;
+				}
+				else
+				{
+                    // Couldn't find m_adaption within m_targetStr -- this result is not
+                    // expected when the application is behaving as it should; but it is
+                    // exactly what we expect when the bug has manifested, otherwise
+                    // m_adaption and and the punctuation-less m_targetStr should be
+                    // identical.
+					bOK = FALSE;
+				}
 			}
-		}
-		if (bOK)
-		{
-			wxLogDebug(_T("  OK (they are different)   sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
-				sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
-		}
-		else
-		{
-			wxLogDebug(_T("** BAD ** (similar or same, or tgtStr NULL)    sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
-				sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
-		}
-		limiter = 1;
-	}
+			// For some debug logging, the two wxLogDebug, or in particular the second,
+			// can have the commenting out removed. For now, I'll content myself with a
+			// simple bell chime to indicate that the bug has reared its head again
+			if (bOK)
+			{
+				//wxLogDebug(_T("  OK (they are different)   sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
+				//	sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
+				;
+			}
+			else
+			{
+				//wxLogDebug(_T("** BAD ** (similar or same, or tgtStr NULL)    sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
+				//	sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
+				wxBell();
+                // THE HACK goes here... we'll add punctuation to m_adaption value, do
+                // autocaps adjustments if required, and store the result in m_targetStr,
+                // and then get the layout updated
+				bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case
+											  // done if possible
+				bool bNoError = TRUE;
+				// Do any needed automatic capitalization adjustment
+				if (gbAutoCaps)
+				{
+					// Get the autocaps status of the m_key value
+					bNoError = pDoc->SetCaseParameters(adaptn);
+					if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+					{
+						bWantChangeToUC = TRUE;
+					}
+					// Do same for the non-source string, and change the case if appropriate
+					if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+					{
+						bNoError = pDoc->SetCaseParameters(tgtStr, FALSE); // FALSE
+												// means: testing the non-source text
+						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+						{
+							// a change to upper case is called for
+							tgtStr.SetChar((long)0,gcharNonSrcUC); // change to upper case initial
+						}
+					}
+				} // end of TRUE block for test: if (gbAutoCaps)
+
+				// add the punctuation, if any, to each end
+				if (!pSrcPhrase->m_precPunct.IsEmpty())
+				{
+					tgtStr = pSrcPhrase->m_precPunct + tgtStr;
+				}
+				if (!pSrcPhrase->m_follPunct.IsEmpty())
+				{
+					tgtStr += pSrcPhrase->m_follPunct;
+				}
+				if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+				{
+					tgtStr += pSrcPhrase->GetFollowingOuterPunct();
+				}
+
+				// We now have the corrected value, set m_targetStr with it, and update
+				// the layout & re-place the phrasebox after recalculating the pile width
+				pSrcPhrase->m_targetStr = tgtStr; 
+#ifdef _NEW_LAYOUT
+				pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+				pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-//*/
+				pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+				pDoc->ResetPartnerPileWidth(pSrcPhrase,FALSE); // FALSE is the boolean
+							// bNoActiveLocationCalculation, we want the pile width
+							// recalculated at the pSrcPhrase location given by gnOldSequNum
+				pView->Invalidate();
+				pApp->GetLayout()->PlaceBox();
+				
+			} // end of else block for test: if (bOK)
+
+		} // end of TRUE block for test: if (!((pSrcPhrase->m_nSrcWords > 1) || (IsFixedSpaceSymbolWithin(pSrcPhrase))))
+		pApp->limiter = 1; // prohibit reentry to this hack block until limiter is reset to 0
+	}
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)
