@@ -4219,8 +4219,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
 #endif // for _KBSERVER #defined
     
-	// mrh - if doc recovery is pending, we must skip all the following:
-    if (pApp->m_recovery_pending)  return;
+	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
+    if (pApp->m_recovery_pending)
+        return;
 
 	if (pApp->limiter == 0 && gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1)
 	{
@@ -4240,6 +4241,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		{
 		    sn = 0;
 		}
+
 		CPile* pPile = pView->GetPile(sn);
 		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 

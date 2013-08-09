@@ -1809,20 +1809,20 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     int             returnCode;
     wxCommandEvent  dummyEvent;
     wxString        docPath, docName;
-
+    CAdapt_ItApp*   pApp = gpApp;
 
 //    wxMessageBox(_T("RecoverLatestVersion() called!"));
     
-    gpApp->m_recovery_pending = FALSE;                  // restore normal default
+    pApp->m_recovery_pending = FALSE;                  // restore normal default
 
-    if (!gpApp->m_DVCS_installed)  return FALSE;        // can't do it if git not installed -- don't want a message
+    if (!pApp->m_DVCS_installed)  return FALSE;        // can't do it if git not installed -- don't want a message
     
-    if (gpApp->m_commitCount <= 0)  return FALSE;       // can't do it if there are no saved versions
+    if (pApp->m_commitCount <= 0)  return FALSE;       // can't do it if there are no saved versions
     
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
     if (returnCode < 0)  return FALSE;                  // can't do it if an error came up here
     
-// OK, so far so good...
+// OK, so far so good...    
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION,  0);		// get the latest revision (zero is the latest)
     
 // a negative returnCode would normally be a bug, but it can come up here if the corrupted doc has a wrong name.  So on any
@@ -1830,24 +1830,16 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
     if (returnCode)  return FALSE;
     
-/*  At this point we'd like to call DocChangedExternally() and display the doc, but since the opening process has been partly started, this doesn't work.  
-    What works is to completely close the doc and re-activate the "start working" wizard.
-*/
+//  At this point we'd like to call DocChangedExternally() and display the doc, but since the opening process has been partly started, and the doc's probably
+//  corrupt, this doesn't work.  What works is to completely close the doc and re-activate the "start working" wizard.  Now we've already had to close the doc,
+//  to avoid crashes with a corrupt doc, so that part's done.  All we need to do is fire up the wizard.
 
     wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history.  You can choose this document again from the next dialog, and it should open successfully."));
 
-    docPath = gpApp->m_curOutputPath;
-    docName = gpApp->m_curOutputFilename;
+    pApp->DoStartWorkingWizard (dummyEvent);
     
-    gpApp->GetDocument()->OnFileClose(dummyEvent);
-    gpApp->GetMainFrame()->canvas->Update(); // force immediate repaint
-    gpApp->GetDocument()->Modify(FALSE);
-
-    gpApp->DoStartWorkingWizard (dummyEvent);
-    
-    gpApp->m_saved_with_commit = TRUE;      // no changes since the restored version was committed
-    
-    return TRUE;
+    pApp->m_saved_with_commit = TRUE;       // no changes since the restored version was committed
+    return TRUE;                            // success
 }
 
 void CAdapt_ItDoc::OnRecoverDoc (wxCommandEvent& WXUNUSED(event))
@@ -5408,6 +5400,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
 		bool bReadOK = ReadDoc_XML (thePath,this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
+
 		if (!bReadOK)
 		{
 // if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
@@ -5498,6 +5491,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	}
 	gpApp->m_curOutputBackupFilename = filenameStr;
 	gpApp->m_curOutputPath = filename;
+
+    if (gpApp->m_recovery_pending)
+        return FALSE;   // we need to bail out, but not till the filename strings are set up
 
     // filenames and paths for the doc and any backup are now guaranteed to be
     // what they should be

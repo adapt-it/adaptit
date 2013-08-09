@@ -1031,7 +1031,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			pApp->LogUserAction(msg);
 			return; // wxExit(msg); whm modified 27May11
 		}
-
+        
         if (!pApp->m_recovery_pending)   // if we're going to recover the document, we skip this bit since it would probably crash!
         {
             // put the focus in the phrase box, after any text
@@ -1086,6 +1086,15 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		pDoc->SetFilename(docPath,TRUE); // here TRUE means "notify the views" whereas in
 										 // MFC means add to MRU
 
+        if (pApp->m_recovery_pending)       // The doc was corrupt, and we're going to try to recover it.
+                                            //  We close it to avoid crashes in the meantime, then bail out.
+        {
+            wxCommandEvent  dummyEvent;
+    
+            pDoc->OnFileClose(dummyEvent);
+            return;
+        }
+
 		// determine whether user opened the same document, using info saved in the
 		// config file
 		pApp->m_bEarlierDocChosen = FALSE;
@@ -1099,7 +1108,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			}
 		}
 
-        if (!pApp->m_recovery_pending)      // the doc might be invalid if we're recovering, and this whole bit is on its last legs anyway...
+/*        if (!pApp->m_recovery_pending)      // This whole bit is on its last legs...
         {
             // if the user opened the same project and document, then jump to the last active
             // location when the app was last closed
@@ -1159,7 +1168,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
                 //pView->Jump(pApp,pSrcPhrase); // jump there
             }
         }
-        
+*/        
 		gbDoingInitialSetup = FALSE;
 
 		// make sure the menu command is checked or unchecked as necessary
