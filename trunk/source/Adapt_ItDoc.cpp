@@ -5413,7 +5413,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
             }
 
         // at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,
-        //  we skip this block and continue with initialization, which we're going to need later.
+        //  we skip this block and continue with some of the initialization we need before we can bail out.
 
             if (!pApp->m_recovery_pending)
 			{
@@ -5492,8 +5492,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	gpApp->m_curOutputBackupFilename = filenameStr;
 	gpApp->m_curOutputPath = filename;
 
+// Now the filename strings are set up, if we're recovering a corrupt doc, we can bail out.
+    
     if (gpApp->m_recovery_pending)
-        return FALSE;   // we need to bail out, but not till the filename strings are set up
+        return FALSE;
 
     // filenames and paths for the doc and any backup are now guaranteed to be
     // what they should be
@@ -5510,10 +5512,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		pApp->m_docSize = wxSize(width - 40,600); // ensure a correctly sized document
 		pApp->GetMainFrame()->canvas->SetVirtualSize(pApp->m_docSize);
 	}
-
-// if the doc's corrupt, but we're going to attempt recovery, we bail out here:
-    if (pApp->m_recovery_pending)
-        return FALSE;           // there was an error, though we're trying a recovery
 
 	// refactored version: try the following here
 	CLayout* pLayout = GetLayout();
