@@ -1506,7 +1506,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::DocChangedExternally()
 {
 	bool			bOK;
-    
+
 	wxString		savedCurOutputPath = gpApp->m_curOutputPath;			// includes filename
 	wxString		savedCurOutputFilename = gpApp->m_curOutputFilename;
 //	int				savedCurSequNum = gpApp->m_nActiveSequNum;				// for resetting the box location
@@ -1812,24 +1812,24 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     CAdapt_ItApp*   pApp = gpApp;
 
 //    wxMessageBox(_T("RecoverLatestVersion() called!"));
-    
+
     pApp->m_recovery_pending = FALSE;                  // restore normal default
 
     if (!pApp->m_DVCS_installed)  return FALSE;        // can't do it if git not installed -- don't want a message
-    
+
     if (pApp->m_commitCount <= 0)  return FALSE;       // can't do it if there are no saved versions
-    
+
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
     if (returnCode < 0)  return FALSE;                  // can't do it if an error came up here
-    
-// OK, so far so good...    
+
+// OK, so far so good...
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION,  0);		// get the latest revision (zero is the latest)
-    
+
 // a negative returnCode would normally be a bug, but it can come up here if the corrupted doc has a wrong name.  So on any
 //  nonzero returnCode we return FALSE since we can't recover the doc.
 
     if (returnCode)  return FALSE;
-    
+
 //  At this point we'd like to call DocChangedExternally() and display the doc, but since the opening process has been partly started, and the doc's probably
 //  corrupt, this doesn't work.  What works is to completely close the doc and re-activate the "start working" wizard.  Now we've already had to close the doc,
 //  to avoid crashes with a corrupt doc, so that part's done.  All we need to do is fire up the wizard.
@@ -1837,7 +1837,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history.  You can choose this document again from the next dialog, and it should open successfully."));
 
     pApp->DoStartWorkingWizard (dummyEvent);
-    
+
     pApp->m_saved_with_commit = TRUE;       // no changes since the restored version was committed
     return TRUE;                            // success
 }
@@ -3213,7 +3213,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 
-	} // end else block for test: if (bSuccess) 
+	} // end else block for test: if (bSuccess)
 
 /*  Legacy Code... at 1Jul13, retain for a while before culling
 	SaveType saveType = save_as;
@@ -5408,13 +5408,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
             {
                 wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
                 wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
-                
+
                 pApp->m_recovery_pending = TRUE;
             }
-        
+
         // at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,
         //  we skip this block and continue with initialization, which we're going to need later.
-            
+
             if (!pApp->m_recovery_pending)
 			{
                 wxString s;
@@ -21790,10 +21790,8 @@ bool CAdapt_ItDoc::ReOpenDocument (
                 int		 savedBookIndex,				// for recovering the correct folder's index
                 bool	 bMarkAsDirty					// might want it instantly saveable
             )
-
 {
-    if (!pApp->m_recovery_pending)
-        wxASSERT(pApp->m_pSourcePhrases->GetCount() == 0);
+    wxASSERT(pApp->m_pSourcePhrases->GetCount() == 0);
 
 	bool bOK = TRUE;
 	pApp->m_acceptedFilesList.Clear();
@@ -21835,11 +21833,11 @@ bool CAdapt_ItDoc::ReOpenDocument (
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	wxASSERT(bOK);
 	*/
-    
+
 //	pApp->m_nActiveSequNum = curSequNum;
 	bOK = OnOpenDocument (curOutputPath, false);
 	SetFilename (curOutputPath,TRUE); // get the window Title set
-    
+
 //	if (curSequNum == -1)
 //	{
 //		// if the phrase box wasn't visible, relocate it to the doc's start
