@@ -1022,7 +1022,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
 		bool bOK = pDoc->OnOpenDocument(docPath, true);
         
-		if (!bOK && !pApp->m_recovery_pending)
+		if (!bOK && !pApp->m_recovery_pending)      // The doc's corrupt, and we can't do a recovery:
 		{
 			// IDS_LOAD_DOC_FAILURE
 			wxString msg = _(
@@ -1032,7 +1032,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			return; // wxExit(msg); whm modified 27May11
 		}
         
-        if (!pApp->m_recovery_pending)   // if we're going to recover the document, we skip this bit since it would probably crash!
+        if (!pApp->m_recovery_pending)      // if we're going to recover the document, we skip this bit since it would probably crash!  We can't
+                                            //  just bail out since we need to take down the wizard properly.
         {
             // put the focus in the phrase box, after any text
             if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
@@ -1108,67 +1109,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			}
 		}
 
-/*        if (!pApp->m_recovery_pending)      // This whole bit is on its last legs...
-        {
-            // if the user opened the same project and document, then jump to the last active
-            // location when the app was last closed
-            if (pApp->m_bEarlierProjectChosen && pApp->m_bEarlierDocChosen)
-            {
-
-    // mrh - this whole bit can go west soon, as we move to docVersion 8, in which we save the active
-    //  seq num for each doc in its xml.  But if we read in an earlier version doc, we'll still use
-    //  nLastActiveSequNum to set the active location.  So let's keep this code around for a little while.
-    //  However we need to check for m_nActiveSequNum being already set by OnOpenDocument()
-    //  (i.e. this was a docVersion 8 doc).
-
-                // if the user did some operation that resulted in more sourcephrase instances
-                // being created (eg. such as a rebuild from a punctuation change affecting
-                // quote characters) and had the phrase box near the end in the document but
-                // did not save the document, then the nLastActiveSequNum saved in the
-                // configuration file could be greater than the number of sourcephrases that
-                // would be read in when the document was next opened, so we must test for this
-                // and reduce the sequ number value to a safe value before trying to set up a
-                // pile at that location.
-
-                if (pApp->nLastActiveSequNum >= (int)pApp->m_pSourcePhrases->GetCount())
-                    pApp->nLastActiveSequNum = pApp->m_pSourcePhrases->GetCount() - 1;
-
-            // initialize m_nActiveSequNum to the nLastActiveSequNum value, unless already set
-
-                if (pApp->m_nActiveSequNum <= 0)
-                    pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
-
-            // set the active pile
-
-                CPile* pPile;
-                pPile = pView->GetPile(pApp->m_nActiveSequNum);
-                wxASSERT(pPile != NULL);
-                pPile = pPile; // avoid warning
-
-                // this could turn out to be a retranslation pile (if user removed a
-                // retranslation just before exiting the application without saving the
-                // document, it would be), so check & if necessary move beyond the
-                // retranslation or to an earlier safe location
-                int nFinish = 1; // the next function was designed for retranslation use,
-                    // but it should work fine anywhere provided we set nFinish to 1 (or zero).
-                bool bSetSafely;
-                bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
-                                    pApp->m_nActiveSequNum,pApp->m_nActiveSequNum,nFinish);
-                bSetSafely = bSetSafely; // avoid warning (retain, we can continue safely
-                                         // even if FALSE was returned)
-
-                // BEW 30Jun10, removed 3 lines below because a call to Jump() happens in the
-                // above call, and so the ones below should be redundant (and if
-                // ChooseTranslation was called in the earlier Jump() it would then get called
-                // again, which is confusing - so we need to not have this second call)
-                // Legacy comment: m_nActiveSequNum might have been changed by the preceding
-                // call, so reset the active pile
-                //pPile = pView->GetPile(pApp->m_nActiveSequNum);
-                //CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-                //pView->Jump(pApp,pSrcPhrase); // jump there
-            }
-        }
-*/        
+    // mrh - section removed here relating to setting the phrase box with the older doc formats that didn't save the position.
+        
 		gbDoingInitialSetup = FALSE;
 
 		// make sure the menu command is checked or unchecked as necessary
