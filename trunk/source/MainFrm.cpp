@@ -4279,6 +4279,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			int offset = wxNOT_FOUND;
 			wxString adaptn = pSrcPhrase->m_adaption;
 			wxString tgtStr = pSrcPhrase->m_targetStr;
+			wxString oldTgtStr = tgtStr;
 			// The check is better if we remove any punctuation in m_targetStr
 			pView->RemovePunctuation(pDoc, &tgtStr, 1); // 3rd param being 1 selects 'use target punctuation chars'
 			bool bOK = TRUE;
@@ -4318,6 +4319,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				//wxLogDebug(_T("** BAD ** (similar or same, or tgtStr NULL)    sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
 				//	sn, pSrcPhrase->m_key.c_str(), adaptn.c_str(), tgtStr.c_str());
 				wxBell();
+
+				// Log the bug happening... it's rare, so shouldn't bloat the file, and we
+				// want to know when people encounter it
+				wxString msgStr;
+				msgStr = msgStr.Format(
+				_T("Non-sticking value of m_targetStr was fixed by a hack: m_adaption was: [ %s  ]  But m_targetStr incorrectly was: [ %s ]"),
+				adaptn.c_str(), oldTgtStr.c_str());
+				pApp->LogUserAction(msgStr);
+
                 // THE HACK goes here... we'll add punctuation to m_adaption value, do
                 // autocaps adjustments if required, and store the result in m_targetStr,
                 // and then get the layout updated
