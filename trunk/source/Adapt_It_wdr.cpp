@@ -10414,53 +10414,56 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     item1->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Setup a new KB sharing database using the two text boxes below."), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Create a new (empty) KB sharing database using the two text boxes below."), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("(New KB sharing databases are empty until users add KB data to them while working.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    item21->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item22->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item22, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item23->SetToolTip( _("Type a language code for the new source language") );
-    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    item24->SetToolTip( _("Type a language code for the new source language") );
+    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item21->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item22->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item25->SetToolTip( _("Type a language code for the adaptations language") );
-    item21->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
+    item26->SetToolTip( _("Type a language code for the adaptations language") );
+    item22->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    item1->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item27 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES, _("Clear Both Text Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item28 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES, _("Clear Both Text Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item26->Add( 10, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item27->Add( 10, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item28 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Add KB Sharing Database"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetToolTip( _("Add the new KB sharing database designated by the language codes above to the server. New KB sharing databases on the server are empty until users add KB data to them while working.") );
-    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Create KB Sharing Database"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Create the new KB sharing database designated by the language codes above on the server. New KB sharing databases are empty until users add KB data to them while working.") );
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item26->Add( 10, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item27->Add( 10, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item29 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Selected KB Sharing Database"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Change the selected KB sharing database to have the updated values in the boxes above. Note: The Remove Selected KB Sharing Database button can only remove KB sharing databases added while this Manager dialog is open. After the dialog is closed, added databases become permanent.") );
-    item26->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item30 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Selected KB Sharing Database"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Change the selected KB sharing database to have the updated values in the boxes above. Note: The Remove Selected KB Sharing Database button can only remove KB sharing databases added while this Manager dialog is open. After the dialog is closed, added databases become permanent.") );
+    item27->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item26, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item1->Add( item27, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
