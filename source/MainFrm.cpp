@@ -4218,7 +4218,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		} // end of TRUE block for test: if (pKbSrv != NULL)
 	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
 #endif // for _KBSERVER #defined
-    
+
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
@@ -4350,8 +4350,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 												// means: testing the non-source text
 						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 						{
-							// a change to upper case is called for
-							tgtStr.SetChar((long)0,gcharNonSrcUC); // change to upper case initial
+						    if (bWantChangeToUC)
+						    {
+                                // a change to upper case is called for
+                                tgtStr.SetChar((long)0,gcharNonSrcUC); // change to upper case initial
+						    }
 						}
 					}
 				} // end of TRUE block for test: if (gbAutoCaps)
@@ -4372,7 +4375,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 				// We now have the corrected value, set m_targetStr with it, and update
 				// the layout & re-place the phrasebox after recalculating the pile width
-				pSrcPhrase->m_targetStr = tgtStr; 
+				pSrcPhrase->m_targetStr = tgtStr;
 #ifdef _NEW_LAYOUT
 				pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -4384,7 +4387,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 							// recalculated at the pSrcPhrase location given by gnOldSequNum
 				pView->Invalidate();
 				pApp->GetLayout()->PlaceBox();
-				
+
 			} // end of else block for test: if (bOK)
 
 		} // end of TRUE block for test: if (!((pSrcPhrase->m_nSrcWords > 1) || (IsFixedSpaceSymbolWithin(pSrcPhrase))))

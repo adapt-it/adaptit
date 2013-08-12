@@ -3303,7 +3303,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 			if (selector != 1 && selector != 3) // see comments under the function header
 												// for an explanation of the selector values
 			{
-				// do this for selector values 0 or 2, 
+				// do this for selector values 0 or 2,
                 // (BEW addition 12Jun13) but do so only if the pile which pSrcPhrase is at
                 // is the current active pile - if it isn't so, then the active location
                 // has become shifted, and the removal shouldn't be attempted; so I've
@@ -12869,7 +12869,7 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	    // But CTRL+C and CTRL+V appear to work correctly. There's no workaround except to
 		// refrain from using Unity interface in Precise Pangolin. (BEW 24Jan13, the
 		// problem goes away if the Unity 'global menu' feature is uninstalled - I did so;
-		// or it can be disabled on a per-app basis, but this is too tricky for me to bother.) 
+		// or it can be disabled on a per-app basis, but this is too tricky for me to bother.)
         wxTextCtrl* pEdit2 = pApp->m_pTargetBox;
         if (pEdit2 == pWnd)
         {
@@ -13730,7 +13730,7 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	// with the change to use all tabs of the glossing KB in glossing mode
 	if (gbIsGlossing)
 	{
-		pKB = pApp->m_pGlossingKB; 
+		pKB = pApp->m_pGlossingKB;
 	}
 	else
 	{
@@ -14224,9 +14224,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				pSrcPhrase->m_targetStr = gStrSavedTargetStringWithPunctInReviewingMode;
 //#if defined(_DEBUG)
 //				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), m_targetPhrase was empty, Reviewing??\n \
-//							sequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
-//					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(), 
+//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), m_targetPhrase was empty, Reviewing??\nsequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
+//					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(),
 //					gStrSavedTargetStringWithPunctInReviewingMode.c_str());
 //#endif
 				gStrSavedTargetStringWithPunctInReviewingMode.Empty();
@@ -14308,7 +14307,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// always be relevant -- it won't be the case that we store a
 					// lower-case-initial pattern and somewhere else an upper-case-initial
 					// pattern will be wanted and we won't have such an animal available.
-					 
+
 					// BEW 23Feb12, added code for docVersion 6 support of suppression of
 					// redundant showings of the placement dialog for puncts (and if the
 					// new storage strings for preserving state are cleared here, then
@@ -14515,7 +14514,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 							// do the change to upper case
 							punctlessStr.SetChar(0,gcharNonSrcUC);
 						}
-						str = strInitialPunct + punctlessStr; // 
+						str = strInitialPunct + punctlessStr; //
 					}
 				}
 				pSrcPhrase->m_targetStr = str;
@@ -14545,7 +14544,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// BEW 27Mar13, moved the autocapitalization support out of the
 					// preceding punctuation block below, so that it applies to any
 					// non-empty target string
-					
+
 					// span using target lang's punctuation - wxWidgets version
 					// SpanIncluding() in helpers.h
 					wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]);
@@ -14594,7 +14593,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
                     // start of the word or phrase, so that if the user elects to
                     // explicitly type some preceding punctuation, it will be accepted
                     // unconditionally in that location
-                    
+
                     // NOTE: str has had any needed auto-capitalization already done by now
 
 					// ditto, for following punctuation
