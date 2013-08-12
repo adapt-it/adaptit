@@ -15376,7 +15376,10 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-  //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+    //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+  
+	m_recovery_pending = FALSE; // Must initialize to false, otherwise, every attempt to open
+								// a document in any project will fail
   
 	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
                  // being done more than once in a series of OnIdle() calls. It's reset to

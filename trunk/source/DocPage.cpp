@@ -1031,9 +1031,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			pApp->LogUserAction(msg);
 			return; // wxExit(msg); whm modified 27May11
 		}
-        
-        if (!pApp->m_recovery_pending)      // if we're going to recover the document, we skip this bit since it would probably crash!  We can't
-                                            //  just bail out since we need to take down the wizard properly.
+		// If we're going to recover the document, we skip this bit since it would probably crash!
+		// We can't just bail out since we need to take down the wizard properly
+        if (!pApp->m_recovery_pending)                                          
         {
             // put the focus in the phrase box, after any text
             if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
