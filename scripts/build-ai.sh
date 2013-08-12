@@ -4,10 +4,20 @@
 # on TeamCity.
 
 DIR=$( cd "$( dirname "$0" )" && pwd )
-TRUNK=$DIR/../
+TRUNK=$DIR/..
+echo " "
+echo "-- Adapt It build configurations --"
+echo "            Current directory: $DIR"
+echo "Base source control directory: $TRUNK"
+echo "-------------------------------------"
 
 # remove files from previous builds
 rm -rf $TRUNK/bin/linux/UnicodeDebug
+if [ $? -ne 0 ]
+then
+  echo "Unable to remove UnicodeDebug directory: $?"
+  exit $?
+fi
 
 # Configure svn in adaptit-standard way
 # (just in case it isn't already set up like this)
@@ -18,9 +28,17 @@ do
 done
 
 # Build adaptit (UnicodeDebug) and return the results
-cd $TRUNK/bin/linux/
+cd $TRUNK/bin/linux
 mkdir -p UnicodeDebug
-(cd $TRUNK/bin/linux/UnicodeDebug && ../configure --enable-debug && make)
+(cd UnicodeDebug && ../configure --enable-debug)
+if [ $? -ne 0 ]
+then
+  echo "Error configuring for UnicodeDebug build: $?"
+  exit $?
+fi
+
+#($CONFIG/UnicodeDebug/make)
+(cd UnicodeDebug && make)
 if [ $? -ne 0 ]
 then
   echo "Error building Adapt It Unicode Debug: $?"
