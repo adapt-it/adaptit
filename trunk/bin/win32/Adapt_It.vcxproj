@@ -632,6 +632,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\KBPage.cpp" />
     <ClCompile Include="..\..\source\KbServer.cpp" />
     <ClCompile Include="..\..\source\KBSharing.cpp" />
+    <ClCompile Include="..\..\source\KBSharingMgrTabbedDlg.cpp" />
     <ClCompile Include="..\..\source\KBSharingSetupDlg.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg.cpp" />
     <ClCompile Include="..\..\source\LanguagesPage.cpp" />
@@ -639,6 +640,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\ListDocumentsInOtherFolderDialog.cpp" />
     <ClCompile Include="..\..\source\MainFrm.cpp" />
     <ClCompile Include="..\..\source\md5.cpp" />
+    <ClCompile Include="..\..\source\md5_SB.cpp" />
     <ClCompile Include="..\..\source\MergeUpdatedSrc.cpp" />
     <ClCompile Include="..\..\source\MoveDialog.cpp" />
     <ClCompile Include="..\..\source\Mover.cpp" />
@@ -757,6 +759,8 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\EditPreferencesDlg.h" />
     <ClInclude Include="..\..\source\EditSourceTextDlg.h" />
     <ClInclude Include="..\..\source\EmailReportDlg.h" />
+    <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
+    <ClInclude Include="..\..\source\md5_SB.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
     <ClInclude Include="Equivalents_for_reference.h" />
     <ClInclude Include="..\..\source\ExportFunctions.h" />
