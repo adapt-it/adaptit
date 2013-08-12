@@ -16,7 +16,7 @@ rm -rf $TRUNK/bin/linux/UnicodeDebug
 if [ $? -ne 0 ]
 then
   echo "Unable to remove UnicodeDebug directory: $?"
-  exit $?
+  exit 1
 fi
 
 # Configure svn in adaptit-standard way
@@ -34,7 +34,7 @@ mkdir -p UnicodeDebug
 if [ $? -ne 0 ]
 then
   echo "Error configuring for UnicodeDebug build: $?"
-  exit $?
+  exit 1
 fi
 
 #($CONFIG/UnicodeDebug/make)
@@ -42,6 +42,6 @@ fi
 if [ $? -ne 0 ]
 then
   echo "Error building Adapt It Unicode Debug: $?"
-  exit $?
+  exit 1
 fi
 
