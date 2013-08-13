@@ -1801,6 +1801,12 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
     gpApp->m_pDVCSNavDlg = NULL;
 }
 
+
+bool  CallOpenDocument ( wxString path )
+{
+    return gpApp->GetDocument()->OnOpenDocument (path, false);
+}
+
 /*  RecoverLatestVersion() is called when an xml error comes up while reading a document.  If we can, we
     revert to the latest committed version.  We return TRUE on success, FALSE otherwise.
 */
@@ -1813,7 +1819,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
 //    wxMessageBox(_T("RecoverLatestVersion() called!"));
 
-    pApp->m_recovery_pending = FALSE;                  // restore normal default
+    pApp->m_recovery_pending = FALSE;                  // restore normal default, so opening the doc after recovery works properly
 
     if (!pApp->m_DVCS_installed)  return FALSE;        // can't do it if git not installed -- don't want a message
 
@@ -1831,18 +1837,87 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
     if (returnCode)  return FALSE;
 
-//  At this point we'd like to call DocChangedExternally() and display the doc, but since
+
+//  OK, the doc's recovered!  At this point we'd like to call DocChangedExternally() and display the doc, but since
 //  the opening process has been partly started, and the doc's probably corrupt, this
-//  doesn't work. What works is to completely close the doc and re-activate the "start
-//  working" wizard. Now we've already had to close the doc, to avoid crashes with a
-//  corrupt doc, so that part's done. All we need to do is fire up the wizard.
+//  doesn't work.  What works is to completely close the doc (which we've already done)
+//  and re-open it by calling OnOpenDocument().  We also include some code from CDocPage::OnWizardFinish()
+//  that looks like  it might be doing something useful.
 
-    wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history.  You can choose this document again from the next dialog, and it should open successfully."));
+    wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history."));
 
-    pApp->DoStartWorkingWizard (dummyEvent);
+	CAdapt_ItView* pView = pApp->GetView();
+
+    docName = pApp->m_curOutputFilename;
+    docPath = pApp->m_curOutputPath;
+
+//    bool bOK = OnOpenDocument (docPath, false);  -- for some reason this bounces back without doing anything.  But calling it
+//  indirectly seems to work...
+
+    if (!CallOpenDocument (docPath))  return FALSE;
+
+// put the focus in the phrase box, after any text
+    if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
+        && (pApp->m_pTargetBox->IsShown()))
+    {
+        int len = pApp->m_pTargetBox->GetLineLength(0); // line number zero
+        // for our phrasebox
+        pApp->m_nStartChar = len;
+        pApp->m_nEndChar = len;
+        pApp->m_pTargetBox->SetFocus();
+    }
+    else
+    {
+        if (pApp->m_pTargetBox->GetHandle() != NULL && (pApp->m_pTargetBox->IsShown()))
+        {
+            pApp->m_nStartChar = 0;
+            pApp->m_nEndChar = 0;
+            pApp->m_pTargetBox->SetFocus();
+        }
+    }
+
+    CMainFrame* pFrame = (CMainFrame*)pView->GetFrame();
+    pFrame->Raise();
+    if (pApp->m_bZoomed)
+        pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE
+                               | wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);
+    else
+        pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE
+                               | wxFRAME_NO_WINDOW_MENU);
+
+    gbDoingInitialSetup = FALSE;
+
+    // make sure the menu command is checked or unchecked as necessary
+    wxMenuBar* pMenuBar = pFrame->GetMenuBar();
+    wxASSERT(pMenuBar != NULL);
+    wxMenuItem * pAdvBookMode = pMenuBar->FindItem(ID_ADVANCED_BOOKMODE);
+    //wxASSERT(pAdvBookMode != NULL);
+    if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+    {
+        // mark it checked
+        if (pAdvBookMode != NULL)
+        {
+            pAdvBookMode->Check(TRUE);
+        }
+    }
+    else
+    {
+        // mark it unchecked
+        if (pAdvBookMode != NULL)
+        {
+            pAdvBookMode->Check(FALSE);
+        }
+    }
+
+    if (pApp->m_bReadOnlyAccess)
+    {
+        // try get an extra paint job done, so background will show all pink from the
+        // outset.  Yes, we really DO need this here!!!
+        pView->canvas->Refresh();
+    }
 
     pApp->m_saved_with_commit = TRUE;       // no changes since the restored version was committed
-    return TRUE;                            // success
+    return TRUE;                            // success!
 }
 
 void CAdapt_ItDoc::OnRecoverDoc (wxCommandEvent& WXUNUSED(event))
@@ -5496,7 +5571,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	gpApp->m_curOutputPath = filename;
 
 // Now the filename strings are set up, if we're recovering a corrupt doc, we can bail out.
-    
+
     if (gpApp->m_recovery_pending)
         return FALSE;
 
