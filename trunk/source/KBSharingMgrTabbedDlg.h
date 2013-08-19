@@ -64,6 +64,7 @@ protected:
 	wxListBox*     m_pKbsListBox;
 	wxStaticText*  m_pNonSrcLabel;
 	wxStaticText*  m_pNonSrcCorrespCodesListLabel;
+	wxStaticText*  m_pAboveListBoxLabel;
 
 	wxTextCtrl*    m_pEditSourceCode;
 	wxTextCtrl*    m_pEditNonSourceCode;
@@ -74,26 +75,8 @@ protected:
 	wxButton*      m_pBtnLookupLanguageCodes;
 	wxButton*      m_pBtnRemoveSelectedKBDefinition;
 	wxButton*      m_pBtnUpdateSelectedKBDefinition;
-	wxButton*	   m_pBtnClearListSelection;
+	wxButton*	   m_pBtnClearListSelection;	
 
-	// For Edit KB Definitions page
-	/*
-	wxRadioButton* m_pRadioEditKBType1;
-	wxRadioButton* m_pRadioEditKBType2;
-	wxListBox*     m_pEditSourceKbsListBox;
-	wxListBox*     m_pEditNonSourceKbsListBox;
-	wxStaticText*  m_pEditNonSrcLabel;
-	wxStaticText*  m_pEditNonSrcCorrespCodesListLabel;
-
-	wxTextCtrl*    m_pEditEditSourceCode;
-	wxTextCtrl*    m_pEditEditNonSourceCode;
-	wxTextCtrl*    m_pEditKbDefinitionCreator;
-	wxButton*	   m_pBtnEditUsingRFC5646Codes;
-	wxButton*      m_pBtnEditUpdateKbDefinition;
-	wxButton*      m_pBtnClearSelectionAndBoxes;
-	wxButton*      m_pBtnEditLookupLanguageCodes;
-	wxButton*      m_pBtnEditRemoveSelectedKBDefinition;
-	*/
 
 	// local copies of globals on the App, for the person using the Manager dialog
 	bool           m_bKbAdmin;   // for m_kbserver_kbadmin
@@ -217,9 +200,11 @@ private:
 	// some will be also used in the 3rd page for editing KB definitions)
 	bool m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
 	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code:"
-	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glosses language code:"
-	wxString m_correspTgtLanguageCodesLabel; // InitDialog() sets it to "Corresponding target language codes:"
-	wxString m_correspGlsLanguageCodesLabel; // InitDialog() sets it to "Corresponding glossing language codes:"
+	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glossing language code:"
+	wxString m_tgtListLabel; // InitDialog() sets it to 
+				// "Existing shared databases (as   source,target   comma delimited code pairs):"
+	wxString m_glsListLabel; // InitDialog() sets it to 
+				// "Existing shared databases (as   source,glossing   comma delimited code pairs):"
 	wxString m_sourceLangCode;
 	wxString m_targetLangCode;
 	wxString m_glossLangCode;
