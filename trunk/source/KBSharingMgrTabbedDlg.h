@@ -43,6 +43,7 @@ protected:
 	wxNotebook*    m_pKBSharingMgrTabbedDlg;
 	wxListBox*     m_pUsersListBox;
 
+	wxTextCtrl*	   m_pConnectedTo;
 	wxTextCtrl*    m_pTheUsername; 
 	wxTextCtrl*    m_pEditInformalUsername;
 	wxTextCtrl*    m_pEditPersonalPassword;
@@ -60,20 +61,23 @@ protected:
 	// 
 	wxRadioButton* m_pRadioKBType1;
 	wxRadioButton* m_pRadioKBType2;
-	wxListBox*     m_pSourceKbsListBox;
-	wxListBox*     m_pNonSourceKbsListBox;
+	wxListBox*     m_pKbsListBox;
 	wxStaticText*  m_pNonSrcLabel;
 	wxStaticText*  m_pNonSrcCorrespCodesListLabel;
 
 	wxTextCtrl*    m_pEditSourceCode;
 	wxTextCtrl*    m_pEditNonSourceCode;
+	wxTextCtrl*    m_pKbDefinitionCreator; // this one is read-only
 	wxButton*	   m_pBtnUsingRFC5646Codes;
 	wxButton*      m_pBtnAddKbDefinition;
 	wxButton*      m_pBtnClearBothLangCodeBoxes;
 	wxButton*      m_pBtnLookupLanguageCodes;
 	wxButton*      m_pBtnRemoveSelectedKBDefinition;
+	wxButton*      m_pBtnUpdateSelectedKBDefinition;
+	wxButton*	   m_pBtnClearListSelection;
 
 	// For Edit KB Definitions page
+	/*
 	wxRadioButton* m_pRadioEditKBType1;
 	wxRadioButton* m_pRadioEditKBType2;
 	wxListBox*     m_pEditSourceKbsListBox;
@@ -89,7 +93,7 @@ protected:
 	wxButton*      m_pBtnClearSelectionAndBoxes;
 	wxButton*      m_pBtnEditLookupLanguageCodes;
 	wxButton*      m_pBtnEditRemoveSelectedKBDefinition;
-
+	*/
 
 	// local copies of globals on the App, for the person using the Manager dialog
 	bool           m_bKbAdmin;   // for m_kbserver_kbadmin
@@ -110,7 +114,7 @@ protected:
 	void OnCancel(wxCommandEvent& event);
 	void LoadDataForPage(int pageNumSelected);
 	void DisplayRFC5646Message();
-	void OnTabPageChanging(wxNotebookEvent& event);
+	void OnTabPageChanged(wxNotebookEvent& event);
 
 protected:
 	// Functions needed by the Users page
@@ -133,41 +137,42 @@ protected:
 	void		  OnCheckboxUseradmin(wxCommandEvent& WXUNUSED(event));
 	void		  OnCheckboxKbadmin(wxCommandEvent& WXUNUSED(event));
 
-	// Functions needed by the Create Kb Definitions page & Edit Kb Definitions page
+	// Functions needed by the Kb Definitions page
 	KbServerKb*	  CloneACopyOfKbServerKbStruct(KbServerKb* pExistingStruct);
 	void		  CopyKbsList(KbsList* pSrcList, KbsList* pDestList);
 	void		  DeleteClonedKbServerKbStruct();
 	bool		  IsThisKBDefinitionInSessionList(KbServerKb* pKbDefToTest, KbsList* pKbsList);
-	void		  LoadLanguageCodePairsInListBoxes_CreatePage(bool bKBTypeIsSrcTgt,
+	void		  LoadLanguageCodePairsInListBox_KbsPage(bool bKBTypeIsSrcTgt,
 							KbsList* pSrcTgtKbsList, KbsList* pSrcGlsKbsList,
-							wxListBox* pSrcCodeListBox, wxListBox* pNonSrcCodeListBox);
-	bool		  MatchExistingKBDefinition(wxListBox* pSrcCodeList, wxListBox* pNonSrcCodeList,
+							wxListBox* pListBox);
+	bool		  MatchExistingKBDefinition(wxListBox* pKbsList,
 							wxString& srcLangCodeStr, wxString& nonsrcLangCodeStr);
 	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList, 
 							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList);
 		
 	// event handlers - Create KB Definitions page
-	void		  OnRadioButton1CreateKbsPageType1(wxCommandEvent& WXUNUSED(event));
-	void		  OnRadioButton2CreateKbsPageType2(wxCommandEvent& WXUNUSED(event));
-	void		  OnBtnCreatePageLookupCodes(wxCommandEvent& WXUNUSED(event));
-	void		  OnBtnCreatePageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonCreateKbsPageClearControls(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonCreateKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
-	void		  OnSelchangeSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // these two should
-	void		  OnSelchangeNonSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // be in sync
-	void		  OnButtonCreateKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
+	void		  OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(event));
+	void		  OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(event));
+	void		  OnBtnKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event));
+	void		  OnBtnKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonKbsPageClearListSelection(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonKbsPageClearBoxes(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
+	void		  OnSelchangeLangCodesList(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
+	void		  OnButtonKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event));
 
 	// event handlers - Edit KB Definitions page
+	/*
 	void		  OnRadioButton1EditKbsPageType1(wxCommandEvent& WXUNUSED(event));
 	void		  OnRadioButton2EditKbsPageType2(wxCommandEvent& WXUNUSED(event));
 	void		  OnBtnEditKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event));
 	void		  OnBtnEditKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonEditKbsPageClearControls(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonEditKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event));
 	void		  OnSelchangeEditSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // these two should
 	void		  OnSelchangeEditNonSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // be in sync
 	void		  OnButtonEditKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
-
+	*/
 private:
 	// All the lists, users or kbs, are SORTED.
 	CAdapt_ItApp*     m_pApp;
