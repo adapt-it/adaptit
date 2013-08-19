@@ -192,6 +192,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pRadioKBType2 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
 	m_pNonSrcLabel  = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_TGT_LANG_CODE);
 	m_pNonSrcCorrespCodesListLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_NONSOURCE_CODES_LABEL);
+	m_pAboveListBoxLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_EXISTING_KB_CODE_PAIRS);
 
     // For an instantiated KbServer class instance to use, we use the stateless one created
     // within KBSharingSetupDlg's creator function; and it has been assigned to
@@ -241,14 +242,13 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	// Next 8 for Create Kbs page and Edit Kbs page
 	m_bKBisType1 = TRUE; // initialize
 	m_tgtLanguageCodeLabel = _("Target language code:");
-	m_glossesLanguageCodeLabel = _("Glosses language code:");
-	m_correspTgtLanguageCodesLabel = _T("Corresponding target language codes:");
-	m_correspGlsLanguageCodesLabel = _T("Corresponding glossing language codes:");
+	m_glossesLanguageCodeLabel = _("Glossing language code:");
+	m_tgtListLabel = _("Existing shared databases (as   source,target   comma delimited code pairs):");
+	m_glsListLabel = _("Existing shared databases (as   source,glossing   comma delimited code pairs):");
 
 	m_sourceLangCode.Empty();
 	m_targetLangCode.Empty();
 	m_glossLangCode.Empty();
-
 
 	// Start by showing Users page
 	m_nCurPage = 0;
@@ -1788,8 +1788,8 @@ void KBSharingMgrTabbedDlg::OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(
 	m_pRadioKBType1->SetValue(TRUE);
 	m_pRadioKBType2->SetValue(FALSE);
 
-	// Set the appropriate label for the non-source listbox
-	m_pNonSrcCorrespCodesListLabel->SetLabel(m_correspTgtLanguageCodesLabel);
+	// Set the appropriate label for above the listbox
+	m_pAboveListBoxLabel->SetLabel(m_tgtListLabel);
 
 	// Set the appropriate label text for the second text control
 	m_pNonSrcLabel->SetLabel(m_tgtLanguageCodeLabel);
@@ -1812,8 +1812,8 @@ void KBSharingMgrTabbedDlg::OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(
 	m_pRadioKBType2->SetValue(TRUE);
 	m_pRadioKBType1->SetValue(FALSE);
 
-	// Set the appropriate label for the non-source listbox
-	m_pNonSrcCorrespCodesListLabel->SetLabel(m_correspGlsLanguageCodesLabel);
+	// Set the appropriate label for above the listbox
+	m_pAboveListBoxLabel->SetLabel(m_glsListLabel);
 
 	// Set the appropriate label text for the second text control
 	m_pNonSrcLabel->SetLabel(m_glossesLanguageCodeLabel);

@@ -10229,7 +10229,7 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
 
     wxCheckBox *item25 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Shared database administrator"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Tick this box to allow this user the permission to add or edit knowledge base databases stored in the server") );
+    item25->SetToolTip( _("Tick this box to allow this user the permission to add, edit or remove shared databases stored in this server") );
     item24->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
