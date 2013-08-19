@@ -10149,7 +10149,7 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("KB Server Users"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Users of the shared databases on the server"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
     item0->Add( item1, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
@@ -10163,7 +10163,7 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
 
     wxString *strs7 = (wxString*) NULL;
-    wxListBox *item7 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(232,-1), 0, strs7, wxLB_SINGLE );
+    wxListBox *item7 = new wxListBox( parent, ID_LISTBOX_CUR_USERS, wxDefaultPosition, wxSize(220,-1), 0, strs7, wxLB_SINGLE );
     item5->Add( item7, 1, wxALIGN_CENTER|wxALL, 0 );
 
     item4->Add( item5, 1, wxALIGN_CENTER|wxALL, 5 );
@@ -10217,9 +10217,9 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    item22->Add( 15, 10, 0, wxALIGN_CENTER, 0 );
+    item22->Add( 4, 10, 0, wxALIGN_CENTER, 0 );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("(can add, remove or edit other users)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("(can add, edit or remove other users)"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item20->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -10228,15 +10228,15 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 
     wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
 
-    wxCheckBox *item25 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("KB sharing database administrator"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item25 = new wxCheckBox( parent, ID_CHECKBOX_KBADMIN, _("Shared database administrator"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->SetToolTip( _("Tick this box to allow this user the permission to add or edit knowledge base databases stored in the server") );
     item24->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
-    item26->Add( 15, 10, 0, wxALIGN_CENTER, 0 );
+    item26->Add( 4, 10, 0, wxALIGN_CENTER, 0 );
 
-    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("(can add or edit KB databases)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("(can add, edit or remove shared databases)"), wxDefaultPosition, wxDefaultSize, 0 );
     item26->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item24->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -10291,12 +10291,12 @@ wxSizer *SharedKBManagerNotebookFunc2( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Use this dialog to modify the list of users and KB sharing databases on this server."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Use this dialog to create, modify or remove users or shared databases on the server which is currently connected."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("You are currently connected to this server: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_CONNECTED_TO, _("You are currently connected to this server: "), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_SERVER_URL, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
@@ -10309,11 +10309,11 @@ wxWindow *item6 = item7;
 
     wxPanel *item8 = new wxPanel( item7, -1 );
     SharedKBManagerUsersPageFunc2( item8, FALSE );
-    item7->AddPage( item8, _("KB Server Users") );
+    item7->AddPage( item8, _("Users of the shared databases") );
 
     wxPanel *item9 = new wxPanel( item7, -1 );
     SharedKBManager_CreateKbsPageFunc2( item9, FALSE );
-    item7->AddPage( item9, _("Create or Modify KB Sharing Database") );
+    item7->AddPage( item9, _("Create, modify or delete shared databases") );
 
     item1->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -10346,7 +10346,7 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Create or Modify KB Sharing Databases"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Create, Modify Or Delete Shared Databases On The Server"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
     item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
@@ -10354,25 +10354,25 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Use the radio buttons below to select the type of knowledge base sharing databases to create or modify."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Use the following two radio buttons to choose the type of shared knowledge base you wish to deal with."), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: Adaptation KB database - for sharing source-target language adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE1_KB, _("Type 1: Adaptations knowledge base - for storing shared associations between a source and a target language"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetValue( TRUE );
-    item6->Add( item7, 0, wxALIGN_CENTER_HORIZONTAL, 10 );
+    item6->Add( item7, 0, wxALIGN_CENTER_HORIZONTAL, 15 );
 
-    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM, 10 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: Glossing KB database - for sharing source-gloss language data"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIOBUTTON_TYPE2_KB, _("Type 2: Glossing knowledge base - for storing shared associations between a source and a glossing language"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item9, 0, wxALIGN_CENTER_HORIZONTAL, 10 );
 
-    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL, 10 );
 
     item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -10382,11 +10382,11 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT_EXISTING_KB_CODE_PAIRS, _("Existing KB sharing databases (as source-xxxxxx language code pairs):"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT_EXISTING_KB_CODE_PAIRS, _("Existing shared databases (as   source,target   comma delimited code pairs):"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
     wxString *strs14 = (wxString*) NULL;
-    wxListBox *item14 = new wxListBox( parent, ID_LISTBOX_KB_CODE_PAIRS, wxDefaultPosition, wxSize(400,98), 0, strs14, wxLB_SINGLE );
+    wxListBox *item14 = new wxListBox( parent, ID_LISTBOX_KB_CODE_PAIRS, wxDefaultPosition, wxSize(280,120), 0, strs14, wxLB_SINGLE );
     item14->SetToolTip( _("Lists existing knowledge base sharing databases on this server for the type specified above") );
     item12->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -10394,19 +10394,25 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
-    item15->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Original Creator:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetToolTip( _("This user created the database. The username is not editable.") );
+    item15->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxButton *item16 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES, _("Lookup Language Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->SetToolTip( _("Open the dialog for finding codes for source, and target or glossing languages") );
-    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item17 = new wxButton( parent, ID_BUTTON_RFC5646, _("Help for Adding Dialect Subtags..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item17->SetToolTip( _("View information explaining how to setup codes for dialects not in the Ethnologue") );
+    wxTextCtrl *item17 = new wxTextCtrl( parent, ID_TEXTCTRL_CREATED_BY, wxT(""), wxDefaultPosition, wxSize(240,-1), wxTE_READONLY );
+    item17->SetToolTip( _("Display the username of who originally created this database") );
     item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item18 = new wxButton( parent, ID_BUTTON_CLEAR_SELECTION, _("Clear Selection"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->SetToolTip( _("Click this button to clear any previous list selection - do this before creating a new KB of the selected type") );
+    wxButton *item18 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODES, _("Lookup Language Codes..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("Find the language codes for source and target, or for source and glossing. (Ethnologue codes; the ISO639-3 standard.)") );
     item15->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item19 = new wxButton( parent, ID_BUTTON_RFC5646, _("Help for Adding Dialect Subtags..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("View information explaining how to setup unique codes for dialects not in the Ethnologue. (Using the RFC5646 standard.)") );
+    item15->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item20 = new wxButton( parent, ID_BUTTON_CLEAR_LIST_SELECTION, _("Clear List Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->SetToolTip( _("Clears the selection in the list. Do this before creating a new database.") );
+    item15->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item11->Add( item15, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
@@ -10414,56 +10420,63 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     item1->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Create a new (empty) KB sharing database using the two text boxes below."), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("  Using the two text boxes below, create a new (empty) shared database, or change one or both codes of an existing one."), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("(New KB sharing databases are empty until users add KB data to them while working.)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("  (Data will be automatically added as the user works. Updating a language code is possible only for an empty database.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
-    item22->Add( 12, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("Source language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item24->SetToolTip( _("Type a language code for the new source language") );
-    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC, wxT(""), wxDefaultPosition, wxSize(116,-1), 0 );
+    item26->SetToolTip( _("Type a language code for the new source language") );
+    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item22->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item24->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item25 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT_TGT_LANG_CODE, _("Target language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item27, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
 
-    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC, wxT(""), wxDefaultPosition, wxSize(100,-1), 0 );
-    item26->SetToolTip( _("Type a language code for the adaptations language") );
-    item22->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item28 = new wxTextCtrl( parent, ID_TEXTCTRL_NONSRC, wxT(""), wxDefaultPosition, wxSize(116,-1), 0 );
+    item28->SetToolTip( _("Type a language code for the adaptations language") );
+    item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    item24->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Create Shared Database"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Create, on the server, a new shared database defined by the two language codes. (New shared databases start off empty).") );
+    item24->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item28 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES, _("Clear Both Text Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    item27->Add( 10, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item29 = new wxButton( parent, ID_BUTTON_ADD_DEFINITION, _("Create KB Sharing Database"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Create the new KB sharing database designated by the language codes above on the server. New KB sharing databases are empty until users add KB data to them while working.") );
-    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES, _("Clear Both Text Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("Clear just the two text boxes, leave any list selection unchanged") );
+    item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item27->Add( 10, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item30->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item30 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Selected KB Sharing Database"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("Change the selected KB sharing database to have the updated values in the boxes above. Note: The Remove Selected KB Sharing Database button can only remove KB sharing databases added while this Manager dialog is open. After the dialog is closed, added databases become permanent.") );
-    item27->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_UPDATE_LANG_CODES, _("Update Selected Language Codes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Replace the selected codes with those in the two text boxes. (This succeeds only if the database has no entries yet.)") );
+    item30->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item27, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item30->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Entire Selected Database And All Its Entries"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Deletion is very slow, maybe many hours. Shut down anytime and repeat it later. The two language codes get removed after their database becomes empty.") );
+    item30->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item30, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
@@ -10645,7 +10658,7 @@ wxMenuBar *AIMenuBarFunc()
     item9->AppendSeparator();
     item9->Append( ID_DVCS_VERSION, _("Show DVCS version"), wxT("") );
     item9->AppendSeparator();
-    item9->Append( ID_MENU_KBSHARINGMGR, _("&Knowledge Base Sharing Manager..."), _("Open the Manager for knowledge base sharing configuration") );
+    item9->Append( ID_MENU_KBSHARINGMGR, _("&Knowledge Base Server Manager..."), _("Open the Manager for configuration of knowledge base server users and databases") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;
