@@ -28,13 +28,14 @@
     <!-- Delete the ${build} and ${dist} directory trees -->
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
-	<!-- Delete expanded 3pt directories -->
+	<!-- Delete expanded 3pt directories (edb removed to separate 3pt into separate build config) -->
+	<!--
 	<delete dir="${3pt}\boost\current\boost" />
 	<delete dir="${3pt}\wxWidgets\2.8.12\wxWidgets-2.8.12" /> 
-	<!-- edb remove 2.9.x for now -->
-	<!-- <delete dir="${3pt}\wxWidgets\current\wxWidgets" /> --> 
+	<delete dir="${3pt}\wxWidgets\current\wxWidgets" />
 	<delete dir="${3pt}\openssl\current\openssl" /> 
 	<delete dir="${3pt}\curl\current\curl" /> 
+	-->
     <!-- Delete ALL intermediate setup directories -->
     <delete dir="${root}\setup Regular"/>
     <delete dir="${root}\setup Regular - Minimal"/>
@@ -119,16 +120,13 @@
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
     <copy file="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/setup.h"/>
-    <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
-	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
-	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
   </target>
 
   <!-- 
-  - compile_Unicode_Debug target
-  - Compiles AI in Unicode Debug mode.
+  - compile_3pt_unicode_debug target
+  - Compiles wxWidgets in Unicode Debug mode.
   -->
-  <target name="compile_unicode_debug" depends="init" description="compile the source " >
+  <target name="compile_3pt_unicode" depends="init" description="compile the wxWidgets unicode targets (debug and release)" >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
@@ -137,6 +135,24 @@
 	  <arg value="/p:Configuration=Unicode Debug" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
     </exec>
+    <!-- build wxwidgets for wxwin -->
+    <exec executable="MSBuild.exe" failonerror="yes">
+	  <arg value="/target:rebuild" />
+	  <arg value="/p:Configuration=Unicode Release" />
+ 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
+    </exec>
+  </target>
+  
+  <!-- 
+  - compile_Unicode_Debug target
+  - Compiles AI in Unicode Debug mode.
+  -->
+  <target name="compile_unicode_debug" description="compile the source " >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
+    <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
+	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
+	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
@@ -154,16 +170,12 @@
   - compile_Unicode_Release target
   - Compiles AI in Unicode Release mode.
   -->
-  <target name="compile_unicode_release" depends="init"
-        description="compile the source " >
+  <target name="compile_unicode_release" description="compile the source " >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
-    <!-- build wxwidgets for wxwin -->
-    <exec executable="MSBuild.exe" failonerror="yes">
-	  <arg value="/target:rebuild" />
-	  <arg value="/p:Configuration=Unicode Release" />
- 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
-    </exec>
+    <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
+	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
+	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
@@ -265,11 +277,11 @@
   </target>
 
   <!-- 
-  - compile_release target
-  - compiles AI in ANSI release mode.
+  - compile_3pt_ansi target
+  - compiles wxwidgets in ANSI release mode.
   -->
-  <target name="compile_release" depends="init"
-        description="compile the source " >
+  <target name="compile_3pt_ansi" depends="init"
+        description="compile wxWidgets ansi (release only) " >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
@@ -279,6 +291,19 @@
  	<!--  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_05.sln" /> -->
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_05.sln" />
     </exec>
+  </target>
+  
+  <!-- 
+  - compile_release target
+  - compiles AI in ANSI release mode.
+  -->
+  <target name="compile_release" depends="init"
+        description="compile the source " >
+	<!-- set the appropriate environment variables -->
+	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
+    <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
+	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
+	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
@@ -385,21 +410,21 @@
   - build_continuous target
   - Compiles the Unicode Debug build.
   -->
-  <target name="build_continuous" depends="clean, init, compile_unicode_debug" description="Continuous build target" >
+  <target name="build_continuous" depends="clean, compile_unicode_debug" description="Continuous build target" >
   </target>
 
   <!-- 
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, init, compile_unicode_release, build_help, copy, generate_unicode_installers, compile_msi_unicode" description="Daily / Release build target (Unicode only)" >
+  <target name="build_release" depends="clean, compile_unicode_release, build_help, copy, generate_unicode_installers, compile_msi_unicode" description="Daily / Release build target (Unicode only)" >
   </target>
 
   <!-- 
   - build_legacy target
   - Compiles the regular (ansi) Debug and Release builds using the VS 2005 compiler.
   -->
-  <target name="build_ansi" depends="clean, init, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
+  <target name="build_ansi" depends="clean, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
   </target>
 
 </project>
