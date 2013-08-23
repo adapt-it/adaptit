@@ -147,7 +147,7 @@
   - compile_Unicode_Debug target
   - Compiles AI in Unicode Debug mode.
   -->
-  <target name="compile_unicode_debug" description="compile the source " >
+  <target name="compile_unicode_debug" description="compile AI unicode debug target " >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
