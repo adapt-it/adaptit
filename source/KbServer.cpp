@@ -1159,6 +1159,7 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 		break;
 	case getAll:
 		timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+		rv = ChangedSince(timestamp);
 		// if there was no error, update the m_kbServerLastSync value, and export it to
 		// the persistent file in the project folder
 		if (rv == 0)
@@ -2677,7 +2678,7 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	{
 		jsonval[_T("sourcelanguage")] = pEditedKbStruct->sourceLanguageCode;
 #if defined(_DEBUG)
-		wxLogDebug(_T("||!@#!@#||  UpdateKb(): updating sourcelanguage code to:  %s  ,  kbType %s"),
+		wxLogDebug(_T("  UpdateKb(): updating sourcelanguage code to:  %s  ,  kbType %s"),
 			pEditedKbStruct->sourceLanguageCode.c_str(), kbTypeStr.c_str()); 
 #endif
 	}
@@ -2685,8 +2686,8 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	{
 		jsonval[_T("targetlanguage")] = pEditedKbStruct->targetLanguageCode;
 #if defined(_DEBUG)
-		wxLogDebug(_T("||!@#!@#||  UpdateKb(): updating non-sourcelanguage code to:  %s  ,  kbType %s"),
-			pEditedKbStruct->sourceLanguageCode.c_str(), kbTypeStr.c_str()); 
+		wxLogDebug(_T("  UpdateKb(): updating non-sourcelanguage code to:  %s  ,  kbType %s"),
+			pEditedKbStruct->targetLanguageCode.c_str(), kbTypeStr.c_str()); 
 #endif
 	}
 	// convert it to string form
@@ -2758,17 +2759,70 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	return 0;
 }
 
+// This one is like RemoveUser() and RemoveKb(), except that we'll simplify even further
+// and not bother to ask for any http headers to be returned. We'll just assume the
+// deletion happened without error.
+int KbServer::DeleteSingleKbEntry(int entryID)
+{
+	wxString entryIDStr;
+	wxItoa(entryID, entryIDStr);
+	CURL *curl;
+	CURLcode result; // result code
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString container = _T("entry");
+	wxString aUrl, aPwd;
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	aUrl = GetKBServerURL() + slash + container + slash + entryIDStr;
+	charUrl = ToUtf8(aUrl);
+
+		// prepare curl
+	curl = curl_easy_init();
+
+	result = (CURLcode)0; // initialize
+	if (curl)
+	{
+		// set data
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+		result = curl_easy_perform(curl);
+
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("DeleteSingleKbEntry() result code: %d Error: %s  for entryID = %d"), 
+				result, error.c_str(), entryID);
+			wxMessageBox(msg, _T("Error deleting a single entry"), wxICON_EXCLAMATION | wxOK);
+			curl_easy_cleanup(curl);
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+	return (CURLcode)result;
+}
+
+
 int KbServer::RemoveUser(int userID)
 {
 	wxString userIDStr;
 	wxItoa(userID, userIDStr);
 	CURL *curl;
 	CURLcode result; // result code
-	struct curl_slist* headers = NULL;
+	struct curl_slist* headers = NULL; // get headers in case of HTTP error
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
-	wxJSONValue jsonval; // construct JSON object
-	CBString strVal; // to store wxString form of the jsonval object, for curl
 	wxString container = _T("user");
 	wxString aUrl, aPwd;
 
@@ -2799,7 +2853,6 @@ int KbServer::RemoveUser(int userID)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 		// get the headers stuff this way when no json is expected back...
@@ -2852,8 +2905,6 @@ int KbServer::RemoveKb(int kbID)
 	struct curl_slist* headers = NULL;
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
-	wxJSONValue jsonval; // construct JSON object
-	CBString strVal; // to store wxString form of the jsonval object, for curl
 	wxString container = _T("kb");
 	wxString aUrl, aPwd;
 
@@ -2884,7 +2935,6 @@ int KbServer::RemoveKb(int kbID)
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
 		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 		// get the headers stuff this way when no json is expected back...

@@ -169,6 +169,7 @@ public:
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);
 	int		 LookupUser(wxString url, wxString username, wxString password, wxString whichusername);
 	int		 PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op);
+	int		 DeleteSingleKbEntry(int entryID);
 	int		 RemoveUser(int userID);
 	int		 RemoveKb(int kbID);
 	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
