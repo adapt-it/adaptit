@@ -124,6 +124,7 @@ KBSharingMgrTabbedDlg::~KBSharingMgrTabbedDlg()
 void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	// Initdialog is called once before the dialog is shown.
+	m_bUpdateTried = FALSE;
 
 	// Get pointers to the controls created in the two pages, using FindWindowById(),
 	// which is acceptable because the controls on each page have different id values
@@ -191,7 +192,6 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pRadioKBType1 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
 	m_pRadioKBType2 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
 	m_pNonSrcLabel  = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_TGT_LANG_CODE);
-	m_pNonSrcCorrespCodesListLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_NONSOURCE_CODES_LABEL);
 	m_pAboveListBoxLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_EXISTING_KB_CODE_PAIRS);
 
     // For an instantiated KbServer class instance to use, we use the stateless one created
@@ -512,12 +512,54 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			wxMessageBox(_T("LoadDataForPage() unable to call ListKbs(), for KB definitions page, because password or username is empty, or both. This Manager page won't work properly until this is fixed."),
 				_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
 		}
+		// Give feedback about a failed "Update Selected Language Codes" attempt
+		if (m_bUpdateTried)
+		{
+			// get the list contents as it is after the update attempt
+			m_listAfterUpdate.Clear();
+			m_listAfterUpdate = m_pKbsListBox->GetStrings();
+			if (!IsAKbDefinitionAltered(&m_listBeforeUpdate, &m_listAfterUpdate))
+			{
+				// If control enters this block, then both "before" and "after" update
+				// listbox contents are identical and in unchanged order - which means the
+				// update attempt failed. Tell the user something meaningful here...
+				wxString msg;
+				wxString title = _("Language code update failed");
+				msg = msg.Format(
+				_("Warning: your attempt to update one, or both, of the selected database's language code pair, failed.\nThe reason for this is probably because that particular code pair's database still contains some knowledge base entries.\n(Either or both of the codes can only be successfully updated for a database which is empty.)\nThis message is advisory only. No damage has been done and you may continue working."));
+				wxMessageBox(msg, title, wxICON_ERROR | wxOK);
+			}
+			// If the two lists are identical, then nothing was changed
+			m_bUpdateTried = FALSE; // restore default value
+			m_listBeforeUpdate.Clear();
+			m_listAfterUpdate.Clear();
+		}
 	}
 	else
 	{
 		; // there isn't as yet a third page, and may never be
 	}
 }
+
+// Return TRUE if at least one KB definition differs from what it was earlier, or if the
+// order is different (that indicates there was a change somewhere because the list is
+// sorted), else return FALSE if nothing got changed and order is unchanged
+bool KBSharingMgrTabbedDlg::IsAKbDefinitionAltered(wxArrayString* pBeforeArr, wxArrayString* pAfterArr)
+{
+	unsigned int count = pBeforeArr->GetCount();
+	size_t index;
+	for (index = 0; index < (size_t)count; index++)
+	{
+		wxString before = pBeforeArr->Item(index);
+		wxString after = pAfterArr->Item(index);
+		if (before != after)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE; // no change was found in content or order
+}
+
 
 void KBSharingMgrTabbedDlg::DisplayRFC5646Message()
 {
@@ -1833,13 +1875,13 @@ void KBSharingMgrTabbedDlg::OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(
 void KBSharingMgrTabbedDlg::OnBtnKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event))
 {
 	// Call up CLanguageCodesDlg here so the user can enter language codes for
-	// the source and target languages, or for the source and glossing languages, accoring
-	// to the LangCodesChoice modality.
+	// the source and target languages, or for the source and glossing languages,
+	// according to the LangCodesChoice modality.
 	LangCodesChoice whichPairType = source_and_target_only; 
 	if (m_bKBisType1 != TRUE)
 	{
-		// It's not source-to-target that we are dealing with, but glossing mode - that
-		// is, source-to-glosses, so choose the other enum value to pass in
+		// It's not source-to-target that we are dealing with, but glossing mode
+		// - that is, source-to-glosses, so choose the other enum value to pass in
 		whichPairType = source_and_glosses_only;
 	}
 	CLanguageCodesDlg lcDlg(this, whichPairType); // make the parent be
@@ -2080,6 +2122,12 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageUpdateKBDefinition(wxCommandEvent& WX
 		// Update the page if we had success, if no success, just clear the controls
 		if (result == CURLE_OK)
 		{
+			// Get the list of pairs in the listbox, and fill the m_listBeforeUpdate array
+			// and set the flag to indicate a try was attempted
+			m_bUpdateTried = TRUE;
+			m_listBeforeUpdate.Clear();
+			m_listBeforeUpdate = m_pKbsListBox->GetStrings();
+
 			// Update the page to show what has happened
 			LoadDataForPage(m_nCurPage);
 		}

@@ -58,12 +58,11 @@ protected:
 
 
 	// For Create KB Definitions page
-	// 
+	
 	wxRadioButton* m_pRadioKBType1;
 	wxRadioButton* m_pRadioKBType2;
 	wxListBox*     m_pKbsListBox;
 	wxStaticText*  m_pNonSrcLabel;
-	wxStaticText*  m_pNonSrcCorrespCodesListLabel;
 	wxStaticText*  m_pAboveListBoxLabel;
 
 	wxTextCtrl*    m_pEditSourceCode;
@@ -132,6 +131,7 @@ protected:
 							wxString& srcLangCodeStr, wxString& nonsrcLangCodeStr);
 	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList, 
 							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList);
+	bool		  IsAKbDefinitionAltered(wxArrayString* pBeforeArr, wxArrayString* pAfterArr);
 		
 	// event handlers - Create KB Definitions page
 	void		  OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(event));
@@ -145,17 +145,6 @@ protected:
 	void		  OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event));
 
-	// event handlers - Edit KB Definitions page
-	/*
-	void		  OnRadioButton1EditKbsPageType1(wxCommandEvent& WXUNUSED(event));
-	void		  OnRadioButton2EditKbsPageType2(wxCommandEvent& WXUNUSED(event));
-	void		  OnBtnEditKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event));
-	void		  OnBtnEditKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event));
-	void		  OnButtonEditKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event));
-	void		  OnSelchangeEditSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // these two should
-	void		  OnSelchangeEditNonSrcLangCodesList(wxCommandEvent& WXUNUSED(event)); // be in sync
-	void		  OnButtonEditKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
-	*/
 private:
 	// All the lists, users or kbs, are SORTED.
 	CAdapt_ItApp*     m_pApp;
@@ -208,6 +197,15 @@ private:
 	wxString m_sourceLangCode;
 	wxString m_targetLangCode;
 	wxString m_glossLangCode;
+
+	// Support for showing informative message when user attempts to alter one or both
+	// language codes for a KB definition which is parent to entries in the entry table -
+	// the attmept will fail without giving any feedback to the administrator unless we
+	// compare the before and after values for the codes being changed, and give the
+	// helpful message when they have not changed as expected.
+	bool m_bUpdateTried;
+	wxArrayString m_listBeforeUpdate;
+	wxArrayString m_listAfterUpdate;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
