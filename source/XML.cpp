@@ -782,8 +782,8 @@ void ShowXMLErrorDialog(CBString& badElement,Int32 offset,bool bCallbackSucceede
 //  we post a "recover document" event and then suppress the dialog
     if ( gpApp->m_commitCount > 0 )
     {
-        wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
-        wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+//        wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
+//        wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
 
         gpApp->m_recovery_pending = TRUE;
         return;

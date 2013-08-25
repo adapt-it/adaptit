@@ -1838,11 +1838,21 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     if (returnCode)  return FALSE;
 
 
-//  OK, the doc's recovered!  At this point we'd like to call DocChangedExternally() and display the doc, but since
-//  the opening process has been partly started, and the doc's probably corrupt, this
-//  doesn't work.  What works is to completely close the doc (which we've already done)
-//  and re-open it by calling OnOpenDocument().  We also include some code from CDocPage::OnWizardFinish()
-//  that looks like  it might be doing something useful.
+/*  OK, the doc's recovered!  What we do now depends on what was happening when the doc was opened.  The normal situation
+    is a simple doc opening, and in this case m_reopen_recovered_doc will be TRUE.  In this situation we'd like to
+    call DocChangedExternally() and display the doc, but since the opening process has been partly started, and the doc's
+    probably corrupt, this doesn't work.  What works is to completely close the doc (which we've already done)
+    and re-open it by calling OnOpenDocument().  We also include some code from CDocPage::OnWizardFinish()
+    that looks like  it might be doing something useful.
+
+    There are currently two other places where we read a document.  We don't attempt to continue these ops from partway
+    through, but just ask the user to re-attempt what they were doing.
+*/
+    
+    if (!pApp->m_reopen_recovered_doc)          // here the caller will display a message, so we don't do it here.
+        return TRUE;
+
+    pApp->m_reopen_recovered_doc = FALSE;       // restore normal default
 
     wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history."));
 
@@ -3677,8 +3687,11 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 /// BEW changed 31Aug05 so it would handle either .xml or .adt documents automatically (code pinched
 /// from start of OnOpenDocument())
 ///////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 {
+    CAdapt_ItApp*	pApp = GetApp();
+
 	// BEW added 31Aug05 for XML doc support (we have to find out what extension it has
 	// and then choose the corresponding code for loading that type of doc
 	wxString thePath = lpszPathName;
@@ -3716,16 +3729,33 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 	if (extension == _T(".xml"))
 	{
 		// we have to input an xml document
-		bool bReadOK = ReadDoc_XML(thePath,this,_("Opening Document In Another Project"),nTotal); // pProgDlg can be NULL
+		bool bReadOK = ReadDoc_XML (thePath,this,_("Opening Document In Another Project"),nTotal); // pProgDlg can be NULL
+
 		if (!bReadOK)
 		{
-			wxString s;
-			s = _(
-"There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-			wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-			if (nTotal > 0)
-				pStatusBar->FinishProgress(_("Opening Document In Another Project"));
-			return FALSE; // return FALSE to tell caller we failed
+            // if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
+            if ( pApp->m_commitCount > 0 && !pApp->m_recovery_pending)
+            {
+     //           wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
+     //           wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+                
+                pApp->m_recovery_pending = TRUE;
+                //  most common case.
+            }
+            
+            // at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,
+            //  we skip this block and continue with some of the initialization we need before we can bail out.
+            
+            if (!pApp->m_recovery_pending)
+			{
+                wxString s;
+                s = _(
+    "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
+                wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+                if (nTotal > 0)
+                    pStatusBar->FinishProgress(_("Opening Document In Another Project"));
+                return FALSE; // return FALSE to tell caller we failed
+            }
 		}
 	}
 	else
@@ -5477,6 +5507,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxFileName fn(thePath);
 		wxString fullFileName;
 		fullFileName = fn.GetFullName();
+
 		bool bReadOK = ReadDoc_XML (thePath,this, _("Opening the Document"), nTotal); // pProgDlg can be NULL
 
 		if (!bReadOK)
@@ -5484,10 +5515,12 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 // if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
             if ( pApp->m_commitCount > 0 && !pApp->m_recovery_pending)
             {
-                wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
-                wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+ //               wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
+ //               wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
 
                 pApp->m_recovery_pending = TRUE;
+                pApp->m_reopen_recovered_doc = TRUE;    // In this one case we just reopen the doc after recovery.  It should be the
+                                                        //  most common case.
             }
 
         // at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,

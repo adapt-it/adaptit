@@ -15377,9 +15377,10 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
-  
-	m_recovery_pending = FALSE; // Must initialize to false, otherwise, every attempt to open
-								// a document in any project will fail
+
+    // Initialize items relating to corrupt doc recovery:
+	m_recovery_pending = FALSE;
+    m_reopen_recovered_doc = FALSE;
   
 	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
                  // being done more than once in a series of OnIdle() calls. It's reset to
@@ -25788,37 +25789,50 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			// ask the user. We have to set the App's flags and also save the project
 			// config file (since the flags get read out of the config file before the
 			// ChooseCollabOptionsDlg is shown again).
-			int response;
-			wxString msg = _("You cancelled the dialog - You may turn collaboration off if you want to access a different project from the Start Working Wizard.\nDo you want to turn collaboration off?");
-			response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-			if (response == wxYES)
-			{
-				// The user selected to "Turn Collaboration OFF"
-				if (m_collaborationEditor == _T("Paratext"))
-				{
-					m_bCollaboratingWithParatext = FALSE;
-				}
-				else if (m_collaborationEditor == _T("Bibledit"))
-				{
-					m_bCollaboratingWithBibledit = FALSE;
-				}
-				// The user wants to get the wizard to select a different project.
-				LogUserAction(_T("Collaboration turned OFF by user after Cancel of GetSourceTextFromEditorDlg"));
-				m_bStartWorkUsingCollaboration = FALSE;
-				// Set the File > Open and File > Save menu items back to their normal
-				// state - without the parenthetical information in the labels.
-				MakeMenuInitializationsAndPlatformAdjustments(); //(collabAvailableTurnedOff);
-				// Save the changes to the above collab values to the project config file.
-				bool bOK;
-				bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
-				bOK = bOK; // was unused, so prevent compiler warning
-				m_bJustLaunched = TRUE; // cause the wizard to open in MainFrame's OnIdle() handler
-			}
-			else if (response == wxNO)
-			{
-				m_bJustLaunched = FALSE;
-			}
-			return TRUE;
+            
+            // (Aug 13) another possibility is that the doc was corrupt, and DVCS was used
+            //  to recover it.  We can distinguish this case by m_recovery_pending being TRUE.
+            
+            if (m_recovery_pending)
+            {
+                wxMessageBox(_T("The document was corrupt, but the last saved version in the history has been restored.  You can start from the Start Working Wizard and the document should open successfully."));
+                m_recovery_pending = FALSE;
+                return TRUE;
+            }
+            else
+            {
+                int response;
+                wxString msg = _("You cancelled the dialog - You may turn collaboration off if you want to access a different project from the Start Working Wizard.\nDo you want to turn collaboration off?");
+                response = wxMessageBox(msg,_T(""),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+                if (response == wxYES)
+                {
+                    // The user selected to "Turn Collaboration OFF"
+                    if (m_collaborationEditor == _T("Paratext"))
+                    {
+                        m_bCollaboratingWithParatext = FALSE;
+                    }
+                    else if (m_collaborationEditor == _T("Bibledit"))
+                    {
+                        m_bCollaboratingWithBibledit = FALSE;
+                    }
+                    // The user wants to get the wizard to select a different project.
+                    LogUserAction(_T("Collaboration turned OFF by user after Cancel of GetSourceTextFromEditorDlg"));
+                    m_bStartWorkUsingCollaboration = FALSE;
+                    // Set the File > Open and File > Save menu items back to their normal
+                    // state - without the parenthetical information in the labels.
+                    MakeMenuInitializationsAndPlatformAdjustments(); //(collabAvailableTurnedOff);
+                    // Save the changes to the above collab values to the project config file.
+                    bool bOK;
+                    bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
+                    bOK = bOK; // was unused, so prevent compiler warning
+                    m_bJustLaunched = TRUE; // cause the wizard to open in MainFrame's OnIdle() handler
+                }
+                else if (response == wxNO)
+                {
+                    m_bJustLaunched = FALSE;
+                }
+                return TRUE;
+            }
 		}
 		else if (dlgResult == wxID_ABORT) // whm added 19Apr12
 		{

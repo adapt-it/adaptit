@@ -2695,19 +2695,40 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			pStatusBar->StartProgress(_("Opening Document and Merging With Current Document"), msgDisplayed, nTotal);
 		}
 
-		bool bReadOK = ReadDoc_XML(thePath, pDoc, (nTotal > 0) ? _("Opening Document and Merging With Current Document") : _T(""), nTotal); // defined in XML.cpp
+		bool bReadOK = ReadDoc_XML (thePath, pDoc, (nTotal > 0) ? _("Opening Document and Merging With Current Document") : _T(""), nTotal); // defined in XML.cpp
+
 		if (!bReadOK)
 		{
-			wxString s;
-				// allow the user to continue
-				s = _(
-"There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-				wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
-			if (nTotal > 0)
+            // if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
+            if ( pApp->m_commitCount > 0 ) //&& !pApp->m_recovery_pending)
+            {
+     //           wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
+     //           wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+                wxCommandEvent  dummyEvent;
+                
+                pDoc->OnFileClose(dummyEvent);
+                pApp->m_reopen_recovered_doc = FALSE;           // so the recovery code doesn't try to re-open the doc
+    //            pApp->m_recovery_pending = TRUE;                // so the higher-up code bails out
+				bReadOK = pDoc->RecoverLatestVersion();
+				pApp->m_recovery_pending = bReadOK;				// if we recovered the doc, we still need to bail out
+            }
+            
+            // at this point, if we couldn't recover, we just display a message and give up.  If we are attempting a recovery,
+            //  we skip this block and continue with some of the initialization we need before we can bail out.
+            
+            if (!bReadOK)
 			{
-				pStatusBar->FinishProgress(_("Opening Document and Merging With Current Document"));
-			}
-			return TRUE; // return TRUE to allow the user another go at it
+                wxString s;
+                    // allow the user to continue
+                    s = _(
+    "There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
+                    wxMessageBox(s, fullFileName, wxICON_INFORMATION | wxOK);
+                if (nTotal > 0)
+                {
+                    pStatusBar->FinishProgress(_("Opening Document and Merging With Current Document"));
+                }
+                return TRUE; // return TRUE to allow the user another go at it
+            }
 		}
 		// remove the ReadDoc_XML() specific progress dialog
 		if (nTotal > 0)
@@ -2717,8 +2738,8 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// app's m_pSourcePhrases list has been populated with CSourcePhrase instances
 	}
-	// exit here if we only wanted m_pSourcePhrases populated and no recursive merger done
-	if (!bDoLayout && !bDoMerger)
+	// exit here if we only wanted m_pSourcePhrases populated and no recursive merger done, and also if we're recovering a corrupted doc
+	if (!bDoLayout && !bDoMerger || pApp->m_recovery_pending)
 	{
 		return TRUE;
 	}
