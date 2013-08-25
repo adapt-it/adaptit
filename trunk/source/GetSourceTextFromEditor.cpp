@@ -1105,6 +1105,15 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 									   // framework badly; so protect from the compiler warning
 									   // in the identity assignment way
 
+// If the doc was corrupt, and we've recovered it, m_recovery_pending will be TRUE.  In this case we fake a
+//    cancel of the dialog and bail out.
+
+                if (m_pApp->m_recovery_pending)
+                {    
+					this->EndModal(wxID_CANCEL);
+					return;
+				}
+
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
 				m_pApp->maxProgDialogValue = 2147483647; //MAXINT; // temporary hack while calling OpenDocWithMerger() above
 				

@@ -1090,9 +1090,13 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         if (pApp->m_recovery_pending)       // The doc was corrupt, and we're going to try to recover it.
                                             //  We close it to avoid crashes in the meantime, then bail out.
         {
-            wxCommandEvent  dummyEvent;
+            wxCommandEvent  dummyEvent,
+                            eventCustom (wxEVT_Recover_Doc);
     
             pDoc->OnFileClose(dummyEvent);
+            pApp->m_reopen_recovered_doc = TRUE;
+            pDoc->RecoverLatestVersion();
+   //         wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
             return;
         }
 

@@ -2250,6 +2250,8 @@ public:
     bool        m_DVCS_installed;       // true if our DVCS engine (git) is actually installed
     bool        m_recovery_pending;     // true if we hit an error reading a document, but it's under version control so
                                         //  we'll be trying to restore the latest revision
+    bool        m_reopen_recovered_doc; // we call the recovery code from 3 different places, and there's only one where we try to reopen the doc
+
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
 
