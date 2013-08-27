@@ -36,6 +36,9 @@ box was filled with the adaptation, rather than the gloss.
 * The "To End" and "To Start" buttons carried the old location's
 phrase box contents to the phrasebox at the new location,
 instead of displaying the correct contents at the new location.
+* SIL Converters: The Tools menu "Sil Converters..." item was
+always disabled even when SIL Converters was installed. This
+has been fixed.
 * The following rare bug has been mentioned by a few users. If
 adapting, and the phrasebox contents have just been edited, when
 the interlinear layout is updated after the phrase box has moved
