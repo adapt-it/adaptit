@@ -83,7 +83,7 @@
   - Setup for the builds. This target unpacks the 3pt libraries, building them if
   - needed, then updates the environment variables that VSBuild needs to compile.
   -->
-  <target name="init" depends="check-3pt" unless="3pt.expanded">
+  <target name="init-3pt" depends="check-3pt" unless="3pt.expanded">
     <!-- extract 3pt libraries -->
     <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
 	<arg value="x" />
@@ -122,11 +122,33 @@
     <copy file="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/setup.h"/>
   </target>
 
+  <target name="init" depends="check-3pt" unless="3pt.expanded">
+    <!-- extract 3pt libraries -->
+    <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/curl/current/curl.7z" />
+	<arg value="-o${3pt}/curl/current/curl" />
+	<arg value="-y" />
+    </exec>
+    <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/openssl/current/openssl.7z" />
+	<arg value="-o${3pt}/openssl/current/openssl" />
+	<arg value="-y" />
+    </exec>
+    <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
+	<arg value="x" />
+	<arg value="${3pt}/boost/current/boost.7z" />
+	<arg value="-o${3pt}/boost/current" />
+	<arg value="-y" />
+    </exec>
+  </target>
+  
   <!-- 
   - compile_3pt_unicode_debug target
   - Compiles wxWidgets in Unicode Debug mode.
   -->
-  <target name="compile_3pt_unicode" depends="init" description="compile the wxWidgets unicode targets (debug and release)" >
+  <target name="compile_3pt_unicode" depends="init-3pt" description="compile the wxWidgets unicode targets (debug and release)" >
 	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
@@ -410,21 +432,21 @@
   - build_continuous target
   - Compiles the Unicode Debug build.
   -->
-  <target name="build_continuous" depends="clean, compile_unicode_debug" description="Continuous build target" >
+  <target name="build_continuous" depends="clean, init, compile_unicode_debug" description="Continuous build target" >
   </target>
 
   <!-- 
   - build_release target
   - Compiles the regular (ansi) and Unicode Release builds and creates the installers.
   -->
-  <target name="build_release" depends="clean, compile_unicode_release, build_help, copy, generate_unicode_installers, compile_msi_unicode" description="Daily / Release build target (Unicode only)" >
+  <target name="build_release" depends="clean, init, compile_unicode_release, build_help, copy, generate_unicode_installers, compile_msi_unicode" description="Daily / Release build target (Unicode only)" >
   </target>
 
   <!-- 
   - build_legacy target
   - Compiles the regular (ansi) Debug and Release builds using the VS 2005 compiler.
   -->
-  <target name="build_ansi" depends="clean, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
+  <target name="build_ansi" depends="clean, init, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
   </target>
 
 </project>
