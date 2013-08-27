@@ -16360,7 +16360,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm 13May12 modified. The above calls are unknown in wxWidgets-2.9.3, so use the following:
 	int majorVersion;
     wxOperatingSystemId sysID = wxGetOsVersion(&majorVersion, NULL);
-	if (sysID == wxOS_WINDOWS && majorVersion >= 5)
+	// whm 24Aug13 revised test below to include wxOS_WINDOWS_NT after Bob E
+	// reported that SIL Encoding Converters version 4 was not working on AI
+	// (the "SIL Converters..." menu item on Tools menu was always disabled)
+	if ((sysID == wxOS_WINDOWS || sysID == wxOS_WINDOWS_NT) && majorVersion >= 5)
 	{
 		// Turn off system message "Failed to load shared library...(error 126: the specified
 		// module could not be found", which pops up in idle time if following .Load() call
