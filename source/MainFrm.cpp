@@ -498,7 +498,6 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
-    EVT_RECOVER_DOC(-1, CAdapt_ItDoc::OnRecoverDoc)
 
 	//BEW added 10Dec12
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -884,12 +883,12 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 						return FALSE;
 					}
 					// here is the absolute path to the doc files we are intested in looking inside
-					strFolderPath = gpApp->m_curAdaptionsPath + gpApp->PathSeparator + strFolderName;
+					strFolderPath = gpApp->m_curAdaptationsPath + gpApp->PathSeparator + strFolderName;
 				}
 				else
 				{
 					// book mode is OFF, so use the Adaptations folder for accessing doc files
-					strFolderPath = gpApp->m_curAdaptionsPath;
+					strFolderPath = gpApp->m_curAdaptationsPath;
 				}
 				// set current directory
 				bOK = ::wxSetWorkingDirectory(strFolderPath);
@@ -2205,7 +2204,7 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 	{
 		gpApp->m_pCurrBookNamePair = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex]);
-		gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptionsPath + gpApp->PathSeparator + gpApp->m_pCurrBookNamePair->dirName;
+		gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptationsPath + gpApp->PathSeparator + gpApp->m_pCurrBookNamePair->dirName;
 	}
 	else
 	{
@@ -4440,7 +4439,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// determine what setup is required: control is coming from either sourceTextStep or
-	// glossesStep, when the order is adaptions before glosses (see gbAdaptBeforeGloss flag),
+	// glossesStep, when the order is adaptations before glosses (see gbAdaptBeforeGloss flag),
 	// but if the order is glosses before adaptations, then control is coming from either
 	// glossesStep or freeTranslationsStep. These variations require separate initialization
 	// blocks.

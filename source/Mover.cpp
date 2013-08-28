@@ -7,9 +7,9 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the Mover class. 
-/// The Mover class encapsulates the logic involved in moving a source document from the main Adaptions 
+/// The Mover class encapsulates the logic involved in moving a source document from the main Adaptations 
 /// folder to an individual book folder, or from an individual book folder back up to 
-/// the main Adaptions folder.
+/// the main Adaptations folder.
 /// \derivation		The Mover class is not a derived class.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in UnitsPage.cpp (in order of importance): (search for "TODO")

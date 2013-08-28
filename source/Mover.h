@@ -7,9 +7,9 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the Mover class. 
-/// The Mover class encapsulates the logic involved in moving a source document from the main Adaptions 
+/// The Mover class encapsulates the logic involved in moving a source document from the main Adaptations 
 /// folder to an individual book folder, or from an individual book folder back up to 
-/// the main Adaptions folder.
+/// the main Adaptations folder.
 /// \derivation		The Mover class is not a derived class.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -35,9 +35,9 @@
     Initially created by Jonathan Field obo Bruce Waters for the "Adapt It" project 
 	developed through Wycliffe Bible Translators.
   Purpose :
-    Encapsulate the logic involved in moving a source document from the main Adaptions 
+    Encapsulate the logic involved in moving a source document from the main Adaptations 
 	folder to an individual book folder, or from an individual book folder back up to 
-	the main Adaptions folder.
+	the main Adaptations folder.
   Usage :
     Have UI instantiate this class and invoke BeginMove, then FinishMove until 
 	successful or we give up.  If we give up after a non-negative return value from 
@@ -46,9 +46,9 @@
 	called for us.
 */
 
-/// The Mover class encapsulates the logic involved in moving a source document from the main Adaptions 
+/// The Mover class encapsulates the logic involved in moving a source document from the main Adaptations 
 /// folder to an individual book folder, or from an individual book folder back up to 
-/// the main Adaptions folder.
+/// the main Adaptations folder.
 /// \derivation		The Mover class is not a derived class.
 class Mover
 {

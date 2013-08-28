@@ -406,7 +406,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		if (!bDirectoriesOK)
 			gpApp->LogUserAction(_T("In LanguagesPage SetupDirectories() failed"));
 		wxCHECK_RET(bDirectoriesOK, _T("OnWizardPageChanging(): SetupDirectories() failed, line 367 in LanguagesPage.cpp, processing will continue & app may be in an unstable state. Save and shutdown would be wise."));
-		// SetupDirectories does not set the CWD but does set m_curAdaptionsPath
+		// SetupDirectories does not set the CWD but does set m_curAdaptationsPath
 		
 		// have the name for the new project into the projectPage's listBox
 		pProjectPage->m_pListBox->Append(gpApp->m_curProjectName);

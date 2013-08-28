@@ -2276,7 +2276,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 
         // this list's source phrases have not had their KB refString entries removed/count
         // decremented, whichever is required, so we must do so now - otherwise, if they
-        // are storing some adaptions, when we try to re-store them in the KB, the
+        // are storing some adaptations, when we try to re-store them in the KB, the
         // StoreAdaptation assert at 1st line will trip.
 		ClearSublistKBEntries(pSaveList);
 
@@ -4102,13 +4102,13 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 
 		// determine whether or not there are book folders present
         // whm note: AreBookFoldersCreated() has the side effect of changing the current
-        // work directory to the passed in m_pApp->m_curAdaptionsPath.
-		gbHasBookFolders = m_pApp->AreBookFoldersCreated(m_pApp->m_curAdaptionsPath);
+        // work directory to the passed in m_pApp->m_curAdaptationsPath.
+		gbHasBookFolders = m_pApp->AreBookFoldersCreated(m_pApp->m_curAdaptationsPath);
 
 		// do the Adaptations folder's files first
         // whm note: EnumerateDocFiles() has the side effect of changing the current work
-        // directory to the passed in m_pApp->m_curAdaptionsPath.
-		bool bOK = m_pApp->EnumerateDocFiles(pDoc, m_pApp->m_curAdaptionsPath);
+        // directory to the passed in m_pApp->m_curAdaptationsPath.
+		bool bOK = m_pApp->EnumerateDocFiles(pDoc, m_pApp->m_curAdaptationsPath);
 		if (bOK)
 		{
 			// bale out if there are no files to process, and no book folders too
@@ -4151,7 +4151,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			int nCount;
 			wxDir finder;
 			// wxDir must call .Open() before enumerating files!
-			bool bOK = (finder.Open(m_pApp->m_curAdaptionsPath));
+			bool bOK = (finder.Open(m_pApp->m_curAdaptationsPath));
 			if (!bOK)
 			{
 				// highly unlikely, so English will do
@@ -4199,7 +4199,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                     // - a difference we must account for here in the wx version. whm Note:
                     // The Exists() method of wxDIR used below returns TRUE if the passed
                     // name IS a directory.
-					if (finder.Exists(m_pApp->m_curAdaptionsPath + m_pApp->PathSeparator + str))
+					if (finder.Exists(m_pApp->m_curAdaptationsPath + m_pApp->PathSeparator + str))
 					{
                         // User-defined folders can be in the Adaptations folder without
                         // making the app confused as to whether or not Bible Book folders
@@ -4213,7 +4213,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 							// Bible book folders, so construct the required path to the
 							// folder and enumerate is documents then call
 							// DoTransformationsToGlosses() to process any documents within
-							wxString folderPath = m_pApp->m_curAdaptionsPath;
+							wxString folderPath = m_pApp->m_curAdaptationsPath;
 							folderPath += m_pApp->PathSeparator + str;
 
                             // clear the string list of directory names & then enumerate
@@ -4221,7 +4221,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
                             // sets the current directory to the one given by folderPath
                             // (ie. to a book folder) so after the DoKBRestore() call,
                             // which relies on that directory being current, we must call
-                            // ::SetCurrentDirectory(m_curAdaptionsPath) again so that this
+                            // ::SetCurrentDirectory(m_curAdaptationsPath) again so that this
                             // outer look which iterates over directories continues
                             // correctly
 							pFileList->Clear();
@@ -4257,7 +4257,7 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 							DoRetranslationReport(pDoc,docName,pFileList,
 												  m_pApp->m_pSourcePhrases,&f, _("Generating Retranslation Report..."));
 							// restore parent folder as current
-							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptionsPath);
+							bOK = ::wxSetWorkingDirectory(m_pApp->m_curAdaptationsPath);
 							// the wxASSERT() is a problem when using Freeze() and Thaw()
 							// so if it gets thawed here, but control gets past the assert
 							// as would be the case in Release build, then re-freeze

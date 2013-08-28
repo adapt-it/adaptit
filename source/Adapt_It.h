@@ -2252,6 +2252,7 @@ public:
                                         //  we'll be trying to restore the latest revision
     bool        m_reopen_recovered_doc; // we call the recovery code from 3 different places, and there's only one where we try to reopen the doc
     wxString    m_sourcePath;           // used only when recovering a doc in another project folder
+    bool        m_suppress_KB_messages; // set TRUE when we're importing a project for glossing, when a summary message is OK
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
@@ -2943,11 +2944,11 @@ public:
 										// name
 	wxString	m_localPathPrefix;	// the part of the workfolder path before the
 				// m_theWorkFolder part
-	wxString	m_adaptionsFolder;	// "Adaptations" folder
+	wxString	m_adaptationsFolder;	// "Adaptations" folder
 	wxString	m_curProjectName;	// <Project Name> in the form
 				// "<SourceLanguageName> to <TargetLanguageName> Adaptations"
 	wxString	m_curProjectPath;	// "C:\My Documents\Adapt It Work\<Project Name>"
-	wxString	m_curAdaptionsPath;	// "C:\My Documents\Adapt It Work\<Project Name>\Adaptations"
+	wxString	m_curAdaptationsPath;	// "C:\My Documents\Adapt It Work\<Project Name>\Adaptations"
 
 	wxString	m_setupFolder;			// whm renamed m_setupFolder to this
 										// and moved to App class 31July06

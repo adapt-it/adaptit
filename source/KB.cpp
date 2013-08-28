@@ -2092,6 +2092,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 // support of both LIFT import and \lx &\ge -based SFM KB import
 // BEW 13Nov10 changes for supporting Bob Eaton's request for using all tabs in glossing kb
 // BEW 17Jul11, bug fix for duplicate entries when an entry has m_deleted flag TRUE
+
 void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfType)
 {
 	//CSourcePhrase* pSrcPhrase = new CSourcePhrase;
@@ -2680,11 +2681,14 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		file.Close();
 		pStatusBar->FinishProgress(_("Importing SFM Records to the Knowledge Base"));
 
-		// provide the user with a statistics summary
-		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
-		msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems, nUndeletions);
-		wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION | wxOK);
-		m_pApp->LogUserAction(msg);
+		// provide the user with a statistics summary, unless KB messages are suppressed
+        
+        if (!m_pApp->m_suppress_KB_messages)
+        {		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
+            msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems, nUndeletions);
+            wxMessageBox(msg,_T("KB Import Results"),wxICON_INFORMATION | wxOK);
+            m_pApp->LogUserAction(msg);
+        }
 	} // end importing from an SFM text file
 }
 
@@ -3051,8 +3055,10 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	msgDisplayed = progMsg.Format(progMsg,fn.GetFullName().c_str(),1,nTotal);
 	pStatusBar->StartProgress(titleStr, msgDisplayed, nTotal);
 
-	bool bSuppressDeletionsInSFMexport = FALSE; // default is to export everything for SFM export
-	if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
+	bool bSuppressDeletionsInSFMexport = FALSE;     // default is to export everything for SFM export.
+                                                    //  If KB messages are suppressed, we skip the next block and this flag stays FALSE.
+
+	if ( (kbExportSaveAsType == KBExportSaveAsSFM_TXT) && !m_pApp->m_suppress_KB_messages)
 	{
 		wxString message;
 		message = message.Format(_("Deleted entries are kept in the knowledge base but are hidden. Do you want these included in the export?\n(Click No only if you intend to later import the data to a legacy version of Adapt It, otherwise click Yes.)"));

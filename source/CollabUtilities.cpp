@@ -1811,7 +1811,7 @@ wxString GetAIProjectFolderForCollab(wxString& aiProjName, wxString& aiSrcLangNa
 // folder location into account, before the resulting correct path is passed in here.
 //
 // Note: calling this function will reset m_curProjectName and m_curProjectPath and
-// m_curAdaptionsPath and m_sourceInputsFolderPath, and other version 6 folder's paths (app
+// m_curAdaptationsPath and m_sourceInputsFolderPath, and other version 6 folder's paths (app
 // variables) without making any checks related to what these variables may happen to be
 // pointing at; this is safe provided any previous active project has been closed.
 // Return TRUE if all went well, FALSE if the hookup was unsuccessful for any reason.
@@ -1866,8 +1866,8 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	pApp->m_sourceInputsFolderPath = pApp->m_curProjectPath + pApp->PathSeparator +
 									pApp->m_sourceInputsFolderName;
     // make sure the path to the Adaptations folder is correct
-	pApp->m_curAdaptionsPath = pApp->m_curProjectPath + pApp->PathSeparator
-									+ pApp->m_adaptionsFolder;
+	pApp->m_curAdaptationsPath = pApp->m_curProjectPath + pApp->PathSeparator
+									+ pApp->m_adaptationsFolder;
 
 	pApp->GetProjectConfiguration(pApp->m_curProjectPath); // get the project's configuration settings
 	// BEW 28Sep12 note: each doc closure in collaboration mode is treated like an exit

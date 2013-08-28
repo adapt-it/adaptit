@@ -678,18 +678,18 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
             // make sure the path to the Adaptations folder is correct (if omitted, it
             // would use the basic config file's "DocumentsFolderPath" line - which could
             // have been the Adaptations folder in a different project)
-			pApp->m_curAdaptionsPath = pApp->m_curProjectPath + pApp->PathSeparator
-									   + pApp->m_adaptionsFolder;
+			pApp->m_curAdaptationsPath = pApp->m_curProjectPath + pApp->PathSeparator
+									   + pApp->m_adaptationsFolder;
 
 			// whm added 8Feb12. The user may have created an "empty" project, for example
 			// "test1 to test2 adaptations" by simply creating such a folder in the "Adapt It
 			// Unicode Work" folder. In this case AI will also need to have an "Adaptations"
 			// folder within the user-created project folder if it does not already exist
-			if (!::wxDirExists(pApp->m_curAdaptionsPath))
+			if (!::wxDirExists(pApp->m_curAdaptationsPath))
 			{
 				// The "Adaptations" folder does not yet exist, so create it
 				bool bOK = FALSE;
-				bOK = ::wxMkdir(pApp->m_curAdaptionsPath);
+				bOK = ::wxMkdir(pApp->m_curAdaptationsPath);
 				if (!bOK)
 				{
 					wxString msg = _T("Unable to create an Adaptations folder within the %s project folder");

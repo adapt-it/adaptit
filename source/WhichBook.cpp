@@ -301,7 +301,7 @@ void CWhichBook::FinishSetup()
 	gpApp->m_pCurrBookNamePair = (BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex]; 
 	wxString folderName = gpApp->m_pCurrBookNamePair ->dirName;
 	wxASSERT(!folderName.IsEmpty());
-	gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptionsPath + gpApp->PathSeparator + folderName; //gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptionsPath + _T("\\") + folderName;
+	gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptationsPath + gpApp->PathSeparator + folderName; //gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptationsPath + _T("\\") + folderName;
 }
 
 void CWhichBook::OnSelchangeChooseBook(wxCommandEvent& WXUNUSED(event))
@@ -344,7 +344,7 @@ void CWhichBook::OnSelchangeChooseBook(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pCurrBookNamePair = (BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex]; 
 	wxString folderName = gpApp->m_pCurrBookNamePair ->dirName;
 	wxASSERT(!folderName.IsEmpty());
-	gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptionsPath + gpApp->PathSeparator + folderName; //gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptionsPath + _T("\\") + folderName;
+	gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptationsPath + gpApp->PathSeparator + folderName; //gpApp->m_bibleBooksFolderPath = gpApp->m_curAdaptationsPath + _T("\\") + folderName;
 
 	// update the status bar
 	gpApp->RefreshStatusBarInfo();

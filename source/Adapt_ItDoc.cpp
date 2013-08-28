@@ -647,7 +647,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			}
 			else
 			{
-				docsPath = gpApp->m_curAdaptionsPath; // path to the "Adaptations"
+				docsPath = gpApp->m_curAdaptationsPath; // path to the "Adaptations"
 													  // folder of the project
 			}
 			wxArrayString arrDocFilenames;
@@ -1017,7 +1017,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			}
 			else
 			{
-				pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator
+				pApp->m_curOutputPath = pApp->m_curAdaptationsPath + pApp->PathSeparator
 						+ pApp->m_curOutputFilename; // to send to the app when saving
 													 // m_lastDocPath to config files
 			}
@@ -1522,7 +1522,7 @@ void CAdapt_ItDoc::DocChangedExternally()
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		dirPath = gpApp->m_bibleBooksFolderPath;
 	else
-		dirPath = gpApp->m_curAdaptionsPath;
+		dirPath = gpApp->m_curAdaptationsPath;
 
 	wxString		strSaveCurrentDirectoryFullPath = dirPath;
 
@@ -1928,15 +1928,6 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
     pApp->m_saved_with_commit = TRUE;       // no changes since the restored version was committed
     return TRUE;                            // success!
-}
-
-void CAdapt_ItDoc::OnRecoverDoc (wxCommandEvent& WXUNUSED(event))
-{
-    if (!RecoverLatestVersion())
-    {
-// We can get here if the doc appears to have a DVCS history, but maybe its name has been corrupted, so we couldn't access the history.
-        wxMessageBox(_T("Sorry, this document appears to be corrupt, and can't be opened.  Possibly its name is wrong."));
-    }
 }
 
 void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
@@ -2523,8 +2514,8 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	else
 	{
 		// do legacy save, to the Adaptations folder
-		bOK = ::wxSetWorkingDirectory(pApp->m_curAdaptionsPath);
-		pathToSaveFolder = pApp->m_curAdaptionsPath;
+		bOK = ::wxSetWorkingDirectory(pApp->m_curAdaptationsPath);
+		pathToSaveFolder = pApp->m_curAdaptationsPath;
 	}
 	if (!bOK)
 	{
@@ -2981,7 +2972,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	}
 	else
 	{
-		gpApp->m_curOutputPath = pApp->m_curAdaptionsPath +
+		gpApp->m_curOutputPath = pApp->m_curAdaptationsPath +
 									gpApp->PathSeparator + gpApp->m_curOutputFilename;
 	}
 	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was
@@ -3024,7 +3015,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		SetFilename(pApp->m_bibleBooksFolderPath+pApp->PathSeparator +
 			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
 	else
-		SetFilename(pApp->m_curAdaptionsPath+pApp->PathSeparator +
+		SetFilename(pApp->m_curAdaptationsPath+pApp->PathSeparator +
 			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
 
 	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
@@ -3577,7 +3568,7 @@ void CAdapt_ItDoc::ValidateFilenameAndPath(wxString& curFilename, wxString& curP
 	}
 	else
 	{
-		pathForSaveFolder = gpApp->m_curAdaptionsPath;
+		pathForSaveFolder = gpApp->m_curAdaptationsPath;
 	}
 
 	curPath = pathForSaveFolder + gpApp->PathSeparator + curFilename;
@@ -3738,15 +3729,15 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
             {
                 wxCommandEvent  dummyEvent;
                 wxString        savedOutputFilename = pApp->m_curOutputFilename;
-                wxString        savedAdaptationsPath = pApp->m_curAdaptionsPath;
+                wxString        savedAdaptationsPath = pApp->m_curAdaptationsPath;
                 
                 OnFileClose(dummyEvent);                            // the file's corrupt, so we close it to avoid crashes
                 pApp->m_reopen_recovered_doc = FALSE;               // so the recovery code doesn't try to re-open the doc
                 pApp->m_curOutputFilename = thePath;                // have to make these source values current for the recovery
-                pApp->m_curAdaptionsPath = pApp->m_sourcePath;
+                pApp->m_curAdaptationsPath = pApp->m_sourcePath;
 				bReadOK = RecoverLatestVersion();
                 pApp->m_curOutputFilename = savedOutputFilename;    // restore target values
-                pApp->m_curAdaptionsPath = savedAdaptationsPath;
+                pApp->m_curAdaptationsPath = savedAdaptationsPath;
                 
                 if (bReadOK)                                        // if we recovered the doc, we retry the original read
                     bReadOK = ReadDoc_XML (thePath, this, _("Opening Document In Another Project"), nTotal);
@@ -3813,7 +3804,7 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
 		dirPath = pApp->m_bibleBooksFolderPath;
 	else
-		dirPath = pApp->m_curAdaptionsPath;
+		dirPath = pApp->m_curAdaptationsPath;
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	bOK = bOK; // avoid warning
@@ -4054,8 +4045,8 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 	}
 	else
 	{
-		basePath = gpApp->m_curAdaptionsPath;
-		bOK = ::wxSetWorkingDirectory(gpApp->m_curAdaptionsPath);
+		basePath = gpApp->m_curAdaptationsPath;
+		bOK = ::wxSetWorkingDirectory(gpApp->m_curAdaptationsPath);
 	}
 	if (!bOK)
 	{
@@ -4068,7 +4059,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 		else
 			str = str.Format(_(
 			"Warning: document backup failed for the path:  %s   No backup was done."),
-			GetApp()->m_curAdaptionsPath.c_str());
+			GetApp()->m_curAdaptationsPath.c_str());
 		wxMessageBox(str,_T(""), wxICON_EXCLAMATION | wxOK);
 		return FALSE;
 	}
@@ -5858,7 +5849,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	}
 	else
 	{
-		pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator
+		pApp->m_curOutputPath = pApp->m_curAdaptationsPath + pApp->PathSeparator
 								+ pApp->m_curOutputFilename;
 	}
 
@@ -13467,7 +13458,7 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		dirPath = gpApp->m_bibleBooksFolderPath;
 	else
-		dirPath = gpApp->m_curAdaptionsPath;
+		dirPath = gpApp->m_curAdaptationsPath;
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	bOK = bOK; // avoid warning
@@ -17054,7 +17045,7 @@ bool CAdapt_ItDoc::DoPackDocument(wxString& exportPathUsed, bool bInvokeFileDial
 	}
 	else
 	{
-		docPath = gpApp->m_curAdaptionsPath;
+		docPath = gpApp->m_curAdaptationsPath;
 	}
 	docPath += gpApp->PathSeparator + gpApp->m_curOutputFilename; // it will have .xml extension
 
@@ -21341,7 +21332,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	wxString saveMFCfilename = GetFilename(); // m_strPathName is internal to MFC's doc-view
 	wxString saveBibleBooksFolderPath = gpApp->m_bibleBooksFolderPath;
 	wxString saveCurOutputFilename = gpApp->m_curOutputFilename;
-	wxString saveCurAdaptionsPath = gpApp->m_curAdaptionsPath;
+	wxString saveCurAdaptionsPath = gpApp->m_curAdaptationsPath;
 	wxString saveCurOutputPath = gpApp->m_curOutputPath;
 
 	// set up the paths consistent with the unpacked info
@@ -21356,9 +21347,9 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 	}
 	else
 	{
-		SetFilename(gpApp->m_curAdaptionsPath + gpApp->PathSeparator +
+		SetFilename(gpApp->m_curAdaptationsPath + gpApp->PathSeparator +
 														gpApp->m_curOutputFilename,TRUE);
-		gpApp->m_curOutputPath = gpApp->m_curAdaptionsPath + gpApp->PathSeparator +
+		gpApp->m_curOutputPath = gpApp->m_curAdaptationsPath + gpApp->PathSeparator +
 														gpApp->m_curOutputFilename;
 	}
 
@@ -21415,7 +21406,7 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 			gpApp->m_bibleBooksFolderPath = saveBibleBooksFolderPath;
 			gpApp->m_curOutputFilename = saveCurOutputFilename;
-			gpApp->m_curAdaptionsPath = saveCurAdaptionsPath;
+			gpApp->m_curAdaptationsPath = saveCurAdaptionsPath;
 			gpApp->m_curOutputPath = saveCurOutputPath;
 
 			// restore the earlier document to the main window, if we have a valid path to
@@ -21942,7 +21933,7 @@ bool CAdapt_ItDoc::ReOpenDocument (
 	pApp->m_nBookIndex = savedBookIndex;
 
 	/* // whm 26Aug11 commented out the following because it incorrectly sets the
-	   // values of pApp->m_bibleBooksFolderPath and pApp->m_curAdaptionsPath to
+	   // values of pApp->m_bibleBooksFolderPath and pApp->m_curAdaptationsPath to
 	   // the incoming parameter value of savedWorkFolderPath. Also the value
 	   // passed to ::wxSetWorkingDirectory() is not correct nor is the calling
 	   // of ::wxSetWorkingDirectory() needed.
@@ -21955,8 +21946,8 @@ bool CAdapt_ItDoc::ReOpenDocument (
 	}
 	else
 	{
-		pApp->m_curAdaptionsPath = savedWorkFolderPath;
-		dirPath = pApp->m_curAdaptionsPath;
+		pApp->m_curAdaptationsPath = savedWorkFolderPath;
+		dirPath = pApp->m_curAdaptationsPath;
 	}
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	wxASSERT(bOK);
@@ -22238,7 +22229,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
 		dirPath = pApp->m_bibleBooksFolderPath;
 	else
-		dirPath = pApp->m_curAdaptionsPath;
+		dirPath = pApp->m_curAdaptationsPath;
 	bool bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
@@ -22487,7 +22478,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 					msg = msg.Format(_T("Checking Book: %d of %d"), bookIndex, nMaxBookFolders);
 					pStatusBar->UpdateProgress(_("Performing Consistency Check"), bookIndex, msg);
 					pBookNamePair = ((BookNamePair*)(*pApp->m_pBibleBooks)[bookIndex]);
-					folderPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + pBookNamePair->dirName;
+					folderPath = pApp->m_curAdaptationsPath + pApp->PathSeparator + pBookNamePair->dirName;
 					// setting the index, book name pair, and bibleBooksFolderPath on the
 					// app class ensures that the internal call in DoConsistencyCheck() to
 					// the DoSaveFile_Protected() will construct the right path to the
@@ -22555,7 +22546,7 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			else
 			{
 				// it's not book mode, do the check over all books in the Adaptations folder
-				// (dirPath has been set to pApp->m_curAdaptionsPath if book mode is not
+				// (dirPath has been set to pApp->m_curAdaptationsPath if book mode is not
 				// on, that is, to Adaptations folder)
 
 				// need a copy of pKB to check for inconsistencies in

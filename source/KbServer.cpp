@@ -2642,7 +2642,7 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 // transforms the adapting KB in the original project into the glossing KB in the new
 // project. Then if the user is authorized to make the new project a shared one and does
 // so, he can do a bulk upload from the new project, and thereby populate the remote
-// shared KB with adaptions-now-turned-into-glosses). 
+// shared KB with adaptations-now-turned-into-glosses). 
 // 
 // Note: if this returns CURLcode CURLE_OK, and there's no HTTP error, then this function
 // should be followed up with a function that causes the code or codes to be updated in
