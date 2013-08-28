@@ -408,38 +408,6 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     return 0;                                           // return no error
 }
 
-/*
-int  DVCS::log_file (wxString fileName)
-{
-    int         returnCode;
-
-	git_output.Clear();
-	git_command = _T("log");
-    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using # as a separator
-	git_arguments = fileName;
-    returnCode = call_git(FALSE);
-    if (returnCode)
-        return returnCode;                          // bail out on error
-    m_pApp->m_DVCS_log = &git_output;               // save pointer to log in app global for our dialog.  This is OK since this
-                                                    //  DVCS object lasts for the whole application run.
-    return 0;
-}
-
-int  DVCS::log_project()
-{
-    int         returnCode;
-
-	git_output.Clear();
-	git_command = _T("log");
-    git_options = _T("--pretty=format:%cn#%cd#%s");      // committer name, commit date, comment - using # as a separator
-    returnCode = call_git(FALSE);
-    if (returnCode)
-        return returnCode;                          // bail out on error
-    m_pApp->m_DVCS_log = &git_output;               // save pointer to log in app global for our dialog.  This is OK since this
-                                                    //  DVCS object lasts for the whole application run.
-    return 0;
-}
-*/
 
 // Main function.  This is the only one called from outside this file.
 //  It just clears the global wxStrings, cd's to the current repository, then dispatches to the
@@ -483,9 +451,6 @@ int  DVCS::DoDVCS ( int action, int parm )
 
         case DVCS_SETUP_VERSIONS:   result = setup_versions (m_pApp->m_curOutputFilename);          break;
         case DVCS_GET_VERSION:      result = get_version (parm, m_pApp->m_curOutputFilename);		break;
-
-//		case DVCS_LOG_FILE:			result = log_file (m_pApp->m_curOutputFilename);                break;
-//		case DVCS_LOG_PROJECT:		result = log_project();                                         break;
 
 		default:
 			wxMessageBox (_T("Internal error - illegal DVCS command"));

@@ -2251,6 +2251,7 @@ public:
     bool        m_recovery_pending;     // true if we hit an error reading a document, but it's under version control so
                                         //  we'll be trying to restore the latest revision
     bool        m_reopen_recovered_doc; // we call the recovery code from 3 different places, and there's only one where we try to reopen the doc
+    wxString    m_sourcePath;           // used only when recovering a doc in another project folder
 
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
@@ -3966,7 +3967,7 @@ public:
 	void	UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo);
 
 	// the following are mostly in alphabetical order, but there are exceptions
-	bool	AccessOtherAdaptionProject();
+	bool	AccessOtherAdaptationProject();
 	bool	AreBookFoldersCreated(wxString dirPath);
 	void	ClearKB(CKB* pKB, CAdapt_ItDoc* pDoc);
 	bool	ContainsOrdinaryQuote(wxString s, wxChar ch);
