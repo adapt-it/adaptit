@@ -3743,7 +3743,11 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
                     bReadOK = ReadDoc_XML (thePath, this, _("Opening Document In Another Project"), nTotal);
                 
                 if (bReadOK)
-                    wxMessageBox(_T("The document " + thePath + " was corrupt, but we have restored the latest version saved in the document history."));
+				{
+					wxString msg;
+					msg.Format(_T("The document %s was corrupt, but we have restored the latest version saved in the document history."), thePath.c_str());
+                    wxMessageBox(msg);
+				}
             }
 
             if (!bReadOK)
