@@ -1842,7 +1842,7 @@ bool CPhraseBox::LookAhead(CPile* pNewPile)
 	// we found a target unit in the list with a matching m_key field, so we must now set
 	// the static var translation to the appropriate adaptation, or gloss, text: this
 	// will be the target unit's first entry in its list if the list has only one entry, else
-	// we must present the user with a dialog to put up all possible adaptions (or glosses) for
+	// we must present the user with a dialog to put up all possible adaptations (or glosses) for
 	//  the user to choose one, or type a new one, or reject all - in which case we return
 	// FALSE for manual typing of an adaptation (or gloss) etc. For autocapitalization support,
 	// the dialog will show things as stored in the KB (if auto caps is ON, that could be with
@@ -5185,7 +5185,7 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	// we found a target unit in the list with a matching m_key field,
 	// so we must now set the static var translation to the appropriate adaptation text: this
 	// will be the target unit's first entry in its list if the list has only one entry, else
-	// we must present the user with a dialog to put up all possible adaptions for the user to
+	// we must present the user with a dialog to put up all possible adaptations for the user to
 	// choose one, or type a new one, or reject all - in which case we return FALSE for manual
 	// typing of an adaptation etc.
 	// BEW 21Jun10, changed to support kbVersion 2's m_bDeleted flag. It is now possible
@@ -5381,7 +5381,7 @@ bool CPhraseBox::LookUpSrcWord(CPile* pNewPile)
 	// we found a target unit in the list with a matching m_key field,
 	// so we must now set the static var translation to the appropriate adaptation text: this
 	// will be the target unit's first entry in its list if the list has only one entry, else
-	// we must present the user with a dialog to put up all possible adaptions for the user to
+	// we must present the user with a dialog to put up all possible adaptations for the user to
 	// choose one, or type a new one, or reject all - in which case we return FALSE for manual
 	// typing of an adaptation etc.
 	// BEW 21Jun10, changed to support kbVersion 2's m_bDeleted flag. It is now possible

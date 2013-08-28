@@ -772,7 +772,7 @@ bool bSuppressDefaultAdaptation = FALSE;	// normally FALSE, but set TRUE wheneve
         // ensures cons.changes won't be done on the typing) - actually more complex than
         // this, see CPhraseBox OnChar()
 bool   gbInspectTranslations = FALSE;	// TRUE when user manually opens CChooseTranslation
-		// to inspect adaptions
+		// to inspect adaptations
 extern bool		gbUserCancelledChooseTranslationDlg;
 extern bool		gbSuppressLookup; // see CPhraseBox globals for explanation
 
@@ -5440,7 +5440,7 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
     // version comment: theTime doesn't need to be initialized, but it doesn't hurt.
     // It is set to the file's modification date/time below.
 	wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
-	wxString path = pApp->m_curAdaptionsPath + pApp->PathSeparator + strDocName;
+	wxString path = pApp->m_curAdaptationsPath + pApp->PathSeparator + strDocName;
 	bool bExists;
 	bExists = ::wxFileExists(path) && !::wxDirExists(path);
 	if (bExists)
@@ -5624,7 +5624,7 @@ void  CAdapt_ItView::PrintFooter(wxDC* pDC, wxPoint marginTopLeft, wxPoint margi
     // version comment: theTime doesn't need to be initialized, but it doesn't hurt.
     // It is set to the file's modification date/time below.
 	wxDateTime theTime = wxDateTime::Now(); //initialize to the current time
-	wxString path = pApp->m_curAdaptionsPath + pApp->PathSeparator + strDocName;
+	wxString path = pApp->m_curAdaptationsPath + pApp->PathSeparator + strDocName;
 	bool bExists;
 	bExists = ::wxFileExists(path) && !::wxDirExists(path);
 	if (bExists)

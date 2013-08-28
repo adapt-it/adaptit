@@ -434,7 +434,7 @@ int  DVCS::DoDVCS ( int action, int parm )
 
 // Next we cd into our repository.  We use wxSetWorkingDirectory() and spaces in pathnames are OK.
 
-    str = m_pApp->m_curAdaptionsPath;
+    str = m_pApp->m_curAdaptationsPath;
     bResult = ::wxSetWorkingDirectory (str);
 
     if (!bResult)

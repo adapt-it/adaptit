@@ -998,7 +998,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 							bookCode, _T(""), chForDocName, _T(".xml"));
 			// create the absolute path to the document we are checking for the existence of
 			wxString docPath = aiMatchedProjectFolderPath + m_pApp->PathSeparator
-				+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator
+				+ m_pApp->m_adaptationsFolder + m_pApp->PathSeparator
 				+ documentName;
 			// set the member used for creating the document name for saving to disk
 			m_pApp->m_curOutputFilename = documentName;
@@ -1408,7 +1408,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 									bookCode, _T(""), chForDocName, _T(".xml"));
 		// create the absolute path to the document we are checking for the existence of
 		wxString docPath = m_pApp->m_curProjectPath + m_pApp->PathSeparator
-				+ m_pApp->m_adaptionsFolder + m_pApp->PathSeparator + documentName;
+				+ m_pApp->m_adaptationsFolder + m_pApp->PathSeparator + documentName;
 		// set the member used for creating the document name for saving to disk
 		m_pApp->m_curOutputFilename = documentName;
 		// make the backup filename too

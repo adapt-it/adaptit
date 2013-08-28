@@ -5904,8 +5904,8 @@ wxString szCurLanguagesPath = _T("ProjectFolderPath");
 
 /// The label that identifies the following string as the project's "DocumentsFolderPath".
 /// This value is written in the "ProjectSettings" part of the project configuration file.
-/// Adapt It stores this path in the App's m_curAdaptionsPath member variable.
-wxString szCurAdaptionsPath = _T("DocumentsFolderPath");
+/// Adapt It stores this path in the App's m_curAdaptationsPath member variable.
+wxString szCurAdaptationsPath = _T("DocumentsFolderPath");
 
 /// The label that identifies the following string as the project's "KnowledgeBaseName".
 /// This value is written in the "ProjectSettings" part of the project configuration file.
@@ -12622,7 +12622,7 @@ bool CAdapt_ItApp::AIProjectHasCollabDocs(wxString m_projectName)
 	{
 		workOrCustomFolderPath = m_customWorkFolderPath;
 	}
-	wxString path2Adaptations = workOrCustomFolderPath + PathSeparator + m_projectName + PathSeparator + m_adaptionsFolder;
+	wxString path2Adaptations = workOrCustomFolderPath + PathSeparator + m_projectName + PathSeparator + m_adaptationsFolder;
 
 	wxString saveCurWorkingDir = ::wxGetCwd();
 	// Scan the files in the Adaptations folder for any that start with a "_Collab" substring.
@@ -15381,6 +15381,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Initialize items relating to corrupt doc recovery:
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
+    m_suppress_KB_messages = FALSE;     // normal default
   
 	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
                  // being done more than once in a series of OnIdle() calls. It's reset to
@@ -15927,7 +15928,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// will do the same here
 	// TODO: check the Unpack process when unpacking a packed file coming from
 	// a different localization.
-	m_adaptionsFolder = _("Adaptations");
+	m_adaptationsFolder = _("Adaptations");
 	m_lastSourceInputPath = m_workFolderPath; // m_workFolderPath is set to _T("") above - don't do alternative custom loc'n here
 	m_curProjectPath = _T("");
 	m_sourceInputsFolderPath = _T("");
@@ -15944,7 +15945,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_liftInputsAndOutputsFolderPath = _T("");
 	m_packedInputsAndOutputsFolderPath = _T("");
 
-	m_curAdaptionsPath = _T("");
+	m_curAdaptationsPath = _T("");
 	m_curKBName = _T("");
 	m_curKBPath = _T("");
 	m_curProjectName = _T("");
@@ -21311,8 +21312,8 @@ int ii = 1;
 		//m_kbInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_kbInputsAndOutputsFolderName;
 		//m_liftInputsAndOutputsFolderPath = m_curProjectPath + PathSeparator + m_liftInputsAndOutputsFolderName;
 
-		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
-		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
+		m_curAdaptationsPath = m_curProjectPath + PathSeparator + m_adaptationsFolder;
+		fullPath = m_curAdaptationsPath + PathSeparator + m_autoexport_docname;
 		GetDocument()->OnOpenDocument(fullPath, true);
 	}
 	m_bControlIsWithinOnInit = FALSE;
@@ -22915,17 +22916,17 @@ bool CAdapt_ItApp::SetupDirectories()
     // we now have a location in which we can store the adaption project's knowledge
     // base, and we have to finally create an Adaptations folder here too for the
     // adapted output. do the Adaptations folder first
-	m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
+	m_curAdaptationsPath = m_curProjectPath + PathSeparator + m_adaptationsFolder;
 
 	// check to see if this folder already exists
-	bool bAdaptionsFolderExists = FALSE;
-	bAdaptionsFolderExists = bAdaptionsFolderExists; // avoid warning
-	if (::wxFileExists(m_curAdaptionsPath) || ::wxDirExists(m_curAdaptionsPath))
+	bool bAdaptationsFolderExists = FALSE;
+	bAdaptationsFolderExists = bAdaptationsFolderExists; // avoid warning
+	if (::wxFileExists(m_curAdaptationsPath) || ::wxDirExists(m_curAdaptationsPath))
 	{
-		if (::wxDirExists(m_curAdaptionsPath))
+		if (::wxDirExists(m_curAdaptationsPath))
 		{
-			// Adaptions folder already exists, so don't create it
-			bAdaptionsFolderExists = TRUE;
+			// Adaptations folder already exists, so don't create it
+			bAdaptationsFolderExists = TRUE;
 		}
 		else
 		{
@@ -22933,7 +22934,7 @@ bool CAdapt_ItApp::SetupDirectories()
             // exist, so it must be renamed before user can proceed. Abort after a
             // message is easiest way.
 			wxString text;
-			// IDS_ADAPTATIONS_CLASH // MFC error message has "Adaptions" rather than "Adaptations"
+			// IDS_ADAPTATIONS_CLASH // MFC error message has "Adaptations" rather than "Adaptations"
 			text = text.Format(_(
 "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."),
 			m_curProjectName.c_str());
@@ -22947,12 +22948,11 @@ bool CAdapt_ItApp::SetupDirectories()
 	else
 	{
 		// language-specific Work folder does not yet exist, so create it.
-		bool bOK = ::wxMkdir(m_curAdaptionsPath); //bool bOK = ::CreateDirectory(m_curAdaptionsPath,NULL);
+		bool bOK = ::wxMkdir(m_curAdaptationsPath); //bool bOK = ::CreateDirectory(m_curAdaptationsPath,NULL);
 		// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
 		// makes a directory with full read, write, and execute permissions.
 		if (!bOK)
 		{
-			// IDS_CREATE_DIR3_FAILED // MFC error message has "Adaptions" rather than "Adaptations"
 			wxMessageBox(_(
 "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."),
 			_T(""), wxICON_ERROR | wxOK);
@@ -22960,7 +22960,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			wxASSERT(FALSE);
 			return FALSE;
 		}
-		bAdaptionsFolderExists = TRUE; // it now exists
+		bAdaptationsFolderExists = TRUE; // it now exists
 	}
 
 	// whm 12Jun11 added the following for creating inputs and outputs directories
@@ -22996,16 +22996,16 @@ bool CAdapt_ItApp::SetupDirectories()
 	{
         // check the book folders are already present, and if not then create them whm
         // note: AreBookFoldersCreated() has the side effect of changing the current
-        // work directory to the passed in m_curAdaptionsPath.
-		bool bFoldersPresent = AreBookFoldersCreated(m_curAdaptionsPath);
+        // work directory to the passed in m_curAdaptationsPath.
+		bool bFoldersPresent = AreBookFoldersCreated(m_curAdaptationsPath);
 		if (!bFoldersPresent)
 		{
-			CreateBookFolders(m_curAdaptionsPath,m_pBibleBooks);
+			CreateBookFolders(m_curAdaptationsPath,m_pBibleBooks);
 		}
 
 		// set the current folder and its path
 		m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
-		m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator + m_pCurrBookNamePair->dirName;
+		m_bibleBooksFolderPath = m_curAdaptationsPath + PathSeparator + m_pCurrBookNamePair->dirName;
 	}
 	else
 	{
@@ -25079,7 +25079,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 		// pointer). Then use the Advanced menu to turn off book folder mode. This causes
 		// the wizard to be entered at docPage, and the latter's OnSetActive() is called,
 		// which in turn calls GetPossibleAdaptionDocuments() for the path
-		// m_curAdaptionsPath, and then the above GetDocument() call returns NULL. So
+		// m_curAdaptationsPath, and then the above GetDocument() call returns NULL. So
 		// having a wxASSERT here for a non-Null pDoc pointer is no help. We cannot in
 		// this circumstance use pDoc to access the document template, so for the present
 		// I'll do a kludge - test for pDoc NULL and if so, set strExt to ".xml" manually.
@@ -25122,17 +25122,17 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      dirPath   -> must be the absolute path to the current project's Adaptations
-///                         folder (this is stored in the app's m_curAdaptionsPath member)
+///                         folder (this is stored in the app's m_curAdaptationsPath member)
 /// \param      pFolders  -> the app's m_pBibleBooks member
 /// \remarks
 /// Called from: the App's SetupDirectories(), AccessOtherAdaptionProject(), and
 /// OnAdvancedBookMode().
 /// Creates the set of book folders specified in pFolders in the directory specified by
-/// dirPath (which should be the app's m_curAdaptionsPath).
+/// dirPath (which should be the app's m_curAdaptationsPath).
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders)
 // the passed in dirPath string must be the absolute path to the current project's
-// Adaptations folder (this is stored in the app's m_curAdaptionsPath member);
+// Adaptations folder (this is stored in the app's m_curAdaptationsPath member);
 // and pFolders should be the app's m_pBibleBooks member.
 {
 	wxString path;
@@ -25175,7 +25175,7 @@ void CAdapt_ItApp::CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders)
 ///             structs in the book folders array
 /// \param      dirPath   ->    must be the absolute path to the current project's
 ///                             Adaptations folder (this is stored in the app's
-///                             m_curAdaptionsPath member)
+///                             m_curAdaptationsPath member)
 /// \remarks
 /// Called from: the App's SetupDirectories(), OnFileRestoreKb(),
 /// AccessOtherAdaptionProject(), OnAdvancedBookMode(), and
@@ -25186,7 +25186,7 @@ void CAdapt_ItApp::CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders)
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AreBookFoldersCreated(wxString dirPath)
 // the passed in dirPath string must be the absolute path to the current project's
-// Adaptations folder (this is stored in the app's m_curAdaptionsPath member) Returns TRUE
+// Adaptations folder (this is stored in the app's m_curAdaptationsPath member) Returns TRUE
 // if the Adaptations folder contains a subdirectory name which is contained within, and of
 // equal length to, the seeName name in one of structs in the book folders array
 // whm note: AreBookFoldersCreated() has the side effect of changing the current work
@@ -25703,7 +25703,7 @@ MapSfmToUSFMAnalysisStruct* CAdapt_ItApp::GetCurSfmMap(enum SfmSet sfmSet)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always TRUE (but it aborts the program with a call to wxExit() if
-///             the path represented by m_curAdaptionsPath could not be found)
+///             the path represented by m_curAdaptationsPath could not be found)
 /// \param      event   -> (unused)
 /// \remarks
 /// Called from: DoStartWorkingWizard is called by App's DoFileOpen(),
@@ -25851,7 +25851,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		}
 
 		// In PT or BE Collaboration mode, the CGetSourceTextFromEditorDlg class
-		// above will ensure that a path is set for m_curAdaptionsPath and that
+		// above will ensure that a path is set for m_curAdaptationsPath and that
 		// it exists even upon a SHIFT-down startup and calling of SetDefaults().
 		// Hence, we return below without executing the remining code below.
 
@@ -25861,8 +25861,8 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 
 	// Do we have a valid directory? Probably not if user copied
 	// a project from another user or a different platform.
-	bool bDirPathOk = ::wxDirExists(m_curAdaptionsPath);
-	if (m_curAdaptionsPath.IsEmpty())
+	bool bDirPathOk = ::wxDirExists(m_curAdaptationsPath);
+	if (m_curAdaptationsPath.IsEmpty())
 	{
 		// for debugging...
 		//bool bUse = m_bUseCustomWorkFolderPath;
@@ -25872,15 +25872,15 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 		// path is empty, possibly because user held SHIFT key down, or a basic
 		// config file could not be opened at the custom work folder location, and so
 		// SetDefaults() was called to get default parameters -- but doing that leaves
-		// the m_curAdaptionsPath empty, so just show the user whatever is in the
+		// the m_curAdaptationsPath empty, so just show the user whatever is in the
 		// custom work folder and let him choose unless he prefers to exit
-		if (m_curAdaptionsPath.IsEmpty() && !m_customWorkFolderPath.IsEmpty()
+		if (m_curAdaptationsPath.IsEmpty() && !m_customWorkFolderPath.IsEmpty()
 			&& m_bUseCustomWorkFolderPath)
 		{
 			// no config file read in
 			wxString message1, message2;
 			message1 = message1.Format(_("No project folder defined yet. "),
-				m_curAdaptionsPath.c_str());
+				m_curAdaptationsPath.c_str());
 			message2 = message1 +
 _("\nIf you want to continue, you must choose a project or create a new project.\nDo you want to continue? ");
 			int result = wxMessageBox(message2,_("Basic Configuration File Not Read"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
@@ -25897,7 +25897,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 	{
 		// if we get here because we closed a basic configuration file in order to make an
 		// administrator basic configuration file for the targetted custom folder location
-		// and the project name part that gets put in m_curAdaptionsPath doesn't exist at
+		// and the project name part that gets put in m_curAdaptationsPath doesn't exist at
 		// the custom location, we'd of course not want to have the warning message come
 		// up to disturb the administrator - instead, just let the wizard show what is
 		// present, if anything, for projects at the custom work folder
@@ -25907,7 +25907,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 			// not in a custom work folder path being used state, its a normal state)
 			wxString message1, message2;
 			message1 = message1.Format(_("Failed to find the %s folder."),
-				m_curAdaptionsPath.c_str());
+				m_curAdaptationsPath.c_str());
 			message2 = message1 + _(
 "\nIf you want to continue, you must choose a different project or create a new project.\nDo you want to continue? ");
 			int result = wxMessageBox(message2,_("Bad path in config file"), wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
@@ -25919,7 +25919,7 @@ _("\nIf you want to continue, you must choose a project or create a new project.
 				return FALSE;
 			}
 			// whm added 26Jan13. Remove the bad path
-			m_curAdaptionsPath.Empty();
+			m_curAdaptationsPath.Empty();
 		}
 	}
 
@@ -27419,8 +27419,8 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     // there are book folders then we have to process all the documents in each such folder
     // after processing the ones in Adaptations
     // whm note: AreBookFoldersCreated() has the side effect of changing the current work
-    // directory to the passed in m_curAdaptionsPath.
-	gbHasBookFolders = AreBookFoldersCreated(m_curAdaptionsPath);
+    // directory to the passed in m_curAdaptationsPath.
+	gbHasBookFolders = AreBookFoldersCreated(m_curAdaptationsPath);
 
 	// lock view window updates till done
 	pView->canvas->Freeze();
@@ -27438,17 +27438,17 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
     // processing using it if he wishes, but for looping across all the book folders, we'll
     // suppress the dialog so that all doc files in the book folders get processed
     // whm note: EnumerateDocFiles() has the side effect of changing the current work
-    // directory to the passed in m_curAdaptionsPath.
+    // directory to the passed in m_curAdaptationsPath.
 	//
 	// Dialog should be suppressed for profile == 1 : klb 3/2011
 
 	if (m_nWorkflowProfile == 1)
 	{
-		bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath, TRUE);
+		bOK = EnumerateDocFiles(pDoc, m_curAdaptationsPath, TRUE);
 	}
 	else
 	{
-		bOK = EnumerateDocFiles(pDoc, m_curAdaptionsPath);
+		bOK = EnumerateDocFiles(pDoc, m_curAdaptationsPath);
 	}
 	nCount = pList->GetCount(); // the count of doc files (could be zero if all docs are in
 								// Bible book folders only)
@@ -27554,7 +27554,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
         // are sisters of the Bible book folders for which the Adaptations folder is the
         // common parent folder
 		wxDir finder; //CFileFind finder;
-		bool bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath)); // wxDir
+		bool bOK = (::wxSetWorkingDirectory(m_curAdaptationsPath) && finder.Open(m_curAdaptationsPath)); // wxDir
 											// must call .Open() before enumerating files!
 		if (!bOK)
 		{
@@ -27610,7 +27610,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                 // finder.Exists(str) call uses whatever the current working directory is
                 // and checks for a sub-directory "str" below that - a difference we must
                 // account for here in the wx version.
-				if (finder.Exists(m_curAdaptionsPath + PathSeparator + str))
+				if (finder.Exists(m_curAdaptationsPath + PathSeparator + str))
 				{
                     // User-defined folders can be in the Adaptations folder without making
                     // the app confused as to whether or not Bible Book folders are present
@@ -27624,7 +27624,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 						// Bible book folders, so construct the required path to the
 						// folder and enumerate is documents then call
 						// DoTransformationsToGlosses() to process any documents within
-						wxString folderPath = m_curAdaptionsPath;
+						wxString folderPath = m_curAdaptationsPath;
 						folderPath += PathSeparator + str;
 
                         // clear the string list of directory names & then enumerate the
@@ -27632,7 +27632,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
                         // current directory to the one given by folderPath (ie. to a book
                         // folder) so after the DoKBRestore() call, which relies on that
                         // directory being current, we must call
-                        // ::SetCurrentDirectory(m_curAdaptionsPath) again so that this
+                        // ::SetCurrentDirectory(m_curAdaptationsPath) again so that this
                         // outer look which iterates over directories continues correctly
 						pList->Clear();
                         // whm note: EnumerateDocFiles() has the side effect of changing
@@ -27654,7 +27654,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 							// needed here because EnumerateDocFiles() has been called
 							// and it has clobbered the setting of the working directory
 							// to the Adaptations folder & call finder.GetNext()
-							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath);
+							bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
 									// restore parent folder as current
 							wxASSERT(bOK);
 							bWorking = finder.GetNext(&str); // needed for the iteration
@@ -27670,7 +27670,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 							// needed here because EnumerateDocFiles() has been called
 							// and it has clobbered the setting of the working directory
 							// to the Adaptations folder; and call finder.GetNext()
-							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath);
+							bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
 									// restore parent folder as current
 							wxASSERT(bOK);
 							bWorking = finder.GetNext(&str); // needed for the iteration
@@ -27681,11 +27681,11 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 						// dialog
 						pKB->DoKBRestore(nCount, nCumulativeTotal);
 
-						//bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath));
+						//bOK = (::wxSetWorkingDirectory(m_curAdaptationsPath) && finder.Open(m_curAdaptationsPath));
 						// BEW altered 19Mar2010, because the reopening of finder by the
 						// above line of code destroyed the iterator, contributing to infinite
 						// looping
-						bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath);
+						bOK = ::wxSetWorkingDirectory(m_curAdaptationsPath);
 								// restore parent folder as current
 						wxASSERT(bOK);
 					} // end of TRUE block for test IsDirectoryWithin(str,m_pBibleBooks)
@@ -27697,7 +27697,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 						// call to be missed
 						; // working directory is unchanged, so don't reset it here
 					}
-				} // end of TRUE block for test: if (finder.Exists(m_curAdaptionsPath + PathSeparator + str))
+				} // end of TRUE block for test: if (finder.Exists(m_curAdaptationsPath + PathSeparator + str))
 				  // which, if str is a child directory's name (rather than a filename),
 				  // then the contructed parameter will be the absolute path to that folder
 				else
@@ -28634,7 +28634,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szCurAdaptionsPath << tab << m_curAdaptionsPath;
+	data << szCurAdaptationsPath << tab << m_curAdaptationsPath;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -30065,9 +30065,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			//if (!m_ForceCollabAIProjectName.IsEmpty())
 			//	m_SavedCurProjectPath = strValue;
 		}
-		else if (name == szCurAdaptionsPath)
+		else if (name == szCurAdaptationsPath)
 		{
-			m_curAdaptionsPath = strValue;
+			m_curAdaptationsPath = strValue;
 		}
 		else if (name == szCurKBName)
 		{
@@ -34097,7 +34097,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				}
 
 				m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
-				m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator +
+				m_bibleBooksFolderPath = m_curAdaptationsPath + PathSeparator +
 													m_pCurrBookNamePair->dirName;
 			}
 			else
@@ -35029,7 +35029,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
             m_nBookIndex = 39;
 			m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
 			m_bibleBooksFolderPath.Empty();
-			m_bibleBooksFolderPath << m_curAdaptionsPath << PathSeparator <<
+			m_bibleBooksFolderPath << m_curAdaptationsPath << PathSeparator <<
 													m_pCurrBookNamePair->dirName;
 		}
 	}
@@ -36418,6 +36418,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 /// different machines, nor between two work folders on the same machine. (BEW 11Sep09)
 /// BEW 2July10, updated for support of kbVersion 2, and preserving KB contents too
 ////////////////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItApp::AccessOtherAdaptationProject()
 {
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
@@ -36448,8 +36449,8 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 											PathSeparator + strOtherProjectName;
 		}
 		wxString strOtherAdaptationsPath = strOtherProjectPath +
-										PathSeparator + m_adaptionsFolder;
-		// m_adaptionsFolder is defined in the app creator as _T("Adaptations")
+										PathSeparator + m_adaptationsFolder;
+		// m_adaptationsFolder is defined in the app creator as _T("Adaptations")
 
         // determine whether or not there are Bible book folders in the Adaptations folder
         // of the "other" project (the one to be transformed)
@@ -36463,12 +36464,12 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
             // documents), if that is the case, then insert a set of folders there ready
             // for receiving the transformed documents
             // whm note: AreBookFoldersCreated() has the side effect of changing the
-            // current work directory to the passed in m_curAdaptionsPath.
-			bool bCurrentProjectHasBookFolders = AreBookFoldersCreated(m_curAdaptionsPath);
+            // current work directory to the passed in m_curAdaptationsPath.
+			bool bCurrentProjectHasBookFolders = AreBookFoldersCreated(m_curAdaptationsPath);
 			if (!bCurrentProjectHasBookFolders)
 			{
 				// install them
-				CreateBookFolders(m_curAdaptionsPath,m_pBibleBooks);
+				CreateBookFolders(m_curAdaptationsPath,m_pBibleBooks);
 			}
 		}
 
@@ -36531,8 +36532,8 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 		{
             // whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
-            // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
-            // working directory to m_curAdaptionsPath. (This change not in MFC version)
+            // AreBookFoldersCreated(m_curAdaptationsPath) call above changes the current
+            // working directory to m_curAdaptationsPath. (This change not in MFC version)
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			return FALSE; // user baled out by clicking NO button, so do nothing
@@ -36552,20 +36553,24 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 		if( !f.Open( glossesKBExportPath, wxFile::write))
 		{
 			// we don't expect failure, English message will do
-			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
-			LogUserAction(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
+			LogUserAction(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
+        
+        gpApp->m_suppress_KB_messages = TRUE;       // Suppress normal messages from KB export -- we'll display a summary message at the end
+        
 		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
 		f.Close();
 		// second, the adapting KB export
 		if( !f.Open( adaptionsKBExportPath, wxFile::write))
 		{
 			// we don't expect failure, English message will do
-			wxMessageBox(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
+			wxMessageBox(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
-			LogUserAction(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
+			LogUserAction(_T("Unable to open adaptations knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."));
+            gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 			return FALSE; // return, do nothing
 		}
 		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
@@ -36573,12 +36578,13 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 		// now get the list of documents in the target project's Adaptations folder
         // (any from the "other" project which match these, we just won't have converted,
         // so that data overwrite accidents won't happen)
-		if (!EnumerateDocFiles_ParametizedStore(targetProjectDocsList,m_curAdaptionsPath))
+		if (!EnumerateDocFiles_ParametizedStore(targetProjectDocsList,m_curAdaptationsPath))
 		{
 			// we don't expect failure, English message will do
 			wxMessageBox(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."),
 			_T(""), wxICON_EXCLAMATION | wxOK);
 			LogUserAction(_T("Unable to enumerate the target project's docs in AccessOtherAdaptionProject(). Aborting the transform process before it begins."));
+            gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 			return FALSE; // return, do nothing
 		}
 
@@ -36612,11 +36618,12 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 			LogUserAction(_T("Aborting the Transform operation, because no valid KB file was detected"));
             // whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
-            // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
-            // working directory to m_curAdaptionsPath.
+            // AreBookFoldersCreated(m_curAdaptationsPath) call above changes the current
+            // working directory to m_curAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,740 in Adapt_It.cpp"));
+			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptationProject(): ::wxSetWorkingDirectory() failed, line 30,740 in Adapt_It.cpp"));
+            gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 			return FALSE;
 		}
 
@@ -36656,8 +36663,8 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 			LogUserAction(_T("Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."));
             // whm added 05Jan07 for safety sake restore the former current working
             // directory to what it was on entry. The
-            // AreBookFoldersCreated(m_curAdaptionsPath) call above changes the current
-            // working directory to m_curAdaptionsPath.
+            // AreBookFoldersCreated(m_curAdaptationsPath) call above changes the current
+            // working directory to m_curAdaptationsPath.
 			bool bOK;
 			bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
 			wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 30,785 in Adapt_It.cpp"));
@@ -36665,6 +36672,7 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 			{
 				((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Loading the Other Project's Knowledge Base"));
 			}
+            gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 			return FALSE; // abandon the command, the adaptations KB couldn't be opened
 		}
 
@@ -36835,6 +36843,7 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 			{
 				((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Loading the Other Project's Knowledge Base"));
 			}
+            gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 			return FALSE; // do nothing
 		}
 		if (m_acceptedFilesList.GetCount() == 0 && !gbHasBookFolders)
@@ -36856,6 +36865,7 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 			{
 				((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Loading the Other Project's Knowledge Base"));
 			}
+            gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 			return FALSE;
 		}
 
@@ -36898,11 +36908,12 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
                 // current working directory to strOtherAdaptationsPath.
 				bool bOK2;
 				bOK2 = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-				wxCHECK_MSG(bOK2, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 31,017 in Adapt_It.cpp"));
+				wxCHECK_MSG(bOK2, FALSE, _T("AccessOtherAdaptationProject(): ::wxSetWorkingDirectory() failed, line 31,017 in Adapt_It.cpp"));
 				if (nTotal > 0)
 				{
 					((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Loading the Other Project's Knowledge Base"));
 				}
+                gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 				return FALSE;
 			}
 			else
@@ -36958,7 +36969,7 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 
 							// BEW 6July10, enumerate the target project's equivalent
 							// bible book folder for doc files
-							wxString bibleBookPath = m_curAdaptionsPath +
+							wxString bibleBookPath = m_curAdaptationsPath +
 											PathSeparator + str;
 							targetProjectDocsList.Clear(); // it's already cleared, but no harm
 														   // in doing it again
@@ -36972,6 +36983,7 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 								{
 									((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Loading the Other Project's Knowledge Base"));
 								}
+                                gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
 								return FALSE; // return, do nothing
 							}
 
@@ -37012,6 +37024,9 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 		wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,124 in Adapt_It.cpp"));
 
 		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
+        
+        gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
+        
 		bSuccess = ::wxRemoveFile(adaptionsKBExportPath);
 		wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 37014 in Adapt_It.cpp"));
 		if (nTotal > 0)
@@ -37060,6 +37075,7 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 /// fixedspace symbol ~ particularly)
 /// BEW 13Nov10 no changes for supporting Bob Eaton's request that glossing KB use all maps
 ////////////////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 											  CAdapt_ItDoc* pDoc,
 											  wxString& folderPath,
@@ -37116,13 +37132,13 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 		{
 			// we are processing documents from an Adaptations folder, not an embedded
 			// Bible book folder in the Adaptations folder
-			curOutputPath = m_curAdaptionsPath + PathSeparator + ourProjectsDocFileName;
+			curOutputPath = m_curAdaptationsPath + PathSeparator + ourProjectsDocFileName;
 			bookFolderPath.Empty();
 		}
 		else
 		{
 			// we are processing documents from one of the Bible book folders
-			curOutputPath = m_curAdaptionsPath + PathSeparator;
+			curOutputPath = m_curAdaptationsPath + PathSeparator;
 			curOutputPath += bookFolderName;
 			bookFolderPath = curOutputPath; // extract the path to the book folder
 			curOutputPath += PathSeparator + ourProjectsDocFileName; // the path to the file
@@ -37247,7 +37263,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 		wxString stats;
 		// IDS_TRANSFORMATION_DONE
 		stats = stats.Format(_(
-"The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents."),
+"The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents.  Also, the knowledge base information from both projects has been preserved in the current project."),
 		nCumulativeTotal,nCount);
 		wxMessageBox(stats,_T(""),wxICON_INFORMATION | wxOK);
 	}
@@ -37714,16 +37730,16 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 			m_nBookIndex = m_nLastBookIndex;
 		}
 		m_pCurrBookNamePair = ((BookNamePair*)(*m_pBibleBooks)[m_nBookIndex]);
-		m_bibleBooksFolderPath = m_curAdaptionsPath + PathSeparator +
+		m_bibleBooksFolderPath = m_curAdaptationsPath + PathSeparator +
 												m_pCurrBookNamePair->dirName;
 
 		// check the book folders are already present, and if not then create them
         // whm note: AreBookFoldersCreated() has the side effect of changing the current
-        // work directory to the passed in m_curAdaptionsPath.
-		bool bFoldersPresent = AreBookFoldersCreated(m_curAdaptionsPath);
+        // work directory to the passed in m_curAdaptationsPath.
+		bool bFoldersPresent = AreBookFoldersCreated(m_curAdaptationsPath);
 		if (!bFoldersPresent)
 		{
-			CreateBookFolders(m_curAdaptionsPath,m_pBibleBooks);
+			CreateBookFolders(m_curAdaptationsPath,m_pBibleBooks);
 		}
 	}
 
@@ -39338,11 +39354,11 @@ wxString CAdapt_ItApp::GetAdaptationsFolderDisplayName()
 /// Called from: the App's GetAdaptationsFolderName(), GetCurrentDocFolderPath(),
 /// CMoveDialog's OnBnClickedButtonRenameDoc(), OnBnClickedViewOther(), UpdateFileList(),
 /// and Mover::BeginMove().
-/// Gets the adaptations folder path stored in m_curAdaptionsPath.
+/// Gets the adaptations folder path stored in m_curAdaptationsPath.
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::GetAdaptationsFolderPath()
 {
-	return m_curAdaptionsPath;
+	return m_curAdaptationsPath;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -42487,7 +42503,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 {
 	LogUserAction(_T("Initiated OnRestoreDefaultWorkFolderLocation()"));
 	//wxLogDebug(_T("STARTING....  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
-	//wxLogDebug(_T("1  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
+	//wxLogDebug(_T("1  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
 
 	m_bFailedToRemoveCustomWorkFolderLocationFile = FALSE; // ensure we start with the default value
 	wxASSERT(m_bUseCustomWorkFolderPath);
@@ -42527,14 +42543,14 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 		GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
 
 		//wxLogDebug(_T("2  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
-		//wxLogDebug(_T("2  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
+		//wxLogDebug(_T("2  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
 
 		m_customWorkFolderPath.Empty();
 		m_bUseCustomWorkFolderPath = FALSE;
 		bool bIsValid = IsValidWorkFolder(m_workFolderPath);
 
 		//wxLogDebug(_T("3  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
-		//wxLogDebug(_T("3  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
+		//wxLogDebug(_T("3  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
 		if (bIsValid)
 		{
 			::wxSetWorkingDirectory(m_workFolderPath);
@@ -42553,7 +42569,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 			wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
 			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
 			//wxLogDebug(_T("4  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
-			//wxLogDebug(_T("4  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
+			//wxLogDebug(_T("4  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
 		}
 		else
 		{
@@ -42561,19 +42577,19 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 			EnsureWorkFolderPresent();
 
 			//wxLogDebug(_T("5  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
-			//wxLogDebug(_T("5  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
+			//wxLogDebug(_T("5  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
 
 			SetupDirectories(); // also sets KB paths and loads KBs & Guesser
 
 			//wxLogDebug(_T("6  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
-			//wxLogDebug(_T("6  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
+			//wxLogDebug(_T("6  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
 		}
 
 		// restore administrator's former local basic configuration settings
 		GetBasicConfiguration();
 
 		//wxLogDebug(_T("7  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
-		//wxLogDebug(_T("7  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
+		//wxLogDebug(_T("7  m_curAdaptationsPath = %s "), m_curAdaptationsPath.c_str());
 
 		// run the wizard, so that the administrator can access projects & their documents at
 		// the custom work folder's location
@@ -43348,7 +43364,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 				pf->RemoveLine(lineNum);
 				pf->InsertLine(fileLine, lineNum);
 			}
-			else if (fileLine.First(szCurAdaptionsPath) != -1)
+			else if (fileLine.First(szCurAdaptationsPath) != -1)
 			{
 				// we're at a line with "DocumentsFolderPath" in it that we want to
 				// adjust
@@ -43365,7 +43381,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					NumReplacements = NumReplacements; // avoid compiler warning (leave as is, BEW 2Jan12)
 				}
 				// build the required administrator's config file path for this line
-				fileLine = szCurAdaptionsPath + tab + localPath + subFoldersPath;
+				fileLine = szCurAdaptationsPath + tab + localPath + subFoldersPath;
 				size_t lineNum = pf->GetCurrentLine();
 				pf->RemoveLine(lineNum);
 				pf->InsertLine(fileLine, lineNum);
@@ -43497,13 +43513,13 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 					pf->InsertLine(fileLine, lineNum);
 				}
 			}
-			else if (fileLine.First(szCurAdaptionsPath) != -1)
+			else if (fileLine.First(szCurAdaptationsPath) != -1)
 			{
 				// we're at a line with "DocumentsFolderPath" in it that we want to
 				// check/adjust
 				// Compare the imported localPathPrefix with that of our local machine
-				nStartOfForeignFilePath = fileLine.First(szCurAdaptionsPath) +
-														szCurAdaptionsPath.Length();
+				nStartOfForeignFilePath = fileLine.First(szCurAdaptationsPath) +
+														szCurAdaptationsPath.Length();
 				nStartOfSubFoldersPath = fileLine.Find(m_theWorkFolder) +
 														m_theWorkFolder.Length();
 				strLength = fileLine.Length();
@@ -43527,7 +43543,7 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 				{
 					// foreignFilePath doesn't start with the localPathPrefix
 					// so we need to modify it for the local machine's use
-					fileLine = szCurAdaptionsPath + tab + localPath + subFoldersPath;
+					fileLine = szCurAdaptationsPath + tab + localPath + subFoldersPath;
 					size_t lineNum = pf->GetCurrentLine();
 					pf->RemoveLine(lineNum);
 					pf->InsertLine(fileLine, lineNum);
@@ -44180,7 +44196,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// The five paths of concern are:
 		// szAdaptitPath = _("AdaptItPath");
 		// szCurLanguagesPath = _("ProjectFolderPath");
-		// szCurAdaptionsPath = _("DocumentsFolderPath");
+		// szCurAdaptationsPath = _("DocumentsFolderPath");
 		// szCurKBPath = _("KnowledgeBasePath");
 		// szCurKBBackupPath = _("KBBackupPath");
 
@@ -44361,7 +44377,7 @@ _T("MakeForeignBasicConfigFileSafe(): custom location block, could not open admi
 			// The five paths of concern are:
 			// szAdaptitPath = _("AdaptItPath");
 			// szCurLanguagesPath = _("ProjectFolderPath");
-			// szCurAdaptionsPath = _("DocumentsFolderPath");
+			// szCurAdaptationsPath = _("DocumentsFolderPath");
 			// szCurKBPath = _("KnowledgeBasePath");
 			// szCurKBBackupPath = _("KBBackupPath");
 
@@ -44528,7 +44544,7 @@ _T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic c
 			// The five paths of concern are:
 			// szAdaptitPath = _("AdaptItPath");
 			// szCurLanguagesPath = _("ProjectFolderPath");
-			// szCurAdaptionsPath = _("DocumentsFolderPath");
+			// szCurAdaptationsPath = _("DocumentsFolderPath");
 			// szCurKBPath = _("KnowledgeBasePath");
 			// szCurKBBackupPath = _("KBBackupPath");
 

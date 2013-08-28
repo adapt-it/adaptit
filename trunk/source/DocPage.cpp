@@ -491,7 +491,7 @@ void CDocPage::OnSetActive()
 		// IDS_MODE_MSG
 		m_staticModeStr = m_staticModeStr.Format(_("Book folder mode is  %s"),s1.c_str());
 		// IDS_SAVE_LOC_MSG
-		m_staticFolderStr = m_staticFolderStr.Format(_("Documents are being saved to the  %s  folder"),gpApp->m_adaptionsFolder.c_str());
+		m_staticFolderStr = m_staticFolderStr.Format(_("Documents are being saved to the  %s  folder"),gpApp->m_adaptationsFolder.c_str());
 	}
 	pModeMsg->SetLabel(m_staticModeStr);
 	pFolderMsg->SetLabel(m_staticFolderStr);
@@ -508,7 +508,7 @@ void CDocPage::OnSetActive()
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_bibleBooksFolderPath);
 	else
-		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_curAdaptionsPath);
+		gpApp->GetPossibleAdaptionDocuments(&possibleAdaptions,gpApp->m_curAdaptationsPath);
 
 	// whm 7Mar12 revised at Bruce's request.
 	// When no collaboration has been setup for the opened project we show all documents,
@@ -585,12 +585,12 @@ void CDocPage::OnSetActive()
 	if (gpApp->m_bEarlierProjectChosen)
 	{
 		wxString lastOpenedDoc = _T("");
-		int nFound = gpApp->m_lastDocPath.Find(gpApp->m_curAdaptionsPath);
+		int nFound = gpApp->m_lastDocPath.Find(gpApp->m_curAdaptationsPath);
 		if (nFound != -1)
 		{
 			// remove the path information, we just want the filename (after backslash)
 			// or the book name, slash and filename
-			int len = gpApp->m_curAdaptionsPath.Length();
+			int len = gpApp->m_curAdaptationsPath.Length();
 			lastOpenedDoc = gpApp->m_lastDocPath.Mid(++len);
 			wxASSERT(!lastOpenedDoc.IsEmpty());
 			int index;
@@ -1006,13 +1006,13 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		wxString docPath;
 		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		{
-			docPath = pApp->m_curAdaptionsPath + pApp->PathSeparator +
+			docPath = pApp->m_curAdaptationsPath + pApp->PathSeparator +
 											pApp->m_pCurrBookNamePair->dirName;
 			docPath += pApp->PathSeparator + m_docName;
 		}
 		else
 		{
-			docPath = pApp->m_curAdaptionsPath + gpApp->PathSeparator + m_docName;
+			docPath = pApp->m_curAdaptationsPath + gpApp->PathSeparator + m_docName;
 		}
 
 #ifdef SHOW_DOC_I_O_BENCHMARKS
