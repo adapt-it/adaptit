@@ -28,7 +28,16 @@ do
 done
 
 # Build adaptit (UnicodeDebug) and return the results
+# call autogen
 cd $TRUNK/bin/linux
+./autogen.sh
+if [ $? -ne 0 ]
+then
+  echo "Error in autogen.sh script: $?"
+  exit 1
+fi
+
+# create the Unicode Debug directory and call configure
 mkdir -p UnicodeDebug
 (cd UnicodeDebug && ../configure --enable-debug)
 if [ $? -ne 0 ]
