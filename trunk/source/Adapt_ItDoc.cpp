@@ -3729,24 +3729,33 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 	if (extension == _T(".xml"))
 	{
 		// we have to input an xml document
-		bool bReadOK = ReadDoc_XML (thePath,this,_("Opening Document In Another Project"),nTotal); // pProgDlg can be NULL
+		bool bReadOK = ReadDoc_XML (thePath, this, _("Opening Document In Another Project"), nTotal);
 
 		if (!bReadOK)
 		{
-            // if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
-            if ( pApp->m_commitCount > 0 && !pApp->m_recovery_pending)
+            // Let's see if we can recover the doc:
+            if ( pApp->m_commitCount > 0 )
             {
-     //           wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
-     //           wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+                wxCommandEvent  dummyEvent;
+                wxString        savedOutputFilename = pApp->m_curOutputFilename;
+                wxString        savedAdaptationsPath = pApp->m_curAdaptionsPath;
                 
-                pApp->m_recovery_pending = TRUE;
-                //  most common case.
+                OnFileClose(dummyEvent);                            // the file's corrupt, so we close it to avoid crashes
+                pApp->m_reopen_recovered_doc = FALSE;               // so the recovery code doesn't try to re-open the doc
+                pApp->m_curOutputFilename = thePath;                // have to make these source values current for the recovery
+                pApp->m_curAdaptionsPath = pApp->m_sourcePath;
+				bReadOK = RecoverLatestVersion();
+                pApp->m_curOutputFilename = savedOutputFilename;    // restore target values
+                pApp->m_curAdaptionsPath = savedAdaptationsPath;
+                
+                if (bReadOK)                                        // if we recovered the doc, we retry the original read
+                    bReadOK = ReadDoc_XML (thePath, this, _("Opening Document In Another Project"), nTotal);
+                
+                if (bReadOK)
+                    wxMessageBox(_T("The document " + thePath + " was corrupt, but we have restored the latest version saved in the document history."));
             }
-            
-            // at this point, if we can't attempt a recovery, we just display a message and give up.  If we are attempting a recovery,
-            //  we skip this block and continue with some of the initialization we need before we can bail out.
-            
-            if (!pApp->m_recovery_pending)
+
+            if (!bReadOK)
 			{
                 wxString s;
                 s = _(
@@ -3769,6 +3778,16 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 	}
 	if (nTotal > 0)
 		pStatusBar->FinishProgress(_("Opening Document In Another Project"));
+
+// The doc in the other project may have been under version control, but in this project of course it isn't yet.  So we
+//  must initialize the appropriate variables.
+
+    pApp->m_owner = pApp->m_strUserID;  // this is our doc
+    pApp->m_commitCount = -1;			//  means not under version control (yet)
+    pApp->m_versionDate = wxInvalidDateTime;
+    pApp->m_nActiveSequNum = 0;         // sensible default if we don't get a "real" value
+    pApp->m_saved_with_commit = FALSE;  // not saved/committed yet
+
 	return TRUE;
 }
 

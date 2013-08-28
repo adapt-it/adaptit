@@ -2699,18 +2699,15 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		if (!bReadOK)
 		{
-            // if we could possibly recover the doc, but haven't posted the "recover doc" event yet, we do it now:
-            if ( pApp->m_commitCount > 0 ) //&& !pApp->m_recovery_pending)
+            // Let's see if we can recover the doc:
+            if ( pApp->m_commitCount > 0 )
             {
-     //           wxCommandEvent  eventCustom (wxEVT_Recover_Doc);
-     //           wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
                 wxCommandEvent  dummyEvent;
                 
-                pDoc->OnFileClose(dummyEvent);
+                pDoc->OnFileClose(dummyEvent);                  // the file's corrupt, so we close it to avoid crashes
                 pApp->m_reopen_recovered_doc = FALSE;           // so the recovery code doesn't try to re-open the doc
-    //            pApp->m_recovery_pending = TRUE;                // so the higher-up code bails out
 				bReadOK = pDoc->RecoverLatestVersion();
-				pApp->m_recovery_pending = bReadOK;				// if we recovered the doc, we still need to bail out
+				pApp->m_recovery_pending = bReadOK;				// if we recovered the doc, we still need to bail out, so we leave the flag TRUE
             }
             
             // at this point, if we couldn't recover, we just display a message and give up.  If we are attempting a recovery,

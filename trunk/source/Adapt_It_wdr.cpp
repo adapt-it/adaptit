@@ -1077,7 +1077,7 @@ wxSizer *TransformToGlossesDlgFunc( wxWindow *parent, bool call_fit, bool set_si
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TRANSFORM_TO_GLOSSES1, _("This command expects that you will get the data which is to be transformed from a project which is not currently open.  This will work best if you are currently in an empty project which you have just created. Is that so?"), wxDefaultPosition, wxSize(450,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TRANSFORM_TO_GLOSSES1, _("This command expects that you will get the data which is to be transformed from a project which is not currently open.  This will work best if you are currently in an empty project which you have just created. Is that so?"), wxDefaultPosition, wxSize(450,80), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -1097,14 +1097,14 @@ wxSizer *TransformToGlossesDlgFunc( wxWindow *parent, bool call_fit, bool set_si
 
     wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_TRANSFORM_TO_GLOSSES2, _("If you click the Yes button, any adaptations in your current project will be discarded, and another dialog will appear. The new dialog will allow you to select the other project which has the adaptations to be transformed into glosses. (The transformation process will create a glossing knowledge base from the former adaptations knowledge base, and from copied documents in which the old adaptations have become glosses.)"), wxDefaultPosition, wxSize(450,100), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
+    wxTextCtrl *item7 = new wxTextCtrl( parent, ID_TEXTCTRL_TRANSFORM_TO_GLOSSES2, _("If you click the Yes button, any adaptations in your current project will be discarded, and another dialog will appear. The new dialog will allow you to select the other project which has the adaptations to be transformed into glosses. (The transformation process will create a glossing knowledge base from the former adaptations knowledge base, and from copied documents in which the old adaptations have become glosses.)"), wxDefaultPosition, wxSize(450,120), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW );
     item6->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_TRANSFORM_TO_GLOSSES3, _("If you click the No button, the transformation process is cancelled immediately. Then create a new empty project. Do not create a document in the new project, but try this command again, and this time click the Yes button."), wxDefaultPosition, wxSize(450,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER |wxGROW );
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_TRANSFORM_TO_GLOSSES3, _("If you click the No button, the transformation process is cancelled immediately. Then create a new empty project. Do not create a document in the new project, but try this command again, and this time click the Yes button."), wxDefaultPosition, wxSize(450,80), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER |wxGROW );
     item8->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );

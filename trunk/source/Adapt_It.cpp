@@ -25798,7 +25798,7 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
             
             if (m_recovery_pending)
             {
-                wxMessageBox(_T("The document was corrupt, but the last saved version in the history has been restored.  You can start from the Start Working Wizard and the document should open successfully."));
+                wxMessageBox(_T("The document was corrupt, but we have restored the latest version saved in the document history.  You can start from the Start Working Wizard and the document should open successfully."));
                 m_recovery_pending = FALSE;
                 return TRUE;
             }
@@ -36353,8 +36353,8 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
         // consistent with whatever was the last document processed
 
 		bool bOK;
-		bOK = AccessOtherAdaptionProject(); // see the list and choose one
-		wxCHECK_RET(bOK, _T("OnAdvancedTransformAdaptationsIntoGlosses(): AcessOtherAdaptionProject() returned FALSE, line 30,478 in Adapt_It.cpp"));
+		bOK = AccessOtherAdaptationProject(); // see the list and choose one
+		wxCHECK_RET(bOK, _T("OnAdvancedTransformAdaptationsIntoGlosses(): AcessOtherAdaptionProject() returned FALSE, line 36354 in Adapt_It.cpp"));
 
 		// restore the flag to its default value
 		gbExcludeCurrentProject = FALSE;
@@ -36418,7 +36418,7 @@ void CAdapt_ItApp::OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXU
 /// different machines, nor between two work folders on the same machine. (BEW 11Sep09)
 /// BEW 2July10, updated for support of kbVersion 2, and preserving KB contents too
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::AccessOtherAdaptionProject()
+bool CAdapt_ItApp::AccessOtherAdaptationProject()
 {
 	// BEW added 05Jan07 to enable work folder on input to be restored when done
 	wxString strSaveCurrentDirectoryFullPath = GetDocument()->GetCurrentDirectory();
@@ -37006,14 +37006,14 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 
 		// import the temporary files with the exported glossing and adapting KBs back to
 		// the  target project, so that KB data is not lost from either one
-		bool bSuccessful = TRUE;
+//		bool bSuccessful = TRUE;
 		m_pGlossingKB->DoKBImport(glossesKBExportPath, KBImportFileOfSFM_TXT);
-		bSuccessful = ::wxRemoveFile(glossesKBExportPath);
-		wxCHECK_MSG(bSuccessful, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,124 in Adapt_It.cpp"));
+		bSuccess = ::wxRemoveFile(glossesKBExportPath);
+		wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,124 in Adapt_It.cpp"));
 
 		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
-		bSuccessful = ::wxRemoveFile(adaptionsKBExportPath);
-		wxCHECK_MSG(bSuccessful, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,128 in Adapt_It.cpp"));
+		bSuccess = ::wxRemoveFile(adaptionsKBExportPath);
+		wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 37014 in Adapt_It.cpp"));
 		if (nTotal > 0)
 		{
 			((CStatusBar*)m_pMainFrame->m_pStatusBar)->FinishProgress(_("Loading the Other Project's Knowledge Base"));
@@ -37024,7 +37024,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 	// to what it was on entry
 	bool bOK;
 	bOK = ::wxSetWorkingDirectory(strSaveCurrentDirectoryFullPath);
-	wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptionProject(): ::wxSetWorkingDirectory() failed, line 31,138 in Adapt_It.cpp"));
+	wxCHECK_MSG(bOK, FALSE, _T("AccessOtherAdaptationProject(): ::wxSetWorkingDirectory() failed, line 37027 in Adapt_It.cpp"));
 	return bSuccess;
 }
 
@@ -37069,6 +37069,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
     // BEW updated it on 31Aug05 to comply with version 3 - specifically, to handle book
     // folders, and the possibility of some or all documents being XML rather than binary).
     // The bSuppressStatistics defaults to FALSE (in the prototype)
+    
 	wxArrayString List = m_acceptedFilesList;
 	int nCount = List.GetCount();
 	wxASSERT(nCount > 0);
@@ -37127,6 +37128,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
 			curOutputPath += PathSeparator + ourProjectsDocFileName; // the path to the file
 		}
 
+        gpApp->m_sourcePath = folderPath;               // just in case any of the source files need DVCS recovery
 		bool bOK = pDoc->OpenDocumentInAnotherProject(newPathName);
 		if (bOK)
 		{
