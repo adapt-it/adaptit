@@ -9,8 +9,16 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Debug-wx2.9|Win32">
+      <Configuration>Unicode Debug-wx2.9</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Unicode Debug|Win32">
       <Configuration>Unicode Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Release-wx2.9|Win32">
+      <Configuration>Unicode Release-wx2.9</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Unicode Release|Win32">
@@ -28,7 +36,17 @@
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release-wx2.9|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug-wx2.9|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -52,7 +70,15 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release-wx2.9|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug-wx2.9|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
@@ -85,7 +111,20 @@
     <EmbedManifest>false</EmbedManifest>
     <TargetName>$(ProjectName)_Unicode</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug-wx2.9|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <EmbedManifest>false</EmbedManifest>
+    <TargetName>$(ProjectName)_Unicode</TargetName>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_Unicode</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release-wx2.9|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
@@ -444,6 +483,124 @@ copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug-wx2.9|Win32'">
+    <PreBuildEvent>
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+
+If NOT DEFINED WXWIN goto buildEventFailed
+If NOT DEFINED WXVER goto buildEventFailed
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
+goto buildEventOK
+:buildEventFailed
+If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
+If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
+echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
+echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.4" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
+echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
+exit 1
+:configFailed
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
+echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
+exit 1
+:buildEventOK
+echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(WXWIN29)\include;$(WXWIN29)\contrib\include;$(WXWIN29)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;C:\Program Files (x86)\Visual Leak Detector\include;lib\silconverters;C:\Program Files\Visual Leak Detector\include;C:\Program Files\Visual Leak Detector\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)/contrib/include;.;$(WXWIN)/lib/vc_lib/mswd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <Link>
+      <AdditionalDependencies>wxmsw$(WXVER)ud_aui.lib;wxmsw$(WXVER)ud_adv.lib;wxmsw$(WXVER)ud_html.lib;wxmsw$(WXVER)ud_core.lib;wxbase$(WXVER)ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(WXWIN29)\lib;$(WXWIN29)\contrib\lib;$(WXWIN29)\lib\vc_lib;..\..\source\;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;C:\Program Files\Visual Leak Detector\lib\Win32;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
+copy "..\..\xml\AI_USFM.xml" "Unicode Debug\AI_USFM.xml"
+copy "..\..\xml\aiDefault.css" "Unicode Debug\aiDefault.css"
+copy "..\..\docs\curl-ca-bundle.crt" "Unicode Debug\curl-ca-bundle.crt"
+copy "..\..\docs\iso639-3codes.txt" "Unicode Debug\iso639-3codes.txt"
+copy "..\..\docs\Help_for_Administrators.htm" "Unicode Debug\Help_for_Administrators.htm"
+copy "..\..\docs\RFC5646message.htm" "Unicode Debug\Help_for_Administrators.htm"
+mkdir "..\..\docs\Images\Admin_help\"
+xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Debug\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Debug\Adapt_It_Quick_Start.htm"
+mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+mkdir "Unicode Debug\Languages\es"
+mkdir "Unicode Debug\Languages\fr"
+mkdir "Unicode Debug\Languages\id"
+mkdir "Unicode Debug\Languages\pt"
+mkdir "Unicode Debug\Languages\ru"
+mkdir "Unicode Debug\Languages\tpi"
+mkdir "Unicode Debug\Languages\zh"
+mkdir "Unicode Debug\Languages\az"
+mkdir "Unicode Debug\Languages\swh"
+copy "..\..\po\es.mo" "Unicode Debug\Languages\es\Adapt_It_Unicode.mo"
+copy "..\..\po\es.po" "Unicode Debug\Languages\es\es.po"
+copy "..\..\po\wxstd-es.mo" "Unicode Debug\Languages\es\wxstd.mo"
+copy "..\..\po\fr.mo" "Unicode Debug\Languages\fr\Adapt_It_Unicode.mo"
+copy "..\..\po\fr.po" "Unicode Debug\Languages\fr\fr.po"
+copy "..\..\po\wxstd-fr.mo" "Unicode Debug\Languages\fr\wxstd.mo"
+copy "..\..\po\id.mo" "Unicode Debug\Languages\id\Adapt_It_Unicode.mo"
+copy "..\..\po\id.po" "Unicode Debug\Languages\id\id.po"
+copy "..\..\po\pt.mo" "Unicode Debug\Languages\pt\Adapt_It_Unicode.mo"
+copy "..\..\po\pt.po" "Unicode Debug\Languages\pt\pt.po"
+copy "..\..\po\wxstd-pt.mo" "Unicode Debug\Languages\pt\wxstd.mo"
+copy "..\..\po\ru.mo" "Unicode Debug\Languages\ru\Adapt_It_Unicode.mo"
+copy "..\..\po\ru.po" "Unicode Debug\Languages\ru\ru.po"
+copy "..\..\po\wxstd-ru.mo" "Unicode Debug\Languages\ru\wxstd.mo"
+copy "..\..\po\tpi.mo" "Unicode Debug\Languages\tpi\Adapt_It_Unicode.mo"
+copy "..\..\po\tpi.po" "Unicode Debug\Languages\tpi\tpi.po"
+copy "..\..\po\tpi_readme.txt" "Unicode Debug\Languages\tpi\tpi_readme.txt"
+copy "..\..\po\books_tpi.xml" "Unicode Debug\Languages\tpi\books_tpi.xml"
+copy "..\..\po\wxstd-tpi.mo" "Unicode Debug\Languages\tpi\wxstd.mo"
+copy "..\..\po\zh.mo" "Unicode Debug\Languages\zh\Adapt_It_Unicode.mo"
+copy "..\..\po\zh.po" "Unicode Debug\Languages\zh\zh.po"
+copy "..\..\po\wxstd-zh.mo" "Unicode Debug\Languages\zh\wxstd.mo"
+copy "..\..\po\az.mo" "Unicode Debug\Languages\az\Adapt_It_Unicode.mo"
+copy "..\..\po\az.po" "Unicode Debug\Languages\az\az.po"
+copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo"
+copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po"
+copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo"
+copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">
     <PreBuildEvent>
       <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
@@ -503,6 +660,128 @@ echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\..\setup Unicode\"
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode\Adapt_It_Unicode.exe"
+mkdir "..\..\setup Unicode - Minimal\"
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe"
+mkdir "..\..\setup Unicode - No Html Help\"
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe"
+copy "..\..\xml\AI_UserProfiles.xml" "Unicode Release\AI_UserProfiles.xml"
+copy "..\..\xml\AI_USFM.xml" "Unicode Release\AI_USFM.xml"
+copy "..\..\xml\aiDefault.css" "Unicode Release\aiDefault.css"
+copy "..\..\docs\curl-ca-bundle.crt" "Unicode Release\curl-ca-bundle.crt"
+copy "..\..\docs\iso639-3codes.txt" "Unicode Release\iso639-3codes.txt"
+copy "..\..\docs\Help_for_Administrators.htm" "Unicode Release\Help_for_Administrators.htm"
+copy "..\..\docs\RFC5646message.htm" "Unicode Release\Help_for_Administrators.htm"
+mkdir "..\..\docs\Images\Admin_help\"
+xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Release\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Release\Adapt_It_Quick_Start.htm"
+mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+mkdir "Unicode Release\Languages\es"
+mkdir "Unicode Release\Languages\fr"
+mkdir "Unicode Release\Languages\id"
+mkdir "Unicode Release\Languages\pt"
+mkdir "Unicode Release\Languages\ru"
+mkdir "Unicode Release\Languages\tpi"
+mkdir "Unicode Release\Languages\zh"
+mkdir "Unicode Release\Languages\az"
+mkdir "Unicode Release\Languages\swh"
+copy "..\..\po\es.mo" "Unicode Release\Languages\es\Adapt_It_Unicode.mo"
+copy "..\..\po\es.po" "Unicode Release\Languages\es\es.po"
+copy "..\..\po\wxstd-es.mo" "Unicode Release\Languages\es\wxstd.mo"
+copy "..\..\po\fr.mo" "Unicode Release\Languages\fr\Adapt_It_Unicode.mo"
+copy "..\..\po\fr.po" "Unicode Release\Languages\fr\fr.po"
+copy "..\..\po\wxstd-fr.mo" "Unicode Release\Languages\fr\wxstd.mo"
+copy "..\..\po\id.mo" "Unicode Release\Languages\id\Adapt_It_Unicode.mo"
+copy "..\..\po\id.po" "Unicode Release\Languages\id\id.po"
+copy "..\..\po\pt.mo" "Unicode Release\Languages\pt\Adapt_It_Unicode.mo"
+copy "..\..\po\pt.po" "Unicode Release\Languages\pt\pt.po"
+copy "..\..\po\wxstd-pt.mo" "Unicode Release\Languages\pt\wxstd.mo"
+copy "..\..\po\ru.mo" "Unicode Release\Languages\ru\Adapt_It_Unicode.mo"
+copy "..\..\po\ru.po" "Unicode Release\Languages\ru\ru.po"
+copy "..\..\po\wxstd-ru.mo" "Unicode Release\Languages\ru\wxstd.mo"
+copy "..\..\po\tpi.mo" "Unicode Release\Languages\tpi\Adapt_It_Unicode.mo"
+copy "..\..\po\tpi.po" "Unicode Release\Languages\tpi\tpi.po"
+copy "..\..\po\tpi_readme.txt" "Unicode Release\Languages\tpi\tpi_readme.txt"
+copy "..\..\po\books_tpi.xml" "Unicode Release\Languages\tpi\books_tpi.xml"
+copy "..\..\po\wxstd-tpi.mo" "Unicode Release\Languages\tpi\wxstd.mo"
+copy "..\..\po\zh.mo" "Unicode Release\Languages\zh\Adapt_It_Unicode.mo"
+copy "..\..\po\zh.po" "Unicode Release\Languages\zh\zh.po"
+copy "..\..\po\wxstd-zh.mo" "Unicode Release\Languages\zh\wxstd.mo"
+copy "..\..\po\az.mo" "Unicode Release\Languages\az\Adapt_It_Unicode.mo"
+copy "..\..\po\az.po" "Unicode Release\Languages\az\az.po"
+copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo"
+copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po"
+copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo"
+copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release-wx2.9|Win32'">
+    <PreBuildEvent>
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+
+If NOT DEFINED WXWIN goto buildEventFailed
+If NOT DEFINED WXVER goto buildEventFailed
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
+goto buildEventOK
+:buildEventFailed
+If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
+If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
+echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
+echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.4" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
+echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
+exit 1
+:configFailed
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
+echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
+exit 1
+:buildEventOK
+echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>__WXMSW__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)/contrib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>wxmsw$(WXVER)u_aui.lib;wxmsw$(WXVER)u_adv.lib;wxmsw$(WXVER)u_html.lib;wxmsw$(WXVER)u_core.lib;wxbase$(WXVER)u.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+      <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(WXWIN29)\lib;$(WXWIN29)\contrib\lib;$(WXWIN29)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "..\..\setup Unicode\"
@@ -709,7 +988,9 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
   <ItemGroup>
     <ResourceCompile Include="Adapt_It.rc">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;_WINDOWS;NOPCH</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Unicode Debug-wx2.9|Win32'">_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;_WINDOWS;NOPCH</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">__WXMSW__;_UNICODE;_WINDOWS;NOPCH</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Unicode Release-wx2.9|Win32'">__WXMSW__;_UNICODE;_WINDOWS;NOPCH</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
