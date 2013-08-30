@@ -11,6 +11,10 @@ echo "            Current directory: $DIR"
 echo "Base source control directory: $TRUNK"
 echo "-------------------------------------"
 
+# troubleshooting helps
+set -e
+set -x
+
 # remove files from previous builds
 rm -rf $TRUNK/bin/linux/UnicodeDebug
 if [ $? -ne 0 ]
@@ -19,18 +23,13 @@ then
   exit 1
 fi
 
-# Configure svn in adaptit-standard way
-# (just in case it isn't already set up like this)
-sed -i -e 's/^# enable-auto-props = yes/enable-auto-props = yes/' ~/.subversion/config
-for x in c cpp h
-do 
-  sed -i -e "s/^# \*\.$x = .*$/*.$x = svn:eol-style=CRLF/" ~/.subversion/config
-done
-
 # Build adaptit (UnicodeDebug) and return the results
-# call autogen
 cd $TRUNK/bin/linux
+# make sure the old configure and friends are gone
+rm Makefile.in configure config.sub config.guess aclocal.m4 ltmain.sh
+# call autogen to generate configure and friends
 ./autogen.sh
+#bin/linux/autogen.sh
 if [ $? -ne 0 ]
 then
   echo "Error in autogen.sh script: $?"
