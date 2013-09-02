@@ -2803,7 +2803,7 @@ wxString GetAdaptItInstallPrefixForLinux()
 		prefix = str.Mid(0,offset);
 	}
 
-#ifdef __WXGTK__
+#ifdef __WXGTKzzz__
 	wxStandardPaths stdPaths;
 	wxString stdPathsPrefix;
 	stdPathsPrefix.Empty();
