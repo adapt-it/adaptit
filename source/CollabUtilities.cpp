@@ -2703,16 +2703,16 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
             if ( pApp->m_commitCount > 0 )
             {
                 wxCommandEvent  dummyEvent;
-                
+
                 pDoc->OnFileClose(dummyEvent);                  // the file's corrupt, so we close it to avoid crashes
                 pApp->m_reopen_recovered_doc = FALSE;           // so the recovery code doesn't try to re-open the doc
 				bReadOK = pDoc->RecoverLatestVersion();
 				pApp->m_recovery_pending = bReadOK;				// if we recovered the doc, we still need to bail out, so we leave the flag TRUE
             }
-            
+
             // at this point, if we couldn't recover, we just display a message and give up.  If we are attempting a recovery,
             //  we skip this block and continue with some of the initialization we need before we can bail out.
-            
+
             if (!bReadOK)
 			{
                 wxString s;
@@ -2736,7 +2736,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		// app's m_pSourcePhrases list has been populated with CSourcePhrase instances
 	}
 	// exit here if we only wanted m_pSourcePhrases populated and no recursive merger done, and also if we're recovering a corrupted doc
-	if (!bDoLayout && !bDoMerger || pApp->m_recovery_pending)
+	if ( (!bDoLayout && !bDoMerger) || pApp->m_recovery_pending )
 	{
 		return TRUE;
 	}

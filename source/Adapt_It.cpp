@@ -15382,8 +15382,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
     m_suppress_KB_messages = FALSE;     // normal default
-  
-	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
+
+	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
                  // being done more than once in a series of OnIdle() calls. It's reset to
                  // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
                  // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
@@ -17201,7 +17201,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString dataDir, localDataDir, documentsDir;
 	wxString userConfigDir, userDataDir, userLocalDataDir;
 	wxString executablePath;
-#ifdef __WXGTK__
+#ifdef __WXGTKzzz__
 	wxString installPrefix;
 	wxStandardPaths stdPaths;
 #else
@@ -17237,7 +17237,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetUserLocalDataDir() = %s"),userLocalDataDir.c_str());
 	executablePath = stdPaths.GetExecutablePath();
 	wxLogDebug(_T("The wxStandardPaths::GetExecutablePath() = %s"),executablePath.c_str());
-#ifdef __WXGTK__
+#ifdef __WXGTKzzz__
 	// Only available on Linux
 	installPrefix = stdPaths.GetInstallPrefix();
 	wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"),installPrefix.c_str());
@@ -25792,10 +25792,10 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 			// ask the user. We have to set the App's flags and also save the project
 			// config file (since the flags get read out of the config file before the
 			// ChooseCollabOptionsDlg is shown again).
-            
+
             // (Aug 13) another possibility is that the doc was corrupt, and DVCS was used
             //  to recover it.  We can distinguish this case by m_recovery_pending being TRUE.
-            
+
             if (m_recovery_pending)
             {
                 wxMessageBox(_T("The document was corrupt, but we have restored the latest version saved in the document history.  You can start from the Start Working Wizard and the document should open successfully."));
@@ -36558,9 +36558,9 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 			LogUserAction(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."));
 			return FALSE; // return, do nothing
 		}
-        
+
         gpApp->m_suppress_KB_messages = TRUE;       // Suppress normal messages from KB export -- we'll display a summary message at the end
-        
+
 		m_pGlossingKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
 		f.Close();
 		// second, the adapting KB export
@@ -37024,9 +37024,9 @@ bool CAdapt_ItApp::AccessOtherAdaptationProject()
 		wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 31,124 in Adapt_It.cpp"));
 
 		m_pKB->DoKBImport(adaptionsKBExportPath, KBImportFileOfSFM_TXT);
-        
+
         gpApp->m_suppress_KB_messages = FALSE;              // restore normal default
-        
+
 		bSuccess = ::wxRemoveFile(adaptionsKBExportPath);
 		wxCHECK_MSG(bSuccess, FALSE, _T("AccessOtherAdaptionProject(): ::wxRemoveFile() failed, line 37014 in Adapt_It.cpp"));
 		if (nTotal > 0)
@@ -37085,7 +37085,7 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(wxArrayString& tgtDocsList,
     // BEW updated it on 31Aug05 to comply with version 3 - specifically, to handle book
     // folders, and the possibility of some or all documents being XML rather than binary).
     // The bSuppressStatistics defaults to FALSE (in the prototype)
-    
+
 	wxArrayString List = m_acceptedFilesList;
 	int nCount = List.GetCount();
 	wxASSERT(nCount > 0);
