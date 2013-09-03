@@ -282,13 +282,27 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 		wxString tempLine = _T("");
 		const wxString tab5sp = _T("     ");
 		int tabCount = 0;
+#ifdef __WXMAC__
+		// GDLC 3SEP13 Assemble the strings for language codes into a wxArrayString first, and then
+		// insert the whole lot into the wxListBox in one call of InsertItems to avoid the lengthy
+		// scrolling that happens on Mac with WX2.9.5.
+		wxArrayString as;
+		unsigned int pos = 0;	// Counter for current position in wxArrayString for its Insert()
+		as.Alloc(8110);			// There are 8110 lines in iso639-3codes.txt, so allocate enough
+								// space in one go for efficiency.
+#endif
 		while (ptr < pEnd && *ptr != '\0')
 		{
 			if (*ptr == _T('\n') || *ptr == _T('\r'))
 			{
 				if (!tempLine.IsEmpty())
 				{
+#ifdef __WXMAC__
+					// GDLC 3SEP13 Use Insert() on the wxArrayString
+					as.Insert(tempLine, pos++);
+#else
 					pListBox->Append(tempLine);
+#endif
 					tempLine.Empty();
 				}
 			}
@@ -322,8 +336,17 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 		// catch the last list item if the codes file does not end with a newline char
 		if (!tempLine.IsEmpty())
 		{
+#ifdef __WXMAC__
+			as.Insert(tempLine, pos);
+#else
 			pListBox->Append(tempLine);
+#endif
+
 		}
+#ifdef __WXMAC__
+		// GDLC 3SEP13 Put the array of strings into the list box
+		pListBox->InsertItems(as, 0);
+#endif
 		if (pTempStr != NULL) // whm 11Jun12 added NULL test
 			delete pTempStr;
 		// remove the first line of the listbox which should contain
