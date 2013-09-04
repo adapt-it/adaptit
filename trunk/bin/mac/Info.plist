@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Adapt It.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.adapt-it.$(PRODUCT_NAME)</string>
+	<string>org.adapt-it.adaptit</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLocalizations</key>
