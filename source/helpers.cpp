@@ -2470,7 +2470,7 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 	// "...the filename shouldn't contain the path". So test for initial PathSeparator and
 	// remove it if there and then return the result
 	int offset = uniqueName.Find(PathSeparator);
-	if (offset == 0)
+	if (folderPathOnly.IsEmpty() && offset == 0)
 	{
 		// remove it
 		uniqueName = uniqueName.Mid(1);

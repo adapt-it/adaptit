@@ -17414,7 +17414,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// of str when it starts with one of these markers
 			wxString wholeMkr;
 			bool bStartsWithMarker = FALSE;
-			wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+			//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
 			if (!str.IsEmpty() && str.GetChar(0) == gSFescapechar)
 			{
 				wholeMkr = pDoc->GetWholeMarker(str);
@@ -17442,7 +17442,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			else
 			{
 				// add an initial space if one is not already there
-				wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string.
+				//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string.
 				if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 				{
 					str = _T(" ") + str;
@@ -17479,7 +17479,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			}
 
 			// insert an initial space if one is not already there
-			wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
+			//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
 			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 			{
 				str = _T(" ") + str;
