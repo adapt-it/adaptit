@@ -26,7 +26,7 @@ fi
 # Build adaptit (UnicodeDebug) and return the results
 cd $TRUNK/bin/linux
 # make sure the old configure and friends are gone
-rm -f Makefile.in configure config.sub config.guess aclocal.m4 ltmain.sh
+#rm -f Makefile.in configure config.sub config.guess aclocal.m4 ltmain.sh
 # call autogen to generate configure and friends
 ./autogen.sh
 #bin/linux/autogen.sh
