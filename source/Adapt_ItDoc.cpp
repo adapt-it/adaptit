@@ -408,14 +408,16 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 /// or READ-ONLY access (if TRUE is returned). (Also added to LoadKB() and OnOpenDocument()
 /// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItDoc::OnNewDocument()
-// ammended for support of glossing or adapting
+// amended for support of glossing or adapting
 {
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
 
     pApp->m_owner = pApp->m_strUserID;  // this is our doc
+    pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
 
 	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
@@ -1993,7 +1995,8 @@ void CAdapt_ItDoc::OnUpdateDVCS_item (wxUpdateUIEvent& event)
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
 {
-    event.Enable ( gpApp->m_owner != gpApp->m_strUserID );     // if user is already the owner, we disable the menu item
+    event.Enable ( (gpApp->m_owner != gpApp->m_strUserID) && (gpApp->m_trialVersionNum == -1) );
+                    // enable only if user isn't the owner, and a trial is not under way
 }
 
 
@@ -5420,7 +5423,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
 
 	// refactored 10Mar09
-	gpApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
+	pApp->m_nSaveActiveSequNum = 0;     // reset to a default initial value, safe for any length of doc
+	pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
 
     // whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use
     // the legacy version's OnOpenDocument() serialization facilities, and can thus avoid
