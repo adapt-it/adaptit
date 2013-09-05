@@ -852,13 +852,13 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	if (!m_pKbsList_Tgt->empty())
 	{
 		m_pKbsList_Tgt->clear();
-		delete m_pKbsList_Tgt;
 	}
+	delete m_pKbsList_Tgt;
 	if (!m_pKbsList_Gls->empty())
 	{
 		m_pKbsList_Gls->clear();
-		delete m_pKbsList_Gls;
 	}
+	delete m_pKbsList_Gls;
 	m_pKbServer->ClearKbsList(m_pKbsList); // this one is local to the stateless
 									// KbServer instance, so don't delete this one
 	DeleteClonedKbServerKbStruct();
@@ -887,13 +887,13 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 	if (!m_pKbsList_Tgt->empty())
 	{
 		m_pKbsList_Tgt->clear();
-		delete m_pKbsList_Tgt;
 	}
+	delete m_pKbsList_Tgt;
 	if (!m_pKbsList_Gls->empty())
 	{
 		m_pKbsList_Gls->clear();
-		delete m_pKbsList_Gls;
 	}
+	delete m_pKbsList_Gls;
 	m_pKbServer->ClearKbsList(m_pKbsList); // this one is in the stateless
 									// KbServer instance & don't delete this one
 	DeleteClonedKbServerKbStruct();
