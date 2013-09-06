@@ -29,7 +29,6 @@ cd $TRUNK/bin/linux
 rm -f Makefile.in configure config.sub config.guess aclocal.m4 ltmain.sh
 # call autogen to generate configure and friends
 ./autogen.sh
-bin/linux/autogen.sh
 if [ $? -ne 0 ]
 then
   echo "Error in autogen.sh script: $?"
