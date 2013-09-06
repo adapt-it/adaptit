@@ -5424,7 +5424,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 
 	// refactored 10Mar09
 	pApp->m_nSaveActiveSequNum = 0;     // reset to a default initial value, safe for any length of doc
-	pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
 
     // whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use
     // the legacy version's OnOpenDocument() serialization facilities, and can thus avoid
