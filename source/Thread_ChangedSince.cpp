@@ -69,10 +69,12 @@ void* Thread_ChangedSince::Entry()
 	// where an entry (in the form of a pointer to struct) is being added to the end of
 	// the queue m_queue in the m_pKbSvr instance
 	wxString timeStamp = m_pKbSvr->GetKBServerLastSync();
-	int rv = m_pKbSvr->ChangedSince_Queued(timeStamp);
+	int rv = m_pKbSvr->ChangedSince_Queued(timeStamp); // 2nd param, bDoTimestampUpdate is default TRUE
 	// If rv = 0 (ie. no error) is returned, the server's downloaded timestamp will have
 	// been used at the end of ChangedSince_Queued() to update the stored value at the
-	// client end, so it doesn't need to be done here
+	// client end , so it doesn't need to be done here - but that's provided
+	// bDoTimestampUpdate param takes the default TRUE value; if an explicit
+	// FALSE were passed in, no timestamp update would be done
 	if (rv != 0)
 	{
 		; // do nothing, error handling is at a lower level

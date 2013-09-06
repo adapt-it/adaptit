@@ -2663,6 +2663,23 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 	}
 	if (m_pApp->m_selectionLine != -1)
 	{
+		// BEW added 6Sep13. When testing Mike's DVCS doc history functionality, Bill was
+		// looking at a read-only app and decided to close down AI. This produced a crash
+		// due to m_selectionLine being unexpectedly not equal to -1 and the app
+		// unexpectedly (to me, that is) tried to evaluate the menu update handler during
+		// the app closure. To avoid this, probably I need to have an extra check here for
+		// a cleared CCellList m_selection variable (see approx line 2290 in Adapt_It.h),
+		// so that no GetFirst() call is made on an empty m_selection list. It might be
+		// wise to do something to ensure m_sectionLine is -1 at the start of  app's
+		// OnExit() function
+		if (m_pApp->m_selection.IsEmpty())
+		{
+			// There isn't a selection after all! So don't enable - and set
+			// m_selectionLine to -1 as well
+			m_pApp->m_selectionLine = -1;
+			event.Enable(FALSE);
+			return;
+		}
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
 		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
