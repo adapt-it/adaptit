@@ -15377,13 +15377,18 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
-
+  
+	m_recovery_pending = FALSE; // Must initialize to false, otherwise, every attempt to open
+								// a document in any project will fail
+	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+	m_pKbServerForDeleting = NULL;
+  
     // Initialize items relating to corrupt doc recovery:
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
     m_suppress_KB_messages = FALSE;     // normal default
 
-	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
+	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
                  // being done more than once in a series of OnIdle() calls. It's reset to
                  // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
                  // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
@@ -21569,6 +21574,13 @@ int CAdapt_ItApp::OnExit(void)
 	if (m_pGlossesGuesser != NULL)
 		delete m_pGlossesGuesser;
 
+	// As a precaution against a bogus assumption of an existing selection causes an
+	// update handler to fail, clear m_selection, and set m_selectionLine to -1; not that
+	// we'd expect a menu update to happen at this point, but it may have happened to Bill
+	// (email 6Sept13)
+	m_selection.clear();
+	m_selectionLine = -1;
+
 	// BEW removed 15Jun11 until we support OXES
 	// BEW reinstated 19May12, for OXES v1 support
 	//delete m_pOxes;
@@ -21943,6 +21955,16 @@ int CAdapt_ItApp::OnExit(void)
 	{
 		delete m_pDVCS;
 		m_pDVCS = (DVCS*)NULL;
+	}
+
+	// If a kb database of entries in kbserver's entry table is being deleted one by one
+	// in a currently running thread, then m_pApp->m_pKbServerForDeleting  will be non-NULL;
+	// test for this and recover the heap memory now, the thread will then fail, but
+	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
+	// next session, or over several sessions, until the particular kb database is gone
+	if (m_pKbServerForDeleting != NULL)
+	{
+		delete m_pKbServerForDeleting;
 	}
 
 	return 0;

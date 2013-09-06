@@ -185,8 +185,7 @@ private:
 									 
 
 
-	// Next members are additional ones needed for the Create KB definitions page (and
-	// some will be also used in the 3rd page for editing KB definitions)
+	// Next members are additional ones needed for the kbs page
 	bool m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
 	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code:"
 	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glossing language code:"

@@ -40,7 +40,7 @@ static wxMutex s_DoGetAllMutex; // UploadToKbServer() calls DoGetAll() which
 			// arrays - so we have to enforce sequentiality on the use of
 			// these arrays
 wxMutex KBAccessMutex; // ChangedSince() may be entering entries into
-			// the local KB at while UploadToKbServer() is looping over it's entries
+			// the local KB while UploadToKbServer() is looping over it's entries
 			// to work out which need to be sent to the remote DB
 			
 #include <wx/listimpl.cpp>
@@ -142,7 +142,7 @@ KbServer::KbServer()
 
 KbServer::KbServer(int whichType)
 {
-	// This is the constructor we should always use, explicitly at least
+	// This is the constructor we should normally use for sharing of KBs
 	wxASSERT(whichType == 1 || whichType == 2);
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -154,6 +154,8 @@ KbServer::KbServer(int whichType)
 // I had to give the next contructor the int whichType param, because just having a single
 // bool param isn't enough to distinguish it from KbServer(int whichType) above, and the
 // compiler was wrongly calling the above, instead KbServer(bool bStateless)
+// Note: NEVER CALL THIS CONSTRUCTOR WITH THE PARAMETERS (2,FALSE). But (1,TRUE) or
+// (2,TRUE) are safe values.
 KbServer::KbServer(int whichType, bool bStateless)
 {
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -163,8 +165,12 @@ KbServer::KbServer(int whichType, bool bStateless)
 	// about an unused variable
 	if (whichType != 1)
 	{
-		whichType = 1; // we don't want any CKB instance, 
-					   // but if we did, we'd just use an adapting one
+		whichType = 1; // we use this constructor only for jobs where we don't
+					   // need to specify a KB type, such as support for the
+					   // KB sharing manager GUI, or for entire deletion of a given
+					   // type of kb (whether adapting or glossing) and all its entries,
+					   // so choose a adapting instantiation - it makes no difference
+					   // choice we make
 	}
 	m_queue.clear();
 	m_bStateless = bStateless;
@@ -2759,19 +2765,22 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	return 0;
 }
 
-// This one is like RemoveUser() and RemoveKb(), except that we'll simplify even further
-// and not bother to ask for any http headers to be returned. We'll just assume the
-// deletion happened without error.
+// This one is like RemoveUser() and RemoveKb(), and http errors need to be checked for,
+// as it is the only way to know when the deletion loop has deleted all that need to be
+// deleted
 int KbServer::DeleteSingleKbEntry(int entryID)
 {
 	wxString entryIDStr;
 	wxItoa(entryID, entryIDStr);
 	CURL *curl;
 	CURLcode result; // result code
+	struct curl_slist* headers = NULL; // get headers in case of HTTP error
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString container = _T("entry");
 	wxString aUrl, aPwd;
+
+	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
 
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
@@ -2788,16 +2797,35 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 	result = (CURLcode)0; // initialize
 	if (curl)
 	{
+		// add headers
+		headers = curl_slist_append(headers, "Accept: application/json");
+		headers = curl_slist_append(headers, "Content-Type: application/json");
 		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way when no json is expected back...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 
 		result = curl_easy_perform(curl);
 
+#if defined (_DEBUG)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("\n\n DeleteSingleEntry() Returned: %s    CURLcode %d  for entryID = %d"), 
+					showit.c_str(), (unsigned int)result, entryID);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+
+		curl_slist_free_all(headers);
 		if (result) {
 			wxString msg;
 			CBString cbstr(curl_easy_strerror(result));
@@ -2810,7 +2838,19 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 		}
 	}
 	curl_easy_cleanup(curl);
-	return (CURLcode)result;
+	str_CURLbuffer.clear();
+
+	// handle any HTTP error code, if one was returned
+	if (m_httpStatusCode >= 400)
+	{
+		// Most likely, a 404 Not Found error when the parent loop has finally
+		// deleted the last entry in that particular kb database
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
+	return (CURLcode)0;
 }
 
 
@@ -2837,7 +2877,7 @@ int KbServer::RemoveUser(int userID)
 	aUrl = GetKBServerURL() + slash + container + slash + userIDStr;
 	charUrl = ToUtf8(aUrl);
 
-		// prepare curl
+	// prepare curl
 	curl = curl_easy_init();
 
 	if (curl)
@@ -3722,6 +3762,11 @@ bool KbServer::IsQueueEmpty()
 	return m_queue.empty(); // return TRUE if m_queue is empty
 }
 
+DownloadsQueue* KbServer::GetDownloadsQueue()
+{
+	return &m_queue;
+}
+
 // Return the CURLcode value, downloaded JSON data is extracted and copied, entry by
 // entry, into a series of KbServerEntry structs, each created on the heap, and stored at
 // the end of the m_queue member (derived from wxList<T>). This ChangedSince_Queued() is
@@ -3744,7 +3789,7 @@ bool KbServer::IsQueueEmpty()
 // storage. (Of course, the next successful ChangedSince_Queued() call will update what is
 // stored in persistent storage; and the timeStamp value used for that call is whatever is
 // currently within the variable m_kbServerLastSync).
-int KbServer::ChangedSince_Queued(wxString timeStamp)
+int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 {
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
@@ -3903,8 +3948,13 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
             str_CURLbuffer.clear(); // always clear it before returning
             str_CURLheaders.clear(); // BEW added 9Feb13
 
-			// since all went successfully, update the lastsync timestamp
-			UpdateLastSyncTimestamp();
+			// since all went successfully, update the lastsync timestamp, if requested
+			// (when using ChangedSince_Queued() to download entries for deleting an entire
+			// KB, we don't want any timestamp update done)
+			if (bDoTimestampUpdate)
+			{
+				UpdateLastSyncTimestamp();
+			}
 		} // end of TRUE block for test: if (offset == 0)
 		else
 		{
@@ -3916,7 +3966,10 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 				// more recent than the last saved timestamp value, so do nothing here
 				// except update the lastsync timestamp, there's no point in keeping the
 				// earlier value unchanged
-                UpdateLastSyncTimestamp();
+ 				if (bDoTimestampUpdate)
+				{
+					UpdateLastSyncTimestamp();
+				}
             }
             else
             {

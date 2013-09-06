@@ -49,6 +49,7 @@
 #include "LanguageCodesDlg.h"
 #include "KBSharingMgrTabbedDlg.h"
 #include "HtmlFileViewer.h"
+#include "Thread_DoEntireKbDeletion.h"
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -225,7 +226,9 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pKbsList_Gls = new KbsList; // destroy it in OnOK() and OnCancel()
 	m_pKbsAddedInSession = new KbsList; // destroy it in OnOK() and OnCancel()
 
-	// Get the administrator's kbadmin and useradmin values from the app members for same
+	// Get the administrator's kbadmin and useradmin values from the app members for same;
+	// these app members are set by the login/authentication call (see KbSharingSetupDlg.h
+	// & .cpp, and which uses CheckForValidUsernameForKbServer() in helpers.cpp to set them)
 	m_bKbAdmin = m_pApp->m_kbserver_kbadmin;
 	m_bUserAdmin = m_pApp->m_kbserver_useradmin;
 
@@ -1302,6 +1305,14 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 
 void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event))
 {
+	// Is the user of the Manager authorized to use this button?
+	if (!m_bKbAdmin && !m_bUserAdmin)
+	{
+		wxString msg = _("Sorry, you are not a kb administrator, nor a user administrator.\nYou are not authorized to use this button.");
+		wxString title = _("Authorization lacking");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		return;
+	}
 	// Get the ID value, if we can't get it, return
 	if (m_pOriginalKbStruct == NULL)
 	{
@@ -1318,7 +1329,21 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 		// the TRUE block which follows, to have the deletion tried unilaterally)
 		if (!IsThisKBDefinitionInSessionList(m_pOriginalKbStruct, m_pKbsAddedInSession))
 		{
-			// This definition can be deleted, but if it owns database entries, it may
+			// If an "all entries" emptying as part of aremoval is already in progress, 
+			// don't start another....
+			//m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = TRUE; // uncomment out to test showing
+																// of the information message
+			if (m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
+			{
+				wxString msg2 = _("Only one database emptying at a time is allowed.\nAn emptying is already in progress, and it may take a long time.\nWhen the one requested for deletion no longer displays its pair of language codes in the list,\nthe Manager is then ready for you to request deletion of another one.");
+				wxString title2 = _("Only one at a time");
+				wxMessageBox(msg2, title2, wxICON_INFORMATION | wxOK);
+				return;
+			}
+			// There is no removal of a parenting definition currently in progress, so go ahead
+			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = TRUE;
+
+			// This definition can be deleted, but it owns database entries, & so may
 			// take a long time because a https transmission is done for each entry
 			// deleted, and in a high latency environment this may turn a job that should
 			// only take minutes into one that may take a day or more -- but it is on a
@@ -1327,7 +1352,45 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 			// just get the deletion going again in a later session and there will be
 			// fewer entries to delete each such successive attempt made
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-			
+
+			// Create a new stateless KbServer instance that will persist on the heap for as
+			// long as the application is running (if this handler has not completed before
+			// Adapt It or the machine is closed) or until the this handler has completed its
+			// job - whichever comes first. (No permissions are checked for this new one, we
+			// have done that already above, we only need it's services so as to get the job done.)
+			m_pApp->m_pKbServerForDeleting = new KbServer(1, TRUE); // TRUE is bool bStateless, 
+					// 1 means "adapting type", but we could use either type for this job;
+					// Removing this instance from the heap should be done as the last step
+					// after the KB database has been cleared and it's KB language pair,
+					// which constitutes the database definition, has been removed from the
+					// kb table of the kbserver (doing so in the thread's end) -- or, if the
+					// user shuts down the app or machine prematurely, at the end of the 
+					// OnExit() function
+			// Which do we want to delete?
+			long nID = (int)m_pOriginalKbStruct->id; // this is the one we selected in the listbox
+			// Put a copy in the app instance, since the Manager GUI might be deleted long
+			// before the background deletion (thread) of the KB entries has completed,
+			// and we'll need to get the ID then for deleting that kb language code pair
+			m_pApp->kbID_OfDefinitionForDeletion = nID;
+
+			// Get all the selected database's entries
+			int rv = 0; // rv is "return value", initialize it
+			wxString timestamp;
+			timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+			rv = m_pApp->m_pKbServerForDeleting->ChangedSince_Queued(timestamp, FALSE);
+					// in above call, FALSE is value of the 2nd param, bDoTimestampUpdate
+			// How many entries have to be deleted?
+			m_pApp->m_nQueueSize = m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->size();
+
+			// Create the detached thread which will do our database entry deletion job
+			Thread_DoEntireKbDeletion* pThread = new Thread_DoEntireKbDeletion(
+							m_pApp->m_pKbServerForDeleting, nID, m_pApp->m_nQueueSize);
+			wxThreadError error =  pThread->Create(2048); // give it a stack size of 2kb
+
+
+
+
+
 
 // TODO *********** the thread implementation goes here ***********************
 

@@ -2825,8 +2825,6 @@ public:
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
 
-
-
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
@@ -2841,6 +2839,32 @@ public:
 									  // two instances are created, one for adaptations, the
 									  // other for glosses
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
+
+	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
+	// background task - so we need storage capability that persists after the KB Sharing
+	// Manager GUI has been closed (the button for getting the job started is in the GUI)
+	// - the job may take as long as a couple of days to complete, so the needed storage
+	// of ID values is the queue in the KbServer instance we use here for the job
+	bool		m_bKbSvrMgr_DeleteAllIsInProgress; // use to prevent 'entire deletion'
+                    // of more than one, of a shared kb from the currently accessed
+                    // kbserver, at a time; this will also absolve us of the need to set up
+                    // a mutex for this job, because the ChangedSince_Queued() download
+                    // that gets the array of IDs for entries in the entry table that have
+                    // to be deleted will be done synchronously at the start of the job,
+                    // and only after that will the background thread be fired to complete
+                    // the emptying of entries
+	KbServer*		m_pKbServerForDeleting; // create a stateless on on heap, using 
+						// this member - the creation is done in the button handler
+						// of the KB sharing manager's GUI, on Kbs page...
+	// Note: m_pKbServerForDeleting has its own DownloadsQueue m_queue, which will store
+	// KbServerEntry structs from which we can extract the ID value from each; so no mutex
+	// is needed for our synchronous call of ChangedSince_Queued() to download the entries
+	// which we need to delete (ChangedSince_Queued() is supported by the s_QueueMutex, but
+	// we will not be synchronously trying to remove any queue members, so we can ignore
+	// that mutex - we'll do the removals after the download has filled the queue.)
+	size_t			m_nQueueSize; // set to entry count after download completes
+	long			kbID_OfDefinitionForDeletion; // store the kbID here, for when we need it
+
 
 #endif // for _KBSERVER
 

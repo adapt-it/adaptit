@@ -157,7 +157,7 @@ public:
 	int		 BulkUpload(int threadIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
-	int		 ChangedSince_Queued(wxString timeStamp);
+	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
 	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
@@ -211,6 +211,8 @@ public:
 	void	 SetPathSeparator(wxString separatorStr);
 	void	 SetCredentialsFilename(wxString credentialsFName);
 	void	 SetLastSyncFilename(wxString lastSyncFName);
+	// public getters
+	DownloadsQueue* GetDownloadsQueue();
 
 
 	wxString  ImportLastSyncTimestamp(); // imports the datetime ascii string literal
