@@ -348,6 +348,8 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	{
 		pApp->GetView()->CloseProject();
 	}
+    
+	pApp->m_trialVersionNum = -1;		// restore normal default.  Negative means no trial going on.
 
 	// first, use the current navigation text font for the list box
 	#ifdef _RTL_FLAGS
