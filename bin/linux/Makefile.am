@@ -116,6 +116,7 @@ adaptit_SOURCES = \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
 	../../source/tellenc.cpp \
 	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
+	../../source/Thread_DoEntireKbDeletion.cpp \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
 	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
 	../../source/Thread_UploadToKBServer.cpp ../../source/Timer_KbServerChangedSince.cpp \
