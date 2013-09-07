@@ -1,7 +1,7 @@
 #!/bin/bash
 # build-ai.sh -- builds AdaptIt on Ubuntu
-# Currently this only builds the UnicodeDebug release for the continuous builds
-# on TeamCity.
+# Builds the UnicodeDebug and UnicodeRelease configurations for the continuous 
+# builds on TeamCity. No packaging is performed.
 
 DIR=$( cd "$( dirname "$0" )" && pwd )
 TRUNK=$DIR/..
@@ -11,9 +11,9 @@ echo "            Current directory: $DIR"
 echo "Base source control directory: $TRUNK"
 echo "-------------------------------------"
 
-# troubleshooting helps
-set -e
-set -x
+# troubleshooting helps -- enable if needed
+# set -e
+# set -x
 
 # remove files from previous builds
 rm -rf $TRUNK/bin/linux/UnicodeDebug
@@ -51,4 +51,28 @@ then
   echo "Error building Adapt It Unicode Debug: $?"
   exit 1
 fi
+
+# create the Unicode Release directory and call configure
+cd $TRUNK/bin/linux
+mkdir -p UnicodeRelease
+(cd UnicodeRelease && ../configure)
+if [ $? -ne 0 ]
+then
+  echo "Error configuring for UnicodeRelease build: $?"
+  exit 1
+fi
+
+#($CONFIG/UnicodeRelease/make)
+(cd UnicodeRelease && make)
+if [ $? -ne 0 ]
+then
+  echo "Error building Adapt It Unicode Release: $?"
+  exit 1
+fi
+
+echo " "
+echo "-------------------------------------------------"
+echo "-- Adapt It debug and release builds succeeded --"
+echo "-------------------------------------------------"
+echo " "
 

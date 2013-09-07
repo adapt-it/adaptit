@@ -5,7 +5,7 @@ if [ "`uname`" = "Darwin" ] ; then
 fi
 aclocal -I m4
 $LIBTOOLIZE --automake --force --copy
-#libtoolize --verbose --automake --force --copy
+#libtoolize --automake --force --copy
 automake -v -a -c -Wno-portability
 autoconf
 
