@@ -2663,23 +2663,20 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 	}
 	if (m_pApp->m_selectionLine != -1)
 	{
-		// BEW added 6Sep13. When testing Mike's DVCS doc history functionality, Bill was
-		// looking at a read-only app and decided to close down AI. This produced a crash
-		// due to m_selectionLine being unexpectedly not equal to -1 and the app
-		// unexpectedly (to me, that is) tried to evaluate the menu update handler during
-		// the app closure. To avoid this, probably I need to have an extra check here for
-		// a cleared CCellList m_selection variable (see approx line 2290 in Adapt_It.h),
-		// so that no GetFirst() call is made on an empty m_selection list. It might be
-		// wise to do something to ensure m_sectionLine is -1 at the start of  app's
-		// OnExit() function
-		if (m_pApp->m_selection.IsEmpty())
+		// Having a current selection and then clicking app closure button generates a
+		// crash with control entering here to try update the menus, but the
+		// CSourcePhrases list and layout are clobbered -- so filter out this state here,
+		// otherwise piles and so forth are attempted to be accessed after their memory
+		// has been freed.
+		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
 		{
-			// There isn't a selection after all! So don't enable - and set
-			// m_selectionLine to -1 as well
-			m_pApp->m_selectionLine = -1;
+			// There is no layout, so we are being called at app closure, so just disable
+			// the menu item & return
 			event.Enable(FALSE);
 			return;
 		}
+
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
 		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
@@ -2786,6 +2783,22 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_pApp->m_selectionLine != -1)
 	{
         // if there is a selection, then disable the button (doing the jump
@@ -2876,6 +2889,14 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 		return;
 	}
 	if (m_pApp->m_bFreeTranslationMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
 	{
 		event.Enable(FALSE);
 		return;
@@ -3197,6 +3218,14 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_pApp->m_selectionLine != -1)
 	{
         // if the first sourcephrase in the selection does not have a note,
@@ -3484,6 +3513,14 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, so we can't move one until it is closed
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
 		event.Enable(FALSE);
 		return;
 	}

@@ -11093,6 +11093,14 @@ void CAdapt_ItView::OnUpdateButtonRestore(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// Protect against idle time update menu handler at app shutdown time, when
+	// piles no longer exist
+	if (pApp->GetLayout()->GetPileList() == NULL ||
+		pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (pApp->m_selectionLine != -1 && pApp->m_selection.GetCount() == 1)
 	{
 		CCellList::Node* cpos = pApp->m_selection.GetFirst();
@@ -12915,6 +12923,14 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 	}
 	wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
 	if (pEdit == NULL)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (pApp->GetLayout()->GetPileList() == NULL ||
+		pApp->GetLayout()->GetPileList()->IsEmpty())
 	{
 		event.Enable(FALSE);
 		return;
@@ -28041,15 +28057,8 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 /// whm modified 30Aug111 to remove the label and jump
 void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 {
-
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	/*
-	CSourcePhrase* pSrcPhrase;
-	bool bOK;
-	CSourcePhrase* pSaveSrcPhrase;
-	int nSequNum;
-	*/
 	// whm Note: Only log user action when explicitly interacting with
 	// the menu item, not when OnAdvancedEnablglossing() is called by
 	// other functions.
@@ -28062,145 +28071,6 @@ void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 	}
 
 	ShowGlosses();
-	/*
-	// save the current sequence number
-	int nSaveSequNum = pApp->m_nActiveSequNum;
-
-	// won't allow a selection to be preserved, this is too major a modality change
-	if (pApp->m_selectionLine != -1)
-		RemoveSelection();
-
-    // before we redraw the layout and phrasebox, we have to save what is in the box
-    // (provided it's contents are not abandonable or null text) in the appropriate KB,
-    // then ready the pApp->m_targetPhrase member to have the correct text before
-    // the layout is recalculated
-	pApp->m_bSaveToKB = TRUE;
-
-	if (pApp->m_pActivePile != NULL)
-	{
-		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-		if (gbIsGlossing) // flag has not been toggled yet
-		{
-			// we are changing from glossing to adapting, so we must store to the glossing
-			// KB and then ready the pApp->m_targetPhrase member with the sourcephrase's
-			// m_adaption contents and remove its refString from the adapting KB
-			if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
-			{
-				// we can assume no errors for StoreTest call
-				bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
-			}
-
-			// if the active location is within a retranslation, we can't leave the box there
-			// when we are in adapting mode, so if that is the case then find a safe location
-			if (pSrcPhrase->m_bRetranslation)
-			{
-				pSaveSrcPhrase = pSrcPhrase;
-				pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase); // try first for a location
-															   // after retranslation section
-				if (pSrcPhrase == NULL)
-				{
-					pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSrcPhrase);
-				}
-				// we assume (we won't test) one of the above Get... calls will succeed
-				nSequNum = pSrcPhrase->m_nSequNumber;
-				pApp->m_nActiveSequNum = nSaveSequNum = nSequNum;
-				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-			}
-
-			// now the adaptation stuff
-			pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
-			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, useTargetPhraseForLookup);
-		}
-	}
-
-	// get the Enable Glossing menu pointer
-	CMainFrame *pFrame = wxGetApp().GetMainFrame();
-	wxASSERT(pFrame != NULL);
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pAdvancedMenuSeeGlosses = pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES);
-
-	// get the checkbox pointer
-	wxPanel* pControlBar;
-	pControlBar = pFrame->m_pControlBar;
-	wxASSERT(pControlBar != NULL);
-	wxCheckBox* pCheckboxIsGlossing =
-				(wxCheckBox*)pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-
- 	// whm 30Aug11 Note: We do not switch between "<no adaptation>" and "<no gloss>" here
- 	// because the OnAdvancedSeeGlosses() does not actually switch the app into glossing
- 	// mode. That is done in OnCheckIsGlossing() and ToggleGlossingMode().
-
-	// toggle the setting: note; whether going to or from glossing we will not change the
-    // current values of gbGlossingUsesNavFont because the user might go back and forwards
-    // from having glossing allowed or actually on (in the one session,) and it would be a
-    // nuisance to have to manually restore this flag to its former setting each time the
-    // user enables glossing again in the one session. (Leaving the flag ON is benign when
-    // adapting.)
-	if (gbGlossingVisible)
-	{
-		// toggle the checkmark to OFF
-		if (pAdvancedMenuSeeGlosses != NULL)
-		{
-			pAdvancedMenuSeeGlosses->Check(FALSE);
-		}
-		gbGlossingVisible = FALSE;
-		gbIsGlossing = FALSE; // must be off whenever the other flag is off
-
-		// hide the mode bar checkbox when glossing is not allowed to be visible
-		// and when not visible it obligatorily must be adapting
-		if (pCheckboxIsGlossing != NULL)
-		{
-			pCheckboxIsGlossing->SetValue(FALSE); // not glossing, ie. is adapting
-			pCheckboxIsGlossing->Show(FALSE);
-		}
-	}
-	else
-	{
-		// toggle the checkmark to ON
-		if (pAdvancedMenuSeeGlosses != NULL)
-		{
-			pAdvancedMenuSeeGlosses->Check(TRUE);
-		}
-		gbGlossingVisible = TRUE;
-
-		// show the mode bar checkbox when glossing is allowed to be visible - user can
-		// then choose either to do glossing, or to do adapting
-		if (pCheckboxIsGlossing != NULL)
-		{
-			pCheckboxIsGlossing->Show(TRUE);
-		}
-	}
-
-	// redraw the layout etc.
-	CLayout* pLayout = GetLayout();
-
-	// BEW added 10Jun09, support phrase box matching of the text colour chosen
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-	{
-		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
-	}
-	else
-	{
-		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
-	}
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
-#endif
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
-	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
-
-	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->SetFocus();
-	Invalidate();
-	GetLayout()->PlaceBox();
-	*/
 }
 
 // BEW added 19Sep08, for support of mode transitions within vertical edit mode

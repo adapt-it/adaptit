@@ -2265,6 +2265,14 @@ void CPlaceholder::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
         // BEW 24Jan13 added first subtest here, to make the if robust
 		if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 		{
+			// First, protect against idle time update menu handler at app shutdown time, when
+			// piles no longer exist
+ 			if (m_pApp->GetLayout()->GetPileList() == NULL ||
+				m_pApp->GetLayout()->GetPileList()->IsEmpty())
+			{
+				event.Enable(FALSE);
+				return;
+			}
 			CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
 			CCell* pCell = cpos->GetData();
 			if (pCell->GetPile()->GetSrcPhrase()->m_bNullSourcePhrase
@@ -2662,6 +2670,14 @@ void CPlaceholder::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 		return;
 	}
 	if (m_pApp->m_bFreeTranslationMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler at app shutdown time, when
+	// piles no longer exist
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
 	{
 		event.Enable(FALSE);
 		return;
