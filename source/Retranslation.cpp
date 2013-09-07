@@ -4429,6 +4429,14 @@ void CRetranslation::OnUpdateRemoveRetranslation(wxUpdateUIEvent& event)
 	// BEW 24Jan13 added first subtest to avoid spurious false positives
 	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
+		// First, protect against idle time update menu handler at app shutdown time, when
+		// piles no longer exist
+ 		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
 		// we require both head and tail of the selection to lie within the retranslation
 		CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
 		CCell* pCell = (CCell*)cpos->GetData();
@@ -4539,6 +4547,14 @@ void CRetranslation::OnUpdateButtonEditRetranslation(wxUpdateUIEvent& event)
 	//if (!gbIsGlossing && m_pApp->m_selectionLine != -1)
 	if (!gbIsGlossing && !m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
+		// First, protect against idle time update menu handler at app shutdown time, when
+		// piles no longer exist
+ 		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
 		// we require both head and tail of the selection to lie within the retranslation
 		CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
 		CCell* pCell = (CCell*)cpos->GetData();
@@ -4633,7 +4649,15 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 	// BEW 24Jan13 added first subtest to avoid spurious false positives
 	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
-        // if there is at least one srcPhrase with m_bRetranslation == TRUE, then disable
+		// First, protect against idle time update menu handler at app shutdown time, when
+		// piles no longer exist
+ 		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
+		// if there is at least one srcPhrase with m_bRetranslation == TRUE, then disable
         // the button
 		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
 		while (pos != NULL)

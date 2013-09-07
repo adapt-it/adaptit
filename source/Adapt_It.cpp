@@ -21574,13 +21574,6 @@ int CAdapt_ItApp::OnExit(void)
 	if (m_pGlossesGuesser != NULL)
 		delete m_pGlossesGuesser;
 
-	// As a precaution against a bogus assumption of an existing selection causes an
-	// update handler to fail, clear m_selection, and set m_selectionLine to -1; not that
-	// we'd expect a menu update to happen at this point, but it may have happened to Bill
-	// (email 6Sept13)
-	m_selection.clear();
-	m_selectionLine = -1;
-
 	// BEW removed 15Jun11 until we support OXES
 	// BEW reinstated 19May12, for OXES v1 support
 	//delete m_pOxes;
