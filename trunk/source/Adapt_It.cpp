@@ -15380,9 +15380,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
   
 	m_recovery_pending = FALSE; // Must initialize to false, otherwise, every attempt to open
 								// a document in any project will fail
+#if defined(_KBSERVER)
 	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 	m_pKbServerForDeleting = NULL;
-  
+#endif 
     // Initialize items relating to corrupt doc recovery:
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
@@ -21950,6 +21951,7 @@ int CAdapt_ItApp::OnExit(void)
 		m_pDVCS = (DVCS*)NULL;
 	}
 
+#if defined(_KBSERVER)
 	// If a kb database of entries in kbserver's entry table is being deleted one by one
 	// in a currently running thread, then m_pApp->m_pKbServerForDeleting  will be non-NULL;
 	// test for this and recover the heap memory now, the thread will then fail, but
@@ -21959,7 +21961,7 @@ int CAdapt_ItApp::OnExit(void)
 	{
 		delete m_pKbServerForDeleting;
 	}
-
+#endif
 	return 0;
 }
 
