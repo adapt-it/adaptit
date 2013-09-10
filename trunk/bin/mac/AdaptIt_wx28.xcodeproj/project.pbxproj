@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
+		0320EE1517DF94C700477C1C /* Thread_DoEntireKbDeletion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0320EE1317DF94C700477C1C /* Thread_DoEntireKbDeletion.cpp */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
 		0396BFCE11BEA67600100CC4 /* RefStringMetadata.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC711BEA67600100CC4 /* RefStringMetadata.cpp */; };
@@ -181,6 +182,8 @@
 /* Begin PBXFileReference section */
 		031BF31811932FF6005223ED /* Uuid_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid_AI.cpp; path = ../../source/Uuid_AI.cpp; sourceTree = SOURCE_ROOT; };
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
+		0320EE1317DF94C700477C1C /* Thread_DoEntireKbDeletion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_DoEntireKbDeletion.cpp; path = ../../source/Thread_DoEntireKbDeletion.cpp; sourceTree = SOURCE_ROOT; };
+		0320EE1417DF94C700477C1C /* Thread_DoEntireKbDeletion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_DoEntireKbDeletion.h; path = ../../source/Thread_DoEntireKbDeletion.h; sourceTree = SOURCE_ROOT; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
 		0386CB741140CEB9000F9E2E /* Retranslation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Retranslation.cpp; path = ../../source/Retranslation.cpp; sourceTree = SOURCE_ROOT; };
 		0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LanguageCodesDlg.cpp; path = ../../source/LanguageCodesDlg.cpp; sourceTree = SOURCE_ROOT; };
@@ -542,6 +545,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				0320EE1317DF94C700477C1C /* Thread_DoEntireKbDeletion.cpp */,
+				0320EE1417DF94C700477C1C /* Thread_DoEntireKbDeletion.h */,
 				C8E750321786E35A009F7FCE /* Thread_KbEditorUpdateButton.h */,
 				C8E750331786E35A009F7FCE /* Thread_KbEditorUpdateButton.cpp */,
 				C8E750221786E17B009F7FCE /* json_defs.h */,
@@ -1147,6 +1152,7 @@
 				C8E7502A1786E17B009F7FCE /* jsonval.cpp in Sources */,
 				C8E7502B1786E17B009F7FCE /* jsonwriter.cpp in Sources */,
 				C8E750341786E35A009F7FCE /* Thread_KbEditorUpdateButton.cpp in Sources */,
+				0320EE1517DF94C700477C1C /* Thread_DoEntireKbDeletion.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

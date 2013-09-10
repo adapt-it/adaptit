@@ -2343,8 +2343,11 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	//
 	// The "Adapt_It_Quick_Start.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
-	wxString quickStartHelpFilePath = gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName;
-
+    // edb 10Sept 13: for 2.9.5, file urls aren't being encoded properly in wxLaunchBrowser. 
+    // Explicitly encode the url before sending it down. 
+    //	wxString quickStartHelpFilePath = gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName;
+	wxString quickStartHelpFilePath = wxFileSystem::FileNameToURL(gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName);
+    
 #ifdef _USE_HTML_FILE_VIEWER
 	// for testing the CHtmlFileViewer class dialog
 	bool bSuccess = FALSE;
