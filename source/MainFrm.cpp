@@ -2343,30 +2343,29 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	//
 	// The "Adapt_It_Quick_Start.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
-#if defined (__WXMAC__) || defined (__WXGTK__)
-    // edb 10Sept 13: for 2.9.5, file urls aren't being encoded properly in wxLaunchBrowser. 
-    // Explicitly encode the url before sending it down. 
-	wxString quickStartHelpFilePath = wxFileSystem::FileNameToURL(gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName);
-#else
-	// Windows 
 	wxString quickStartHelpFilePath = gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName;
-#endif
-    
+	bool bNormal = TRUE;	// normal execution is to use the default Web browser
+	bool bSuccess;
+
 #ifdef _USE_HTML_FILE_VIEWER
 	// for testing the CHtmlFileViewer class dialog
-	bool bSuccess = FALSE;
-#else
-	// for normal execution of the app
-	bool bSuccess = TRUE;
+	bNormal = FALSE;
 #endif
 
-	if (bSuccess)
+	if (bNormal)
+	// normal execution is to use the default Web browser
 	{
 		wxLogNull nogNo;
+#if defined (__WXMAC__) || defined (__WXGTK__)
+		// edb 10Sept 13: for 2.9.5, file urls aren't being encoded properly in wxLaunchBrowser.
+		// Explicitly encode the url before sending it down. GDLC 11SEP13 But this doesn't work with the file viewer
+		quickStartHelpFilePath = wxFileSystem::FileNameToURL(quickStartHelpFilePath);
+#endif
 		bSuccess = wxLaunchDefaultBrowser(quickStartHelpFilePath,wxBROWSER_NEW_WINDOW); // result of using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
 	}
-	if (!bSuccess)
+	else
 	{
+	// non-normal execution is to use the wxWidgets built in html viewer
 		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, quickStartHelpFilePath.c_str());
 		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
@@ -2376,13 +2375,11 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 			wxString title = _("Adapt It Quick Start");
 			gpApp->m_pHtmlFileViewer = new CHtmlFileViewer(gpApp->GetMainFrame(),&title,&quickStartHelpFilePath);
 			gpApp->m_pHtmlFileViewer->Show(TRUE);
-			gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
+			bSuccess = TRUE;
 		}
+		else bSuccess = FALSE;
 	}
-	else
-	{
-		gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
-	}
+	if (bSuccess) gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
 }
 
 /*
