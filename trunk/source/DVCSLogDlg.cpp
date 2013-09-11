@@ -64,7 +64,7 @@ void DVCSLogDlg::PopulateList()
 	m_pList = (wxListCtrl*) FindWindowById (ID_LST_VERSIONS);
     wxASSERT(m_pList != NULL);
 
-    int         row_count = m_pApp->m_DVCS_log->GetCount();
+    int         row_count = m_pApp->m_DVCS_log.GetCount();
     wxString    nextLine, name, date, comment, str;
     
 // clear out items if necessary
@@ -94,7 +94,7 @@ void DVCSLogDlg::PopulateList()
         item.SetId(n);
         m_pList->InsertItem( item );
 
-        nextLine = m_pApp->m_DVCS_log->Item (n);    // hash#name#date#comment
+        nextLine = m_pApp->m_DVCS_log.Item (n);     // hash#name#date#comment
         
         str = nextLine.AfterFirst(_T('#'));         // skip hash
         name = str.BeforeFirst(_T('#'));            // get committer name        

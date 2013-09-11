@@ -359,15 +359,15 @@ int  DVCS::setup_versions ( wxString fileName )
     if (call_git (FALSE))
         return -2;				// maybe git's not installed!
 
-    m_pApp->m_DVCS_log = &git_output;       // save pointer to log in app global for our dialog.  This is OK since this
+    m_pApp->m_DVCS_log = git_output;        // save the log in app global for our dialog.  This is OK since this
                                             //  DVCS object lasts for the whole application run.
     git_count = git_output.GetCount();
     return git_count;
 }
 
 /*  get_version() calls git to checkout the given version number, defined by the line number in the log which we should
-    have already read.  The log has multiple entries, each one line long.  The first line is line zero, giving the most 
-    recent version.
+    have already read and saved in m_pApp->m_DVCS_log.  The log has multiple entries, each one line long.  The first line 
+    is line zero, giving the most recent version.
     The log line format is what we asked for in setup_versions():
  
         <40 hex digits hash>#<committer name>#commit date#<commit comment>
@@ -386,7 +386,7 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     if ( version_num >= git_count || version_num < 0)
         return -1;                  // return -1 on out of bounds, which shouldn't happen anyway
 
-    nextLine = git_output.Item (version_num);
+    nextLine = m_pApp->m_DVCS_log.Item (version_num);
     str = nextLine.BeforeFirst(_T('#'));        // get the version hash for checkout call
 
     if ( wxIsEmpty(str) )                       // shouldn't really happen
@@ -406,6 +406,26 @@ int  DVCS::get_version ( int version_num, wxString fileName )
     m_version_comment = str.AfterFirst(_T('#'));        // and the rest of the string, after the separator, is the comment.
                                                         // By making this the last field, it can contain anything, even our # separator
     return 0;                                           // return no error
+}
+
+// any_diffs checks if the current version of the file is the same as the latest repository version.  It returns zero if there are no
+//  differences.
+
+int  DVCS::any_diffs ( wxString fileName )
+{
+    int     returnCode;
+
+    git_output.Clear();
+    git_command = _T("diff");
+    git_options.Clear();
+    git_arguments = fileName;
+
+    returnCode = call_git(FALSE);
+    if (returnCode)  return returnCode;                 // bail out on error, returning the error code
+
+// Now, if git_output is empty, there are no differences.
+    if ( git_output.IsEmpty() )  return 0;
+    else                         return 1;      // anything nonzero will do
 }
 
 
@@ -451,6 +471,7 @@ int  DVCS::DoDVCS ( int action, int parm )
 
         case DVCS_SETUP_VERSIONS:   result = setup_versions (m_pApp->m_curOutputFilename);          break;
         case DVCS_GET_VERSION:      result = get_version (parm, m_pApp->m_curOutputFilename);		break;
+        case DVCS_ANY_CHANGES:      result = any_diffs (m_pApp->m_curOutputFilename);               break;
 
 		default:
 			wxMessageBox (_T("Internal error - illegal DVCS command"));

@@ -54,8 +54,9 @@ protected:		// internal functions
 	int  commit_file ( wxString fileName );
     int  setup_versions ( wxString fileName );
     int  get_version ( int version_num, wxString fileName );
+    int  any_diffs ( wxString fileName );
 	int  log_file ( wxString fileName );
-	int  log_project();
+//	int  log_project();
 };
 
 

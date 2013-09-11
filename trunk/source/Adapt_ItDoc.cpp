@@ -1652,7 +1652,6 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	}
 
 // all OK
-    gpApp->m_saved_with_commit = TRUE;
 	return 0;
 }
 
@@ -1696,8 +1695,16 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
         gpApp->m_pDVCSNavDlg->Destroy();        // take down the dialog
         gpApp->m_pDVCSNavDlg = NULL;
         gpApp->m_trialVersionNum = -1;
-        gpApp->m_saved_with_commit = TRUE;      // in effect, a commit has just been done
     }
+}
+
+// IsLatestVersionChanged() calls DVCS to check if the current version on disk is the same as the latest version
+//  committed.  It returns TRUE if there are any changes.
+
+bool CAdapt_ItDoc::IsLatestVersionChanged (void)
+{
+    int  returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_ANY_CHANGES,  0);		// returns 0 if no changes, nonzero otherwise
+    return (returnCode != 0);
 }
 
 /*
@@ -1725,13 +1732,13 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 
     if (gpApp->m_commitCount <= 0)
     {
-        wxMessageBox (_T("There are no earlier versions saved!") );
+        wxMessageBox (_("There are no earlier versions saved!") );
         return;
     }
 
     if (trialRevNum == 0)
     {
-        wxMessageBox (_T("We're already back at the earliest version saved!") );
+        wxMessageBox (_("We're already back at the earliest version saved!") );
         return;
     }
 
@@ -1741,15 +1748,13 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
         return;
     }
 
-    // We're initiating a trial review of previoius versions.  We need to save and commit the current
-    // version, so we can come back to it if necessary.  But we don't need to do this if the doc
-    // has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
-    // we set m_saved_with_commit false for this test, since calling IsModified() will return false.
+    // We're initiating a trial review of previoius versions.  The current version needs to be saved and
+    // committed, so we can come back to it if necessary.  But we don't need to do this if the doc
+    // has just been committed with no subsequent changes.
 
-    if ( IsModified() || !gpApp->m_saved_with_commit )
+    if ( IsModified() || IsLatestVersionChanged() )     // only doing the DVCS call if doc is clean
     {
-        if (DoSaveAndCommit(_T("Before we can go back to previous versions we must save and remember the document as it is now.  You can enter a \
-                               comment in the box above to identify this version of the document, then click OK to proceed.")))
+        if (DoSaveAndCommit(_("There have been changes to this document since the last time you saved it in the history.  Before we can go back to previous versions we must save the current version in the history, so that we can come back to this version if necessary.  Please type a comment in the box above to identify this version of the document, then click OK to proceed.")))
             return;			// bail out on error or if user cancelled - message should be already displayed
         didCommit = TRUE;
     }
@@ -1792,13 +1797,12 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 {
 	if (gpApp->m_trialVersionNum < 0)
 	{
-		wxMessageBox (_T("We're not looking at earlier revisions!"));
+		wxMessageBox (_("We're not looking at earlier revisions!"));
 		return;
 	}
 	gpApp->m_trialVersionNum = -1;		// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
-    gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
     gpApp->m_pDVCSNavDlg->Destroy();    // take down the navigation dialog
     gpApp->m_pDVCSNavDlg = NULL;
 }
@@ -1856,7 +1860,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
     pApp->m_reopen_recovered_doc = FALSE;       // restore normal default
 
-    wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history."));
+    wxMessageBox(_("This document was corrupt, but we have restored the latest version saved in the document history."));
 
 	CAdapt_ItView* pView = pApp->GetView();
 
@@ -1927,8 +1931,6 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
         // outset.  Yes, we really DO need this here!!!
         pView->canvas->Refresh();
     }
-
-    pApp->m_saved_with_commit = TRUE;       // no changes since the restored version was committed
     return TRUE;                            // success!
 }
 
@@ -2980,7 +2982,6 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	}
 	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was
 												   // used for this save operation
-    gpApp->m_saved_with_commit = FALSE;            // mrh - this was a plain save, no commit
 
 	// Do the document backup if required (This call supports a docVersion 4 choice, and
 	// also a request to rename the document; by internally accessing the private members
@@ -3784,7 +3785,6 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
     pApp->m_commitCount = -1;			//  means not under version control (yet)
     pApp->m_versionDate = wxInvalidDateTime;
     pApp->m_nActiveSequNum = 0;         // sensible default if we don't get a "real" value
-    pApp->m_saved_with_commit = FALSE;  // not saved/committed yet
 
 	return TRUE;
 }
