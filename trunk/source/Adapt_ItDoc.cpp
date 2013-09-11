@@ -358,10 +358,10 @@ END_EVENT_TABLE()
 /// **** OnInit() METHOD                                          *****
 CAdapt_ItDoc::CAdapt_ItDoc()
 {
-	m_bHasPrecedingStraightQuote = FALSE; // this one needs to be initialized to
-										  // FALSE every time a doc is recreated
-	m_bLegacyDocVersionForSaveAs = FALSE; // whm added 14Jan11
-	m_bPreserveKBsWhenClosingDocument = FALSE;	// mrh Oct12 - normal default
+	m_bHasPrecedingStraightQuote = FALSE;   // this one needs to be initialized to
+                                            // FALSE every time a doc is recreated
+	m_bLegacyDocVersionForSaveAs = FALSE;   // whm added 14Jan11
+	m_bReopeningAfterClosing = FALSE;       // mrh Oct12 - normal default
 
 	// WX Note: All Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
@@ -1531,9 +1531,9 @@ void CAdapt_ItDoc::DocChangedExternally()
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	bOK = bOK; // whm added 13Aug12 to suppress gcc warning "set but not used"
 
-	m_bPreserveKBsWhenClosingDocument = TRUE;	// to prevent KB being clobbered -- we want only the doc closed
+	m_bReopeningAfterClosing = TRUE;	// to prevent KB being clobbered -- we want only the doc closed
 	OnCloseDocument();
-	m_bPreserveKBsWhenClosingDocument = FALSE;	// restore normal default
+	m_bReopeningAfterClosing = FALSE;	// restore normal default
 
 	gpApp->m_bDocReopeningInProgress = TRUE;	// suppresses warning message about project folder with same name
 
@@ -1609,7 +1609,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 
 	if (gpApp->m_trialVersionNum >= 0)
 	{
-		wxMessageBox (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
+		wxMessageBox (_("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
 
@@ -1671,7 +1671,7 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 
     if ( revNum >= gpApp->m_versionCount )
     {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
-        wxMessageBox (_T("We're already back at the earliest version saved!") );
+        wxMessageBox (_("We're already back at the earliest version saved!") );
 		return;
     }
 
@@ -1946,7 +1946,7 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
     {                                           // an error probably means this is a new repository so there's nothing there yet.
-        wxMessageBox (_T("There are no previous versions in the history!"));
+        wxMessageBox (_("There are no previous versions in the history!"));
         return;                                 // in this case we don't show the dialog
     }
 
@@ -18014,6 +18014,16 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	wxASSERT(pView);
 
+    // mrh Sept 13 - if a trial look at previously committed versions is current, we MUST NOT close the document!
+    // However we can be called from DocumentChangedExternally(), in which case m_bReopeningAfterClosing is TRUE, and in this
+    //  case we must perform the close.
+
+    if (pApp->m_trialVersionNum >= 0 && !m_bReopeningAfterClosing)
+    {
+        wxMessageBox (_("Before closing the document, you must either ACCEPT the revision or RETURN to the latest one."));
+        return FALSE;
+    }
+
 	// put up a Wait dialog
 	CWaitDlg waitDlg(pApp->GetMainFrame());
 	// indicate we want the closing the document wait message
@@ -18125,9 +18135,9 @@ bool CAdapt_ItDoc::OnCloseDocument()
 // mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve the current KB, so we now have
 //  a private flag to indicate this.
 
-	if (!m_bPreserveKBsWhenClosingDocument)
+	if (!m_bReopeningAfterClosing)
 	{
-//*
+
 	#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
@@ -18136,7 +18146,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 			pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
 		}
 	#endif
-//*/
+
 		// the EraseKB() call will also try to remove any read-only protection
 		EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
 		pApp->m_pKB = (CKB*)NULL; // whm added
