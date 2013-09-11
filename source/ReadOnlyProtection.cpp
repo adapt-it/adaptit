@@ -992,11 +992,12 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
     // is the same as the document's owner for version control (in m_owner).  A mismatch must disallow write
     // permission.  But if m_owner is NOOWNER, anything goes.
     // Also, if we're looking at a previous revision as a trial, we need to be read-only.  The condition for
-    //  this is m_trialVersionNum being non-negative.
+    //  this is m_trialVersionNum being non-negative.  (We exclude this condition in the first test since we don't
+    // want the message about the owner mismatch to show during a trial.)
     // If this section doesn't return FALSE (making the doc read-only), we fall through and do all the other
     //  tests on whether we can write to the project folder, etc.
     
-    if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_strUserID) )
+    if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_strUserID) && (m_pApp->m_trialVersionNum <= 0))
     {
 #ifdef _DEBUG_ROP
         wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but doc's owner mismatches, so returning TRUE"));
@@ -1057,34 +1058,6 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 		}
 		else
 		{
-/*
-// mrh 30Jun13. -- moved up to the start of the function, since it wasn't always being called when it should.
-
-			// mrh 20Apr12 - it's apparently me, but now we have to check if the currently logged-in user (m_strUserID)
-			// is the same as the document's owner for version control (in m_owner).  A mismatch must disallow write
-			// permission.  But if m_owner is NOOWNER, anything goes.
-			// Also, if we're looking at a previous revision as a trial, we need to be read-only.  The condition for
-			//  this is m_trialVersionNum being non-negative.
-			
-			if ( (m_pApp->m_owner != NOOWNER) && (m_pApp->m_owner != m_pApp->m_strUserID) )
-			{
-#ifdef _DEBUG_ROP
-				wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but doc's owner mismatches, so returning TRUE"));
-#endif
-				wxMessageBox (
-	_("This document is owned by someone else, so you have READ-ONLY access."), _("Another person owns write permission"),
-							 wxICON_INFORMATION | wxOK);
-				return TRUE;	// return TRUE to app member m_bReadOnlyAccess
-			}
-			
-			if (m_pApp->m_trialVersionNum > 0) 
-			{
-#ifdef _DEBUG_ROP
-				wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but earlier version than latest, so returning TRUE"));
-#endif
-				return TRUE;
-			}
-*/
             // it's really me, in the same process which originally got ownership so just return
             // FALSE as I have full write permission already, and FALSE maintains that
 #ifdef _DEBUG_ROP

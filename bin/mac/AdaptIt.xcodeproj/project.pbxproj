@@ -539,8 +539,6 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				270E88B517DFD1B70026E129 /* Thread_DoEntireKbDeletion.cpp */,
-				270E88B617DFD1B70026E129 /* Thread_DoEntireKbDeletion.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -805,6 +803,8 @@
 				272E3D1F16BF647D00566D31 /* KBSharingSetupDlg.h */,
 				272E3D1916BF646900566D31 /* Adapt_ItKBServer.cpp */,
 				272E3D1A16BF646900566D31 /* Adapt_ItKBServer.h */,
+				270E88B517DFD1B70026E129 /* Thread_DoEntireKbDeletion.cpp */,
+				270E88B617DFD1B70026E129 /* Thread_DoEntireKbDeletion.h */,
 				272E3D2216BF64B000566D31 /* Thread_CreateEntry.cpp */,
 				272E3D2316BF64B000566D31 /* Thread_CreateEntry.h */,
 				272E3D2416BF64B000566D31 /* Thread_UploadToKBServer.cpp */,
