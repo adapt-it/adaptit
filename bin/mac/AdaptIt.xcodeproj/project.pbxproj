@@ -18,6 +18,7 @@
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
 		27093C1C16D1D79200253291 /* Thread_PseudoDelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27093C1816D1D79200253291 /* Thread_PseudoDelete.cpp */; };
 		27093C1D16D1D79200253291 /* Thread_PseudoUndelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27093C1A16D1D79200253291 /* Thread_PseudoUndelete.cpp */; };
+		270E88B717DFD1B70026E129 /* Thread_DoEntireKbDeletion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 270E88B517DFD1B70026E129 /* Thread_DoEntireKbDeletion.cpp */; };
 		271F29C216FFCD0000E107A6 /* DVCSNavDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 271F29C016FFCD0000E107A6 /* DVCSNavDlg.cpp */; };
 		272E3D1B16BF646900566D31 /* Adapt_ItKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D1916BF646900566D31 /* Adapt_ItKBServer.cpp */; };
 		272E3D2016BF647D00566D31 /* KBSharing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D1C16BF647D00566D31 /* KBSharing.cpp */; };
@@ -199,6 +200,8 @@
 		27093C1916D1D79200253291 /* Thread_PseudoDelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_PseudoDelete.h; path = ../../source/Thread_PseudoDelete.h; sourceTree = "<group>"; };
 		27093C1A16D1D79200253291 /* Thread_PseudoUndelete.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_PseudoUndelete.cpp; path = ../../source/Thread_PseudoUndelete.cpp; sourceTree = "<group>"; };
 		27093C1B16D1D79200253291 /* Thread_PseudoUndelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_PseudoUndelete.h; path = ../../source/Thread_PseudoUndelete.h; sourceTree = "<group>"; };
+		270E88B517DFD1B70026E129 /* Thread_DoEntireKbDeletion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_DoEntireKbDeletion.cpp; path = ../../source/Thread_DoEntireKbDeletion.cpp; sourceTree = "<group>"; };
+		270E88B617DFD1B70026E129 /* Thread_DoEntireKbDeletion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_DoEntireKbDeletion.h; path = ../../source/Thread_DoEntireKbDeletion.h; sourceTree = "<group>"; };
 		271F29C016FFCD0000E107A6 /* DVCSNavDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSNavDlg.cpp; path = ../../source/DVCSNavDlg.cpp; sourceTree = "<group>"; };
 		271F29C116FFCD0000E107A6 /* DVCSNavDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSNavDlg.h; path = ../../source/DVCSNavDlg.h; sourceTree = "<group>"; };
 		272E3D1916BF646900566D31 /* Adapt_ItKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItKBServer.cpp; path = ../../source/Adapt_ItKBServer.cpp; sourceTree = "<group>"; };
@@ -536,6 +539,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				270E88B517DFD1B70026E129 /* Thread_DoEntireKbDeletion.cpp */,
+				270E88B617DFD1B70026E129 /* Thread_DoEntireKbDeletion.h */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -1142,6 +1147,7 @@
 				27B3963F1754B69A0034E461 /* UsernameInput.cpp in Sources */,
 				27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */,
 				C8C8E0CA17883B6F00ABDFBC /* KBSharingMgrTabbedDlg.cpp in Sources */,
+				270E88B717DFD1B70026E129 /* Thread_DoEntireKbDeletion.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

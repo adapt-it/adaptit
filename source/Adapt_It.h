@@ -89,7 +89,7 @@ const int ID_FILE_TAKE_OWNERSHIP		= 987;
 
 // Action codes for calling the DVCS:
 enum{	DVCS_CHECK, DVCS_COMMIT_FILE,
-        DVCS_SETUP_VERSIONS, DVCS_GET_VERSION };
+        DVCS_SETUP_VERSIONS, DVCS_GET_VERSION, DVCS_ANY_CHANGES };
 				// More to be added if they come up, though actually I seem to be removing them!
 
 class DVCS;         // class of the object giving access to the DVCS operations
@@ -2246,7 +2246,7 @@ public:
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
 										// m_owner and m_strUserID must match before a commit is allowed,
 										// unless either is "no owner".
-    bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
+//  bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit) -- now superseded by calling git diff
     bool        m_DVCS_installed;       // true if our DVCS engine (git) is actually installed
     bool        m_recovery_pending;     // true if we hit an error reading a document, but it's under version control so
                                         //  we'll be trying to restore the latest revision
@@ -2257,7 +2257,7 @@ public:
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
 
-    wxArrayString* m_DVCS_log;          // points to the log returned from git, so our log dialog can get at it
+    wxArrayString m_DVCS_log;           // copy of the log returned from git, so our log dialog can get at it
 
 
 	/////////////////////////////////////////////////////////////////////////////////

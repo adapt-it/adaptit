@@ -1214,6 +1214,7 @@ void CAdapt_ItView::UpdateAppearance (void)
 {
 	CLayout*	ptrLayout;
     wxWindow*   pMyWind = GetFrame();
+    CAdapt_ItApp* pApp = &wxGetApp();
 
     ptrLayout = GetLayout();
 	if (ptrLayout != NULL)
@@ -1225,10 +1226,12 @@ void CAdapt_ItView::UpdateAppearance (void)
     else
         wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
 
-    pMyWind->Refresh();         // mark whole window area dirty
-    pMyWind->Update();          // force redraw
-    pMyWind->ScrollWindow (0, 1);
+//    pMyWind->Refresh();         // mark whole window area dirty
+//    pMyWind->Update();          // force redraw
+//    pMyWind->ScrollWindow (0, 1);
             // for some unaccountable reason we need this on the Mac at least, to really get rid of all the pink!!
+
+    pApp->GetMainFrame()->SendSizeEvent();
 }
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;
