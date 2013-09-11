@@ -86,7 +86,11 @@ CHtmlFileViewer::CHtmlFileViewer(wxWindow* parent, wxString* title, wxString* pa
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	adminHelpFilePath = *pathToHtmlFile; //m_pApp->GetDefaultPathForHelpFiles() + m_pApp->PathSeparator + m_pApp->m_adminHelpFileName;
 	this->CreateStatusBar();
-	pHtmlWindow->SetRelatedFrame(this,*title);
+//	pHtmlWindow->SetRelatedFrame(this,*title);	GDLC 11SEP13 This causes run time errors because it
+												// replaces a format string %s with a string
+												// without format specifiers
+//	wxString helpTitle = *title;
+//	pHtmlWindow->SetHTMLWindowTitle(helpTitle);	GDLC 11SEP13 This fails to set the title of the window
 	pHtmlWindow->SetRelatedStatusBar(0);
 	// The ReadCustomization() and WriteCustomization() in OnCancel() result in memory leaks, so
 	// I've commented them out. Probably we dont' really need to save the position and size of the
