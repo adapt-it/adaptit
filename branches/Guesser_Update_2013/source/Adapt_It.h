@@ -337,6 +337,7 @@ class wxHelpControllerBase;
 class wxHtmlHelpController;
 class CConsistentChanger;
 class wxPropertySheetDialog;
+class CGuesserAffix;
 
 // forward references for refactored view layout support
 class CLayout;
@@ -567,6 +568,14 @@ const char xml_mn[] = "mn";
 /// Attribute name used in Adapt It XML KB i/o
 const char xml_xmlns[] = "xmlns";
 
+// tag & attribute names for Guesser Prefix/Suffix i/o
+/// Tag name used in Adapt It XML Guesser i/o
+const char xml_prefix[] = "PREFIX";
+const char xml_pre[] = "PRE";
+const char xml_version[] = "VERSION";
+const char xml_value[] = "value";
+const char xml_suf[] = "SUFFIX";
+
 // tag names for LIFT i/o
 
 /// Tag name used in LIFT XML i/o
@@ -685,6 +694,9 @@ WX_DECLARE_LIST(PageOffsets, POList); // see list definition macro in .cpp file
 /// a list of pointers to CCell objects
 WX_DECLARE_LIST(CCell, CCellList); // see list definition macro in .cpp file
 
+/// wxList declaration and partial implementation of the CGuesserAffixList class being
+/// a list of pointers to CCell objects
+WX_DECLARE_LIST(CGuesserAffix, CGuesserAffixList); // see list definition macro in .cpp file
 
 
 // globals
@@ -2054,6 +2066,19 @@ private:
 		helpMenu,
 		administratorMenu
 	};
+
+	CGuesserAffixList	m_GuesserPrefixList; // list of input prefixes to improve guesser
+	CGuesserAffixList	m_GuesserSuffixList; // list of input suffixes to improve guesser
+
+	/// These variables signal that the prefix and suffix files for the guesser have or 
+	///     have not been loaded yet. 
+	/// Initially they will only be loaded at startup. These are set to false in 
+	///     CAdapt_ItApp::OnInit() and set to true in 
+	///     CAdapt_ItApp::LoadGuesser(CKB* m_pKB) (in version 1)
+	/// KLB 09/2013
+	bool GuesserPrefixesLoaded;
+	bool GuesserSuffixesLoaded;
+
     /// The application's m_pMainFrame member serves as the backbone for Adapt It's
     /// interface and its document-view framework. It is created in the App's OnInit()
     /// function and is the "parent" window for almost all other parts of Adapt It's
@@ -3364,6 +3389,10 @@ public:
 	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
 	int m_nCorrespondencesLoadedInAdaptationsGuesser;
 	int m_nCorrespondencesLoadedInGlossingGuesser;
+
+	CGuesserAffixList*	GetGuesserPrefixList(); // get list of prefixes (if previously input) to improve guesser performance
+	CGuesserAffixList*	GetGuesserSuffixList(); // get list of prefixes (if previously input) to improve guesser performance
+
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)
 	void	RemoveEmptiesFromMaps(CKB* pKB);

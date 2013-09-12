@@ -229,7 +229,7 @@ void Guesser::Init( int iGuessLevel1 ) // 1.4vyd Add ClearAll function // 1.5.8u
 		iMinSuffExamples = iMinSuffExamples + 1; // 1.5.8va Require more examples
 	}
 
-void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar ) // Make a correspondence to the list
+void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) // Make a correspondence to the list
 	{
 	if ( iGuessLevel == 0 ) // 1.5.8va 
 		return; // 1.5.8va 

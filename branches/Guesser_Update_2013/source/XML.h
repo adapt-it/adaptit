@@ -123,6 +123,8 @@ class CBString;
 class CFile;
 class CKB;
 class CAdapt_ItDoc;
+class CGuesserAffix;
+class CGuesserAffixList;
 
 // new error numbers (fileErrorClass is 0x1600, and there are 17 
 // predefined errors in the file stream manager header, so mine start
@@ -269,6 +271,13 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUN
 bool AtKBEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
 bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack));
 
+// Functions used as callbacks for XML-marked-up guesser Prefix and Suffix files
+bool AtAffixTag(CBString& tag,CStack*& WXUNUSED(pStack));
+bool AtAffixEmptyElemClose(CBString& WXUNUSED(tag),CStack*& WXUNUSED(pStack));
+bool AtAffixAttr(CBString& tag,CBString& attrName,CBString& attrValue,CStack*& WXUNUSED(pStack));
+bool AtAffixEndTag(CBString& tag,CStack*& WXUNUSED(pStack));
+bool AtAffixPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUNUSED(pStack));
+
 // Functions used as callbacks for XML-marked-up LIFT files
 // whm added 19May10
 bool AtLIFTTag(CBString& tag,CStack*& WXUNUSED(pStack));
@@ -304,6 +313,14 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc, const wxString& progressTit
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
 bool ReadKB_XML(wxString& path, CKB* pKB, const wxString& progressTitle, wxUint32 nProgMax);
+
+// read and parse function for Adapt It xml prefix and suffix files
+// pKB is a pointer to the CKB instance which is being filled out by the
+// parsing of the XML file
+bool ReadGuesserPrefix_XML(wxString& path, CGuesserAffixList* pCGuesserPrefixList, 
+						   const wxString& progressTitle, wxUint32 nProgMax);
+bool ReadGuesserSuffix_XML(wxString& path, CGuesserAffixList* pCGuesserSuffixList, 
+						   const wxString& progressTitle, wxUint32 nProgMax);
 
 // read and parse function for LIFT xml files
 // pKB is a pointer to the CKB instance which is being filled out by the

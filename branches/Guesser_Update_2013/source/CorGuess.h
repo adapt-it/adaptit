@@ -120,7 +120,7 @@ protected:
 public:
 	Guesser();
 	void Init( int iGuessLevel1 = 50 ); // 1.5.8u Change ClearAll to Init, add guess level
-	void AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar ); // Add a correspondence to the list
+	void AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int iFreq = 1 ); // Add a correspondence to the list
 	bool bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ); // Return target guess
 };
 

@@ -463,6 +463,10 @@ WX_DEFINE_LIST(SubMenuItemList);
 /// complete the definition of a new safe pointer list class called MainMenuItemList.
 WX_DEFINE_LIST(MainMenuItemList);
 
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called CGuesserAffixList.
+WX_DEFINE_LIST(CGuesserAffixList);
+
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and
 /// 0xBF in UTF-8 encoding.
 #define nBOMLen 3
@@ -17201,7 +17205,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString dataDir, localDataDir, documentsDir;
 	wxString userConfigDir, userDataDir, userLocalDataDir;
 	wxString executablePath;
-#ifdef __WXGTKzzz__
+#ifdef __WXGTK__
 	wxString installPrefix;
 	wxStandardPaths stdPaths;
 #else
@@ -17237,7 +17241,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetUserLocalDataDir() = %s"),userLocalDataDir.c_str());
 	executablePath = stdPaths.GetExecutablePath();
 	wxLogDebug(_T("The wxStandardPaths::GetExecutablePath() = %s"),executablePath.c_str());
-#ifdef __WXGTKzzz__
+#ifdef __WXGTK__
 	// Only available on Linux
 	installPrefix = stdPaths.GetInstallPrefix();
 	wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"),installPrefix.c_str());
@@ -21484,6 +21488,9 @@ int ii = 1;
     wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
 
+	GuesserPrefixesLoaded = false;
+	GuesserSuffixesLoaded = false;
+
 	return TRUE;
 }
 
@@ -21568,6 +21575,12 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pAdaptationsGuesser;
 	if (m_pGlossesGuesser != NULL)
 		delete m_pGlossesGuesser;
+
+	// delete guesser prefix and suffix lists if populated-klb 9/2013
+	m_GuesserPrefixList.DeleteContents( true );
+	m_GuesserPrefixList.Clear(); // Delete entries
+	m_GuesserSuffixList.DeleteContents( true );
+	m_GuesserSuffixList.Clear(); // Delete entries
 
 	// BEW removed 15Jun11 until we support OXES
 	// BEW reinstated 19May12, for OXES v1 support
@@ -25015,6 +25028,52 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 		m_nCorrespondencesLoadedInAdaptationsGuesser = numCorrespondencesLoaded;
 		wxLogDebug(_T("The Adaptations guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
 	}
+
+	// Check for xml prefix file/document
+	wxString sPrefixXMLFilePath = m_curProjectPath + PathSeparator + _T("GuesserPrefixes.xml");
+	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
+
+	if (GuesserPrefixesLoaded == false)
+	{
+		GuesserPrefixesLoaded = true;
+		bool bReadOK = ReadGuesserPrefix_XML (sPrefixXMLFilePath, GetGuesserPrefixList(), (nTotal > 0) ? _("Loading Prefixes") : _T(""), nTotal);
+		if (bReadOK)
+		{
+			//
+		}
+	}
+
+	//TODO KLB Implement Prefix functionality
+	//	GuesserSuffixesLoaded = false;
+
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
+/// \param      -> nothing
+/// \remarks
+/// Returns list of previously input prefixes (if they exist) from xml file. 
+/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance 
+///     by giving it more linguistic information to utilize, based on Guesser improvements 
+///     by Alan Buseman October 2013. -klb  
+/////////////////////////////////////////////////////////////////////////////////////////
+CGuesserAffixList*	CAdapt_ItApp::GetGuesserPrefixList()
+{
+	return &m_GuesserPrefixList;
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
+/// \param      -> nothing
+/// \remarks
+/// Returns list of previously input prefixes (if they exist) from xml file. 
+/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance 
+///     by giving it more linguistic information to utilize, based on Guesser improvements 
+///     by Alan Buseman October 2013. -klb  
+/////////////////////////////////////////////////////////////////////////////////////////
+CGuesserAffixList*	CAdapt_ItApp::GetGuesserSuffixList()
+{
+	return &m_GuesserSuffixList;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
