@@ -1755,7 +1755,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 
     if ( IsModified() || IsLatestVersionChanged() )     // only doing the DVCS call if doc is clean
     {
-        if (DoSaveAndCommit(_("There have been changes to this document since the last time you saved it in the history.  Before we can go back to previous versions we must save the current version in the history, so that we can come back to this version if necessary.  Please type a comment in the box above to identify this version of the document, then click OK to proceed.")))
+        if ( DoSaveAndCommit(_("There have been changes to this document since the last time you saved it in the history.  Before we can go back to previous versions we must save the current version in the history, so that we can come back to this version if necessary.  Please type a comment in the box above to identify this version of the document, then click OK to proceed.")) )
             return;			// bail out on error or if user cancelled - message should be already displayed
         didCommit = TRUE;
     }
@@ -1778,7 +1778,8 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
     pNavDlg->ChooseVersion (startHere);                         // changes the doc version, and sets fields in the dialog
-    pNavDlg->Show();                                            // show it, non-modally.  By showing it after changing the
+	DoChangeVersion (startHere);								// we seem to need this on Windows, and is harmless otherwise
+	pNavDlg->Show();                                            // show it, non-modally.  By showing it after changing the
                                                                 // doc version, it appears on top so we avoid having to Raise()
                                                                 //  it which would look uglier.
     gpApp->m_pDVCSNavDlg = pNavDlg;
