@@ -1995,12 +1995,12 @@ void CAdapt_ItDoc::OnUpdateDVCS_item (wxUpdateUIEvent& event)
 {
     int	 trialRevNum = gpApp->m_trialVersionNum;
 
-    event.Enable ( trialRevNum < 0 );         // item gets enabled iff no trial current
+    event.Enable ( (trialRevNum < 0) && (gpApp->m_pKB != NULL) && (gpApp->IsDocumentOpen()) );
 }
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
 {
-    event.Enable ( (gpApp->m_owner != gpApp->m_strUserID) && (gpApp->m_trialVersionNum == -1) );
+    event.Enable ( (gpApp->m_owner != gpApp->m_strUserID) && (gpApp->m_trialVersionNum == -1) && (gpApp->m_pKB != NULL) && (gpApp->IsDocumentOpen()) );
                     // enable only if user isn't the owner, and a trial is not under way
 }
 
@@ -4185,7 +4185,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 		{
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
             // get a deep copy, so that we can change the data to what is compatible
-            // with docc version 4 without corrupting the pSrcPhrase which remains in
+            // with doc version 4 without corrupting the pSrcPhrase which remains in
             // doc version 5
 			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 			pDeepCopy->DeepCopy();
