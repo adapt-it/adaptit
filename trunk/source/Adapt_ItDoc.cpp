@@ -1494,7 +1494,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
 	Modify (TRUE);							// mark doc dirty, to ensure new owner gets saved
 
-	gpApp->GetView()->UpdateAppearance();
+	gpApp->GetView()->UpdateAppearance();   // get rid of the pink
 }
 
 
@@ -1695,6 +1695,7 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
         gpApp->m_pDVCSNavDlg->Destroy();        // take down the dialog
         gpApp->m_pDVCSNavDlg = NULL;
         gpApp->m_trialVersionNum = -1;
+		gpApp->GetView()->UpdateAppearance();
     }
 }
 
@@ -1805,6 +1806,8 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 	DocChangedExternally();				// will become read-write again
     gpApp->m_pDVCSNavDlg->Destroy();    // take down the navigation dialog
     gpApp->m_pDVCSNavDlg = NULL;
+	gpApp->GetView()->UpdateAppearance();
+
 }
 
 
