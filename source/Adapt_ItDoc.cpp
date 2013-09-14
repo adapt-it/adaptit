@@ -1782,6 +1782,8 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 	pNavDlg->Show();                                            // show it, non-modally.  By showing it after changing the
                                                                 // doc version, it appears on top so we avoid having to Raise()
                                                                 //  it which would look uglier.
+	pNavDlg->AcceptsFocus();
+    pNavDlg->InitDialog();
     gpApp->m_pDVCSNavDlg = pNavDlg;
 }
 

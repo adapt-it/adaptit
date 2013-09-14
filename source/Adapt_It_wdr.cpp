@@ -9537,27 +9537,27 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item13 = new wxButton( parent, ID_BTN_PREV, _("< Previous version"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item13 = new wxButton( parent, ID_BTN_PREV, _("< &Previous version"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item13, 5, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item14 = new wxButton( parent, ID_BTN_NEXT, _("Next version >"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item14 = new wxButton( parent, ID_BTN_NEXT, _("&Next version >"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item14, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item16 = new wxButton( parent, ID_ACCEPT, _("Accept this version as current"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item16 = new wxButton( parent, ID_ACCEPT, _("&Accept this version as current"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item16, 5, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item17 = new wxButton( parent, ID_LATEST, _("Return to latest version"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item17 = new wxButton( parent, ID_LATEST, _("&Return to latest version"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item17, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(200,-1), 0 );
+    wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxSize(200,-1), 0 );
     item19->SetDefault();
     item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9590,13 +9590,13 @@ wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item4 = new wxButton( parent, wxID_OK, _("Look at selected version"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item4 = new wxButton( parent, wxID_OK, _("&Look at selected version"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->SetDefault();
     item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item3->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item5 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item5 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
