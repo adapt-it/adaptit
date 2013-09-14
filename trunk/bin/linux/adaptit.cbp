@@ -528,6 +528,8 @@
 		<Unit filename="../../source/Thread_ChangedSince.h" />
 		<Unit filename="../../source/Thread_CreateEntry.cpp" />
 		<Unit filename="../../source/Thread_CreateEntry.h" />
+		<Unit filename="../../source/Thread_DoEntireKbDeletion.cpp" />
+		<Unit filename="../../source/Thread_DoEntireKbDeletion.h" />
 		<Unit filename="../../source/Thread_KbEditorUpdateButton.cpp" />
 		<Unit filename="../../source/Thread_KbEditorUpdateButton.h" />
 		<Unit filename="../../source/Thread_PseudoDelete.cpp" />

@@ -36,6 +36,7 @@ public:
     wxStaticText*   m_version_date;
     wxTextCtrl*     m_version_comment;
 
+    void InitDialog (void);
     void OnClose (wxCloseEvent& WXUNUSED(event));
     void OnPrev (wxCommandEvent& WXUNUSED(event));
 	void OnNext (wxCommandEvent& WXUNUSED(event));

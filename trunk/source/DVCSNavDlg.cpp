@@ -68,6 +68,15 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
 DVCSNavDlg::~DVCSNavDlg(void)
 { }
 
+
+void DVCSNavDlg::InitDialog()
+{
+    wxButton*    defaultButton = (wxButton*)FindWindowById(wxID_CANCEL);
+
+// Set the initial focus to "Return to latest"
+    defaultButton->SetFocus();
+}
+
 void DVCSNavDlg::ChooseVersion ( int version )
 {
     m_pDoc->DoChangeVersion (version);
