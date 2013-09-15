@@ -54,6 +54,7 @@ DVCSLogDlg::DVCSLogDlg (wxWindow* parent)
     m_pDoc = m_pApp->GetDocument();
     
     PopulateList();
+    m_pList->SetItemState (0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);     // select first item in list
 }
 
 DVCSLogDlg::~DVCSLogDlg(void)
