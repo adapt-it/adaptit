@@ -49,6 +49,7 @@
 #include "KbServer.h"
 #include "MainFrm.h"
 #include "Thread_DoEntireKbDeletion.h"
+#include "KBSharingMgrTabbedDlg.h"
 
 Thread_DoEntireKbDeletion::Thread_DoEntireKbDeletion(KbServer* pStatelessKbServer, 
 			long kbDefinitionID, size_t nQueueSize):wxThread()
@@ -175,23 +176,53 @@ void* Thread_DoEntireKbDeletion::Entry()
 		// we also need to check that the radiobutton setting hasn't changed (to switch
 		// between a adapting kbs versus glossing kbs) on that page.
 
+		// Delete the definition
+		CURLcode result = CURLE_OK;
+		result = (CURLcode)m_pKbSvr->RemoveKb((int)m_idForKbDefinitionToDelete);
+		if (result != CURLE_OK)
+		{
+            // The definition should have been deleted, but wasn't. Tell the user to try
+            // again later. (This error is quite unexpected, an English error message will
+            // do). Then do the cleanup and let the thread die
+			wxString msg = _T("Thread_DoEntireKbDeletion): unexpected failure to remove a shared KB (definition) after completing the removal of all the entries it owned.\n Try again later. The next attempt may succeed.");
+			wxString title = _T("Error: could not remove the emptied database's definition");
+			m_pApp->LogUserAction(msg);
+			wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+
+			// Housekeeping cleanup -- this stuff is needed whether the Manager
+			// GUI is open or not
+			pQueue->clear();
+			delete m_pApp->m_pKbServerForDeleting; // the KbServer instance supplying services 
+												   // for our deletion attempt
+			m_pApp->m_pKbServerForDeleting = NULL;
+			m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+			m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+			m_pApp->m_kbTypeOfCurrentRemoval = -1;
+			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+			return (void*)NULL;
+		} // end of TRUE block for test: if (result != CURLE_OK)
+
+		// If control gets to here, then the kb definition was removed successfully from
+		// the kb table. It remains to get the KB Sharing Manager gui to update to show
+		// the correct result, if it is still running. If not running we have nothing to
+		// do and the thread can die.
+		KBSharingMgrTabbedDlg* pGUI = m_pApp->GetKBSharingMgrTabbedDlg();
+		if (pGUI != NULL)
+		{
+			// The KB Sharing Manager gui is running, so we've some work to do here...
+			// 2 custom events to be posted -- one to cause Mgr gui to update kb page,
+			// and the other to make the wxStatusBar go back to one unlimited
+			// field, and reset it and update the bar.
 
 
-// *** TODO **** 2 custom events to be posted -- one to cause Mgr gui to update kb page,
-		// if the GUI is still loaded (if it isn't, the posted event won't be trapped so
-		// no harm done), and the other to make the wxStatusBar go back to one unlimited
-		// field, and reset it and update the bar.
 
 
-
-
-
+		} // end of TRUE block for test:  if (pGUI != NULL)
 	}
 	// Housekeeping cleanup -- this stuff is needed whether the Manager GUI is open or not
 	pQueue->clear();
-	//delete m_pKbSvr;
-	//m_pKbSvr = NULL;
-	delete m_pApp->m_pKbServerForDeleting;
+	delete m_pApp->m_pKbServerForDeleting; // the KbServer instance supplying services 
+										   // for our deletion attempt
 	m_pApp->m_pKbServerForDeleting = NULL;
 	m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
 	m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();

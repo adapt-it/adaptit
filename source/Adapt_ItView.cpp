@@ -1213,15 +1213,15 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 void CAdapt_ItView::UpdateAppearance (void)
 {
 	CLayout*	ptrLayout;
-    wxWindow*   pMyWind = GetFrame();
+    //wxWindow*   pMyWind = GetFrame(); // removed 16Sep13, it's not needed below
     CAdapt_ItApp* pApp = &wxGetApp();
 
     ptrLayout = GetLayout();
 	if (ptrLayout != NULL)
 	{
-		ptrLayout->Redraw();		// Not actually needed on Mac, but doesn't hurt
-		ptrLayout->PlaceBox();		// Sets the parameters for the updated placement of the phrase box if changing
-        //  direction, also gets rid of all the pink if making doc editable!
+		ptrLayout->Redraw();	// Not actually needed on Mac, but doesn't hurt
+		ptrLayout->PlaceBox();	// Sets the parameters for the updated placement of the phrase box if changing
+								// direction, also gets rid of all the pink if making doc editable!
     }
     else
         wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
@@ -1229,8 +1229,9 @@ void CAdapt_ItView::UpdateAppearance (void)
 //    pMyWind->Refresh();         // mark whole window area dirty
 //    pMyWind->Update();          // force redraw
 //    pMyWind->ScrollWindow (0, 1);
-            // for some unaccountable reason we need this on the Mac at least, to really get rid of all the pink!!
-
+    
+    // for some unaccountable reason we need this on the Mac at least, 
+    // to really get rid of all the pink!!
     pApp->GetMainFrame()->SendSizeEvent();
 }
 

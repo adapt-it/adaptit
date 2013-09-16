@@ -48,7 +48,11 @@ public:
 	// hmmm... I don't think I need any of these, except m_pKbSvr in order to grab the
 	// timestamp of the last changedsince() type of server access
 	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
-	KbServer*			m_pKbSvr; // set it to the currently active instance
+	KbServer*			m_pKbSvr; // set it to the currently active (stateless) instance
+						// (We use a separate stateless instance because this instance
+						// has to persist for possibly hours, whether or not the user
+						// has the KB Sharing Manager open, or even whether or not he has
+						// any shared project currently active)
 	size_t				m_TotalEntriesToDelete;
 	long				m_idForKbDefinitionToDelete;
 
