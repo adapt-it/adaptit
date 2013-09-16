@@ -39448,7 +39448,7 @@ void CAdapt_ItApp::StatusBar_ProgressOfKbDeletion()
 	wxFont font = pStatusBar->GetFont();
 	//int pointsize = font.GetPointSize(); <<-- don't need this
 	// We need a wxClientDC to measure text extents
-	wxClientDC dc;
+	wxClientDC dc(pFrame);
 	dc.SetFont(font);
 	wxCoord w; wxCoord h; // width and height of field 0's text
 	wxCoord *descent = NULL; wxCoord *externalLeading = NULL;
