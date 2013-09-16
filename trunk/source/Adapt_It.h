@@ -124,10 +124,12 @@ class NavProtectNewDoc; // for user navigation protection feature
 
 // forward declaration
 class KbServer;
+class KBSharingMgrTabbedDlg;
 
 // for a temporary ID for the "Controls For Knowledge Base Sharing" menu item on Advanced
 // menu; the menu item and a preceding separator are setup (for the _DEBUG build only,
-// while developing KB sharing functionality, in the app function OnInit())
+// while developing KB sharing functionality, near the end of the app function OnInit()) -
+// at approx lines 21,454-471
 const int ID_MENU_SHOW_KBSERVER_DLG	= 980;
 // for a temporary ID for the "Setup Knowledgebase Base Sharing" menu item on Advanced
 // menu; the menu item is setup (for the _DEBUG build only, while developing KB sharing
@@ -2441,8 +2443,6 @@ public:
 	bool m_bToolBarVisible;
 	bool m_bModeBarVisible;
 
-
-//private: // <- BEW removed 1Mar10, because for unknown reason compiler fails to 'see' it otherwise
 	CNotes* m_pNotes;
 	CNotes* GetNotes();
 
@@ -2791,7 +2791,20 @@ public:
 	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
 	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
 
+	// Status bar support
+	void	RefreshStatusBarInfo();
+	void	StatusBarMessage(wxString& message);
+
 #if defined(_KBSERVER)
+	// more support for Status bar
+	void StatusBar_ProgressOfKbDeletion();
+
+#endif
+
+#if defined(_KBSERVER)
+
+	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
+	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
@@ -2851,8 +2864,8 @@ public:
                     // a mutex for this job, because the ChangedSince_Queued() download
                     // that gets the array of IDs for entries in the entry table that have
                     // to be deleted will be done synchronously at the start of the job,
-                    // and only after that will the background thread be fired to complete
-                    // the emptying of entries
+                    // and only after that will the background thread be fired to do the
+                    // job of emptying of entries
 	KbServer*		m_pKbServerForDeleting; // create a stateless on on heap, using 
 						// this member - the creation is done in the button handler
 						// of the KB sharing manager's GUI, on Kbs page...
@@ -2863,7 +2876,15 @@ public:
 	// we will not be synchronously trying to remove any queue members, so we can ignore
 	// that mutex - we'll do the removals after the download has filled the queue.)
 	size_t			m_nQueueSize; // set to entry count after download completes
+	size_t			m_nIterationCounter; // the N value of progress shown as "N:M" or N of M
 	long			kbID_OfDefinitionForDeletion; // store the kbID here, for when we need it
+	wxString		m_srcLangCodeOfCurrentRemoval;
+	wxString		m_nonsrcLangCodeOfCurrentRemoval;
+	int				m_kbTypeOfCurrentRemoval; // either undefined (-1) or 1 (adapting) or 2 (glossing)
+	// The next two store the state of the KB Sharing Manager gui when it is instantiated.
+	// These values only have meaning provided app's m_pKBSharingMgrTabbedDlg is not NULL
+	bool			m_bKbPageIsCurrent; // default is FALSE (these two are initialized in OnInit())
+	bool			m_bAdaptingKbIsCurrent; // default is TRUE
 
 
 #endif // for _KBSERVER
@@ -4057,7 +4078,7 @@ public:
 	int		MapWXFontEncodingToMFCCharset(const wxFontEncoding fontEnc);
 	int		MapWXtoMFCPaperSizeCode(wxPaperSize id);
 	wxPaperSize MapMFCtoWXPaperSizeCode(int id);
-	void	RefreshStatusBarInfo();
+
 	void	RemoveMarkerFromString(wxString& filterMkrStr, wxString wholeMarker);
 	wxString MakeExtensionlessName(wxString anyName); // removes .xml if at end of anyName
 	void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,

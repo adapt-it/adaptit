@@ -257,7 +257,7 @@ public:
 					bool WXUNUSED(bSuppressPrecedingHeadingInRange=FALSE),
 					bool WXUNUSED(bIncludeFollowingHeadingInRange=FALSE));
 	void		SetWhichBookPosition(wxDialog* pDlg);
-	void		StatusBarMessage(wxString& message);
+	// StatusBarMessage() moved to Adapt_It.h by BEW on 10Sep13
 	bool		StoreBeforeProceeding(CSourcePhrase* pSrcPhrase);
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
 	void		ToggleGlossingMode(); // BEW added 19Sep08

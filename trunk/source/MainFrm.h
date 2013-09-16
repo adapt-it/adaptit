@@ -58,6 +58,9 @@ DECLARE_EVENT_TYPE(wxEVT_End_Vertical_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Recover_Doc, -1)
+#if defined(_KBSERVER)
+DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
+#endif
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     DECLARE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos, -1)
@@ -255,6 +258,9 @@ public:
 	void OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
+#if defined(_KBSERVER)
+	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
+#endif
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 	void OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event));

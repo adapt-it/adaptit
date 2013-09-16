@@ -47,6 +47,7 @@
 // other includes
 //#include "Adapt_It.h"
 #include "KbServer.h"
+#include "MainFrm.h"
 #include "Thread_DoEntireKbDeletion.h"
 
 Thread_DoEntireKbDeletion::Thread_DoEntireKbDeletion(KbServer* pStatelessKbServer, 
@@ -75,14 +76,127 @@ void* Thread_DoEntireKbDeletion::Entry()
 	// done in the main thread; but the status bar should track N of M deletions, so that
 	// if the Manager is open, the administrator will know there's no point in trying a
 	// new deletion attempt until all M have been deleted - and that might not happen in
-	// the one session
+	// the one session. Also pStatelessKbServer passed in was created on the heap, and so
+	// if the kb definition gets deleted successfully in this thread, we can also do the
+	// deletion of the stateless KbServer instance after that, also in this thread. Its
+	// pointer should be set NULL as well, as that pointer is permanent in the CAdapt_ItApp
+	// instantiation, and testing it for NULL is important for its management.
 	
-	int rv = 0; // initialize return value, when loop completes, rv will return the
-				// value CURLE_HTTP_RETURNED_ERROR - this is our cue to break from the loop
+	CURLcode rv = (CURLcode)0; // initialize return value, when loop completes, rv will return the
+	// value CURLE_HTTP_RETURNED_ERROR - but unfortunately, there may be an
+	// unexpected http error -- that means we can't rely on the error as a diagnotic for
+	// when the loop is completed. So we'll do a for loop, since we know how many we need
+	// to delete, and count
+	DownloadsQueue* pQueue = m_pKbSvr->GetDownloadsQueue();
+	wxASSERT((pQueue != NULL) && (!pQueue->IsEmpty()) && (pQueue->GetCount() == m_TotalEntriesToDelete));
+	DownloadsQueue::iterator iter;
+	KbServerEntry* pKbSvrEntry = NULL;
+	int nonsuccessCount = 0;
+	size_t successCount = 0;
+    // Iterate over all entry structs, and for each, do a https DELETE request to have it
+	// deleted from the database. Note we do not use a nested thread - if we did, the loop
+	// would generate threads so quickly that the server would be swamped trying
+	// unsuccessfully to keep up. Instead, each DeleteSingleKbEntry() call is run
+	// synchronously, and the next iteration doesn't begin until the present call has
+	// returned its error code. How quickly the job gets done depends primarily on two
+	// things: a) how many entries need to be deleted, and b) the network latency
+	// currently being experienced
+	for (iter = pQueue->begin(); iter != pQueue->end(); iter++)
+	{
+		pKbSvrEntry = *iter;
+		int id = (int)pKbSvrEntry->id;
+		rv = (CURLcode)m_pKbSvr->DeleteSingleKbEntry(id);
+
+        // We don't expect any failures, but just in case there are some, count how many;
+        // also, ignore any failures and keep iterating to get as many done in the one
+        // session as possible. If the loop completes in the one session with a zero
+        // failure count, then continue on to try removing the kb definition itself,
+        // because it owns no entries and therefore no constraints would prevent it being
+        // removed. But if there were failures we can't attempt the kb definition deletion
+        // because the presence of owned entries would result in a foreign key constraint
+        // error, which we don't want the user to see. Instead, in that case he can just
+        // try the removal again at a later time - we need to put up a message to that
+        // effect if so.
+		if (rv != CURLE_OK)
+		{
+			nonsuccessCount++;
+		}
+		else
+		{
+			successCount++;
+#if defined(_DEBUG)
+			// track what we delete and it's ID
+			wxLogDebug(_T("Thread_DoEntireKbDeletion(): id = %d, src = %s , non-src = %s"),
+				pKbSvrEntry->id, pKbSvrEntry->source.c_str(), pKbSvrEntry->translation.c_str());
+#endif
+			// Copy it to the app member ready for display in main window at bottom
+			m_pApp->m_nIterationCounter = successCount;
+			if ((successCount/2)*2 == successCount)  // for initial testing, ask for feedback every 2nd deletion
+			//if ((successCount/10)*10 == successCount)
+			{
+                // Update the value every 10th iteration, otherwise more frequently may bog
+                // the process down if latency is very low
+				wxCommandEvent eventCustom(wxEVT_KbDelete_Update_Progress);
+				wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
+			}
+		}
+	}
+
+	// If control gets to here, we've either deleted all entries of the selected database,
+	// or most of them with some errors resulting in a those entries remaining owned by
+	// the selected kb definition. Only if all entries were deleted can we now attempt the
+	// removal of the KB definition itself. Otherwise, tell the user some were not
+	// deleted, and he'll have to retry later - and leave the definition in the Mgr list.
+	if (nonsuccessCount > 0)
+	{
+		// There were some failures... (and the Manager GUI may not be open -- see comment
+		// in the else block for details)
+#if defined(_DEBUG)
+			wxLogDebug(_T("Thread_DoEntireKbDeletion(): deletion errors (number of entries failing) = %d"),
+				nonsuccessCount);
+#endif
+		
 
 
-// TODO -- the code
+	}
+	else
+	{
+        // Yay!! No failures. So the kb pair comprising the kb database definition can now
+        // be removed in the current Adapt It session. However, we can't be sure the user
+        // has the Manager GUI still open, it may be many hours since he set the removal
+        // running -- how do we handle this communication problem? If the GUI is still
+        // open, and the kbs page is still the active page, then we want the list updated
+        // to reflect the kb definition has gone. If the GUI isn't open, we just remove the
+        // definition from the kb table of the mysql database, and no more needs to be done
+        // other than housekeeping cleanup (eg. clearing of the queue of KbServerEntry
+        // structs, and deletion of the stateless kbserver instance used for doing this
+		// work. How do we proceed...? I think a boolean on the app to say that the
+		// Manager GUI is open for business, and another that the kbs page is active, and
+		// we also need to check that the radiobutton setting hasn't changed (to switch
+		// between a adapting kbs versus glossing kbs) on that page.
 
+
+
+// *** TODO **** 2 custom events to be posted -- one to cause Mgr gui to update kb page,
+		// if the GUI is still loaded (if it isn't, the posted event won't be trapped so
+		// no harm done), and the other to make the wxStatusBar go back to one unlimited
+		// field, and reset it and update the bar.
+
+
+
+
+
+	}
+	// Housekeeping cleanup -- this stuff is needed whether the Manager GUI is open or not
+	pQueue->clear();
+	//delete m_pKbSvr;
+	//m_pKbSvr = NULL;
+	delete m_pApp->m_pKbServerForDeleting;
+	m_pApp->m_pKbServerForDeleting = NULL;
+	m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+	m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+	m_pApp->m_kbTypeOfCurrentRemoval = -1;
+	m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 
 
 	return (void*)NULL;

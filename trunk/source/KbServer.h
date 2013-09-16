@@ -41,10 +41,10 @@ WX_DEFINE_ARRAY_LONG(long, Array_of_long);
 
 /// The KbServerEntry struct is used for storing a single entry of the server's database,
 /// in a queue (actually an STL-based wxList<T> instance, which stores pointer to T) - periodic
-/// incremental downloads are pushed to the end of the list, and rentries popped from its
+/// incremental downloads are pushed to the end of the list, and entries popped from its
 /// start, during idle events. The pushes and pops need to be protected with a mutex,
 /// because popping is so as to merge an entry to the KB, but another incremental download
-/// might be have a push happening which has the queue in a compromised state, of vise versa.
+/// might be have a push happening which has the queue in a compromised state, or vise versa.
 /// Instances are created on the heap, stored in the queue until popped, and once the
 /// popped instance has had it's data merged to the KB, it is deleted
 struct KbServerEntry; // NOTE, omitting this forwards declaration and having the KbServerEntry
