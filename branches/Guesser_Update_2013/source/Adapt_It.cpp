@@ -463,10 +463,6 @@ WX_DEFINE_LIST(SubMenuItemList);
 /// complete the definition of a new safe pointer list class called MainMenuItemList.
 WX_DEFINE_LIST(MainMenuItemList);
 
-/// This macro together with the macro list declaration in the .h file
-/// complete the definition of a new safe pointer list class called CGuesserAffixList.
-WX_DEFINE_LIST(CGuesserAffixList);
-
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and
 /// 0xBF in UTF-8 encoding.
 #define nBOMLen 3
@@ -21383,6 +21379,11 @@ int ii = 1;
 	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
 	m_pAdaptationsGuesser = new Guesser;
 	m_pGlossesGuesser = new Guesser;
+	
+	GuesserPrefixesLoaded = false;
+	GuesserSuffixesLoaded = false;
+	GuesserPrefixCorrespondencesLoaded = false;
+	GuesserSuffixCorrespondencesLoaded = false;
 
 	CAdapt_ItView* pView = (CAdapt_ItView*) GetView();
 	pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
@@ -21488,9 +21489,6 @@ int ii = 1;
     wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
 
-	GuesserPrefixesLoaded = false;
-	GuesserSuffixesLoaded = false;
-
 	return TRUE;
 }
 
@@ -21575,12 +21573,6 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pAdaptationsGuesser;
 	if (m_pGlossesGuesser != NULL)
 		delete m_pGlossesGuesser;
-
-	// delete guesser prefix and suffix lists if populated-klb 9/2013
-	m_GuesserPrefixList.DeleteContents( true );
-	m_GuesserPrefixList.Clear(); // Delete entries
-	m_GuesserSuffixList.DeleteContents( true );
-	m_GuesserSuffixList.Clear(); // Delete entries
 
 	// BEW removed 15Jun11 until we support OXES
 	// BEW reinstated 19May12, for OXES v1 support
@@ -25029,22 +25021,64 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 		wxLogDebug(_T("The Adaptations guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
 	}
 
-	// Check for xml prefix file/document
+	// Check for xml prefix file/document, and load prefixes into guesser if found
 	wxString sPrefixXMLFilePath = m_curProjectPath + PathSeparator + _T("GuesserPrefixes.xml");
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
 
 	if (GuesserPrefixesLoaded == false)
 	{
 		GuesserPrefixesLoaded = true;
-		bool bReadOK = ReadGuesserPrefix_XML (sPrefixXMLFilePath, GetGuesserPrefixList(), (nTotal > 0) ? _("Loading Prefixes") : _T(""), nTotal);
-		if (bReadOK)
+		if (wxFileExists(sPrefixXMLFilePath))
 		{
-			//
+			bool bReadOK = ReadGuesserPrefix_XML (sPrefixXMLFilePath, GetGuesserPrefixes(), (nTotal > 0) ? _("Loading Prefixes") : _T(""), nTotal);
+			if (!bReadOK)
+			{
+				//
+				wxMessageBox(_(
+					"Warning: a prefix file was found, but it was not readable."),
+					_T(""), wxICON_INFORMATION | wxOK);
+			}
 		}
 	}
 
-	//TODO KLB Implement Prefix functionality
-	//	GuesserSuffixesLoaded = false;
+	// Check for xml suffix file/document, and load suffixes into guesser if found
+	wxString sSuffixXMLFilePath = m_curProjectPath + PathSeparator + _T("GuesserSuffixes.xml");
+
+	if (GuesserSuffixesLoaded == false)
+	{
+		GuesserSuffixesLoaded = true;
+		if (wxFileExists(sSuffixXMLFilePath))
+		{
+			bool bReadOK = ReadGuesserSuffix_XML (sSuffixXMLFilePath, GetGuesserSuffixes(), (nTotal > 0) ? _("Loading Suffixes") : _T(""), nTotal);
+			if (!bReadOK)
+			{
+				//
+				wxMessageBox(_(
+					"Warning: a suffix file was found, but it was not readable."),
+					_T(""), wxICON_INFORMATION | wxOK);
+			}
+		}
+	}
+
+	if (!GuesserSuffixCorrespondencesLoaded)
+	{
+		GuesserSuffixCorrespondencesLoaded = true;
+		if (GetGuesserSuffixes() && !GetGuesserSuffixes()->IsEmpty())
+		{	
+			CGuesserAffixArray* pArray = GetGuesserSuffixes();
+			for (int i = 0; i < (int)pArray->GetCount(); i++)
+			{				
+				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
+
+				// Add correspondence to the Guesser
+				if (m_pKB->IsThisAGlossingKB())
+					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(),-2);
+				else
+					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(),-2);
+				//numCorrespondencesLoaded++; NEEDED???
+			}
+		}
+	}
 
 
 }
@@ -25058,9 +25092,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 ///     by giving it more linguistic information to utilize, based on Guesser improvements 
 ///     by Alan Buseman October 2013. -klb  
 /////////////////////////////////////////////////////////////////////////////////////////
-CGuesserAffixList*	CAdapt_ItApp::GetGuesserPrefixList()
+CGuesserAffixArray*	CAdapt_ItApp::GetGuesserPrefixes()
 {
-	return &m_GuesserPrefixList;
+	return &m_GuesserPrefixArray;
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
@@ -25071,9 +25105,9 @@ CGuesserAffixList*	CAdapt_ItApp::GetGuesserPrefixList()
 ///     by giving it more linguistic information to utilize, based on Guesser improvements 
 ///     by Alan Buseman October 2013. -klb  
 /////////////////////////////////////////////////////////////////////////////////////////
-CGuesserAffixList*	CAdapt_ItApp::GetGuesserSuffixList()
+CGuesserAffixArray*	CAdapt_ItApp::GetGuesserSuffixes()
 {
-	return &m_GuesserSuffixList;
+	return &m_GuesserSuffixArray;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

@@ -25,9 +25,6 @@
     #pragma implementation "ClassName.h"
 #endif
 
-// For compilers that support precompilation, includes "wx.h".
-#include <wx/wxprec.h>
-
 #ifdef __BORLANDC__
 #pragma hdrstop
 #endif
@@ -38,11 +35,11 @@
 #endif
 
 // other includes
-#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 //#include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
-#include "Adapt_It.h"
 #include "GuesserAffix.h"
+#include <wx/arrimpl.cpp>
 
 // IMPLEMENT_CLASS(CClassName, wxBaseClassName)
 IMPLEMENT_DYNAMIC_CLASS(CGuesserAffix, wxObject)
@@ -51,22 +48,31 @@ CGuesserAffix::CGuesserAffix() // constructor
 {
 	
 }
-CGuesserAffix::CGuesserAffix(wxString input_affix) // constructor
+CGuesserAffix::CGuesserAffix(wxString m_sInputSourceAffix, wxString m_sInputTargetAffix) // constructor
 {
-	m_sAffix = input_affix;	
+	m_sSourceAffix = m_sInputSourceAffix;
+	m_sTargetAffix = m_sInputTargetAffix;
 }
 
 CGuesserAffix::~CGuesserAffix() // destructor
 {
 	
 }
-wxString CGuesserAffix::getAffix()
+wxString CGuesserAffix::getSourceAffix()
 {
-	return m_sAffix;
+	return m_sSourceAffix;
 }
-void CGuesserAffix::setAffix(wxString input_affix)
+wxString CGuesserAffix::getTargetAffix()
 {
-	m_sAffix = input_affix;
+	return m_sTargetAffix;
+}
+void CGuesserAffix::setSourceAffix(wxString m_sInputAffix)
+{
+	m_sSourceAffix = m_sInputAffix;
+}
+void CGuesserAffix::setTargetAffix(wxString m_sInputAffix)
+{
+	m_sTargetAffix = m_sInputAffix;
 }
 wxString CGuesserAffix::getCreatedBy()
 {
@@ -77,21 +83,8 @@ void CGuesserAffix::setCreatedBy(wxString input_cb)
 	m_sCreatedBy = input_cb;
 }
 
-// event handling functions
+/// This macro together with the macro array declaration in the .h file
+/// complete the definition of a new array class called CGuesserAffixArray.
+WX_DEFINE_OBJARRAY(CGuesserAffixArray);
 
-//CClassName::OnDoSomething(wxCommandEvent& event)
-//{
-//	// handle the event
-	
-//}
-
-//CClassName::OnUpdateDoSomething(wxUpdateUIEvent& event)
-//{
-//	if (SomeCondition == TRUE)
-//		event.Enable(TRUE);
-//	else
-//		event.Enable(FALSE);	
-//}
-
-// other class methods
 

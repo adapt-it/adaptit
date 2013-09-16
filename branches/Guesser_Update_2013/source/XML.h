@@ -124,7 +124,7 @@ class CFile;
 class CKB;
 class CAdapt_ItDoc;
 class CGuesserAffix;
-class CGuesserAffixList;
+class CGuesserAffixArray;
 
 // new error numbers (fileErrorClass is 0x1600, and there are 17 
 // predefined errors in the file stream manager header, so mine start
@@ -317,9 +317,9 @@ bool ReadKB_XML(wxString& path, CKB* pKB, const wxString& progressTitle, wxUint3
 // read and parse function for Adapt It xml prefix and suffix files
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
-bool ReadGuesserPrefix_XML(wxString& path, CGuesserAffixList* pCGuesserPrefixList, 
+bool ReadGuesserPrefix_XML(wxString& path, CGuesserAffixArray* pCGuesserPrefixArray, 
 						   const wxString& progressTitle, wxUint32 nProgMax);
-bool ReadGuesserSuffix_XML(wxString& path, CGuesserAffixList* pCGuesserSuffixList, 
+bool ReadGuesserSuffix_XML(wxString& path, CGuesserAffixArray* pCGuesserSuffixArray, 
 						   const wxString& progressTitle, wxUint32 nProgMax);
 
 // read and parse function for LIFT xml files

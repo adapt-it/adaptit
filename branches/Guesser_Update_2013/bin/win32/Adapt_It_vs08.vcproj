@@ -1238,6 +1238,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\GuesserAffix.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\GuesserSettingsDlg.h"
 				>
 			</File>

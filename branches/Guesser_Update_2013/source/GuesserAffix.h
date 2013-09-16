@@ -16,28 +16,39 @@
 #ifndef GuesserAffix_h
 #define GuesserAffix_h
 
+#include <wx/dynarray.h>
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "GuesserAffix.h"
 #endif
 
+class CGuesserAffix; // forward declare for array
+
+/// wxList declaration and partial implementation of the CGuesserAffixList class being
+/// a list of pointers to CCell objects
+WX_DECLARE_OBJARRAY(CGuesserAffix, CGuesserAffixArray); // see list definition macro in .cpp file
+
 class CGuesserAffix : public wxObject
 {
 public:
-	CGuesserAffix(wxString input_affix); // constructor
+	CGuesserAffix(wxString m_sInputSourceAffix, wxString m_sInputTargetAffix); // constructor
+	CGuesserAffix(void); // constructor
 	virtual ~CGuesserAffix(void); // destructor
 	// other methods
-	wxString getAffix ();
+	wxString getSourceAffix ();
+	wxString getTargetAffix ();
 	wxString getCreatedBy ();
-	void setAffix (wxString input_affix);
+	void setSourceAffix (wxString m_sInputAffix);
+	void setTargetAffix (wxString m_sInputAffix);
 	void setCreatedBy (wxString input_cb);
 
 protected:
 
 private:
-	CGuesserAffix(void); // constructor
 	// class attributes
-	wxString m_sAffix;
+	wxString m_sSourceAffix;
+	wxString m_sTargetAffix;
 	wxString m_sCreatedBy;
 
 	//DECLARE_CLASS(GuesserAffix);
@@ -46,11 +57,12 @@ private:
 	// cannot be created dynamically. The same as DECLARE_ABSTRACT_CLASS.
 	
 	// or, comment out above and uncomment below to
-	DECLARE_DYNAMIC_CLASS(GuesserAffix) 
+	DECLARE_DYNAMIC_CLASS(CGuesserAffix) 
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 
 	// information. MFC uses DECLARE_DYNCREATE(CClassName)
 	
 	//DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
-#endif /* GuesserAffix_h */
+
+#endif // GuesserAffix_h

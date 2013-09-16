@@ -75,6 +75,7 @@
 #include "WaitDlg.h"
 #include "Adapt_ItView.h"
 #include "StatusBar.h"
+#include "GuesserAffix.h"
 //#include "XML_UserProfiles.h"
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
@@ -135,11 +136,12 @@ int gnRefCount; // reference count for the current CRefString instance
 extern bool gbIsGlossing;
 
 // parsing guesser prefix and suffix xml files
-CGuesserAffixList* gpCGuesserPrefixList; // pointer to the guesser suffix list
-CGuesserAffixList* gpCGuesserSuffixList; // pointer to the guesser suffix list
+CGuesserAffixArray* gpCGuesserPrefixArray; // pointer to the guesser suffix list
+CGuesserAffixArray* gpCGuesserSuffixArray; // pointer to the guesser suffix list
 // KLB 11Sep13, added this global for storing the Version number from the xml file for a
 // Guesser affix file which is being loaded from LoadGuesserPrefixes() or LoadGuesserSuffixes()
 int gnAffixVersionBeingParsed = 1; // will have value 1 (for version 1, initially)
+CGuesserAffix* pNewAffix;
 
 static CTargetUnit* gpTU_From_Map; // for LIFT support, this will be non-NULL when,
 						// for a given key, the relevant map contains a CTargetUnit
@@ -6986,16 +6988,13 @@ bool AtKBPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata),CStack*& WXUN
 *********************************************************************************/
 bool AtAffixTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
-	if (tag == xml_prefix) // if it's a "VERSION" tag
+	if (tag == xml_prefix) // if it's a "PREFIX" tag
 	{
 		return TRUE;
 	}
-	if (tag == xml_version) // if it's a "VERSION" tag
+	if (tag == xml_pre) // if it's a "PRE" tag (an input affix)
 	{
-		return TRUE;
-	}
-	if (tag == xml_pre) // if it's a "VERSION" tag
-	{
+		pNewAffix = new CGuesserAffix();
 		return TRUE;
 	}
 	return TRUE; // no error
@@ -7003,7 +7002,17 @@ bool AtAffixTag(CBString& tag, CStack*& WXUNUSED(pStack))
 
 bool AtAffixEmptyElemClose(CBString& WXUNUSED(tag), CStack*& WXUNUSED(pStack))
 {
-	// unused
+	// if the close of a affix entry tag, we need to store the affix and 
+	//    clear pointer for next affix  
+	if (pNewAffix != NULL)
+	{
+		// add new affix to list
+		wxASSERT(!pNewAffix->getSourceAffix().empty() && pNewAffix->getSourceAffix().Len() > 0);
+		wxASSERT(!pNewAffix->getTargetAffix().empty() && pNewAffix->getTargetAffix().Len() > 0);
+		gpCGuesserPrefixArray->Add(pNewAffix);
+		// Set pointer to null (affix now managed by wxObjArray )
+		pNewAffix = NULL;
+	}
 	return TRUE;
 }
 
@@ -7012,11 +7021,7 @@ bool AtAffixAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& 
 {	
 	if (tag == xml_prefix)
 	{		
-		return TRUE;
-	}
-	else if (tag == xml_version)
-	{
-		if (attrName == xml_value)
+		if (attrName == xml_affixversion)
 		{
 			gnAffixVersionBeingParsed = atoi(attrValue);
 		}
@@ -7024,21 +7029,45 @@ bool AtAffixAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& 
 	}
 	else if (tag == xml_pre)
 	{
-		if (attrName == xml_value)
+		if (attrName == xml_source)
 		{
 			// Input prefix
+			wxASSERT(pNewAffix != NULL);
+#ifndef _UNICODE // ANSI version (ie. regular)
+			pNewAffix->setSourceAffix(attrValue);
+#else // Unicode version
+			pNewAffix->setSourceAffix(attrValue.Convert8To16());
+#endif // for _UNICODE #defined
 		}
-		if (attrName == xml_n)
+		else if (attrName == xml_target)
+		{
+			// Input prefix
+			wxASSERT(pNewAffix != NULL);
+#ifndef _UNICODE // ANSI version (ie. regular)
+			pNewAffix->setTargetAffix(attrValue);
+#else // Unicode version
+			pNewAffix->setTargetAffix(attrValue.Convert8To16());
+#endif // for _UNICODE #defined
+		}
+		else if (attrName == xml_n)
 		{
 			// Reference Count?
 		}
-		if (attrName == xml_whocreated)
+		else if (attrName == xml_whocreated)
 		{
 			// Who Created
+			wxASSERT(pNewAffix != NULL);
+#ifndef _UNICODE // ANSI version (ie. regular)
+			pNewAffix->setCreatedBy(attrValue);
+#else // Unicode version
+			pNewAffix->setCreatedBy(attrValue.Convert8To16());
+#endif // for _UNICODE #defined
 		}
-		if (attrName == xml_creationDT)
+		else if (attrName == xml_creationDT)
 		{
 			// Creation Date
+			wxASSERT(pNewAffix != NULL);
+			//pNewAffix->setCreatedBy(attrValue.Convert8To16());
 		}
 		return TRUE;
 	}
@@ -7054,15 +7083,13 @@ bool AtAffixEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 		// nothing to be done
 		;
 	}
-	else if (tag == xml_version)
-	{
-		// nothing to be done
-		;
-	}
 	else if (tag == xml_pre)
 	{
-		// nothing to be done
-		;
+		// add new affix to list
+		wxASSERT(pNewAffix != NULL);
+		gpCGuesserPrefixArray->Add(pNewAffix);
+		// Set pointer to null (affix now managed by wxList)
+		pNewAffix = NULL;
 	}
 	
 	return TRUE;
@@ -7236,18 +7263,18 @@ bool ReadKB_XML(wxString& path, CKB* pKB, const wxString& progressTitle, wxUint3
 *
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml Prefix file on the storage medium
-*	pCGuesserAffixList   -> pointer to the CGuesserAffixList instance being filled out
+*	pCGuesserAffixArray   -> pointer to the CGuesserAffixArray instance being filled out
 *   pProgDlg <-> -- pointer to the caller's wxProgressDialog
 *   nProgMax -> -- maximum range value for wxProgressDialog
 *
 * Calls ParseXML to parse an Adapt It (or Adapt It Unicode) xml guesser prefix file
 *
 *******************************************************************/
-bool ReadGuesserPrefix_XML(wxString& path, CGuesserAffixList* pCGuesserPrefixList, 
+bool ReadGuesserPrefix_XML(wxString& path, CGuesserAffixArray* pCGuesserPrefixArray, 
 						   const wxString& progressTitle, wxUint32 nProgMax)
 {
-	wxASSERT(pCGuesserPrefixList);
-	gpCGuesserPrefixList = pCGuesserPrefixList; // set the global gpCGuesserAffixList used by the callback functions
+	wxASSERT(pCGuesserPrefixArray);
+	gpCGuesserPrefixArray = pCGuesserPrefixArray; // set the global gpCGuesserAffixList used by the callback functions
 	bool bXMLok = ParseXML(path,progressTitle,nProgMax,AtAffixTag,AtAffixEmptyElemClose,AtAffixAttr,
 							AtAffixEndTag,AtAffixPCDATA);
 	return bXMLok;
@@ -7261,7 +7288,7 @@ bool ReadGuesserPrefix_XML(wxString& path, CGuesserAffixList* pCGuesserPrefixLis
 *
 * Parameters:
 *	path  -> (wxString) absolute path to the *.xml Suffix file on the storage medium
-*	pCGuesserAffixList   -> pointer to the CGuesserAffixList instance being filled out
+*	pCGuesserAffixArray   -> pointer to the CGuesserAffixArray instance being filled out
 *   pProgDlg <-> -- pointer to the caller's wxProgressDialog
 *   nProgMax -> -- maximum range value for wxProgressDialog
 *
@@ -7269,11 +7296,11 @@ bool ReadGuesserPrefix_XML(wxString& path, CGuesserAffixList* pCGuesserPrefixLis
 *
 *******************************************************************/
 
-bool ReadGuesserSuffix_XML(wxString& path, CGuesserAffixList* pCGuesserSuffixList, 
+bool ReadGuesserSuffix_XML(wxString& path, CGuesserAffixArray* pCGuesserSuffixArray, 
 						   const wxString& progressTitle, wxUint32 nProgMax)
 {
-	wxASSERT(pCGuesserSuffixList);
-	gpCGuesserSuffixList = pCGuesserSuffixList; // set the global gpCGuesserAffixList used by the callback functions
+	wxASSERT(pCGuesserSuffixArray);
+	gpCGuesserSuffixArray = pCGuesserSuffixArray; // set the global gpCGuesserAffixList used by the callback functions
 	bool bXMLok = ParseXML(path,progressTitle,nProgMax,AtAffixTag,AtAffixEmptyElemClose,AtAffixAttr,
 							AtAffixEndTag,AtAffixPCDATA);
 	return bXMLok;
