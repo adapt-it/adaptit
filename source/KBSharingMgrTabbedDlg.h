@@ -206,6 +206,21 @@ private:
 	wxArrayString m_listBeforeUpdate;
 	wxArrayString m_listAfterUpdate;
 
+	// Support for prevention of the Manager user trying to remove a kb definition for the
+	// project which is currently the active project and it is set up to be sharing to the
+	// same remote kb and kbtype! (Clearly, to allow entries to flow in while entries are
+	// being actively removed would be crazy - so we check for this and advise the Manager
+	// user to first remove the sharing setup with the kb definition which is to be removed.
+	// (In the app class there are also:
+	// 	wxString		m_srcLangCodeOfCurrentRemoval;  and
+	//  wxString		m_nonsrcLangCodeOfCurrentRemoval;
+	//  which preserve the code values which a deletion is in progress, so we can ensure
+	//  that nonone sets up a sharing to the old kb definition while the removal is in
+	//  progress.)
+	wxString m_srcLangCodeOfDeletion;
+	wxString m_nonsrcLangCodeOfDeletion;
+	int		 m_kbTypeOfDeletion; //1, 2, or undefined (-1)
+
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
 #endif

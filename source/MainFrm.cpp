@@ -360,6 +360,7 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 //DECLARE_EVENT_TYPE(wxEVT_End_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
 
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Free_Translations_Edit)
@@ -368,6 +369,9 @@ DEFINE_EVENT_TYPE(wxEVT_End_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Recover_Doc)
+#if defined(_KBSERVER)
+DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
+#endif
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -431,6 +435,16 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
             (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
             (wxObject *) NULL \
 ),
+
+#if defined(_KBSERVER)
+#define EVT_KBDELETE_UPDATE_PROGRESS(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_KbDelete_Update_Progress, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+#endif
+
 
 BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_IDLE(CMainFrame::OnIdle) // this is now used in wxWidgets instead of a virtual function
@@ -498,6 +512,9 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
+#if defined(_KBSERVER)
+	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
+#endif
 
 	//BEW added 10Dec12
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -5135,6 +5152,30 @@ cancel:		;
 		}
 	}
 }
+
+#if defined(_KBSERVER)
+void CMainFrame::OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event))
+{
+	/* some test code to get some numbers printed to the screen, to verify the thread's posted custom event works
+	wxScreenDC dc;
+	wxRect rect(200,200,100,24);
+	wxFont* pFont = gpApp->m_pSourceFont;
+	pFont->SetPointSize(12);
+	wxString N;
+	wxString M;
+	wxString colon = _T(" : ");
+	wxItoa((int)gpApp->m_nIterationCounter,N);
+	wxItoa((int)gpApp->m_nQueueSize,M);
+	wxString displayStr = N + colon + M;
+	dc.SetFont(*pFont);
+	dc.StartDrawingOnTop(this);
+	dc.DrawText(displayStr,rect.GetLeft(), rect.GetTop());
+	dc.EndDrawingOnTop();
+	*/
+	gpApp->StatusBar_ProgressOfKbDeletion();
+}
+#endif
+
 
 // The following is the handler for a custom wxEVT_Glosses_Edit event message, sent
 // to the window event loop by a wxPostEvent() call

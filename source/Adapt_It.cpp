@@ -15381,9 +15381,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_recovery_pending = FALSE; // Must initialize to false, otherwise, every attempt to open
 								// a document in any project will fail
 #if defined(_KBSERVER)
+
 	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
 	m_pKbServerForDeleting = NULL;
-#endif 
+	m_srcLangCodeOfCurrentRemoval.Empty();
+	m_nonsrcLangCodeOfCurrentRemoval.Empty();
+	m_kbTypeOfCurrentRemoval = -1; // undefined
+	m_nIterationCounter = 0; // size_t
+	m_bKbPageIsCurrent = FALSE;
+	m_bAdaptingKbIsCurrent = TRUE;
+
+
+	m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
+#endif
+
     // Initialize items relating to corrupt doc recovery:
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
@@ -21324,6 +21335,7 @@ int ii = 1;
 	}
 	m_bControlIsWithinOnInit = FALSE;
 
+	CMainFrame* pFrame = GetMainFrame();
 
 	//GDLC 2010-02-12
 	// Create the free translation display handler
@@ -21332,19 +21344,19 @@ int ii = 1;
 	// whm 13Jun12 Note: I needed to add four calls to PopEventHandler(FALSE) in the
 	// CMainFrame's destructor in MainFrm.cpp, to avoid a crash in OnExit(). One call for
 	// each of the four PushEventHandler() calls below.
-	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans);
+	pFrame->PushEventHandler(m_pFreeTrans);
 
 	m_pNotes = new CNotes(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pNotes);
+	pFrame->PushEventHandler(m_pNotes);
 
 	m_pRetranslation = new CRetranslation(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pRetranslation);
+	pFrame->PushEventHandler(m_pRetranslation);
 
 	m_pPlaceholder = new CPlaceholder(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pPlaceholder);
+	pFrame->PushEventHandler(m_pPlaceholder);
 
 	wxASSERT(m_pRetranslation);
 	m_pRetranslation->SetSuppressRemovalOfRefString(FALSE); // must start off FALSE, otherwise
@@ -21451,7 +21463,6 @@ int ii = 1;
     // append a menu separator and then a "Setup Knowledge Base Sharing..." menu item to
     // the Advanced menu in the _Debug build
 	size_t nAdvancedMenuIndex = 5;
-	CMainFrame* pFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
 	pAdvancedMenu->AppendSeparator(); // ignore returned pointer
@@ -21485,7 +21496,7 @@ int ii = 1;
 	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
 				// in this OnInit() function at lines 19780 to 20,420 approximately)
 
-	GetMainFrame()->SendSizeEvent(); // needed to force redraw
+	pFrame->SendSizeEvent(); // needed to force redraw
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
@@ -21552,11 +21563,14 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
-	// BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
-	// this point, and so the call to PopEventHandler() can't be made here. But I also
-	// found out that not making the call does not leak memory, and presumably wxWidgets
-	// itself cleans up what is on its event stack, so we don't need to do it here
-	// ourselves. (Next 6 lines of comments now don't apply)
+    // BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
+    // this point, and so the call to PopEventHandler() can't be made here. Bill found out
+    // that these pushed handlers (pushed in OnInit() at approx lines 21341++) have to be
+    // popped - he did it at lines 1316 to 1319 of the CMainFrame destructor, ~MainFrame().
+    // What's there are just four lines which each are: PopEventHandler(FALSE); So that
+    // does the job, it only requires that we have one pop for each push that we did in
+    // OnInit(). The classes themselves, and others besides, are deleted immediately below.
+    //  (The following is the legacy comment)
 	// Our "new" classes need to have their event tables popped off the stack of windows
 	// event handlers - so do them in reverse order in which they were pushed.
 	// (Alternatively, we could pass the param TRUE to the pop call, and then the pop will
@@ -21567,7 +21581,8 @@ int CAdapt_ItApp::OnExit(void)
 	// The push order is so far:
 	// 1. CFreeTrans
 	// 2. CNotes
-	// 3.
+	// 3. CRetranslation
+	// 4. CPlaceholder
 	//wxEvtHandler* pHdlr = NULL;
 	// delete the Guesser objects
 	if (m_pAdaptationsGuesser != NULL)
@@ -21954,12 +21969,13 @@ int CAdapt_ItApp::OnExit(void)
 #if defined(_KBSERVER)
 	// If a kb database of entries in kbserver's entry table is being deleted one by one
 	// in a currently running thread, then m_pApp->m_pKbServerForDeleting  will be non-NULL;
-	// test for this and recover the heap memory now, the thread will then fail, but
+	// test for this and recover the heap memory now, the thread will then fail but
 	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
 	// next session, or over several sessions, until the particular kb database is gone
 	if (m_pKbServerForDeleting != NULL)
 	{
 		delete m_pKbServerForDeleting;
+		m_pKbServerForDeleting = (KbServer*)NULL;
 	}
 #endif
 	return 0;
@@ -26140,6 +26156,25 @@ CPlaceholder*	CAdapt_ItApp::GetPlaceholder()
 	return m_pPlaceholder;
 }
 
+#if defined(_KBSERVER)
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the GetKBSharingMgrTabbedDlg object instance
+/// \remarks
+/// Gets a pointer to the current GetKBSharingMgrTabbedDlg object.
+////////////////////////////////////////////////////////////////////////////////////////
+KBSharingMgrTabbedDlg*	CAdapt_ItApp::GetKBSharingMgrTabbedDlg()
+{
+	if (m_pKBSharingMgrTabbedDlg != NULL)
+	{
+		return m_pKBSharingMgrTabbedDlg;
+	}
+	else
+	{
+		return (KBSharingMgrTabbedDlg*)NULL;
+	}
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view
 /// \remarks
@@ -26855,7 +26890,9 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
+
 #if defined (_KBSERVER)
+
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   ->  the wxCommandEvent that is generated when the associated
@@ -26871,7 +26908,28 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// The authentication dialog (KBSharingSetupDlg -- I should rename this to
 /// KBSharingAuthenticationDlg sometime) produces a stateless KbServer instance which the
 /// KB Sharing Manager GUI uses; it is produced on the heap, and deleted by the destructor
-/// of KBSharingSetupDlg when this handler function returns
+/// of KBSharingSetupDlg when this handler function returns.
+/// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with two tabs- one for
+/// adding, editing or removing users from the mysql user table; the second for adding,
+/// editing or removing shared knowledge bases from the kbs table - and since a kb
+/// definition owns entries in the entry table, removing a kb requires a lengthy prior
+/// removal of all owned kb entries from the database before the definition (the
+/// src/nonsrc code pair) can be removed.
+/// Because the removals need to be done by a detached thread, and due to netword latency
+/// might take anything from hours to days to complete, the thread doing the job can't
+/// assume this Manager GUI will remain open until the thread completes. It's permissible
+/// to shut Adapt It, or the machine, down before the thread completes. If so, another
+/// removal (of fewer entries) will be required to remove them all so that the definition
+/// can be removed as the last step. However, to communicate with this Mngr gui in the
+/// event that the removals go faster than exected, the thread can post events for cleanup
+/// if it completes while the mngr GUI is running. To facilitate this, wxPushEventHander() 
+/// and wxPopEventHandler() are used so that this gui can be part of the event mechanism.
+/// Custom events used herein are defined in MainFrm.h and .cpp; and the Manager GUI is
+/// created on the heap as a m_pKBSharingMgrTabbedDlg ptr in the CAdapt_ItApp class. When
+/// the manager gui is not open, that pointer is set to NULL. Also, if the manager GUI is
+/// not running when the thread completes, a block of code at the end of OnExit() does the
+/// necessary housework.
+/// Hmmm... making it receive events, puts it into an infinite loop of focus events.............. can this be prevented?
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -26894,32 +26952,55 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	KBSharingMgrTabbedDlg kbSharingPropertySheet(pApp->GetMainFrame());
+	m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
+	//KBSharingMgrTabbedDlg kbSharingPropertySheet(pApp->GetMainFrame());
 	// Point the stateless KbServer instance created on the heap by the constructor of
 	// KBSharingSetupDlg at the m_pKbServer member of KBSharingMgrTabbedDlg
-	kbSharingPropertySheet.SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
+	//kbSharingPropertySheet.SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
+	m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
+
+	// BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
+	// Oops, nope! It then receives command events when the object is instantiated it
+	// never displays because wx gets into an infinite loop of focus event handling which
+	// continues until the stack is full and the app crashes. The only way I think I can
+	// get what I want is to use the fact that the app class is tried last in the event
+	// loop, so send a custom event from the thread, have it trapped in CAdapt_ItApp
+	// instance, and the handler then checks for pApp->m_pKBSharingMgrTabbedDlg being
+	// non-NULL, and if so, uses other state-preserving variable on the app to determine
+	// which page is active (change to kb page if user page is active), which radio button
+	// is active (change to the one matching the kb type just removed, if necesary), and
+	// then get the page update done to show that the kb definition is no longer in the list)
+	//CMainFrame* pFrame = GetMainFrame();
+	//pFrame->PushEventHandler(pApp->m_pKBSharingMgrTabbedDlg); <<-- must NOT do this (see
+	//                                                             comment immediately above)
 
 	// make the font show only 12 point size in the dialog
 	CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);
 	m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
-//*
+	//wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
+	//	kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
 	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
-		kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
-//*/
+		pApp->m_pKBSharingMgrTabbedDlg->GetKbServer()->GetUsersList()->GetCount());
 #endif
 
 	// Get the "stateless" strings into the relevant storage in the stateless m_pKbServer
-	KbServer* pStatelessKbServer = kbSharingPropertySheet.GetKbServer();
+	//KbServer* pStatelessKbServer = kbSharingPropertySheet.GetKbServer();
+	KbServer* pStatelessKbServer = pApp->m_pKBSharingMgrTabbedDlg->GetKbServer();
 	pStatelessKbServer->SetKBServerUsername(dlg.m_strStatelessUsername);
 	pStatelessKbServer->SetKBServerURL(dlg.m_strStatelessURL);
 	pStatelessKbServer->SetKBServerPassword(dlg.m_strStatelessPassword);
 
 	// show the property sheet
-	if(kbSharingPropertySheet.ShowModal() == wxID_OK)
+	//if(kbSharingPropertySheet.ShowModal() == wxID_OK)
+	if(pApp->m_pKBSharingMgrTabbedDlg->ShowModal() == wxID_OK)
 	{
 	}
+
+	// When done, remove from the heap, and set the ptr to NULL
+	delete pApp->m_pKBSharingMgrTabbedDlg;
+	pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
 }
 
 
@@ -26952,7 +27033,9 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 	// or remove user definitions.
 	event.Enable(TRUE);
 }
-#endif
+
+
+#endif // for _KBSERVER
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -39133,6 +39216,11 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 #endif
 }
 
+//**************************************************************************************
+//
+//           Status bar support (RefreshStatusBarInfo & StatusBarMessage)
+//                                     
+//**************************************************************************************
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -39219,7 +39307,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	//message = message.Format(rscStr,gpApp->m_curProjectName.c_str());
 	message += message.Format(rscStr,gpApp->m_curProjectName.c_str());
 
-	// do nothing if there is no active pile or a bad sequence number of no target box
+	// do nothing if there is no active pile or a bad sequence number or no target box
 	bool bDocIsThere = TRUE;
 	if (gpApp->m_pTargetBox != NULL)
 	{
@@ -39306,10 +39394,150 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		mssg = _("!! TRANSLITERATING !!");
 		message += _T("   ") + mssg;
 	}
-	pView->StatusBarMessage(message);
+	StatusBarMessage(message);
 	pFrame->m_pStatusBar->Update();
 
 }
+
+void CAdapt_ItApp::StatusBarMessage(wxString &message)
+{
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	wxASSERT(pFrame != NULL);
+ 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
+	if (pStatusBar != NULL)
+	{
+		pStatusBar->SetStatusText(message,0); // use first field 0
+	}
+}
+
+#if defined(_KBSERVER)
+
+/// \return      void
+/// \remarks
+/// Adjust the status bar to have a second field showing how many remote kb entries have
+/// been deleted out of a total of M. It is called when the detached thread posts a
+/// message requesting refreshing the progress display. Also, if the window is resized.
+/// It's not called if m_bKbSvrMgr_DeleteAllIsInProgress flag is FALSE. That flag is TRUE
+/// for as long as the detached thread doing the deletions continues to run.
+/// Also, if the flag is TRUE, then every place in the app where RefreshStatusBarInfo()
+/// is called, StatusBar_ProgressOfKbDeletion(() should be called immediately afterwards to
+/// get the appropriate adjustment done.
+/// Note: Erik's CStatusBar subclasses wxStatusBar. This StatusBar_ProgressOfKbDeletion()
+/// function is intended to work independently of that subclass. (It may be necessary, if
+/// the subclass is used while kb entries are being deleted, for Erik's solution to
+/// reestablish the number of fields, and their relative sizes. I'll cross that bridge
+/// when I come to it.)
+void CAdapt_ItApp::StatusBar_ProgressOfKbDeletion()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (!pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
+	{
+		// A detached thread for deleting database kb entries is not running, so exit
+		return;
+	}
+	CMainFrame *pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+ 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
+	int barWidth; int barHeight;
+	pStatusBar->GetClientSize(&barWidth, &barHeight);
+
+	// First, get the status text from field with index 0
+	int field = 0;
+	wxString fieldZeroText = pStatusBar->GetStatusText(field);
+	// Get the font used in the status bar & its pointsize
+	wxFont font = pStatusBar->GetFont();
+	//int pointsize = font.GetPointSize(); <<-- don't need this
+	// We need a wxClientDC to measure text extents
+	wxClientDC dc;
+	dc.SetFont(font);
+	wxCoord w; wxCoord h; // width and height of field 0's text
+	wxCoord *descent = NULL; wxCoord *externalLeading = NULL;
+	dc.GetTextExtent(fieldZeroText, &w, &h, descent, externalLeading, &font);
+	// Get the client width and height for the status bar window
+
+	// Calculate the width of the field 2 deletion progress text
+	wxString strProgress;
+	strProgress = strProgress.Format(_("Deleting %d of %d"),(int)pApp->m_nIterationCounter,(int)pApp->m_nQueueSize);
+	wxCoord w2; wxCoord h2;
+	wxCoord *descent2 = NULL; wxCoord *externalLeading2 = NULL;
+	dc.GetTextExtent(strProgress, &w2, &h2, descent2, externalLeading2, &font);
+
+    // Work out a 3-field proportionality: field 0 is variable width, and must be able to
+    // fit the fieldZeroText comfortably, field two is fixed width (width of the progress
+    // text plus 8 pixels of slop) for the display of _("Deleting NNNN of MMMM") message,
+    // and a small third variable width field at the right of the status bar (empty, it's
+    // just there so the message doesn't appear right at the bar's end). But if the bar is
+    // too short, use a 2 field bar instead. For a 3 field solution, try (-6, fixedfield,
+    // -1) which means the variable part will be cut into 7 equal bits and field 0 will get
+    // 6 of the 7. For a two field solution, try for w + w2 < barWidth, and if that doesn't
+    // work, give the progress what it needs, and field 0 whatever width is left and too
+    // bad if the left status text is a bit truncated on the right.
+    
+	// Define the relative field sizes. -ve values indicate expandable fields, see the
+	// documentation of wxStatusBar for an explanation of how these are used
+	int widths[] = {-6, w2 + 8, -1};
+	// Calculate the pixel span value for the expandable parts (fields 0 and 2)
+	int aSpan = (barWidth - (w2 + 8))/(6 + 1);
+	// Calculate whether or not the text of field 0 will fit in the first field using the
+	// calculations above
+	bool bItFits = (6 * aSpan) > w ? TRUE: FALSE;
+	if (bItFits)
+	{
+		// The 3 field solution (only first two are actually used) will work, do it here
+
+		// First thing to do is to set the bar to have 3 fields as above
+		pStatusBar->SetFieldsCount(3, widths);
+
+		// Set the text back in field 0, and the progress text in field 2
+		pStatusBar->SetStatusText(fieldZeroText, 0);
+		pStatusBar->SetStatusText(strProgress, 1);
+		pStatusBar->SetStatusText(_T(""), 2); // no text in small end field
+	}
+	else
+	{
+		// The 3 field solution won't work, so try using all available bar space and a
+		// 2-field solution
+		bItFits = w2 + 2 + w <= barWidth ? TRUE : FALSE;
+		if (bItFits)
+		{
+			// It all fits, including 2 pixels between the two strings, so set up the
+			// second field as variable width, the first as fixed length (including 2
+			// pixels of slop at its end)
+			int width2[] = {w + 2, -1};
+			pStatusBar->SetFieldsCount(2, width2);
+
+			// Set the text back in field 0, and the progress text in field 2
+			pStatusBar->SetStatusText(fieldZeroText, 0);
+			pStatusBar->SetStatusText(strProgress, 1);
+
+		}
+		else
+		{
+			// Doesn't all fit, so truncate the text at the end of the first field, but
+			// show all the progress text on the right in a fixed field large enough -
+			// actually we'll use 3 fields, second will be a small white space so that the
+			// number following doesn't bump against end of the first field's text
+			int width3[] = {-1, 3, w2 + 1};
+			pStatusBar->SetFieldsCount(3, width3);
+
+			// Set the text back in field 0, and the progress text in field 3
+			pStatusBar->SetStatusText(fieldZeroText, 0);
+			pStatusBar->SetStatusText(_T(""), 1); // no text in small middle field
+			pStatusBar->SetStatusText(strProgress, 2);
+		}
+	}
+	pStatusBar->Update();
+}
+
+#endif
+
+
+//**************************************************************************************
+//
+//      End of Status bar support (RefreshStatusBarInfo & StatusBarMessage)
+//                                     
+//**************************************************************************************
+
 
 // Getters, setters, and shorthands.  Added by Jonathn Field 2005
 

@@ -6335,7 +6335,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		mssg = mssg.Format(_("  Current Folder: %s"),undef.c_str());
 		message += mssg;
 	}
-	StatusBarMessage(message); // don't want a glossing/adapting prefix, since we are closing
+	pApp->StatusBarMessage(message); // don't want a glossing/adapting prefix, since we are closing
 
     // restore the glossing support flags to their default values, so an open of another
     // project will have the default 2-rows per strip interface in effect
@@ -13973,17 +13973,6 @@ void CAdapt_ItView::OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event)
 			else
 				event.Enable(FALSE);
 		}
-	}
-}
-
-void CAdapt_ItView::StatusBarMessage(wxString &message)
-{
-	CMainFrame *pFrame = wxGetApp().GetMainFrame();
-	wxASSERT(pFrame != NULL);
- 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
-	if (pStatusBar != NULL)
-	{
-		pStatusBar->SetStatusText(message,0); // use first field 0
 	}
 }
 
