@@ -369,6 +369,8 @@ DEFINE_EVENT_TYPE(wxEVT_End_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Recover_Doc)
+DEFINE_EVENT_TYPE(wxEVT_Show_version)
+
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
 #endif
@@ -432,6 +434,13 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 #define EVT_RECOVER_DOC(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
         wxEVT_Recover_Doc, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+#define EVT_SHOW_VERSION(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Show_version, id, wxID_ANY, \
             (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
             (wxObject *) NULL \
 ),
@@ -512,6 +521,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
+    EVT_SHOW_VERSION(-1, CMainFrame::OnCustomEventShowVersion)
+
 #if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
 #endif
@@ -5152,6 +5163,16 @@ cancel:		;
 		}
 	}
 }
+
+void CMainFrame::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
+{
+    int     versionNum = gpApp->m_pDVCS->m_version_to_open;
+    
+    wxASSERT(versionNum >= 0);
+    
+    gpApp->GetDocument()->DoShowPreviousVersions (TRUE, versionNum);
+}
+
 
 #if defined(_KBSERVER)
 void CMainFrame::OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event))

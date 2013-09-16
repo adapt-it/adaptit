@@ -1797,6 +1797,12 @@ void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
     DoShowPreviousVersions (FALSE, 1);
 }
 
+void CAdapt_ItDoc::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
+{
+    DoShowPreviousVersions (TRUE, 1);
+}
+
+
 void CAdapt_ItDoc::DoAcceptVersion (void)
 {
 	if (gpApp->m_trialVersionNum < 0)
@@ -1944,6 +1950,8 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 {
     int     returnCode, itemIndex = -1;
 
+    gpApp->m_pDVCS->m_version_to_open = -1;     // ensure this is initialized to something
+
     if (!Git_installed())
         return;                    // Shows message if git not installed
 
@@ -1964,10 +1972,20 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 // now, which button was hit?
     if (returnCode == wxID_OK)
     {                   // Show selected version
+        wxCommandEvent      eventCustom (wxEVT_Show_version);
+
         itemIndex = logDlg.m_pList->GetNextItem (itemIndex, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         if (itemIndex == -1) return;
 
-        DoShowPreviousVersions (TRUE, itemIndex);          // easy!
+// We've found that if we just open the nav dialog from here, it doesn't appear as properly in focus.  So instead
+// we'll post a custom event to do it.
+        
+        gpApp->m_pDVCS->m_version_to_open = itemIndex;          // put the version we want in our DVCS object for the
+                                                                // event to pick up
+        wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
+
+//        DoShowPreviousVersions (TRUE, itemIndex);          // easy!
+
     }
 }
 

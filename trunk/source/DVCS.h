@@ -30,13 +30,15 @@ public:
 	DVCS (void);		// constructor
 	~DVCS (void);		// destructor
     
-	int         DoDVCS ( int action, int parm );             // all actual DVCS operations are done via this function
+	int         DoDVCS ( int action, int parm );            // all actual DVCS operations are done via this function
 
     bool        AskSaveAndCommit (wxString blurb);          // dialog asking user if he/she wants to go ahead
 
-    wxString        m_version_comment;                       // these 3 are public so the Nav dialog can get them
+    wxString        m_version_comment;                      // these 3 are public so the Nav dialog can get them
     wxString        m_version_date;
     wxString        m_version_committer;
+    
+    int             m_version_to_open;                      // used by our custom event to open a doc via the log dialog
     
 private:		// instance variables
 	CAdapt_ItApp*	m_pApp;
