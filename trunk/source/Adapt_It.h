@@ -2866,7 +2866,7 @@ public:
                     // to be deleted will be done synchronously at the start of the job,
                     // and only after that will the background thread be fired to do the
                     // job of emptying of entries
-	KbServer*		m_pKbServerForDeleting; // create a stateless on on heap, using 
+	KbServer*		m_pKbServerForDeleting; // create a stateless one on heap, using 
 						// this member - the creation is done in the button handler
 						// of the KB sharing manager's GUI, on Kbs page...
 	// Note: m_pKbServerForDeleting has its own DownloadsQueue m_queue, which will store
