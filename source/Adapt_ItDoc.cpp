@@ -1797,11 +1797,6 @@ void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
     DoShowPreviousVersions (FALSE, 1);
 }
 
-void CAdapt_ItDoc::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
-{
-    DoShowPreviousVersions (TRUE, 1);
-}
-
 
 void CAdapt_ItDoc::DoAcceptVersion (void)
 {
@@ -1866,7 +1861,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     There are currently two other places where we read a document.  We don't attempt to continue these ops from partway
     through, but just ask the user to re-attempt what they were doing.
 */
-    
+
     if (!pApp->m_reopen_recovered_doc)          // here the caller will display a message, so we don't do it here.
         return TRUE;
 
@@ -1967,6 +1962,7 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
     gpApp->m_versionCount = returnCode;         // this is the total number of log entries
 
     DVCSLogDlg  logDlg ( gpApp->GetMainFrame() );
+    logDlg.InitDialog();
     returnCode = logDlg.ShowModal();
 
 // now, which button was hit?
@@ -1977,15 +1973,12 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
         itemIndex = logDlg.m_pList->GetNextItem (itemIndex, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         if (itemIndex == -1) return;
 
-// We've found that if we just open the nav dialog from here, it doesn't appear as properly in focus.  So instead
+// We've found that if we just open the nav dialog from here, it doesn't appear as properly in focus on Windows.  So instead
 // we'll post a custom event to do it.
-        
+
         gpApp->m_pDVCS->m_version_to_open = itemIndex;          // put the version we want in our DVCS object for the
                                                                 // event to pick up
         wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
-
-//        DoShowPreviousVersions (TRUE, itemIndex);          // easy!
-
     }
 }
 
@@ -3758,7 +3751,7 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
                 wxCommandEvent  dummyEvent;
                 wxString        savedOutputFilename = pApp->m_curOutputFilename;
                 wxString        savedAdaptationsPath = pApp->m_curAdaptationsPath;
-                
+
                 OnFileClose(dummyEvent);                            // the file's corrupt, so we close it to avoid crashes
                 pApp->m_reopen_recovered_doc = FALSE;               // so the recovery code doesn't try to re-open the doc
                 pApp->m_curOutputFilename = thePath;                // have to make these source values current for the recovery
@@ -3766,10 +3759,10 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 				bReadOK = RecoverLatestVersion();
                 pApp->m_curOutputFilename = savedOutputFilename;    // restore target values
                 pApp->m_curAdaptationsPath = savedAdaptationsPath;
-                
+
                 if (bReadOK)                                        // if we recovered the doc, we retry the original read
                     bReadOK = ReadDoc_XML (thePath, this, _("Opening Document In Another Project"), nTotal);
-                
+
                 if (bReadOK)
 				{
 					wxString msg;
