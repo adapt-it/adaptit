@@ -28,7 +28,9 @@ public:
     CAdapt_ItApp*   m_pApp;
     CAdapt_ItDoc*   m_pDoc;
     wxSizer*        m_dlgSizer;
-    wxListCtrl*     m_pList;
+    wxListView*     m_pList;
+
+    void InitDialog (void);
 
 protected:
 
