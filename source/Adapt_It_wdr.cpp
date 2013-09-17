@@ -9583,7 +9583,7 @@ wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxListCtrl *item2 = new wxListCtrl( parent, ID_LST_VERSIONS, wxDefaultPosition, wxSize(800,300), wxLC_REPORT|wxSUNKEN_BORDER );
+    wxListCtrl *item2 = new wxListCtrl( parent, ID_LST_VERSIONS, wxDefaultPosition, wxSize(800,300), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL );
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

@@ -306,8 +306,7 @@ int  DVCS::add_file (wxString fileName)
 
 int  DVCS::commit_file (wxString fileName)
 {
-	int     commitCount = m_pApp->m_commitCount,
-            returnCode;
+	int     returnCode;
 
 // first we add the file to the staging area, and bail out on error.
 
@@ -326,15 +325,11 @@ int  DVCS::commit_file (wxString fileName)
 	git_options = _T("-m \"");
 
     if ( wxIsEmpty(m_version_comment) )
-    {                   // user didn't enter a comment.  We just put "n commits"
-        git_options << commitCount;
-        if (commitCount == 1)
-            git_options << _T(" commit");
-        else
-            git_options << _T(" commits");
+    {                   // user didn't enter a comment.  We put "[No Comment] Version saved on <date/time."
+        m_version_comment = _("[No Comment] ");
+        m_version_comment << m_pApp->m_versionDate.FormatDate();        // need to improve the format a bit
     }
-    else                // we use the user's comment
-        git_options << m_version_comment;
+    git_options << m_version_comment;
     git_options << _T("\"");
 
 	return call_git (FALSE);

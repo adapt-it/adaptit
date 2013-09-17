@@ -76,7 +76,7 @@ void DVCSLogDlg::PopulateList()
     wxString    nextLine, name, date, comment, str;
 
 // clear out items if necessary
-//	pList->ClearAll();
+	m_pList->ClearAll();
 
 // Add the columns -- author, date, comment
     wxListItem      col0, col1, col2;

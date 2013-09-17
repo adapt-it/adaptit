@@ -63,7 +63,6 @@ DECLARE_EVENT_TYPE(wxEVT_Show_version, -1)
 #if defined(_KBSERVER)
 DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
 #endif
-DECLARE_EVENT_TYPE(wxEvt_Show_version, -1)
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     DECLARE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos, -1)
