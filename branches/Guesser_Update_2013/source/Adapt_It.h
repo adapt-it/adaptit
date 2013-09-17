@@ -802,6 +802,15 @@ enum StartFromType
 	fromCurrentSelPosCyclingBack
 };
 
+/// An enum for specifying the affix type, either prefix
+/// or suffix. Used by DoGuesserAffixWriteXML(). -KLB Sept 2013
+enum GuesserAffixType
+{
+	// whm 31Mar11 changed default to be KBExportSaveAsSFM, i.e., enum 0
+	GuesserPrefix,
+	GuesserSuffix
+};
+
 /// A struct for specifying time settings. Struct members include:
 /// m_tsDoc, m_tsKB, m_tLastDocSave, and m_tLastKBSave.
 struct TIMESETTINGS
@@ -3387,6 +3396,7 @@ public:
 
 	CGuesserAffixArray*	GetGuesserPrefixes(); // get list of prefixes (if previously input) to improve guesser performance
 	CGuesserAffixArray*	GetGuesserSuffixes(); // get list of prefixes (if previously input) to improve guesser performance
+	bool DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType); // Write Guesser Prefix XML to file
 
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)

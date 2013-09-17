@@ -43,6 +43,8 @@ public:
 	void setTargetAffix (wxString m_sInputAffix);
 	void setCreatedBy (wxString input_cb);
 
+//	static bool WriteAffixesToXML( CGuesserAffixArray* Affixes, );
+
 protected:
 
 private:

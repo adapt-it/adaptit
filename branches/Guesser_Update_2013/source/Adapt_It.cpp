@@ -25060,6 +25060,27 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 		}
 	}
 
+	if (!GuesserPrefixCorrespondencesLoaded)
+	{
+		GuesserPrefixCorrespondencesLoaded = true;
+		if (GetGuesserPrefixes() && !GetGuesserPrefixes()->IsEmpty())
+		{	
+			CGuesserAffixArray* pArray = GetGuesserPrefixes();
+			for (int i = 0; i < (int)pArray->GetCount(); i++)
+			{				
+				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
+
+				// Add correspondence to the Guesser
+				if (m_pKB->IsThisAGlossingKB())
+					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -1);
+				else
+					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -1);
+				//numCorrespondencesLoaded++; NEEDED???
+			}
+		}
+	}
+
+
 	if (!GuesserSuffixCorrespondencesLoaded)
 	{
 		GuesserSuffixCorrespondencesLoaded = true;
@@ -25072,13 +25093,30 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 
 				// Add correspondence to the Guesser
 				if (m_pKB->IsThisAGlossingKB())
-					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(),-2);
+					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -2);
 				else
-					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(),-2);
+					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -2);
 				//numCorrespondencesLoaded++; NEEDED???
 			}
 		}
 	}
+
+	//TEST
+		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
+
+		wxFile f;
+		// first, the glossing KB export
+		if( !f.Open( path, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+		}	
+
+		DoGuesserAffixWriteXML(&f,GuesserPrefix);
+		//DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
+
+		///TEST
 
 
 }
@@ -25108,6 +25146,84 @@ CGuesserAffixArray*	CAdapt_ItApp::GetGuesserPrefixes()
 CGuesserAffixArray*	CAdapt_ItApp::GetGuesserSuffixes()
 {
 	return &m_GuesserSuffixArray;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the XML File was successfully written, otherwise FALSE
+/// \param      pFile   ->  output file name
+/// \param      inGuesserAffixType   ->  affix type (prefix or suffix). enum defined in Adapt_It.h
+/// \remarks
+/// Called from: ???
+/// If prefixes and/or suffixes are found in app (GetGuesserPrefixes() or GetGuesserSuffixes()), 
+///             writes xml file to disk.
+////////////////////////////////////////////////////////////////////////////////////////
+
+bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
+{
+	//
+	wxASSERT(pFile != NULL);
+
+	wxString s1 = gSFescapechar;
+
+	CBString m_sComposeXMLString,m_sXMLPrologue;
+	CBString m_sFirstString = "<PREFIX affixVersion=\"1\" max=\"1\">";
+	CBString m_sFinalString = "</PREFIX>";
+	if (inGuesserAffixType == GuesserSuffix)
+	{
+		m_sFirstString = "<SUFFIX affixVersion=\"1\" max=\"1\">";
+		m_sFinalString = "</SUFFIX>";
+	}
+
+	GetEncodingStringForXmlFiles(m_sXMLPrologue); // builds xmlPrologue and adds "\r\n"
+	m_sComposeXMLString = m_sXMLPrologue;
+	m_sComposeXMLString += "<!-- Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file. Instead, use NotePad or WordPad. -->";
+	m_sComposeXMLString += "\r\n";
+	m_sComposeXMLString += m_sFirstString;
+	m_sComposeXMLString += "\r\n";
+
+	// do loop
+	CGuesserAffixArray* pArray = NULL;
+	if (inGuesserAffixType == GuesserPrefix)
+	{
+		if (GetGuesserPrefixes() && !GetGuesserPrefixes()->IsEmpty())
+		{	
+			pArray = GetGuesserPrefixes();
+		}
+	}
+	else if (inGuesserAffixType == GuesserSuffix)
+	{
+		if (GetGuesserSuffixes() && !GetGuesserSuffixes()->IsEmpty())
+		{
+			pArray = GetGuesserSuffixes();
+		}
+	}
+	if (pArray == NULL || pArray->IsEmpty())
+	{
+		// message?
+		return false;
+	}
+
+	for (int i = 0; i < (int)pArray->GetCount(); i++)
+	{				
+		CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
+
+		// Add affix to XML
+		m_sComposeXMLString += "<PRE source=\"";
+		m_sComposeXMLString += m_currentGuesserAffix.getSourceAffix().ToUTF8();
+		m_sComposeXMLString += "\" target=\"";
+		m_sComposeXMLString += m_currentGuesserAffix.getTargetAffix().ToUTF8();
+		m_sComposeXMLString += "\" n=\"0\" ";
+		m_sComposeXMLString += "wC=\"kbradford:KBRADFORDSIL\" "; 
+		m_sComposeXMLString += "cDT=\"2012-10-24T14:13:06Z\" />";
+		m_sComposeXMLString += "\r\n";
+	}
+
+	m_sComposeXMLString += m_sFinalString;
+	m_sComposeXMLString += "\r\n";
+
+	DoWrite(*pFile, m_sComposeXMLString);
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
