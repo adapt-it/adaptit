@@ -34,7 +34,7 @@ public:
     wxSizer*        m_dlgSizer;
     wxStaticText*   m_version_committer;
     wxStaticText*   m_version_date;
-    wxTextCtrl*     m_version_comment;
+    wxStaticText*   m_version_comment;
 
     void InitDialog (void);
     void OnClose (wxCloseEvent& WXUNUSED(event));

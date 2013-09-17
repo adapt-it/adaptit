@@ -527,7 +527,7 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
     CAdapt_ItApp*   pApp = &wxGetApp();
     DVCSDlg         dlg ( pApp->GetMainFrame() );
 
-    pApp->ReverseOkCancelButtonsForMac(&dlg);           // doing the right thing here
+    pApp->ReverseOkCancelButtonsForMac(&dlg);           // fulfilling all righteousness here
 	dlg.Centre();
 
 // Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave the

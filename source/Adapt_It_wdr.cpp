@@ -9530,8 +9530,8 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item10->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxHORIZONTAL );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_VERSION_COMMENT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE|wxTE_READONLY );
-    item9->Add( item11, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_VERSION_COMMENT, _("comment goes here"), wxDefaultPosition, wxSize(400,80), wxALIGN_CENTRE );
+    item9->Add( item11, 20, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 15 );
 

@@ -57,8 +57,8 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
 {
 	m_dlgSizer = DVCSNavDlgFunc ( this, TRUE, TRUE );
 
-    m_version_comment = (wxTextCtrl*) FindWindowById(ID_VERSION_COMMENT);
-    m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
+    m_version_comment   = (wxStaticText*) FindWindowById(ID_VERSION_COMMENT);
+    m_version_date      = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
     m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
     
     m_pApp = &wxGetApp();  wxASSERT (m_pApp != NULL);
@@ -81,7 +81,7 @@ void DVCSNavDlg::ChooseVersion ( int version )
 {
     m_pDoc->DoChangeVersion (version);
     
-    m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
+    m_version_comment->SetLabel (m_pApp->m_pDVCS->m_version_comment);
     m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
     m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
 
