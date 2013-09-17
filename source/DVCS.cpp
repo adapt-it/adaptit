@@ -77,7 +77,7 @@
 	send it to git using wxExecute(), then handle the return results.
 
 	This is conceptually very simple, so originally I just wrote procedural code.  But we want everything to be as OOP as
-	possible, so we have a DVCS class which just has one object, gpApp->m_pDVCS, instantiated in the application's 
+	possible, so we have a DVCS class which just has one object, gpApp->m_pDVCS, instantiated in the application's
     OnInit() function.
 
 	All DVCS calls from the application are made via the function gpApp->m_pDVCS->DoDVCS().  This function takes an int parms,
@@ -248,7 +248,7 @@ int  DVCS::init_repository ()
 int  DVCS::update_user_details ()
 {
     int     returnCode;
-    
+
 
     git_command = _T("config");
     git_arguments.Clear();
@@ -314,7 +314,7 @@ int  DVCS::commit_file (wxString fileName)
     if (returnCode)  return returnCode;
 
 // next, before the commit, we update the user's details if necessary:
-    
+
     returnCode = update_user_details();
     if (returnCode)  return returnCode;
 
@@ -327,7 +327,7 @@ int  DVCS::commit_file (wxString fileName)
     if ( wxIsEmpty(m_version_comment) )
     {                   // user didn't enter a comment.  We put "[No Comment] Version saved on <date/time."
         m_version_comment = _("[No Comment] ");
-        m_version_comment << m_pApp->m_versionDate.Format("%c %z");
+        m_version_comment << m_pApp->m_versionDate.Format(_T("%c %z"));
 //        wxMessageBox(m_version_comment);
     }
     git_options << m_version_comment;
@@ -362,17 +362,17 @@ int  DVCS::setup_versions ( wxString fileName )
 }
 
 /*  get_version() calls git to checkout the given version number, defined by the line number in the log which we should
-    have already read and saved in m_pApp->m_DVCS_log.  The log has multiple entries, each one line long.  The first line 
+    have already read and saved in m_pApp->m_DVCS_log.  The log has multiple entries, each one line long.  The first line
     is line zero, giving the most recent version.
     The log line format is what we asked for in setup_versions():
- 
+
         <40 hex digits hash>#<committer name>#commit date#<commit comment>
- 
+
     The caller should ensure we're not being asked for a nonexistent line, but we check anyway, and return -1 on out of bounds
     of if for some reason the line is empty.  This will be a bug...
     Otherwise we return zero normally, or if git returns an error, we return that (which must be positive).
 */
- 
+
 int  DVCS::get_version ( int version_num, wxString fileName )
 {
 	wxString	nextLine, str;
