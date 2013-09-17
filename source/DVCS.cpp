@@ -327,7 +327,8 @@ int  DVCS::commit_file (wxString fileName)
     if ( wxIsEmpty(m_version_comment) )
     {                   // user didn't enter a comment.  We put "[No Comment] Version saved on <date/time."
         m_version_comment = _("[No Comment] ");
-        m_version_comment << m_pApp->m_versionDate.FormatDate();        // need to improve the format a bit
+        m_version_comment << m_pApp->m_versionDate.Format("%c %z");
+//        wxMessageBox(m_version_comment);
     }
     git_options << m_version_comment;
     git_options << _T("\"");
