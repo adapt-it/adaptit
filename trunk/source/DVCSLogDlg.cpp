@@ -63,7 +63,7 @@ void DVCSLogDlg::InitDialog (void)
     PopulateList();
     m_pList->SetFocus();        // initially we want the list focussed so up and down arrows are effective
     m_pList->Select(0);         // and we select the top item (the latest version)
-    m_pList->Focus(0);          // and we need this too, so the arrows work from there and not the end of the list
+    m_pList->Focus(0);          // and we need this too, so the arrows work from there and not the end of the list!
 }
 
 
