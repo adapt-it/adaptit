@@ -321,7 +321,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
     EVT_UPDATE_UI(ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnUpdateTakeOwnership)
     EVT_MENU (ID_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
-    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_item)
+//    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_item) - now leaving this one always enabled.
 
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)

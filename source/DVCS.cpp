@@ -523,6 +523,8 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
     DVCSDlg         dlg ( pApp->GetMainFrame() );
 
     pApp->ReverseOkCancelButtonsForMac(&dlg);           // fulfilling all righteousness here
+
+    dlg.m_comment->SetFocus();          // we seem to need this on Linux at least
 	dlg.Centre();
 
 // Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave the

@@ -9510,7 +9510,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item4->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item3 = new wxStaticBoxSizer( item4, wxHORIZONTAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(300,-1), wxALIGN_CENTRE );
+    wxStaticText *item5 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(300,-1), 0 );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -9519,7 +9519,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item7->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_VERSION_DATE, _("version date goes here"), wxDefaultPosition, wxSize(300,20), wxALIGN_CENTRE );
+    wxStaticText *item8 = new wxStaticText( parent, ID_VERSION_DATE, _("version date goes here"), wxDefaultPosition, wxSize(300,20), 0 );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -9528,7 +9528,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item10->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxHORIZONTAL );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_VERSION_COMMENT, _("comment goes here"), wxDefaultPosition, wxSize(300,60), wxALIGN_CENTRE );
+    wxStaticText *item11 = new wxStaticText( parent, ID_VERSION_COMMENT, _("comment goes here"), wxDefaultPosition, wxSize(300,60), 0 );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 15 );
@@ -10172,7 +10172,7 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
     item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
     item9->AppendSeparator();
-    item9->Append( ID_DVCS_VERSION, _("Show DVCS version"), wxT("") );
+    item9->Append( ID_DVCS_VERSION, _("Show DVCS version..."), wxT("") );
     item9->AppendSeparator();
     item9->Append( ID_MENU_KBSHARINGMGR, _("&Knowledge Base Server Manager..."), _("Open the Manager for configuration of knowledge base server users and databases") );
     item0->Append( item9, _("Ad&ministrator") );
