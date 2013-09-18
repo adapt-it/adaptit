@@ -25101,8 +25101,8 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 		}
 	}
 
-	//TEST
-		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
+	//TEST KLB
+/*		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
 
 		wxFile f;
 		// first, the glossing KB export
@@ -25115,8 +25115,10 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 
 		DoGuesserAffixWriteXML(&f,GuesserPrefix);
 		//DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
+*/
 
-		///TEST
+
+		///TEST KLB
 
 
 }
