@@ -83,12 +83,12 @@ void DVCSLogDlg::PopulateList()
 
     col0.SetId(0);
     col0.SetText( _T("Author") );
-    col0.SetWidth(150);
+    col0.SetWidth(120);
     m_pList->InsertColumn(0, col0);
 
     col1.SetId(1);
     col1.SetText( _T("Date") );
-    col1.SetWidth(300);
+    col1.SetWidth(250);
     m_pList->InsertColumn(1, col1);
 
     col2.SetId(2);

@@ -25670,7 +25670,13 @@ void CAdapt_ItApp::OnUpdateFileStartupWizard(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	event.Enable(TRUE); // we want it always available, with several entry points
+    if (m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
+
+	event.Enable(TRUE);         // we want it always available, with several entry points
 }
 
 
@@ -26522,16 +26528,21 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 {
-#if defined (_DEBUG) && defined (__WXOSX__)
-	event.Enable(TRUE);		// mrh - on the Mac, need to force item to be enabled, for some reason
-	return;
-#endif
+//#if defined (_DEBUG) && defined (__WXOSX__)
+//	event.Enable(TRUE);		// mrh - on the Mac, need to force item to be enabled, for some reason -  ***not sure we need this any more
+//	return;
+//#endif
 
 	if (m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
+    if (m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);

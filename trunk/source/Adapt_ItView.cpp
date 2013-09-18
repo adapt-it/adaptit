@@ -6438,6 +6438,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 /// Disables the "Close Project" item on the File menu if Vertical Editing is in progress.
 /// Enables the item if the KBs are in a ready state, otherwise it disables the menu item.
 /////////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -6445,9 +6446,11 @@ void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+    
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	// the kbs are closed or opened together
-	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
+    
+	// the kbs are closed or opened together, but if a trial is under way, the item is disabled no matter what
+	event.Enable (pApp->m_bKBReady && pApp->m_bGlossingKBReady && (pApp->m_trialVersionNum < 0));
 }
 
 /////////////////////////////////////////////////////////////////////////////////
