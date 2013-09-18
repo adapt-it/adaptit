@@ -9510,8 +9510,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item4->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item3 = new wxStaticBoxSizer( item4, wxHORIZONTAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(400,-1), wxALIGN_CENTRE );
-    item5->SetBackgroundColour( *wxLIGHT_GREY );
+    wxStaticText *item5 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(300,-1), wxALIGN_CENTRE );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -9520,8 +9519,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item7->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_VERSION_DATE, _("version date goes here"), wxDefaultPosition, wxSize(400,20), wxALIGN_CENTRE );
-    item8->SetBackgroundColour( *wxLIGHT_GREY );
+    wxStaticText *item8 = new wxStaticText( parent, ID_VERSION_DATE, _("version date goes here"), wxDefaultPosition, wxSize(300,20), wxALIGN_CENTRE );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -9530,28 +9528,28 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item10->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxHORIZONTAL );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_VERSION_COMMENT, _("comment goes here"), wxDefaultPosition, wxSize(400,80), wxALIGN_CENTRE );
-    item9->Add( item11, 20, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_VERSION_COMMENT, _("comment goes here"), wxDefaultPosition, wxSize(300,60), wxALIGN_CENTRE );
+    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 15 );
 
     wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item13 = new wxButton( parent, ID_BTN_PREV, _("< &Previous version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item13, 5, wxALIGN_CENTER|wxALL, 5 );
+    item12->Add( item13, 1, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item14 = new wxButton( parent, ID_BTN_NEXT, _("&Next version >"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item14, 5, wxALIGN_CENTER|wxALL, 5 );
+    item12->Add( item14, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item16 = new wxButton( parent, ID_ACCEPT, _("&Accept this version as current"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item16, 5, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item16 = new wxButton( parent, ID_ACCEPT, _("&Accept this as current"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 1, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item17 = new wxButton( parent, ID_LATEST, _("&Return to latest version"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 5, wxALIGN_CENTER|wxALL, 5 );
+    item15->Add( item17, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9583,7 +9581,7 @@ wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxListCtrl *item2 = new wxListCtrl( parent, ID_LST_VERSIONS, wxDefaultPosition, wxSize(800,300), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL );
+    wxListCtrl *item2 = new wxListCtrl( parent, ID_LST_VERSIONS, wxDefaultPosition, wxSize(800,200), wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL );
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

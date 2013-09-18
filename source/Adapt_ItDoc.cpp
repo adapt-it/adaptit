@@ -4011,6 +4011,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 /// immediately returns. Otherwise, the item is enabled if m_pSourcePhrases has at least one
 /// item in its list; otherwise the item is disabled.
 ///////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -4018,8 +4019,15 @@ void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+    
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+    if (gpApp->m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
+    
 	if (pApp->m_pSourcePhrases->GetCount() > 0)
 	{
 		event.Enable(TRUE);
@@ -20828,6 +20836,7 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// active. It should only be the "Unpack Document..." command that should be disabled when
 /// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
 	//if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
@@ -20840,6 +20849,12 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+    if (gpApp->m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
+
     // enable if there is a KB ready (even if only a stub), and the document loaded and
     // glossing mode is turned off
 	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady && !gbIsGlossing)
@@ -20865,6 +20880,7 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 /// whm added 7Jul11 Don't allow unpacking of documents when collaborating with an external
 /// editor such as Paratext or Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 {
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
@@ -20872,6 +20888,11 @@ void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+    if (gpApp->m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
