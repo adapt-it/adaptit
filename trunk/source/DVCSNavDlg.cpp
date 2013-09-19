@@ -55,14 +55,19 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
                                     wxDefaultSize,
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	m_dlgSizer = DVCSNavDlgFunc ( this, TRUE, TRUE );
-
-    m_version_comment   = (wxStaticText*) FindWindowById(ID_VERSION_COMMENT);
-    m_version_date      = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
-    m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
+    // color used for read-only text controls displaying static text info button face color
+    wxColour    sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
     
-    m_pApp = &wxGetApp();  wxASSERT (m_pApp != NULL);
-    m_pDoc = m_pApp->GetDocument();  wxASSERT (m_pDoc != NULL);
+	m_pDlgSizer = DVCSNavDlgFunc ( this, TRUE, TRUE );                          wxASSERT(m_pDlgSizer != NULL);
+
+    m_pVersion_comment   = (wxTextCtrl*) FindWindowById(ID_VERSION_COMMENT);    wxASSERT(m_pVersion_comment != NULL);
+    m_pVersion_date      = (wxStaticText*) FindWindowById(ID_VERSION_DATE);     wxASSERT(m_pVersion_date != NULL);
+    m_pVersion_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);        wxASSERT(m_pVersion_committer != NULL);
+    
+    m_pApp = &wxGetApp();               wxASSERT (m_pApp != NULL);
+    m_pDoc = m_pApp->GetDocument();     wxASSERT (m_pDoc != NULL);
+    
+    m_pVersion_comment->SetBackgroundColour (sysColorBtnFace);
 }
 
 DVCSNavDlg::~DVCSNavDlg(void)
@@ -81,9 +86,9 @@ void DVCSNavDlg::ChooseVersion ( int version )
 {
     m_pDoc->DoChangeVersion (version);
     
-    m_version_comment->SetLabel (m_pApp->m_pDVCS->m_version_comment);
-    m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
-    m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
+    m_pVersion_comment->ChangeValue (m_pApp->m_pDVCS->m_version_comment);
+    m_pVersion_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
+    m_pVersion_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
 
 }
 
