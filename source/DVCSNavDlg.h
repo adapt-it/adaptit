@@ -31,10 +31,10 @@ public:
     CAdapt_ItApp*   m_pApp;
     CAdapt_ItDoc*   m_pDoc;
     
-    wxSizer*        m_dlgSizer;
-    wxStaticText*   m_version_committer;
-    wxStaticText*   m_version_date;
-    wxStaticText*   m_version_comment;
+    wxSizer*        m_pDlgSizer;
+    wxStaticText*   m_pVersion_committer;
+    wxStaticText*   m_pVersion_date;
+    wxTextCtrl*     m_pVersion_comment;
 
     void InitDialog (void);
     void OnClose (wxCloseEvent& WXUNUSED(event));

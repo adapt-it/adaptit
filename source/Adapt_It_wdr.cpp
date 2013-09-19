@@ -9510,8 +9510,8 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item4->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item3 = new wxStaticBoxSizer( item4, wxHORIZONTAL );
 
-    wxStaticText *item5 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(300,-1), 0 );
-    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item5 = new wxStaticText( parent, ID_COMMITTER, _("committer name"), wxDefaultPosition, wxSize(300,20), 0 );
+    item3->Add( item5, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9520,7 +9520,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_VERSION_DATE, _("version date goes here"), wxDefaultPosition, wxSize(300,20), 0 );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    item6->Add( item8, 5, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -9528,8 +9528,8 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item10->SetFont( wxFont( 10, wxROMAN, wxNORMAL, wxNORMAL ) );
     wxStaticBoxSizer *item9 = new wxStaticBoxSizer( item10, wxHORIZONTAL );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_VERSION_COMMENT, _("comment goes here"), wxDefaultPosition, wxSize(300,60), 0 );
-    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_VERSION_COMMENT, wxT(""), wxDefaultPosition, wxSize(300,80), wxTE_MULTILINE|wxTE_READONLY );
+    item9->Add( item11, 5, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item2->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 15 );
 
