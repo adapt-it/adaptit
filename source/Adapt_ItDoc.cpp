@@ -2096,6 +2096,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			{
 				// tell developer or user, if the removal failed
 				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1714. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1714. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
 				return TRUE;
 			}
 		}
@@ -2515,6 +2516,8 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	}
 
     CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
+
+	pApp->LogUserAction(_T("Initiated File Save by calling DoFileSave()"));
 
 	// make the working directory the "Adaptations" one; or the current Bible book folder
 	// if the m_bBookMode flag is TRUE
