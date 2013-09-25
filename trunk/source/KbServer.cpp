@@ -1069,18 +1069,19 @@ int KbServer::ChangedSince(wxString timeStamp)
             }
             else
             {
-				// some other HTTP error presumably, report it in debug mode, and return a
-				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
+				// Some other situation, report it in debug mode, and don't update the 
+				// lastsync timestamp. Most likely, there was no JSON data to send. This
+				// isn't actually an error...
 #if defined (_DEBUG)
 				wxString msg;
-				msg  = msg.Format(_T("ChangedSince()error: HTTP status: %d   %s"),
-                                  m_httpStatusCode, m_httpStatusText.c_str());
-                wxMessageBox(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
+				msg  = msg.Format(_T("ChangedSince(): HTTP status: %d   Probably no JSON data was returned."),
+                                  m_httpStatusCode);
+                wxMessageBox(msg, _T("No useful data returned"), wxICON_EXCLAMATION | wxOK);
 #endif
  				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
 				pStatusBar->FinishProgress(_("Receiving..."));
-				return CURLE_HTTP_RETURNED_ERROR; // = 22
+				return (int)CURLE_OK;
            }
 		}
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
@@ -1088,7 +1089,7 @@ int KbServer::ChangedSince(wxString timeStamp)
     str_CURLbuffer.clear();
     str_CURLheaders.clear();
 	pStatusBar->FinishProgress(_("Receiving..."));
-	return 0;
+	return (int)CURLE_OK;
 }
 
 void KbServer::ClearStrCURLbuffer()
@@ -3973,24 +3974,35 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
             }
             else
             {
-				// some other HTTP error presumably, report it in debug mode, and return a
-				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
+				// Some other "error", so don't update the lastsync timestamp. The most
+				// likely thing that happened is that there have been no new entries to
+				// the entry table since the last 'changed since' sync - in which case no
+				// JSON is produced. No JSON means that the test above for "[{" will not
+				// find those two metacharacters for a JSON array - which means that the
+				// else branch sends control to the else block above but with
+				// m_httpStatusCode value of 200 (ie. success), so we don't actually have
+                // an error situation at all; and testing for a possible http error fails
+                // to find any error, and so the present else block is entered. So we are
+                // here almost certainly because there was no data to send in the
+                // transmission. This should be treated as a successful transmission, and
+				// not show a 'failure' message - even if just in the debug build. It's
+				// okay as well to not update the lastsync timestamp in this circumstance
 #if defined (_DEBUG)
 				wxString msg;
-				msg  = msg.Format(_T("ChangedSince_Queued() error:  HTTP status: %d   %s"),
-                                  m_httpStatusCode, m_httpStatusText.c_str());
-                wxMessageBox(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
+				msg  = msg.Format(_T("ChangedSince_Queued():  HTTP status: %d   No JSON data was returned. (This is an advisory message shown only in the Debug build.)"),
+                                  m_httpStatusCode);
+                wxMessageBox(msg, _T("No data returned"), wxICON_EXCLAMATION | wxOK);
 #endif
 				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
-				return CURLE_HTTP_RETURNED_ERROR; // = 22
+				return (int)CURLE_OK;
             }
 		}
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
 
     str_CURLbuffer.clear(); // always clear it before returning
     str_CURLheaders.clear(); // BEW added 9Feb13
-	return 0;
+	return (int)CURLE_OK;
 }
 
 

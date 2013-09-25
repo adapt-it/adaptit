@@ -157,6 +157,8 @@ void* Thread_DoEntireKbDeletion::Entry()
 				nonsuccessCount);
 #endif
 		
+// ********* TODO ***********  Return the status bar to being one-field only
+		// and any other things appropriate for this block
 
 
 	}
@@ -199,6 +201,15 @@ void* Thread_DoEntireKbDeletion::Entry()
 			m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
 			m_pApp->m_kbTypeOfCurrentRemoval = -1;
 			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+
+			// No update of the KB Sharing Manager GUI is needed, whether running or not,
+			// because the KB definition was not successfully removed from the kb table,
+			// it will still appear in the Manager if the latter is running, and if not
+			// and someone runs it, it will be shown listed in the kb page - and the user
+			// could then try again to remove it.
+			 
+// ********* TODO ***********  Return the status bar to being one-field only
+
 			return (void*)NULL;
 		} // end of TRUE block for test: if (result != CURLE_OK)
 
@@ -209,13 +220,52 @@ void* Thread_DoEntireKbDeletion::Entry()
 		KBSharingMgrTabbedDlg* pGUI = m_pApp->GetKBSharingMgrTabbedDlg();
 		if (pGUI != NULL)
 		{
-			// The KB Sharing Manager gui is running, so we've some work to do here...
-			// 2 custom events to be posted -- one to cause Mgr gui to update kb page,
-			// and the other to make the wxStatusBar go back to one unlimited
-			// field, and reset it and update the bar.
+            // The KB Sharing Manager gui is running, so we've some work to do here... We
+            // want the Mgr gui to update kb page; and secondly, we want to make the
+            // wxStatusBar go back to one unlimited field, and reset it and update the bar
+
+            // Some explanation is warranted here. The GUI might have the user page active
+            // currently, or the kbs page, (or, if we implement it) the languages page. Any
+            // time someone, in that Manager GUI, changes to a different page, a
+            // LoadDataForPage() call is made, taking as parameter the 0-based index for
+            // the page which is to be loaded. That function makes https calls to the
+            // remote database to get the data which is to be displayed on the page being
+            // selected for viewing - in particular, the list of users, kb definitions, or
+            // language codes, as the case may be. Because of that, if either the users
+            // page is currently active, or the language codes page is active, we do not
+            // here need to have the list in the kbs page forced to be updated - because
+            // the user would have to choose that page in the GUI in order to see it, and
+            // the LoadDataForPage() call that results will get the list update done. (If a
+            // radio button, for kb type, is changed, that too forces a http data get from
+            // the remote server to update the list box, etc.) So, we only need to update
+            // the listbox in the kbs page provided that:
+			// a) the kbs page is currently active, AND
+            // b) the kb type of the listed kb definition entries being shown matches the
+            // kb type that has just been deleted from the kb table.
+            // When both a) and b) are true, the user won't see the list updated unless we
+            // force the update from here. (He'd otherwise have to click on a different
+            // page's tab, and then click back on the kbs page tab, and perhaps also click
+            // the required radio button on that page if what was deleted was a glossing kb
+            // database.) So these comments explain why we do what we do immediately
+            // below...
+			if (m_pApp->m_bKbPageIsCurrent)
+			{
+				// We may have to force the page update - it depends on whether the kb types
+				// match, so check for that
+				int guiCurrentlyShowsThisKbType = m_pApp->m_bAdaptingKbIsCurrent ? 1 : 2;
+				if (m_pApp->m_kbTypeOfCurrentRemoval == guiCurrentlyShowsThisKbType)
+				{
+                    // We need to force the list to be updated. The radio button setting is
+                    // already correct, and the page has index equal to 1, so the following
+                    // call should do it
+					pGUI->LoadDataForPage(1);
+				}
+			}
 
 
 
+			// ********* TODO ***********  Return the status bar to being one-field only (also do it
+			// above - twice)
 
 		} // end of TRUE block for test:  if (pGUI != NULL)
 	}

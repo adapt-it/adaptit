@@ -1545,7 +1545,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 			if (rv != 0)
 			{
 				// The download of all owned entries in the selected kb server definition
-				// is not succeed; the user probably needs to know, so make it localizable;
+				// did not succeed; the user probably needs to know, so make it localizable;
 				// and since we didn't succeed, just clear the list selection and the text boxes
 				wxCommandEvent dummy;
 				OnButtonKbsPageClearListSelection(dummy);
@@ -1562,6 +1562,38 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				// All's well, continue processing...
 				// How many entries have to be deleted?
 				m_pApp->m_nQueueSize = m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->size();
+
+				if (m_pApp->m_nQueueSize == 0)
+				{
+					// We don't expect this, but if we get nothing back, we don't need to
+					// call the thread; instead, just do the kb definition deletion, and
+					// clean up
+					int nID = (int)m_pOriginalKbStruct->id;
+					// Remove the selected kb definition from the kbserver's kb table
+					CURLcode result = CURLE_OK;
+					result = (CURLcode)m_pKbServer->RemoveKb(nID);
+					// Update the page if we had success, if no success, just clear the controls
+					if (result == CURLE_OK)
+					{
+						LoadDataForPage(m_nCurPage);
+					}
+					else
+					{
+						// The removal did not succeed- this is quite unexpected, an English error
+						// message will do
+						wxCommandEvent dummy;
+						OnButtonKbsPageClearListSelection(dummy);
+						OnButtonKbsPageClearBoxes(dummy);
+						wxBell();
+						msg = _T("OnButtonKbsPageRemoveKb(): unexpected failure to remove a shared knowledge base (definition) which owns no entries.\nThe application will continue safely. Perhaps try the removal again later.");
+						title = _T("Error: could not remove the database");
+						m_pApp->LogUserAction(msg);
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+						return;
+					}
+					DeleteClonedKbServerKbStruct();
+					return;
+				}
 
 				// Create the detached thread which will do our database entry deletion job
 				Thread_DoEntireKbDeletion* pThread = new Thread_DoEntireKbDeletion(

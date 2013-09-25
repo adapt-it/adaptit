@@ -2075,6 +2075,10 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 		gpApp->m_pTargetBox->ChangeValue(boxValue);
 		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
 		gpApp->GetView()->Invalidate();
+#if defined(_DEBUG)
+		wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"), 
+			translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
+#endif
 	}
 
     // SaveType enum value (2nd param) for the following call is default: normal_save BEW
@@ -2100,6 +2104,13 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 				return TRUE;
 			}
 		}
+#if defined(_DEBUG)
+		CPile* myPilePtr = gpApp->m_pActivePile;
+		CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+		wxLogDebug(_T("DoFileSave_Protected() before returns TRUE: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(), 
+			mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+#endif
 		return TRUE;
 	}
 	else // handle failure
@@ -2494,6 +2505,14 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 {
 	bUserCancelled = FALSE;
 
+#if defined(_DEBUG)
+	CPile* myPilePtr = gpApp->m_pActivePile;
+	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+	wxLogDebug(_T("DoFileSave() start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(), 
+		mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+#endif
+
 	// BEW added 19Apr10 -- ensure we start with the latest doc version for saving if the
 	// save is a normal_save, but if a Save As... was asked for, the user may be about to
 	// choose a legacy doc version number for the save, in which case the call of the
@@ -2566,7 +2585,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	bool bNoStore = FALSE;
 	bOK = FALSE;
 
-    // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+    // BEW 9Aug11, in the call below, param1 TRUE is bAttemptStoreToKB, param2 bNoStore
     // returns TRUE to the caller if the attempted store fails for some reason, for all
     // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
     // has its default value of FALSE; this call replaces the commented out stuff
@@ -2815,7 +2834,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		}
 		else
 		{
-			// docVersion = the current VERSION_NUMBER value is wanted; currently it's 6
+			// docVersion = the current VERSION_NUMBER value is wanted; currently it's 8
 			m_bLegacyDocVersionForSaveAs = FALSE;
 		}
 
