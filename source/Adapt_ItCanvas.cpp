@@ -1527,7 +1527,7 @@ x:					CCell* pCell = 0;
                     // trying to debug the failure of an edited form to "stick" when the
                     // phrase box moves on. RossJones, Bill, JerryPfaff, and me (once) have
                     // observed it, and also nation translators on Linux netbooks
-					pApp->limiter = 0;
+					//pApp->limiter = 0; // bug fixed 24Sept13 BEW
 
 					// set up a temporary pile pointer
 					CPile* pile = NULL;

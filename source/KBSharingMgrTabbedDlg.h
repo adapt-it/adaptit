@@ -94,11 +94,13 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void OnCancel(wxCommandEvent& event);
+public:
 	void LoadDataForPage(int pageNumSelected);
+protected:
 	void DisplayRFC5646Message();
 	void OnTabPageChanged(wxNotebookEvent& event);
 
-protected:
+
 	// Functions needed by the Users page
 	KbServerUser* GetUserStructFromList(UsersList* pUsersList, size_t index);
 	void          LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList);

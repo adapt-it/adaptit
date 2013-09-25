@@ -15400,7 +15400,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_reopen_recovered_doc = FALSE;
     m_suppress_KB_messages = FALSE;     // normal default
 
-	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
+	// bug fixed 24Sept13 BEW
+	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
                  // being done more than once in a series of OnIdle() calls. It's reset to
                  // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
                  // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack

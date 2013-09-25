@@ -2290,7 +2290,7 @@ public:
     // stick' bug after edited phrase box value was edited; observed first by RossJones on
     // Win7, and then by Bill and JerryPfaff on Linux, me a few times Win7 and not at all
     // on Linux. The hack is a block at the end of OnIdle(), where if (limiter == 0) is tested
-	int limiter;
+	//int limiter; // bug fixed 24Sept13 BEW
 
 	// for selection (other parameters are also involved besides this one)
 	CCellList	m_selection; // list of selected CCell instances
@@ -4233,7 +4233,18 @@ private:
 public:
 	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
 	// dialog, at the one location, from being shown twice or more
-	int		m_nPlacePunctDlgCallNumber; // set to 0 in OnInit() and in end of DoFileSave() etc
+	int		m_nPlacePunctDlgCallNumber; // set to 0 in OnInit() and at end of CLayout::Draw()
+				// and in CAdapt_ItView::OnChar() -- the latter is because if the user is
+				// typing in the phrasebox, any non-zero value of this variable would be
+				// and error (because the next call of MakeTargetStringIncludingPunctuation()
+				// would increase the value to 2 or more, and that would suppress using
+				// whatever is passed into that function's 2nd parameter, targetStr, to 
+				// update pSrcPhrase->m_targetStr to whatever the user typed. A Save
+				// set a non-0 value, and that was the source of what we called the 
+				// "Non-sticking / Truncation" bug -- the value of m_targetStr was not
+				// being updated to what the user typed when the phrasebox moved on.
+				// Clearing the variable to 0 in OnChar() fixes this bug, and the kludge
+				// in OnIdle() can now be removed 
 	int		m_nCurSequNum_ForPlacementDialog;
 
 	// variables related to the Administrator menu

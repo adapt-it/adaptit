@@ -362,6 +362,7 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 //DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
 
+
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Free_Translations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Back_Translations_Edit)
@@ -446,6 +447,7 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 ),
 
 #if defined(_KBSERVER)
+
 #define EVT_KBDELETE_UPDATE_PROGRESS(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
         wxEVT_KbDelete_Update_Progress, id, wxID_ANY, \
@@ -4254,6 +4256,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
     if (pApp->m_recovery_pending)
         return;
 
+/* // bug fixed 24Sept13 BEW, so this hack is no longer needed, nor is the app member, limiter
 	if (pApp->limiter == 0 && gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1)
 	{
         // THE HACK (BEW 8Aug13) A hack fix for RossJones reported bug, of m_targetStr
@@ -4275,31 +4278,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		CPile* pPile = pView->GetPile(sn);
 		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-
-		// Test here for what calls we need to make it work, "day" is the source text at
-		// sequ num == 16 in my test file, so my replacement text is larger - we need a
-		// recalc of the pile width, at whatever is the old sequ numb (gnOldSequNum) if we
-		// find that the m_targetStr value is wrong (of course, we force it in this test,
-		// but use the results further below) It works if we have the following...
-		/*
-		if (pSrcPhrase->m_nSequNumber == 16)
-		{
-			pSrcPhrase->m_targetStr = _T("!Daybreak?;"); // my replacement text
-			pApp->limiter = 1;
-#ifdef _NEW_LAYOUT
-			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-			pDoc->ResetPartnerPileWidth(pSrcPhrase,FALSE); // FALSE is the boolean
-						// bNoActiveLocationCalculation, we want the pile width recalculated
-						// at the pSrcPhrase location
-			pView->Invalidate();
-			pApp->GetLayout()->PlaceBox();
-			return;
-		}
-		*/
 
 		// Don't do the check if a) this pSrcPhrase is a merger, or b) it's a fixed space
 		// conjoining - why? because the bug is rare and we've no proof yet that it
@@ -4362,6 +4340,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
                 // THE HACK goes here... we'll add punctuation to m_adaption value, do
                 // autocaps adjustments if required, and store the result in m_targetStr,
                 // and then get the layout updated
+                tgtStr = adaptn;
 				bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case
 											  // done if possible
 				bool bNoError = TRUE;
@@ -4422,8 +4401,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			} // end of else block for test: if (bOK)
 
 		} // end of TRUE block for test: if (!((pSrcPhrase->m_nSrcWords > 1) || (IsFixedSpaceSymbolWithin(pSrcPhrase))))
-		pApp->limiter = 1; // prohibit reentry to this hack block until limiter is reset to 0
+		//pApp->limiter = 1; // prohibit reentry to this hack block until limiter is reset to 0
 	}
+	*/
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)
@@ -5173,28 +5153,15 @@ void CMainFrame::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
     gpApp->GetDocument()->DoShowPreviousVersions (TRUE, versionNum);
 }
 
+//************  KbServer -- some handlers for Custom Events *******************
 
 #if defined(_KBSERVER)
+
 void CMainFrame::OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event))
 {
-	/* some test code to get some numbers printed to the screen, to verify the thread's posted custom event works
-	wxScreenDC dc;
-	wxRect rect(200,200,100,24);
-	wxFont* pFont = gpApp->m_pSourceFont;
-	pFont->SetPointSize(12);
-	wxString N;
-	wxString M;
-	wxString colon = _T(" : ");
-	wxItoa((int)gpApp->m_nIterationCounter,N);
-	wxItoa((int)gpApp->m_nQueueSize,M);
-	wxString displayStr = N + colon + M;
-	dc.SetFont(*pFont);
-	dc.StartDrawingOnTop(this);
-	dc.DrawText(displayStr,rect.GetLeft(), rect.GetTop());
-	dc.EndDrawingOnTop();
-	*/
 	gpApp->StatusBar_ProgressOfKbDeletion();
 }
+
 #endif
 
 

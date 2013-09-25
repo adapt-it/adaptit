@@ -764,7 +764,15 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 		}
 		else // did not get a translation, or a gloss when glossing is current
 		{
+#if defined(_DEBUG)
+			wxLogDebug(_T("HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan() Before MakeCopy...: sn = %d , key = %s , m_targetPhrase = %s"),
+				pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str());
+#endif
 			MakeCopyOrSetNothing(pApp, pView, pNewPile, bWantSelect);
+#if defined(_DEBUG)
+			wxLogDebug(_T("HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan() After MakeCopy...: sn = %d , key = %s , m_targetPhrase = %s"),
+				pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str());
+#endif
 
 			// BEW added 1Jul09, the flag should be TRUE if nothing was found
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
@@ -793,13 +801,21 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 							  // shown selected
 	// store the translation in the knowledge base
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
+	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bOK;
 	gbByCopyOnly = FALSE; // restore default setting
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
 	CLayout* pLayout = GetLayout();
+
+/* #if defined(_DEBUG)
+	CPile* myPilePtr = pApp->GetView()->GetPile(pApp->m_nActiveSequNum);
+	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+	wxLogDebug(_T("MoveToNextPile() at start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(), 
+		mySrcPhrasePtr->m_targetStr.c_str(), pApp->m_targetPhrase.c_str());
+#endif */
 
 	// make sure pApp->m_targetPhrase doesn't have any final spaces
 	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
@@ -847,6 +863,13 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 		// ON, the function will change initial lower to upper as required, whatever punctuation
 		// regime is in place for this particular sourcephrase instance
 		// in the next call, the final bool flag, bIsTransliterateMode, is default FALSE
+		
+/* #if defined(_DEBUG)
+	wxLogDebug(_T("MoveToNextPile() before DoStore_Normal...(): sn = %d , key = %s , m_targetPhrase = %s , m_targetStr = %s"),
+		pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str(), 
+		pCurPile->GetSrcPhrase()->m_targetStr.c_str());
+#endif */
+
 		bOK = DoStore_NormalOrTransliterateModes(pApp, pDoc, pView, pCurPile);
 		if (!bOK)
 		{
@@ -854,6 +877,12 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 			return FALSE; // can't move until a valid adaption (which could be null) is supplied
 		}
 	}
+/* #if defined(_DEBUG)
+	wxLogDebug(_T("MoveToNextPile() after DoStore_Normal...: sn = %d , key = %s , m_targetPhrase = %s , m_targetStr = %s"),
+		pCurPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str(),
+		pCurPile->GetSrcPhrase()->m_targetStr.c_str());
+#endif */
+
 	// since we are moving, make sure the default m_bSaveToKB value is set
 	pApp->m_bSaveToKB = TRUE;
 
@@ -1203,7 +1232,7 @@ bool CPhraseBox::MoveToNextPile_InTransliterationMode(CPile* pCurPile)
 							  // shown selected
 	// store the translation in the knowledge base
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
+	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	bool bOK;
@@ -2921,6 +2950,18 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		return;
 	}
 
+	// BEW added 25Sep13 to kill the "Non-sticking / Truncation bug" - where a Save and
+	// then typing more in the phrase box, when user hit Enter to advance the box, the
+	// string typed was not shown in the layout, but rather whatever was there in the box
+	// at the Save (or Auto-save). The app variable, m_nPlacePunctDlgCallNumber, which
+	// starts as 0, gets augmented each time MakeTargetStringIncludingPunction() is called
+	// and if the value goes over 1, none of the code for setting m_targetStr within that
+	// function gets called. The Save got the variable set to 1, and the advance of the
+	// box gives another call of the function - to 2, and hence the Non-stick bug happens.
+	// The solution is to clear m_nPlacePunctDlgCallNumber to 0 on every keystroke in the
+	// phrasebox - so that's what we do here, and the non-stick bug is history
+	pApp->m_nPlacePunctDlgCallNumber = 0; // initialize on every keystroke
+
 #ifdef Do_Clipping
 	//wxLogDebug(_T("In OnChar), ** KEY TYPED **"));
 #endif
@@ -3247,7 +3288,7 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
     // (perhaps in edited form, if user changed the string before moving back again)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
+	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView *pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pView->GetDocument();
 	gbByCopyOnly = FALSE; // restore default setting
@@ -3618,7 +3659,7 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 	// (perhaps in edited form, if user changed the string before moving back again)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug
+	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView *pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pView->GetDocument();
 	gbByCopyOnly = FALSE; // restore default setting
