@@ -4232,8 +4232,8 @@ private:
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
 	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
-	// dialog, at the once location, from being shown twice
-	int		m_nPlacePunctDlgCallNumber;
+	// dialog, at the one location, from being shown twice or more
+	int		m_nPlacePunctDlgCallNumber; // set to 0 in OnInit() and in end of DoFileSave() etc
 	int		m_nCurSequNum_ForPlacementDialog;
 
 	// variables related to the Administrator menu
