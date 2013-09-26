@@ -128,7 +128,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 {
 	wxString		str, str1, local_arguments;
 	wxArrayString	errors;
-    long			result;
+    long            result;
 	int				count, i;
 	int				returnCode = 0;		// 0 = no error.  Let's be optimistic here
     wxLogNull       logNo;              // avoid unwanted system messages
@@ -158,7 +158,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	str = str + _T(" ") + local_arguments;
 
 //wxMessageBox (str);		// uncomment for debugging
-
+    m_pApp->LogUserAction (_T("Calling git with command: ") + str);
 	result = wxExecute (str, git_output, errors, 0);
 
     if (result == -1)       // sometimes I get this on the Mac, but it seems to be spurious, and a retry works.
@@ -522,6 +522,8 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
     CAdapt_ItApp*   pApp = &wxGetApp();
     DVCSDlg         dlg ( pApp->GetMainFrame() );
 
+    pApp->LogUserAction (_T("Bringing up DVCSDlg (Save and Commit)"));
+
     pApp->ReverseOkCancelButtonsForMac(&dlg);           // fulfilling all righteousness here
 
     dlg.m_comment->SetFocus();          // we seem to need this on Linux at least
@@ -534,7 +536,10 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
         dlg.m_blurb->SetLabel (blurb);
 
     if (dlg.ShowModal() != wxID_OK)
+    {   pApp->LogUserAction (_T("Cancel clicked"));
         return FALSE;                   // Bail out if user cancelled, and return FALSE to caller
+    }
+    pApp->LogUserAction(_T("OK clicked"));
 
 // Now we get the comment, and save it in our instance variable:
     m_version_comment = dlg.m_comment->GetValue();

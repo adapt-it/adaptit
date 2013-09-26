@@ -1487,6 +1487,8 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
     // **** being typed in each of its two wxTextCtl widgets. The function which checks for
     // empty string or **** is CheckUsername() - it's in helpers.cpp.
 
+    gpApp->LogUserAction (_T("OnTakeOwnership() called - m_owner = ") + gpApp->m_owner + _T(" m_strUserID = ") + gpApp->m_strUserID );
+
 	if (gpApp->m_owner == gpApp->m_strUserID)
 		return;								// if we're already the owner, there's nothing to do
 
@@ -1520,6 +1522,8 @@ void CAdapt_ItDoc::DocChangedExternally()
 																			//  use the value we read in.  Change if necessary.
 	int				savedTrialVersionNum = gpApp->m_trialVersionNum;
 	wxString		dirPath;
+
+    gpApp->LogUserAction (_T("Entering DocChangedExternally()"));
 
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		dirPath = gpApp->m_bibleBooksFolderPath;
@@ -1560,6 +1564,8 @@ bool  CAdapt_ItDoc::Git_installed()
     if (!gpApp->m_DVCS_installed)
     {
         wxMessageBox(_T("Adapt It cannot maintain a history of its documents because your administrator has not yet installed the Git program on this computer. Please talk to your administrator."));
+        gpApp->LogUserAction (_T("Adapt It cannot maintain a history of its documents because your administrator has not yet installed the Git program on this computer. Please talk to your administrator."));
+
         return FALSE;
     }
     return TRUE;
@@ -1571,12 +1577,14 @@ bool  CAdapt_ItDoc::Commit_valid()
 
     if ( gpApp->m_strUserID == NOOWNER )
     {
-		wxMessageBox (_T("Before saving in the document history, you must enter a username for yourself."));
+		wxMessageBox (_("Before saving in the document history, you must enter a username for yourself."));
+		gpApp->LogUserAction (_T("Before saving in the document history, you must enter a username for yourself."));
         gpApp->OnEditChangeUsername (dummy);
 
         if ( gpApp->m_strUserID == NOOWNER )           // did we get a username?
         {                                              // nope - whinge and bail out.
-            wxMessageBox(_T("No username entered -- document not saved."));
+            wxMessageBox (_("No username entered -- document not saved."));
+            gpApp->LogUserAction (_T("No username entered -- document not saved."));
             return FALSE;
         }
     }
@@ -1585,7 +1593,10 @@ bool  CAdapt_ItDoc::Commit_valid()
 
 	if (gpApp->m_strUserID != gpApp->m_owner)
 	{
-		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
+		wxMessageBox ( _("Sorry, it appears the owner of this document is ") + gpApp->m_owner
+					  + _(" but the currently logged in user is ") + gpApp->m_strUserID
+					  + _(".  Only the document's owner can save in the document history.") );
+		gpApp->LogUserAction ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
 					  + _T(" but the currently logged in user is ") + gpApp->m_strUserID
 					  + _T(".  Only the document's owner can save in the document history.") );
 		return FALSE;
@@ -1600,6 +1611,7 @@ bool  CAdapt_ItDoc::Commit_valid()
 
 int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 {
+    CAdapt_ItApp*   pApp = &wxGetApp();
 	int				resultCode;
 	wxCommandEvent	dummy;
 	wxDateTime		localDate,
@@ -1607,46 +1619,51 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	wxString		origOwner = gpApp->m_owner;
     int             origCommitCnt = gpApp->m_commitCount;
 
-	if (gpApp->m_trialVersionNum >= 0)
+    pApp->LogUserAction(_T("Entering DoSaveAndCommit()"));
+
+	if (pApp->m_trialVersionNum >= 0)
 	{
 		wxMessageBox (_("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
+		pApp->LogUserAction (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
 
     if (!Commit_valid())
 		return -1;              // bail out if the ownership etc. isn't right
 
-    if ( !gpApp->m_pDVCS->AskSaveAndCommit (blurb) )
+    if ( !pApp->m_pDVCS->AskSaveAndCommit (blurb) )
         return -1;              // or if user cancelled dialog
-
 
 // Now we find the date/time and the commit count, which we'll save in the file before we do the commit.
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 
 	localDate = wxDateTime::Now();
-	gpApp->m_versionDate = localDate.ToUTC (FALSE);
+	pApp->m_versionDate = localDate.ToUTC (FALSE);
 
-    if ( gpApp->m_commitCount < 0 )
-        gpApp->m_commitCount = 0;
+    if ( pApp->m_commitCount < 0 )
+        pApp->m_commitCount = 0;
 
-	gpApp->m_commitCount += 1;					// bump the commit count
+	pApp->m_commitCount += 1;					// bump the commit count
 
-	gpApp->m_owner = gpApp->m_strUserID;		// owner may have been NOOWNER, but must be assigned on a commit
+	pApp->m_owner = gpApp->m_strUserID;		// owner may have been NOOWNER, but must be assigned on a commit
 
-	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
+	pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
 
-	resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
+	resultCode = pApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
 
 	if (resultCode)
 	{
 	// What do we do here??  We've already saved the document with the above info updated.  I think we
 	//  should roll everything back and re-save.  The DVCS code will already have given a message.
-		gpApp->m_versionDate = origDate;
-		gpApp->m_commitCount = origCommitCnt;
-		gpApp->m_owner = origOwner;
+        
+        pApp->LogUserAction (_T("Rolling back and re-saving"));
 
-		gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
+		pApp->m_versionDate = origDate;
+		pApp->m_commitCount = origCommitCnt;
+		pApp->m_owner = origOwner;
+
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		OnFileSave (dummy);
 		return -2;
 	}
@@ -1665,7 +1682,12 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 {
-    int returnCode;
+    CAdapt_ItApp*   pApp = &wxGetApp();
+    int             returnCode;
+    wxString        temp;
+    
+    temp = temp.Format (_T("DoChangeVersion() called with revNum = %d"), revNum);
+    pApp->LogUserAction (temp);
 
     wxASSERT (revNum >= 0);
 
@@ -1675,7 +1697,7 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 		return;
     }
 
- 	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
+ 	returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
 
 // a negative returnCode means a bug, so let's catch it:
     wxASSERT(returnCode >= 0);
@@ -1687,15 +1709,16 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 // the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
 // If an error has come up, we've already bailed out, leaving the trial status alone.
 
-    gpApp->m_trialVersionNum = revNum;          // successfully got to requested revision
+    pApp->LogUserAction (_T("Successfully got the version - now calling DocChangedExternally()"));
+    pApp->m_trialVersionNum = revNum;          // successfully got to requested revision
     DocChangedExternally();
 
     if (revNum == 0)
     {                                           // we're at the latest revision, so the trial's over
-        gpApp->m_pDVCSNavDlg->Destroy();        // take down the dialog
-        gpApp->m_pDVCSNavDlg = NULL;
-        gpApp->m_trialVersionNum = -1;
-		gpApp->GetView()->UpdateAppearance();
+        pApp->m_pDVCSNavDlg->Destroy();         // take down the dialog
+        pApp->m_pDVCSNavDlg = NULL;
+        pApp->m_trialVersionNum = -1;
+		pApp->GetView()->UpdateAppearance();
     }
 }
 
@@ -1723,15 +1746,20 @@ bool CAdapt_ItDoc::IsLatestVersionChanged (void)
 */
 void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 {
+    CAdapt_ItApp*   pApp = &wxGetApp();
     int				returnCode;
     wxCommandEvent	dummy;
     int				trialRevNum = gpApp->m_trialVersionNum;
     DVCSNavDlg*     pNavDlg;
     bool            didCommit = FALSE;
+    wxString        temp;
+
+    temp = temp.Format (_T("DoShowPreviousVersions() called with startHere = %d"), startHere);
+    pApp->LogUserAction (temp);
 
     wxASSERT (startHere >= 0);
 
-    if (gpApp->m_commitCount <= 0)
+    if (pApp->m_commitCount <= 0)
     {
         wxMessageBox (_("There are no earlier versions saved!") );
         return;
@@ -1766,7 +1794,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
         if (returnCode < 0)
             return;                             // bail out on error
 
-        gpApp->m_versionCount = returnCode;     // success - now we have the current total number of log entries
+        pApp->m_versionCount = returnCode;     // success - now we have the current total number of log entries
         if (fromLogDialog)  startHere++;        // log versions will have gone up by 1
     }
 
@@ -1775,6 +1803,8 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 
     gpApp->m_trialVersionNum = startHere;                       // and here's where we'll start from
 
+    pApp->LogUserAction(_T("Bringing up the DVCSNavDlg"));
+    
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
     pNavDlg->ChooseVersion (startHere);                         // changes the doc version, and sets fields in the dialog
@@ -1784,7 +1814,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
                                                                 //  it which would look uglier.
 	pNavDlg->AcceptsFocus();
     pNavDlg->InitDialog();
-    gpApp->m_pDVCSNavDlg = pNavDlg;
+    pApp->m_pDVCSNavDlg = pNavDlg;
 }
 
 // The "look at previous version" menu item takes us to the last one saved, which is item 1 in the log.
@@ -1800,9 +1830,12 @@ void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::DoAcceptVersion (void)
 {
+    gpApp->LogUserAction(_T("Entering DoAcceptVersion()"));
+
 	if (gpApp->m_trialVersionNum < 0)
 	{
 		wxMessageBox (_("We're not looking at earlier revisions!"));
+        gpApp->LogUserAction(_T("We're not looking at earlier revisions!"));
 		return;
 	}
 	gpApp->m_trialVersionNum = -1;		// cancel trialling.  m_commitCount should be OK as we read it from
@@ -1830,7 +1863,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     wxString        docPath, docName;
     CAdapt_ItApp*   pApp = gpApp;
 
-//    wxMessageBox(_T("RecoverLatestVersion() called!"));
+    pApp->LogUserAction(_T("Entering RecoverLatestVersion()"));
 
     pApp->m_recovery_pending = FALSE;                  // restore normal default, so opening the doc after recovery works properly
 
@@ -1848,7 +1881,15 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 //  doc has a wrong name. So on any nonzero returnCode we return FALSE since we can't
 //  recover the doc.
 
-    if (returnCode)  return FALSE;
+
+    if (returnCode)
+    {
+        wxString    temp;
+        temp = temp.Format (_T("Returning FALSE from RecoverLatestVersion() - returnCode = %d"), returnCode);
+        pApp->LogUserAction (temp);
+
+        return FALSE;
+    }
 
 
 /*  OK, the doc's recovered!  What we do now depends on what was happening when the doc was opened.  The normal situation
@@ -1868,6 +1909,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     pApp->m_reopen_recovered_doc = FALSE;       // restore normal default
 
     wxMessageBox(_("This document was corrupt, but we have restored the latest version saved in the document history."));
+    pApp->LogUserAction (_T("This document was corrupt, but we have restored the latest version saved in the document history."));
 
 	CAdapt_ItView* pView = pApp->GetView();
 
@@ -1943,7 +1985,8 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
 void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 {
-    int     returnCode, itemIndex = -1;
+    int     returnCode;
+    long    itemIndex = -1;
 
     gpApp->m_pDVCS->m_version_to_open = -1;     // ensure this is initialized to something
 
@@ -1976,6 +2019,7 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 // We've found that if we just open the nav dialog from here, it doesn't appear as properly in focus on Windows.  So instead
 // we'll post a custom event to do it.
 
+        gpApp->LogUserAction(_T("Posting custom event to open the DVCSNavDlg"));
         gpApp->m_pDVCS->m_version_to_open = itemIndex;          // put the version we want in our DVCS object for the
                                                                 // event to pick up
         wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
@@ -2099,8 +2143,8 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			if (!bRemovedSuccessfully)
 			{
 				// tell developer or user, if the removal failed
-				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1714. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
-				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1714. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
 				return TRUE;
 			}
 		}
