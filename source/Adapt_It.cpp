@@ -15378,8 +15378,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
   
-	m_recovery_pending = FALSE; // Must initialize to false, otherwise, every attempt to open
-								// a document in any project will fail
+// Initialize items relating to corrupt doc recovery:
+	m_recovery_pending = FALSE;
+    m_reopen_recovered_doc = FALSE;
+    m_suppress_KB_messages = FALSE;     // normal default
+
 #if defined(_KBSERVER)
 
 	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
@@ -15394,11 +15397,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
 #endif
-
-    // Initialize items relating to corrupt doc recovery:
-	m_recovery_pending = FALSE;
-    m_reopen_recovered_doc = FALSE;
-    m_suppress_KB_messages = FALSE;     // normal default
 
 	// bug fixed 24Sept13 BEW
 	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
@@ -15469,18 +15467,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
-	// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
-    //  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
-    //  and we want to change them over to use m_strUserID automatically.
+
+// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
+//  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
+//  and we want to change them over to use m_strUserID automatically.
 
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
-
 	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
+	m_pDVCS = new (DVCS);           // the single object we use for all DVCS ops
 
-	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
-
-// Now we check if git is actually installed:
-    m_DVCS_installed = ( m_pDVCS->DoDVCS (DVCS_CHECK, 0) == 0 );       // if this call returns an error, assume DVCS not installed
+// Note: our check for git being installed is now moved down to after the user log file setup, so we can log the git calls.
 
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
@@ -20066,6 +20062,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_ccTableInputsAndOutputsFolderPath = AIccTableFolderPathOnly; //m_ccTableFilePathOnly = AIccTableFolderPathOnly;
 
 	m_userLogFile = new wxFile(m_usageLogFilePathAndName,wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
+
+    // Now the user log file is set up, we can call git:
+    m_DVCS_installed = ( m_pDVCS->DoDVCS (DVCS_CHECK, 0) == 0 );       // if this call returns an error, assume DVCS not installed
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
