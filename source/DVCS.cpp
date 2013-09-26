@@ -158,7 +158,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	str = str + _T(" ") + local_arguments;
 
 //wxMessageBox (str);		// uncomment for debugging
-    m_pApp->LogUserAction (_T("Calling git with command: ") + str);
+//    m_pApp->LogUserAction (_T("Calling git with command: ") + str);
 	result = wxExecute (str, git_output, errors, 0);
 
     if (result == -1)       // sometimes I get this on the Mac, but it seems to be spurious, and a retry works.
