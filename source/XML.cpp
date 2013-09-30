@@ -122,7 +122,6 @@ int	gnDocVersion;
 int gnKbVersionBeingParsed; // will have value 1 (for kbv1) or 2 (for kbv2)
 							// but actually we'll use the symbolic constants KB_VERSION1
 							// and KB_VERSION2, respectively, see Adapt_ItConstants.h
-
 // parsing KB files
 CKB* gpKB; // pointer to the adapting or glossing KB (both are instances of CKB)
 CTargetUnit* gpTU; // pointer to the current CTargetUnit instance

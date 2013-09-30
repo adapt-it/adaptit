@@ -787,8 +787,15 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 	wxItoa(GetKBServerType(),kbType);
 	wxString container = _T("entry");
 
+	// The URL has to be url-encoded for safety
+	char *encodedsource = NULL;	// Encoded source string
+	// url-encode  sourcePhrase   before appending 
+	// to charUrl within the if (curl) block below
+	CBString utf8Src = ToUtf8(sourcePhrase); // could be a phrase, so it needs to be url-encoded
+	char* pUtf8Src = (char*)utf8Src; // need in this form for the curl_easy_escape() call below
+
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
-			slash + GetTargetLanguageCode() + slash + kbType + slash + wxStr_SourceEntry;
+			slash + GetTargetLanguageCode() + slash + kbType + slash;
 	charUrl = ToUtf8(aUrl);
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
@@ -796,6 +803,9 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 	curl = curl_easy_init();
 
 	if (curl) {
+		encodedsource = curl_easy_escape(curl, pUtf8Src, strlen(pUtf8Src));
+		strcat(charUrl, encodedsource);	// Append encoded source to URL
+
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -823,6 +833,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 
 			str_CURLbuffer.clear(); // always clear it before returning
 			curl_easy_cleanup(curl);
+			curl_free(encodedsource);
 			return (int)result;
 		}
 	}
@@ -845,6 +856,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 			wxMessageBox(_T("LookupEntriesForSourcePhrase(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
+			curl_free(encodedsource);
 			return -1;
 		}
 		int listSize = jsonval.Size();
@@ -864,6 +876,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 		}
 		str_CURLbuffer.clear(); // always clear it before returning
+		curl_free(encodedsource);
 	}
 
 	return 0;
@@ -1514,14 +1527,25 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 	wxString colon(_T(':'));
 	wxString container = _T("user");
 
-	aUrl = url + slash + container + slash + whichusername;
+	// The URL has to be url-encoded for safety
+	char *encodeduser = NULL;	// Encoded username string
+
+	aUrl = url + slash + container + slash; // later add url-encoded whichusername;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
 
+	// url-encode  whichusername   before appending 
+	// to charUrl within the if (curl) block below
+	CBString utf8User = ToUtf8(whichusername); // justs in case it's a phrase, make it url-encoded
+	char* pUtf8User = (char*)utf8User; // need in this form for the curl_easy_escape() call below
+
 	curl = curl_easy_init();
 
 	if (curl) {
+		encodeduser = curl_easy_escape(curl, pUtf8User, strlen(pUtf8User));
+		strcat(charUrl, encodeduser);	// Append url-encoded username to URL
+
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1559,6 +1583,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 			wxMessageBox(msg, _T("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
+			curl_free(encodeduser);
 			return (int)result;
 		}
 	}
@@ -1573,6 +1598,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 		ClearUserStruct();
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
+		curl_free(encodeduser);
 		return CURLE_HTTP_RETURNED_ERROR; // 22
 	}
 
@@ -1594,6 +1620,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
+			curl_free(encodeduser);
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
 		// We extract id, username, fullname, kbadmin flag value, useradmin flag value,
@@ -1612,6 +1639,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
+		curl_free(encodeduser);
 	}
 	return 0;
 }
@@ -1861,10 +1889,18 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	wxString kbType;
 	wxItoa(GetKBServerType(),kbType);
 	wxString container = _T("entry");
+	// The URL has to be url-encoded
+	char *encodedsource = NULL;	// Encoded source string
+    char *encodedtarget = NULL;	// Encoded target string
+	// url-encode the next two:  sourcePhrase + slash + targetPhrase before
+	// appending them to charUrl within the if (curl) block below
+	CBString utf8Src = ToUtf8(sourcePhrase); // could be a phrase, so it needs to be url-encoded
+	CBString utf8Tgt = ToUtf8(targetPhrase); // before being appended to charUrl, & ditto for tgt one
+	char* pUtf8Src = (char*)utf8Src; // need in this form for the curl_easy_escape() call below
+	char* pUtf8Tgt = (char*)utf8Tgt;  // ditto
 
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
-			slash + GetTargetLanguageCode() + slash + kbType + slash + sourcePhrase +
-			slash + targetPhrase;
+			slash + GetTargetLanguageCode() + slash + kbType + slash;
 	charUrl = ToUtf8(aUrl);
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
@@ -1872,6 +1908,12 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	curl = curl_easy_init();
 
 	if (curl) {
+		encodedsource = curl_easy_escape(curl, pUtf8Src, strlen(pUtf8Src));
+		encodedtarget = curl_easy_escape(curl, pUtf8Tgt, strlen(pUtf8Tgt));
+		strcat(charUrl, encodedsource);	// Append encoded source to URL
+		strcat(charUrl, "/");			// Append a slash
+		strcat(charUrl, encodedtarget);	// Append target to URL
+
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1909,6 +1951,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			wxMessageBox(msg, _T("Error when looking up an entry"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
+			curl_free(encodedsource);
+			curl_free(encodedtarget);
 			return (int)result;
 		}
 	}
@@ -1923,6 +1967,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		ClearEntryStruct(); // if we subsequently access it, its source member is an empty string
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
+		curl_free(encodedsource);
+		curl_free(encodedtarget);
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
 
@@ -1944,6 +1990,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
+			curl_free(encodedsource);
+			curl_free(encodedtarget);
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
 		// we extract id, source phrase, target phrase, deleted flag value & username
@@ -1958,6 +2006,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
+		curl_free(encodedsource);
+		curl_free(encodedtarget);
 	}
 	return 0;
 }
