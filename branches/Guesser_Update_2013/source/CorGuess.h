@@ -71,10 +71,11 @@ list will be freshened.
 
 */
 
-#ifndef __WXWINDOWS__ // If not wxWidgets, define back to generic char and string
+#ifdef _MBCS // If not wxWidgets, define back to generic char and string // 1.6.1ba 
 #define wxChar char
 #define wxStrlen strlen
 #define wxStrcpy strcpy
+#define wxStrcat strcat
 #define wxStrcmp strcmp
 #endif
 

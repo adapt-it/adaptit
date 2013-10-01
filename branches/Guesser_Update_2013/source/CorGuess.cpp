@@ -15,9 +15,9 @@
 // For documentation see CorGuess.h
 
 
-//#ifdef __WXWINDOWS__ // 1.6.0ad Update CorGuess.cpp for compiling in Adapt It
+#ifndef _MBCS // 1.6.0ad Update CorGuess.cpp for compiling in Adapt It // 1.6.1ba Update guesser to test _MCBS for non wxWidgets
 // ////////////////////////////////////////////////////////////////////////
-// whm added standard wxWidgets headers below which includes wx.h (and defines the __WXWINDOWS__ symbol needed below)
+// whm added standard wxWidgets headers below which includes wx.h
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "CorGuess.h"
 #endif
@@ -29,11 +29,11 @@
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
 #endif
-// whm added standard wxWidgets headers above which includes wx.h (and defines the __WXWINDOWS__ symbol needed below)
+// whm added standard wxWidgets headers above which includes wx.h
 // ////////////////////////////////////////////////////////////////////////
-//#endif // 1.6.0ad 
+#endif // 1.6.0ad 
 
-#ifndef __WXWINDOWS__
+#ifdef _MBCS // 1.6.1ba 
 #include <string.h> // Only generic string functions used
 #endif
 
@@ -185,12 +185,14 @@ void CorrespList::Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) /
 			pcorF->iNumInstances++;
 		else if ( iFreq > pcorF->iFreq ) // 1.6.1ae If higher frequency, replace previous with this
 			{
+// #ifdef NotNeeded // 1.6.1bb Since source and target are the same, no need to replace them
 			delete pcorF->pszSrc;
 			delete pcorF->pszTar;
 			pcorF->pszSrc = new wxChar[ wxStrlen( pszSrc ) + 1 ];
 			wxStrcpy( pcorF->pszSrc, pszSrc );
 			pcorF->pszTar = new wxChar[ wxStrlen( pszTar ) + 1 ];
 			wxStrcpy( pcorF->pszTar, pszTar );
+// #endif // 1.6.1bb 
 			pcorF->iFreq = iFreq; // 1.6.1ae Store new frequency
 			}
 		return;
@@ -232,7 +234,10 @@ void Guesser::Init( int iGuessLevel1 ) // 1.4vyd Add ClearAll function // 1.5.8u
 	{
 	corlstSuffGuess.ClearAll(); // Guessed suffixes
 	corlstRootGuess.ClearAll(); // Guessed roots
-	corlstPrefGuess.ClearAll(); // Guess prefixes
+	corlstPrefGuess.ClearAll(); // Guessed prefixes
+	corlstSuffGiven.ClearAll(); // Given suffixes
+	corlstRootGiven.ClearAll(); // Given roots
+	corlstPrefGiven.ClearAll(); // Given prefixes
 	corlstKB.ClearAll(); // Raw correspondences given to guesser
 	iGuessLevel = iGuessLevel1; // 1.5.8u Set guess level
 	if ( iGuessLevel >= 50 )
@@ -253,7 +258,7 @@ void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int
 		corlstPrefGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given prefix // 1.6.1ag Use high freq
 	else if ( iFreq == -2 ) // 1.6.1ad If given suffix store as that
 		corlstSuffGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given suffix // 1.6.1ag Use high freq
-	else if ( iFreq == 0 ) // 1.6.1ad If given root store as that, unless it has hyphen
+	else if ( iFreq == 0 ) // 1.6.1ad If given root store as that
 		corlstRootGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given prefix // 1.6.1ag Use high freq
 	else
 		corlstKB.Add( pszSrc, pszTar, iFreq );
@@ -367,24 +372,6 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 		}
 	}
 
-void StrCopy( wxChar* pszS, const wxChar* pszCopy, int iLoc, int iNum ) // 1.6.1aj Copy iNum chars of pszCopy into pszS at iLoc
-	{
-	bool bTerminate = ( iLoc + iNum > (int)wxStrlen( pszS ) ); // 1.6.1aj True if copy will overwrite end of pszS
-	wxChar* pszLoc = pszS + iLoc; // 1.6.1aj Pointer to target place
-	for ( int i = 0; i < iNum; i++ ) // 1.6.1aj For each character, copy character
-		*( pszLoc + i ) = *( pszCopy + i ); // 1.6.1aj Copy character
-//	if ( bTerminate ) // 1.6.1aj If necessary, terminate string
-//		*( pszLoc + i ) = 0; // 1.6.1aj Terminate string
-	}
-
-void StrAppend( wxChar* pszS, const wxChar* pszAppend, int iNum = -1 ) // 1.6.1aj Utility function to append string
-	{
-	wxChar* pszEnd = pszS + wxStrlen( pszS ); // 1.6.1aj Pointer to end of target
-	if ( iNum == -1 ) // 1.6.1aj If no length given, append all
-		iNum = wxStrlen( pszAppend );
-	StrCopy( pszS, pszAppend, wxStrlen( pszS ), iNum ); // 1.6.1aj Use StrCopy for append
-	}
-
 bool bStrMatch( const wxChar* pszS, const wxChar* pszMatch, int iStart ) // 1.6.1aj Utility function to test for match of pszMatch
 	{
 	const wxChar* pszT = pszS + iStart; // 1.6.1aj Set starting location
@@ -409,9 +396,9 @@ void StrReplace( wxChar* pszS, wxChar* pszReplace, int iLoc, int iNum ) // 1.6.1
 	{
 	wxChar* pszTail = new wxChar[ wxStrlen( pszS ) + 1 ]; // 1.6.1aj Temp storage of tail
 	wxStrcpy( pszTail, pszS + iLoc + iNum ); // 1.6.1aj Save tail
-	*( pszS + iLoc ) = 0; // 1.6.1aj Terminate head
-	StrAppend( pszS, pszReplace ); // 1.6.1aj Copy replace in
-	StrAppend( pszS, pszTail ); // 1.6.1aj Put tail back on
+	wxStrcpy( pszS + iLoc, _T("") ); // 1.6.1bb Terminate head
+	wxStrcat( pszS, pszReplace ); // 1.6.1aj Copy replace in // 1.6.1bb Get rid of pointer arithmetic
+	wxStrcat( pszS, pszTail ); // 1.6.1aj Put tail back on // 1.6.1bb 
 	delete pszTail;
 	}
 
@@ -446,9 +433,10 @@ bool Guesser::bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplac
 			{
 			wxChar* pszSrcShortened = new wxChar[ wxStrlen( pszSrc ) + 1 ]; // 1.6.1aj Shortened source to try further suff
 			wxStrcpy( pszSrcShortened, pszSrc ); // Copy source to shortened source
-			*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source
+//			*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source
+			wxStrcpy( pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc, _T("") ); // 1.6.1aj Shorten source // 1.6.1bb 
 			bSuffReplace( pszSrcShortened, ppszTar, iGuessLevel >= 50 ); // 1.6.1aj Try replace suff on shortened source, but only if guess level 50 or more
-			StrAppend( *ppszTar, pcorSuff->pszTar ); // 1.6.1aj Append target suff to end of target
+			wxStrcat( *ppszTar, pcorSuff->pszTar ); // 1.6.1aj Append target suff to end of target
 			delete pszSrcShortened; // 1.6.1aj 
 			return true;
 			}
