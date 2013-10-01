@@ -373,8 +373,8 @@ void StrCopy( wxChar* pszS, const wxChar* pszCopy, int iLoc, int iNum ) // 1.6.1
 	wxChar* pszLoc = pszS + iLoc; // 1.6.1aj Pointer to target place
 	for ( int i = 0; i < iNum; i++ ) // 1.6.1aj For each character, copy character
 		*( pszLoc + i ) = *( pszCopy + i ); // 1.6.1aj Copy character
-	if ( bTerminate ) // 1.6.1aj If necessary, terminate string
-		*( pszLoc + i ) = 0; // 1.6.1aj Terminate string
+//	if ( bTerminate ) // 1.6.1aj If necessary, terminate string
+//		*( pszLoc + i ) = 0; // 1.6.1aj Terminate string
 	}
 
 void StrAppend( wxChar* pszS, const wxChar* pszAppend, int iNum = -1 ) // 1.6.1aj Utility function to append string

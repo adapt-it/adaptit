@@ -25115,12 +25115,16 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 
 		DoGuesserAffixWriteXML(&f,GuesserPrefix);
 		//DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
-*/
 
 
+	wxTextCtrl *MainEditBox;
+
+// Initialize our text box with an id of TEXT_Main, and the label "hi"
+  MainEditBox = new wxTextCtrl(this, wxID_ANY, "Hi!", wxDefaultPosition, wxDefaultSize,  
+    wxTE_MULTILINE | wxTE_RICH , wxDefaultValidator, wxTextCtrlNameStr);
 		///TEST KLB
 
-
+*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
