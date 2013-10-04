@@ -113,7 +113,7 @@ void DVCSNavDlg::OnAccept (wxCommandEvent& WXUNUSED(event))
 
 void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))
 {    
-    m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
+    m_pDoc->DoChangeVersion (-2);     // -2 means latest committed or the backup if it's there. Also removes the dialog and cleans up
 };
 
 
@@ -122,6 +122,7 @@ void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))
 
 void DVCSNavDlg::OnClose (wxCloseEvent& WXUNUSED(event))
 {
-    m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
+    m_pDoc->DoChangeVersion (-2);     // -2 means latest committed or the backup if it's there. Also removes the dialog and cleans up
+
 }
 
