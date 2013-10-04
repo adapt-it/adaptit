@@ -68,18 +68,11 @@
 // Symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Edit menu)
 // Later this functionality will move to other places, but this is convenient for testing.
 const int ID_MENU_DVCS_VERSION			= 999;
-const int ID_MENU_INIT_REPOSITORY		= 998;
-const int ID_MENU_DVCS_ADD_FILE			= 997;
-const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
-const int ID_MENU_DVCS_REMOVE_FILE		= 995;
-const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
-/*
-const int ID_FILE_SAVE_COMMIT           = 993;
-const int ID_FILE_SHOW_REVISIONS		= 992;
-const int ID_DVCS_LOG_FILE              = 989;
-const int ID_DVCS_LOG_PROJECT           = 988;
-const int ID_FILE_TAKE_OWNERSHIP		= 987;
-*/
+//const int ID_MENU_INIT_REPOSITORY		= 998;
+//const int ID_MENU_DVCS_ADD_FILE			= 997;
+//const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
+//const int ID_MENU_DVCS_REMOVE_FILE		= 995;
+//const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
 
 // BEW note 14Jan13, for the KB sharing menu item in Advanced menu will use value 980 for
 // the present and add the menu item and preceding separator only in the _DEBUG build while
@@ -2243,6 +2236,7 @@ public:
                                         //    n = n commits have been done
 	int			m_trialVersionNum;		// non-negative if we're trialling a look at an earlier version.  Negative means no trial.
     int         m_versionCount;         // total number of versions in the log (applies to current trial)
+    bool        m_bBackedUpForTrial;    // true if a backup has been created over a trial
 
 	wxDateTime	m_versionDate;			// when this version was committed
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.

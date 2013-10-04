@@ -1680,6 +1680,41 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 	DoSaveAndCommit(_T(""));        // Ignore returned result - if an error occurred, a message will have been shown.
 }
 
+void CAdapt_ItDoc::EndTrial (bool restoreBackup)
+{
+    CAdapt_ItApp*   pApp = &wxGetApp();
+    
+    pApp->m_pDVCSNavDlg->Destroy();         // take down the dialog
+    pApp->m_pDVCSNavDlg = NULL;
+    pApp->m_trialVersionNum = -1;
+
+// now if we did a backup because of uncommitted changes when we started the trial, we may need to restore from the backup:
+    if (pApp->m_bBackedUpForTrial)
+    {
+        wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
+        
+        if (restoreBackup)
+        {
+            pApp->m_bBackedUpForTrial = FALSE;
+    
+            bool        bCopiedSuccessfully = ::wxCopyFile (backupPath, pApp->m_curOutputPath, TRUE);   // summarily overwrite!
+            wxASSERT(bCopiedSuccessfully);
+        }
+        
+    // so far so good, so we remove the backup:
+        bool        bRemovedSuccessfully = ::wxRemoveFile (backupPath);
+        if (!bRemovedSuccessfully)
+        {
+            // tell developer or user, if the removal failed.  This isn't critical - just a warning.
+            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1700."));
+            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1700."));
+        }
+        
+        DocChangedExternally();                 // Yep, we restored from the backup, so it's changed!
+    }
+    pApp->GetView()->UpdateAppearance();        // whatever happened, the on-screen appearance will have changed
+}
+
 void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 {
     CAdapt_ItApp*   pApp = &wxGetApp();
@@ -1689,12 +1724,20 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     temp = temp.Format (_T("DoChangeVersion() called with revNum = %d"), revNum);
     pApp->LogUserAction (temp);
 
-    wxASSERT (revNum >= 0);
+    wxASSERT (revNum >= 0 || pApp->m_bBackedUpForTrial);
 
     if ( revNum >= gpApp->m_versionCount )
     {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
         wxMessageBox (_("We're already back at the earliest version saved!") );
 		return;
+    }
+
+    if (revNum < 0 && pApp->m_bBackedUpForTrial)    // we've been asked to go to the "next" version, but actually we're at the latest committed, but there's a
+                                                    //  backup of the really really latest version.  So we go to that.  EndTrial() handles the whole thing,
+                                                    //  then we're done.
+    {
+        EndTrial(TRUE);
+        return;
     }
 
  	returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
@@ -1709,17 +1752,15 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 // the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
 // If an error has come up, we've already bailed out, leaving the trial status alone.
 
-    pApp->LogUserAction (_T("Successfully got the version - now calling DocChangedExternally()"));
-    pApp->m_trialVersionNum = revNum;          // successfully got to requested revision
+    pApp->LogUserAction (_T("Successfully got the version - now calling EndTrial() or DocChangedExternally()"));
+    pApp->m_trialVersionNum = revNum;           // successfully got to requested revision
+
     DocChangedExternally();
 
-    if (revNum == 0)
-    {                                           // we're at the latest revision, so the trial's over
-        pApp->m_pDVCSNavDlg->Destroy();         // take down the dialog
-        pApp->m_pDVCSNavDlg = NULL;
-        pApp->m_trialVersionNum = -1;
-		pApp->GetView()->UpdateAppearance();
-    }
+    if (revNum == 0 && !pApp->m_bBackedUpForTrial)
+        EndTrial (TRUE);                        // we're at the latest committed version, and that's really the latest.  The trial's over.
+    else
+        pApp->GetView()->UpdateAppearance();    // still going, but we have to update the on-screen appearance
 }
 
 // IsLatestVersionChanged() calls DVCS to check if the current version on disk is the same as the latest version
@@ -1751,13 +1792,13 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     wxCommandEvent	dummy;
     int				trialRevNum = gpApp->m_trialVersionNum;
     DVCSNavDlg*     pNavDlg;
-    bool            didCommit = FALSE;
+    bool            needBackup = FALSE;
     wxString        temp;
 
     temp = temp.Format (_T("DoShowPreviousVersions() called with startHere = %d"), startHere);
     pApp->LogUserAction (temp);
 
-    wxASSERT (startHere >= 0);
+    wxASSERT (startHere >= 0);          // 0 is the latest version committed, 1 the next previous, and so on.
 
     if (pApp->m_commitCount <= 0)
     {
@@ -1773,33 +1814,47 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 
     if (trialRevNum > 0)
     {
-        wxMessageBox (_T("We're shouldn't have got here!") );
+        wxMessageBox (_T("We shouldn't have got here!") );
         return;
     }
 
-    // We're initiating a trial review of previoius versions.  The current version needs to be saved and
-    // committed, so we can come back to it if necessary.  But we don't need to do this if the doc
-    // has just been committed with no subsequent changes.
+    // We're initiating a trial review of previoius versions.  The current version needs to be backed up so we can come
+    // back to it if necessary, so we copy it to a file with the same name with "__bak" appended, in the same folder.
+    // But we don't need to do this if the doc has just been committed with no subsequent changes.
 
-    if ( IsModified() || IsLatestVersionChanged() )     // only doing the DVCS call if doc is clean
+    pApp->m_bBackedUpForTrial = FALSE;
+    if ( IsModified() )
     {
-        if ( DoSaveAndCommit(_("There have been changes to this document since the last time you saved it in the history.  Before we can go back to previous versions we must save the current version in the history, so that we can come back to this version if necessary.  Please type a comment in the box above to identify this version of the document, then click OK to proceed.")) )
-            return;			// bail out on error or if user cancelled - message should be already displayed
-        didCommit = TRUE;
+        pApp->DoAutoSaveDoc();       // if the doc is modified, we have to save it, so it's just like an autosave, and we'll need a backup
+        needBackup = TRUE;
+    }
+    else
+        needBackup = IsLatestVersionChanged();      // if not modified, but the latest version isn't the same as the latest committed, we need a backup.
+    
+    if (needBackup)
+    {
+        wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
+        bool        bCopiedSuccessfully = ::wxCopyFile(pApp->m_curOutputPath, backupPath, TRUE);   // overwrite any previous copy
+        wxASSERT(bCopiedSuccessfully);
+        pApp->m_bBackedUpForTrial = TRUE;
+        if (!fromLogDialog)  startHere--;       // if we've been called sraight from the menu, the "previous version" is actually the
+                                                //  last committed, since subsequent changes have been made to the doc.  So we need to
+                                                //  adjust where we start from.  But if we were called from the dialog, the actual version
+                                                //  has been specified, so we mustn't change it.
     }
 
-    if (!fromLogDialog || didCommit)
+    if (!fromLogDialog)
     {
-        returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
+        returnCode = pApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
         if (returnCode < 0)
             return;                             // bail out on error
 
-        pApp->m_versionCount = returnCode;     // success - now we have the current total number of log entries
-        if (fromLogDialog)  startHere++;        // log versions will have gone up by 1
+        pApp->m_versionCount = returnCode;      // success - now we have the current total number of log entries
     }
 
-    if (startHere == 0)  return;                // presumably the latest version was chosen in the log dialog,
-                                                // and we didn't commit a later one, so there's nothing more to do!
+    if (startHere == 0 && !pApp->m_bBackedUpForTrial)  return;
+                                                // presumably the latest version was chosen in the log dialog,
+                                                // and we didn't backup a later one, so there's nothing more to do!
 
     gpApp->m_trialVersionNum = startHere;                       // and here's where we'll start from
 
@@ -1838,13 +1893,16 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
         gpApp->LogUserAction(_T("We're not looking at earlier revisions!"));
 		return;
 	}
+    
+    EndTrial (FALSE);           // the trial's over, but we don't restore from any backup.
+/*
 	gpApp->m_trialVersionNum = -1;		// cancel trialling.  m_commitCount should be OK as we read it from
 										//  the doc when we reverted.
 	DocChangedExternally();				// will become read-write again
     gpApp->m_pDVCSNavDlg->Destroy();    // take down the navigation dialog
     gpApp->m_pDVCSNavDlg = NULL;
 	gpApp->GetView()->UpdateAppearance();
-
+*/
 }
 
 

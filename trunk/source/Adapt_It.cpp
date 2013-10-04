@@ -15474,6 +15474,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
 	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
+    m_bBackedUpForTrial = FALSE;
 	m_pDVCS = new (DVCS);           // the single object we use for all DVCS ops
 
 // Note: our check for git being installed is now moved down to after the user log file setup, so we can log the git calls.

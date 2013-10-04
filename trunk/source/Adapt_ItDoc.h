@@ -458,6 +458,7 @@ public:
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
     void OnUpdateSaveAndCommit (wxUpdateUIEvent& event);
 	int  DoSaveAndCommit (wxString blurb);
+    void EndTrial (bool restoreBackup);
     void DoChangeVersion ( int revNum );
     void DoShowPreviousVersions ( bool fromLogDialog, int startHere );
 	void OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event));
