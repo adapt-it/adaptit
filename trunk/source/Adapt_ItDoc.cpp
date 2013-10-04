@@ -1683,13 +1683,15 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::EndTrial (bool restoreBackup)
 {
     CAdapt_ItApp*   pApp = &wxGetApp();
+    bool            backupExists = pApp->m_bBackedUpForTrial;
     
     pApp->m_pDVCSNavDlg->Destroy();         // take down the dialog
     pApp->m_pDVCSNavDlg = NULL;
-    pApp->m_trialVersionNum = -1;
+    pApp->m_trialVersionNum = -1;           // no trial now
+    pApp->m_bBackedUpForTrial = FALSE;      // restore normal default here at the start
 
 // now if we did a backup because of uncommitted changes when we started the trial, we may need to restore from the backup:
-    if (pApp->m_bBackedUpForTrial)
+    if (backupExists)
     {
         wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
         
@@ -1706,12 +1708,13 @@ void CAdapt_ItDoc::EndTrial (bool restoreBackup)
         if (!bRemovedSuccessfully)
         {
             // tell developer or user, if the removal failed.  This isn't critical - just a warning.
-            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1700."));
-            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1700."));
+            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
+            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
         }
         
-        DocChangedExternally();                 // Yep, we restored from the backup, so it's changed!
     }
+    DocChangedExternally();                     // Even if we didn't restore from the backup, the read-only status
+                                                //  has changed, so we need this.
     pApp->GetView()->UpdateAppearance();        // whatever happened, the on-screen appearance will have changed
 }
 
@@ -1724,27 +1727,35 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     temp = temp.Format (_T("DoChangeVersion() called with revNum = %d"), revNum);
     pApp->LogUserAction (temp);
 
-    wxASSERT (revNum >= 0 || pApp->m_bBackedUpForTrial);
-
+    wxASSERT(revNum >= -2);
+    
+    if (revNum == -2)       // "return to latest" was clicked in the dialog.  Whatever we do, we first need to go to the
+                            // latest committed version.
+    {
+        returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, 0);			// get the latest committed revision
+        
+        wxASSERT(returnCode >= 0);      // a negative returnCode means a bug
+        if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
+                                        //  message should have been displayed already.
+    }
+    
+    if (revNum < 0)                     // As well as the case above, we come here with revNum = -1, meaning that the Nav dialog
+                                        // has asked us to go to the "next" version, but actually we're at the latest committed.
+    {   EndTrial(TRUE);                 // This handles everything - takes down the dialog, and restores the backup if any,
+                                        // and calls DocChangedExternally() and UpdateAppearance().
+        return;
+    }
+    
     if ( revNum >= gpApp->m_versionCount )
-    {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
+    {                   // bail out if no more
         wxMessageBox (_("We're already back at the earliest version saved!") );
 		return;
     }
 
-    if (revNum < 0 && pApp->m_bBackedUpForTrial)    // we've been asked to go to the "next" version, but actually we're at the latest committed, but there's a
-                                                    //  backup of the really really latest version.  So we go to that.  EndTrial() handles the whole thing,
-                                                    //  then we're done.
-    {
-        EndTrial(TRUE);
-        return;
-    }
-
  	returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
 
-// a negative returnCode means a bug, so let's catch it:
-    wxASSERT(returnCode >= 0);
 
+    wxASSERT(returnCode >= 0);      // a negative returnCode means a bug
     if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
                                     //  message should have been displayed already.
 
@@ -1895,14 +1906,6 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
 	}
     
     EndTrial (FALSE);           // the trial's over, but we don't restore from any backup.
-/*
-	gpApp->m_trialVersionNum = -1;		// cancel trialling.  m_commitCount should be OK as we read it from
-										//  the doc when we reverted.
-	DocChangedExternally();				// will become read-write again
-    gpApp->m_pDVCSNavDlg->Destroy();    // take down the navigation dialog
-    gpApp->m_pDVCSNavDlg = NULL;
-	gpApp->GetView()->UpdateAppearance();
-*/
 }
 
 
