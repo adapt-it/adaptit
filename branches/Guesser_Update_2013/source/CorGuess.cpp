@@ -176,28 +176,55 @@ void CorrespList::Add( Corresp* pcorNew ) // Add a new correspondence to the end
 #endif
 	}
 
-void CorrespList::Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) // Add a new corresponcence to the end of the list
+void CorrespList::Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) // Add a new corresponcence to the list
 {
-	Corresp* pcorF = pcorFind( pszSrc, pszTar ); // If already in list, increment count or check frequency
-	if ( pcorF )
+	Corresp* pcorF = pcorFind( pszSrc, pszTar ); // See if pair already in list
+	if ( pcorF ) // 1.6.1bc If pair already in list, increment count
+		pcorF->iNumInstances++;
+	else // 1.6.1bc Else (pair not in list) add new
+		Add( new Corresp( pszSrc, pszTar, iFreq ) );
+	}
+
+void CorrespList::SortLongestFirst() // 1.6.1bd Sort longest first
+	{
+	unsigned int iLongest = 0; // 1.6.1bd 
+	CorrespList corlstTemp; // 1.6.1bd Make temp list
+	Corresp* pcor;
+	for ( pcor = pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
 		{
-		if ( iFreq == 0 ) // 1.6.1ad If iFreq is zero, count if in list
-			pcorF->iNumInstances++;
-		else if ( iFreq > pcorF->iFreq ) // 1.6.1ae If higher frequency, replace previous with this
-			{
-// #ifdef NotNeeded // 1.6.1bb Since source and target are the same, no need to replace them
-			delete pcorF->pszSrc;
-			delete pcorF->pszTar;
-			pcorF->pszSrc = new wxChar[ wxStrlen( pszSrc ) + 1 ];
-			wxStrcpy( pcorF->pszSrc, pszSrc );
-			pcorF->pszTar = new wxChar[ wxStrlen( pszTar ) + 1 ];
-			wxStrcpy( pcorF->pszTar, pszTar );
-// #endif // 1.6.1bb 
-			pcorF->iFreq = iFreq; // 1.6.1ae Store new frequency
-			}
-		return;
+		corlstTemp.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to temp list
+		unsigned int iLen = wxStrlen( pcor->pszSrc ); // 1.6.1bd 
+		if ( iLen > iLongest ) // 1.6.1bd If longer that previous longest, remember
+			iLongest = iLen;
 		}
-	Add( new Corresp( pszSrc, pszTar, iFreq ) );
+	ClearAll(); // 1.6.1bd Delete all from main list
+	for ( unsigned int i = 1; i <= iLongest; i++ ) // 1.6.1bd For each length, copy ones of that length to main list
+		for ( pcor = corlstTemp.pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
+			{
+			if ( wxStrlen( pcor->pszSrc ) == i ) // 1.6.1bd If current length, copy
+				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to main list
+			}
+	}
+
+void CorrespList::SortLongestLast() // 1.6.1bf Sort longest last
+	{
+	unsigned int iLongest = 0; // 1.6.1bd 
+	CorrespList corlstTemp; // 1.6.1bd Make temp list
+	Corresp* pcor;
+	for ( pcor = pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
+		{
+		corlstTemp.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to temp list
+		unsigned int iLen = wxStrlen( pcor->pszSrc ); // 1.6.1bd 
+		if ( iLen > iLongest ) // 1.6.1bd If longer that previous longest, remember
+			iLongest = iLen;
+		}
+	ClearAll(); // 1.6.1bd Delete all from main list
+	for ( unsigned int i = iLongest; i >= 1; i-- ) // 1.6.1bf For each length, copy ones of that length to main list
+		for ( pcor = corlstTemp.pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
+			{
+			if ( wxStrlen( pcor->pszSrc ) == i ) // 1.6.1bd If current length, copy
+				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to main list
+			}
 	}
 
 Corresp* CorrespList::pcorFind( const wxChar* pszSrc, const wxChar* pszTar ) // Find the same pair, return NULL if not found
@@ -219,6 +246,33 @@ Corresp* CorrespList::pcorDelete( Corresp* pcor, Corresp* pcorPrev ) // Delete a
 		pcorPrev->pcorNext = pcorNext; // else point prev at next
 	delete pcor;
 	return pcorNext;
+	}
+
+void CorrespListKB::Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) // Add a new corresponcence to the end of the list // 1.6.1bc
+{
+	Corresp* pcorF = pcorFind( pszSrc ); // See if already in list
+	if ( pcorF ) // 1.6.1bc If in list, check frequency
+		{
+		if ( iFreq > pcorF->iFreq ) // 1.6.1ae If higher frequency, replace previous with this
+			{
+			delete pcorF->pszTar;
+			pcorF->pszTar = new wxChar[ wxStrlen( pszTar ) + 1 ];
+			wxStrcpy( pcorF->pszTar, pszTar ); // 1.6.1bb Store new target
+			pcorF->iFreq = iFreq; // 1.6.1ae Store new frequency
+			}
+		}
+	else // 1.6.1bc Else (not in list) add new
+		CorrespList::Add( new Corresp( pszSrc, pszTar, iFreq ) );
+	}
+
+Corresp* CorrespList::pcorFind( const wxChar* pszSrc ) // Find the same source, return NULL if not found // 1.6.1bc
+	{
+	for ( Corresp* pcor = pcorFirst; pcor; pcor = pcor->pcorNext )
+		{
+		if ( !wxStrcmp( pszSrc, pcor->pszSrc ) ) // 1.6.1bc
+			return pcor;
+		}
+	return NULL;
 	}
 
 Guesser::Guesser()
@@ -270,37 +324,6 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 		{
 		Corresp* pcor = NULL;
 		Corresp* pcorPrev = NULL;
-#ifdef RootAndAffixDiscovery
-		for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix possibilities
-			{
-			wxChar* pszS = pcor->pszSrc;
-			int iLen = wxStrlen( pszS );
-			int iMaxLen = iMaxSuffLen;
-			if ( iMaxLen > iLen - 1 )
-				iMaxLen = iLen - 1;
-			wxChar* pszSuffEnd = pszS + iLen;
-			wxChar* pszSuffStrt = pszSuffEnd - iMaxLen;
-			for ( ; *pszSuffStrt; pszSuffStrt++ )
-				corlstSuffGuess.Add( pszSuffStrt, "", 0 ); // 1.4bs Collect and count possible suffix strings
-			}
-		Corresp* pcorPrev = NULL;
-		pcor = corlstSuffGuess.pcorFirst;
-		while ( pcor )
-			{
-			bool bDelete = false;
-			if ( pcor->iNumInstances < iMinSuffExamples ) // Delete all suffixes that have too few occurrences
-				bDelete = true;
-			if ( bDelete )				
-				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev );
-			else
-				{
-				pcorPrev = pcor;
-				pcor = pcor->pcorNext;
-				}
-			}
-#endif
-#define CorrespondenceGuess
-#ifdef CorrespondenceGuess
 		int iStart, iEnd1, iEnd2 = 0;
 		for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix correspondences
 			{
@@ -333,8 +356,6 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 			wxChar* pszSuffSrc = pcorSuff->pszSrc;
 			wxChar* pszSuffTar = pcorSuff->pszTar;
 			int iLenSrc = wxStrlen( pszSuffSrc );
-			//int iLenTar; // set but unused
-			//iLenTar = wxStrlen( pszSuffTar );
 			for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Look at each knowledge base pair to see if it is an exception
 				{
 				wxChar* pszEndSrc = pcor->pszSrc; // Get end of source of kb pair
@@ -362,13 +383,15 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				pcor = pcor->pcorNext;
 				}
 			}
+		corlstSuffGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf Sort longest last so it will be first in guess list
+		corlstPrefGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf 
+		corlstRootGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length
 		for ( pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstSuffGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		for ( pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstPrefGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		for ( pcor = corlstRootGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstRootGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
-#endif
 		}
 	}
 
@@ -396,7 +419,8 @@ void StrReplace( wxChar* pszS, wxChar* pszReplace, int iLoc, int iNum ) // 1.6.1
 	{
 	wxChar* pszTail = new wxChar[ wxStrlen( pszS ) + 1 ]; // 1.6.1aj Temp storage of tail
 	wxStrcpy( pszTail, pszS + iLoc + iNum ); // 1.6.1aj Save tail
-	wxStrcpy( pszS + iLoc, _T("") ); // 1.6.1bb Terminate head
+	*(pszS + iLoc) = 0; // 1.6.1bb Terminate head // 1.6.1be Change back to pointer arithemetic
+//	wxStrcpy( pszS + iLoc, "" ); // 1.6.1aj Shorten source // 1.6.1bb 
 	wxStrcat( pszS, pszReplace ); // 1.6.1aj Copy replace in // 1.6.1bb Get rid of pointer arithmetic
 	wxStrcat( pszS, pszTail ); // 1.6.1aj Put tail back on // 1.6.1bb 
 	delete pszTail;
@@ -433,8 +457,8 @@ bool Guesser::bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplac
 			{
 			wxChar* pszSrcShortened = new wxChar[ wxStrlen( pszSrc ) + 1 ]; // 1.6.1aj Shortened source to try further suff
 			wxStrcpy( pszSrcShortened, pszSrc ); // Copy source to shortened source
-//			*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source
-			wxStrcpy( pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc, _T("") ); // 1.6.1aj Shorten source // 1.6.1bb 
+			*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source // 1.6.1be Change back to pointer arithmetic
+//			wxStrcpy( pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc, "" ); // 1.6.1aj Shorten source // 1.6.1bb 
 			bSuffReplace( pszSrcShortened, ppszTar, iGuessLevel >= 50 ); // 1.6.1aj Try replace suff on shortened source, but only if guess level 50 or more
 			wxStrcat( *ppszTar, pcorSuff->pszTar ); // 1.6.1aj Append target suff to end of target
 			delete pszSrcShortened; // 1.6.1aj 

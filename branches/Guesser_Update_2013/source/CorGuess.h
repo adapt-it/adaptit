@@ -98,9 +98,8 @@ public:
 class CorrespList // corlst List of correspondence structures
 	{
 public:
-//	int iRequiredSuccessPercent; // Required percentage of successes // 1.5.8va This one not used, stored in guesser
 	Corresp* pcorFirst; // First correspondence in the full list
-private:
+protected:
 	Corresp* pcorLast; // Last correspondence in the full list
 	void Add( Corresp *pcorNew ); // Helper function for Add new correspondence
 public:
@@ -108,9 +107,18 @@ public:
 	~CorrespList();
 	void ClearAll(); // 1.4vyd 
 	void Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ); // Add a new correspondence to the end ofthe list // 1.6.1ad if iFreq is zero, just count if existing 
+	void SortLongestFirst(); // 1.6.1bd Sort longest first
+	void SortLongestLast(); // 1.6.1bf Sort longest last
 	bool bIsEmpty() { return pcorFirst == NULL; } // Return true if list is empty
 	Corresp* pcorFind( const wxChar* pszSrc, const wxChar* pszTar ); // Find the same pair, return NULL if not found
+	Corresp* pcorFind( const wxChar* pszSrc ); // Find the same source, return NULL if not found
 	Corresp* pcorDelete( Corresp* pcor, Corresp* pcorPrev ); // Delete a correspondence from the list, return next after deleted one
+	};
+
+class CorrespListKB : public CorrespList // corlst List of KB correspondence structures // 1.6.1bc 
+	{
+public:
+	void Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ); // Add a new correspondence to the list // 1.6.1bc
 	};
 
 class Guesser // gue Guesser, main class that holds everything
@@ -121,7 +129,7 @@ protected: // Not to be changed by user, carefully tuned for maximum performance
 	int iMinSuffExamples; // Minimum number of examples of suffix to be considered
 	int iGuessLevel; // Level of guess, 0 is no guessing, 50 is conservative, 100 is wild guessing
 protected:
-	CorrespList corlstKB; // Raw correspondences given to guesser
+	CorrespListKB corlstKB; // Raw correspondences given to guesser
 	CorrespList corlstSuffGiven; // Given suffixes // 1.6.1ac Add place to store given affixes in guesser
 	CorrespList corlstRootGiven; // Given roots // 1.6.1ac 
 	CorrespList corlstPrefGiven; // Given prefixes // 1.6.1ac 

@@ -24859,6 +24859,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	MapKeyStringToTgtUnit::iterator iter;
 	CTargetUnit* pTU = 0;
 	CRefString* pRefStr;
+	int iFrequency = 0;
 	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
 	{
 		// BEW 19Mar13, next two lines are deprecated. Glossing KB now potentially
@@ -24918,6 +24919,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
 				wxASSERT(pRefStr != NULL);
 				gloss = pRefStr->m_translation;
+				iFrequency = pRefStr->m_refCount;
 				baseGloss = gloss;
 //#if defined(_DEBUG)
 //					wxLogDebug(_T("LoadGuesser() iteration %d [ %s ]<->[ %s ]  map index: %d  numCorrespondencesLoaded = %d  deleted? %s"),
@@ -24931,9 +24933,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				{
 					// Add correspondence to the Guesser
 					if (m_pKB->IsThisAGlossingKB())
-						m_pGlossesGuesser->AddCorrespondence(key,gloss);
+						m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
 					else
-						m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+						m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
 					numCorrespondencesLoaded++;
 				}
 				else if (bNotNotFound)
@@ -24956,6 +24958,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 						else
 						{
 							gloss = pRefStr->m_translation;
+							iFrequency = pRefStr->m_refCount;
 							bSkipIt_ItsEmpty = FALSE; // got one which is not pseudo-deleted
 							break;
 						}
@@ -24964,9 +24967,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					{
 						// Add correspondence to the Guesser
 						if (m_pKB->IsThisAGlossingKB())
-							m_pGlossesGuesser->AddCorrespondence(key,gloss);
+							m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
 						else
-							m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+							m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
 						numCorrespondencesLoaded++;
 					}
 				}
@@ -24990,15 +24993,16 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					wxASSERT(pRefStr != NULL);
 					posRef = posRef->GetNext(); // prepare for possibility of yet another
 					gloss = pRefStr->m_translation;
+					iFrequency = pRefStr->m_refCount;
 					baseGloss = gloss;
 
 					if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
 					{
 						// Add correspondence to the Guesser
 						if (m_pKB->IsThisAGlossingKB())
-							m_pGlossesGuesser->AddCorrespondence(key,gloss);
+							m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
 						else
-							m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+							m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
 						numCorrespondencesLoaded++;
 					}
 				} // end of inner loop for looping over CRefString instances
