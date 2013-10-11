@@ -94,7 +94,7 @@ adaptit_SOURCES = \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/KbServer.cpp ../../source/KBSharing.cpp ../../source/KBSharingMgrTabbedDlg.cpp \
-	../../source/KBSharingSetupDlg.cpp \
+	../../source/KBSharingStatelessSetupDlg.cpp ../../source/KbSharingSetup.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
 	../../source/md5_SB.cpp ../../source/MergeUpdatedSrc.cpp \
