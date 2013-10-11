@@ -1870,15 +1870,17 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 									+ pApp->m_adaptationsFolder;
 
 	pApp->GetProjectConfiguration(pApp->m_curProjectPath); // get the project's configuration settings
-	// BEW 28Sep12 note: each doc closure in collaboration mode is treated like an exit
-	// from the project - in case the user actually does exit; and so UnloadKBs() will
-	// call ReleaseKBServer() twice on every collab doc closure. The KB server flag value is
-	// therefore cleared to FALSE. The day is saved by the fact that if the user opens the
-	// next (external editor's) collaboration document for the same src, & tgt projects,
-	// then the same AI project is hooked up to, and the above line will therefore restore
-	// the m_bIsKBServerProject value to what it was before the last doc was closed in AI.
-	// Then further below, if that flag was reset TRUE, SetupForKBServer() is called anew
-	// twice and everything is ready to go for continuing KB sharing in the collab session.
+    // BEW 28Sep12 note: each doc closure in collaboration mode is treated like an exit
+    // from the project - in case the user actually does exit; and so UnloadKBs() will call
+    // ReleaseKBServer() for each kb being shared, if any, on every collab doc closure. The
+    // m_bIsKBServerProject and m_bIsGlossingKBServerProject flag values are therefore
+    // cleared to FALSE . The day is saved by the fact that if the user opens the next
+    // (external editor's) collaboration document for the same src, & tgt projects, then
+    // the same AI project is hooked up to, and the above line will therefore restore the
+    // m_bIsKBServerProject and m_bIsGlossingKBServerProject values to what they were
+    // before the last doc was closed in AI. Then further below, if either or bot flags
+    // were reset TRUE, SetupForKBServer(1 or 2 or both) is/are called anew and everything
+    // is ready to go for continuing KB sharing in the collab session.
 
 	pApp->SetupKBPathsEtc(); //  get the project's(adapting, and glossing) KB paths set
 	// get the colours from the project config file's settings just read in
@@ -1965,7 +1967,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 	// BEW 28Sep12. If kbserver support was in effect and the project hasn't changed (see
     // the note above immediately after the GetProjectConfiguration() call), then we must
     // restore the KB sharing status to ON if it previously was ON
-	if (pApp->m_bIsKBServerProject)
+	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
 		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
@@ -1985,9 +1987,10 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 			pApp->ReleaseKBServer(1); // the adapting one
 			pApp->ReleaseKBServer(2); // the glossing one
 			pApp->m_bIsKBServerProject = FALSE;
+			pApp->m_bIsGlossingKBServerProject = FALSE;
 			wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
-			_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
+"This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
+			_("A username is not correct"), wxICON_EXCLAMATION | wxOK);
 		}
 		else
 		{
@@ -2022,6 +2025,7 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 					pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
 					pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 					pApp->m_bIsKBServerProject = FALSE;
+					pApp->m_bIsGlossingKBServerProject = FALSE;
 					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
 					msg = msg.Format(msg, pApp->m_strUserID.c_str());
 					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
@@ -2031,34 +2035,80 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 				}
 				else
 				{
-					// we want to ensure valid codes four source, target and glosses languages,
-					// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-					if (!bDidItOK && bUserCancelled)
+					// We want to ensure valid codes for source, target if sharing
+					// adaptations, or source and glosses if sharing glosses, or all 3 if
+					// sharing both knowledge bases.
+					// (CheckLanguageCodes is in helpers.h & .cpp)
+					bool bDidFirstOK = TRUE;
+					bool bDidSecondOK = TRUE;
+					if (pApp->m_bIsKBServerProject)
 					{
-						// We must assume the codes are wrong or incomplete, or that the
-						// user has changed his mind about KB Sharing being on - so turn
-						// it off
-						pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-						pApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
-						pApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
-						pApp->m_bIsKBServerProject = FALSE;
-					}
-					else
-					{
-						// Go ahead...
-						pApp->LogUserAction(_T("SetupForKBServer() called in HookUpToExistingAIProject()"));
-						if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // enables each by default
+						bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
+						if (!bDidFirstOK || bUserCancelled)
 						{
-							// an error message will have been shown, so just log the failure
-							pApp->LogUserAction(_T("SetupForKBServer() failed in HookUpToExistingAIProject()"));
-							pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+							// We must assume the src/tgt codes are wrong or incomplete, or that the
+							// user has changed his mind about KB Sharing being on - so turn it off
+							pApp->LogUserAction(_T("Wrong src/tgt codes, or user cancelled in CheckLanguageCodes() in HookUpToExistingAIProject()"));
+							wxString title = _("Adaptations language code check failed");
+							wxString msg = _("Either the source or target language code is wrong, incomplete or absent; or you chose to Cancel.\nKnowledge base sharing has been turned off (but collaboration is not affected).\nFirst setup correct language codes, then try again.");
+							wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+							pApp->ReleaseKBServer(1); // the adapting one
+							pApp->ReleaseKBServer(2); // the glossing one
+							pApp->m_bIsKBServerProject = FALSE;
+							pApp->m_bIsGlossingKBServerProject = FALSE;
+						}
+					}
+					// Now, check for the glossing kb code, if that kb is to be shared.
+					// However, we'll do a little differently here. When collaborating,
+					// only adaptations and free translations can flow to Paratext or
+					// Bibledit, and so it doesn't really matter if the glossing KB is not
+					// being shared - that's not very important. So if the glossing
+					// language code is wrong or absent, just turn off sharing of the
+					// glossing KB and tell the user, but leave adapting kb shared
+					// (assuming it is shared, which is very likely to be so)
+					bUserCancelled = FALSE; // re-initialize
+					if (pApp->m_bIsGlossingKBServerProject)
+					{
+						bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
+						if (!bDidSecondOK || bUserCancelled)
+						{
+							// We must assume the src/gloss codes are wrong or incomplete, or that the
+							// user has changed his mind about KB Sharing being on - so turn it off
+							pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() in HookUpToExistingAIProject()"));
+							wxString title = _("Glosses language code check failed");
+							wxString msg = _("Either the source or glossing language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing of the glossing knowledge base has been turned off (but collaboration is not affected).\nIf the adapting knowledge base is shared then it will continue to be so, unless a message to the contrary was shown.");
+							wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+							pApp->ReleaseKBServer(2); // the glossing one
+							pApp->m_bIsGlossingKBServerProject = FALSE;
+						}
+					}
+					// Go ahead with sharing setup if at least one kb is still shared
+					if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
+					{
+						pApp->LogUserAction(_T("SetupForKBServer() called for one or both kbs, in HookUpToExistingAIProject()"));
+						if (pApp->m_bIsKBServerProject)
+						{
+							if (!pApp->SetupForKBServer(1))
+							{
+								// an error message will have been shown, so just log the failure
+								pApp->LogUserAction(_T("SetupForKBServer(1) failed in HookUpToExistingAIProject()"));
+								pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+							}
+						}
+						if (pApp->m_bIsGlossingKBServerProject)
+						{
+							if (!pApp->SetupForKBServer(2))
+							{
+								// an error message will have been shown, so just log the failure
+								pApp->LogUserAction(_T("SetupForKBServer(2) failed in HookUpToExistingAIProject()"));
+								pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
+							}
 						}
 					}
 				} // end of else block for test: if (!bUserIsValid)
 			} // end of TRUE block for test: if (!pwd.IsEmpty())
 		} // end of else block for test: if (!bUserDidNotCancel)
-	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject)
+	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 #endif
 
 	return TRUE;
@@ -3025,25 +3075,23 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 void UnloadKBs(CAdapt_ItApp* pApp)
 {
-//*
 #if defined(_KBSERVER)
     // BEW 28Sep12, for kbserver support, we need to call ReleaseKBServer()twice here
     // before the KBs are clobbered; since UnloadKBs is called on every document closure in
     // collaboration mode, and in the wizard, and OnFileClose() and CreateNewAIProject().
     // HookupToExistingAIProject() does call GetProjectConfiguration() early, for each
     // document load, and so if staying in the same AI project, kbserver support will be
-    // restored because SetupForKBServer() is called twice at the end of HookupTo.... and
-    // the m_bIsKBServerProject flag's value will have been restored by the
+    // restored because SetupForKBServer() is called up to twice at the end of HookupTo...
+    // and the m_bIsKBServerProject flag's value will have been restored by the
     // GetProjectConfiguration() call.
-	if (pApp->m_bIsKBServerProject)
+	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 	{
 	    //index = 1; // a deliberate error to test that this stuff doesn't get compiled when _KBSERVER is not #defined
 		pApp->ReleaseKBServer(1); // the adaptations one
 		pApp->ReleaseKBServer(2); // the glossings one
-		pApp->LogUserAction(_T("ReleaseKBServer() called in UnloadKBs()"));
+		pApp->LogUserAction(_T("ReleaseKBServer() called for  both kbs in UnloadKBs()"));
 	}
 #endif
-//*/
 	// unload the KBs from memory
 	if (pApp->m_pKB != NULL)
 	{

@@ -902,6 +902,9 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	// and also delete their storage list from the heap (created in InitDialog())
 	delete m_pKbsAddedInSession;
 
+	// Delete the stateless KbServer instance we've been using
+	delete m_pKbServer;
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
@@ -935,6 +938,9 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 	m_pKbServer->ClearKbsList(m_pKbsAddedInSession);
 	// and also delete their storage list from the heap (created in InitDialog())
 	delete m_pKbsAddedInSession;
+
+	// Delete the stateless KbServer instance we've been using
+	delete m_pKbServer;
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -1423,16 +1429,14 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 			if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
 			{
 				// A project is active, so check if it is setup for KB Sharing, if not, proceed
-				if (m_pApp->m_bIsKBServerProject)
+				if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
 				{
 					// It's setup for KB Sharing (even if currently temporarily disabled,
 					// we ignore the latter possibility as it may be reversed at anytime,
 					// the important thing is that the project must not be sharing with
 					// the kb we want to delete -- so keep testing
 					
-					// We use the global gbIsGlossing, because temporarily this is easiest
-// TODO? -->>		// way here- later code changes may give me a nice call to make
-					// instead rather than reliance on a global boolean
+					// We use the global gbIsGlossing, because this is easiest
 					if((!gbIsGlossing && m_kbTypeOfDeletion == 1) || 
 						(gbIsGlossing && m_kbTypeOfDeletion == 2))
 					{
@@ -1452,7 +1456,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 								(m_kbTypeOfDeletion == 2 && 
 								(m_pApp->m_glossesLanguageCode == m_nonsrcLangCodeOfDeletion)))
 							{
-								// We are either in adapting mode, and trying to deleted
+								// We are either in adapting mode, and trying to delete
 								// the shared KB (srccode/tgtcode match the pair we
 								// selected) which is currently actively in use, or
 								// glossing mode is active and we are trying to delete the

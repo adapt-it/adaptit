@@ -88,7 +88,8 @@
 
 #if defined(_KBSERVER)
 #include "KBSharing.h" // BEW added 14Jan13
-#include "KBSharingSetupDlg.h" // BEW added 15Jan13
+//#include "KBSharingSetupDlg.h" // BEW added 15Jan13
+#include "KBSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"
@@ -2569,55 +2570,40 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	bool bUserDidNotCancel = CheckUsername();
 	if (!bUserDidNotCancel)
 	{
-		// He or she cancelled. So remove KB sharing for this project
+		// He or she cancelled. So remove KB sharing for this project. ReleaseKBServer()
+		// checks for a non-defined instance, and does nothing if so; otherwise, it
+		// deletes the KbServer instance from the heap, and sets its pointer to NULL
 		gpApp->LogUserAction(_T("User cancelled from CheckUsername() in OnKBSharingSetupDlg() in MainFrm.cpp"));
 		gpApp->ReleaseKBServer(1); // the adapting one
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
+		gpApp->m_bIsGlossingKBServerProject = FALSE;		
 		wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
+"This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."),
 		_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
 	}
 	else
 	{
-		// Valid m_strUserID and m_strUsername should be in place now, so
-		// go ahead with next step which is to check for valid language codes
-
-		// BEW added 22May13, check that needed language codes are defined for source, target
-		// and gloss languages - get them set up if not so. If user cancels, don't go
-		// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE,
-		// make it FALSE
-
-		// BEW 21May13 added the CheckLanguageCodes() call and the if-else
-		// block, to ensure valid codes and if not, or if user cancelled, then
-		// turn off KB Sharing
-		bool bUserCancelled = FALSE;
-		// we want valid codes four source, target and glosses languages, so
-		// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-		bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-		if (!bDidItOK && bUserCancelled)
+        // Valid m_strUserID and m_strUsername are in place now, so go ahead with next step
+        // which is to ask for setup, or removal, of this current project being one for KB
+        // sharing - and find out which KBs are to be shared. We need to get values for
+        // m_bIsKBServerProject and m_bIsGlossingKBServerProject so we know which of
+        // SetupForKBServer(1) and SetupForKBServer(2) to invoke, or maybe both local KBs
+        // are to be shared
+		KbSharingSetup dlg(this); // make parent be the CMainFrame instance
+		dlg.Center();
+		if (dlg.ShowModal() == wxID_OK)
 		{
-			// We must assume the codes are wrong or incomplete, or that the
-			// user has changed his mind about KB Sharing being on - so turn
-			// it off
-			gpApp->LogUserAction(_T("User cancelled in CheckLanguageCodes() in CMainFrame::OnKBSharingSetupDlg()"));
-			gpApp->ReleaseKBServer(1); // the adapting one
-			gpApp->ReleaseKBServer(2); // the glossing one
-			gpApp->m_bIsKBServerProject = FALSE;
+			gpApp->LogUserAction(_T("KbSharingSetup instantiated from call CMainFrame::OnKBSharingSetupDlg()"));
+			// Authentication, by means of KBSharingStatelessSetupDlg call, has been done
+			// successfully in the OnOK() button handler of KbSharingSetup, and the wanted
+			// calls for one or both of SetupForKBServer(1) and SetupForKBServer(2) done,
+			// and checks for language codes completed successfully
 		}
 		else
 		{
-			// CheckLanguageCodes() succeeded, so go ahead
-			KBSharingSetupDlg dlg(this);
-			dlg.Center();
-			if (dlg.ShowModal() == wxID_OK)
-			{
-				gpApp->LogUserAction(_T("Closed OnKBSharingSetupDlg()"));
-			}
-			else
-			{
-				gpApp->LogUserAction(_T("Cancelled OnKBSharingSetupDlg()"));
-			}
+			gpApp->LogUserAction(_T("Cancelled KbSharingSetup instantiation after calling CMainFrame::OnKBSharingSetupDlg()"));
+			// The earlier state of the sharing settings has been restored
 		}
 	}
 }
@@ -2631,8 +2617,8 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// The controls in the dialog can't be used if KB sharing is not turned on for the
-	// currently active project
-	if (!gpApp->m_bIsKBServerProject)
+	// currently active project - either to share adaptations, or glosses
+	if (!gpApp->m_bIsKBServerProject && !gpApp->m_bIsGlossingKBServerProject)
 	{
 		event.Enable(FALSE);
 		return;
@@ -4158,7 +4144,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	// TODO -- code for cached new kbserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
-	if (gpApp->m_bIsKBServerProject)
+	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 	{
 		if (gbIsGlossing)
 		{
@@ -4249,7 +4235,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			}
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
-	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
+	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 #endif // for _KBSERVER #defined
 
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:

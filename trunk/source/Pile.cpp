@@ -457,9 +457,14 @@ int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 			}
 			if (boxExtent.x < 40)
 				boxExtent.x = 40; // in case m_targetPhrase was empty or very small
-			wxString aChar = _T('w');
+			wxChar aChar = _T('w'); // formerly wxString aChar = _T('w');, but this somehow 
+								    // crashed (on 2Oct13, inexplicably) so I made it a wxChar
+								    // and created a new wxString, wStr, and set it to aChar
+								    // -- let's' see if this still gives a crash
+			wxString wStr = aChar;
 			wxSize charSize;
-			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y);
+			//aDC.GetTextExtent(aChar, &charSize.x, &charSize.y);
+			aDC.GetTextExtent(wStr, &charSize.x, &charSize.y);
 			boxExtent.x += gnExpandBox*charSize.x; // add a slop factor (gnExpandBox is user settable)
 			if (boxGapWidth < boxExtent.x)
 			{

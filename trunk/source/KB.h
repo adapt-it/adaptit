@@ -180,6 +180,7 @@ public:
 	// destroyed on the fly at such times
 #if defined (_KBSERVER)
 
+	inline int	GetKBTypeForServer(); // returns 1 if !m_bGlossingKB, 2 if m_bGlossingKB
 	// Populate either a CTargetUnit instance in the local KB with anything new in the
 	// download, or many CTargetUnit instances arising from a timestamp-based download -
 	// either of the whole KB, or of those entries newly added subsequent to a stored

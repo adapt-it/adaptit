@@ -5866,97 +5866,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxASSERT_MSG(FALSE,_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 		pApp->LogUserAction(_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 	}
-
-    // whm 1Oct12 removed MRU code
-	/*
-	// if we get here by having chosen a document file from the Recent_File_List, then it is
-	// possible to in that way to choose a file from a different project; so the app will crash
-	// unless we here set up the required directory structures and load the document's KB
-
-	if (pApp->m_pKB == NULL)
-	{
-        //ensure we have the right KB & project (the parameters SetupDirectories() needs
-        //are stored in the document, so will be already serialized back in; and our
-        //override of CWinApp's OnOpenRecentFile() first does a CloseProject (which ensures
-        //m_pKB gets set to null) before OnOpenDocument is called.
-        //WX Note: We override CMainFrame's OnMRUFile().
-        // If we did not come via a File... MRU file choice, then the m_pKB will not be
-        // null and the following call won't be made. The SetupDirectories call has
-        // everything needed in order to silently change the project to that of the
-        // document being opened
-        // Note; if gbAbortMRUOpen is TRUE, we can't open this document because it was
-        // saved formerly in folder mode, and folder mode has become disabled (due to a bad
-        // file read of books.xml or a failure to parse the XML document therein correctly)
-        // The gbAbortMRUOpen flag is only set true by a test within SetupDirectories() -
-        // and we are interested only in this after a click of an MRU item on the File
-        // menu.
-
-		// mrh 3May12 - since the document variables are now in the app instead of the doc, the
-		//  following call causes some to be re-initialized, which we don't want.  So we need
-		//  to save and restore them.  A redesign should avoid the need for this!
-
-		wxString	savedOwner = pApp->m_owner;
-		int			savedCommitCount = pApp->m_commitCount;
-		wxDateTime	savedRevisionDate = pApp->m_revisionDate;
-
-		pApp->SetupDirectories(); // also sets KB paths and loads KBs & Guesser
-
-		if (gbViaMostRecentFileList)
-		{
-			// test for the ability to get the needed information from the document - we can't get
-			// the BookNamePair info (needed for setting up the correct project path) if the
-			// books.xml parse failed, the latter failure sets m_bDisableBookMode to true.
-			if (gbAbortMRUOpen)
-			{
-				pApp->GetView()->ClobberDocument();
-				gbAbortMRUOpen = FALSE; // restore default value
-				// IDS_NO_MRU_NOW
-				wxMessageBox(_(
-"Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."),
-				_T(""), wxICON_EXCLAMATION | wxOK);
-				pApp->LogUserAction(_T("Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."));
-				if (nTotal > 0 && bShowProgress)
-				{
-					pStatusBar->FinishProgress(_("Opening the Document"));
-				}
-				return FALSE;
-			}
-			bool bSaveFlag = gpApp->m_bBookMode;
-			int nSaveIndex = gpApp->m_nBookIndex;
-            // the next call may clobber user's possible earlier choice of mode and index,
-            // so restore these after the call (project config file is not updated until
-            // project exited, and so the user could have changed the mode or the book
-            // folder from what is in the config file)
-			gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // ensure gbSfmOnlyAfterNewlines
-															   // is set to what it should be,
-															   // and same for gSFescapechar
-			gpApp->m_bBookMode = bSaveFlag;
-			gpApp->m_nBookIndex = nSaveIndex;
-
-			// the MRU open may have changed the AI project, and this one may be a KB
-			// sharing one, and if so we should call SetupForKBServer() twice here provided the
-			// above reading of the project config file has set m_bIsKBServerProject to TRUE
-#if defined(_KBSERVER)
-			if (gpApp->m_bIsKBServerProject)
-			{
-				gpApp->LogUserAction(_T("SetupForKBServer() called in the block for a MRU file open, in OnOpenDocument()"));
-				if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
-				{
-					// an error message will have been shown, so just log the failure
-					gpApp->LogUserAction(_T("SetupForKBServer() failed in the block for a MRU file open, in OnOpenDocument()"));
-				}
-			}
-#endif
-		}
-		gbAbortMRUOpen = FALSE; // make sure the flag has its default setting again
-		gbViaMostRecentFileList = FALSE; // clear it to default setting
-
-		pApp->m_owner = savedOwner;					// restore saved quantities
-		pApp->m_commitCount = savedCommitCount;
-		pApp->m_revisionDate = savedRevisionDate;
-	}
-	*/
-
 	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc
 
     // place the phrase box, but inhibit placement on first pile if doing a consistency
@@ -18253,9 +18162,9 @@ bool CAdapt_ItDoc::OnCloseDocument()
     // kbType here before the KBs are clobbered (App closure by File > Exit, or the X
     // checkbox at top right of the frame window, causes control to go thru here - so we
     // need to save the kbserver params - particularly the m_kbServerLastSync datetime
-    // value. A preceding WriteProjectConfiguration() all is really needed too, so that we
-    // ensure the m_bIsKBServerProject flag's value is made persistent for the current AI
-    // project
+    // value. A preceding WriteProjectConfiguration() is really needed too, so that we
+    // ensure the m_bIsKBServerProject and m_bIsGlossingKBServerProject flags' values 
+    // are made persistent for the current AI project
 	bool bOK;
 	if (!pApp->m_curProjectPath.IsEmpty())
 	{
@@ -18290,14 +18199,21 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	if (!m_bReopeningAfterClosing)
 	{
 
-	#if defined(_KBSERVER)
+#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
-			pApp->ReleaseKBServer(1); // the adaptations one
-			pApp->ReleaseKBServer(2); // the glossings one
-			pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
+			if (pApp->m_bIsKBServerProject)
+			{
+				pApp->ReleaseKBServer(1); // the adaptations one
+				pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnCloseDocument()"));
+			}
+			if (pApp->m_bIsGlossingKBServerProject)
+			{
+				pApp->ReleaseKBServer(2); // the glossings one
+				pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
+			}
 		}
-	#endif
+#endif
 
 		// the EraseKB() call will also try to remove any read-only protection
 		EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
@@ -21750,14 +21666,14 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as
 															// noted in comments above
 	// BEW 28Sep12, if this project is a KB sharing one, then the project configuration
-	// read should have set m_bIsKBServerProject to TRUE, so once we have the KB's loaded,
-	// we can call SetupForKBServer() twice below.
+	// read should have set m_bIsKBServerProject to TRUE, and/or possibly
+	// m_bIsGlossingKBServerProject as well; so once we have the KB's loaded,
+	// we can call SetupForKBServer( as required below.
 
 	gpApp->SetupKBPathsEtc();
 
     // now we can save the xml document file to the destination folder (either Adaptations
-    // or a book folder), then parse it in and display the document in the main window.
-
+    // or a book folder), then parse it in and display the document in the main window....
 	// write out the xml document file to the folder it belongs in and with the same
 	// filename as on the source machine (path is given by m_curOutputPath above)
 	nFileLength = packByteStr.GetLength();
@@ -21806,100 +21722,45 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	}
 
 #if defined(_KBSERVER)
+	// It isn't a foregone conclusion that because the sender was sharing one or both kbs,
+	// that the one who receives and unpacks the document will also want to share. He may
+	// only want to inspect what was sent. So check if the sender had sharing one, and
+	// give a suitable message to inform the user which kbs the sender was sharing and
+	// invite him to do the same if the wants to share any editing changes he makes
+	bool bForeignAdaptingSharing = FALSE;
+	bool bForeignGlossingSharing = FALSE;
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
+	{ 
+		bForeignAdaptingSharing = TRUE;
+	}
+	if (bGotItOK && gpApp->m_bIsGlossingKBServerProject)
+	{ 
+		bForeignGlossingSharing = TRUE;
+	}
+	if (bForeignAdaptingSharing || bForeignGlossingSharing)
 	{
-		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
-		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
-		bool bUserCancelled = FALSE;
-
-        // BEW added 28May13, check the m_strUserID and m_strUsername strings are setup up,
-        // if not, open the dialog to get them set up -- the dialog cannot be closed except
-        // by providing non-empty strings for the two text controls in it. Setting the
-        // strings once from any project, sets them for all projects forever unless the
-		// user deliberately opens the dialog using the command in the View menu. (The
-		// strings are not set up if one is empty, or was the  ****  (NOOWNER) string)
-		bool bUserDidNotCancel = CheckUsername();
-		if (!bUserDidNotCancel)
+		wxString title = _("A message about knowledge base sharing");
+		wxString msg;
+		if (bForeignAdaptingSharing && !bForeignGlossingSharing)
 		{
-			// He or she cancelled. So remove KB sharing for this project
-			gpApp->LogUserAction(_T("User cancelled from CheckUsername() in DoUnpackDocument() in Adapt_ItDoc.cpp"));
-			gpApp->ReleaseKBServer(1); // the adapting one
-			gpApp->ReleaseKBServer(2); // the glossing one
-			gpApp->m_bIsKBServerProject = FALSE;
-			wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
-			_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
+			msg = _("The person who packed the document was sharing the adaptations knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
+			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		}
+		else if (!bForeignAdaptingSharing && bForeignGlossingSharing)
+		{
+			msg = _("The person who packed the document was sharing the glossing knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
+			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 		else
 		{
-			// Valid m_strUserID and m_strUsername should be in place now, so
-			// go ahead with next steps which are to get the password to this server, and
-			// then to check for valid language codes
-
-			// Get the server password. Returns an empty string if nothing is typed, or if the
-			// user Cancels from the dialog
-			CMainFrame* pFrame = gpApp->GetMainFrame();
-			wxString pwd = pFrame->GetKBSvrPasswordFromUser();
-			// there will be a beep if no password was typed, or it the user cancelled; and an
-			// empty string is returned if so
-			if (!pwd.IsEmpty())
-		{
-				pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-											   // ready for SetupForKBServer() below to use it
-                // Since a password has now been typed, we can check if the username is
-                // listed in the user table. If he isn't, the hookup can still succeed, but
-                // we must turn KB sharing to be OFF
-
-                // The following call will set up a temporary instance of the adapting
-                // KbServer in order to call it's LookupUser() member, to check that this
-                // user has an entry in the entry table; and delete the temporary instance
-                // before returning
-				bool bUserIsValid = CheckForValidUsernameForKbServer(gpApp->m_strKbServerURL, gpApp->m_strUserID, pwd);
-				if (!bUserIsValid)
-				{
-                    // Access is denied to this user, so turn off the setting which says
-                    // that this project is one for sharing, and tell the user
-					gpApp->LogUserAction(_T("Kbserver user is invalid; in DoUnpackDocument() in Adapt_ItDoc.cpp"));
-					gpApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-					gpApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
-					gpApp->m_bIsKBServerProject = FALSE;
-					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
-					msg = msg.Format(msg, gpApp->m_strUserID.c_str());
-					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
-					return TRUE; // failure to reinstate KB sharing doesn't constitute a
-					// failure to unpack, so return TRUE here
-				}
-				else
-				{
-					// we want to ensure valid codes four source, target and glosses languages,
-					// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-					if (!bDidItOK && bUserCancelled)
-					{
-						// We must assume the codes are wrong or incomplete, or that the
-						// user has changed his mind about KB Sharing being on - so turn
-						// it off
-						gpApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-						gpApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
-						gpApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
-						gpApp->m_bIsKBServerProject = FALSE;
-					}
-					else
-					{
-						// Go ahead...
-						gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
-						// instantiate both adapting and glossing KbServer class instances, enabled by default
-						if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
-						{
-							// an error message will have been shown, so just log the failure
-							gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
-							gpApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-						}
-					}
-				} // end of else block for test: if (!bUserIsValid)
-			} // end of TRUE block for test: if (!pwd.IsEmpty())
-		} // end of else block for test: if (!bUserDidNotCancel)
-	} // end of TRUE block for test: if (bGotItOK && gpApp->m_bIsKBServerProject)
+			// must have been sharing both kb types
+			msg = _("The person who packed the document was sharing both the adapting and the glossing knowledge bases to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
+			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		}
+	}
 #endif
 
 	return TRUE;

@@ -240,7 +240,8 @@ public:
 	// two accessors
 	wxString GetKBSvrPassword();
 	void	 SetKBSvrPassword(wxString pwd);
-	// The function for getting the kbserver password typed in by the user
+	// Next is the function for getting the kbserver password typed in by the
+	// user via a dialog
 	wxString GetKBSvrPasswordFromUser();
 
 #endif

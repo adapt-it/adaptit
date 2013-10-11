@@ -607,8 +607,11 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		(pCurRefString->GetRefStringMetadata())->SetDeletedDateTime(aTimestamp);
 
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject &&
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
 				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+			||
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
@@ -728,8 +731,11 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// BEW added 26Oct12 for kbserver support
 //*
 #if defined(_KBSERVER)
-	if (pApp->m_bIsKBServerProject &&
-			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+			||
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
@@ -852,8 +858,11 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 	{
 		// BEW added 19Feb13 for kbserver support
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject &&
-			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+			||
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
@@ -997,8 +1006,11 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	{
 		// BEW added 26Oct12 for kbserver support
 #if defined(_KBSERVER)
-		if (pApp->m_bIsKBServerProject &&
-			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+			||
+			(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
+				pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 
@@ -1420,8 +1432,11 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 22Oct12 for kbserver support
 #if defined(_KBSERVER)
-	if (pApp->m_bIsKBServerProject &&
-		pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+	if ((pApp->m_bIsKBServerProject && !gbIsGlossing &&
+			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled())
+		||
+		(pApp->m_bIsGlossingKBServerProject && gbIsGlossing &&
+			pApp->GetKbServer(pApp->GetKBTypeForServer())->IsKBSharingEnabled()))
 	{
 		KbServer* pKbSvr = pApp->GetKbServer(pApp->GetKBTypeForServer());
 

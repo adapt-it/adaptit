@@ -9334,11 +9334,17 @@ wxMemorySize MacGetFreeMemory()
 bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool& bUserCancelled)
 {
 	bUserCancelled = FALSE; // default
+	// The next test tests yields TRUE if a wanted code has its app storage member for it
+	// empty, or the NOCODE ("qqq") is currently in the app storage member and that member
+	// code is wanted. It only takes one empty storage string, or a qqq, to make the test
+	// exit with TRUE returned
 	if ( ((gpApp->m_sourceLanguageCode.IsEmpty() && bSrc) || ((gpApp->m_sourceLanguageCode == NOCODE) && bSrc)) ||
 		 ((gpApp->m_targetLanguageCode.IsEmpty() && bTgt) || ((gpApp->m_targetLanguageCode == NOCODE) && bTgt)) ||
 		 ((gpApp->m_glossesLanguageCode.IsEmpty() && bGloss) || ((gpApp->m_glossesLanguageCode == NOCODE) && bGloss)) ||
 		 ((gpApp->m_freeTransLanguageCode.IsEmpty() && bFreeTrans) || ((gpApp->m_freeTransLanguageCode == NOCODE) && bFreeTrans)) )
 	{
+		// Something needs to be done, so load up the dialog's boxes with whatever we
+		// currently are storing for all four codes
 		wxString srcCode;
 		wxString tgtCode;
 		wxString glossCode;

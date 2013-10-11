@@ -4088,10 +4088,11 @@ CBString Xhtml::InsertCallerIntoTitleAttr(CBString templateStr)
 	{
 		offset += 7;
 		CBString left = templateStr.Left(offset);
-		CBString right = templateStr.Mid(offset + 1); // starts from char after the +
+		CBString onright = templateStr.Mid(offset + 1); // starts from char after the +
+								// BEW 2Oct13 changed from right to onright due to ambiguity
 		templateStr = left;
 		templateStr += symbolUtf8Str;
-		templateStr += right;
+		templateStr += onright;
 	}
 	return templateStr;
 }
@@ -4138,7 +4139,7 @@ CBString Xhtml::BuildPictureProductions(CBString strPictureID, CBString langCode
 	int offset;
 	CBString bar = "|";
 	CBString production; production.Empty();
-	CBString left; CBString right;
+	CBString left; CBString onright;// BEW 2Oct13 changed from right to onright due to ambiguity
 	offset = figureData.Find(bar);
 	wxASSERT(offset != wxNOT_FOUND);
 	CBString pictureFile;
@@ -4149,21 +4150,21 @@ CBString Xhtml::BuildPictureProductions(CBString strPictureID, CBString langCode
 	// we ignore DESCription information preceding the first bar character
 	if (offset >= 0)
 	{
-		right = figureData.Mid(offset + 1); // start from char following first bar
-		wxASSERT(!right.IsEmpty());
+		onright = figureData.Mid(offset + 1); // start from char following first bar
+		wxASSERT(!onright.IsEmpty());
 
 		// first field, obligatory, is the picture filename (typically from a standard set)
-		offset = right.Find(bar);
-		pictureFile = right.Left(offset);
-		right = right.Mid(offset + 1); // next will start from char following second bar
-		wxASSERT(!right.IsEmpty());
+		offset = onright.Find(bar);
+		pictureFile = onright.Left(offset);
+		onright = onright.Mid(offset + 1); // next will start from char following second bar
+		wxASSERT(!onright.IsEmpty());
 
 		// next field, obligatory, is the relative size -- USFM only has to options, "col"
 		// (which fits in the current column) or "span" which is page-wide across all cols
-		offset = right.Find(bar);
-		strSize = right.Left(offset);
-		right = right.Mid(offset + 1); // next will start from char following third bar (LOCation range info)
-		wxASSERT(!right.IsEmpty());
+		offset = onright.Find(bar);
+		strSize = onright.Left(offset);
+		onright = onright.Mid(offset + 1); // next will start from char following third bar (LOCation range info)
+		wxASSERT(!onright.IsEmpty());
 		if (strSize == col)
 		{
 			// fit picture to current column
@@ -4181,29 +4182,29 @@ CBString Xhtml::BuildPictureProductions(CBString strPictureID, CBString langCode
 		// being used in TE, nor by Greg Trihus in his examples, nor by Erik in Sena 3,
 		// nor by Jim Albright in his suggested styles, so I've no way to support them
 		// properly - so I'll just ignore them (I don't know what to put in class="")
-		offset = right.Find(bar);
-		right = right.Mid(offset + 1); // next will start from char following fourth bar (COPyright info)
-		wxASSERT(!right.IsEmpty());
-		offset = right.Find(bar);
-		right = right.Mid(offset + 1); // next will start from char following fifth bar (CAPtion)
-		wxASSERT(!right.IsEmpty());
+		offset = onright.Find(bar);
+		onright = onright.Mid(offset + 1); // next will start from char following fourth bar (COPyright info)
+		wxASSERT(!onright.IsEmpty());
+		offset = onright.Find(bar);
+		onright = onright.Mid(offset + 1); // next will start from char following fifth bar (CAPtion)
+		wxASSERT(!onright.IsEmpty());
 
 		// now get the caption text
-		offset = right.Find(bar);
-		strCaption = right.Left(offset);
-		right = right.Mid(offset + 1); // next will start from char following sixth bar (REFerence info)
+		offset = onright.Find(bar);
+		strCaption = onright.Left(offset);
+		onright = onright.Mid(offset + 1); // next will start from char following sixth bar (REFerence info)
 
-		// right now contains whatever is left, which might be an empty string, or a
+		// onright now contains whatever is left, which might be an empty string, or a
 		// string with one or more spaces -- only for actual chapter/verse content do we
 		// treat the remainder as non-empty
-		while (!right.IsEmpty() && right[0] == ' ')
+		while (!onright.IsEmpty() && onright[0] == ' ')
 		{
-			right = right.Mid(1);
+			onright = onright.Mid(1);
 		}
 		// if there is anything left, accept it
-		if (!right.IsEmpty())
+		if (!onright.IsEmpty())
 		{
-			strReference = right;
+			strReference = onright;
 			length = strReference.GetLength();
 			if (strReference.GetAt(length - 1) != ' ')
 			{
