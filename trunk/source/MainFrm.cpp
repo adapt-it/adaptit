@@ -89,7 +89,7 @@
 #if defined(_KBSERVER)
 #include "KBSharing.h" // BEW added 14Jan13
 //#include "KBSharingSetupDlg.h" // BEW added 15Jan13
-#include "KBSharingSetup.h" // BEW added 10Oct13
+#include "KbSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"

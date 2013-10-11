@@ -23,7 +23,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "KbSharingSetup.cpp"
+    #pragma implementation "KbSharingSetup.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
