@@ -17524,9 +17524,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
 	int itsokay = m_pParser->Parse(); // continue if it fails
-	//if (m_pParser->Parse())
-	// return false; // returns false if commandline help (-h or -help) is used or
-				   // if there is an error parsing the commandline
 
 	/*
 	if (m_pParser->Found(_T("v")))
