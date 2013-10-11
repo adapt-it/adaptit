@@ -1909,11 +1909,11 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 		if (pApp->m_pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber <=
 											pCell->GetPile()->GetSrcPhrase()->m_nSequNumber)
 		{
-				pApp->m_curDirection = right;
+				pApp->m_curDirection = toright; // BEW 2Oct13 changed from right to toright due to ambiguity
 		}
 		else
 		{
-				pApp->m_curDirection = left;
+				pApp->m_curDirection = toleft; // BEW 3Oct13 changed to toleft from left due to ambiguity
 		}
 
         // finish drag select, but only if not halted at a boundary (note: if selecting
@@ -1944,7 +1944,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 				pCell->SetSelected(TRUE);
 
 				// preserve record of the selection
-				if (pApp->m_curDirection == right)
+				if (pApp->m_curDirection == toright) // BEW 2Oct13 changed from right to toright due to ambiguity
 				{
 					pApp->m_selection.Append(pCell);
 				}

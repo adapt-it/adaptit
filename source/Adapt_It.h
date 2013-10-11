@@ -757,8 +757,8 @@ enum KBImportFileOfType
 /// either right or left.
 enum extendSelDir
 {
-	right,
-	left
+	toright, // BEW 2Oct13, changed from right to toright because of ambiguity with std::ios_base
+	toleft   // BEW 3Oct13, changed from left to toleft because of simlar ambiguity in std::ios_base
 };
 
 /// An enum for specifying how the ChooseInterfaceLanguage() function
@@ -2799,6 +2799,14 @@ public:
 
 	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
 	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
+	// Next three are set when authenticating with the bool bStateless 2nd param of the
+	// KbSharingAuthentication constructor set TRUE. When TRUE, someone is authenticating
+	// to use the KB Sharing Manager gui; his credentials must be stored separately from
+	// the normal user's otherwise the advisor or administrator would overwrite the user's
+	// settings when he uses the mananger gui
+	wxString	m_strStatelessUsername;
+	wxString	m_strStatelessURL;
+	wxString	m_strStatelessPassword;
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
@@ -2832,6 +2840,12 @@ public:
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
 
+	// This gap
+	// keeps the line
+	// numbers matching
+	// those in the
+	// KB Sharing Support.odt document
+
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
 	// the project folder in credentials.txt, one per line. And in the same folder,
@@ -2841,10 +2855,10 @@ public:
 	// will be retained permanently. Some metadata may also be (perhaps) stored in a hidden file,
 	// .kbserver in the project folder -- but I've not done so yet.
 	// Next three are stored in the project configuration file
-	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
-									  // sharing kb data between clients in the same AI project;
-									  // two instances are created, one for adaptations, the
-									  // other for glosses
+	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
+									  // sharing kb data between clients in the same AI project								 
+	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
+									  // in the same AI project as for previous member
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
 
 	// Deleting an entire KB's entries in the entry table of kbserver will be done as a

@@ -46,8 +46,8 @@ wxMutex KBAccessMutex; // ChangedSince() may be entering entries into
 #include <wx/listimpl.cpp>
 
 
-using namespace std;
-#include <string>
+//using namespace std;
+//#include <string>
 
 #include "Adapt_It.h"
 #include "TargetUnit.h"
@@ -79,28 +79,30 @@ WX_DEFINE_LIST(KbsList);    // for use by the ListKbs() client, stores KbServerK
 
 extern bool		gbIsGlossing;
 
-// A Note on the placement of SetupForKBServer(), and the protective wrapping boolean
-// m_bIsKBServerProject, defaulting to FALSE initially and then possibly set to TRUE by
-// reading the project configuration file.
+// A Note on the placement of SetupForKBServer(), and the protective wrapping booleans
+// m_bIsKBServerProject and m_bIsGlossingKBServerProject defaulting to FALSE initially
+// and then possibly set to TRUE by reading the project configuration file.
 // Since the KBs must be loaded before SetupForKBServer() is called, and the function for
 // setting them up is CreateAndLoadKBs(), it may appear that at the end of the latter
 // would be an appropriate place, within the TRUE block of an if (m_bIsKBServerProject)
-// test. However, looking at which functionalities, at a higher level, call
+// test or an if (m_bIsGlossingKBServerProject) text. 
+// However, looking at which functionalities, at a higher level, call
 // CreateAndLoadKBs(), many of these are too early for any association of a project with
 // a kbserver to have been set up already. Therefore, possibly after a read of the
 // project configuration file may be appropriate - since it's that configuration file 
-// which sets or clears the m_bIsKBServerProject app member boolean. This is so: there are
+// which sets or clears the ywo above boolean flags. This is so: there are
 // 4 contexts where the project config file is read: in DoUnpackDocument(), in
 // HookUpToExistingProject() for setting up a collaboration, in the
 // OpenExistingProjectDlg.cpp file, associated with the "Access an existing adaptation
 // project" feature (for transforming adaptations to glosses); and most importantly, in the
 // frequently called OnWizardPageChanging() function of ProjectPage.cpp. These are all
 // appropriate places for calling SetupForKBServer() late in such functions, in an if TRUE
-// test block using m_bIsKBServerProject. (There is no need, however, to call it in
-// OpenExistingProjectDlg() because the project being opened is not changed in the process,
-// and since it's adaptations are being transformed to glosses, it would not be appropriate
-// to assume that the being-constructed new project should be, from it's inception, a kb
-// sharing one. The user can later make it one if he so desires.)
+// test block using m_bIsKBServerProject, or similarly for the glossing one if the other
+// flag is TRUE. (There is no need, however, to call it in OpenExistingProjectDlg() because 
+// the project being opened is not changed in the process, and since it's adaptations are
+// being transformed to glosses, it would not be appropriate to assume that the
+// being-constructed new project should be, from it's inception, a kb sharing one. The user
+// can later make it one if he so desires.)
 // Scrap the above comment if we choose instead to instantiate KbServer on demand and
 // destroy it immediately afterwards.
 
@@ -115,6 +117,32 @@ std::string str_CURLheaders;
 // sequentiality on the processing of the threads
 std::string str_CURLbuff[50];
 
+// And the helper for doing url-encoding...
+/* -- don't need it, we'll use curl_easy_escape() & curl_free() instead, along with CBString
+std::string urlencode(const std::string &s)
+{
+    //RFC 3986 section 2.3 Unreserved Characters (January 2005)
+    //const std::string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
+	// BEW try these instead
+	const std::string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
+    std::string escaped="";
+    for(size_t i=0; i<s.length(); i++)
+    {
+        if (unreserved.find_first_of(s[i]) != std::string::npos)
+        {
+            escaped.push_back(s[i]);
+        }
+        else
+        {
+            escaped.append("%");
+            char buf[3];
+            sprintf(buf, "%.2X", s[i]);
+            escaped.append(buf);
+        }
+    }
+    return escaped;
+}
+*/
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
@@ -1528,23 +1556,24 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 	wxString container = _T("user");
 
 	// The URL has to be url-encoded for safety
-	char *encodeduser = NULL;	// Encoded username string
+	//char *encodeduser = NULL;	// Encoded username string
 
-	aUrl = url + slash + container + slash; // later add url-encoded whichusername;
+	aUrl = url + slash + container + slash + whichusername;
+	//aUrl = url + slash + container + slash; // later add url-encoded whichusername;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
 
 	// url-encode  whichusername   before appending 
 	// to charUrl within the if (curl) block below
-	CBString utf8User = ToUtf8(whichusername); // justs in case it's a phrase, make it url-encoded
-	char* pUtf8User = (char*)utf8User; // need in this form for the curl_easy_escape() call below
+	//CBString utf8User = ToUtf8(whichusername); // justs in case it's a phrase, make it url-encoded
+	//char* pUtf8User = (char*)utf8User; // need in this form for the curl_easy_escape() call below
 
 	curl = curl_easy_init();
 
 	if (curl) {
-		encodeduser = curl_easy_escape(curl, pUtf8User, strlen(pUtf8User));
-		strcat(charUrl, encodeduser);	// Append url-encoded username to URL
+		//encodeduser = curl_easy_escape(curl, pUtf8User, strlen(pUtf8User));
+		//strcat(charUrl, encodeduser);	// Append url-encoded username to URL
 
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -1583,7 +1612,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 			wxMessageBox(msg, _T("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
-			curl_free(encodeduser);
+			//curl_free(encodeduser);
 			return (int)result;
 		}
 	}
@@ -1598,7 +1627,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 		ClearUserStruct();
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
-		curl_free(encodeduser);
+		//curl_free(encodeduser);
 		return CURLE_HTTP_RETURNED_ERROR; // 22
 	}
 
@@ -1620,7 +1649,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
-			curl_free(encodeduser);
+			//curl_free(encodeduser);
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
 		// We extract id, username, fullname, kbadmin flag value, useradmin flag value,
@@ -1639,7 +1668,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
-		curl_free(encodeduser);
+		//curl_free(encodeduser);
 	}
 	return 0;
 }
@@ -1872,6 +1901,8 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 // need to get.
 // Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
 // HTTP error - such as no matching entry, or a badly formed request
+// BEW 3Oct13, modified to use a url-encoded url string (to lookup phrases properly,
+// otherwise it looks up only the first word of the phrase)
 int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 {
 	CURL *curl;
@@ -1883,37 +1914,52 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 
 	CBString charUrl;
 	CBString charUserpwd;
+	// Try a CBString solution for url-encoding, and using curl_easy_encode() etc
+	// (because the sourcePhrase and/or targetPhrase strings may be phrases)
+	char *encodedsource = NULL;	// ptr to encoded source string, initialize
+	char *encodedtarget = NULL;	// ptr to encoded target string, initialize
+	CBString charSrc = ToUtf8(sourcePhrase);
+	CBString charTgt = ToUtf8(targetPhrase);
+	int lenSrc = charSrc.GetLength();
+	int lenTgt = charTgt.GetLength();
+	char* pCharSrc = (char*)charSrc;
+	char* pCharTgt = (char*)charTgt;
 
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
 	wxItoa(GetKBServerType(),kbType);
 	wxString container = _T("entry");
-	// The URL has to be url-encoded
-	char *encodedsource = NULL;	// Encoded source string
-    char *encodedtarget = NULL;	// Encoded target string
-	// url-encode the next two:  sourcePhrase + slash + targetPhrase before
-	// appending them to charUrl within the if (curl) block below
-	CBString utf8Src = ToUtf8(sourcePhrase); // could be a phrase, so it needs to be url-encoded
-	CBString utf8Tgt = ToUtf8(targetPhrase); // before being appended to charUrl, & ditto for tgt one
-	char* pUtf8Src = (char*)utf8Src; // need in this form for the curl_easy_escape() call below
-	char* pUtf8Tgt = (char*)utf8Tgt;  // ditto
+	// The URL has to be url-encoded -- do it with Jonathan's custom function, urlencode()
+	// This is instead of using curl_easy_encode() and curl_free(); these are okay but
+	// involve creating a heap block, and we can avoid that using urlencode() instead
+	//CBString utf8Src = ToUtf8(sourcePhrase); // could be a phrase, so it needs to be url-encoded
+	//CBString utf8Tgt = ToUtf8(targetPhrase); // before being appended to charUrl, & ditto for tgt one
 
+	//aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
+	//		slash + GetTargetLanguageCode() + slash + kbType + slash + sourcePhrase
+	//		+ slash + targetPhrase;
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
-			slash + GetTargetLanguageCode() + slash + kbType + slash;
+			slash + GetTargetLanguageCode() + slash + kbType + slash; // url-encode the new 2 fields
 	charUrl = ToUtf8(aUrl);
+    
+	// Create the username:password string
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
 	curl = curl_easy_init();
-
 	if (curl) {
-		encodedsource = curl_easy_escape(curl, pUtf8Src, strlen(pUtf8Src));
-		encodedtarget = curl_easy_escape(curl, pUtf8Tgt, strlen(pUtf8Tgt));
-		strcat(charUrl, encodedsource);	// Append encoded source to URL
-		strcat(charUrl, "/");			// Append a slash
-		strcat(charUrl, encodedtarget);	// Append target to URL
-
+		encodedsource = curl_easy_escape(curl, pCharSrc, lenSrc); // need LHS for curl_free() call below
+		encodedtarget = curl_easy_escape(curl, pCharTgt, lenTgt); //  ditto
+		CBString encodedSrc(encodedsource);
+		CBString encodedTgt(encodedtarget);
+		charUrl += encodedSrc;
+		charUrl += "/";
+		charUrl += encodedTgt;
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+		wxString wxencodedUrl = ToUtf16(charUrl);
+		wxLogDebug(_T("LookupEntryFields(): encoded Url = %s"), wxencodedUrl.c_str());
+#endif
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1922,9 +1968,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 		// We want separate storage for headers to be returned, to get the HTTP status code
 		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
-
 		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
-													//headers separately
+													  //headers separately
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) //&& defined (__WXGTK__)
@@ -1950,9 +1995,9 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 				result, error.c_str());
 			wxMessageBox(msg, _T("Error when looking up an entry"), wxICON_EXCLAMATION | wxOK);
 
-			curl_easy_cleanup(curl);
 			curl_free(encodedsource);
 			curl_free(encodedtarget);
+			curl_easy_cleanup(curl);
 			return (int)result;
 		}
 	}
@@ -1965,10 +2010,10 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	{
 		// whether 400 or 404, return CURLE_HTTP_RETURNED_ERROR (ie. 22) to the caller
 		ClearEntryStruct(); // if we subsequently access it, its source member is an empty string
-		str_CURLbuffer.clear();
-		str_CURLheaders.clear();
 		curl_free(encodedsource);
 		curl_free(encodedtarget);
+		str_CURLbuffer.clear();
+		str_CURLheaders.clear();
 		return CURLE_HTTP_RETURNED_ERROR;
 	}
 
@@ -1988,10 +2033,10 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			// A non-localizable message will do, it's unlikely to happen (we hope)
 			wxMessageBox(_T("In LookupEntryFields(): json reader.Parse() failed. Unexpected bad data from server."),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
-			str_CURLbuffer.clear(); // always clear it before returning
-			str_CURLheaders.clear();
 			curl_free(encodedsource);
 			curl_free(encodedtarget);
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear();
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
 		// we extract id, source phrase, target phrase, deleted flag value & username
@@ -2004,10 +2049,10 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		m_entryStruct.username = jsonval[_T("user")].AsString();
 		m_entryStruct.deleted = jsonval[_T("deleted")].AsInt();
 
-		str_CURLbuffer.clear(); // always clear it before returning
-		str_CURLheaders.clear();
 		curl_free(encodedsource);
 		curl_free(encodedtarget);
+		str_CURLbuffer.clear(); // always clear it before returning
+		str_CURLheaders.clear();
 	}
 	return 0;
 }
@@ -3540,7 +3585,9 @@ void KbServer::UploadToKbServer()
 	wxDateTime now = wxDateTime::Now();
 	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
-	if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
+	if ((m_pApp->m_bIsKBServerProject && (this->m_kbServerType == 1) && this->IsKBSharingEnabled())
+		||
+		(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
 	{
 		s_DoGetAllMutex.Lock();
 
@@ -3765,7 +3812,10 @@ void KbServer::UploadToKbServer()
 		DeleteUploadEntries();
 		ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
 
-	} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
+	} // end of TRUE block for test: 	
+	//  if ((m_pApp->m_bIsKBServerProject && (this->m_kbServerType == 1) && this->IsKBSharingEnabled())
+	//	||
+	//	(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
 
 #if defined(_DEBUG)
 	now = wxDateTime::Now();

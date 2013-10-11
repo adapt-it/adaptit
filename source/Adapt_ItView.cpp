@@ -132,6 +132,9 @@
 #include "MergeUpdatedSrc.h"
 #include "KBExportImportOptionsDlg.h"
 
+// Temporary - while using OnAdvancedDelay() as a way to test code for kbserver class
+#include "KbServer.h"
+
 // vectorized toolbar images (for toggle toolbars)
 #include "../res/vectorized/bounds_go_16.cpp"
 #include "../res/vectorized/bounds_stop_16.cpp"
@@ -6390,18 +6393,20 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 			pApp->LogUserAction(msg);
 		}
 	}
-//*
 #if defined(_KBSERVER)
 	// BEW 28Sep12, clean up and make persistent any volatile data, if kbserver
 	// support is active
 	if (pApp->m_bIsKBServerProject)
 	{
 		pApp->ReleaseKBServer(1); // the adaptations one
+		pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnFileCloseProject()"));
+	}
+	if (pApp->m_bIsGlossingKBServerProject)
+	{
 		pApp->ReleaseKBServer(2); // the glossings one
-		pApp->LogUserAction(_T("ReleaseKBServer() called in OnFileCloseProject()"));
+		pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnFileCloseProject()"));
 	}
 #endif
-//*/
 	// BEW 28Sep12 moved KB erasure code to be here -- see note above
 	// Delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
@@ -10022,7 +10027,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				if (!pApp->m_targetPhrase.IsEmpty())
 				{
 					// skip if selecting left and src text was copied
-					if (!(pApp->m_curDirection == left && pApp->m_pTargetBox->m_bAbandonable))
+					if (!(pApp->m_curDirection == toleft && pApp->m_pTargetBox->m_bAbandonable))
 					{
 						strOldAdaptation += _T(" ") + pApp->m_targetPhrase;
 					}
@@ -10478,7 +10483,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // user typed); or the active location will not have a selection (use m_bAbandonable ==
     // FALSE) and so we assume that the box's text is to be retained and accumulated with
     // the rest which was accumulated earlier
-	if (pApp->m_curDirection == left)
+	if (pApp->m_curDirection == toleft)
 	{
 		// implementing a protocol for leftwards selections...
 
@@ -11466,7 +11471,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	{
         // if we are extending to the right in a selection to the left, we have to remove
         // the first pile's selection
-		if (pApp->m_curDirection == left)
+		if (pApp->m_curDirection == toleft)
 		{
 			// find the leftmost cell of the selection
 			CCellList::Node* cpos = pApp->m_selection.GetFirst();
@@ -11584,7 +11589,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	{
 		// no selection yet, so select the cell in the active pile before extending right
 		pApp->m_bSelectByArrowKey = TRUE;
-		pApp->m_curDirection = right;
+		pApp->m_curDirection = toright;// BEW 2Oct13 changed from right to toright due to ambiguity
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
 		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 		CCell* pCell = pActivePile->GetCell(0);
@@ -11682,7 +11687,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	{
 		// if we are backing up in a selection to the right, we have to remove
 		// the last pile's selection
-		if (pApp->m_curDirection == right)
+		if (pApp->m_curDirection == toright)// BEW 2Oct13 changed from right to toright due to ambiguity
 		{
 			// find the rightmost cell of the selection
 			CCellList::Node* cpos = pApp->m_selection.GetLast();
@@ -11792,7 +11797,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	{
 		// no selection yet, so select the cell in the active pile before extending left
 		pApp->m_bSelectByArrowKey = TRUE;
-		pApp->m_curDirection = left;
+		pApp->m_curDirection = toleft;
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
 		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 		CCell* pCell = pActivePile->GetCell(0);
@@ -19016,8 +19021,8 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			int nRight;
 			wxString left;
 			left.Empty();
-			wxString right;
-			right.Empty();
+			wxString onright;// BEW 2Oct13 changed from right to onright due to ambiguity
+			onright.Empty();
 			if (bIncludePunct)
 			{
 				lenTgt = tgt.Length(); // the search string's length
@@ -19030,7 +19035,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgt.Right(nRight);
+				onright = oldTgt.Right(nRight);
 			}
 			else
 			{
@@ -19044,13 +19049,13 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgtNoPunct.Right(nRight);
+				onright = oldTgtNoPunct.Right(nRight);
 			}
 
             // put the final string into the global translation variable, which with
             // selector value of 1 in the PlacePhraseBox call, will ensure it goes into
             // m_targetPhrase member, and ends up in the created phrase box
-			translation = left + replStr + right;
+			translation = left + replStr + onright;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -19094,8 +19099,8 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			int nRight;
 			wxString left;
 			left.Empty();
-			wxString right;
-			right.Empty();
+			wxString onright;// BEW 2Oct13 changed from right to onright due to ambiguity
+			onright.Empty();
 			if (bIncludePunct)
 			{
 				// bIncludePunct is always FALSE for glossing, so this block
@@ -19111,7 +19116,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgt.Right(nRight);
+				onright = oldTgt.Right(nRight);
 			}
 			else
 			{
@@ -19127,11 +19132,11 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgtNoPunct.Right(nRight);
+				onright = oldTgtNoPunct.Right(nRight);
 			}
 
 			// put the final string into the temporary store
-			finalStr = left + replStr + right;
+			finalStr = left + replStr + onright;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -19197,8 +19202,8 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			int nRight;
 			wxString left;
 			left.Empty();
-			wxString right;
-			right.Empty();
+			wxString onright;// BEW 2Oct13 changed from right to toright due to ambiguity
+			onright.Empty();
 			if (bIncludePunct)
 			{
 				lenTgt = tgt.Length(); // the search string's length
@@ -19211,7 +19216,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgt.Right(nRight);
+				onright = oldTgt.Right(nRight);
 			}
 			else
 			{
@@ -19225,11 +19230,11 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgtNoPunct.Right(nRight);
+				onright = oldTgtNoPunct.Right(nRight);
 			}
 
 			// put the final string into the temporary store
-			finalStr = left + replStr + right;
+			finalStr = left + replStr + onright;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -20346,10 +20351,10 @@ void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 	// set the direction
 	if (pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber <
 					pCurrent->GetPile()->GetSrcPhrase()->m_nSequNumber)
-		pApp->m_curDirection = right;
+		pApp->m_curDirection = toright;// BEW 2Oct13 changed from right to toright due to ambiguity
 	else if (pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber >
 					pCurrent->GetPile()->GetSrcPhrase()->m_nSequNumber)
-		pApp->m_curDirection = left;
+		pApp->m_curDirection = toleft;
 	else
 		return; // since we must be at the anchor which is already selected,
 				// so nothing to be done yet
@@ -20364,7 +20369,7 @@ void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 	CCell* pCell = pAnchor;
 	bool bAtEnd = FALSE;
 	bool bAtBoundary = FALSE;
-	if (pApp->m_curDirection == right)
+	if (pApp->m_curDirection == toright)// BEW 2Oct13 changed from right to toright due to ambiguity
 	{
 a:		pCell = GetNextCell(pCell,cellIndex);
 
@@ -28742,6 +28747,41 @@ void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->LogUserAction(_T("Initiated OnAdvancedDelay()"));
+
+	/* //a handy way to try CreateEntry() calls for kbserver, to debug why I am getting 411 http
+	// error, and to do other kbserver testing things
+	KbServer* pKbServer = pApp->GetKbServer(1); // I'm working with the adapting database for this debugging stuff
+	// test data known not to be in the database yet
+	wxString srcText = _T("i olsem");
+	wxString tgtText = _T("is similar to");
+	//wxString srcText = _T("i stap");
+	//wxString tgtText = _T("are remaining");
+	int rv = pKbServer->CreateEntry(srcText, tgtText);
+	//int rv = pKbServer->LookupEntryFields(srcText, tgtText);
+	bool ishappy = rv == 0 ? TRUE : FALSE;
+	wxASSERT(ishappy);
+	wxASSERT(FALSE); // don't go further while using this test code
+	*/
+
+	/* a handy way to get a pixel width for a bit of text to be shown in the CStatusBar of AI
+	CMainFrame *pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+ 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
+	int barWidth; int barHeight;
+	pStatusBar->GetClientSize(&barWidth, &barHeight);
+	// get pixed width of sample progress message for kb database deletion & 
+	// comment this out when done
+	wxString aText = _T("Deleting 29999 of 49999");
+	// Get the font used in the status bar & its pointsize
+	wxFont font = pStatusBar->GetFont();
+	//int pointsize = font.GetPointSize(); <<-- don't need this
+	// We need a wxClientDC to measure text extents
+	wxClientDC dc(pFrame);
+	dc.SetFont(font);
+	wxCoord w; wxCoord h; // width and height of field 0's text
+	wxCoord *descent = NULL; wxCoord *externalLeading = NULL;
+	dc.GetTextExtent(aText, &w, &h, descent, externalLeading, &font);
+	*/
 	/*
 	// test SyncScrollReceive() code here (delay is unrelated, just use its button)
 	wxString strValue = _T("1JN 2:19");
@@ -28756,6 +28796,7 @@ void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
 								nVerse, strChapVerse);
 	// end of code test
 	*/
+
 	CSetDelay dlg(pApp->GetMainFrame());
 
 	dlg.m_nDelay = pApp->m_nCurDelay;

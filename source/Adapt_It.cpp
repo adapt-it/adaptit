@@ -337,7 +337,6 @@ extern std::string str_CURLheaders;
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
 #include "UsernameInput.h" // BEW added 28May13
-#include "KBSharingSetupDlg.h"
 
 //#include "md5.h"
 #include "md5_SB.h"
@@ -345,11 +344,12 @@ extern std::string str_CURLheaders;
 #if defined (_KBSERVER)
 
 #include "KbServer.h"
+//#include "KBSharingSetupDlg.h"
+#include "KBSharingStatelessSetupDlg.h"
 #include "Timer_KbServerChangedSince.h"
 #include "KBSharingMgrTabbedDlg.h"
 
 #endif
-
 
 // whm added 8Oct12
 #include <curl/curl.h>
@@ -5834,13 +5834,17 @@ wxString szGlossesLanguageCode = _T("GlossesLanguageCode");
 /// m_freeTransLanguageCode member variable.
 wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 
-//#if defined (_KBSERVER)  -- mrh - let's define the string even if we don't use it
-// BEW added 25Sep12
-/// The label that identifies the whether or not the project is associated with a KBServer.
-/// This value is written in the "ProjectSettings" part of the project configuration file.
-/// Adapt It stores this string in the App's m_bIsKBServerProject member variable. Default
-/// is FALSE.
+/// The label that identifies the whether or not the project is associated with sharing a
+/// target language KB. This value is written in the "ProjectSettings" part of the project
+/// configuration file. Adapt It stores this string in the App's m_bIsKBServerProject
+/// member variable. Default is FALSE.
 wxString szIsKBServerProject = _T("IsKBServerProject");
+
+/// The label that identifies the whether or not the project is associated with sharing a
+/// glosses language KB. This value is written in the "ProjectSettings" part of the project
+/// configuration file. Adapt It stores this string in the App's m_bIsGlossingKBServerProject
+/// member variable. Default is FALSE.
+wxString szIsGlossingKBServerProject = _T("IsGlossingKBServerProject");
 
 // next two added 30Jan13
 /// The label for the project configuration file's line which stores the URL of the last
@@ -15122,11 +15126,11 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	// store it for the user's adapting or glossing session in this project
 	SetKbServer(whichType, pKbSvr);
 
-	// enable it (that's default, if the project is a KB sharing one)
+	// enable it (that's default, if the project is a KB sharing one or either type)
 	pKbSvr->EnableKBSharing(TRUE);
 
-	// instantiate a single timer instance; once instantiated, the second call of
-	// SetupForKBServer() will skip this block
+	// instantiate a single timer instance; once instantiated, a second call of
+	// SetupForKBServer()for a different type will skip this block
 	if (m_pKbServerDownloadTimer == NULL)
 	{
 		// the first param makes CAdapt_ItApp instance the owner, and the timer's events
@@ -15155,12 +15159,12 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	wxString username; username.Empty();
 	wxString password; password.Empty();
 
-	// Deprecated 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetupDlg
-	// now, and we store url and username as app variables m_strKbServerURL and
-	// m_strUserID from now on (these are saved in the project config file too),
-	// and we get those here now, instead of from the credentials.txt file; the password
-	// from the password dialog is stored in CMainFrame class as the member
-	// m_kbserverPassword, private, and so accessed with GetKBSvrPassword()
+    // Deprecated 31Jan13, we get credentials, and show a password dialog, from the
+    // KbSharingSetup now, and we store url and username as app variables m_strKbServerURL
+    // and m_strUserID from now on (these are saved in the project config file too), and we
+    // get those here now, instead of from the credentials.txt file; the password from the
+    // password dialog is stored in CMainFrame class as the member m_kbserverPassword,
+    // private, and so accessed with GetKBSvrPassword(), & SetKBSvrPassword(wxString pwd)
 	/*
 	bool bOpenedOK = GetCredentials(credsfilename, url, username, password);
 	if (!bOpenedOK)
@@ -15180,9 +15184,16 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
-	GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
-	GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
-	GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
+	if (m_bIsKBServerProject)
+	{
+		GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
+		GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
+	}
+	else
+	{
+		GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
+		GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
+	}
 	GetKbServer(whichType)->SetKBServerURL(url);
 	GetKbServer(whichType)->SetKBServerUsername(username);
 	GetKbServer(whichType)->SetKBServerPassword(password);
@@ -15199,28 +15210,41 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	// by two calls of DeleteKbServer(int whichType). The following function is in helpers.cpp
 	if (whichType == 1)
 	{
-        // We test only for the adapting kb being in the table. This is sufficient because
-        // we always create, and remove access to, or delete, both adapting and glossing
-		// remote kbs together. We instantiate in an if-block, the adapting one first, so
-		// if it fails then the glossing one is not instantiated, and we then need not
-		// remove it. (A curl error is seen by the user, but the call below will return
-		// FALSE. However, unlike absence of the kb in the kb table of the server, a curl
-		// error might not happen on a later try, and thereby grant success for the
-		// attempt to establish sharing.)
-		bool bSharedKbExists = CheckForSharedKbInKbServer(url, username, password,
-									m_sourceLanguageCode, m_targetLanguageCode, 1);
-		if (!bSharedKbExists)
+        // Testing for the adapting kb being in the table.
+		bool bSharedAdaptingKbExists = CheckForSharedKbInKbServer(url, username, password,
+									m_sourceLanguageCode, m_targetLanguageCode, 1); // 1 is kbtype
+		if (!bSharedAdaptingKbExists)
 		{
-			// Remove our installation -- return FALSE, and the caller will clear to FALSE
-			// the CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
-			// message first though.
+            // Remove our installation -- return FALSE, and clear to FALSE the
+            // CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
+            // message first though.
 			wxString msg;
-			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'KB administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nOne entry for each of the adapting and glossing knowledge bases is required.\nUntil this is done, sharing this project's local knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
 								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str());
-			wxString title = _T("Remote adapting and glossing knowledge bases are absent");
+			wxString title = _T("Remote adapting knowledge base is absent");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			DeleteKbServer(1);
-			wxASSERT(GetKbServer(2) == NULL); // ensure the glossing one's pointer is still NULL
+			m_bIsKBServerProject = FALSE;
+			return FALSE;
+		}
+	}
+	else
+	{
+		//We must be testing for a glossing kb being in the table
+		bool bSharedGlossingKbExists = CheckForSharedKbInKbServer(url, username, password,
+									m_sourceLanguageCode, m_glossesLanguageCode, 2); // 2 is kbtype
+		if (!bSharedGlossingKbExists)
+		{
+            // Remove our installation -- return FALSE, and clear to FALSE the
+            // CAdapt_ItApp's flag m_bIsGlossingKBServerProject. The user must see a
+            // helpful message first though.
+			wxString msg;
+			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+								m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str());
+			wxString title = _T("Remote glossing knowledge base is absent");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			DeleteKbServer(2);
+			m_bIsGlossingKBServerProject = FALSE;
 			return FALSE;
 		}
 	}
@@ -15440,7 +15464,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
 	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
-	m_bIsKBServerProject = FALSE; // initialise
+	m_bIsKBServerProject = FALSE; m_bIsGlossingKBServerProject = FALSE; // initialise both flags
 	// start off with the timer not instantiated; only set a single one in first call of
 	// SetupForKbServer(), second call (for the glossing KB) should check for NULL and do
 	// nothing if the timer already exists; use similar logic for destroying the timer in
@@ -24579,13 +24603,13 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 	// KBs and load them with xml data from disk, and making unique adjustments for
 	// any failures there in the caller's code by handling them in a FALSE block test
 	// when calling this function.
-	//
 	// First, delete/erase any existing in-memory KB object to avoid leaking memory.
 	// This probably would also prevent the problems with an assert he described
 	// on 23Aug10 in the View's OnCreate() function.
 	// whm: TODO: move the EraseKB() function from the Doc to the App class (or even
 	// better to its own CKB class). Doing so would avoid having to get a pointer to
 	// the document when one is unsure if such a pointer exists.
+	// BEW 11Oct13 BEWARE OF THE ABOVE TODO - some time back I found it needs to stay as is
 	CAdapt_ItDoc* pDoc = GetDocument();
 	wxASSERT(pDoc != NULL);
 //*
@@ -24601,8 +24625,12 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		if (m_bIsKBServerProject)
 		{
 			ReleaseKBServer(1); // the adaptations one
+			LogUserAction(_T("ReleaseKBServer(1) called in CreateAndLoadKBs()"));
+		}
+		if (m_bIsGlossingKBServerProject)
+		{
 			ReleaseKBServer(2); // the glossings one
-			LogUserAction(_T("ReleaseKBServer() called in CreateAndLoadKBs()"));
+			LogUserAction(_T("ReleaseKBServer(2) called in CreateAndLoadKBs()"));
 		}
 	}
 #endif
@@ -26941,7 +26969,8 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// the manager gui is not open, that pointer is set to NULL. Also, if the manager GUI is
 /// not running when the thread completes, a block of code at the end of OnExit() does the
 /// necessary housework.
-/// Hmmm... making it receive events, puts it into an infinite loop of focus events.............. can this be prevented?
+/// Hmmm... making it receive events, puts it into an infinite loop of focus events... can this be
+/// prevented? Nah, find another way.
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -26951,8 +26980,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 
 	// The administrator must authenticate to whichever kbserver he wants to adjust or view
-	bool bStateless = TRUE;
-	KBSharingSetupDlg dlg(GetMainFrame(), bStateless);
+	// Note: the next line sets up a "stateless" instance of the dialog - it doesn't know
+	// or care about the adapting/glossing mode, the machine's owner, or either of the
+	// glossing or adapting local KBs. It only uses the KbServer class for the services it
+	// provides for the KB Sharing Manager gui
+	KBSharingStatelessSetupDlg dlg(GetMainFrame());
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -26965,10 +26997,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	}
 
 	m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
-	//KBSharingMgrTabbedDlg kbSharingPropertySheet(pApp->GetMainFrame());
-	// Point the stateless KbServer instance created on the heap by the constructor of
-	// KBSharingSetupDlg at the m_pKbServer member of KBSharingMgrTabbedDlg
-	//kbSharingPropertySheet.SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
+
 	m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
 
 	// BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
@@ -26991,14 +27020,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
-	//wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
-	//	kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
 	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
 		pApp->m_pKBSharingMgrTabbedDlg->GetKbServer()->GetUsersList()->GetCount());
 #endif
 
 	// Get the "stateless" strings into the relevant storage in the stateless m_pKbServer
-	//KbServer* pStatelessKbServer = kbSharingPropertySheet.GetKbServer();
 	KbServer* pStatelessKbServer = pApp->m_pKBSharingMgrTabbedDlg->GetKbServer();
 	pStatelessKbServer->SetKBServerUsername(dlg.m_strStatelessUsername);
 	pStatelessKbServer->SetKBServerURL(dlg.m_strStatelessURL);
@@ -27009,7 +27035,6 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	if(pApp->m_pKBSharingMgrTabbedDlg->ShowModal() == wxID_OK)
 	{
 	}
-
 	// When done, remove from the heap, and set the ptr to NULL
 	delete pApp->m_pKBSharingMgrTabbedDlg;
 	pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
@@ -32472,6 +32497,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szKbServerURL << tab << m_strKbServerURL;
 	pf->AddLine(data);
 
@@ -33285,6 +33314,17 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 			{
 				m_bIsKBServerProject = FALSE;
+			}
+		}
+		else if (name == szIsGlossingKBServerProject)
+		{
+			if (strValue == _T("1"))
+			{
+				m_bIsGlossingKBServerProject = TRUE;
+			}
+			else
+			{
+				m_bIsGlossingKBServerProject = FALSE;
 			}
 		}
 		else if (name == szKbServerURL)

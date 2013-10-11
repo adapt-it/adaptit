@@ -1580,148 +1580,6 @@ wxSizer *UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
-wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
-
-    item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Source Text:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item6 = new wxTextCtrl( parent, IDC_EDIT_MATCHED_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_READONLY );
-    item6->SetToolTip( _("Source text as translated previously") );
-    item5->Add( item6, 1, wxGROW|wxALL, 0 );
-
-    item3->Add( item5, 1, wxALIGN_CENTER, 5 );
-
-    item3->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
-
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticBox *item9 = new wxStaticBox( parent, -1, _("Translations which are currently in the knowledge base:") );
-    wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
-
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxString *strs11 = (wxString*) NULL;
-    wxListBox *item11 = new wxListBox( parent, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition, wxSize(400,-1), 0, strs11, wxLB_SINGLE );
-    item11->SetToolTip( _("List of translations currently in the knowledge base for the source text above") );
-    item10->Add( item11, 1, wxGROW|wxALL, 0 );
-
-    item8->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
-
-    item7->Add( item8, 1, wxGROW|wxALL, 5 );
-
-    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("References:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item15 = new wxTextCtrl( parent, IDC_EDIT_REFERENCES, wxT(""), wxDefaultPosition, wxSize(100,-1), wxTE_READONLY );
-    item15->SetToolTip( _("Approximate number of times this source text has been adapted") );
-    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
-
-    wxButton *item18 = new wxButton( parent, IDC_BUTTON_MOVE_UP, _("Move &Up"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->SetToolTip( _("Move the selected translation up in the list") );
-    item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item19 = new wxButton( parent, IDC_BUTTON_MOVE_DOWN, _("Move &Down"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->SetToolTip( _("Move a selected translation down in the list") );
-    item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item20 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove From KB"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-    item20->SetToolTip( _("Remove the selected translation from the knowledge base") );
-    item17->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
-
-    wxButton *item22 = new wxButton( parent, IDC_BUTTON_CANCEL_ASK, _("Do &Not Ask Again"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Click this button if you do not want the Choose Translation dialog to appear again for the above source text") );
-    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item23 = new wxButton( parent, IDC_BUTTON_CANCEL_AND_SELECT, _("Cancel and &Select"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Cancel this dialog and extend selection one word to the right") );
-    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item16->Add( item21, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-    item12->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item25 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-    item25->SetDefault();
-    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item24->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item26 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item12->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item7->Add( item12, 0, wxGROW|wxALL, 0 );
-
-    item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("&New Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item30 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item31 = new wxTextCtrl( parent, IDC_EDIT_NEW_TRANSLATION, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
-    item31->SetToolTip( _("Type a new translation here if the translation you want is not in the list") );
-    item30->Add( item31, 1, wxGROW|wxALL, 0 );
-
-    item28->Add( item30, 1, wxALIGN_CENTER, 5 );
-
-    item28->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item27->Add( item28, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    item1->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
-
-    item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
 wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9074,8 +8932,8 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxString strs11[] = 
     {
-        _("Knowledge base sharing is ON"), 
-        _("Knowledge base sharing is OFF")
+        _("Knowledge base sharing is Enabled"), 
+        _("Knowledge base sharing is Disabled")
     };
     wxRadioBox *item11 = new wxRadioBox( parent, ID_RADIO_SHARING_OFF, _("Turn knowledge base sharing on or off (temporarily)"), wxDefaultPosition, wxSize(20,-1), 2, strs11, 2, wxRA_SPECIFY_COLS );
     item11->SetToolTip( _("Temporarily turn sharing  on or off with these two buttons") );
@@ -9118,87 +8976,6 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item16, 0, wxALIGN_CENTER, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
-wxSizer *kb_sharing_setup_func( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item3 = new wxStaticText( parent, ID_SERVER_URL_LABEL, _("Type the URL for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_SERVER_URL, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item4->SetToolTip( _("The URL may be something like https://kbserver.domain, where domain maybe something like name.org") );
-    item2->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
-
-    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL, _("This is your username. (To change it, use Change Username from the Edit menu.)"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item10->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
-    item7->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item6->Add( item7, 0, wxALIGN_CENTER|wxRIGHT, 5 );
-
-    item5->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item11->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    item5->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
-
-    item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item14 = new wxButton( parent, ID_KB_SHARING_REMOVE_SETUP, _("Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetToolTip( _("No longer share this project's knowledge base") );
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item13->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetDefault();
-    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item13->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
-
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_PWD_CAUTION_LABEL, _("You must also give the server's password if you setup again after a Remove Setup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -9995,6 +9772,144 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
     item1->Add( item30, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_SERVER_URL_LABEL_STATELESS, _("Type the URL for the knowledge base server:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_SERVER_URL_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item5->SetToolTip( _("The URL may be something like https://kbserver.domain, where domain may be something like name.org") );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item2->Add( item3, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("Type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item10->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item7->Add( item8, 0, wxALIGN_CENTER|wxRIGHT, 5 );
+
+    item6->Add( item7, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item11->Add( item12, 0, wxALIGN_CENTER, 5 );
+
+    item6->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item1->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetDefault();
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item13->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item15 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    item0->Add( item1, 0, wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_INDICATE_SHARE, _("Indicate the knowledge bases you want to share, using the checkboxes below"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_TGT_KB, _("Share adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetValue( TRUE );
+    item7->SetToolTip( _("Shares target language translations entered in adaptation mode") );
+    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item6->Add( 50, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxCheckBox *item8 = new wxCheckBox( parent, ID_CHECKBOX_SHARE_MY_GLOSS_KB, _("Share glosses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetToolTip( _("Shares glosses entered in glossing mode") );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item6, 0, wxALIGN_CENTER, 5 );
+
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item10 = new wxButton( parent, ID_BUTTON_REMOVE_MY_SETUP, _("End Sharing"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("No longer share any of this project's local knowledge bases") );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item9->Add( 26, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item11 = new wxButton( parent, wxID_OK, _("Start Sharing"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item9->Add( 26, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item2->Add( item9, 0, wxALIGN_CENTER, 5 );
+
+    item1->Add( item2, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     if (set_sizer)
     {

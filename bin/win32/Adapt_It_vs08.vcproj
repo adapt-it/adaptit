@@ -713,7 +713,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\KBSharingSetupDlg.cpp"
+				RelativePath="..\..\source\KbSharingSetup.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KBSharingStatelessSetupDlg.cpp"
 				>
 			</File>
 			<File
@@ -1014,10 +1018,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Adapt_It_Resources.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Adapt_It_wdr.h"
 				>
 			</File>
@@ -1299,6 +1299,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBSharingMgrTabbedDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KbSharingSetup.h"
 				>
 			</File>
 			<File

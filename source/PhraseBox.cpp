@@ -2550,7 +2550,7 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
         // here want to let the values stored at the start of OnChar() clobber what
         // OnButtonMerge() has already done - so we have a test to determine when to
         // suppress the cursor setting call below in this new circumstance
-		if (!(gbMergeSucceeded && pApp->m_curDirection == left))
+		if (!(gbMergeSucceeded && pApp->m_curDirection == toleft))
 		{
 			SetSelection(nStartChar,nEndChar);
 			pApp->m_nStartChar = nStartChar;

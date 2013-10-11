@@ -3147,7 +3147,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 					CCell* pCell = pNewPile->GetCell(0);
 					m_pApp->m_selection.Insert(pCell);
 					m_pApp->m_pAnchor = pCell;
-					m_pApp->m_curDirection = right;
+					m_pApp->m_curDirection = toright;// BEW 2Oct13 changed from right to toright due to ambiguity
 					m_pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected
@@ -3446,7 +3446,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 					CCell* pCell = pNewPile->GetCell(0);
 					m_pApp->m_selection.Insert(pCell);
 					m_pApp->m_pAnchor = pCell;
-					m_pApp->m_curDirection = left;
+					m_pApp->m_curDirection = toleft;
 					m_pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected

@@ -39,6 +39,15 @@ WX_DEFINE_ARRAY_LONG(long, Array_of_long);
 
 #if defined(_KBSERVER)
 
+// A utility function to do the equivalent of curl's curl_easy_encode(), because the
+// latter seems to be interfering with heap cleanup when our url-encoded API functions
+// return, so that a heap error (crashing the app) occurs. Jonathan provided this
+// alternative which just uses std:string class - I'll code it here as a global function
+using namespace std;
+#include <string>
+//std::string urlencode(const std::string &s); // prototype
+
+
 /// The KbServerEntry struct is used for storing a single entry of the server's database,
 /// in a queue (actually an STL-based wxList<T> instance, which stores pointer to T) - periodic
 /// incremental downloads are pushed to the end of the list, and entries popped from its

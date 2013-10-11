@@ -598,8 +598,8 @@ void CRetranslation::ReplaceMatchedSubstring(wxString strSearch, wxString& strRe
 	int nRight;
 	wxString left;
 	left.Empty();
-	wxString right;
-	right.Empty();
+	wxString onright; // BEW 2Oct13 changed from right to onright due to ambiguity
+	onright.Empty();
 	lenTgt = strSearch.Length(); // the search string's length
 	lenAdaptStr = strAdapt.Length(); // length of the string in which the search is done
 	nFound = strAdapt.Find(strSearch);
@@ -608,10 +608,10 @@ void CRetranslation::ReplaceMatchedSubstring(wxString strSearch, wxString& strRe
 	nRight = nFound + lenTgt;
 	wxASSERT(nRight <= lenAdaptStr);
 	nRight = lenAdaptStr - nRight;
-	right = strAdapt.Right(nRight);
+	onright = strAdapt.Right(nRight);
 
 	// put the final string into the strAdapt alias string in caller
-	strAdapt = left + strReplace + right;
+	strAdapt = left + strReplace + onright;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
