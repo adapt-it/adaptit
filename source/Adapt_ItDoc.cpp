@@ -1737,23 +1737,24 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
         wxASSERT(returnCode >= 0);      // a negative returnCode means a bug
         if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
                                         //  message should have been displayed already.
-    }
-    
-    if (revNum < 0)                     // As well as the case above, we come here with revNum = -1, meaning that the Nav dialog
-                                        // has asked us to go to the "next" version, but actually we're at the latest committed.
-    {   EndTrial(TRUE);                 // This handles everything - takes down the dialog, and restores the backup if any,
-                                        // and calls DocChangedExternally() and UpdateAppearance().
+        
+        EndTrial (TRUE);                 // end the trial, restoring the backup
         return;
     }
     
+    if ( revNum < 0 )
+    {                   // bail out if no more, coming forward
+        wxMessageBox (_("There are no more recent versions in the history!") );
+        return;
+    }
+
     if ( revNum >= gpApp->m_versionCount )
-    {                   // bail out if no more
+    {                   // bail out if no more, going back
         wxMessageBox (_("We're already back at the earliest version saved!") );
 		return;
     }
 
  	returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
-
 
     wxASSERT(returnCode >= 0);      // a negative returnCode means a bug
     if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
@@ -1841,8 +1842,10 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     }
     else
         needBackup = IsLatestVersionChanged();      // if not modified, but the latest version isn't the same as the latest committed, we need a backup.
-    
-    if (needBackup)
+
+// (Oct 13 -- we're now always doing the backup, no matter what, so "return to latest" will always have the expected result of returning to exactly where
+//  we started.
+//    if (needBackup)
     {
         wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
         bool        bCopiedSuccessfully = ::wxCopyFile(pApp->m_curOutputPath, backupPath, TRUE);   // overwrite any previous copy
@@ -1904,7 +1907,6 @@ void CAdapt_ItDoc::DoAcceptVersion (void)
         gpApp->LogUserAction(_T("We're not looking at earlier revisions!"));
 		return;
 	}
-    
     EndTrial (FALSE);           // the trial's over, but we don't restore from any backup.
 }
 

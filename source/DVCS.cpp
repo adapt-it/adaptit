@@ -357,7 +357,7 @@ int  DVCS::setup_versions ( wxString fileName )
     m_pApp->m_DVCS_log = git_output;        // save the log in app global for our dialog.  This is OK since this
                                             //  DVCS object lasts for the whole application run.
     git_count = git_output.GetCount();
-    return git_count;
+    return  (int) git_count;
 }
 
 /*  get_version() calls git to checkout the given version number, defined by the line number in the log which we should
