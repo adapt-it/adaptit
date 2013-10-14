@@ -113,16 +113,14 @@ void DVCSNavDlg::OnAccept (wxCommandEvent& WXUNUSED(event))
 
 void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))
 {    
-    m_pDoc->DoChangeVersion (-2);     // -2 means latest committed or the backup if it's there. Also removes the dialog and cleans up
+    m_pDoc->DoChangeVersion (-2);     // -2 means latest accepted, or the backup if it's there. Also removes the dialog and cleans up
 };
-
 
 // We need to catch the situation where the user clicks the dialog's close box while a trial is under way
 //  -- the most harmless thing to do is just to treat it as if "return to latest version" had been clicked.
 
 void DVCSNavDlg::OnClose (wxCloseEvent& WXUNUSED(event))
 {
-    m_pDoc->DoChangeVersion (-2);     // -2 means latest committed or the backup if it's there. Also removes the dialog and cleans up
-
+    m_pDoc->DoChangeVersion (-2);     // -2 means latest accepted, or the backup if it's there. Also removes the dialog and cleans up
 }
 

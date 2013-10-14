@@ -1008,10 +1008,10 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
         return TRUE;	// return TRUE to app member m_bReadOnlyAccess
     }
     
-    if (m_pApp->m_trialVersionNum > 0 || m_pApp->m_bBackedUpForTrial)
+    if (m_pApp->m_trialVersionNum >= 0 || m_pApp->m_bBackedUpForTrial)
     {
 #ifdef _DEBUG_ROP
-        wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but earlier version than latest, so returning TRUE"));
+        wxLogDebug(_T("SetReadOnlyProtection:  Its ME, but a DVCS trial is under way, so returning TRUE"));
 #endif
         return TRUE;
     }
