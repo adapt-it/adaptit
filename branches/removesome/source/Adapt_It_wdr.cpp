@@ -4103,46 +4103,52 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Number of references:"), wxDefaultPosition, wxDefaultSize, 0 );
     item30->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item34 = new wxTextCtrl( parent, IDC_EDIT_REF_COUNT, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
+    wxTextCtrl *item34 = new wxTextCtrl( parent, IDC_EDIT_REF_COUNT, wxT(""), wxDefaultPosition, wxSize(50,-1), wxTE_READONLY );
     item34->SetToolTip( _("Number of references in the knowledge base (approximate)") );
     item30->Add( item34, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
+    item30->Add( 15, 20, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_REMOVE_SOME, _("Remove Some Translations..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Shows all target <> source word or phrase pairs, with checkboxes to indicate which to delete") );
+    item30->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item1->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item35 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item36 = new wxBoxSizer( wxHORIZONTAL );
 
-    item35->Add( 5, 20, 0, wxALIGN_CENTER, 0 );
+    item36->Add( 5, 20, 0, wxALIGN_CENTER, 0 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("&Search for:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("&Search for:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item37 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH, wxT(""), wxDefaultPosition, wxSize(240,60), wxTE_MULTILINE|wxVSCROLL );
-    item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxTextCtrl *item38 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH, wxT(""), wxDefaultPosition, wxSize(240,60), wxTE_MULTILINE|wxVSCROLL );
+    item36->Add( item38, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item38 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item39 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item39 = new wxButton( parent, ID_BUTTON_GO, _("Go"), wxDefaultPosition, wxSize(50,-1), 0 );
-    item38->Add( item39, 0, wxALIGN_CENTER, 0 );
+    wxButton *item40 = new wxButton( parent, ID_BUTTON_GO, _("Go"), wxDefaultPosition, wxSize(50,-1), 0 );
+    item39->Add( item40, 0, wxALIGN_CENTER, 0 );
 
-    wxButton *item40 = new wxButton( parent, ID_BUTTON_ERASE_ALL_LINES, _("Erase All Lines"), wxDefaultPosition, wxDefaultSize, 0 );
-    item38->Add( item40, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxButton *item41 = new wxButton( parent, ID_BUTTON_ERASE_ALL_LINES, _("Erase All Lines"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->Add( item41, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item35->Add( item38, 0, wxALIGN_CENTER|wxALL, 0 );
+    item36->Add( item39, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item35->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item36->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("Old searches:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("Old searches:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->Add( item42, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxString strs42[] = 
+    wxString strs43[] = 
     {
         wxT("")
     };
-    wxComboBox *item42 = new wxComboBox( parent, ID_COMBO_OLD_SEARCHES, wxT(""), wxDefaultPosition, wxSize(160,-1), 1, strs42, wxCB_DROPDOWN|wxCB_READONLY );
-    item42->SetToolTip( _("Click to add the line to the search box") );
-    item35->Add( item42, 1, wxALIGN_CENTER|wxALL, 5 );
+    wxComboBox *item43 = new wxComboBox( parent, ID_COMBO_OLD_SEARCHES, wxT(""), wxDefaultPosition, wxSize(160,-1), 1, strs43, wxCB_DROPDOWN|wxCB_READONLY );
+    item43->SetToolTip( _("Click to add the line to the search box") );
+    item36->Add( item43, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item36, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -9898,6 +9904,7 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
     item9->Add( 26, 8, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item11 = new wxButton( parent, wxID_OK, _("Start Sharing"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetDefault();
     item9->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item9->Add( 26, 8, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -9910,6 +9917,87 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
     item1->Add( item2, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *Remove_Some_Tgt_Entries_Func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    item2->Add( 10, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_SRC_TGT_REF_LABEL, _("Source text                        Target text [adaptation]        (reference count)"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxString *strs4 = (wxString*) NULL;
+    wxCheckListBox *item4 = new wxCheckListBox( parent, ID_CHECKLISTBOX_REMOVE_SOME, wxDefaultPosition, wxSize(600,460), 0, strs4, 0 );
+    item4->SetFont( wxFont( 10, wxSWISS, wxNORMAL, wxNORMAL ) );
+    item4->SetToolTip( _("Each line is: checkbox, then target text, <> as a separator, then source text") );
+    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticBox *item6 = new wxStaticBox( parent, -1, _("Choose how you want the list presented:") );
+    wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_ORGANISE_BY_KEYS, _("Organise by keeping source text groupings"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetValue( TRUE );
+    item8->SetToolTip( _("\"Target\" (or \"Gloss\") <> \"Source\" on each line,  but keeping source text meanings together") );
+    item7->Add( item8, 0, wxALIGN_CENTER, 5 );
+
+    item7->Add( 20, 12, 0, wxALIGN_CENTER, 5 );
+
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_SIMPLY_TARGET_ALPHABETICAL, _("List in alphabetic order of the target text"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetToolTip( _("\"Target\" (or \"Gloss\") <> \"Source\" on each line, organised alphabetically") );
+    item7->Add( item9, 0, wxALIGN_CENTER, 5 );
+
+    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item11 = new wxButton( parent, ID_BUTTON_SAVE_ENTRYLIST_TO_FILE, _("Save the list to a file... "), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Save the current form of the list to a text file") );
+    item10->Add( item11, 0, wxALIGN_CENTER, 5 );
+
+    item10->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item12 = new wxButton( parent, wxID_OK, _("Remove the selected entries, and close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetDefault();
+    item12->SetToolTip( _("Removes the entries which are ticked, and closes the dialog") );
+    item10->Add( item12, 0, wxALIGN_CENTER, 5 );
+
+    item10->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetToolTip( _("Ignore any selections made, just Cancel the dialog") );
+    item10->Add( item13, 0, wxALIGN_CENTER, 5 );
+
+    item1->Add( item10, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("After removing entries do Consistency Check... (Edit menu), and take the \"other documents\" option."), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item15, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {

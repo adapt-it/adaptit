@@ -38,6 +38,7 @@
 #include "Adapt_It.h"
 #include "RefStringMetadata.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
 #include "AdaptitConstants.h" 
 #include "TargetUnit.h"
 

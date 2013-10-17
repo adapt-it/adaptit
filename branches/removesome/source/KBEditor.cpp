@@ -64,6 +64,7 @@
 #include "Thread_KbEditorUpdateButton.h"
 #include "Thread_PseudoDelete.h"
 #include "Thread_CreateEntry.h"
+#include "RemoveSomeTgtEntries.h"
 
 // for support of auto-capitalization
 
@@ -113,6 +114,7 @@ BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 	EVT_BUTTON(IDC_BUTTON_ADD, CKBEditor::OnButtonAdd)
 	EVT_BUTTON(IDC_ADD_NOTHING, CKBEditor::OnAddNoAdaptation)
 	EVT_BUTTON(IDC_BUTTON_REMOVE, CKBEditor::OnButtonRemove)
+	EVT_BUTTON(ID_BUTTON_REMOVE_SOME, CKBEditor::OnButtonRemoveSomeTgtEntries)
 	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CKBEditor::OnButtonMoveUp)
 	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CKBEditor::OnButtonMoveDown)
 	EVT_BUTTON(IDC_BUTTON_FLAG_TOGGLE, CKBEditor::OnButtonFlagToggle)
@@ -1267,6 +1269,24 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_arrSearches.Empty();
 }
 
+void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
+{
+	RemoveSomeTgtEntries dlg((wxWindow*)this);
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		// "Remove the selected entries and close" button was clicked
+		int ii = 1;		
+
+
+	}
+	else
+	{
+		// Cancel button was clicked
+
+
+	}
+}
+
 void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 {
     // this button must remove the selected translation from the KB, which means that user
@@ -2235,6 +2255,8 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	wxASSERT(m_pBtnAdd != NULL);
 	m_pBtnRemove = (wxButton*)nbPage->FindWindow(IDC_BUTTON_REMOVE);
 	wxASSERT(m_pBtnRemove != NULL);
+	m_pBtnRemoveSomeTgtEntries = (wxButton*)nbPage->FindWindow(ID_BUTTON_REMOVE_SOME);
+	wxASSERT(m_pBtnRemoveSomeTgtEntries != NULL);
 	m_pBtnMoveUp = (wxButton*)nbPage->FindWindow(IDC_BUTTON_MOVE_UP);
 	wxASSERT(m_pBtnMoveUp != NULL);
 	m_pBtnMoveDown = (wxButton*)nbPage->FindWindow(IDC_BUTTON_MOVE_DOWN);
@@ -2672,7 +2694,7 @@ void CKBEditor::UpdateButtons()
 		m_pBtnToggleTheSetting->Enable(TRUE);
 	// enable the Add <no adaptation> button initially
 	m_pBtnAddNoAdaptation->Enable(TRUE);
-	// since there should be at least 1 translation in the existing translations box
+	// Since there should be at least 1 translation in the existing translations box
 	// for every source phrase, the Remove button should always be enabled. Whenever the only
 	// translation of a given source phrase is removed, the source phrase itself is also removed.
 	// The one time the "Remove" button should be disabled is when the list is empty which occurs
@@ -2681,7 +2703,16 @@ void CKBEditor::UpdateButtons()
 		m_pBtnRemove->Enable(FALSE);
 	else
 		m_pBtnRemove->Enable(TRUE);
-	// enable those buttons meeting certain conditions depending on number of items and selection
+	// The Remove Some Translations button can be called from any panel of the tabbed
+	// dialog. It lists tgt <> src and a checkbox, in two user choosable formats, in a
+	// child dialog with a large listbox, doing it for ALL target text adaptations (with
+	// their source text shown second) in the whole KB - ie. all lengths of phrase; the
+	// button is enabled in any panel which has at least a single source text key
+	if (m_pListBoxKeys->GetCount() == 0)
+		m_pBtnRemoveSomeTgtEntries->Enable(FALSE);
+	else
+		m_pBtnRemoveSomeTgtEntries->Enable(TRUE);
+	// Enable those buttons meeting certain conditions depending on number of items and selection
 	int nSel = m_pListBoxExistingTranslations->GetSelection();
 	wxString selectedTrans;
 	if (m_pListBoxExistingTranslations->GetCount() > 0)

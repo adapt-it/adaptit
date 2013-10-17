@@ -2467,7 +2467,7 @@ wxString GetUniqueIncrementedFileName(wxString baseFilePathAndName, enum UniqueF
 	// BEW added 24May13, folderPathOnly may be empty, in which case the PathSeparator
 	// ends up first in the string. Windows will accept this in a wxFileDialog, but Linux
 	// won't, and it crashes the app (an assert from deep in wxWidgets, & error message
-	// "...the filename shouldn't contain the path". So test for initial PathSeparator and
+	// "...the filename shouldn't contain the path"). So test for initial PathSeparator and
 	// remove it if there and then return the result
 	int offset = uniqueName.Find(PathSeparator);
 	if (folderPathOnly.IsEmpty() && offset == 0)

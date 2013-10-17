@@ -5947,8 +5947,8 @@ wxString szLastSourceOutputPath = _T("LastSourceTextExportPath");
 wxString szLastSourceRTFOutputPath = _T("LastSourceTextRTFExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastKBExportPath". This value is written in the "BasicSettings" part
-/// of the basic configuration file. Adapt It stores this path in the
+/// "LastKBExportPath". This value is written in the "ProjectSettings" part
+/// of the project configuration file. Adapt It stores this path in the
 /// App's m_lastKbOutputPath member variable.
 /// The old config label "KB_ExportPath" is retained for reading older
 /// config files.

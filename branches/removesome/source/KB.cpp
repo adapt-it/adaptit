@@ -2881,7 +2881,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	wxString geSFM = s1 + _T("ge ");
 	wxString key;
 	key.Empty();
-	wxString gloss;
+	wxString gloss; // using this for adaptation, or our glossing mode's "gloss"
 	wxString baseKey;
 	wxString baseGloss;
 	wxString outputSfmStr; // accumulate a whole SFM "record" here, and retain
