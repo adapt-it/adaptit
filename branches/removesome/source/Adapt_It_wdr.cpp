@@ -9944,9 +9944,8 @@ wxSizer *Remove_Some_Tgt_Entries_Func( wxWindow *parent, bool call_fit, bool set
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxString *strs4 = (wxString*) NULL;
-    wxCheckListBox *item4 = new wxCheckListBox( parent, ID_CHECKLISTBOX_REMOVE_SOME, wxDefaultPosition, wxSize(600,460), 0, strs4, 0 );
-    item4->SetFont( wxFont( 10, wxSWISS, wxNORMAL, wxNORMAL ) );
-    item4->SetToolTip( _("Each line is: checkbox, then target text, <> as a separator, then source text") );
+    wxCheckListBox *item4 = new wxCheckListBox( parent, ID_CHECKLISTBOX_REMOVE_SOME, wxDefaultPosition, wxSize(540,460), 0, strs4, 0 );
+    item4->SetFont( wxFont( 9, wxSWISS, wxNORMAL, wxNORMAL ) );
     item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticBox *item6 = new wxStaticBox( parent, -1, _("Choose how you want the list presented:") );
