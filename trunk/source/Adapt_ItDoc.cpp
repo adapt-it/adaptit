@@ -2083,7 +2083,7 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 // we'll post a custom event to do it.
 
         gpApp->LogUserAction(_T("Posting custom event to open the DVCSNavDlg"));
-        gpApp->m_pDVCS->m_version_to_open = itemIndex;          // put the version we want in our DVCS object for the
+        gpApp->m_pDVCS->m_version_to_open = (int)itemIndex;     // put the version we want in our DVCS object for the
                                                                 // event to pick up
         wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
     }

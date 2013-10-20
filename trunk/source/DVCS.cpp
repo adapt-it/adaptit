@@ -129,7 +129,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 	wxString		str, str1, local_arguments;
 	wxArrayString	errors;
     long            result;
-	int				count, i;
+	int				i, count;
 	int				returnCode = 0;		// 0 = no error.  Let's be optimistic here
     wxLogNull       logNo;              // avoid unwanted system messages
 
@@ -175,9 +175,9 @@ int  DVCS::call_git ( bool bDisplayOutput )
     {
 //wxMessageBox(_T("an error came up!"));      // uncomment for debugging
         if (!bDisplayOutput)                // if we're not to display output, we just get straight out, returning the error code.
-            return result;
+            return (int)result;
 
-        returnCode = result;
+        returnCode = (int)result;
     }
 	else
 	{		// git's stdout will land in our git_output wxArrayString.  There can be a number of strings.
@@ -185,7 +185,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 			// with the output if we've been asked to.  Otherwise the caller will handle.
 		if (bDisplayOutput)
 		{
-			count = git_output.GetCount();
+			count = (int)git_output.GetCount();
 			if (count)
 			{	str1.Clear();
 				for (i=0; i<count; i++)
@@ -199,7 +199,7 @@ int  DVCS::call_git ( bool bDisplayOutput )
 
 	if (returnCode)						// an error occurred
 	{
-		count = errors.GetCount();
+		count = (int)errors.GetCount();
 		if (count)
 		{	str1.Clear();
 			for (i=0; i<count; i++)

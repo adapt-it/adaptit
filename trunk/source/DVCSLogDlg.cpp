@@ -72,7 +72,7 @@ void DVCSLogDlg::PopulateList()
 	m_pList = (wxListView*) FindWindowById (ID_LST_VERSIONS);
     wxASSERT(m_pList != NULL);
 
-    int         row_count = m_pApp->m_DVCS_log.GetCount();
+    int         row_count = (int)m_pApp->m_DVCS_log.GetCount();
     wxString    nextLine, name, date, comment, str;
 
 // clear out items if necessary
