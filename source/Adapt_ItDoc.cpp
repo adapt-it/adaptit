@@ -1846,6 +1846,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 // (Oct 13 -- we're now always doing the backup, no matter what, so "return to latest" will always have the expected result of returning to exactly where
 //  we started.
 //    if (needBackup)
+	needBackup = needBackup; // whm added to prevent GCC warning about variable set but not used
     {
         wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
         bool        bCopiedSuccessfully = ::wxCopyFile(pApp->m_curOutputPath, backupPath, TRUE);   // overwrite any previous copy

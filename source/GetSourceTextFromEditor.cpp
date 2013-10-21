@@ -1112,8 +1112,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
                 if (m_pApp->m_recovery_pending)
                 {    
 					this->EndModal(wxID_CANCEL);
-                    wxMessageBox (_T("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing."));
-                    m_pApp->LogUserAction (_("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing."));
+                    wxMessageBox (_("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing."));
+                    m_pApp->LogUserAction (_T("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing."));
 					return;
 				}
 
