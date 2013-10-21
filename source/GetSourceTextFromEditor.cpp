@@ -492,6 +492,7 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 // ClobberDocument(). Each "get" of a chapter or book from the external editor should set
 // up the mapping to the appropriate AI project, if there is one, each time - and load the
 // KBs for it.
+
 void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event) 
 {
 	if (pListBoxBookNames->GetSelection() == wxNOT_FOUND)
@@ -1111,6 +1112,8 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
                 if (m_pApp->m_recovery_pending)
                 {    
 					this->EndModal(wxID_CANCEL);
+                    wxMessageBox (_T("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing."));
+                    m_pApp->LogUserAction (_("The document was corrupt, but we have successfully restored the last version saved in the history.  Please re-attempt what you were doing."));
 					return;
 				}
 

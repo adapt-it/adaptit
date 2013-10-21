@@ -1916,9 +1916,10 @@ bool  CallOpenDocument ( wxString path )
     return gpApp->GetDocument()->OnOpenDocument (path, false);
 }
 
-/*  RecoverLatestVersion() is called when an xml error comes up while reading a document.  If we can, we
-    revert to the latest committed version.  We return TRUE on success, FALSE otherwise.
-*/
+
+// RecoverLatestVersion() is called when an xml error comes up while reading a document.  If we can, we
+// revert to the latest committed version.  We return TRUE on success, FALSE otherwise.
+
 bool CAdapt_ItDoc::RecoverLatestVersion (void)
 {
     int             returnCode;
@@ -1944,7 +1945,6 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 //  doc has a wrong name. So on any nonzero returnCode we return FALSE since we can't
 //  recover the doc.
 
-
     if (returnCode)
     {
         wxString    temp;
@@ -1953,7 +1953,6 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 
         return FALSE;
     }
-
 
 /*  OK, the doc's recovered!  What we do now depends on what was happening when the doc was opened.  The normal situation
     is a simple doc opening, and in this case m_reopen_recovered_doc will be TRUE.  In this situation we'd like to

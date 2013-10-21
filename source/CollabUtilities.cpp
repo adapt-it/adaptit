@@ -2642,6 +2642,7 @@ wxString GetTextFromAbsolutePathAndRemoveBOM(wxString& absPath, wxString bookCod
 /// framework, so just always return TRUE even if there was an error
 /// Created BEW 3Jul11
 ////////////////////////////////////////////////////////////////////////////////
+
 bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText,
 		 bool bDoMerger, bool bDoLayout, bool bCopySourceWanted)
 {
