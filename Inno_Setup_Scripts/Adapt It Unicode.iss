@@ -6,11 +6,6 @@
 ; the following:
 ; - itdownload.dll    // DLL that allows us to download 3rd party apps
 ; - it_download.iss   // ITD script to connect the DLL
-; - ai_git.inf        // inf script for silent install of Git
-; To update the silent install of Git, open up a command prompt window and
-; run the Git installer with parameter "/SAVEINF='ai_git.inf'" -- this will
-; save the options you choose in the installer to the file ai_git.inf. Then
-; copy the file ai_git.inf to this directory.
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
@@ -143,6 +138,10 @@ Source: "{#SvnBase}\setup Unicode\CC\reverse_lx_ge.cct"; DestDir: "{app}\CC"; Fl
 Source: "{#SvnBase}\setup Unicode\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 
+[Registry]
+Root: HKCU; Subkey: "Environment"; ValueName: "Path"; ValueType: "string"; ValueData: "{pf}\Git\bin;\{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;
+;Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{pf}\Git\bin;{pf}\Git\cmd;{olddata}"; Check: NotOnPathAlready(); Flags: preservestringtype;
+
 [Icons]
 Name: {group}\{#MyAppName}; Filename: {app}\{#MyAppExeName}; WorkingDir: {app}; Comment: "Launch Adapt It Unicode"; 
 Name: "{group}\{cm:ProgramOnTheWeb,{#MyAppShortName}}"; Filename: {#MyAppURL}; Comment: "Go to the Adapt It website at http://adapt-it.org"; 
@@ -215,8 +214,35 @@ begin
       // ai_git.inf. The git installer for Windows is made in Inno as well;
       // more info on the command line options for Inno installers can be
       // found here: http://www.jrsoftware.org/ishelp/index.php?topic=setupcmdline
-      Exec(GitName, '/SILENT /NORESTART /LOADINF="ai_git.inf"', '', SW_SHOW, ewWaitUntilTerminated, tmpResult);
+      Exec(GitName, '/SILENT', '', SW_SHOW, ewWaitUntilTerminated, tmpResult);
     end;
+end;
+
+function NotOnPathAlready(): Boolean;
+var
+  BinDir, Path: String;
+begin
+  if RegQueryStringValue(HKEY_CURRENT_USER, 'Environment', 'Path', Path) then
+  begin // Successfully read the value
+    Log('HKCU\Environment\PATH = ' + Path);
+    BinDir := ExpandConstant('{pf}\Git\bin');
+    Log('Looking for Git\bin dir in %PATH%: ' + BinDir + ' in ' + Path);
+    if Pos(LowerCase(BinDir), Lowercase(Path)) = 0 then
+    begin
+      Log('Did not find Git\bin dir in %PATH% so will add it');
+      Result := True;
+    end
+    else
+    begin
+      Log('Found Git\bin dir in %PATH% so will not add it again');
+      Result := False;
+    end
+  end
+  else // The key probably doesn't exist
+  begin
+    Log('Could not access HKCU\Environment\PATH so assume it is ok to add it');
+    Result := True;
+  end;
 end;
 
 function NeedRestart(): Boolean;
