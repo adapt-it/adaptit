@@ -909,6 +909,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_BulkPseudoDelete.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Thread_ChangedSince.cpp"
 				>
 			</File>
@@ -1495,6 +1499,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_BulkPseudoDelete.h"
 				>
 			</File>
 			<File

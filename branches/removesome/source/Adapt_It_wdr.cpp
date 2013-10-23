@@ -4109,8 +4109,8 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item30->Add( 15, 20, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item35 = new wxButton( parent, ID_BUTTON_REMOVE_SOME, _("Remove Some Translations..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetToolTip( _("Shows all target <> source word or phrase pairs, with checkboxes to indicate which to delete") );
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_REMOVE_SOME, _("Remove Some Entries or Save List..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Shows contents with reference counts, allows deletions, or can save list to a file") );
     item30->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -9944,7 +9944,7 @@ wxSizer *Remove_Some_Tgt_Entries_Func( wxWindow *parent, bool call_fit, bool set
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxString *strs4 = (wxString*) NULL;
-    wxCheckListBox *item4 = new wxCheckListBox( parent, ID_CHECKLISTBOX_REMOVE_SOME, wxDefaultPosition, wxSize(540,460), 0, strs4, 0 );
+    wxCheckListBox *item4 = new wxCheckListBox( parent, ID_CHECKLISTBOX_REMOVE_SOME, wxDefaultPosition, wxSize(520,390), 0, strs4, 0 );
     item4->SetFont( wxFont( 9, wxSWISS, wxNORMAL, wxNORMAL ) );
     item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -9993,7 +9993,7 @@ wxSizer *Remove_Some_Tgt_Entries_Func( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("After removing entries do Consistency Check... (Edit menu), and take the \"other documents\" option."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("After removing entries do a Consistency Check... (Edit menu), and take the \"other documents\" option."), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxALIGN_CENTER, 5 );
 
     item0->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );

@@ -85,6 +85,11 @@ public:
 	RemoveSomeTgtEntries(wxWindow*	parent); // constructor
 	virtual ~RemoveSomeTgtEntries(); // destructor
 	CKB*	m_pKB;
+	bool	m_bBySrcGroups;
+	NonSrcListRecsArray* GetGroupedArray();
+	SortedNonSrcListRecsArray* GetSortedArray();
+	TrackingArray* GetLeftTrackingArray();
+	TrackingArray* GetRightTrackingArray();
 
 	// member variables
 
@@ -115,12 +120,14 @@ protected:
 	void	LoadList(wxCheckListBox* pList, wxArrayString* pArrayStr);
 	void	SetCheckboxes(bool bBySrcGroups); // restores ticks to checkboxes when view is changed
 	void	DoKBExportOfListedEntries(wxFile* pFile, bool bBySrcGroups);
-	int SearchInSortedArray(SortedNonSrcListRecsArray* pArray, NonSrcListRec* pFindThis); // replaces unreliable .Index() call
-	int SearchInUnsortedArray(NonSrcListRecsArray* pArray, NonSrcListRec* pFindThis);
+	int		SearchInSortedArray(SortedNonSrcListRecsArray* pArray, NonSrcListRec* pFindThis); // replaces unreliable .Index() call
+	int		SearchInUnsortedArray(NonSrcListRecsArray* pArray, NonSrcListRec* pFindThis); // ditto
+	void	GetPhrasePairsForBulkRemoval(TrackingArray* pCheckboxTickedArray, 
+				NonSrcListRecsArray* pArray, wxArrayString* pSrcPhrases, wxArrayString* pTgtPhrases);
+
 
 private:
 	// class attributes
-	bool	m_bBySrcGroups;
 	bool	m_bCurrentValue; // of m_bBySrcGroups when a radio button is clicked
 	bool	m_bTgtAlphabetically;
 	// For dealing with selections and checkbox values

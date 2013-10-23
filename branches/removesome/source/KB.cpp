@@ -3488,7 +3488,7 @@ CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 		return pTgtUnit; // we found it
 	}
     // lookup failed, so the KB state is different than data in the document suggests, a
-    // Verify operation should be done on the file(s)
+    // Consistency Check operation should be done on the file(s)
 	return (CTargetUnit*)NULL;
 }
 

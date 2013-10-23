@@ -47,10 +47,11 @@
 #include "KbServer.h"
 #include "Thread_ChangedSince.h"
 
+extern wxMutex s_BulkDeleteMutex;
+
 Thread_ChangedSince::Thread_ChangedSince():wxThread()
 {
 	m_pApp = &wxGetApp();
-	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 }
 
 Thread_ChangedSince::~Thread_ChangedSince()
@@ -69,7 +70,13 @@ void* Thread_ChangedSince::Entry()
 	// where an entry (in the form of a pointer to struct) is being added to the end of
 	// the queue m_queue in the m_pKbSvr instance
 	wxString timeStamp = m_pKbSvr->GetKBServerLastSync();
+
+	s_BulkDeleteMutex.Lock();
+
 	int rv = m_pKbSvr->ChangedSince_Queued(timeStamp); // 2nd param, bDoTimestampUpdate is default TRUE
+
+	s_BulkDeleteMutex.Unlock();
+
 	// If rv = 0 (ie. no error) is returned, the server's downloaded timestamp will have
 	// been used at the end of ChangedSince_Queued() to update the stored value at the
 	// client end , so it doesn't need to be done here - but that's provided

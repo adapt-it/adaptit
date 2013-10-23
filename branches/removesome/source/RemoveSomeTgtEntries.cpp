@@ -53,8 +53,10 @@
 #include "TargetUnit.h"
 #include "KBEditor.h"
 #include "RefString.h"
+#include "RefStringMetadata.h"
 #include "helpers.h"
 #include "BString.h"
+#include "KbServer.h"
 #include "RemoveSomeTgtEntries.h"
 
 extern bool gbIsGlossing;
@@ -194,9 +196,17 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 
 
 	// set up pointers to the buttons etc
+	m_pCheckListBox = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_REMOVE_SOME);
+	/* 
+	// Nah, Charis looks great, but we get only one pixel of descenders, and topmost of two stacked
+	// diacritics encroach over bottom of text above... got back to SWISS 9pt, it's best compromise
+	m_pApp->m_pDlgTgtFont->SetPointSize(12); // normally 12 point, we'll use 12 and later
+	// restore 12 on exit; 11 makes tilde indistinguishable from a macron, and 13 cuts
+	// off too much descender - so 12 seems to be best compromise
+	m_pCheckListBox->SetFont(*m_pApp->m_pDlgTgtFont);
+	*/
 	m_pRadioOrganiseByKeys = (wxRadioButton*)FindWindowById(ID_RADIO_ORGANISE_BY_KEYS);
 	m_pRadioListTgtAlphabetically = (wxRadioButton*)FindWindowById(ID_RADIO_SIMPLY_TARGET_ALPHABETICAL);
-	m_pCheckListBox = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_REMOVE_SOME);
 	m_pTopLabel = (wxStaticText*)FindWindowById(ID_TEXT_SRC_TGT_REF_LABEL);
 	this->Centre(wxHORIZONTAL);
 	//wxString listRadioButtonLabelTgt = _("List in alphabetic order of the target text");
@@ -305,13 +315,135 @@ void RemoveSomeTgtEntries::OnCheckLBSelected(wxCommandEvent& event)
 
 void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 {
-// TODO add final stuff
+	//m_pApp->m_pDlgTgtFont->SetPointSize(12); // retore to normal 12 point
+	
+	if (m_bIsGlossingKB)
+	{
+		// Ours is a local glossing KB
+#if defined(_KBSERVER)
+#endif
+
+
+	}
+	else
+	{
+		// Ours is an local adapting KB
+#if defined(_KBSERVER)
+		if (m_pApp->m_bIsKBServerProject)
+		{
+			// This project is one for sharing adaptation entries to a remote kbserver,
+			// and entry to this handler would be prevented if sharing was disabled, so
+			// no need to test for the latter here
+			KbServer* pKbServer = m_pApp->GetKbServer(1);
+			wxASSERT(pKbServer);
+
+			// Test here for the app's m_arrSourcesForPseudoDeletion or
+			// m_arrTargetsForPseudoDeletion not yet Empty. A background thread may be
+			// doing bulk pseudo-deletions from an earlier invocation of the
+			// RemoveSomeTgtEntries handler, and we must not try to use those arrays for
+			// another invocation before that thread finishes - at it's finish it will
+			// empty the arrays
+			if (!m_pApp->m_arrSourcesForPseudoDeletion.IsEmpty() ||
+				!m_pApp->m_arrTargetsForPseudoDeletion.IsEmpty())
+			{
+				// a previous bulk removal is 5still in operation, so tell the user to wait
+				// a few minutes then try again
+				wxString msg = _("A previous bulk removal is still running in the background./nWait a few minutes for it to complete, then try again.\nIf the previous bulk removal involved many entries, you may have to wait and retry more than once.");
+				wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
+				return; // stay in the dialog
+
+			}
+		} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject)
+#endif
+		// We can go ahead with the present bulk removal
+		GetPhrasePairsForBulkRemoval(&m_leftCheckedArray, m_pGroupsArray, 
+			&m_pApp->m_arrSourcesForPseudoDeletion, &m_pApp->m_arrTargetsForPseudoDeletion);
+
+		// Test it. Comment out next lines when test is no longer wanted
+#if defined(_DEBUG)
+		{ // <<- limit scope to just this for loop
+		size_t count = m_pApp->m_arrSourcesForPseudoDeletion.size();
+		size_t i;
+		for (i = 0; i < count; ++i)
+		{
+			wxLogDebug(_T("Pseudo-delete this [src,tgt] pair: [ %s , %s ]"),
+				m_pApp->m_arrSourcesForPseudoDeletion.Item(i).c_str(),
+				m_pApp->m_arrTargetsForPseudoDeletion.Item(i).c_str());
+		}
+		} // <<- end of scope limitation
+#endif
+		// Start the background kbserver deletions first, then do the local KB
+		// deletions after that thread has been fired off
+
+#if defined(_KBSERVER)
+		// TODO  the thread for the kbserver deletions
+#endif
+
+		// Now the local KB deletions
+		CKB* pKB = NULL;
+		if (m_bIsGlossingKB)
+		{
+			pKB = m_pApp->m_pGlossingKB; // the glossing KB's pointer
+		}
+		else
+		{
+			pKB = m_pApp->m_pKB; // the adapting KB's pointer
+		}
+		size_t count = m_pApp->m_arrSourcesForPseudoDeletion.size();
+		size_t i;
+		for (i = 0; i < count; ++i)
+		{
+			// Get the next source phrase / target phrase pair to be pseudo-deleted
+			wxString src = m_pApp->m_arrSourcesForPseudoDeletion.Item(i);
+			wxString tgt = m_pApp->m_arrTargetsForPseudoDeletion.Item(i);
+
+			// Get the CTargetUnit instance which stores thi pair
+			int numSrcWords = CountSpaceDelimitedWords(src); // this is a helper.cpp function
+			CTargetUnit* pTU =  pKB->GetTargetUnit(numSrcWords, src); // does an AutoCapsLookup()
+			if (pTU == NULL)
+			{
+				continue; // if we can't find it, skip deleting this one (shouldn't ever happen)
+			}
+			else
+			{
+				// pTU points the CTargetUnit instance we want, so next we get the
+				// CRefString instance which stores the adaption (or gloss if in
+				// glossing mode)
+				CRefString* pRefString = NULL;
+				int nTranslationListIndex = wxNOT_FOUND; // initialize
+				// The following search searches only among the non-pseudodeleted
+				// ones, which is what we want
+				nTranslationListIndex = pTU->FindRefString(tgt);
+				if (nTranslationListIndex == wxNOT_FOUND)
+				{
+					// The wanted CRefString instance is not present in the
+					// CTargetUnit instance, so skip trying to delete this one (this
+					// shouldn't ever happen)
+					continue;
+				}
+				else
+				{
+					// We have the required CRefString instance, so now pseudo-delete it
+					pRefString->SetDeletedFlag(TRUE);
+					pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+					pRefString->m_refCount = 0;
+				}
+			} // end of else block for test: if (pTU == NULL)
+		} // end of loop: for (i = 0; i < count; ++i)
+	} // end of else block for test: if (m_bIsGlossingKB)
+
+	// Get the panel of the tabbed dialog which had the button press in it, updated,
+	// with the selection back at line 0
+
+// *** TODO ***
+	wxASSERT(FALSE); // make sure I don't miss doing this last step
 
 	event.Skip();
 }
 
 void RemoveSomeTgtEntries::OnCancel(wxCommandEvent& event)
 {
+	m_pApp->m_pDlgTgtFont->SetPointSize(12); // retore to normal 12 point
 	event.Skip();
 }
 
@@ -1063,6 +1195,27 @@ int  RemoveSomeTgtEntries::SearchInUnsortedArray(NonSrcListRecsArray* pArray, No
 */
 }
 
+// Accessors   
+NonSrcListRecsArray* RemoveSomeTgtEntries::GetGroupedArray()
+{
+	return m_pGroupsArray;
+}
+SortedNonSrcListRecsArray* RemoveSomeTgtEntries::GetSortedArray()
+{
+	return m_pUngroupedTgtSortedArray;
+}
+
+TrackingArray* RemoveSomeTgtEntries::GetLeftTrackingArray()
+{
+	return &m_leftCheckedArray;
+}
+
+TrackingArray* RemoveSomeTgtEntries::GetRightTrackingArray()
+{
+	return &m_rightCheckedArray;
+}
+
+
 // This function is called AFTER a radiobutton click to swap to the other view from
 // whichever one of the two is current. So the active arrays will be the ones just brought
 // into effect by the switch. The just-repopulated checklistbox will have all checkboxes
@@ -1103,6 +1256,36 @@ void RemoveSomeTgtEntries::SetCheckboxes(bool bBySrcGroups)
 			{
 				m_pCheckListBox->Check(i, TRUE);
 			}
+		}
+	}
+}
+
+// We could use the arrays for either the left radio box, or the right, since they are the
+// same length and have the same data, only differing in the order of the displayed lines
+// and the order of the subfields in each line. We choose to use the arrays for the left
+// radio button for our calculations of which src/tgt phrase pairs to remove from the kb,
+// and if we are in a shared KB project, also from the remote kbserver (the latter using a
+// background thread which unfortunately has to work as a pair per transmission, so if there
+// is significant netword latency, the thread may take a long time to complete its work)
+void RemoveSomeTgtEntries::GetPhrasePairsForBulkRemoval(TrackingArray* pCheckboxTickedArray, 
+		NonSrcListRecsArray* pArray, wxArrayString* pSrcPhrases, wxArrayString* pTgtPhrases)
+{
+	size_t count = pArray->size();
+	size_t nLine;
+	int nValue; // will be onlyl 0 (false) or 1 (true)
+	NonSrcListRec* pRecord = NULL;
+	// We scan for which lines have a ticked checkbox, get the index for each such line,
+	// and that gives us the NonSrcListRec elements in pArray which have the source and
+	// target phrase strings (also the reference count, but we don't need that) for the kb
+	// entries which are to be pseudo-deleted (and removed from kbserver if sharing is on)
+	for (nLine = 0; nLine < count; nLine++)
+	{
+		nValue = pCheckboxTickedArray->Item(nLine); 
+		if (nValue == 1)
+		{
+			pRecord = pArray->Item(nLine);
+			pSrcPhrases->Add(pRecord->src);
+			pTgtPhrases->Add(pRecord->nonsrc);
 		}
 	}
 }

@@ -1271,11 +1271,105 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 
 void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 {
+	// Disallow the button with a message, if it's a KB sharing project but sharing is
+	// temporarily disabled. (Reason? If allowed in when sharing is disabled, the user may
+	// spend an hour or more working through thousands of entries, ticking hundreds of
+	// obsolete ones for deletion. If the Remove Selected Entries button were then
+	// clicked, the local KB would have those entries pseudo-deleted, but the uploads to
+	// the kbserver would not get done. That would result in a kbserver database out of
+	// sync with the local KB on this machine, and we cannot correct that with a bulk
+	// upload because the latter does not include any pseudo deleted entries in a bulk
+	// upload. Nor would retrying the removals in the dialog window work either, because
+	// the pseudo deleted entries in the local KB won't be listed in the window. So the
+	// "solution" is to disallow entry to the dialog when sharing is disabled. (The
+	// ability to save to a file, can't be done either - an unwanted side-effect, but the
+	// protection of synchonicity of local and remote kb is much more important.)
+	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
+	{
+		bool bTellUser = FALSE;
+		// This project is one for sharing entries to a remote kbserver
+		if (gbIsGlossing)
+		{
+			KbServer* pKbServer = pApp->GetKbServer(2);
+			wxASSERT(pKbServer);
+			if (!pKbServer->IsKBSharingEnabled())
+			{
+				// User has disabled sharing of the currently shared glossing KB
+				bTellUser = TRUE;
+			}
+		}
+		else
+		{
+			KbServer* pKbServer = pApp->GetKbServer(1);
+			wxASSERT(pKbServer);
+			if (!pKbServer->IsKBSharingEnabled())
+			{
+				// User has disabled sharing of the currently shared adaptations KB
+				bTellUser = TRUE;
+			}
+		}
+		if (bTellUser)
+		{
+			wxString msg;
+			wxString title;
+			title = _("Knowledge base sharing is (temporarily) disabled");
+			msg = _("This is a shared knowledge base project, but you have disabled sharing.\nSharing must be enabled, and with a working connection to the remote server, before a bulk removal of knowledge base entries can be allowed.\nTo enable sharing again, click Controls For Knowledge Base Sharing... on the Advanced menu, and click the left radio button.");
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+			return;
+		}
+	}
+	
 	RemoveSomeTgtEntries dlg((wxWindow*)this);
+	NonSrcListRec* pRec = NULL;
+	bool bIsChecked;
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		// "Remove the selected entries and close" button was clicked
-		int ii = 1;		
+		pApp->m_arrSourcesForPseudoDeletion.Empty();
+		pApp->m_arrTargetsForPseudoDeletion.Empty();
+		if (dlg.m_bBySrcGroups)
+		{
+			NonSrcListRecsArray* pArray = dlg.GetGroupedArray();
+			TrackingArray* pTracker = dlg.GetLeftTrackingArray();
+			size_t count = pArray->size();
+			size_t index;
+			for (index = 0; index < count; index++)
+			{
+				bIsChecked = pTracker->Item(index) == 1 ? TRUE : FALSE;
+				if (bIsChecked)
+				{
+					// Get the struct which has nonsrc, src, numrefs	
+					pRec = pArray->Item(index);
+
+
+				}
+			}
+
+
+// TODO
+		}
+		else
+		{
+			SortedNonSrcListRecsArray* pArray = dlg.GetSortedArray();
+			TrackingArray* pTracker = dlg.GetRightTrackingArray();
+			size_t count = pArray->size();
+			size_t index;
+			for (index = 0; index < count; index++)
+			{
+				bIsChecked = pTracker->Item(index) == 1 ? TRUE : FALSE;
+				if (bIsChecked)
+				{
+					pArray->Item(index);
+					// Get the struct which has nonsrc, src, numrefs	
+					pRec = pArray->Item(index);
+
+
+				}
+			}
+
+
+// TODO
+		}
 
 
 	}

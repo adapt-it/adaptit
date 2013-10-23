@@ -2770,6 +2770,18 @@ public:
                 // the non-default constructor which does not require use of
                 // wxLocale::Init()) to which we will add localization catalogs, associate
                 // catalog lookup paths, and to which we can add wxLanguage values.
+ 
+#if defined(_KBSERVER)
+	// Next two added 18Oct13, in support of a bulk pseudo-delete of user's chosen entries
+	// for deletion in KB Editor - these two arrays work in parallel. They are put here
+	// rather than in CKB instance, because if kbserver is involved in a high latency
+	// network, it might take many minutes or much longer if lots are to be deleted,
+	// before the kbserver's entries can get their deleted flag's set to 1; and in that
+	// time the project may be exited - which would leave the local KB and the remote
+	// kbserver not in sync - with no good way to fix it. 
+	wxArrayString m_arrSourcesForPseudoDeletion;
+	wxArrayString m_arrTargetsForPseudoDeletion;
+#endif
 
 	// project-defining attibutes
 	wxString	m_sourceName; // name of the source language

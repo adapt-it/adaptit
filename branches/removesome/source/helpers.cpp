@@ -2970,7 +2970,7 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 	return TRUE;
 }
 
-#if defined (_KBSERVER)
+//#if defined (_KBSERVER) // -- BEW made it not be confined to kbserver support on 21Oct13
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str)
 {
@@ -2982,8 +2982,7 @@ int CountSpaceDelimitedWords(wxString& str)
 	int wordCount = (int)SmartTokenize(delimiters,str,words,bStoreEmptyStringsToo);
 	return wordCount;
 }
-
-#endif
+//#endif
 
 // BEW added 22Jan10: string tokenization is a pain in the butt in wxWidgets, because the
 // developers do not try to give uniform behaviours for CR versus CR+LF across all

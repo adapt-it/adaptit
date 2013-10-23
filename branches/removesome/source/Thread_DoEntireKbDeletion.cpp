@@ -84,6 +84,14 @@ void* Thread_DoEntireKbDeletion::Entry()
 	// instantiation, and testing it for NULL is important for its management.
 	
 	CURLcode rv = (CURLcode)0; // initialize return value, when loop completes, rv will return the
+
+// **** TODO *************
+	// Mutex outside loop would block other threads until loop finishes - maybe a day or
+	// two later! Instead, the delete entire kb needs its own dedicated queue, and
+	// something like str_CURLbuffer_EntireDelete and other things, so it's stuff is
+	// accessed by nothing else
+	wxASSERT(FALSE); // ensure I do it!!
+
 	// value CURLE_HTTP_RETURNED_ERROR - but unfortunately, there may be an
 	// unexpected http error -- that means we can't rely on the error as a diagnotic for
 	// when the loop is completed. So we'll do a for loop, since we know how many we need
