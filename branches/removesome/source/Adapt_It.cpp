@@ -33338,6 +33338,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 #else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
 		else if (name == szIsKBServerProject)
 			;	// do nothing
+		else if (name == szIsGlossingKBServerProject)
+			;	// do nothing
 		else if (name == szKbServerURL)
 			;	// do nothing
 		else if (name == szKbServerDownloadInterval)

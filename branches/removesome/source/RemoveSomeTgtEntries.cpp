@@ -376,7 +376,9 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 		// deletions after that thread has been fired off
 
 #if defined(_KBSERVER)
-		// TODO  the thread for the kbserver deletions
+
+		// ***********************  TODO  the thread for the kbserver deletions **********************
+		
 #endif
 
 		// Now the local KB deletions
@@ -431,13 +433,9 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 			} // end of else block for test: if (pTU == NULL)
 		} // end of loop: for (i = 0; i < count; ++i)
 	} // end of else block for test: if (m_bIsGlossingKB)
-
-	// Get the panel of the tabbed dialog which had the button press in it, updated,
-	// with the selection back at line 0
-
-// *** TODO ***
-	wxASSERT(FALSE); // make sure I don't miss doing this last step
-
+	// Clear the arrays
+	m_pApp->m_arrSourcesForPseudoDeletion.clear();
+	m_pApp->m_arrTargetsForPseudoDeletion.clear();
 	event.Skip();
 }
 

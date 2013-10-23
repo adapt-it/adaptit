@@ -1322,64 +1322,17 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 #endif
 
 	RemoveSomeTgtEntries dlg((wxWindow*)this);
-	NonSrcListRec* pRec = NULL;
-	bool bIsChecked;
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		// "Remove the selected entries and close" button was clicked
-		pApp->m_arrSourcesForPseudoDeletion.Empty();
-		pApp->m_arrTargetsForPseudoDeletion.Empty();
-		if (dlg.m_bBySrcGroups)
-		{
-			NonSrcListRecsArray* pArray = dlg.GetGroupedArray();
-			TrackingArray* pTracker = dlg.GetLeftTrackingArray();
-			size_t count = pArray->size();
-			size_t index;
-			for (index = 0; index < count; index++)
-			{
-				bIsChecked = pTracker->Item(index) == 1 ? TRUE : FALSE;
-				if (bIsChecked)
-				{
-					// Get the struct which has nonsrc, src, numrefs	
-					pRec = pArray->Item(index);
-
-
-				}
-			}
-
-
-// TODO
-		}
-		else
-		{
-			SortedNonSrcListRecsArray* pArray = dlg.GetSortedArray();
-			TrackingArray* pTracker = dlg.GetRightTrackingArray();
-			size_t count = pArray->size();
-			size_t index;
-			for (index = 0; index < count; index++)
-			{
-				bIsChecked = pTracker->Item(index) == 1 ? TRUE : FALSE;
-				if (bIsChecked)
-				{
-					pArray->Item(index);
-					// Get the struct which has nonsrc, src, numrefs	
-					pRec = pArray->Item(index);
-
-
-				}
-			}
-
-
-// TODO
-		}
-
-
+		LoadDataForPage(m_nCurPage,0); // clear out the list boxes etc, and repopulate them
 	}
 	else
 	{
-		// Cancel button was clicked
-
-
+		// Cancel button was clicked; do nothing -- but remember that the user, while in the
+		// dialog, may have saved the data view to a file, or each view to two different
+		// files, before cancelling. If he did so, nothing has to be done here after the
+		// Cancel click.
 	}
 }
 
