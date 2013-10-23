@@ -45,7 +45,7 @@ private:		// instance variables
 	wxString		m_user;
 	wxString		git_command, git_options, git_arguments;
 	wxArrayString	git_output;
-	int				git_count;
+	long			git_count;
 
 protected:		// internal functions
     

@@ -1271,6 +1271,7 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 
 void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 {
+#if defined(_KBSERVER)
 	// Disallow the button with a message, if it's a KB sharing project but sharing is
 	// temporarily disabled. (Reason? If allowed in when sharing is disabled, the user may
 	// spend an hour or more working through thousands of entries, ticking hundreds of
@@ -1318,7 +1319,8 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 	}
-	
+#endif
+
 	RemoveSomeTgtEntries dlg((wxWindow*)this);
 	NonSrcListRec* pRec = NULL;
 	bool bIsChecked;
