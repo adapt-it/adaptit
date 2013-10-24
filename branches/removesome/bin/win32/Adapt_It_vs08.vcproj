@@ -1318,6 +1318,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KBSharingStatelessSetupDlg.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.h"
 				>
 			</File>

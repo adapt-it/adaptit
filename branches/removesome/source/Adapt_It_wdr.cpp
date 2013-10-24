@@ -9849,7 +9849,7 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
 
     item1->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    item0->Add( item1, 0, wxALL, 5 );
+    item0->Add( item1, 0, wxALL, 10 );
 
     if (set_sizer)
     {

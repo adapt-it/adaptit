@@ -22,7 +22,7 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
-
+//#define AUTHENTICATE_AS_BRUCE
 
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 // is set at the beginning of Adapt_It.h. When set it does the following:

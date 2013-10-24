@@ -412,15 +412,11 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				// CRefString instance which stores the adaption (or gloss if in
 				// glossing mode)
 				CRefString* pRefString = NULL;
-				int nTranslationListIndex = wxNOT_FOUND; // initialize
-				// The following search searches only among the non-pseudodeleted
-				// ones, which is what we want
-				nTranslationListIndex = pTU->FindRefString(tgt);
-				if (nTranslationListIndex == wxNOT_FOUND)
+				pRefString = pTU->FindRefStringUndeleted(tgt);
+				if (pRefString == NULL)
 				{
-					// The wanted CRefString instance is not present in the
-					// CTargetUnit instance, so skip trying to delete this one (this
-					// shouldn't ever happen)
+					// no match, so it's not an undeleted one in CTargetUnit instance, so
+					// skip trying to delete this one
 					continue;
 				}
 				else

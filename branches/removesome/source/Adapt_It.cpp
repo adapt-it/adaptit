@@ -26981,7 +26981,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	// or care about the adapting/glossing mode, the machine's owner, or either of the
 	// glossing or adapting local KBs. It only uses the KbServer class for the services it
 	// provides for the KB Sharing Manager gui
-	KBSharingStatelessSetupDlg dlg(GetMainFrame());
+	KBSharingStatelessSetupDlg dlg(GetMainFrame(),FALSE); // FALSE is bUserAuthenticating
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
