@@ -107,6 +107,10 @@ void UsernameInputDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     
 	if ( localUsername == NOOWNER )  localUsername.Empty();
 	pInformalUsernameTextCtrl->ChangeValue(localUsername);
+	
+	// Set focus on the unique username text box. Otherwise the read-only control gets
+	// focus on some systems/platforms.
+	pUsernameTextCtrl->SetFocus();	// whm added 22Oct2013, 
 }
 
 void UsernameInputDlg::OnOK(wxCommandEvent& event)
