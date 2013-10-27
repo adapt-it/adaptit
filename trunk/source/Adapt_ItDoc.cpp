@@ -1489,8 +1489,22 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 
     gpApp->LogUserAction (_T("OnTakeOwnership() called - m_owner = ") + gpApp->m_owner + _T(" m_strUserID = ") + gpApp->m_strUserID );
 
-	if (gpApp->m_owner == gpApp->m_strUserID)
-		return;								// if we're already the owner, there's nothing to do
+    if ( gpApp->m_strUserID.IsEmpty() || gpApp->m_strUsername.IsEmpty() )   // this can happen if AI is launched with shift down
+    {
+        wxCommandEvent	dummy;
+        
+        gpApp->OnEditChangeUsername (dummy);
+            
+        if ( gpApp->m_strUserID == NOOWNER )            // did we get a username?
+        {                                               // nope - whinge and bail out.
+            wxMessageBox (_("No username entered -- owner not changed."));
+            gpApp->LogUserAction (_T("No username entered -- owner not changed."));
+            return;
+        }
+    }
+    
+    if (gpApp->m_owner == gpApp->m_strUserID)
+        return;                             // if we're already the owner, there's nothing to do
 
 	gpApp->m_owner = gpApp->m_strUserID;	// force doc's owner to be logged-in user, no matter what
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
@@ -2066,6 +2080,12 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
     }
 
     gpApp->m_versionCount = returnCode;         // this is the total number of log entries
+
+    if (returnCode == 0)
+    {                                           // there's a repository, but no versions saved yet
+        wxMessageBox (_("There are no previous versions in the history!"));
+        return;                                 // in this case we don't show the dialog either
+    }
 
     DVCSLogDlg  logDlg ( gpApp->GetMainFrame() );
     logDlg.InitDialog();
