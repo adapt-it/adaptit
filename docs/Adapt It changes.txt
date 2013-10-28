@@ -101,6 +101,12 @@ be created, but once closed, would not be openable again.)
 * If a document was manually shortened, the app would crash
 if the phrase box had previously been located within the 
 material omitted in the shorting.
+* Collaboration: if the user were to hold the Shift key down
+while opening a project (to bypass a possibly corrupted
+project configuration file), collaboration settings would be
+lost requiring administrator intervention to setup 
+collaboration again for the project. Now collaboration 
+settings are restored correctly.
 * A backslash typed into a free translation prior to a space
 character, made an export of the free translation go into an
 infinite loop. (This also made trying to open the document

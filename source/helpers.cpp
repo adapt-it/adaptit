@@ -33,6 +33,7 @@
 #include <wx/dir.h>
 #include <wx/textfile.h>
 #include <wx/stdpaths.h>
+#include <wx/fileconf.h> // for wxFileConfig
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -9479,6 +9480,34 @@ bool CheckUsername()
 		{
 			pApp->m_strUserID = dlg.m_finalUsername;
 			pApp->m_strUsername = dlg.m_finalInformalUsername;
+			
+			// whm added 24Oct13. Save the UniqueUsername and InformalUsername
+			// Note: This code block below should be the same as the block in
+			// Adapt_It.cpp's OnEditChangeUsername().
+			// values in the Adapt_It_WX.ini (.Adapt_It_WX) file for safe keeping
+			// and the ability to restore these values if the user does a Shift-Down
+			// startup of the application to reset the basic config file values.
+			bool bWriteOK = FALSE;
+			wxString oldPath = pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+			pApp->m_pConfig->SetPath(_T("/Settings"));
+			// We want even a null string value for the UniqueUsername and InformalUsername strings
+			// to be saved in Adapt_It_WX.ini.
+			{ // block for wxLogNull
+				wxLogNull logNo; // eliminates spurious message from the system
+				bWriteOK = pApp->m_pConfig->Write(_T("unique_user_name"), pApp->m_strUserID);
+				if (!bWriteOK)
+				{
+					wxMessageBox(_T("CheckUsername() m_pConfig->Write() of m_strUserID returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+				}
+				bWriteOK = pApp->m_pConfig->Write(_T("informal_user_name"), pApp->m_strUsername);
+				if (!bWriteOK)
+				{
+					wxMessageBox(_T("CheckUsername() m_pConfig->Write() of m_strUsername returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+				}
+				pApp->m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+			}
+			// restore the oldPath back to "/Recent_File_List"
+			pApp->m_pConfig->SetPath(oldPath);
 		}
 		else
 		{

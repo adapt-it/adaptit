@@ -646,7 +646,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			wxInitDialogEvent idevent;
 			pLanguagesPage->InitDialog(idevent);
 		}
-		else
+		else // existing project selected
 		{
 			// Note: The name of the project entered is stored in the local m_projectName
 			// variable
@@ -709,6 +709,20 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// When the collaboration-related settings were stored app-wide in the basic
 			// configuration file, it would have been read in its entirety before invoking
 			// the GetSourceTextFromEditorDlg dialog.
+			// whm 26Oct13 Note: It is in the GetProjectConfiguration()
+			// function that the user has the option of doing a SHFIT-DOWN
+			// opening of the project. If a SHIFT-DOWN startup is done, many
+			// of the project's configuration settings are reset to their
+			// defaults, essentially by not reading the project's
+			// AI-ProjectConfiguration.aic file. Not reading that file has the
+			// effect of leaving many of the project settings at the defaults 
+			// that are set at program startup in the OnInit() function. 
+			// However, some other settings are restored to particular defaults 
+			// by calling the App's SetProjectDefaults() function. That function 
+			// calls SetDefaultCaseEquivalences() and also restores the last valid 
+			// project collaboration settings for this selected project from 
+			// any that were stored in the Adapt_It_WX.ini/.Adapt_It_WX file for
+			// this project.
 			pApp->GetProjectConfiguration(pApp->m_curProjectPath);
 
 			// whm modified 18Feb12. Now that the project config file has been read we
