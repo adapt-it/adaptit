@@ -9489,7 +9489,7 @@ bool CheckUsername()
 			// startup of the application to reset the basic config file values.
 			bool bWriteOK = FALSE;
 			wxString oldPath = pApp->m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
-			pApp->m_pConfig->SetPath(_T("/Settings"));
+			pApp->m_pConfig->SetPath(_T("/Usernames"));
 			// We want even a null string value for the UniqueUsername and InformalUsername strings
 			// to be saved in Adapt_It_WX.ini.
 			{ // block for wxLogNull

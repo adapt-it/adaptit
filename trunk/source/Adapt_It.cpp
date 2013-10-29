@@ -9592,7 +9592,7 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
 		// startup of the application to reset the basic config file values.
 		bool bWriteOK = FALSE;
 		wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
-		m_pConfig->SetPath(_T("/Settings"));
+		m_pConfig->SetPath(_T("/Usernames"));
 		// We want even a null string value for the UniqueUsername and InformalUsername strings
 		// to be saved in Adapt_It_WX.ini.
 		{ // block for wxLogNull
@@ -31004,7 +31004,72 @@ bool CAdapt_ItApp::MoveCollabSettingsToProjectConfigFile(wxString collabProjName
 void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 {
 	SetDefaultCaseEquivalences(); // The GetProjectConfiguration() function originally only called this function
-	
+
+	// whm 28Oct13 Note: The values for FoldersProtectedFromNavigation are
+	// stored in BOTH the AI-BasicConfiguration.aic file AND the
+	// AI-ProjectConfiguration.aic file. The ability to restore these
+	// navigation protection folder settings should be done for the project
+	// configuration file as well as the basic configuration file. Therefore,
+	// I am copying the code from SetDefaults() here in SetProjectDefaults().
+	// 
+	// whm added 20Jun11. If the administrator has selected to use fixed locations for certain inputs
+	// and outputs folders at the time the user held down the SHIFT key to get the app going again, we
+	// would want those fixed location folders to continue to be used which are stored in Adapt_It_WX.ini.
+	// Read the value related to m_foldersProtectedFromNavigation from the Adapt_It_WX.ini file, and if
+	// it differs from what is stored in the App's m_foldersProtectedFromNavigation member (due to SHIFT
+	// down restart), restore the value stored in Adapt_It_WX.ini.
+	bool bReadOK = FALSE;
+	wxString tempFoldersProtectedFromNavigation;
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/Settings"));
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("folders_protected_from_navigation"), &tempFoldersProtectedFromNavigation);
+	} // end wxLogNull block
+	if (bReadOK && tempFoldersProtectedFromNavigation != m_foldersProtectedFromNavigation)
+	{
+		m_foldersProtectedFromNavigation = tempFoldersProtectedFromNavigation;
+		SetFolderProtectionFlagsFromCombinedString(m_foldersProtectedFromNavigation);
+	}
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
+
+	// whm 28Oct13 Note: The value for the WorkflowProfile is stored 
+	// in BOTH the AI-BasicConfiguration.aic file AND the
+	// AI-ProjectConfiguration.aic file. The ability to restore the
+	// user's workflow profile (if one is set) should be done for the project
+	// configuration file as well as the basic configuration file. Therefore,
+	// I am copying the code from SetDefaults() here in SetProjectDefaults().
+	// 
+	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
+	// the SHIFT key to get the app going again, we would want the workflow related values
+	// stored in Adapt_It_WX.ini to be restored, since it is likely to be accurate even if
+	// the basic config file needs to be re-created from scratch (most likely due to errant
+	// edits done by a user).
+	// The basic config file value of concern is m_nWorkflowProfile.
+	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file
+	// and restore it if it differs from what was stored in the corresponding App's
+	// m_nWorkflowProfile value (due to SHIFT-down restart).
+	bReadOK = FALSE;
+	int nTempUserProfile = 0;
+	oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/Settings"));
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("work_flow_profile"), &nTempUserProfile);
+	} // end wxLogNull block
+	if (bReadOK && nTempUserProfile != m_nWorkflowProfile)
+	{
+		m_nWorkflowProfile = nTempUserProfile;
+	}
+	// Restore the m_bAiSessionExpectsUserDefinedProfile flag to its administrator
+	// set value. The value of the flag should be TRUE when m_nWorkflowProfile is
+	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
+	m_bAiSessionExpectsUserDefinedProfile = (m_nWorkflowProfile != 0);
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
+
+
     // Project collaboration settings for the selected Project need to be
     // preserved across a SHIFT-Down opening of that project. The values
     // related to collaboration that are stored in Adapt_It_WX.ini are likely
@@ -31452,10 +31517,10 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// Read the value related to m_foldersProtectedFromNavigation from the Adapt_It_WX.ini file, and if
 	// it differs from what is stored in the App's m_foldersProtectedFromNavigation member (due to SHIFT
 	// down restart), restore the value stored in Adapt_It_WX.ini.
-	bool bReadOK = FALSE;
-	wxString tempFoldersProtectedFromNavigation;
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
+	bool bReadOK = FALSE;
+	wxString tempFoldersProtectedFromNavigation;
 	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("folders_protected_from_navigation"), &tempFoldersProtectedFromNavigation);
@@ -31465,6 +31530,8 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		m_foldersProtectedFromNavigation = tempFoldersProtectedFromNavigation;
 		SetFolderProtectionFlagsFromCombinedString(m_foldersProtectedFromNavigation);
 	}
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
 
 	// whm added 24Oct13. As of AI 6.5.0 the DVCS (and eventually the KB Sharing)
 	// features require getting and storing a UniqueUsername and
@@ -31476,11 +31543,13 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// file, and if they differ from what is stored in the App's m_strUserID and 
 	// m_strUsername members (due to SHIFT down restart), restore the value stored in 
 	// Adapt_It_WX.ini.
-	{ // begin wxLogNull block
-	wxLogNull logNo; // eliminates spurious message from the system
-	bool bReadOK = FALSE;
+	oldPath = m_pConfig->GetPath();	
+	m_pConfig->SetPath(_T("/Usernames"));
+	bReadOK = FALSE;
 	wxString tempUniqueUsername;
 	wxString tempInformalUsername;
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("unique_user_name"), &tempUniqueUsername);
 	if (bReadOK && tempUniqueUsername != m_strUserID)
 	{
@@ -31492,6 +31561,8 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		m_strUsername = tempInformalUsername;
 	}
 	} // end wxLogNull block
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
 
 	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
 	// the SHIFT key to get the app going again, we would want the workflow related values
@@ -31502,6 +31573,8 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file
 	// and restore it if it differs from what was stored in the corresponding App's
 	// m_nWorkflowProfile value (due to SHIFT-down restart).
+	oldPath = m_pConfig->GetPath();	
+	m_pConfig->SetPath(_T("/Settings"));
 	bReadOK = FALSE;
 	int nTempUserProfile = 0;
 	{ // begin wxLogNull block
@@ -31512,12 +31585,36 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	{
 		m_nWorkflowProfile = nTempUserProfile;
 	}
-
 	// Restore the m_bAiSessionExpectsUserDefinedProfile flag to its administrator
 	// set value. The value of the flag should be TRUE when m_nWorkflowProfile is
 	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
 	m_bAiSessionExpectsUserDefinedProfile = (m_nWorkflowProfile != 0);
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
 
+	// whm added 28Oct13. If an administrator sets up a special password for
+	// access to the Administrator menu, that password should be preserved in
+	// the event that the user uses the SHIFT key to get the app going again.
+	// Like other administrator settings (see above), we would want the
+	// password stored in Adapt_It_WX.ini to be restored, since it is likely 
+	// to be accurate even if the basic config file needs to be re-created 
+	// from scratch (most likely due to errant edits done by a user).
+	// The basic config file value of concern is m_adminPassword.
+	// Read the password value that was last stored in the Adapt_It_WX.ini file
+	// and restore it if it differs from what was stored in the corresponding 
+	// App's m_adminPassword value (due to SHIFT-down restart).
+	oldPath = m_pConfig->GetPath();	
+	m_pConfig->SetPath(_T("/AdminPassword"));
+	bReadOK = FALSE;
+	wxString tempAdminPassword;
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("admin_password"), &tempAdminPassword);
+	} // end wxLogNull block
+	if (bReadOK && tempAdminPassword != m_adminPassword)
+	{
+		m_adminPassword = tempAdminPassword;
+	}
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 }
@@ -34649,6 +34746,65 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
 	f.Close(); // closes the wxTextFile and frees memory used for it
+	
+	// whm added 29Oct13 to add any administrator designated admin password to
+	// the Adapt_It_WX.ini / .Adapt_It_WX file if it doesn't already exist.
+	// Normally (as of 6.5.0) an administrator designated admin password would
+	// be stored in the Adapt_It_WX.ini / .Adapt_It_WX file at the time the
+	// administrator creates the password in the OnSetPassword() function.
+	// However, it may be that an administrator has already set such a
+	// password before upgrading to AI version 6.5.0. If that is the case,
+	// then there will be a password stored with the AdministratorPassword
+	// label within the AI-BasicConfiguration.aic file, but not yet stored 
+	// within the Adapt_It_WX.ini / .Adapt_It_WX file. Therefore, we want to
+	// transfer any already-set password from the basic config file to the ini
+	// file the first time AI is run after upgrading to 6.5.0. 
+	// This transfer will only be done once under the following conditions:
+	// 1. The basic config file contains a password defined for the 
+	// AdministratorPassword label, and
+	// 2. There is no entry yet stored within the Adapt_It_WX.ini / .Adapt_It_WX 
+	// file.
+	// First see if the Adapt_It_WX.ini / .Adapt_It_WX file has a value set
+	// for the admin_password key
+	if (configFType == basicConfigFile && !m_adminPassword.IsEmpty())
+	{
+		bool bIniFileHasValue;
+		wxString oldPath = m_pConfig->GetPath();	
+		m_pConfig->SetPath(_T("/AdminPassword"));
+		bool bReadOK = FALSE;
+		wxString tempAdminPassword;
+		{ // begin wxLogNull block
+		wxLogNull logNo; // eliminates spurious message from the system
+		bReadOK = m_pConfig->Read(_T("admin_password"), &tempAdminPassword);
+		} // end wxLogNull block
+		if (bReadOK && !tempAdminPassword.IsEmpty())
+			bIniFileHasValue = TRUE;
+		else
+			bIniFileHasValue = FALSE;
+		// restore the oldPath back to "/Recent_File_List"
+		m_pConfig->SetPath(oldPath);
+		
+		if (!bIniFileHasValue)
+		{
+			bool bWriteOK = FALSE;
+			wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+			m_pConfig->SetPath(_T("/AdminPassword"));
+			// We want even a null string value for the AdministratorPassword string
+			// to be saved in Adapt_It_WX.ini.
+			{ // block for wxLogNull
+				wxLogNull logNo; // eliminates spurious message from the system
+				bWriteOK = m_pConfig->Write(_T("admin_password"), m_adminPassword);
+				if (!bWriteOK)
+				{
+					wxMessageBox(_T("WriteConfigurationFile() m_pConfig->Write() of admin_password returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+				}
+				m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+			}
+			// restore the oldPath back to "/Recent_File_List"
+			m_pConfig->SetPath(oldPath);
+		}
+	}
+	
 	// BEW added 17Apr13, to help with debugging config file errors at launch
 	{
 	wxString msg;
@@ -42082,6 +42238,28 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 		LogUserAction(_T("Password accepted"));
 		// accept the password
 		m_adminPassword = password;
+		// whm 28Oct13 added. Also store this admin assigned password in the
+		// Adapt_It_WX.ini / .Adapt_It_WX file for safe keeping and the 
+		// ability to restore these values if the user does a Shift-Down
+		// startup of the application to reset the basic config file values.
+		
+		bool bWriteOK = FALSE;
+		wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+		m_pConfig->SetPath(_T("/AdminPassword"));
+		// We want even a null string value for the AdministratorPassword string
+		// to be saved in Adapt_It_WX.ini.
+		{ // block for wxLogNull
+			wxLogNull logNo; // eliminates spurious message from the system
+			bWriteOK = m_pConfig->Write(_T("admin_password"), m_adminPassword);
+			if (!bWriteOK)
+			{
+				wxMessageBox(_T("OnSetPassword() m_pConfig->Write() of admin_password returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+			}
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+		}
+		// restore the oldPath back to "/Recent_File_List"
+		m_pConfig->SetPath(oldPath);
+		
 	}
 }
 
