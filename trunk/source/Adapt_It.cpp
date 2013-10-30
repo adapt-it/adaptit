@@ -28437,6 +28437,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szInformalUsername << tab << m_strUsername;
 	pf->AddLine(data);
 
+#if defined (_KBSERVER)
+	
+	// whm 30Oct13 moved the KbServerURL value storage here from the project config file
+	data.Empty();
+	data << szKbServerURL << tab << m_strKbServerURL;
+	pf->AddLine(data);
+
+#endif
+
 	data.Empty();
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
@@ -29615,6 +29624,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			m_strUsername = strValue;
             if (m_strUsername.IsEmpty())  m_strUsername = NOOWNER;  // ditto
         }
+#if defined (_KBSERVER)
+		// whm 30Oct13 moved the KbServerURL value handling here to the basic
+		// config file
+		else if (name == szKbServerURL)
+		{
+			m_strKbServerURL = strValue;
+		}
+#endif
 		else if (name == szAdaptitPath)
 		{
             // BEW changed 12Oct09, we come here when reading either the
@@ -32087,9 +32104,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
 
-	data.Empty();
-	data << szKbServerURL << tab << m_strKbServerURL;
-	pf->AddLine(data);
+	// whm 30Oct13 moved the KbServerURL value handling to the basic config file
+	//data.Empty();
+	//data << szKbServerURL << tab << m_strKbServerURL;
+	//pf->AddLine(data);
 
 	data.Empty();
 	data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
@@ -32655,10 +32673,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bIsGlossingKBServerProject = FALSE;
 			}
 		}
-		else if (name == szKbServerURL)
-		{
-			m_strKbServerURL = strValue;
-		}
+		// whm 30Oct13 moved the KbServerURL value handling to the basic config file
+		//else if (name == szKbServerURL)
+		//{
+		//	m_strKbServerURL = strValue;
+		//}
 		else if (name == szKbServerDownloadInterval)
 		{
 			num = wxAtoi(strValue);
