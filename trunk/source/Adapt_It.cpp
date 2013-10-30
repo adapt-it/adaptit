@@ -22334,27 +22334,50 @@ void CAdapt_ItApp::InitializePunctuation()
 /// If the user holds down the SHIFT key during application startup, or if the configuration
 /// file cannot be read, this function calls SetDefaults() instead.
 /// BEW modified 19Aug09 in support of adminstrator pointing app at custom work folder locations
+/// whm modified 29Oct13 to prompt user before proceeding with Shift-Down
+/// reset of basic config file settings.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to return bool
 											// whm 9Mar10 changed name from GetBasicConfigFileSettings
 											// to GetBasicConfiguration
 {
-	// Called from OnInit() at program startup. Or from CustomWorkFolderLocation() command
-	// handler when administrator has Administrator menu showing
-	// If user starts up with the SHIFT key down, or if an existing basic config file cannot
-	// be read successfully, SetupDefaults() is called and all initializations and settings
-	// are drawn from there. Otherwise, intializations and settings contained in the basic
-	// config file are used
-	// Now attempt to set source, target language fonts, and nav text font set up from the
-	// data in the configuration file
-	// ::wxGetKeyState() was not available as a global function in wxWidgets
-	// version 2.4.2, but ::wxGetKeyState() is available in wxWidgets version 2.5.3
-	// and later, so we use it here.
+	// whm 29Oct13 modified to prompt the user to verify that a Shift-Down
+	// startup should indeed be done, knowing the consequences of that action. 
+    // Called from OnInit() at program startup. Or from the
+    // CustomWorkFolderLocation() command handler when an administrator has the
+    // Administrator menu showing. If user starts up with the SHIFT key down,
+    // or if the existing basic config file cannot be read successfully,
+    // SetupDefaults() is called and all initializations and settings are drawn
+    // from there - except for certain administrator controlled settings - see
+    // SetupDefaults() - which are restored from the Adapt_It_WX.ini or
+    // .Adapt_It_WX file. Otherwise, intializations and settings contained in
+    // the basic config file are used.
+    // 
+    // Note: ::wxGetKeyState() was not available as a global function in
+    // wxWidgets version 2.4.2, but ::wxGetKeyState() is available in wxWidgets
+    // version 2.5.3 and later, so we use it here.
 	bool bReturn = FALSE;
-	bReturn = bReturn; // avoid compiler warning (appropriate here, else block doesn't use
-					   // this boolean, and we don't want to use wxCHECK_MSG() in this
-					   // function either)
-	if (!wxGetKeyState(WXK_SHIFT)) // if (keyState != WXK_SHIFT)
+	bReturn = bReturn; // avoid GCC warning
+	bool bDoNormalStart = TRUE;
+	bool bShiftDownByUser = wxGetKeyState(WXK_SHIFT);
+	if (bShiftDownByUser)
+	{
+		// Query user to verify intent to bypass reading the basic
+		// configuration file, and thus reset many basic settings
+		wxString msg;
+		msg = _("WARNING: Adapt It detected that you held the Shift key down during program startup.\n\nHolding the Shift key down should only be done during startup if you think that Adapt It's basic configuration file has become corrupted, and you want Adapt It to replace its basic configuration file with a fresh one that uses default settings. Any basic Preferences that you have set such as splash screen, main window position and size, toolbar and other view settings, will be changed to default values.\n\nDo you want to reset basic configuration settings?\n\nSelect \"Yes\" to reset the basic configuration settings. Select \"No\" to continue using your old settings.");
+		int result = wxMessageBox(msg,_("Detected Shift key down during startup"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		if (result == wxNO)
+		{
+			bDoNormalStart = TRUE;
+		}
+		else if (result == wxYES)
+		{
+			bDoNormalStart = FALSE;
+		}
+	}
+
+	if (bDoNormalStart) // not a Shift-Down startup
 	{
 		// Shift key is not down, so load the config file data for fonts & other settings.
 		// This version of the function uses configuration file, not the registry.
@@ -22393,6 +22416,7 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 		// pointing the application at a custom work folder location
 		SetDefaults();
 	}
+
 	return bReturn;
 }
 
@@ -22409,6 +22433,8 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 /// settings from the project config file, but instead calls the App's
 /// SetDefaultCaseEquivalences() function (the other defaults will have been done from the
 /// application-level configuration file already).
+/// whm modified 29Oct13 to prompt user before proceeding with Shift-Down
+/// reset of basic config file settings.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 {
@@ -22418,7 +22444,26 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	// effect)
 	bool bReturn = FALSE;
 	bReturn = bReturn; // avoid compiler warning
-	if (!wxGetKeyState(WXK_SHIFT))
+	bool bDoNormalProjectOpening = TRUE;
+	bool bShiftDownByUser = wxGetKeyState(WXK_SHIFT);
+	if (bShiftDownByUser)
+	{
+		// Query user to verify intent to bypass reading the project
+		// configuration file, and thus reset many project settings
+		wxString msg;
+		msg = _("WARNING: Adapt It detected that you held the Shift key down while opening a project.\n\nHolding the Shift key down should only be done while opening a project if you think that Adapt It's project configuration file has become corrupted, and you want Adapt It to replace its project configuration file with a fresh one that uses default settings. Any project Preferences that you have set such as fonts, font colors, punctuation, upper and lower case equivalences, last import-export paths, guesser settings, toolbar and other settings, will be changed to default values.\n\nDo you want to reset project configuration settings?\n\nSelect \"Yes\" to reset the project configuration settings. Select \"No\" to continue using your old settings.");
+		int result = wxMessageBox(msg,_("Detected Shift key down during startup"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		if (result == wxNO)
+		{
+			bDoNormalProjectOpening = TRUE;
+		}
+		else if (result == wxYES)
+		{
+			bDoNormalProjectOpening = FALSE;
+		}
+	}
+	
+	if (bDoNormalProjectOpening) // not a Shift-Down startup
 	{
 		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
 		// renamed, and modified to have the appropriate (or compatible) fonts for the project.
@@ -31110,7 +31155,6 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 	// Scan the collabProjectSettingsArray, and extract the composite string
 	// for this project.
 	int ct;
-	int indexOfFoundItem = -1;
 	int tot = (int)collabProjectSettingsArray.GetCount();
 	wxString existingCompositeStr;
 	existingCompositeStr.Empty();
@@ -31124,7 +31168,6 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 		{
 			// We found the projectName string
 			bFound = TRUE;
-			indexOfFoundItem = ct;
 			break;
 		}
 	}
