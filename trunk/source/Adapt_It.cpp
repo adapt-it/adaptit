@@ -22452,7 +22452,7 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 		// configuration file, and thus reset many project settings
 		wxString msg;
 		msg = _("WARNING: Adapt It detected that you held the Shift key down while opening a project.\n\nHolding the Shift key down should only be done while opening a project if you think that Adapt It's project configuration file has become corrupted, and you want Adapt It to replace its project configuration file with a fresh one that uses default settings. Any project Preferences that you have set such as fonts, font colors, punctuation, upper and lower case equivalences, last import-export paths, guesser settings, toolbar and other settings, will be changed to default values.\n\nDo you want to reset project configuration settings?\n\nSelect \"Yes\" to reset the project configuration settings. Select \"No\" to continue using your old settings.");
-		int result = wxMessageBox(msg,_("Detected Shift key down during startup"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		int result = wxMessageBox(msg,_("Detected Shift key down during project opening"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 		if (result == wxNO)
 		{
 			bDoNormalProjectOpening = TRUE;
