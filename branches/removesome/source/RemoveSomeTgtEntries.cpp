@@ -8,21 +8,22 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the RemoveSomeTgtEntries class. 
 /// The RemoveSomeTgtEntries class provides a handler for the "Remove Some Translations..."
-/// button in the KB Editor. It provides a checklistbox with each line being the target
-/// text adaptation followed by "  <>  " as a separator and then follows the source text
-/// for that adaptation. Two organising principles are offered by radio buttons, keep the
-/// groups of adaptations (or glosses) together according to which source text they are
-/// associated with (but alphabetizing within each such group), or simply alphabetizing
-/// the target text adaptations (or glosses) altogether (which splits up the source text
-/// groupings, but may be easier to use for some situations - such as when working in
-/// dialects with very few adaptation variants per source text key). A button is also
-/// provided for sending the currently displayed form of the list to a file. The default
-/// button closes the dialog and the checked lines are used to define a deletions on the
-/// KB entry which are done as soon as the dialog is dismissed. A Cancel button is also
-/// provided. The deletions are standard "pseudo-deletions" - so the items no longer are
-/// seen in the KB Editor, but are present in the kb as pseudo-deletions, and so will
-/// propagate to other clients if KB Sharing is turned on. This feature was added to help
-/// with mass editing when spelling or diacritic changes are many.
+/// button in the KB Editor. It provides a wxListCtrl with each line being the target text
+/// adaptation, the source text for that adaptation, and a reference count - displayed in 4
+/// columns, column 0 being a picture of either an empty checkbox, or a ticked checkbox.
+/// Two organising principles are offered by radio buttons, keep the groups of adaptations
+/// (or glosses) together according to which source text they are associated with (but
+/// alphabetizing within each such group), or simply alphabetizing the target text
+/// adaptations (or glosses) altogether (which splits up the source text groupings, but may
+/// be easier to use for some situations - such as when working in dialects with very few
+/// adaptation variants per source text key). A button is also provided for sending the
+/// currently displayed form of the list to a file. The default button closes the dialog
+/// and the checked lines are used to define a deletions on the KB entry which are done as
+/// soon as the dialog is dismissed. A Cancel button is also provided. The deletions done
+/// are standard "pseudo-deletions" - so the items no longer are seen in the KB Editor, but
+/// are present in the kb as pseudo-deletions, and so will propagate to other clients if KB
+/// Sharing is turned on. This feature was added to help with mass editing when spelling or
+/// diacritic changes are many, at a user's request.
 /// The wxDesigner resource is Remove_Some_Tgt_Entries_Func
 /// \derivation		The RemoveSomeTgtEntries class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
@@ -57,6 +58,7 @@
 #include "helpers.h"
 #include "BString.h"
 #include "KbServer.h"
+#include <wx/imaglist.h> // for wxImageList
 #include "RemoveSomeTgtEntries.h"
 
 extern bool gbIsGlossing;
@@ -79,7 +81,7 @@ BEGIN_EVENT_TABLE(RemoveSomeTgtEntries, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_SAVE_ENTRYLIST_TO_FILE, RemoveSomeTgtEntries::OnBtnSaveEntryListToFile)
 	EVT_RADIOBUTTON(ID_RADIO_ORGANISE_BY_KEYS, RemoveSomeTgtEntries::OnRadioOrganiseByKeys)
 	EVT_RADIOBUTTON(ID_RADIO_SIMPLY_TARGET_ALPHABETICAL, RemoveSomeTgtEntries::OnRadioListTgtAlphabetically)
-	EVT_CHECKLISTBOX(ID_CHECKLISTBOX_REMOVE_SOME, RemoveSomeTgtEntries::OnCheckLBSelected)
+	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_BULK_DEL, RemoveSomeTgtEntries::OnCheckboxSelection)
 END_EVENT_TABLE()
 
 RemoveSomeTgtEntries::RemoveSomeTgtEntries(
@@ -90,7 +92,7 @@ RemoveSomeTgtEntries::RemoveSomeTgtEntries(
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
-	m_pRemoveSomeSizer = Remove_Some_Tgt_Entries_Func(this, TRUE, TRUE);
+	m_pRemoveSomeSizer = Bulk_Delete_Pairs_Func(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
 	m_pKBEditorDlg = (CKBEditor*)parent; // we'll want access to the parent dlg
@@ -113,6 +115,12 @@ RemoveSomeTgtEntries::RemoveSomeTgtEntries(
 
 RemoveSomeTgtEntries::~RemoveSomeTgtEntries() // destructor
 {
+	m_pCheckList->ClearAll();
+
+	pIconImages->RemoveAll();
+	if (pIconImages != NULL)
+		delete pIconImages;
+
 	// Delete the array entries, emptying the arrays, finally free the array objects' memory
 	if (!m_pOneGroupArray->empty())
 	{
@@ -145,9 +153,34 @@ RemoveSomeTgtEntries::~RemoveSomeTgtEntries() // destructor
 	delete m_pOneTUUnsortedArray;
 }
 
-void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
+void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
+	m_pCheckList = (wxListView*)FindWindowById(ID_LISTCTRL_BULK_DEL);
+	wxASSERT(m_pCheckList);
+
+	pIconImages = new wxImageList(16,14,TRUE,2); // 0 is ID_BITMAP_CHBOX_OFF & 1 is ID_BITMAP_CHBOX_ON
+	// Obtain the checkbox off, and checkbox on, bitmap images which are displayed at start
+	// of the line; in the order off & then on. (default is to show the first, so that's
+	// what we want)
+	wxBitmap checkOFF = BulkKbDeleteFunc(0);
+	wxBitmap checkON = BulkKbDeleteFunc(1);
+	// Add them to the wxImageList object, for param2, the mask, we use the default
+	// wxNullBitmap; we will ignore the returned icon index value (an int)
+	pIconImages->Add(checkOFF);
+	pIconImages->Add(checkON);
+	// Associate the image list with the wxListCtrl instance
+	m_pCheckList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
+
+	m_no_adaptation = _("<no adaptation>");
+	m_no_gloss = _("<no gloss>");
+
+// ***** LEGACY stuff is below, some can be deleted later
+
 	// Use these for quick and dirty approximate lining up of the second field
+	// BEW 30Oct13, retain this commented out. If MakeListLine() were refactored to use the
+	// approximate lining up of the early approach that used wxCheckListBox for the saving
+	// to file, then we'd need to uncomment out these spaces definitions
+/*
 	m_spaces[0]=_T("");
 	m_spaces[1]=_T(" ");
 	m_spaces[2]=_T("  ");
@@ -188,55 +221,29 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	m_spaces[37]=_T("                                    ");
 	m_spaces[38]=_T("                                     "); // needed, since field2at
 								// is 38, and if nonsrc is empty, this element is accessed
-	m_no_adaptation = _("<no adaptation>");
-	m_no_gloss = _("<no gloss>");
 	m_nOtherLine = 0; // initialize
 	m_nStoredCheckValue = 0; // initialize
 	m_pSelectedRec = NULL; // initialize
-
+*/
 
 	// set up pointers to the buttons etc
-	m_pCheckListBox = (wxCheckListBox*)FindWindowById(ID_CHECKLISTBOX_REMOVE_SOME);
-	/* 
-	// Nah, Charis looks great, but we get only one pixel of descenders, and topmost of two stacked
-	// diacritics encroach over bottom of text above... got back to SWISS 9pt, it's best compromise
-	m_pApp->m_pDlgTgtFont->SetPointSize(12); // normally 12 point, we'll use 12 and later
-	// restore 12 on exit; 11 makes tilde indistinguishable from a macron, and 13 cuts
-	// off too much descender - so 12 seems to be best compromise
-	m_pCheckListBox->SetFont(*m_pApp->m_pDlgTgtFont);
-	*/
+	m_pCheckList = (wxListView*)FindWindowById(ID_LISTCTRL_BULK_DEL);
 	m_pRadioOrganiseByKeys = (wxRadioButton*)FindWindowById(ID_RADIO_ORGANISE_BY_KEYS);
 	m_pRadioListTgtAlphabetically = (wxRadioButton*)FindWindowById(ID_RADIO_SIMPLY_TARGET_ALPHABETICAL);
-	m_pTopLabel = (wxStaticText*)FindWindowById(ID_TEXT_SRC_TGT_REF_LABEL);
 	this->Centre(wxHORIZONTAL);
-	//wxString listRadioButtonLabelTgt = _("List in alphabetic order of the target text");
 	wxString listRadioButtonLabelGloss = _("List in alphabetic order of the gloss text");
 	// Depending on which type of CKB the parent tabbed dialog is displaying, set the
 	// second radio button's label accordingly - the setting stays in force until this
 	// dialog is closed or cancelled
+	// The default when opening is to use a label appropriate for an adapting KB, and so
+	// we only need change the label if we find we are not working with an adapting KB
 	if (m_bIsGlossingKB)
 	{
 		m_pRadioListTgtAlphabetically->SetLabel(listRadioButtonLabelGloss);
 	}
-	m_topLabel[0] = _("Source text                        Target text [adaptation]        (reference count)");
-	m_topLabel[1] = _("Source text                        Gloss [glossing mode]        (reference count)");
-	m_topLabel[2] = _("Target text [adaptation]      (reference count)            Source text");
-	m_topLabel[3] = _("Gloss [glossing mode]      (reference count)            Source text");
-
 	m_bBySrcGroups = TRUE; // this view by default when first opened
 	m_bCurrentValue = TRUE; // of m_bBySrcGroups when a radio button is clicked
-	// Set the correct top label
-	if (m_bIsGlossingKB)
-	{
-		m_pTopLabel->SetLabel(m_topLabel[1]);
-	}
-	else
-	{
-		m_pTopLabel->SetLabel(m_topLabel[0]);
-	}
-	// The default when opening is to use a label appropriate for an adapting KB, and so
-	// we only need change the label if we find we are not working with an adapting KB
-	
+
 	m_totalKBEntries = GetTotalKBEntries(m_pKB); // how many lines to show in the views of the list
 
 	// Initialize the arrays used for tracking which lines have ticked checkboxes. Note,
@@ -252,7 +259,6 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	m_rightCheckedArray.Alloc(m_totalKBEntries);
 	m_rightCheckedArray.Add(0, m_totalKBEntries); // starts out with nothing checked
 
-
 	// m_pOneGroupArray is used in a loop repetitively, so start it off empty for safety.
 	// Thereafter, DO NOT Clear() it, or call WX_CLEAR_ARRAY() on it -- that does the same
 	// as Clear(), it empties the array but also frees the memory pointed to by its items
@@ -261,17 +267,17 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	// pointers - that will be m_pGroupsArray
 	WX_CLEAR_ARRAY(*m_pOneGroupArray);
 
+	/* retain in case later wanted for MakeListLine()
 	// Define what each list line will look like ([0] for left radio button, [1] for right)
 	m_firstSpaces[0] = _T("                        "); // 24 spaces
 	m_secondSpaces[0] = _T("      "); // 6 spaces
 	m_firstSpaces[1] = _T("      "); // 6 spaces
 	m_secondSpaces[1] = _T("            "); // 12 spaces
+	*/
 	m_output = _T(""); // Empty() this each time before it is used
-	m_ref_many = _T("( %d )");
-	m_ref_once = _T("( 1 )");
-
+	m_ref_many = _T("%d"); // for making the string form of the reference count
+	m_ref_once = _T("1");
 									   
-
 	// Get the CTargetUnit instances' pointers, each with associated source text key, into
 	// the m_pSortedSrcTgtUnitPairsArray. This array is sorted by the src text key. We can
 	// build everything we need off this one, without having to go to the KB again
@@ -288,42 +294,70 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	m_bBySrcGroups = TRUE; // restore default value
 
 	// Default, load the list from the array for the left radio button
-	LoadList(m_pCheckListBox, &m_linesArray);
-}
+	PopulateListAsGroups(m_pGroupsArray);
 
-void RemoveSomeTgtEntries::OnCheckLBSelected(wxCommandEvent& event)
-{
-	// wxCheckListBox behaviour is this: click on the text beside a checkbox, gives a
-	// selection of the line, but the checkbox is unaffected. GetSelection() would return
-	// the index for that selected line, but we don't want to respond to selections here -
-	// only to clicks on the checkboxes.
-	// To get the checkbox click, need the event accessor GetInt() which fetches the
-	// m_commandInt index value for the line in which the checkbox resides. The
-	// IsChecked() value will then be whatever state the checkbox has after the click;
-	// TRUE if it is ticked, FALSE if unticked. CLicking the checkbox does NOT select the
-	// line, so GetSelection() returns wxNOT_FOUND in that case
-	m_nSelection = event.GetInt();
-	if (m_nSelection == wxNOT_FOUND)
-	{
-		return;
-	}
-	m_pCheckListBox->SetSelection(m_nSelection); // ensure that the checkbox click
-										  //highlights the line having the clicked box
-	bool bChecked = m_pCheckListBox->IsChecked(m_nSelection); // bChecked is TRUE if box is ticked
-	StoreChoice(m_bBySrcGroups, m_nSelection, bChecked ? 1 : 0); // stores for both views
+	// Size the list to suit the hardware, make it as large as is reasonably 
+	// possible vertically
+	m_pRemoveSomeSizer->ComputeFittingClientSize(this);
+	screenHeight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
+	
+	this->SetSize(0,1,570,screenHeight - 61); // sets the dialog about 62 pixels
+											  // less long as the screen is high
+	wxSize mySize = m_LIST_CTRL_SIZER->GetSize();
+	m_LIST_CTRL_SIZER->SetItemMinSize(m_pCheckList,mySize.x,screenHeight - 210); // sets
+				// the height of the wxListCtrl in the dialog to about 150 pixels less
+				// than its window's height - to allow for the buttons & message at the
+				// dialog's bottom
+	this->CentreOnParent();
 }
 
 void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 {
-	//m_pApp->m_pDlgTgtFont->SetPointSize(12); // retore to normal 12 point
-	
 	if (m_bIsGlossingKB)
 	{
 		// Ours is a local glossing KB
 #if defined(_KBSERVER)
+		if (m_pApp->m_bIsGlossingKBServerProject)
+		{
+			// This project is one for sharing gloss entries to a remote kbserver,
+			// and entry to this handler would be prevented if sharing was disabled, so
+			// no need to test for the latter here
+			KbServer* pKbServer = m_pApp->GetKbServer(2);
+			wxASSERT(pKbServer);
+
+			// Test here for the app's m_arrSourcesForPseudoDeletion or
+			// m_arrTargetsForPseudoDeletion not yet Empty. A background thread may be
+			// doing bulk pseudo-deletions from an earlier invocation of the
+			// RemoveSomeTgtEntries handler, and we must not try to use those arrays for
+			// another invocation before that thread finishes - at it's finish it will
+			// empty the arrays
+			if (!m_pApp->m_arrSourcesForPseudoDeletion.IsEmpty() ||
+				!m_pApp->m_arrTargetsForPseudoDeletion.IsEmpty())
+			{
+				// a previous bulk removal is still in operation, so tell the user to wait
+				// a few minutes then try again
+				wxString msg = _("A previous bulk removal is still running in the background./nWait a few minutes for it to complete, then try again.\nIf the previous bulk removal involved many entries, you may have to wait and retry more than once.");
+				wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
+				return; // stay in the dialog
+			}
+
+// **** TODO **** finish glossing kbserver support when I know whether or not Jonathan will give me
+// php loops at the server end, to speed up bulk deleting
+		} // end of TRUE block for test: if (m_pApp->m_bIsGlossingKBServerProject)
 #endif
+		// We can go ahead with the present bulk removal
+		GetPhrasePairsForBulkRemoval(&m_leftCheckedArray, m_pGroupsArray, 
+			&m_pApp->m_arrSourcesForPseudoDeletion, &m_pApp->m_arrTargetsForPseudoDeletion);
 
+		// Start the background kbserver deletions first, then do the local KB
+		// deletions after that thread has been fired off
+#if defined(_KBSERVER)
 
+		// ***********************  TODO  the thread for the kbserver deletions **********************
+		
+#endif
+		// Now the local KB deletions
+		DoLocalBulkKbPseudoDeletions(m_bIsGlossingKB);
 	}
 	else
 	{
@@ -346,13 +380,15 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 			if (!m_pApp->m_arrSourcesForPseudoDeletion.IsEmpty() ||
 				!m_pApp->m_arrTargetsForPseudoDeletion.IsEmpty())
 			{
-				// a previous bulk removal is 5still in operation, so tell the user to wait
+				// a previous bulk removal is still in operation, so tell the user to wait
 				// a few minutes then try again
 				wxString msg = _("A previous bulk removal is still running in the background./nWait a few minutes for it to complete, then try again.\nIf the previous bulk removal involved many entries, you may have to wait and retry more than once.");
 				wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
 				return; // stay in the dialog
-
 			}
+
+// **** TODO **** finish kbserver support when I know whether or not Jonathan will give me
+// php loops at the server end, to speed up bulk deleting
 		} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject)
 #endif
 		// We can go ahead with the present bulk removal
@@ -361,7 +397,7 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 
 		// Test it. Comment out next lines when test is no longer wanted
 #if defined(_DEBUG)
-		{ // <<- limit scope to just this for loop
+/*		{ // <<- limit scope to just this for loop
 		size_t count = m_pApp->m_arrSourcesForPseudoDeletion.size();
 		size_t i;
 		for (i = 0; i < count; ++i)
@@ -370,7 +406,8 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				m_pApp->m_arrSourcesForPseudoDeletion.Item(i).c_str(),
 				m_pApp->m_arrTargetsForPseudoDeletion.Item(i).c_str());
 		}
-		} // <<- end of scope limitation
+		} // <<- end of scope limitation 
+*/
 #endif
 		// Start the background kbserver deletions first, then do the local KB
 		// deletions after that thread has been fired off
@@ -380,55 +417,10 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 		// ***********************  TODO  the thread for the kbserver deletions **********************
 		
 #endif
-
 		// Now the local KB deletions
-		CKB* pKB = NULL;
-		if (m_bIsGlossingKB)
-		{
-			pKB = m_pApp->m_pGlossingKB; // the glossing KB's pointer
-		}
-		else
-		{
-			pKB = m_pApp->m_pKB; // the adapting KB's pointer
-		}
-		size_t count = m_pApp->m_arrSourcesForPseudoDeletion.size();
-		size_t i;
-		for (i = 0; i < count; ++i)
-		{
-			// Get the next source phrase / target phrase pair to be pseudo-deleted
-			wxString src = m_pApp->m_arrSourcesForPseudoDeletion.Item(i);
-			wxString tgt = m_pApp->m_arrTargetsForPseudoDeletion.Item(i);
-
-			// Get the CTargetUnit instance which stores thi pair
-			int numSrcWords = CountSpaceDelimitedWords(src); // this is a helper.cpp function
-			CTargetUnit* pTU =  pKB->GetTargetUnit(numSrcWords, src); // does an AutoCapsLookup()
-			if (pTU == NULL)
-			{
-				continue; // if we can't find it, skip deleting this one (shouldn't ever happen)
-			}
-			else
-			{
-				// pTU points the CTargetUnit instance we want, so next we get the
-				// CRefString instance which stores the adaption (or gloss if in
-				// glossing mode)
-				CRefString* pRefString = NULL;
-				pRefString = pTU->FindRefStringUndeleted(tgt);
-				if (pRefString == NULL)
-				{
-					// no match, so it's not an undeleted one in CTargetUnit instance, so
-					// skip trying to delete this one
-					continue;
-				}
-				else
-				{
-					// We have the required CRefString instance, so now pseudo-delete it
-					pRefString->SetDeletedFlag(TRUE);
-					pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
-					pRefString->m_refCount = 0;
-				}
-			} // end of else block for test: if (pTU == NULL)
-		} // end of loop: for (i = 0; i < count; ++i)
+		DoLocalBulkKbPseudoDeletions(m_bIsGlossingKB);
 	} // end of else block for test: if (m_bIsGlossingKB)
+
 	// Clear the arrays
 	m_pApp->m_arrSourcesForPseudoDeletion.clear();
 	m_pApp->m_arrTargetsForPseudoDeletion.clear();
@@ -439,6 +431,56 @@ void RemoveSomeTgtEntries::OnCancel(wxCommandEvent& event)
 {
 	m_pApp->m_pDlgTgtFont->SetPointSize(12); // retore to normal 12 point
 	event.Skip();
+}
+
+void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
+{
+	CKB* pKB = NULL;
+	if (bIsGlossingKB)
+	{
+		pKB = m_pApp->m_pGlossingKB; // the glossing KB's pointer
+	}
+	else
+	{
+		pKB = m_pApp->m_pKB; // the adapting KB's pointer
+	}
+	size_t count = m_pApp->m_arrSourcesForPseudoDeletion.size();
+	size_t i;
+	for (i = 0; i < count; ++i)
+	{
+		// Get the next source phrase / target phrase pair to be pseudo-deleted
+		wxString src = m_pApp->m_arrSourcesForPseudoDeletion.Item(i);
+		wxString tgt = m_pApp->m_arrTargetsForPseudoDeletion.Item(i);
+
+		// Get the CTargetUnit instance which stores this pair
+		int numSrcWords = CountSpaceDelimitedWords(src); // this is a helper.cpp function
+		CTargetUnit* pTU =  pKB->GetTargetUnit(numSrcWords, src); // does an AutoCapsLookup()
+		if (pTU == NULL)
+		{
+			continue; // if we can't find it, skip deleting this one (shouldn't ever happen)
+		}
+		else
+		{
+			// pTU points the CTargetUnit instance we want, so next we get the
+			// CRefString instance which stores the adaption (or gloss if in
+			// glossing mode)
+			CRefString* pRefString = NULL;
+			pRefString = pTU->FindRefStringUndeleted(tgt);
+			if (pRefString == NULL)
+			{
+				// no match, so it's not an undeleted one in CTargetUnit instance, so
+				// skip trying to delete this one
+				continue;
+			}
+			else
+			{
+				// We have the required CRefString instance, so now pseudo-delete it
+				pRefString->SetDeletedFlag(TRUE);
+				pRefString->GetRefStringMetadata()->SetDeletedDateTime(GetDateTimeNow());
+				pRefString->m_refCount = 0;
+			}
+		} // end of else block for test: if (pTU == NULL)
+	} // end of loop: for (i = 0; i < count; ++i)
 }
 
 void RemoveSomeTgtEntries::OnRadioOrganiseByKeys(wxCommandEvent& WXUNUSED(event))
@@ -454,18 +496,9 @@ void RemoveSomeTgtEntries::OnRadioOrganiseByKeys(wxCommandEvent& WXUNUSED(event)
 	{
 		// The user is genuinely changing to this view from the other, so we need to setup
 		// the list again with this button's view
+		m_pCheckList->ClearAll(); // Clear all items and columns
+		PopulateListAsGroups(m_pGroupsArray);
 
-		// Set the correct top label
-		if (m_bIsGlossingKB)
-		{
-			m_pTopLabel->SetLabel(m_topLabel[1]);
-		}
-		else
-		{
-			m_pTopLabel->SetLabel(m_topLabel[0]);
-		}
-		m_pCheckListBox->Clear();
-		LoadList(m_pCheckListBox, &m_linesArray);
 		// Get the ticks restored to the appropriate checkboxes
 		SetCheckboxes(m_bBySrcGroups);
 	}
@@ -484,18 +517,9 @@ void RemoveSomeTgtEntries::OnRadioListTgtAlphabetically(wxCommandEvent& WXUNUSED
 	{
 		// The user is genuinely changing to this view from the other, so we need to setup
 		// the list again with this button's view
+		m_pCheckList->ClearAll(); // Clear all items and columns
+		PopulateListAsTgtSorted(m_pUngroupedTgtSortedArray);
 
-		// Set the correct top label
-		if (m_bIsGlossingKB)
-		{
-			m_pTopLabel->SetLabel(m_topLabel[3]);
-		}
-		else
-		{
-			m_pTopLabel->SetLabel(m_topLabel[2]);
-		}
-		m_pCheckListBox->Clear();
-		LoadList(m_pCheckListBox, &m_linesArrayTgtSorted);
 		// Get the ticks restored to the appropriate checkboxes
 		SetCheckboxes(m_bBySrcGroups);
 	}
@@ -593,7 +617,8 @@ void RemoveSomeTgtEntries::OnBtnSaveEntryListToFile(wxCommandEvent& WXUNUSED(eve
     // path is used when the export is nav protected or when the user has chosen that a
     // date-time stamp is to be suffixed to the export filename -- which ensures that any
     // existing earlier exports are not overwritten
-	uniqueFilenameAndPath = GetUniqueIncrementedFileName(dictFilename,incrementViaDate_TimeStamp,TRUE,2,suffix); // TRUE - always modify
+	uniqueFilenameAndPath = GetUniqueIncrementedFileName(
+			dictFilename,incrementViaDate_TimeStamp,TRUE,2,suffix); // TRUE - always modify
 	if (bAddDatetime)
 	{
 		// Use the unique path for exportPath
@@ -871,9 +896,7 @@ void RemoveSomeTgtEntries::PopulateGroupsArray(SortedSrcTgtUnitsArray* pSortedTU
 	// At this point, the whole KB of src keys and their associated CTargetUnit stored
 	// adaptation strings (or glosses) is represented as a partly ordered array of 
 	// SrcTgtUnitPair struct pointers - each storing nonsrc, src, and refCount. From these
-	// we can construct the wxString instances we'll load into the list box. The best way
-	// is probably to store the strings in a wxArrayString, and load them into the listbox
-	// in a single call
+	// we can construct the wxString instances we'll load into the wxListCtrl
 }
 
 // This is called only once, and stays unchanged. If the user flips the radio buttons, the
@@ -904,8 +927,8 @@ void RemoveSomeTgtEntries::PopulateTargetSortedArray(SortedSrcTgtUnitsArray* pSo
         // contents of m_pOneGroupArray, ie, don't use WX_CLEAR_ARRAY() or Clear(), but
         // rather, just call Empty() which leaves the objects alive - necessary because
         // pArray has to manage those pointers from now on)
-		//WX_APPEND_ARRAY(*pArray, *m_pOneTUUnsortedArray); <- doesn't work if param1 is
-		//sorted array
+		// WX_APPEND_ARRAY(*pArray, *m_pOneTUUnsortedArray); <- doesn't work if param1 is
+		// a sorted array, so do it with a loop
 		size_t index;
 		size_t count = m_pOneTUUnsortedArray->size();
 		NonSrcListRec* pRec = NULL;
@@ -914,27 +937,32 @@ void RemoveSomeTgtEntries::PopulateTargetSortedArray(SortedSrcTgtUnitsArray* pSo
 			pRec = m_pOneTUUnsortedArray->Item(index);
 			pArray->Add(pRec); // sorted by nonsrc member of the struct
 		}
-
 		m_pOneTUUnsortedArray->Empty(); // removes the stored pointers (m_pOneTUUnsortedArray
-								// only gets as many entries as the user has adaptation variants
-								// in the pTU, and so its size is usually less than 2 or 3
-								// dozen items - hence we need not call Alloc(), default
-								// size will do
+                // only gets as many entries as the user has adaptation variants in the
+                // pTU, and so its size is usually less than 2 or 3 dozen items - hence we
+                // need not call Alloc(), default size will do
 	}
     // At this point, the whole KB of target text adaptations (or glosses) and their
     // associated stored source text strings with them. These are in the sorted array of
     // SrcTgtUnitPair struct pointers - each storing nonsrc, src, and refCount. From these
-    // we can construct the wxString instances we'll load into the list box. The best way
-    // is probably to store the strings in a wxArrayString -- target text (or gloss) shown
-    // first, and we have sorted by the non-source text, and so load them into the listbox
-    // in a single call}
+    // we can construct the wxString instances we'll load into the wxListCtrl
 }
 
 wxString RemoveSomeTgtEntries::MakeListLine(NonSrcListRec* pStruct)
 {
+    // BEW changed 30Oct13 to pad with exactly 10 spaces each time padding is done - the
+    // reason is that using variable numbers of spaces the lining up is only approximate,
+    // but if I use 10 spaces, while lining up is worse, it nevertheless makes it easy for
+    // grep or a global search and replace to change things if someone wants to massage the
+    // file's data. I'll leave my early code here, commented out, in case I change my mind
+	// later on. I'll also add [Source] and 3 spaces before the source text, so it's
+	// clear which is source and which is non-source. (The latter label will be localizable.)
+	wxString pad = _T("          ");
+	wxString srcLabel = _("[Source]   ");
+
 	m_output.Empty();
 	wxString mynonsrc = pStruct->nonsrc; 
-	int srcLength = pStruct->src.Len(); // characters
+	//int srcLength = pStruct->src.Len(); // characters
 	int nonsrcLength = mynonsrc.Len(); // characters
 	if (nonsrcLength == 0)
 	{
@@ -949,13 +977,17 @@ wxString RemoveSomeTgtEntries::MakeListLine(NonSrcListRec* pStruct)
 		}
 		nonsrcLength = mynonsrc.Len(); // get the revised length, locally only
 	}
-	int field2at = 38; // characters in from left of checklistbox
-	int diff = 0;
-	int refSpace1 = 12; // use with grouped view (left radio button)
-	int refSpace2 = 6; // use with simple tgt alphabetized view (right radio button)
+	//int field2at = 38; // characters in from left of checklistbox
+	//int diff = 0;
+	//int refSpace1 = 12; // use with grouped view (left radio button)
+	//int refSpace2 = 6; // use with simple tgt alphabetized view (right radio button)
+
 	if (m_bBySrcGroups)
 	{
-		m_output = pStruct->src; // source text first
+		m_output = srcLabel;
+		m_output += pStruct->src; // source text first
+		m_output += pad;
+		/*
 		if (srcLength < field2at)
 		{
 			//  Pad out to field2at location
@@ -967,8 +999,11 @@ wxString RemoveSomeTgtEntries::MakeListLine(NonSrcListRec* pStruct)
 			// give an extra 4 spaces
 			m_output += m_spaces[4];
 		}
+		*/
 		m_output += mynonsrc; // target text next
-		m_output += m_spaces[refSpace1]; // small gap (wider makes diacritics less likely to overlap entry above)
+		m_output += pad;
+		// Ref counts last
+		//m_output += m_spaces[refSpace1]; // small gap (wider makes diacritics less likely to overlap entry above)
 		if (pStruct->numrefs > 1)
 		{
 			wxString endStr;
@@ -982,6 +1017,7 @@ wxString RemoveSomeTgtEntries::MakeListLine(NonSrcListRec* pStruct)
 	}
 	else
 	{
+		/*
 		// Make adjustments to the measurements
 		if (nonsrcLength < field2at)
 		{
@@ -997,9 +1033,11 @@ wxString RemoveSomeTgtEntries::MakeListLine(NonSrcListRec* pStruct)
 		endStr = endStr.Format(m_ref_many, pStruct->numrefs);
 		//int endStrLen = endStr.Len();
 		//int extraSpaces = refSpace2 + endStrLen;
-
+		*/
 		// the simple alphabetized list format, tgt text first
 		m_output = mynonsrc; // target text first
+		m_output += pad;
+		/*
 		m_output += m_spaces[refSpace2];
 		// Next, the ref count (shown closer to the tgt or gloss text than in other view)		
 		m_output += endStr; // the ref count number in parentheses
@@ -1007,7 +1045,21 @@ wxString RemoveSomeTgtEntries::MakeListLine(NonSrcListRec* pStruct)
 		// correct amount of padding
 		//field2at += extraSpaces;
 		m_output += m_spaces[diff];
-		m_output += pStruct->src; // source text last
+		*/
+		m_output += srcLabel;
+		m_output += pStruct->src; // source text second
+		m_output += pad;
+		// Ref counts last
+		if (pStruct->numrefs > 1)
+		{
+			wxString endStr;
+			endStr = endStr.Format(m_ref_many, pStruct->numrefs); 
+			m_output += endStr; // the ref count number in parentheses
+		}
+		else
+		{
+			m_output += m_ref_once;
+		}
 	}
 	return m_output;
 }
@@ -1020,8 +1072,8 @@ void RemoveSomeTgtEntries::MakeLinesArray(NonSrcListRecsArray* pGroupsArray, wxA
 	for (i = 0; i < count; ++i)
 	{
 		NonSrcListRec* pStruct = pGroupsArray->Item(i);
-		m_lineStr = MakeListLine(pStruct);
-		rLinesArray.Add(m_lineStr);
+		wxString lineStr = MakeListLine(pStruct);
+		rLinesArray.Add(lineStr);
 	}
 }
 
@@ -1033,30 +1085,22 @@ void RemoveSomeTgtEntries::MakeLinesForSortedArray(SortedNonSrcListRecsArray* pT
 	for (i = 0; i < count; ++i)
 	{
 		NonSrcListRec* pStruct = pTargetSortedArray->Item(i);
-		m_lineStr = MakeListLine(pStruct);
-		rLinesArray.Add(m_lineStr);
+		wxString lineStr = MakeListLine(pStruct);
+		rLinesArray.Add(lineStr);
 	}
-}
-
-
-void RemoveSomeTgtEntries::LoadList(wxCheckListBox* pList, wxArrayString* pArrayStr)
-{
-	pList->Clear(); // the list does not own the pointers, so this only clears 
-					// the pointers but leaves their objects in memory
-	pList->InsertItems(*pArrayStr, 0); // insert all at start of empty list
 }
 
 // bBySrcGroups selects which of the two TrackingArray members, m_leftCheckedArray or
 // m_rightCheckedArray, we store the choice in. And that also tells us which of the two is
 // the "other" tracking array in which we need to search to find the matching item - it
 // will be at a different index in the latter.
-// nSelection is the index of the line in the checklistbox which had its checkboxx clicked
-// - either to turn on, or off, the checkbox. This index value also uniquely and reliably
-// indexes the NonSrcListRec struct whose values gave rise to the text in the clicked line
-// of the checklistbox - we'll use that struct in our search for the "other" tracking
-// array's matching index - by searching in the other array for the matching struct - this
-// is a simple search because the struct is pointed at by both arrays, and so we only need
-// search for pointer identity.
+// nSelection is the index of the line in the wxListCtrl which shows the checkbox icon
+// ticked, or empty.
+// This index value also uniquely and reliably indexes the NonSrcListRec struct whose
+// values gave rise to the text in the clicked line of the wxListCtrl - we'll use that
+// struct in our search for the "other" tracking array's matching index - by searching in
+// the other array for the matching struct - this is a simple search because the struct is
+// pointed at by both arrays, and so we only need search for pointer identity.
 // nChoice must have only values 0 or 1 as it represents the boolean returned by
 // IsChecked(). The "other" array's parallel array of size_t item with the matching index
 // then is then given the new value for nChoice - this is so that if the user switches
@@ -1065,27 +1109,26 @@ void RemoveSomeTgtEntries::LoadList(wxCheckListBox* pList, wxArrayString* pArray
 // So, in summary, StoreChoice stores the user's choice in both arrays storage structures
 // even though only one view is on display at any time - the "other" view's arrays still
 // get the choice too
-void RemoveSomeTgtEntries::StoreChoice(bool bBySrcGroups, int nSelection, int nChoice)
+void RemoveSomeTgtEntries::StoreChoice(bool bBySrcGroups, long myline, int nChoice)
 {
 	// These are the NonSrcListRec* arrays, left radio button's one, then right's
-	//NonSrcListRecsArray*	     m_pGroupsArray; 
+	//NonSrcListRecsArray*	     m_pGroupsArray; // it's partially sorted by src text key
 	//SortedNonSrcListRecsArray* m_pUngroupedTgtSortedArray;
-	unsigned int nLine = (unsigned int)nSelection;
 	if (bBySrcGroups)
 	{
-		m_leftCheckedArray[nLine] = nChoice;
+		m_leftCheckedArray[myline] = nChoice;
 		// Get the struct pointer for this line
-		m_pSelectedRec = m_pGroupsArray->Item(nLine);
+		m_pSelectedRec = m_pGroupsArray->Item(myline);
 		// Search for this pointer in the "other" array
      
-        // The form .Index(m_pSelectedRec) call here was not 100% reliable - with a phrase
+        // The former .Index(m_pSelectedRec) call here was not 100% reliable - with a phrase
         // of two words, both with diacritics, but two different tgt phrases differing by
         // just a versus a grave at the end of the last word, the wrong phrase got matched.
-        // This was unacceptable. 99.9% accuracy won't do - it would result in some wanted
+        // This was unacceptable. 99.99% accuracy won't do - it would result in some wanted
         // entries getting wrongly deleted if the user switched the radio buttons - so that
         // the slightly wrong matchups list of ticked checkboxs got used for the KB
         // deletions. So I rolled my own - it scans linearly and requires match of src,
-        // nonsrc and reference count!
+        // nonsrc and reference count - and did not produce the errors that .Index() did
 		m_nOtherLine = SearchInSortedArray(m_pUngroupedTgtSortedArray, m_pSelectedRec);
 		// Now set the choice in the parallel tracking array of int
 		if (m_nOtherLine != wxNOT_FOUND)
@@ -1095,25 +1138,27 @@ void RemoveSomeTgtEntries::StoreChoice(bool bBySrcGroups, int nSelection, int nC
 		else
 		{
 			// We don't want a search failure to bog the user down with reading a message
-			// and cancelling it, just beep to give feedback there was a problem
+			// and cancelling it, just beep to give feedback there was a problem (a
+			// failure means that a pair the user wanted pseudo-deleted won't be - that's
+			// not a significant problem for continuing the adaptation work)
 			wxBell();
 		}
 	}
 	else
 	{
-		m_rightCheckedArray[nLine] = nChoice;
+		m_rightCheckedArray[myline] = nChoice;
 		// Get the struct pointer for this line
-		m_pSelectedRec = m_pUngroupedTgtSortedArray->Item(nLine);
+		m_pSelectedRec = m_pUngroupedTgtSortedArray->Item(myline);
 		// Search for this pointer in the "other" array
 		
-        // The form .Index(m_pSelectedRec) call here was not 100% reliable - with a phrase
+        // The former .Index(m_pSelectedRec) call here was not 100% reliable - with a phrase
         // of two words, both with diacritics, but two different tgt phrases differing by
         // just a versus a grave at the end of the last word, the wrong phrase got matched.
-        // This was unacceptable. 99.9% accuracy won't do - it would result in some wanted
+        // This was unacceptable. 99.99% accuracy won't do - it would result in some wanted
         // entries getting wrongly deleted if the user switched the radio buttons - so that
         // the slightly wrong matchups list of ticked checkboxs got used for the KB
         // deletions. So I rolled my own - it scans linearly and requires match of src,
-        // nonsrc and reference count!
+        // nonsrc and reference count - and it works reliably
 		m_nOtherLine = SearchInUnsortedArray(m_pGroupsArray, m_pSelectedRec);
 		// Now set the choice in the parallel tracking array of int
 		if (m_nOtherLine != wxNOT_FOUND)
@@ -1123,17 +1168,21 @@ void RemoveSomeTgtEntries::StoreChoice(bool bBySrcGroups, int nSelection, int nC
 		else
 		{
 			// We don't want a search failure to bog the user down with reading a message
-			// and cancelling it, just beep to give feedback there was a problem
+			// and cancelling it, just beep to give feedback there was a problem (a
+			// failure means that a pair the user wanted pseudo-deleted won't be - that's
+			// not a significant problem for continuing the adaptation work)
 			wxBell();
 		}
 	}
 }
 
 // replaces unreliable .Index() call
-int  RemoveSomeTgtEntries::SearchInSortedArray(SortedNonSrcListRecsArray* pArray, NonSrcListRec* pFindThis)
+long  RemoveSomeTgtEntries::SearchInSortedArray(SortedNonSrcListRecsArray* pArray, NonSrcListRec* pFindThis)
 {
-	int count = pArray->size();
-	int i;
+    // pArray is the array of structs sorted top to bottom by the nonsrc
+    // (ie. usually target text) string
+	long count = pArray->size();
+	long i;
 	NonSrcListRec* pItem = NULL;
 	for (i = 0; i < count; i++)
 	{
@@ -1147,13 +1196,15 @@ int  RemoveSomeTgtEntries::SearchInSortedArray(SortedNonSrcListRecsArray* pArray
 		}
 	}
 	// Failure, return -1
-	return wxNOT_FOUND;
+	return (long)wxNOT_FOUND;
 }
 
-int  RemoveSomeTgtEntries::SearchInUnsortedArray(NonSrcListRecsArray* pArray, NonSrcListRec* pFindThis)
+long  RemoveSomeTgtEntries::SearchInUnsortedArray(NonSrcListRecsArray* pArray, NonSrcListRec* pFindThis)
 {
-	int count = pArray->size();
-	int i;
+	// pArray is the array of structs partially sorted by the source text, with tgt text
+	// sorted within each such group - that is, source text shown first in the wxListCtrl
+	long count = pArray->size();
+	long i;
 	NonSrcListRec* pItem = NULL;
 	for (i = 0; i < count; i++)
 	{
@@ -1167,7 +1218,7 @@ int  RemoveSomeTgtEntries::SearchInUnsortedArray(NonSrcListRecsArray* pArray, No
 		}
 	}
 	// Failure, return -1
-	return wxNOT_FOUND;
+	return (long)wxNOT_FOUND;
 	// The left and right arrays are in sync acording to which checkbox was clicked,
 	// despite the lines being different in each 
 /* 
@@ -1209,46 +1260,46 @@ TrackingArray* RemoveSomeTgtEntries::GetRightTrackingArray()
 	return &m_rightCheckedArray;
 }
 
-
 // This function is called AFTER a radiobutton click to swap to the other view from
 // whichever one of the two is current. So the active arrays will be the ones just brought
-// into effect by the switch. The just-repopulated checklistbox will have all checkboxes
-// turned off. This present function will take the array of int relevant to this list, and
-// use it to reset the appropriate checkboxes. The user is then ready to do more checking
-// or unchecking etc
+// into effect by the switch. The just-repopulated listctrl will have all pseudocheckboxes
+// showing the emppty box icon. This present function will take the array of int relevant
+// to this list, and use it to re-insert at the correct lines the ticked checkbox icons.
+// The user is then ready to do more checking or unchecking etc
 void RemoveSomeTgtEntries::SetCheckboxes(bool bBySrcGroups)
 {
-	unsigned int i; // index
+	long i; // index
 	int nChoice; // 0 or 1
-	unsigned int count; // number of array elements (same for either view)
+	long count; // number of array elements (same for either view)
 	TrackingArray* pActiveArray = NULL;
+	wxListItem item; // we fill it with an item's contents as we scan over the lines
 	if (bBySrcGroups)
 	{
 		// The left radio button, "organised by groups" has just been made active
 		pActiveArray = &m_leftCheckedArray;
-		count = (unsigned int)pActiveArray->size();
-		for (i = 0; i < count; ++i)
+		count = (long)pActiveArray->size();
+		for (i = 0L; i < count; ++i)
 		{
 			nChoice = (*pActiveArray)[i];
 			if (nChoice == 1)
 			{
-				m_pCheckListBox->Check(i, TRUE);
+				m_pCheckList->SetItemColumnImage(i, 0, tickedCheckbox);
 			}
 		}
 	}
 	else
 	{
-        // The right radio button, foro the list organised top to bottom as an
+        // The right radio button, for the list organised top to bottom as an
         // alphabetization of the target text (or gloss if in glossing mode), has just been
         // made active
 		pActiveArray = &m_rightCheckedArray;
 		count = (unsigned int)pActiveArray->size();
-		for (i = 0; i < count; ++i)
+		for (i = 0L; i < count; ++i)
 		{
 			nChoice = (*pActiveArray)[i];
 			if (nChoice == 1)
 			{
-				m_pCheckListBox->Check(i, TRUE);
+				m_pCheckList->SetItemColumnImage(i, 0, tickedCheckbox);
 			}
 		}
 	}
@@ -1328,36 +1379,208 @@ void RemoveSomeTgtEntries::DoKBExportOfListedEntries(wxFile* pFile, bool bBySrcG
 	}
 }
 
+// To get checkbox on/off behaviour, requires a few things:
+// 1. Don't have a Deselection event trapped -- it unselects anything just selected if a
+// selection is made elsewhere; we want our icon changes to 'stick' when other lines are
+// clicked.
+// 2. OnCheckboxSelection() is always called, whether selecting a non-selected ListItem or
+// clicking an already selected one - so use this one event to do it all.
+// 3. Use the icon offsets (0 or 1) for the two images as if they are flags.
+// 4. Every time this handler is entered, change the current icon to the other state. And,
+// at before leaving the handler, programmatically clear the selection. (The selection
+// mechanism is a nuisance, if the icon is clicked for a selected line, no selection event
+// is fired, and so the handler is not called. This, if allowed to happen, would confuse
+// users because they would try to unset a checkbox click that was a mistake by clicking
+// it again, and nothing would happen. Solution is to always destroy the selection, then
+// next click on a ticked checkbox will work, because the ListItem was set to 'unselected'
+// programmatically in the handler.)
+// 5. An if-else block, based on the icon offset, is used to change the icon to the other
+// one each time the item is clicked. That's it. To the user, it behaves like
+// wxCheckListBox, except that we don't show ticked lines with background blue selection.
+void RemoveSomeTgtEntries::OnCheckboxSelection(wxListEvent& event)
+{
+	event.Skip();
 
-/*
-	// sample code to clone bits from
-	CTargetUnit* pTU;
-	CRefString* pRefStr;
-	size_t numMapsInUse = pKB->m_nMaxWords; // <= 10
-	size_t index;
-	size_t total = 0;
-	size_t subtotal = 0;
-	for (index = 0; index < numMapsInUse; index++)
+	long anIndex = event.GetIndex();
+	int anImage = event.GetImage();
+	long selectionMask = 0;
+	selectionMask |= wxLIST_STATE_SELECTED;
+	if (anImage == emptyCheckbox) // both 0
 	{
-		MapKeyStringToTgtUnit* pMap = pKB->m_pMap[index];
-		MapKeyStringToTgtUnit::iterator iter;
-		for (iter = pMap->begin(); iter != pMap->end(); ++iter)
-		{
-			m_src = iter->first;
-			pTU = iter->second;
-			int count = pTU->m_pTranslations->GetCount();
-			TranslationsList::Node* pos = 0;
-			pos = pTU->m_pTranslations->GetFirst();
-			while (pos != 0)
-			{
-				pRefStr = (CRefString*)pos->GetData();
-				wxASSERT(pRefStr != NULL);
-				pos = pos->GetNext(); // prepare for possibility of yet another
-				m_nonsrc = pRefStr->m_translation;
-				m_refCount = pRefStr->m_refCount;
-			 }
-		 }
+		// It's a click to select, so check that, and if true then change to the ticked
+		// checkbox icon; kill the selection too, so that on exit a click on the icon will work
+		m_pCheckList->SetItemColumnImage(anIndex, 0, tickedCheckbox);
+		m_pCheckList->SetItemState(anIndex,(long)0,selectionMask); // no selection
+		StoreChoice(m_bBySrcGroups, anIndex, 1); // stores 1 in appropriate lines of the tracking
+											// arrays, m_leftCheckedArray and m_rightCheckedArray
 	}
-*/
+	else // the clicked icon must be the one with offset tickedCheckbox, so user is turning it off
+	{
+		m_pCheckList->SetItemColumnImage(anIndex, 0, emptyCheckbox);
+		m_pCheckList->SetItemState(anIndex,(long)0,selectionMask); // no selection
+		StoreChoice(m_bBySrcGroups, anIndex, 0); // stores 1 in appropriate lines of the tracking
+											// arrays, m_leftCheckedArray and m_rightCheckedArray
+	}
+}
 
+void RemoveSomeTgtEntries::PopulateListAsGroups(NonSrcListRecsArray* pGroupsArray)
+{
+	size_t lineCount = pGroupsArray->size();
+	size_t n; // loop index
+	wxListItem col[4]; // need four columns, icon, src, tgt, refCount (in that order for
+					   // the grouped view), but for the right radio button which is ordered
+					   // by the target text from top to bottom, a different populating 
+					   // function will do it as icon, tgt, src, refCount
+	// start with an empty list
+	m_pCheckList->ClearAll();
 
+	// Don't clear pGroupsArray, the stored pointers must stay valid until the
+	// RemoveSomeTgtEntries instance is destroyed
+	NonSrcListRec* pRec = NULL;
+	wxString numStr = _T("");
+
+	// Based on what Mike does in DVCSLogDlg...
+	col[0].SetId(0);
+	col[0].SetText(_T(" "));
+	col[0].SetWidth(22);
+	m_pCheckList->InsertColumn(0, col[0]);
+
+	col[1].SetId(1);
+	col[1].SetText(_("Source Text"));
+	col[1].SetWidth(220);
+	m_pCheckList->InsertColumn(1, col[1]);
+
+	col[2].SetId(2);
+	if (m_bIsGlossingKB)
+	{
+		col[2].SetText(_("Gloss"));
+	}
+	else
+	{
+		col[2].SetText(_("Translation"));
+	}
+	col[2].SetWidth(220);
+	m_pCheckList->InsertColumn(2, col[2]);
+
+	col[3].SetId(3);
+	col[3].SetText(_("Occurs"));
+	col[3].SetWidth(64);
+	m_pCheckList->InsertColumn(3, col[3]);
+
+    for (n = 0; n < lineCount; n++)
+    {
+        wxListItem item;
+        item.SetId(n);
+        m_pCheckList->InsertItem(item);
+
+		pRec = pGroupsArray->Item(n); // stores structs of form: wxString src, 
+									  // wxString nonsrc, int numrefs
+		// Set the column contents, column zero always has the checkbox icon									  
+		m_pCheckList->SetItem(n, 0, _T(""), (int)emptyCheckbox); // sets the unticked checkbox icon in column 0 
+		m_pCheckList->SetItem(n, 1, pRec->src); // sets the source text in column 1
+		m_pCheckList->SetItemFont(n, *m_pApp->m_pDlgTgtFont); // use target text, 2 pt size, for each line - safest bet
+
+		if (pRec->nonsrc.IsEmpty())
+		{
+			if (m_bIsGlossingKB)
+			{
+				m_pCheckList->SetItem(n, 2, m_no_gloss);
+			}
+			else
+			{
+				m_pCheckList->SetItem(n, 2, m_no_adaptation);
+			}
+		}
+		else
+		{
+			m_pCheckList->SetItem(n, 2, pRec->nonsrc); // sets the non-source text in 
+								// column 2 (adaption, or gloss if in glossing mode)
+		}
+		numStr << pRec->numrefs; // convert int to a wxString
+		m_pCheckList->SetItem(n, 3, numStr); // puts the reference count in column 3
+		numStr.Empty(); // must be emptied after every << operator's use, otherwise next iteration appends
+   }
+}
+
+void RemoveSomeTgtEntries::PopulateListAsTgtSorted(SortedNonSrcListRecsArray* pNonSrcArray)
+{
+	size_t lineCount = pNonSrcArray->size();
+	size_t n; // loop index
+	wxListItem col[4]; // need four columns, icon, src, tgt, refCount (in that order for
+					   // the grouped view), but for the right radio button which is ordered
+					   // by the target text from top to bottom, a different populating 
+					   // function will do it as icon, tgt, src, refCount
+	// start with an empty list
+	m_pCheckList->ClearAll();
+
+	// Don't clear pGroupsArray, the stored pointers must stay valid until the
+	// RemoveSomeTgtEntries instance is destroyed
+	NonSrcListRec* pRec = NULL;
+	wxString numStr = _T("");
+
+	// Based on what Mike does in DVCSLogDlg...
+	col[0].SetId(0);
+	col[0].SetText(_T(" "));
+	col[0].SetWidth(22);
+	m_pCheckList->InsertColumn(0, col[0]);
+
+	col[1].SetId(1);
+	if (m_bIsGlossingKB)
+	{
+		col[1].SetText(_("Gloss"));
+	}
+	else
+	{
+		col[1].SetText(_("Translation"));
+	}
+	col[1].SetWidth(220);
+	m_pCheckList->InsertColumn(1, col[1]);
+
+	col[2].SetId(2);
+	col[2].SetText(_("Source Text"));
+	col[2].SetWidth(220);
+	m_pCheckList->InsertColumn(2, col[2]);
+
+	col[3].SetId(3);
+	col[3].SetText(_("Occurs"));
+	col[3].SetWidth(64);
+	m_pCheckList->InsertColumn(3, col[3]);
+
+    for (n = 0; n < lineCount; n++)
+    {
+        wxListItem item;
+        item.SetId(n);
+        m_pCheckList->InsertItem(item);
+
+		pRec = pNonSrcArray->Item(n); // stores structs of form: wxString src, 
+									  // wxString nonsrc, int numrefs
+		// Set the column contents, column zero always has the checkbox icon									  
+		m_pCheckList->SetItem(n, 0, _T(""), (int)emptyCheckbox); // sets the unticked checkbox icon in column 0 
+		m_pCheckList->SetItemFont(n, *m_pApp->m_pDlgTgtFont); // use target text, 12 pt size, for each line - safest bet
+
+		// Column 1 will be target text, of if in glossing mode, Gloss text
+		if (pRec->nonsrc.IsEmpty())
+		{
+			if (m_bIsGlossingKB)
+			{
+				m_pCheckList->SetItem(n, 1, m_no_gloss);
+			}
+			else
+			{
+				m_pCheckList->SetItem(n, 1, m_no_adaptation);
+			}
+		}
+		else
+		{
+			m_pCheckList->SetItem(n, 1, pRec->nonsrc);
+		}
+		// In this view, source text occurs after the target or gloss text
+		m_pCheckList->SetItem(n, 2, pRec->src); // sets the source text in column 2
+		// Put ref count last -- it's the count for how many target (or gloss) refs for
+		// the given source text of the pair, not the count of how many times the src text
+		// occurs
+		numStr << pRec->numrefs; // convert int to a wxString
+		m_pCheckList->SetItem(n, 3, numStr); // puts the reference count in column 3
+		numStr.Empty(); // must be emptied after every << operator's use, otherwise next iteration appends
+   }
+}

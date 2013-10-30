@@ -9928,75 +9928,78 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
     return item0;
 }
 
-wxSizer *Remove_Some_Tgt_Entries_Func( wxWindow *parent, bool call_fit, bool set_sizer )
+wxSizer *m_LIST_CTRL_SIZER;
+wxSizer *Bulk_Delete_Pairs_Func( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Widen or narrow columns by dragging a heading divider. Resize the dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
+    item0->Add( item1, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    item2->Add( 10, 8, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+    m_LIST_CTRL_SIZER = item3;
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_SRC_TGT_REF_LABEL, _("Source text                        Target text [adaptation]        (reference count)"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL, 5 );
+    wxListCtrl *item4 = new wxListCtrl( parent, ID_LISTCTRL_BULK_DEL, wxDefaultPosition, wxSize(581,422), wxLC_REPORT|wxSUNKEN_BORDER );
+    item4->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxNORMAL ) );
+    item3->Add( item4, 1, wxGROW, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxString *strs4 = (wxString*) NULL;
-    wxCheckListBox *item4 = new wxCheckListBox( parent, ID_CHECKLISTBOX_REMOVE_SOME, wxDefaultPosition, wxSize(520,390), 0, strs4, 0 );
-    item4->SetFont( wxFont( 9, wxSWISS, wxNORMAL, wxNORMAL ) );
-    item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticBox *item6 = new wxStaticBox( parent, -1, _("Choose how you want the list presented:") );
-    wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Choose how you want the list presented:") );
+    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_ORGANISE_BY_KEYS, _("Organise by keeping source text groupings"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetValue( TRUE );
-    item8->SetToolTip( _("\"Target\" (or \"Gloss\") <> \"Source\" on each line,  but keeping source text meanings together") );
-    item7->Add( item8, 0, wxALIGN_CENTER, 5 );
+    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_ORGANISE_BY_KEYS, _("Organise by keeping source text groupings"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetValue( TRUE );
+    item9->SetToolTip( _("\"Target\" (or \"Gloss\") <> \"Source\" on each line,  but keeping source text meanings together") );
+    item8->Add( item9, 0, wxALIGN_CENTER, 5 );
 
-    item7->Add( 20, 12, 0, wxALIGN_CENTER, 5 );
+    item8->Add( 20, 12, 0, wxALIGN_CENTER, 5 );
 
-    wxRadioButton *item9 = new wxRadioButton( parent, ID_RADIO_SIMPLY_TARGET_ALPHABETICAL, _("List in alphabetic order of the target text"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->SetToolTip( _("\"Target\" (or \"Gloss\") <> \"Source\" on each line, organised alphabetically") );
-    item7->Add( item9, 0, wxALIGN_CENTER, 5 );
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_SIMPLY_TARGET_ALPHABETICAL, _("List in alphabetic order of the target text"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("\"Target\" (or \"Gloss\") <> \"Source\" on each line, organised alphabetically") );
+    item8->Add( item10, 0, wxALIGN_CENTER, 5 );
 
-    item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item11 = new wxButton( parent, ID_BUTTON_SAVE_ENTRYLIST_TO_FILE, _("Save the list to a file... "), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("Save the current form of the list to a text file") );
-    item10->Add( item11, 0, wxALIGN_CENTER, 5 );
+    wxButton *item12 = new wxButton( parent, ID_BUTTON_SAVE_ENTRYLIST_TO_FILE, _("Save the list to a file... "), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Save the current form of the list to a text file") );
+    item11->Add( item12, 0, wxALIGN_CENTER, 5 );
 
-    item10->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item12 = new wxButton( parent, wxID_OK, _("Remove the selected entries, and close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetDefault();
-    item12->SetToolTip( _("Removes the entries which are ticked, and closes the dialog") );
-    item10->Add( item12, 0, wxALIGN_CENTER, 5 );
+    wxButton *item13 = new wxButton( parent, wxID_OK, _("Remove the selected entries, and close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->SetDefault();
+    item13->SetToolTip( _("Removes the entries which are ticked, and closes the dialog") );
+    item11->Add( item13, 0, wxALIGN_CENTER, 5 );
 
-    item10->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("Ignore any selections made, just Cancel the dialog") );
-    item10->Add( item13, 0, wxALIGN_CENTER, 5 );
+    wxButton *item14 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Ignore any selections made, just Cancel the dialog") );
+    item11->Add( item14, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item10, 0, wxALIGN_CENTER, 5 );
+    item5->Add( item11, 0, wxALIGN_CENTER, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("After removing entries do a Consistency Check... (Edit menu), and take the \"other documents\" option."), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item15, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("After removing entries do a Consistency Check... (Edit menu), and take the \"other documents\" option."), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER, 5 );
 
-    item0->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item15, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item2, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -24101,40 +24104,40 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         /* columns rows colors chars-per-pixel */
         "32 30 4 1",
         "  c None",
-        "a c #FFFFFF",
-        "b c #FF00FF",
+        "b c #FFFFFF",
+        "c c #FF00FF",
         "d c #0000FF",
         /* pixels */
-        "ddddddaaddddddddaaddddddaadddddd",
-        "ddddddaaddddddddaaddddddaadddddd",
+        "ddddddbbddddddddbbddddddbbdddddd",
+        "ddddddbbddddddddbbddddddbbdddddd",
         "                                ",
         "                                ",
-        "bbbbbbaabbbbbbbbaabbbbbbaabbbbbb",
-        "bbbbbbaabbbbbbbbaabbbbbbaabbbbbb",
-        "                                ",
-        "                                ",
-        "                                ",
-        "                                ",
-        "                                ",
-        "                                ",
-        "ddddaaddddddddaaddddddddddaadddd",
-        "ddddaaddddddddaaddddddddddaadddd",
-        "                                ",
-        "                                ",
-        "bbbbaabbbbbbbbaabbbbbbbbbbaabbbb",
-        "bbbbaabbbbbbbbaabbbbbbbbbbaabbbb",
+        "ccccccbbccccccccbbccccccbbcccccc",
+        "ccccccbbccccccccbbccccccbbcccccc",
         "                                ",
         "                                ",
         "                                ",
         "                                ",
         "                                ",
         "                                ",
-        "ddddaaddddddddaaddddddaadddddddd",
-        "ddddaaddddddddaaddddddaadddddddd",
+        "ddddbbddddddddbbddddddddddbbdddd",
+        "ddddbbddddddddbbddddddddddbbdddd",
         "                                ",
         "                                ",
-        "bbbbaabbbbbbbbaabbbbbbaabbbbbbbb",
-        "bbbbaabbbbbbbbaabbbbbbaabbbbbbbb"
+        "ccccbbccccccccbbccccccccccbbcccc",
+        "ccccbbccccccccbbccccccccccbbcccc",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "ddddbbddddddddbbddddddbbdddddddd",
+        "ddddbbddddddddbbddddddbbdddddddd",
+        "                                ",
+        "                                ",
+        "ccccbbccccccccbbccccccbbcccccccc",
+        "ccccbbccccccccbbccccccbbcccccccc"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -25011,6 +25014,70 @@ wxBitmap HtmlWindowBitmapsFunc( size_t index )
         "aaaaaaaaaaaaaaaaaadpjaaaaaaaaa",
         "aaaaaaaaaaaaaaaaaahaaaaaaaaaaa",
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    return wxNullBitmap;
+}
+
+wxBitmap BulkKbDeleteFunc( size_t index )
+{
+    if ((index == (size_t)0) ||
+        (index == (size_t)ID_BITMAP_CHBOX_OFF))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "16 15 2 1",
+        "a c Black",
+        "b c #FFFFFF",
+        /* pixels */
+        "bbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbb",
+        "bbaaaaaaaaaaabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbaaaaaaaaaaabbb",
+        "bbbbbbbbbbbbbbbb"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == (size_t)1) ||
+        (index == (size_t)ID_BITMAP_CHBOX_ON))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "16 15 3 1",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        /* pixels */
+        "bbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbb",
+        "bbaaaaaaaaaaabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbabbbbbbcababbb",
+        "bbabbbbbcabbabbb",
+        "bbababbcabbbabbb",
+        "bbababcabbbbabbb",
+        "bbabcaabbbbbabbb",
+        "bbabbabbbbbbabbb",
+        "bbabbbbbbbbbabbb",
+        "bbaaaaaaaaaaabbb",
+        "bbbbbbbbbbbbbbbb"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
