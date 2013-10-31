@@ -70,6 +70,34 @@ a knowledge base sharing feature becomes available in future
 releases, the username information will be sent, securely, in 
 data going to a Git repository for document history, and/or a 
 shared knowledge base server.
+   (4) Bulk removal of knowledge base entries, and storage of
+entry lists in files. A new button, 
+"Remove Some Entries or Save List..."
+is on every page of the Knowledge Base Editor dialog. Click it
+to see a list of the whole knowledge base (source & translation,
+with the count of how many times the translation has been
+used in the documents so far - a 'reference count'). Two radio
+buttons allow two views of the list; the default is to show
+the source text first, and sort by the source text, but to 
+group all the translations of each source text, in alphabetical
+order, together. The other view puts the translation first, and
+sorts the whole knowledge base by that. Click the checkbox on a
+line to have that line's entry removed (eventually). Ticked boxes
+remain ticked if you change from one view to the other - but
+their locations in the list will change because the lines are
+sorted differently in each view. When the button called
+"Remove the selected entries, and close" is clicked, all the
+entries that were ticked are then removed from the knowledge base.
+Finally, each view can be saved to a file which you can name, and
+have a datetime stamp added to the filename as well. The button
+for this is "Save the list to a file...". The data in the file
+does not show which items you may have ticked at that point.
+The saved file is useful for checking for obsolete entries,
+spelling mistakes, and so forth. The dialog sizes itself to
+the height of the physical screen, minus a little bit, to
+maximize how much can be seen without scrolling. The list
+can be any length. My test data had 14 thousand lines in 
+the list for example.
 ----------------------------------------------
 Bug fixes in 6.5.0
 ----------------------------------------------
