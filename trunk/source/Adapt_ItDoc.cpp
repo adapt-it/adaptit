@@ -1492,9 +1492,9 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
     if ( gpApp->m_strUserID.IsEmpty() || gpApp->m_strUsername.IsEmpty() )   // this can happen if AI is launched with shift down
     {
         wxCommandEvent	dummy;
-        
+
         gpApp->OnEditChangeUsername (dummy);
-            
+
         if ( gpApp->m_strUserID == NOOWNER )            // did we get a username?
         {                                               // nope - whinge and bail out.
             wxMessageBox (_("No username entered -- owner not changed."));
@@ -1502,7 +1502,7 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
             return;
         }
     }
-    
+
     if (gpApp->m_owner == gpApp->m_strUserID)
         return;                             // if we're already the owner, there's nothing to do
 
@@ -1670,7 +1670,7 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	{
 	// What do we do here??  We've already saved the document with the above info updated.  I think we
 	//  should roll everything back and re-save.  The DVCS code will already have given a message.
-        
+
         pApp->LogUserAction (_T("Rolling back and re-saving"));
 
 		pApp->m_versionDate = origDate;
@@ -1698,7 +1698,7 @@ void CAdapt_ItDoc::EndTrial (bool restoreBackup)
 {
     CAdapt_ItApp*   pApp = &wxGetApp();
     bool            backupExists = pApp->m_bBackedUpForTrial;
-    
+
     pApp->m_pDVCSNavDlg->Destroy();         // take down the dialog
     pApp->m_pDVCSNavDlg = NULL;
     pApp->m_trialVersionNum = -1;           // no trial now
@@ -1708,16 +1708,16 @@ void CAdapt_ItDoc::EndTrial (bool restoreBackup)
     if (backupExists)
     {
         wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
-        
+
         if (restoreBackup)
         {
             pApp->m_bBackedUpForTrial = FALSE;
-    
+
             bool        bCopiedSuccessfully = ::wxCopyFile (backupPath, pApp->m_curOutputPath, TRUE);   // summarily overwrite!
             wxASSERT(bCopiedSuccessfully);
 			bCopiedSuccessfully = bCopiedSuccessfully; // prevent compiler warning in release build
         }
-        
+
     // so far so good, so we remove the backup:
         bool        bRemovedSuccessfully = ::wxRemoveFile (backupPath);
         if (!bRemovedSuccessfully)
@@ -1726,7 +1726,7 @@ void CAdapt_ItDoc::EndTrial (bool restoreBackup)
             wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
             gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
         }
-        
+
     }
     DocChangedExternally();                     // Even if we didn't restore from the backup, the read-only status
                                                 //  has changed, so we need this.
@@ -1738,25 +1738,25 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
     CAdapt_ItApp*   pApp = &wxGetApp();
     int             returnCode;
     wxString        temp;
-    
+
     temp = temp.Format (_T("DoChangeVersion() called with revNum = %d"), revNum);
     pApp->LogUserAction (temp);
 
     wxASSERT(revNum >= -2);
-    
+
     if (revNum == -2)       // "return to latest" was clicked in the dialog.  Whatever we do, we first need to go to the
                             // latest committed version.
     {
         returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, 0);			// get the latest committed revision
-        
+
         wxASSERT(returnCode >= 0);      // a negative returnCode means a bug
         if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
                                         //  message should have been displayed already.
-        
+
         EndTrial (TRUE);                 // end the trial, restoring the backup
         return;
     }
-    
+
     if ( revNum < 0 )
     {                   // bail out if no more, coming forward
         wxMessageBox (_("There are no more recent versions in the history!") );
@@ -1890,7 +1890,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     gpApp->m_trialVersionNum = startHere;                       // and here's where we'll start from
 
     pApp->LogUserAction(_T("Bringing up the DVCSNavDlg"));
-    
+
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
     pNavDlg->ChooseVersion (startHere);                         // changes the doc version, and sets fields in the dialog
@@ -2205,7 +2205,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
 		gpApp->GetView()->Invalidate();
 #if defined(_DEBUG)
-		wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"), 
+		wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
 			translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
 #endif
 	}
@@ -2237,7 +2237,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 		CPile* myPilePtr = gpApp->m_pActivePile;
 		CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
 		wxLogDebug(_T("DoFileSave_Protected() before returns TRUE: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
-			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(), 
+			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
 			mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
 #endif
 		return TRUE;
@@ -2638,7 +2638,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	CPile* myPilePtr = gpApp->m_pActivePile;
 	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
 	wxLogDebug(_T("DoFileSave() start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
-		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(), 
+		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
 		mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
 #endif
 
@@ -3391,6 +3391,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				{
 					bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
 					wxASSERT(bRemovedSuccessfully);
+					bRemovedSuccessfully = bRemovedSuccessfully;  // prevent compiler warning, one of these is enough
 				}
 				// and also the temp copy
 				bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
@@ -4170,7 +4171,7 @@ void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-    
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
     if (gpApp->m_trialVersionNum >= 0)
@@ -4178,7 +4179,7 @@ void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
         event.Enable(FALSE);
         return;
     }
-    
+
 	if (pApp->m_pSourcePhrases->GetCount() > 0)
 	{
 		event.Enable(TRUE);
@@ -18187,7 +18188,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
     // checkbox at top right of the frame window, causes control to go thru here - so we
     // need to save the kbserver params - particularly the m_kbServerLastSync datetime
     // value. A preceding WriteProjectConfiguration() is really needed too, so that we
-    // ensure the m_bIsKBServerProject and m_bIsGlossingKBServerProject flags' values 
+    // ensure the m_bIsKBServerProject and m_bIsGlossingKBServerProject flags' values
     // are made persistent for the current AI project
 	bool bOK;
 	if (!pApp->m_curProjectPath.IsEmpty())
@@ -21754,11 +21755,11 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	bool bForeignAdaptingSharing = FALSE;
 	bool bForeignGlossingSharing = FALSE;
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
-	{ 
+	{
 		bForeignAdaptingSharing = TRUE;
 	}
 	if (bGotItOK && gpApp->m_bIsGlossingKBServerProject)
-	{ 
+	{
 		bForeignGlossingSharing = TRUE;
 	}
 	if (bForeignAdaptingSharing || bForeignGlossingSharing)
