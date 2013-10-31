@@ -1806,10 +1806,10 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxFlexGridSizer *item11 = new wxFlexGridSizer( 2, 0, 10 );
 
     wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Source Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Source Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item14->SetToolTip( _("This is the source language name") );
@@ -1820,10 +1820,10 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Target Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Target Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_TGT_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item18->SetToolTip( _("This is the target language name") );
@@ -1834,10 +1834,10 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Gloss Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("Gloss Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item22 = new wxTextCtrl( parent, IDC_EDIT_GLS_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item22->SetToolTip( _("This is the name of glossing mode's language") );
@@ -1848,10 +1848,10 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item24 = new wxStaticText( parent, ID_TEXT, _("Free Translation Language Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxStaticText *item25 = new wxStaticText( parent, ID_TEXT, _("Free Translation Language Code:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxTextCtrl *item26 = new wxTextCtrl( parent, ID_EDIT_FRTR_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item26->SetToolTip( _("This is the name of free translation mode's language") );
@@ -1886,12 +1886,12 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxRadioButton *item31 = new wxRadioButton( parent, IDC_RADIO_ADAPT_BEFORE_GLOSS, _("Do adaptations updating before glosses updating"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item31->SetValue( TRUE );
-    item29->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item29->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxRadioButton *item32 = new wxRadioButton( parent, IDC_RADIO_GLOSS_BEFORE_ADAPT, _("Do glosses updating before adaptations updating"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item29->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item2->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -9019,7 +9019,7 @@ wxSizer *ToolbarPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Toolbar &Buttons:") );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
 
-    wxListCtrl *item8 = new wxListCtrl( parent, ID_LST_TOOLBAR_BUTTONS, wxDefaultPosition, wxSize(275,300), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item8 = new wxListCtrl( parent, ID_LST_TOOLBAR_BUTTONS, wxDefaultPosition, wxSize(275,250), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 10 );
