@@ -62,6 +62,7 @@
 #include "RemoveSomeTgtEntries.h"
 
 extern bool gbIsGlossing;
+extern bool gbNoSourceCaseEquivalents;
 
 inline int	CompareNonSrcListRecs(NonSrcListRec* rec1, NonSrcListRec* rec2)
 {
@@ -454,7 +455,27 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 
 		// Get the CTargetUnit instance which stores this pair
 		int numSrcWords = CountSpaceDelimitedWords(src); // this is a helper.cpp function
+
+		// The following GetTargetUnit() call does an AutoCapsLookup() and so, if
+		// "Jones/Jones" was the src/tgt pair to be deleted, the src "Jones" would be
+		// changed to "jones" if Automatic Capitalizing is currently turned on, and so the
+		// pair requested for deletion would not get deleted - because all upper case KB
+		// entries are ignored in AutoCapsLookup() calls. If the src/tgt pair was
+		// lower-case initial for the src text, the autocaps lookup would not change the
+		// key, it would be equivalent to a normal lookup. So to be sure that the user can
+		// delete entries with upper-case-initial src phrase without having to turn
+		// autocapitalization off beforehand (which users would never remember to do), we
+		// need to force a normal lookup to be done. We already have a global boolean
+		// gbNoSourceCaseEquivalents which, if TRUE, forces a normal lookup to be done
+		// (it's designed for languages where there is no upper/lower case distinction).
+		// So we don't have to do anything fancy, just temporarily set this boolean TRUE
+		// before the GetTargetUnit() call, and restore it's former value on return.
+		bool bSaveFlag = gbNoSourceCaseEquivalents;
+		gbNoSourceCaseEquivalents = TRUE;
+
 		CTargetUnit* pTU =  pKB->GetTargetUnit(numSrcWords, src); // does an AutoCapsLookup()
+
+		gbNoSourceCaseEquivalents = bSaveFlag;
 		if (pTU == NULL)
 		{
 			continue; // if we can't find it, skip deleting this one (shouldn't ever happen)

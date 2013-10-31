@@ -1326,6 +1326,20 @@ void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
 	{
 		// "Remove the selected entries and close" button was clicked
 		LoadDataForPage(m_nCurPage,0); // clear out the list boxes etc, and repopulate them
+
+        // Ensure the updated local KB is saved to disk, don't rely on the user exiting the
+        // KB Editor with an OK click, otherwise an ill-considered Cancel could mean he
+        // unwittingly abandons hours of careful inspection of the KB to delete lots of
+        // obsolete entries. Also ignore the returned boolean from these calls, we can
+        // assume the calls will work correctly. They've not failed once in 13 years as yet.
+		if (gbIsGlossing)
+		{
+			pApp->SaveGlossingKB(FALSE); // FALSE means: don't want backup produced
+		}
+		else
+		{
+			pApp->SaveKB(FALSE, TRUE); // don't want backup produced
+		}
 	}
 	else
 	{
