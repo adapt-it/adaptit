@@ -1715,6 +1715,7 @@ void CAdapt_ItDoc::EndTrial (bool restoreBackup)
     
             bool        bCopiedSuccessfully = ::wxCopyFile (backupPath, pApp->m_curOutputPath, TRUE);   // summarily overwrite!
             wxASSERT(bCopiedSuccessfully);
+			bCopiedSuccessfully = bCopiedSuccessfully; // prevent compiler warning in release build
         }
         
     // so far so good, so we remove the backup:
@@ -1865,6 +1866,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
         wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
         bool        bCopiedSuccessfully = ::wxCopyFile(pApp->m_curOutputPath, backupPath, TRUE);   // overwrite any previous copy
         wxASSERT(bCopiedSuccessfully);
+		bCopiedSuccessfully = bCopiedSuccessfully; // prevent compiler warning in release build
         pApp->m_bBackedUpForTrial = TRUE;
         if (!fromLogDialog)  startHere--;       // if we've been called sraight from the menu, the "previous version" is actually the
                                                 //  last committed, since subsequent changes have been made to the doc.  So we need to

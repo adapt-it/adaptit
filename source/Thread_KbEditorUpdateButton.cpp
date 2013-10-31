@@ -60,6 +60,8 @@
 #include "KbServer.h"
 #include "Thread_KbEditorUpdateButton.h"
 
+extern wxMutex s_BulkDeleteMutex;
+
 Thread_KbEditorUpdateButton::Thread_KbEditorUpdateButton():wxThread()
 {
 	//m_pApp = &wxGetApp();
@@ -85,6 +87,9 @@ void* Thread_KbEditorUpdateButton::Entry()
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
 	int rv;
+
+	s_BulkDeleteMutex.Lock();
+
 	rv = m_pKbSvr->LookupEntryFields(m_source, m_oldTranslation);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
@@ -146,6 +151,9 @@ void* Thread_KbEditorUpdateButton::Entry()
 		}
 		// Ignore errors, for the same reason as above (i.e. it's no big deal)
 	}
+
+	s_BulkDeleteMutex.Unlock();
+
 	return (void*)NULL;
 }
 

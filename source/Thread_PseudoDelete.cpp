@@ -46,6 +46,8 @@
 #include "KbServer.h"
 #include "Thread_PseudoDelete.h"
 
+extern wxMutex s_BulkDeleteMutex;
+
 Thread_PseudoDelete::Thread_PseudoDelete():wxThread()
 {
 	//m_pApp = &wxGetApp();
@@ -70,6 +72,9 @@ void* Thread_PseudoDelete::Entry()
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
 	int rv;
+
+	s_BulkDeleteMutex.Lock();
+
 	rv = m_pKbSvr->LookupEntryFields(m_source, m_translation);
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
@@ -104,6 +109,9 @@ void* Thread_PseudoDelete::Entry()
 			rv = m_pKbSvr->PseudoDeleteOrUndeleteEntry(entryID, doDelete);
 		}
 	}
+
+	s_BulkDeleteMutex.Unlock();
+
 	return (void*)NULL;
 }
 

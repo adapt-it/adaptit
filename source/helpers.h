@@ -475,10 +475,10 @@ void     RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, in
 // returned string isn't defined.
 bool     GetLanguageCodePrintName(wxString code, wxString& printName);
 
-
-#if defined (_KBSERVER)
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
+
+#if defined (_KBSERVER)
 
 bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString password); // BEW 6Jun13
 
