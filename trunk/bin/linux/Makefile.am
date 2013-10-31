@@ -107,6 +107,7 @@ adaptit_SOURCES = \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
 	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp \
+	../../source/RemoveSomeTgtEntries.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
@@ -114,7 +115,7 @@ adaptit_SOURCES = \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/tellenc.cpp \
+	../../source/tellenc.cpp ../../source/Thread_BulkPseudoDelete.cpp \
 	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
 	../../source/Thread_DoEntireKbDeletion.cpp \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
