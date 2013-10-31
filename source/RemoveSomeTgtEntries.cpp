@@ -304,7 +304,7 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	this->SetSize(0,1,570,screenHeight - 61); // sets the dialog about 62 pixels
 											  // less long as the screen is high
 	wxSize mySize = m_LIST_CTRL_SIZER->GetSize();
-	m_LIST_CTRL_SIZER->SetItemMinSize(m_pCheckList,mySize.x,screenHeight - 210); // sets
+	m_LIST_CTRL_SIZER->SetItemMinSize(m_pCheckList,mySize.x,screenHeight - 215); // sets
 				// the height of the wxListCtrl in the dialog to about 150 pixels less
 				// than its window's height - to allow for the buttons & message at the
 				// dialog's bottom
