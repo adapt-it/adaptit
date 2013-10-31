@@ -56,10 +56,8 @@
 #include "WaitDlg.h"
 #include "GetSourceTextFromEditor.h"
 #include "StatusBar.h"
-//#include "ChangeCollabProjectsDlg.h"
 
 extern const wxString createNewProjectInstead;
-//extern wxSizer *pNewNamesSizer; // created in wxDesigner's GetSourceTextFromEditorDlgFunc()
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern bool gbIsGlossing;
@@ -73,11 +71,9 @@ BEGIN_EVENT_TABLE(CGetSourceTextFromEditorDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CGetSourceTextFromEditorDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, CGetSourceTextFromEditorDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CGetSourceTextFromEditorDlg::OnCancel)
-	//EVT_BUTTON(ID_BUTTON_CHANGE_PROJECTS, CGetSourceTextFromEditorDlg::OnBtnChangeProjects)
 	EVT_LISTBOX(ID_LISTBOX_BOOK_NAMES, CGetSourceTextFromEditorDlg::OnLBBookSelected)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBChapterSelected)
 	EVT_LISTBOX_DCLICK(ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS, CGetSourceTextFromEditorDlg::OnLBDblClickChapterSelected)
-	//EVT_RADIOBOX(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER, CGetSourceTextFromEditorDlg::OnRadioBoxSelected)
 END_EVENT_TABLE()
 
 CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // dialog constructor
@@ -106,9 +102,6 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(m_pApp != NULL);
 	
-	//pRadioBoxChapterOrBook = (wxRadioBox*)FindWindowById(ID_RADIOBOX_WHOLE_BOOK_OR_CHAPTER);
-	//wxASSERT(pRadioBoxChapterOrBook != NULL);
-
 	pListBoxBookNames = (wxListBox*)FindWindowById(ID_LISTBOX_BOOK_NAMES);
 	wxASSERT(pListBoxBookNames != NULL);
 
@@ -128,9 +121,6 @@ CGetSourceTextFromEditorDlg::CGetSourceTextFromEditorDlg(wxWindow* parent) // di
 	pBtnOK = (wxButton*)FindWindowById(wxID_OK);
 	wxASSERT(pBtnOK != NULL);
 
-	//pBtnChangeProjects = (wxButton*)FindWindowById(ID_BUTTON_CHANGE_PROJECTS);
-	//wxASSERT(pBtnChangeProjects != NULL);
-	
 	pSrcProj = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_SRC_PROJ);
 	wxASSERT(pSrcProj != NULL);
 	
@@ -194,12 +184,12 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_TempCollabProjectForTargetExports = m_pApp->m_CollabProjectForTargetExports;
 	m_TempCollabProjectForFreeTransExports = m_pApp->m_CollabProjectForFreeTransExports;
 	m_TempCollabAIProjectName = m_pApp->m_CollabAIProjectName;
-	m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName; // whm added 4Sep11
-	m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName; // whm added 4Sep11
+	m_TempCollabSourceProjLangName = m_pApp->m_CollabSourceLangName;
+	m_TempCollabTargetProjLangName = m_pApp->m_CollabTargetLangName;
 	m_TempCollabBookSelected = m_pApp->m_CollabBookSelected;
 	m_bTempCollabByChapterOnly = m_pApp->m_bCollabByChapterOnly;
 	m_TempCollabChapterSelected = m_pApp->m_CollabChapterSelected;
-	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans; // whm added 6Jul11
+	m_bTempCollaborationExpectsFreeTrans = m_pApp->m_bCollaborationExpectsFreeTrans;
 
 	m_SaveCollabProjectForSourceInputs = m_TempCollabProjectForSourceInputs;
 	m_SaveCollabProjectForTargetExports = m_TempCollabProjectForTargetExports;
@@ -230,46 +220,6 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// OnWizardPageChanging() just after the user has selected the project to open and the
 	// selected project's project config file has been read.
 	
-	/*
-	// TODO: Revise below to remove most of the sanity checks from here since they have been done
-	// in the GetAIProjectCollabStatus() function in the ProjectPage's OnWizardPageChanging() method.
-	// 
-	// Normally, the projects in PT/BE will have been set up by the administrator, and the 
-	// project existence will pass the following validation checks. However, it is
-	// possible that the user could have removed/changed projects in PT/BE since the last Adapt It
-	// session, so we have to do sanity checking for the necessary projects on each invocation of
-	// the GetSourceTextFromEditor dialog. 
-	//bool bProjectsOK = TRUE;
-	bool bSourceProjRequiredButNotFound = TRUE;
-	bool bTargetProjRequiredButNotFound = TRUE;
-	bool bFreeTransProjRequiredButNotFound = FALSE;
-
-	wxASSERT(m_pApp->m_bCollaboratingWithParatext || m_pApp->m_bCollaboratingWithBibledit);
-	
-	// get list of PT/BE projects
-	projList.Clear();
-	if (m_pApp->m_collaborationEditor == _T("Paratext"))
-	{
-		projList = m_pApp->GetListOfPTProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
-	else if (m_pApp->m_collaborationEditor == _T("Bibledit"))
-	{
-		projList = m_pApp->GetListOfBEProjects(); // as a side effect, it populates the App's m_pArrayOfCollabProjects
-	}
-	bool bTwoOrMoreProjectsInList = TRUE;
-	int nProjCount;
-	nProjCount = (int)projList.GetCount();
-	if (nProjCount < 2)
-	{
-		// Less than two PT/BE projects are defined. For AI-PT/BE collaboration to be possible 
-		// at least two PT/BE projects must be defined - one for source text inputs and 
-		// another for target exports.
-		// Notify the user that Adapt It - Paratext/Bibledit collaboration cannot proceed 
-		// until the administrator sets up the necessary projects within Paratext/Bibledit.
-		bTwoOrMoreProjectsInList = FALSE;
-	}
-	*/
-
 	// whm revised 1Mar12 at Bruce's request to use the whole composite string in 
 	// the case of Paratext.
 	// whm Note: GetAILangNamesFromAIProjectNames() below issues error message if the
@@ -279,139 +229,6 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pFreeTransProj->SetLabel(m_TempCollabProjectForFreeTransExports);
 	
 	pUsingAIProjectName->SetLabel(m_TempCollabAIProjectName); // whm added 28Jan12
-
-	/*
-	// Confirm that we can find the active source and target projects as stored in the 
-	// config file and now stored in our projList.
-	// whm 19Apr12 modified: The source text is required for collaboration. If the project config 
-	// file lists a project string for its CollabProjectForSourceInputs field (and 
-	// therefore m_TempCollabProjecForSourceInputs is not empty), we check to ensure
-	// that short project names match. If not, bSourceProjReuiredButNotFound is set
-	// FALSE.
-	if (!m_TempCollabProjectForSourceInputs.IsEmpty())
-	{
-		int ct;
-		for (ct = 0; ct < (int)projList.GetCount(); ct++)
-		{
-			// Do the comparison only on the projects' short names which must be unique
-			if (GetShortNameFromProjectName(projList.Item(ct)) == GetShortNameFromProjectName(m_TempCollabProjectForSourceInputs))
-				bSourceProjRequiredButNotFound = FALSE;
-		}
-	}
-	// whm 19Apr12 modified: The target text is rquired for collaboration. If the project config 
-	// file lists a project string for its CollabProjectForTargetExports field (and 
-	// therefore m_TempCollabProjectForFreeTransExports is not empty), we check to ensure
-	// that short project names match. If not, bFreeTransProjRequiredButNotFound is set
-	// FALSE.
-	if (!m_TempCollabProjectForTargetExports.IsEmpty())
-	{
-		int ct;
-		for (ct = 0; ct < (int)projList.GetCount(); ct++)
-		{
-			if (GetShortNameFromProjectName(projList.Item(ct)) == GetShortNameFromProjectName(m_TempCollabProjectForTargetExports))
-				bTargetProjRequiredButNotFound = FALSE;
-		}
-	}
-
-	// whm 19Apr12 modified: The free translation is optional. If the project config 
-	// file lists a project string for its CollabProjectForFreeTransExports field (and 
-	// therefore m_TempCollabProjectForFreeTransExports is not empty), we check to ensure
-	// that short project names match. If not, bFreeTransProjRequiredButNotFound is set
-	// FALSE.
-	if (!m_TempCollabProjectForFreeTransExports.IsEmpty())
-	{
-		bFreeTransProjRequiredButNotFound = TRUE;
-		int ct;
-		for (ct = 0; ct < (int)projList.GetCount(); ct++)
-		{
-			if (GetShortNameFromProjectName(projList.Item(ct)) == GetShortNameFromProjectName(m_TempCollabProjectForFreeTransExports))
-				bFreeTransProjRequiredButNotFound = FALSE;
-		}
-	}
-	else
-	{
-		bFreeTransProjRequiredButNotFound = FALSE;
-	}
-
-	if (!bTwoOrMoreProjectsInList)
-	{
-		// This error is not likely to happen so use English message
-		wxString str;
-		if (m_pApp->m_bCollaboratingWithParatext)
-		{
-			str = _T("Your administrator has configured Adapt It to collaborate with Paratext.\nBut Paratext does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Paratext projects.");
-			wxMessageBox(str, _T("Not enough Paratext projects defined for collaboration"), wxICON_ERROR | wxOK, this); // whm 28Nov12 added this as parent);
-			m_pApp->LogUserAction(_T("PT Collaboration activated but less than two PT projects listed."));
-		}
-		else if (m_pApp->m_bCollaboratingWithBibledit)
-		{
-			str = _T("Your administrator has configured Adapt It to collaborate with Bibledit.\nBut Bibledit does not have at least two projects available for use by Adapt It.\nPlease ask your administrator to set up the necessary Bibledit projects.");
-			wxMessageBox(str, _T("Not enough Bibledit projects defined for collaboration"), wxICON_ERROR | wxOK, this); // whm 28Nov12 added this as parent);
-			m_pApp->LogUserAction(_T("BE Collaboration activated but less than two BE projects listed."));
-		}
-		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
-		// whm changed 22Mar12. Leave the app running so an administrator can look at it.
-		//wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
-		//return;
-		// whm modified 19Apr12. It is not adequate to simply call return at this point since return from
-		// InitDialog() does not stop the dialog from appearing. We need to call this dialog's EndModal()
-		// method to destroy the dialog. We also need to set the m_bStartWorkUsingCollaboration flag to FALSE
-		// to prevent the DoStartWorkingWizard() function in the App from calling up the 
-		// CGetSourceTextFromEditorDlg again.
-		m_pApp->m_bStartWorkUsingCollaboration = FALSE;
-		this->EndModal(wxID_ABORT); // causes an assert because at the point in InitDialog() the dialog
-		// is not yet fully "modal" but the assert won't be seen in release version, and at least doing it
-		// this way provides an abort message that pops up over the dialog (see the else if (dlgResult == wxID_ABORT)
-		// block in the App's DoStartWorkingWizard() where the message is generated.
-		return; // return here prevents the dialog from loading book names etc below
-	}
-
-	wxString strProjectNotSel;
-	strProjectNotSel.Empty();
-
-	if (bSourceProjRequiredButNotFound)
-	{
-		strProjectNotSel += _T("\n   ");
-		strProjectNotSel += _("Designate a project to use for obtaining source text inputs");
-	}
-	if (bTargetProjRequiredButNotFound)
-	{
-		strProjectNotSel += _T("\n   ");
-		// BEW 16Jun11 changed "Texts" to "Drafts" in line with email discussion where we
-		// agreed to use 'draft' or 'translation draft' instead of 'translation' so as to
-		// avoid criticism for claiming to be a translation app, rather than a drafting app
-		strProjectNotSel += _("Designate a project to use for Transferring Translation Drafts");
-	}
-	
-	if (bFreeTransProjRequiredButNotFound)
-	{
-		strProjectNotSel += _T("\n   ");
-		strProjectNotSel += _("Designate a project to use for Transferring Free Translations");
-	}
-	
-	if (bSourceProjRequiredButNotFound || bTargetProjRequiredButNotFound || bFreeTransProjRequiredButNotFound)
-	{
-		wxString str;
-		str = str.Format(_("Your administrator needs to setup Adapt It and %s as follows before you can begin working:%s"),m_collabEditorName.c_str(),strProjectNotSel.c_str());
-		wxMessageBox(str, _("Collaboration setup required by administrator"), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
-		m_pApp->LogUserAction(str);
-		// whm modified 25Jan12. Calling wxKill() on the current process is a quiet way to terminate.
-		// whm changed 22Mar12. Leave the app running so an administrator can look at it.
-		//wxKill(::wxGetProcessId(),wxSIGKILL); // abort();
-		//return;
-		// whm modified 19Apr12. It is not adequate to simply call return at this point since return from
-		// InitDialog() does not stop the dialog from appearing. We need to call this dialog's EndModal()
-		// method to destroy the dialog. We also need to set the m_bStartWorkUsingCollaboration flag to FALSE
-		// to prevent the DoStartWorkingWizard() function in the App from calling up the 
-		// CGetSourceTextFromEditorDlg again.
-		m_pApp->m_bStartWorkUsingCollaboration = FALSE;
-		this->EndModal(wxID_ABORT); // causes an assert because at the point in InitDialog() the dialog
-		// is not yet fully "modal" but the assert won't be seen in release version, and at least doing it
-		// this way provides an abort message that pops up over the dialog (see the else if (dlgResult == wxID_ABORT)
-		// block in the App's DoStartWorkingWizard() where the message is generated.
-		return; // return here prevents the dialog from loading book names etc below
-	}
-	*/
 
 	LoadBookNamesIntoList();
 
@@ -593,7 +410,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	nStep = 1;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
-	//::wxSafeYield();
 
 	// check the KBs are clobbered, if not so, do so
 	UnloadKBs(m_pApp);
@@ -604,7 +420,7 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	{
 		chSel++; // the chapter number is one greater than the selected lb index
 	}
-	else // whm added 27Jul11
+	else
 	{
 		chSel = 0; // indicates we're dealing with Whole Book 
 	}
@@ -1288,225 +1104,6 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		pStatusBar->FinishProgress(_("Getting Document for Collaboration"));
 		return;
 	}
-	/*
-		// As of version 6.1.x, this block should never be entered. Collaboration is now on a project-by-project
-		// basis and GetSourceTextFromEditor() should only be called via an existing project.
-		wxString msg = _T("In GetSourceTextFromEditor::OnOK() entered else block of if (bCollaborationUsingExistingAIProject) - programming error for version 6.2.x!");
-		wxCHECK_RET(FALSE,msg);
-        // The Paratext/Bibledit project selected for source text and target texts do not
-        // yet exist as a previously created AI project in the user's work folder, so we
-        // need to create the AI project using information contained in the
-        // Collab_Project_Info_Struct structs that are populated dynamically in
-        // InitDialog() which calls the App's GetListOfPTProjects() or GetListOfBEprojects.
-		
-		m_pApp->bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // restore default value
-		
-		// Get the Collab_Project_Info_Struct structs for the source and target PT or BE projects
-		Collab_Project_Info_Struct* pInfoSrc;
-		Collab_Project_Info_Struct* pInfoTgt;
-		pInfoSrc = m_pApp->GetCollab_Project_Struct(shortProjNameSrc);  // gets pointer to the struct from the 
-																	// pApp->m_pArrayOfCollabProjects
-		pInfoTgt = m_pApp->GetCollab_Project_Struct(shortProjNameTgt);  // gets pointer to the struct from the 
-																	// pApp->m_pArrayOfCollabProjects
-		wxASSERT(pInfoSrc != NULL);
-		wxASSERT(pInfoTgt != NULL);
-
-		// Notes: The pInfoSrc and pInfoTgt structs above contain the following struct members:
-		// bool bProjectIsNotResource; // AI only includes in m_pArrayOfCollabProjects the PT
-		//                                 or BE projects where this is TRUE
-		// bool bProjectIsEditable; // AI only allows user to see and select a PT or BE TARGET project 
-		//                             where this is TRUE
-		// wxString versification; // AI assumes same versification of Target as used in Source
-		// wxString fullName; // This is 2nd field seen in "Get Source Texts from this project:" drop down
-							  // selection (after first ':')
-		// wxString shortName; // This is 1st field seen in "Get Source Texts from this project:" drop down
-							   // selection (before first ':'). It is always the same as the project's folder
-							   // name (and ssf file name) in the "My Paratext Projects" folder. It has to
-							   // be unique for every PT or BE project.
-		// wxString languageName; // This is 3rd field seen in "Get Source Texts from this project:" drop down
-							      // selection (between 2nd and 3rd ':'). We use this as x and y language
-							      // names to form the "x to y adaptations" project folder name in AI if it
-							      // does not already exist
-		// wxString ethnologueCode; // If it exists, this a 4th field seen in "Get Source Texts from this project:"
-							        // drop down selection (after 3rd ':')
-		// wxString projectDir;   // this has the path/directory to the project's actual files
-		// wxString booksPresentFlags; // this is the long 123-element string of 0 and 1 chars indicating which
-									   // books are present within the PT project
-		// wxString chapterMarker; // default is _T("c")
-		// wxString verseMarker;   // default is _T("v")
-		// wxString defaultFont;   // default is _T("Arial")or whatever is specified in the PT
-		//                         // or BE project's ssf file
-		// wxString defaultFontSize; // default is _T("10") or whatever is specified in the PT
-		//                            or BE project's ssf file
-		// wxString leftToRight; // default is _T("T") unless "F" is specified in the PT project's ssf file
-		// wxString encoding;    // default is _T("65001"); // 65001 is UTF8
-
-		// For building an AI project we can use as initial values the information within the appropriate
-		// field members of the above struct.
-		// 
-		// Code below does the following things:
-		// 1. Create an AI project using the information from the PT structs, setting up
-		//    the necessary directories and the appropriately constructed project config 
-		//    file to disk.
-		// 2. We need to decide if we will be using book folder mode automatically [ <- No!] 
-		//    for chapter sized documents of if we will dump them all in the "adaptations" 
-        //    folder [ <- Yes!]. The user won't know the difference except if the
-        //    administrator decides at some future time to turn PT collaboration OFF. If we
-        //    used the book folders during PT collaboration for chapter files, we would
-        //    need to ensure that book folder mode stays turned on when PT collaboration
-        //    was turned off.
-		// 3. Compose an appropriate document name to be used for the document that will
-		//    contain the chapter or book grabbed from the PT or BE source project.
-		// 4. Create the document by parsing/tokenizing the string now existing in our 
-		//    sourceChapterBuffer, saving it's xml form to disk, and laying the doc out in 
-		//    the main window.
-        // 5. Copy the just-grabbed chapter source text or book source text from the .temp
-        //    folder over to the Project's __SOURCE_INPUTS folder (creating the
-        //    __SOURCE_INPUTS folder if it doesn't already exist).
-		
-		nStep = 4;
-		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-		pProgDlg->Update(nStep,msgDisplayed);
-		//::wxSafeYield();
-		
-		// Step 1 & 2
-		bool bDisableBookMode = TRUE;
-		// whm modified 7Sep11 to use the App's language name values
-		//bool bProjOK = CreateNewAIProject(m_pApp, pInfoSrc->languageName, 
-		//							pInfoTgt->languageName, pInfoSrc->ethnologueCode, 
-		//							pInfoTgt->ethnologueCode, bDisableBookMode);
-		bool bProjOK = CreateNewAIProject(m_pApp, m_pApp->m_CollabSourceLangName, 
-									m_pApp->m_CollabTargetLangName, pInfoSrc->ethnologueCode, 
-									pInfoTgt->ethnologueCode, bDisableBookMode);
-		if (!bProjOK)
-		{
-            // This is a fatal error to continuing this collaboration attempt, but it won't
-            // hurt the application. The error shouldn't ever happen. We let the dialog
-            // continue to run, but tell the user that the app is probably unstable now and
-            // he should get rid of any folders created in the attempt, shut down,
-            // relaunch, and try again. This message is localizable.
-			wxString message;
-			message = message.Format(_("Error: attempting to create an Adapt It project for supporting collaboration with an external editor, failed.\nThe application is not in a state suitable for you to continue working, but it will still run. You should now Cancel and then shut it down.\nThen (using a File Browser application) you should also manually delete this folder and its contents: %s  if it exists.\nThen relaunch, and try again."),
-				m_pApp->m_curProjectPath.c_str());
-			m_pApp->LogUserAction(message);
-			wxMessageBox(message,_("Project Not Created"), wxICON_ERROR | wxOK, this); // whm 28Nov12 added this as parent);
-			pProgDlg->Destroy();
-			return;
-		}
-		// Step 3. (code copied from above)
-		wxString documentName;
-		// Note: we use a stardard Paratext naming for documents, but omit 
-		// project short name(s)
-		
-		// whm 27Jul11 modified below for whole book vs chapter operation
-		wxString chForDocName;
-		if (m_bTempCollabByChapterOnly)
-			chForDocName = bareChapterSelectedStr;
-		else
-			chForDocName = _T("");
-		
-		wxString docTitle = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-									bookCode, _T(""), chForDocName, _T(""));
-		documentName = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-									bookCode, _T(""), chForDocName, _T(".xml"));
-		// create the absolute path to the document we are checking for the existence of
-		wxString docPath = m_pApp->m_curProjectPath + m_pApp->PathSeparator
-				+ m_pApp->m_adaptationsFolder + m_pApp->PathSeparator + documentName;
-		// set the member used for creating the document name for saving to disk
-		m_pApp->m_curOutputFilename = documentName;
-		// make the backup filename too
-		m_pApp->m_curOutputBackupFilename = m_pApp->GetFileNameForCollaboration(_T("_Collab"), 
-						bookCode, _T(""), chForDocName, _T(".BAK"));
-		// Step 4. (code copied from above)
-		wxASSERT(m_pApp->m_pSourcePhrases->IsEmpty());
-		// parse the input file
-		int nHowMany;
-		SPList* pSourcePhrases = new SPList; // for storing the new tokenizations
-				
-		nStep = 5;
-		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-		pProgDlg->Update(nStep,msgDisplayed);
-		//::wxSafeYield();
-		
-		// in the next call, 0 = initial sequ number value
-		if (m_bTempCollabByChapterOnly)
-		{
-			nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceChapterBuffer, 0); 
-		}
-		else
-		{
-			nHowMany = pView->TokenizeTextString(pSourcePhrases, sourceWholeBookBuffer, 0); 
-		}
-		// copy the pointers over to the app's m_pSourcePhrases list (the document)
-		if (nHowMany > 0)
-		{
-			SPList::Node* pos = pSourcePhrases->GetFirst();
-			while (pos != NULL)
-			{
-				CSourcePhrase* pSrcPhrase = pos->GetData();
-				m_pApp->m_pSourcePhrases->Append(pSrcPhrase);
-				pos = pos->GetNext();
-			}
-			// now clear the pointers from pSourcePhrases list, but leave their memory
-			// alone, and delete pSourcePhrases list itself
-			pSourcePhrases->Clear(); // no DeleteContents(TRUE) call first, ptrs exist still
-			if (pSourcePhrases != NULL) // whm 11Jun12 added NULL test
-				delete pSourcePhrases;
-
-			// the single-chapter or whole-book document is now ready for displaying 
-			// in the view window
-			wxASSERT(!m_pApp->m_pSourcePhrases->IsEmpty());
-
-			nStep = 6;
-			msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-			pProgDlg->Update(nStep,msgDisplayed);
-			//::wxSafeYield();
-		
-			SetupLayoutAndView(m_pApp, docTitle);
-		}
-		else
-		{
-            // there was no source text data! so we can't go on, there is nothing in the
-            // document's m_pSourcePhrases list, so keep the dlg window open; tell user
-            // what to do - this should never happen, so an English message will suffice
-			wxString msg;
-			msg = _T("Unexpected (non-fatal) error when trying to load source text obtained from the external editor - there is no source text!\nPerhaps the external editor's source text project file that is currently open has no data in it?\nIf so, rectify that in the external editor, then switch back to the running Adapt It and try again.\n Or you could Cancel the dialog and then try to fix the problem.");
-			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
-			m_pApp->LogUserAction(msg);
-			pProgDlg->Destroy();
-			return;
-		}
-
- 		nStep = 7;
-		msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
-		pProgDlg->Update(nStep,msgDisplayed);
-		//::wxSafeYield();
-		
-       // Step 5. (code copied from above)
-		wxString pathCreationErrors;
-		bool bMovedOK;
-		if (m_bTempCollabByChapterOnly)
-		{
-			bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
-								pathCreationErrors, sourceChapterBuffer, docTitle);
-		}
-		else
-		{
-			bMovedOK = MoveTextToFolderAndSave(m_pApp, m_pApp->m_sourceInputsFolderPath, 
-								pathCreationErrors, sourceWholeBookBuffer, docTitle);
-		}
-		// we don't expect a failure in this, but if it happens, tell developer (English
-		// message is all that is needed) and continue processing
-		if (!bMovedOK)
-		{
-			wxString msg;
-			msg = _T("For the developer: When collaborating: error in MoveTextToFolderAndSave() within GetSourceTextFromEditor.cpp:\nUnexpected (non-fatal) error trying to move source text to a file in __SOURCE_INPUTS folder.\nThe source text USFM data hasn't been saved (or updated) to disk there.");
-			wxMessageBox(msg, _T(""), wxICON_EXCLAMATION | wxOK, this); // whm 28Nov12 added this as parent);
-			m_pApp->LogUserAction(msg);
-		}
-
-	}  // end of else block for test: if (bCollaborationUsingExistingAIProject)
-	*/
 
 	nStep = 8;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
@@ -1555,6 +1152,14 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	nStep = 9;
 	msgDisplayed = progMsg.Format(progMsg,nStep,nTotal);
 	pStatusBar->UpdateProgress(_("Getting Document for Collaboration"), nStep, msgDisplayed);
+
+	// whm 26Oct13 added. When control reaches this point, a collaboration
+	// document will have been prepared and will be displayed at the end of
+	// this OnOK() handler. I think this is a good point to ensure that the
+	// Adapt_It_WX.ini/.Adapt_It_WX file is updated with a good set of
+	// collaboration settings for this project, using the current App collab
+	// settings.
+	m_pApp->SaveAppCollabSettingsToINIFile(m_pApp->m_curProjectPath);
 
 	// remove the progress dialog
 	pStatusBar->FinishProgress(_("Getting Document for Collaboration"));

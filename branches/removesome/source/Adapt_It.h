@@ -195,8 +195,8 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 #define VERSION_MINOR_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_BUILD_PART 0 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 25
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 29
 #define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2013
 const wxString appVerStr(_T("6.5.0"));
@@ -2379,26 +2379,6 @@ public:
                 // seconds)
 	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	bool m_bForceCollabModeON; // whm added 17Jan12
-	bool m_bForceCollabModeOFF; // whm added 17Jan12
-	bool m_bForceCollabExpectsFreeTrans; // whm added 9Feb12
-	wxString m_ForceCollabAIProjectName; // whm added 17Jan12
-	wxString m_ForceCollabProjectNames; // whm added 22Jan12
-	int m_nSavedCollabPTSetting; // whm added 17Jan12
-	int m_nSavedCollabBESetting; // whm added 17Jan12
-	int m_nSavedCollabExpectsFreeTrans; // whm added 23Jan12
-	wxString m_SavedCollabProjectForSourceInputs; // whm added 23Jan12
-	wxString m_SavedCollabProjectForTargetExports; // whm added 23Jan12
-	wxString m_SavedCollabProjectForFreeTransExports; // whm added 23Jan12
-	wxString m_SavedCollabAIProjName; // whm added 17Jan12
-	wxString m_SavedCollabSourceLangName; // whm added 23Jan12
-	wxString m_SavedCollabTargetLangName; // whm added 23Jan12
-	wxString m_SavedCurProjectName; // whm added 26Jan12
-	wxString m_SavedCurProjectPath; // whm added 26Jan12
-	*/
-
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
 	int	m_nMaxToDisplay; // max # of words/phrases to display at one time (this has to
@@ -3940,9 +3920,6 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString GetPathwayInstallDirPath();
 	bool	PathwayIsInstalled();
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	//void ForceCollabSettingsFromCommandLineSwitches();
-
 	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
 													   wxArrayString& collabSettingsArray);
 	wxString GetCollabSettingsAsStringForLog();
@@ -4118,6 +4095,7 @@ public:
 	bool	DealWithThePossibilityOfACustomWorkFolderLocation(); // BEW added 12Oct09
 	bool	SaveKB(bool bAutoBackup, bool bShowProgress = true);
 	bool	SaveGlossingKB(bool bAutoBackup);
+	void	SetProjectDefaults(wxString projectFolderPath); // whm 25Oct13 added
 	void	SetDefaultCaseEquivalences();
 	void	SetAllProjectLastPathStringsToEmpty();
 	void	SetLanguageNamesAndCodesStringsToEmpty();
@@ -4135,6 +4113,10 @@ public:
 	bool	UseSourceDataFolderOnlyForInputFiles(); // BEW created 22July10, to support
 				// user-protection from folder navigation when creating a new document
 				// for adaptation
+	wxArrayString	GetCollabSettingsFromINIFile();
+	void	SaveAppCollabSettingsToINIFile(wxString projectPathAndName);
+	wxString	ReplaceColonsWithAtSymbol(wxString inputStr);
+	wxString	ReplaceAtSymbolWithColons(wxString inputStr);
 	void	WriteFontConfiguration(const fontInfo fi, wxTextFile* pf);
 	void	WriteBasicSettingsConfiguration(wxTextFile* pf);
 	void	WriteProjectSettingsConfiguration(wxTextFile* pf);

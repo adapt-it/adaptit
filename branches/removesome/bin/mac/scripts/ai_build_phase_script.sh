@@ -1,11 +1,15 @@
 #! /bin/sh
 
+if ( -x /usr/libexec/path_helper ) then
+        eval `/usr/libexec/path_helper -c`
+endif
+
 # uncomment the commented out lines below for better debugging of this shell script
-#set -v on
-#set -x on
-#echo $PROJECT_DIR
-#echo $CONFIGURATION_BUILD_DIR
-#echo $PRODUCT_NAME
+set -v on
+set -x on
+echo $PROJECT_DIR
+echo $CONFIGURATION_BUILD_DIR
+echo $PRODUCT_NAME
 
 # Set up variables for localization file processing
 poDir="${PROJECT_DIR}/../../po"
