@@ -15140,7 +15140,7 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
-  
+
 // Initialize items relating to corrupt doc recovery:
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
@@ -15162,7 +15162,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 
 	// bug fixed 24Sept13 BEW
-	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from 
+	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
                  // being done more than once in a series of OnIdle() calls. It's reset to
                  // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
                  // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
@@ -22342,7 +22342,7 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 											// to GetBasicConfiguration
 {
 	// whm 29Oct13 modified to prompt the user to verify that a Shift-Down
-	// startup should indeed be done, knowing the consequences of that action. 
+	// startup should indeed be done, knowing the consequences of that action.
     // Called from OnInit() at program startup. Or from the
     // CustomWorkFolderLocation() command handler when an administrator has the
     // Administrator menu showing. If user starts up with the SHIFT key down,
@@ -22352,7 +22352,7 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
     // SetupDefaults() - which are restored from the Adapt_It_WX.ini or
     // .Adapt_It_WX file. Otherwise, intializations and settings contained in
     // the basic config file are used.
-    // 
+    //
     // Note: ::wxGetKeyState() was not available as a global function in
     // wxWidgets version 2.4.2, but ::wxGetKeyState() is available in wxWidgets
     // version 2.5.3 and later, so we use it here.
@@ -22462,7 +22462,7 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 			bDoNormalProjectOpening = FALSE;
 		}
 	}
-	
+
 	if (bDoNormalProjectOpening) // not a Shift-Down startup
 	{
 		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
@@ -22502,12 +22502,12 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	}
 	else
 	{
-		// whm 25Oct13 Note: Some project defaults will have been done from the 
-		// application-level basic configuration file already. However, some 
-		// critical project settings including collaboration settings for 
-		// individual projects need to be preserved across a SHIFT-Down 
+		// whm 25Oct13 Note: Some project defaults will have been done from the
+		// application-level basic configuration file already. However, some
+		// critical project settings including collaboration settings for
+		// individual projects need to be preserved across a SHIFT-Down
 		// opening of the project. The SetProjectDefaults() below now takes
-		// care of the setting and preservation of certain settings. 
+		// care of the setting and preservation of certain settings.
 		SetProjectDefaults(projectFolderPath); // whm 25Oct13 changed. Originally only called SetDefaultCaseEquivalences();
 	}
 }
@@ -26717,7 +26717,7 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// removal (of fewer entries) will be required to remove them all so that the definition
 /// can be removed as the last step. However, to communicate with this Mngr gui in the
 /// event that the removals go faster than exected, the thread can post events for cleanup
-/// if it completes while the mngr GUI is running. To facilitate this, wxPushEventHander() 
+/// if it completes while the mngr GUI is running. To facilitate this, wxPushEventHander()
 /// and wxPopEventHandler() are used so that this gui can be part of the event mechanism.
 /// Custom events used herein are defined in MainFrm.h and .cpp; and the Manager GUI is
 /// created on the heap as a m_pKBSharingMgrTabbedDlg ptr in the CAdapt_ItApp class. When
@@ -28438,7 +28438,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 #if defined (_KBSERVER)
-	
+
 	// whm 30Oct13 moved the KbServerURL value storage here from the project config file
 	data.Empty();
 	data << szKbServerURL << tab << m_strKbServerURL;
@@ -31073,7 +31073,7 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 	// navigation protection folder settings should be done for the project
 	// configuration file as well as the basic configuration file. Therefore,
 	// I am copying the code from SetDefaults() here in SetProjectDefaults().
-	// 
+	//
 	// whm added 20Jun11. If the administrator has selected to use fixed locations for certain inputs
 	// and outputs folders at the time the user held down the SHIFT key to get the app going again, we
 	// would want those fixed location folders to continue to be used which are stored in Adapt_It_WX.ini.
@@ -31096,13 +31096,13 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 
-	// whm 28Oct13 Note: The value for the WorkflowProfile is stored 
+	// whm 28Oct13 Note: The value for the WorkflowProfile is stored
 	// in BOTH the AI-BasicConfiguration.aic file AND the
 	// AI-ProjectConfiguration.aic file. The ability to restore the
 	// user's workflow profile (if one is set) should be done for the project
 	// configuration file as well as the basic configuration file. Therefore,
 	// I am copying the code from SetDefaults() here in SetProjectDefaults().
-	// 
+	//
 	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
 	// the SHIFT key to get the app going again, we would want the workflow related values
 	// stored in Adapt_It_WX.ini to be restored, since it is likely to be accurate even if
@@ -31137,12 +31137,12 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
     // related to collaboration that are stored in Adapt_It_WX.ini are likely
     // to be accurate even if the project config file needs to be re-created
     // from scratch (most likely due to errant edits done by a user).
-	
+
     // Read the collab values that were last stored in the Adapt_It_WX.ini file
     // for the currently selected project and restore them if they differ from
     // what was stored in the corresponding App's values (due to SHIFT-down
     // restart).
-	
+
     // There are 13 collaboration values stored for each project. We can store
     // all collab settings for a given project in a single string value using
     // delimiters so that each project's collab settings take only one line
@@ -31151,11 +31151,11 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
     // the AI project name - the very name that was selected while holding down
     // the Shift key triggering the execution of this SetProjectDefaults
     // function.
-    // 
+    //
 	// We will use the following procedures:
 	// 1. Read any existing m_pConfig's [ProjCollabSettings] lines into a
 	// wxArrayString called collabProjectSettingsArray for processing.
-	// 2. Scan the array to see if there are collab settings stored 
+	// 2. Scan the array to see if there are collab settings stored
 	// for the current projectName project.
 	// 3. Compare the collab settings found there with those collab
 	// settings currently stored on the App, restore any that differ
@@ -31197,7 +31197,7 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 		// X to Y adaptations:1:0:NYNT @ Nyindrou NT @ Nyindrou @ lid:DTP @ DTPNT @ Tok Pisin @ tpi::Paratext:0:X:Y:Acts:1:3:
 		// Note: The GetCollabSettingsFromINIFile() function accumulates composite
 		// strings that have the name of the project folder initially; the
-		// function doesn't include a proj_collab_settings_N= prefix on the 
+		// function doesn't include a proj_collab_settings_N= prefix on the
 		// composite string.
 		// Now we can use the wxStringTokenizer to parse out the fields using
 		// ':' as delimiter.
@@ -31275,7 +31275,7 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 			else if (fieldNum == 13)
 			{
 				m_CollabChapterSelected = tokenStr;
-			} 
+			}
 			else
 			{
 				wxASSERT_MSG(FALSE,_T("Composite string"));
@@ -31288,7 +31288,7 @@ void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
 		// No composite string was found for this project, or it is an empty
 		// string so we cannot restore any collab settings, maybe a project
 		// was opened that was last touched by an older version of AI.
-		;	// Just quietly allow the app to continue without any project-defined 
+		;	// Just quietly allow the app to continue without any project-defined
 			// collab settings.
 	}
 }
@@ -31595,15 +31595,15 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 
 	// whm added 24Oct13. As of AI 6.5.0 the DVCS (and eventually the KB Sharing)
 	// features require getting and storing a UniqueUsername and
-	// InformalUsername in the AI basic configuration file. If the user holds down 
+	// InformalUsername in the AI basic configuration file. If the user holds down
 	// the SHIFT key to reset the basic settings, these usernames are removed. But,
 	// since we want those usernames to continue to be used, a backup copy of them
 	// is stored in Adapt_It_WX.ini.
-	// Read the values related to m_strUserID and m_strUsername from the Adapt_It_WX.ini 
-	// file, and if they differ from what is stored in the App's m_strUserID and 
-	// m_strUsername members (due to SHIFT down restart), restore the value stored in 
+	// Read the values related to m_strUserID and m_strUsername from the Adapt_It_WX.ini
+	// file, and if they differ from what is stored in the App's m_strUserID and
+	// m_strUsername members (due to SHIFT down restart), restore the value stored in
 	// Adapt_It_WX.ini.
-	oldPath = m_pConfig->GetPath();	
+	oldPath = m_pConfig->GetPath();
 	m_pConfig->SetPath(_T("/Usernames"));
 	bReadOK = FALSE;
 	wxString tempUniqueUsername;
@@ -31633,7 +31633,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file
 	// and restore it if it differs from what was stored in the corresponding App's
 	// m_nWorkflowProfile value (due to SHIFT-down restart).
-	oldPath = m_pConfig->GetPath();	
+	oldPath = m_pConfig->GetPath();
 	m_pConfig->SetPath(_T("/Settings"));
 	bReadOK = FALSE;
 	int nTempUserProfile = 0;
@@ -31656,14 +31656,14 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// access to the Administrator menu, that password should be preserved in
 	// the event that the user uses the SHIFT key to get the app going again.
 	// Like other administrator settings (see above), we would want the
-	// password stored in Adapt_It_WX.ini to be restored, since it is likely 
-	// to be accurate even if the basic config file needs to be re-created 
+	// password stored in Adapt_It_WX.ini to be restored, since it is likely
+	// to be accurate even if the basic config file needs to be re-created
 	// from scratch (most likely due to errant edits done by a user).
 	// The basic config file value of concern is m_adminPassword.
 	// Read the password value that was last stored in the Adapt_It_WX.ini file
-	// and restore it if it differs from what was stored in the corresponding 
+	// and restore it if it differs from what was stored in the corresponding
 	// App's m_adminPassword value (due to SHIFT-down restart).
-	oldPath = m_pConfig->GetPath();	
+	oldPath = m_pConfig->GetPath();
 	m_pConfig->SetPath(_T("/AdminPassword"));
 	bReadOK = FALSE;
 	wxString tempAdminPassword;
@@ -33235,7 +33235,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			m_CollabChapterSelected = strValue;
 		}
 		// !!!!!!!!!!!!!! END OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!!!!!!!
-		
+
 		else if (name == szUseAdaptationsGuesser)
 		{
 			num = wxAtoi(strValue);
@@ -34082,7 +34082,7 @@ wxString CAdapt_ItApp::ReplaceColonsWithAtSymbol(wxString inputStr)
 /// \return     a wxString representing inputStr with @ chars replaced by : chars
 /// \param      inputStr   -> a input string containing possible @ chars
 /// \remarks
-/// Called from: 
+/// Called from:
 /// This function returns the original string if there are no '@' characters
 /// in the inputStr. Otherwise it returns a wxString in which any '@' characters
 /// have been replaced by ':' characters.
@@ -34100,7 +34100,7 @@ wxString CAdapt_ItApp::ReplaceAtSymbolWithColons(wxString inputStr)
 /// \remarks
 /// Called from: the App's SaveAppCollabSettingsToINIFile() and SetProjectDefaults()
 /// This function returns a wxArrayString of all of the collab project
-/// composite strings found in the [ProjCollabSettings] section of the 
+/// composite strings found in the [ProjCollabSettings] section of the
 /// Adapt_It_WX.ini/.Adapt_It_WX file. The composite string starts with the
 /// name of the project folder; it doesn't include a proj_collab_settings_N=
 /// prefix on the composite string.
@@ -34115,7 +34115,7 @@ wxArrayString CAdapt_ItApp::GetCollabSettingsFromINIFile()
 	m_pConfig->SetPath(_T("/ProjCollabSettings")); // creates ProjCollabSettings path if it doesn't exist
 	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
-	
+
 	// Enumerate all entries under the [ProjCollabSettings] section
 	bool bReadOK = FALSE;
 	bool bEntryExists = m_pConfig->GetFirstEntry(entryName,dummy);
@@ -34127,10 +34127,10 @@ wxArrayString CAdapt_ItApp::GetCollabSettingsFromINIFile()
 		bEntryExists = m_pConfig->GetNextEntry(entryName,dummy);
 	}
 	} // end wxLogNull block
-	
+
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
-	
+
 	return collabProjectSettingsArray;
 }
 
@@ -34139,13 +34139,13 @@ wxArrayString CAdapt_ItApp::GetCollabSettingsFromINIFile()
 /// \param      projectPathName -> the path and name of the AI project
 ///             directory, of the form [Path]/languageA to languageB adaptations"
 /// \remarks
-/// Called from: CSetupEditorCollaboration::DoSaveSetupForThisProject(), 
+/// Called from: CSetupEditorCollaboration::DoSaveSetupForThisProject(),
 /// CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(), and
 /// CGetSourceTextFromEditorDlg::OnOK().
 /// This function saves the current collaboration settings stored on the App
 /// as composite strings associated with a proj_collab_settings_N key in
 /// the [ProjCollabSettings] section of the Adapt_It_WX.ini/.Adapt_It_WX file.
-/// Each time a composite string is changed or added to the ini file, all 
+/// Each time a composite string is changed or added to the ini file, all
 /// previous and any new strings are rewritten to the ini file, keeping the
 /// key-value pairs in sequence. This function is called when initially
 /// creating collaboration settings for an AI project, when removing a project
@@ -34153,8 +34153,8 @@ wxArrayString CAdapt_ItApp::GetCollabSettingsFromINIFile()
 /// document is opened (from CGetSourceTextFromEditorDlg::OnOK()). Collab
 /// setting values are stored in the Adapt_It_WX.ini/.Adapt_It_WX file as
 /// a backup mechanism so that, if a user does a Shift-Down opening of the
-/// project (bypassing the reading of the project config file, collaboration 
-/// settings will be automatically restored for that project - when 
+/// project (bypassing the reading of the project config file, collaboration
+/// settings will be automatically restored for that project - when
 /// SetProjectDefaults() function is called.
 /// If the first collab setting contained in m_CollabAIProjectName is an empty
 /// string it is a signal that the caller is
@@ -34181,7 +34181,7 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
 	// m_CollabChapterSelected
 	//
 	// Note: Any embedded colons ':' that can appear in the Source, Target and
-	// FreeTrans project names (in PT) are stored as @ characters, and converted 
+	// FreeTrans project names (in PT) are stored as @ characters, and converted
 	// back to colons when parsed from the composite string in
 	// CAdapt_ItApp::SetProjectDefaults().
 	wxString newCompositeStr;
@@ -34194,13 +34194,13 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
 	// FIELD 2 CollaboratingWithParatex
 	if (m_bCollaboratingWithParatext == TRUE)
 		newCompositeStr += _T("1"); // (bool value as wxString "0" or "1")
-	else 
+	else
 		newCompositeStr += _T("0"); // (bool value as wxString "0" or "1")
 	newCompositeStr += colon;
 	// FIELD 3 CollaboratingWithBibledit
 	if (m_bCollaboratingWithBibledit == TRUE)
 		newCompositeStr += _T("1"); // (bool value as wxString "0" or "1")
-	else 
+	else
 		newCompositeStr += _T("0"); // (bool value as wxString "0" or "1")
 	newCompositeStr += colon;
 	// FIELD 4 CollabProjectForSourceInputs
@@ -34249,10 +34249,10 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
 	// and any new strings are rewritten to the ini file, keeping the
 	// key-value pairs in sequence.
 
-	// Update any existing collab project composite string in the ini 
+	// Update any existing collab project composite string in the ini
 	// file. If no project composite string exists for the current project
 	// add it to the ini file.
-	
+
 	// To find out if the project exists we need to read all of the collab
 	// project composite strings from the ini file into an array.
 
@@ -34315,9 +34315,9 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
 			collabProjectSettingsArray.Add(newCompositeStr);
 		}
 	}
-	// Remove all entries from the [ProjCollabSettings] group, and then 
-	// rewrite all the entries from the collabProjectSettingsArray out to the 
-	// ini file, thus effectively replacing those that may have already been 
+	// Remove all entries from the [ProjCollabSettings] group, and then
+	// rewrite all the entries from the collabProjectSettingsArray out to the
+	// ini file, thus effectively replacing those that may have already been
 	// there.
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/ProjCollabSettings")); // creates ProjCollabSettings path if it doesn't exist
@@ -34344,7 +34344,7 @@ void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
 	}
 
 	} // end wxLogNull block
-	
+
 	m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
@@ -34810,7 +34810,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
 	f.Close(); // closes the wxTextFile and frees memory used for it
-	
+
 	// whm added 29Oct13 to add any administrator designated admin password to
 	// the Adapt_It_WX.ini / .Adapt_It_WX file if it doesn't already exist.
 	// Normally (as of 6.5.0) an administrator designated admin password would
@@ -34819,21 +34819,21 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	// However, it may be that an administrator has already set such a
 	// password before upgrading to AI version 6.5.0. If that is the case,
 	// then there will be a password stored with the AdministratorPassword
-	// label within the AI-BasicConfiguration.aic file, but not yet stored 
+	// label within the AI-BasicConfiguration.aic file, but not yet stored
 	// within the Adapt_It_WX.ini / .Adapt_It_WX file. Therefore, we want to
 	// transfer any already-set password from the basic config file to the ini
-	// file the first time AI is run after upgrading to 6.5.0. 
+	// file the first time AI is run after upgrading to 6.5.0.
 	// This transfer will only be done once under the following conditions:
-	// 1. The basic config file contains a password defined for the 
+	// 1. The basic config file contains a password defined for the
 	// AdministratorPassword label, and
-	// 2. There is no entry yet stored within the Adapt_It_WX.ini / .Adapt_It_WX 
+	// 2. There is no entry yet stored within the Adapt_It_WX.ini / .Adapt_It_WX
 	// file.
 	// First see if the Adapt_It_WX.ini / .Adapt_It_WX file has a value set
 	// for the admin_password key
 	if (configFType == basicConfigFile && !m_adminPassword.IsEmpty())
 	{
 		bool bIniFileHasValue;
-		wxString oldPath = m_pConfig->GetPath();	
+		wxString oldPath = m_pConfig->GetPath();
 		m_pConfig->SetPath(_T("/AdminPassword"));
 		bool bReadOK = FALSE;
 		wxString tempAdminPassword;
@@ -34847,7 +34847,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			bIniFileHasValue = FALSE;
 		// restore the oldPath back to "/Recent_File_List"
 		m_pConfig->SetPath(oldPath);
-		
+
 		if (!bIniFileHasValue)
 		{
 			bool bWriteOK = FALSE;
@@ -34868,7 +34868,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			m_pConfig->SetPath(oldPath);
 		}
 	}
-	
+
 	// BEW added 17Apr13, to help with debugging config file errors at launch
 	{
 	wxString msg;
@@ -37026,7 +37026,6 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 {
 	// Initializations...
 	wxString srcKey = _T("");
-	CTargetUnit* pTU = NULL;
 	int mapIndex = wxNOT_FOUND;
 	// maxWords is the max number of MapKeyStringToTgtUnit maps allowed
 	CKB* pKB = NULL;
@@ -37063,9 +37062,10 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 				// equivalent CTargetUnit, making the latter first if it does not yet exist
 				srcKey = iter->first;
 				wxASSERT(!srcKey.IsEmpty());
-				pTU = iter->second;
+				CTargetUnit* pTU = iter->second;
 				wxASSERT(pTU != NULL);
-				// Because we are working with hash tables, the following call will do a
+				pTU = pTU; // prevent compiler warning
+                // Because we are working with hash tables, the following call will do a
 				// lookup within the passed in pMap - it will find at most only two
 				// matches (one if there is no upper-case-keyed CTargetUnit with the
 				// needed key), and so the loops are not order-N-squared, but order-N only
@@ -38834,7 +38834,7 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 //**************************************************************************************
 //
 //           Status bar support (RefreshStatusBarInfo & StatusBarMessage)
-//                                     
+//
 //**************************************************************************************
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -39087,7 +39087,7 @@ void CAdapt_ItApp::StatusBar_ProgressOfKbDeletion()
     // 6 of the 7. For a two field solution, try for w + w2 < barWidth, and if that doesn't
     // work, give the progress what it needs, and field 0 whatever width is left and too
     // bad if the left status text is a bit truncated on the right.
-    
+
 	// Define the relative field sizes. -ve values indicate expandable fields, see the
 	// documentation of wxStatusBar for an explanation of how these are used
 	int widths[] = {-6, w2 + 8, -1};
@@ -39150,7 +39150,7 @@ void CAdapt_ItApp::StatusBar_ProgressOfKbDeletion()
 //**************************************************************************************
 //
 //      End of Status bar support (RefreshStatusBarInfo & StatusBarMessage)
-//                                     
+//
 //**************************************************************************************
 
 
@@ -42303,10 +42303,10 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 		// accept the password
 		m_adminPassword = password;
 		// whm 28Oct13 added. Also store this admin assigned password in the
-		// Adapt_It_WX.ini / .Adapt_It_WX file for safe keeping and the 
+		// Adapt_It_WX.ini / .Adapt_It_WX file for safe keeping and the
 		// ability to restore these values if the user does a Shift-Down
 		// startup of the application to reset the basic config file values.
-		
+
 		bool bWriteOK = FALSE;
 		wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 		m_pConfig->SetPath(_T("/AdminPassword"));
@@ -42323,7 +42323,7 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 		}
 		// restore the oldPath back to "/Recent_File_List"
 		m_pConfig->SetPath(oldPath);
-		
+
 	}
 }
 

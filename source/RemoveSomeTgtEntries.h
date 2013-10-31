@@ -6,7 +6,7 @@
 /// \rcs_id $Id: RemoveSomeTgtEntries.h 2883 2013-10-14 03:58:57Z bruce_waters@sil.org $
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the RemoveSomeTgtEntries class. 
+/// \description	This is the header file for the RemoveSomeTgtEntries class.
 /// The RemoveSomeTgtEntries class provides a handler for the "Remove Some Translations..."
 /// button in the KB Editor. It provides a wxListCtrl with each line being the target text
 /// adaptation, the source text for that adaptation, and a reference count - displayed in 4
@@ -52,7 +52,6 @@ enum iconImage {
 	tickedCheckbox
 };
 
-static int screenHeight;
 
 WX_DEFINE_SORTED_ARRAY(NonSrcListRec*, SortedNonSrcListRecsArray);
 // Array comparison function, it compares the nonsrc wxString in each NonSrcListRec instance
@@ -74,7 +73,7 @@ WX_DEFINE_ARRAY(NonSrcListRec*, NonSrcListRecsArray); // this type is unsorted (
 // NonSrcListRec-produced strings to the m_groupedArray for display. However, CTargetUnit
 // does not store the associated source text key. That comes from the map iterator's pair,
 // so we have to define a struct which keeps the association, so we can do the required
-// sorting 
+// sorting
 typedef struct {
 	wxString		src;
 	CTargetUnit*	pTU;
@@ -83,8 +82,8 @@ WX_DEFINE_SORTED_ARRAY(SrcTgtUnitPair*, SortedSrcTgtUnitsArray);
 // And a compare function for the above
 int CompareSrcTargetUnits(SrcTgtUnitPair* pTU1, SrcTgtUnitPair* pTU2);
 
-WX_DEFINE_ARRAY_INT(int,TrackingArray); // store 0 or 1 to track which pseudo-checkboxes 
-										// are shown as ticked within a view 
+WX_DEFINE_ARRAY_INT(int,TrackingArray); // store 0 or 1 to track which pseudo-checkboxes
+										// are shown as ticked within a view
 
 class RemoveSomeTgtEntries : public AIModalDialog
 {
@@ -123,7 +122,7 @@ protected:
 	void	DoKBExportOfListedEntries(wxFile* pFile, bool bBySrcGroups);
 	long	SearchInSortedArray(SortedNonSrcListRecsArray* pArray, NonSrcListRec* pFindThis); // replaces unreliable .Index() call
 	long	SearchInUnsortedArray(NonSrcListRecsArray* pArray, NonSrcListRec* pFindThis); // ditto
-	void	GetPhrasePairsForBulkRemoval(TrackingArray* pCheckboxTickedArray, 
+	void	GetPhrasePairsForBulkRemoval(TrackingArray* pCheckboxTickedArray,
 				NonSrcListRecsArray* pArray, wxArrayString* pSrcPhrases, wxArrayString* pTgtPhrases);
 	void	StoreChoice(bool bBySrcGroups, long myline, int nChoice); // nChoice should only be 0 or 1
 
@@ -147,7 +146,7 @@ protected:
 
 private:
 	// class attributes
-	bool	m_bCurrentValue; // keep hold of m_bBySrcGroups value wwhen a radio button 
+	bool	m_bCurrentValue; // keep hold of m_bBySrcGroups value wwhen a radio button
 							 // is being clicked & therefore potentially changing it
 	// For dealing with item selection clicks and pseudo-checkbox values
 	long	m_nOtherLine; // the equivalentline index in the view not displayed
@@ -159,9 +158,9 @@ private:
 	wxString m_nonsrc;
 	SortedNonSrcListRecsArray* m_pOneGroupArray; // from a single CTargetUnit instance, sorted
 	NonSrcListRecsArray*	   m_pOneTUUnsortedArray; // from a single CTargetUnit instance, unsorted
-	SortedNonSrcListRecsArray* m_pUngroupedTgtSortedArray; // what comes from all m_translation 
+	SortedNonSrcListRecsArray* m_pUngroupedTgtSortedArray; // what comes from all m_translation
 														   // instances of the KB, sorted
-	NonSrcListRecsArray*	   m_pGroupsArray; // stores alphabetically ordered (by src key) 
+	NonSrcListRecsArray*	   m_pGroupsArray; // stores alphabetically ordered (by src key)
            // groups of NonSrcListRec ptrs note: this is partially sorted: the groups are
            // alphabetically sorted by src text key and within the groups the NonSrcListRec
            // ptrs are alphabetically sorted by target (or gloss) text. We do an top to
@@ -170,12 +169,12 @@ private:
 	SortedSrcTgtUnitsArray*	   m_pSortedSrcTgtUnitPairsArray; // m_groupsArray is populated from this
 	wxArrayString	m_linesArray; // 1-to-1 mapping of each NonSrcListRec ptr with each line
 								  // & we load the wxListCtrl from this array when in
-								  // the view specified by the left radio button, the 
+								  // the view specified by the left radio button, the
 								  // "grouped-by-source-text" list
 	wxArrayString	m_linesArrayTgtSorted; // 1-to-1 mapping of each NonSrcListRec ptr with
 								  // each line & we load the wxListCtrl from this array when
-								  // in the view specified by the right radio button, the 
-								  // top-to-bottom alphabetized target(or gloss) text's list 
+								  // in the view specified by the right radio button, the
+								  // top-to-bottom alphabetized target(or gloss) text's list
 	TrackingArray	m_leftCheckedArray; // for view seen when left radio button is on
 	TrackingArray	m_rightCheckedArray; // for view seen when right radio button is on
 	wxSizer*		m_pRemoveSomeSizer;
@@ -190,6 +189,7 @@ private:
 	wxString		m_no_adaptation;
 	wxString		m_no_gloss;
 	CAdapt_ItApp*	m_pApp;
+	int screenHeight;
 	wxImageList*    pIconImages;
 	// next ones retain in case later needed in MakeListLine() if legacy format is restored
 	//wxString		m_spaces[39];
