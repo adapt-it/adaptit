@@ -435,10 +435,12 @@
 		<Unit filename="../../source/KBSharing.h" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.cpp" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.h" />
-		<Unit filename="../../source/KBSharingSetupDlg.cpp" />
-		<Unit filename="../../source/KBSharingSetupDlg.h" />
+		<Unit filename="../../source/KBSharingStatelessSetupDlg.cpp" />
+		<Unit filename="../../source/KBSharingStatelessSetupDlg.h" />
 		<Unit filename="../../source/KbServer.cpp" />
 		<Unit filename="../../source/KbServer.h" />
+		<Unit filename="../../source/KbSharingSetup.cpp" />
+		<Unit filename="../../source/KbSharingSetup.h" />
 		<Unit filename="../../source/LanguageCodesDlg.cpp" />
 		<Unit filename="../../source/LanguageCodesDlg.h" />
 		<Unit filename="../../source/LanguagesPage.cpp" />
@@ -498,6 +500,8 @@
 		<Unit filename="../../source/RefString.h" />
 		<Unit filename="../../source/RefStringMetadata.cpp" />
 		<Unit filename="../../source/RefStringMetadata.h" />
+		<Unit filename="../../source/RemoveSomeTgtEntries.cpp" />
+		<Unit filename="../../source/RemoveSomeTgtEntries.h" />
 		<Unit filename="../../source/Retranslation.cpp" />
 		<Unit filename="../../source/Retranslation.h" />
 		<Unit filename="../../source/RetranslationDlg.cpp" />
@@ -524,6 +528,8 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
+		<Unit filename="../../source/Thread_BulkPseudoDelete.cpp" />
+		<Unit filename="../../source/Thread_BulkPseudoDelete.h" />
 		<Unit filename="../../source/Thread_ChangedSince.cpp" />
 		<Unit filename="../../source/Thread_ChangedSince.h" />
 		<Unit filename="../../source/Thread_CreateEntry.cpp" />
