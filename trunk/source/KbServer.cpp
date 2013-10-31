@@ -36,12 +36,16 @@ static wxMutex s_QueueMutex; // only need one, because we cannot have
 							 // glossing & adapting modes on concurrently
 static wxMutex s_DoGetAllMutex; // UploadToKbServer() calls DoGetAll() which
 			// fills the 7 parallel arrays with remote DB data; but a manual
-			// ChangedSince() or DoChangedSince() call also fills the same
+			// ChangedSince() or DoChangedSince() call also fill the same
 			// arrays - so we have to enforce sequentiality on the use of
 			// these arrays
 wxMutex KBAccessMutex; // ChangedSince() may be entering entries into
 			// the local KB while UploadToKbServer() is looping over it's entries
 			// to work out which need to be sent to the remote DB
+wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used sometimes
+			// in normal adapting work, but a lot in a bulk pseudo delete, so enforce
+			// sequentiality on the use of the storage infrastructure; likewise for
+			// LookupEntryFields()
 			
 #include <wx/listimpl.cpp>
 

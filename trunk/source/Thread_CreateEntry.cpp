@@ -43,6 +43,8 @@
 #include "KbServer.h"
 #include "Thread_CreateEntry.h"
 
+extern wxMutex s_BulkDeleteMutex;
+
 Thread_CreateEntry::Thread_CreateEntry():wxThread()
 {
 	//m_pApp = &wxGetApp();
@@ -67,6 +69,9 @@ void* Thread_CreateEntry::Entry()
 	long entryID = 0; // initialize (it might not be used)
 	wxASSERT(!m_source.IsEmpty()); // the key must never be an empty string
 	int rv;
+
+	s_BulkDeleteMutex.Lock();
+
 	rv = m_pKbSvr->CreateEntry(m_source, m_translation); // kbType is supplied internally from m_pKbSvr
 	if (rv == CURLE_HTTP_RETURNED_ERROR)
 	{
@@ -96,6 +101,9 @@ void* Thread_CreateEntry::Entry()
 			}
 		}
 	}
+
+	s_BulkDeleteMutex.Unlock();
+
 	return (void*)NULL;
 }
 

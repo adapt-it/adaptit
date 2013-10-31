@@ -5947,8 +5947,8 @@ wxString szLastSourceOutputPath = _T("LastSourceTextExportPath");
 wxString szLastSourceRTFOutputPath = _T("LastSourceTextRTFExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastKBExportPath". This value is written in the "BasicSettings" part
-/// of the basic configuration file. Adapt It stores this path in the
+/// "LastKBExportPath". This value is written in the "ProjectSettings" part
+/// of the project configuration file. Adapt It stores this path in the
 /// App's m_lastKbOutputPath member variable.
 /// The old config label "KB_ExportPath" is retained for reading older
 /// config files.
@@ -26739,7 +26739,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	// or care about the adapting/glossing mode, the machine's owner, or either of the
 	// glossing or adapting local KBs. It only uses the KbServer class for the services it
 	// provides for the KB Sharing Manager gui
-	KBSharingStatelessSetupDlg dlg(GetMainFrame());
+	KBSharingStatelessSetupDlg dlg(GetMainFrame(),FALSE); // FALSE is bUserAuthenticating
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -32687,6 +32687,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 #else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
 		else if (name == szIsKBServerProject)
+			;	// do nothing
+		else if (name == szIsGlossingKBServerProject)
 			;	// do nothing
 		else if (name == szKbServerURL)
 			;	// do nothing

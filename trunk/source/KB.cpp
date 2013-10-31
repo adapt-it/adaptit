@@ -2881,7 +2881,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	wxString geSFM = s1 + _T("ge ");
 	wxString key;
 	key.Empty();
-	wxString gloss;
+	wxString gloss; // using this for adaptation, or our glossing mode's "gloss"
 	wxString baseKey;
 	wxString baseGloss;
 	wxString outputSfmStr; // accumulate a whole SFM "record" here, and retain
@@ -3488,7 +3488,7 @@ CTargetUnit* CKB::GetTargetUnit(int nSrcWords, wxString keyStr)
 		return pTgtUnit; // we found it
 	}
     // lookup failed, so the KB state is different than data in the document suggests, a
-    // Verify operation should be done on the file(s)
+    // Consistency Check operation should be done on the file(s)
 	return (CTargetUnit*)NULL;
 }
 

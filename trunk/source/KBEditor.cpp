@@ -64,6 +64,7 @@
 #include "Thread_KbEditorUpdateButton.h"
 #include "Thread_PseudoDelete.h"
 #include "Thread_CreateEntry.h"
+#include "RemoveSomeTgtEntries.h"
 
 // for support of auto-capitalization
 
@@ -113,6 +114,7 @@ BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 	EVT_BUTTON(IDC_BUTTON_ADD, CKBEditor::OnButtonAdd)
 	EVT_BUTTON(IDC_ADD_NOTHING, CKBEditor::OnAddNoAdaptation)
 	EVT_BUTTON(IDC_BUTTON_REMOVE, CKBEditor::OnButtonRemove)
+	EVT_BUTTON(ID_BUTTON_REMOVE_SOME, CKBEditor::OnButtonRemoveSomeTgtEntries)
 	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CKBEditor::OnButtonMoveUp)
 	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CKBEditor::OnButtonMoveDown)
 	EVT_BUTTON(IDC_BUTTON_FLAG_TOGGLE, CKBEditor::OnButtonFlagToggle)
@@ -1267,6 +1269,73 @@ void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_arrSearches.Empty();
 }
 
+void CKBEditor::OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event))
+{
+#if defined(_KBSERVER)
+	// Disallow the button with a message, if it's a KB sharing project but sharing is
+	// temporarily disabled. (Reason? If allowed in when sharing is disabled, the user may
+	// spend an hour or more working through thousands of entries, ticking hundreds of
+	// obsolete ones for deletion. If the Remove Selected Entries button were then
+	// clicked, the local KB would have those entries pseudo-deleted, but the uploads to
+	// the kbserver would not get done. That would result in a kbserver database out of
+	// sync with the local KB on this machine, and we cannot correct that with a bulk
+	// upload because the latter does not include any pseudo deleted entries in a bulk
+	// upload. Nor would retrying the removals in the dialog window work either, because
+	// the pseudo deleted entries in the local KB won't be listed in the window. So the
+	// "solution" is to disallow entry to the dialog when sharing is disabled. (The
+	// ability to save to a file, can't be done either - an unwanted side-effect, but the
+	// protection of synchonicity of local and remote kb is much more important.)
+	if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
+	{
+		bool bTellUser = FALSE;
+		// This project is one for sharing entries to a remote kbserver
+		if (gbIsGlossing)
+		{
+			KbServer* pKbServer = pApp->GetKbServer(2);
+			wxASSERT(pKbServer);
+			if (!pKbServer->IsKBSharingEnabled())
+			{
+				// User has disabled sharing of the currently shared glossing KB
+				bTellUser = TRUE;
+			}
+		}
+		else
+		{
+			KbServer* pKbServer = pApp->GetKbServer(1);
+			wxASSERT(pKbServer);
+			if (!pKbServer->IsKBSharingEnabled())
+			{
+				// User has disabled sharing of the currently shared adaptations KB
+				bTellUser = TRUE;
+			}
+		}
+		if (bTellUser)
+		{
+			wxString msg;
+			wxString title;
+			title = _("Knowledge base sharing is (temporarily) disabled");
+			msg = _("This is a shared knowledge base project, but you have disabled sharing.\nSharing must be enabled, and with a working connection to the remote server, before a bulk removal of knowledge base entries can be allowed.\nTo enable sharing again, click Controls For Knowledge Base Sharing... on the Advanced menu, and click the left radio button.");
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+			return;
+		}
+	}
+#endif
+
+	RemoveSomeTgtEntries dlg((wxWindow*)this);
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		// "Remove the selected entries and close" button was clicked
+		LoadDataForPage(m_nCurPage,0); // clear out the list boxes etc, and repopulate them
+	}
+	else
+	{
+		// Cancel button was clicked; do nothing -- but remember that the user, while in the
+		// dialog, may have saved the data view to a file, or each view to two different
+		// files, before cancelling. If he did so, nothing has to be done here after the
+		// Cancel click.
+	}
+}
+
 void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 {
     // this button must remove the selected translation from the KB, which means that user
@@ -2235,6 +2304,8 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	wxASSERT(m_pBtnAdd != NULL);
 	m_pBtnRemove = (wxButton*)nbPage->FindWindow(IDC_BUTTON_REMOVE);
 	wxASSERT(m_pBtnRemove != NULL);
+	m_pBtnRemoveSomeTgtEntries = (wxButton*)nbPage->FindWindow(ID_BUTTON_REMOVE_SOME);
+	wxASSERT(m_pBtnRemoveSomeTgtEntries != NULL);
 	m_pBtnMoveUp = (wxButton*)nbPage->FindWindow(IDC_BUTTON_MOVE_UP);
 	wxASSERT(m_pBtnMoveUp != NULL);
 	m_pBtnMoveDown = (wxButton*)nbPage->FindWindow(IDC_BUTTON_MOVE_DOWN);
@@ -2672,7 +2743,7 @@ void CKBEditor::UpdateButtons()
 		m_pBtnToggleTheSetting->Enable(TRUE);
 	// enable the Add <no adaptation> button initially
 	m_pBtnAddNoAdaptation->Enable(TRUE);
-	// since there should be at least 1 translation in the existing translations box
+	// Since there should be at least 1 translation in the existing translations box
 	// for every source phrase, the Remove button should always be enabled. Whenever the only
 	// translation of a given source phrase is removed, the source phrase itself is also removed.
 	// The one time the "Remove" button should be disabled is when the list is empty which occurs
@@ -2681,7 +2752,16 @@ void CKBEditor::UpdateButtons()
 		m_pBtnRemove->Enable(FALSE);
 	else
 		m_pBtnRemove->Enable(TRUE);
-	// enable those buttons meeting certain conditions depending on number of items and selection
+	// The Remove Some Translations button can be called from any panel of the tabbed
+	// dialog. It lists tgt <> src and a checkbox, in two user choosable formats, in a
+	// child dialog with a large listbox, doing it for ALL target text adaptations (with
+	// their source text shown second) in the whole KB - ie. all lengths of phrase; the
+	// button is enabled in any panel which has at least a single source text key
+	if (m_pListBoxKeys->GetCount() == 0)
+		m_pBtnRemoveSomeTgtEntries->Enable(FALSE);
+	else
+		m_pBtnRemoveSomeTgtEntries->Enable(TRUE);
+	// Enable those buttons meeting certain conditions depending on number of items and selection
 	int nSel = m_pListBoxExistingTranslations->GetSelection();
 	wxString selectedTrans;
 	if (m_pListBoxExistingTranslations->GetCount() > 0)

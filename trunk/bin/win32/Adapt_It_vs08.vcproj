@@ -841,6 +841,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\RemoveSomeTgtEntries.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Retranslation.cpp"
 				>
 			</File>
@@ -902,6 +906,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_BulkPseudoDelete.cpp"
 				>
 			</File>
 			<File
@@ -1310,6 +1318,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KBSharingStatelessSetupDlg.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguageCodesDlg.h"
 				>
 			</File>
@@ -1426,6 +1438,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\RemoveSomeTgtEntries.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Retranslation.h"
 				>
 			</File>
@@ -1487,6 +1503,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_BulkPseudoDelete.h"
 				>
 			</File>
 			<File

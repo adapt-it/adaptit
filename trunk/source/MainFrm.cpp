@@ -2658,7 +2658,7 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 	wxString msg = _T("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
 	wxString caption = _T("Type the server's password");
 	wxString default_value = _T("");
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 	// Simplify my life during development
 	default_value = _T("TPI0907en");
 #endif
