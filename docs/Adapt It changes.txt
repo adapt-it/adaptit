@@ -30,7 +30,7 @@ dialog - making that previous version become the current version
 of the document. If instead, the user clicks on the "Return to
 latest version" button or the "Cancel" button, no changes are
 made to the current document.
-   (3) View list of previouusly remembered versions - this 
+   (3) View list of previously remembered versions - this 
 feature displays a summary list of all versions of the document 
 that were previously saved in the document's history, one line 
 per version. Each line shows the author, the date the version 
@@ -70,7 +70,7 @@ a knowledge base sharing feature becomes available in future
 releases, the username information will be sent, securely, in 
 data going to a Git repository for document history, and/or a 
 shared knowledge base server.
-   (4) Bulk removal of knowledge base entries, and storage of
+* Bulk removal of knowledge base entries, and storage of
 entry lists in files. A new button, 
 "Remove Some Entries or Save List..."
 is on every page of the Knowledge Base Editor dialog. Click it
