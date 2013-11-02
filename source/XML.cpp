@@ -3097,7 +3097,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 #ifdef _UNICODE
 			gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
 #else
-			gpApp->m_bookName_Current = attrValue;
+			//gpApp->m_bookName_Current = attrValue;
+			gpApp->m_bookName_Current = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 #endif	
 		}
 
@@ -3107,7 +3108,8 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 #ifdef _UNICODE
 			gpApp->m_owner = gpApp->Convert8to16 (attrValue);
 #else
-			gpApp->m_owner = attrValue;
+			//gpApp->m_owner = attrValue;
+			gpApp->m_owner = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 #endif	
             
 // (May 2013) If m_strUserID is not NOOWNER, it's the unique user ID for DVCS or kbserver.  If the incoming doc has a real
@@ -3141,7 +3143,8 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 #ifdef _UNICODE
 			wxString	tmp = gpApp->Convert8to16(attrValue);
 #else
-			wxString	tmp = attrValue;
+			//wxString	tmp = attrValue;
+			wxString	tmp = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 #endif
 			const wxChar*  result = gpApp->m_versionDate.ParseDateTime (tmp);
 			if (result == NULL)
@@ -3189,7 +3192,8 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 
 		else if (attrName == xml_curchap)
 		{
-			gpApp->m_curChapter = attrValue;
+			//gpApp->m_curChapter = attrValue;
+			gpApp->m_curChapter = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 		}
 		else if (attrName == xml_srcname)
 		{
@@ -3224,24 +3228,32 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 		else if (gnDocVersion >= 7 && attrName == xml_srccode)
 		{
 			if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
-				gpApp->m_sourceLanguageCode = attrValue;
+			{
+				//gpApp->m_sourceLanguageCode = attrValue;
+				gpApp->m_sourceLanguageCode = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
+			}
 		}
 		else if (gnDocVersion >= 7 && attrName == xml_tgtcode)
 		{
 			if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
-				gpApp->m_targetLanguageCode = attrValue;
+			{
+				//gpApp->m_targetLanguageCode = attrValue;
+				gpApp->m_targetLanguageCode = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
+			}
 		}
 		
 		else if (attrName == xml_others)
 		{
-			wxString buffer(attrValue);
+			//wxString buffer(attrValue);
+			wxString buffer(wxString::From8BitData(attrValue)); // whm modified 2Nov13 for ANSI builds
 			gpDoc->RestoreDocParamsOnInput(buffer); // BEW added 08Aug05
 			if (gpApp->m_pBuffer == NULL)
 			{
 				gpApp->m_pBuffer = new wxString; // ensure it's available
 				gpApp->m_nInputFileLength = buffer.Length(); // we don't use this, but play safe
 			}
-			*(gpApp->m_pBuffer) = attrValue;
+			//*(gpApp->m_pBuffer) = attrValue;
+			*(gpApp->m_pBuffer) = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 		}
 		else
 		{
@@ -3286,11 +3298,13 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			}
 			else if (attrName == xml_i)
 			{
-				gpEmbeddedSrcPhrase->m_inform = attrValue;
+				//gpEmbeddedSrcPhrase->m_inform = attrValue;
+				gpEmbeddedSrcPhrase->m_inform = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 			}
 			else if (attrName == xml_c)
 			{
-				gpEmbeddedSrcPhrase->m_chapterVerse = attrValue;
+				//gpEmbeddedSrcPhrase->m_chapterVerse = attrValue;
+				gpEmbeddedSrcPhrase->m_chapterVerse = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 			}
 			else if (attrName == xml_em)
 			{
@@ -3319,31 +3333,38 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				ReplaceEntities(attrValue); // most require it, so do it on all
 				if (attrName == xml_s)
 				{
-					gpEmbeddedSrcPhrase->m_srcPhrase = attrValue;
+					//gpEmbeddedSrcPhrase->m_srcPhrase = attrValue;
+					gpEmbeddedSrcPhrase->m_srcPhrase = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_k)
 				{
-					gpEmbeddedSrcPhrase->m_key = attrValue;
+					//gpEmbeddedSrcPhrase->m_key = attrValue;
+					gpEmbeddedSrcPhrase->m_key = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_t)
 				{
-					gpEmbeddedSrcPhrase->m_targetStr = attrValue;
+					//gpEmbeddedSrcPhrase->m_targetStr = attrValue;
+					gpEmbeddedSrcPhrase->m_targetStr = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_a)
 				{
-					gpEmbeddedSrcPhrase->m_adaption = attrValue;
+					//gpEmbeddedSrcPhrase->m_adaption = attrValue;
+					gpEmbeddedSrcPhrase->m_adaption = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_g)
 				{
-					gpEmbeddedSrcPhrase->m_gloss = attrValue;
+					//gpEmbeddedSrcPhrase->m_gloss = attrValue;
+					gpEmbeddedSrcPhrase->m_gloss = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_pp)
 				{
-					gpEmbeddedSrcPhrase->m_precPunct = attrValue;
+					//gpEmbeddedSrcPhrase->m_precPunct = attrValue;
+					gpEmbeddedSrcPhrase->m_precPunct = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_fp)
 				{
-					gpEmbeddedSrcPhrase->m_follPunct = attrValue;
+					//gpEmbeddedSrcPhrase->m_follPunct = attrValue;
+					gpEmbeddedSrcPhrase->m_follPunct = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_fop)
 				{
@@ -3351,7 +3372,8 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (attrName == xml_m)
 				{
-					gpEmbeddedSrcPhrase->m_markers = attrValue;
+					//gpEmbeddedSrcPhrase->m_markers = attrValue;
+					gpEmbeddedSrcPhrase->m_markers = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_ft)
 				{
@@ -3372,19 +3394,23 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
 				{
-					gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = attrValue;
+					//gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = attrValue;
+					gpEmbeddedSrcPhrase->m_lastAdaptionsPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_tmpat)
 				{
-					gpEmbeddedSrcPhrase->m_tgtMkrPattern = attrValue;
+					//gpEmbeddedSrcPhrase->m_tgtMkrPattern = attrValue;
+					gpEmbeddedSrcPhrase->m_tgtMkrPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_gmpat)
 				{
-					gpEmbeddedSrcPhrase->m_glossMkrPattern = attrValue;
+					//gpEmbeddedSrcPhrase->m_glossMkrPattern = attrValue;
+					gpEmbeddedSrcPhrase->m_glossMkrPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					gpEmbeddedSrcPhrase->m_punctsPattern = attrValue;
+					//gpEmbeddedSrcPhrase->m_punctsPattern = attrValue;
+					gpEmbeddedSrcPhrase->m_punctsPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else
 				{
@@ -3423,11 +3449,13 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			}
 			else if (attrName == xml_i)
 			{
-				gpSrcPhrase->m_inform = attrValue;
+				//gpSrcPhrase->m_inform = attrValue;
+				gpSrcPhrase->m_inform = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 			}
 			else if (attrName == xml_c)
 			{
-				gpSrcPhrase->m_chapterVerse = attrValue;
+				//gpSrcPhrase->m_chapterVerse = attrValue;
+				gpSrcPhrase->m_chapterVerse = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 			}
 			else if (attrName == xml_em)
 			{
@@ -3456,31 +3484,38 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				ReplaceEntities(attrValue); // most require it, so do it on all
 				if (attrName == xml_s)
 				{
-					gpSrcPhrase->m_srcPhrase = attrValue;
+					//gpSrcPhrase->m_srcPhrase = attrValue;
+					gpSrcPhrase->m_srcPhrase = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_k)
 				{
-					gpSrcPhrase->m_key = attrValue;
+					//gpSrcPhrase->m_key = attrValue;
+					gpSrcPhrase->m_key = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_t)
 				{
-					gpSrcPhrase->m_targetStr = attrValue;
+					//gpSrcPhrase->m_targetStr = attrValue;
+					gpSrcPhrase->m_targetStr = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_a)
 				{
-					gpSrcPhrase->m_adaption = attrValue;
+					//gpSrcPhrase->m_adaption = attrValue;
+					gpSrcPhrase->m_adaption = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_g)
 				{
-					gpSrcPhrase->m_gloss = attrValue;
+					//gpSrcPhrase->m_gloss = attrValue;
+					gpSrcPhrase->m_gloss = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_pp)
 				{
-					gpSrcPhrase->m_precPunct = attrValue;
+					//gpSrcPhrase->m_precPunct = attrValue;
+					gpSrcPhrase->m_precPunct = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_fp)
 				{
-					gpSrcPhrase->m_follPunct = attrValue;
+					//gpSrcPhrase->m_follPunct = attrValue;
+					gpSrcPhrase->m_follPunct = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_fop)
 				{
@@ -3488,7 +3523,8 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				}
 				else if (attrName == xml_m)
 				{
-					gpSrcPhrase->m_markers = attrValue;
+					//gpSrcPhrase->m_markers = attrValue;
+					gpSrcPhrase->m_markers = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_ft)
 				{
@@ -3509,19 +3545,23 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// next 4 for docVersion = 6 support
 				else if (gnDocVersion >= 6 && attrName == xml_lapat)
 				{
-					gpSrcPhrase->m_lastAdaptionsPattern = attrValue;
+					//gpSrcPhrase->m_lastAdaptionsPattern = attrValue;
+					gpSrcPhrase->m_lastAdaptionsPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_tmpat)
 				{
-					gpSrcPhrase->m_tgtMkrPattern = attrValue;
+					//gpSrcPhrase->m_tgtMkrPattern = attrValue;
+					gpSrcPhrase->m_tgtMkrPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_gmpat)
 				{
-					gpSrcPhrase->m_glossMkrPattern = attrValue;
+					//gpSrcPhrase->m_glossMkrPattern = attrValue;
+					gpSrcPhrase->m_glossMkrPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (gnDocVersion >= 6 && attrName == xml_pupat)
 				{
-					gpSrcPhrase->m_punctsPattern = attrValue;
+					//gpSrcPhrase->m_punctsPattern = attrValue;
+					gpSrcPhrase->m_punctsPattern = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else
 				{
@@ -3556,7 +3596,8 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			}
 			else
 			{
-				gpSrcPhrase->m_pMedialPuncts->Add(wxString(attrValue));
+				//gpSrcPhrase->m_pMedialPuncts->Add(wxString(attrValue));
+				gpSrcPhrase->m_pMedialPuncts->Add(wxString::From8BitData(attrValue)); // whm modified 2Nov13 for ANSI builds
 			}
 			return TRUE;
 		}
@@ -3589,7 +3630,8 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 			}
 			else
 			{
-				gpSrcPhrase->m_pMedialMarkers->Add(wxString(attrValue)); 
+				//gpSrcPhrase->m_pMedialMarkers->Add(wxString(attrValue)); 
+				gpSrcPhrase->m_pMedialMarkers->Add(wxString::From8BitData(attrValue)); // whm modified 2Nov13 for ANSI builds
 			}
 			return TRUE;
 		}
@@ -6230,7 +6272,8 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				else if (attrName == xml_a)
 				{
 					ReplaceEntities(attrValue);
-					gpRefStr->m_translation = attrValue;
+					//gpRefStr->m_translation = attrValue;
+					gpRefStr->m_translation = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else
 				{
@@ -6257,7 +6300,8 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				else if (attrName == xml_k)
 				{
 					ReplaceEntities(attrValue);
-					gKeyStr = attrValue; // key string for the map hashing to use
+					//gKeyStr = attrValue; // key string for the map hashing to use
+					gKeyStr = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else
 				{
@@ -6299,12 +6343,14 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				if (attrName == xml_srcnm)
 				{
 					ReplaceEntities(attrValue);
-					gpKB->m_sourceLanguageName = attrValue;
+					//gpKB->m_sourceLanguageName = attrValue;
+					gpKB->m_sourceLanguageName = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_tgtnm)
 				{
 					ReplaceEntities(attrValue);
-					gpKB->m_targetLanguageName = attrValue;
+					//gpKB->m_targetLanguageName = attrValue;
+					gpKB->m_targetLanguageName = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_max)
 				{
@@ -6327,8 +6373,9 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				{
 					// .NET support for xml parsing of KB file;
 					// *ATTENTION BOB*  add any bool setting you need here
-					wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
-												 // here in a local wxString for now, in case you need to use it
+					//wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+					//							 // here in a local wxString for now, in case you need to use it
+					wxString thePath = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else
 				{
@@ -6506,7 +6553,8 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				else if (attrName == xml_a)
 				{
 					ReplaceEntities(attrValue);
-					gpRefStr->m_translation = attrValue;
+					//gpRefStr->m_translation = attrValue;
+					gpRefStr->m_translation = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_deletedflag)
 				{
@@ -6516,26 +6564,30 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				else if (attrName == xml_creationDT)
 				{
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
+					//wxString value = attrValue;
+					wxString value = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 					gpRefStr->GetRefStringMetadata()->SetCreationDateTime(value); 
 				}
 				else if (attrName == xml_whocreated)
 				{
 					// could potentially require entity replacement, so do it to be safe
 					ReplaceEntities(attrValue);
-					wxString value = attrValue;
+					//wxString value = attrValue;
+					wxString value = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 					gpRefStr->GetRefStringMetadata()->SetWhoCreated(value);
 				}
 				else if (attrName == xml_modifiedDT)
 				{
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
+					//wxString value = attrValue;
+					wxString value = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 					gpRefStr->GetRefStringMetadata()->SetModifiedDateTime(value); 
 				}
 				else if (attrName == xml_deletedDT)
 				{
 					// no entity replacement needed for datetime values
-					wxString value = attrValue;
+					//wxString value = attrValue;
+					wxString value = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 					gpRefStr->GetRefStringMetadata()->SetDeletedDateTime(value); 
 				}
 				else
@@ -6563,7 +6615,8 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				else if (attrName == xml_k)
 				{
 					ReplaceEntities(attrValue);
-					gKeyStr = attrValue; // key string for the map hashing to use
+					//gKeyStr = attrValue; // key string for the map hashing to use
+					gKeyStr = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else
 				{
@@ -6636,12 +6689,14 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				else if (attrName == xml_srcnm)
 				{
 					ReplaceEntities(attrValue);
-					gpKB->m_sourceLanguageName = attrValue;
+					//gpKB->m_sourceLanguageName = attrValue;
+					gpKB->m_sourceLanguageName = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else if (attrName == xml_tgtnm)
 				{
 					ReplaceEntities(attrValue);
-					gpKB->m_targetLanguageName = attrValue;
+					//gpKB->m_targetLanguageName = attrValue;
+					gpKB->m_targetLanguageName = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 
 			// mrh June 2012 -- KB_VERSION3 adds source and target language codes.  At present we only use these if we don't already
@@ -6650,12 +6705,18 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				else if (gnKbVersionBeingParsed >= KB_VERSION3 && attrName == xml_srccod)
 				{
 					if (gpApp->m_sourceLanguageCode.IsEmpty() || gpApp->m_sourceLanguageCode == NOCODE)
-						gpApp->m_sourceLanguageCode = attrValue;
+					{
+						//gpApp->m_sourceLanguageCode = attrValue;
+						gpApp->m_sourceLanguageCode = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
+					}
 				}
 				else if (gnKbVersionBeingParsed >= KB_VERSION3 && attrName == xml_tgtcode)
 				{
 					if (gpApp->m_targetLanguageCode.IsEmpty() || gpApp->m_targetLanguageCode == NOCODE)
-						gpApp->m_targetLanguageCode = attrValue;
+					{
+						//gpApp->m_targetLanguageCode = attrValue;
+						gpApp->m_targetLanguageCode = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
+					}
 				}
 				
 				else
@@ -6675,8 +6736,9 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WXU
 				{
 					// .NET support for xml parsing of KB file;
 					// *ATTENTION BOB*  add any bool setting you need here
-					wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
-												 // here in a local wxString for now, in case you need to use it
+					//wxString thePath(attrValue); // I've stored the http://www.sil.org/computing/schemas/AdaptIt KB.xsd
+					//							 // here in a local wxString for now, in case you need to use it
+					wxString thePath = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
 				}
 				else
 				{

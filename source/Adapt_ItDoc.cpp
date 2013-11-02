@@ -21426,7 +21426,8 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 #else
 	wxString sourceName = srcName.GetBuffer();
 	wxString targetName = tgtName.GetBuffer();
-	wxString storeFilenameStr(utf8Filename);
+	//wxString storeFilenameStr(utf8Filename);
+	wxString storeFilenameStr = wxString::FromUTF8(utf8Filename); // whm modified 2Nov13 for ANSI builds
 #endif
 
 	// we now can set up the directory structures, if they are not already setup
