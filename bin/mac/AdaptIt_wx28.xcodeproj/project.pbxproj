@@ -49,6 +49,7 @@
 		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
 		7D8A045113ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D8A044F13ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.cpp */; };
 		7D98196C139C7002009F4E93 /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D98196A139C7002009F4E93 /* md5.cpp */; };
+		7D9A354518247E040041565D /* RemoveSomeTgtEntries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D9A354318247E040041565D /* RemoveSomeTgtEntries.cpp */; };
 		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
 		7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */; };
 		7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */; };
@@ -258,6 +259,8 @@
 		7D8A045013ABEFF0002FBC91 /* AssignLocationsForInputsAndOutputs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AssignLocationsForInputsAndOutputs.h; path = ../../source/AssignLocationsForInputsAndOutputs.h; sourceTree = SOURCE_ROOT; };
 		7D98196A139C7002009F4E93 /* md5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5.cpp; path = ../../source/md5.cpp; sourceTree = SOURCE_ROOT; };
 		7D98196B139C7002009F4E93 /* md5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5.h; path = ../../source/md5.h; sourceTree = SOURCE_ROOT; };
+		7D9A354318247E040041565D /* RemoveSomeTgtEntries.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RemoveSomeTgtEntries.cpp; path = ../../source/RemoveSomeTgtEntries.cpp; sourceTree = SOURCE_ROOT; };
+		7D9A354418247E040041565D /* RemoveSomeTgtEntries.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RemoveSomeTgtEntries.h; path = ../../source/RemoveSomeTgtEntries.h; sourceTree = SOURCE_ROOT; };
 		7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_CPLv05.txt; sourceTree = "<group>"; };
 		7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_GPLv2.txt; sourceTree = "<group>"; };
 		7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_LGPLv21.txt; sourceTree = "<group>"; };
@@ -548,6 +551,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7D9A354318247E040041565D /* RemoveSomeTgtEntries.cpp */,
+				7D9A354418247E040041565D /* RemoveSomeTgtEntries.h */,
 				C836A612181A205800E55C22 /* KbSharingSetup.cpp */,
 				C836A613181A205800E55C22 /* KBSharingStatelessSetupDlg.h */,
 				C836A614181A205800E55C22 /* KBSharingStatelessSetupDlg.cpp */,
@@ -1159,6 +1164,7 @@
 				C836A617181A205800E55C22 /* KbSharingSetup.cpp in Sources */,
 				C836A618181A205800E55C22 /* KBSharingStatelessSetupDlg.cpp in Sources */,
 				C836A619181A205800E55C22 /* KbServer.cpp in Sources */,
+				7D9A354518247E040041565D /* RemoveSomeTgtEntries.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1206,7 +1212,6 @@
 					"__WXMAC_XCODE__=1",
 					MACOS_CLASSIC,
 					"WX_PRECOMP=1",
-					_KBSERVER,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = 4.0;
