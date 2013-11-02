@@ -808,6 +808,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\RemoveSomeTgtEntries.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Retranslation.cpp"
 				>
 			</File>
@@ -925,10 +929,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\WhichFilesDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\wxUUID.cpp"
 				>
 			</File>
 			<File
@@ -1325,6 +1325,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\RemoveSomeTgtEntries.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Retranslation.h"
 				>
 			</File>
@@ -1442,10 +1446,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\WhichFilesDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\wxUUID.h"
 				>
 			</File>
 			<File
