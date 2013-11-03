@@ -1,14 +1,157 @@
-2013-09-05  gettextize  <bug-gnu-gettext@gnu.org>
-
-	* m4/gettext.m4: Upgrade to gettext-0.18.1.
-	* m4/iconv.m4: Upgrade to gettext-0.18.1.
-	* m4/lib-ld.m4: Upgrade to gettext-0.18.1.
-	* m4/lib-link.m4: Upgrade to gettext-0.18.1.
-	* m4/lib-prefix.m4: Upgrade to gettext-0.18.1.
-	* m4/nls.m4: Upgrade to gettext-0.18.1.
-	* m4/po.m4: Upgrade to gettext-0.18.1.
-	* m4/progtest.m4: Upgrade to gettext-0.18.1.
-
+----------------------------------------------
+Version 6.5.0 release 29 October 2013
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.0
+----------------------------------------------
+* Saving of Document Versions (and Rollback). There are now 
+three new menu items on the File menu that allow the user to:
+   (1) Save and remember in history - this feature asks the user 
+to type a comment about the version of the document that is about
+to be saved, then takes a snapshot of the currently open 
+adaptation document, and saves that snapshot in the document's 
+history along with the comment, the date-time and the author's 
+identification information. The first time a version is saved 
+and remembered in the history, Adapt It asks for a unique user
+name - such as an email address - along with an informal human-
+friendly name to use as the author's identification information
+associated with the documents being saved in the history.
+Currently document histories are only saved on the local 
+computer using the Git distributed version control system (DVCS).
+   (2) Look at previous versions in the document history - this
+feature opens a navigation dialog which allows the user to view 
+earlier versions that were saved in the document's history. The 
+user can navigate backwards or forwards through the saved 
+versions of the document which are displayed in read-only mode 
+(with pink background). If desired, the user can "roll back" 
+the document to the version that is being displayed by 
+clicking an "Accept this as current" button in the navigation 
+dialog - making that previous version become the current version
+of the document. If instead, the user clicks on the "Return to
+latest version" button or the "Cancel" button, no changes are
+made to the current document.
+   (3) View list of previously remembered versions - this 
+feature displays a summary list of all versions of the document 
+that were previously saved in the document's history, one line 
+per version. Each line shows the author, the date the version 
+was saved, and the comment. From this list the user can click on 
+the "Look at selected version" button, which displays that 
+selected version in read-only mode, and opens the navigation 
+dialog as described in (2) above. From the navigation dialog the 
+user can navigate to prior or later versions, click on the 
+"Accept this as current" button, or "Cancel" to return to the 
+document as it was before viewing the list of previously 
+remembered versions.
+* The saving of versions in document histories feature utilizes 
+the open source Git program. If the Git program is not already 
+installed on the user's computer (often the case on Windows 
+systems), the Adapt It installer will now offer to download and 
+automatically install Git. A Git download is about 15MB, but 
+only needs to be installed once on a given machine to enable 
+the document history feature within Adapt It. A future version 
+of Adapt It will also employ Git to allow the saving of 
+document histories via a secure Send/Receive function to a 
+secure external server on the Internet. 
+* Starting with version 6.5.0, the save document versions 
+feature requires the user to provide a unique user name and an
+informal user name. The unique username need only be provided
+once, but it can be changed using a new command on the Edit 
+menu "Change user name...". Whatever the user enters as a 
+unique username will be accepted. A full email addess is a good 
+choice if the user has one. Adapt It will NOT use an email
+address for sending any emails from within Adapt It. The 
+informal username should be a human-friendly username. It can 
+be the user's real name, or a false one. Like the unique 
+username the informal username only needs to be entered once, 
+but it too can be changed using the Edit menu's "Change user
+name..." command. The informal username NOT be sent in any 
+emails from within Adapt It. When a send/receive feature and
+a knowledge base sharing feature becomes available in future 
+releases, the username information will be sent, securely, in 
+data going to a Git repository for document history, and/or a 
+shared knowledge base server.
+* Bulk removal of knowledge base entries, and storage of
+entry lists in files. A new button, 
+"Remove Some Entries or Save List..."
+is on every page of the Knowledge Base Editor dialog. Click it
+to see a list of the whole knowledge base (source & translation,
+with the count of how many times the translation has been
+used in the documents so far - a 'reference count'). Two radio
+buttons allow two views of the list; the default is to show
+the source text first, and sort by the source text, but to 
+group all the translations of each source text, in alphabetical
+order, together. The other view puts the translation first, and
+sorts the whole knowledge base by that. Click the checkbox on a
+line to have that line's entry removed (eventually). Ticked boxes
+remain ticked if you change from one view to the other - but
+their locations in the list will change because the lines are
+sorted differently in each view. When the button called
+"Remove the selected entries, and close" is clicked, all the
+entries that were ticked are then removed from the knowledge base.
+Finally, each view can be saved to a file which you can name, and
+have a datetime stamp added to the filename as well. The button
+for this is "Save the list to a file...". The data in the file
+does not show which items you may have ticked at that point.
+The saved file is useful for checking for obsolete entries,
+spelling mistakes, and so forth. The dialog sizes itself to
+the height of the physical screen, minus a little bit, to
+maximize how much can be seen without scrolling. The list
+can be any length. My test data had 14 thousand lines in 
+the list for example.
+----------------------------------------------
+Bug fixes in 6.5.0
+----------------------------------------------
+* Non-stick of phrasebox typing, or truncation of typing, bug. If
+adapting, and the phrasebox contents have just been edited (after
+a File > Save, or auto-save), then when the interlinear layout is 
+updated after the phrase box has moved the adaptation shown at
+the old phrasebox location does not show the edited value expected, 
+but instead shows the adaptation as it was at the time of the 
+Save being done. (Clicking back at the location was a work-around
+for the problem.) This bug has now been fixed.
+* If the user clicked in an unadapted location where there
+was two or more suitable phrasal adaptations in the KB,
+and the Choose Translation dialog opens to display them, if
+he then clicked Cancel or Cancel and Select buttons, the
+application crashed.
+* Collaboration: if a punctuation character (e.g comma, period
+but not quotes) was typed detached from its word, and that
+word and the punctuation was in a merged phrase, trying to
+open the document in collaboration mode caused a crash.
+* Collaboration: Free translation information was not being
+displayed in the dialog for selecting a chapter.
+* Collaboration: a structurally simple document with a 
+chapter marker for chapter 1 followed by no other content but
+a chapter marker for chapter 2 which does have verse content 
+was causing a crash of the application when the user attempted
+to load it for further work in collaboration mode. (It could
+be created, but once closed, would not be openable again.)
+* If a document was manually shortened, the app would crash
+if the phrase box had previously been located within the 
+material omitted in the shorting.
+* Collaboration: if the user were to hold the Shift key down
+while opening a project (to bypass a possibly corrupted
+project configuration file), collaboration settings would be
+lost requiring administrator intervention to setup 
+collaboration again for the project. Now collaboration 
+settings are restored correctly.
+* A backslash typed into a free translation prior to a space
+character, made an export of the free translation go into an
+infinite loop. (This also made trying to open the document
+in collaboration mode hang indefinitely if there was a free 
+translation project being supported within Paratext or 
+Bibledit for that collaboration.)
+* In glossing mode, KB lookup failed to find phrases of two or
+more words, even though in the glossing KB.
+* If AI was in glossing mode, and the user entered free translation
+mode, and clicked in a the phrasebox at an anchor location, the
+box was filled with the adaptation, rather than the gloss.
+* The "To End" and "To Start" buttons carried the old location's
+phrase box contents to the phrasebox at the new location,
+instead of displaying the correct contents at the new location.
+* SIL Converters: The Tools menu "Sil Converters..." item was
+always disabled even when SIL Converters was installed. This
+has been fixed.
 
 ----------------------------------------------
 Version 6.4.3 release 7 June 2013
@@ -24,9 +167,7 @@ string of letters is acceptable). The second text control is to
 add or edit a human-friendly informal name, like "John Smith".
 The dialog also shows itself if one or both names are not set
 at the time that either document history, or sharing of the KB,
-is turned on within any Adapt It project. Once shown, something
-must be in each text control before the dialog will let you
-dismiss it. 
+is turned on within any Adapt It project. 
 * Changed Find when searching in the source text, if it matches 
 the source text at a "hole", it doesn't copy down the source 
 text there to the phrase box. This is safer.
@@ -66,7 +207,7 @@ in it's list associated with that source text key. It's safe now,
 any such bad entries are detected and removed before they can
 do damage to the data loading for the KB Editor.
 * If the Consistency Check... was invoked while one or more
-source text words were selected, it application crashed.
+source text words were selected, the application crashed.
 
 ----------------------------------------------
 Version 6.4.2 release 3 May 2013
