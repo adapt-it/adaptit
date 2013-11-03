@@ -70,6 +70,10 @@ a knowledge base sharing feature becomes available in future
 releases, the username information will be sent, securely, in 
 data going to a Git repository for document history, and/or a 
 shared knowledge base server.
+* Beginning with version 6.5.0 Adapt It cannot be installed
+on old Windows 95 or Windows 98 systems. If you are using one
+of these systems you will need to use Adapt It version 6.4.3
+or earlier.
 * Bulk removal of knowledge base entries, and storage of
 entry lists in files. A new button, 
 "Remove Some Entries or Save List..."
