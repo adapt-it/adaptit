@@ -10015,7 +10015,7 @@ wxSizer *Bulk_Delete_Pairs_Func( wxWindow *parent, bool call_fit, bool set_sizer
 
     item1->Add( item3, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
