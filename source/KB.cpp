@@ -3511,7 +3511,8 @@ CTargetUnit* CKB::GetTargetUnitForKbSharing(wxString keyStr)
 	MapKeyStringToTgtUnit* pMap = m_pMap[nSrcWords-1];
 	wxASSERT(pMap != NULL);
 	CTargetUnit* pTgtUnit;
-	bool bOK = LookupForKbSharing(pMap, pTgtUnit, keyStr);
+	bool bOK = LookupForKbSharing(pMap, pTgtUnit, keyStr); // no autocaps lookup done here,
+					// just a simple Find() in the hash map with an unchanged keyStr
 	if (bOK)
 	{
 		wxASSERT(pTgtUnit);
