@@ -3715,8 +3715,6 @@ public:
 	void OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event);
 	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
-	//void OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event));
-	//void OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event);
 	void OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event)); // whm added 14Feb12
 	void OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event); // whm added 14Feb12
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
@@ -3725,6 +3723,8 @@ public:
 	void OnUpdateHelpForAdministrators(wxUpdateUIEvent& event);
 
 	void OnEditChangeUsername(wxCommandEvent& WXUNUSED(event)); // BEW added 30May13
+	//void OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event);
 
 protected:
 
