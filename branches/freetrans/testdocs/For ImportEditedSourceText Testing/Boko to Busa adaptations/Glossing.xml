@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--
+	 Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file.
+	 Instead, use NotePad or WordPad. -->
+<KB kbVersion="3" max="1" glossingKB="1">
+	<MAP mn="1">
+    <TU f="0" k="Falisiↄ">
+      <RS n="2" a="" df="0"
+      cDT="2012-09-02T12:48:16Z" wC="Ross:ROSS-THINK"/>
+    </TU>
+    <TU f="0" k="sabaiɛ">
+      <RS n="2" a="" df="0"
+      cDT="2012-09-02T12:48:16Z" wC="Ross:ROSS-THINK"/>
+    </TU>
+	</MAP>
+</KB>
