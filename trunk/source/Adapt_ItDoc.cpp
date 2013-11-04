@@ -1495,7 +1495,8 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 
         gpApp->OnEditChangeUsername (dummy);
 
-        if ( gpApp->m_strUserID == NOOWNER )            // did we get a username?
+		// BEW 4Nov13, added 2nd test for empty m_strUserID
+        if ( gpApp->m_strUserID == NOOWNER || gpApp->m_strUserID.IsEmpty()) // did we get a username?
         {                                               // nope - whinge and bail out.
             wxMessageBox (_("No username entered -- owner not changed."));
             gpApp->LogUserAction (_T("No username entered -- owner not changed."));
@@ -1503,8 +1504,17 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
         }
     }
 
-    if (gpApp->m_owner == gpApp->m_strUserID)
-        return;                             // if we're already the owner, there's nothing to do
+    // BEW 4Nov13 added outer test. It was possible to get here with m_bReadOnlyAccess
+    // TRUE, but no username in the config file -- by running 6.4.3 for instance, which
+    // shows doc read only, but my username was already in the doc from earlier runs with
+    // the 6.5.0 code, so after the Username Input dialog allowed me to reset username and
+    // informal name, the unprotected inner test would return control to the caller without
+    // read-only status being removed, hence the need for the outer test
+	if (!gpApp->m_bReadOnlyAccess)
+	{
+		if (gpApp->m_owner == gpApp->m_strUserID)
+			return;                             // if we're already the owner, there's nothing to do
+	}
 
 	gpApp->m_owner = gpApp->m_strUserID;	// force doc's owner to be logged-in user, no matter what
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
@@ -1512,7 +1522,6 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
 
 	gpApp->GetView()->UpdateAppearance();   // get rid of the pink
 }
-
 
 /*	mrh - May 2012.
 	This function is needed for the version control stuff, but might be more generally useful
