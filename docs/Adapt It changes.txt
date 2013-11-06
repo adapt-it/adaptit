@@ -4,6 +4,10 @@ Version 6.5.0 release 29 October 2013
 ----------------------------------------------
 Feature changes and new features in 6.5.0
 ----------------------------------------------
+* The edit field of the Compose Bar now expands to fill the
+width of the Adapt It window. This will allow for users with
+wider screens to enter more text into the field without 
+scrolling.
 * Saving of Document Versions (and Rollback). There are now 
 three new menu items on the File menu that allow the user to:
    (1) Save and remember in history - this feature asks the user 

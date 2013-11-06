@@ -310,127 +310,128 @@ wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *ID_BSH_COMPOSE_LH_BUTTONS;
+wxSizer *ID_BSV_SECTIONS;
+wxSizer *ID_BSH_COMPOSE_RH_BUTTONS;
 wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticLine *item2 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    CComposeBarEditBox *item2 = new CComposeBarEditBox( parent, IDC_EDIT_COMPOSE, wxT(""), wxDefaultPosition, wxSize(200,56), wxTE_MULTILINE );
+    item2->SetToolTip( _("Type text here") );
+    item1->Add( item2, 1, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
+    ID_BSH_COMPOSE_LH_BUTTONS = item3;
 
-    CComposeBarEditBox *item4 = new CComposeBarEditBox( parent, IDC_EDIT_COMPOSE, wxT(""), wxDefaultPosition, wxSize(400,56), wxTE_MULTILINE );
-    item4->SetToolTip( _("Type text here") );
-    item3->Add( item4, 1, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    item3->Add( 5, 20, 0, wxALIGN_CENTER, 0 );
+    wxButton *item5 = new wxButton( parent, IDC_BUTTON_SHORTEN, _("&Shorten"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetToolTip( _("Shorten the span of a free translation") );
+    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
+    item4->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+    wxButton *item6 = new wxButton( parent, IDC_BUTTON_PREV, _("< &Prev"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Jump to the previous free translation") );
+    item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item7 = new wxButton( parent, IDC_BUTTON_SHORTEN, _("&Shorten"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->SetToolTip( _("Shorten the span of a free translation") );
-    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item6->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item8 = new wxButton( parent, IDC_BUTTON_PREV, _("< &Prev"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetToolTip( _("Jump to the previous free translation") );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item8 = new wxButton( parent, IDC_BUTTON_LENGTHEN, _("&Lengthen"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetToolTip( _("Lengthen the span of a free translation") );
+    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 0 );
+    item7->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+    wxButton *item9 = new wxButton( parent, IDC_BUTTON_NEXT, _("&Next >"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetToolTip( _("Jump to the next free translation") );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item10 = new wxButton( parent, IDC_BUTTON_LENGTHEN, _("&Lengthen"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetToolTip( _("Lengthen the span of a free translation") );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item3->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item9->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item11 = new wxButton( parent, IDC_BUTTON_NEXT, _("&Next >"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetToolTip( _("Jump to the next free translation") );
-    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item11 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    item11->SetToolTip( _("Remove free translation") );
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item5->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
+    item10->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+    wxButton *item12 = new wxButton( parent, IDC_BUTTON_APPLY, _("Ad&vance"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetDefault();
+    item12->SetToolTip( _("Jump to the next span needing a free translation") );
+    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item13 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
-    item13->SetToolTip( _("Remove free translation") );
-    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
+    item3->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item12->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
 
-    wxButton *item14 = new wxButton( parent, IDC_BUTTON_APPLY, _("Ad&vance"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetDefault();
-    item14->SetToolTip( _("Jump to the next span needing a free translation") );
-    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticLine *item13 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL );
+    item1->Add( item13, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxTOP|wxBOTTOM, 5 );
 
-    item5->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
+    ID_BSV_SECTIONS = item14;
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticLine *item17 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL );
-    item16->Add( item17, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxStaticText *item17 = new wxStaticText( parent, IDC_STATIC_SECTION_DEF, _("  Define Sections By:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item19 = new wxStaticText( parent, IDC_STATIC_SECTION_DEF, _("  Define Sections By:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
+    item18->Add( 3, 3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_PUNCT_SECTION, _("P&unctuation"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item19->SetToolTip( _("Define free translation spans by punctuation") );
+    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item16->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item16->Add( 20, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
     item20->Add( 3, 3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxRadioButton *item21 = new wxRadioButton( parent, IDC_RADIO_PUNCT_SECTION, _("P&unctuation"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item21->SetToolTip( _("Define free translation spans by punctuation") );
+    wxRadioButton *item21 = new wxRadioButton( parent, IDC_RADIO_VERSE_SECTION, _("V&erse"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Define free translation spans by verse") );
     item20->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item18->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item16->Add( item20, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    item18->Add( 20, 3, 0, wxALIGN_CENTER|wxALL, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxRIGHT, 5 );
+
+    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+    ID_BSH_COMPOSE_RH_BUTTONS = item22;
 
-    item22->Add( 3, 3, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
 
-    wxRadioButton *item23 = new wxRadioButton( parent, IDC_RADIO_VERSE_SECTION, _("V&erse"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Define free translation spans by verse") );
-    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item24 = new wxButton( parent, IDC_BUTTON_CLEAR, _("Clear Contents"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Clear all text from the compose bar") );
+    item23->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item18->Add( item22, 0, wxALIGN_CENTER_VERTICAL, 0 );
+    item23->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item16->Add( item18, 0, wxALIGN_CENTER, 0 );
+    wxButton *item25 = new wxButton( parent, IDC_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Select all of the text in the compose bar") );
+    item23->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER, 0 );
 
-    item5->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
-
-    wxButton *item25 = new wxButton( parent, IDC_BUTTON_CLEAR, _("Clear Contents"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Clear all text from the compose bar") );
-    item24->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item24->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item26 = new wxButton( parent, IDC_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetToolTip( _("Select all of the text in the compose bar") );
-    item24->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item3->Add( item24, 0, wxALIGN_CENTER, 0 );
-
-    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {

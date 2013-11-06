@@ -3592,6 +3592,9 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 	if (gpApp->m_bComposeBarWasAskedForFromViewMenu)
 	{
 		// show the Clear Contents and Select All buttons, hide the rest
+		ID_BSH_COMPOSE_RH_BUTTONS->Show(true);
+		ID_BSV_SECTIONS->Show(false);
+		ID_BSH_COMPOSE_LH_BUTTONS->Show(false);
 		wxButton* pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_APPLY);
 		pButton->Show(FALSE);
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_NEXT);
@@ -3619,6 +3622,9 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 	else
 	{
 		// free translation mode, hide the Clear Contents and Select All buttons, show the rest
+		ID_BSH_COMPOSE_RH_BUTTONS->Show(false);
+		ID_BSV_SECTIONS->Show(true);
+		ID_BSH_COMPOSE_LH_BUTTONS->Show(true);
 		wxButton* pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_CLEAR);
 		pButton->Show(FALSE);
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_SELECT_ALL);
