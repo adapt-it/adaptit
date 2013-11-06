@@ -76,7 +76,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.0"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("October 29, 2013"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("November 13, 2013"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -325,7 +325,7 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     CComposeBarEditBox *item4 = new CComposeBarEditBox( parent, IDC_EDIT_COMPOSE, wxT(""), wxDefaultPosition, wxSize(400,56), wxTE_MULTILINE );
     item4->SetToolTip( _("Type text here") );
-    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 0 );
+    item3->Add( item4, 1, wxALIGN_CENTER|wxALL, 0 );
 
     item3->Add( 5, 20, 0, wxALIGN_CENTER, 0 );
 
