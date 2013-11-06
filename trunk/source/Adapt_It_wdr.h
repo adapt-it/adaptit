@@ -72,15 +72,18 @@ const int IDC_CHECK_ISGLOSSING = 21;
 wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 const int IDC_EDIT_COMPOSE = 22;
+extern wxSizer *ID_BSH_COMPOSE_LH_BUTTONS;
 const int IDC_BUTTON_SHORTEN = 23;
 const int IDC_BUTTON_PREV = 24;
 const int IDC_BUTTON_LENGTHEN = 25;
 const int IDC_BUTTON_NEXT = 26;
 const int IDC_BUTTON_REMOVE = 27;
 const int IDC_BUTTON_APPLY = 28;
+extern wxSizer *ID_BSV_SECTIONS;
 const int IDC_STATIC_SECTION_DEF = 29;
 const int IDC_RADIO_PUNCT_SECTION = 30;
 const int IDC_RADIO_VERSE_SECTION = 31;
+extern wxSizer *ID_BSH_COMPOSE_RH_BUTTONS;
 const int IDC_BUTTON_CLEAR = 32;
 const int IDC_BUTTON_SELECT_ALL = 33;
 wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
