@@ -174,6 +174,16 @@ public:
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
 	//int m_vertEditStepTransBarHeight;
+	
+    // BEW 6Nov13, following block are new, or formerly local and now made to be members -
+    // these are for support of wxTextCtr in ComposeBar which widens or contracts (min
+    // width used to be a fixed 400 pixels) as the frame window is resized, and which uses
+    // as much of the compose bar as possible
+	wxSize m_composeBarSize;
+	//wxSizer* m_pTextBoxSizer;
+	// NOTE it turned out that to get the wxTextCtrl to automatically size as large as
+	// possible, only required that its proportion constant be changed from 0 to 1. Then
+	// works right in compose bar asked from from view menu, or free translation's compose bar
 
 	//wxHtmlHelpController m_help;
 

@@ -299,7 +299,7 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// Size the list to suit the hardware, make it as large as is reasonably 
 	// possible vertically
-	m_pRemoveSomeSizer->ComputeFittingClientSize(this);
+	//m_pRemoveSomeSizer->ComputeFittingClientSize(this);
 	screenHeight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y);
 	
 	this->SetSize(0,1,570,screenHeight - 61); // sets the dialog about 62 pixels

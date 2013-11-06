@@ -1725,11 +1725,11 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// Here and in the OnSize() method, we calculate the canvas' client
 	// size, which also must exclude the height of the composeBar (if shown).
 	// Get and save the native height of our composeBar.
-	wxSize composeBarSize;
-	composeBarSize = m_pComposeBar->GetSize();
-	m_composeBarHeight = composeBarSize.GetHeight();
+	m_composeBarSize = m_pComposeBar->GetSize();
+	m_composeBarHeight = m_composeBarSize.GetHeight();
 	m_pComposeBarEditBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_COMPOSE);
 	wxASSERT(m_pComposeBarEditBox != NULL);
+	//m_pTextBoxSizer = EditCtrlBoxSizerH; // got from the Adapt_It_wdr.cpp & .h files
 
 	// set the font used in the compose bar to the font & size as currently for the target text
 	m_pComposeBarEditBox->SetFont(*pApp->m_pTargetFont);
@@ -3585,10 +3585,17 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 	CPhraseBox* pBox;
 	pApp->GetBasePointers(pDoc,pAppView,pBox);
 
+	// BEW 4Nov13 moved setting of the edit box, pEdit to here, since I want to resize it
+	// and so I don't want to set it instead near end of the function as was the case before
+	// -- actually, this ptr is already in m_pComposeBarEditBox, so use that to set it
+	//wxTextCtrl* pEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_COMPOSE);
+	wxASSERT(m_pComposeBarEditBox);
+	wxTextCtrl* pEdit = m_pComposeBarEditBox;
+
     // depending on which command invoked this code, hide some buttons and show others --
     // there are two buttons shown when invoked from the View menu, and six different
     // buttons shown when invoked from the Advanced menu in order to turn on or off free
-    // translation mode
+    // translation mode (BEW 4Nov13, a 7th button, Adjust... added for free trans mode)
 	if (gpApp->m_bComposeBarWasAskedForFromViewMenu)
 	{
 		// show the Clear Contents and Select All buttons, hide the rest
@@ -3610,6 +3617,12 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 		pRadioButton->Show(FALSE);
 		wxStaticText* pStatic = (wxStaticText*)m_pComposeBar->FindWindowById(IDC_STATIC_SECTION_DEF);
 		pStatic->Show(FALSE);
+		// BEW 4Nov13 added the line, so we can hide it; and the Adjust... buttton, to
+		// hide it too
+		wxStaticLine* pLine = (wxStaticLine*)m_pComposeBar->FindWindowById(ID_LINE);
+		pLine->Show(FALSE);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
+		pButton->Show(FALSE); //hmm, the line won't hide itself, pretty poor show (excuse the pun)
 		// show these two only
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_CLEAR);
 		pButton->Show(TRUE);
@@ -3653,6 +3666,11 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			pRadioButton->SetValue(FALSE);
 		wxStaticText* pStatic = (wxStaticText*)m_pComposeBar->FindWindowById(IDC_STATIC_SECTION_DEF);
 		pStatic->Show(TRUE);
+		// BEW 4Nov13, make sure the line is shown, and also the new Adjust... button
+		wxStaticLine* pLine = (wxStaticLine*)m_pComposeBar->FindWindowById(ID_LINE);
+		pLine->Show(TRUE);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
+		pButton->Show(TRUE);
 	}
 
 	wxView* pView = pApp->GetView();
@@ -3700,7 +3718,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
             // the bar is visible, so set the font - normally m_pComposeFont will preserve
             // the setting, which by default will be based on m_pTargetFont, but when
             // glossing it could be the navText's font instead
-			wxTextCtrl* pEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_COMPOSE);
+			//wxTextCtrl* pEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_COMPOSE);
 
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{

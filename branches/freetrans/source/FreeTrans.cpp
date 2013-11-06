@@ -6120,7 +6120,7 @@ a:	text.Remove(text.Length() - 1,1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// \return             a CString which is the segmented input text (integral number of
+/// \return             a wxString which is the segmented input text (integral number of
 ///                     whole words) that will fit within the passed in extent
 ///
 ///	\param pDC				->	pointer to the device context used for drawing the view
