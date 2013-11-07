@@ -1,15 +1,17 @@
 #! /bin/sh
 
-if ( -x /usr/libexec/path_helper ) then
-        eval `/usr/libexec/path_helper -c`
-endif
+if [ -x /usr/libexec/path_helper ]; then
+    PATH="/opt/local/bin:$PATH";
+    eval `/usr/libexec/path_helper -s`
+fi
 
 # uncomment the commented out lines below for better debugging of this shell script
-set -v on
-set -x on
-echo $PROJECT_DIR
-echo $CONFIGURATION_BUILD_DIR
-echo $PRODUCT_NAME
+# set -v on
+# set -x on
+# echo $PROJECT_DIR
+# echo $CONFIGURATION_BUILD_DIR
+# echo $PRODUCT_NAME
+# echo $PATH
 
 # Set up variables for localization file processing
 poDir="${PROJECT_DIR}/../../po"
@@ -52,7 +54,8 @@ echo Processing Html Help File with zip into
 # If the tempDir exists make sure it is empty; if it doesn't exist create it
 if [ -d "$tempDir" ]
 then
-	rm -r "$tempDir"/*
+	rm -r "$tempDir"
+    mkdir -p "$tempDir"
 else
 	mkdir -p "$tempDir"
 fi
@@ -67,9 +70,13 @@ fi
 # the hlp_temp directory, leaving out the .svn dirs and other stuff specified
 # in the excludeFiles file.
 cd "$hlpDir"
-gnutar -czf "$tarFile" * -X "$excludeFiles"
+# edb 7 Nov 2013 - replace gnutar with tar -- gnutar complaining of broken pipes
+# under mavericks.
+#gnutar -czf "$tarFile" * -X "$excludeFiles"
+tar -X "$excludeFiles" -czf "$tarFile" *
 cd "$tempDir"
-gnutar -xzvf "$tarFile"
+#gnutar -xzvf "$tarFile"
+tar -xzvf "$tarFile"
 rm "$tarFile"
 
 # Now zip the present contents of hlpDir excluding the hidden .svn dirs
