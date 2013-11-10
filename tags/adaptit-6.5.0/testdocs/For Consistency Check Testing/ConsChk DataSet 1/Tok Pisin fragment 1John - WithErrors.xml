@@ -1,0 +1,637 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--
+	 Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file.
+	 Instead, use NotePad or WordPad. -->
+<AdaptItDoc>
+	<Settings docVersion="8" bookName="" owner="****" commitcnt="****" revdate="" actseqnum="0" sizex="922" sizey="942" ftsbp="1" specialcolor="255"
+	retranscolor="20640" navcolor="23296" curchap="2:" srcname="TPI" tgtname="Eng" srccode="tpi" tgtcode="en"
+	others="@#@#:F:-1:1:\_src_lang_interlinear \_intro_base \_table_grid \_footer \_small_para_break \_gls_lang_interlinear \_hdr_ftr_interlinear \_vernacular_base \_peripherals_base \r \_dft_para_font \_notes_base \__normal \_single_boxed_para \_hidden_note \_annotation_ref \_unknown_char_style \_nav_lang_interlinear \free \_body_text \h \note \_footnote_caller \_double_boxed_para \_annotation_text \_unknown_para_style \_heading_base \_normal_table \_tgt_lang_interlinear \_header \bt \_horiz_rule \_list_base ::"/>
+  <S s="1JN" k="1JN" t="1JN" a="1JN"
+  f="0000000000000000011001" sn="0" w="1" ty="11"
+  i="id"
+  m="\id ">
+  </S>
+  <S s="1" k="1" t="1" a="1"
+  f="0000000000000000001001" sn="1" w="1" ty="11">
+  </S>
+  <S s="John" k="John" t="John" a="John"
+  f="0000000000000000001001" sn="2" w="1" ty="11">
+  </S>
+  <S s="Tok" k="Tok" t="Tok" a="Tok"
+  f="0000000000000000001001" sn="3" w="1" ty="11">
+  </S>
+  <S s="Pisin," k="Pisin" t="Pisin," a="Pisin"
+  f="0000000000000000001010" sn="4" w="1" ty="11"
+  fp=",">
+  </S>
+  <S s="fragment" k="fragment" t="fragment" a="fragment"
+  f="0000000000000000001000" sn="5" w="1" ty="11">
+  </S>
+  <S s="chapter" k="chapter" t="chapter" a="chapter"
+  f="0000000000000000001001" sn="6" w="1" ty="11">
+  </S>
+  <S s="2:12" k="2:12" t="2:12" a="2:12"
+  f="0000000000000000001001" sn="7" w="1" ty="11">
+  </S>
+  <S s="-" k="-" t="-" a="-"
+  f="0000000000000000001001" sn="8" w="1" ty="11">
+  </S>
+  <S s="2:14" k="2:14" t="2:14" a="2:14"
+  f="0000000000000000101001" sn="9" w="1" ty="11">
+  </S>
+  <S s="Yupela liklik pikinini bilong mi," k="Yupela liklik pikinini bilong mi" t="My little children," a="My little children"
+  f="0000011000000000010001" sn="10" w="5" ty="1"
+  fp="," c="2:12"
+  m="\c 2 \v 12 ">
+    <S s="Yupela" k="Yupela"
+    f="0000011000000000010000" sn="10" w="1" ty="1"
+    c="2:12"
+    m="\c 2 \v 12 ">
+    </S>
+    <S s="liklik" k="liklik"
+    f="0000000000000000000000" sn="11" w="1" ty="1">
+    </S>
+    <S s="pikinini" k="pikinini"
+    f="0000000000000000000000" sn="12" w="1" ty="1">
+    </S>
+    <S s="bilong" k="bilong"
+    f="0000000000000000000000" sn="13" w="1" ty="1">
+    </S>
+    <S s="mi," k="mi"
+    f="0000000000000000000000" sn="14" w="1" ty="1"
+    fp=",">
+    </S>
+  </S>
+  <S s="long" k="long" t="in the" a="in the"
+  f="0000000000000000000001" sn="11" w="1" ty="1">
+  </S>
+  <S s="nem" k="nem" t="name" a="name"
+  f="0000000000000000000001" sn="12" w="1" ty="1">
+  </S>
+  <S s="bilong" k="bilong" t="of" a="of"
+  f="0000000000000000000001" sn="13" w="1" ty="1">
+  </S>
+  <S s="Krais" k="Krais" t="Christ" a="Christ"
+  f="0000000000000000000001" sn="14" w="1" ty="1">
+  </S>
+  <S s="God" k="God" t="God" a="God"
+  f="0000000000000000000001" sn="15" w="1" ty="1">
+  </S>
+  <S s="i lusim pinis" k="i lusim pinis" t="has removed" a="has removed"
+  f="0000000000000000000001" sn="16" w="3" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="16" w="1" ty="1">
+    </S>
+    <S s="lusim" k="lusim"
+    f="0000000000000000000000" sn="17" w="1" ty="1">
+    </S>
+    <S s="pinis" k="pinis"
+    f="0000000000000000000000" sn="18" w="1" ty="1">
+    </S>
+  </S>
+  <S s="ol sin bilong yupela." k="ol sin bilong yupela" t="your sins." a="your sins"
+  f="0000000000000000100001" sn="17" w="4" ty="1"
+  fp=".">
+    <S s="ol" k="ol"
+    f="0000000000000000000000" sn="17" w="1" ty="1">
+    </S>
+    <S s="sin" k="sin"
+    f="0000000000000000000000" sn="18" w="1" ty="1">
+    </S>
+    <S s="bilong" k="bilong"
+    f="0000000000000000000000" sn="19" w="1" ty="1">
+    </S>
+    <S s="yupela." k="yupela"
+    f="0000000000000000100000" sn="20" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Olsem na" k="Olsem na" t="Therefore" a="Therefore"
+  f="0000000000000000000001" sn="18" w="2" ty="1">
+    <S s="Olsem" k="Olsem"
+    f="0000000000000000000000" sn="18" w="1" ty="1">
+    </S>
+    <S s="na" k="na"
+    f="0000000000000000000000" sn="19" w="1" ty="1">
+    </S>
+  </S>
+  <S s="mi" k="mi"
+  f="0000000000000000000001" sn="19" w="1" ty="1">
+  </S>
+  <S s="raitim" k="raitim" t="am writing" a="am writing"
+  f="0000000000000000000001" sn="20" w="1" ty="1">
+  </S>
+  <S s="dispela" k="dispela"
+  f="0000000000000000000001" sn="21" w="1" ty="1">
+  </S>
+  <S s="tok" k="tok" t="message" a="message"
+  f="0000000000000000000001" sn="22" w="1" ty="1">
+  </S>
+  <S s="long yupela." k="long yupela"
+  f="0000000000000000100001" sn="23" w="2" ty="1"
+  fp=".">
+    <S s="long" k="long" t="to the" a="to the"
+    f="0000000000000000000000" sn="23" w="1" ty="1">
+    </S>
+    <S s="yupela." k="yupela"
+    f="0000000000000000100000" sn="24" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Yupela ol papa," k="Yupela ol papa" t="Fathers," a="Fathers"
+  f="0000010000000000010001" sn="24" w="3" ty="1"
+  fp="," c="2:13"
+  m="\p \v 13 ">
+    <S s="Yupela" k="Yupela"
+    f="0000010000000000010000" sn="24" w="1" ty="1"
+    c="2:13"
+    m="\p \v 13 ">
+    </S>
+    <S s="ol" k="ol"
+    f="0000000000000000000000" sn="25" w="1" ty="1">
+    </S>
+    <S s="papa," k="papa"
+    f="0000000000000000000000" sn="26" w="1" ty="1"
+    fp=",">
+    </S>
+  </S>
+  <S s="yupela" k="yupela"
+  f="0000000000000000000001" sn="25" w="1" ty="1">
+  </S>
+  <S s="i save gut" k="i save gut" t="know much" a="know much"
+  f="0000000000000000000001" sn="26" w="3" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="26" w="1" ty="1">
+    </S>
+    <S s="save" k="save"
+    f="0000000000000000000000" sn="27" w="1" ty="1">
+    </S>
+    <S s="gut" k="gut"
+    f="0000000000000000000000" sn="28" w="1" ty="1">
+    </S>
+  </S>
+  <S s="long" k="long" t="about" a="about"
+  f="0000000000000000000001" sn="27" w="1" ty="1">
+  </S>
+  <S s="dispela" k="dispela" t="this" a="this"
+  f="0000000000000000000001" sn="28" w="1" ty="1">
+  </S>
+  <S s="man" k="man" t="man" a="man"
+  f="0000000000000000000001" sn="29" w="1" ty="1">
+  </S>
+  <S s="..." k="..." t="who" a="who"
+  f="0000000000000001000001" sn="30" w="1" ty="1">
+  </S>
+  <S s="i stap" k="i stap" t="existed" a="existed"
+  f="0000000000000000000001" sn="31" w="2" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="31" w="1" ty="1">
+    </S>
+    <S s="stap" k="stap"
+    f="0000000000000000000000" sn="32" w="1" ty="1">
+    </S>
+  </S>
+  <S s="bipo tru" k="bipo tru" t="long ago" a="long ago"
+  f="0000000000000000000001" sn="32" w="2" ty="1">
+    <S s="bipo" k="bipo"
+    f="0000000000000000000000" sn="32" w="1" ty="1">
+    </S>
+    <S s="tru" k="tru"
+    f="0000000000000000000000" sn="33" w="1" ty="1">
+    </S>
+  </S>
+  <S s="na" k="na" t="and" a="and"
+  f="0000000000000000000001" sn="33" w="1" ty="1">
+  </S>
+  <S s="i stap" k="i stap" t="is living" a="is living"
+  f="0000000000000000000001" sn="34" w="2" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="34" w="1" ty="1">
+    </S>
+    <S s="stap" k="stap"
+    f="0000000000000000000000" sn="35" w="1" ty="1">
+    </S>
+  </S>
+  <S s="yet." k="yet" t="still." a="still"
+  f="0000000000000000100001" sn="35" w="1" ty="1"
+  fp=".">
+  </S>
+  <S s="Olsem na" k="Olsem na" t="Therefore" a="Therefore"
+  f="0000000000000000000001" sn="36" w="2" ty="1">
+    <S s="Olsem" k="Olsem"
+    f="0000000000000000000000" sn="36" w="1" ty="1">
+    </S>
+    <S s="na" k="na"
+    f="0000000000000000000000" sn="37" w="1" ty="1">
+    </S>
+  </S>
+  <S s="mi" k="mi"
+  f="0000000000000000000001" sn="37" w="1" ty="1">
+  </S>
+  <S s="raitim" k="raitim" t="am writing" a="am writing"
+  f="0000000000000000000001" sn="38" w="1" ty="1">
+  </S>
+  <S s="dispela" k="dispela" t="this" a="this"
+  f="0000000000000000000001" sn="39" w="1" ty="1">
+  </S>
+  <S s="tok" k="tok" t="message" a="message"
+  f="0000000000000000000001" sn="40" w="1" ty="1">
+  </S>
+  <S s="long yupela." k="long yupela" t="to you." a="to you"
+  f="0000000000000000100001" sn="41" w="2" ty="1"
+  fp=".">
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="41" w="1" ty="1">
+    </S>
+    <S s="yupela." k="yupela"
+    f="0000000000000000100000" sn="42" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Yupela yangpela man," k="Yupela yangpela man" t="Young men," a="Young men"
+  f="0000000000000000010001" sn="42" w="3" ty="1"
+  fp="," i="paragraph"
+  m="\p ">
+    <S s="Yupela" k="Yupela" t="You" a="You"
+    f="0000000000000000010000" sn="42" w="1" ty="1"
+    i="paragraph"
+    m="\p ">
+    </S>
+    <S s="yangpela" k="yangpela"
+    f="0000000000000000000000" sn="43" w="1" ty="1">
+    </S>
+    <S s="man," k="man"
+    f="0000000000000000000000" sn="44" w="1" ty="1"
+    fp=",">
+    </S>
+  </S>
+  <S s="yupela" k="yupela" t="you" a="you"
+  f="0000000000000000000001" sn="43" w="1" ty="1">
+  </S>
+  <S s="i winim Satan pinis." k="i winim Satan pinis" t="have defeated Satan." a="have defeated Satan"
+  f="0000000000000000100001" sn="44" w="4" ty="1"
+  fp=".">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="44" w="1" ty="1">
+    </S>
+    <S s="winim" k="winim"
+    f="0000000000000000000000" sn="45" w="1" ty="1">
+    </S>
+    <S s="Satan" k="Satan"
+    f="0000000000000000000000" sn="46" w="1" ty="1">
+    </S>
+    <S s="pinis." k="pinis"
+    f="0000000000000000100000" sn="47" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Olsem na" k="Olsem na" t="Therefore" a="Therefore"
+  f="0000000000000000000001" sn="45" w="2" ty="1">
+    <S s="Olsem" k="Olsem"
+    f="0000000000000000000000" sn="45" w="1" ty="1">
+    </S>
+    <S s="na" k="na"
+    f="0000000000000000000000" sn="46" w="1" ty="1">
+    </S>
+  </S>
+  <S s="mi" k="mi" t="I" a="I"
+  f="0000000000000000000001" sn="46" w="1" ty="1">
+  </S>
+  <S s="raitim" k="raitim" t="am writing" a="am writing"
+  f="0000000000000000000001" sn="47" w="1" ty="1">
+  </S>
+  <S s="dispela" k="dispela" t="this" a="this"
+  f="0000000000000000000001" sn="48" w="1" ty="1">
+  </S>
+  <S s="tok" k="tok" t="message" a="message"
+  f="0000000000000000000001" sn="49" w="1" ty="1">
+  </S>
+  <S s="long yupela." k="long yupela" t="to you." a="to you"
+  f="0000000000000000100001" sn="50" w="2" ty="1"
+  fp=".">
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="50" w="1" ty="1">
+    </S>
+    <S s="yupela." k="yupela"
+    f="0000000000000000100000" sn="51" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Yupela ol pikinini," k="Yupela ol pikinini" t="Children," a="Children"
+  f="0000010000000000010001" sn="51" w="3" ty="1"
+  fp="," c="2:14"
+  m="\p \v 14 ">
+    <S s="Yupela" k="Yupela" t="You" a="You"
+    f="0000010000000000010000" sn="51" w="1" ty="1"
+    c="2:14"
+    m="\p \v 14 ">
+    </S>
+    <S s="ol" k="ol"
+    f="0000000000000000000000" sn="52" w="1" ty="1">
+    </S>
+    <S s="pikinini," k="pikinini"
+    f="0000000000000000000000" sn="53" w="1" ty="1"
+    fp=",">
+    </S>
+  </S>
+  <S s="yupela" k="yupela" t="you" a="you"
+  f="0000000000000000000001" sn="52" w="1" ty="1">
+  </S>
+  <S s="i save gut" k="i save gut" t="know much" a="know much"
+  f="0000000000000000000001" sn="53" w="3" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="53" w="1" ty="1">
+    </S>
+    <S s="save" k="save"
+    f="0000000000000000000000" sn="54" w="1" ty="1">
+    </S>
+    <S s="gut" k="gut"
+    f="0000000000000000000000" sn="55" w="1" ty="1">
+    </S>
+  </S>
+  <S s="long Papa." k="long Papa" t="about the Father." a="about the Father"
+  f="0000000000000000100001" sn="54" w="2" ty="1"
+  fp=".">
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="54" w="1" ty="1">
+    </S>
+    <S s="Papa." k="Papa"
+    f="0000000000000000100000" sn="55" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Olsem na" k="Olsem na" t="Therefore" a="Therefore"
+  f="0000000000000000000001" sn="55" w="2" ty="1">
+    <S s="Olsem" k="Olsem"
+    f="0000000000000000000000" sn="55" w="1" ty="1">
+    </S>
+    <S s="na" k="na"
+    f="0000000000000000000000" sn="56" w="1" ty="1">
+    </S>
+  </S>
+  <S s="mi" k="mi"
+  f="0000000000000000000001" sn="56" w="1" ty="1">
+  </S>
+  <S s="raitim" k="raitim" t="am writing" a="am writing"
+  f="0000000000000000000001" sn="57" w="1" ty="1">
+  </S>
+  <S s="dispela" k="dispela" t="this" a="this"
+  f="0000000000000000000001" sn="58" w="1" ty="1">
+  </S>
+  <S s="tok" k="tok" t="message" a="message"
+  f="0000000000000000000001" sn="59" w="1" ty="1">
+  </S>
+  <S s="long yupela." k="long yupela" t="to you." a="to you"
+  f="0000000000000000100001" sn="60" w="2" ty="1"
+  fp=".">
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="60" w="1" ty="1">
+    </S>
+    <S s="yupela." k="yupela"
+    f="0000000000000000100000" sn="61" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Yupela ol papa," k="Yupela ol papa" t="Fathers," a="Fathers"
+  f="0000000000000000010001" sn="61" w="3" ty="1"
+  fp="," i="paragraph"
+  m="\p ">
+    <S s="Yupela" k="Yupela"
+    f="0000000000000000010000" sn="61" w="1" ty="1"
+    i="paragraph"
+    m="\p ">
+    </S>
+    <S s="ol" k="ol"
+    f="0000000000000000000000" sn="62" w="1" ty="1">
+    </S>
+    <S s="papa," k="papa"
+    f="0000000000000000000000" sn="63" w="1" ty="1"
+    fp=",">
+    </S>
+  </S>
+  <S s="yupela" k="yupela" t="you" a="you"
+  f="0000000000000000000001" sn="62" w="1" ty="1">
+  </S>
+  <S s="i save gut" k="i save gut" t="know much" a="know much"
+  f="0000000000000000000001" sn="63" w="3" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="63" w="1" ty="1">
+    </S>
+    <S s="save" k="save"
+    f="0000000000000000000000" sn="64" w="1" ty="1">
+    </S>
+    <S s="gut" k="gut"
+    f="0000000000000000000000" sn="65" w="1" ty="1">
+    </S>
+  </S>
+  <S s="long dispela man" k="long dispela man" t="about this man" a="about this man"
+  f="0000000000000000000001" sn="64" w="3" ty="1">
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="64" w="1" ty="1">
+    </S>
+    <S s="dispela" k="dispela"
+    f="0000000000000000000000" sn="65" w="1" ty="1">
+    </S>
+    <S s="man" k="man"
+    f="0000000000000000000000" sn="66" w="1" ty="1">
+    </S>
+  </S>
+  <S s="..." k="..." t="who" a="who"
+  f="0000000000000001000001" sn="65" w="1" ty="1">
+  </S>
+  <S s="i stap" k="i stap" t="existed" a="existed"
+  f="0000000000000000000001" sn="66" w="2" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="66" w="1" ty="1">
+    </S>
+    <S s="stap" k="stap"
+    f="0000000000000000000000" sn="67" w="1" ty="1">
+    </S>
+  </S>
+  <S s="bipo tru" k="bipo tru" t="long ago" a="long ago"
+  f="0000000000000000000001" sn="67" w="2" ty="1">
+    <S s="bipo" k="bipo"
+    f="0000000000000000000000" sn="67" w="1" ty="1">
+    </S>
+    <S s="tru" k="tru"
+    f="0000000000000000000000" sn="68" w="1" ty="1">
+    </S>
+  </S>
+  <S s="na" k="na" t="and" a="and"
+  f="0000000000000000000001" sn="68" w="1" ty="1">
+  </S>
+  <S s="i stap" k="i stap" t="is living" a="is living"
+  f="0000000000000000000001" sn="69" w="2" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="69" w="1" ty="1">
+    </S>
+    <S s="stap" k="stap"
+    f="0000000000000000000000" sn="70" w="1" ty="1">
+    </S>
+  </S>
+  <S s="yet." k="yet" t="still." a="still"
+  f="0000000000000000100001" sn="70" w="1" ty="1"
+  fp=".">
+  </S>
+  <S s="Olsem na" k="Olsem na" t="Therefore" a="Therefore"
+  f="0000000000000000000001" sn="71" w="2" ty="1">
+    <S s="Olsem" k="Olsem"
+    f="0000000000000000000000" sn="71" w="1" ty="1">
+    </S>
+    <S s="na" k="na"
+    f="0000000000000000000000" sn="72" w="1" ty="1">
+    </S>
+  </S>
+  <S s="mi" k="mi" t="I" a="I"
+  f="0000000000000000000001" sn="72" w="1" ty="1">
+  </S>
+  <S s="raitim" k="raitim" t="am writing" a="am writing"
+  f="0000000000000000000001" sn="73" w="1" ty="1">
+  </S>
+  <S s="dispela" k="dispela" t="this" a="this"
+  f="0000000000000000000001" sn="74" w="1" ty="1">
+  </S>
+  <S s="tok" k="tok" t="message" a="message"
+  f="0000000000000000000001" sn="75" w="1" ty="1">
+  </S>
+  <S s="long yupela." k="long yupela" t="to you." a="to you"
+  f="0000000000000000100001" sn="76" w="2" ty="1"
+  fp=".">
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="76" w="1" ty="1">
+    </S>
+    <S s="yupela." k="yupela"
+    f="0000000000000000100000" sn="77" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Yupela yangpela man," k="Yupela yangpela man" t="Young men," a="Young men"
+  f="0000000000000000010001" sn="77" w="3" ty="1"
+  fp="," i="paragraph"
+  m="\p ">
+    <S s="Yupela" k="Yupela"
+    f="0000000000000000010000" sn="77" w="1" ty="1"
+    i="paragraph"
+    m="\p ">
+    </S>
+    <S s="yangpela" k="yangpela"
+    f="0000000000000000000000" sn="78" w="1" ty="1">
+    </S>
+    <S s="man," k="man"
+    f="0000000000000000000000" sn="79" w="1" ty="1"
+    fp=",">
+    </S>
+  </S>
+  <S s="yupela" k="yupela" t="you" a="you"
+  f="0000000000000000000001" sn="78" w="1" ty="1">
+  </S>
+  <S s="i gat strong," k="i gat strong" t="are strong," a="are strong"
+  f="0000000000000000000001" sn="79" w="3" ty="1"
+  fp=",">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="79" w="1" ty="1">
+    </S>
+    <S s="gat" k="gat"
+    f="0000000000000000000000" sn="80" w="1" ty="1">
+    </S>
+    <S s="strong," k="strong"
+    f="0000000000000000000000" sn="81" w="1" ty="1"
+    fp=",">
+    </S>
+  </S>
+  <S s="na" k="na" t="and" a="and"
+  f="0000000000000000000001" sn="80" w="1" ty="1">
+  </S>
+  <S s="tok bilong God" k="tok bilong God" t="the word of God" a="the word of God"
+  f="0000000000000000000001" sn="81" w="3" ty="1">
+    <S s="tok" k="tok" t="message" a="message"
+    f="0000000000000000000000" sn="81" w="1" ty="1">
+    </S>
+    <S s="bilong" k="bilong" t="of" a="of"
+    f="0000000000000000000000" sn="82" w="1" ty="1">
+    </S>
+    <S s="God" k="God" t="God" a="God"
+    f="0000000000000000000000" sn="83" w="1" ty="1">
+    </S>
+  </S>
+  <S s="i stap" k="i stap" t="remains" a="remains"
+  f="0000000000000000000001" sn="82" w="2" ty="1">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="84" w="1" ty="1">
+    </S>
+    <S s="stap" k="stap"
+    f="0000000000000000000000" sn="85" w="1" ty="1">
+    </S>
+  </S>
+  <S s="strong" k="strong" t="strong" a="strong"
+  f="0000000000000000000001" sn="83" w="1" ty="1">
+  </S>
+  <S s="insait long" k="insait long" t="within" a="within"
+  f="0000000000000000000001" sn="84" w="2" ty="1">
+    <S s="insait" k="insait"
+    f="0000000000000000000000" sn="84" w="1" ty="1">
+    </S>
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="85" w="1" ty="1">
+    </S>
+  </S>
+  <S s="yupela," k="yupela" t="you," a="you"
+  f="0000000000000000000001" sn="85" w="1" ty="1"
+  fp=",">
+  </S>
+  <S s="na" k="na" t="and" a="and"
+  f="0000000000000000000001" sn="86" w="1" ty="1">
+  </S>
+  <S s="yupela" k="yupela" t="you" a="you"
+  f="0000000000000000000001" sn="87" w="1" ty="1">
+  </S>
+  <S s="i winim Satan pinis." k="i winim Satan pinis" t="have defeated Satan." a="have defeated Satan"
+  f="0000000000000000100001" sn="88" w="4" ty="1"
+  fp=".">
+    <S s="i" k="i"
+    f="0000000000000000000000" sn="88" w="1" ty="1">
+    </S>
+    <S s="winim" k="winim"
+    f="0000000000000000000000" sn="89" w="1" ty="1">
+    </S>
+    <S s="Satan" k="Satan"
+    f="0000000000000000000000" sn="90" w="1" ty="1">
+    </S>
+    <S s="pinis." k="pinis"
+    f="0000000000000000100000" sn="91" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+  <S s="Olsem na" k="Olsem na" t="Therefore" a="Therefore"
+  f="0000000000000000000001" sn="89" w="2" ty="1">
+    <S s="Olsem" k="Olsem"
+    f="0000000000000000000000" sn="89" w="1" ty="1">
+    </S>
+    <S s="na" k="na"
+    f="0000000000000000000000" sn="90" w="1" ty="1">
+    </S>
+  </S>
+  <S s="mi" k="mi" t="I" a="I"
+  f="0000000000000000000001" sn="90" w="1" ty="1">
+  </S>
+  <S s="raitim" k="raitim" t="am writing" a="am writing"
+  f="0000000000000000000001" sn="91" w="1" ty="1">
+  </S>
+  <S s="dispela" k="dispela" t="this" a="this"
+  f="0000000000000000000001" sn="92" w="1" ty="1">
+  </S>
+  <S s="tok" k="tok" t="message" a="message"
+  f="0000000000000000000001" sn="93" w="1" ty="1">
+  </S>
+  <S s="long yupela." k="long yupela" t="to you." a="to you"
+  f="0000000000000000100001" sn="94" w="2" ty="1"
+  fp=".">
+    <S s="long" k="long"
+    f="0000000000000000000000" sn="94" w="1" ty="1">
+    </S>
+    <S s="yupela." k="yupela"
+    f="0000000000000000100000" sn="95" w="1" ty="1"
+    fp=".">
+    </S>
+  </S>
+</AdaptItDoc>
