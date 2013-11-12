@@ -132,12 +132,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 
 If NOT DEFINED WXWIN goto buildEventFailed
 If NOT DEFINED WXVER goto buildEventFailed
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
 goto buildEventOK
 :buildEventFailed
@@ -147,7 +150,8 @@ echo *** Pre-Build event for $(ProjectName) FAILED
 echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
 echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
 echo *** For example:
-echo ***    If WXWIN is set to "c:\wxWidgets-2.9.4" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-3.0.0" then WXVER should be set to 30
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.5" then WXVER should be set to 29
 echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
 echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
 exit 1
@@ -158,6 +162,7 @@ echo ***    Use either the Unicode Debug or Unicode Release build configurations
 exit 1
 :buildEventOK
 echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+echo Building against build of WxWidgets found in %25WXWIN%25.
 
 </Command>
     </PreBuildEvent>
@@ -249,12 +254,15 @@ copy "..\..\po\default.po" "Debug\Languages\default.po"
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <PreBuildEvent>
-      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
 
 If NOT DEFINED WXWIN goto buildEventFailed
 If NOT DEFINED WXVER goto buildEventFailed
-If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
 If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
 goto buildEventOK
 :buildEventFailed
@@ -264,7 +272,8 @@ echo *** Pre-Build event for $(ProjectName) FAILED
 echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
 echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
 echo *** For example:
-echo ***    If WXWIN is set to "c:\wxWidgets-2.9.4" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-3.0.0" then WXVER should be set to 30
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.5" then WXVER should be set to 29
 echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
 echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
 exit 1
@@ -275,6 +284,7 @@ echo ***    Use either the Unicode Debug or Unicode Release build configurations
 exit 1
 :buildEventOK
 echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+echo Building against build of WxWidgets found in %25WXWIN%25.
 
 </Command>
     </PreBuildEvent>
