@@ -260,7 +260,7 @@
   -->
   <target name="compile_msi_ansi" description="compile the ansi msi installer" >
 	<!-- set the appropriate environment variables -->
-	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build the regular (ANSI) msi installer -->
 	<!--
     <exec executable="MSBuild.exe" failonerror="yes">
@@ -302,16 +302,15 @@
   - compile_3pt_ansi target
   - compiles wxwidgets in ANSI release mode.
   -->
-  <target name="compile_3pt_ansi" depends="init"
+  <target name="compile_3pt_ansi" depends="init-3pt"
         description="compile wxWidgets ansi (release only) " >
 	<!-- set the appropriate environment variables -->
-	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
- 	<!--  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_05.sln" /> -->
- 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_05.sln" />
+ 	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
     </exec>
   </target>
   
@@ -322,7 +321,7 @@
   <target name="compile_release" depends="init"
         description="compile the source " >
 	<!-- set the appropriate environment variables -->
-	<exec executable="${env.VS80COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
 	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
@@ -335,7 +334,7 @@
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<arg value="${root}/bin/win32/Adapt_It_vs05.sln" />
+		<arg value="${root}/bin/win32/Adapt_It_vs08.sln" />
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Release" />
     </exec>
