@@ -1575,7 +1575,7 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 		curPileCount_for_strip = pStrip->GetPileCount();
 		curStripIndex = pStrip->GetStripIndex();
 		curPileIndex_in_strip = pPile->GetPileIndex();
-		pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
+		pElement = new FreeTrElement; // this struct is defined in FreeTrans.h
 		pElement->nStripIndex = curStripIndex;
 		rect = pStrip->GetFreeTransRect(); // start with the full rectangle,
 										   // and reduce as required below
@@ -2930,14 +2930,11 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 ///	It does either one or two passes. A second pass is tried, with tighter fitting of data
 ///	to available space, if the first pass does not fit it all in.
 ///
-/// whm: With its six jump labels, and thirteen gotos, the logic of this function is very
-/// convoluted and difficult to follow - BEWARE!
-///   TODO: Rewrite with simpler logic!
 /// whm added additional parameters on 24Aug06 and later on 31May07
 /// BEW 19Feb10, updated for support of doc version 5 (one change, elimination of
 /// GetExistingMarkerContent() call by making GetFreeTrans() call)
 /// BEW 9July10, no changes needed for support of kbVersion 2
-/// BEW refactored 4Oct11, cloned off of DrawFreeTranslations() and simplified and gotos
+/// BEW refactored 4Oct11, cloned off of DrawFreeTranslations() and simplified, and gotos
 /// removed. It "blicks" at every keystroke - at first I thought it was the
 /// ScrollIntoView() calls I put in, but not so. So one day it needs some attention to set
 /// up clipping rect but I've no time at present.
@@ -3186,7 +3183,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				// whether we make the right boundary of rect be the end of the pile's
 				// rectangle, or let it be the remainder of the strip's free translation
 				// rectangle, depends on whether or not this pile is the last in the strip -
-				// found out, and set the .right parameter accordingly
+				// find out and set the .right parameter accordingly
 				if (curPileIndex == curPileCount - 1)
 				{
 					// last pile in the strip, so use the full width (so no change to

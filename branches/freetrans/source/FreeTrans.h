@@ -40,7 +40,7 @@ class SPArray;
 /// BEW 2Oct11, added int nStripIndex so as to store the index to the owning strip which
 /// this particular subRect is associated with. DrawFreeTranslations() won't use it,
 /// because that can safely draw outside the view's client area and not mess anything up
-/// visually, but DrawFreeTranslationsForPrinting() needs it, because if a free
+/// visually, but DrawFreeTranslationsForPrinting() needs it, because if a free translation
 /// starts in the last strip to be shown on a given page, we don't want free translation
 /// data which should be on the next page being printed at the bottom of the current paper
 /// sheet - so the latter function will use the value to test for when the rectangle
