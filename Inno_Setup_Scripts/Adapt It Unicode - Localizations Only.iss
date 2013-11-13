@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.5.0"
+#define MyAppVersion "6.5.1"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -30,14 +30,14 @@ SolidCompression=true
 OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2013 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.5.0
+VersionInfoProductVersion=6.5.1
 WizardImageFile="{#SvnBase}\res\ai_wiz_bg.bmp"
 WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2013 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.5.0
+VersionInfoVersion=6.5.1
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
