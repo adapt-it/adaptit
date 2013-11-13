@@ -1,9 +1,13 @@
 ----------------------------------------------
-Version 6.5.0 release 29 October 2013
+Version 6.5.1 release 13 November 2013
 ----------------------------------------------
 ----------------------------------------------
-Feature changes and new features in 6.5.0
+Feature changes and new features in 6.5.1
 ----------------------------------------------
+* The edit field of the Compose Bar now expands to fill the
+width of the Adapt It window. This will allow for users with
+wider screens to enter more text into the field without 
+scrolling.
 * Saving of Document Versions (and Rollback). There are now 
 three new menu items on the File menu that allow the user to:
    (1) Save and remember in history - this feature asks the user 
@@ -52,7 +56,7 @@ the document history feature within Adapt It. A future version
 of Adapt It will also employ Git to allow the saving of 
 document histories via a secure Send/Receive function to a 
 secure external server on the Internet. 
-* Starting with version 6.5.0, the save document versions 
+* Starting with version 6.5.1, the save document versions 
 feature requires the user to provide a unique user name and an
 informal user name. The unique username need only be provided
 once, but it can be changed using a new command on the Edit 
@@ -70,6 +74,10 @@ a knowledge base sharing feature becomes available in future
 releases, the username information will be sent, securely, in 
 data going to a Git repository for document history, and/or a 
 shared knowledge base server.
+* Beginning with version 6.5.1 Adapt It cannot be installed
+on old Windows 95 or Windows 98 systems. If you are using one
+of these systems you will need to use Adapt It version 6.4.3
+or earlier.
 * Bulk removal of knowledge base entries, and storage of
 entry lists in files. A new button, 
 "Remove Some Entries or Save List..."
@@ -99,8 +107,11 @@ maximize how much can be seen without scrolling. The list
 can be any length. My test data had 14 thousand lines in 
 the list for example.
 ----------------------------------------------
-Bug fixes in 6.5.0
+Bug fixes in 6.5.1
 ----------------------------------------------
+* If the "all files" option was taken when doing a Consistency
+Check, the first document to be checked wrongly got the open
+document inserted at its start.
 * Non-stick of phrasebox typing, or truncation of typing, bug. If
 adapting, and the phrasebox contents have just been edited (after
 a File > Save, or auto-save), then when the interlinear layout is 

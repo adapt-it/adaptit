@@ -1,4 +1,4 @@
-Limitations and known issues in the version 6.5.0 release 
+Limitations and known issues in the version 6.5.1 release 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
@@ -31,6 +31,11 @@ phrase box instead. This is an Ubuntu issue which we can't fix.
 A bug report has been sent to the Unity developers. In the meantime:
 CTRL+C, CTRL+X, and CTRL+V work correctly, and you'll have no
 problems if you use these shortcuts instead.
+
+2. For some who are using the Lucid version, the Report a Problem,
+and Give Feedback commands on the Help menu will not work due to
+a SSL certificate problem in the Lucid release. Other Ubuntu
+distributions do not have this problem.
 
 All Versions:
 
