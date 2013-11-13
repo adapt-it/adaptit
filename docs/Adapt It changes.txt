@@ -109,6 +109,9 @@ the list for example.
 ----------------------------------------------
 Bug fixes in 6.5.0
 ----------------------------------------------
+* If the "all files" option was taken when doing a Consistency
+Check, the first document to be checked wrongly got the open
+document inserted at its start.
 * Non-stick of phrasebox typing, or truncation of typing, bug. If
 adapting, and the phrasebox contents have just been edited (after
 a File > Save, or auto-save), then when the interlinear layout is 
