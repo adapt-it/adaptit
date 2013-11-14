@@ -227,7 +227,11 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pSelectedRec = NULL; // initialize
 */
 
-	// set up pointers to the buttons etc
+	// set up pointers to the buttons etc (I started with the wxDesigner resource having
+	// the left radio button clicked, but Ross Jones wants the right button to be the
+	// default one set on when the dialog opens. I changed the wxDesigner resource , but I
+	// can't get the right one on to find its way into the AI code. So further below I'll
+	// force the correct default setting by using the control pointers and setting manually)
 	m_pCheckList = (wxListView*)FindWindowById(ID_LISTCTRL_BULK_DEL);
 	m_pRadioOrganiseByKeys = (wxRadioButton*)FindWindowById(ID_RADIO_ORGANISE_BY_KEYS);
 	m_pRadioListTgtAlphabetically = (wxRadioButton*)FindWindowById(ID_RADIO_SIMPLY_TARGET_ALPHABETICAL);
@@ -242,8 +246,17 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	{
 		m_pRadioListTgtAlphabetically->SetLabel(listRadioButtonLabelGloss);
 	}
-	m_bBySrcGroups = TRUE; // this view by default when first opened
-	m_bCurrentValue = TRUE; // of m_bBySrcGroups when a radio button is clicked
+	// Ross Jones thinks users would prefer the default at opening would be to see the
+	// whole as tgt (or gloss) first - so the right radio button should be on
+	//m_bBySrcGroups = TRUE; // this view by default when first opened
+	//m_bCurrentValue = TRUE; // of m_bBySrcGroups when a radio button is clicked
+	m_bBySrcGroups = FALSE; // this view by default when first opened
+	m_bCurrentValue = FALSE; // of m_bBySrcGroups when a radio button is clicked
+	// Force the radio buttons to agree with the new default setting (shouldn't need to do
+	// this, but I can't get wxDesigner to update the .wdr file to have the left button
+	// turned off, so do it here)
+	m_pRadioOrganiseByKeys->SetValue(FALSE);
+	m_pRadioListTgtAlphabetically->SetValue(TRUE);
 
 	m_totalKBEntries = GetTotalKBEntries(m_pKB); // how many lines to show in the views of the list
 
@@ -285,17 +298,21 @@ void RemoveSomeTgtEntries::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	PopulateSrcTargetUnitPairsArray(m_pKB, m_pSortedSrcTgtUnitPairsArray);
 
 	// Make the calls to set up the array for the left radio button's view
+	m_bBySrcGroups = TRUE; // temporarily, so that MakeListLine() uses the correct code block
 	PopulateGroupsArray(m_pSortedSrcTgtUnitPairsArray, m_pGroupsArray);
 	MakeLinesArray(m_pGroupsArray, m_linesArray);
+	m_bBySrcGroups = FALSE; // restore default value (as per Ross Jones suggestion)
 
 	// Make the calls to set up the array for the right radio button's view
-	m_bBySrcGroups = FALSE; // temporarily, so that MakeListLine() uses the correct code block
+	//m_bBySrcGroups = FALSE; // temporarily, so that MakeListLine() uses the correct code block
 	PopulateTargetSortedArray(m_pSortedSrcTgtUnitPairsArray, m_pUngroupedTgtSortedArray);
 	MakeLinesForSortedArray(m_pUngroupedTgtSortedArray, m_linesArrayTgtSorted);
-	m_bBySrcGroups = TRUE; // restore default value
+	//m_bBySrcGroups = TRUE; // restore default value
 
 	// Default, load the list from the array for the left radio button
-	PopulateListAsGroups(m_pGroupsArray);
+	//PopulateListAsGroups(m_pGroupsArray); // <- my 6.5.1 choice, for 6.5.2 and onwards,
+											//default to the right radio button
+	PopulateListAsTgtSorted(m_pUngroupedTgtSortedArray); // Ross Jones says this is best default
 
 	// Size the list to suit the hardware, make it as large as is reasonably 
 	// possible vertically

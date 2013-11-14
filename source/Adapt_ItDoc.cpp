@@ -22370,38 +22370,27 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		{
 			// check open doc only (whether in Adaptations or a book folder)
 
- 			// save and remove open doc, if open
+            // BEW added 01Aug06, ensure the current document's contents are removed,
+            // otherwise we will get a doubling of the doc data when OnOpenDocument()
+            // is called because the latter will append to whatever is in
+            // m_pSourcePhrases, so the latter list must be cleared to avoid the data
+            // doubling bug
+            
+			// If there is a document open when the command was invoked, clobber it so
+			// that it's data doesn't get mixed into the first doc to be checked 
+			bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+										bDocForcedToClose, pStatusBar, &afList, &afgList);
+			if (!bClobberedSuccessfully)
+			{
+				// If there was an error, afList or afgList (which depends on
+				// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+				// and progress bar finished off; all that remains to do here is return
+				return;
+			}
+			// This open-doc-only option is available only provided a document is
+			// currently visible in the client window of the canvas
 			if (!bDocIsClosed)
 			{
-               // Save the Doc (and DoFileSave() also automatically saves, without backup,
-                // both the glossing and adapting KBs)
-				// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
-				// protection against data loss in the event of a failure
-				bool fsOK = DoFileSave_Protected(TRUE,_T("")); // TRUE - show the wait/progress dialog
-				if (!fsOK)
-				{
-					// something's real wrong!
-					wxMessageBox(_(
-					"Could not save the current document. Consistency Check Command aborted."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
-                    // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
-                    // current working directory has not changed, so no need here to reset
-                    // it before return.
-					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
-					pStatusBar->FinishProgress(_("Performing Consistency Check"));
-					return;
-				}
-				pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Checking current document"));
-
-
-                // BEW added 01Aug06, ensure the current document's contents are removed,
-                // otherwise we will get a doubling of the doc data when OnOpenDocument()
-                // is called because the latter will append to whatever is in
-                // m_pSourcePhrases, so the latter list must be cleared to avoid the data
-                // doubling bug
-                bDocForcedToClose = TRUE;
-				pApp->GetView()->ClobberDocument();
-
 				// Ensure that our current document is the only doc in the accepted files list
 				pApp->m_acceptedFilesList.Clear();
 				pApp->m_acceptedFilesList.Add(docName);
@@ -22463,49 +22452,17 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			{
 				// book mode is on, do the check over all books in all book folders
 
-				// first save and remove open doc, if open
-				if (!bDocIsClosed)
+				// If there is a document open when the command was invoked, clobber it so
+				// that it's data doesn't get mixed into the first doc to be checked 
+				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+											bDocForcedToClose, pStatusBar, &afList, &afgList);
+				if (!bClobberedSuccessfully)
 				{
-				   // Save the Doc (and DoFileSave() also automatically saves, without backup,
-					// both the glossing and adapting KBs)
-					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
-					// protection against data loss in the event of a failure
-					pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Saving Current Document"));
-					bool fsOK = DoFileSave_Protected (false, _T("")); // don't show progress on this task
-					if (!fsOK)
-					{
-						// something's real wrong!
-						wxMessageBox(_(
-						"Could not save the current document. Consistency Check Command aborted."),
-						_T(""), wxICON_EXCLAMATION | wxOK);
-						// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
-						// current working directory has not changed, so no need here to reset
-						// it before return.
-						pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
-						// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
-						// glossing mode
-						if (gbIsGlossing)
-						{
-							RemoveAutoFixGList(afgList);
-						}
-						else
-						{
-							RemoveAutoFixList(afList);
-						}
-						pStatusBar->FinishProgress(_("Performing Consistency Check"));
-						return;
-					}
-
-					// BEW added 01Aug06, ensure the current document's contents are removed,
-					// otherwise we will get a doubling of the doc data when OnOpenDocument()
-					// is called because the latter will append to whatever is in
-					// m_pSourcePhrases, so the latter list must be cleared to avoid the data
-					// doubling bug
-					bDocForcedToClose = TRUE;
-					pApp->GetView()->ClobberDocument();
-					pApp->m_acceptedFilesList.Clear();
-				} // end of TRUE block for test: if (!bDocIsClosed)
-
+					// If there was an error, afList or afgList (which depends on
+					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+					// and progress bar finished off; all that remains to do here is return
+					return;
+				}
 				pApp->LogUserAction(_T("Check all docs within all book folders"));
 				// DoConsistencyCheck() relies on the fact that EnumerateDocFiles() having
 				// been called in prior to DoConsistencyCheck() being called will have set
@@ -22625,58 +22582,24 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// (dirPath has been set to pApp->m_curAdaptationsPath if book mode is not
 				// on, that is, to Adaptations folder)
 
-                // BEW 13Nov13 added test below and the code in its TRUE block, it was
-                // omitted by mistake back in 1Aug2006!! Ross Jones found the error a few
-                // days ago. Without this block, the CSourcePhrase instances of the open
-                // document in the view remain in m_pSourcePhrases, so the next
-                // OnOpenDocument() call (i.e. the first doc of the list in
-                // m_acceptedFilesList) gets appended to the open doc, and saved as part of
-                // the appended doc (at its start)
-                
-				// first save and remove open doc, if open
-				if (!bDocIsClosed)
+                // BEW 13Nov13 added call below -- it was omitted by mistake back in
+                // 1Aug2006!! Ross Jones found the error a few days ago. Without this
+                // block, the CSourcePhrase instances of the open document in the view
+                // remain in m_pSourcePhrases, so the next OnOpenDocument() call (i.e. the
+                // first doc of the list in m_acceptedFilesList) gets appended to the open
+                // doc, and saved as part of the appended doc (at its start)
+
+				// If there is a document open when the command was invoked, clobber it so
+				// that it's data doesn't get mixed into the first doc to be checked 
+				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+											bDocForcedToClose, pStatusBar, &afList, &afgList);
+				if (!bClobberedSuccessfully)
 				{
-				   // Save the Doc (and DoFileSave() also automatically saves, without backup,
-					// both the glossing and adapting KBs)
-					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
-					// protection against data loss in the event of a failure
-					pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Saving Current Document"));
-					bool fsOK = DoFileSave_Protected (false, _T("")); // don't show progress on this task
-					if (!fsOK)
-					{
-						// something's real wrong!
-						wxMessageBox(_(
-						"Could not save the current document. Consistency Check Command aborted."),
-						_T(""), wxICON_EXCLAMATION | wxOK);
-						// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
-						// current working directory has not changed, so no need here to reset
-						// it before return.
-						pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
-						// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
-						// glossing mode
-						if (gbIsGlossing)
-						{
-							RemoveAutoFixGList(afgList);
-						}
-						else
-						{
-							RemoveAutoFixList(afList);
-						}
-						pStatusBar->FinishProgress(_("Performing Consistency Check"));
-						return;
-					}
-
-                    // BEW added 01Aug06, ensure the current document's contents are
-                    // removed, otherwise we will get the CSourcePhrases of the first of
-                    // the listed docs that we open appended to the currently open doc's
-                    // data when OnOpenDocument() is called because the latter will append
-                    // to whatever is in m_pSourcePhrases, so the latter list must be
-                    // cleared to avoid the data doubling bug
-					bDocForcedToClose = TRUE;
-					pApp->GetView()->ClobberDocument();
-					pApp->m_acceptedFilesList.Clear();
-				} // end of TRUE block for test: if (!bDocIsClosed)
-
+					// If there was an error, afList or afgList (which depends on
+					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+					// and progress bar finished off; all that remains to do here is return
+					return;
+				}
 				// need a copy of pKB to check for inconsistencies in
 				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
@@ -22809,6 +22732,56 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	pStatusBar->FinishProgress(_("Performing Consistency Check"));
 }
 
+bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsClosed, bool& bDocForcedToClose,
+						CStatusBar* pStatusBar, AFList* afListPtr, AFGList* afgListPtr)
+{            
+	// save and remove open doc, if a doc is open
+	if (!bDocIsClosed)
+	{
+	   // Save the Doc (and DoFileSave() also automatically saves, without backup,
+		// both the glossing and adapting KBs)
+		// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
+		// protection against data loss in the event of a failure
+		pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Saving Current Document"));
+		bool fsOK = DoFileSave_Protected (false, _T("")); // don't show progress on this task
+		if (!fsOK)
+		{
+			// something's real wrong!
+			wxMessageBox(_(
+			"Could not save the current document. Consistency Check Command aborted."),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+			// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+			// current working directory has not changed, so no need here to reset
+			// it before return.
+			pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
+			// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
+			// glossing mode
+			if (gbIsGlossing)
+			{
+				RemoveAutoFixGList(*afgListPtr);
+			}
+			else
+			{
+				RemoveAutoFixList(*afListPtr);
+			}
+			pStatusBar->FinishProgress(_("Performing Consistency Check"));
+			return FALSE;
+		}
+
+        // BEW added 01Aug06, ensure the current document's contents are
+        // removed, otherwise we will get the CSourcePhrases of the first of
+        // the listed docs that we open appended to the currently open doc's
+        // data when OnOpenDocument() is called because the latter will append
+        // to whatever is in m_pSourcePhrases, so the latter list must be
+        // cleared to avoid the data doubling bug
+		bDocForcedToClose = TRUE;
+		pApp->GetView()->ClobberDocument();
+		pApp->m_acceptedFilesList.Clear();
+	} // end of TRUE block for test: if (!bDocIsClosed)
+	return TRUE;
+}
+
+
 // Allow "Change Punctuation or Markers Placement" while document is open, but only if the
 // active location's CSourcePhrase stores content in one or more of the
 // m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, or m_punctsPattern members
@@ -22910,11 +22883,11 @@ void CAdapt_ItDoc::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	//if (pDoc == NULL)
-	//{
-	//	event.Enable(FALSE);
-	//	return;
-	//}
+	if (pApp->m_pSourcePhrases->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	bool bKBReady = FALSE;
 	if (gbIsGlossing)
 		bKBReady = pApp->m_bGlossingKBReady;

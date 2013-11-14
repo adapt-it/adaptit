@@ -146,7 +146,7 @@ protected:
 
 private:
 	// class attributes
-	bool	m_bCurrentValue; // keep hold of m_bBySrcGroups value wwhen a radio button
+	bool	m_bCurrentValue; // keep hold of m_bBySrcGroups value when a radio button
 							 // is being clicked & therefore potentially changing it
 	// For dealing with item selection clicks and pseudo-checkbox values
 	long	m_nOtherLine; // the equivalentline index in the view not displayed

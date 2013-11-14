@@ -37,7 +37,7 @@ class CFreeTrans;
 class CNotes;
 struct AutoFixRecord;
 struct AutoFixRecordG;
-
+class CStatusBar;
 
 /// wxList declaration and partial implementation of the AFList class being
 /// a list of pointers to AutoFixRecord objects
@@ -440,7 +440,10 @@ protected:
     bool            Commit_valid();
     bool            Git_installed();
 
-
+	bool			ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsClosed, bool& bDocForcedToClose,
+						CStatusBar* pStatusBar, AFList* afListPtr, AFGList* afgListPtr); // return TRUE if
+						// there was no error, otherwise return FALSE - caller should then
+						// return as well
 #ifdef CONSCHK
 	void ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
 #endif
