@@ -369,69 +369,83 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item3->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item3, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticLine *item13 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL );
-    item1->Add( item13, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxTOP|wxBOTTOM, 5 );
+    wxButton *item14 = new wxButton( parent, ID_BUTTON_ADJUST, _("Adjust..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->SetToolTip( _("Show a button which allows various options such as joining or splitting") );
+    item13->Add( item14, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
-    ID_BSV_SECTIONS = item14;
+    item13->Add( 10, 3, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item15 = new wxButton( parent, ID_BUTTON_SPLITTER_OFF, _("Split..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetToolTip( _("Split off first part, join the remainder to what follows") );
+    item13->Add( item15, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
+    item3->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item17 = new wxStaticText( parent, IDC_STATIC_SECTION_DEF, _("  Define Sections By:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticLine *item16 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL );
+    item1->Add( item16, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxTOP|wxBOTTOM, 5 );
+
+    wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
+    ID_BSV_SECTIONS = item17;
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    item18->Add( 3, 3, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
 
-    wxRadioButton *item19 = new wxRadioButton( parent, IDC_RADIO_PUNCT_SECTION, _("P&unctuation"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
-    item19->SetToolTip( _("Define free translation spans by punctuation") );
-    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, IDC_STATIC_SECTION_DEF, _("  Define Sections By:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item16->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    item16->Add( 20, 3, 0, wxALIGN_CENTER|wxALL, 0 );
+    item21->Add( 3, 3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_PUNCT_SECTION, _("P&unctuation"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item22->SetToolTip( _("Define free translation spans by punctuation") );
+    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item20->Add( 3, 3, 0, wxALIGN_CENTER|wxALL, 5 );
+    item19->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxRadioButton *item21 = new wxRadioButton( parent, IDC_RADIO_VERSE_SECTION, _("V&erse"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->SetToolTip( _("Define free translation spans by verse") );
-    item20->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item19->Add( 20, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item16->Add( item20, 0, wxALIGN_CENTER_VERTICAL, 0 );
+    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    item15->Add( item16, 0, wxALIGN_CENTER|wxRIGHT, 5 );
+    item23->Add( 3, 3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxRadioButton *item24 = new wxRadioButton( parent, IDC_RADIO_VERSE_SECTION, _("V&erse"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Define free translation spans by verse") );
+    item23->Add( item24, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
+    item19->Add( item23, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
-    ID_BSH_COMPOSE_RH_BUTTONS = item22;
+    item18->Add( item19, 0, wxALIGN_CENTER|wxRIGHT, 5 );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
+    item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item24 = new wxButton( parent, IDC_BUTTON_CLEAR, _("Clear Contents"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Clear all text from the compose bar") );
-    item23->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item17, 0, wxALIGN_CENTER, 0 );
 
-    item23->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    ID_BSH_COMPOSE_RH_BUTTONS = item25;
 
-    wxButton *item25 = new wxButton( parent, IDC_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetToolTip( _("Select all of the text in the compose bar") );
-    item23->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
 
-    item22->Add( item23, 0, wxALIGN_CENTER, 0 );
+    wxButton *item27 = new wxButton( parent, IDC_BUTTON_CLEAR, _("Clear Contents"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Clear all text from the compose bar") );
+    item26->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+    item26->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item28 = new wxButton( parent, IDC_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetToolTip( _("Select all of the text in the compose bar") );
+    item26->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item25->Add( item26, 0, wxALIGN_CENTER, 0 );
+
+    item1->Add( item25, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     if (set_sizer)
     {

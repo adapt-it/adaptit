@@ -3613,6 +3613,12 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 		pRadioButton->Show(FALSE);
 		wxStaticText* pStatic = (wxStaticText*)m_pComposeBar->FindWindowById(IDC_STATIC_SECTION_DEF);
 		pStatic->Show(FALSE);
+		// BEW added next two 15Nov13
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
+		pButton->Show(FALSE);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_SPLITTER_OFF);
+		pButton->Show(FALSE);
+
 		// show these two only
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_CLEAR);
 		pButton->Show(TRUE);
@@ -3659,6 +3665,11 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			pRadioButton->SetValue(FALSE);
 		wxStaticText* pStatic = (wxStaticText*)m_pComposeBar->FindWindowById(IDC_STATIC_SECTION_DEF);
 		pStatic->Show(TRUE);
+		// BEW added next two 15Nov13
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
+		pButton->Show(TRUE);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_SPLITTER_OFF);
+		pButton->Show(TRUE);
 	}
 
 	wxView* pView = pApp->GetView();
