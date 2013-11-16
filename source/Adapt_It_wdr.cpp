@@ -10042,6 +10042,41 @@ wxSizer *Bulk_Delete_Pairs_Func( wxWindow *parent, bool call_fit, bool set_sizer
     return item0;
 }
 
+wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TELL_USER, _("There is not enough space to display all of the free translation typed so far. Choose an option below. If the option you choose turns out to be inappropriate, the dialog will appear again and you can try a different option. (The option to \"Split off the first part...\" will show a dialog where you can click in the free translation to indicate where to make the split.)"), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxString strs3[] = 
+    {
+        _("Join the current section to the next section (if the next section is absent, it will first be created)"), 
+        _("Join the current section to the previous section"), 
+        _("Split off the first part, and join the remainder to what follows"), 
+        _("No join or split.  Instead, just delete the last word typed and allow further editing")
+    };
+    wxRadioBox *item3 = new wxRadioBox( parent, ID_RADIOBOX_FREE_TRANS_OPTIONS, _("Make the free translation fit by clicking one of the following options:"), wxDefaultPosition, wxSize(-1,112), 4, strs3, 4, wxRA_SPECIFY_ROWS );
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxButton *item4 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->SetDefault();
+    item1->Add( item4, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
