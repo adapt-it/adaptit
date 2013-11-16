@@ -74,6 +74,10 @@ public:
 
 	virtual ~CFreeTrans();// destructor // whm added always make virtual
 
+	// BEW 16Nov13, turned the local definition (declared in 4 places previously)
+	// into a public member variable so that it is visible outside the class instance
+	int			nTotalHorizExtent;
+
 	// Public free translation drawing functions
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
 	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);

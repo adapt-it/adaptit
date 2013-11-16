@@ -43,6 +43,21 @@
 
 // Implement window functions
 
+const int ID_ABOUT_AI_BMP = 850;
+const int ID_TEXT = wxNewId();
+const int ID_ABOUT_VERSION_LABEL = wxNewId();
+const int ID_ABOUT_VERSION_NUM = wxNewId();
+const int ID_ABOUT_VERSION_DATE = wxNewId();
+const int ID_STATIC_UNICODE_OR_ANSI = wxNewId();
+const int ID_STATIC_WX_VERSION_USED = wxNewId();
+const int ID_LINE = wxNewId();
+const int ID_STATIC_UI_LANGUAGE = wxNewId();
+const int ID_STATIC_HOST_OS = wxNewId();
+const int ID_STATIC_SYS_LANGUAGE = wxNewId();
+const int ID_STATIC_SYS_LOCALE_NAME = wxNewId();
+const int ID_STATIC_CANONICAL_LOCALE_NAME = wxNewId();
+const int ID_STATIC_SYS_ENCODING_NAME = wxNewId();
+const int ID_STATIC_SYSTEM_LAYOUT_DIR = wxNewId();
 wxSizer *ID_ABOUT_TOP_AREA;
 wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -244,6 +259,15 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_RADIO_DRAFTING = wxNewId();
+const int IDC_RADIO_REVIEWING = wxNewId();
+const int IDC_CHECK_SINGLE_STEP = wxNewId();
+const int IDC_CHECK_KB_SAVE = wxNewId();
+const int IDC_CHECK_FORCE_ASK = wxNewId();
+const int IDC_BUTTON_NO_ADAPT = wxNewId();
+const int IDC_STATIC = wxNewId();
+const int IDC_EDIT_DELAY = wxNewId();
+const int IDC_CHECK_ISGLOSSING = wxNewId();
 wxSizer *ID_CONTROLBAR_1_LINE_SIZER;
 wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -310,6 +334,20 @@ wxSizer *ControlBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_EDIT_COMPOSE = wxNewId();
+const int IDC_BUTTON_SHORTEN = wxNewId();
+const int IDC_BUTTON_PREV = wxNewId();
+const int IDC_BUTTON_LENGTHEN = wxNewId();
+const int IDC_BUTTON_NEXT = wxNewId();
+const int IDC_BUTTON_REMOVE = wxNewId();
+const int IDC_BUTTON_APPLY = wxNewId();
+const int ID_BUTTON_ADJUST = wxNewId();
+const int ID_BUTTON_SPLITTER_OFF = 9111;
+const int IDC_STATIC_SECTION_DEF = wxNewId();
+const int IDC_RADIO_PUNCT_SECTION = wxNewId();
+const int IDC_RADIO_VERSE_SECTION = wxNewId();
+const int IDC_BUTTON_CLEAR = wxNewId();
+const int IDC_BUTTON_SELECT_ALL = wxNewId();
 wxSizer *ID_BSH_COMPOSE_LH_BUTTONS;
 wxSizer *ID_BSV_SECTIONS;
 wxSizer *ID_BSH_COMPOSE_RH_BUTTONS;
@@ -457,6 +495,7 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_LISTBOX_ADAPTIONS = wxNewId();
 wxSizer *OpenExistingProjectDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -506,6 +545,8 @@ wxSizer *OpenExistingProjectDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     return item0;
 }
 
+const int IDC_EDIT_FILENAME = wxNewId();
+const int ID_TEXT_INVALID_CHARACTERS = wxNewId();
 wxSizer *GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -585,6 +626,11 @@ wxSizer *GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     return item0;
 }
 
+const int IDC_SOURCE_LANGUAGE = wxNewId();
+const int ID_EDIT_SOURCE_LANG_CODE = wxNewId();
+const int IDC_TARGET_LANGUAGE = wxNewId();
+const int ID_EDIT_TARGET_LANG_CODE = wxNewId();
+const int ID_BUTTON_LOOKUP_CODES = wxNewId();
 wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -700,6 +746,28 @@ wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_SOURCE_FONTNAME = wxNewId();
+const int IDC_CHECK_SRC_RTL = wxNewId();
+const int IDC_SOURCE_SIZE = wxNewId();
+const int IDC_SOURCE_LANG = wxNewId();
+const int IDC_BUTTON_SOURCE_COLOR = wxNewId();
+const int ID_BUTTON_CHANGE_SRC_ENCODING = wxNewId();
+const int IDC_TARGET_FONTNAME = wxNewId();
+const int IDC_CHECK_TGT_RTL = wxNewId();
+const int IDC_TARGET_SIZE = wxNewId();
+const int IDC_TARGET_LANG = wxNewId();
+const int IDC_BUTTON_TARGET_COLOR = wxNewId();
+const int ID_BUTTON_CHANGE_TGT_ENCODING = wxNewId();
+const int IDC_NAVTEXT_FONTNAME = wxNewId();
+const int IDC_CHECK_NAVTEXT_RTL = wxNewId();
+const int IDC_NAVTEXT_SIZE = wxNewId();
+const int IDC_CHANGE_NAV_TEXT = wxNewId();
+const int IDC_BUTTON_NAV_TEXT_COLOR = wxNewId();
+const int ID_BUTTON_CHANGE_NAV_ENCODING = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_FONTPAGE = wxNewId();
+const int IDC_BUTTON_SPECTEXTCOLOR = wxNewId();
+const int IDC_RETRANSLATION_BUTTON = wxNewId();
+const int ID_BUTTON_TEXT_DIFFS = wxNewId();
 wxSizer *FontsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -961,6 +1029,7 @@ wxSizer *FontsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_PLEASE_WAIT = wxNewId();
 wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -982,6 +1051,12 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_LIST_ACCEPTED = wxNewId();
+const int IDC_BUTTON_REJECT = wxNewId();
+const int IDC_BUTTON_ACCEPT = wxNewId();
+const int ID_BUTTON_REJECT_ALL_FILES = wxNewId();
+const int ID_BUTTON_ACCEPT_ALL_FILES = wxNewId();
+const int IDC_LIST_REJECTED = wxNewId();
 wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1086,6 +1161,9 @@ wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_TRANSFORM_TO_GLOSSES1 = wxNewId();
+const int ID_TEXTCTRL_TRANSFORM_TO_GLOSSES2 = wxNewId();
+const int ID_TEXTCTRL_TRANSFORM_TO_GLOSSES3 = wxNewId();
 wxSizer *TransformToGlossesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1134,6 +1212,25 @@ wxSizer *TransformToGlossesDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
+const int ID_CHECK_SOURCE_USES_CAPS = wxNewId();
+const int ID_CHECK_USE_AUTO_CAPS = wxNewId();
+const int ID_TEXTCTRL_AS_CASE_PAGE_STATIC_TEXT = wxNewId();
+const int ID_TEXT_SL = wxNewId();
+const int ID_TEXT_TL = wxNewId();
+const int ID_TEXT_GL = wxNewId();
+const int IDC_EDIT_SRC_CASE_EQUIVALENCES = wxNewId();
+const int IDC_EDIT_TGT_CASE_EQUIVALENCES = wxNewId();
+const int IDC_EDIT_GLOSS_CASE_EQUIVALENCES = wxNewId();
+const int IDC_BUTTON_CLEAR_SRC_LIST = wxNewId();
+const int IDC_BUTTON_CLEAR_TGT_LIST = wxNewId();
+const int IDC_BUTTON_CLEAR_GLOSS_LIST = wxNewId();
+const int IDC_BUTTON_SRC_SET_ENGLISH = wxNewId();
+const int IDC_BUTTON_TGT_SET_ENGLISH = wxNewId();
+const int IDC_BUTTON_GLOSS_SET_ENGLISH = wxNewId();
+const int IDC_BUTTON_SRC_COPY_TO_NEXT = wxNewId();
+const int IDC_BUTTON_TGT_COPY_TO_NEXT = wxNewId();
+const int IDC_BUTTON_GLOSS_COPY_TO_NEXT = wxNewId();
+const int IDC_BUTTON_SRC_COPY_TO_GLOSS = wxNewId();
 wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1256,6 +1353,10 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_EDIT_WELCOME_TO = wxNewId();
+const int IDC_EDIT_ADAPT_IT = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_WELCOME = wxNewId();
+const int IDC_CHECK_NOLONGER_SHOW = wxNewId();
 wxSizer *WelcomeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1324,6 +1425,14 @@ wxSizer *WelcomeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_AS_STATIC_DOCPAGE = wxNewId();
+const int IDC_STATIC_WHICH_MODE = wxNewId();
+const int IDC_BUTTON_WHAT_IS_DOC = wxNewId();
+const int IDC_STATIC_WHICH_FOLDER = wxNewId();
+const int IDC_LIST_NEWDOC_AND_EXISTINGDOC = wxNewId();
+const int IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES = wxNewId();
+const int IDC_CHANGE_FOLDER_BTN = wxNewId();
+const int IDC_CHECK_FORCE_UTF8 = wxNewId();
 wxSizer *DocPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1426,6 +1535,9 @@ wxSizer *DocPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_AS_STATIC_PROJECTPAGE = wxNewId();
+const int IDC_BUTTON_WHAT_IS_PROJECT = wxNewId();
+const int IDC_LIST_NEW_AND_EXISTING = wxNewId();
 wxSizer *ProjectPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1468,6 +1580,11 @@ wxSizer *ProjectPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_EDIT_SRC = wxNewId();
+const int IDC_LIST_PUNCTS = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_PLACE_INT_PUNCT = wxNewId();
+const int IDC_EDIT_TGT = wxNewId();
+const int IDC_BUTTON_PLACE = wxNewId();
 wxSizer *PlaceInternalPunctDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1548,6 +1665,8 @@ wxSizer *PlaceInternalPunctDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
+const int IDC_RADIO_INCHES = wxNewId();
+const int IDC_RADIO_CM = wxNewId();
 wxSizer *UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1595,6 +1714,14 @@ wxSizer *UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_STATIC_SRC = wxNewId();
+const int IDC_EDIT_PRECONTEXT = wxNewId();
+const int IDC_EDIT_SOURCE_TEXT = wxNewId();
+const int IDC_EDIT_RETRANSLATION = wxNewId();
+const int IDC_COPY_RETRANSLATION_TO_CLIPBOARD = wxNewId();
+const int IDC_BUTTON_TOGGLE = wxNewId();
+const int IDC_STATIC_TGT = wxNewId();
+const int IDC_EDIT_FOLLCONTEXT = wxNewId();
 wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1686,6 +1813,16 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_EDIT_SRC_TEXT = wxNewId();
+const int IDC_EDIT_TGT_TEXT = wxNewId();
+const int IDC_SPIN_CHAPTER = wxNewId();
+const int IDC_SPIN_VERSE = wxNewId();
+const int IDC_GET_CHVERSE_TEXT = wxNewId();
+const int IDC_CLOSE_AND_JUMP = wxNewId();
+const int IDC_SHOW_MORE = wxNewId();
+const int IDC_SHOW_LESS = wxNewId();
+const int IDC_STATIC_BEGIN = wxNewId();
+const int IDC_STATIC_END = wxNewId();
 wxSizer *EarlierTransDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1781,6 +1918,18 @@ wxSizer *EarlierTransDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_CHECK_KB_BACKUP = wxNewId();
+const int IDC_CHECK_BAKUP_DOC = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE = wxNewId();
+const int IDC_EDIT_SRC_NAME = wxNewId();
+const int IDC_EDIT_TGT_NAME = wxNewId();
+const int IDC_EDIT_GLS_NAME = wxNewId();
+const int ID_EDIT_GLOSS_LANG_CODE = wxNewId();
+const int ID_EDIT_FRTR_NAME = wxNewId();
+const int ID_EDIT_FRTR_LANG_CODE = wxNewId();
+const int IDC_RADIO_ADAPT_BEFORE_GLOSS = wxNewId();
+const int IDC_RADIO_GLOSS_BEFORE_ADAPT = wxNewId();
+const int IDC_CHECK_LEGACY_SRC_TEXT_COPY = wxNewId();
 wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1923,6 +2072,21 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int STATIC_TEXT_V4 = wxNewId();
+const int IDC_EDIT_LEADING = wxNewId();
+const int STATIC_TEXT_V5 = wxNewId();
+const int IDC_EDIT_GAP_WIDTH = wxNewId();
+const int STATIC_TEXT_V6 = wxNewId();
+const int IDC_EDIT_LEFTMARGIN = wxNewId();
+const int STATIC_TEXT_V7 = wxNewId();
+const int IDC_EDIT_MULTIPLIER = wxNewId();
+const int IDC_EDIT_DIALOGFONTSIZE = wxNewId();
+const int IDC_CHECK_WELCOME_VISIBLE = wxNewId();
+const int IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS = wxNewId();
+const int ID_PANEL_AUTO_INSERT_COLOR = wxNewId();
+const int IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR = wxNewId();
+const int IDC_CHECK_SHOW_ADMIN_MENU = wxNewId();
+const int ID_RADIOBOX_SCROLL_INTO_VIEW = wxNewId();
 wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2125,6 +2289,16 @@ wxSizer *UnitsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_AS_STATIC_AUTOSAVE = wxNewId();
+const int IDC_CHECK_NO_AUTOSAVE = wxNewId();
+const int IDC_RADIO_BY_MINUTES = wxNewId();
+const int IDC_EDIT_MINUTES = wxNewId();
+const int IDC_SPIN_MINUTES = wxNewId();
+const int IDC_RADIO_BY_MOVES = wxNewId();
+const int IDC_EDIT_MOVES = wxNewId();
+const int IDC_SPIN_MOVES = wxNewId();
+const int IDC_EDIT_KB_MINUTES = wxNewId();
+const int IDC_SPIN_KB_MINUTES = wxNewId();
 wxSizer *AutoSavingPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2249,6 +2423,13 @@ wxSizer *AutoSavingPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_RADIO_DIV1 = wxNewId();
+const int IDC_RADIO_DIV2 = wxNewId();
+const int IDC_RADIO_DIV3 = wxNewId();
+const int IDC_RADIO_DIV4 = wxNewId();
+const int IDC_RADIO_DIV5 = wxNewId();
+const int IDC_COMBO_CHOOSE_BOOK = wxNewId();
+const int ID_TEXT_AS_STATIC = wxNewId();
 wxSizer *WhichBookDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2395,6 +2576,10 @@ wxSizer *WhichBookDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_STATIC_MSG = wxNewId();
+const int IDC_EDIT_ERR_XML = wxNewId();
+const int IDC_STATIC_LBL = wxNewId();
+const int IDC_EDIT_OFFSET = wxNewId();
 wxSizer *XMLErrorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2442,6 +2627,10 @@ wxSizer *XMLErrorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_ED_SILCONVERTER_NAME = wxNewId();
+const int IDC_BTN_SELECT_SILCONVERTER = wxNewId();
+const int IDC_ED_SILCONVERTER_INFO = wxNewId();
+const int IDC_BTN_CLEAR_SILCONVERTER = wxNewId();
 wxSizer *SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2521,6 +2710,18 @@ wxSizer *SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_STATIC_FOLDER_DOCS = wxNewId();
+const int IDC_LIST_FOLDER_DOCS = wxNewId();
+const int IDC_BUTTON_NEXT_CHAPTER = wxNewId();
+const int IDC_BUTTON_SPLIT_NOW = wxNewId();
+const int IDC_STATIC_SPLITTING_WAIT = wxNewId();
+const int IDC_RADIO_PHRASEBOX_LOCATION = wxNewId();
+const int IDC_RADIO_CHAPTER_SFMARKER = wxNewId();
+const int IDC_RADIO_DIVIDE_INTO_CHAPTERS = wxNewId();
+const int IDC_STATIC_SPLIT_NAME = wxNewId();
+const int IDC_EDIT1 = wxNewId();
+const int IDC_STATIC_REMAIN_NAME = wxNewId();
+const int IDC_EDIT2 = wxNewId();
 wxSizer *SplitDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2653,6 +2854,8 @@ wxSizer *SplitDialogFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_LIST_MARKERS = wxNewId();
+const int IDC_TEXTCTRL_AS_STATIC_PLACE_INT_MKRS = wxNewId();
 wxSizer *PlaceInternalMarkersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2725,6 +2928,14 @@ wxSizer *PlaceInternalMarkersDlgFunc( wxWindow *parent, bool call_fit, bool set_
     return item0;
 }
 
+const int IDC_EDIT_NOTE = wxNewId();
+const int IDC_EDIT_FIND_TEXT = wxNewId();
+const int IDC_FIND_NEXT_BTN = wxNewId();
+const int IDC_LAST_BTN = wxNewId();
+const int IDC_NEXT_BTN = wxNewId();
+const int IDC_PREV_BTN = wxNewId();
+const int IDC_FIRST_BTN = wxNewId();
+const int IDC_DELETE_BTN = wxNewId();
 wxSizer *NoteDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2822,6 +3033,9 @@ wxSizer *NoteDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_AS_STATIC_COLLECT_BT = wxNewId();
+const int IDC_RADIO_COLLECT_ADAPTATIONS = wxNewId();
+const int IDC_RADIO_COLLECT_GLOSSES = wxNewId();
 wxSizer *CollectBackTranslationsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2877,6 +3091,7 @@ wxSizer *CollectBackTranslationsDlgFunc( wxWindow *parent, bool call_fit, bool s
     return item0;
 }
 
+const int IDC_SPIN_DELAY_TICKS = wxNewId();
 wxSizer *SetDelayDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -2941,6 +3156,20 @@ wxSizer *SetDelayDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_RADIO_EXPORT_ALL = wxNewId();
+const int IDC_RADIO_EXPORT_SELECTED_MARKERS = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_EXPORT_OPTIONS = wxNewId();
+const int IDC_LIST_SFMS = wxNewId();
+const int IDC_BUTTON_EXCLUDE_FROM_EXPORT = wxNewId();
+const int IDC_BUTTON_INCLUDE_IN_EXPORT = wxNewId();
+const int IDC_BUTTON_UNDO = wxNewId();
+const int IDC_STATIC_SPECIAL_NOTE = wxNewId();
+const int IDC_CHECK_PLACE_FREE_TRANS = wxNewId();
+const int IDC_CHECK_INTERLINEAR_PLACE_FREE_TRANS = wxNewId();
+const int IDC_CHECK_PLACE_BACK_TRANS = wxNewId();
+const int IDC_CHECK_INTERLINEAR_PLACE_BACK_TRANS = wxNewId();
+const int IDC_CHECK_PLACE_AI_NOTES = wxNewId();
+const int IDC_CHECK_INTERLINEAR_PLACE_AI_NOTES = wxNewId();
 wxSizer *ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3095,6 +3324,15 @@ wxSizer *ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_PNLEXPORT = wxNewId();
+const int ID_BUTTON_CHANGE_BOOK_NAME = wxNewId();
+const int ID_LBLEXPORTTYPEDESCRIPTION = wxNewId();
+const int ID_RDOFILTEROFF = wxNewId();
+const int ID_RDOFILTERON = wxNewId();
+const int ID_BTNFILTEROPTIONS = wxNewId();
+const int ID_CHKPROJECTNAMEPREFIX = wxNewId();
+const int ID_CHKTARGETTEXTPREFIX = wxNewId();
+const int ID_CHKDATETIMESUFFIX = wxNewId();
 wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3187,6 +3425,27 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_CHECK_INCLUDE_NAV_TEXT = wxNewId();
+const int IDC_CHECK_INCLUDE_SOURCE_TEXT = wxNewId();
+const int IDC_CHECK_INCLUDE_TARGET_TEXT = wxNewId();
+const int IDC_CHECK_INCLUDE_GLS_TEXT = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_EXP_INTERLINEAR = wxNewId();
+const int IDC_RADIO_PORTRAIT = wxNewId();
+const int IDC_RADIO_LANDSCAPE = wxNewId();
+const int IDC_RADIO_OUTPUT_ALL = wxNewId();
+const int IDC_RADIO_OUTPUT_CHAPTER_VERSE_RANGE = wxNewId();
+const int IDC_EDIT_FROM_CHAPTER = wxNewId();
+const int IDC_EDIT_FROM_VERSE = wxNewId();
+const int IDC_EDIT_TO_CHAPTER = wxNewId();
+const int IDC_EDIT_TO_VERSE = wxNewId();
+const int IDC_RADIO_OUTPUT_PRELIM = wxNewId();
+const int IDC_RADIO_OUTPUT_FINAL = wxNewId();
+const int ID_CHECK_NEW_TABLES_FOR_NEWLINE_MARKERS = wxNewId();
+const int ID_CHECK_CENTER_TABLES_FOR_CENTERED_MARKERS = wxNewId();
+const int ID_CHECKBOX_PREFIX_EXPORT_PROJ_NAME = wxNewId();
+const int ID_CHECKBOX_PREFIX_EXPORT_TYPE = wxNewId();
+const int ID_CHECKBOX_SUFFIX_EXPORT_DATETIME_STAMP = wxNewId();
+const int IDC_BUTTON_RTF_EXPORT_FILTER_OPTIONS = wxNewId();
 wxSizer *ExportInterlinearDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3389,6 +3648,13 @@ wxSizer *ExportInterlinearDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     return item0;
 }
 
+const int IDC_LIST_MARKER = wxNewId();
+const int IDC_EDIT_MARKER_TEXT = wxNewId();
+const int IDC_REMOVE_BTN = wxNewId();
+const int IDC_BUTTON_SWITCH_ENCODING = wxNewId();
+const int IDC_LIST_MARKER_END = wxNewId();
+const int IDC_STATIC_MARKER_DESCRIPTION = wxNewId();
+const int IDC_STATIC_MARKER_STATUS = wxNewId();
 wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3518,6 +3784,8 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     return item0;
 }
 
+const int IDC_EDIT_CHAPTER = wxNewId();
+const int IDC_EDIT_VERSE = wxNewId();
 wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3602,6 +3870,20 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXT_MAIN_MSG = wxNewId();
+const int IDC_EDIT_KEY = wxNewId();
+const int IDC_EDIT_ADAPTATION = wxNewId();
+const int IDC_RADIO_ACCEPT_HERE = wxNewId();
+const int ID_TEXT_NO_ADAPT_MSG = wxNewId();
+const int IDC_RADIO_CHANGE_INSTEAD = wxNewId();
+const int IDC_EDIT_CH_VERSE = wxNewId();
+const int ID_TEXT_AVAIL_ADAPT_OR_GLOSS = wxNewId();
+const int IDC_LIST_TRANSLATIONS = wxNewId();
+const int ID_TEXT_CLICK_LISTED = wxNewId();
+const int ID_TEXT_CLICK_EDIT_LISTED = wxNewId();
+const int ID_TEXT_TYPE_NEW = wxNewId();
+const int IDC_CHECK_DO_SAME = wxNewId();
+const int ID_BUTTON_IGNORE_IT = wxNewId();
 wxSizer *m_topRightBoxLabel;
 wxSizer *m_pNumberedPointsStaticBoxSizer;
 wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
@@ -3790,6 +4072,9 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     return item0;
 }
 
+const int IDC_RADIO_CHECK_OPEN_DOC_ONLY = wxNewId();
+const int IDC_RADIO_CHECK_SELECTED_DOCS = wxNewId();
+const int ID_TEXTCTRL_MSG = wxNewId();
 wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3841,6 +4126,11 @@ wxSizer *ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, boo
     return item0;
 }
 
+const int ID_TEXTCTRL = wxNewId();
+const int IDC_EDIT_OLD_SOURCE_TEXT = wxNewId();
+const int ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1 = wxNewId();
+const int ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2 = wxNewId();
+const int IDC_EDIT_NEW_SOURCE = wxNewId();
 wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3942,6 +4232,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     return item0;
 }
 
+const int IDC_EDIT_UNPACK_WARN = wxNewId();
 wxSizer *UnpackWarningDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -3976,6 +4267,24 @@ wxSizer *UnpackWarningDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_STATIC_COUNT = wxNewId();
+const int IDC_LIST_SRC_KEYS = wxNewId();
+const int IDC_LIST_EXISTING_TRANSLATIONS = wxNewId();
+const int IDC_EDIT_EDITORADD = wxNewId();
+const int IDC_BUTTON_UPDATE = wxNewId();
+const int IDC_BUTTON_MOVE_UP = wxNewId();
+const int IDC_BUTTON_ADD = wxNewId();
+const int IDC_BUTTON_MOVE_DOWN = wxNewId();
+const int IDC_ADD_NOTHING = wxNewId();
+const int IDC_EDIT_SHOW_FLAG = wxNewId();
+const int IDC_BUTTON_FLAG_TOGGLE = wxNewId();
+const int IDC_EDIT_SRC_KEY = wxNewId();
+const int IDC_EDIT_REF_COUNT = wxNewId();
+const int ID_BUTTON_REMOVE_SOME = wxNewId();
+const int ID_TEXTCTRL_SEARCH = wxNewId();
+const int ID_BUTTON_GO = wxNewId();
+const int ID_BUTTON_ERASE_ALL_LINES = wxNewId();
+const int ID_COMBO_OLD_SEARCHES = wxNewId();
 wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -4181,6 +4490,9 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_STATIC_TEXT_SELECT_A_TAB = wxNewId();
+const int ID_STATIC_WHICH_KB = wxNewId();
+const int ID_KB_EDITOR_NOTEBOOK = wxNewId();
 wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -4273,6 +4585,13 @@ wxWindow *item6 = item7;
     return item0;
 }
 
+const int IDC_STATIC_DOCS_IN_FOLDER = wxNewId();
+const int IDC_LIST_SOURCE_FOLDER_DOCS = wxNewId();
+const int IDC_RADIO_TO_BOOK_FOLDER = wxNewId();
+const int IDC_RADIO_FROM_BOOK_FOLDER = wxNewId();
+const int IDC_VIEW_OTHER = wxNewId();
+const int IDC_BUTTON_RENAME_DOC = wxNewId();
+const int IDC_MOVE_NOW = wxNewId();
 wxSizer *MoveDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -4362,6 +4681,15 @@ wxSizer *MoveDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_AS_STATIC_JOIN1 = wxNewId();
+const int IDC_BUTTON_MOVE_ALL_RIGHT = wxNewId();
+const int IDC_BUTTON_MOVE_ALL_LEFT = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_JOIN2 = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_JOIN3 = wxNewId();
+const int ID_JOIN_NOW = wxNewId();
+const int IDC_STATIC_JOINING_WAIT = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_JOIN4 = wxNewId();
+const int IDC_EDIT_NEW_FILENAME = wxNewId();
 wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -4543,6 +4871,16 @@ wxSizer *ListDocInOtherFolderDlgFunc( wxWindow *parent, bool call_fit, bool set_
     return item0;
 }
 
+const int ID_STATIC_SET_FONT_TITLE = wxNewId();
+const int ID_STATIC_CURR_ENCODING_IS = wxNewId();
+const int ID_TEXT_CURR_ENCODING = wxNewId();
+const int ID_LISTBOX_POSSIBLE_FACENAMES = wxNewId();
+const int ID_LISTBOX_POSSIBLE_ENCODINGS = wxNewId();
+const int ID_TEXT_TEST_ENCODING_BOX = wxNewId();
+const int ID_BUTTON_CHART_FONT_SIZE_DECREASE = wxNewId();
+const int ID_BUTTON_CHART_FONT_SIZE_INCREASE = wxNewId();
+const int ID_STATIC_CHART_FONT_SIZE = wxNewId();
+const int ID_SCROLLED_ENCODING_WINDOW = wxNewId();
 wxSizer *pTestBoxStaticTextBoxSizer;
 wxSizer *SetEncodingDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -4698,6 +5036,7 @@ wxSizer *SetEncodingDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_EDIT_CCT = wxNewId();
 wxSizer *CCTableEditDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -4736,6 +5075,13 @@ wxSizer *CCTableEditDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_LIST_CCTABLES = wxNewId();
+const int IDC_EDIT_SELECTED_TABLE = wxNewId();
+const int IDC_BUTTON_BROWSE = wxNewId();
+const int IDC_BUTTON_CREATE_CCT = wxNewId();
+const int IDC_BUTTON_EDIT_CCT = wxNewId();
+const int IDC_BUTTON_SELECT_NONE = wxNewId();
+const int IDC_EDIT_FOLDER_PATH = wxNewId();
 wxSizer *CCTablePageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -4816,6 +5162,23 @@ wxSizer *CCTablePageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_RADIO_SRC_ONLY_FIND = wxNewId();
+const int IDC_RADIO_TGT_ONLY_FIND = wxNewId();
+const int IDC_RADIO_SRC_AND_TGT_FIND = wxNewId();
+const int IDC_CHECK_IGNORE_CASE_FIND = wxNewId();
+const int IDC_STATIC_SRC_FIND = wxNewId();
+const int IDC_EDIT_SRC_FIND = wxNewId();
+const int IDC_STATIC_TGT_FIND = wxNewId();
+const int IDC_EDIT_TGT_FIND = wxNewId();
+const int IDC_CHECK_INCLUDE_PUNCT_FIND = wxNewId();
+const int IDC_CHECK_SPAN_SRC_PHRASES_FIND = wxNewId();
+const int IDC_STATIC_SPECIAL = wxNewId();
+const int IDC_RADIO_RETRANSLATION = wxNewId();
+const int IDC_RADIO_NULL_SRC_PHRASE = wxNewId();
+const int IDC_RADIO_SFM = wxNewId();
+const int IDC_STATIC_SELECT_MKR = wxNewId();
+const int IDC_COMBO_SFM = wxNewId();
+const int IDC_BUTTON_SPECIAL = wxNewId();
 wxSizer *IDC_STATIC_SIZER_SPECIAL;
 wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -5021,6 +5384,20 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_RADIO_SRC_ONLY_REPLACE = wxNewId();
+const int IDC_RADIO_TGT_ONLY_REPLACE = wxNewId();
+const int IDC_RADIO_SRC_AND_TGT_REPLACE = wxNewId();
+const int IDC_CHECK_IGNORE_CASE_REPLACE = wxNewId();
+const int IDC_STATIC_SRC_REPLACE = wxNewId();
+const int IDC_EDIT_SRC_REPLACE = wxNewId();
+const int IDC_STATIC_TGT_REPLACE = wxNewId();
+const int IDC_EDIT_TGT_REPLACE = wxNewId();
+const int IDC_CHECK_INCLUDE_PUNCT_REPLACE = wxNewId();
+const int IDC_CHECK_SPAN_SRC_PHRASES_REPLACE = wxNewId();
+const int IDC_STATIC_REPLACE = wxNewId();
+const int IDC_EDIT_REPLACE = wxNewId();
+const int IDC_REPLACE = wxNewId();
+const int IDC_REPLACE_ALL_BUTTON = wxNewId();
 wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -5199,6 +5576,8 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_AS_STATIC = wxNewId();
+const int IDC_EDIT_TBLNAME = wxNewId();
 wxSizer *CCTableNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -5234,6 +5613,20 @@ wxSizer *CCTableNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_EDIT_AS_STATIC = wxNewId();
+const int ID_CHECKBOX_INCLUDE_FREE_TRANS_TEXT = wxNewId();
+const int ID_CHECKBOX_INCLUDE_GLOSSES_TEXT = wxNewId();
+const int ID_RADIO_ALL = wxNewId();
+const int ID_RADIO_SELECTION = wxNewId();
+const int IDC_RADIO_PAGES = wxNewId();
+const int IDC_EDIT_PAGES_FROM = wxNewId();
+const int IDC_EDIT_PAGES_TO = wxNewId();
+const int IDC_RADIO_CHAPTER_VERSE_RANGE = wxNewId();
+const int IDC_EDIT3 = wxNewId();
+const int IDC_EDIT4 = wxNewId();
+const int IDC_CHECK_SUPPRESS_PREC_HEADING = wxNewId();
+const int IDC_CHECK_INCLUDE_FOLL_HEADING = wxNewId();
+const int IDC_CHECK_SUPPRESS_FOOTER = wxNewId();
 wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -5444,6 +5837,7 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_CC_TABBED_NOTEBOOK = wxNewId();
 wxSizer *CCTabbedNotebookFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -5501,6 +5895,10 @@ wxWindow *item4 = item5;
     return item0;
 }
 
+const int ID_LIST_UI_LANGUAGES = wxNewId();
+const int ID_TEXT_AS_STATIC_SHORT_LANG_NAME = wxNewId();
+const int ID_TEXT_AS_STATIC_LONG_LANG_NAME = wxNewId();
+const int IDC_LOCALIZATION_PATH = wxNewId();
 wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -5593,6 +5991,9 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     return item0;
 }
 
+const int IDC_COMBO_REMOVALS = wxNewId();
+const int ID_STATIC_TEXT_REMOVALS = wxNewId();
+const int IDC_BUTTON_UNDO_LAST_COPY = wxNewId();
 wxSizer *RemovalsBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -5642,6 +6043,11 @@ wxSizer *RemovalsBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_EDIT_MSG_TEXT = wxNewId();
+const int IDC_BUTTON_PREV_STEP = wxNewId();
+const int IDC_BUTTON_NEXT_STEP = wxNewId();
+const int ID_BUTTON_END_NOW = wxNewId();
+const int ID_BUTTON_CANCEL_ALL_STEPS = wxNewId();
 wxSizer *VertEditBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -5688,6 +6094,81 @@ wxSizer *VertEditBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXT_TITLE = wxNewId();
+const int IDC_TOGGLE_UNNNN_BTN = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_PUNCT_CORRESP_PAGE = wxNewId();
+const int IDC_EDIT_SRC0 = wxNewId();
+const int IDC_EDIT_TGT0 = wxNewId();
+const int IDC_EDIT_SRC1 = wxNewId();
+const int IDC_EDIT_TGT1 = wxNewId();
+const int IDC_EDIT_SRC2 = wxNewId();
+const int IDC_EDIT_TGT2 = wxNewId();
+const int IDC_EDIT_SRC3 = wxNewId();
+const int IDC_EDIT_TGT3 = wxNewId();
+const int IDC_EDIT_SRC4 = wxNewId();
+const int IDC_EDIT_TGT4 = wxNewId();
+const int IDC_EDIT_SRC5 = wxNewId();
+const int IDC_EDIT_TGT5 = wxNewId();
+const int IDC_EDIT_SRC6 = wxNewId();
+const int IDC_EDIT_TGT6 = wxNewId();
+const int IDC_EDIT_SRC7 = wxNewId();
+const int IDC_EDIT_TGT7 = wxNewId();
+const int IDC_EDIT_SRC8 = wxNewId();
+const int IDC_EDIT_TGT8 = wxNewId();
+const int IDC_EDIT_SRC9 = wxNewId();
+const int IDC_EDIT_TGT9 = wxNewId();
+const int IDC_EDIT_SRC10 = wxNewId();
+const int IDC_EDIT_TGT10 = wxNewId();
+const int IDC_EDIT_SRC11 = wxNewId();
+const int IDC_EDIT_TGT11 = wxNewId();
+const int IDC_EDIT_SRC12 = wxNewId();
+const int IDC_EDIT_TGT12 = wxNewId();
+const int IDC_EDIT_SRC13 = wxNewId();
+const int IDC_EDIT_TGT13 = wxNewId();
+const int IDC_EDIT_SRC14 = wxNewId();
+const int IDC_EDIT_TGT14 = wxNewId();
+const int IDC_EDIT_SRC15 = wxNewId();
+const int IDC_EDIT_TGT15 = wxNewId();
+const int IDC_EDIT_SRC16 = wxNewId();
+const int IDC_EDIT_TGT16 = wxNewId();
+const int IDC_EDIT_SRC17 = wxNewId();
+const int IDC_EDIT_TGT17 = wxNewId();
+const int IDC_EDIT_SRC18 = wxNewId();
+const int IDC_EDIT_TGT18 = wxNewId();
+const int IDC_EDIT_SRC19 = wxNewId();
+const int IDC_EDIT_TGT19 = wxNewId();
+const int IDC_EDIT_SRC20 = wxNewId();
+const int IDC_EDIT_TGT20 = wxNewId();
+const int IDC_EDIT_SRC21 = wxNewId();
+const int IDC_EDIT_TGT21 = wxNewId();
+const int IDC_EDIT_SRC22 = wxNewId();
+const int IDC_EDIT_TGT22 = wxNewId();
+const int IDC_EDIT_SRC23 = wxNewId();
+const int IDC_EDIT_TGT23 = wxNewId();
+const int IDC_EDIT_SRC24 = wxNewId();
+const int IDC_EDIT_TGT24 = wxNewId();
+const int IDC_EDIT_SRC25 = wxNewId();
+const int IDC_EDIT_TGT25 = wxNewId();
+const int IDC_EDIT_2SRC0 = wxNewId();
+const int IDC_EDIT_2TGT0 = wxNewId();
+const int IDC_EDIT_2SRC1 = wxNewId();
+const int IDC_EDIT_2TGT1 = wxNewId();
+const int IDC_EDIT_2SRC2 = wxNewId();
+const int IDC_EDIT_2TGT2 = wxNewId();
+const int IDC_EDIT_2SRC3 = wxNewId();
+const int IDC_EDIT_2TGT3 = wxNewId();
+const int IDC_EDIT_2SRC4 = wxNewId();
+const int IDC_EDIT_2TGT4 = wxNewId();
+const int IDC_EDIT_2SRC5 = wxNewId();
+const int IDC_EDIT_2TGT5 = wxNewId();
+const int IDC_EDIT_2SRC6 = wxNewId();
+const int IDC_EDIT_2TGT6 = wxNewId();
+const int IDC_EDIT_2SRC7 = wxNewId();
+const int IDC_EDIT_2TGT7 = wxNewId();
+const int IDC_EDIT_2SRC8 = wxNewId();
+const int IDC_EDIT_2TGT8 = wxNewId();
+const int IDC_EDIT_2SRC9 = wxNewId();
+const int IDC_EDIT_2TGT9 = wxNewId();
 wxSizer *PunctCorrespPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -6354,6 +6835,21 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_MSG1 = wxNewId();
+const int ID_BUTTON_LOCATE_SOURCE_FOLDER = wxNewId();
+const int ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP = wxNewId();
+const int ID_TEXT_SOURCE_FOLDER_PATH = wxNewId();
+const int ID_TEXTCTRL_SOURCE_PATH = wxNewId();
+const int ID_LISTCTRL_SOURCE_CONTENTS = wxNewId();
+const int ID_BUTTON_LOCATE_DESTINATION_FOLDER = wxNewId();
+const int ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP = wxNewId();
+const int ID_TEXTCTRL_DESTINATION_PATH = wxNewId();
+const int ID_LISTCTRL_DESTINATION_CONTENTS = wxNewId();
+const int ID_BUTTON_MOVE = wxNewId();
+const int ID_BUTTON_COPY = wxNewId();
+const int ID_BUTTON_PEEK = wxNewId();
+const int ID_BUTTON_RENAME = wxNewId();
+const int ID_BUTTON_DELETE = wxNewId();
 wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -6527,6 +7023,15 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     return item0;
 }
 
+const int ID_TEXT_MSG1 = wxNewId();
+const int ID_STATICBITMAP = wxNewId();
+const int ID_TEXTCTRL_SOURCE_FILE_DETAILS = wxNewId();
+const int ID_TEXTCTRL_DESTINATION_FILE_DETAILS = wxNewId();
+const int ID_RADIOBUTTON_REPLACE = wxNewId();
+const int ID_RADIOBUTTON_NO_COPY = wxNewId();
+const int ID_RADIOBUTTON_COPY_AND_RENAME = wxNewId();
+const int ID_TEXT_MODIFY_NAME = wxNewId();
+const int ID_CHECKBOX_HANDLE_SAME = wxNewId();
 wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -6649,6 +7154,16 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_LISTBOX_UPDATED = wxNewId();
+const int ID_TEXTCTRL_INFO_SOURCE = wxNewId();
+const int ID_TEXTCTRL_INFO_REFS = wxNewId();
+const int ID_LISTBOX_MATCHED = wxNewId();
+const int ID_BUTTON_UPDATE = wxNewId();
+const int ID_TEXTCTRL_LOCAL_SEARCH = wxNewId();
+const int ID_BUTTON_FIND_NEXT = wxNewId();
+const int ID_TEXTCTRL_EDITBOX = wxNewId();
+const int ID_BUTTON_RESTORE = wxNewId();
+const int ID_BUTTON_REMOVE_UPDATE = wxNewId();
 wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -6782,6 +7297,26 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_STATICTEXT_SCROLL_LIST = wxNewId();
+const int ID_LIST_LANGUAGE_CODES_NAMES = wxNewId();
+const int ID_STATICTEXT_SEARCH_FOR_LANG_NAME = wxNewId();
+const int ID_TEXTCTRL_SEARCH_LANG_NAME = wxNewId();
+const int ID_BUTTON_FIND_CODE = wxNewId();
+const int ID_BUTTON_FIND_LANGUAGE = wxNewId();
+const int ID_BUTTON_USE_SEL_AS_SRC = wxNewId();
+const int ID_BUTTON_USE_SEL_AS_TGT = wxNewId();
+const int ID_BUTTON_USE_SEL_AS_GLS = wxNewId();
+const int ID_BUTTON_USE_SEL_AS_FRTR = wxNewId();
+const int ID_TEXT_CODES_MSG1 = wxNewId();
+const int ID_TEXT_CODES_MSG2 = wxNewId();
+const int ID_SRC_LANGUAGE_CODE = wxNewId();
+const int ID_TGT_LANGUAGE_CODE = wxNewId();
+const int ID_GLS_LANGUAGE_CODE = wxNewId();
+const int ID_TEXT_FRTR = wxNewId();
+const int ID_TEXTCTRL_SRC_LANG_CODE = wxNewId();
+const int ID_TEXTCTRL_TGT_LANG_CODE = wxNewId();
+const int ID_TEXTCTRL_GLS_LANG_CODE = wxNewId();
+const int ID_TEXTCTRL_FRTR_LANG_CODE = wxNewId();
 wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -6942,6 +7477,9 @@ wxSizer *LanguageCodesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_PEEKMSG = wxNewId();
+const int ID_TEXTCTRL_LINES100 = wxNewId();
+const int ID_BUTTON_TOGGLE_TEXT_DIRECTION = wxNewId();
 wxSizer *m_pHorizBox_for_textctrl;
 wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -6990,6 +7528,8 @@ wxSizer *PeekAtFileFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_INSTRUCTIONS = wxNewId();
+const int ID_LISTBOX_LOADABLES_FILENAMES = wxNewId();
 wxSizer *NewDocFromSourceDataFolderFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7053,6 +7593,14 @@ wxSizer *NewDocFromSourceDataFolderFunc( wxWindow *parent, bool call_fit, bool s
     return item0;
 }
 
+const int ID_STATIC_SELECT_A_TAB = wxNewId();
+const int ID_MENU_EDITOR_NOTEBOOK = wxNewId();
+const int ID_RADIOBUTTON_NONE = wxNewId();
+const int ID_RADIOBUTTON_USE_PROFILE = wxNewId();
+const int ID_COMBO_PROFILE_ITEMS = wxNewId();
+const int ID_BUTTON_RESET_TO_FACTORY = wxNewId();
+const int ID_TEXT_STATIC_DESCRIPTION = wxNewId();
+const int ID_TEXTCTRL_PROFILE_DESCRIPTION = wxNewId();
 wxSizer *MenuEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7178,6 +7726,7 @@ wxWindow *item5 = item6;
     return item0;
 }
 
+const int ID_CHECKLISTBOX_MENU_ITEMS = wxNewId();
 wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7215,6 +7764,15 @@ wxSizer *MenuEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_RADIO_USE_UBS_SET_ONLY = wxNewId();
+const int IDC_RADIO_USE_SILPNG_SET_ONLY = wxNewId();
+const int IDC_RADIO_USE_BOTH_SETS = wxNewId();
+const int IDC_RADIO_USE_UBS_SET_ONLY_PROJ = wxNewId();
+const int IDC_RADIO_USE_SILPNG_SET_ONLY_PROJ = wxNewId();
+const int IDC_RADIO_USE_BOTH_SETS_PROJ = wxNewId();
+const int IDC_CHECK_CHANGE_FIXED_SPACES_TO_REGULAR_SPACES_USFM = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_FILTERPAGE = wxNewId();
+const int IDC_LIST_SFMS_PROJ = wxNewId();
 wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7343,6 +7901,13 @@ wxSizer *UsfmFilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_CHECK_USE_GUESSER = wxNewId();
+const int ID_PANEL_GUESS_COLOR_DISPLAY = wxNewId();
+const int ID_BUTTON_GUESS_HIGHLIGHT_COLOR = wxNewId();
+const int ID_SLIDER_GUESSER = wxNewId();
+const int ID_CHECK_ALLOW_GUESSER_ON_UNCHANGED_CC_OUTPUT = wxNewId();
+const int ID_TEXT_STATIC_NUM_CORRESP_ADAPTATIONS_GUESSER = wxNewId();
+const int ID_TEXT_STATIC_NUM_CORRESP_GLOSSING_GUESSER = wxNewId();
 wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7452,6 +8017,29 @@ wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer
     return item0;
 }
 
+const int ID_TEXTCTRL_DEVS_EMAIL_ADDR = wxNewId();
+const int ID_TEXTCTRL_MY_EMAIL_ADDR = wxNewId();
+const int ID_TEXTCTRL_SUMMARY_SUBJECT = wxNewId();
+const int ID_TEXTCTRL_DESCRIPTION_BODY = wxNewId();
+const int ID_TEXTCTRL_SENDERS_NAME = wxNewId();
+const int ID_CHECKBOX_LET_DEVS_KNOW_AI_USAGE = wxNewId();
+const int ID_BUTTON_VIEW_USAGE_LOG = wxNewId();
+const int ID_TEXT_AI_VERSION = wxNewId();
+const int ID_TEXT_RELEASE_DATE = wxNewId();
+const int ID_TEXT_DATA_TYPE = wxNewId();
+const int ID_TEXT_FREE_MEMORY = wxNewId();
+const int ID_TEXT_SYS_LOCALE = wxNewId();
+const int ID_TEXT_INTERFACE_LANGUAGE = wxNewId();
+const int ID_TEXT_SYS_ENCODING = wxNewId();
+const int ID_TEXT_SYS_LAYOUT_DIR = wxNewId();
+const int ID_TEXT_WXWIDGETS_VERSION = wxNewId();
+const int ID_TEXT_OS_VERSION = wxNewId();
+const int ID_BUTTON_SAVE_REPORT_AS_TEXT_FILE = wxNewId();
+const int ID_BUTTON_LOAD_SAVED_REPORT = wxNewId();
+const int ID_RADIOBUTTON_SEND_DIRECTLY_FROM_AI = wxNewId();
+const int ID_RADIOBUTTON_SEND_TO_MY_EMAIL = wxNewId();
+const int ID_BUTTON_ATTACH_PACKED_DOC = wxNewId();
+const int ID_BUTTON_SEND_NOW = wxNewId();
 wxSizer *STATIC_TEXT_DESCRIPTION;
 wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -7684,6 +8272,8 @@ wxSizer *EmailReportDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXT_LOG_FILE_PATH_AND_NAME = wxNewId();
+const int ID_TEXTCTRL_LOGGED_TEXT = wxNewId();
 wxSizer *LogViewerFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -7719,6 +8309,18 @@ wxSizer *LogViewerFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXT_SRC_PROJ = wxNewId();
+const int ID_STATIC_TEXT_SRC_PROJ = wxNewId();
+const int ID_TEXT_TGT_PROJ = wxNewId();
+const int ID_STATIC_TEXT_TGT_PROJ = wxNewId();
+const int ID_TEXT_FREETRANS_PROJ = wxNewId();
+const int ID_STATIC_TEXT_FREETRANS_PROJ = wxNewId();
+const int ID_TEXT_AI_PROJ = wxNewId();
+const int ID_TEXT_SELECT_A_CHAPTER = wxNewId();
+const int ID_LISTBOX_BOOK_NAMES = wxNewId();
+const int ID_LISTCTRL_CHAPTER_NUMBER_AND_STATUS = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_NOTE = wxNewId();
+const int ID_LINE_1 = wxNewId();
 wxSizer *STATIC_TEXT_PTorBE_PROJECTS;
 wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -7842,6 +8444,27 @@ wxSizer *GetSourceTextFromEditorDlgFunc( wxWindow *parent, bool call_fit, bool s
     return item0;
 }
 
+const int ID_TEXTCTRL_AS_STATIC_TOP_INFO = wxNewId();
+const int ID_CHECKBOX_PROTECT_SOURCE_INPUTS = wxNewId();
+const int ID_BUTTON_PRE_LOAD_SOURCE_TEXTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_FREETRANS_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_FREETRANS_RTF_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_GLOSS_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_GLOSS_RTF_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_SOURCE_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_SOURCE_RTF_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_TARGET_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_TARGET_RTF_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_REPORTS_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_INTERLINEAR_RTF_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_XHTML_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_PATHWAY_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_KB_INPUTS_AND_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_LIFT_INPUTS_AND_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_PACKED_INPUTS_AND_OUTPUTS = wxNewId();
+const int ID_CHECKBOX_PROTECT_CCTABLE_INPUTS_AND_OUTPUTS = wxNewId();
+const int ID_BUTTON_UNSELECT_ALL_CHECKBOXES = wxNewId();
+const int ID_BUTTON_SELECT_ALL_CHECKBOXES = wxNewId();
 wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8043,6 +8666,14 @@ wxSizer *AssignLocationsForInputsOutputsFunc( wxWindow *parent, bool call_fit, b
     return item0;
 }
 
+const int ID_TEXTCTRL_SOURCE_PHRASE_1 = wxNewId();
+const int ID_TEXT_EMPTY_STR = wxNewId();
+const int ID_RADIO_NO_ADAPTATION = wxNewId();
+const int ID_RADIO_LEAVE_HOLE = wxNewId();
+const int ID_RADIO_NOT_IN_KB = wxNewId();
+const int ID_RADIOBUTTON_TYPE_AORG = wxNewId();
+const int ID_TEXTCTRL_TYPED_AORG = wxNewId();
+const int ID_CHECK_DO_SAME = wxNewId();
 wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8128,6 +8759,12 @@ wxSizer *ConsistencyCheck_EmptyNoTU_DlgFunc( wxWindow *parent, bool call_fit, bo
     return item0;
 }
 
+const int ID_TEXTCTRL_SOURCE_PHRASE_2 = wxNewId();
+const int ID_TEXTCTRL_TARGET_PHRASE_2 = wxNewId();
+const int ID_TEXT_EXISTS_STR = wxNewId();
+const int ID_RADIO_STORE_NORMALLY = wxNewId();
+const int ID_RADIO_NOT_IN_KB_LEAVEINDOC = wxNewId();
+const int ID_CHECK_DO_SAME2 = wxNewId();
 wxSizer *ConsistencyCheck_ExistsNoTU_DlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8211,6 +8848,11 @@ wxSizer *ConsistencyCheck_ExistsNoTU_DlgFunc( wxWindow *parent, bool call_fit, b
     return item0;
 }
 
+const int ID_BITMAPBUTTON_MOVE_BACK = wxNewId();
+const int ID_BITMAPBUTTON_MOVE_FORWARD = wxNewId();
+const int ID_BUTTON_OPEN_HTML_FILE = wxNewId();
+const int ID_TEXTCTRL_HTML_FILE_PATH = wxNewId();
+const int ID_HTML_WINDOW = wxNewId();
 wxSizer *HtmlFileViewerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8254,6 +8896,15 @@ wxSizer *HtmlFileViewerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     return item0;
 }
 
+const int ID_TEXT_SRC = wxNewId();
+const int ID_TEXTCTRL_SRC_LANG = wxNewId();
+const int ID_TEXT_NOTCHANGED = wxNewId();
+const int ID_TEXT_TGT_CODE = wxNewId();
+const int ID_LISTBOX_TGT = wxNewId();
+const int ID_TEXT_GLOSS_CODE = wxNewId();
+const int ID_LISTBOX_GLOSS = wxNewId();
+const int ID_TEXTCTRL_TELL = wxNewId();
+const int ID_TEXTCTRL_MSG2 = wxNewId();
 wxSizer *LiftLangFilterFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8366,6 +9017,7 @@ wxSizer *LiftLangFilterFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_RADIOBOX_KB_EXPORT_IMPORT_OPTIONS = wxNewId();
 wxSizer *pKBExpImpCheckBoxesSizer;
 wxSizer *KBExportImportOptionsFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -8409,6 +9061,12 @@ wxSizer *KBExportImportOptionsFunc( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
+const int ID_TEXT_SELECTED_AI_PROJECT = wxNewId();
+const int ID_BUTTON_TELL_ME_MORE = wxNewId();
+const int ID_RADIOBUTTON_TURN_COLLAB_ON = wxNewId();
+const int ID_TEXTCTRL_NOT_INSTALLED_ERROR_MSG = wxNewId();
+const int ID_RADIOBUTTON_TURN_COLLAB_OFF = wxNewId();
+const int ID_RADIOBUTTON_READ_ONLY_MODE = wxNewId();
 wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8479,6 +9137,29 @@ wxSizer *ChooseCollabOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     return item0;
 }
 
+const int ID_TEXT_USE_THIS_DIALOG = wxNewId();
+const int ID_COMBO_AI_PROJECTS = wxNewId();
+const int ID_BUTTON_CREATE_NEW_AI_PROJECT = wxNewId();
+const int ID_TEXT_STATIC_LIST_OF_PROJECTS = wxNewId();
+const int ID_RADIOBOX_EXTERNAL_SCRIPTURE_EDITOR = wxNewId();
+const int IDC_LIST_OF_COLLAB_PROJECTS = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_TOP_NOTE = wxNewId();
+const int ID_TEXT_STATIC_SELECT_WHICH_PROJECTS = wxNewId();
+const int ID_TEXT_STATIC_SRC_FROM_THIS_PROJECT = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_SELECTED_SRC_PROJ = wxNewId();
+const int ID_BUTTON_SELECT_FROM_LIST_SOURCE_PROJ = wxNewId();
+const int ID_RADIO_BY_CHAPTER_ONLY = wxNewId();
+const int ID_RADIO_BY_WHOLE_BOOK = wxNewId();
+const int ID_TEXT_STATIC_TARGET_TO_THIS_PROJECT = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_SELECTED_TGT_PROJ = wxNewId();
+const int ID_BUTTON_SELECT_FROM_LIST_TARGET_PROJ = wxNewId();
+const int ID_TEXT_STATIC_TO_THIS_FT_PROJECT = wxNewId();
+const int ID_TEXTCTRL_AS_STATIC_SELECTED_FREE_TRANS_PROJ = wxNewId();
+const int ID_BUTTON_SELECT_FROM_LIST_FREE_TRANS_PROJ = wxNewId();
+const int ID_BUTTON_NO_FREE_TRANS = wxNewId();
+const int ID_LINE_2 = wxNewId();
+const int ID_BUTTON_SAVE_SETUP_FOR_THIS_PROJ_NOW = wxNewId();
+const int ID_BUTTON_REMOVE_THIS_PROJ_FROM_COLLAB = wxNewId();
 wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8746,6 +9427,12 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
     return item0;
 }
 
+const int ID_TEXT_TOP_INFO_1 = wxNewId();
+const int ID_TEXT_TOP_INFO_2 = wxNewId();
+const int ID_TEXTCTRL_SRC_LANG_NAME = wxNewId();
+const int ID_TEXTCTRL_TGT_LANG_NAME = wxNewId();
+const int ID_TEXT_AS_STATIC_NEW_AI_PROJ_NAME = wxNewId();
+const int ID_TEXTCTRL_NEW_AI_PROJ_NAME = wxNewId();
 wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8844,6 +9531,14 @@ wxSizer *CreateNewAIProjForCollabFunc( wxWindow *parent, bool call_fit, bool set
     return item0;
 }
 
+const int ID_TEXT_STATIC_LAST_BOOKNAME = wxNewId();
+const int ID_TEXTCTRL_OLD_BOOKNAME = wxNewId();
+const int ID_TEXT_STATIC_TOP_MSG = wxNewId();
+const int ID_RADIO_USE_LAST_BOOKNAME = wxNewId();
+const int ID_RADIO_BOOKNAME_IS_INAPPROPRIATE = wxNewId();
+const int ID_RADIO_SUGGESTED_BOOKNAME_ACCEPTABLE = wxNewId();
+const int ID_RADIO_DIFFERENT_BOOKNAME = wxNewId();
+const int ID_TEXTCTRL_BOOKNAME = wxNewId();
 wxSizer *BookNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -8918,6 +9613,11 @@ wxSizer *BookNameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_SPINCTRL_RECEIVE = wxNewId();
+const int ID_RADIO_SHARING_OFF = wxNewId();
+const int ID_GET_RECENT = wxNewId();
+const int ID_GET_ALL = wxNewId();
+const int ID_SEND_ALL = wxNewId();
 wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9012,6 +9712,16 @@ wxSizer *kb_sharing_dlg_func( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_LST_TOOLBAR_BUTTONS = wxNewId();
+const int ID_BMP_TOOLBAR_SMALL = wxNewId();
+const int ID_BMP_TOOLBAR_MEDIUM = wxNewId();
+const int ID_BMP_TOOLBAR_LARGE = wxNewId();
+const int ID_RDO_TOOLBAR_SMALL = wxNewId();
+const int ID_RDO_TOOLBAR_MEDIUM = wxNewId();
+const int ID_RDO_TOOLBAR_LARGE = wxNewId();
+const int ID_CBO_TOOLBAR_ICON = wxNewId();
+const int ID_BTN_TOOLBAR_MINIMAL = wxNewId();
+const int ID_TOOLBAR_RESET = wxNewId();
 wxSizer *ToolbarPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9125,6 +9835,12 @@ wxSizer *ToolbarPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int IDC_MYLISTBOX_TRANSLATIONS = wxNewId();
+const int IDC_EDIT_MATCHED_SOURCE = wxNewId();
+const int IDC_EDIT_REFERENCES = wxNewId();
+const int ID_BUTTON_CANCEL_ASK = wxNewId();
+const int ID_BUTTON_CANCEL_AND_SELECT = wxNewId();
+const int IDC_EDIT_NEW_TRANSLATION = wxNewId();
 wxSizer *ChooseTranslationDlgFunc2( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9261,6 +9977,8 @@ wxSizer *ChooseTranslationDlgFunc2( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
+const int IDC_COMMIT_COMMENT = wxNewId();
+const int IDC_COMMIT_BLURB = wxNewId();
 wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9300,6 +10018,13 @@ wxSizer *DVCSDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_COMMITTER = wxNewId();
+const int ID_VERSION_DATE = wxNewId();
+const int ID_VERSION_COMMENT = wxNewId();
+const int ID_BTN_PREV = wxNewId();
+const int ID_BTN_NEXT = wxNewId();
+const int ID_ACCEPT = wxNewId();
+const int ID_LATEST = wxNewId();
 wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9377,6 +10102,7 @@ wxSizer *DVCSNavDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_LST_VERSIONS = wxNewId();
 wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9411,6 +10137,10 @@ wxSizer *DVCSLogDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_TEXTCTRL_USERNAME_MSG = wxNewId();
+const int ID_TEXTCTRL_USERNAME = wxNewId();
+const int ID_TEXTCTRL_USERNAME_INFORMAL_MSG = wxNewId();
+const int ID_TEXTCTRL_USERNAME_INFORMAL = wxNewId();
 wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9463,6 +10193,17 @@ wxSizer *UsernameInputFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+const int ID_LISTBOX_CUR_USERS = wxNewId();
+const int ID_THE_USERNAME = wxNewId();
+const int ID_TEXTCTRL_INFORMAL_NAME = wxNewId();
+const int ID_TEXTCTRL_PASSWORD = wxNewId();
+const int ID_TEXTCTRL_PASSWORD_TWO = wxNewId();
+const int ID_CHECKBOX_USERADMIN = wxNewId();
+const int ID_CHECKBOX_KBADMIN = wxNewId();
+const int ID_BUTTON_CLEAR_CONTROLS = wxNewId();
+const int ID_BUTTON_ADD_USER = wxNewId();
+const int ID_BUTTON_EDIT_USER = wxNewId();
+const int ID_BUTTON_REMOVE_USER = wxNewId();
 wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9603,6 +10344,9 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
     return item0;
 }
 
+const int ID_TEXT_CONNECTED_TO = wxNewId();
+const int ID_TEXT_SERVER_URL = wxNewId();
+const int ID_SHAREDKB_MANAGER_DLG = wxNewId();
 wxSizer *SharedKBManagerNotebookFunc2( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9658,6 +10402,21 @@ wxWindow *item6 = item7;
     return item0;
 }
 
+const int ID_RADIOBUTTON_TYPE1_KB = wxNewId();
+const int ID_RADIOBUTTON_TYPE2_KB = wxNewId();
+const int ID_TEXT_EXISTING_KB_CODE_PAIRS = wxNewId();
+const int ID_LISTBOX_KB_CODE_PAIRS = wxNewId();
+const int ID_TEXTCTRL_CREATED_BY = wxNewId();
+const int ID_BUTTON_LOOKUP_THE_CODES = wxNewId();
+const int ID_BUTTON_RFC5646 = wxNewId();
+const int ID_BUTTON_CLEAR_LIST_SELECTION = wxNewId();
+const int ID_TEXTCTRL_SRC = wxNewId();
+const int ID_TEXT_TGT_LANG_CODE = wxNewId();
+const int ID_TEXTCTRL_NONSRC = wxNewId();
+const int ID_BUTTON_ADD_DEFINITION = wxNewId();
+const int ID_BUTTON_CLEAR_BOXES = wxNewId();
+const int ID_BUTTON_UPDATE_LANG_CODES = wxNewId();
+const int ID_BUTTON_REMOVE_SELECTED_DEFINITION = wxNewId();
 wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9808,6 +10567,11 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
     return item0;
 }
 
+const int ID_SERVER_URL_LABEL_STATELESS = wxNewId();
+const int ID_TEXTCTRL_SERVER_URL_STATELESS = wxNewId();
+const int ID_TEXT_USERNAME_LABEL_STATELESS = wxNewId();
+const int ID_TEXTCTRL_USERNAME_STATELESS = wxNewId();
+const int ID_TEXT_ASKED_STATELESS = wxNewId();
 wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9884,6 +10648,10 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
     return item0;
 }
 
+const int ID_TEXT_INDICATE_SHARE = wxNewId();
+const int ID_CHECKBOX_SHARE_MY_TGT_KB = wxNewId();
+const int ID_CHECKBOX_SHARE_MY_GLOSS_KB = wxNewId();
+const int ID_BUTTON_REMOVE_MY_SETUP = wxNewId();
 wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -9955,6 +10723,10 @@ wxSizer *kb_share_setup_or_remove_func( wxWindow *parent, bool call_fit, bool se
     return item0;
 }
 
+const int ID_LISTCTRL_BULK_DEL = wxNewId();
+const int ID_RADIO_ORGANISE_BY_KEYS = wxNewId();
+const int ID_RADIO_SIMPLY_TARGET_ALPHABETICAL = wxNewId();
+const int ID_BUTTON_SAVE_ENTRYLIST_TO_FILE = wxNewId();
 wxSizer *m_LIST_CTRL_SIZER;
 wxSizer *Bulk_Delete_Pairs_Func( wxWindow *parent, bool call_fit, bool set_sizer )
 {
@@ -10042,6 +10814,8 @@ wxSizer *Bulk_Delete_Pairs_Func( wxWindow *parent, bool call_fit, bool set_sizer
     return item0;
 }
 
+const int ID_TEXTCTRL_TELL_USER = wxNewId();
+const int ID_RADIOBOX_ADJUST = wxNewId();
 wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -10058,7 +10832,7 @@ wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
         _("Split off the first part, and join the remainder to what follows"), 
         _("No join or split.  Instead, just delete the last word typed and allow further editing")
     };
-    wxRadioBox *item3 = new wxRadioBox( parent, ID_RADIOBOX_FREE_TRANS_OPTIONS, _("Make the free translation fit by clicking one of the following options:"), wxDefaultPosition, wxSize(-1,112), 4, strs3, 4, wxRA_SPECIFY_ROWS );
+    wxRadioBox *item3 = new wxRadioBox( parent, ID_RADIOBOX_ADJUST, _("Make the free translation fit by clicking one of the following options:"), wxDefaultPosition, wxSize(-1,112), 4, strs3, 4, wxRA_SPECIFY_ROWS );
     item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxButton *item4 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -10079,6 +10853,101 @@ wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
 // Implement menubar functions
 
+const int ID_SAVE_AS = wxNewId();
+const int ID_FILE_SAVE_COMMIT = wxNewId();
+const int ID_FILE_PACK_DOC = wxNewId();
+const int ID_FILE_UNPACK_DOC = wxNewId();
+const int ID_MENU = wxNewId();
+const int ID_FILE_STARTUP_WIZARD = wxNewId();
+const int ID_FILE_CLOSEKB = wxNewId();
+const int ID_FILE_CHANGEFOLDER = wxNewId();
+const int ID_FILE_SAVEKB = wxNewId();
+const int ID_FILE_BACKUP_KB = wxNewId();
+const int ID_FILE_RESTORE_KB = wxNewId();
+const int ID_FILE_REVERT_FILE = wxNewId();
+const int ID_FILE_LIST_VERSIONS = wxNewId();
+const int ID_FILE_TAKE_OWNERSHIP = wxNewId();
+const int ID_FILE_MENU = wxNewId();
+const int ID_EDIT_CUT = wxNewId();
+const int ID_EDIT_COPY = wxNewId();
+const int ID_EDIT_PASTE = wxNewId();
+const int ID_GO_TO = wxNewId();
+const int ID_EDIT_SOURCE_TEXT = wxNewId();
+const int ID_EDIT_CONSISTENCY_CHECK = wxNewId();
+const int ID_MENU_CHANGE_USERNAME = wxNewId();
+const int ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE = wxNewId();
+const int ID_EDIT_MOVE_NOTE_FORWARD = wxNewId();
+const int ID_EDIT_MOVE_NOTE_BACKWARD = wxNewId();
+const int ID_EDIT_MENU = wxNewId();
+const int ID_VIEW_TOOLBAR = wxNewId();
+const int ID_VIEW_STATUS_BAR = wxNewId();
+const int ID_VIEW_COMPOSE_BAR = wxNewId();
+const int ID_VIEW_MODE_BAR = wxNewId();
+const int ID_COPY_SOURCE = wxNewId();
+const int ID_MARKER_WRAPS_STRIP = wxNewId();
+const int ID_UNITS = wxNewId();
+const int ID_CHANGE_INTERFACE_LANGUAGE = wxNewId();
+const int ID_VIEW_SHOW_ADMIN_MENU = wxNewId();
+const int ID_VIEW_MENU = wxNewId();
+const int ID_TOOLS_DEFINE_CC = wxNewId();
+const int ID_UNLOAD_CC_TABLES = wxNewId();
+const int ID_USE_CC = wxNewId();
+const int ID_ACCEPT_CHANGES = wxNewId();
+const int ID_TOOLS_DEFINE_SILCONVERTER = wxNewId();
+const int ID_USE_SILCONVERTER = wxNewId();
+const int ID_TOOLS_KB_EDITOR = wxNewId();
+const int ID_TOOLS_AUTO_CAPITALIZATION = wxNewId();
+const int ID_MENU_UPPER_AVAIL = wxNewId();
+const int ID_RETRANS_REPORT = wxNewId();
+const int ID_TOOLS_SPLIT_DOC = wxNewId();
+const int ID_TOOLS_JOIN_DOCS = wxNewId();
+const int ID_TOOLS_MOVE_DOC = wxNewId();
+const int ID_TOOLS_MENU = wxNewId();
+const int ID_FILE_EXPORT_SOURCE = wxNewId();
+const int ID_FILE_EXPORT = wxNewId();
+const int ID_FILE_EXPORT_TO_RTF = wxNewId();
+const int ID_EXPORT_GLOSSES = wxNewId();
+const int ID_EXPORT_FREE_TRANS = wxNewId();
+const int ID_FILE_EXPORT_KB = wxNewId();
+const int ID_IMPORT_TO_KB = wxNewId();
+const int ID_MENU_IMPORT_EDITED_SOURCE_TEXT = wxNewId();
+const int ID_EXPORT_IMPORT_MENU = wxNewId();
+const int ID_ADVANCED_SEE_GLOSSES = wxNewId();
+const int ID_ADVANCED_GLOSSING_USES_NAV_FONT = wxNewId();
+const int ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES = wxNewId();
+const int ID_ADVANCED_DELAY = wxNewId();
+const int ID_ADVANCED_BOOKMODE = wxNewId();
+const int ID_ADVANCED_FREE_TRANSLATION_MODE = wxNewId();
+const int ID_ADVANCED_TARGET_TEXT_IS_DEFAULT = wxNewId();
+const int ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT = wxNewId();
+const int ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS = wxNewId();
+const int ID_ADVANCED_COLLECT_BACKTRANSLATIONS = wxNewId();
+const int ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS = wxNewId();
+const int ID_ADVANCED_USETRANSLITERATIONMODE = wxNewId();
+const int ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES = wxNewId();
+const int ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES = wxNewId();
+const int ID_ADVANCED_MENU = wxNewId();
+const int ID_ALIGNMENT = wxNewId();
+const int ID_LAYOUT_MENU = wxNewId();
+const int ID_MENU_AI_QUICK_START = wxNewId();
+const int ID_REPORT_A_PROBLEM = wxNewId();
+const int ID_GIVE_FEEDBACK = wxNewId();
+const int ID_HELP_USE_TOOLTIPS = wxNewId();
+const int ID_HELP_MENU = wxNewId();
+const int ID_MENU_HELP_FOR_ADMINISTRATORS = wxNewId();
+const int ID_SETUP_EDITOR_COLLABORATION = wxNewId();
+const int ID_EDIT_USER_MENU_SETTINGS_PROFILE = wxNewId();
+const int ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE = wxNewId();
+const int ID_ASSIGN_LOCATIONS_FOR_INPUTS_OUTPUTS = wxNewId();
+const int ID_MOVE_OR_COPY_FOLDERS_OR_FILES = wxNewId();
+const int ID_SET_PASSWORD_MENU = wxNewId();
+const int ID_CUSTOM_WORK_FOLDER_LOCATION = wxNewId();
+const int ID_LOCK_CUSTOM_LOCATION = wxNewId();
+const int ID_UNLOCK_CUSTOM_LOCATION = wxNewId();
+const int ID_LOCAL_WORK_FOLDER_MENU = wxNewId();
+const int ID_DVCS_VERSION = wxNewId();
+const int ID_MENU_KBSHARINGMGR = wxNewId();
+const int ID_ADMINISTRATOR_MENU = wxNewId();
 wxMenuBar *AIMenuBarFunc()
 {
     wxMenuBar *item0 = new wxMenuBar;
@@ -10253,6 +11122,28 @@ wxMenuBar *AIMenuBarFunc()
 
 // Implement toolbar functions
 
+const int ID_BUTTON_GUESSER = wxNewId();
+const int ID_BUTTON_CREATE_NOTE = wxNewId();
+const int ID_BUTTON_PREV_NOTE = wxNewId();
+const int ID_BUTTON_NEXT_NOTE = wxNewId();
+const int ID_BUTTON_DELETE_ALL_NOTES = wxNewId();
+const int ID_BUTTON_RESPECTING_BDRY = wxNewId();
+const int ID_BUTTON_SHOWING_PUNCT = wxNewId();
+const int ID_BUTTON_TO_END = wxNewId();
+const int ID_BUTTON_TO_START = wxNewId();
+const int ID_BUTTON_STEP_DOWN = wxNewId();
+const int ID_BUTTON_STEP_UP = wxNewId();
+const int ID_BUTTON_BACK = wxNewId();
+const int ID_BUTTON_MERGE = wxNewId();
+const int ID_BUTTON_RETRANSLATION = wxNewId();
+const int ID_BUTTON_EDIT_RETRANSLATION = wxNewId();
+const int ID_REMOVE_RETRANSLATION = wxNewId();
+const int ID_BUTTON_NULL_SRC = wxNewId();
+const int ID_BUTTON_REMOVE_NULL_SRCPHRASE = wxNewId();
+const int ID_BUTTON_CHOOSE_TRANSLATION = wxNewId();
+const int ID_SHOWING_ALL = wxNewId();
+const int ID_BUTTON_EARLIER_TRANSLATION = wxNewId();
+const int ID_BUTTON_NO_PUNCT_COPY = wxNewId();
 void AIToolBarFunc( wxToolBar *parent )
 {
     parent->SetMargins( 0, 0 );
@@ -11431,6 +12322,9 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index )
     return wxNullBitmap;
 }
 
+const int ID_BITMAP_FOLDERAI = wxNewId();
+const int ID_BITMAP_FILEAI = wxNewId();
+const int ID_BITMAP_EMPTY_FOLDER = wxNewId();
 wxBitmap AIMainFrameIcons( size_t index )
 {
     if (index == (size_t)0)
@@ -22608,6 +23502,10 @@ wxBitmap AIMainFrameIcons( size_t index )
     return wxNullBitmap;
 }
 
+const int ID_BUTTON_IGNORING_BDRY = wxNewId();
+const int ID_BUTTON_HIDING_PUNCT = wxNewId();
+const int ID_SHOWING_TGT = wxNewId();
+const int ID_BUTTON_ENABLE_PUNCT_COPY = wxNewId();
 wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
 {
     if ((index == (size_t)0) ||
@@ -25087,6 +25985,8 @@ wxBitmap HtmlWindowBitmapsFunc( size_t index )
     return wxNullBitmap;
 }
 
+const int ID_BITMAP_CHBOX_OFF = wxNewId();
+const int ID_BITMAP_CHBOX_ON = wxNewId();
 wxBitmap BulkKbDeleteFunc( size_t index )
 {
     if ((index == (size_t)0) ||
