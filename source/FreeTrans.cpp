@@ -2083,7 +2083,9 @@ void CFreeTrans::AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
     // be truncated and an ellipsis added at the end, and we display that much - though we
     // do try a text size reduction first. If the free translation extends to a second strip,
     // then ftStr will need to be cut up into substrings as well. Those tasks are done below.
-	int nTotalHorizExtent;
+    
+	// BEW 16Nov13 The following is now a public member variable
+	//int nTotalHorizExtent;
 	FreeTrElement* pElement;
 	wxSize extent;
 	wxString ellipsis = _T("...");
@@ -2478,7 +2480,8 @@ void CFreeTrans::DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 {
 	int ftCount = arrFreeTranslations.GetCount();
 	int ftIndex;
-	int nTotalHorizExtent;
+	// BEW 16Nov13 The following is now a public member variable
+	//int nTotalHorizExtent;
 
 	wxArrayPtrVoid* pFTElementsSet = NULL; // stores FreeTrElement stuct ptrs
 
@@ -2951,7 +2954,8 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	int curStripIndex;
 	int curPileIndex;
 	int curPileCount;
-	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles
+	// BEW 16Nov13 The following is now a public member variable
+	//int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles
                            // which make up the laid out possible writable areas
                            // for the current free trans section
 	wxPoint topLeft;
@@ -3417,7 +3421,8 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 	int curStripIndex;
 	int curPileIndex;
 	int curPileCount;
-	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles
+	// BEW 16Nov13 The following is now a public member variable
+	//int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles
                            // which make up the laid out possible writable areas
                            // for the current free trans section
 	wxPoint topLeft;

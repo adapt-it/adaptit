@@ -46,6 +46,9 @@
 #include "Adapt_ItCanvas.h"
 #include "Adapt_ItDoc.h"
 #include "FreeTrans.h"
+#include "FreeTransAdjustDlg.h"
+#include "Pile.h"
+#include "Cell.h"
 #include "ComposeBarEditBox.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -93,6 +96,53 @@ void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 		event.Skip();
 	// The actual text characters typed in the compose bar's edit box go through here
 
+	bool bFreeTranslationModeIsCurrent = gpApp->m_bFreeTranslationMode;
+	if (bFreeTranslationModeIsCurrent)
+	{
+		// This is a good place to do a filter which checks for the user typing into the
+		// current free translation and exceeding the allowable space in the rectangles
+		// for drawing it - and if exceeded, to put up the FTAdjustFunct dialog so he can
+		// take one of its options. This prevents unbridled endless typing beyond the
+		// current section - something which users (Kim says) tend to do without realizing
+		// they must constrain their typing to the meaning of the source for the current
+		// section only
+
+
+// TODO
+		// test getting FreeTransAdjustDlg open if a character is typed
+		/* it works - and it's repositioned automatically away from phrasebox
+		FreeTransAdjustDlg dlg((wxWindow*)gpApp->GetMainFrame());
+
+		// Provide the needed hook for the repositioning function to get the
+		// top left of phrasebox location
+		CCell* pCell = gpApp->m_pActivePile->GetCell(1);
+		dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			const int selection = dlg.selection; // the user's radiobutton choice
+			switch (selection)
+			{
+			case 0: // the "Join With Next" option
+
+				break;
+			case 1: // the "Join With Previous" option
+
+				break;
+			case 2: // the "Split off first part, and join the remainder with what follows" option
+
+				break;
+			case 3: // the " ... delete the last word and allow further editing" option
+
+				break;
+			}
+
+
+			// TODO the rest
+
+		}
+		*/
+	}
 }
 
 void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
