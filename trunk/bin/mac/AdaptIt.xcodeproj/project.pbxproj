@@ -38,6 +38,7 @@
 		27462BDC17474EBE005605DA /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD817474EBE005605DA /* jsonwriter.cpp */; };
 		27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27501E2C176FD106000AC145 /* md5_SB.cpp */; };
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
+		278D48BE1839859900562C6F /* FreeTransAdjustDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 278D48BC1839859900562C6F /* FreeTransAdjustDlg.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
 		27AC52F71598029E009E7C07 /* Xhtml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27AC52F61598029E009E7C07 /* Xhtml.cpp */; };
 		27B3963F1754B69A0034E461 /* UsernameInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27B3963D1754B69A0034E461 /* UsernameInput.cpp */; };
@@ -239,6 +240,8 @@
 		27699F47153CEBAB009B0ADD /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
 		2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ChangedSince.cpp; path = ../../source/Thread_ChangedSince.cpp; sourceTree = "<group>"; };
 		2783C43A16CC457300C902E7 /* Thread_ChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ChangedSince.h; path = ../../source/Thread_ChangedSince.h; sourceTree = "<group>"; };
+		278D48BC1839859900562C6F /* FreeTransAdjustDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTransAdjustDlg.cpp; path = ../../source/FreeTransAdjustDlg.cpp; sourceTree = "<group>"; };
+		278D48BD1839859900562C6F /* FreeTransAdjustDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTransAdjustDlg.h; path = ../../source/FreeTransAdjustDlg.h; sourceTree = "<group>"; };
 		2791678516195D4D00744DF8 /* KBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KBServer.cpp; path = ../../source/KBServer.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F61598029E009E7C07 /* Xhtml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Xhtml.cpp; path = ../../source/Xhtml.cpp; sourceTree = SOURCE_ROOT; };
 		27AC52F8159802C4009E7C07 /* Xhtml.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Xhtml.h; path = ../../source/Xhtml.h; sourceTree = SOURCE_ROOT; };
@@ -542,6 +545,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				278D48BC1839859900562C6F /* FreeTransAdjustDlg.cpp */,
+				278D48BD1839859900562C6F /* FreeTransAdjustDlg.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				27699F47153CEBAB009B0ADD /* Adapt_It.h */,
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
@@ -1155,6 +1160,7 @@
 				0381884F182406BB0009EE04 /* KbSharingSetup.cpp in Sources */,
 				03818850182406BB0009EE04 /* KBSharingStatelessSetupDlg.cpp in Sources */,
 				0381887A1824116D0009EE04 /* RemoveSomeTgtEntries.cpp in Sources */,
+				278D48BE1839859900562C6F /* FreeTransAdjustDlg.cpp in Sources */,
 				0381887D1824118C0009EE04 /* Thread_BulkPseudoDelete.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
