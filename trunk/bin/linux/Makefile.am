@@ -86,7 +86,8 @@ adaptit_SOURCES = \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
-	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
+	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/FreeTransAdjustDlg.cpp \
+	../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
 	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h \
 	../../source/jsonval.cpp ../../source/jsonval.h \
