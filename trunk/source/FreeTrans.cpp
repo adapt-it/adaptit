@@ -1709,6 +1709,8 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
                         // there are more piles to the right, so terminate the rectangle at
                         // the pile's right boundary
 						rect.SetRight(pPile->GetPileRect().GetRight());
+						// BEW 19Nov13 add all but 6 pixels of inter-pile following gap
+						rect.SetRight(rect.GetRight() + ((int)FREE_TRANS_INTER_PILE_GAP - 6));
 					}
                     // store in the pElement's subRect member (don't compute the substring
                     // yet, to save time since the rect may not be visible), add the
@@ -3202,6 +3204,8 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 					// more piles to the right, so terminate the rectangle at the pile's
 					// right boundary
 					rect.SetRight(pPile->GetPileRect().GetRight());
+					// BEW 19Nov13 add all but 6 pixels of inter-pile following gap
+					rect.SetRight(rect.GetRight() + ((int)FREE_TRANS_INTER_PILE_GAP - 6));
 				}
 				// store in the pElement's subRect member (don't compute the substring yet, to
 				// save time since the rect may not be visible), add the element to the pointer
@@ -3447,7 +3451,12 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 #endif
 
-	wxString ellipsis = _T("...");
+	wxString ellipsis;
+#if defined(_UNICODE)
+	ellipsis = _T('\u2026'); // use a unicode ellipsis, it's shorter
+#else
+	ellipsis = _T("...");
+#endif
 	wxString ftStr;
 	wxArrayString subStrings;
 
@@ -3738,6 +3747,8 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 						// more piles to the right, so terminate the rectangle at the pile's
 						// right boundary
 						rect.SetRight(pPile->GetPileRect().GetRight());
+						// BEW 19Nov13 add all but 6 pixels of inter-pile following gap
+						rect.SetRight(rect.GetRight() + ((int)FREE_TRANS_INTER_PILE_GAP - 6));
 					}
                     // store in the pElement's subRect member (don't compute the substring
                     // yet, to save time since the rect may not be visible), add the
