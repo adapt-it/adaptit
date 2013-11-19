@@ -507,27 +507,40 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 
 	// Validate fontPage data
 	// Don't accept blank face names for any of the 3 fonts
+	// 
+	// Use these enum symbols for the page selections
+	// enum PrefsPageIndices {
+	//    fontsPageIndex = 0,
+	//    punctuationPageIndex,
+	//    toolbarPageIndex,
+	//    casePageIndex,
+	//    kbPageIndex, // the 'Backups and KB" page
+	//    viewPageIndex,
+	//    autosavePageIndex,
+	//    unitsPageIndex,
+	//    filterPageIndex
+	// };
 	wxASSERT(pNotebook != NULL);
 	wxString strTemp, subStr, msg;
 	if (fontPage != NULL)
 	{
 		if (fontPage->fontPgCommon.pSrcFontNameBox->GetValue().IsEmpty())
 		{
-			pNotebook->SetSelection(0); // Font tab is first in EditPreferencesDlg notebook
+			pNotebook->SetSelection(fontsPageIndex); // Font tab is first in EditPreferencesDlg notebook
 			wxMessageBox(_("Sorry, the source font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pSrcFontNameBox->SetFocus();
 			return;
 		}
 		if (fontPage->fontPgCommon.pTgtFontNameBox->GetValue().IsEmpty())
 		{
-			pNotebook->SetSelection(0);
+			pNotebook->SetSelection(fontsPageIndex);
 			wxMessageBox(_("Sorry, the target font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pTgtFontNameBox->SetFocus();
 			return;
 		}
 		if (fontPage->fontPgCommon.pNavFontNameBox->GetValue().IsEmpty())
 		{
-			pNotebook->SetSelection(0);
+			pNotebook->SetSelection(fontsPageIndex);
 			wxMessageBox(_("Sorry, the navigation font name cannot be left blank."), _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pNavFontNameBox->SetFocus();
 			return;
@@ -541,7 +554,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
 		{
 			msg = msg.Format(subStr,_("source"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-			pNotebook->SetSelection(0);
+			pNotebook->SetSelection(fontsPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pSrcFontSizeBox->SetFocus();
 			fontPage->fontPgCommon.pSrcFontSizeBox->SetValue(_T("12"));
@@ -552,7 +565,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
 		{
 			msg = msg.Format(subStr,_("target"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-			pNotebook->SetSelection(0);
+			pNotebook->SetSelection(fontsPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pTgtFontSizeBox->SetValue(_T("12"));
 			fontPage->fontPgCommon.pTgtFontSizeBox->SetFocus();
@@ -563,7 +576,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (fSize < MIN_FONT_SIZE || fSize > MAX_FONT_SIZE)
 		{
 			msg = msg.Format(subStr,_("navigation"),MIN_FONT_SIZE,MAX_FONT_SIZE);
-			pNotebook->SetSelection(0);
+			pNotebook->SetSelection(fontsPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			fontPage->fontPgCommon.pNavFontSizeBox->SetValue(_T("12"));
 			fontPage->fontPgCommon.pNavFontSizeBox->SetFocus();
@@ -581,7 +594,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (kbPage->m_pEditSrcName->GetValue().Length() > 64)
 		{
 			msg = msg.Format(subStr, _("source"));
-			pNotebook->SetSelection(1);
+			pNotebook->SetSelection(kbPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			kbPage->m_pEditSrcName->SetFocus();
 			return;
@@ -589,7 +602,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (kbPage->m_pEditTgtName->GetValue().Length() > 64)
 		{
 			msg = msg.Format(subStr, _("target"));
-			pNotebook->SetSelection(1);
+			pNotebook->SetSelection(kbPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			kbPage->m_pEditTgtName->SetFocus();
 			return;
@@ -601,57 +614,39 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 	{
 		// Validate viewPage data
 		subStr = _("Sorry, the %s value must be between %d and %d.\nPlease type a value within that range.");
-		// refactored 26Apr09 - this item is no longer needed
-		//strTemp = viewPage->m_pEditMaxSrcWordsDisplayed->GetValue();
-		//intTemp = wxAtoi(strTemp);
-		//if (intTemp < 60 || intTemp > 4000)
-		//{
-		//	msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
-		//	pNotebook->SetSelection(2);
-		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
-		//	viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
-		//	return;
-		//}
-		// refactored 26Apr09 - this item is no longer needed
-		//strTemp = viewPage->m_pEditMinPrecContext->GetValue();
-		//intTemp = wxAtoi(strTemp);
-		//if (intTemp < 20 || intTemp > 80)
-		//{
-		//	msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
-		//	pNotebook->SetSelection(2);
-		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
-		//	viewPage->m_pEditMinPrecContext->SetFocus();
-		//	return;
-		//}
-		// refactored 26Apr09 - this item is no longer needed
-		//strTemp = viewPage->m_pEditMinFollContext->GetValue();
-		//intTemp = wxAtoi(strTemp);
-		//if (intTemp < 20 || intTemp > 60)
-		//{
-		//	msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
-		//	pNotebook->SetSelection(2);
-		//	wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
-		//	viewPage->m_pEditMinFollContext->SetFocus();
-		//	return;
-		//}
 		strTemp = viewPage->m_pEditLeading->GetValue();
 		intTemp = wxAtoi(strTemp);
 		if (intTemp < 14 || intTemp > 80)
 		{
 			msg = msg.Format(subStr,_("vertical gap between text strips"),14,80);
-			pNotebook->SetSelection(2);
+			pNotebook->SetSelection(viewPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditLeading->SetFocus();
 			return;
 		}
 		strTemp = viewPage->m_pEditGapWidth->GetValue();
 		intTemp = wxAtoi(strTemp);
-		if (intTemp < 6 || intTemp > 40)
+		// BEW 18Nov13 changed 40 to 80 in test, the 80 limit has been set in the config
+		// file test for years, but was forgotten to be changed from 40 to 80 here too.
+		//if (intTemp < 6 || intTemp > 40)
+		if (intTemp < 6 || intTemp > 80)
 		{
-			msg = msg.Format(subStr,_("inter-pile gap width"),6,40);
-			pNotebook->SetSelection(2);
+			//msg = msg.Format(subStr,_("inter-pile gap width"),6,40);
+			msg = msg.Format(subStr,_("inter-pile gap width"),6,80);
+			pNotebook->SetSelection(viewPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditGapWidth->SetFocus();
+			return;
+		}
+		// BEW 19Nov13 added next one
+		strTemp = viewPage->m_pEditLeftMargin->GetValue();
+		intTemp = wxAtoi(strTemp);
+		if (intTemp < 16 || intTemp > 40)
+		{
+			msg = msg.Format(subStr,_("left margin width"),16,40);
+			pNotebook->SetSelection(viewPageIndex);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+			viewPage->m_pEditLeftMargin->SetFocus();
 			return;
 		}
 		strTemp = viewPage->m_pEditMultiplier->GetValue();
@@ -659,9 +654,20 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (intTemp < 5 || intTemp > 30)
 		{
 			msg = msg.Format(subStr,_("expansion multiplier"),5,30);
-			pNotebook->SetSelection(2);
+			pNotebook->SetSelection(viewPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditMultiplier->SetFocus();
+			return;
+		}
+		// BEW 19Nov13 added next one
+		strTemp = viewPage->m_pEditDlgFontSize->GetValue();
+		intTemp = wxAtoi(strTemp);
+		if (intTemp < 10 || intTemp > 24)
+		{
+			msg = msg.Format(subStr,_("font size for dialogs"),10,24);
+			pNotebook->SetSelection(viewPageIndex);
+			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+			viewPage->m_pEditDlgFontSize->SetFocus();
 			return;
 		}
 	}
@@ -674,7 +680,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (intTemp < 1 || intTemp > 30)
 		{
 			msg = msg.Format(subStr,_("number of minutes value"),1,30);
-			pNotebook->SetSelection(3);
+			pNotebook->SetSelection(autosavePageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditMinutes->SetFocus();
 			return;
@@ -684,7 +690,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (intTemp < 10 || intTemp > 1000)
 		{
 			msg = msg.Format(subStr,_("number of moves value"),10,1000);
-			pNotebook->SetSelection(3);
+			pNotebook->SetSelection(autosavePageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditMoves->SetFocus();
 			return;
@@ -694,7 +700,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (intTemp < 2 || intTemp > 60)
 		{
 			msg = msg.Format(subStr,_("number of minutes"),2,60);
-			pNotebook->SetSelection(3);
+			pNotebook->SetSelection(autosavePageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			autoSavePage->m_pEditKBMinutes->SetFocus();
 			return;
@@ -710,7 +716,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			if (punctMapPage->punctPgCommon.m_editSrcPunct[i]->GetValue().Length() > 4)
 			{
 				msg = msg.Format(subStr,_("source"));
-				pNotebook->SetSelection(4);
+				pNotebook->SetSelection(punctuationPageIndex);
 				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
 				return;
@@ -718,7 +724,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			if (punctMapPage->punctPgCommon.m_editTgtPunct[i]->GetValue().Length() > 4)
 			{
 				msg = msg.Format(subStr,_("target"));
-				pNotebook->SetSelection(4);
+				pNotebook->SetSelection(punctuationPageIndex);
 				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
 				return;
@@ -730,7 +736,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			if (punctMapPage->punctPgCommon.m_editSrcPunct[i]->GetValue().Length() > 9)
 			{
 				msg = msg.Format(subStr,_("source"));
-				pNotebook->SetSelection(4);
+				pNotebook->SetSelection(punctuationPageIndex);
 				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editSrcPunct[i]->SetFocus();
 				return;
@@ -738,7 +744,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 			if (punctMapPage->punctPgCommon.m_editTgtPunct[i]->GetValue().Length() > 9)
 			{
 				msg = msg.Format(subStr,_("target"));
-				pNotebook->SetSelection(4);
+				pNotebook->SetSelection(punctuationPageIndex);
 				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 				punctMapPage->punctPgCommon.m_editTgtPunct[i]->SetFocus();
 				return;
@@ -758,7 +764,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (caseEquivPage->casePgCommon.m_pEditSrcEquivalences->GetValue().Length() > 180)
 		{
 			msg = msg.Format(subStr, _("source"));
-			pNotebook->SetSelection(5);
+			pNotebook->SetSelection(casePageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditSrcEquivalences->SetFocus();
 			return;
@@ -766,7 +772,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (caseEquivPage->casePgCommon.m_pEditTgtEquivalences->GetValue().Length() > 180)
 		{
 			msg = msg.Format(subStr, _("target"));
-			pNotebook->SetSelection(5);
+			pNotebook->SetSelection(casePageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditTgtEquivalences->SetFocus();
 			return;
@@ -774,7 +780,7 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		if (caseEquivPage->casePgCommon.m_pEditGlossEquivalences->GetValue().Length() > 180)
 		{
 			msg = msg.Format(subStr, _("gloss"));
-			pNotebook->SetSelection(5);
+			pNotebook->SetSelection(casePageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			caseEquivPage->casePgCommon.m_pEditGlossEquivalences->SetFocus();
 			return;

@@ -2926,7 +2926,7 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 /// turned on, otherwise it is skipped. Internally, it intersects each rectangle, and the
 /// whole of each free translation section (which may span several strips), with the client
 /// rectangle for the view - and when the intersection is null, it skips further
-/// calculations at that point and draws nothing; furthermore, then the function determines
+/// calculations at that point and draws nothing; furthermore, when the function determines
 /// that all further drawing will be done below the bottom of the client rect, it exits.
 /// The data structures and variables the function requires are, for the most part, within
 ///	the CLayout instance, but there are also some member functions of CFreeTrans.
@@ -4226,6 +4226,36 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 	return FALSE;
 }
 
+void CFreeTrans::SetInterPileGapBeforeFreeTranslating()
+{	
+	int newGap = (int)FREE_TRANS_INTER_PILE_GAP; // set at 40 in AdaptItConstants.h
+	m_pApp->m_saveCurGapWidth = m_pApp->m_curGapWidth; // this member can be used as a flag
+	m_pApp->m_curGapWidth = newGap;
+	m_pApp->GetLayout()->SetGapWidth(m_pApp);
+	// RecalcLayout and Redraw using the different gap width, active sequ num is constant
+	int save_SequNum = m_pApp->m_nActiveSequNum;
+	wxASSERT(save_SequNum != wxNOT_FOUND);
+	m_pApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
+	m_pApp->m_nActiveSequNum = save_SequNum;
+	m_pApp->m_pActivePile = m_pApp->GetLayout()->GetPile(save_SequNum);
+	m_pApp->GetLayout()->Redraw();
+}
+
+void CFreeTrans::RestoreInterPileGapAfterFreeTranslating()
+{
+	m_pApp->m_curGapWidth = m_pApp->m_saveCurGapWidth;
+	m_pApp->m_saveCurGapWidth = 0; // this member can be used as a flag
+	m_pApp->GetLayout()->SetGapWidth(m_pApp);
+	// RecalcLayout and Redraw using the different gap width, active sequ num is constant
+	int save_SequNum = m_pApp->m_nActiveSequNum;
+	wxASSERT(save_SequNum != wxNOT_FOUND);
+	m_pApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
+	m_pApp->m_nActiveSequNum = save_SequNum;
+	m_pApp->m_pActivePile = m_pApp->GetLayout()->GetPile(save_SequNum);
+	m_pApp->GetLayout()->Redraw();
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             TRUE if the sourcephrase's m_bStartFreeTrans BOOL is TRUE,
 ///                     FALSE otherwise
@@ -4241,6 +4271,11 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 
 // BEW 9July10, no changes needed for support of kbVersion 2
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
+/// BEW 19Nov13. To make the Adjust... dialog more successful in preventing the need for
+/// truncations of long free translations, a wider gap (default 40 pixels) is wanted for
+/// the inter-pile gap. We use 40, but if the user has a wider gap set from the ViewPage
+/// of the wizard, then we use the wider value for both adapting and free translating. The
+/// original gap is restored on exit from free translation mode.
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
 	//wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
@@ -4259,9 +4294,18 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 
 	// klb 9/2011 extracted most of the code here and moved to SwitchScreenFreeTranslationMode()
 	if (m_pApp->m_bFreeTranslationMode)
+	{
 		SwitchScreenFreeTranslationMode(ftModeOFF);
+		
+		RestoreInterPileGapAfterFreeTranslating();
+	}
 	else
+	{
+		// First, redo the layout and redraw it, using the free translation inter-pile gap value
+		SetInterPileGapBeforeFreeTranslating();
+
 		SwitchScreenFreeTranslationMode(ftModeON);
+	}
 
 
 }
@@ -5175,6 +5219,18 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 
 	if (pBar != NULL && pBar->IsShown())
 	{
+		// A crash happens when StoreFreeTranslation() was called after the following actions:
+		// (a) the view window must be fairly wide - well wider than what can fit with the
+		//     current layout on screen onto an A4 page in portrait print mode
+		// (b) print at least a page with free translations on it (when done, the narrowed
+		//     strips stay narrow unfortunately - unless I fix the bug by getting the view
+		//     to update first with the old strip widths - need a RecalcLayout for that)
+		// (c) choose Free Translation Mode menu item to toggle the mode back to off
+		//     -- at this point, app crashes because StoreFreeTranslation asks for piles
+		//     which no longer exist
+		//     The fix is either to get printing to recalc the layout correctly, or get
+		//     the recalc done here. Clearly, doing it at the end of printing is best, so
+		//     that's what I'll try. I'll leave these comments here as a warning for others.
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
 		if (pEdit != 0 && pPileArray->GetCount() > 0) // whm added second condition
 			// 1Apr09 as wxMac gets here on frame size event and pPileArray has 0 items

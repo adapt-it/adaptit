@@ -218,6 +218,15 @@ AIPrintout::~AIPrintout()
                (int)gbCheckInclFreeTransText, (int)gbCheckInclGlossesText, (int)pApp->m_bFreeTranslationMode);
 #endif
 #endif
+
+	// BEW 18Nov13, Next two lines needed if a range was printed, DoPrintCleanup() in that
+	// circumstance left the doc width at A4 page print-area width, because m_docSize and
+	// m_saveDocSize have same (narrow) width value for all of the printing, and 0 for the
+	// height value.
+	//pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases,create_strips_keep_piles);
+	//pApp->GetLayout()->Redraw();
+    // BEW 18Nov13, Removed the need for these by use of new boolean
+    // m_bSuppressFreeTransRestoreAfterPrint in the DoPrintCleanup() function
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -975,7 +984,7 @@ void AIPrintout::OnBeginPrinting()
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnEndPrinting()
 {
-    // See code:#print_flow for the order of calling of OnEndPrinting().
+    // See code:#print_flow for the order of calling of OnEndPrinting().	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

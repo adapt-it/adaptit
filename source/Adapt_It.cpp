@@ -395,6 +395,9 @@ extern int	gnFromVerse;
 extern int	gnToChapter;
 extern int	gnToVerse;
 
+/// This global is defined in CAdapt_ItView
+extern bool	gbCheckInclFreeTransText;
+
 /// This global is defined in TransferMarkersDlg.cpp.
 extern bool gbPropagationNeeded;
 
@@ -15160,6 +15163,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
 #endif
+	// BEW 18Nov13, initialize new boolean - always false except is TRUE just before final
+	// RecalcLayout() call at end of printing, in app function DoPrintCleanup()
+	m_bSuppressFreeTransRestoreAfterPrint = FALSE;
+
+	// initialize the saved m_curGapWidth to zero (we use 0 versus non-zero as a flag)
+	m_saveCurGapWidth = 0;
 
 	// bug fixed 24Sept13 BEW
 	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
@@ -41049,7 +41058,7 @@ void CAdapt_ItApp::DoPrintCleanup()
 
 	if (m_nAIPrintout_Destructor_ReentrancyCount == 1)
 	{
-		// so the the stuff in this block only when we enter this function the first time
+		// so do the stuff in this block only when we enter this function the first time
 
 		// restore original doc size
 		m_docSize = m_saveDocSize;
@@ -41097,24 +41106,38 @@ void CAdapt_ItApp::DoPrintCleanup()
 		pView->ClearPagesList();
 		// wx version: I think the All Pages button gets enabled
 
-        // layout again for the screen, get an updated pointer to the active location,
+
+        // BEW 18Nov13, moved this line back to be preceding the RecalcLayout() call,
+        // because otherwise the layout width stays as for A4 printing. But a new boolean,
+        // m_bSuppressFreeTransRestoreAfterPrint - a member of the app class, is used to
+        // suppress the block free translation restoration of focus in the ComposeBar's
+        // textbox - the latter relies on a valid active pile pointer, which we can't
+        // guarantee here - hence the need for the suppression. The older comment when the
+        // code was after the RecalcLayout() call is retained here for clarity.
+		// Old comment...
+        // BEW 29Nov11, moved this line to be after the RecalcLayout() call, the latter
+        // uses a TRUE value in a block near the end of RecalcLayout() which must not
+        // be entered when the layout has been clobbered, and it's the TRUE value of
+        // this flag which causes that block to be skipped. The block has the test:
+        // if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bIsPrinting && !gbCheckInclFreeTransText)
+        m_bIsPrinting = FALSE;
+
+		// layout again for the screen, get an updated pointer to the active location,
         // restore the phrase box, scroll, invalidate window to restore pre-printing
         // appearance (if we had been printing a selection, it will get restored now
         // because the globals will have been preserved)
 		m_nActiveSequNum = m_nSaveActiveSequNum; // restore active location sequ num
 		m_pActivePile = NULL; // the piles are destroyed and recreated
 							  // so the old pointer is useless
-
+		m_bSuppressFreeTransRestoreAfterPrint = TRUE; // ensure internal block (at 
+			// end) that requires a valid m_pActivePile is not entered for next call
 #ifdef _NEW_LAYOUT
 		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #else
 		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #endif
-        // BEW 29Nov11, moved this line to be after the RecalcLayout() call, the latter
-        // uses a TRUE value in a block near the end of RecalcLayout() which must not
-        // be entered when the layout has been clobbered, and it's the TRUE value of
-        // this flag which causes that block to be skipped
-        m_bIsPrinting = FALSE;
+		m_bSuppressFreeTransRestoreAfterPrint = FALSE; // restore default value
+
 
 	} // kluge block ends here so that a call to ScrollIntoView() is done for each
       // time entered, otherwise, the scroll position gets lost for the second entrance,
@@ -41134,6 +41157,31 @@ void CAdapt_ItApp::DoPrintCleanup()
 		m_nEndChar = -1; // ensure initially all is selected
 		m_pTargetBox->SetSelection(-1,-1); // select all
 		m_pTargetBox->SetFocus();
+	}
+
+	// if cleaning up when free translation mode is active, override the focus being in
+	// the canvas's phrasebox, and put it instead in the compose bar's editbox
+	if (m_bFreeTranslationMode && gbCheckInclFreeTransText)
+	{
+		if (!gbSuppressSetup)
+		{
+			GetFreeTrans()->SetupCurrentFreeTransSection(m_nActiveSequNum);
+		}
+		wxTextCtrl* pEdit = (wxTextCtrl*)
+							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		pEdit->SetFocus();
+		if (!m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
+		{
+			pEdit->SetSelection(-1,-1); // -1, -1 selects it all
+		}
+		else
+		{
+			int len = pEdit->GetValue().Length();
+			if (len > 0)
+			{
+				pEdit->SetSelection(len,len);
+			}
+		}
 	}
 
 	pView->Invalidate();
