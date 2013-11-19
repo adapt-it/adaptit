@@ -99,6 +99,10 @@
 // BEW 13Jan12, try skipping no words before halt location for free trans is looked for
 // (Kim finds it annoying, as did Bill)
 #define MIN_FREE_TRANS_WORDS	0
+// BEW 19Nov13 Use a wider inter-pile gap when free translating, default it to 40 pixels
+// (but if the user has a wider gap in normal adapting, we use the wider gap for free
+// translating as well)
+#define FREE_TRANS_INTER_PILE_GAP   40
 
 // for changing punctuation characters on the fly, the parser needs to be able to find if
 // there is an inline binding marker a few characters ahead of one or more characters

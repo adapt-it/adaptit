@@ -5864,6 +5864,15 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
 
+	// BEW 19Nov13, if entering free translation mode, we use a different gap width, so
+	// set it and recalc the layout and redraw it before going on - the pile ptrs are not
+	// changed, only the strips recalculated
+	if (gpApp->m_saveCurGapWidth == 0)
+	{
+		// call's Layout's RecalcLayout() & Redraw(), uses m_nActiveSequNum
+		pFreeTrans->SetInterPileGapBeforeFreeTranslating(); 
+	}
+
     // determine what setup is required: control is coming from either adaptationsStep or
     // glossesStep, the former when the order is adaptations before glosses; but if the
     // order is glosses before adaptations, then the latter. These variations require
@@ -6750,6 +6759,15 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 6259: PhraseBox contents:     %s"), gpApp->m_pTargetBox->GetValue());
 #endif
 	}
+
+	// If app's m_saveCurGapWidth is non-zero, then we've been in free translation mode,
+	// and so we need to restore the normal width and set m_savegapWidth to 0
+	if (gpApp->m_saveCurGapWidth != 0)
+	{
+		// call's Layout's RecalcLayout() & Redraw(), uses m_nActiveSequNum
+		pFreeTrans->RestoreInterPileGapAfterFreeTranslating(); 
+	}
+
     // When vertical editing is canceled we should hide the m_pRemovalsBar, and
     // m_pVertEditBar, - any and all that are visible.
 	if (m_pVertEditBar->IsShown())
@@ -7588,7 +7606,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		// clean up & restore original state
 	}
 #endif
-		wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+		wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit); // if free translation mode had been on, this
+											// event's handler will restore normal inter-pile gap width
 		wxPostEvent(this, eventCustom);
 		// whm Note: This event also calls the code which hides any of the
 		// vertical edit tool bars so they are not seen from the main window.

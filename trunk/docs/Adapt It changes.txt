@@ -1,4 +1,24 @@
 ----------------------------------------------
+Version 6.??.?? release ??date??
+----------------------------------------------
+
+
+
+
+----------------------------------------------
+Bug fixes in 6.??.??
+----------------------------------------------
+* Adapt It crashed in the following circumstance. Free
+translation was turned on. A printout was done which 
+required using a temporary subpart of the document (such
+as a page range, or other range). After the print finished,
+the user immediately clicked the menu item Free Translation
+Mode in order to turn of free translating.
+* When validating changes to numeric settings in Preferences, 
+if a wrong value was entered, the wrong page for doing the
+corrections was shown.
+
+----------------------------------------------
 Version 6.5.1 release 13 November 2013
 ----------------------------------------------
 ----------------------------------------------

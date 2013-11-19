@@ -164,7 +164,9 @@ private:
 					int totalHExtent, wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings, int totalRects);
 	wxString	SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent,float fScale,int& offset,
 							int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
-	void		SetupCurrentFreeTransSection(int activeSequNum);
+public:
+	void		SetupCurrentFreeTransSection(int activeSequNum); // Adapt_It.cpp DoPrintCleanup() needs it
+private:
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
 	// BEW 2Oct11, added more, for better design of drawing free translations when printing
 	void		GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets,
@@ -175,6 +177,11 @@ public:
 	//BEW 27Feb12, a setup function, compliant with docV6, for the two radio buttons in
 	//the GUI
 	void		SetupFreeTransRadioButtons(bool bSectionByPunctsValue);
+
+	// Support for different inter-pile gap in free translation mode
+	void		SetInterPileGapBeforeFreeTranslating();
+	void		RestoreInterPileGapAfterFreeTranslating();
+
 private:
 	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
 	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);

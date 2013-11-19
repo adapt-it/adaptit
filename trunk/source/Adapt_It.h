@@ -2154,6 +2154,11 @@ public:
                 // fouling things, so I'll count times reentered and have the function exit
                 // immediately if the count gets over 1; the count is initialized to 1 in
                 // the AIPrintout() constructor, and in a few other places
+    bool		m_bSuppressFreeTransRestoreAfterPrint; // BEW added 18Nov13, so that the last
+					// code block in RecalcLayout() which sets up the active location's free
+					// translation, won't try to do so at the end of printing cleanup in
+					// DoPrintCleanup(). The RecalcLayout() call there should have this set
+					// TRUE beforehand, and default FALSE restored after it returns
 	SPList*		m_pSourcePhrases;
 	wxString*	m_pBuffer;  // in legacy versions was used to store source (untokenized)
                 // text data on the heap; and still does so while parsing source text, but
@@ -2392,6 +2397,7 @@ public:
 	int	m_curLeading;	 // the between-strips leading value
 	int	m_curLMargin;	 // if user wants a left margin, he can set this
 	int	m_curGapWidth;	 // inter-pile gap, measured in pixels (follows a pile)
+	int m_saveCurGapWidth; // put normal width in here when free translating (which uses different gap)
 
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int	m_nSrcHeight;	// line height for source language text

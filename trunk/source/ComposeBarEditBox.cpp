@@ -179,7 +179,7 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			dc.SetTextBackground(wxColour(255,255,255)); // white
 			pFreeTrans->DrawFreeTranslationsAtAnchor(&dc, gpApp->m_pLayout);
 			// whm 4Apr09 note on problem of free translations in main window not being cleared for
-			// deletes or other edits the result in a shorter version: We need both Refresh and Update
+			// deletes or other edits that result in a shorter version: We need both Refresh and Update
 			// here to force the edit updates to happen in the main window. Note, however, that we must
 			// not have Refresh and Update in the View's OnDraw after DrawFreeTranslations is called
 			// because there they cause the OnDraw() function to be called repeatedly in a continuous

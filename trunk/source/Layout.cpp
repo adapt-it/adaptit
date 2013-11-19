@@ -1627,9 +1627,8 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 // change, etc. RecalcLayout() in the refactored design is a potentially "costly"
 // calculation - if the document is large, the piles and strips for the whole document have
 // to be recalculated from the data in the current document - (need to consider a progress
-// bar in the status bar in window bottom) The default value of the passed in flag
-// bRecreatePileListAlso is FALSE The ptr value for the passed in pList is usually the
-// application's m_pSourcePhrases list, but it can be a sublist copied from that
+// bar in the status bar in window bottom). The ptr value for the passed in pList is usually
+// the application's m_pSourcePhrases list, but it can be a sublist copied from that
 //GDLC Added third parameter 2010-02-09
 bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
@@ -2027,17 +2026,18 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	// BEW 28Nov11 added gbCheckInclFreeTrans to the test, because when there is a
 	// free translation in the document, if the CPrintOptionDlg is put up, it's
 	// InitDialog() function temporarily sets m_bIsPrinting to FALSE, and so if
-	// m_pActivePile is invalid (as would be the case for a print range, pring page
+	// m_pActivePile is invalid (as would be the case for a print range, print page
 	// range, or print selection choice), then the code below would crash without
 	// the extra protection being added
 #if defined(_DEBUG) && defined(Print_failure)
 {
-    wxLogDebug(_T("RecalcLayout() line 2024, flags at free trans block at end **********************\nm_bFreeTranslationMode %d , m_bIsPrinting %d , gbCheckInclFreeTransText"),
+    wxLogDebug(_T("RecalcLayout() line 2024, flags at free trans block at end ************\nm_bFreeTranslationMode %d , m_bIsPrinting %d , gbCheckInclFreeTransText"),
                m_pApp->m_bFreeTranslationMode, m_pApp->m_bIsPrinting, gbCheckInclFreeTransText);
 
 }
 #endif
-	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bIsPrinting && !gbCheckInclFreeTransText)
+	if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bSuppressFreeTransRestoreAfterPrint 
+		&& !gbCheckInclFreeTransText)
 	{
 		if (!gbSuppressSetup)
 		{
