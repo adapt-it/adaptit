@@ -81,16 +81,25 @@ public:
 								// white space user may have left at the end of the text)
 
 
+#if defined(__WXGTK__)
+    void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
+                    wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
+                    int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
+	void		DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStripsOffset,
+                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
+    void        DrawOneGloss(wxDC* pDC, CPile* aPilePtr, bool bRTLLayout);
+#endif
 	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
 	void		DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
 	void		EraseMalformedFreeTransSections(SPArray* pSPArray);
-	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, 
+	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
 	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	bool		IsFreeTransInArray(SPArray* pSPArray);
+	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
 	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile,
 					enum EditBoxContents editBoxContents, const wxString& mkrStr);
@@ -120,18 +129,9 @@ protected:
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
 	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
 	bool		ContainsFreeTranslation(CPile* pPile);
-#if defined(__WXGTK__)
-    void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
-                    wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
-                    int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
-	void		DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStripsOffset,
-                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
-    void        DrawOneGloss(wxDC* pDC, CPile* aPilePtr, bool bRTLLayout);
-#endif
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
 	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile, bool& bAtFollowingPile);
-	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 
 	void		OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event);
