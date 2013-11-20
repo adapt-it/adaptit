@@ -62,17 +62,6 @@
 // i.e., before svn r. 1633).
 //#define USE_OLD_WORD_RTF_TABLE_SPECS
 
-// a temporary #define for Mike to use when working on DVCS:
-#define TEST_DVCS
-
-// Symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Edit menu)
-// Later this functionality will move to other places, but this is convenient for testing.
-const int ID_MENU_DVCS_VERSION			= 999;
-//const int ID_MENU_INIT_REPOSITORY		= 998;
-//const int ID_MENU_DVCS_ADD_FILE			= 997;
-//const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
-//const int ID_MENU_DVCS_REMOVE_FILE		= 995;
-//const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
 
 // BEW note 14Jan13, for the KB sharing menu item in Advanced menu will use value 980 for
 // the present and add the menu item and preceding separator only in the _DEBUG build while
