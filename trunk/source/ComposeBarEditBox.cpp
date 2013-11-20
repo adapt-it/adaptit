@@ -163,15 +163,31 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 				pDoc->Modify(TRUE);
 			}
 
+			// BEW 20Nov13
+			wxString text = this->GetValue();
+
 			wxClientDC dc((wxWindow*)gpApp->GetMainFrame()->canvas);
 			pView->canvas->DoPrepareDC(dc); // need to call this because we are drawing outside OnDraw()
 			CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 			wxASSERT(pFreeTrans != NULL);
 			CPile* pOldActivePile; // set in StoreFreeTranslation but unused here
 			CPile* saveThisPilePtr; // set in StoreFreeTranslation but unused here
-			// StoreFreeTranslation uses the current (edited) content of the edit box
-			pFreeTrans->StoreFreeTranslation(pFreeTrans->m_pCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
-				retain_editbox_contents, this->GetValue());
+
+			wxString trimmedText = text;
+			trimmedText.Trim(); // trims at end by default
+
+			// Before it's stored, we update the trimmed string's width (in pixels) - we
+			// do this at every wxChar typed, so we can ensure the user does not type
+			// beyond what the display rectangles for the current section can display -
+			// and if the does, he'll have to either join or split - and will be asked
+			wxSize extent;
+			dc.GetTextExtent(trimmedText,&extent.x,&extent.y);
+			pFreeTrans->m_curTextWidth = extent.x;
+
+			// StoreFreeTranslation uses the current (edited) content of the edit box,
+			// trimmed of any final whitespace
+			pFreeTrans->StoreFreeTranslation(pFreeTrans->m_pCurFreeTransSectionPileArray,
+					pOldActivePile,saveThisPilePtr, retain_editbox_contents, trimmedText);
 			// for wx version we need to set the background mode to wxSOLID and the text background
 			// to white in order to clear the background as we write over it with spaces during
 			// real-time edits of free translation.
