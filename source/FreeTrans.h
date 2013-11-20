@@ -77,34 +77,27 @@ public:
 	// BEW 16Nov13, turned the local definition (declared in 4 places previously)
 	// into a public member variable so that it is visible outside the class instance
 	int			nTotalHorizExtent;
+	int			m_curTextWidth; // we reset this with every keystroke (ignoring any
+								// white space user may have left at the end of the text)
 
-	// Public free translation drawing functions
-	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
-	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
-	bool		ContainsFreeTranslation(CPile* pPile);
-	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout);
+
+	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
+	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
 	void		DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout);
+	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
-#if defined(__WXGTK__)
-    void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
-                    wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
-                    int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
-	void		DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStripsOffset,
-                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
-    void        DrawOneGloss(wxDC* pDC, CPile* aPilePtr, bool bRTLLayout);
-#endif
-	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
-	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
-	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile, bool& bAtFollowingPile);
-	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
+	void		EraseMalformedFreeTransSections(SPArray* pSPArray);
+	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, 
+					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
+	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
+	bool		IsFreeTransInArray(SPArray* pSPArray);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
 	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile,
 					enum EditBoxContents editBoxContents, const wxString& mkrStr);
 	void		StoreFreeTranslationOnLeaving();
-	void		ToggleFreeTranslationMode();
 	void		SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch); // klb 9/2011 to support Print Preview
-	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, 
-					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
+	void		ToggleFreeTranslationMode();
+
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
 	void		OnUpdateAdvanceButton(wxUpdateUIEvent& event);
@@ -122,6 +115,24 @@ public:
 	void		OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event));
 	void		OnShortenButton(wxCommandEvent& WXUNUSED(event));
 
+protected:
+	// Public free translation drawing functions
+	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
+	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
+	bool		ContainsFreeTranslation(CPile* pPile);
+#if defined(__WXGTK__)
+    void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
+                    wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
+                    int nStripsOffset, wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
+	void		DrawFreeTransForOneStrip(wxDC* pDC, int currentStrip, int nStripsOffset,
+                        wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
+    void        DrawOneGloss(wxDC* pDC, CPile* aPilePtr, bool bRTLLayout);
+#endif
+	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
+	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
+	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile, bool& bAtFollowingPile);
+	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
+
 	void		OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event);
@@ -137,18 +148,13 @@ public:
 	void		OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event));
 	void		OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event);
 	void		OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event));
-	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
 	bool		GetNextMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
-	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
 	wxString	WhichMarker(wxString& markers, int nAtPos); // BEW added 17Sep05, for backtranslation support
 	void		InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr); // BEW added 16Sep05
-	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	// end of collecting back translations support
 
 	// support for the Import Edited Free Translation function
-	bool		IsFreeTransInArray(SPArray* pSPArray);
 	bool		IsFreeTransInList(SPList* pSPList); // remove later when I make it all SPArray
-	void		EraseMalformedFreeTransSections(SPArray* pSPArray);
 	int			FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& bFoundSectionEnd,
 										bool& bFoundSectionStart, bool& bFoundArrayEnd);
 	int			FindNextFreeTransSection(SPArray* pSPArray, int startFrom);

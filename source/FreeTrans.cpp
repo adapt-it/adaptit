@@ -1612,6 +1612,9 @@ void CFreeTrans::BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets)
 												// do that next
 						rect.SetWidth(abs(	pStrip->GetFreeTransRect().GetRight() -
 											pPile->GetPileRect().GetLeft()));
+						// BEW 19Nov13 add all but 6 pixels of inter-pile preceding gap
+						rect.SetLeft(rect.GetLeft() - ((int)FREE_TRANS_INTER_PILE_GAP - 6));
+						rect.SetWidth(rect.GetWidth() + ((int)FREE_TRANS_INTER_PILE_GAP - 6)); 
 					}
                     // store in the pElement's subRect member (don't compute the substring
                     // yet, to save time since the rect may not be visible), add the
@@ -3097,6 +3100,9 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 					rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() -
 														   pPile->GetPileRect().GetLeft()));
 																	// used abs to make sure
+					// BEW 19Nov13 add all but 6 pixels of inter-pile preceding gap
+					rect.SetLeft(rect.GetLeft() - ((int)FREE_TRANS_INTER_PILE_GAP - 6));
+					rect.SetWidth(rect.GetWidth() + ((int)FREE_TRANS_INTER_PILE_GAP - 6)); 
 				}
 				// store in the pElement's subRect member (don't compute the substring yet, to
 				// save time since the rect may not be visible), add the element to the pointer
@@ -3296,8 +3302,11 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
     // get text's extent (a wxSize object) and compare to the total horizontal extent of
     // the rectangles. also determine the number of rectangles we are to write this section
     // into, and initialize other needed data
-	pDC->GetTextExtent(ftStr,&extent.x,&extent.y);
-	bTextIsTooLong = extent.x > nTotalHorizExtent ? TRUE : FALSE;
+	//pDC->GetTextExtent(ftStr,&extent.x,&extent.y);
+	//bTextIsTooLong = extent.x > nTotalHorizExtent ? TRUE : FALSE;
+	bTextIsTooLong = m_curTextWidth > nTotalHorizExtent ? TRUE : FALSE; // m_curTextWidth does
+				// not include any whitespace still on the end of the typed free transln, because
+				// we never try to draw such whitespace in the final draw rectangle
 	totalRects = m_pFreeTransArray->GetCount();
 
 	if (totalRects < 2)
@@ -3632,6 +3641,9 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 						rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() -
 															   pPile->GetPileRect().GetLeft()));
 																		// used abs to make sure
+						// BEW 19Nov13 add all but 6 pixels of inter-pile preceding gap
+						rect.SetLeft(rect.GetLeft() - ((int)FREE_TRANS_INTER_PILE_GAP - 6));
+						rect.SetWidth(rect.GetWidth() + ((int)FREE_TRANS_INTER_PILE_GAP - 6)); 
 					}
 					// store in the pElement's subRect member (don't compute the substring yet, to
 					// save time since the rect may not be visible), add the element to the pointer
@@ -5086,6 +5098,14 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			// BEW 19Feb10, IsFreeTranslationEndDueToMarker() modified to support
 			// doc version 5
 			bool bHaltAtFollowingPile = FALSE;
+            // We need bHaltAtFollowingPile because the one CSourcePhrase may have either
+            // or both, or neither, of following punctuation or a preceding USFM marker. If
+            // there is an endmarker here, then this CSourcePhrase instance should be the
+            // last in the section, but if a significant marker (ie. not things like
+            // formatting markers etc) precedes or filtered info stored here, then this
+            // CSourcePhrase instance should be excluded from the section because it is one
+            // that should begin the next section; the bHaltAtFollowingPile flag tells us
+            // which situation we have if the value returned in bIsItThisPile is TRUE.
 			bool bIsItThisPile = IsFreeTranslationEndDueToMarker(pNextPile, bHaltAtFollowingPile);
 			if (bIsItThisPile)
 			{
@@ -5137,8 +5157,8 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 					else if (pNextPile->GetSrcPhrase()->m_bVerse ||
 								pNextPile->GetSrcPhrase()->m_bFirstOfType)
 					{
-						// this "next pile" is the start of a new verse, so we must
-						// break out here
+                        // this "next pile" is the start of a new verse, or a new text type
+                        // is commenting, so we must break out here
 						break;
 					}
 					// otherwise, continue iterating across successive piles
@@ -5249,7 +5269,12 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 			pLastPile = NULL; // set null for now, it is given its value at the end
 			pFirstPile = (CPile*)pPileArray->Item(0);
 			CPile* pPile = pFirstPile;
-			pFirstPile->GetSrcPhrase()->SetFreeTrans(storeStr);
+            //  BEW 20Nov13 Never store white space if such is at the end of the typed
+            //  string (and never draw it either!) so caller trimmed off any such before
+            //  passing in the rest; but just in case I miss some location, do it again
+			wxString s = storeStr;
+			s.Trim(); // trims from right by default
+			pFirstPile->GetSrcPhrase()->SetFreeTrans(s);
 
 			// BEW 27Feb12 block added, for m_bSectionByVerse support
 			wxRadioButton* pRadioButton = (wxRadioButton*)
