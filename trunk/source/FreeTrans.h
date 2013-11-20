@@ -79,7 +79,12 @@ public:
 	int			nTotalHorizExtent;
 	int			m_curTextWidth; // we reset this with every keystroke (ignoring any
 								// white space user may have left at the end of the text)
-
+	// An array of pointers to CPile instances. It is created on the heap in OnInit(),
+	// and disposed of in OnExit().
+	// Made public so OnLButtonDown() in CAdapt_ItCanvas can access it.
+	// TODO: consider moving the free translation related functionality out of canvas' OnLButtonDown.
+	wxArrayPtrVoid*	m_pCurFreeTransSectionPileArray;
+	wxArrayPtrVoid*	m_pFollowingSectionPileArray;
 
 #if defined(__WXGTK__)
     void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
@@ -193,6 +198,10 @@ private:
 	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);
 	void		DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
 											wxArrayString& arrFreeTranslations);
+	void		BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pLayout);
+	void		BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLayout* pLayout);
+	void		FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount);
+
 #if defined(__WXGTK__)
     // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
 	void		GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtrVoid& arrPileSet, CPile* pAnchorPile);
@@ -201,13 +210,6 @@ private:
                             wxArrayPtrVoid& arrRectsForOneFreeTrans, wxString& ftStr, int nStripsOffset,
                             wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
 #endif
-
-public:
-	/// An array of pointers to CPile instances. It is created on the heap in OnInit(),
-	/// and disposed of in OnExit().
-	/// Made public so OnLButtonDown() in CAdapt_ItCanvas can access it.
-	/// TODO: consider moving the free translation related functionality out of canvas' OnLButtonDown.
-	wxArrayPtrVoid*	m_pCurFreeTransSectionPileArray;
 
 private:
 	CAdapt_ItApp*	m_pApp;	// The app owns this
