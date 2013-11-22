@@ -58,6 +58,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "FreeTrans.h"
+#include "FreeTransAdjustDlg.h"
 #include "Adapt_ItDoc.h"
 #include "CollectBacktranslations.h"
 
@@ -2864,6 +2865,8 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 	if (pPageOffsetsStruct == NULL)
 		return; // because there are no structs to be had yet
 
+	m_pCurAnchorPile = NULL; // this will ensure that the Adjust dialog will not popup
+							 // during printing
 	// get the array of arrays of piles, one array of piles per free translation; and also
 	// the free translation text itself for each such on the page
 	wxArrayPtrVoid arrPileSets;
@@ -3015,6 +3018,11 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	//int length = 0;
 	pPile = m_pApp->m_pActivePile; // go straight there
 
+	// Copy the first pile (the anchor pile) to the class's m_pCurAnchorPile member, so
+	// that we don't let the Adjust dialoog pop up at any truncation except when this
+	// pile is the anchor pile for the current active free trans section
+	m_pCurAnchorPile = pPile;
+
     // when DrawFreeTranslations is called from the composebar's editbox, there should
     // certainly be a valid pPile to be found
 	wxASSERT(pPile != NULL && pPile->GetIsCurrentFreeTransSection());
@@ -3060,64 +3068,55 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
     // and initialize the strip and pile parameters for the loop
 	BuildDrawingRectanglesForSectionAtAnchor(m_pFirstPile, pLayout);    
 
-	// rectangle calculations are finished, and stored in
-	// FreeTrElement structs in m_pFreeTransArray
+    // rectangle calculations are finished, and stored in FreeTrElement structs in
+    // m_pFreeTransArray, and the value of nTotalHorizExtent has been set too
 
     // the whole or part of this section must be drawn, so do the
     // calculations now; first, get the free translation text
 	pSrcPhrase = m_pFirstPile->GetSrcPhrase();
-	//offset = 0;
-	//length = 0;
 	ftStr = pSrcPhrase->GetFreeTrans();
-	//length = ftStr.Len();
 
-    // get text's extent (a wxSize object) and compare to the total horizontal extent of
-    // the rectangles. also determine the number of rectangles we are to write this section
-    // into, and initialize other needed data
-	//pDC->GetTextExtent(ftStr,&extent.x,&extent.y);
-	//bTextIsTooLong = extent.x > nTotalHorizExtent ? TRUE : FALSE;
+    // Compare the width of the text to the total horizontal extent of the rectangle(s).
+    // Also determine the number of rectangles we are to write this section into, and
+    // initialize other needed parameters
 	bTextIsTooLong = m_curTextWidth > nTotalHorizExtent ? TRUE : FALSE; // m_curTextWidth does
 				// not include any whitespace still on the end of the typed free transln, because
 				// we never try to draw such whitespace in the final draw rectangle
 	totalRects = m_pFreeTransArray->GetCount();
 
-	if (totalRects < 2)
+	if (totalRects == 1)
 	{
-		// the easiest case, the whole free translation section is contained within a
-		// single strip
+		// the easiest case, the whole free translation section is to be 
+		// displayed within a single strip
 		pElement = (FreeTrElement*)m_pFreeTransArray->Item(0);
-		if (bTextIsTooLong)
-		{
-			ftStr = TruncateToFit(pDC,ftStr,ellipsis,nTotalHorizExtent);
-		}
 
-		// next section:   Draw Single Strip Free Translation Text
-
-        // BEW 26Nov11, removed, in the Linux build these lines destroyed
-        // already drawn material leaving the page blanked
-		//pDC->DestroyClippingRegion();
-		//pDC->SetClippingRegion(pElement->subRect);
-		//pDC->Clear();
-		//pDC->DestroyClippingRegion();
-
-
+		// If the text is too long, the Adjust dialog will be popped up from within
+		// the next call. If the user elects, in that dialog, to take the 'do nothing'
+		// option, then the truncated string is returned in subStrings, and drawn below.
+		// If, however, the text fits, the Adjust dialog won't appear, and the string will
+		// just be drawn as typed
+		SingleRectFreeTranslation(pDC,ftStr,ellipsis, m_pFreeTransArray,&subStrings);
+		// there's only one string to draw when there is only a single rectangle, get it
+		wxString s = subStrings.Item(0); 
 		if (bRTLLayout)
 		{
-			m_pView->DrawTextRTL(pDC,ftStr,pElement->subRect);
+			EraseDrawRectangle((wxClientDC*)pDC, &pElement->subRect);
+			m_pView->DrawTextRTL(pDC,s,pElement->subRect);
 		}
 		else
 		{
-			pDC->DrawText(ftStr,pElement->subRect.GetLeft(),pElement->subRect.GetTop());
+			EraseDrawRectangle((wxClientDC*)pDC, &pElement->subRect);
+			pDC->DrawText(s,pElement->subRect.GetLeft(),pElement->subRect.GetTop());
 		}
 	}
-	else
+	else // more than one drawing rectangle exists for this section
 	{
         // the free translation is spread over at least 2 strips - so we've more work to do
         // - call SegmentFreeTranslation() to get a string array returned which has the
         // passed in frStr cut up into appropriately sized segments (whole words in each
         // segment), truncating the last segment if not all the ftStr data can be fitted
         // into the available drawing rectangles
-		SegmentFreeTranslation(pDC,ftStr,ellipsis,extent.GetWidth(),nTotalHorizExtent,
+		SegmentFreeTranslation(pDC,ftStr,ellipsis,m_curTextWidth,nTotalHorizExtent,
 								m_pFreeTransArray,&subStrings,totalRects);
 		// draw the substrings in their respective rectangles
 		int index;
@@ -3142,10 +3141,12 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 			//pDC->DestroyClippingRegion();
 			if (bRTLLayout)
 			{
+				EraseDrawRectangle((wxClientDC*)pDC, &pElement->subRect);
 				m_pView->DrawTextRTL(pDC,s,pElement->subRect);
 			}
 			else
 			{
+				EraseDrawRectangle((wxClientDC*)pDC, &pElement->subRect);
 				pDC->DrawText(s,pElement->subRect.GetLeft(),pElement->subRect.GetTop());
 			}
             // Don't call Invalidate() or SendSizeEvent from within DrawFreeTranslations()
@@ -3231,6 +3232,7 @@ void CFreeTrans::BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pL
 				// array
 				pElement->subRect = rect;
 				pElement->horizExtent = rect.GetWidth();
+				pElement->nStripIndex = curStripIndex;
 				nTotalHorizExtent += pElement->horizExtent;
 				m_pFreeTransArray->Add(pElement);
 
@@ -3247,6 +3249,7 @@ void CFreeTrans::BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pL
 					// rectangle and store it
 					pElement->subRect = rect;
 					pElement->horizExtent = rect.GetWidth();
+					pElement->nStripIndex = curStripIndex;
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 
@@ -3348,6 +3351,7 @@ void CFreeTrans::BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pL
                 // element to the pointer array
 				pElement->subRect = rect;
 				pElement->horizExtent = rect.GetWidth();
+				pElement->nStripIndex = curStripIndex;
 				nTotalHorizExtent += pElement->horizExtent;
 				m_pFreeTransArray->Add(pElement);
 
@@ -3368,6 +3372,7 @@ void CFreeTrans::BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pL
 					// rectangle and store it
 					pElement->subRect = rect;
 					pElement->horizExtent = rect.GetWidth();
+					pElement->nStripIndex = curStripIndex;
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 
@@ -3483,6 +3488,7 @@ void CFreeTrans::BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLa
 				// array
 				pElement->subRect = rect;
 				pElement->horizExtent = rect.GetWidth();
+				pElement->nStripIndex = curStripIndex;
 				nTotalHorizExtent += pElement->horizExtent;
 				m_pFreeTransArray->Add(pElement);
 				pLayout->GetCanvas()->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -3500,6 +3506,7 @@ void CFreeTrans::BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLa
 					// rectangle and store it
 					pElement->subRect = rect;
 					pElement->horizExtent = rect.GetWidth();
+					pElement->nStripIndex = curStripIndex;
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 					pLayout->GetCanvas()->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -3561,10 +3568,18 @@ void CFreeTrans::BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLa
         // width of the rect here has no apparent affect on the resulting text being
         // displayed because only the upper left coordinates in LTR are significant in
         // DrawText operations below
+        
+		// break it up to get values seeable in the debugger
+		//wxRect pileRect = pPile->GetPileRect();
+		//int pileRecLeft = pPile->GetPileRect().GetLeft();
+		//wxRect freeTransRect = pStrip->GetFreeTransRect();
+		//int freeTransRectRight = pStrip->GetFreeTransRect().GetRight();
+		//int width = freeTransRectRight - pileRecLeft;
 		rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
+		//int finalRectLeft = rect.GetLeft();
 		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft()));
         // used abs to make sure is this pile the ending pile for the free translation
-        // section?
+        // section
 		while (TRUE)
 		{
 			if (pSrcPhrase->m_bEndFreeTrans)
@@ -3592,6 +3607,7 @@ void CFreeTrans::BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLa
 				// array
 				pElement->subRect = rect;
 				pElement->horizExtent = rect.GetWidth();
+				pElement->nStripIndex = curStripIndex;
 				nTotalHorizExtent += pElement->horizExtent;
 				m_pFreeTransArray->Add(pElement);
 				pLayout->GetCanvas()->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -3609,6 +3625,7 @@ void CFreeTrans::BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLa
 					// rectangle and store it
 					pElement->subRect = rect;
 					pElement->horizExtent = rect.GetWidth();
+					pElement->nStripIndex = curStripIndex;
 					nTotalHorizExtent += pElement->horizExtent;
 					m_pFreeTransArray->Add(pElement);
 					pLayout->GetCanvas()->ScrollIntoView(m_pApp->m_nActiveSequNum);
@@ -3662,7 +3679,6 @@ void CFreeTrans::BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLa
 
 	} // end LTR layout block
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing
@@ -3834,7 +3850,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 #endif
 				return;
 			}
-		}
+		} // end of loop: while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 
 		// return if we didn't find a pile
 		if (pPile == NULL)
@@ -3846,7 +3862,8 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 			DestroyElements(m_pFreeTransArray); // don't leak memory
 			return;
 		}
-		pSrcPhrase = pPile->GetSrcPhrase();
+		// this one has to be the anchor for a new section
+		pSrcPhrase = pPile->GetSrcPhrase(); 
 
 #if defined(_Trace_DrawFreeTrans) && defined(_DEBUG)
 		wxLogDebug(_T("outer loop: at next anchor, scanning ahead: srcPhrase %s , sequ num %d, active sn %d  nThumbPosition_InPixels = %d"),
@@ -3856,6 +3873,11 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		// won't use it until we are sure it's free translation data is to be written within
 		// the client rectangle of the view)
 		m_pFirstPile = pPile;
+
+		// Copy the first pile (the anchor pile) to the class's m_pCurAnchorPile member, so
+		// that we don't let the Adjust dialoog pop up at any truncation except when this
+		// pile is the anchor pile for the current active free trans section
+		m_pCurAnchorPile = pPile;
 
 		// create the elements (each a struct containing int horizExtent and wxRect subRect)
 		// which define the places where the free translation substrings are to be written out,
@@ -4000,6 +4022,21 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 		DestroyElements(m_pFreeTransArray);
 
 	} // end of outer loop: while(TRUE)
+}
+
+void CFreeTrans::EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect)
+{
+	wxBrush backgroundBrush = pDC->GetBackground();
+	wxColour backgroundColour = backgroundBrush.GetColour();
+	wxPen pen = pDC->GetPen();
+	wxColour originalPenColour = pen.GetColour();
+	pen.SetColour(backgroundColour);
+	pDC->SetPen(pen);
+	// Draw the rectangle with pen and brush both set to the background colour
+	pDC->DrawRectangle(pDrawingRect->x,pDrawingRect->y,pDrawingRect->width,pDrawingRect->height);
+	// Restore the pen to have its original colour
+	pen.SetColour(originalPenColour);
+	pDC->SetPen(pen);
 }
 
 // when the phrase box lands at the anchor location, it may clear the m_bHasKBEntry flag,
@@ -4537,6 +4574,24 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
 		m_pView->PlacePhraseBox(pCell,1); // 1 = inhibit saving at old location, as we did it above
 				// instead, and also don't remove the new location's KB entry (as the
 				// phrase box is disabled)
+
+		// If there is a free translation here, get it and measure it's extent and put the
+		// width value into the free translation class's m_curTextWidth member variable
+		wxClientDC dc(m_pFrame->canvas);
+		wxString freeTr = _T("");
+		wxSize extent(0,0);
+		CSourcePhrase* pSPhr = m_pApp->m_pActivePile->GetSrcPhrase();
+		if (!pSPhr->GetFreeTrans().IsEmpty())
+		{
+			freeTr = pSPhr->GetFreeTrans();
+			dc.SetFont(*m_pApp->m_pTargetFont);
+			dc.GetTextExtent(freeTr, &extent.x, &extent.y);
+			m_curTextWidth = extent.x;
+		}
+		else
+		{
+			m_curTextWidth = 0;
+		}
 
 		// get the radio buttons into agreement with the anchor CSourcePhrase's setting
 		// for its m_bSectionByVerse flag
@@ -5635,6 +5690,290 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 			{
 				bTryAgain = TRUE; // tell the caller to initiate a recalculation
 			}
+		}
+		return subStr;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return             a CString which is the segmented input text (integral number of
+///                     whole words) that will fit within the passed in extent
+///
+///	\param pDC				->	pointer to the device context used for drawing the view
+///	\param str				->	the string which is to be segmented to fit the available
+///	                            drawing rectangle
+///	\param ellipsis		    ->	the ellipsis text (three dots)
+///	\param horizRectExtent	->	the horizontal extent (pixels) available in the drawing
+///	                            rectangle to be used for drawing the segmented text
+///	\param fScale			->	scaling factor to be used if the text is smaller than
+///                             the available total space (ie. all rectangles), we use
+///                             fScale if bUseScale is TRUE, and with it we scale the
+///                             horizontal extent (horizExtent) to be a lesser number of
+///                             whole pixels when the text is comparatively short, so that
+///                             we get a better distribution of words between the available
+///                             drawing rectangles. (bUseScale is passed in as FALSE if we
+///                             know in the caller that the total text is too long for the
+///                             sum of the available drawing rectangles for it all to fit)
+///	\param offset			<-	pass back to the caller the offset of the first character
+///                             in str which is not included in the returned CString - the
+///                             caller will use this offset to do a .Mid(offset) call on
+///                             the passed in string, to shorten it for the next
+///                             iteration's call of SegmentToFit_UseScaling()
+///	\param nIteration		->	the iteration count for this particular rectangle
+///	\param nIterBound		->	the highest value that nIteration can take (equal to the
+///                             total number of drawing rectangles for this free
+///                             translation section, less one)
+///	\param bFittedOK		<-	return TRUE if a successful fit happened, FALSE if it didn't
+///	                            (in practice, only the last rectangle's attempt matters, as
+///	                            that's the one which decides success or failure)
+/// \remarks
+///    Called in SegmentFreeTranslation() when there is a need to work out what
+///    the suitable substring should be for the drawing rectangle with the passed in
+///    horizExtent value. Note: scaling will be ignored on the last iteration (ie.for the
+///    last drawing rectangle) because the function must try to get all of the remaining
+///    string text drawn within this last rectangle if possible, so for the last rectangle
+///    we try fit what remains and if it won't go, then we truncate the text. If we
+///    truncate, the the bFittedOK parameter should return FALSE, so the caller can retry
+///    with the "_Tight" version of this function which uses no scaling. We want to do this
+///    when scaling has cut a free translation string too early and the last rectangle's
+///    text got truncated - so we want a second run with no scaling so that we minimize the
+///    possibility of truncation being needed
+///    BEW 22Feb10 no changes needed for support of doc version 5
+///    BEW 9July10, no changes needed for support of kbVersion 2
+///    BEW 20Nov13 refactored by splitting the original function into two similar ones, 
+///    this is the one we try first and if it fails, we call the 'Tight' one
+/////////////////////////////////////////////////////////////////////////////////
+wxString CFreeTrans::SegmentToFit_UseScaling(wxDC* pDC,wxString& str,int horizRectExtent,
+							float fScale,int& offset,int nIteration,int nIterBound,bool& bFittedOK)
+{
+	bFittedOK = FALSE; // initialize
+	wxString subStr;
+	wxSize extent;
+	pDC->GetTextExtent(str,&extent.x,&extent.y);
+	int nStrExtent = extent.x; // the passed in substring str's text extent (horiz)
+	int len = str.Length();
+	int nHExtent = horizRectExtent;
+	int ncount;
+	int nShortenBy;
+	nHExtent = (int)(horizRectExtent * fScale); // this is a lesser number of pixels
+                    // than horizRectExtent the scaling effectively gives us shorter
+                    // rectangles for our segmenting calculations
+
+    // work out how much will fit - start at 5 characters, since we can be sure that much
+    // is fittable (we have a minimum pile width, even for an empty adaptation, which is 40
+    // pixels if I remember correctly)
+	if (nIteration < nIterBound)
+	{
+		// we are not at the last of the drawing rectangles, so use the shorter
+		// nHExtent rather than horizRectExtent - the latter is used for the last
+		// rectangle's attempt
+		ncount = 5;
+		subStr = str.Left(ncount);
+		pDC->GetTextExtent(subStr,&extent.x,&extent.y);
+		while (extent.x < nHExtent && ncount < len)
+		{
+			ncount++;
+			subStr = str.Left(ncount);
+			pDC->GetTextExtent(subStr,&extent.x,&extent.y);
+		}
+
+		// did we get to the end of the str and it all fits?
+		if (extent.x < nHExtent)
+		{
+			offset = len;
+			bFittedOK = TRUE;
+			return subStr;
+		}
+
+		// we didn't get to the str's end, so work backwards
+		// until we come to a space
+		subStr = MakeReverse(subStr);
+		int nFind = (int)subStr.Find(_T(' '));
+		if (nFind == -1)
+		{
+            // there was no space character found, so this rectangle can't have anything
+            // drawn in it - that is, we can't make a whole word fit within it
+			subStr.Empty();
+			offset = 0;
+			// return bFittedOK as TRUE and hope the next rectangle(s) will be sufficient
+		}
+		else
+		{
+			nShortenBy = nFind;
+			wxASSERT( nShortenBy >= 0);
+			ncount -= nShortenBy;
+			// reset subStr, note, using the unreversed str here!
+			subStr = str.Left(ncount); // this includes a trailing space,
+									   // even if nShortenBy was 0
+			offset = ncount; // return the offset value that ensures the caller's
+                        //.Mid() call will remove the trailing space as well (beware, the
+                        //resulting shortened string may still begin with a space, because
+                        //the user may have typed more than one space between words, so the
+                        //caller must do a Trim() anyway
+			// remove the final space, so we are sure it will fit
+			subStr.Trim(FALSE); // trim left end
+			subStr.Trim(TRUE); // trim right end
+		}
+		bFittedOK = TRUE;
+		return subStr;
+	}
+	else
+	{
+		// we are at the last rectangle, so do the best we can and ignore scaling by using
+		// the horizRectExtent (unscaled) extent
+		offset = len;
+		subStr = str;
+		subStr.Trim(FALSE); // trim left end
+		subStr.Trim(TRUE); // trim right end
+		// recalculate, in case lopping off a trailing space
+		// has now made it able to fit
+		pDC->GetTextExtent(subStr,&extent.x,&extent.y);
+		nStrExtent = extent.x;
+		if (nStrExtent < horizRectExtent)
+		{
+			// it's all gunna fit, so just return it
+			bFittedOK = TRUE;
+		}
+		else
+		{
+			// it ain't gunna fit, so don't bother to truncate, because
+			// the segmentation will be thrown away and a 'tight' one 
+			// attempted next
+			bFittedOK = FALSE;	
+		}
+		return subStr;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return             a CString which is the segmented input text (integral number of
+///                     whole words) that will fit within the passed in extent
+///
+///	\param pDC				->	pointer to the device context used for drawing the view
+///	\param str				->	the string which is to be segmented to fit the available
+///	                            drawing rectangle
+///	\param ellipsis		    ->	the ellipsis text (three dots)
+///	\param horizRectExtent	->	the horizontal extent (pixels) available in the drawing
+///	                            rectangle to be used for drawing the segmented text
+///	\param offset			<-	pass back to the caller the offset of the first character
+///                             in str which is not included in the returned CString - the
+///                             caller will use this offset to do a .Mid(offset) call on
+///                             the passed in string, to shorten it for the next
+///                             iteration's call of SegmentToFit_Tight()
+///	\param nIteration		->	the iteration count for this particular rectangle
+///	\param nIterBound		->	the highest value that nIteration can take (equal to the
+///                             total number of drawing rectangles for this free
+///                             translation section, less one)
+///	\param bFittedOK		<-	return TRUE if a successful fit happened, FALSE if it didn't
+///	                            (in practice, only the last rectangle's attempt matters, as
+///	                            that's the one which decides success or failure)
+/// \remarks
+///    Called in SegmentFreeTranslation() when there is a need to work out what the
+///    suitable substring should be for the drawing rectangle with the passed in
+///    horizExtent value. Note: scaling is not done. So each rectangle gets as many full
+///    words as will fit. The function must try to get all of the remaining string text
+///    drawn within the last rectangle when called for that rectangle, if possible, so for
+///    the last rectangle we try fit what remains and if it won't go, then we truncate the
+///    text. If we truncate, the the bFittedOK parameter should return FALSE, so the caller
+///    can do somthing different - such as allow the user adjustment options via a dialog.
+///    BEW 22Feb10 no changes needed for support of doc version 5
+///    BEW 9July10, no changes needed for support of kbVersion 2
+///    BEW 20Nov13 refactored by splitting the original function into two similar ones, 
+///    this is the second we try first and if it fails, the caller will need to offer
+///    an alternative to showing a truncated text
+/////////////////////////////////////////////////////////////////////////////////
+wxString CFreeTrans::SegmentToFit_Tight(wxDC* pDC,wxString& str,wxString& ellipsis,int horizRectExtent,
+							int& offset,int nIteration,int nIterBound,bool& bFittedOK)
+{
+	bFittedOK = FALSE; // initialize
+	wxString subStr;
+	wxSize extent;
+	pDC->GetTextExtent(str,&extent.x,&extent.y);
+	int nStrExtent = extent.x; // the passed in substring str's text extent (horiz)
+	int len = str.Length();
+	int ncount;
+	int nShortenBy;
+
+    // work out how much will fit - start at 5 characters, since we can be sure that much
+    // is fittable (we have a minimum pile width, even for an empty adaptation, which is 40
+    // pixels if I remember correctly)
+	if (nIteration < nIterBound)
+	{
+		// we are not at the last of the drawing rectangles, so use the shorter
+		// nHExtent rather than horizRectExtent - the latter is used for the last
+		// rectangle's attempt
+		ncount = 5;
+		subStr = str.Left(ncount);
+		pDC->GetTextExtent(subStr,&extent.x,&extent.y);
+		while (extent.x < horizRectExtent && ncount < len)
+		{
+			ncount++;
+			subStr = str.Left(ncount);
+			pDC->GetTextExtent(subStr,&extent.x,&extent.y);
+		}
+
+		// did we get to the end of the str and it all fits?
+		if (extent.x < horizRectExtent)
+		{
+			offset = len;
+			bFittedOK = TRUE;
+			return subStr;
+		}
+
+		// we didn't get to the str's end, so work backwards
+		// until we come to a space
+		subStr = MakeReverse(subStr);
+		int nFind = (int)subStr.Find(_T(' '));
+		if (nFind == -1)
+		{
+            // there was no space character found, so this rectangle can't have anything
+            // drawn in it - that is, we can't make a whole word fit within it
+			subStr.Empty();
+			offset = 0;
+			// return bFittedOK as TRUE and hope the next rectangle(s) will be sufficient
+		}
+		else
+		{
+			nShortenBy = nFind;
+			wxASSERT( nShortenBy >= 0);
+			ncount -= nShortenBy;
+			// reset subStr, note, using the unreversed str here!
+			subStr = str.Left(ncount); // this includes a trailing space,
+									   // even if nShortenBy was 0
+			offset = ncount; // return the offset value that ensures the caller's
+                        //.Mid() call will remove the trailing space as well (beware, the
+                        //resulting shortened string may still begin with a space, because
+                        //the user may have typed more than one space between words, so the
+                        //caller must do a Trim() anyway
+			// remove the final space, so we are sure it will fit
+			subStr.Trim(FALSE); // trim left end
+			subStr.Trim(TRUE); // trim right end
+		}
+		bFittedOK = TRUE;
+		return subStr;
+	}
+	else
+	{
+		// we are at the last rectangle, so do the best we can and ignore scaling by using
+		// the horizRectExtent (unscaled) extent
+		offset = len;
+		subStr = str;
+		subStr.Trim(FALSE); // trim left end
+		subStr.Trim(TRUE); // trim right end
+		// recalculate, in case lopping off a trailing space
+		// has now made it able to fit
+		pDC->GetTextExtent(subStr,&extent.x,&extent.y);
+		nStrExtent = extent.x;
+		if (nStrExtent < horizRectExtent)
+		{
+			// it's all gunna fit, so just return it
+			bFittedOK = TRUE;
+		}
+		else
+		{
+			// it ain't gunna fit, so truncate
+			subStr = TruncateToFit(pDC,str,ellipsis,horizRectExtent);
+			bFittedOK = FALSE;	
 		}
 		return subStr;
 	}
@@ -7623,6 +7962,106 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 	return pStartPile;
 }
 
+// This function is based on SegmentFreeTranslation() - it does the latter's job, but
+// doesn't segment because it deals with just a single rectangle fitting within a single
+// strip, and so it is simpler - e.g. no bounds limit is passed in because there is no
+// internal loop in this one. THe other params are as for SegmentFreeTranslation.
+// Two important functionalities of SingleRectFreeTranslation() are a) to limit typing so
+// that it will not continue on beyond the rectangle's capability to fit it, but if the
+// user tries, then b) it will show the Adjust dialog so as to give the user options to
+// join the section with the one before or after in order to avoid truncation and an
+// elipsis showing at the text end
+void CFreeTrans::SingleRectFreeTranslation(wxDC* pDC, wxString& str, wxString& ellipsis, 
+							wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings)
+{
+	wxString remainderStr = str;
+	wxString subStr; // what we work out as the string to be stored (it may end with a truncation)
+	wxASSERT(pSubstrings->GetCount() == 0);
+	FreeTrElement* pElement; // defines the extent of the draw rectangle
+	int offset = wxNOT_FOUND; // a relic from SegmentFreeTranslation() which we'll 
+							  // retain but make no significant use of
+	int nIteration = 0; // likewise a relic from SegmentFreeTranslation(), but since there
+						// is no loop, it is always 0; we need it though - see next comment
+	int nIterBound = 0; // likewise a relic, but we do need both this and nIteration to pass in
+						// to SegmentToFit_Tight, etc, as these functions have an internal loop
+						// because they assume two or more rectangles exist in the section,
+						// and we need the bound to be 0 too to force the "final rectangle"
+						// code block to be what is used internally - it's only that one
+						// that has the TruncateToFit() call in it
+    bool bFittedOK = TRUE;
+
+	// the text may or may not fit...
+	// Use SegmentToFit_Tight() since there is only a single draw rectangle
+	pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
+
+	subStr = SegmentToFit_Tight(pDC,remainderStr,ellipsis,pElement->horizExtent,
+					offset,nIteration,nIterBound,bFittedOK);
+	// the bFittedOK value is set - TRUE for successful fit, FALSE if not and in
+	// the latter case, subStr will be truncated with an elipsis at its end
+	pSubstrings->Add(subStr);
+	remainderStr = remainderStr.Mid(offset); // should end up empty
+
+	// If we get here with bFittedOK FALSE, then show the Adjust dialog if all the
+	// ducks line up
+	if (!bFittedOK && ((m_pCurAnchorPile == m_pApp->m_pActivePile) && (m_pApp->m_pActivePile != NULL))
+		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting)
+	{
+		// This is where we will give the user an adjustment opportunity - but
+		// only when it's the current section - see comment below, and not
+		// printing, and the active pile exists and is the anchor pile
+		 			
+		FreeTransAdjustDlg dlg((wxWindow*)m_pFrame);
+
+		// Provide the needed hook for the repositioning function to get the
+		// top left of phrasebox location
+		wxASSERT(m_pApp->m_pActivePile);
+		CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
+		dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+		// Show the repositioned dialog for getting the user's choice of action
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			// An internal switch does the initiation by posting a custom event for the
+			// action chosen. It is trapped by OnIdle(), delaying the action thereby until
+			// after the view has been updated 
+			int selection = dlg.selection;
+			InitiateUserChoice(selection);
+		}
+	}
+}
+
+void CFreeTrans::InitiateUserChoice(int selection)
+{
+    // The cases in the switch should just post custom events for getting the various tasks
+    // done. The reason for this is that SegmentFreeTranslation() is called within a Draw()
+    // handler, and we don't want to interrupt the drawing for the actions to be done - so
+    // let the draw complete and then OnIdle() can trap the custom event and the adjust
+    // actions taken - they will cause layout changes, and redrawing, so probably best to
+    // also have the screen frozen at the start of each event handler, and unfrozen when
+    // the changes are done. Note: the Adjust dialog is never posted from within the Draw
+    // function for the drawing of free translation sections other than at the current free
+    // trans anchor pile, so any legacy truncations outside of the currently active free
+    // translation remain showing their truncations. If this is not acceptable to the user,
+    // he must make any such become the active section, and then the Adjust dialog will
+    // show and he can take whatever adjustment action is appropriate for
+    // that particular free trans section
+	const int user_choice = selection; // the user's radiobutton choice
+	switch (user_choice)
+	{
+	case 0: // the "Join With Next" option
+
+		break;
+	case 1: // the "Join With Previous" option
+
+		break;
+	case 2: // the "Split off first part, and join the remainder with what follows" option
+
+		break;
+	case 3: // the " ... delete the last word and allow further editing" option
+
+		break;
+	}
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             nothing
 ///
@@ -7662,7 +8101,7 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 											wxArrayString*	pSubstrings,
 											int				totalRects)
 {
-	float fScale = (float)(textHExtent / totalHExtent); // calculate the scale factor
+	float fScale = (float)textHExtent / (float)totalHExtent; // calculate the scale factor
 
     // adjustments are needed -- if the text is much shorter than the allowed space
     // (considering the two or more rectangles it has to be distributed over) then it isn't
@@ -7679,11 +8118,13 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 	else if (fScale > (float)0.8)
 		fScale = (float)0.9;
 	else if (fScale > (float)0.7)
-		fScale = (float)0.87;
+		fScale = (float)0.80; // was .87
 	else if (fScale > (float)0.6)
-		fScale = (float)0.83;
+		fScale = (float)0.78; // was .83
+	else if (fScale > (float)0.5)
+		fScale = (float)0.75;
 	else
-		fScale = (float)0.8;
+		fScale = (float)0.7; // was .8
 
 	wxString remainderStr = str; // we shorten this for each iteration
 	wxString subStr; // what we work out as the first part of remainderStr
@@ -7693,61 +8134,114 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 	int offset;
 	int nIteration;
 	int nIterBound = totalRects - 1;
-	bool bTryAgain = FALSE; // if we use the scaling factor and we get truncation in
-            // the last rectangle then we'll use a TRUE value for this flag to force a
-            // second segmentation which does not use the scaling factor
+    bool bFittedOK = TRUE;
 
-	while (TRUE)
+	if (textHExtent > totalHExtent)
 	{
-		if (bTryAgain || textHExtent > totalHExtent)
+		// the text is longer than the available space for drawing it, so there is
+		// no point to doing any scaling -- instead, get as much as will fit into
+		// each each rectange, and the last rectangle will have to have its text
+		// elided using TruncateToFit()
+		for (nIteration = 0; nIteration <= nIterBound; nIteration++)
 		{
-			// the text is longer than the available space for drawing it, so there is
-			// no point to doing any scaling -- instead, get as much as will fit into
-			// each each rectange, and the last rectangle will have to have its text
-			// elided using TruncateToFit()
-			for (nIteration = 0; nIteration <= nIterBound; nIteration++)
-			{
-				pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
+			pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
 
-				// do the calculation, ignoring fScale (hence, last parameter is FALSE)
-				subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
-								fScale,offset,nIteration,nIterBound,bTryAgain,FALSE);
-				pSubstrings->Add(subStr);
-				remainderStr = remainderStr.Mid(offset); // shorten,
-														 // for next segmentation
-			}
-			break; // we are done
+			subStr = SegmentToFit_Tight(pDC,remainderStr,ellipsis,pElement->horizExtent,
+							offset,nIteration,nIterBound,bFittedOK); // this truncates,  
+										// and bFittedOK is correctly returned as FALSE 
+										// (can be false only on the last iteration, and 
+										// if so there would be truncation there)
+			pSubstrings->Add(subStr);
+			remainderStr = remainderStr.Mid(offset); // shorten for next segmentation
 		}
-		else
+		bFittedOK = FALSE; // give Adjust dialog a chance at fixing it
+	}
+	else
+	{
+		// we should be able to make the text fit (though this can't be guaranteed because
+		// some space is wasted in each rectangle if we print whole words (which we do)) -
+		// and we'll first try scaling to get nicer segmentation results, but if it fails
+		// we will have a second go doing a 'tight' segmentation
+		for (nIteration = 0; nIteration <= nIterBound; nIteration++)
 		{
-			// we should be able to make the text fit (though this can't be guaranteed because
-			// some space is wasted in each rectangle if we print whole words (which we do)) -
-			// and we'll need to do scaling to ensure the best segmentation results
-			for (nIteration = 0; nIteration <= nIterBound; nIteration++)
-			{
-				pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
+			pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
 
-				// do the calculation, using fScale (hence, last parameter is TRUE); if
-				// the apportioning doesn't fit all the text without truncation being
-				// required, the bTryAgain will be returned as TRUE, else it will be FALSE
-				subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
-									fScale,offset,nIteration,nIterBound,bTryAgain,TRUE);
+			// do the calculation, using fScale (hence, last parameter is TRUE); if
+			// the apportioning doesn't fit all the text without truncation being
+			// required, the bTryAgain will be returned as TRUE, else it will be FALSE
+			subStr = SegmentToFit_UseScaling(pDC,remainderStr,pElement->horizExtent,
+								fScale,offset,nIteration,nIterBound,bFittedOK);
+			if (bFittedOK)
+			{
 				pSubstrings->Add(subStr);
 				remainderStr = remainderStr.Mid(offset); // shorten, for next segmentation
 			}
-
-			if (bTryAgain)
-			{
-				pSubstrings->Clear();
-				remainderStr = str;
-				continue;
-			}
 			else
 			{
-				break; // we are done
+                // It didn't fit (this can only happen when attempting to fit the
+                // remainder into the last drawing rectangle; so attempt with the
+                // 'Tight' version of the function
+				break;
 			}
+		} // end of loop: for (nIteration = 0; nIteration <= nIterBound; nIteration++)
+		if (!bFittedOK)
+		{
+			// We need to try again with a tight fit - each extent will have
+			// as many whole words as will fit. Reinitialize...
+			remainderStr = str;
+			subStr.Empty();
+			pSubstrings->Clear();
+			offset = wxNOT_FOUND;
+			// Use SegmentToFit_Tight() this time round
+			for (nIteration = 0; nIteration <= nIterBound; nIteration++)
+			{
+				pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
+
+				subStr = SegmentToFit_Tight(pDC,remainderStr,ellipsis,pElement->horizExtent,
+								offset,nIteration,nIterBound,bFittedOK);
+				if (bFittedOK)
+				{
+					pSubstrings->Add(subStr);
+					remainderStr = remainderStr.Mid(offset); // shorten, for next segmentation
+				}
+				else
+				{
+					// it's only on the last iteration (the one for the last drawing
+					// rectangle for the section) that a FALSE can be returned for bFittedOK
+					pSubstrings->Add(subStr); //				<- currently, this is adding a truncated final substring
+					remainderStr = remainderStr.Mid(offset); // this line is not needed
+				}
+			} // end of loop: for (nIteration = 0; nIteration <= nIterBound; nIteration++)
+		} // end of TRUE block for test: if (!bFittedOK)
+
+	} // end of else block for test: if (textHExtent > totalHExtent)
+
+	// If we get here with bFittedOK FALSE, then show the Adjust dialog if all the
+	// ducks line up
+	if (!bFittedOK && ((m_pCurAnchorPile == m_pApp->m_pActivePile) && (m_pApp->m_pActivePile != NULL))
+		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting)
+	{
+		// This is where we will give the user an adjustment opportunity - but
+		// only when it's the current section - see comment below, and not
+		// printing, and the active pile exists and is the anchor pile
+		 			
+		FreeTransAdjustDlg dlg((wxWindow*)m_pFrame);
+
+		// Provide the needed hook for the repositioning function to get the
+		// top left of phrasebox location
+		wxASSERT(m_pApp->m_pActivePile);
+		CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
+		dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+		// Show the relocated dialog
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			// An internal switch does the initiation by posting a custom event for the
+			// action chosen. It is trapped by OnIdle(), delaying the action thereby until
+			// after the view has been updated
+			int selection = dlg.selection;
+			InitiateUserChoice(selection);
 		}
-	} // end of while loop: while (TRUE)
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////

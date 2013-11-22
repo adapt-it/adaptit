@@ -112,15 +112,11 @@ class KBSharingMgrTabbedDlg;
 // menu; the menu item and a preceding separator are setup (for the _DEBUG build only,
 // while developing KB sharing functionality, near the end of the app function OnInit()) -
 // at approx lines 21,454-471
-const int ID_MENU_SHOW_KBSERVER_DLG	= 980;
+const int ID_MENU_SHOW_KBSERVER_DLG	= wxNewId(); // was 980
 // for a temporary ID for the "Setup Knowledgebase Base Sharing" menu item on Advanced
 // menu; the menu item is setup (for the _DEBUG build only, while developing KB sharing
 // functionality, in the app function OnInit())
-const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
-// ID for m_KbServerDownloadTimer
-//const int ID_KBSERVER_DOWNLOAD_TIMER = 978;
-// ID for m_KbServerUploadTimer
-//const int ID_KBSERVER_UPLOAD_TIMER = 977; // BEW deprecated 11Feb13
+const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= wxNewId(); // was 979
 
 #endif
 

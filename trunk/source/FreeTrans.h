@@ -79,6 +79,13 @@ public:
 	int			nTotalHorizExtent;
 	int			m_curTextWidth; // we reset this with every keystroke (ignoring any
 								// white space user may have left at the end of the text)
+	CPile*		m_pCurAnchorPile; // during document scan for Drawing, as each section is
+								  // accessed, the anchor pile is copied to here; we use
+								  // this to compare with the anchor for the active section
+								  // and when not equal, the popping up of the Adjust dialog
+								  // when the being-drawn section shows truncated free trans
+								  // is not done - because we do it only at the active section
+	int			m_adjust_dlg_reentrancy_limit; // values > 1 must prevent Adjust dlg from showing
 	// An array of pointers to CPile instances. It is created on the heap in OnInit(),
 	// and disposed of in OnExit().
 	// Made public so OnLButtonDown() in CAdapt_ItCanvas can access it.
@@ -173,8 +180,17 @@ private:
 	CPile*		GetStartingPileForScan(int activeSequNum);
 	void		SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
 					int totalHExtent, wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings, int totalRects);
+	void		SingleRectFreeTranslation(	wxDC* pDC, wxString& str, wxString& ellipsis,
+						wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings);
+
 	wxString	SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent,float fScale,int& offset,
 							int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
+	// BEW 20Nov13 next ones are refactored ones to reduce the complexity
+	wxString	SegmentToFit_UseScaling(wxDC* pDC,wxString& str,int totalHorizExtent,float fScale,
+									int& offset,int nIteration,int nIterBound,bool& bFittedOK);
+	wxString	SegmentToFit_Tight(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHorizExtent,
+							        int& offset,int nIteration,int nIterBound,bool& bFittedOK);
+	void		InitiateUserChoice(int selection);
 public:
 	void		SetupCurrentFreeTransSection(int activeSequNum); // Adapt_It.cpp DoPrintCleanup() needs it
 private:
@@ -201,6 +217,7 @@ private:
 	void		BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pLayout);
 	void		BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLayout* pLayout);
 	void		FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount);
+	void		EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect);
 
 #if defined(__WXGTK__)
     // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build

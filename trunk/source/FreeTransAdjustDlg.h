@@ -53,7 +53,9 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
-	void OnRadioBoxAdjust(wxCommandEvent& WXUNUSED(event));
+	// button handlers are not needed
+	//void OnRadioJoinToNext(wxCommandEvent& WXUNUSED(event));
+	//void OnRadioJoinToPrevious(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes
@@ -61,7 +63,11 @@ private:
 	CAdapt_ItApp*		m_pApp; // pointer to the application instance
 	wxSizer*			m_pFreeTransAdjustSizer;
 	CMainFrame*			m_pMainFrame; // the parent window
-	wxRadioBox*			m_pRadioBoxAdjust;
+	wxRadioButton*		m_pRadioJoinToNext;
+	wxRadioButton*		m_pRadioJoinToPrevious;
+	wxRadioButton*		m_pRadioSplitIt;
+	wxRadioButton*		m_pRadioManualEdit;
+	wxRadioButton*		m_pRadioDoNothing;
 
 	DECLARE_EVENT_TABLE()
 };

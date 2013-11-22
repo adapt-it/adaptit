@@ -52,7 +52,8 @@ BEGIN_EVENT_TABLE(FreeTransAdjustDlg, AIModalDialog)
 	EVT_INIT_DIALOG(FreeTransAdjustDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, FreeTransAdjustDlg::OnOK)
 	//EVT_BUTTON(wxID_CANCEL, FreeTransAdjustDlg::OnCancel)
-	EVT_RADIOBOX(ID_RADIOBOX_ADJUST, FreeTransAdjustDlg::OnRadioBoxAdjust)
+	//EVT_RADIOBUTTON(ID_RADIO_JOIN_TO_NEXT, FreeTransAdjustDlg::OnRadioJoinToNext)
+	//EVT_RADIOBUTTON(ID_RADIO_JOIN_TO_PREVIOUS, FreeTransAdjustDlg::OnRadioJoinToPrevious)
 END_EVENT_TABLE()
 
 FreeTransAdjustDlg::FreeTransAdjustDlg(
@@ -84,7 +85,11 @@ FreeTransAdjustDlg::~FreeTransAdjustDlg() // destructor
 
 void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
-	m_pRadioBoxAdjust = (wxRadioBox*)FindWindowById(ID_RADIOBOX_ADJUST);
+	m_pRadioJoinToNext = (wxRadioButton*)FindWindowById(ID_RADIO_JOIN_TO_NEXT);
+	m_pRadioJoinToPrevious = (wxRadioButton*)FindWindowById(ID_RADIO_JOIN_TO_PREVIOUS);
+	m_pRadioSplitIt = (wxRadioButton*)FindWindowById(ID_RADIO_SPLIT_OFF);
+	m_pRadioManualEdit = (wxRadioButton*)FindWindowById(ID_RADIO_DELETE_WORD_AND_EDIT);
+	m_pRadioDoNothing = (wxRadioButton*)FindWindowById(ID_RADIO_DO_NOTHING);
 
 	// work out where to place the dialog window
 	int myTopCoord, myLeftCoord, newXPos, newYPos;
@@ -108,7 +113,30 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 {
 	// Set radio button selection so the caller of FreeTransAdjustDlg can get the user's
 	// desired option
-	selection = m_pRadioBoxAdjust->GetSelection();
+	if (m_pRadioJoinToNext->GetValue())
+	{
+		selection = 0;
+	} else if (m_pRadioJoinToPrevious->GetValue())
+	{
+		selection = 1;
+	} else if (m_pRadioSplitIt->GetValue())
+	{
+		selection = 2;
+	} else if (m_pRadioManualEdit->GetValue())
+	{
+		selection = 3;
+	} else if (m_pRadioDoNothing->GetValue())
+	{
+		selection = 4;
+	}
+	else
+	{
+		// default is to do nothing, but we should not ever come thru here
+		selection = 4;
+	}
+
+	// Prevent unwanted reentrancy
+	m_pFreeTrans->m_adjust_dlg_reentrancy_limit++;
 	event.Skip();
 }
 
@@ -117,11 +145,15 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 //	event.Skip();
 //}
 
-
-void FreeTransAdjustDlg::OnRadioBoxAdjust(wxCommandEvent& WXUNUSED(event))
+/*
+void FreeTransAdjustDlg::OnRadioJoinToNext(wxCommandEvent& WXUNUSED(event))
 {
-	// Probably don't need this handler
+	// probably not needed
 }
 
-
+void FreeTransAdjustDlg::OnRadioJoinToPrevious(wxCommandEvent& WXUNUSED(event))
+{
+	// probably not needed
+}
+*/
 
