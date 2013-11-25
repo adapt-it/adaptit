@@ -12494,7 +12494,19 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 				strFollowingTab.Trim(TRUE);
 				if (!strFollowingTab.IsEmpty())
 					bFoundCollabLineStrOK3 = TRUE;
-				break; // break for the last string
+				// whm modified 25Nov2013 a break statement was used here
+				// previously and that assumed that the szCollabAIProjectName
+				// would sequence after the above two config settings
+				// (szCollabProjectForSourceInputs and
+				// szCollabProjectForTargetExports), but I changed the order
+				// of the Collab... setting values to have the
+				// szCollabAIProjectName sequence first in the list of
+				// Collab... values. However, that meant that was causing this
+				// AIProjectIsACollabProject() function to prematurely return
+				// FALSE for collab projects. Changing the break; to a
+				// continue; statement allows the function to work properly
+				// regardless of the ordering of values.
+				continue; // break for the last string
 			}
 		}
 		if (!bFoundCollabLineStrOK1 || !bFoundCollabLineStrOK2 || !bFoundCollabLineStrOK3)
