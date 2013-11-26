@@ -25612,14 +25612,26 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
                 if (response == wxYES)
                 {
                     // The user selected to "Turn Collaboration OFF"
-                    if (m_collaborationEditor == _T("Paratext"))
-                    {
-                        m_bCollaboratingWithParatext = FALSE;
-                    }
-                    else if (m_collaborationEditor == _T("Bibledit"))
-                    {
-                        m_bCollaboratingWithBibledit = FALSE;
-                    }
+                    
+					// whm modified 25Nov2013. It is sufficient here to set
+					// the m_bStartWorkUsingCollaboration flag to FALSE. We
+					// should not reset the PT and BE m_bCollaboratingWith...
+					// flags here, so I've commented out the following if/else
+					// tests below. This should allow whatever collaboration
+					// that was taking place to still be the default selection
+					// in the 3-button dialog the next time it appears to the
+					// user. This I think is a more natural way to handle the
+					// situation rather than making the user explicitly select
+					// to work in collaboration mode again after cancelling
+					// from the GetTextFromEditor dialog.
+					//if (m_collaborationEditor == _T("Paratext"))
+                    //{
+                    //    m_bCollaboratingWithParatext = FALSE;
+                    //}
+                    //else if (m_collaborationEditor == _T("Bibledit"))
+                    //{
+                    //    m_bCollaboratingWithBibledit = FALSE;
+                    //}
                     // The user wants to get the wizard to select a different project.
                     LogUserAction(_T("Collaboration turned OFF by user after Cancel of GetSourceTextFromEditorDlg"));
                     m_bStartWorkUsingCollaboration = FALSE;
