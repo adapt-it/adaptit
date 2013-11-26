@@ -6252,8 +6252,17 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	// we close the project and also turn collaboration OFF, which also
 	// is needed to remove the parenthetical information from the
 	// File > Open and File > Save labels.
-	pApp->m_bCollaboratingWithParatext = FALSE;
-	pApp->m_bCollaboratingWithBibledit = FALSE;
+	// whm 25Nov2013 modified. No, it is better to retain the state of which
+	// external editor was last used for collaboration, even when
+	// m_bStartWorkUsingCollaboration is FALSE. If we don't reset the
+	// following settings to FALSE, then the user should see the last selected
+	// radio button still selected in the ChooseCollabOptionsDlg. This is
+	// better I think that automatically selecting the second radio button
+	// after a File > Close Project command. It is better to have the last
+	// used setting remain persistent even after a close project command.
+	//pApp->m_bCollaboratingWithParatext = FALSE;
+	//pApp->m_bCollaboratingWithBibledit = FALSE;
+	
 	// Remove the parenthetical info from File > Open and File Save menu labels
 	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 
