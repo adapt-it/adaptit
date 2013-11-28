@@ -372,6 +372,9 @@ DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Recover_Doc)
 DEFINE_EVENT_TYPE(wxEVT_Show_version)
+// BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
+DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
+DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -443,6 +446,22 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
 #define EVT_SHOW_VERSION(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY( \
         wxEVT_Show_version, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+// BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
+
+#define EVT_JOIN_WITH_NEXT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Join_With_Next, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+#define EVT_JOIN_WITH_PREVIOUS(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Join_With_Previous, id, wxID_ANY, \
             (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
             (wxObject *) NULL \
 ),
@@ -525,6 +544,10 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
     EVT_SHOW_VERSION(-1, CMainFrame::OnCustomEventShowVersion)
+	// For the free translation Adjust dialog
+	EVT_JOIN_WITH_NEXT(-1, CMainFrame::OnCustomEventJoinWithNext)
+	EVT_JOIN_WITH_PREVIOUS(-1, CMainFrame::OnCustomEventJoinWithPrevious)
+
 
 #if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
@@ -6528,6 +6551,19 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	wxPostEvent(this, eventCustom);
 	return;
 }
+
+void CMainFrame::OnCustomEventJoinWithNext(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoJoinWithNext();
+}
+
+void CMainFrame::OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoJoinWithPrevious();
+}
+
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2

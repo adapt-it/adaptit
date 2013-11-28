@@ -59,6 +59,10 @@ DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Recover_Doc, -1)
 DECLARE_EVENT_TYPE(wxEVT_Show_version, -1)
+// BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
+DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
+DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
+
 
 #if defined(_KBSERVER)
 
@@ -264,6 +268,10 @@ public:
 	void OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
+
+	// Declare custom events for free translation's Adjust dialog
+	void OnCustomEventJoinWithNext(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event));
 
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));

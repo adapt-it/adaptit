@@ -85,13 +85,24 @@ public:
 								  // and when not equal, the popping up of the Adjust dialog
 								  // when the being-drawn section shows truncated free trans
 								  // is not done - because we do it only at the active section
+	CPile*		m_pPreviousAnchorPile; // for use with Adjust dialog and Split button
+	CPile*		m_pFollowingAnchorPile; // for use with Adjust dialog and Split button
+	CPile*		m_pImmediatePreviousPile; // the one which precedes the current section
 	int			m_adjust_dlg_reentrancy_limit; // values > 1 must prevent Adjust dlg from showing
+	bool		m_bAllowOverlengthTyping; // default FALSE, if TRUE, then auto-showing of the
+										  // Adjust dialog is suppressed (but the button for
+										  // manual forcing it open is still enabled)
+	bool		m_bFreeTransSectionImmediatelyFollows; // for support of Adjust dialog and Split button
+	bool		m_bFreeTransSectionImmediatelyPrecedes; // for support of Adjust dialog and Split button
+	long		m_savedTypingOffsetForJoin; // for restoring cursor position when joining sections,
+											// default is wxNOT_FOUND (-1), and is meaningful
+											// if >= 0, so use the -1 value as a flag
 	// An array of pointers to CPile instances. It is created on the heap in OnInit(),
 	// and disposed of in OnExit().
 	// Made public so OnLButtonDown() in CAdapt_ItCanvas can access it.
-	// TODO: consider moving the free translation related functionality out of canvas' OnLButtonDown.
 	wxArrayPtrVoid*	m_pCurFreeTransSectionPileArray;
 	wxArrayPtrVoid*	m_pFollowingSectionPileArray;
+	wxArrayPtrVoid*	m_pPreviousSectionPileArray;
 
 #if defined(__WXGTK__)
     void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
@@ -103,21 +114,39 @@ public:
 #endif
 	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
+	bool		DoesFreeTransSectionFollow(CPile*& pFollowingPile);
+	bool		DoesFreeTransSectionPrecede(CPile*& pPrecedingPile);
+	bool		DoesItBeginAChapterOrVerse(CPile* pPile);
 	void		DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
 	void		EraseMalformedFreeTransSections(SPArray* pSPArray);
+	CPile*		FindPreviousFreeTransSection(CPile* pStartingPile);
 	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
 	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
+	bool		IsEndOfFootnoteEndnoteOrXRef(CPile* pPile);
 	bool		IsFreeTransInArray(SPArray* pSPArray);
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
+	void		SetupCurrentFreeTransSection(int activeSequNum); // Adapt_It.cpp DoPrintCleanup() needs it
+	//BEW 27Feb12, a setup function, compliant with docV6, for the two radio buttons in
+	//the GUI
+	void		SetupFreeTransRadioButtons(bool bSectionByPunctsValue);
 	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile,
 					enum EditBoxContents editBoxContents, const wxString& mkrStr);
 	void		StoreFreeTranslationOnLeaving();
 	void		SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftModeSwitch); // klb 9/2011 to support Print Preview
 	void		ToggleFreeTranslationMode();
+
+	// Support for different inter-pile gap in free translation mode
+	void		SetInterPileGapBeforeFreeTranslating();
+	void		RestoreInterPileGapAfterFreeTranslating();
+
+	// Support the Adjust dialog, and the Adjust... button & Split... button
+	void		DoJoinWithNext();
+	void		DoJoinWithPrevious();
+
 
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
@@ -143,7 +172,8 @@ protected:
 	bool		ContainsFreeTranslation(CPile* pPile);
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
-	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile, bool& bAtFollowingPile);
+	bool		IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFollowingPile);
+	bool		IsFreeTranslationStartDueToMarker(CPile* pThisPile, bool& bIncludeThisOne);
 
 	void		OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event);
@@ -166,7 +196,7 @@ protected:
 	// end of collecting back translations support
 
 	// support for the Import Edited Free Translation function
-	bool		IsFreeTransInList(SPList* pSPList); // remove later when I make it all SPArray
+	bool		IsFreeTransInList(SPList* pSPList);
 	int			FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& bFoundSectionEnd,
 										bool& bFoundSectionStart, bool& bFoundArrayEnd);
 	int			FindNextFreeTransSection(SPArray* pSPArray, int startFrom);
@@ -176,61 +206,48 @@ protected:
 
 	// Private free translation drawing functions
 private:
+	CPile*		JoinFreeTransPileSets(wxArrayPtrVoid* pDestPiles, wxArrayPtrVoid* pPilesForAppend);
+	void		BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pLayout);
+	void		BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLayout* pLayout);
+	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);
 	void		DestroyElements(wxArrayPtrVoid* pArr);
+	void		DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
+											wxArrayString& arrFreeTranslations);
+	void		EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect);
+	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
+	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
+	void		FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount);
+	void		FindSectionPilesBackwards(CPile* pLastPile, wxArrayPtrVoid* pPilesArray); // we don't need a wordcount returned
+	void		GetExistingFreeTransPileSet(CPile* pFirstPile, wxArrayPtrVoid* pSectionPiles);
+	// BEW 2Oct11, added more, for better design of drawing free translations when printing
+	void		GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets,
+											wxArrayString& arrFreeTranslations);
 	CPile*		GetStartingPileForScan(int activeSequNum);
+	//void		InitiateUserChoice(int selection); // unneeded
 	void		SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
 					int totalHExtent, wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings, int totalRects);
-	void		SingleRectFreeTranslation(	wxDC* pDC, wxString& str, wxString& ellipsis,
-						wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings);
-
 	wxString	SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent,float fScale,int& offset,
 							int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
-	// BEW 20Nov13 next ones are refactored ones to reduce the complexity
+	// BEW 20Nov13 next two are refactored ones to reduce the complexity
 	wxString	SegmentToFit_UseScaling(wxDC* pDC,wxString& str,int totalHorizExtent,float fScale,
 									int& offset,int nIteration,int nIterBound,bool& bFittedOK);
 	wxString	SegmentToFit_Tight(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHorizExtent,
 							        int& offset,int nIteration,int nIterBound,bool& bFittedOK);
-	void		InitiateUserChoice(int selection);
-public:
-	void		SetupCurrentFreeTransSection(int activeSequNum); // Adapt_It.cpp DoPrintCleanup() needs it
-private:
+	void		SetSectionFreeTransFlags(CPile* pAnchorPile, wxArrayPtrVoid* pPilesArray);
+	void		SingleRectFreeTranslation(	wxDC* pDC, wxString& str, wxString& ellipsis,
+						wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings);
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
-	// BEW 2Oct11, added more, for better design of drawing free translations when printing
-	void		GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets,
-											wxArrayString& arrFreeTranslations);
-public:
-	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
-	CPile*		FindPreviousFreeTransSection(CPile* pStartingPile);
-	//BEW 27Feb12, a setup function, compliant with docV6, for the two radio buttons in
-	//the GUI
-	void		SetupFreeTransRadioButtons(bool bSectionByPunctsValue);
-
-	// Support for different inter-pile gap in free translation mode
-	void		SetInterPileGapBeforeFreeTranslating();
-	void		RestoreInterPileGapAfterFreeTranslating();
-
-private:
-	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
-	void		BuildFreeTransDisplayRects(wxArrayPtrVoid& arrPileSets);
-	void		DrawFreeTransStringsInDisplayRects(wxDC* pDC, CLayout* pLayout,
-											wxArrayString& arrFreeTranslations);
-	void		BuildDrawingRectanglesForSection(CPile* pFirstPile, CLayout* pLayout);
-	void		BuildDrawingRectanglesForSectionAtAnchor(CPile* pFirstPile, CLayout* pLayout);
-	void		FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount);
-	void		EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect);
 
 #if defined(__WXGTK__)
     // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
-	void		GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtrVoid& arrPileSet, CPile* pAnchorPile);
-	void		BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
     void        AggregateFreeTranslationsByStrip(wxDC* pDC, CLayout* pLayout,
                             wxArrayPtrVoid& arrRectsForOneFreeTrans, wxString& ftStr, int nStripsOffset,
                             wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays);
+	void		BuildFreeTransDisplayRectsForOneFreeTrans(wxArrayPtrVoid& arrPileSet, wxArrayPtrVoid& arrRectsForOneFreeTrans);
+	void		GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtrVoid& arrPileSet, CPile* pAnchorPile);
 #endif
 
-private:
 	CAdapt_ItApp*	m_pApp;	// The app owns this
-
 	CLayout*		m_pLayout;
 	CAdapt_ItView*	m_pView;
 	CMainFrame*		m_pFrame;

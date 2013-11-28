@@ -174,6 +174,7 @@ END_EVENT_TABLE()
 
 CFreeTrans::CFreeTrans()
 {
+	m_savedTypingOffsetForJoin = wxNOT_FOUND;
 }
 
 CFreeTrans::CFreeTrans(CAdapt_ItApp* app)
@@ -187,6 +188,8 @@ CFreeTrans::CFreeTrans(CAdapt_ItApp* app)
 	m_pFreeTransArray = new wxArrayPtrVoid;
 	// Create a pointer array for the "following" section
 	m_pFollowingSectionPileArray = new wxArrayPtrVoid;
+	// Create a pointer array for the "previous" section
+	m_pPreviousSectionPileArray = new wxArrayPtrVoid;
 
 	// get needed private pointers to important external classes
 	// NOTE: This assumes that the view, the frame, and the layout were all created
@@ -198,6 +201,9 @@ CFreeTrans::CFreeTrans(CAdapt_ItApp* app)
 	wxASSERT(m_pFrame != NULL);
 	m_pLayout = m_pApp->GetLayout();
 	wxASSERT(m_pLayout != NULL);
+	m_bAllowOverlengthTyping = FALSE;
+	m_savedTypingOffsetForJoin = wxNOT_FOUND; // set to meaningless value for default
+											  // (it's only meaningful in a section join)
 }
 
 CFreeTrans::~CFreeTrans()
@@ -212,6 +218,9 @@ CFreeTrans::~CFreeTrans()
 	m_pFollowingSectionPileArray->Clear();
 	if (m_pFollowingSectionPileArray != NULL)
 		delete m_pFollowingSectionPileArray;
+	m_pPreviousSectionPileArray->Clear();
+	if (m_pPreviousSectionPileArray != NULL)
+		delete m_pPreviousSectionPileArray;
 }
 
 // BEW 19Feb10 no changes needed for support of doc version 5
@@ -580,6 +589,32 @@ CPile* CFreeTrans::FindFreeTransSectionEnd(CPile* pStartingPile)
 	}
 }
 
+void CFreeTrans::GetExistingFreeTransPileSet(CPile* pFirstPile, wxArrayPtrVoid* pSectionPiles)
+{
+	CPile* pPile = pFirstPile;
+	pSectionPiles->clear();
+	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+	if (pSrcPhrase->m_bEndFreeTrans)
+	{
+		pSectionPiles->Add(pPile);
+		return;
+	}
+	else
+	{
+		pSectionPiles->Add(pPile); // Add the first, & it's not an end to the section
+		do {
+			pPile = m_pView->GetNextPile(pPile);
+			if (pPile == NULL)
+			{
+				return; // we are at document's end
+			}
+			pSrcPhrase = pPile->GetSrcPhrase();
+			wxASSERT(pSrcPhrase->m_bHasFreeTrans);
+			pSectionPiles->Add(pPile);
+		} while (!pSrcPhrase->m_bEndFreeTrans);
+	}
+	return;
+}
 
 // return the index of the CSourcePhrase on which m_bHasRetranslation is set TRUE, but the
 // value of m_bStartFreeTrans is FALSE; otherwise, return wxNOT_FOUND if a valid start of
@@ -2922,6 +2957,26 @@ void CFreeTrans::DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout)
 #endif
 }
 
+void CFreeTrans::SetSectionFreeTransFlags(CPile* pAnchorPile, wxArrayPtrVoid* pPilesArray)
+{
+	CPile* pCurrentPile = pAnchorPile;
+	int j;
+	for (j = 0; j < (int)pPilesArray->GetCount(); j++)
+	{
+		// set the common flags
+		pCurrentPile = (CPile*)pPilesArray->Item(j);
+		pCurrentPile->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
+		pCurrentPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
+		pCurrentPile->GetSrcPhrase()->m_bStartFreeTrans = FALSE;
+	}
+	// set the beginning one
+	pCurrentPile = (CPile*)pPilesArray->Item(0);
+	pCurrentPile->GetSrcPhrase()->m_bStartFreeTrans = TRUE;
+	// set the ending one
+	pCurrentPile = (CPile*)pPilesArray->Item(pPilesArray->GetCount()-1);
+	pCurrentPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE;
+}
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing
 ///
@@ -3016,10 +3071,10 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	int totalRects = 0;
 	//int offset = 0;
 	//int length = 0;
-	pPile = m_pApp->m_pActivePile; // go straight there
+	pPile = m_pApp->m_pActivePile; // go straight ;there
 
 	// Copy the first pile (the anchor pile) to the class's m_pCurAnchorPile member, so
-	// that we don't let the Adjust dialoog pop up at any truncation except when this
+	// that we don't let the Adjust dialog pop up at any truncation except when this
 	// pile is the anchor pile for the current active free trans section
 	m_pCurAnchorPile = pPile;
 
@@ -3030,23 +3085,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
     // before, and the user just typed the first character, the free trans flags on the
     // source phrases will not have been set, but they must be set for the code below
     // to properly define this free translation element
-	CPile* pCurrentPile;
-	int j;
-	for (j = 0; j < (int)m_pCurFreeTransSectionPileArray->GetCount(); j++)
-	{
-		// set the common flags
-		pCurrentPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(j);
-		pCurrentPile->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
-		pCurrentPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
-		pCurrentPile->GetSrcPhrase()->m_bStartFreeTrans = FALSE;
-	}
-	// set the beginning one
-	pCurrentPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(0);
-	pCurrentPile->GetSrcPhrase()->m_bStartFreeTrans = TRUE;
-	// set the ending one
-	pCurrentPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(
-								m_pCurFreeTransSectionPileArray->GetCount()-1);
-	pCurrentPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE;
+    SetSectionFreeTransFlags(pPile, m_pCurFreeTransSectionPileArray);
 
 	// return if we did not find a free translation section (never expect this) as the
 	// phrase box is at an anchor location
@@ -3083,6 +3122,19 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 				// not include any whitespace still on the end of the typed free transln, because
 				// we never try to draw such whitespace in the final draw rectangle
 	totalRects = m_pFreeTransArray->GetCount();
+
+	// If the user has the m_bAllowOverlengthTyping flag set ON (by his choice to 'do
+	// nothing' in the Adjust dialog), then auto-opening of the Adjust dialog should be
+	// suppressed while his typing is typing a string too long to fit the draw rectangles
+	// available.(The Adjust dialog can be forced open manually using the Adjust button.)
+	// But if his editing reduces the length of the free translation so that it fits the
+	// available draw rectangle(s) space, then we should detect this an turn the flag
+	// m_bAllowOverlengthTyping back OFF, so that the Adjust dialog will auto-show again
+	// if his edits make a too-long string once again
+	if (!bTextIsTooLong)
+	{
+		m_bAllowOverlengthTyping = FALSE;
+	}
 
 	if (totalRects == 1)
 	{
@@ -3990,14 +4042,6 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 				if (bRTLLayout)
 				{
-//#ifdef _DEBUG
-//		         wxSize trueSz;
-//			     pDC->GetTextExtent(s,&trueSz.x,&trueSz.y);
-//			     wxLogDebug(_T("RTL DrawText sub.l=%d + sub.w=%d - sExt.x=%d, x=%d, y=%d of %s"),
-//				    pElement->subRect.GetLeft(),pElement->subRect.GetWidth(),trueSz.x,
-//				    pElement->subRect.GetLeft()+pElement->subRect.GetWidth()-trueSz.x,
-//				    pElement->subRect.GetTop(),s.c_str());
-//#endif
 					m_pView->DrawTextRTL(pDC,s,pElement->subRect);
 				}
 				else
@@ -4309,6 +4353,178 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile, bool& bAtFoll
 	return FALSE;
 }
 
+// This function is similar to IsFreeTranslationEndDueToMarker(), but is used when creating
+// a new free translation section immediately preceding the current section, when the
+// Adjust dialog's "Join with what precedes" is taken - the scanning is done backwards
+// incidently. Halting the scan for delineating a free translation section must take
+// account of UFMF or SFM markers that may be encountered along the way - there are three
+// basic behaviours to support: some markers are begin-markers and should halt the scan
+// with pThisPile included within the new section (bIncludeThisOne set TRUE) as it's anchor
+// pile; some markers are endmarkers which indicate that pThisPile is at the end of a quite
+// different type of text (eg. footnote, endnote, or cross reference), and so it should NOT
+// be included in the new section (bIncludeThisOne set FALSE); some markers are
+// insignificant (being either inline binding or non-binding, having textType none or
+// noType, and we must ignore these and keep scanning back. We scan back as far as a
+// CSourcePhrase with following punctuation, but don't include that one's pile in the
+// section, if free trans mode is set to define sections by punctuation; otherwise, we scan
+// back to the start of the verse, or to a significant begin-marker, whichever comes
+// first. The scanning, of course, is not done here - but rather in the caller. The
+// present function is just for determining what pThisPile's status is for the section
+// being delineated.
+// The presence of filtered information is regarded as so significant that it's presence
+// in a CSourcePhrase (except for a note) should halt the scan - that CSourcePhrase's pile
+// should be included in the new section, and be the anchor pile. This is so that the
+// user's choice to someday unfilter filtered info caannot not introduce new material within
+// a free translation section - because unfiltered info will precede the pile it was
+// stored on when filtered.
+bool CFreeTrans::IsFreeTranslationStartDueToMarker(CPile* pThisPile, bool& bIncludeThisOne)
+{
+	bIncludeThisOne = TRUE; // default for initialization
+	USFMAnalysis* pAnalysis = NULL;
+	wxString bareMkr;
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	CSourcePhrase* pSrcPhrase = pThisPile->GetSrcPhrase();
+	wxString markers = pSrcPhrase->m_markers;
+	wxString endMarkers = pSrcPhrase->GetEndMarkers();
+	if (markers.IsEmpty() && endMarkers.IsEmpty())
+	{
+		// When FALSE is returned, the caller should continue scanning, and the value of
+		// bIncludeThisOne should not be considered meaningful, and pThisPile should be
+		// included within the new section - provided the caller does not subsequently
+		// find final-punctuation on pThisPile and need to halt prior to that
+		return FALSE;
+	}
+	// anything filtered must halt scanning, except for a note's content (in m_note)
+	if (
+		!pSrcPhrase->GetFilteredInfo().IsEmpty() ||
+		!pSrcPhrase->GetFreeTrans().IsEmpty() ||
+		!pSrcPhrase->GetCollectedBackTrans().IsEmpty() )
+	{
+		bIncludeThisOne = TRUE;
+		return TRUE;
+	}
+    // Handle any endmarker - it causes a halt unless it has TextType of none. Scanning
+    // back to define a section only happens when attempting to join the current section
+    // with a preceding one which is not yet defined - and a condition for the scan to
+    // commence is that the CPile instance which immediately precedes the current section
+    // is NOT the end of a footnote, endnote, or cross reference. So we know that if the
+    // scan comes to one of these information types in the document, it will come to a pile
+    // with it's CSourcePhrase having a \f* or \fe* or |x* endmarker, or if the PNG SFM
+    // marker set is current, to either \fe or \F (endnotes and xrefs are not supported in
+    // the PNG SRM marker set). So we can use the function 
+    // bool IsEndOfFootnoteEndnoteOrXRef(CPile* pPile) here too, to test for those
+    // conditions. If one such happens, then we halt scanning, return TRUE, and
+    // bIncludeThisOne must be set to FALSE because pThisPile should be excluded from the
+    // new section. This makes our code here much simpler than in
+    // IsFreeTranslationEndDueToMarker()
+	if (IsEndOfFootnoteEndnoteOrXRef(pThisPile))
+	{
+		// We've come to the end of a footnote, or end of an endnote, or end of a cross
+		// reference. Scanning must halt, and pThisPile be excluded from the new section
+		bIncludeThisOne = FALSE;
+		return TRUE;
+	}
+
+	// Now deal with the m_markers member's content - look for halt-causing markers (it's
+	// sufficient to find just the first, and make our decision from that one). For these,
+	// bIncludeThisOne is always returned TRUE, since the CSourcePhrase carrying any
+	// halting-causing begin-marker will always start the currently-being-defined
+	// section, and so it's associated pile will be the new section's anchor pile
+	if (!markers.IsEmpty())
+	{
+		// some kind of non-endmarker(s) is/are present so check it/them out
+		const wxChar* pBuff;
+		int bufLen = markers.Length();
+		wxChar* pBufStart;
+		wxChar* ptr;
+		int curPos = wxNOT_FOUND;
+		curPos = markers.Find(gSFescapechar);
+		if (curPos == wxNOT_FOUND)
+		{
+			// there are no SF markes left in the string
+			return FALSE; // don't halt free trans section-delineation scanning
+		}
+
+        // we've a marker to deal with, and its not a filtered one - so check if we need to
+        // halt now - we should unless the marker is one like \k , or \it , or \sc , or \bd
+        // etc - these have TextType none
+		bufLen = markers.Length();
+		pBuff = markers.GetData();
+		pBufStart = (wxChar*)pBuff;
+		wxChar* pEnd;
+		pEnd = pBufStart + bufLen; // whm added
+		wxASSERT(*pEnd == _T('\0')); // whm added
+		pEnd = pEnd; // avoid warning
+		ptr = pBufStart + curPos;
+		bareMkr = pDoc->GetBareMarkerForLookup(ptr);
+		pAnalysis = pDoc->LookupSFM(bareMkr);
+		if (pAnalysis == NULL)
+		{
+			// an unknown marker should halt scanning
+			return TRUE;
+		}
+		if (pAnalysis->textType == none)
+		{
+			return FALSE; // don't halt scanning for these
+		}
+		return TRUE; // anything else should halt scanning
+	}
+	// otherwise we assume there is nothing of significance for causing a halt
+	return FALSE;
+}
+
+bool CFreeTrans::IsEndOfFootnoteEndnoteOrXRef(CPile* pPile)
+{
+	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+	wxString endmarkers = pSrcPhrase->GetEndMarkers();
+	if (endmarkers.IsEmpty())
+	{
+		return FALSE;
+	}
+	wxString endFootnote = _T("\\f*");
+	wxString endEndnote = _T("\\fe*");
+	wxString endXRef = _T("\\x*");
+	bool bIsWithin = FALSE;
+	// First, test assuming USFM is current (if PNG marker set is current, these USFM
+	// tests will yield FALSE each time, so we'll get to the PNG marker set tests
+	// afterwards)
+	bIsWithin = IsSubstringWithin(endFootnote, endmarkers);
+	if (bIsWithin)
+	{
+		return TRUE;
+	}
+	bIsWithin = IsSubstringWithin(endEndnote, endmarkers);
+	if (bIsWithin)
+	{
+		return TRUE;
+	}
+	bIsWithin = IsSubstringWithin(endXRef, endmarkers);
+	if (bIsWithin)
+	{
+		return TRUE;
+	}
+	// Now the PNG markers test - the only endmarkers in that SFM set are \fe or \F which
+	// were used for "end footnote"
+	if (m_pApp->gCurrentSfmSet == PngOnly)
+	{
+		wxString pngEndFNote1 = _T("\\fe");
+		wxString pngEndFNote2 = _T("\\F");
+		int offset = wxNOT_FOUND;
+		offset = endmarkers.Find(pngEndFNote1);
+		if (offset != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+		offset = endmarkers.Find(pngEndFNote2);
+		if (offset != wxNOT_FOUND)
+		{
+			return TRUE;
+		}
+	}
+	// No matches, so return FALSE
+	return FALSE;
+}
+
 void CFreeTrans::SetInterPileGapBeforeFreeTranslating()
 {	
 	int newGap = (int)FREE_TRANS_INTER_PILE_GAP; // set at 40 in AdaptItConstants.h
@@ -4361,8 +4577,7 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 /// original gap is restored on exit from free translation mode.
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
-	//wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
-	//wxASSERT(pMenuBar != NULL);
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 
 	// whm Note: Only log user action when user explicitly selects menu
 	// item not when OnAdvancedFreeTranslationMode() is called by other
@@ -4389,9 +4604,8 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 
 		SwitchScreenFreeTranslationMode(ftModeON);
 	}
-
-
 }
+
 //*****************
 // klb 9/2011
 //    extracted most of the code from CFreeTrans::OnAdvancedFreeTranslationMode
@@ -5038,6 +5252,8 @@ bool CFreeTrans::GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
+
 	gbFreeTranslationJustRemovedInVFMdialog = FALSE; // restore to default
            // value, in case a remove was just done in the View Filtered
            // Material dialog
@@ -5277,7 +5493,7 @@ void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray
 							pNextPile->GetSrcPhrase()->m_bFirstOfType)
 				{
                     // this "next pile" is the start of a new verse, or a new text type
-                    // is commenting, so we must break out here
+                    // is commencing, so we must break out here
 					break;
 				}
 				// otherwise, continue iterating across successive piles
@@ -5288,6 +5504,101 @@ void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray
 		// satisfied, so keep iterating
 		pile = m_pView->GetNextPile(pile);
 	} // end of loop block for test: while (pile != NULL)
+}
+
+// FindSectionPiles() is called in support of joining the current free translation to one
+// which precedes, when there was no immediately preceding free trans section in existence
+// yet and so it has to be created. pPilesArray is for passing in which pile pointer array
+// is to store the section's pile ptrs. pLastPile is the pile ptr which is is going to be
+// last in the created section - that is, the one that will have m_bEndFreeTrans set TRUE
+// in that pile's pointed-at CSourcePhrase instance. We scan backwards, and for each pile
+// ptr except the first (which we Add()) we insert them at index 0 - so that the array is
+// in the correct order.
+// This function is a tweaked version of FindSectionPiles, with obvious changes
+void CFreeTrans::FindSectionPilesBackwards(CPile* pLastPile, wxArrayPtrVoid* pPilesArray)
+{
+	pPilesArray->clear(); // just clears out the pointers, doesn't free their memory
+	CPile* pile = pLastPile;
+	pPilesArray->Add(pile); // the last can be Added, the rest inserted at index 0
+	CPile* pPrevPile;
+	CSourcePhrase* pSrcPhrase;
+	do {
+		pPrevPile = m_pView->GetPrevPile(pile);
+		if (pPrevPile == NULL)
+		{
+			// we are at the doc start, so no more to insert in the array
+			break;
+		}
+		else
+		{
+			if (pPrevPile->GetSrcPhrase()->m_bEndFreeTrans)
+			{
+				break; // halt scanning, we've bumped into the end of a pre-existing
+					   // free trans section, else continue the battery of tests
+			}
+		}
+		bool bIncludeThisOne = TRUE; // initialize
+		if (IsFreeTranslationStartDueToMarker(pPrevPile, bIncludeThisOne))
+		{
+			// Halt scanning, and use the bIncludeThisOne value to determine whether or
+			// not pPrevPile is to be included in the new section as it's anchor pile, or
+			// excluded
+			if (bIncludeThisOne)
+			{
+				pPilesArray->Insert(pPrevPile, 0);
+			}
+			break;
+		}
+
+		// Continuing the scan, we must check for other scan ending conditions, such as
+		// defining by punctuation and we come to a pile whose CSourcePhrase has final
+		// punctuation, or we are at a m_bFirstOfType is TRUE location - and we'll check
+		// for m_bVerse being TRUE too, since it sometimes is not the first marker stored
+		// in a CSourcePhrase's m_markers member, so we make sure we halt at a verse
+		// beginning
+		pSrcPhrase = pPrevPile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase != NULL);
+		if (gbIsUnstructuredData || m_pApp->m_bDefineFreeTransByPunctuation)
+		{
+			// the verse option is not available if the data has no SF markers
+			if (HasWordFinalPunctuation(pSrcPhrase, pSrcPhrase->m_targetStr, gSpacelessTgtPunctuation))
+			{
+				// there is word-final punctuation, so this is a suitable place
+				// to close off this section - don't include pPrevPile within it
+				break;
+			}
+		}
+		else
+		{
+			// Halt if a verse starts here, or a text type change happens - in either
+			// case, include pPrevPile within the new section
+			if (pSrcPhrase->m_bVerse || pSrcPhrase->m_bFirstOfType)
+			{
+                // this pPrevPile is the start of a new verse, or a new text type
+                // is commencing, so we must break out here, and include it
+                pPilesArray->Insert(pPrevPile, 0);
+				break;
+			}
+			// otherwise, continue iterating back through previous piles
+		}
+	
+		// We've not found any reason to halt the scan, so include this pile ptr in the
+		// section
+		pPilesArray->Insert(pPrevPile, 0);
+
+		// prepare for next iteration
+		pile = pPrevPile;
+
+	} while (pPrevPile != NULL);
+#if defined(_DEBUG)
+	wxLogDebug(_T("FindSectionPilesBackwards - srcPhrases for the piles in the array"));
+	int aCount = pPilesArray->GetCount();
+	int index;
+	for (index = 0; index < aCount; index++)
+	{
+		wxLogDebug( _T("Previous section: index = %d     src text  =  %s"), index, ((CPile*)pPilesArray->Item(index))->GetSrcPhrase()->m_srcPhrase);
+	}
+#endif
 }
 
 
@@ -6166,7 +6477,9 @@ void CFreeTrans::OnUpdateAdvanceButton(wxUpdateUIEvent& event)
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 {
-    // BEW added 19Oct06; if the ENTER key is pressed when not in Free Translation mode and
+ 	m_bAllowOverlengthTyping = FALSE; // ensure default is restored (BEW added 26Nov13)
+
+   // BEW added 19Oct06; if the ENTER key is pressed when not in Free Translation mode and
     // focus is in the compose bar then it would invoke the OnAdvanceButton() handler even
     // though the button is hidden, so we prevent this by detecting when it happens and
     // exiting without doing anything.
@@ -6358,6 +6671,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten or
 							 // Lengthen buttons were used
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 	// for debugging
 	//int ftStartSN = gEditRecord.nFreeTranslationStep_StartingSequNum;
 	//int ftEndSN = gEditRecord.nFreeTranslationStep_EndingSequNum;
@@ -6515,6 +6829,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten
 							 // or Lengthen buttons were used
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
 
 	if(pBar != NULL && pBar->IsShown())
@@ -6901,6 +7216,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 // BEW 9July10, no changes needed for support of kbVersion 2
 void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 {
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 	// whm added 15Mar12 for read-only mode
 	if (m_pApp->m_bReadOnlyAccess)
 	{
@@ -6972,6 +7288,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from wiping
             // out the action done below at the time that the view is updated (which
             // otherwise would call that function)
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 	bool bEditBoxHasText = FALSE; // default
 	// whm 24Aug06 reordered and modified below
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
@@ -7080,6 +7397,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from
             // wiping out the action done below at the time that the view is
             // updated (which otherwise would call that function)
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 	bool bEditBoxHasText = FALSE; // default
 
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
@@ -8004,7 +8322,7 @@ void CFreeTrans::SingleRectFreeTranslation(wxDC* pDC, wxString& str, wxString& e
 	// If we get here with bFittedOK FALSE, then show the Adjust dialog if all the
 	// ducks line up
 	if (!bFittedOK && ((m_pCurAnchorPile == m_pApp->m_pActivePile) && (m_pApp->m_pActivePile != NULL))
-		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting)
+		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting && !m_bAllowOverlengthTyping)
 	{
 		// This is where we will give the user an adjustment opportunity - but
 		// only when it's the current section - see comment below, and not
@@ -8021,14 +8339,14 @@ void CFreeTrans::SingleRectFreeTranslation(wxDC* pDC, wxString& str, wxString& e
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			// An internal switch does the initiation by posting a custom event for the
-			// action chosen. It is trapped by OnIdle(), delaying the action thereby until
-			// after the view has been updated 
-			int selection = dlg.selection;
-			InitiateUserChoice(selection);
+			// action chosen. This delays the action thereby until after the view's Draw()
+			// has completed 
+			//int selection = dlg.selection; // now unneeded
+			//InitiateUserChoice(selection); // now unneeded
 		}
 	}
 }
-
+/* Don't need this, we'll post the events in the OnOK() call
 void CFreeTrans::InitiateUserChoice(int selection)
 {
     // The cases in the switch should just post custom events for getting the various tasks
@@ -8058,9 +8376,12 @@ void CFreeTrans::InitiateUserChoice(int selection)
 		break;
 	case 3: // the " ... delete the last word and allow further editing" option
 
+	case 4: // do nothing option
 		break;
 	}
 }
+*/
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             nothing
@@ -8219,7 +8540,7 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 	// If we get here with bFittedOK FALSE, then show the Adjust dialog if all the
 	// ducks line up
 	if (!bFittedOK && ((m_pCurAnchorPile == m_pApp->m_pActivePile) && (m_pApp->m_pActivePile != NULL))
-		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting)
+		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting & !m_bAllowOverlengthTyping)
 	{
 		// This is where we will give the user an adjustment opportunity - but
 		// only when it's the current section - see comment below, and not
@@ -8232,17 +8553,47 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 		wxASSERT(m_pApp->m_pActivePile);
 		CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
 		dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
-		// Show the relocated dialog
+		// Show the dialog in its relocated-in-view location
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			// An internal switch does the initiation by posting a custom event for the
 			// action chosen. It is trapped by OnIdle(), delaying the action thereby until
 			// after the view has been updated
-			int selection = dlg.selection;
-			InitiateUserChoice(selection);
+			//int selection = dlg.selection; // now unneeded
+			//InitiateUserChoice(selection); // now unneeded
 		}
 	}
 }
+
+bool CFreeTrans::DoesFreeTransSectionFollow(CPile*& pFollowingPile)
+{
+	CPile* pPile = (CPile*)m_pCurFreeTransSectionPileArray->Last();
+	int index = m_pLayout->IndexOf(pPile);
+	index++;
+	int maxIndex = m_pApp->m_pSourcePhrases->GetCount() - 1;
+	if (index > maxIndex)
+	{
+		pFollowingPile = NULL; // we are past end of doc
+		return FALSE;
+	}
+	pFollowingPile = m_pLayout->GetPile(index);
+	return pFollowingPile->GetSrcPhrase()->m_bStartFreeTrans;
+}
+
+bool CFreeTrans::DoesFreeTransSectionPrecede(CPile*& pPrecedingPile)
+{
+	CPile* pPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(0); // first in current section
+	int index = m_pLayout->IndexOf(pPile);
+	index--;
+	if (index < 0)
+	{
+		pPrecedingPile = NULL; // we are past start of doc
+		return FALSE;
+	}
+	pPrecedingPile = m_pLayout->GetPile(index);
+	return pPrecedingPile->GetSrcPhrase()->m_bEndFreeTrans;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 ///
@@ -8955,3 +9306,338 @@ bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_b
 	// if we haven't found a reason to halt, then continue on scanning forwards
 	return FALSE;
 }
+
+bool CFreeTrans::DoesItBeginAChapterOrVerse(CPile* pPile)
+{
+	wxString markers = pPile->GetSrcPhrase()->m_markers;
+	int offset;
+	wxString chapterMkr = _T("\\c");
+	wxString verseMkr = _T("\\v"); // a Find() using this will also find \vn which some branches use
+	offset = markers.Find(chapterMkr);
+	if (offset != wxNOT_FOUND)
+	{
+		return TRUE;
+	}
+	offset = markers.Find(verseMkr);
+	if (offset != wxNOT_FOUND)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+// JoinFreeTransPileSets joins either the following section's pile set to the current set
+// (in which case pass in bAppendingFollowingSet as TRUE), or the current set to the piles
+// of a preceding section ((in which case pass in bAppendingFollowingSet as FALSE). The
+// flag is important, for it determines how to work out which pile to return as the anchor
+// pile for the composite new section; and also how to adjust the m_bStartFreeTrans and
+// m_bEndFreeTrans flags at either side of the join point. Both arrays of piles must have
+// valid flags for their respective sections when passed in.
+// NOTE: make sure the caller has already stored the wxString which is the free
+// translation stored in the anchor pile of pPilesForAppend before this function is
+// called, because this function will clear the string from the CSourcePhrase pointed at
+// by the first pile in pPilesForAppend, as well as setting its m_bStartFreeTrans flag to 
+// FALSE
+CPile* CFreeTrans::JoinFreeTransPileSets(wxArrayPtrVoid* pDestPiles, wxArrayPtrVoid* pPilesForAppend)
+{
+	CPile* pLastDestPile = NULL;
+	CPile* pFirstAppendPile = NULL;
+	CSourcePhrase* pSrcPhrase = NULL;
+	CPile* pAnchor = NULL;
+	pLastDestPile = (CPile*)pDestPiles->Last();
+	pSrcPhrase = pLastDestPile->GetSrcPhrase();
+	// Remove indication of end of section
+	pSrcPhrase->m_bEndFreeTrans = FALSE;
+
+	pFirstAppendPile = (CPile*)pPilesForAppend->Item(0);
+#if defined(_DEBUG)
+	wxLogDebug(_T("JoinFreeTransPileSets - contents of 2nd pile array"));
+	int aCount = pPilesForAppend->GetCount();
+	int index;
+	for (index = 0; index < aCount; index++)
+	{
+		wxLogDebug( _T("index = %d     src text  =  %s"), index, ((CPile*)pPilesForAppend->Item(index))->GetSrcPhrase()->m_srcPhrase);
+	}
+#endif
+	pSrcPhrase = pFirstAppendPile->GetSrcPhrase();
+	// Remove indication of start of section
+	pSrcPhrase->m_bStartFreeTrans = FALSE;
+    // Now empty its free translation string - we don't want the view to display a green
+    // wedge with the free translation available if the wedge is clicked
+	pSrcPhrase->SetFreeTrans(_T(""));
+	wxASSERT(!pSrcPhrase->m_bStartFreeTrans);
+
+	// Append the following section's piles to pDestPiles
+	size_t count = pPilesForAppend->size();
+	size_t i;
+	CPile* pPile = NULL;
+	for (i=0; i<count; i++)
+	{
+		pPile = (CPile*)pPilesForAppend->Item(i);
+		pDestPiles->Add(pPile);
+	}
+	// Return the (possibly new) anchor pile's ptr; when appending the following section
+	// to the current one, the anchor is unchanged; when appending the current section to
+	// the previous one, the anchor pile will move to the start of the previous section.
+	// In either case, the caller should just do a RecalcLayout, set the m_pActivePile,
+	// and redraw the layout - the redraw will set up the free translations etc
+	pAnchor = (CPile*)pDestPiles->Item(0);
+	return pAnchor;
+}
+
+void CFreeTrans::DoJoinWithNext()
+{
+	// When control enters, the following CFreeTrans members will have correct values already:
+	// m_bFreeTransSectionImmediatelyFollows  TRUE if anchor pile follows end of current, FALSE
+	// if that pile does not have a free translation defined on it,
+	// m_pFollowingAnchorPile will be non-NULL and will point to the first pile following the
+	// end of the current section,
+	// m_bAllowOverlengthTyping will have been cleared to its default value of FALSE
+	
+	// Store parameters pertaining to the original section, set params composebar text box
+	// will use
+	CPile* pOriginalAnchorPile = m_pApp->m_pActivePile;
+	m_pCurAnchorPile = pOriginalAnchorPile; // this will be the anchor for the new (larger) section
+	CSourcePhrase* pSrcPhrase = pOriginalAnchorPile->GetSrcPhrase();
+	wxString strOriginalFreeTrans = pSrcPhrase->GetFreeTrans();
+	DestroyElements(m_pFreeTransArray); // we'll create a new set of FreeTrElement shortly
+	long to; long from;
+	m_pFrame->m_pComposeBarEditBox->GetSelection(&from, &to); // use the to value as insertion offset
+	m_savedTypingOffsetForJoin = to; // text box in compose bar will use this value to restore
+		// the cursor to the location at which the user was typing when the join was invoked
+
+    // If no free translation immediately follows, define the following section and store
+    // its piles in the wxArrayPtrVoid, m_pFollowingSectionPileArray. The FindSectionPiles()
+    // call uses the currently set application member variable, m_bDefineFreeTransByPunctuation
+    // - which allows defining the section by either punctuation, or verse (but either
+    // option can give a shortened section if a major USFM marker comes earlier)
+	int wordcount;
+	CPile* pNewAnchorPile = NULL;
+	if (m_bFreeTransSectionImmediatelyFollows)
+	{
+		// The following section exists, get it's piles and join to current one;
+		// GetExistingFreeTransPileSet() clears the passed in CPile array before adding
+		// the section's pile pointers
+		GetExistingFreeTransPileSet(m_pFollowingAnchorPile, m_pFollowingSectionPileArray);
+		CSourcePhrase* pItsAnchorSrcPhr = m_pFollowingAnchorPile->GetSrcPhrase();
+		wxString strItsFreeTranslation = pItsAnchorSrcPhr->GetFreeTrans();
+		// Do the join
+		pNewAnchorPile = JoinFreeTransPileSets(m_pCurFreeTransSectionPileArray, m_pFollowingSectionPileArray);
+		wxASSERT(pNewAnchorPile == pOriginalAnchorPile);
+
+		// Probably the following section will have a non-empty free translation, so we
+		// must append that to the free translation of the current section, adding a space
+		// delimiter between them
+		int nOriginalLength = strOriginalFreeTrans.Len();
+		strOriginalFreeTrans.Trim(); // trim from end any whitespaces
+		int nNewLength = strOriginalFreeTrans.Len();
+		// If the length changed, alter the saved offset for the user's typing location
+		if (nNewLength != nOriginalLength)
+		{
+			m_savedTypingOffsetForJoin = nNewLength; // put the cursor before the space delimiter
+		}
+		strItsFreeTranslation.Trim(FALSE); // trim from start any whitespaces
+		strOriginalFreeTrans += _T(" "); // append a single space as delimiter
+		strOriginalFreeTrans += strItsFreeTranslation;
+
+		// Now put the composite free translation into the pSrcPhrase at the anchor pile
+		pSrcPhrase->SetFreeTrans(strOriginalFreeTrans);
+	}
+	else
+	{
+        // The following section does not yet exist, so create it an then join to current
+        // one; in the following call, wordcount counts the words, not the piles, & the
+        // potential for mergers means that wordcount >= the number of pile pointers added
+        // to the array; but I don't think we make any use of wordcount in the join op
+		m_pFollowingSectionPileArray->clear(); // the pointers themselves are managed by 
+											   // the CLayout instance, and so must persist
+		FindSectionPiles(m_pFollowingAnchorPile, m_pFollowingSectionPileArray, wordcount);
+		// Set the boolean flags in the pointed-at CSourcePhrase instances, which indicate
+		// that these instances are within a single section of free translation
+		SetSectionFreeTransFlags(m_pFollowingAnchorPile, m_pFollowingSectionPileArray);
+        // Now join up the two sections; at the join, the JoinFreeTransPileSets() function
+        // removes the flag indicators that the first section ends and the second section
+        // starts, so it becomes the one continuous section
+		pNewAnchorPile = JoinFreeTransPileSets(m_pCurFreeTransSectionPileArray, m_pFollowingSectionPileArray);
+		wxASSERT(pNewAnchorPile == pOriginalAnchorPile);
+		// The former 'following' section had no free translation defined on it, so the only
+		// free translation is that which is already stored in pOriginalAnchorPile, so we
+		// don't need to merge free translations; and the anchor pile has not moved
+	}
+
+	// Update the layout & set the typing location
+	m_pApp->m_pActivePile = pNewAnchorPile;
+	// pSrcPhrase can now be reused...
+	pSrcPhrase = pNewAnchorPile->GetSrcPhrase();
+	m_pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
+	bool bIsOK = TRUE;
+#ifdef _NEW_LAYOUT
+	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
+#else
+	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+	m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
+	m_pView->Invalidate();
+	m_pLayout->PlaceBox();
+	// Put the latest free translation text into the composebar's edit box, and set the
+	// cursor location, and the focus to that box too
+	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+	m_pFrame->m_pComposeBarEditBox->SetFocus();
+	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
+	if (m_savedTypingOffsetForJoin != wxNOT_FOUND)
+	{
+		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffsetForJoin, m_savedTypingOffsetForJoin);
+	}
+	else
+	{
+		int length = freetrans.Len();
+		m_pFrame->m_pComposeBarEditBox->SetSelection(length, length);
+	}
+	m_savedTypingOffsetForJoin = (long)wxNOT_FOUND; // restore default meaningless value
+}
+
+void CFreeTrans::DoJoinWithPrevious()
+{
+
+	// When control enters, the following CFreeTrans members will have correct values already:
+	// m_bFreeTransSectionImmediatelyPrecedes  TRUE if the immediately preceding pile to
+	// the start of the current section has flag m_bEndFreeTrans in the pSrcPhrase
+	// associated with that preceding pile, FALSE if that pile does not have a free translation
+	// defined on it,
+    // m_pPrecedingAnchorPile might be NULL, but if not it will point to the first
+    // preceding free translation's anchor pile found when scanning back from the start of
+    // the current section - whether the end of it's section abutts the current section or
+    // not (so don't rely on it when no free trans section precedes, recalculate it below)
+	// m_bAllowOverlengthTyping will have been cleared to its default value of FALSE,
+	// and m_pImmediatePreviousPile will be non-NULL and points to the CPile instance
+	// immediately preceding the start of the current free trans section
+	
+	// Store parameters pertaining to the original section, set params composebar text box
+	// will use
+	CPile* pOriginalAnchorPile = m_pApp->m_pActivePile;
+	m_pCurAnchorPile = pOriginalAnchorPile; // this will not be an anchor in the new (larger) section
+	CSourcePhrase* pSrcPhrase = pOriginalAnchorPile->GetSrcPhrase();
+	wxString strOriginalFreeTrans = pSrcPhrase->GetFreeTrans(); // now it's stored, we can 
+			// safely remove it from pOriginalAnchorPile's CSourcePhrase instance anytime below
+	DestroyElements(m_pFreeTransArray); // we'll create a new set of FreeTrElement shortly
+	long to; long from;
+	m_pFrame->m_pComposeBarEditBox->GetSelection(&from, &to); // use the to value as insertion offset
+	m_savedTypingOffsetForJoin = to; // text box in compose bar will use this value to
+		// restore the cursor to the location at which the user was typing when the join
+		// was invoked -
+		// BEWARE - the final value is not set, we have to add the length of the preceding
+		// free translation (including a delimiter space at the join) to it before it is used
+		// within the compose bar's text box
+
+    // If no free translation immediately precedes, define the previous section and store
+    // its piles in the wxArrayPtrVoid, m_pPreviousSectionPileArray. The FindSectionPiles()
+    // call uses the currently set application member variable, m_bDefineFreeTransByPunctuation
+    // - which allows defining the section by either punctuation, or verse (but either
+    // option can give a shortened section if a major USFM marker comes earlier)
+	CPile* pNewAnchorPile = NULL;
+	if (m_bFreeTransSectionImmediatelyPrecedes)
+	{
+		// The preceding section exists, get it's piles and join the current one to it;
+		// GetExistingFreeTransPileSet() clears the passed in CPile array before adding
+		// the section's pile pointers
+		GetExistingFreeTransPileSet(m_pPreviousAnchorPile, m_pPreviousSectionPileArray);
+		CSourcePhrase* pItsAnchorSrcPhr = m_pPreviousAnchorPile->GetSrcPhrase();
+		wxString strItsFreeTranslation = pItsAnchorSrcPhr->GetFreeTrans();
+		// Do the join, along with the flag & free trans storage adjustments
+		pNewAnchorPile = JoinFreeTransPileSets(m_pPreviousSectionPileArray, m_pCurFreeTransSectionPileArray);
+		wxASSERT(pNewAnchorPile != pOriginalAnchorPile);
+
+		// Probably the previous section will have a non-empty free translation, so we
+		// must append to that the free translation of the current section, adding a space
+		// delimiter between them, and complete the setting of m_savedTypingOffsetForJoin
+		int nOriginalLength = strOriginalFreeTrans.Len();
+		strOriginalFreeTrans.Trim(FALSE); // trim from its start any whitespaces
+		int nNewLength = strOriginalFreeTrans.Len();
+		// If the length changed, alter the saved offset for the user's typing location
+		if (nNewLength != nOriginalLength)
+		{
+			m_savedTypingOffsetForJoin = nNewLength; // it's still incomplete, we must 
+							// add length of the first section's free translation yet
+		}
+		strItsFreeTranslation.Trim(); // trim from its end any whitespaces
+		strItsFreeTranslation += _T(" "); // append a single space as delimiter
+		// Get its new length
+		int newLen = strItsFreeTranslation.Len();
+		// Update m_savedTypingOffsetForJoin so the cursor/insert-location will be correct
+		// in the text box in ComposeBar when we are done here
+		m_savedTypingOffsetForJoin += newLen;
+		// Make the composite free translation
+		strItsFreeTranslation += strOriginalFreeTrans;
+
+		// Now put the composite free translation into the pSrcPhrase at the anchor pile
+		pItsAnchorSrcPhr->SetFreeTrans(strItsFreeTranslation);
+	}
+	else
+	{
+        // The previous section does not yet exist, so create it an then join to it the
+        // current one; in the following call, wordcount counts the words, not the piles,
+        // and the potential for mergers means that wordcount >= the number of pile
+        // pointers added to the array; but I don't think we make any use of wordcount in
+        // the join operation
+		// Delineate the piles which are to comprise the previous section (clears the
+		// array first, internally)
+		// Note: if control gets to here, we already know that m_pImmediatePreviousPile
+		// does not have a CSourcePhrase associated with it in which the endmarker \f*,
+		// \fe* or \x* (nor \fe or \F in the PNG 1998 SFM set) occurs
+		FindSectionPilesBackwards(m_pImmediatePreviousPile, m_pPreviousSectionPileArray);
+		wxASSERT(m_pPreviousSectionPileArray->size() > 0);
+		// Reliably get the anchor pile for the just-delineated previous section
+		m_pPreviousAnchorPile = (CPile*)m_pPreviousSectionPileArray->Item(0);
+		// Set the boolean flags in the pointed-at CSourcePhrase instances, which indicate
+		// that these instances are within a single section of free translation
+		SetSectionFreeTransFlags(m_pPreviousAnchorPile, m_pPreviousSectionPileArray);
+        // Now join up the two sections; at the join, the JoinFreeTransPileSets() function
+        // removes the flag indicators that the first section ends and the second section
+        // starts, so it becomes the one continuous section
+		pNewAnchorPile = JoinFreeTransPileSets(m_pPreviousSectionPileArray, m_pCurFreeTransSectionPileArray);
+		wxASSERT(pNewAnchorPile == m_pPreviousAnchorPile);
+		
+		// The previous section will have no free translation yet, so the current section's free
+		// translation becomes the free translation for the composite section; and the
+		// appropriate place to put the typing location is at the start of the textbox in
+		// the ComposeBar
+		CSourcePhrase* pAnchorSrcPhrase = pNewAnchorPile->GetSrcPhrase();
+		pAnchorSrcPhrase->SetFreeTrans(strOriginalFreeTrans);
+		m_savedTypingOffsetForJoin = 0L;
+	}
+
+	// Update the layout & set the typing location
+	m_pApp->m_pActivePile = pNewAnchorPile;
+	// pSrcPhrase can now be reused...
+	pSrcPhrase = pNewAnchorPile->GetSrcPhrase();
+	m_pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
+	bool bIsOK = TRUE;
+#ifdef _NEW_LAYOUT
+	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
+#else
+	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+	m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
+	m_pView->Invalidate();
+	m_pLayout->PlaceBox();
+	// Put the latest free translation text into the composebar's edit box, and set the
+	// cursor location, and the focus to that box too
+	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+	m_pFrame->m_pComposeBarEditBox->SetFocus();
+	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
+	if (m_savedTypingOffsetForJoin != wxNOT_FOUND)
+	{
+		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffsetForJoin, m_savedTypingOffsetForJoin);
+	}
+	else
+	{
+		int length = freetrans.Len();
+		m_pFrame->m_pComposeBarEditBox->SetSelection(length, length);
+	}
+	m_savedTypingOffsetForJoin = (long)wxNOT_FOUND; // restore default meaningless value
+}
+
+
+
+
+
