@@ -3071,7 +3071,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	int totalRects = 0;
 	//int offset = 0;
 	//int length = 0;
-	pPile = m_pApp->m_pActivePile; // go straight ;there
+	pPile = m_pApp->m_pActivePile; // go straight there
 
 	// Copy the first pile (the anchor pile) to the class's m_pCurAnchorPile member, so
 	// that we don't let the Adjust dialog pop up at any truncation except when this
@@ -9571,6 +9571,17 @@ void CFreeTrans::DoJoinWithPrevious()
 
 		// Now put the composite free translation into the pSrcPhrase at the anchor pile
 		pItsAnchorSrcPhr->SetFreeTrans(strItsFreeTranslation);
+
+		// Finally, app's m_targetPhrase member will still contain the translation for the
+		// former current section, and it will be carried to othe earlier section (and
+		// shouldn't be) unless we fix it here
+		translation.Empty(); // ensure this global is empty
+		m_pApp->m_targetPhrase = pItsAnchorSrcPhr->m_adaption; // may be an empty string
+		m_pApp->m_pTargetBox->ChangeValue(_T("")); // clear it
+		if (!m_pApp->m_targetPhrase.IsEmpty())
+		{
+			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+		}
 	}
 	else
 	{
@@ -9604,6 +9615,17 @@ void CFreeTrans::DoJoinWithPrevious()
 		CSourcePhrase* pAnchorSrcPhrase = pNewAnchorPile->GetSrcPhrase();
 		pAnchorSrcPhrase->SetFreeTrans(strOriginalFreeTrans);
 		m_savedTypingOffsetForJoin = 0L;
+
+		// Finally, app's m_targetPhrase member will still contain the translation for the
+		// former current section, and it will be carried to othe earlier section (and
+		// shouldn't be) unless we fix it here
+		translation.Empty(); // ensure this global is empty
+		m_pApp->m_targetPhrase = pAnchorSrcPhrase->m_adaption; // may be an empty string
+		m_pApp->m_pTargetBox->ChangeValue(_T("")); // clear it
+		if (!m_pApp->m_targetPhrase.IsEmpty())
+		{
+			m_pApp->m_pTargetBox->ChangeValue(m_pApp->m_targetPhrase);
+		}
 	}
 
 	// Update the layout & set the typing location

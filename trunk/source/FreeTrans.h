@@ -121,6 +121,7 @@ public:
 	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout);
 	void		DrawFreeTranslationsForPrinting(wxDC* pDC, CLayout* pLayout);
 	void		EraseMalformedFreeTransSections(SPArray* pSPArray);
+	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
 	CPile*		FindPreviousFreeTransSection(CPile* pStartingPile);
 	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
@@ -215,7 +216,6 @@ private:
 											wxArrayString& arrFreeTranslations);
 	void		EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect);
 	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
-	CPile*		FindNextFreeTransSection(CPile* pStartingPile);
 	void		FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount);
 	void		FindSectionPilesBackwards(CPile* pLastPile, wxArrayPtrVoid* pPilesArray); // we don't need a wordcount returned
 	void		GetExistingFreeTransPileSet(CPile* pFirstPile, wxArrayPtrVoid* pSectionPiles);
