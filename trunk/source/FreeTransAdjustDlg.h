@@ -39,7 +39,7 @@ public:
 
 	// member variables
 
-	int			selection; // store the 0-based radio button selection, 
+	//int			selection; // store the 0-based radio button selection, 
 				   // and return this to the caller via OnOK()
 	wxPoint		m_ptBoxTopLeft; // used for repositioning dialog away from phrase box location
 								// & the 'box' referred to here is top left of active pile's
