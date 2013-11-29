@@ -375,6 +375,8 @@ DEFINE_EVENT_TYPE(wxEVT_Show_version)
 // BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
+DEFINE_EVENT_TYPE(wxEVT_Split_It)
+DEFINE_EVENT_TYPE(wxEVT_Insert_Widener)
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -466,6 +468,20 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
             (wxObject *) NULL \
 ),
 
+#define EVT_SPLIT_IT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Split_It, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+#define EVT_INSERT_WIDENER(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Insert_Widener, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
 #if defined(_KBSERVER)
 
 #define EVT_KBDELETE_UPDATE_PROGRESS(id, fn) \
@@ -547,6 +563,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	// For the free translation Adjust dialog
 	EVT_JOIN_WITH_NEXT(-1, CMainFrame::OnCustomEventJoinWithNext)
 	EVT_JOIN_WITH_PREVIOUS(-1, CMainFrame::OnCustomEventJoinWithPrevious)
+	EVT_SPLIT_IT(-1, CMainFrame::OnCustomEventSplitIt)
+	EVT_INSERT_WIDENER(-1, CMainFrame::OnCustomEventInsertWidener)
 
 
 #if defined(_KBSERVER)
@@ -4091,10 +4109,12 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			wxPostEvent(this, eventCustom);
 			break;
 		case split_it:
-
+			eventCustom.SetEventType(wxEVT_Split_It);
+			wxPostEvent(this, eventCustom);
 			break;
 		case insert_widener:
-
+			eventCustom.SetEventType(wxEVT_Insert_Widener);
+			wxPostEvent(this, eventCustom);
 			break;
 		}
 		event.RequestMore(); // request more idle events
@@ -6591,6 +6611,18 @@ void CMainFrame::OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event))
 {
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	pFreeTrans->DoJoinWithPrevious();
+}
+
+void CMainFrame::OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoSplitIt();
+}
+
+void CMainFrame::OnCustomEventInsertWidener(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoInsertWidener();
 }
 
 

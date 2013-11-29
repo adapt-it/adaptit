@@ -145,9 +145,10 @@ public:
 	void		RestoreInterPileGapAfterFreeTranslating();
 
 	// Support the Adjust dialog, and the Adjust... button & Split... button
+	void		DoInsertWidener();
 	void		DoJoinWithNext();
 	void		DoJoinWithPrevious();
-
+	void		DoSplitIt();
 
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);

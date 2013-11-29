@@ -62,6 +62,8 @@ DECLARE_EVENT_TYPE(wxEVT_Show_version, -1)
 // BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
+DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
+DECLARE_EVENT_TYPE(wxEVT_Insert_Widener, -1)
 
 
 #if defined(_KBSERVER)
@@ -272,6 +274,8 @@ public:
 	// Declare custom events for free translation's Adjust dialog
 	void OnCustomEventJoinWithNext(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventInsertWidener(wxCommandEvent& WXUNUSED(event));
 
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));

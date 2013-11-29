@@ -66,7 +66,7 @@ private:
 	wxRadioButton*		m_pRadioJoinToNext;
 	wxRadioButton*		m_pRadioJoinToPrevious;
 	wxRadioButton*		m_pRadioSplitIt;
-	wxRadioButton*		m_pRadioManualEdit;
+	wxRadioButton*		m_pRadioInsertWidener;
 	wxRadioButton*		m_pRadioDoNothing;
 
 	DECLARE_EVENT_TABLE()
