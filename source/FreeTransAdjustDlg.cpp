@@ -89,7 +89,7 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pRadioJoinToNext = (wxRadioButton*)FindWindowById(ID_RADIO_JOIN_TO_NEXT);
 	m_pRadioJoinToPrevious = (wxRadioButton*)FindWindowById(ID_RADIO_JOIN_TO_PREVIOUS);
 	m_pRadioSplitIt = (wxRadioButton*)FindWindowById(ID_RADIO_SPLIT_OFF);
-	m_pRadioManualEdit = (wxRadioButton*)FindWindowById(ID_RADIO_INSERT_WIDENER);
+	m_pRadioInsertWidener = (wxRadioButton*)FindWindowById(ID_RADIO_INSERT_WIDENER);
 	m_pRadioDoNothing = (wxRadioButton*)FindWindowById(ID_RADIO_DO_NOTHING);
 
 	// work out where to place the dialog window
@@ -254,7 +254,10 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 		//selection = 2;
 		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
 
-	} else if (m_pRadioManualEdit->GetValue())  // If fourth radio button is ON, do this block
+		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
+		m_pApp->m_enumWhichFreeTransOp = split_it; // defines which custom event OnIdle() will post
+
+	} else if (m_pRadioInsertWidener->GetValue())  // If fourth radio button is ON, do this block
 	{
 		// This is the block for removing last typed word and then doing nothing
 		
@@ -263,6 +266,10 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 
 		//selection = 3;
 		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
+
+
+		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
+		m_pApp->m_enumWhichFreeTransOp = insert_widener; // defines which custom event OnIdle() will post
 
 	} else if (m_pRadioDoNothing->GetValue())
 	{

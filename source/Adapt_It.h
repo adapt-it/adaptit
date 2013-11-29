@@ -112,11 +112,11 @@ class KBSharingMgrTabbedDlg;
 // menu; the menu item and a preceding separator are setup (for the _DEBUG build only,
 // while developing KB sharing functionality, near the end of the app function OnInit()) -
 // at approx lines 21,454-471
-const int ID_MENU_SHOW_KBSERVER_DLG	= wxNewId(); // was 980
+const int ID_MENU_SHOW_KBSERVER_DLG	= 9999; // was 980, then was wxNewId(), now keep less than 10000
 // for a temporary ID for the "Setup Knowledgebase Base Sharing" menu item on Advanced
 // menu; the menu item is setup (for the _DEBUG build only, while developing KB sharing
 // functionality, in the app function OnInit())
-const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= wxNewId(); // was 979
+const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId(), now keep less than 10000
 
 #endif
 

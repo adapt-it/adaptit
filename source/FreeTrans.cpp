@@ -9659,7 +9659,14 @@ void CFreeTrans::DoJoinWithPrevious()
 	m_savedTypingOffsetForJoin = (long)wxNOT_FOUND; // restore default meaningless value
 }
 
+void CFreeTrans::DoSplitIt()
+{
+ int ii = 1;
 
+}
 
+void CFreeTrans::DoInsertWidener()
+{
+	int jj = 1;
 
-
+}
