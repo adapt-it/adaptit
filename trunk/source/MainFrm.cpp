@@ -2618,7 +2618,7 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 		gpApp->ReleaseKBServer(1); // the adapting one
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
-		gpApp->m_bIsGlossingKBServerProject = FALSE;		
+		gpApp->m_bIsGlossingKBServerProject = FALSE;
 		wxMessageBox(_(
 "This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."),
 		_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
@@ -4097,7 +4097,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	{
 		// Post the wanted custom event which will get the wanted handler called for the
 		// particular free trans operation chosen by the user from the Adjust dialog
-		wxCommandEvent eventCustom;    
+		wxCommandEvent eventCustom;
 		switch (pApp->m_enumWhichFreeTransOp)
 		{
 		case join_with_next:
@@ -4116,6 +4116,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			eventCustom.SetEventType(wxEVT_Insert_Widener);
 			wxPostEvent(this, eventCustom);
 			break;
+        case no_op:
+            DoNoOp(); // does nothing
 		}
 		event.RequestMore(); // request more idle events
 
@@ -5222,9 +5224,9 @@ cancel:		;
 void CMainFrame::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
 {
     int     versionNum = gpApp->m_pDVCS->m_version_to_open;
-    
+
     wxASSERT(versionNum >= 0);
-    
+
     gpApp->GetDocument()->DoShowPreviousVersions (TRUE, versionNum);
 }
 
@@ -5942,7 +5944,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 	if (gpApp->m_saveCurGapWidth == 0)
 	{
 		// call's Layout's RecalcLayout() & Redraw(), uses m_nActiveSequNum
-		pFreeTrans->SetInterPileGapBeforeFreeTranslating(); 
+		pFreeTrans->SetInterPileGapBeforeFreeTranslating();
 	}
 
     // determine what setup is required: control is coming from either adaptationsStep or
@@ -6862,7 +6864,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	if (gpApp->m_saveCurGapWidth != 0)
 	{
 		// call's Layout's RecalcLayout() & Redraw(), uses m_nActiveSequNum
-		pFreeTrans->RestoreInterPileGapAfterFreeTranslating(); 
+		pFreeTrans->RestoreInterPileGapAfterFreeTranslating();
 	}
 
     // When vertical editing is canceled we should hide the m_pRemovalsBar, and
@@ -8473,5 +8475,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
         // flicker we need to make use of clipping region soon. BEW)
 	pLayout->PlaceBox();
 }
+
+void CMainFrame::DoNoOp(){}
 
 
