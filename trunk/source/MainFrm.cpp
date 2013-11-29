@@ -4075,6 +4075,35 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 	}
 
+	if (pApp->m_bEnableDelayedFreeTransOp)
+	{
+		// Post the wanted custom event which will get the wanted handler called for the
+		// particular free trans operation chosen by the user from the Adjust dialog
+		wxCommandEvent eventCustom;    
+		switch (pApp->m_enumWhichFreeTransOp)
+		{
+		case join_with_next:
+			eventCustom.SetEventType(wxEVT_Join_With_Next);
+			wxPostEvent(this, eventCustom);
+			break;
+		case join_with_previous:
+			eventCustom.SetEventType(wxEVT_Join_With_Previous);
+			wxPostEvent(this, eventCustom);
+			break;
+		case split_it:
+
+			break;
+		case insert_widener:
+
+			break;
+		}
+		event.RequestMore(); // request more idle events
+
+		//delete eventCustom;
+		pApp->m_bEnableDelayedFreeTransOp = FALSE; // restore default - prevents uncontrolled reentry
+		pApp->m_enumWhichFreeTransOp = no_op; // ensure nothing more than what was just requested
+	}
+
 	if (pApp->m_bJustLaunched)
 	{
 		pApp->m_bJustLaunched = FALSE; // moved up before DoStartupWizardOnLaunch()

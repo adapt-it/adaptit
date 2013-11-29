@@ -15181,6 +15181,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// initialize the saved m_curGapWidth to zero (we use 0 versus non-zero as a flag)
 	m_saveCurGapWidth = 0;
+	// initialize the protecting boolean which prevents unwanted attempts to call free
+	// translation extended functionality operations by posting custom events from the
+	// OnIdle() handler
+	m_bEnableDelayedFreeTransOp = FALSE;
+	m_enumWhichFreeTransOp = no_op;
 
 	// bug fixed 24Sept13 BEW
 	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
