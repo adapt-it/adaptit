@@ -679,6 +679,15 @@ enum ConfigFixType
     customPathsFix
 };
 
+enum DelayedFreeTransOperations
+{
+	no_op,
+	join_with_next,
+	join_with_previous,
+	split_it,
+	insert_widener
+};
+
 /// An enum for selecting which configuration file type in GetConfigurationFile()
 /// whether basic configuration file, or project configuration file.
 enum ConfigFileType
@@ -3540,6 +3549,22 @@ public:
                 // in the edit box within the Compose Bar when that particular free
                 // translation section is defined, FALSE if not, and default setting is
                 // FALSE
+	bool	m_bEnableDelayedFreeTransOp; // BEW 29Nov13 extensions available in Adjust dialog
+				// and Split... button interfere with Drawing if the posted custom event which
+				// calls their handlers results in the handler operating before the previous
+				// Draw() of the view is completed (this happened once, mostly it
+				// doesn't), so the posting of the events has to be done later - from the
+				// OnIdle() handler. This new boolean is default FALSE, and the posting of
+				// the custom events from the OnIdle() handler is then suppressed; but when
+				// it is true, the code for posting the events (a switch, based on an enum)
+				// gets the event for the wanted handler posted - and then the event enum
+				// is reset to no-op, and this boolean cleared back to default FALSE. The result
+				// of all this is that the running of the handler happens after the Draw
+				// of  the view has completed, and so the handler does not clear m_pFreeTransArray
+				// until after the Draw has finished needing it.
+				// The use of this boolean goes hand-in-hand with the enum DelayedFreeTransOperations
+				// which is defined at the top of this file - about lines 682-90
+	enum DelayedFreeTransOperations m_enumWhichFreeTransOp;
 	bool	m_bComposeBarWasAskedForFromViewMenu; // TRUE if the user used the Compose Bar
                 // command on the View menu to open the Compose Bar (which then inhibits
                 // being able to turn on free translation mode), FALSE when the Compose Bar

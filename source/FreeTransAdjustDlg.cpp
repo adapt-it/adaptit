@@ -167,10 +167,10 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
 
 		// Do the join (and creation of a 'next' section if necessary first) -- but delay it
-		// until the current Draw() is done, so just post a custom event that will make
-		// GetFreeTrans()->DoJoinWithNext() be called soon
-		wxCommandEvent eventCustom(wxEVT_Join_With_Next);
-		wxPostEvent(m_pMainFrame, eventCustom);
+		// until the current Draw() is done, so just post a custom event from OnIdle() that
+		// will make GetFreeTrans()->DoJoinWithNext() be called soon
+		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
+		m_pApp->m_enumWhichFreeTransOp = join_with_next; // defines which custom event OnIdle() will post
 
 	} else if (m_pRadioJoinToPrevious->GetValue()) // If second radio button is ON, do this block
 	{
@@ -242,10 +242,10 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 		m_pFreeTrans->m_bFreeTransSectionImmediatelyPrecedes = bDoesFreeTransImmediatelyPrecede;
 		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
 		// Do the join (and creation of a 'previous' section if necessary first) -- but delay it
-		// until the current Draw() is done, so just post a custom event that will make
-		// GetFreeTrans()->DoJoinWithPrevious() be called soon
-		wxCommandEvent eventCustom(wxEVT_Join_With_Previous);
-		wxPostEvent(m_pMainFrame, eventCustom);
+		// until the current Draw() is done, so just post a custom event from OnIdle() that will
+		// make GetFreeTrans()->DoJoinWithPrevious() be called soon
+		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
+		m_pApp->m_enumWhichFreeTransOp = join_with_previous; // defines which custom event OnIdle() will post
 
 	} else if (m_pRadioSplitIt->GetValue())  // If third radio button is ON, do this block
 	{
