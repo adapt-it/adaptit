@@ -232,7 +232,7 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
-    
+
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
@@ -292,6 +292,7 @@ public:
 
   private:
 	//wxHelpController		m_help;
+    void DoNoOp(); // does nothing - used in switch in OnIdle()
 
    DECLARE_CLASS(CMainFrame);
 	// Used inside a class declaration to declare that the class should
