@@ -53,9 +53,6 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
-	// button handlers are not needed
-	//void OnRadioJoinToNext(wxCommandEvent& WXUNUSED(event));
-	//void OnRadioJoinToPrevious(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes

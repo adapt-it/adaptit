@@ -58,6 +58,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "FreeTrans.h"
+#include "FreeTransSplitterDlg.h"
 #include "FreeTransAdjustDlg.h"
 #include "Adapt_ItDoc.h"
 #include "CollectBacktranslations.h"
@@ -157,6 +158,11 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 	EVT_UPDATE_UI(IDC_RADIO_VERSE_SECTION, CFreeTrans::OnUpdateRadioDefineByVerse)
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
 	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
+	// BEW 29Nov13, added next two
+	EVT_BUTTON(ID_BUTTON_SPLITTER_OFF, CFreeTrans::OnButtonSplit)
+	EVT_UPDATE_UI(ID_BUTTON_SPLITTER_OFF, CFreeTrans::OnUpdateButtonSplit)
+	EVT_BUTTON(ID_BUTTON_ADJUST, CFreeTrans::OnButtonAdjust)
+	EVT_UPDATE_UI(ID_BUTTON_ADJUST, CFreeTrans::OnUpdateButtonAdjust)
 
 	// for collected back translations support
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredBacktranslations)
@@ -174,7 +180,7 @@ END_EVENT_TABLE()
 
 CFreeTrans::CFreeTrans()
 {
-	m_savedTypingOffsetForJoin = wxNOT_FOUND;
+	m_savedTypingOffset = wxNOT_FOUND;
 }
 
 CFreeTrans::CFreeTrans(CAdapt_ItApp* app)
@@ -202,7 +208,7 @@ CFreeTrans::CFreeTrans(CAdapt_ItApp* app)
 	m_pLayout = m_pApp->GetLayout();
 	wxASSERT(m_pLayout != NULL);
 	m_bAllowOverlengthTyping = FALSE;
-	m_savedTypingOffsetForJoin = wxNOT_FOUND; // set to meaningless value for default
+	m_savedTypingOffset = wxNOT_FOUND; // set to meaningless value for default
 											  // (it's only meaningful in a section join)
 }
 
@@ -9403,7 +9409,7 @@ void CFreeTrans::DoJoinWithNext()
 	DestroyElements(m_pFreeTransArray); // we'll create a new set of FreeTrElement shortly
 	long to; long from;
 	m_pFrame->m_pComposeBarEditBox->GetSelection(&from, &to); // use the to value as insertion offset
-	m_savedTypingOffsetForJoin = to; // text box in compose bar will use this value to restore
+	m_savedTypingOffset = to; // text box in compose bar will use this value to restore
 		// the cursor to the location at which the user was typing when the join was invoked
 
     // If no free translation immediately follows, define the following section and store
@@ -9434,7 +9440,7 @@ void CFreeTrans::DoJoinWithNext()
 		// If the length changed, alter the saved offset for the user's typing location
 		if (nNewLength != nOriginalLength)
 		{
-			m_savedTypingOffsetForJoin = nNewLength; // put the cursor before the space delimiter
+			m_savedTypingOffset = nNewLength; // put the cursor before the space delimiter
 		}
 		strItsFreeTranslation.Trim(FALSE); // trim from start any whitespaces
 		strOriginalFreeTrans += _T(" "); // append a single space as delimiter
@@ -9485,21 +9491,22 @@ void CFreeTrans::DoJoinWithNext()
 	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
 	m_pFrame->m_pComposeBarEditBox->SetFocus();
 	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
-	if (m_savedTypingOffsetForJoin != wxNOT_FOUND)
+	if (m_savedTypingOffset != wxNOT_FOUND)
 	{
-		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffsetForJoin, m_savedTypingOffsetForJoin);
+		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
 	}
 	else
 	{
 		int length = freetrans.Len();
 		m_pFrame->m_pComposeBarEditBox->SetSelection(length, length);
 	}
-	m_savedTypingOffsetForJoin = (long)wxNOT_FOUND; // restore default meaningless value
+	m_savedTypingOffset = (long)wxNOT_FOUND; // restore default meaningless value
+	// Not needed here, but harmless insurance
+	m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 }
 
 void CFreeTrans::DoJoinWithPrevious()
 {
-
 	// When control enters, the following CFreeTrans members will have correct values already:
 	// m_bFreeTransSectionImmediatelyPrecedes  TRUE if the immediately preceding pile to
 	// the start of the current section has flag m_bEndFreeTrans in the pSrcPhrase
@@ -9523,7 +9530,7 @@ void CFreeTrans::DoJoinWithPrevious()
 	DestroyElements(m_pFreeTransArray); // we'll create a new set of FreeTrElement shortly
 	long to; long from;
 	m_pFrame->m_pComposeBarEditBox->GetSelection(&from, &to); // use the to value as insertion offset
-	m_savedTypingOffsetForJoin = to; // text box in compose bar will use this value to
+	m_savedTypingOffset = to; // text box in compose bar will use this value to
 		// restore the cursor to the location at which the user was typing when the join
 		// was invoked -
 		// BEWARE - the final value is not set, we have to add the length of the preceding
@@ -9550,23 +9557,23 @@ void CFreeTrans::DoJoinWithPrevious()
 
 		// Probably the previous section will have a non-empty free translation, so we
 		// must append to that the free translation of the current section, adding a space
-		// delimiter between them, and complete the setting of m_savedTypingOffsetForJoin
+		// delimiter between them, and complete the setting of m_savedTypingOffset
 		int nOriginalLength = strOriginalFreeTrans.Len();
 		strOriginalFreeTrans.Trim(FALSE); // trim from its start any whitespaces
 		int nNewLength = strOriginalFreeTrans.Len();
 		// If the length changed, alter the saved offset for the user's typing location
 		if (nNewLength != nOriginalLength)
 		{
-			m_savedTypingOffsetForJoin = nNewLength; // it's still incomplete, we must
+			m_savedTypingOffset = nNewLength; // it's still incomplete, we must
 							// add length of the first section's free translation yet
 		}
 		strItsFreeTranslation.Trim(); // trim from its end any whitespaces
 		strItsFreeTranslation += _T(" "); // append a single space as delimiter
 		// Get its new length
 		int newLen = strItsFreeTranslation.Len();
-		// Update m_savedTypingOffsetForJoin so the cursor/insert-location will be correct
+		// Update m_savedTypingOffset so the cursor/insert-location will be correct
 		// in the text box in ComposeBar when we are done here
-		m_savedTypingOffsetForJoin += newLen;
+		m_savedTypingOffset += newLen;
 		// Make the composite free translation
 		strItsFreeTranslation += strOriginalFreeTrans;
 
@@ -9615,7 +9622,7 @@ void CFreeTrans::DoJoinWithPrevious()
 		// the ComposeBar
 		CSourcePhrase* pAnchorSrcPhrase = pNewAnchorPile->GetSrcPhrase();
 		pAnchorSrcPhrase->SetFreeTrans(strOriginalFreeTrans);
-		m_savedTypingOffsetForJoin = 0L;
+		m_savedTypingOffset = 0L;
 
 		// Finally, app's m_targetPhrase member will still contain the translation for the
 		// former current section, and it will be carried to othe earlier section (and
@@ -9649,22 +9656,274 @@ void CFreeTrans::DoJoinWithPrevious()
 	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
 	m_pFrame->m_pComposeBarEditBox->SetFocus();
 	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
-	if (m_savedTypingOffsetForJoin != wxNOT_FOUND)
+	if (m_savedTypingOffset != wxNOT_FOUND)
 	{
-		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffsetForJoin, m_savedTypingOffsetForJoin);
+		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
 	}
 	else
 	{
 		int length = freetrans.Len();
 		m_pFrame->m_pComposeBarEditBox->SetSelection(length, length);
 	}
-	m_savedTypingOffsetForJoin = (long)wxNOT_FOUND; // restore default meaningless value
+	m_savedTypingOffset = (long)wxNOT_FOUND; // restore default meaningless value
+	// Need the ScrollIntoView() because if the new active pile is on a different
+	// strip, the layout won't realize and will attempt to draw into draw rectangles
+	// which are away from where they should be
+	m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
+}
+
+void CFreeTrans::GetCurrentSectionsTextAndFreeTranslation(wxString& theText, wxString& theFreeTrans)
+{
+	theText.Empty();
+	theFreeTrans.Empty();
+	wxArrayPtrVoid* pArray = m_pCurFreeTransSectionPileArray;
+	if (pArray->empty())
+	{
+		return;
+	}
+	size_t count = pArray->GetCount();
+	wxASSERT(count > 0);
+	size_t index;
+	wxString space = _T(" ");
+	CSourcePhrase* pSrcPhrase = NULL;
+	CPile* pPile = NULL;
+	for (index = 0; index < count; index++)
+	{
+		pPile = (CPile*)pArray->Item(index);
+		pSrcPhrase = pPile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase != NULL);
+		if (index == 0)
+		{
+			// Only the anchor pile has the free translation
+			theFreeTrans = pSrcPhrase->GetFreeTrans();
+			theFreeTrans.Trim(FALSE);
+			theFreeTrans.Trim();
+		}
+		wxString text = pSrcPhrase->m_targetStr;
+		text.Trim(FALSE); text.Trim();
+
+		// Having trimmed both ends, we now add space and text, and when
+		// we exit the loop we'll trim off the initial space
+		theText += space; 
+		theText += text;
+	}
+	theText.Trim(FALSE);
+}
+
+void CFreeTrans::OnButtonAdjust(wxCommandEvent& WXUNUSED(event))
+{
+	FreeTransAdjustDlg dlg(m_pFrame);
+	// Provide the needed hook for the repositioning function to get the
+	// top left of phrasebox location
+	wxASSERT(m_pApp->m_pActivePile);
+	CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
+	dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+	// Show the repositioned dialog for getting the user's choice of action
+	if (dlg.ShowModal() == wxID_OK)
+	{
+        // An internal switch does the initiation by posting a custom event for the action
+        // chosen - pointing it from the OnIdle() handler. This delays the action thereby
+        // until after the view's Draw() has completed
+	}
+}
+
+void CFreeTrans::OnUpdateButtonAdjust(wxUpdateUIEvent& event)
+{
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	else
+	{
+		wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+		if (freetrans.IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
+	}
+	event.Enable(TRUE);
+}
+
+void CFreeTrans::OnButtonSplit(wxCommandEvent& WXUNUSED(event))
+{
+
+
+}
+
+void CFreeTrans::OnUpdateButtonSplit(wxUpdateUIEvent& event)
+{
+	if (m_pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	else
+	{
+		wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+		if (freetrans.IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
+	}
+	event.Enable(TRUE);
+}
+
+// The TransferRemainderToWhatFollows(wxString& strRemainingFreeTrans) function takes the
+// passed in remainder of what was split, and puts it at the start of the next section.
+// The next section may not exist (note, by 'next' in this context, we mean that it's
+// start abutts the end of the current section) yet - in which case we must create it
+// first.
+// Note: since we are not joining sections, but only transferring some words of a free
+// translation to what is ahead. The next section may be the start of a verse, or a new
+// textType (e.g. a footnote), or whatever. We aren't breaking the rule about sections not
+// traversing a verse boundary - because the user's eye has probably missed the fact that a
+// new verse has started, so all that's required is to get the text which should be "ahead"
+// into the right place.
+// The CPile* returned is the next section's anchor pile (first pile in the next section),
+// or NULL if no next section could be defined (such a thing shouldn't happen because the
+// reason the user typed too much in the first place is because there is more translation
+// to be free translated ahead of this current section). If we do get NULL returned, then
+// just abandon the passed in remainder string. Probably a good idea to tell the user too.
+CPile* CFreeTrans::TransferRemainderToWhatFollows(wxString& strRemainingFreeTrans)
+{
+	wxString strRemains = strRemainingFreeTrans;
+	CPile* pFirstPile = NULL;
+	// Get the first pile immediately following the end of the current one
+	m_bFreeTransSectionImmediatelyFollows = DoesFreeTransSectionFollow(pFirstPile);
+	if ((pFirstPile == NULL) && (!m_bFreeTransSectionImmediatelyFollows))
+	{
+		// The current free translation section is at the end of the document - so we
+		// must abandon the remainder of the free translation - there's nowhere to put it
+		wxString title = _("No place to put the remaining free translation ");
+		wxString msg = _("The current section is at the document's end. There is nothing ahead to transfer the remainder of the split translation to. It will be abandoned.");
+		wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+		return pFirstPile; // (returning NULL) & we will stay in the current section
+	}
+	// Okay, there's a pile which either is an anchor already, or can be made on in a
+	// newly constructed section; since we'll be making this the new current section, get
+	// rid of the old structs for the section being left behind...
+	// Destroy the former current section's FreeTransElement structs
+	DestroyElements(m_pFreeTransArray); // we'll create a new set of FreeTrElement shortly
+
+	m_savedTypingOffset =  (long)strRemains.Len(); // use to put the insertion point after 
+								// the moved remainder string in the ComposeBar's editbox
+	if (m_bFreeTransSectionImmediatelyFollows)
+	{
+		// A section does immediately follow, so pFirstPile is its anchor pile (the array 
+		// is internally cleared befoe use)
+		GetExistingFreeTransPileSet(pFirstPile, m_pCurFreeTransSectionPileArray); 
+		CSourcePhrase* pItsAnchorSrcPhr = pFirstPile->GetSrcPhrase();
+		wxString strItsFreeTranslation = pItsAnchorSrcPhr->GetFreeTrans();
+		// We can insert the remainder string now - but do some trimming to ensure we only
+		// have a single space delimiter
+		strItsFreeTranslation.Trim(FALSE); // remove whitespace from its start
+		strRemains += _T(" "); // strRemains has already been trimmed
+		strItsFreeTranslation = strRemains + strItsFreeTranslation;
+		pItsAnchorSrcPhr->SetFreeTrans(strItsFreeTranslation); // store the updated free translation
+		// I think we are done, the view can be updated by the caller now
+	}
+	else
+	{
+		// a section does not immediately follow, so make one. It's not a problem if it
+		// starts a verse etc
+		DestroyElements(m_pFreeTransArray); // we'll create a new set of FreeTrElement below
+		m_pCurFreeTransSectionPileArray->clear();
+		int wordcount;
+		FindSectionPiles(pFirstPile, m_pCurFreeTransSectionPileArray, wordcount);
+		wordcount = wordcount; // avoid compiler warning
+		// Set the boolean flags in the pointed-at CSourcePhrase instances, which indicate
+		// that these instances are within a single section of free translation
+		SetSectionFreeTransFlags(pFirstPile, m_pCurFreeTransSectionPileArray);
+		// We are done, return to caller to get the view recalculated and drawn
+	}
+	return pFirstPile;
 }
 
 void CFreeTrans::DoSplitIt()
 {
- int ii = 1;
+	// Make sure the two string members for storing the parts of a split are no longer
+	// carrying the results of any previous split		 
+	m_strSplitForCurrentSection.Empty();
+	m_strSplitForNextSection.Empty();
 
+	// Show the Splitter dialog for the user to make choice for where to split
+	FreeTransSplitterDlg dlg(m_pFrame);
+	if (dlg.ShowModal() == wxID_OK) // There's no Cancel button, so control goes to 
+									// the following block every time
+	{
+		// get the two split strings... (the user's choice may result in one of the
+		// strings being empty - that is not an error)
+		m_strSplitForCurrentSection = dlg.m_FreeTransForCurrent;
+		m_strSplitForNextSection = dlg.m_FreeTransForNext;
+	}
+
+	// It remains to store each substring correctly, and redraw etc; in the case of the
+	// "next" section, it might not even exist yet, or if it does, we have to get its
+	// anchor pile and then put the remainder string at the start of its free translation,
+	// and transfer the active pile to that anchor etc before redrawing
+	m_pApp->m_pActivePile->GetSrcPhrase()->SetFreeTrans(m_strSplitForCurrentSection); 
+
+	// Now handle the "next" section
+	m_pFollowingAnchorPile = TransferRemainderToWhatFollows(m_strSplitForNextSection);
+
+	if (m_pFollowingAnchorPile == NULL)
+	{
+		// No following section could be found or constructed; abandon the remainder text,
+		// and tell user -- keep the current section current, as we've no section ahead to
+		// move to - just get a redraw done, and ensure the typing location is at the end
+		// of what has been kept in the current section's free translation in the edit ctrl
+		m_savedTypingOffset = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans().Len();
+		m_pView->Invalidate();
+	}
+	else
+	{
+		// RecalcLayout, etc, and only be done if there's a section ahead now - which
+		// there is
+		m_pApp->m_pActivePile = m_pFollowingAnchorPile;
+		CSourcePhrase* pAnchorSrcPhrase = m_pFollowingAnchorPile->GetSrcPhrase();
+		m_pApp->m_nActiveSequNum = pAnchorSrcPhrase->m_nSequNumber;
+
+		// Make all the doc's piles lose their pile colouring so that the old section
+		// won't retain the pink background when it should go to green
+		m_pLayout->MakeAllPilesNonCurrent();
+
+		bool bIsOK = TRUE;
+#ifdef _NEW_LAYOUT
+		bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
+#else
+		bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+		bIsOK = bIsOK; // avoid compiler warning
+		m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
+
+		// In the following call, bNoActiveLocationCalculation is default FALSE
+		//m_pApp->GetDocument()->ResetPartnerPileWidth(pAnchorSrcPhrase); <<- has no effect
+
+		m_pView->Invalidate();
+		m_pLayout->PlaceBox();
+		// Put the latest free translation text into the composebar's edit box, and set the
+		// cursor location, and the focus to that box too
+		wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+		m_pFrame->m_pComposeBarEditBox->SetFocus();
+		m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
+		if (m_savedTypingOffset != wxNOT_FOUND)
+		{
+			m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
+		}
+		else
+		{
+			int length = freetrans.Len();
+			m_pFrame->m_pComposeBarEditBox->SetSelection(length, length);
+		}
+		m_savedTypingOffset = wxNOT_FOUND;
+		// Need the ScrollIntoView() because if the new active pile is on a different
+		// strip, the layout won't realize and will attempt to draw into draw rectangles
+		// which are away from where they should be
+		m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
+	}
 }
 
 void CFreeTrans::DoInsertWidener()

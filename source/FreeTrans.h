@@ -94,7 +94,7 @@ public:
 										  // manual forcing it open is still enabled)
 	bool		m_bFreeTransSectionImmediatelyFollows; // for support of Adjust dialog and Split button
 	bool		m_bFreeTransSectionImmediatelyPrecedes; // for support of Adjust dialog and Split button
-	long		m_savedTypingOffsetForJoin; // for restoring cursor position when joining sections,
+	long		m_savedTypingOffset; // for restoring cursor position when joining sections,
 											// default is wxNOT_FOUND (-1), and is meaningful
 											// if >= 0, so use the -1 value as a flag
 	// An array of pointers to CPile instances. It is created on the heap in OnInit(),
@@ -103,6 +103,9 @@ public:
 	wxArrayPtrVoid*	m_pCurFreeTransSectionPileArray;
 	wxArrayPtrVoid*	m_pFollowingSectionPileArray;
 	wxArrayPtrVoid*	m_pPreviousSectionPileArray;
+	// Next two support the "split" option in the Adjust dialog, and the Split... button
+	wxString		m_strSplitForCurrentSection;
+	wxString		m_strSplitForNextSection;
 
 #if defined(__WXGTK__)
     void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
@@ -125,6 +128,7 @@ public:
 	CPile*		FindPreviousFreeTransSection(CPile* pStartingPile);
 	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
+	void		GetCurrentSectionsTextAndFreeTranslation(wxString& theText, wxString& theFreeTrans); // Used by 'split' feature
 	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	bool		IsEndOfFootnoteEndnoteOrXRef(CPile* pPile);
 	bool		IsFreeTransInArray(SPArray* pSPArray);
@@ -150,7 +154,7 @@ public:
 	void		DoJoinWithPrevious();
 	void		DoSplitIt();
 
-	// the next group are the 22 event handlers
+	// the next group are the 26 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
 	void		OnUpdateAdvanceButton(wxUpdateUIEvent& event);
 	void		OnAdvancedFreeTranslationMode(wxCommandEvent& event);
@@ -166,6 +170,11 @@ public:
 	void		OnUpdateRadioDefineByVerse(wxUpdateUIEvent& event);
 	void		OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event));
 	void		OnShortenButton(wxCommandEvent& WXUNUSED(event));
+	// BEW 29Nov13 added next 4
+	void		OnButtonAdjust(wxCommandEvent& WXUNUSED(event));
+	void		OnUpdateButtonAdjust(wxUpdateUIEvent& event);
+	void		OnButtonSplit(wxCommandEvent& WXUNUSED(event));
+	void		OnUpdateButtonSplit(wxUpdateUIEvent& event);
 
 protected:
 	// Public free translation drawing functions
@@ -205,6 +214,8 @@ protected:
 	int			FindFreeTransSectionLackingStart(SPArray* pSPArray, int startFrom);
 	bool		CheckFreeTransStructure(SPArray* pSPArray, int startsFrom, int& endsAt, int& malformedAt,
 						bool& bHasFlagIsUnset, bool& bLacksEnd, bool& bFoundArrayEnd);
+	// support for Split option, and Split... button
+	CPile*		TransferRemainderToWhatFollows(wxString& strRemainingFreeTrans);
 
 	// Private free translation drawing functions
 private:

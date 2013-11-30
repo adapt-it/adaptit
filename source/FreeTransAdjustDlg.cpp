@@ -109,8 +109,12 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 										newXPos, newYPos, myTopCoord, myLeftCoord);
 	SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
 
-	m_pFreeTrans->m_savedTypingOffsetForJoin = wxNOT_FOUND; // default is to set it to a meaningless
+	m_pFreeTrans->m_savedTypingOffset = wxNOT_FOUND; // default is to set it to a meaningless
 					// value and only make it 0 or +ve when a join is done
+	// Make sure the two string members for storing the parts of a split are no longer
+	// carrying the results of any previous split		 
+	m_pFreeTrans->m_strSplitForCurrentSection.Empty();
+	m_pFreeTrans->m_strSplitForNextSection.Empty();
 }
 
 void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
@@ -249,7 +253,7 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 
 	} else if (m_pRadioSplitIt->GetValue())  // If third radio button is ON, do this block
 	{
-		// This is the block for the "Split it. ..." option
+		// This is the block for the Split... option
 		
 		//selection = 2;
 		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
@@ -259,10 +263,8 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 
 	} else if (m_pRadioInsertWidener->GetValue())  // If fourth radio button is ON, do this block
 	{
-		// This is the block for removing last typed word and then doing nothing
-		
-
-
+		// This is the block for inserting a free trans section widener (a placeholder
+		// which is m_bNotInKB set to TRUE)
 
 		//selection = 3;
 		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
@@ -292,20 +294,4 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 	event.Skip();
 }
 
-//void FreeTransAdjustDlg::OnCancel(wxCommandEvent& event)
-//{
-//	event.Skip();
-//}
-
-/*
-void FreeTransAdjustDlg::OnRadioJoinToNext(wxCommandEvent& WXUNUSED(event))
-{
-	// probably not needed
-}
-
-void FreeTransAdjustDlg::OnRadioJoinToPrevious(wxCommandEvent& WXUNUSED(event))
-{
-	// probably not needed
-}
-*/
 

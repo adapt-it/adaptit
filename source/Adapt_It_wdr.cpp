@@ -10086,6 +10086,77 @@ wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *SplitterDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 2, 4 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Text:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_SRC_TRANS, wxT(""), wxDefaultPosition, wxSize(500,48), wxTE_MULTILINE|wxTE_READONLY );
+    item4->SetToolTip( _("This is the text which is being  free translated") );
+    item2->Add( item4, 1, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Free Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_FREE_TRANS, wxT(""), wxDefaultPosition, wxSize(500,48), wxTE_MULTILINE|wxTE_READONLY );
+    item6->SetToolTip( _("This is the free translation for the above text. Click where to split it.") );
+    item2->Add( item6, 1, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("For current section:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_CURRENT_SECTION, wxT(""), wxDefaultPosition, wxSize(460,48), wxTE_MULTILINE|wxTE_READONLY );
+    item8->SetToolTip( _("What you see here will be kept within the current section") );
+    item2->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("For next section:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_NEXT_SECTION, wxT(""), wxDefaultPosition, wxSize(460,48), wxTE_MULTILINE|wxTE_READONLY );
+    item10->SetToolTip( _("What you see here will be put at the start of the next section") );
+    item2->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item2->AddGrowableCol( 1 );
+
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Click in Free Translation box to set where to split, then click Split. If wrong, repeat."), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item11->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item13 = new wxButton( parent, ID_BUTTON_SPLIT_HERE, _("Split"), wxDefaultPosition, wxSize(56,-1), 0 );
+    item13->SetToolTip( _("Do the split operation, using the cursor location in the text box. If in a word, that word will be first in the split off remainder.") );
+    item11->Add( item13, 0, wxALIGN_CENTER, 5 );
+
+    item11->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item14 = new wxButton( parent, wxID_OK, _("Done"), wxDefaultPosition, wxSize(56,-1), 0 );
+    item14->SetDefault();
+    item11->Add( item14, 0, wxALIGN_CENTER, 5 );
+
+    item1->Add( item11, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
