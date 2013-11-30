@@ -649,6 +649,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\FreeTransSplitterDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\GetSourceTextFromEditor.cpp"
 				>
 			</File>
@@ -1243,6 +1247,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\FreeTransAdjustDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\FreeTransSplitterDlg.h"
 				>
 			</File>
 			<File
