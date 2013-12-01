@@ -9901,9 +9901,6 @@ void CFreeTrans::DoSplitIt()
 		bIsOK = bIsOK; // avoid compiler warning
 		m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
 
-		// In the following call, bNoActiveLocationCalculation is default FALSE
-		//m_pApp->GetDocument()->ResetPartnerPileWidth(pAnchorSrcPhrase); <<- has no effect
-
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 		// Put the latest free translation text into the composebar's edit box, and set the
