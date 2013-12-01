@@ -9837,6 +9837,8 @@ CPile* CFreeTrans::TransferRemainderToWhatFollows(wxString& strRemainingFreeTran
 		// Set the boolean flags in the pointed-at CSourcePhrase instances, which indicate
 		// that these instances are within a single section of free translation
 		SetSectionFreeTransFlags(pFirstPile, m_pCurFreeTransSectionPileArray);
+		// Set the free translation
+		pFirstPile->GetSrcPhrase()->SetFreeTrans(strRemainingFreeTrans);
 		// We are done, return to caller to get the view recalculated and drawn
 	}
 	return pFirstPile;
