@@ -98,6 +98,25 @@ void FreeTransSplitterDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pEditForCurrent = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_CURRENT_SECTION);
 	m_pEditForNext = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEXT_SECTION);
 
+	// Support RTL languages; use...
+	//void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,
+	//			wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2,
+	//			wxFont*& pDlgFont, bool bIsRTL = FALSE);
+	#ifdef _RTL_FLAGS
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pEditText, m_pEditFreeTrans,
+								NULL, NULL, m_pApp->m_pDlgTgtFont, m_pApp->m_bTgtRTL);
+	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pEditText, m_pEditFreeTrans, 
+								NULL, NULL, m_pApp->m_pDlgTgtFont);
+	#endif
+	#ifdef _RTL_FLAGS
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pEditForCurrent, m_pEditForNext,
+								NULL, NULL, m_pApp->m_pDlgTgtFont, m_pApp->m_bTgtRTL);
+	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pEditForCurrent, m_pEditForNext, 
+								NULL, NULL, m_pApp->m_pDlgTgtFont);
+	#endif
+
 	// work out where to place the dialog window
 	/* We probably won't bother to move it to the side - it contains all the user needs for a correct decision
 	int myTopCoord, myLeftCoord, newXPos, newYPos;
