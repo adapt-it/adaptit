@@ -9927,6 +9927,16 @@ void CFreeTrans::DoSplitIt()
 
 void CFreeTrans::DoInsertWidener()
 {
-	int jj = 1;
+	CPile* pFollowingPile = NULL;
+	// Next call returns pFollowingPile if there is one, returns it as NULL if the current
+	// section ends at the document's end; returns TRUE if pFollowingPile is the anchor
+	// pile of a following section of free translation (whether or not is is an empty section)
+	bool bDoesFreeTransImmediatelyFollow = DoesFreeTransSectionFollow(pFollowingPile);
+
+
+
+
+
+	//m_pFollowingAnchorPile = 
 
 }

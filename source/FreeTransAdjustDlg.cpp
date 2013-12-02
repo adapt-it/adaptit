@@ -91,6 +91,16 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pRadioSplitIt = (wxRadioButton*)FindWindowById(ID_RADIO_SPLIT_OFF);
 	m_pRadioInsertWidener = (wxRadioButton*)FindWindowById(ID_RADIO_INSERT_WIDENER);
 	m_pRadioDoNothing = (wxRadioButton*)FindWindowById(ID_RADIO_DO_NOTHING);
+	m_pTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TELL_USER);
+
+	// Support the message text at the top being Right to Left
+	#ifdef _RTL_FLAGS
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pTextCtrl, NULL,
+								NULL, NULL, m_pApp->m_pDlgTgtFont, m_pApp->m_bTgtRTL);
+	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pTextCtrl, NULL, 
+								NULL, NULL, m_pApp->m_pDlgTgtFont);
+	#endif
 
 	// work out where to place the dialog window
 	int myTopCoord, myLeftCoord, newXPos, newYPos;

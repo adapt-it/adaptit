@@ -65,6 +65,7 @@ private:
 	wxRadioButton*		m_pRadioSplitIt;
 	wxRadioButton*		m_pRadioInsertWidener;
 	wxRadioButton*		m_pRadioDoNothing;
+	wxTextCtrl*			m_pTextCtrl;
 
 	DECLARE_EVENT_TABLE()
 };
