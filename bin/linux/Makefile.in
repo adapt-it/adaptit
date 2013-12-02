@@ -92,14 +92,14 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
 	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
 	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
-	FreeTransAdjustDlg.$(OBJEXT) GetSourceTextFromEditor.$(OBJEXT) \
-	GoToDlg.$(OBJEXT) GuesserSettingsDlg.$(OBJEXT) \
-	HtmlFileViewer.$(OBJEXT) jsonreader.$(OBJEXT) \
-	jsonval.$(OBJEXT) jsonwriter.$(OBJEXT) JoinDialog.$(OBJEXT) \
-	KB.$(OBJEXT) KBExportImportOptionsDlg.$(OBJEXT) \
-	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
-	KbServer.$(OBJEXT) KBSharing.$(OBJEXT) \
-	KBSharingMgrTabbedDlg.$(OBJEXT) \
+	FreeTransAdjustDlg.$(OBJEXT) FreeTransSplitterDlg.$(OBJEXT) \
+	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
+	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
+	jsonreader.$(OBJEXT) jsonval.$(OBJEXT) jsonwriter.$(OBJEXT) \
+	JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
+	KBExportImportOptionsDlg.$(OBJEXT) KBEditor.$(OBJEXT) \
+	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KbServer.$(OBJEXT) \
+	KBSharing.$(OBJEXT) KBSharingMgrTabbedDlg.$(OBJEXT) \
 	KBSharingStatelessSetupDlg.$(OBJEXT) KbSharingSetup.$(OBJEXT) \
 	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
 	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
@@ -459,7 +459,7 @@ adaptit_SOURCES = \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
-	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/FreeTransAdjustDlg.cpp \
+	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/FreeTransAdjustDlg.cpp ../../source/FreeTransSplitterDlg.cpp \
 	../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
 	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h \
@@ -646,6 +646,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FontPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTrans.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTransAdjustDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTransSplitterDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GetSourceTextFromEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GoToDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GuesserSettingsDlg.Po@am__quote@
@@ -1505,6 +1506,20 @@ FreeTransAdjustDlg.obj: ../../source/FreeTransAdjustDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTransAdjustDlg.cpp' object='FreeTransAdjustDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTransAdjustDlg.obj `if test -f '../../source/FreeTransAdjustDlg.cpp'; then $(CYGPATH_W) '../../source/FreeTransAdjustDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTransAdjustDlg.cpp'; fi`
+
+FreeTransSplitterDlg.o: ../../source/FreeTransSplitterDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTransSplitterDlg.o -MD -MP -MF $(DEPDIR)/FreeTransSplitterDlg.Tpo -c -o FreeTransSplitterDlg.o `test -f '../../source/FreeTransSplitterDlg.cpp' || echo '$(srcdir)/'`../../source/FreeTransSplitterDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTransSplitterDlg.Tpo $(DEPDIR)/FreeTransSplitterDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTransSplitterDlg.cpp' object='FreeTransSplitterDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTransSplitterDlg.o `test -f '../../source/FreeTransSplitterDlg.cpp' || echo '$(srcdir)/'`../../source/FreeTransSplitterDlg.cpp
+
+FreeTransSplitterDlg.obj: ../../source/FreeTransSplitterDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTransSplitterDlg.obj -MD -MP -MF $(DEPDIR)/FreeTransSplitterDlg.Tpo -c -o FreeTransSplitterDlg.obj `if test -f '../../source/FreeTransSplitterDlg.cpp'; then $(CYGPATH_W) '../../source/FreeTransSplitterDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTransSplitterDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTransSplitterDlg.Tpo $(DEPDIR)/FreeTransSplitterDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTransSplitterDlg.cpp' object='FreeTransSplitterDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTransSplitterDlg.obj `if test -f '../../source/FreeTransSplitterDlg.cpp'; then $(CYGPATH_W) '../../source/FreeTransSplitterDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTransSplitterDlg.cpp'; fi`
 
 GetSourceTextFromEditor.o: ../../source/GetSourceTextFromEditor.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GetSourceTextFromEditor.o -MD -MP -MF $(DEPDIR)/GetSourceTextFromEditor.Tpo -c -o GetSourceTextFromEditor.o `test -f '../../source/GetSourceTextFromEditor.cpp' || echo '$(srcdir)/'`../../source/GetSourceTextFromEditor.cpp
