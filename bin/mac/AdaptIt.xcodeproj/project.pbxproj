@@ -18,6 +18,7 @@
 		03F468AF11F759A300B3CAEC /* PeekAtFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03F468AC11F759A300B3CAEC /* PeekAtFile.cpp */; };
 		27093C1C16D1D79200253291 /* Thread_PseudoDelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27093C1816D1D79200253291 /* Thread_PseudoDelete.cpp */; };
 		27093C1D16D1D79200253291 /* Thread_PseudoUndelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27093C1A16D1D79200253291 /* Thread_PseudoUndelete.cpp */; };
+		270E0AE3184C0D91005FAB50 /* FreeTransSplitterDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 270E0AE2184C0D91005FAB50 /* FreeTransSplitterDlg.cpp */; };
 		271F29C216FFCD0000E107A6 /* DVCSNavDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 271F29C016FFCD0000E107A6 /* DVCSNavDlg.cpp */; };
 		272E3D1B16BF646900566D31 /* Adapt_ItKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D1916BF646900566D31 /* Adapt_ItKBServer.cpp */; };
 		272E3D2016BF647D00566D31 /* KBSharing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 272E3D1C16BF647D00566D31 /* KBSharing.cpp */; };
@@ -204,6 +205,9 @@
 		27093C1916D1D79200253291 /* Thread_PseudoDelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_PseudoDelete.h; path = ../../source/Thread_PseudoDelete.h; sourceTree = "<group>"; };
 		27093C1A16D1D79200253291 /* Thread_PseudoUndelete.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_PseudoUndelete.cpp; path = ../../source/Thread_PseudoUndelete.cpp; sourceTree = "<group>"; };
 		27093C1B16D1D79200253291 /* Thread_PseudoUndelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_PseudoUndelete.h; path = ../../source/Thread_PseudoUndelete.h; sourceTree = "<group>"; };
+		270E0AE0184BE207005FAB50 /* FreeTransSplitterDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTransSplitterDlg.h; path = ../../source/FreeTransSplitterDlg.h; sourceTree = "<group>"; };
+		270E0AE1184BE287005FAB50 /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = "<group>"; };
+		270E0AE2184C0D91005FAB50 /* FreeTransSplitterDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTransSplitterDlg.cpp; path = ../../source/FreeTransSplitterDlg.cpp; sourceTree = "<group>"; };
 		271F29C016FFCD0000E107A6 /* DVCSNavDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DVCSNavDlg.cpp; path = ../../source/DVCSNavDlg.cpp; sourceTree = "<group>"; };
 		271F29C116FFCD0000E107A6 /* DVCSNavDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DVCSNavDlg.h; path = ../../source/DVCSNavDlg.h; sourceTree = "<group>"; };
 		272E3D1916BF646900566D31 /* Adapt_ItKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItKBServer.cpp; path = ../../source/Adapt_ItKBServer.cpp; sourceTree = "<group>"; };
@@ -536,6 +540,7 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
+				270E0AE2184C0D91005FAB50 /* FreeTransSplitterDlg.cpp */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -549,17 +554,7 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				C8D7E60E183DAF730099C11A /* KbSharingSetup.cpp */,
-				C8D7E60F183DAF730099C11A /* KbSharingSetup.h */,
-				C8D7E606183DAF080099C11A /* KBSharingStatelessSetupDlg.cpp */,
-				C8D7E607183DAF080099C11A /* KBSharingStatelessSetupDlg.h */,
-				C8D7E608183DAF090099C11A /* Thread_BulkPseudoDelete.cpp */,
-				C8D7E609183DAF090099C11A /* Thread_BulkPseudoDelete.h */,
-				C8D7E60A183DAF090099C11A /* Thread_DoEntireKbDeletion.cpp */,
-				C8F65CFC183DA5D10008546C /* RemoveSomeTgtEntries.cpp */,
-				C8F65CFD183DA5D10008546C /* RemoveSomeTgtEntries.h */,
-				278D48BC1839859900562C6F /* FreeTransAdjustDlg.cpp */,
-				278D48BD1839859900562C6F /* FreeTransAdjustDlg.h */,
+				270E0AE1184BE287005FAB50 /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
 				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
@@ -842,6 +837,18 @@
 				273A30841619A853002B8AA0 /* KbServer.h */,
 				2791678516195D4D00744DF8 /* KBServer.cpp */,
 				03C7004915D4351800FAB605 /* Pathway.cpp */,
+				270E0AE0184BE207005FAB50 /* FreeTransSplitterDlg.h */,
+				C8D7E60E183DAF730099C11A /* KbSharingSetup.cpp */,
+				C8D7E60F183DAF730099C11A /* KbSharingSetup.h */,
+				C8D7E606183DAF080099C11A /* KBSharingStatelessSetupDlg.cpp */,
+				C8D7E607183DAF080099C11A /* KBSharingStatelessSetupDlg.h */,
+				C8D7E608183DAF090099C11A /* Thread_BulkPseudoDelete.cpp */,
+				C8D7E609183DAF090099C11A /* Thread_BulkPseudoDelete.h */,
+				C8D7E60A183DAF090099C11A /* Thread_DoEntireKbDeletion.cpp */,
+				C8F65CFC183DA5D10008546C /* RemoveSomeTgtEntries.cpp */,
+				C8F65CFD183DA5D10008546C /* RemoveSomeTgtEntries.h */,
+				278D48BC1839859900562C6F /* FreeTransAdjustDlg.cpp */,
+				278D48BD1839859900562C6F /* FreeTransAdjustDlg.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -1070,6 +1077,7 @@
 				C8F82E8D0F3F9CAB007579B8 /* PlaceInternalMarkers.cpp in Sources */,
 				C8F82E8E0F3F9CAB007579B8 /* PlaceInternalPunct.cpp in Sources */,
 				C8F82E8F0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp in Sources */,
+				270E0AE3184C0D91005FAB50 /* FreeTransSplitterDlg.cpp in Sources */,
 				C8F82E900F3F9CAB007579B8 /* PrintOptionsDlg.cpp in Sources */,
 				C8F82E920F3F9CAB007579B8 /* ProjectPage.cpp in Sources */,
 				C8F82E930F3F9CAB007579B8 /* PunctCorrespPage.cpp in Sources */,
