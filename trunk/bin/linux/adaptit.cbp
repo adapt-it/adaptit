@@ -413,6 +413,8 @@
 		<Unit filename="../../source/FreeTrans.h" />
 		<Unit filename="../../source/FreeTransAdjustDlg.cpp" />
 		<Unit filename="../../source/FreeTransAdjustDlg.h" />
+		<Unit filename="../../source/FreeTransSplitterDlg.cpp" />
+		<Unit filename="../../source/FreeTransSplitterDlg.h" />
 		<Unit filename="../../source/GetSourceTextFromEditor.cpp" />
 		<Unit filename="../../source/GetSourceTextFromEditor.h" />
 		<Unit filename="../../source/GoToDlg.cpp" />
