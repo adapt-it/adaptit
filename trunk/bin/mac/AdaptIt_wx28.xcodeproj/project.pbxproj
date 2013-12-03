@@ -55,6 +55,8 @@
 		7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */; };
 		7DA17E920F4BC8E000BDDF30 /* LICENSING.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8E0F4BC8E000BDDF30 /* LICENSING.txt */; };
 		7DA2D66015D80A0700CA319B /* aiDefault.css in Resources */ = {isa = PBXBuildFile; fileRef = 7DA2D65F15D80A0700CA319B /* aiDefault.css */; };
+		7DAEDB68184D803B009F942D /* FreeTransAdjustDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DAEDB64184D803A009F942D /* FreeTransAdjustDlg.cpp */; };
+		7DAEDB69184D803B009F942D /* FreeTransSplitterDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DAEDB66184D803B009F942D /* FreeTransSplitterDlg.cpp */; };
 		7DB6FC9F135BE3DD006CC95A /* GetSourceTextFromEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */; };
 		7DB6FCA2135BE402006CC95A /* SetupEditorCollaboration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */; };
 		7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D20F462A570047FCAF /* AI_USFM.xml */; };
@@ -266,6 +268,10 @@
 		7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_LGPLv21.txt; sourceTree = "<group>"; };
 		7DA17E8E0F4BC8E000BDDF30 /* LICENSING.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = LICENSING.txt; sourceTree = "<group>"; };
 		7DA2D65F15D80A0700CA319B /* aiDefault.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = aiDefault.css; path = ../../xml/aiDefault.css; sourceTree = SOURCE_ROOT; };
+		7DAEDB64184D803A009F942D /* FreeTransAdjustDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTransAdjustDlg.cpp; path = ../../source/FreeTransAdjustDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7DAEDB65184D803B009F942D /* FreeTransAdjustDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTransAdjustDlg.h; path = ../../source/FreeTransAdjustDlg.h; sourceTree = SOURCE_ROOT; };
+		7DAEDB66184D803B009F942D /* FreeTransSplitterDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTransSplitterDlg.cpp; path = ../../source/FreeTransSplitterDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7DAEDB67184D803B009F942D /* FreeTransSplitterDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTransSplitterDlg.h; path = ../../source/FreeTransSplitterDlg.h; sourceTree = SOURCE_ROOT; };
 		7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GetSourceTextFromEditor.cpp; path = ../../source/GetSourceTextFromEditor.cpp; sourceTree = SOURCE_ROOT; };
 		7DB6FC9E135BE3DD006CC95A /* GetSourceTextFromEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GetSourceTextFromEditor.h; path = ../../source/GetSourceTextFromEditor.h; sourceTree = SOURCE_ROOT; };
 		7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SetupEditorCollaboration.cpp; path = ../../source/SetupEditorCollaboration.cpp; sourceTree = SOURCE_ROOT; };
@@ -551,6 +557,10 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7DAEDB64184D803A009F942D /* FreeTransAdjustDlg.cpp */,
+				7DAEDB65184D803B009F942D /* FreeTransAdjustDlg.h */,
+				7DAEDB66184D803B009F942D /* FreeTransSplitterDlg.cpp */,
+				7DAEDB67184D803B009F942D /* FreeTransSplitterDlg.h */,
 				7D9A354318247E040041565D /* RemoveSomeTgtEntries.cpp */,
 				7D9A354418247E040041565D /* RemoveSomeTgtEntries.h */,
 				C836A612181A205800E55C22 /* KbSharingSetup.cpp */,
@@ -1165,6 +1175,8 @@
 				C836A618181A205800E55C22 /* KBSharingStatelessSetupDlg.cpp in Sources */,
 				C836A619181A205800E55C22 /* KbServer.cpp in Sources */,
 				7D9A354518247E040041565D /* RemoveSomeTgtEntries.cpp in Sources */,
+				7DAEDB68184D803B009F942D /* FreeTransAdjustDlg.cpp in Sources */,
+				7DAEDB69184D803B009F942D /* FreeTransSplitterDlg.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
