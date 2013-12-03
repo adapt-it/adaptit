@@ -1,11 +1,12 @@
 <?php
+// Note from Kahunapule 18 Nov 2013: Please don't use this script to send email directly to JarMail addresses.
+// Spam filters will not allow delivery. Instead, choose one or more addresses in the adapt-it.org domain and
+// either check mail directly on those additional accounts or use RPOP to get the mail.
 
-// uncomment only first line below to set $recipient to developers@adapt-it.org
+$recipient = "support@adapt-it.org";
 //$recipient = "developers@adapt-it.org";
-$recipient = "bill_martin@adapt-it.org";
-//$recipient = "whmartin@sbcglobal.net,adaptit@costincomputingservices.com.au";
+//$recipient = "bill_martin@adapt-it.org";
 //$recipient = "whmartin@sbcglobal.net";
-//$recipient = "bill_martin@sil.org";
 
 if (empty($_POST)) {
 
@@ -26,8 +27,9 @@ if (empty($_POST)) {
     $attach_doc = $_POST['attachdoc'];
     
     $headers = "From: ";
-    $headers .= $_POST['sendername']." <";
-    $headers .= $_POST['senderemailaddr'].">\r\n";
+    $headers .= "Adapt It <robot@adapt-it.org>\r\n";
+    $headers .= "Reply-To: ";
+    $headers .= $_POST['senderemailaddr']."\r\n";
     $headers .= "MIME-Version: 1.0\r\n";
     
     if ($attach_log == $notify_log || $attach_doc == $notify_doc)
@@ -46,7 +48,7 @@ if (empty($_POST)) {
     
     // build the message body
     $message .= "Submitted at ".date("F j, Y, g:i a")."\r\n";
-    $message .= "To: Adapt It Developers <developers@adapt-it.org>\r\n";
+    $message .= "To: Adapt It Developers <support@adapt-it.org>\r\n";
     $message .= "Name of Sender: ";
     $message .= $_POST['sendername']."\r\n";
     $message .= "Email address of Sender: ";
@@ -121,3 +123,4 @@ if (empty($_POST)) {
     }
 }
 ?>
+
