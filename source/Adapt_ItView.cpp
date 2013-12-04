@@ -2031,6 +2031,15 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		}
 	}
 
+    // BEW 2Dec13 If we are trying to paste test into a free translation widener, tell the
+    // user this is not allowed, and return without pasting
+	if (IsFreeTransWidener(pApp->m_pActivePile->GetSrcPhrase()))
+	{
+		wxMessageBox(_(
+		"Adding text to a free translation widener is not permitted."),
+		_T(""),wxICON_INFORMATION | wxOK);
+		return;
+	}
     // if there is a text selection in the current targetBox, erase the selected chars,
     // then get its text and the caret offset - this is where pasteStr must be inserted wx
     // Note: MFC's CEdit::Clear() deletes (clears) the current selection (if any) in the
@@ -10105,6 +10114,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10133,6 +10143,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10148,6 +10159,32 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;
 		pList = (SPList*)NULL;
+		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
+		if (pApp->m_pTargetBox->GetHandle() != NULL)
+		{
+			pApp->m_pTargetBox->SetFocus();
+			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+		}
+		gbMergeSucceeded = FALSE;
+		Invalidate();
+		GetLayout()->PlaceBox();
+		RemoveSelection();
+		GetLayout()->Redraw();
+		return;
+	}
+
+	// BEW 2Dec13, check for a free translation widener in the section - as just above,
+	// but a widener also has five dots, ..... as well as m_bNullSrcPhrase TRUE
+	if (IsFreeTransWidenerInSelection(pList))
+	{
+		// IDS_NO_NULL_SRCPHRASE_IN_SEL
+		wxMessageBox(_(
+"Merging a selection which contains a free translation widener (represented by five ..... dots with * above it) is not permitted."),
+		_T(""), wxICON_EXCLAMATION | wxOK);
+		pList->Clear();
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
+		pList = (SPList*)NULL;
 		RemoveSelection();
 		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
@@ -10158,6 +10195,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		RemoveSelection();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10185,6 +10224,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10209,6 +10249,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -14079,10 +14120,24 @@ a:	if (pApp->m_bJustLaunched && !pApp->m_bUseStartupWizardOnLaunch)
 	}
 }
 
+// BEW 2Dec13, Added support for free translation wideners. These are placeholders with
+// fice dots. We don't allow this checkbox to change one into the other at any time
 void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	if ((pApp->m_pActivePile != NULL))
+	{
+		// Don't allow the click to operate on a widener rather than a placeholder
+		CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
+		if (IsFreeTransWidener(pSP))
+		{
+			wxMessageBox(_(
+			"The active location has a free translation widener, not a placeholder. The click will be ignored."),
+			_("Illegal change to widener"), wxICON_WARNING | wxOK);
+			return;
+		}
+	}
 	if (gbIsGlossing)
 	{
 		// if glossing is ON, keep the box checked at all times since

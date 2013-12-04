@@ -335,11 +335,14 @@ bool	  IsBareMarkerInArray(wxString& bareMkr, wxArrayString& arr);
 bool	  IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 									   int& nSequNumLast);
 bool	  IsNullSrcPhraseInSelection(SPList* pList);
+bool	  IsFreeTransWidenerInSelection(SPList* pList); // BEW added 2Dec2013
 bool	  IsRetranslationInSelection(SPList* pList);
 bool	  IsFixedSpaceSymbolInSelection(SPList* pList);
 bool	  IsFixedSpaceSymbolWithin(CSourcePhrase* pSrcPhrase);
 bool	  IsFixedSpaceSymbolWithin(wxString& str); // overload, for checking m_targetPhrase, etc
 bool	  IsFixedSpace(wxChar* ptr); // quick way to detect ~ or ] or [ at ptr
+bool	  IsFreeTransWidener(CSourcePhrase* pSrcPhrase); // BEW added 2Dec13
+bool	  IsNormalPlaceholderNotWidener(CSourcePhrase* pSrcPhrase);
 bool	  IsSubstringWithin(wxString& testStr, wxString& strItems); // tests if one of strings in
 											// testStr is a match for any string in strItems
 void	  SeparateOutCrossRefInfo(wxString inStr, wxString& xrefStr, wxString& othersFilteredStr);

@@ -4534,6 +4534,19 @@ bool IsFixedSpace(wxChar* ptr)
 	return FALSE;
 }
 
+// Can't use m_bNotInKB as the definiting widener characteristic, since that flag is TRUE
+// in placeholders inserted to pad out a retranslation; so use five dots in m_srcPhrase
+// and m_key to distinguish them from a normal placeholder
+bool IsFreeTransWidener(CSourcePhrase* pSrcPhrase)
+{
+	return pSrcPhrase->m_bNullSourcePhrase && (pSrcPhrase->m_key == _T("....."));
+}
+
+bool IsNormalPlaceholderNotWidener(CSourcePhrase* pSrcPhrase)
+{
+	return pSrcPhrase->m_bNullSourcePhrase && !(pSrcPhrase->m_key == _T("....."));
+}
+
 // return TRUE if the ] (closing bracket) character is within the passed in string of
 // punctuation characters (use the target punctuation character set), FALSE if absent
 // Used in IsFixedSpaceAhead(), and the returned boolean is passed in to
@@ -6317,6 +6330,7 @@ b:	nLast += 1;
 }
 
 // BEW 16Feb10, no changes needed for support of doc version 5
+// BEW 
 bool IsNullSrcPhraseInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
@@ -6327,11 +6341,30 @@ bool IsNullSrcPhraseInSelection(SPList* pList)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		if (pSrcPhrase->m_bNullSourcePhrase)
+		if (pSrcPhrase->m_bNullSourcePhrase && !pSrcPhrase->m_bNotInKB)
 			return TRUE;
 	}
 	return FALSE;
 }
+
+// BEW 2Dec13, added after "widener" objects added for support of widening a section of
+// free translation at its end was added for the new Adjust dialog as an option
+bool IsFreeTransWidenerInSelection(SPList* pList)
+{
+	CSourcePhrase* pSrcPhrase;
+	SPList::Node* pos = pList->GetFirst();
+	if (pos == NULL)
+		return FALSE; // there isn't any selection
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		if (IsFreeTransWidener(pSrcPhrase))
+			return TRUE;
+	}
+	return FALSE;
+}
+
 
 // BEW 16Feb10, no changes needed for support of doc version 5
 bool IsRetranslationInSelection(SPList* pList)

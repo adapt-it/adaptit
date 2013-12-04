@@ -510,21 +510,30 @@ DVCSDlg::DVCSDlg(wxWindow *parent)
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	m_dlgSizer = DVCSDlgFunc ( this, TRUE, TRUE );
-    CAdapt_ItApp*   pApp = &wxGetApp();
 
     m_comment = (wxTextCtrl*) FindWindowById(IDC_COMMIT_COMMENT);
     m_blurb = (wxStaticText*) FindWindowById(IDC_COMMIT_BLURB);
-	// Support RTL languages for top box; use...
+
+	// BEW 2Dec13 Support RTL languages for top box; use...
 	//void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,
 	//			wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2,
 	//			wxFont*& pDlgFont, bool bIsRTL = FALSE);
+	/* 
+	// While this works perfectly well, to be consistent I'd need to add similar to each
+	// of Mike's dialogs, and then the one listing history would show less of the user's
+	// logging comment (because the font would be larger - 12 pt rather than about 10 as
+	// now) and so I've decided to leave this here commented out. If we later want to
+	// support Right-To-Left writing order in these DVCS dialogs, we can do them all as is
+	// done here
 	#ifdef _RTL_FLAGS
+    CAdapt_ItApp*   pApp = &wxGetApp();
 	pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pTargetFont, m_comment, NULL,
 								NULL, NULL, pApp->m_pDlgTgtFont, pApp->m_bTgtRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
 	pApp->SetFontAndDirectionalityForDialogControl(pApp->m_pTargetFont, m_comment, NULL, 
 								NULL, NULL, pApp->m_pDlgTgtFont);
 	#endif
+	*/
 }
 
 

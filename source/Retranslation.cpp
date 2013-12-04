@@ -1574,6 +1574,18 @@ void CRetranslation::GetRetranslationSourcePhrasesStartingAnywhere(
 		if (pPile->GetSrcPhrase()->m_bEndRetranslation)
 			break;
 	}
+#if defined(_DEBUG)
+	SPList::Node* pos = pList->GetFirst();
+	int index = -1;
+	while (pos != NULL)
+	{
+		CSourcePhrase* pSrcPhrase = pos->GetData();
+		index++;
+		wxLogDebug(_T("GetRetranslationSourcePhrasesStartingAnywhere(): index = %d  m_key = %s"),
+			index, pSrcPhrase->m_key.c_str());
+		pos = pos->GetNext();
+	}
+#endif
 }
 
 void CRetranslation::SetNotInKBFlag(SPList* pList,bool bValue)
@@ -2670,7 +2682,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		SPList::Node* savePos = pos;
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		if (pSrcPhrase->m_bNullSourcePhrase)
+		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
+		// removed, only normal placeholders
+		if (IsNormalPlaceholderNotWidener(pSrcPhrase))
 		{
             // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
             // on every one, or if not so, then only the last will have a TRUE value
@@ -3537,7 +3551,9 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		SPList::Node* savePos = pos;
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		if (pSrcPhrase->m_bNullSourcePhrase)
+		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
+		// removed, only normal placeholders
+		if (IsNormalPlaceholderNotWidener(pSrcPhrase))
 		{
             // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
             // on every one, or if not so, then only the last will have a TRUE value

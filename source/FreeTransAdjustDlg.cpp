@@ -94,6 +94,9 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TELL_USER);
 
 	// Support the message text at the top being Right to Left
+	// BEW 2Dec13, Nah, not yet - makes text too big, and we may not get a user wanting
+	// RTL support - if we do, reinstate, but make the box bigger
+	/*
 	#ifdef _RTL_FLAGS
 	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pTextCtrl, NULL,
 								NULL, NULL, m_pApp->m_pDlgTgtFont, m_pApp->m_bTgtRTL);
@@ -101,7 +104,7 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pTextCtrl, NULL, 
 								NULL, NULL, m_pApp->m_pDlgTgtFont);
 	#endif
-
+	*/
 	// work out where to place the dialog window
 	int myTopCoord, myLeftCoord, newXPos, newYPos;
 	wxRect rectDlg;
@@ -279,7 +282,14 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 		//selection = 3;
 		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
 
-
+		// A selection following by typing a character to replace it generates to textctrl
+		// changed events - one for the deletion of the selection, and another for the
+		// insertion of the replacement character - this leads to two shows of the Adjust
+		// dialog from the Draw() done for each event when the text is still overlong. To
+		// suppress the second Adjust dialog being called it needs to be wrapped with
+		// if (m_bFreeTrans_EventPending) then don't call the dialog. The other Adjust
+		// dialog options don't require this protection
+		m_pApp->m_bFreeTrans_EventPending = TRUE; // the handler block in OnIdle() will restore FALSE
 		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
 		m_pApp->m_enumWhichFreeTransOp = insert_widener; // defines which custom event OnIdle() will post
 

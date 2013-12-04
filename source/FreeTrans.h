@@ -107,6 +107,8 @@ public:
 	wxString		m_strSplitForCurrentSection;
 	wxString		m_strSplitForNextSection;
 
+	void	DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray);
+
 #if defined(__WXGTK__)
     void        AggregateOneFreeTranslationForPrinting(wxDC* pDC, CLayout* pLayout, CPile* pCurPile,
                     wxArrayPtrVoid& arrFTElementsArrays, wxArrayPtrVoid& arrFTSubstringsArrays,
@@ -129,6 +131,7 @@ public:
 	bool		GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 					int nStartingFreeTransSequNum, int nEndingFreeTransSequNum);
 	void		GetCurrentSectionsTextAndFreeTranslation(wxString& theText, wxString& theFreeTrans); // Used by 'split' feature
+	void		GetExistingFreeTransPileSet(CPile* pFirstPile, wxArrayPtrVoid* pSectionPiles);
 	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	bool		IsEndOfFootnoteEndnoteOrXRef(CPile* pPile);
 	bool		IsFreeTransInArray(SPArray* pSPArray);
@@ -216,6 +219,10 @@ protected:
 						bool& bHasFlagIsUnset, bool& bLacksEnd, bool& bFoundArrayEnd);
 	// support for Split option, and Split... button
 	CPile*		TransferRemainderToWhatFollows(wxString& strRemainingFreeTrans);
+	// support for wideners in a vertical edit
+	bool		IsWidenerNext(CPile* pCurPileInScan, CPile*& pWidenerPile); // return TRUE if next is
+								// a pile storing CSourcePhrase which is a widener, and return the
+								// latter's pile pointer in pWidenerPile
 
 	// Private free translation drawing functions
 private:
@@ -230,7 +237,6 @@ private:
 	CPile*		FindFreeTransSectionEnd(CPile* pStartingPile);
 	void		FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount);
 	void		FindSectionPilesBackwards(CPile* pLastPile, wxArrayPtrVoid* pPilesArray); // we don't need a wordcount returned
-	void		GetExistingFreeTransPileSet(CPile* pFirstPile, wxArrayPtrVoid* pSectionPiles);
 	// BEW 2Oct11, added more, for better design of drawing free translations when printing
 	void		GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets,
 											wxArrayString& arrFreeTranslations);

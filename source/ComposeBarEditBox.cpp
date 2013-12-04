@@ -119,6 +119,10 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 				pDoc->Modify(TRUE);
 			}
 
+#ifdef _DEBUG
+//			wxString amsg = _T("Line 123, OnEditBoxChanged(), in ComposeBarEditBox.cpp");
+//			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
+#endif
 			// BEW 20Nov13
 			wxString text = this->GetValue();
 
