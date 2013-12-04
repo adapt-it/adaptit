@@ -3565,6 +3565,14 @@ public:
 				// The use of this boolean goes hand-in-hand with the enum DelayedFreeTransOperations
 				// which is defined at the top of this file - about lines 682-90
 	enum DelayedFreeTransOperations m_enumWhichFreeTransOp;
+	bool	m_bFreeTrans_EventPending; // TRUE when Adjust dialog has asked for an option
+                // to be done (such as inserting a widener), the OnIdle() block which
+                // handles the event resets it to FALSE. The idea of this member boolean is
+                // to prevent a second showing of the Adjust dialog when an edit operation
+                // in the composebar's editbox results in two sequential events being
+                // generated (two Draw() calls then each put up the Adjust dialog if the
+                // text is overlong) - so I'll use this boolean to wrap the Adjust dialog
+                // call, suppressing the dialog when the boolean is TRUE
 	bool	m_bComposeBarWasAskedForFromViewMenu; // TRUE if the user used the Compose Bar
                 // command on the View menu to open the Compose Bar (which then inhibits
                 // being able to turn on free translation mode), FALSE when the Compose Bar

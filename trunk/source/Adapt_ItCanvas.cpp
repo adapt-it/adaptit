@@ -1766,6 +1766,10 @@ x:					CCell* pCell = 0;
 
 						// mark the current section
 						pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
+#ifdef _DEBUG
+//			wxString amsg = _T("Line 1768, OnLButtonDown(), in Adapt_ItCanvas.cpp");
+//			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
+#endif
 						if (pApp->m_nActiveSequNum >= 0 &&
 												pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
 						{

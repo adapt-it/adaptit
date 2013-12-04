@@ -10382,7 +10382,7 @@ void AIToolBarFunc( wxToolBar *parent )
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggledFunc( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
     parent->EnableTool( ID_BUTTON_NULL_SRC, false );
-    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggledFunc( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text") );
+    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggledFunc( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text") );
     parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );
@@ -10437,7 +10437,7 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
     parent->EnableTool( ID_BUTTON_NULL_SRC, false );
-    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text") );
+    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text") );
     parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );

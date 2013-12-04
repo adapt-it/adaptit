@@ -1651,7 +1651,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_auiToolbar->AddTool(ID_REMOVE_RETRANSLATION, _("Remove A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_NULL_SRC, _("Insert A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), NULL);
-	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove a Placeholder, or Remove a Free Translation Widener"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), NULL);
 	m_auiToolbar->AddTool(ID_SHOWING_ALL, _("Show Target Text Only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show target text only"), _("Show target text only"), NULL);
@@ -4121,9 +4121,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 		event.RequestMore(); // request more idle events
 
-		//delete eventCustom;
-		pApp->m_bEnableDelayedFreeTransOp = FALSE; // restore default - prevents uncontrolled reentry
-		pApp->m_enumWhichFreeTransOp = no_op; // ensure nothing more than what was just requested
+        // Restore default to FALSE (a test of this boolean wraps the call of Adjust dialog
+        // so that it is not called twice by two successive draws following two events from
+        // an edit operation in the composebar's editbox - such as a selection being
+        // replaced by a typed character)
+		pApp->m_bFreeTrans_EventPending = FALSE;
+		// Ensure nothing more happens than what was just requested
+		pApp->m_enumWhichFreeTransOp = no_op; 
+		// Restore default - prevents uncontrolled reentry
+		pApp->m_bEnableDelayedFreeTransOp = FALSE; 
 	}
 
 	if (pApp->m_bJustLaunched)
@@ -4186,6 +4192,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		wxMessageBox(
 		_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
 		_T(""), wxICON_INFORMATION | wxOK);
+	}
+
+	// BEW 2Dec13, I can't find any place where AI code handles CTRL+V, so I can't prevent the latter
+	// from inserting text from the clipboard into a free translation widener (the latter
+	// is a placeholder which has five dots ..... as well) - so check for this at the
+	// active location, and if there's text, beep and remove it 
+	if (pApp->m_pActivePile != NULL && IsFreeTransWidener(pApp->m_pActivePile->GetSrcPhrase()))
+	{
+		if (!pApp->m_pTargetBox->GetValue().IsEmpty())
+		{
+			// Remove the phrasebox contents, it's illegal at a widener
+			pApp->m_pTargetBox->SetValue(_T(""));
+			pApp->m_targetPhrase.Empty();
+			wxBell();
+		}
 	}
 
 	if (bUserCancelled)
@@ -6160,6 +6181,11 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 											pRec->nFreeTranslationStep_StartingSequNum,
 											pRec->nFreeTranslationStep_EndingSequNum,
 											&pRec->freeTranslationStep_SrcPhraseList);
+#if defined(_DEBUG)
+						size_t count = pRec->freeTranslationStep_SrcPhraseList.GetCount();
+						wxLogDebug(_T("\n pRec->freeTranslationStep_SrcPhraseList.GetCount() at 6179 in OnCustomEventFreeTranslationsEdit(): count = %d"),
+							count);
+#endif
 						if (!bAllWasOK)
 						{
 							// if this failed, we must bail out of this vertical edit process

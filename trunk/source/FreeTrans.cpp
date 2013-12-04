@@ -22,6 +22,7 @@
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
+#include <wx/list.h>
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -3084,7 +3085,11 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 	// pile is the anchor pile for the current active free trans section
 	m_pCurAnchorPile = pPile;
 
-    // when DrawFreeTranslations is called from the composebar's editbox, there should
+ #ifdef _DEBUG
+//		wxString amsg = _T("Line 3089, DrawFreeTranslationsAtAnchor(), in FreeTrans.cpp");
+//		DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
+   // when DrawFreeTranslations is called from the composebar's editbox, there should
     // certainly be a valid pPile to be found
 	wxASSERT(pPile != NULL && pPile->GetIsCurrentFreeTransSection());
     // if this is a new free translation which has not been entered at this location
@@ -4557,6 +4562,7 @@ void CFreeTrans::RestoreInterPileGapAfterFreeTranslating()
 	m_pApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
 	m_pApp->m_nActiveSequNum = save_SequNum;
 	m_pApp->m_pActivePile = m_pApp->GetLayout()->GetPile(save_SequNum);
+	m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 	m_pApp->GetLayout()->Redraw();
 }
 
@@ -5284,6 +5290,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 	tempStr = pEdit->GetValue(); // set tempStr to whatever is in the box
 
 	m_pCurFreeTransSectionPileArray->Clear(); // start with an empty array
+#ifdef _DEBUG
+//			wxString amsg = _T("Line 5291, SetupCurrentFreeTransSection(), in FreeTrans.cpp");
+//			DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
 
 	bool bOwnsFreeTranslation = IsFreeTranslationSrcPhrase(m_pApp->m_pActivePile);
 	CPile* pile;
@@ -5305,7 +5315,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 			m_pCurFreeTransSectionPileArray->Add(pile);
 
 #ifdef _DEBUG
-//			wxLogDebug(_T("Storing sequ num %d in m_pCurFreeTransSectionPileArray, count = %d"),
+//			wxLogDebug(_T("bOwnsFreeTranslation TRUE block: Storing sequ num %d in m_pCurFreeTransSectionPileArray, count = %d"),
 //				pile->GetSrcPhrase()->m_nSequNumber, m_pCurFreeTransSectionPileArray->GetCount());
 #endif
            // there might be only one pile in the section, if so, this one would also
@@ -5333,10 +5343,18 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 				{
 					// we've found the ending pile
 					m_pCurFreeTransSectionPileArray->Add(pile); // store this one too
+#ifdef _DEBUG
+//			wxLogDebug(_T("bOwnsFreeTranslation TRUE block: Storing sequ num %d in m_pCurFreeTransSectionPileArray, count = %d"),
+//				pile->GetSrcPhrase()->m_nSequNumber, m_pCurFreeTransSectionPileArray->GetCount());
+#endif
 					break; // exit the loop
 				}
 			}
 		} // end of loop
+#ifdef _DEBUG
+//		wxString amsg = _T("Line 5350, SetupCurrentFreeTransSection(), in FreeTrans.cpp *** CHECK ***");
+//		DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
 	}
 	else
 	{
@@ -5369,6 +5387,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
         // free translation text's background in the main window)
 		int wordcount = 0;
 		FindSectionPiles(pile, m_pCurFreeTransSectionPileArray, wordcount);
+#ifdef _DEBUG
+//		wxString amsg = _T("Line 5386, SetupCurrentFreeTransSection(), after FindSectionPiles() in FreeTrans.cpp");
+//		DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
 
         // Other calculations re strip and rects and composing default ft text -- all based
         // on the array as filled out by the above loop - these calculations should be done
@@ -5401,10 +5423,29 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 	MarkFreeTranslationPilesForColoring(m_pCurFreeTransSectionPileArray);
 	pEdit->SetFocus();
 	pEdit->SetSelection(-1,-1); // -1,-1 selects all
+#ifdef _DEBUG
+//		amsg = _T("Line 5422, end of SetupCurrentFreeTransSection(), in FreeTrans.cpp");
+//		DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
 }
 
-// FindSectionPiles() is called above in SetupCurrentFreeTransSection(), and can be called elsewhere
-// pPilesArray is for passing in which pile pointer array is to store the section's pile ptrs
+// FindSectionPiles() is called above in SetupCurrentFreeTransSection(), and can be called
+// elsewhere pPilesArray is for passing in which pile pointer array is to store the
+// section's pile ptrs 
+// BEW 2Dec13 There's a potential problem at each possible break location if we are in
+// vertical edit mode and are reconstituting (after a source text edit) this section and it
+// has one or more final wideners. The potential presence of a section-ending final
+// punctuation or other pre-existing halting condition still being present (if it wasn't
+// part of what the user edited) would finish off the section earlier, leaving the
+// widener(s) not in the array of piles - and then if Advance or Next buttons are pressed,
+// they find the first widener and try to make a spurious new section there. So we have to
+// prevent this. The way to do it is to check here if there are following wideners, and if
+// so, add the present pile to the array and then loop over as many wideners as there are
+// in sequence, and when we get to the end of those, we break from the loop. But do this
+// ONLY if vertical edit mode is in progress. This problem only arises then. The check
+// only needs to worry about word-final punctuation - because wideners to not have (U)SFM
+// markers and if we get to one of those, we'd have traversed any widener successfully
+// without breaking. 
 void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount)
 {
 	CPile* pile = pFirstPile;
@@ -5461,6 +5502,7 @@ void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray
 			else
 			{
 				// we need to go one pile further - it exists because pNextPile is it
+				// (we'd enter here if the marker was an endmarker of course)
 				wordcount += pNextPile->GetSrcPhrase()->m_nSrcWords;
 				bHaltAtFollowingPile = TRUE;
 				pPilesArray->Add(pNextPile);
@@ -5482,7 +5524,23 @@ void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray
 											gSpacelessTgtPunctuation))
 				{
 					// there is word-final punctuation, so this is a suitable place
-					// to close off this section
+					// to close off this section (pile has already been added to the array)
+					// BEW 2Dec13 addition to support widener(s) at the end of the section
+					if (gbVerticalEditInProgress)
+					{
+						CPile* pWidenerPile = NULL;
+						bool bWidenerFollows = IsWidenerNext(pile, pWidenerPile);
+						while (bWidenerFollows)
+						{
+							pPilesArray->Add(pWidenerPile);
+							// Prepare for next iteration (there may be more wideners in
+							// this free translation section - if so, they are in sequence
+							// at the end of the section so that's all we need to worry
+							// about here)
+							pile = pWidenerPile;
+							bWidenerFollows = IsWidenerNext(pile, pWidenerPile);
+						}
+					}
 					break;
 				}
 			}
@@ -6527,6 +6585,10 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 		{
 			CPile* pOldActivePile = m_pApp->m_pActivePile;
 			CPile* saveLastPilePtr = m_pApp->m_pActivePile; // a safe default
+#ifdef _DEBUG
+//		wxString amsg = _T("Line 6552, OnAdvanceButton(), in FreeTrans.cpp");
+//		DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
 
 			// The current free translation was not just removed so do the
 			// StoreFreeTranslation() call
@@ -6690,7 +6752,10 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 		{
 			CPile* pOldActivePile = m_pApp->m_pActivePile;
 			CPile* saveLastPilePtr = m_pApp->m_pActivePile; // a safe default initialization
-
+#ifdef _DEBUG
+//			wxString amsg = _T("Line 6719, OnNextButton(), in FreeTrans.cpp");
+//			DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
 			// The current free translation was not just removed so do the
 			// StoreFreeTranslation() call
 			if (m_pCurFreeTransSectionPileArray->GetCount() > 0)
@@ -8328,27 +8393,35 @@ void CFreeTrans::SingleRectFreeTranslation(wxDC* pDC, wxString& str, wxString& e
 	// If we get here with bFittedOK FALSE, then show the Adjust dialog if all the
 	// ducks line up
 	if (!bFittedOK && ((m_pCurAnchorPile == m_pApp->m_pActivePile) && (m_pApp->m_pActivePile != NULL))
-		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting && !m_bAllowOverlengthTyping)
+		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting && !m_bAllowOverlengthTyping
+		&& !gbVerticalEditInProgress)
 	{
 		// This is where we will give the user an adjustment opportunity - but
 		// only when it's the current section - see comment below, and not
 		// printing, and the active pile exists and is the anchor pile
-
-		FreeTransAdjustDlg dlg((wxWindow*)m_pFrame);
-
-		// Provide the needed hook for the repositioning function to get the
-		// top left of phrasebox location
-		wxASSERT(m_pApp->m_pActivePile);
-		CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
-		dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
-		// Show the repositioned dialog for getting the user's choice of action
-		if (dlg.ShowModal() == wxID_OK)
+		
+		// Note, protect with m_pApp->m_bFreeTrans_EventPending test, so that an editing
+		// operation which results in two text-box-changed events, and hence two draws,
+		// doesn't show the Adjust dialog twice (the OnIdle() internal block which handles
+		// the requested operation restores the boolean to FALSE)
+		if (!m_pApp->m_bFreeTrans_EventPending)
 		{
-			// An internal switch does the initiation by posting a custom event for the
-			// action chosen. This delays the action thereby until after the view's Draw()
-			// has completed
-			//int selection = dlg.selection; // now unneeded
-			//InitiateUserChoice(selection); // now unneeded
+			FreeTransAdjustDlg dlg((wxWindow*)m_pFrame);
+		
+			// Provide the needed hook for the repositioning function to get the
+			// top left of phrasebox location
+			wxASSERT(m_pApp->m_pActivePile);
+			CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
+			dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+			// Show the repositioned dialog for getting the user's choice of action
+			if (dlg.ShowModal() == wxID_OK)
+			{
+				// An internal switch does the initiation by posting a custom event for the
+				// action chosen. This delays the action thereby until after the view's Draw()
+				// has completed
+				//int selection = dlg.selection; // now unneeded
+				//InitiateUserChoice(selection); // now unneeded
+			}
 		}
 	}
 }
@@ -8546,27 +8619,35 @@ void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 	// If we get here with bFittedOK FALSE, then show the Adjust dialog if all the
 	// ducks line up
 	if (!bFittedOK && ((m_pCurAnchorPile == m_pApp->m_pActivePile) && (m_pApp->m_pActivePile != NULL))
-		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting & !m_bAllowOverlengthTyping)
+		&& (m_adjust_dlg_reentrancy_limit == 1) && !m_pApp->m_bIsPrinting & !m_bAllowOverlengthTyping
+		&& !gbVerticalEditInProgress)
 	{
 		// This is where we will give the user an adjustment opportunity - but
 		// only when it's the current section - see comment below, and not
 		// printing, and the active pile exists and is the anchor pile
 
-		FreeTransAdjustDlg dlg((wxWindow*)m_pFrame);
-
-		// Provide the needed hook for the repositioning function to get the
-		// top left of phrasebox location
-		wxASSERT(m_pApp->m_pActivePile);
-		CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
-		dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
-		// Show the dialog in its relocated-in-view location
-		if (dlg.ShowModal() == wxID_OK)
+		// Note, protect with m_pApp->m_bFreeTrans_EventPending test, so that an editing
+		// operation which results in two text-box-changed events, and hence two draws,
+		// doesn't show the Adjust dialog twice (the OnIdle() internal block which handles
+		// the requested operation restores the boolean to FALSE)
+		if (!m_pApp->m_bFreeTrans_EventPending)
 		{
-			// An internal switch does the initiation by posting a custom event for the
-			// action chosen. It is trapped by OnIdle(), delaying the action thereby until
-			// after the view has been updated
-			//int selection = dlg.selection; // now unneeded
-			//InitiateUserChoice(selection); // now unneeded
+			FreeTransAdjustDlg dlg((wxWindow*)m_pFrame);
+		
+			// Provide the needed hook for the repositioning function to get the
+			// top left of phrasebox location
+			wxASSERT(m_pApp->m_pActivePile);
+			CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
+			dlg.m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+			// Show the dialog in its relocated-in-view location
+			if (dlg.ShowModal() == wxID_OK)
+			{
+				// An internal switch does the initiation by posting a custom event for the
+				// action chosen. It is trapped by OnIdle(), delaying the action thereby until
+				// after the view has been updated
+				//int selection = dlg.selection; // now unneeded
+				//InitiateUserChoice(selection); // now unneeded
+			}
 		}
 	}
 }
@@ -9742,14 +9823,21 @@ void CFreeTrans::OnUpdateButtonAdjust(wxUpdateUIEvent& event)
 			event.Enable(FALSE);
 			return;
 		}
+		// BEW 2Dec13 disable in Free Trans mode when vertical edit is operating, support 
+		// for Adjust's options would clobber the carefully controlled lists of spans that
+		// vertical edit maintains
+		if (gbVerticalEditInProgress)
+		{
+			event.Enable(FALSE);
+			return;
+		}
 	}
 	event.Enable(TRUE);
 }
 
 void CFreeTrans::OnButtonSplit(wxCommandEvent& WXUNUSED(event))
 {
-
-
+	DoSplitIt();
 }
 
 void CFreeTrans::OnUpdateButtonSplit(wxUpdateUIEvent& event)
@@ -9763,6 +9851,14 @@ void CFreeTrans::OnUpdateButtonSplit(wxUpdateUIEvent& event)
 	{
 		wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
 		if (freetrans.IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
+        // BEW 2Dec13 disable in Free Trans mode when vertical edit is operating, support
+        // for Split button's action would clobber the carefully controlled lists of spans
+        // that vertical edit maintains
+		if (gbVerticalEditInProgress)
 		{
 			event.Enable(FALSE);
 			return;
@@ -9932,11 +10028,157 @@ void CFreeTrans::DoInsertWidener()
 	// section ends at the document's end; returns TRUE if pFollowingPile is the anchor
 	// pile of a following section of free translation (whether or not is is an empty section)
 	bool bDoesFreeTransImmediatelyFollow = DoesFreeTransSectionFollow(pFollowingPile);
+	// Get the current section's end pile
+	CPile* pEndPile = FindFreeTransSectionEnd(m_pApp->m_pActivePile); // might return NULL
+	bDoesFreeTransImmediatelyFollow = bDoesFreeTransImmediatelyFollow; // avoid compiler warning
+	if (pEndPile == NULL)
+	{
+		// The current free translation didn't have an end (should not happen, but play safe)
+		wxString title = _("No correctly defined end ");
+		wxString msg = _("The current free translation section did not have a properly defined end. The attempt to insert a widener will be abandoned.");
+		wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+		return;
+	}
+	// Store where the insertion location is
+	long to; long from;
+	m_pFrame->m_pComposeBarEditBox->GetSelection(&from, &to); // use the to value as insertion offset
+	m_savedTypingOffset = to; // text box in compose bar will use this value to restore
+		// the cursor to the location at which the user was typing when the join was invoked
 
+	// Make a widener, and a new CPile instance in parallel with it, and point its
+	// m_pSrcPhrase member at the new CSourcePhrase instance, and put each in their
+	// respective lists, and reorder the sequence numbers - we'll do a RecalcLayout so
+	// don't bother setting the strip pointer etc
+	CSourcePhrase* pWidener = new CSourcePhrase;
+	pWidener->m_srcPhrase = _T(".....");
+	pWidener->m_key = _T(".....");
+	pWidener->m_bNullSourcePhrase = TRUE;
+	CPile* pItsPile = new CPile;
+	pItsPile->SetSrcPhrase(pWidener); // CSourcePhrase instance now associated with its CPile instance
+	// It's not a normal Placeholder instance, but a widener, if it has five dots
+	
+	// Check if the free translation section ends at the doc end, if so, we have to append
+	// it; if not, we have to insert it before the pFollowingPile instance; we also have
+	// to move the flag values for end of free translation, and has free translation to it
+	SPList* pSPList = m_pApp->m_pSourcePhrases;
+	PileList* pPileList = m_pLayout->GetPileList();
+	if (pFollowingPile == NULL)
+	{
+		// If there is no section-following pile, the section must end at the doc end, so
+		// append the widener
+		pSPList->Append(pWidener);
+		pPileList->Append(pItsPile);
+	}
+	else
+	{
+		// There is a pile following the end of the section, so we must insert the widener
+		// before it
+		int indexInPileList = pPileList->IndexOf(pFollowingPile);
+		wxASSERT(indexInPileList != wxNOT_FOUND);
+		PileList::compatibility_iterator posPiles = pPileList->Insert((size_t)indexInPileList, pItsPile);
+		posPiles = posPiles; // avoid compiler warning
+		int indexInSPList = pSPList->IndexOf(pFollowingPile->GetSrcPhrase());
+		wxASSERT(indexInSPList != wxNOT_FOUND);
+		SPList::compatibility_iterator posSP = pSPList->Insert((size_t)indexInSPList, pWidener);
+		posSP = posSP; // avoid compiler warning
+	}
+	// Make sure we add it to m_pCurFreeTransSectionPileArray, otherwise OnButtonNext()
+	// will jump to the widener instead of to whatever follows it
+	m_pCurFreeTransSectionPileArray->Add(pItsPile);
+	// Fix the flags at the former end, and the new end
+	pEndPile->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
+	pEndPile->GetSrcPhrase()->m_bStartFreeTrans = FALSE;
+	pEndPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
+	// now, the new end
+	pItsPile->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
+	pItsPile->GetSrcPhrase()->m_bStartFreeTrans = FALSE;
+	pItsPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE;
 
+	// Reorder the doc's sequence numbers from start to finish
+	m_pApp->GetDocument()->UpdateSequNumbers(0); // second arg is NULL, so it updates m_pSourcePhrases
 
+	//m_pApp->GetDocument()->ResetPartnerPileWidth(pEndPile->GetSrcPhrase()); // pEndPile is close enough
 
+	// Recalc the layout, keep the piles, recreate the strips, and be sure to call ScrollIntoView()
+	// Make all the doc's piles lose their pile colouring so that the old section
+	// won't retain the pink background when it should go to green
+	m_pLayout->MakeAllPilesNonCurrent();
 
-	//m_pFollowingAnchorPile = 
+	bool bIsOK = TRUE;
+#ifdef _NEW_LAYOUT
+	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+	bIsOK = bIsOK; // avoid compiler warning
+	m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
 
+	m_pView->Invalidate();
+	m_pLayout->PlaceBox();
+	// Put the latest free translation text into the composebar's edit box, and set the
+	// cursor location, and the focus to that box too
+	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+	m_pFrame->m_pComposeBarEditBox->SetFocus();
+	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
+	if (m_savedTypingOffset != wxNOT_FOUND)
+	{
+		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
+	}
+	else
+	{
+		int length = freetrans.Len();
+		m_pFrame->m_pComposeBarEditBox->SetSelection(length, length);
+	}
+	m_savedTypingOffset = wxNOT_FOUND;
+	// Need the ScrollIntoView() because if the new active pile is on a different
+	// strip, the layout won't realize and will attempt to draw into draw rectangles
+	// which are away from where they should be
+	m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 }
+
+// return TRUE if next is a pile storing CSourcePhrase which is a widener, and return the
+// latter's pile pointer in pWidenerPile
+bool CFreeTrans::IsWidenerNext(CPile* pCurPileInScan, CPile*& pWidenerPile)
+{
+	CPile* pNextPile = m_pView->GetNextPile(pCurPileInScan);
+	if (pNextPile == NULL)
+	{
+		pWidenerPile = NULL;
+		return FALSE;
+	}
+	else
+	{
+		CSourcePhrase* pSrcPhrase = pNextPile->GetSrcPhrase();
+		bool bIsWidener = IsFreeTransWidener(pSrcPhrase);
+		if (bIsWidener)
+		{
+			pWidenerPile = pNextPile;
+			return TRUE;
+		}
+	}
+	// Did not find one
+	pWidenerPile = NULL;
+	return FALSE;
+}
+
+void CFreeTrans::DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray)
+{
+#if defined(_DEBUG)
+	if (pPileArray->IsEmpty())
+	{
+		wxLogDebug(_T("\nPileArray:  COUNT = 0 (EMPTY)    Where?: %s"), msg.c_str());
+		return;
+	}
+	size_t count = pPileArray->GetCount();
+	wxLogDebug(_T("\nPileArray:  COUNT = %d    Where?: %s"), count, msg.c_str());
+	size_t index;
+	for (index = 0; index < count; index++)
+	{
+		CPile* pPile = (CPile*)pPileArray->Item(index);
+		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+		wxLogDebug(_T("PileArray  item:  index: = %d   seqnum = %d   srcPhrase = %s"),
+			index, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+	}
+#endif
+}
+
