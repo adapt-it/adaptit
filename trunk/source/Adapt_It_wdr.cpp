@@ -377,8 +377,8 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item13->Add( 10, 3, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item15 = new wxButton( parent, ID_BUTTON_SPLITTER_OFF, _("Split..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Split off first part, join the remainder to what follows") );
+    wxButton *item15 = new wxButton( parent, ID_BUTTON_INSERT_WIDENER, _("Insert Widener"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->SetToolTip( _("Insert a section widener (five dots .....) at the end of this section") );
     item13->Add( item15, 0, wxALIGN_CENTER, 5 );
 
     item3->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );

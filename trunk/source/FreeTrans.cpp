@@ -160,8 +160,8 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
 	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
 	// BEW 29Nov13, added next two
-	EVT_BUTTON(ID_BUTTON_SPLITTER_OFF, CFreeTrans::OnButtonSplit)
-	EVT_UPDATE_UI(ID_BUTTON_SPLITTER_OFF, CFreeTrans::OnUpdateButtonSplit)
+	EVT_BUTTON(ID_BUTTON_INSERT_WIDENER, CFreeTrans::OnButtonInsertWidener)
+	EVT_UPDATE_UI(ID_BUTTON_INSERT_WIDENER, CFreeTrans::OnUpdateButtonInsertWidener)
 	EVT_BUTTON(ID_BUTTON_ADJUST, CFreeTrans::OnButtonAdjust)
 	EVT_UPDATE_UI(ID_BUTTON_ADJUST, CFreeTrans::OnUpdateButtonAdjust)
 
@@ -9835,12 +9835,15 @@ void CFreeTrans::OnUpdateButtonAdjust(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
-void CFreeTrans::OnButtonSplit(wxCommandEvent& WXUNUSED(event))
+void CFreeTrans::OnButtonInsertWidener(wxCommandEvent& WXUNUSED(event))
 {
-	DoSplitIt();
+	// Widener insertion is likely to be done far more often than splitting, and so is a
+	// better candidate for what the button should do than splitting
+	DoInsertWidener();
+	//DoSplitIt();
 }
 
-void CFreeTrans::OnUpdateButtonSplit(wxUpdateUIEvent& event)
+void CFreeTrans::OnUpdateButtonInsertWidener(wxUpdateUIEvent& event)
 {
 	if (m_pApp->m_bReadOnlyAccess)
 	{
