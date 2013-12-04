@@ -3657,7 +3657,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 		// BEW added next two 15Nov13
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
 		pButton->Show(FALSE);
-		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_SPLITTER_OFF);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_INSERT_WIDENER);
 		pButton->Show(FALSE);
 
 		// show these two only
@@ -3709,7 +3709,7 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 		// BEW added next two 15Nov13
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
 		pButton->Show(TRUE);
-		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_SPLITTER_OFF);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_INSERT_WIDENER);
 		pButton->Show(TRUE);
 	}
 
