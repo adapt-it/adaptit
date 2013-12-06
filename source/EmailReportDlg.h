@@ -106,6 +106,7 @@ protected:
 	void OnDescriptionBodyEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	void OnSendersNameEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 	bool DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString nameSuffix, wxString& nameUsed);
+	//bool SendFileToServer(CURL *curl, CURLcode& res, const wxString localPathAndName);
 	bool BuildEmailReportXMLFile(wxString filePathAndName,bool bReplaceExistingReport);
 	bool bMinimumFieldsHaveData();
 	wxString FormatSysInfoIntoString();
