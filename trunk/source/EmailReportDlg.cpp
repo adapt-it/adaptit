@@ -456,6 +456,8 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 		CURL *curl;
 		CURLcode res;
 
+		curl = curl_easy_init(); // curl is the handle
+		
 		struct curl_httppost *formpost=NULL;
 		struct curl_httppost *lastptr=NULL;
 		struct curl_slist *headerlist=NULL;
@@ -537,6 +539,18 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 				userLogInBase64 = wxString(encoded.c_str(), wxConvUTF8);
 #endif
 				free((void*)pByteBuf);
+
+				// whm modified 21Nov2013 to save the actual zip file at our
+				// local exportPath out to the adapt-it.org server and allow
+				// the feedback.php file attach it directly from its temporary
+				// location on the server to the email. This eliminates the
+				// need to do the base64 encoding here as well as doing a
+				// _POST of that data.
+				
+				// TODO: Use curl to send zip file to adapt-it.org server
+				//if (!SendFileToServer(curl, res, exportPath))
+				//{
+				//}
 			}
 
 		}
@@ -676,7 +690,8 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 					CURLFORM_END);
 		}
 
-		curl = curl_easy_init(); // curl is the handle
+		// curl = curl_easy_init(); // curl is the handle // whm moved to
+		// beginning of OnBtnSendNow()
 		// initalize custom header list (stating that Expect: 100-continue is not wanted
 		headerlist = curl_slist_append(headerlist, buf);
 		
@@ -716,8 +731,6 @@ void CEmailReportDlg::OnBtnSendNow(wxCommandEvent& WXUNUSED(event))
 			// was created by the developer by invoking a perl script called mk-ca-bundle.pl located 
 			// at c:\curl-7.21.2\lib\ca-bundle.crt on the developer's machine. Linux and Mac systems
 			// know how to find their own ca-bundle.crt files.
-			// TODO: determine if we need to conditional compile the next line for the Windows only port
-			// of if it can also be used this way for Linux and the Mac
 			wxString ca_bundle_path;
 #ifdef __WXMSW__
 			ca_bundle_path = pApp->m_setupFolder + pApp->PathSeparator + _T("curl-ca-bundle.crt"); // path to ca bundle in setup folder on user's machine
@@ -933,6 +946,57 @@ bool CEmailReportDlg::DoSaveReportAsXmlFile(bool PromptForSaveChanges, wxString 
 	}
 	return bReportBuiltOK;
 }
+
+size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) 
+{
+    size_t written;
+    written = fwrite(ptr, size, nmemb, stream);
+    return written;
+}
+
+/* // whm commented out 6Dec2013 - may be useful in the future
+bool CEmailReportDlg::SendFileToServer(CURL *curl, CURLcode& res, const wxString localPathAndName)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	bool bSuccess = FALSE;
+	FILE *fp;
+	char *url = "https://adapt-it.org/tmp/attachment.tmp";
+	char outfilename[FILENAME_MAX];
+	strncpy(outfilename, (const char*)localPathAndName.mb_str(wxConvUTF8), FILENAME_MAX);	
+	curl = curl_easy_init();
+	if (curl) {
+		wxString ca_bundle_path;
+#ifdef __WXMSW__
+		ca_bundle_path = pApp->m_setupFolder + pApp->PathSeparator + _T("curl-ca-bundle.crt"); // path to ca bundle in setup folder on user's machine
+#else
+		ca_bundle_path = pApp->GetDefaultPathForXMLControlFiles();
+		ca_bundle_path += pApp->PathSeparator;
+		ca_bundle_path += _T("curl-ca-bundle.crt");
+#endif
+		CBString tempStr = ca_bundle_path.ToUTF8();
+		fp = fopen(outfilename,"wb");
+		curl_easy_setopt(curl, CURLOPT_CAINFO, tempStr.GetBuffer()); // tell curl where the curl-ca-bundle.crt file is
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L); // 1 enables peer verification (SSL) - looks for curl-ca-bundle.crt at path above
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1L); // 1 enables host verification (SSL) - verifies the server at adapt-it.org
+		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+		res = curl_easy_perform(curl);
+		if (res != 0)
+			bSuccess = FALSE;
+		else
+			bSuccess = TRUE;
+		curl_easy_cleanup(curl);
+		fclose(fp);
+	}
+	else
+	{
+		bSuccess = FALSE;
+	}
+
+	return bSuccess;
+}
+*/
 
 void CEmailReportDlg::OnBtnLoadASavedReport(wxCommandEvent& WXUNUSED(event))
 {
@@ -1359,13 +1423,47 @@ bool CEmailReportDlg::bMinimumFieldsHaveData()
 {
 	if (pTextYourEmailAddr->GetValue().IsEmpty())
 	{
-		wxMessageBox(_("Please enter your email address"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(_("Please enter your email address"),_("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextYourEmailAddr->SetFocus();
 		return FALSE; // keep dialog open
 	}
+	else
+	{
+		// User supplied something in the email address field
+		// Check to ensure it is a well-formed email address.
+		bool bValidAddress = TRUE;
+		int nPosAtSymbol = -1;
+		wxString tempStr = pTextYourEmailAddr->GetValue();
+		tempStr.Trim(FALSE);
+		tempStr.Trim(TRUE);
+		// Valid email addresses must have an '@' character
+		if (tempStr.Find(_T('@')) != wxNOT_FOUND)
+		{
+			nPosAtSymbol = tempStr.Find(_T('@'));
+			wxString localPart = tempStr.Mid(0,nPosAtSymbol);
+			wxString domainPart = tempStr.Mid(nPosAtSymbol+1);
+			if (localPart.IsEmpty() || domainPart.IsEmpty())
+			{
+				bValidAddress = FALSE;
+			}
+		}
+		else
+		{
+			bValidAddress = FALSE;
+		}
+		
+		if (!bValidAddress)
+		{
+			wxString msg = _("The email address you entered [%s] is not valid - please enter a valid email address");
+			msg = msg.Format(msg,tempStr.c_str());
+			wxMessageBox(msg,_("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
+			pTextYourEmailAddr->SetFocus();
+			return FALSE; // keep dialog open
+		}
+	}
 	if (pTextEmailSubject->GetValue().IsEmpty())
 	{
-		wxMessageBox(_("Please enter a brief summary/subject for your email"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(_("Please enter a brief summary/subject for your email"),_("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextEmailSubject->SetFocus();
 		return FALSE; // keep dialog open
 	}
@@ -1374,13 +1472,13 @@ bool CEmailReportDlg::bMinimumFieldsHaveData()
 	// the edit box contents with the saveDescriptionBodyText in this case.
 	if (pTextDescriptionBody->GetValue() == templateTextForDescription)
 	{
-		wxMessageBox(_("Please enter some description for the body of your email"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(_("Please enter some description for the body of your email"),_("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextDescriptionBody->SetFocus();
 		return FALSE; // keep dialog open
 	}
 	if (pTextSendersName->GetValue().IsEmpty())
 	{
-		wxMessageBox(_("Please enter your name so we can respond to you by name"),_T("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
+		wxMessageBox(_("Please enter your name so we can respond to you by name"),_("Information missing or incomplete"),wxICON_EXCLAMATION | wxOK);
 		pTextSendersName->SetFocus();
 		return FALSE; // keep dialog open
 	}
