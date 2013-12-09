@@ -21006,6 +21006,56 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+// Removes all <CR> and <LF> characters from the passed in string.
+// OnImportEditedSourceText() uses this, because when a source text is exported, for
+// readability the code inserts newlines before the free translation and other
+// begin-markers, and those, if left there, when the data is unstructured, result in \p
+// markers being inserted - which changes the document structure unhelpfully; when the
+// document is structure, it doesn't matter (I think)
+wxString CAdapt_ItView::RemoveAllCRandLF(wxString* pStr)
+{
+	wxChar CR = _T('\r');
+	wxChar LF = _T('\n');
+	wxString inputStr = *pStr;
+	wxString outputStr;
+	int len = inputStr.Length();
+	if (len == 0)
+	{
+		// nothing to do
+		outputStr = *pStr;
+		return outputStr;
+	}
+	const wxChar* pBuf = inputStr.GetData();
+	wxChar* pStartChar = (wxChar*)pBuf;
+	wxChar* pEnd = pStartChar + len;
+	wxASSERT(*pEnd == (wxChar)0);
+	int offset = 0;
+	while(pStartChar < pEnd)
+	{
+		if (*pStartChar == CR)
+		{
+			// we're at a carriage return character, so skip it
+			offset++;
+			pStartChar++;
+		}
+		else if (*pStartChar == LF)
+		{
+			// we're at a line feed character, so skip it
+			offset++;
+			pStartChar++;
+		}
+		else
+		{
+			// it's neither, so store it
+			outputStr += *pStartChar;
+			offset++;
+			pStartChar++;
+		}
+	}
+	// return the final string
+	return outputStr;
+}
+
 void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -21057,6 +21107,11 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 	case getNewFile_success:
 	{
+		// BEW added 2Dec13, to get rid of spurious \p insertions when the file is not sfm-structured
+		*pBuffer = RemoveAllCRandLF(pBuffer);
+		pApp->m_nInputFileLength = pBuffer->Len();
+
+
         // BEW added 26Aug10. In case we are loading a marked up file we earlier
         // exported, our custom markers in the exported output would have been changed
         // to \z-prefixed forms, \zfree, \zfree*, \znote, etc. Here we must convert
