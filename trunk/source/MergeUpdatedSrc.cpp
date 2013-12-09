@@ -3838,7 +3838,7 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// \param  oldCount        <-  ref to a count of the number of CSourcePhrase instances to be
 ///                             accepted, being to the left in our "single" widening within the
 ///                             arrOld array (it may not be just one - see below regarding
-///                             complications such as mergers and placeholders)
+///                             complications such as mergers, placeholders and wideners)
 /// \param  newCount        <-  ref to a count of the number of CSourcePhrase instances to be
 ///                             accepted to the left in our "single" jump within the arrNew
 ///                             array (it usually will be just one because arrNew will NEVER
@@ -3846,26 +3846,39 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 ///                             in arrOld can lead to > 1 new ones being accepted - see below)
 ///
 /// \remarks
-/// This function tries to extend a matchup of an in-common word leftwards by one step,
-/// and since it is called repeatedly until a failure results, the kick off point will
-/// move leftwards for each iteration in both arrOld and arrNew. If there are no
-/// placeholders nor retranslations to the immediate left, then we have only to make a
-/// simple test for matching m_key values in the CSourcePhrase to the immediate left (i.e.
-/// in the array, at the next smallest index value) in both arrOld and arrNew. Return TRUE
-/// if they match, FALSE if they don't - and returning FALSE indicates we've come to what
-/// is to be the left bound of this in-common span of CSourcePhrase instances.
+/// BEW 2Dec13, added support for free translation wideners (placeholders which have .....
+/// for their m_srcPhrase & m_key members, and nothing in m_adaption nor in m_targetStr,
+/// and no copied strings. The only thing they can have is m_bHasFreeTrans TRUE, and 
+/// m_bEndFreeTrans TRUE (or FALSE on non-end ones if there are a sequence of them. We 
+/// want wideners to be as invisible as possible to our algorithms, and so we will include
+/// them in the commonSpan when widening in either left or right directions. Wideners
+/// normally will appear potentially only in the old array - the document loaded
+/// currently, because exporting source text removes both placeholders and wideners.
+///
+/// This function tries to extend a matchup of an in-common word leftwards by one step, and
+/// since it is called repeatedly until a failure results, the kick off point will move
+/// leftwards for each iteration in both arrOld and arrNew. If there are no placeholders,
+/// retranslations or wideners to the immediate left, then we have only to make a simple
+/// test for matching m_key values in the CSourcePhrase to the immediate left (i.e. in the
+/// array, at the next smallest index value) in both arrOld and arrNew. Return TRUE if they
+/// match, FALSE if they don't - and returning FALSE indicates we've come to what is to be
+/// the left bound of this in-common span of CSourcePhrase instances.
 ///
 /// Note: the recursion algorithm must not change the number or order of CSourcePhrase
 /// instances in arrOld and arrNew. Only after recursion is completed and the merging is
 /// therefore completed can we do cleanup actions which change number of final
 /// CSourcePhrase instances (such as removing placeholders in partially destroyed
 /// retranslations - and even then, such cleanup is not done in either of arrOld or
-/// arrNew)
+/// arrNew). While wideners we try to retain, they will be removed if to the left and
+/// right the non-wideners are edited CSourcePhrase instances - we can't meaning fully
+/// retain a widener when that is the case. By definition, when trying to widen left, the
+/// current leftmost CSourcePhrase in commonSpan is NOT an edited one, so it's clear what
+/// we must do with any widener encountered - we include it in the commonSpan.
 ///
 /// Retranslations (and those may end with zero, one or more placeholders) and
 /// placeholders complicate the situation significantly. This function is designed to
 /// encapsulate these complications within it, so that higher level functions do not have
-/// to consider either complication. Also, our algorithms will compose a merged (edited)
+/// to consider these complications. Also, our algorithms will compose a merged (edited)
 /// source text into the document without trying to maintain the integrity of
 /// retranslations - and therefore, once the recursions are finished, it may be the case
 /// that we have some retranslations which are lost (that's not a problem), some retained
@@ -3874,7 +3887,8 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// latter in a separate function which runs after recursion is completed and which spans
 /// whole newly merged document looking for the messed-up retranslation subspans, and fixes
 /// things - the fixes involve removing the adaptations within the retranslation fragments
-/// that have lost either end.
+/// that have lost either end. Wideners, we just accept them & don't try to match anything
+/// in the new array with them.
 ///
 /// But the WidenLeftwardsOnce() function still has to handle retranslations to some extent
 /// (see below), and all placeholders which are not placeholders within a retranslation.
@@ -3909,7 +3923,9 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// CSourcePhrase instance (we'll support sequences of manually inserted placeholders,
 /// although it's highly likely they never will occur);
 /// (c) If left-associated, deem it to belong at the end of beforeSpan;
-/// (d) If it is neither left- nor right-associated, treat it the same as for (c)
+/// (d) If it is neither left- nor right-associated, treat it the same as for (b) <<-- BEW
+/// 2Dec13m changed "same as for (c)" to "same as for (b), because the other way risked it
+/// being lost when really there is no good reason for losing it in this circumstance.
 ///
 /// An additional complication is that arrOld will probably contain mergers, but arrNew
 /// never will. So when widening, if an merger is encountered, IsMergerAMatch() must be
@@ -3918,6 +3934,8 @@ void ReplaceSavedOriginalSrcPhrases(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pA
 /// corresponding sequence exists in arrNew.
 /// (There is also a WidenRightwardsOnce() function which has similar rules, but different
 /// in places for obvious reasons)
+/// BEW 2Dec13, built in support for free translation wideners (placeholders with ..... as
+/// m_srcPhrase and m_key, and nothing in m_adaption or m_targetStr) 
 bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,
 				int& oldCount, int& newCount)
@@ -3932,7 +3950,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		// we are earlier than the parent's left bound, so can't widen to the left any
 		// further
 #if defined( LEFTRIGHT) && defined( _DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at ONE"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at ONE"));
 #endif
 		return FALSE;
 	}
@@ -3943,10 +3961,14 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 		pOldSrcPhrase = arrOld.Item(oldIndex);
 		pNewSrcPhrase = arrNew.Item(newIndex);
 		// The first test should be for the most commonly occurring situation - a
-		// non-merged, non-placeholder, non-retranslation CSourcePhrase
-		if (pOldSrcPhrase->m_nSrcWords == 1 && !pOldSrcPhrase->m_bRetranslation && !pOldSrcPhrase->m_bNullSourcePhrase)
+		// non-merged, non-placeholder, non-retranslation, non-widener CSourcePhrase
+		if (pOldSrcPhrase->m_nSrcWords == 1 && !pOldSrcPhrase->m_bRetranslation && 
+			!pOldSrcPhrase->m_bNullSourcePhrase && !IsFreeTransWidener(pOldSrcPhrase))
 		{
-			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+            // BEW 2Dec13 added second subtest - unlikely to ever be needed, but just in
+            // case we actually get source text imported which has wideners in it, we need
+            // it for that
+			if ((pOldSrcPhrase->m_key == pNewSrcPhrase->m_key) && (!IsFreeTransWidener(pNewSrcPhrase)))
 			{
 				// we can extend the commonSpan successfully leftwards to this
 				// pair of instances
@@ -3957,18 +3979,50 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 			else
 			{
 				// a non-match means that the left bound for the commonSpan has been
-				// reached
+				// reached; but if we are matching wideners, extend over each and keep
+				// testing
+				if (IsFreeTransWidener(pOldSrcPhrase) && IsFreeTransWidener(pNewSrcPhrase))
+				{
+					// include these in commonSpan
+					oldCount++;
+					newCount++;
+					return TRUE;
+				}
 #if defined( LEFTRIGHT) && defined( _DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at TWO -- the single-single mismatch"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at location TWO -- the single-single mismatch"));
 #endif
 				return FALSE;
 			}
 		}
-		// The second test should be for pOldSrcPhrase being a merger (if so, it can't be a
-		// placeholder nor within a retranslation) because that is more likely to happen
-		// than the other complications we must handle. We'll also handle fixedspace
-		// conjoining here too - and accept a non-conjoined identical word pair in arrNew
-		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair)
+		// Wideners can occur within retranslations, because the user can have two or more
+		// free translation sections within a (long) retranslation, and one or more of
+		// those may have widener(s). If we come to a widener in arrOld, put it into
+		// commonSpan; but also check if arrNew has a widener at the active location too -
+		// if so, put it in commonSpan too, as it's likely to be a matchup for the other
+		if (IsFreeTransWidener(pOldSrcPhrase))
+		{
+			if (IsFreeTransWidener(pNewSrcPhrase))
+			{
+				// include these in commonSpan
+				oldCount++;
+				newCount++;
+				return TRUE;
+			}
+			else
+			{
+				// only the arrOld instance is a widener, so just it goes into commonSpan
+				// this time
+				oldCount++;
+				return TRUE;
+			}
+		}	
+
+        // The second test should be for pOldSrcPhrase being a merger (if so, it can't be a
+        // placeholder nor within a retranslation, or a widener) because that is more
+        // likely to happen than the other complications we must handle. We'll also handle
+        // fixedspace conjoining here too - and accept a non-conjoined identical word pair
+        // in arrNew as a match (ie. we won't require that ~ also conjoins the arrNew's
+        // word pair)
 		else if (pOldSrcPhrase->m_nSrcWords > 1)
 		{
 			// it's a merger, or conjoined pseudo-merger
@@ -4024,7 +4078,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 						{
 							// no match
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at THREE"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at THREE"));
 #endif
 							return FALSE;
 						}
@@ -4033,7 +4087,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					{
 						// not enough words available, so no match is possible
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
+		wxLogDebug(_T("WodenLeftwardsOnce(): exiting at FOUR"));
 #endif
 						return FALSE;
 					}
@@ -4065,7 +4119,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					{
 						// no match, so return FALSE
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at THREE - the merger-sequence mismatch"));
 #endif
 						return FALSE;
 					}
@@ -4074,7 +4128,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 				{
 					// can't extend that far to the left
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at THREE point five - the merger-sequence mismatch, newStartIndex went negative"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at THREE point five - the merger-sequence mismatch, newStartIndex went negative"));
 #endif
 					return FALSE;
 				}
@@ -4098,15 +4152,32 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
         // indication of association -- in which case we have no criterion to guide us, so
         // we'll assume that it/they should be in beforeSpan (and so get removed in the
         // merger process)
+		// BEW 2Dec13, changed the last 3 lines to so that from now on, we'll incorporate
+		// the manual ones which don't associate into commonSpan. So too we'll do for
+		// wideners, because to this next block they look like unassociated manually entered
+		// placeholders.
 		if (pOldSrcPhrase->m_bNullSourcePhrase)
 		{
-			// it's a placeholder
-			bool bItsInARetranslation = FALSE;
+			// it's a placeholder or a widener
+			bool bItsInARetranslation = FALSE; // initialize, it may be set by test below
 			if (pOldSrcPhrase->m_bRetranslation)
 			{
-				// It's a placeholder at the end of a retranslation.
+				// It's a placeholder at the end of a retranslation, or a widener
+				// somewhere in the retranslation
 				//
-                // Our approach for these is to keep such placeholder(s) with the
+                // BEW 2Dec13 For a widener, we'll just include it and return - we don't
+                // expect a widener to be mixed up in a series of padding placeholders in a
+                // retranslation, so this way we bleed wideners first - so the more
+				// complicated code further below can do its job without modifications.
+				// We'll also assume here that arrNew at this location has no widener, and
+				// won't test for it
+                if (IsFreeTransWidener(pOldSrcPhrase))
+				{
+					oldCount++;
+					return TRUE;
+				}
+				 
+                // Our approach for non-widener placeholders is to keep such with the
                 // retranslation unit to which they belong - so we defer decision until we
                 // check for a match (in arrNew) with the first non-placeholder in arrOld
                 // preceding the one or more retranslation-final placeholders. If the match
@@ -4140,13 +4211,19 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 
 			// It's either a plain vanila (i.e. user-manually-created) placeholder, not one
 			// in a retranslation; or if bItsInARetranslation is TRUE, its a placeholder
-			// which is at the end of a retranslation section.
+			// which is at the end of a retranslation section. (It shouldn't be a widener,
+			// hopefully we bled out those in the block above.)
 
 			// Get past this and any additional non-retranslation placeholders until
 			// either we reach oldStartAt and can't check further, or we get a
 			// non-placeholder which is at or after oldStartAt which we can test for a
 			// match of m_Key values with the one at arrNew; decide what to do
 			// according to the protocols spelled out above.
+			// BEW 2Dec13, in this loop, we treat wideners as placeholders - and if
+			// tested, they are not left or right associated, and anything which is left
+			// or right associated is a non-widener, so the non-associated final block
+			// will include wideners and non-associating placeholders equally into the
+			// commonSpan
 			int nExtraCount = 0;
 			int prevIndex = oldIndex - 1;
 			CSourcePhrase* pPrevSrcPhrase = NULL;
@@ -4178,6 +4255,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							// pair of instances, pulling the traversed placeholders
 							// into commonSpan along with the non-placeholder one at
 							// their left -- this also applies to ones within a retranslation
+							// or to wideners
 							oldCount++; // counts the placeholder at oldIndex
 							oldCount += nExtraCount; // adds the count of the extra ones traversed
 							oldCount++; // counts this pPrevSrcPhrase which isn't a placeholder
@@ -4191,8 +4269,14 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							{
 								// all the one or more placeholders belong in beforeSpan,
 								// so return oldCount = 0, newCount = 0, and FALSE
+								// BEW 2Dec13, in the case of wideners, we assume that
+								// we've bled any out earlier, so here we are dealing with
+								// just padding placeholders and do what the legacy code did;
+								// & we can't widen leftwards any further
+								oldCount = 0;
+								newCount = 0;
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at FOUR"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at FOUR"));
 #endif
 								return FALSE;
 							}
@@ -4204,7 +4288,8 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                                 // reached; so here we must work out if the right-most
                                 // placeholder is left associated, or the left-most
                                 // placeholder is right associated, and if neither, we'll
-                                // assign it/them to beforeSpan
+								// assign it/them to the common span (BEW 2Dec13, earlier
+								// code assigned them to the beforeSpan)
 								int indexOfLeftmostPlaceholder = oldIndex - nExtraCount;
 								// assign the pointer at that location to pPrevSrcPhrase
 								// since we don't need the latter for any other purpose now
@@ -4215,12 +4300,13 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 								{
 									// it/they are right-associated, so keep it/them with
 									// what follows it/them, which means that it/they
-									// belong in commonSpan, and we can't widen any further
+									// belong in commonSpan, and we can't widen any further;
+									// BEW 2Dec13, and any wideners among them go with them
 									oldCount++; // counts the placeholder at oldIndex
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at FIVE"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at FIVE"));
 #endif
 									return FALSE; // tell the caller not to try another leftwards widening
 								}
@@ -4229,16 +4315,25 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 									// it/they are left-associated, so keep it/them with
 									// what precedes it/them, which means that it/they
 									// belong in beforeSpan, and we can't widen any further
+									// BEW 2Dec13, and any wideners with them stay out of
+									// the commonSpan too - risking loss of such wideners, but
+									// it's unlikely to happen that such a mix occurs
+									oldCount = 0;
+									newCount = 0;
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at SIX"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at SIX"));
 #endif
-									return FALSE; // (oldCount and newCount both returned as zero)
+									return FALSE;
 								}
 								// neither left nor right associated, so handle the
-								// same as left-associated
+								// same as right-associated ( BEW 2Dec13, formerly this
+								// was handled as same as left-associated)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at SEVEN"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at SEVEN"));
 #endif
+								oldCount++; // counts the placeholder at oldIndex
+								oldCount += nExtraCount; // adds the count of the extra ones traversed
+								//newCount is unchanged (still zero)
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
 						} // end of else block for test: if (pPrevSrcPhrase->m_key == pNewSrcPhrase->m_key)
@@ -4268,7 +4363,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 							{
 								// no match
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at EIGHT"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at EIGHT"));
 #endif
 								return FALSE;
 							}
@@ -4303,7 +4398,8 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                 // has been reached; so here we must work out if the
                 // right-most placeholder is left associated, or the
                 // left-most placeholder is right associated, and if
-                // neither, we'll assign it/them to beforeSpan
+                // neither, we'll assign it/them to commonSpan (BEW 2Dec13, earlier code
+                // assigned them to beforeSpan)
 				int indexOfLeftmostPlaceholder = oldIndex - nExtraCount;
 				// assign the pointer at that location to pPrevSrcPhrase
 				// since we don't need the latter for any other purpose now
@@ -4319,7 +4415,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at TEN"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at TEN"));
 #endif
 					return FALSE; // tell the caller not to try another leftwards widening
 				}
@@ -4329,14 +4425,17 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
                     // what precedes it/them, which means that it/they
                     // belong in beforeSpan, and we can't widen any further
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at ELEVEN"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at ELEVEN"));
 #endif
                     return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
-				// same as left-associated
+				// same as right-associated (BEW 2Dec13, formerly we handled these
+				// as left-associated)
+				oldCount++; // counts the placeholder at oldIndex
+				oldCount += nExtraCount; // adds the count of the extra ones traversed
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at TWELVE"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at TWELVE"));
 #endif
 				return FALSE;
 			}
@@ -4345,7 +4444,7 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 
 	} // end of TRUE block for test: if (oldIndex > oldStartAt && newIndex > newStartAt)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Leftwards ONCE: exiting at THE_END (THIRTEEN)"));
+		wxLogDebug(_T("WidenLeftwardsOnce(): exiting at THE_END (THIRTEEN)"));
 #endif
 	return FALSE;
 }
@@ -4380,14 +4479,15 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 ///
 /// This function tries to extend a matchup of an in-common word rightwards by one step,
 /// and since it is called repeatedly until a failure results, the kick off point will move
-/// leftwards for each iteration in both arrOld and arrNew. If there are no placeholders
-/// nor retranslations to the immediate right, then we have only to make a simple test for
-/// matching m_key values in the CSourcePhrase to the immediate right (i.e. in the array, at
-/// the next greater index value) in both arrOld and arrNew. Return TRUE if they match,
-/// FALSE if they don't - and returning FALSE indicates we've come to the right bound of an
-/// in-common span of CSourcePhrase instances. (Note: if bClosedEnd is FALSE, iterations
-/// to match additional rightwards CSourcePhrase instances in the two arrays can continue
-/// on until a match failure happens, or the end of one of arrOld or arrNew is encountered.)
+/// rightwards for each iteration in both arrOld and arrNew. If there are no placeholders
+/// nor retranslations or free translation wideners to the immediate right, then we have
+/// only to make a simple test for matching m_key values in the CSourcePhrase to the
+/// immediate right (i.e. in the array, at the next greater index value) in both arrOld and
+/// arrNew. Return TRUE if they match, FALSE if they don't - and returning FALSE indicates
+/// we've come to the right bound of an in-common span of CSourcePhrase instances. (Note:
+/// if bClosedEnd is FALSE, iterations to match additional rightwards CSourcePhrase
+/// instances in the two arrays can continue on until a match failure happens, or the end
+/// of one of arrOld or arrNew is encountered.)
 ///
 /// Note: the recursion algorithm must not change the number or order of CSourcePhrase
 /// instances in arrOld and arrNew. Only after recursion is completed and the merging is
@@ -4396,22 +4496,22 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// retranslations - and even then, such cleanup is not done in either of arrOld or
 /// arrNew)
 ///
-/// Retranslations (and those may end with zero, one or more placeholders) and placeholders
-/// complicate the situation significantly. This function is designed to encapsulate these
-/// complications within it, so that higher level functions do not have to consider either
-/// complication. Also, our algorithms will compose a merged (edited) source text into the
-/// document without trying to maintain the integrity of retranslations - and therefore,
-/// once the recursions are finished, it may be the case that we have some retranslations
-/// which are lost (that's not a problem), some retained (that's not a problem either), and
-/// some which have the start or end chopped off (that IS a problem and we must fix it. We
-/// do the fix for the latter in a separate function which runs after recursion is
-/// completed and which spans whole newly merged document looking for the messed-up
-/// retranslation subspans, and fixes things - the fixes remove the adaptations within the
-/// retranslation fragments that have lost either end.
+/// Retranslations (and those may end with zero, one or more placeholders) placeholders,
+/// and to some extent wideners, complicate the situation significantly. This function is
+/// designed to encapsulate these complications within it, so that higher level functions
+/// do not have to consider ny of these complications. Also, our algorithms will compose a
+/// merged (edited) source text into the document without trying to maintain the integrity
+/// of retranslations - and therefore, once the recursions are finished, it may be the case
+/// that we have some retranslations which are lost (that's not a problem), some retained
+/// (that's not a problem either), and some which have the start or end chopped off (that
+/// IS a problem and we must fix it. We do the fix for the latter in a separate function
+/// which runs after recursion is completed and which spans whole newly merged document
+/// looking for the messed-up retranslation subspans, and fixes things - the fixes remove
+/// the adaptations within the retranslation fragments that have lost either end.
 ///
 /// But the WidenRightwardsOnce() function still has to handle retranslations to some
 /// extent (see below), and all placeholders which are not placeholders within a
-/// retranslation. What follows are the rules...
+/// retranslation, and also wideners. What follows are the rules...
 /// (1) If a placeholder belonging to a retranslation is to the right, include it in
 /// commonSpan -- because we must keep any final placeholder sequence belonging to a
 /// retranslation with the retranslation since Adapt It treats a retranslation as a unit;
@@ -4442,8 +4542,12 @@ bool WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int ol
 /// (b) If left-associated, deem it to belong in commonSpan as the latter's final
 /// CSourcePhrase instance (we'll support sequences of manually inserted placeholders,
 /// although it's highly likely they never will occur);
-/// (c) If right-associated, deem it to belong at the start of afterSpan;
-/// (d) If it is neither left- nor right-associated, treat it the same as for (c)
+/// (c) If a widener follows the placeholder, put it also into the commonSpan;
+/// (d) If right-associated, deem it to belong at the start of afterSpan;
+/// (e) If a widener follows it, also leave it in afterSpan; but if the widener(s) precede
+/// one or more manually placed placeholders, put the wideners into commonSpan
+/// (d) If it is neither left- nor right-associated, treat it the same as for (b), and
+/// likewise if there is a widener contiguous to it, also put it into commonSpan
 ///
 /// An additional complication is that arrOld will probably contain mergers, but arrNew
 /// never will. So when widening, if an merger is encountered, IsMergerAMatch() must be
@@ -4482,12 +4586,16 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 		}
 #endif
         // The first test should be for the most commonly occurring situation - a
-        // non-merged, non-placeholder, non-retranslation CSourcePhrase potential pair;
-        // we also don't mind if it is one from a retranslation provided it is not a
-        // placeholder instance
-		if (pOldSrcPhrase->m_nSrcWords == 1 && !pOldSrcPhrase->m_bNullSourcePhrase)
+        // non-merged, non-placeholder, non-retranslation, non-widener CSourcePhrase
+        // potential pairing; we also don't mind if it is one from a retranslation provided
+        // it is not a placeholder instance
+		if (pOldSrcPhrase->m_nSrcWords == 1 && !pOldSrcPhrase->m_bNullSourcePhrase &&
+			!IsFreeTransWidener(pOldSrcPhrase))
 		{
-			if (pOldSrcPhrase->m_key == pNewSrcPhrase->m_key)
+            // BEW 2Dec13 added second subtest - unlikely to ever be needed, but just in
+            // case we actually get source text imported which has wideners in it, we need
+            // it for that
+			if ((pOldSrcPhrase->m_key == pNewSrcPhrase->m_key) && (!IsFreeTransWidener(pNewSrcPhrase)))
 			{
 				// we can extend the commonSpan successfully rightwards to this
 				// pair of instances
@@ -4498,18 +4606,51 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 			else
 			{
 				// a non-match means that the right bound for the commonSpan has been
-				// reached
+				// reached; but if we are matching wideners, extend over each and keep
+				// testing
+				if (IsFreeTransWidener(pOldSrcPhrase) && IsFreeTransWidener(pNewSrcPhrase))
+				{
+					// include these in commonSpan
+					oldCount++;
+					newCount++;
+					return TRUE;
+				}
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at TWO -- the single-single mismatch"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at TWO -- the single-single mismatch"));
 #endif
 				return FALSE;
 			}
 		}
+
+		// Wideners can occur within retranslations, because the user can have two or more
+		// free translation sections within a (long) retranslation, and one or more of
+		// those may have widener(s). If we come to a widener in arrOld, put it into
+		// commonSpan; but also check if arrNew has a widener at the active location too -
+		// if so, put it in commonSpan too, as it's likely to be a matchup for the other
+		if (IsFreeTransWidener(pOldSrcPhrase))
+		{
+			if (IsFreeTransWidener(pNewSrcPhrase))
+			{
+				// include these in commonSpan
+				oldCount++;
+				newCount++;
+				return TRUE;
+			}
+			else
+			{
+				// only the arrOld instance is a widener, so just it goes into commonSpan
+				// this time
+				oldCount++;
+				return TRUE;
+			}
+		}	
+
 		// The second test should be for pOldSrcPhrase being a merger (if so, it can't be a
-		// placeholder nor within a retranslation) because that is more likely to happen
-		// than the other complications we must handle. We'll also handle fixedspace
-		// conjoining here too - and accept a non-conjoined identical word pair in arrNew
-		// as a match (ie. we won't require that ~ also conjoins the arrNew's word pair)
+        // placeholder nor within a retranslation, or a widener) because that is more
+        // likely to happen than the other complications we must handle. We'll also handle
+        // fixedspace conjoining here too - and accept a non-conjoined identical word pair
+        // in arrNew as a match (ie. we won't require that ~ also conjoins the arrNew's
+        // word pair)
 		else if (pOldSrcPhrase->m_nSrcWords > 1)
 		{
 			// it's a merger, or conjoined pseudo-merger
@@ -4565,7 +4706,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						{
 							// no match
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at THREE - the merger-sequence mismatch"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at THREE - the merger-sequence mismatch"));
 #endif
 							return FALSE;
 						}
@@ -4574,7 +4715,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					{
 						// not enough words available, so no match is possible
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at FOUR"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at FOUR"));
 #endif
 						return FALSE;
 					}
@@ -4601,7 +4742,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					{
 						// didn't match match, so we are at the end of commonSpan
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at FIVE"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at FIVE"));
 #endif
 						return FALSE;
 					}
@@ -4610,7 +4751,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 				{
 					// not enough words for a match, so return FALSE
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at SIX"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at SIX"));
 #endif
 					return FALSE;
 				}
@@ -4633,31 +4774,45 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
         // association (then it/they belong in afterSpan) or no indication of association
         // -- in which case we have no criterion to guide us, so we'll assume that it/they
         // should be in afterSpan (and so get removed in the merger process)
+		// BEW 2Dec13, changed the last 3 lines to so that from now on, we'll incorporate
+		// the manual ones which don't associate into commonSpan. So too we'll do for
+		// wideners, because to this next block they look like unassociated manually entered
+		// placeholders.
 		if (pOldSrcPhrase->m_bNullSourcePhrase)
 		{
-			// it's a placeholder
-			bool bItsInARetranslation = FALSE;
+			// it's a placeholder or a widener
+			bool bItsInARetranslation = FALSE; // initialize
 			if (pOldSrcPhrase->m_bRetranslation)
 			{
-				// It's the first placeholder at the end of a retranslation.
-				//
-                // Our approach for these is to keep such placeholder(s) with the
-				// retranslation unit to which they belong - so we find out how many of
-				// them there are, and make them be within commonSpan. Then we go to the
-				// next index to see if we have a match of the first CSourcePhrase
-				// non-placeholder instance (which isn't within the retranslation, though
-				// there could be a second retranslation following, but that we don't care
-				// about because it wouldn't have a placeholder starting it) after the
-				// last placeholder, matching against the one CSourcePhrase instance in
-				// arrNew at newIndex - and if there is a match, we have succeeded in
-				// extending rightwards (return TRUE after setting count values), but if
-				// there is no match, then we must close off commonSpan & return FALSE
+				// It's maybe the first placeholder at the end of a retranslation... 
+                // If it's a widener, then just include it an return TRUE - we assume there
+                // is no matching widener at pNewSrcPhrase - if it was it ought to have
+                // been dealt with above anyway (bleeding out the widener option first
+                // makes the code below a bit simpler)
+                if (IsFreeTransWidener(pOldSrcPhrase))
+				{
+					oldCount++;
+					return TRUE;
+				}
+				
+                // Our approach for non widener placeholders is to keep such placeholder(s)
+                // with the retranslation unit to which they belong - so we find out how
+                // many of them there are, and make them be within commonSpan. Then we go
+                // to the next index to see if we have a match of the first CSourcePhrase
+                // non-placeholder instance (which isn't within the retranslation, though
+                // there could be a second retranslation following, but that we don't care
+                // about because it wouldn't have a placeholder starting it) after the last
+                // placeholder, matching against the one CSourcePhrase instance in arrNew
+                // at newIndex - and if there is a match, we have succeeded in extending
+                // rightwards (return TRUE after setting count values), but if there is no
+                // match, then we must close off commonSpan & return FALSE				
 				bItsInARetranslation = TRUE;
 			} // end of TRUE block for test: if (pOldSrcPhrase->m_bRetranslation)
 
             // It's either a plain vanila (i.e. user-manually-created) placeholder, not one
             // in a retranslation; or if bItsInARetranslation is TRUE, its the first
-            // placeholder which is at the end of a retranslation section.
+            // placeholder which is at the end of a retranslation section. (It shouldn't be
+            // a widener, hopefully we bled out those in the block above.)
 
 			// Get past this and any additional non-retranslation placeholders until
 			// either we reach oldEndAt and can't check further, or we get a
@@ -4673,7 +4828,8 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 				pNextSrcPhrase = arrOld.Item(nextIndex);
 				if (pNextSrcPhrase->m_bNullSourcePhrase)
 				{
-					// we've another placeholder next door, so keep moving forwards
+					// we've another placeholder next door, so keep moving forwards (note,
+					// the above test will also return TRUE for wideners)
 					nExtraCount++;
 					nextIndex++;
 					continue;
@@ -4692,10 +4848,10 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						// it's not a merger - so check for a match with the one in arrNew
 						if (pNextSrcPhrase->m_key == pNewSrcPhrase->m_key)
 						{
-							// we can extend the commonSpan successfully rightwards to this
-							// pair of instances, pulling the traversed placeholders
-							// into commonSpan along with the non-placeholder one at
-							// their right -- this also applies to ones within a retranslation
+                            // we can extend the commonSpan successfully rightwards to this
+                            // pair of instances, pulling the traversed placeholders into
+                            // commonSpan along with the non-placeholder one at their right
+                            // -- this also applies to ones within a retranslation, and wideners
 							oldCount++; // counts the placeholder at oldIndex
 							oldCount += nExtraCount; // adds the count of the extra ones traversed
 							oldCount++; // counts this pNextSrcPhrase which isn't a placeholder
@@ -4714,7 +4870,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 								oldCount += nExtraCount; // adds the count of the extra ones traversed
 								//newCount is unchanged (still zero)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at SEVEN"));
+								wxLogDebug(_T("WidenRightwardOnce(): exiting at SEVEN"));
 #endif
 								return FALSE;
 							}
@@ -4726,7 +4882,8 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                                 // reached; so here we must work out if the right-most
                                 // placeholder is left associated, or the left-most
                                 // placeholder is right associated, and if neither, we'll
-                                // assign it/them to afterSpan
+                                // assign it/them to commonSpan (BEW 2Dec13, earlier code
+                                // assigned them to afterSpan)
 								int indexOfLeftmostPlaceholder = oldIndex;
 								// assign the pointer at that location to pNextSrcPhrase
 								// since we don't need the latter for any other purpose now
@@ -4742,9 +4899,9 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 									oldCount += nExtraCount; // adds the count of the extra ones traversed
 									//newCount is unchanged (still zero)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at EIGHT"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at EIGHT"));
 #endif
-									return FALSE; // tell the caller not to try another leftwards widening
+									return FALSE; // tell the caller not to try another rightwards widening
 								}
 								else if (IsRightAssociatedPlaceholder(pNextSrcPhrase))
 								{
@@ -4752,15 +4909,18 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                                     // what follows it/them, which means that it/they
                                     // belong in at the start of afterSpan, and we can't
                                     // widen commonSpan any further
+									oldCount = 0;
+									newCount = 0;
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at NINE"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at NINE"));
 #endif
 									return FALSE; // (oldCount and newCount both returned as zero)
 								}
 								// neither left nor right associated, so handle the
-								// same as right-associated
+								// same as left-associated (BEW 2Dec13, formerly this was handled
+								// the same as right-associated)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at TEN"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at TEN"));
 #endif
 								return FALSE;
 							} // end of else block for test: if (bItsInARetranslation)
@@ -4793,7 +4953,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 							{
 								// no match
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at ELEVEN"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at ELEVEN"));
 #endif
 								return FALSE;
 							}
@@ -4802,7 +4962,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 						{
 							// not enough words available
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at TWELVE"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at TWELVE"));
 #endif
 							return FALSE;
 						} // end of else block for test: if (newIndex + numWords - 1 <= newEndAt)
@@ -4828,7 +4988,8 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                 // reached; so here we must work out if the right-most
                 // placeholder is left associated, or the left-most
                 // placeholder is right associated, and if neither, we'll
-                // assign it/them to afterSpan
+                // assign it/them to commonSpan (BEW 2Dec13, earlier code
+                // assigned them to afterSpan)
 				int indexOfLeftmostPlaceholder = oldIndex;
 				// assign the pointer at that location to pNextSrcPhrase
 				// since we don't need the latter for any other purpose now
@@ -4844,9 +5005,9 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 					oldCount += nExtraCount; // adds the count of the extra ones traversed
 					//newCount is unchanged (still zero)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at THIRTEEN"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at THIRTEEN"));
 #endif
-					return FALSE; // tell the caller not to try another leftwards widening
+					return FALSE; // tell the caller not to try another rightwards widening
 				}
 				else if (IsRightAssociatedPlaceholder(pNextSrcPhrase))
 				{
@@ -4855,14 +5016,15 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
                     // belong in at the start of afterSpan, and we can't
                     // widen commonSpan any further
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at FOURTEEN"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at FOURTEEN"));
 #endif
 					return FALSE; // (oldCount and newCount both returned as zero)
 				}
 				// neither left nor right associated, so handle the
-				// same as right-associated
+				// same as left-associated (BEW 2Dec13, earlier code assigned them
+				// to afterSpan)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at FIFTEEN"));
+		wxLogDebug(_T("WidenRightwardsOnce(): exiting at FIFTEEN"));
 #endif
 				return FALSE;
 			}
@@ -4871,7 +5033,7 @@ bool WidenRightwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int o
 
 	} // end of TRUE block for test: if (oldIndex < oldEndAt && newIndex < newEndAt)
 #if defined( LEFTRIGHT) && defined(_DEBUG)
-		wxLogDebug(_T("Rightwards ONCE: exiting at THE_END (SIXTEEN)"));
+		wxLogDebug(_T("WidneRightwardsOnce(): exiting at function END (SIXTEEN)"));
 #endif
 	return FALSE; // we didn't make any matches, so widening must halt
 }
@@ -7235,7 +7397,8 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 		//merger,
 		//conjoined,
 		//manual_placeholder,
-		//placeholder_in_retrans
+		//placeholder_in_retrans,
+		//freetrans_widener
 		switch (oldSPtype)
 		{
 		case singleton:
@@ -7257,6 +7420,10 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 			break;
 		case manual_placeholder:
 			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex,
+								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			break;
+		case freetrans_widener:
+			bOK = TransferToFreeTransWidener(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case placeholder_in_retrans:
@@ -7590,6 +7757,139 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
+/// \return                 FALSE if something failed - in which case don't do any more
+///                         for this pair; TRUE if all is well.
+/// \param  arrOld      ->  array of old CSourcePhrase instances (may have mergers,
+///                         placeholders, retranslation, fixedspace conjoinings as
+///                         well as minimal CSourcePhrase instances and wideners) 
+///                         We pass in the WHOLE array, not just a subrange, for the commonSpan
+/// \param  arrNew      ->  array of new CSourcePhrase instances (will only be single-word
+///                         CSourcePhrase instances, but could also contain fixedspace
+///                         conjoined instances too) We pass in the WHOLE
+///                         array, not just a subrange, for the commonSpan
+/// \param  oldIndex    ->  index in arrOld where the widener is (or if the user has
+///                         inserted more than one, where the first one is)
+/// \param  newIndex    ->  the next CSourcePhrase instance in the arrNew array, it can't
+///                         be a widener (nor placeholder) of course, so is the first of 
+///                         what follows
+///                         where an equivalent one would be if present -- placeholders on
+///                         span boundaries will not be included in the in-common span,
+///                         (and I expect that wideners will behave likewise because they
+///                         too have m_bNullSrcPhrase set to TRUE) so that means
+///                         there should be at least one CSourcePhrase following
+///                         the oldIndex location in the in-common subspan in arrOld, and
+///                         hence at matching one or ones in arrNew, since this is commonSpan
+/// \param  pSubspan    ->  the Subspan instance, it's a commonSpan, which we are doing the
+///                         transfers of USFM and punctuation to the to-be-retained
+///                         CSourcePhrase instances in this subspan of arrOld BEW 2Dec13 Hmmm
+///                         when I stepped the legacy code to check what it did with a widener
+///                         following an unedited location, it was included within the
+///                         commonSpan I think
+/// \param  oldDoneToIncluding  <-  index in arrOld of the last post-widener which has
+///                                 been updated within this function (note, if there are
+///                                 consecutive inserted wideners, it would be
+///                                 the first CSourcePhrase past the last of those, rather
+///                                 than the one following the one at oldIndex)
+/// \param  newDoneToIncluding  <-  index in arrNew of the last CSourcePhrase involved in
+///                                 updating whatever is the first CSourcePhrase instance
+///                                 past the last widener in arrOld updated herein
+/// \remarks
+/// The caller needs the last two parameters, as the kick-off location for scanning
+/// forwards for further associations of instances between arrOld and arrNew starts from
+/// these index values + 1. The reason we pass in the whole
+/// arrOld and arrNew is that we may need to access a CSourcePhrase instance in arrOld and
+/// or arrNew which lies beyond the bounds of the commonSpan itself. Our approach in this
+/// function is to adjust indices so as to skip a widener. There is no
+/// left or right association possible with wideners. However, since each one is inserted
+/// programmatically at the end of a free translation, it gets the _m_bHasFreeTrans flag
+/// set TRUE, and also the preceding CSourcePhrase instance's m_bEndFreeTrans value of
+/// TRUE will have been changed to FALSE and the same flag on the widener set to TRUE. We
+/// try to retain wideners where it makes sense to do so - but if embedded between
+/// non-wideners which on either side have been edited, then they get removed - which
+/// makes good sense (any new free translation there may not need a widener); and if a
+/// widener follows an edited CSourcePhrase instance, then the widener is included in the
+/// 'before' part of the tuple, not in commonSpan, and so gets removed then too. So it's
+/// retained only when it follows an unedited CSourcePhrase. When they do get removed,
+/// the free translation they belong to is not properly ended - so we have a 'fix it'
+/// function which looks for broken free translation ends and reconstitutes them (without
+/// the widener - there's not way it can know there used to be one there - but I'm
+/// digressing, we don't do any of this latter stuff in this function.
+/// Note: We name this function "Transfer...()) to keep conformity to other similar
+/// functions, but actually we transfer nothing to or from them. If we manage to keep
+/// wideners, then good, because we are preserving the location of a free translation end.
+bool TransferToFreeTransWidener(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,
+				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+{
+	wxASSERT(pSubspan->spanType == commonSpan);
+	arrNew.GetCount(); // a do-nothing op to avoid compiler warning that it is unused
+
+	// check indices don't violate pSubspan's  bounds
+	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
+	{
+		// out of range in subspan in arrOld
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+	if (newIndex < pSubspan->newStartPos || newIndex > pSubspan->newEndPos)
+	{
+		// out of range in subspan in arrNew
+		oldDoneToIncluding = - 1;
+		newDoneToIncluding = - 1;
+		return FALSE;
+	}
+
+	// verify it really is a widener and get the index of the first non-widener
+	// following it, if there is one
+	CSourcePhrase* pWidener = arrOld.Item(oldIndex);
+	int oldLastIndex = arrOld.GetCount() - 1; // the bound which we must not transgress
+	if (!IsFreeTransWidener(pWidener) || pWidener->m_bRetranslation)
+	{
+		// the widener is within a retranslation, or it's not a placeholder; so just
+		// treat this as a location where nothing needs to be done, and have the caller
+		// skip the widener (this block should never be entered)
+		oldDoneToIncluding = oldIndex;
+		newDoneToIncluding = newIndex - 1;
+		return FALSE;
+	}
+	newDoneToIncluding = newIndex - 1; // since we skip wideners, we'll want the caller 
+					// to increment from the previous CSourcePhrase to get the location
+					// because we want the location to be the same one as here for arrNew
+					// in the next iteration
+
+	// get the index of the last widener if there is a sequence
+	int oldFollIndex = oldIndex;
+	CSourcePhrase* pFollSrcPhrase = NULL;
+	do {
+		oldFollIndex++;
+		if (oldFollIndex <= oldLastIndex)
+		{
+			pFollSrcPhrase = arrOld.Item(oldFollIndex);
+			if (!IsFreeTransWidener(pFollSrcPhrase))
+			{
+				oldFollIndex--;
+				break;
+			}
+		}
+		else
+		{
+			oldFollIndex--;
+			break;
+		}
+	} while (IsFreeTransWidener(pFollSrcPhrase));
+	if (oldFollIndex == oldIndex)
+	{
+		oldDoneToIncluding = oldIndex;
+	}
+	else
+	{
+		oldDoneToIncluding = oldFollIndex;
+	}
+	return TRUE;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 FALSE immediately if the placeholder is within a retranslation,
 ///                         also FALSE is returned if there is a following merger in
 ///                         arrOld and the attempt to transfer USFMs and punctuation from
@@ -7665,7 +7965,7 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 	CSourcePhrase* pPlaceholder = arrOld.Item(oldIndex);
 	int oldLastIndex = arrOld.GetCount() - 1;
 	//int newLastIndex = arrNew.GetCount() - 1;
-	if (!(pPlaceholder->m_bNullSourcePhrase && !pPlaceholder->m_bRetranslation))
+	if (!pPlaceholder->m_bNullSourcePhrase || pPlaceholder->m_bRetranslation)
 	{
 		// the placeholder is within a retranslation, or it's not a placeholder; so just
 		// treat this as a location where nothing needs to be done, and have the caller
@@ -10714,7 +11014,12 @@ WhatYouAre WhatKindAreYou(CSourcePhrase* pSrcPhrase, CSourcePhrase* pNewSrcPhras
 		}
 		else if (pSrcPhrase->m_bNullSourcePhrase)
 		{
-			// you are a manually placed placeholder
+			if (IsFreeTransWidener(pSrcPhrase))
+			{
+				// you are a free translation widener instance - a special kind of placeholder
+				return freetrans_widener;
+			}
+			// otherwise, you must be a manually placed placeholder
 			return manual_placeholder;
 		}
 		else if (IsFixedSpaceSymbolWithin(pNewSrcPhrase))

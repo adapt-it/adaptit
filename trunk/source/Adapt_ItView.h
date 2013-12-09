@@ -379,6 +379,7 @@ protected:
 	bool		TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases,
 							CSourcePhrase* pFollSrcPhrase, EditRecord* pRec); //BEW added 7May08
 							// 22Mar10, name changed from TransportWidowedEndmarkersToFollowingContext
+	wxString	RemoveAllCRandLF(wxString* pStr);
 
 protected:
 	void OnEditPreferences(wxCommandEvent& WXUNUSED(event));
