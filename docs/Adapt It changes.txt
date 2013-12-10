@@ -32,12 +32,21 @@ The Insert Widener button is just a quicker way to do exactly
 what the option d) above does. So you can get a widener inserted
 with just a single click, instead of three clicks being needed
 if you use the Adjust... dialog instead.
+* The user can remove a free translation section widener if he
+wants. Just go out of free translation mode, put the phrase box
+at the widener to be deleted, and hit the command bar button
+"Remove placeholder or widener". This is the only way they can
+be removed. Note, wideners will not accept any typing. Their
+job is just to make free translation sections a bit wider. If 
+you try to enter text into a widener, you'll get a message
+saying you cannot do it.
 * To facilitate long free translations having more chance of
 not being truncated, when you open free translation mode, the 
 inter-pile gap is automatically set to 40 pixels (rather than
 leaving it at the default 16 pixels); and when you exit from
 free translation mode, the former inter-pile gap setting is
-automatically restored.
+automatically restored. If you already have a larger gap set,
+the larger gap will be used instead for both modes.
 * Because of the above new free translation options, it is 
 probably better to use the "Define sections By: Punctuation" 
 button whenever possible. This gives shorter sections which 
