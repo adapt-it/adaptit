@@ -4691,8 +4691,8 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
         // gSpacelessTgtPunctuation set up beforehand)
 		gSpacelessTgtPunctuation = m_pApp->m_punctuation[1]; // target set, with
 														   // delimiting spaces
-		gSpacelessTgtPunctuation.Remove(gSpacelessTgtPunctuation.Find(_T(' ')),1); // get
-																	// rid of the spaces
+		// get rid of the spaces
+		gSpacelessTgtPunctuation.Replace(_T(" "), _T(""));
 	}
 
 	// restore focus to the targetBox, if free translation mode was just turned off,
@@ -9817,12 +9817,16 @@ void CFreeTrans::OnUpdateButtonAdjust(wxUpdateUIEvent& event)
 	}
 	else
 	{
-		wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
-		if (freetrans.IsEmpty())
-		{
-			event.Enable(FALSE);
-			return;
-		}
+		// BEW 2Dec13 commented out disabling the Adjust... button when there is
+		// no free translation in the composebar's edit box yet. I found that with a short
+		// one pile section, that I'd want to join the section to the next before I typed
+		// anything, and so we need to facilitate this by making the button be enabled
+		//wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+		//if (freetrans.IsEmpty())
+		//{
+		//	event.Enable(FALSE);
+		//	return;
+		//}
 		// BEW 2Dec13 disable in Free Trans mode when vertical edit is operating, support 
 		// for Adjust's options would clobber the carefully controlled lists of spans that
 		// vertical edit maintains
