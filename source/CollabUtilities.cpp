@@ -3004,6 +3004,16 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 		CLayout* pLayout = pApp->GetLayout();
 		pLayout->SetLayoutParameters(); // calls InitializeCLayout() and
 					// UpdateTextHeights() and calls other relevant setters
+		// BEW 10Dec13 when collaborating, now that the doc carries the last active sequ
+		// num value, and has been read in above, we can use it to set the active location
+		// to better than the doc start; app's m_nActiveSequNum has been set already at
+		// the load in of the doc's xml above
+		if ( (pApp->m_nActiveSequNum >= 0) && (pApp->m_nActiveSequNum < (int)pApp->m_pSourcePhrases->GetCount()) )
+		{
+			// We have an in-range value, so use it
+			nActiveSequNum = pApp->m_nActiveSequNum;
+			pApp->m_pActivePile = pLayout->GetPile(nActiveSequNum); // mist as well set it too
+		}
 #ifdef _NEW_LAYOUT
 		bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #else
@@ -3021,7 +3031,7 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 
 		// show the initial phraseBox - place it at nActiveSequNum
 		pApp->m_pActivePile = pLayout->GetPile(nActiveSequNum);
-		pApp->m_nActiveSequNum = nActiveSequNum; // currently is 0
+		pApp->m_nActiveSequNum = nActiveSequNum; // if not set in the block just above, it's 0 still
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
 			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
@@ -3031,17 +3041,14 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 		}
 
-		// set initial location of the targetBox
+		// set initial location of the targetBox, m_pActivePile should be valid, but just
+		// in case do a check and if NULL, use doc start as the active location
 		CPile* pPile = pApp->m_pActivePile;
-		pPile = pView->GetNextEmptyPile(pPile);
 		if (pPile == NULL)
 		{
+			nActiveSequNum = 0;
+			pApp->m_nActiveSequNum = nActiveSequNum;
 			pApp->m_pActivePile = pLayout->GetPile(nActiveSequNum); // put it back at 0
-		}
-		else
-		{
-			pApp->m_pActivePile = pPile;
-			pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 		}
 		// if Copy Source wanted, and it is actually turned on, then copy the source text
 		// to the active location's box, but otherwise leave the phrase box empty

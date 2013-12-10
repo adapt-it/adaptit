@@ -6067,6 +6067,16 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 	}
 
+	// BEW 10Dec13, if the user changed the punctuation settings, the global
+	// gbSpacelessTgtPunctuation needs recalculating, because free translation mode uses
+	// it a lot and if the user is in free translation mode and just edited the punct
+	// settings (e.g. to make ] not be a punct character so as to be able to have [ ]
+	// brackets within adaptations without them forcing a new section to be shorter than
+	// wanted) then his edit needs to "take" immediately
+	gSpacelessTgtPunctuation = pApp->m_punctuation[1];
+	// get rid of the spaces
+	gSpacelessTgtPunctuation.Replace(_T(" "), _T(""));
+
     // BEW 22May09 moved idle processing down to here so that idle events won't come before
     // the m_pActivePile has a chance to be reset to the valid active pile resulting from
     // the shenanigans that go on in RecalcLayout()! Failure to do so can result in system

@@ -478,6 +478,8 @@ void     RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, in
 // returned string isn't defined.
 bool     GetLanguageCodePrintName(wxString code, wxString& printName);
 
+//wxString RemoveCharFromString(wxString &str, wxChar ch); // removes all instances of ch from str
+
 // a handy utility for counting how many space-delimited words occur in str
 int CountSpaceDelimitedWords(wxString& str);
 

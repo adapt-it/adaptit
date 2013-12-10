@@ -9552,6 +9552,24 @@ bool CheckUsername()
 	return TRUE;
 }
 
+// Function isn't needed, wxString Replace() can do it simpler
+/*
+wxString RemoveCharFromString(wxString &str, wxChar ch)
+{
+	wxString newStr; newStr.Empty();
+	int offset = wxNOT_FOUND;
+	do {
+		offset = str.Find(ch);
+		if (offset != wxNOT_FOUND)
+		{
+			newStr += str.Left(offset);
+			newStr += str.Mid(offset + 1);
+			str = newStr;
+		}
+	} while (offset != wxNOT_FOUND);
+	return newStr;
+}
+*/
 #if defined(_KBSERVER)
 
 CBString MakeDigestPassword(const wxString& user, const wxString& password)

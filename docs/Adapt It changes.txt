@@ -1,22 +1,69 @@
 ----------------------------------------------
-Version 6.??.?? release ??date??
+Version 6.5.2 release ??date??
 ----------------------------------------------
-
-
-
+* The Free Translation feature has been improved. Formerly
+if a free translation was too long, it was shown shortened
+(truncated) and with ... (an ellipsis) at its end. Now a
+truncation can be avoided. Two new buttons, Adjust... and
+Insert Widener give extra options. The Adjust button shows a
+dialog with the following options:
+a) Join the current section to the next section (if there
+is no next section created yet, it is automatically created
+first);
+b) Join the current section to the previous section (likewise,
+if a previous section does not immediately precede the
+current one, one is automatically created first);
+c) Split. This shows a dialog where you can click to split
+a typed free translation into two parts - the first part
+is retained to form the free translation for the current section,
+and the remainder is inserted before whatever free translation 
+is already in the next section (and again, if no next section 
+exists yet, a new one is created first);
+d) Insert a section widener at the end of the current section.
+Wideners are a 'new' feature of free translation. They are
+just placeholders which display as five (not three) dots, like
+this: .....  they therefore make the drawing area wider which
+helps a long free translation to fit without being truncated. 
+More than one of these wideners can be inserted in sequence.
+(Probably it's good if you avoid overusing this feature - so your 
+document will not have wideners sprinkled all over the place.)
+e) Do nothing. The truncation will then happen instead.
+The Insert Widener button is just a quicker way to do exactly 
+what the option d) above does. So you can get a widener inserted
+with just a single click, instead of three clicks being needed
+if you use the Adjust... dialog instead.
+* To facilitate long free translations having more chance of
+not being truncated, when you open free translation mode, the 
+inter-pile gap is automatically set to 40 pixels (rather than
+leaving it at the default 16 pixels); and when you exit from
+free translation mode, the former inter-pile gap setting is
+automatically restored.
+* Because of the above new free translation options, it is 
+probably better to use the "Define sections By: Punctuation" 
+button whenever possible. This gives shorter sections which 
+helps keep free translations close to the text they belong to.
+* The button, Remove Some Entries or Save List..." in the
+Edit Knowledge Base dialog has a different default now. When
+clicked, the view shown lists the target text first (or gloss
+text if glossing mode is currently turned on). This is more
+likely to be what users would want most often.
 
 ----------------------------------------------
-Bug fixes in 6.??.??
+Bug fixes in 6.5.2
 ----------------------------------------------
 * Adapt It crashed in the following circumstance. Free
 translation was turned on. A printout was done which 
 required using a temporary subpart of the document (such
 as a page range, or other range). After the print finished,
 the user immediately clicked the menu item Free Translation
-Mode in order to turn of free translating.
+Mode in order to turn off free translating.
 * When validating changes to numeric settings in Preferences, 
 if a wrong value was entered, the wrong page for doing the
-corrections was shown.
+corrections was shown. It now shows the correct page.
+* When setting up collaboration after it has been off for a
+while, the document's location for where the phrase box should
+be placed when the document is laid out, was lost. Now it is
+set correctly to the location which the document has stored.
 
 ----------------------------------------------
 Version 6.5.1 release 13 November 2013
