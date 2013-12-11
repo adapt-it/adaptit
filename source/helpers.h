@@ -469,7 +469,24 @@ void     UpdateDocWithPhraseBoxContents(bool bAttemptStoreToKB, bool& bNoStore,
 // ConsistencyCheckDlg for an example of use
 void     RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w, int h, 
 									int XPos, int YPos, int& myTopCoord, int& myLeftCoord);
-   
+
+// Use this to work out where to move a modal dialog to; call it in it's InitDialog()
+// function at the end of the function, do a dialog frame window GetSize() call first to
+// get the (x,y,w,h) rectangle values, pass back the calculated (top,left) in screen
+// coords, and supply a dialog window SetSize() to do the reposition -- see
+// Free Translation's Adjust dialog for an example of use. 
+// This version makes some checks which in some circumstances can indicate there is a
+// secondary monitor and the phrasebox is within that secondary monitor -- indicated by
+// left coord of phrase box in device coords being either negative (primary monitor is on
+// right, AI is displaying on a monitor to its left), or large positive and greater than
+// width of primary monitor (primary monitor is on the left and AI is displaying in a
+// secondary monitor to its right); when AI is displaying on the primary monitor, we've no
+// way to determine reliably and x-platform that there's a secondary monitor too, so in
+// this circumstance we display the Adjust dialog to the top right or bottom right of the
+// primary monitor - depending on where the phrase box is.
+void     RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int y, int w, int h, 
+									int XPos, int YPos, int& myTopCoord, int& myLeftCoord);
+
 // Use this to pass in a 2- or 3-letter ethnologue code, and get back its print name
 // string, and inverted name string (internally, gets the file "iso639-3codes.txt" into a
 // wxString buffer (the file has the 2-letter codes listed first, then the 3-letter ones,
