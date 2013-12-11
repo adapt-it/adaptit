@@ -10064,15 +10064,21 @@ wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxRadioButton *item5 = new wxRadioButton( parent, ID_RADIO_SPLIT_OFF, _("Split. Keep the first part in the current section, join the remainder to what follows"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxRadioButton *item6 = new wxRadioButton( parent, ID_RADIO_INSERT_WIDENER, _("Insert a section widener (...) at the end of the section"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item6 = new wxRadioButton( parent, ID_RADIO_INSERT_WIDENER, _("Insert a section widener (.....) at the end of the section"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIO_DO_NOTHING, _("Do nothing. Your free translation is retained, but its display is shortened with dots at the end"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->SetDefault();
-    item1->Add( item8, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    item7->Add( item8, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item9, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    item1->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -10154,6 +10160,11 @@ wxSizer *SplitterDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item15 = new wxButton( parent, wxID_OK, _("Done"), wxDefaultPosition, wxSize(56,-1), 0 );
     item15->SetDefault();
     item12->Add( item15, 0, wxALIGN_CENTER, 5 );
+
+    item12->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(56,-1), 0 );
+    item12->Add( item16, 0, wxALIGN_CENTER, 5 );
 
     item1->Add( item12, 0, wxALIGN_CENTER, 5 );
 

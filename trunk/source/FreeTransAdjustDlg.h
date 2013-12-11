@@ -53,6 +53,7 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
 
 private:
 	// class attributes
@@ -64,7 +65,6 @@ private:
 	wxRadioButton*		m_pRadioJoinToPrevious;
 	wxRadioButton*		m_pRadioSplitIt;
 	wxRadioButton*		m_pRadioInsertWidener;
-	wxRadioButton*		m_pRadioDoNothing;
 	wxTextCtrl*			m_pTextCtrl;
 
 	DECLARE_EVENT_TABLE()

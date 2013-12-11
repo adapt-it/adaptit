@@ -52,7 +52,7 @@ extern bool gbIsGlossing;
 BEGIN_EVENT_TABLE(FreeTransAdjustDlg, AIModalDialog)
 	EVT_INIT_DIALOG(FreeTransAdjustDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, FreeTransAdjustDlg::OnOK)
-	//EVT_BUTTON(wxID_CANCEL, FreeTransAdjustDlg::OnCancel)
+	EVT_BUTTON(wxID_CANCEL, FreeTransAdjustDlg::OnCancel)
 	//EVT_RADIOBUTTON(ID_RADIO_JOIN_TO_NEXT, FreeTransAdjustDlg::OnRadioJoinToNext)
 	//EVT_RADIOBUTTON(ID_RADIO_JOIN_TO_PREVIOUS, FreeTransAdjustDlg::OnRadioJoinToPrevious)
 END_EVENT_TABLE()
@@ -90,7 +90,6 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pRadioJoinToPrevious = (wxRadioButton*)FindWindowById(ID_RADIO_JOIN_TO_PREVIOUS);
 	m_pRadioSplitIt = (wxRadioButton*)FindWindowById(ID_RADIO_SPLIT_OFF);
 	m_pRadioInsertWidener = (wxRadioButton*)FindWindowById(ID_RADIO_INSERT_WIDENER);
-	m_pRadioDoNothing = (wxRadioButton*)FindWindowById(ID_RADIO_DO_NOTHING);
 	m_pTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TELL_USER);
 
 	// Support the message text at the top being Right to Left
@@ -128,6 +127,16 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// carrying the results of any previous split		 
 	m_pFreeTrans->m_strSplitForCurrentSection.Empty();
 	m_pFreeTrans->m_strSplitForNextSection.Empty();
+}
+
+void FreeTransAdjustDlg::OnCancel(wxCommandEvent& event)
+{
+    // do nothing except facilitate the user typing beyond the allowed space in the
+    // section without having the Adjust dialog open at every keystroke
+	m_pFreeTrans->m_bAllowOverlengthTyping = TRUE;
+	m_pFreeTrans->m_adjust_dlg_reentrancy_limit = 1;
+	m_pMainFrame->m_pComposeBarEditBox->SetFocus();
+	event.Skip();
 }
 
 void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
@@ -292,19 +301,12 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 		m_pApp->m_bFreeTrans_EventPending = TRUE; // the handler block in OnIdle() will restore FALSE
 		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
 		m_pApp->m_enumWhichFreeTransOp = insert_widener; // defines which custom event OnIdle() will post
-
-	} else if (m_pRadioDoNothing->GetValue())
-	{
-        // do nothing except facilitate the user typing beyond the allowed space in the
-        // section without having the Adjust dialog open at every keystroke
-		m_pFreeTrans->m_bAllowOverlengthTyping = TRUE;
-		//selection = 4;
 	}
 	else
 	{
 		// default is to do nothing except facilitate the user typing beyond the allowed
 		// space in the section without having the Adjust dialog open at every keystroke, 
-		// however... we should not ever come thru here
+		// however... contnrol should not ever come thru here
 		m_pFreeTrans->m_bAllowOverlengthTyping = TRUE;
 		//selection = 4;
 	}
