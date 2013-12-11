@@ -117,7 +117,7 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// phrase box currently is
 	m_pMainFrame->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x, m_ptBoxTopLeft.y,&newXPos,&newYPos);
 	m_pMainFrame->canvas->ClientToScreen(&newXPos, &newYPos); // now it's screen coords
-	RepositionDialogToUncoverPhraseBox(m_pApp, 0, 0, rectDlg.width, rectDlg.height,
+	RepositionDialogToUncoverPhraseBox_Version2(m_pApp, 0, 0, rectDlg.width, rectDlg.height,
 										newXPos, newYPos, myTopCoord, myLeftCoord);
 	SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
 
