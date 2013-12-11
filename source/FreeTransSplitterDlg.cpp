@@ -66,6 +66,7 @@
 BEGIN_EVENT_TABLE(FreeTransSplitterDlg, AIModalDialog)
 	EVT_INIT_DIALOG(FreeTransSplitterDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, FreeTransSplitterDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, FreeTransSplitterDlg::OnCancel)
 	EVT_BUTTON(ID_BUTTON_SPLIT_HERE, FreeTransSplitterDlg::OnButtonSplitHere)
 END_EVENT_TABLE()
 
@@ -97,6 +98,7 @@ void FreeTransSplitterDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pEditFreeTrans = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_FREE_TRANS);
 	m_pEditForCurrent = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_CURRENT_SECTION);
 	m_pEditForNext = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_NEXT_SECTION);
+	m_nSplitButtonHitCount = 0; // If it remains 0 at a Done button click, treat same as Cancel click
 
 	// Support RTL languages; use...
 	//void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,
@@ -158,8 +160,20 @@ void FreeTransSplitterDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pEditFreeTrans->SetFocus();
 }
 
+void FreeTransSplitterDlg::OnCancel(wxCommandEvent& event)
+{
+    // Clobber any user choice - make the split substrings be empty
+	m_FreeTransForCurrent.Empty();
+	m_FreeTransForNext.Empty();
+	m_pFreeTrans->m_strSplitForCurrentSection.Empty();
+	m_pFreeTrans->m_strSplitForNextSection.Empty();
+	event.Skip();
+}
+
 void FreeTransSplitterDlg::OnOK(wxCommandEvent& event)
 {
+	if (m_nSplitButtonHitCount > 0)
+	{
 	// Get the split strings for the caller to grab
 	m_FreeTransForCurrent = m_pEditForCurrent->GetValue();
 	m_FreeTransForCurrent.Trim(); // should not need any space on the end
@@ -173,12 +187,27 @@ void FreeTransSplitterDlg::OnOK(wxCommandEvent& event)
 	// there by the DoSplitIt() handler
 	m_pFreeTrans->m_strSplitForCurrentSection = m_FreeTransForCurrent;
 	m_pFreeTrans->m_strSplitForNextSection = m_FreeTransForNext;
-
+	}
+	else
+	{
+		// User has made no Split choice yet, so treat as a Cancel click - make
+		// the split substrings be empty, and the CFreeTrans instance also have the
+		// equivalent string members set empty (this could be handled differently, I could
+		// leave them potentially non-empty here, and use the 'Cancel' code block in the
+		// dialog handler set them to empty, but I chose to do it as below instead)
+		m_FreeTransForCurrent.Empty();
+		m_FreeTransForNext.Empty();
+		m_pFreeTrans->m_strSplitForCurrentSection.Empty();
+		m_pFreeTrans->m_strSplitForNextSection.Empty();
+	}
 	event.Skip(); // we want the dialog to dispose of itself when OK is clicked
 }
 
 void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 {
+	// Bump the hit count
+	m_nSplitButtonHitCount++;
+
 	// Clear both the two lower editboxes
 	m_pEditForCurrent->Clear();
 	m_pEditForNext->Clear();

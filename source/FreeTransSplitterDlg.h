@@ -72,6 +72,7 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
 	void OnButtonSplitHere(wxCommandEvent& WXUNUSED(event));
 
 private:
@@ -83,6 +84,7 @@ private:
 	long				m_from;
 	long				m_to;
 	size_t				m_offset;
+	int					m_nSplitButtonHitCount;
 
 	DECLARE_EVENT_TABLE()
 };

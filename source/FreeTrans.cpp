@@ -9956,15 +9956,29 @@ void CFreeTrans::DoSplitIt()
 
 	// Show the Splitter dialog for the user to make choice for where to split
 	FreeTransSplitterDlg dlg(m_pFrame);
-	if (dlg.ShowModal() == wxID_OK) // There's no Cancel button, so control goes to 
-									// the following block every time
+	if (dlg.ShowModal() == wxID_OK)
 	{
 		// get the two split strings... (the user's choice may result in one of the
 		// strings being empty - that is not an error)
 		m_strSplitForCurrentSection = dlg.m_FreeTransForCurrent;
 		m_strSplitForNextSection = dlg.m_FreeTransForNext;
 	}
+	else
+	{
+		// User Cancelled. m_strSplitForCurrentSection and m_strSplitForNextSection
+		// have already been cleared to be empty strings, and so nothing to do here
+		;
+	}
 
+	// If both the two string members for storing the parts of a split are empty, then
+	// either the user made no split before hitting the Done button, or he chose Cancel -
+	// in either case, do nothing
+	if (m_strSplitForCurrentSection.IsEmpty() && m_strSplitForNextSection.IsEmpty())
+	{
+		// A legitimate Split operation can have one of these strings empty, but not both
+		m_pFrame->m_pComposeBarEditBox->SetFocus();
+		return;
+	}
 	// It remains to store each substring correctly, and redraw etc; in the case of the
 	// "next" section, it might not even exist yet, or if it does, we have to get its
 	// anchor pile and then put the remainder string at the start of its free translation,
