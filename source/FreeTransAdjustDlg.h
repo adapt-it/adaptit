@@ -48,7 +48,7 @@ public:
 								// after the FreeTransAdjustDlg has been created, but before
 								// the dlg.Show() call is done, so that InitDialog() can pick
 								// up and use the wxPoint values (this functionality uses
-								// RepositionDialogToUncoverPhraseBox(), a helpers.cpp function)
+								// RepositionDialogToUncoverPhraseBox_Version2(), a helpers.cpp function)
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

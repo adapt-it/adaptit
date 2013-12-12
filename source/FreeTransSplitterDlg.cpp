@@ -59,7 +59,11 @@
 #include "Adapt_It.h"
 #include "Adapt_It_wdr.h"
 #include "FreeTrans.h"
-#include  "MainFrm.h"
+#include "helpers.h"
+#include "Pile.h"
+#include "Cell.h"
+#include "MainFrm.h"
+#include "Adapt_ItCanvas.h"
 #include "FreeTransSplitterDlg.h"
 
 // event handler table
@@ -85,7 +89,12 @@ FreeTransSplitterDlg::FreeTransSplitterDlg(
 	m_pApp = &wxGetApp();
 	m_pMainFrame = (CMainFrame*)parent;
 	m_pFreeTrans = m_pApp->GetFreeTrans(); // for access to the one and only CFreeTrans class's instance
-	CentreOnParent();
+	//CentreOnParent();
+	// Need to set m_ptBoxTopLeft here, it's not set by the caller for this dialog
+	wxASSERT(m_pApp->m_pActivePile);
+	CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
+	this->m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+
 }
 
 FreeTransSplitterDlg::~FreeTransSplitterDlg() // destructor
@@ -124,7 +133,6 @@ void FreeTransSplitterDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	#endif
 
 	// work out where to place the dialog window
-	/* We probably won't bother to move it to the side - it contains all the user needs for a correct decision
 	int myTopCoord, myLeftCoord, newXPos, newYPos;
 	wxRect rectDlg;
 	GetSize(&rectDlg.width, &rectDlg.height); // dialog's window frame
@@ -137,10 +145,10 @@ void FreeTransSplitterDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// phrase box currently is
 	m_pMainFrame->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x, m_ptBoxTopLeft.y,&newXPos,&newYPos);
 	m_pMainFrame->canvas->ClientToScreen(&newXPos, &newYPos); // now it's screen coords
-	RepositionDialogToUncoverPhraseBox(m_pApp, 0, 0, rectDlg.width, rectDlg.height,
+	RepositionDialogToUncoverPhraseBox_Version2(m_pApp, 0, 0, rectDlg.width, rectDlg.height,
 										newXPos, newYPos, myTopCoord, myLeftCoord);
 	SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
-	*/
+	
 	// Put the strings into the boxes
 	m_pFreeTrans->GetCurrentSectionsTextAndFreeTranslation(m_theText, m_theFreeTrans);
 	m_pEditText->ChangeValue(m_theText);

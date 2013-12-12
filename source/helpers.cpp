@@ -34,7 +34,8 @@
 #include <wx/textfile.h>
 #include <wx/stdpaths.h>
 #include <wx/fileconf.h> // for wxFileConfig
-
+#include <wx/display.h> // for multiple monitor metrics, 
+						// used for dialog relocation away from active pile
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
@@ -9139,7 +9140,7 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 	}
 }
 
-// BEW created 16Sep11, for putting in InitDialog() so as to move it towards a corner of
+// BEW created 12Dec13, for putting in InitDialog() so as to move it towards a corner of
 // screen away from where phrase box currently is when the dialog is put up
 // x       -> (left) always passed in as 0 (it's device coords for dlg left, dlg is the device)
 // y       -> (top) always passed in as 0 (it's device coords for dlg top, dlg is the device)
@@ -9152,219 +9153,295 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 //                  (a SetSize() call will do the job, after this function returns)
 // myLeftCoord  <-  left, in screen coords, where the left of the dialog is to be placed
 //                  (a SetSize() call will do the job, after this function returns)
+// Internally, supports multiple monitors, so is much smarter than the original of the
+// same name but without the "_Version2" in the name - see above
 void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int y, int w, int h,
 				int XPos, int YPos, int& myTopCoord, int& myLeftCoord)
 {
 	// Monitor discovery and metrics. WX has a class for this: wxDisplay
+	wxArrayPtrVoid arrDisplays; // to store wxDisplay* object pointers, one for each monitor
+	wxArrayPtrVoid arrAreas; // to store wxRect* object pointers, the client display area for each monitor
+    unsigned int numMonitors;
+    numMonitors = wxDisplay::GetCount();
+	unsigned int monIndex;
+	wxDisplay* pMonitor = NULL;
+	wxRect* pArea = NULL;
+	for (monIndex = 0; monIndex < numMonitors; monIndex++)
+	{
+		pMonitor = new wxDisplay(monIndex); // the monitor with index 0 will always be the
+				// system's primary monitor - usually represented as a 1 in graphical displays
+		arrDisplays.Add(pMonitor);
+		pArea = new wxRect;
+		arrAreas.Add(pArea);
+		*pArea = pMonitor->GetClientArea();
+#if defined (_DEBUG)
+		wxLogDebug(_T("RepositionDialog...(): Monitor: index = %d    Area: x = %d,  y = %d, width = %d, height = %d"),
+			monIndex, pArea->x, pArea->y, pArea->width, pArea->height);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // This version makes some checks which in some circumstances can indicate there is a
-    // secondary monitor and the phrasebox is within that secondary monitor -- indicated by
-    // left coord of phrase box in device coords being either negative (primary monitor is
-    // on right, AI is displaying on a monitor to its left), or large positive and greater
-    // than width of primary monitor (primary monitor is on the left and AI is displaying
-    // in a secondary monitor to its right); when AI is displaying on the primary monitor,
-    // we've no way to determine reliably and x-platform that there's a secondary monitor
-    // too, so in this circumstance we display the Adjust dialog to the top right or bottom
-    // right of the primary monitor - depending on where the phrase box is.
-    // 
-	// A problem with all this is that the secondary monitor may be smaller than the
-	// primary monitor - and if the AI window is in the secondary monitor, but the screen
-	// metrics are for the primary monitor, then our calculations could put part of the
-	// dialog off-screen if we try to have the dialog always positioned so that its top or
-	// bottom is at the screen top or bottom. But the calculations will be accurate if AI
-    // is on the primary monitor - and we can determine with 100% certainty when it's on
-    // the secondary monitor - so in the latter circumstand we'll raise or lower the dialog
-    // position not to the screen boundary (top or bottom), but just enough to make the
-    // active strip visible.
+#endif
+	}
+	// We prefer to display the dialog centered above the AI frame window, if possible -
+	// up to 90 pixels of overlap is allowable at the top; or centered below the frame as
+	// second choice - up to 30 pixels of overlap is allowable. If those options are not
+	// possible, then we choose whichever corner of the monitor the phrase box is on (we
+	// can safely assume the whole AI frame is on the same monitor) is the furthest corner
+	// from the phrase box - so the options are top_left, top_right, bottom_left, or
+	// bottom_right - but not necessarily in that order. There is usually more unused
+	// client space on the right of the AI canvas, so we prefer rightwards placement
+	// usually, but leftwards when the phrasebox is towards the right of the client area -
+	// and when on the left, usually at the top corner is better because the various bars
+	// of the frame are being temporarily obscured - which is better than obscuring strips
 	enum DisplayConstraint {
-		left_unbounded,
-		right_unbounded,
-		right_bounded
+		centered_above,
+		centered_below,
+		top_right,
+		bottom_right,
+		top_left,
+		bottom_left
 	};
+	// Note, the system lines up the bases of monitors. So, for example, my primary
+	// monitor is a 1920 wide by 1080 pixels deep one. My secondary is a smaller monitor,
+	// it's 1680 wide by 1050 deep. A difference of 30 pixels in height. The primary
+	// monitor defines the coordinate system. So here's the area rectangles returned in
+	// the above loop:
+	// Primary: {0,0,1920,1040} Note, the 40 pixel task bar is not included, it is not an
+	// area which is drawable on
+	// Secondary: {-1680,30,1680,1050} Note, x is negative, my secondary is on the left of
+	// the primary monitor, and y is 30, because the system has lined up the bottoms of
+	// each monitor, so the secondary's top is 30 pixels lower. These facts define how we
+	// do our arithmetic below.
 
-	// work out where to place the dialog window
-	CLayout* pLayout = pApp->GetLayout();
-	int m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
-	int stripheight = m_nTwoLineDepth;
-
-	// Useable part of the screen, metrics
-	wxRect rectScreen;
-	rectScreen = wxGetClientDisplayRect(); // a global wx function
-	int displayWidth, displayHeight;
-	// The following isn't helpful, the status windows taskbar is on top of the buttons if
-	// the dialog gets displayed at bottom right
-	//::wxDisplaySize(&displayWidth,&displayHeight); // returns 1920 by 1080 on my XPS
-							//machine which has monitor 1 as the larger, secondary monitor
-							//is to its left, and is 1680 by 1050
-	displayWidth = rectScreen.GetWidth();
-	displayHeight = rectScreen.GetHeight();
-
-	// Now the dialog metrics
+	// Now get the dialog metrics - width and height
 	wxRect rectDlg(x,y,w,h);
 	rectDlg = NormalizeRect(rectDlg); // in case we ever change from MM_TEXT mode // use our own
 	int dlgHeight = rectDlg.GetHeight();
 	int dlgWidth = rectDlg.GetWidth();
 	wxASSERT(dlgHeight > 0);
 
-    // Phrase box size and position metrics - these also allow us to work out if AI is
-    // displaying on the secondary monitor (if there is one). Where the phrasebox is on the
-    // screen device is given by the passed in XPos and Ypos values. XPos is very
-    // significant - if -ve, then primary monitor is to the right, and a secondary monitor
-    // to the left has the phrasebox displayed on it - that means that there's heaps of
-    // space to the right for displaying the dialog, so we can place it adjacent to the
-    // right boundary of the AI frame window (use right_unbounded block's code). If XPos is
-    // greater than the primary monitor's width then the phrasebox is displaying on a
-    // secondary monitor to the right of the primary one, and so the best place to display
-    // the dialog is to the immediate left of the AI frame window - there's heaps of room
-    // on that side for it (use left_unbounded block's code). If Xpos is positive and less
-    // and the primary window width, then the phrasebox is displaying on the primary
-    // monitor, so we don't know if there's any secondary monitor and so the right bound of
-    // the primary monitor is a right bound beyond which the right of the dialog must not
-    // exceed (use right_bounded block's code).
+	// Get the strip height
+	CLayout* pLayout = pApp->GetLayout();
+	int m_nTwoLineDepth = 2 * pLayout->GetTgtTextHeight();
+	int stripheight = m_nTwoLineDepth;
+
+    // Next get the Phrase box size and position metrics
 	int phraseBoxHeight;
 	int phraseBoxWidth;
-	DisplayConstraint constraint = right_bounded; // initialize to default
 	pApp->m_pTargetBox->GetSize(&phraseBoxWidth,&phraseBoxHeight); // it's the width we want
-	// Set the enum we need to use
-	if (XPos < 0)
-	{
-		constraint = right_unbounded;
-	}
-	else if (XPos > displayWidth)
-	{
-		constraint = left_unbounded;
-	}
 
-    // Find out how many pixels are available to left, right, above and below of the
-    // phrasebox location on the screen. The values to left and right are good for
-    // right_unbounded and left_unbounded, taking the secondary monitor into account. But
-    // for right_bounded we don't know if there's a secondary monitor or not, and so must
-    // constrain the dialog to fit within the real estate of the one monitor we have
-    // metrics for
-	int pixelsAvailableAtTop = YPos - stripheight; // remember box is in line 2 of strip
-	int pixelsAvailableAtBottom = displayHeight - (stripheight + pixelsAvailableAtTop);
-	//int pixelsAvailableAtLeft = XPos - 10; // -10 to clear away from the phrase box a little bit
-	//int pixelsAvailableAtRight = displayWidth - (phraseBoxWidth + XPos);
-
-	// Work out whether to move dialog up or down, this calculation is the same regardless
-	// of whether there are two monitors or one, but if might be a little "off" if the AI
-	// frame window is on a smaller secondary monitor, as discussed above - we can't help
-	// that and will use what we get and let the user move the dialog manually if necessary
-	bool bAtTopIsBetter = pixelsAvailableAtTop > pixelsAvailableAtBottom;
-
-	// Our new version of this function will need to know where the frame rectangle is, in
-	// screen coordinates - so we will get that worked out now
+	// We need to know where the frame rectangle is, in screen coordinates, & width & height
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	int frameWidth, frameHeight;
 	pFrame->GetSize(&frameWidth, &frameHeight); // get AI's window frame width and height
 	int frame_xCoord, frame_yCoord; // for location of it's topLeft
 	pFrame->GetScreenPosition(&frame_xCoord, &frame_yCoord);
 
-	// Now we are ready for the calculations to work out myLeftCoord and myTopCoord values
-	// which we want to pass back to thee caller, for the Size() call to locate the dialog
-	// at the (myLeftCoord,myTopCoord) point on the screen(s)
-    // Now the myLeftCoord value
+	// Which monitor is the phrasebox on? People don't work with the canvas spanning two
+	// monitors, so we can safely assume where the phrasebox is, is also where the AI
+	// frame window is. Once we know the monitor, we can get the display metrics from the
+	// arrDisplays array.
+	wxPoint phraseBoxTopLeft;
+	phraseBoxTopLeft.x = XPos; // the 'left' value, in screen coords
+	phraseBoxTopLeft.y = YPos; // the 'top' value, in screen coords
+	// From this point we can get the monitor the phrasebox is displaying on
+	unsigned int myMonitor = wxDisplay::GetFromPoint(phraseBoxTopLeft);
+
+	// Get the rectangle which is the client area (i.e. where our windows are able to be
+	// drawn) on myMonitor, and from it work out the displayWidth and displayHeight
+	// (maximums) for that monitor
+	wxASSERT(arrAreas.GetCount() >= 1);
+	pArea = (wxRect*)arrAreas.Item(myMonitor);
+	int displayWidth, displayHeight;
+	displayWidth = pArea->GetWidth();
+	displayHeight = pArea->GetHeight();
+	int heightDiff; // between the two monitors - myMonitor versus primary one, 
+					// +ve means myMonitor is less tall than primary one, -ve means its higher
+	heightDiff = pArea->y; // this is a compensatory factor affecting placement of the
+						   // dialog below the AI frame window's bottom; we require it
+						   // because the system aligns the screens at their bottom
+	// From our various metrics, get the set of metrics which enable us to choose the
+	// appropriate DisplayConstraint enum value. For horizontal metrics (left or right
+	// distances) we want to know distance from start or end of the phrasebox to the
+	// monitor's left or right edge. For vertical metrics, we want to know if there is
+	// more space above or below the active strip - allowing an extra strip of space so
+    // that the box doesn't encroach on needed visual context; but we also want to know
+    // what the distance is from the top of the frame to the top of the screen, and from
+    // the bottom of the phrase to the bottom of the screen - the first two enums need the
+    // latter two
+	int pixelsAvailableAbovePhraseBox = YPos - stripheight;
+	int pixelsAvailableBelowPhraseBox = displayHeight - (YPos + 2 * stripheight);
+	// For the left calculation, distance to left edge of monitor, minus location of left
+	// edge of phrase box, minus an extra 10 pixels to keep the dialog way from the phrase
+	// box a little bit, if phrase box is to the left of the origin, if to the right, then
+	// distance to left of phrasebox minus distance to monitor's left edge, less 10 for
+	// same reason as above
+	int pixelsAvailableAtLeft; // we calculate a positive value
+	if (XPos < 0)
+	{
+		pixelsAvailableAtLeft = abs(pArea->x) - (abs(XPos) + 10);
+	}
+	else
+	{
+		pixelsAvailableAtLeft = (abs(XPos) - 10) - abs(pArea->x);
+	}
+	// Similar calculations for pixels available from the end of the phrasebox plus an
+	// extra ten pixels, to the right edge of the monitor. Again, we calculate a +ve value
+	int pixelsAvailableAtRight;
+	if (XPos < 0)
+	{
+		pixelsAvailableAtRight = (abs(XPos) - phraseBoxWidth - 10) - (abs(pArea->x) - pArea->width);
+	}
+	else
+	{
+		// here XPos is >= 0
+		pixelsAvailableAtRight = (pArea->x + pArea->width) - (XPos + phraseBoxWidth + 10);
+	}
+
+	// Define topMaxOverlap and bottomMaxOverlap, in pixels, which determine how much overlap we
+	// allow of the dialog over the AI frame rectangle at the top, or bottom. Top has more
+	// room - we allow up to 96 pixels, bottom has only the status bar, we allow up to 40;
+	// and preferred values for these - 54, and 20 pixels, respectively
+	int topMaxOverlap = 96;
+	int bottomMaxOverlap = 60; // we'll enroach as far as into 2nd-bottom strip approx
+	int topPreferredOverlap = 54; // just the titlebar and the menu bar
+	int bottomPreferredOverlap = 40; // status bar and a bit more, the active section is not
+									 // ever likely to be at such a low place within the frame
+	int pixelsAvailableAboveFrame = frame_yCoord - pArea->y; // note, if this monitor is larger than the
+													 // primary monitor, pArea->y will be negative,
+													 // and so increase the final value from YPos
+	if (pixelsAvailableAboveFrame < 0)
+	{
+		pixelsAvailableAboveFrame = 0;
+	}
+	int pixelsAvailableBelowFrame;
+	if ((frame_yCoord + frameHeight) > pArea->height)
+	{
+		pixelsAvailableBelowFrame = 0;
+	}
+	else
+	{
+		pixelsAvailableBelowFrame = pArea->height - (frame_yCoord + frameHeight);
+	}
+	// Our roughest calculation is to see where most of the obstructable area is, whether
+	// above or below the active strip. Other calculations may override what this tells us
+	bool bAtTopIsBetter = pixelsAvailableAbovePhraseBox > pixelsAvailableBelowPhraseBox;
+
+	// Determine if display above the frame (and outside it) is possible, or if we can
+	// achieve our preferred overlap, or if we can squeeze it in without going beyond our
+	// maximum overlap
+	bool bCanFitAboveWithoutOverlap = pixelsAvailableAboveFrame >= dlgHeight;
+	bool bCanFitAboveWithPreferredOverlap = (pixelsAvailableAboveFrame + topPreferredOverlap) >= dlgHeight;
+	bool bCanFitAboveButOnlyJust = (pixelsAvailableAboveFrame + topMaxOverlap) >= dlgHeight;
+	// Now the "below" ones
+	bool bCanFitBelowWithoutOverlap = pixelsAvailableBelowFrame + heightDiff >= dlgHeight;
+	bool bCanFitBelowWithPreferredOverlap = (pixelsAvailableBelowFrame + heightDiff + bottomPreferredOverlap) >= dlgHeight;
+	bool bCanFitBelowButOnlyJust = (pixelsAvailableBelowFrame + heightDiff + bottomMaxOverlap) >= dlgHeight;
+
+	DisplayConstraint constraint = centered_above; // initialize to the default enum value (our preferred option)
+
+	// Try first for above the frame, or failing that, below the frame dlg location; if
+	// failing both, we'll go for one of the corners
+	bool bRightCorner = TRUE; // our preferred default for the corners
+	int halfFrameWidth = frameWidth/2;
+	int halfDialogWidth = dlgWidth/2;
+	if ( bCanFitAboveWithoutOverlap || bCanFitAboveWithPreferredOverlap || bCanFitAboveButOnlyJust)
+	{
+		constraint = centered_above; // we'll be more specific in the switch below
+	}
+	else if ( bCanFitBelowWithoutOverlap || bCanFitBelowWithPreferredOverlap || bCanFitBelowButOnlyJust)
+	{
+		constraint = centered_below; // likewise, we'll be more specific in the switch
+	}
+	else
+	{
+		// Not above or below, so the corner choice has to be done in this block
+		if (bAtTopIsBetter)
+		{
+			// Which corner?
+			bRightCorner = pixelsAvailableAtRight > pixelsAvailableAtLeft;
+			if (bRightCorner)
+				constraint = top_right;
+			else
+				constraint = top_left;
+		}
+		else // at bottom is better
+		{
+			// Which corner?
+			bRightCorner = pixelsAvailableAtRight > pixelsAvailableAtLeft;
+			if (bRightCorner)
+				constraint = bottom_right;
+			else
+				constraint = bottom_left;
+		}
+	}	 
+
+	// Now we are ready for the calculations for the 10 possible locations - three
+	// top centered locations, three bottom centered ones, and the four corners
 	switch (constraint)
 	{
-	case right_bounded:
-        // Dialog has to lie within the primary monitor, and the dialog is located at the
-        // right edge of the monitor
-		myLeftCoord = displayWidth - dlgWidth;
-		// Now the top -- our calculations above are for the monitor we are displaying the
-		// Adapt It frame on, so are correct values. So put the dialog in the top right or
-		// bottom right corner of the window
-		if (bAtTopIsBetter)
+	case centered_above:
+		// The best option is to obscure nothing, so if it will fit without overlap, do
+		// that; if not try for our preferred overlap option - if that isn't enough, then
+		// take the max overlap option
+		if (bCanFitAboveWithoutOverlap)
 		{
-			myTopCoord = 0;
+			// Don't go as far above as possible, just sit it on top of the frame
+			myTopCoord = frame_yCoord - dlgHeight;
+		}
+		else if (bCanFitAboveWithPreferredOverlap)
+		{
+			// Overlap a bit
+			myTopCoord = frame_yCoord - dlgHeight + topPreferredOverlap;
 		}
 		else
 		{
-			myTopCoord = displayHeight - dlgHeight;
+			// Take the max overlap option
+			myTopCoord = frame_yCoord - dlgHeight + topMaxOverlap;
 		}
+		myLeftCoord = frame_xCoord + halfFrameWidth - halfDialogWidth;
 		break;
-	case right_unbounded:
-        // Dialog has enough room to be on the right outside the frame window, put it there
-		myLeftCoord = frame_xCoord + frameWidth;
-		// Now the top -- we do this conservatively, just a strip or so above or below the
-		// active strip, in case the monitor is smaller than the primary one
-		if (bAtTopIsBetter)
+	case centered_below:
+		// Try for the most amount of non-obscuring
+		if (bCanFitBelowWithoutOverlap)
 		{
-			if (dlgHeight + 2*stripheight < pixelsAvailableAtTop)
-				myTopCoord = pixelsAvailableAtTop - (dlgHeight + 2*stripheight);
-			else
-			{
-				if (dlgHeight > displayHeight)
-				{
-					//cut off top of dialog in preference to the bottom, where it's buttons are
-					myTopCoord = displayHeight - dlgHeight + 6;
-					if (myTopCoord > 0)
-						myTopCoord = 0;
-				}
-				else
-					myTopCoord = 0;
-			}
+			myTopCoord = frame_yCoord + frameHeight;
+		}
+		else if (bCanFitBelowWithPreferredOverlap)
+		{
+			myTopCoord = frame_yCoord + frameHeight - bottomPreferredOverlap;
 		}
 		else
 		{
-			if (YPos + stripheight + dlgHeight < displayHeight)
-				myTopCoord = YPos + stripheight;
-			else
-			{
-				myTopCoord = displayHeight - dlgHeight - 20;
-				if (myTopCoord < 0)
-					myTopCoord = myTopCoord + 20; // if we have to cut off any, cut off the dialog's top
-			}
+			myTopCoord = frame_yCoord + frameHeight - bottomMaxOverlap;
 		}
+		myLeftCoord = frame_xCoord + halfFrameWidth - halfDialogWidth;
 		break;
-	case left_unbounded:
-        // Dialog has enough room to be on the left outside the frame window, put it there
-		myLeftCoord = frame_xCoord - dlgWidth;
-		// Now the top -- we do this conservatively, just a strip or so above or below the
-		// active strip, in case the monitor is smaller than the primary one
-		if (bAtTopIsBetter)
-		{
-			if (dlgHeight + 2*stripheight < pixelsAvailableAtTop)
-				myTopCoord = pixelsAvailableAtTop - (dlgHeight + 2*stripheight);
-			else
-			{
-				if (dlgHeight > displayHeight)
-				{
-					//cut off top of dialog in preference to the bottom, where it's buttons are
-					myTopCoord = displayHeight - dlgHeight + 6;
-					if (myTopCoord > 0)
-						myTopCoord = 0;
-				}
-				else
-					myTopCoord = 0;
-			}
-		}
-		else
-		{
-			if (YPos + stripheight + dlgHeight < displayHeight)
-				myTopCoord = YPos + stripheight;
-			else
-			{
-				myTopCoord = displayHeight - dlgHeight - 20;
-				if (myTopCoord < 0)
-					myTopCoord = myTopCoord + 20; // if we have to cut off any, cut off the dialog's top
-			}
-		}
+	case top_right:
+        // Dialog has to lie within myMonitor, and the dialog is located at the
+        // top right edge of the monitor
+        myTopCoord = pArea->y; // could be -ve if primary monitor is smaller than this one
+		myLeftCoord = pArea->x + (pArea->width - dlgWidth);
 		break;
+	case bottom_right:
+		myTopCoord = pArea->y + pArea->height - dlgHeight;
+		myLeftCoord = pArea->x + (pArea->width - dlgWidth);
+		break;
+	case top_left:
+        myTopCoord = pArea->y; // could be -ve if primary monitor is smaller than this one
+		myLeftCoord = pArea->x;
+		break;
+	case bottom_left:
+		myTopCoord = pArea->y + pArea->height - dlgHeight;
+		myLeftCoord = pArea->x;
+		break;
+	}
+
+	// clear the display and rectangle objects from the heap
+	for (monIndex = 0; monIndex < numMonitors; monIndex++)
+	{
+		pMonitor = (wxDisplay*)arrDisplays.Item(monIndex);
+		delete pMonitor;
+		pArea = (wxRect*)arrAreas.Item(monIndex);	
+		delete pArea;
 	}
 }
 
