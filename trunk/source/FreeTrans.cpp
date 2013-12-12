@@ -4587,6 +4587,9 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 /// the inter-pile gap. We use 40, but if the user has a wider gap set from the ViewPage
 /// of the wizard, then we use the wider value for both adapting and free translating. The
 /// original gap is restored on exit from free translation mode.
+/// BEW 13Dec13 added code to allow turning free trans mode on when compose bar is showing
+/// - we test for it showing and if it is, we hide it and turn off the flag and then
+/// proceed with turning on free trans mode
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 {
 	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
@@ -4611,6 +4614,13 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 	}
 	else
 	{
+		// BEW addition 13Dec13 -- check if composebar is showing, if so, hide it
+		if (m_pApp->m_bComposeBarWasAskedForFromViewMenu)
+		{
+			// Composebar is showing, so unhide it
+			m_pFrame->ComposeBarGuts(composeBarHide); // param from composeBarViewSwitch enum in Adapt_It.h
+		}
+
 		// First, redo the layout and redraw it, using the free translation inter-pile gap value
 		SetInterPileGapBeforeFreeTranslating();
 
@@ -7683,18 +7693,23 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// BEW 13Dec13m Bill suggested we should be able to invoke free trans mode when the
+	// composebar is showing - doing so should shut it down first, and then invoke turning
+	// on free trans mode
     // the !m_pApp->m_bComposeBarWasAskedForFromViewMenu test makes sure we don't try to
     // invoke free translation mode while the user already has the Compose Bar open for
     // another purpose
-    if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && m_pApp->m_nActiveSequNum >= 0
-		&& !m_pApp->m_bComposeBarWasAskedForFromViewMenu)
-	{
-		event.Enable(TRUE);
-	}
-	else
-	{
-		event.Enable(FALSE);
-	}
+    //if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && m_pApp->m_nActiveSequNum >= 0
+	//	&& !m_pApp->m_bComposeBarWasAskedForFromViewMenu)
+	//{
+	//	event.Enable(TRUE);
+	//}
+	//else
+	//{
+	//	event.Enable(FALSE);
+	//}
+	//
+	event.Enable(TRUE);
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
