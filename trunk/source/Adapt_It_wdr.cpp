@@ -10051,34 +10051,50 @@ wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TELL_USER, _("There is not enough space to display all that you typed so far. Choose an option below.   If an option is inappropriate, it will be shown disabled (grey).   This Adjust dialog can be forced open at any time by clicking the Adjust... button in the control bar.   The option to split the free translation will open a further dialog so you can control where the split is to be made. "), wxDefaultPosition, wxSize(-1,56), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TELL_USER, _("Not enough space to display all your typing. Choose an option below.  Splitting opens another dialog for you to control where to make the split.  This dialog can be forced open manually by clicking the Adjust... button located in the control bar. "), wxDefaultPosition, wxSize(-1,36), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxRadioButton *item3 = new wxRadioButton( parent, ID_RADIO_JOIN_TO_NEXT, _("Join the current section to the next section (if the next is absent, it will first be created)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->SetValue( TRUE );
-    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxGridSizer *item3 = new wxGridSizer( 4, 0, 10 );
 
-    wxRadioButton *item4 = new wxRadioButton( parent, ID_RADIO_JOIN_TO_PREVIOUS, _("Join the current section to the previous section (if the previous is absent, it will first be created)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item5 = new wxRadioButton( parent, ID_RADIO_SPLIT_OFF, _("Split. Keep the first part in the current section, join the remainder to what follows"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item4->Add( 14, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxRadioButton *item6 = new wxRadioButton( parent, ID_RADIO_INSERT_WIDENER, _("Insert a section widener (.....) at the end of the section"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxRadioButton *item5 = new wxRadioButton( parent, ID_RADIO_JOIN_TO_NEXT, _("Join to next"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetValue( TRUE );
+    item5->SetToolTip( _("Join the current section to the next section (if the next is absent, it will first be created)") );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item8 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetDefault();
-    item7->Add( item8, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    wxRadioButton *item6 = new wxRadioButton( parent, ID_RADIO_JOIN_TO_PREVIOUS, _("Join to previous"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Join the current section to the previous section (if the previous is absent, it will first be created)") );
+    item3->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item7->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxRadioButton *item7 = new wxRadioButton( parent, ID_RADIO_SPLIT_OFF, _("Split the typed text"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetToolTip( _("Split. Keep the first part in the current section, join the remainder to what follows") );
+    item3->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxButton *item9 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item9, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_INSERT_WIDENER, _("Insert widener"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->SetToolTip( _("Insert a section widener (.....) at the end of the section") );
+    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item1->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( item3, 0, wxALIGN_CENTER, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    item9->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item10 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetDefault();
+    item9->Add( item10, 0, wxALIGN_CENTER, 5 );
+
+    item9->Add( 70, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item11, 0, wxALIGN_CENTER, 5 );
+
+    item1->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 

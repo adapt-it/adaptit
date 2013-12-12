@@ -9155,6 +9155,23 @@ void RepositionDialogToUncoverPhraseBox(CAdapt_ItApp* pApp, int x, int y, int w,
 void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int y, int w, int h,
 				int XPos, int YPos, int& myTopCoord, int& myLeftCoord)
 {
+	// Monitor discovery and metrics. WX has a class for this: wxDisplay
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // This version makes some checks which in some circumstances can indicate there is a
     // secondary monitor and the phrasebox is within that secondary monitor -- indicated by
     // left coord of phrase box in device coords being either negative (primary monitor is
