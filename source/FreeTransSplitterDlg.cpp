@@ -105,10 +105,14 @@ void FreeTransSplitterDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	//			wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2,
 	//			wxFont*& pDlgFont, bool bIsRTL = FALSE);
 	#ifdef _RTL_FLAGS
-	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pEditText, m_pEditFreeTrans,
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pSourceFont, m_pEditText, NULL,
+								NULL, NULL, m_pApp->m_pDlgSrcFont, m_pApp->m_bSrcRTL);
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, NULL, m_pEditFreeTrans,
 								NULL, NULL, m_pApp->m_pDlgTgtFont, m_pApp->m_bTgtRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, m_pEditText, m_pEditFreeTrans, 
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pSourceFont, m_pEditText, NULL, 
+								NULL, NULL, m_pApp->m_pDlgSrcFont);
+	m_pApp->SetFontAndDirectionalityForDialogControl(m_pApp->m_pTargetFont, NULL, m_pEditFreeTrans, 
 								NULL, NULL, m_pApp->m_pDlgTgtFont);
 	#endif
 	#ifdef _RTL_FLAGS
