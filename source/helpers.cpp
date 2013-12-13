@@ -34,7 +34,7 @@
 #include <wx/textfile.h>
 #include <wx/stdpaths.h>
 #include <wx/fileconf.h> // for wxFileConfig
-#include <wx/display.h> // for multiple monitor metrics, 
+#include <wx/display.h> // for multiple monitor metrics,
 						// used for dialog relocation away from active pile
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -6331,7 +6331,7 @@ b:	nLast += 1;
 }
 
 // BEW 16Feb10, no changes needed for support of doc version 5
-// BEW 
+// BEW
 bool IsNullSrcPhraseInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
@@ -9250,14 +9250,17 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 	// (maximums) for that monitor
 	wxASSERT(arrAreas.GetCount() >= 1);
 	pArea = (wxRect*)arrAreas.Item(myMonitor);
-	int displayWidth, displayHeight;
-	displayWidth = pArea->GetWidth();
+	int displayHeight; // don't need   int displayWidth;
+	//displayWidth = pArea->GetWidth(); // don't need
 	displayHeight = pArea->GetHeight();
-	int heightDiff; // between the two monitors - myMonitor versus primary one, 
+	int heightDiff; // between the two monitors - myMonitor versus primary one,
 					// +ve means myMonitor is less tall than primary one, -ve means its higher
 	heightDiff = pArea->y; // this is a compensatory factor affecting placement of the
 						   // dialog below the AI frame window's bottom; we require it
 						   // because the system aligns the screens at their bottom
+#if defined(_DEBUG)
+        wxLogDebug(_T("\nReposition dlg: displayHeight %d     heightDiff %d"), displayHeight, heightDiff);
+#endif
 	// From our various metrics, get the set of metrics which enable us to choose the
 	// appropriate DisplayConstraint enum value. For horizontal metrics (left or right
 	// distances) we want to know distance from start or end of the phrasebox to the
@@ -9308,6 +9311,10 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 	int pixelsAvailableAboveFrame = frame_yCoord - pArea->y; // note, if this monitor is larger than the
 													 // primary monitor, pArea->y will be negative,
 													 // and so increase the final value from YPos
+#if defined(_DEBUG)
+        wxLogDebug(_T("\nReposition dlg: (frame_yCoord %d - pArea->y %d ) = pixelsAvailableAboveFrame %d"),
+                   frame_yCoord, pArea->y, pixelsAvailableAboveFrame);
+#endif
 	if (pixelsAvailableAboveFrame < 0)
 	{
 		pixelsAvailableAboveFrame = 0;
@@ -9320,21 +9327,92 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 	else
 	{
 		pixelsAvailableBelowFrame = pArea->height - (frame_yCoord + frameHeight);
+#if defined(_DEBUG)
+//        wxLogDebug(_T("\nReposition dlg: pArea->height %d, less ( frame_yCoord %d + frameHeight %d ) = pixelsAvailableBelowFrame %d"),
+//                   pArea->height, frame_yCoord, frameHeight, pixelsAvailableBelowFrame);
+#endif
 	}
 	// Our roughest calculation is to see where most of the obstructable area is, whether
 	// above or below the active strip. Other calculations may override what this tells us
 	bool bAtTopIsBetter = pixelsAvailableAbovePhraseBox > pixelsAvailableBelowPhraseBox;
 
+#if defined(__WXGTK__)
+	// A kludge to fix problem of the dialog, for the centered_below case, displaying too high
+	// - by approx an amount equal to the height of the status bar (check top too, it seems to
+    // act a bit differently than on Windows there too
+    wxSize barsize = pFrame->m_pStatusBar->GetSize();
+    int barHeight = barsize.GetHeight();
+#if defined(_DEBUG)
+        wxLogDebug(_T("\nReposition dlg: barHeight %d + 2 = %d"), barHeight, barHeight + 2);
+#endif
+int value;
+#endif
+
 	// Determine if display above the frame (and outside it) is possible, or if we can
 	// achieve our preferred overlap, or if we can squeeze it in without going beyond our
 	// maximum overlap
 	bool bCanFitAboveWithoutOverlap = pixelsAvailableAboveFrame >= dlgHeight;
+#if defined(__WXGTK__)
+    // Kludge to get it right on Linux
+    bCanFitAboveWithoutOverlap = (pixelsAvailableAboveFrame - (barHeight + 2) ) >= dlgHeight;
+#if defined(_DEBUG)
+        value =(pixelsAvailableAboveFrame - (barHeight + 2) );
+        wxLogDebug(_T("\nbCanFitAboveWithoutOverlap: %d : from  pixelsAvailableAboveFrame %d - (barHeight+2) %d = %d is greater than %d"),
+                   (int)bCanFitAboveWithoutOverlap, pixelsAvailableAboveFrame, barHeight+2, value, dlgHeight);
+#endif
+#endif
 	bool bCanFitAboveWithPreferredOverlap = (pixelsAvailableAboveFrame + topPreferredOverlap) >= dlgHeight;
+#if defined(__WXGTK__)
+    // Kludge to get it right on Linux
+    bCanFitAboveWithPreferredOverlap = (pixelsAvailableAboveFrame - (barHeight + 2) + topPreferredOverlap) >= dlgHeight;
+#if defined(_DEBUG)
+        value = (pixelsAvailableAboveFrame - (barHeight + 2) + topPreferredOverlap);
+        wxLogDebug(_T("\nbCanFitAboveWithPreferredOverlap: %d : from  pixelsAvailableAboveFrame %d - (barHeight+2) %d + topPreferredOverlap %d =  %d  is greater than %d"),
+                   (int)bCanFitAboveWithPreferredOverlap, pixelsAvailableAboveFrame, barHeight+2, topPreferredOverlap, value, dlgHeight);
+#endif
+#endif
 	bool bCanFitAboveButOnlyJust = (pixelsAvailableAboveFrame + topMaxOverlap) >= dlgHeight;
+#if defined(__WXGTK__)
+    // Kludge to get it right on Linux
+    bCanFitAboveButOnlyJust = (pixelsAvailableAboveFrame - (barHeight + 2) + topMaxOverlap) >= dlgHeight;
+#if defined(_DEBUG)
+        value = (pixelsAvailableAboveFrame - (barHeight + 2) + topMaxOverlap);
+        wxLogDebug(_T("\nbCanFitAboveButOnlyJust: %d : from  pixelsAvailableAboveFrame %d - (barHeight+2) %d  + topMaxOverlap %d =  %d  is greater than %d"),
+                   (int)bCanFitAboveButOnlyJust, pixelsAvailableAboveFrame, barHeight+2, topMaxOverlap, value, dlgHeight);
+#endif
+#endif
+
 	// Now the "below" ones
-	bool bCanFitBelowWithoutOverlap = pixelsAvailableBelowFrame + heightDiff >= dlgHeight;
+	bool bCanFitBelowWithoutOverlap = (pixelsAvailableBelowFrame + heightDiff) >= dlgHeight;
+#if defined(__WXGTK__)
+    // Kludge to get it right on Linux
+    bCanFitBelowWithoutOverlap = (pixelsAvailableBelowFrame - (barHeight + 2) + heightDiff) >= dlgHeight;
+#if defined(_DEBUG)
+        value = (pixelsAvailableBelowFrame - (barHeight + 2) + heightDiff);
+//        wxLogDebug(_T("\nbCanFitBelowWithoutOverlap: %d : from  pixelsAvailableBelowFrame %d  - (barHeight+2) %d  + heightDiff %d =  %d  is greater than %d"),
+//                   (int)bCanFitBelowWithoutOverlap, pixelsAvailableBelowFrame, barHeight + 2, heightDiff, value, dlgHeight);
+#endif
+#endif
 	bool bCanFitBelowWithPreferredOverlap = (pixelsAvailableBelowFrame + heightDiff + bottomPreferredOverlap) >= dlgHeight;
+#if defined(__WXGTK__)
+    // Kludge to get it right on Linux
+    bCanFitBelowWithPreferredOverlap = (pixelsAvailableBelowFrame - (barHeight + 2) + heightDiff + bottomPreferredOverlap) >= dlgHeight;
+#if defined(_DEBUG)
+        value = (pixelsAvailableBelowFrame - (barHeight + 2) + heightDiff + bottomPreferredOverlap);
+//        wxLogDebug(_T("\nbCanFitBelowWithPreferredOverlap: %d : from  pixelsAvailableBelowFrame %d  - (barHeight+2) %d  + heightDiff %d + bottomPreferredOverlap %d =  %d  is greater than %d"),
+//                   (int)bCanFitBelowWithPreferredOverlap, pixelsAvailableBelowFrame, barHeight + 2, heightDiff, bottomPreferredOverlap, value, dlgHeight);
+#endif
+#endif
 	bool bCanFitBelowButOnlyJust = (pixelsAvailableBelowFrame + heightDiff + bottomMaxOverlap) >= dlgHeight;
+#if defined(__WXGTK__)
+    // Kludge to get it right on Linux
+    bCanFitBelowButOnlyJust = (pixelsAvailableBelowFrame - (barHeight + 2) + heightDiff + bottomMaxOverlap) >= dlgHeight;
+#if defined(_DEBUG)
+        value = (pixelsAvailableBelowFrame - (barHeight + 2) + heightDiff + bottomMaxOverlap);
+//        wxLogDebug(_T("bCanFitBelowButOnlyJust: %d : from  pixelsAvailableBelowFrame %d  - (barHeight+2) %d  + heightDiff %d + bottomPreferredOverlap %d =  %d  is greater than %d"),
+//                   (int)bCanFitBelowButOnlyJust, pixelsAvailableBelowFrame, barHeight + 2, heightDiff, bottomMaxOverlap, value, dlgHeight);
+#endif
+#endif
 
 	DisplayConstraint constraint = centered_above; // initialize to the default enum value (our preferred option)
 
@@ -9372,8 +9450,12 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 			else
 				constraint = bottom_left;
 		}
-	}	 
+	}
 
+#if defined(_DEBUG)
+        int valueBefore;
+        int valueAfter;
+#endif
 	// Now we are ready for the calculations for the 10 possible locations - three
 	// top centered locations, three bottom centered ones, and the four corners
 	switch (constraint)
@@ -9398,6 +9480,15 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 			myTopCoord = frame_yCoord - dlgHeight + topMaxOverlap;
 		}
 		myLeftCoord = frame_xCoord + halfFrameWidth - halfDialogWidth;
+#if defined(__WXGTK__)
+#if defined(_DEBUG)
+        valueBefore = myTopCoord;
+        valueAfter = myTopCoord - (barHeight+2);
+        wxLogDebug(_T("\nmyTopCoord: ABOVE:  BEFORE Kludge %d   AFTER kludge %d: "),valueBefore, valueAfter);
+        wxLogDebug(_T("\n\n"));
+#endif
+        myTopCoord -= barHeight +2;
+#endif
 		break;
 	case centered_below:
 		// Try for the most amount of non-obscuring
@@ -9414,6 +9505,15 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 			myTopCoord = frame_yCoord + frameHeight - bottomMaxOverlap;
 		}
 		myLeftCoord = frame_xCoord + halfFrameWidth - halfDialogWidth;
+#if defined(__WXGTK__)
+#if defined(_DEBUG)
+        valueBefore = myTopCoord;
+        valueAfter = myTopCoord + (barHeight+2);
+        wxLogDebug(_T("\nmyTopCoord: BEFORE Kludge %d   AFTER kludge %d: "),valueBefore, valueAfter);
+        wxLogDebug(_T("\n\n"));
+#endif
+        myTopCoord += barHeight +2; // the +2 makes it right
+#endif
 		break;
 	case top_right:
         // Dialog has to lie within myMonitor, and the dialog is located at the
@@ -9440,7 +9540,7 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 	{
 		pMonitor = (wxDisplay*)arrDisplays.Item(monIndex);
 		delete pMonitor;
-		pArea = (wxRect*)arrAreas.Item(monIndex);	
+		pArea = (wxRect*)arrAreas.Item(monIndex);
 		delete pArea;
 	}
 }
@@ -9833,7 +9933,7 @@ bool CheckUsername()
 		{
 			pApp->m_strUserID = dlg.m_finalUsername;
 			pApp->m_strUsername = dlg.m_finalInformalUsername;
-			
+
 			// whm added 24Oct13. Save the UniqueUsername and InformalUsername
 			// Note: This code block below should be the same as the block in
 			// Adapt_It.cpp's OnEditChangeUsername().
