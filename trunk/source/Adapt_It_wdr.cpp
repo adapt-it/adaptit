@@ -10167,19 +10167,19 @@ wxSizer *SplitterDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item12->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item14 = new wxButton( parent, ID_BUTTON_SPLIT_HERE, _("Split"), wxDefaultPosition, wxSize(56,-1), 0 );
+    wxButton *item14 = new wxButton( parent, ID_BUTTON_SPLIT_HERE, _("Split"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->SetToolTip( _("Do the split operation, using the cursor location in the text box. If in a word, that word will be first in the split off remainder.") );
     item12->Add( item14, 0, wxALIGN_CENTER, 5 );
 
     item12->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item15 = new wxButton( parent, wxID_OK, _("Done"), wxDefaultPosition, wxSize(56,-1), 0 );
+    wxButton *item15 = new wxButton( parent, wxID_OK, _("Done"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->SetDefault();
     item12->Add( item15, 0, wxALIGN_CENTER, 5 );
 
     item12->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxSize(56,-1), 0 );
+    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item16, 0, wxALIGN_CENTER, 5 );
 
     item1->Add( item12, 0, wxALIGN_CENTER, 5 );
