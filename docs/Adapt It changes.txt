@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.5.2 release ??date??
+Version 6.5.2 release 18 December 2013
 ----------------------------------------------
 * The Free Translation feature has been improved. Formerly
 if a free translation was too long, it was shown shortened
