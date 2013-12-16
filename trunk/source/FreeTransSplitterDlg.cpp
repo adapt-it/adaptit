@@ -90,11 +90,11 @@ FreeTransSplitterDlg::FreeTransSplitterDlg(
 	m_pMainFrame = (CMainFrame*)parent;
 	m_pFreeTrans = m_pApp->GetFreeTrans(); // for access to the one and only CFreeTrans class's instance
 	//CentreOnParent();
+	//
 	// Need to set m_ptBoxTopLeft here, it's not set by the caller for this dialog
 	wxASSERT(m_pApp->m_pActivePile);
 	CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
 	this->m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
-
 }
 
 FreeTransSplitterDlg::~FreeTransSplitterDlg() // destructor
