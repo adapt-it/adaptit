@@ -27,11 +27,6 @@ helps a long free translation to fit without being truncated.
 More than one of these wideners can be inserted in sequence.
 (Probably it's good if you avoid overusing this feature - so your 
 document will not have wideners sprinkled all over the place.)
-e) Do nothing. The truncation will then happen instead.
-The Insert Widener button is just a quicker way to do exactly 
-what the option d) above does. So you can get a widener inserted
-with just a single click, instead of three clicks being needed
-if you use the Adjust... dialog instead.
 * The user can remove a free translation section widener if he
 wants. Just go out of free translation mode, put the phrase box
 at the widener to be deleted, and hit the command bar button
@@ -40,6 +35,8 @@ be removed. Note, wideners will not accept any typing. Their
 job is just to make free translation sections a bit wider. If 
 you try to enter text into a widener, you'll get a message
 saying you cannot do it.
+They are also automatically removed from any two sections that
+participate in a join as described above.
 * To facilitate long free translations having more chance of
 not being truncated, when you open free translation mode, the 
 inter-pile gap is automatically set to 40 pixels (rather than
@@ -56,6 +53,12 @@ Edit Knowledge Base dialog has a different default now. When
 clicked, the view shown lists the target text first (or gloss
 text if glossing mode is currently turned on). This is more
 likely to be what users would want most often.
+* In a dual monitor setup, the document history dialogs could
+open on a monitor different than the one that the running
+application is on. They now instead open on the same monitor,
+usually at a corner as far from the phrasebox as possible,
+or if there is room without encroaching much into the Adapt
+It main window, centred above or below that window.
 
 ----------------------------------------------
 Bug fixes in 6.5.2
