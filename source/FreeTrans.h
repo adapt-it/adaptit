@@ -255,6 +255,7 @@ private:
 	void		SingleRectFreeTranslation(	wxDC* pDC, wxString& str, wxString& ellipsis,
 						wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings);
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
+	int			RemoveWideners(CPile* pAnchorPile); // return a count of how many were removed
 
 #if defined(__WXGTK__)
     // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build

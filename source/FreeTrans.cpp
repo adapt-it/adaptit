@@ -9569,6 +9569,12 @@ void CFreeTrans::DoJoinWithNext()
 
 	// Update the layout & set the typing location
 	m_pApp->m_pActivePile = pNewAnchorPile;
+
+	// Remove any wideners the user may have inserted (ignore the returned removalCount
+	// value because it's returned only so we can check if a RecalcLayout() and redraw is
+	// needed and it always is, so we can ignore it
+	RemoveWideners(m_pApp->m_pActivePile);
+
 	// pSrcPhrase can now be reused...
 	pSrcPhrase = pNewAnchorPile->GetSrcPhrase();
 	m_pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -9580,6 +9586,13 @@ void CFreeTrans::DoJoinWithNext()
 #endif
     bIsOK = bIsOK; // avoid compiler warning
 	m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
+
+	// Remove any wideners the user may have inserted (ignore the returned removalCount
+	// value because it's returned only so we can check if a RecalcLayout() and redraw is
+	// needed and it always is, so we can ignore it
+	RemoveWideners(m_pApp->m_pActivePile);
+
+	// Now get the redraw done
 	m_pView->Invalidate();
 	m_pLayout->PlaceBox();
 	// Put the latest free translation text into the composebar's edit box, and set the
@@ -9734,6 +9747,12 @@ void CFreeTrans::DoJoinWithPrevious()
 
 	// Update the layout & set the typing location
 	m_pApp->m_pActivePile = pNewAnchorPile;
+
+	// Remove any wideners the user may have inserted (ignore the returned removalCount
+	// value because it's returned only so we can check if a RecalcLayout() and redraw is
+	// needed and it always is, so we can ignore it
+	RemoveWideners(m_pApp->m_pActivePile);
+
 	// pSrcPhrase can now be reused...
 	pSrcPhrase = pNewAnchorPile->GetSrcPhrase();
 	m_pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -10218,3 +10237,87 @@ void CFreeTrans::DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray)
 #endif
 }
 
+int CFreeTrans::RemoveWideners(CPile* pAnchorPile)
+{
+	// Look for free translation wideners in the section, and remove any found from the
+	// list of CSourcePhrase instances, renumber the sequencenumbers from pile at 0 also.
+	// There is no need for wideners when joining, and this function is called as part of
+	// the join to following or previous option, to eliminate any wideners the user may
+	// have inserted before doing the join. In any join, a widener can never be the passed
+	// in anchor pile, so the loop below is safe. Return a count of how many were removed,
+	// if the returned count is non-zero, a recalc and redraw of the layout is required in
+	// the caller
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
+	CPile* pPile = pAnchorPile;
+	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+	SPList* pList = m_pApp->m_pSourcePhrases;
+	int removalCount = 0;
+	bool bAtDocEnd = FALSE;
+	CPile* pPrevPile = NULL;
+	while (!pSrcPhrase->m_bEndFreeTrans)
+	{
+		if (IsFreeTransWidener(pSrcPhrase))
+		{
+			// It's a widener, so remove it
+			removalCount++;
+
+			// Do the removal
+			int sequNum = pSrcPhrase->m_nSequNumber;
+			pList->remove(pSrcPhrase); // removes from m_pSourcePhrases list
+			pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // deletes pSrcPhrase from the heap,
+										// and also deletes its partner pile and removes
+										// the latter from the PileList in CLayout because
+										// the bDoParterPileDeletionFlat is default TRUE
+			// Update the state of the document, and prepare for iterating the loop
+			m_pView->UpdateSequNumbers(0);
+			pPile = m_pLayout->GetPile(sequNum); // the pPile following the deletion now
+												 // has the removed widener's sequ number
+			// pPile should not be NULL, because the widener was not m_bEndFreeTrans TRUE
+			pSrcPhrase = pPile->GetSrcPhrase(); // now iterate
+			continue;
+		}
+		pPile = m_pView->GetNextPile(pPile);
+		if (pPile == NULL)
+		{
+			// We've come to the end of the doc, bail out of the loop
+			bAtDocEnd = TRUE;
+			break;
+		}
+		pSrcPhrase = pPile->GetSrcPhrase();
+	} // end of loop
+
+	if (bAtDocEnd)
+	{
+		// do nothing, we don't expect to come to the doc end without encountering the
+		// m_bEndFreeTrans pile
+		;
+	}
+	else
+	{
+		// the loop does not process the pSrcPhrase which has m_bEndFreeTrans TRUE, so do
+		// it here because it might be a widener
+		if (IsFreeTransWidener(pSrcPhrase))
+		{
+			// It's a widener, so remove it, and don't forget to make the previous pile's
+			// m_bEndFreeTrans be set to TRUE as it will become the new end to the section
+			pPrevPile = m_pView->GetPrevPile(pPile);
+			wxASSERT(pPrevPile->GetSrcPhrase()->m_bHasFreeTrans);
+			wxASSERT(!pPrevPile->GetSrcPhrase()->m_bEndFreeTrans);
+			removalCount++;
+			pPrevPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE; // the new end to the section
+
+			// Do the removal
+			pList->remove(pSrcPhrase); // removes from m_pSourcePhrases list
+			pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // deletes pSrcPhrase from the heap,
+										// and also deletes its partner pile and removes
+										// the latter from the PileList in CLayout because
+										// the bDoParterPileDeletionFlat is default TRUE
+			// Update the state of the document, and prepare for iterating the loop
+			m_pView->UpdateSequNumbers(0);
+		}
+	}
+	// If we removed any we have updated the sequence numbers each time we remove one,
+	// so now return the removalCount so the caller can check if a RecalcLayout() and
+	// redraw is needed
+	return removalCount;
+}

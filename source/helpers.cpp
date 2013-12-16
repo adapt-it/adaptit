@@ -9452,9 +9452,11 @@ int value;
 		}
 	}
 
+#if defined(__WXGTK__)
 #if defined(_DEBUG)
         int valueBefore;
         int valueAfter;
+#endif
 #endif
 	// Now we are ready for the calculations for the 10 possible locations - three
 	// top centered locations, three bottom centered ones, and the four corners

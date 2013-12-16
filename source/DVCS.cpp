@@ -69,6 +69,13 @@
 
 #include "DVCS.h"
 
+// BEW 16Dec13 the following 5 needed for the Reposition...() function in InitDialog()
+//#include "helpers.h"
+//#include "Pile.h"
+#include "Cell.h"
+#include "MainFrm.h"
+//#include "Adapt_ItCanvas.h"
+
 
 
 /*	Implementation notes:
@@ -548,7 +555,42 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
     pApp->ReverseOkCancelButtonsForMac(&dlg);           // fulfilling all righteousness here
 
     dlg.m_comment->SetFocus();          // we seem to need this on Linux at least
-	dlg.Centre();
+	//dlg.Centre();
+	// BEW 16Dec13, the dialog, when using dual monitors, can open on a different monitor
+	// than the running AI is on, so confine it to the latter monitor
+	wxPoint		m_ptBoxTopLeft; // used for repositioning dialog away from phrase box location
+								// & the 'box' referred to here is top left of active pile's
+								// CCell(1) which is where the top left of the phrasebox would
+								// be located - this m_ptBoxTopLeft value has to be calculated
+								// after the FreeTransAdjustDlg has been created, but before
+								// the dlg.Show() call is done, so that InitDialog() can pick
+								// up and use the wxPoint values (this functionality uses
+								// RepositionDialogToUncoverPhraseBox_Version2(), a helpers.cpp function)
+
+	// Need to set m_ptBoxTopLeft here, it's not set by the caller for this dialog
+	wxASSERT(pApp->m_pActivePile);
+	CCell* pCell = pApp->m_pActivePile->GetCell(1);
+	m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
+
+ 	// BEW 16Dec13, added code to have dialog position itself on the monitor on which the
+	// running Adapt It app is located (otherwise, it can open far away on a different monitor)
+	// work out where to place the dialog window
+	int myTopCoord, myLeftCoord, newXPos, newYPos;
+	wxRect rectDlg;
+	dlg.GetSize(&rectDlg.width, &rectDlg.height); // dialog's window frame
+	CMainFrame* pMainFrame = pApp->GetMainFrame();
+	wxClientDC dc(pMainFrame->canvas);
+	pMainFrame->canvas->DoPrepareDC(dc);// adjust origin
+	// wxWidgets' drawing.cpp sample calls PrepareDC on the owning frame
+	pMainFrame->PrepareDC(dc); 
+	// CalcScrolledPosition translates logical coordinates to device ones, m_ptBoxTopLeft
+	// has been initialized to the topleft of the cell (from m_pActivePile) where the
+	// phrase box currently is
+	pMainFrame->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x, m_ptBoxTopLeft.y,&newXPos,&newYPos);
+	pMainFrame->canvas->ClientToScreen(&newXPos, &newYPos); // now it's screen coords
+	RepositionDialogToUncoverPhraseBox_Version2(m_pApp, 0, 0, rectDlg.width, rectDlg.height,
+										newXPos, newYPos, myTopCoord, myLeftCoord); // see helpers.cpp
+	dlg.SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
 
 // Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave the
 //  default text which is already there.

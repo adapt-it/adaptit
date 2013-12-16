@@ -6521,7 +6521,7 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 		MarkStripInvalid(pPile); // sets CStrip::m_bValid to FALSE, and adds the
 								 // strip index to CLayout::m_invalidStripArray
 
-		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
+		// now go ahead and get rid of the partner pile for the passed in pSrcPhrase
 		pPile->SetStrip(NULL);
 
 		// if destroying the CPile instance pointed at by app's m_pActivePile, set the
