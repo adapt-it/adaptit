@@ -9344,8 +9344,8 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
     int barHeight = barsize.GetHeight();
 #if defined(_DEBUG)
         wxLogDebug(_T("\nReposition dlg: barHeight %d + 2 = %d"), barHeight, barHeight + 2);
+    int value;
 #endif
-int value;
 #endif
 
 	// Determine if display above the frame (and outside it) is possible, or if we can
