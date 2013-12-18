@@ -10189,7 +10189,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	{
 		// IDS_NO_NULL_SRCPHRASE_IN_SEL
 		wxMessageBox(_(
-"Merging a selection which contains a free translation widener (represented by five ..... dots with * above it) is not permitted."),
+"Merging a selection which contains a free translation widener (...) is not permitted."),
 		_T(""), wxICON_EXCLAMATION | wxOK);
 		pList->Clear();
 		if (pList != NULL) // whm 11Jun12 added NULL test

@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2013-12-13 12:55-0600\n"
+"POT-Creation-Date: 2013-12-16 22:03+1000\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Bill Martin <bill_martin@sil.org>\n"
+"Last-Translator: Bruce Waters <bruce_waters@sil.org>\n"
 "Language-Team: Adapt It Development <adaptitbill@gmail.com>\n"
 "Language: Tok Pisin (tpi)\n"
 "MIME-Version: 1.0\n"
@@ -595,7 +595,7 @@ msgstr ""
 "   %s\n"
 "Ol senis yu wokim long ol user wok profail i no inap sevim.\n"
 "Sekim olsem nogut dispela AI_UserProfiles.xml fail i stap op yet insait long "
-"narapela progrem, klosim pastaim na traiim gen."
+"narapela progrem, klosim pastaim na traim gen."
 
 #: source/Adapt_It.cpp:4474
 msgid ""
@@ -1079,9 +1079,10 @@ msgstr "Rausim Plesholda"
 # Priority 1
 #: source/Adapt_It.cpp:8917 source/Adapt_It_wdr.cpp:10424
 #: source/Adapt_It_wdr.cpp:10479 source/MainFrm.cpp:1654
-#, fuzzy
 msgid "Remove a Placeholder, or Remove a Free Translation Widener"
-msgstr "Rausim Ol Filta Fri Trenslesen"
+msgstr ""
+"Rausim Plesholda (...) o Rausim Mak bilong Skruim Spes bilong Fri Trenslesen "
+"(.....)"
 
 # Priority 1
 #: source/Adapt_It.cpp:8919 source/ChooseTranslation.cpp:127
@@ -1402,7 +1403,7 @@ msgid ""
 msgstr ""
 "Adapt It i no inap opim projek konfig fail (AI-ProjectConfiguration.aic) "
 "bilong dispela \"%s\" projek. Sekim pastaim, nogut narapela progrem i wok "
-"long yusim dispela konfig fail (o stopim na statim gen komputa), na traiim "
+"long yusim dispela konfig fail (o stopim na statim gen komputa), na traim "
 "gen."
 
 # Priority 1
@@ -1711,12 +1712,12 @@ msgstr ""
 "Toksave: Yu holim Shift key i go daun taim yu statim Adapt It.\n"
 "\n"
 "Sapos yu ting basic config fail bilong Adapt It i bagarap, na yu ting Adapt "
-"It i no inap ritim gut, yu ken traiim holim shift key taim yu kirapim Adapt "
-"It progrem. Sapos yu mekim olsem, Adapt It bai rausim oldpela basic config "
+"It i no inap ritim gut, yu ken traim holim shift key taim yu kirapim Adapt "
+"It progrem. Sapos yu mekim olsem, Adapt It bai rausim olpela basic config "
 "file bilong na senisim i go nupela wantaim ol defol seting. Wanem basic "
 "Seting (Preferences) yu wokim bipo bai lus - olsem seting bilong welkam "
-"toksave, ples na bikpela bilong main window, tulba na ol narapela seting, ll "
-"dispela seting bai senis i go long ol defol seting.\n"
+"toksave, ples na bikpela bilong nambawan windo, tulba na ol narapela seting, "
+"ol dispela seting bai senis i go long ol defol seting.\n"
 "\n"
 "Yu laik setim basic seting i go long defol?\n"
 "\n"
@@ -1748,7 +1749,7 @@ msgstr ""
 "Toksave: Yu holim Shift key i go daun taim yu opim dispela projek.\n"
 "\n"
 "Sapos yu ting projek config fail bilong Adapt It i bagarap, na yu ting Adapt "
-"It i no inap ritim, yu ken traiim holim shift key taim yu opim projek. Sapos "
+"It i no inap ritim, yu ken traim holim shift key taim yu opim projek. Sapos "
 "yu mekim olsem Adapt It bai rausim oldpela config file bilong projek na "
 "senisim i go nupela wantaim ol defol seting. Wanem projek Seting "
 "(Preferences) yu wokim bipo bai lus - olsem seting bilong font, kala, "
@@ -1900,7 +1901,7 @@ msgid ""
 "knowledge base from backups. You need a valid knowledge base before doing "
 "any more work."
 msgstr ""
-"Sori, Adapt It i laik lodim nolis bes, tasol problem i kamap. Yu ken traiim "
+"Sori, Adapt It i laik lodim nolis bes, tasol problem i kamap. Yu ken traim "
 "\"Stretim Nolis Bes\" seleksen i stap long Fail menu. Sapos em tu i no wok, "
 "yu mas kisim oldpels nolis base i kam long bekap na kopiim i go long wok "
 "folda. Adapt It i mas i gat gutpela nolis bes bilong yusim pastaim, pinis, "
@@ -1916,10 +1917,10 @@ msgid ""
 msgstr ""
 "Sori, Adapt It i laik wokim nupela nolis bes, tasol problem i kamap. Nogut "
 "narapela progrem i yusim yet KB fail. Sapos olsem stopim narapela program "
-"pastaim, na traiim gen. Sapos em tu i no wok, yu ken traiim \"Stretim Nolis "
-"Bes\" seleksen i stap long Fail menu, o kopiim i kam long ol bekap fail. "
-"Adapt It i mas i gat gutpela nolis bes bilong yusim pastaim, pinis, em i ken "
-"mekim wok."
+"pastaim, na traim gen. Sapos em tu i no wok, yu ken traim \"Stretim Nolis Bes"
+"\" seleksen i stap long Fail menu, o kopiim i kam long ol bekap fail. Adapt "
+"It i mas i gat gutpela nolis bes bilong yusim pastaim, pinis, em i ken mekim "
+"wok."
 
 #: source/Adapt_It.cpp:24505 source/Adapt_It.cpp:26565
 msgid ""
@@ -1938,7 +1939,7 @@ msgid ""
 msgstr ""
 "Sori, Adapt It i laik wokim nupela nolis bes bilong ol glos, tasol problem i "
 "kamap. Nogut narapela progrem i yusim yet KB fail. Sapos olsem stopim "
-"narapela program pastaim, na traiim gen. Sapos i no wok yet, yu ken traiim "
+"narapela program pastaim, na traim gen. Sapos i no wok yet, yu ken traim "
 "\"Stretim Nolis Bes\" seleksen i stap long Fail menu. Adapt It i mas i gat "
 "gutpela nolis bes bilong yusim pastaim, pinis, em i ken mekim wok."
 
@@ -2192,7 +2193,7 @@ msgid ""
 msgstr ""
 "No inap sevim dispela dokumen. Olsem no inap wokim Stretim Nolis Bes "
 "seleksen.\n"
-"Yu ken traiim wok gen, tasol moabeta yu stopim Adapt It na statim gen, maski "
+"Yu ken traim wok gen, tasol moabeta yu stopim Adapt It na statim gen, maski "
 "long sampela edit i lus."
 
 #: source/Adapt_It.cpp:27218
@@ -2204,12 +2205,12 @@ msgid ""
 "\n"
 "Do you wish to try this extra rescue?"
 msgstr ""
-"Adapt It tu i ken traiim stretim ol seting bilong -Soim \"Selektim Trenslesen"
+"Adapt It tu i ken traim stretim ol seting bilong -Soim \"Selektim Trenslesen"
 "\" oltaim- sekboks,\n"
 "tasol i ken mekim progrem i stop nogut. (Sapos i stop nogut, yu ken ronim "
 "Adapt It gen na makim \"Nogat\" tasol.)\n"
 "\n"
-"Yu laik traiim dispela narapela samting bilong helpim tu?"
+"Yu laik traim dispela narapela samting bilong helpim tu?"
 
 # Priority 1
 #: source/Adapt_It.cpp:27254
@@ -2863,7 +2864,7 @@ msgstr "Em i sotpela tumas."
 # Priority 1
 #: source/Adapt_It.cpp:42685
 msgid "You failed to locate a valid work folder. Please try again."
-msgstr "Yu no painim wanpela gutpela wok folda. Plis, traiim gen."
+msgstr "Yu no painim wanpela gutpela wok folda. Plis, traim gen."
 
 #: source/Adapt_It.cpp:42736
 #, c-format
@@ -3063,7 +3064,7 @@ msgid ""
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons "
 "for those operations."
 msgstr ""
-"Sori, sapos yu laik editim o rausim retranslation, yu mas usim batan long "
+"Sori, sapos yu laik editim o rausim retranslation, yu mas yusim batan long "
 "tulba bilong wokim."
 
 # Priority 1
@@ -3074,7 +3075,7 @@ msgid ""
 "and verse text, or some other illegal combination. Combining verse text with "
 "poetry is acceptable, other combinations are not."
 msgstr ""
-"Sori, ating yu traiim wokim yelo seleksen i go karamapim kain kain teks, "
+"Sori, ating yu traim wokim yelo seleksen i go karamapim kain kain teks, "
 "olsem yu laik karamapim heding wantaim ves teks, o samting olsem. Tasol "
 "nogat. Yu ken joinim ves teks wantaim ol singsing o samtimg olsem. Joinim "
 "arapela kain i go wantaim arapela kain tru i nogut."
@@ -3086,7 +3087,7 @@ msgid ""
 "Please try again."
 msgstr ""
 "Sapos yu no makim wanpela sos teks fail Adapt It i no inap mekim wok. Plis, "
-"yu traiim gen."
+"yu traim gen."
 
 # Priority 1
 #: source/Adapt_ItDoc.cpp:738 source/NavProtectNewDoc.cpp:75
@@ -3117,7 +3118,7 @@ msgstr ""
 "i gat %s ekstensen, na Adapt It i no inap kisim fail i gat dispela ekstensen "
 "i kam insait bilong wokim trenslesen.\n"
 "\n"
-"Plis, traiim gen, o klikim Kensel tasol long daialog bilong makim fail "
+"Plis, traim gen, o klikim Kensel tasol long daialog bilong makim fail "
 "seleksen."
 
 #: source/Adapt_ItDoc.cpp:868
@@ -3144,7 +3145,7 @@ msgid ""
 "which contains the correct code."
 msgstr ""
 "\n"
-"Yu mas selektim narapela buk folda na traiim gen, o, yu ken traiim ritim "
+"Yu mas selektim narapela buk folda na traim gen, o, yu ken traiim ritim "
 "narapela sos teks fail \n"
 "sapos i gat kod insait i stret."
 
@@ -3154,7 +3155,7 @@ msgid ""
 "automatically added.) Please try the New... command again."
 msgstr ""
 "Sori, yu mas makim nem i go long autput fail dokumen. (Adapt It yet bai "
-"skruim .xml i go wantaim nem yu makim) Olsem, plis yu traiim Nupela... menu "
+"skruim .xml i go wantaim nem yu makim) Olsem, plis yu traim Nupela... menu "
 "gen."
 
 # Priority 1
@@ -3164,7 +3165,7 @@ msgid ""
 "document name. Please try again."
 msgstr ""
 "Sori, Adapt It bai no inap wok gut sapos yu no makim nem bilong autput "
-"dokumen. Plis, yu traiim gen."
+"dokumen. Plis, yu traim gen."
 
 #: source/Adapt_ItDoc.cpp:1105
 msgid ""
@@ -3326,7 +3327,7 @@ msgid ""
 msgstr ""
 "Samting i bagarap. Adaptesen dokumen i bin stap long disk i lus i no sef "
 "gut. Plis, yu mas klikim Sevim nau (i stap long Fail menu), na sapos problem "
-"i stap yet, traiim Sevim Olsem... - sapos em tu i no wok, em tasol nogat moa "
+"i stap yet, traim Sevim Olsem... - sapos em tu i no wok, em tasol nogat moa "
 "rot. Dokumen bai i no inap sevim, olsem stopim Adapt It na statim gen."
 
 # Priority 1
@@ -3352,7 +3353,7 @@ msgid ""
 msgstr ""
 "Problem i kamap taim Adapt It i laik raitim taget teks i go long %s projek. "
 "Plis, yu sekim dispela buk i stap tru insait long %s projek o nogat, na i "
-"nogat narapela progrem i yusim dispela buk fail; pinis yu traiim gen.\n"
+"nogat narapela progrem i yusim dispela buk fail; pinis yu traim gen.\n"
 "Sapos problem i stap yet, yu ken salim problem ripot i go long ol developa "
 "bilong Adapt It (lukim Help menu)."
 
@@ -3379,7 +3380,7 @@ msgid ""
 msgstr ""
 "Problem i kamap taim Adapt It i laik raitim fri trenslesen teks i go long %s "
 "projek. Plis, yu sekim dispela buk i stap tru insait long %s projek o nogat, "
-"na i nogat narapela progrem i yusim dispela buk fail; pinis yu traiim gen.\n"
+"na i nogat narapela progrem i yusim dispela buk fail; pinis yu traim gen.\n"
 "Sapos problem i stap yet, yu ken salim problem ripot i go long ol developa "
 "bilong Adapt It (lukim Help menu)."
 
@@ -3490,7 +3491,7 @@ msgstr ""
 #: source/Adapt_ItDoc.cpp:3425 source/Adapt_ItDoc.cpp:3451
 #: source/Adapt_ItDoc.cpp:3458
 msgid "SaveAs... failed"
-msgstr ""
+msgstr "Sevim Olsem... i wok kranki"
 
 #: source/Adapt_ItDoc.cpp:3393 source/Adapt_ItDoc.cpp:3456
 #, c-format
@@ -3524,7 +3525,7 @@ msgstr ""
 "Adapt It i laik ritim XML fail tasol problem i kamap.\n"
 "Ating, sapos yu bin editim dispela fail, yu bin paulim samting insait long "
 "fail.\n"
-"Editim gen insait long edita pastaim, pinis traiim gen."
+"Editim gen insait long edita pastaim, pinis traim gen."
 
 # Priority 1
 #: source/Adapt_ItDoc.cpp:3950
@@ -3620,12 +3621,12 @@ msgstr ""
 "Adapt It i wokim na Adapt It vesin bilong yu i oldpela liklik. Nupela vesin "
 "bilong Adapt It i save skruim docVersion namba na tu i save raitim sampela "
 "moa samting insait long <Settings> tag insait long dokumen.\n"
-"Yu ken traiim stretim sapos yu opim dokumen insait long wanpela edita olsem "
+"Yu ken traim stretim sapos yu opim dokumen insait long wanpela edita olsem "
 "Notepad (kopiim dokumen pastaim bilong holim backup sapos yu nidim). Rausim "
 "ol nupela attributes i stap nau insait long <Settings> element, na tu yu ken "
 "daunim docVersion namba, o tupela wok wantaim. Pinis, sevim xml dokumen "
 "olsem  UTF-8.\n"
-"Pinis, traiim gen long lodim edited dokumen fail.\n"
+"Pinis, traim gen long lodim edited dokumen fail.\n"
 "Sapos yu no save wanem attributes bilong rausim, yu ken lukim docVersion "
 "wantaim ol attribute i stap insait long sampela ol dokumen yu no opim "
 "longpela taim tru. Sapos skelim oldpela wantaim nupela ating yu inap kisim "
@@ -3674,8 +3675,8 @@ msgid ""
 "Adapt It will now abort."
 msgstr ""
 "Adapt It i nogat save long dispela maka: %s i stap insait long input fail.\n"
-"Yu mas editim dispela fail insait long word processor, sevim, na traiim "
-"wokim gen dispela dokumen insait long Adapt It.\n"
+"Yu mas editim dispela fail insait long word processor, sevim, na traim wokim "
+"gen dispela dokumen insait long Adapt It.\n"
 "Adapt It nau bai stop."
 
 # Priority 1
@@ -3690,7 +3691,7 @@ msgid ""
 msgstr ""
 "Dispela maka: %s  i bihainim pangsuesen tasol em i no wanpela inline maka.\n"
 "Em i no wanpela bilong ol USFM Spesell Teks o Leta Stail maka.\n"
-"Editim dispela input fail insait long edita, sevim, pinis, traiim wokim "
+"Editim dispela input fail insait long edita, sevim, pinis, traim wokim "
 "dokumen gen.\n"
 "Adapt It bai nau stop."
 
@@ -3830,7 +3831,7 @@ msgid ""
 " Make sure the file is not being used by another application and try again."
 msgstr ""
 "Problem i kamap taim Adapt It i laik pekap dispela dokumen: %s\n"
-"Sekim, nogut narapela progrem i yusim dispela fail, bihain traiim gen."
+"Sekim, nogut narapela progrem i yusim dispela fail, bihain traim gen."
 
 # Priority 1
 # The %s refers to a file name
@@ -3983,7 +3984,7 @@ msgid ""
 "successfully on disk. Try opening it with the Open command on the File menu.)"
 msgstr ""
 "Adapt It i no inap opim dokumen bilong wokim Lusim Dokumen... (Adapt It i "
-"sevim gut pinis i stap long disk. Yu traiim yusim Opim Fail seleksen long "
+"sevim gut pinis i stap long disk. Yu traim yusim Opim Fail seleksen long "
 "Fail menu.)"
 
 #: source/Adapt_ItDoc.cpp:21777
@@ -4133,9 +4134,10 @@ msgstr "Yu laikim SIL Konveta i senisim teks bilong pestim?"
 
 # Priority 1
 #: source/Adapt_ItView.cpp:2039 source/PhraseBox.cpp:2956
-#, fuzzy
 msgid "Adding text to a free translation widener is not permitted."
-msgstr "I tambu long editim dispela kain samting."
+msgstr ""
+"I tambu long putim teks igo insait bokis ananit long mak bilong skruim spes "
+"(.....)"
 
 #: source/Adapt_ItView.cpp:2090
 msgid ""
@@ -4195,7 +4197,7 @@ msgstr "Problem i kamap taim Adapt It i laik sevim nolis bes."
 # Sentence begins with a space
 #: source/Adapt_ItView.cpp:6183
 msgid " You should immediately save the document, then try again."
-msgstr "Yu traiim sevim dokumen hariap, pinis, traiim gen."
+msgstr "Yu traim sevim dokumen hariap, pinis, traim gen."
 
 # Priority 1
 # Sentence begins with a space
@@ -4207,7 +4209,7 @@ msgstr "Sapos Adapt It i gat planti problem, yu stopim progrem tasol"
 # ends with a space
 #: source/Adapt_ItView.cpp:6185
 msgid "and try one of the recovery strategies (either use the backup one "
-msgstr "na traiim bihainim toksave bilong stretim problem (yusim bekap toksave"
+msgstr "na traim bihainim toksave bilong stretim problem (yusim bekap toksave"
 
 # Priority 1
 # ends with a space
@@ -4271,8 +4273,8 @@ msgid ""
 "This operation is not permitted when the selection contains any part of a "
 "retranslation. First remove the retranslation and then try again."
 msgstr ""
-"Ii tambu long mekim olsem taim seleksen i gat ritrenslesen i stap insait. Yu "
-"mas rausim ritrenslesen pinis pastaim, bihain traiim gen."
+"I tambu long mekim olsem taim seleksen i gat ritrenslesen i stap insait. Yu "
+"mas rausim ritrenslesen pinis pastaim, bihain traim gen."
 
 #: source/Adapt_ItView.cpp:10141
 msgid ""
@@ -4295,13 +4297,12 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_ItView.cpp:10192
-#, fuzzy
 msgid ""
-"Merging a selection which contains a free translation widener (represented "
-"by five ..... dots with * above it) is not permitted."
+"Merging a selection which contains a free translation widener (...) is not "
+"permitted."
 msgstr ""
-"I tambu long joinim ol tok insait long seleksen sapos seleksen i gat "
-"plesholda (...) i stap insait."
+"I tambu long joinim ol tok insait long seleksen sapos mak bilong skruim fri "
+"trenslesen spes (.....) i stap insait long seleksen."
 
 # Priority 1
 #: source/Adapt_ItView.cpp:10222
@@ -4336,7 +4337,7 @@ msgid ""
 "Error while trying to deselect a cell. Try selecting using the mouse "
 "instead.\n"
 msgstr ""
-"Problem i kamap taim Adapt It i laik rausim seleksen bilong sel. Yu traiim "
+"Problem i kamap taim Adapt It i laik rausim seleksen bilong sel. Yu traim "
 "yusim maus tasol.\n"
 
 #: source/Adapt_ItView.cpp:11639 source/Adapt_ItView.cpp:11697
@@ -4345,7 +4346,7 @@ msgid ""
 "instead.\n"
 msgstr ""
 "Problem i kamap taim Adapt It i laik painim sel bihain long dispela. Yu "
-"traiim yusim maus tasol.\n"
+"traim yusim maus tasol.\n"
 
 #: source/Adapt_ItView.cpp:11851 source/Adapt_ItView.cpp:11922
 msgid ""
@@ -4353,7 +4354,7 @@ msgid ""
 "instead.\n"
 msgstr ""
 "Problem i kamap taim Adapt It i laik painim sel i go pas long dispela. Yu "
-"traiim yusim maus tasol.\n"
+"traim yusim maus tasol.\n"
 
 #: source/Adapt_ItView.cpp:13621 source/Adapt_ItView.cpp:13708
 #, c-format
@@ -4375,7 +4376,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_ItView.cpp:13848
 msgid "Illegal attempt to open ChooseTranslation dialog"
-msgstr "I tambu long traiim opim \"Selektim Trenslesen\" daialog"
+msgstr "I tambu long traim opim \"Selektim Trenslesen\" daialog"
 
 #: source/Adapt_ItView.cpp:13903
 msgid ""
@@ -4390,10 +4391,12 @@ msgid ""
 "The active location has a free translation widener, not a placeholder. The "
 "click will be ignored."
 msgstr ""
+"Ples bokis i stap em i no gat mak bilong skruim spes, nogat, em i gat "
+"plesholda. Klik i no gat wok."
 
 #: source/Adapt_ItView.cpp:14147
 msgid "Illegal change to widener"
-msgstr ""
+msgstr "Yu no inap senisim mak bilong skrum spes (.....)  olsem"
 
 #: source/Adapt_ItView.cpp:15486 source/Adapt_ItView.cpp:15546
 #: source/Adapt_ItView.cpp:15608 source/Adapt_ItView.cpp:15693
@@ -4732,7 +4735,7 @@ msgstr "Sotim fri trenslesen (rausim wanwan word long tel bilong en)"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:337
 msgid "< &Prev"
-msgstr "&GoBek"
+msgstr "Go&Bek"
 
 #: source/Adapt_It_wdr.cpp:338
 msgid "Jump to the previous free translation"
@@ -4741,7 +4744,7 @@ msgstr "Go bek na selektim fri translatioin i stap long teks bipo long dispela"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:345
 msgid "&Lengthen"
-msgstr "&Skruim"
+msgstr "S&kruim"
 
 #: source/Adapt_It_wdr.cpp:346
 msgid "Lengthen the span of a free translation"
@@ -4751,7 +4754,7 @@ msgstr "Wokim teks bilong fri trenslesen i go moa longpela"
 #: source/Adapt_It_wdr.cpp:351 source/scrollingwizard.cpp:385
 #: source/scrollingwizard.cpp:588
 msgid "&Next >"
-msgstr "&GoHet >"
+msgstr "Go&Neks >"
 
 #: source/Adapt_It_wdr.cpp:352
 msgid "Jump to the next free translation"
@@ -4769,7 +4772,7 @@ msgstr "Fail nem bilong Ritrenslesen Ripot"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:365
 msgid "Ad&vance"
-msgstr "GoNeks"
+msgstr "Go&Het"
 
 #: source/Adapt_It_wdr.cpp:367
 msgid "Jump to the next span needing a free translation"
@@ -4777,19 +4780,19 @@ msgstr "Kalap i go long hap teks we i nidim yet wanpela fri trenslesen"
 
 #: source/Adapt_It_wdr.cpp:374
 msgid "Adjust..."
-msgstr ""
+msgstr "Senisim..."
 
 #: source/Adapt_It_wdr.cpp:375
 msgid "Show a button which allows various options such as joining or splitting"
-msgstr ""
+msgstr "Soim baton bilong Senisim fri trenslesen o boda long kain kain rot"
 
 #: source/Adapt_It_wdr.cpp:380
 msgid "Insert Widener"
-msgstr ""
+msgstr "Skruim Sp&es"
 
 #: source/Adapt_It_wdr.cpp:381
 msgid "Insert a section widener (five dots .....) at the end of this section"
-msgstr ""
+msgstr "Putim mak bilong skruim spes (.....) long pinis bilong boda"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:398
@@ -5942,15 +5945,16 @@ msgstr "Ol namba i moa antap bai wokim moa spes namel long ol strip"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1957
-#, fuzzy
 msgid "Width of the inter-pile gap (in pixels, min 16, max 80)"
-msgstr "Spes namel long ol pail (long piksel, liklik 16, planti 40)"
+msgstr "Spes namel long ol pail (long piksel, liklik 16, planti 80)"
 
 #: source/Adapt_It_wdr.cpp:1960
 msgid ""
 "(Free translating gap is at least 40 pixels. Normal gap is restored on exit "
 "from that mode.)"
 msgstr ""
+"(Spes namel long ol pail em i 40 piksel taim yu wok long mekim ol fri "
+"trenslesen tasol.)"
 
 #: source/Adapt_It_wdr.cpp:1968
 msgid "Higher numbers create more horizontal spacing between piles"
@@ -5979,8 +5983,8 @@ msgid ""
 "Try higher number (15 or more) if Keyman doesn't interpret special "
 "characters properly"
 msgstr ""
-"Yu ken traiim bikpela namba liklik (15 o moa yet) sapos Keyman i no kisim "
-"gut ol spesel leta"
+"Yu ken traim bikpela namba liklik (15 o moa yet) sapos Keyman i no kisim gut "
+"ol spesel leta"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:2005
@@ -7192,7 +7196,7 @@ msgid ""
 "Click this button to toggle encoding of the displayed text if it is not "
 "displaying correctly"
 msgstr ""
-"Klikim dispela batan sapos yu laik traiim narapela teks enkoding - sapos "
+"Klikim dispela batan sapos yu laik traim narapela teks enkoding - sapos "
 "dispela i no soim leta stret"
 
 #: source/Adapt_It_wdr.cpp:3452
@@ -7756,6 +7760,8 @@ msgid ""
 "Shows contents with reference counts, allows deletions, or can save list to "
 "a file"
 msgstr ""
+"Soim ol trenslesen tok, larim yu rausim sampela, o yu ken sevim lista igo "
+"long fail"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4142
@@ -10554,9 +10560,9 @@ msgid ""
 "return to it if you need to, exactly as it is now."
 msgstr ""
 "Yu ken raitim toksave i go long dispela bokis antap. Em bilong makim wanem "
-"versin bilong dispela dokumen. Sapos yu klikim OK, orait Adapt It bai sevim "
+"vesin bilong dispela dokumen. Sapos yu klikim OK, orait Adapt It bai sevim "
 "dispela dokumen na putim i go long histori bilong ol dokumen. Bihain gen, "
-"sapos yu laik mekim, yu ken kisim dispela versin i kam bek gen wankain olsem "
+"sapos yu laik mekim, yu ken kisim dispela vesin i kam bek gen wankain olsem "
 "i stap nau tasol."
 
 #: source/Adapt_It_wdr.cpp:9314
@@ -10637,7 +10643,7 @@ msgstr ""
 "olsem nem bilong yu stret, o wanpela giaman nem tu i orait. Yu mas taipim "
 "dispela nem wanpela taim tasol hia long dispela daialog. Sapos yu laik "
 "senisim, yu ken senisim hia tasol long dispela daialog. Adapt It i no inap "
-"usim dispela nem insait long email. Adapt It bai wokim sekuriti na yusim "
+"yusim dispela nem insait long email. Adapt It bai wokim sekuriti na yusim "
 "tasol i go long shared nolis bes serva, or i go long wanpela Git repository "
 "bilong sevim long dokumen history."
 
@@ -10647,7 +10653,7 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:9483
 msgid "ID     Users"
-msgstr ""
+msgstr "Namba      Ol man i save mekim wok"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9494
@@ -10827,11 +10833,11 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:9718
 msgid "Original Creator:"
-msgstr ""
+msgstr "Husat Kirapim Paslain:"
 
 #: source/Adapt_It_wdr.cpp:9719
 msgid "This user created the database. The username is not editable."
-msgstr ""
+msgstr "Nem bilong man i kirapim database. Progrem banisim yu long editim."
 
 #: source/Adapt_It_wdr.cpp:9723
 msgid "Display the username of who originally created this database"
@@ -11014,6 +11020,8 @@ msgid ""
 "Widen or narrow columns by dragging a heading divider. Resize the dialog by "
 "dragging the bottom right corner."
 msgstr ""
+"Antap mak i stap bilong mekim kolam surik igo o ikam. Klikim en na surikim "
+"maus. Mekim sais bilong daialog senis, klik long kona na pulim nabout. "
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:9984
@@ -11022,13 +11030,15 @@ msgstr "Makim wanem rot yu laik list i kamap"
 
 #: source/Adapt_It_wdr.cpp:9989
 msgid "Organise by keeping source text groupings"
-msgstr ""
+msgstr "Soim ol sos  teks tok paslain"
 
 #: source/Adapt_It_wdr.cpp:9991
 msgid ""
 "\"Target\" (or \"Gloss\") <> \"Source\" on each line,  but keeping source "
 "text meanings together"
 msgstr ""
+"\"Taget\" (o \"Glos\") <> \"Sos\" i stap long wanwan lain,  tasol olgeta sos "
+"teks i gat wankain mining i bung wantaim"
 
 #: source/Adapt_It_wdr.cpp:9996
 msgid "List in alphabetic order of the target text"
@@ -11039,6 +11049,8 @@ msgid ""
 "\"Target\" (or \"Gloss\") <> \"Source\" on each line, organised "
 "alphabetically"
 msgstr ""
+"\"Taget\" (o \"Glos\") <> \"Sos\" i stap long wanwan lain,  tasol olgeta "
+"taget teks tok i stap long a b d oda"
 
 #: source/Adapt_It_wdr.cpp:10006
 msgid "Save the list to a file... "
@@ -11047,10 +11059,11 @@ msgstr "Sevim lista i go long wanpela fail..."
 #: source/Adapt_It_wdr.cpp:10007
 msgid "Save the current form of the list to a text file"
 msgstr ""
+"Sevim lista nau, wanem yu lukim long hia olsem tasol igo long teks fail"
 
 #: source/Adapt_It_wdr.cpp:10012
 msgid "Remove the selected entries, and close"
-msgstr "Rausim ol toktok i selektaim, pinis pasim"
+msgstr "Rausim ol toktok i gat tik, pinis pasim"
 
 #: source/Adapt_It_wdr.cpp:10014
 msgid "Removes the entries which are ticked, and closes the dialog"
@@ -11058,7 +11071,7 @@ msgstr "Rausim ol toktok i gat tik, na pasim daialog"
 
 #: source/Adapt_It_wdr.cpp:10020
 msgid "Ignore any selections made, just Cancel the dialog"
-msgstr ""
+msgstr "Olgeta selektim yu mekim pinis, maski, Kenselim daialog tasol"
 
 #: source/Adapt_It_wdr.cpp:10029
 msgid ""
@@ -11073,110 +11086,124 @@ msgid ""
 "This dialog can be forced open manually by clicking the Adjust... button "
 "located in the control bar. "
 msgstr ""
+"Spes i no inap long soim olgeta fri trenslesen yu taipim pinis. Kisim "
+"wanpela baton i stap daunbilo, long laik bilong yu. Sapos yu laik haphapim "
+"fri trenslesen, narapela daialog bai i op bilong helpim yu long skelim we yu "
+"laik brukim teks. Yu yet inap long opim dispela Senisim... daialog, klikim "
+"Senisim... baton taim yu laik mekim olsem, baton em i stap antap long tulba."
 
 #: source/Adapt_It_wdr.cpp:10063
 msgid "Join to next"
-msgstr ""
+msgstr "Joinim wantaim neks"
 
 #: source/Adapt_It_wdr.cpp:10065
 msgid ""
 "Join the current section to the next section (if the next is absent, it will "
 "first be created)"
 msgstr ""
+"Joinim dispela fri trenslesen hap wantaim neks hap (sapos neks hap i no stap "
+"yet, progrem bai kirapim pastaim)"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10070
-#, fuzzy
 msgid "Join to previous"
-msgstr "Kalap i go long las not"
+msgstr "Joinim wantaim las"
 
 #: source/Adapt_It_wdr.cpp:10071
 msgid ""
 "Join the current section to the previous section (if the previous is absent, "
 "it will first be created)"
 msgstr ""
+"Joinim dispela fri trenslesen hap wantaim las hap (sapos las hap i no stap "
+"yet, progrem bai kirapim pastaim)"
 
 #: source/Adapt_It_wdr.cpp:10074
-#, fuzzy
 msgid "Split the typed text"
-msgstr "Senisim sos tek yu bin selektim"
+msgstr "Kamapim tupela hap teks"
 
 #: source/Adapt_It_wdr.cpp:10075
 msgid ""
 "Split. Keep the first part in the current section, join the remainder to "
 "what follows"
 msgstr ""
+"Haphapim. Holim paslain hap hia tasol, na arapela hap salim igo insait long "
+"neks boda."
 
 #: source/Adapt_It_wdr.cpp:10078
 msgid "Insert widener"
-msgstr ""
+msgstr "Kirapim Mak (.....) Bilong Skruim Spes"
 
 #: source/Adapt_It_wdr.cpp:10079
 msgid "Insert a section widener (.....) at the end of the section"
 msgstr ""
+"Mekim fri trenslesen mak bilong skruim spes (.....) i kamap long tel bilong "
+"boda"
 
 #: source/Adapt_It_wdr.cpp:10121
 msgid "Text:"
-msgstr ""
+msgstr "Teks:"
 
 #: source/Adapt_It_wdr.cpp:10125
-#, fuzzy
 msgid "This is the text which is being  free translated"
-msgstr "Kalap i go long hap teks we i nidim yet wanpela fri trenslesen"
+msgstr "Fri trenslesen yu wok long mekim i stap long hia"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10128
-#, fuzzy
 msgid "Free Translation:"
-msgstr "Fri Trenslesen"
+msgstr "Fri Trenslesen:"
 
 #: source/Adapt_It_wdr.cpp:10132
 msgid ""
 "This is the free translation for the above text. Click where to split it."
 msgstr ""
+"Dispela i fri trenslesen bilong teks i stap antap. Klik long ples yu laik "
+"haphapim."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10135
-#, fuzzy
 msgid "For current section:"
-msgstr "&USFM Set Seleksen"
+msgstr "Hap teks bilong dispela boda:"
 
 #: source/Adapt_It_wdr.cpp:10139
-#, fuzzy
 msgid "What you see here will be kept within the current section"
-msgstr "Problem i kamap taim Adapt It i laik kisim seleksen bilong lista boks"
+msgstr ""
+"Hap teks yu lukim hia, progrem i holim na i stap insait long dispela boda "
+"tasol"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10142
-#, fuzzy
 msgid "For next section:"
-msgstr "&USFM Set Seleksen"
+msgstr "Hap teks bilong boda i stap paslain"
 
 #: source/Adapt_It_wdr.cpp:10146
 msgid "What you see here will be put at the start of the next section"
-msgstr ""
+msgstr "Teks yu lukim hia em bai go paslain insait long neks boda"
 
 #: source/Adapt_It_wdr.cpp:10165
 msgid ""
 "Click in Free Translation box to set where to split, then click Split. If "
 "wrong, repeat."
 msgstr ""
+"Klikim insait long Fri Trenslesen bokis long ples yu laik hapim. Sapos yu "
+"pofaia, traim gen."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10170
-#, fuzzy
 msgid "Split"
-msgstr "Brukim Long:"
+msgstr "Brukim Hap Hap"
 
 #: source/Adapt_It_wdr.cpp:10171
 msgid ""
 "Do the split operation, using the cursor location in the text box. If in a "
 "word, that word will be first in the split off remainder."
 msgstr ""
+"Yusim ples bilong klik long haphapim teks. Sapos yu klik insait wanpela tok, "
+"dispela tok wantaim arapela i stap bihain bai ol i kamap paslain long neks "
+"boda."
 
 #: source/Adapt_It_wdr.cpp:10176
 msgid "Done"
-msgstr ""
+msgstr "Pinis nau"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10206
@@ -11194,11 +11221,13 @@ msgstr "Sevim dokumen na yusim narapela xml fomat, o narapela nem"
 
 #: source/Adapt_It_wdr.cpp:10210
 msgid "Save and remember in history..."
-msgstr ""
+msgstr "Sevim na putim insait long histori stua tu"
 
 #: source/Adapt_It_wdr.cpp:10210
 msgid "Saves the current document and remembers its state in the history."
 msgstr ""
+"Progrem i sevim dispela dokumen na tu em i putim insait long stua bilong "
+"dokumen histori "
 
 #: source/Adapt_It_wdr.cpp:10211
 msgid "Close the active document"
@@ -11310,16 +11339,20 @@ msgid ""
 "Shows the previously remembered version, and allows you to go back to "
 "earlier versions as well."
 msgstr ""
+"Progrem bai i soim yu dokumen vesin i pulim i kam long histori stua, na em i "
+"larim yu long go bek na lukim arapela vesin tu."
 
 #: source/Adapt_It_wdr.cpp:10228
 msgid "View list of previously remembered versions..."
-msgstr ""
+msgstr "Lukim olpela dokumen vesin long lista..."
 
 #: source/Adapt_It_wdr.cpp:10228
 msgid ""
 "Shows a list of all remembered versions, and allows you to select and view "
 "any of them."
 msgstr ""
+"Progrem soim lista i bungim olgeta vesin bilong dispela dokumen, na yu ken "
+"selektim wanpela na lukluk insait long en"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10230
@@ -11331,6 +11364,8 @@ msgid ""
 "Allows you, the logged-in user, to become the owner of this document so you "
 "can edit it."
 msgstr ""
+"Sapos yu no papa bilong dispela dokumen, klikim hia na yu bai kamap papa na "
+"yu ken editim tu."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10232
@@ -11470,7 +11505,7 @@ msgstr "&Kompos Ba"
 
 #: source/Adapt_It_wdr.cpp:10258
 msgid "Show or hide the bar for composing text"
-msgstr "Soim o haitim boks bilong taipim teks (bilong traiim)"
+msgstr "Soim o haitim boks bilong taipim teks (bilong traim)"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10259
@@ -11488,7 +11523,7 @@ msgstr "Kopi S&os"
 
 #: source/Adapt_It_wdr.cpp:10261
 msgid "Copy source text to phrase box as default translation"
-msgstr "Kopiim sos teks i kam long fres boks olsem trenslesen bilong traiim"
+msgstr "Kopiim sos teks i kam long fres boks olsem trenslesen bilong traim"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10262
@@ -12005,7 +12040,7 @@ msgstr "User Wok Profail..."
 
 #: source/Adapt_It_wdr.cpp:10351
 msgid "Choose which menu items the user can access"
-msgstr "Makim wanel ol menu user inap long yusim"
+msgstr "Makim wanem ol menu user inap long yusim"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10352
@@ -12513,7 +12548,7 @@ msgstr ""
 "Papa daialog nau bai pas.\n"
 "Wanem ol fail o folda yu kopiim piinis i stap yet olsem pinis.\n"
 "Ating yu ken yusim fail progrem bilong stretim ol folda o fail samting, "
-"pinis traiim gen."
+"pinis traim gen."
 
 # Priority 1
 #: source/AdminMoveOrCopy.cpp:2199
@@ -12530,7 +12565,7 @@ msgstr ""
 "I nogat yet wanpela sos folda. (Sos folda em i ples we yu bai mekim ol "
 "seleksen.)\n"
 "Yusim 'Painim folda' batan stret, na opim wanpela sos folda pastaim, pinis "
-"traiim gen."
+"traim gen."
 
 # Priority 1
 #: source/AdminMoveOrCopy.cpp:2344 source/AdminMoveOrCopy.cpp:2353
@@ -12547,8 +12582,7 @@ msgid ""
 msgstr ""
 "Yu no makim yet folda bilong kisim ol fail samting long taim yu laik "
 "kopiim.\n"
-"Yusim batan \"Painim wanpela folda\" na makim folda pastaim, pinis traiim "
-"gen."
+"Yusim batan \"Painim wanpela folda\" na makim folda pastaim, pinis traim gen."
 
 # Priority 1
 #: source/AdminMoveOrCopy.cpp:2377
@@ -12574,8 +12608,7 @@ msgid ""
 "folder, then try again."
 msgstr ""
 "Yu no makim yet folda bilong kisim ol fail samting long taim yu laik movim.\n"
-"Yusim batan \"Painim wanpela folda\" na makim folda pastaim, pinis traiim "
-"gen."
+"Yusim batan \"Painim wanpela folda\" na makim folda pastaim, pinis traim gen."
 
 # Priority 1
 # Do not translate '__SOURCE_INPUTS'.
@@ -12585,7 +12618,7 @@ msgid ""
 "The Move operation is cancelled. Nothing has been moved."
 msgstr ""
 "I tambu long movim __SOURCE_INPUTS folda.\n"
-"Dispela wok yu laik traiim i kensel pinis. Adapt It i no movim."
+"Dispela wok yu laik traim i kensel pinis. Adapt It i no movim."
 
 # Priority 1
 #: source/AdminMoveOrCopy.cpp:2575
@@ -12645,7 +12678,7 @@ msgid ""
 "lengths identical."
 msgstr ""
 "Sori, longpela bilong ol bikpela na smol kes leta i no wankain. Sekim projek "
-"seting fail, na traiim editim na wokim longpela bilong ol kes leta i wankain "
+"seting fail, na traim editim na wokim longpela bilong ol kes leta i wankain "
 "tasol."
 
 #: source/CaseEquivPage.cpp:827 source/CaseEquivPage.cpp:849
@@ -12764,7 +12797,7 @@ msgid ""
 "box. Do so and then try the editing button again."
 msgstr ""
 "Sori, yu no makim yet wanpela konsisten senis tebol insait long lista boks. "
-"Selektim pastaim na bihain traiim \"Editim...\" batan gen."
+"Selektim pastaim na bihain traim \"Editim...\" batan gen."
 
 #: source/CCTabbedDialog.cpp:851 source/CCTabbedDialog.cpp:948
 msgid "Error opening the file. Cannot edit the file. Aborting."
@@ -12907,7 +12940,7 @@ msgstr "Taipim Nem bilong Tokples"
 #: source/ChooseLanguageDlg.cpp:721
 #, c-format
 msgid "Please enter the common language name for the %s localization: "
-msgstr "Plis yu taipim nem bilong tokples yu save usim bilong makim %s lokal:"
+msgstr "Plis yu taipim nem bilong tokples yu save yusim bilong makim %s lokal:"
 
 #: source/ChooseTranslation.cpp:618 source/ChooseTranslation.cpp:669
 #: source/DocPage.cpp:774
@@ -13185,7 +13218,7 @@ msgstr ""
 "Yu mas larim Adatp It i stap olsem yet, go nau long %s na sevim wok insait "
 "long en, na stopim pastaim.\n"
 "Orait, kam bek gen long Adapt It na klikim \"OK\" bilong sevim wok bilong yu "
-"gen, o yu ken klikim \"Kensel\" bilong stopim dispela sevim yu bin traiim "
+"gen, o yu ken klikim \"Kensel\" bilong stopim dispela sevim yu bin traim "
 "(narapela Fail / Sevim seleksen bihain bai kamap orait)."
 
 # Priority 1
@@ -13355,7 +13388,7 @@ msgstr ""
 "dispela dokumen, na yu yusim yet vesin i oldpela liklik. Salim email i kam "
 "long mipela developa sapos yu yet i no inap stretim dispela problem."
 
-#: source/DVCS.cpp:329
+#: source/DVCS.cpp:336
 msgid "[No Comment] Version saved on "
 msgstr "[Nogat toksave] Vesin i sev long dispela det:"
 
@@ -13484,9 +13517,8 @@ msgstr "Spes bilong Fres Boks i ken i solap i go longpela"
 
 # Priority 1
 #: source/EditPreferencesDlg.cpp:667
-#, fuzzy
 msgid "font size for dialogs"
-msgstr "Bikpela bilong Font insait long daialog (liklik 10, bikepal 24)"
+msgstr "Bikpela bilong Font insait long daialog (liklik 10, bikpela 24)"
 
 #: source/EditPreferencesDlg.cpp:682
 msgid "number of minutes value"
@@ -13731,7 +13763,7 @@ msgid ""
 "Close the report dialog and open a document, then try again."
 msgstr ""
 "Wanpela dokumen i mas op i stap pastaim. Pinis, Adapt It i ken wokim pekap.\n"
-"Pasim ripot daialog pastaim, na opim wanpela dokumen, pinis, traiim gen."
+"Pasim ripot daialog pastaim, na opim wanpela dokumen, pinis, traim gen."
 
 # Priority 1
 #: source/EmailReportDlg.cpp:1167
@@ -13757,9 +13789,8 @@ msgstr "Plis, yu mas taipim email edres bilong yu pastaim"
 #: source/EmailReportDlg.cpp:1426 source/EmailReportDlg.cpp:1459
 #: source/EmailReportDlg.cpp:1466 source/EmailReportDlg.cpp:1475
 #: source/EmailReportDlg.cpp:1481
-#, fuzzy
 msgid "Information missing or incomplete"
-msgstr "Wok i no kamap pinis"
+msgstr "Sampela teks igo lus pinis, o  hap bilong en i no stap"
 
 #: source/EmailReportDlg.cpp:1457
 #, c-format
@@ -13811,7 +13842,7 @@ msgstr ""
 "Olsem i no inap wokim ekspot sapos aiDefault.css i no stap long dispela "
 "lokesen.\n"
 "(Sapos yu painim dispela fail, yu ken kopiim i go long dispela lokesen, "
-"pinis, na traiim ekspot gen.)"
+"pinis, na traim ekspot gen.)"
 
 # Priority 1
 #: source/ExportFunctions.cpp:480
@@ -13858,7 +13889,7 @@ msgstr ""
 "I no makim 2-pela leta or 3-pela leta kod yet, olsem na no inap wokim ekspot "
 "yet. \n"
 "Yu ken makim dispela kod insait long Bekap na Misc pes bilong ol Seting...\n"
-"Wokim nau, na traiim xhtml ekspot gen."
+"Wokim nau, na traim xhtml ekspot gen."
 
 # Priority 1
 #: source/ExportFunctions.cpp:599
@@ -14290,7 +14321,7 @@ msgstr ""
 "Yu mas instalim Pathway pastaim sapos yu laik wokim Pathway ekspot long "
 "dispela komputa.\n"
 "Plis, yu daunlodim Pathway pastaim i kam long http://pathway.sil.org/"
-"download/latest-sprint-downloads/. Pinis, yu traiim gen."
+"download/latest-sprint-downloads/. Pinis, yu traim gen."
 
 #: source/ExportSaveAsDlg.cpp:325
 msgid "Pathway Not Installed"
@@ -14392,57 +14423,64 @@ msgstr ""
 "Sapos yu go het, Adapt It bai rausim olgeta bek trenslesen i stap pinis "
 "insait long dispela dokumen. Yu laik mekim olsem o nogat?"
 
-#: source/FreeTrans.cpp:9918
-#, fuzzy
+#: source/FreeTrans.cpp:9937
 msgid "No place to put the remaining free translation "
-msgstr "Go bek na selektim fri translatioin i stap long teks bipo long dispela"
+msgstr "Sampela fri trenslesen i stap yet, tasol no gat ples bilong putim em"
 
-#: source/FreeTrans.cpp:9919
+#: source/FreeTrans.cpp:9938
 msgid ""
 "The current section is at the document's end. There is nothing ahead to "
 "transfer the remainder of the split translation to. It will be abandoned."
 msgstr ""
+"Dispela fri trenslesen boda i stap long tel bilong dokumen. Namba tu hap fri "
+"trenslesen yu brukim pinis i no gat ples long i stap. Adapt It bai troimwe."
 
-#: source/FreeTrans.cpp:10073
-#, fuzzy
+#: source/FreeTrans.cpp:10092
 msgid "No correctly defined end "
-msgstr "I no makim projek folda yet."
+msgstr "Pinis bilong fri trenslesen boda i kranki"
 
-#: source/FreeTrans.cpp:10074
+#: source/FreeTrans.cpp:10093
 msgid ""
 "The current free translation section did not have a properly defined end. "
 "The attempt to insert a widener will be abandoned."
 msgstr ""
+"Dispela fri trenslesen i no gat gutpela boda long tel bilong en. Traim yu "
+"mekim bilong putim mak bilong skruim spes i no ken kamap nau."
 
 #: source/FreeTransAdjustDlg.cpp:61
 msgid "Adjust Section or Typing"
-msgstr ""
+msgstr "Senisim Boda o Senism Teks"
 
 #: source/FreeTransAdjustDlg.cpp:164
 msgid "Cannot join with what follows"
-msgstr ""
+msgstr "No inap join wantaim ol tok i stap long sait bilong gohet"
 
 #: source/FreeTransAdjustDlg.cpp:165
 msgid ""
 "The current section is at the document's end. There is nothing ahead to join "
 "on to. Instead, try to join with what precedes the current section."
 msgstr ""
+"Dispela fri trenslesen boda i stap long tel bilong dokumen. Narapela bilong "
+"joinim wantaim i no stap. Mobeta yu traim joinim dispela wantaim fri "
+"trenselesen i stap long baksait."
 
 # Priority 1
 #: source/FreeTransAdjustDlg.cpp:177 source/FreeTransAdjustDlg.cpp:249
-#, fuzzy
 msgid "Illegal join"
-msgstr "I tambu long daunim"
+msgstr "I tambu long joinim dispela"
 
 #: source/FreeTransAdjustDlg.cpp:178
 msgid ""
 "Joining across the boundary between two verses or two chapters is illegal. "
 "Instead, try to join with what precedes the current section."
 msgstr ""
+"Bigin bilong niupela ves em i olsem banis. Progrem i no larim yu long joinim "
+"tupela fri trenslesen i stap long sait sait long dispela banis. Traim joinim "
+"wantaim las fri trenslesen."
 
 #: source/FreeTransAdjustDlg.cpp:227 source/FreeTransAdjustDlg.cpp:236
 msgid "Cannot join with what precedes"
-msgstr ""
+msgstr "I tambu long joinim wantaim wanem i stap long baksait"
 
 #: source/FreeTransAdjustDlg.cpp:228
 msgid ""
@@ -14451,24 +14489,32 @@ msgid ""
 "allowed. Instead, join with what follows the current section, or take the "
 "option to insert a section widener."
 msgstr ""
+"Dispela fri trenslesen em i kam bihain long wanpela kain teks olsem: fut pas "
+"(footnote), tel pas (endnote), o kros referens. I tambu long joinim wantaim "
+"wanpela olsem. Mobeta yu traim joinim wantaim neks fri trenslesen, o klikim "
+"baton bilong Skruim Spes."
 
 #: source/FreeTransAdjustDlg.cpp:237
 msgid ""
 "The current section is at the document's start. There is nothing preceding "
 "to join on to. Instead, try to join with what follows the current section."
 msgstr ""
+"Dispela fri trenslesen em i stap long bigin bilong dokumen. No gat samting i "
+"stap bihain, olsem na rot bilong join i no stap. Mobeta yu traim joinim "
+"wantaim neks fri trenslesen."
 
 #: source/FreeTransAdjustDlg.cpp:250
 msgid ""
 "Joining across the boundary between two verses or two chapters is illegal. "
 "Instead, try to join with what follows the current section."
 msgstr ""
+"I tambu long joinim dispela fri trenslesen wantaim narapela ves i stap "
+"bihain long em. Mobeta yu traim joinim wantaim neks fri  trenslesen."
 
 # Priority 1
 #: source/FreeTransSplitterDlg.cpp:78
-#, fuzzy
 msgid "Split Free Translation"
-msgstr "Fri Trenslesen"
+msgstr "Haphapim Fri Trenslesen"
 
 #: source/GetSourceTextFromEditor.cpp:80
 #, c-format
@@ -14592,7 +14638,7 @@ msgstr ""
 "Plis, yu kirapim Paratext na selektim %s projek. Pinis, selektim \"Create "
 "Book(s)\" long Projek menu bilong Paratext yet. Makim ol book yu laik "
 "Paratext i wokim, na selektim \"Create with all chapter and verse numbers\". "
-"Pinis, go bek long Adapt It na traiim gen."
+"Pinis, go bek long Adapt It na traim gen."
 
 #: source/GetSourceTextFromEditor.cpp:1672
 #, c-format
@@ -14617,7 +14663,7 @@ msgstr ""
 "Plis, yu kirapim Bibledit na selektim %s Projek. Selektim Fail | Projek | "
 "Properties. Pinis, selektim \"Templates+\" long Projek properties daialog. "
 "Makim ol book yu laik Bibledit i wokim, na klikim OK. Pinis, go bek long "
-"Adapt It na traiim gen."
+"Adapt It na traim gen."
 
 #: source/GetSourceTextFromEditor.cpp:1676
 #: source/GetSourceTextFromEditor.cpp:1739
@@ -14651,7 +14697,7 @@ msgid ""
 "usable as source texts, then try again."
 msgstr ""
 "Plis, yu selektim narapela buk, o yu mas yusim %s bilong impotim toktok i go "
-"insait long %s na i ken yusim olsem sos teks, pinis, traiim gen."
+"insait long %s na i ken yusim olsem sos teks, pinis, traim gen."
 
 #: source/GetSourceTextFromEditor.cpp:1730
 #: source/GetSourceTextFromEditor.cpp:1849
@@ -14765,7 +14811,7 @@ msgid ""
 "getting the directory's child directories; perhaps try again."
 msgstr ""
 "No inap mekim folda %s i kamap olsem wok folda olsem na i no inap painim ol "
-"pikinini folda bilong en; ating yu traiim gen."
+"pikinini folda bilong en; ating yu traim gen."
 
 #: source/helpers.cpp:2923 source/helpers.cpp:3102
 msgid "Error, no working directory"
@@ -14782,7 +14828,7 @@ msgid ""
 "getting the folder's files; perhaps try again."
 msgstr ""
 "I no inap makim %s i kamap olsem wok folda na painim ol fail insait long en; "
-"ating yu mas traiim gen."
+"ating yu mas traim gen."
 
 #: source/helpers.cpp:8986
 msgid ""
@@ -14794,27 +14840,27 @@ msgstr ""
 
 # Priority 1
 # Abbreviate if necessary to keep the word short.
-#: source/helpers.cpp:9845
+#: source/helpers.cpp:9847
 msgid "Source, "
 msgstr "Sos,"
 
 # Priority 1
-#: source/helpers.cpp:9849
+#: source/helpers.cpp:9851
 msgid "Target, "
 msgstr "Taget,"
 
 # Priority 1
-#: source/helpers.cpp:9853
+#: source/helpers.cpp:9855
 msgid "Glosses, "
 msgstr "Glos,"
 
 # Priority 1
-#: source/helpers.cpp:9857
+#: source/helpers.cpp:9859
 msgid "Free translation"
 msgstr "Fri trenslesen"
 
 # Priority 1
-#: source/helpers.cpp:9868
+#: source/helpers.cpp:9870
 #, c-format
 msgid ""
 "Missing language code for the following language(s):\n"
@@ -14829,10 +14875,10 @@ msgstr ""
 "%s\n"
 "\n"
 "Yu mas taipim kod bilong wanem yu no taipim yet.\n"
-"Yu laik traiim gen?"
+"Yu laik traim gen?"
 
 # Priority 1
-#: source/helpers.cpp:9869 source/KB.cpp:2993
+#: source/helpers.cpp:9871 source/KB.cpp:2993
 msgid "Language code(s) missing"
 msgstr "Tokples kod i no stap"
 
@@ -14981,7 +15027,7 @@ msgstr ""
 "%s\n"
 "\n"
 "LIFT XML Expot i mas i gat 3-pela leta tokples kod i stap.\n"
-"Yu laik traiim gen?"
+"Yu laik traim gen?"
 
 # Priority 1
 #: source/KB.cpp:3043
@@ -15128,7 +15174,7 @@ msgid ""
 msgstr ""
 "I gat problem long sevim nolis bes. Tasol ol respeling yu wokim i no lus "
 "yet, i stap yet long komputa memori. Traim dispela: klikim OK batan nau, na "
-"Adapt It bai traiim gen long sevim, na ating bai wok o nogat."
+"Adapt It bai traim gen long sevim, na ating bai wok o nogat."
 
 # Priority 1
 #: source/KBEditor.cpp:1243
@@ -15292,7 +15338,7 @@ msgstr ""
 
 #: source/KBSharingMgrTabbedDlg.cpp:994
 msgid "The passwords in the two boxes are not identical. Try again."
-msgstr "Tupela password i no wankain. Yu traiim gen."
+msgstr "Tupela password i no wankain. Yu traim gen."
 
 #: source/KBSharingMgrTabbedDlg.cpp:995
 msgid "Error: different passwords"
@@ -15491,7 +15537,7 @@ msgid ""
 "and try again."
 msgstr ""
 "Nogat seleksen bilong wanpela user yet. Yu mas selektim user pastaim insait "
-"long lista, pinis yu ken editim user properties. Wokim olsem nau, na traiim "
+"long lista, pinis yu ken editim user properties. Wokim olsem nau, na traim "
 "gen."
 
 # Priority 1
@@ -15521,7 +15567,7 @@ msgstr "Toksave: No ken senisim username olsem"
 
 #: source/KBSharingMgrTabbedDlg.cpp:1899
 msgid "This edit attempt might fail..."
-msgstr "Dispela edit yu traiim i ken kamap nogut..."
+msgstr "Dispela edit yu traim i ken kamap nogut..."
 
 #: source/KBSharingMgrTabbedDlg.cpp:1900
 msgid ""
@@ -15637,7 +15683,7 @@ msgid ""
 msgstr ""
 "Wanpela kod i rong - sos o taget tokples kod i rong, o i no stap, o yu wokim "
 "Kensel.\n"
-"Sharing nau i OFF. Stretim tokples kod pastaim, pinis traiim gen."
+"Sharing nau i OFF. Stretim tokples kod pastaim, pinis traim gen."
 
 #: source/KbSharingSetup.cpp:202 source/ProjectPage.cpp:1416
 msgid ""
@@ -15648,7 +15694,7 @@ msgid ""
 msgstr ""
 "Wanpela kod i rong - sos o glos tokples kod i rong, o i no stap, o yu wokim "
 "Kensel.\n"
-"Sharing nau i OFF. Stretim tokples kod pastaim, pinis traiim gen."
+"Sharing nau i OFF. Stretim tokples kod pastaim, pinis traim gen."
 
 #: source/KbSharingSetup.cpp:249 source/KbSharingSetup.cpp:264
 msgid "Setup failed"
@@ -15685,7 +15731,7 @@ msgstr ""
 
 #: source/KBSharingStatelessSetupDlg.cpp:172
 msgid "The password was empty. Please try again."
-msgstr "Yu no taipim password yet. Plis traiim gen."
+msgstr "Yu no taipim password yet. Plis traim gen."
 
 #: source/KBSharingStatelessSetupDlg.cpp:173
 msgid "No password"
@@ -15715,7 +15761,7 @@ msgstr ""
 "Username teks bokis i nogat samting, na em i olsem read-only, olsem yu no "
 "inap taip insait long en.\n"
 "Kensel nau, na go bek long Edit menu na klikim \"Senisim Username\".\n"
-"Sapos setimap username pinis, traiim gen long setimapim nolis bes sharing."
+"Sapos setimap username pinis, traim gen long setimapim nolis bes sharing."
 
 #: source/KBSharingStatelessSetupDlg.cpp:217
 msgid "Setup correct unique username"
@@ -16197,7 +16243,7 @@ msgid ""
 "You are already at the start of the file, so it is not possible to move back "
 "any further."
 msgstr ""
-"Yu stap yet long stat bilong fail, olsem Adatp It i no inap surik i go bek "
+"Yu stap yet long stat bilong fail, olsem Adapt It i no inap surik i go bek "
 "moa."
 
 # Priority 1
@@ -16206,7 +16252,7 @@ msgid ""
 "To edit or remove a retranslation you must use the toolbar buttons for those "
 "operations."
 msgstr ""
-"Sapos yu laik editim o rausim retranslation, yu mas usim batan long tulba "
+"Sapos yu laik editim o rausim retranslation, yu mas yusim batan long tulba "
 "bilong wokim."
 
 #: source/PhraseBox.cpp:4061 source/PhraseBox.cpp:4800
@@ -16309,9 +16355,8 @@ msgstr ""
 "trenslesen i go pinis o nogat?"
 
 #: source/Placeholder.cpp:2243
-#, fuzzy
 msgid "Attempting removal of a free translation widener"
-msgstr "Sotim fri trenslesen (rausim wanwan word long tel bilong en)"
+msgstr "Wok long traim long rausim mak bilong skruim spes (.....)"
 
 #: source/Placeholder.cpp:2244
 msgid ""
@@ -16319,6 +16364,9 @@ msgid ""
 "you do so, its section of free translation would be displayed truncated. Do "
 "you wish to go ahead with the removal?"
 msgstr ""
+"Yu ken rausim mak bilong skruim spes, tasol mipela ting dispela em i no gut "
+"tumas. Sapos yu mekim olsem, fri trenslesen bai i no soim olgeta tok, yu bai "
+"lukim ... long tel tasol. Yu ting wanem? Yu laik gohet na rausim?"
 
 #: source/Placeholder.cpp:2485
 msgid ""
@@ -16451,7 +16499,7 @@ msgstr ""
 "%s\n"
 "\n"
 "Plis, yu stretim problem pastaim, o askim administreta i helpim yu. Pinis, "
-"traiim gen."
+"traim gen."
 
 #: source/ProjectPage.cpp:741
 msgid "This project's collaboration settings are invalid"
@@ -16481,7 +16529,7 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Sapos yu go het na traiim opim dispela %s projek, yu bai no inap mekim wok "
+"Sapos yu go het na traim opim dispela %s projek, yu bai no inap mekim wok "
 "wantaim %s, nogat. Na Adapt It bai yusim ol defol font na pangsuesen seting "
 "samting. Nogut yu opim dispela projek. Moabeta yu stopim Adapt It na painim "
 "backup bilong dispela AI-ProjectConfiguration.aic fail na kopiim i kam long "
@@ -16504,11 +16552,11 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Sapos yu go het na traiim opim dispela %s projek, Adapt It bai yusim ol "
-"defol font na pangsuesen seting samting. Nogut yu opim dispela projek. "
-"Moabeta yu stopim Adapt It na painim backup bilong dispela AI-"
-"ProjectConfiguration.aic fail na kopiim i kam long projek folda, o askim "
-"administreta i helpim yu long stretim gen ol seting bilong wok wantaim.\n"
+"Sapos yu go het na traim opim dispela %s projek, Adapt It bai yusim ol defol "
+"font na pangsuesen seting samting. Nogut yu opim dispela projek. Moabeta yu "
+"stopim Adapt It na painim backup bilong dispela AI-ProjectConfiguration.aic "
+"fail na kopiim i kam long projek folda, o askim administreta i helpim yu "
+"long stretim gen ol seting bilong wok wantaim.\n"
 "\n"
 "Stopim Adapt It nau?"
 
@@ -16714,7 +16762,7 @@ msgid ""
 "folder."
 msgstr ""
 "Dispela \"projek folda\" i no folda tru, %s em i wanpela fail tasol. Adapt "
-"It bai wok yet, tasol yu mas traiim painim wanpela folda tru bilong projek."
+"It bai wok yet, tasol yu mas traim painim wanpela folda tru bilong projek."
 
 # Priority 1
 #: source/ReadOnlyProtection.cpp:406
@@ -16775,8 +16823,8 @@ msgid ""
 "retry more than once."
 msgstr ""
 "Wanpela wok bilong rausim i ron yet long background.\n"
-"Wetim liklik bilong em i pinis pastaim, bihain traiim gen.\n"
-"Sapos dispela rausim bipo i wokim planti, ating yu mas wetim o traiim gen "
+"Wetim liklik bilong em i pinis pastaim, bihain traim gen.\n"
+"Sapos dispela rausim bipo i wokim planti, ating yu mas wetim o traim gen "
 "planti taim."
 
 #: source/RemoveSomeTgtEntries.cpp:358 source/RemoveSomeTgtEntries.cpp:404
@@ -16876,7 +16924,7 @@ msgid ""
 msgstr ""
 "Sori, yu selektim olgeta teks na yu laik wokim ritrenslesen long olgeta "
 "wantaim, tasol Adapt It i no ken mekim olsem nogut fres boks i nogat ples "
-"bilong putim. Sotim seleksen pastaim na traiim gen."
+"bilong putim. Sotim seleksen pastaim na traim gen."
 
 # Priority 1
 #: source/Retranslation.cpp:1830
@@ -16893,7 +16941,7 @@ msgid ""
 "part of a retranslation. First remove the retranslation and then try again."
 msgstr ""
 "Sorry, i tambu long mekim olsem taim seleksen i gat ritrenslesen i stap "
-"insait. Yu mas rausim ritrenslesen pinis pastaim, bihain traiim gen."
+"insait. Yu mas rausim ritrenslesen pinis pastaim, bihain traim gen."
 
 #: source/Retranslation.cpp:2217 source/Retranslation.cpp:2876
 msgid ""
@@ -16955,8 +17003,8 @@ msgid ""
 "relaunch, even if you loose your unsaved edits."
 msgstr ""
 "No inap sevim dispela dokumen. Ritrenslesen Ripot i nogat nau.\n"
-"Yu ken traiim mekim wok yet, tasol moabeta yu stopim Adapt It pastaim, "
-"pinis, statim gen. Maski lusim sampela ol edit yu wokim pinis."
+"Yu ken traim mekim wok yet, tasol moabeta yu stopim Adapt It pastaim, pinis, "
+"statim gen. Maski lusim sampela ol edit yu wokim pinis."
 
 #: source/Retranslation.cpp:4046
 msgid "Unable to open report file.\n"
@@ -17142,7 +17190,7 @@ msgid ""
 msgstr ""
 "Plis, yu mas selektim \"Create Book(s)\" long Projek menu bilong Paratext "
 "yet. Makim ol book yu laik Paratext i wokim, na selektim \"Create with all "
-"chapter and verse numbers\". Pinis, go bek long Adapt It na traiim gen."
+"chapter and verse numbers\". Pinis, go bek long Adapt It na traim gen."
 
 #: source/SetupEditorCollaboration.cpp:531
 #: source/SetupEditorCollaboration.cpp:718
@@ -17154,7 +17202,7 @@ msgid ""
 msgstr ""
 "Plis, yu kirapim Bibledit na selektim Fail | Projek | Properties. Pinis, "
 "selektim \"Templates+\" long Projek properties daialog. Makim ol book yu "
-"laik Bibledit i wokim, na klikim OK. Pinis, go bek long Adapt It na traiim "
+"laik Bibledit i wokim, na klikim OK. Pinis, go bek long Adapt It na traim "
 "gen."
 
 #: source/SetupEditorCollaboration.cpp:534
@@ -17175,7 +17223,7 @@ msgstr ""
 "Dispela %s projek i nogat buk instait. No inap yusim dispela projek bilong "
 "kisim sos teks. Plis, yu mas go bek long %s na impotim ol buk bilong yusim "
 "olsem sos teks i go long projek (o i go long nupela %s projek) pastaim, "
-"pinis kam bek long Adapt It na traiim gen."
+"pinis kam bek long Adapt It na traim gen."
 
 #: source/SetupEditorCollaboration.cpp:547
 #, c-format
@@ -17278,7 +17326,7 @@ msgstr ""
 "Dispela %s project i nogat buk insait. No inap yusim dispela projek bilong "
 "kisim trenslesen teks i kam long Adapt It. Plis, go bek long %s na wokim "
 "sampela buk (wantaim sapta na ves maka tasol) bilong dispela projek. Pinis, "
-"kam bek gen long Adapt It na traiim gen."
+"kam bek gen long Adapt It na traim gen."
 
 #: source/SetupEditorCollaboration.cpp:734
 #: source/SetupEditorCollaboration.cpp:923
@@ -17385,7 +17433,7 @@ msgstr ""
 "Dispela %s projek i nogat buk yet. Yu no inap yusim dispela projek bilong "
 "kisim ol fri trenslesen i kam long Adapt It. Plis, yu mas go bek long %s na "
 "wokim sampela nupela buk (i gat sapta na ves namba tasol) pastaim, pinis, "
-"kam bek long Adapt It na traiim gen."
+"kam bek long Adapt It na traim gen."
 
 # The first %s will be the name of an Adapt It project.
 # The second %s will be "Paratext" or "Bibledit".
@@ -17457,7 +17505,7 @@ msgstr ""
 "klikim Kensel nau, na stopim Adapt It.\n"
 "Sapos kilim dai Adapt It pinis, orait, yu ken yusim fail brausa na detetim "
 "dispela folda na olgeta samting insait long folda: %s  sapos em i stap yet.\n"
-"Pinis, orait statim Adapt It na traiim gen."
+"Pinis, orait statim Adapt It na traim gen."
 
 # Priority 1
 #: source/SetupEditorCollaboration.cpp:1640
@@ -17616,7 +17664,7 @@ msgstr ""
 "narapela projek (setps 2 - 4).\n"
 "\n"
 "Sapos setap wok i pinis nau, selektim \"Klosim\" bilong pasim dispela setap "
-"daialog, na yu ken traiim ol setap. Yusim Stat Wok pes."
+"daialog, na yu ken traim ol setap. Yusim Stat Wok pes."
 
 # The first %s will be the name of an Adapt It project.
 # The second %s will be "Paratext" or "Bibledit"
@@ -17678,7 +17726,6 @@ msgstr "(nem)"
 
 # Priority 1
 #: source/SilConverterSelectDlg.cpp:73
-#: source/SilConverterSelectDlg.cpp.bak.cpp:73
 msgid "Choose SIL Converter"
 msgstr "Selektim SIL Konveta"
 
@@ -17862,7 +17909,7 @@ msgid ""
 "switch applications, then try again."
 msgstr ""
 "Adapt It i no inap go het long lusim dokumen i pekap. Sapos yu laik lusim "
-"dispela fail i pekap, yu mas yusim narapela program na traiim gen."
+"dispela fail i pekap, yu mas yusim narapela program na traim gen."
 
 #: source/UsernameInput.cpp:54
 msgid "Username Input (applies to all projects)"
@@ -18310,7 +18357,7 @@ msgstr ""
 "XML fail (%s) i laik opim nau, i gat wanpela UTF-16 BOM (Bait Oda Mak), "
 "olsem em i no UTF-8 deta. Ating yu bin editim dispela fail insait long "
 "wanpela word prosesa progrem, na yu no bin tokim progrem long sevim long "
-"UTF-8 kain fomat. Plis yu wokim gen pastaim olsem, na traiim gen."
+"UTF-8 kain fomat. Plis yu wokim gen pastaim olsem, na traim gen."
 
 #: source/XML.cpp:7287
 #, c-format
