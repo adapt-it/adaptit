@@ -69,6 +69,7 @@
 	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	#pragma GCC diagnostic ignored "-Wsign-compare"
 	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
