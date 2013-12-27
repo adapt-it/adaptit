@@ -34,6 +34,16 @@
 			<key>orderHint</key>
 			<integer>5</integer>
 		</dict>
+		<key>AdaptIt-wx30-debug.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
+		<key>AdaptIt-wx30-release.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
 		<key>AdaptIt_wxcl-debug.xcscheme</key>
 		<dict>
 			<key>isShown</key>
