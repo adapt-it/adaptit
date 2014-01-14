@@ -670,8 +670,13 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 // Check if there are any NULL ptrs here
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 		anIndex++;
+		wxString aUsername = _T("null pointer"); // use this if pEntry is NULL
+		if (pEntry != NULL)
+		{
+			aUsername = pEntry->username;
+		}
 		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %x , username = %s , ID = %d"),
-			anIndex, (void*)pEntry, pEntry == NULL ? _T("null pointer") : pEntry->username.c_str(), pEntry->id);
+				anIndex, (void*)pEntry, aUsername.c_str(), pEntry->id);
 #endif
 		if (pEntry->id > maxID)
 		{
