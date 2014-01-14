@@ -87,6 +87,7 @@ protected:
 	wxTextCtrl*	m_pURLCtrl;
 	wxTextCtrl*	m_pUsernameCtrl;
 	wxStaticText* m_pUsernameLabel;
+	wxStaticText* m_pUsernameMsgLabel;
 
 	// Note: I've stored the to-be-typed-just-once kb server password in the CMainFrame
 	// instance, and the dialog for getting the user to type it in is there too, and a

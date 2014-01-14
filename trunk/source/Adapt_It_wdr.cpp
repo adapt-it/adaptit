@@ -9841,41 +9841,44 @@ wxSizer *kb_sharing_stateless_setup_func( wxWindow *parent, bool call_fit, bool 
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_USERNAME_LABEL_STATELESS, _("Type your username:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item9->Add( item10, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item11->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
-    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT_USERNAME_MSG_LABEL_STATELESS, _("(If empty, Cancel then click the Edit menu item Change Username...)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item11, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_USERNAME_STATELESS, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item12->SetToolTip( _("Type your email or the unique name assigned to you by your administrator") );
+    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item8->Add( item9, 0, wxALIGN_CENTER|wxRIGHT, 5 );
 
     item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item12->Add( item13, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_ASKED_STATELESS, _("You will be asked for the server's password when you click the OK button."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item13->Add( item14, 0, wxALIGN_CENTER, 5 );
 
-    item7->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item7->Add( item13, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item2->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetDefault();
-    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetDefault();
+    item15->Add( item16, 0, wxALIGN_CENTER, 5 );
 
-    item14->Add( 26, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item15->Add( 26, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER, 5 );
 
-    item2->Add( item14, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    item2->Add( item15, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item2, 0, wxALL, 10 );
+    item1->Add( item2, 0, wxLEFT|wxRIGHT|wxTOP, 10 );
 
-    item0->Add( item1, 0, wxALL, 5 );
+    item0->Add( item1, 0, wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     if (set_sizer)
     {

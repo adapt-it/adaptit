@@ -121,11 +121,19 @@ void KBSharingStatelessSetupDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pURLCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SERVER_URL_STATELESS);
 	m_pUsernameCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_USERNAME_STATELESS);
 	m_pUsernameLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_LABEL_STATELESS);
+	m_pUsernameMsgLabel = (wxStaticText*)FindWindowById(ID_TEXT_USERNAME_MSG_LABEL_STATELESS);
 
-	wxString otherLabel = _("This is your unique username\n(If it is empty, Cancel then click the Edit menu item Change Username...)");
+	wxString otherLabel = _("This is your unique username");
 	if (m_bUserIsAuthenticating)
 	{
+		// Flag is TRUE, so user is authenticating and user is an owner of this kbserver
 		m_pUsernameLabel->SetLabel(otherLabel);
+	}
+	else
+	{
+		// Flag is FALSE, user is probably an administrator who is setting up on behalf of
+		// this computer's owner
+		m_pUsernameMsgLabel->Show(FALSE);
 	}
     // BEW added 14Jul13, When m_bStateless is TRUE, we want anybody (e.g. the user's
 	// administrator or project supervisor) to be able to grab his machine, open the
