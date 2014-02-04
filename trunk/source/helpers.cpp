@@ -9547,6 +9547,7 @@ void RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, int 
 	}
 }
 
+
 // Return TRUE if the targetStr param of the MakeTargetStringWithPunctuation(), when
 // parsed into a series of 'words' (they may contain user-typed punctuation) and each is
 // looked up in series, each is found within the pSrcPhrase->m_punctsPattern string, and

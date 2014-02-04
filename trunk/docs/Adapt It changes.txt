@@ -1,3 +1,18 @@
+
+----------------------------------------------
+Bug fixes in 6.5.??
+----------------------------------------------
+* If the phrasebox was not visible because the user had
+adapted all the document, and File > Save and remember in 
+history... was chosen, the application crashed.
+* If the phrasebox was not visible because the user had
+adapted all the document, and either of the File menu
+commands:
+Look at previous versions in the document history... or
+View list of previously remembered versions... was
+invoked, the application crashed. These commands
+now show their dialog centered in the window.
+
 ----------------------------------------------
 Version 6.5.2 release 18 December 2013
 ----------------------------------------------

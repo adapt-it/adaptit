@@ -230,6 +230,7 @@ protected:
 public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
+	void			PutPhraseBoxAtDocEnd();
 	bool			ReOpenDocument(	CAdapt_ItApp* pApp,	
 									wxString savedWorkFolderPath,			// for setting current working directory
 									wxString curOutputPath,					// includes filename
