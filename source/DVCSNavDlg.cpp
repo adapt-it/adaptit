@@ -73,42 +73,17 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
     m_pDoc = m_pApp->GetDocument();     wxASSERT (m_pDoc != NULL);
     
     m_pVersion_comment->SetBackgroundColour (sysColorBtnFace);
-
-	// Need to set m_ptBoxTopLeft here, it's not set by the caller for this dialog
-	wxASSERT(m_pApp->m_pActivePile);
-	CCell* pCell = m_pApp->m_pActivePile->GetCell(1);
-	this->m_ptBoxTopLeft = pCell->GetTopLeft(); // logical coords
 }
 
 DVCSNavDlg::~DVCSNavDlg(void)
 { }
 
-
 void DVCSNavDlg::InitDialog()
 {
     wxButton*    defaultButton = (wxButton*)FindWindowById(wxID_CANCEL);
+	this->Centre();
 
-	// BEW 16Dec13, added code to have dialog position itself on the monitor on which the
-	// running Adapt It app is located (otherwise, it can open far away on a different monitor)
-	// work out where to place the dialog window
-	int myTopCoord, myLeftCoord, newXPos, newYPos;
-	wxRect rectDlg;
-	GetSize(&rectDlg.width, &rectDlg.height); // dialog's window frame
-	CMainFrame* pMainFrame = m_pApp->GetMainFrame();
-	wxClientDC dc(pMainFrame->canvas);
-	pMainFrame->canvas->DoPrepareDC(dc);// adjust origin
-	// wxWidgets' drawing.cpp sample calls PrepareDC on the owning frame
-	pMainFrame->PrepareDC(dc); 
-	// CalcScrolledPosition translates logical coordinates to device ones, m_ptBoxTopLeft
-	// has been initialized to the topleft of the cell (from m_pActivePile) where the
-	// phrase box currently is
-	pMainFrame->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x, m_ptBoxTopLeft.y,&newXPos,&newYPos);
-	pMainFrame->canvas->ClientToScreen(&newXPos, &newYPos); // now it's screen coords
-	RepositionDialogToUncoverPhraseBox_Version2(m_pApp, 0, 0, rectDlg.width, rectDlg.height,
-										newXPos, newYPos, myTopCoord, myLeftCoord); // see helpers.cpp
-	SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
-
-// Set the initial focus to "Return to latest"
+	// Set the initial focus to "Return to latest"
     defaultButton->SetFocus();
 }
 

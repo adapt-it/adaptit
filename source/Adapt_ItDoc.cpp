@@ -1700,6 +1700,15 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
     if (!Git_installed())
         return;                     // Shows message if git not installed
 
+    // BEW added 3Feb14, If the user has finished adapting to the end of the document, and
+    // the phrasebox is no longer visible, and he chooses to save & commit, then the
+    // DoSaveAndCommit() call below crashes if the phrasebox is not at some pile - thereby
+    // making the pile active. So check and if not visible, put it at the end of the
+    // document first.
+ 	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
+	{
+		PutPhraseBoxAtDocEnd();
+	}
 	DoSaveAndCommit(_T(""));        // Ignore returned result - if an error occurred, a message will have been shown.
 }
 
@@ -1858,10 +1867,16 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     // back to it if necessary, so we copy it to a file with the same name with "__bak" appended, in the same folder.
     // But we don't need to do this if the doc has just been committed with no subsequent changes.
 
+#if defined(_DEBUG)
+	wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum);
+#endif
     pApp->m_bBackedUpForTrial = FALSE;
     if ( IsModified() )
     {
         pApp->DoAutoSaveDoc();       // if the doc is modified, we have to save it, so it's just like an autosave, and we'll need a backup
+#if defined(_DEBUG)
+		wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum);
+#endif
         needBackup = TRUE;
     }
     else
@@ -2156,6 +2171,27 @@ void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
                     // enable only if user isn't the owner, and a trial is not under way
 }
 
+void CAdapt_ItDoc::PutPhraseBoxAtDocEnd()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	int sequNumAtEnd = pApp->GetMaxIndex();
+	pApp->m_pActivePile = GetPile(sequNumAtEnd);
+	pApp->m_nActiveSequNum = sequNumAtEnd;
+	wxString boxValue;
+	if (gbIsGlossing)
+	{
+		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+	}
+	else
+	{
+		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+		translation = boxValue;
+	}
+	pApp->m_targetPhrase = boxValue;
+	pApp->m_pTargetBox->ChangeValue(boxValue);
+	pApp->GetView()->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2);
+	pApp->GetView()->Invalidate();
+}
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
 // Is called from the following 8 functions: the App's DoAutoSaveDoc(), OnFileSave(),
@@ -2196,23 +2232,7 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 	// the document before going on
 	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
 	{
-		int sequNumAtEnd = gpApp->GetMaxIndex();
-		gpApp->m_pActivePile = GetPile(sequNumAtEnd);
-		gpApp->m_nActiveSequNum = sequNumAtEnd;
-		wxString boxValue;
-		if (gbIsGlossing)
-		{
-			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_gloss;
-		}
-		else
-		{
-			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-			translation = boxValue;
-		}
-		gpApp->m_targetPhrase = boxValue;
-		gpApp->m_pTargetBox->ChangeValue(boxValue);
-		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
-		gpApp->GetView()->Invalidate();
+		PutPhraseBoxAtDocEnd();
 #if defined(_DEBUG)
 		wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
 			translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
