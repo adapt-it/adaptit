@@ -88,7 +88,8 @@
 
 #if defined(_KBSERVER)
 #include "KBSharing.h" // BEW added 14Jan13
-#include "KBSharingSetupDlg.h" // BEW added 15Jan13
+//#include "KBSharingSetupDlg.h" // BEW added 15Jan13
+#include "KbSharingSetup.h" // BEW added 10Oct13
 #include "KbServer.h" // BEW added 26Jan13, needed for OnIdle()
 #include "Thread_ChangedSince.h" // BEW added 13Feb13
 #include "Timer_KbServerChangedSince.h"
@@ -360,6 +361,8 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 //DECLARE_EVENT_TYPE(wxEVT_End_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 //DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
+
 
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Free_Translations_Edit)
@@ -368,6 +371,16 @@ DEFINE_EVENT_TYPE(wxEVT_End_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Recover_Doc)
+DEFINE_EVENT_TYPE(wxEVT_Show_version)
+// BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
+DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
+DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
+DEFINE_EVENT_TYPE(wxEVT_Split_It)
+DEFINE_EVENT_TYPE(wxEVT_Insert_Widener)
+
+#if defined(_KBSERVER)
+DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
+#endif
 
 //BEW 10Dec12, new custom event for the kludge for working around the scrollPos bug in GTK build
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -431,6 +444,54 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
             (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
             (wxObject *) NULL \
 ),
+
+#define EVT_SHOW_VERSION(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Show_version, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+// BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
+
+#define EVT_JOIN_WITH_NEXT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Join_With_Next, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+#define EVT_JOIN_WITH_PREVIOUS(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Join_With_Previous, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+#define EVT_SPLIT_IT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Split_It, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+#define EVT_INSERT_WIDENER(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Insert_Widener, id, wxID_ANY, \
+            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+            (wxObject *) NULL \
+),
+
+#if defined(_KBSERVER)
+
+#define EVT_KBDELETE_UPDATE_PROGRESS(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_KbDelete_Update_Progress, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+#endif
+
 
 BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_IDLE(CMainFrame::OnIdle) // this is now used in wxWidgets instead of a virtual function
@@ -498,6 +559,17 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
+    EVT_SHOW_VERSION(-1, CMainFrame::OnCustomEventShowVersion)
+	// For the free translation Adjust dialog
+	EVT_JOIN_WITH_NEXT(-1, CMainFrame::OnCustomEventJoinWithNext)
+	EVT_JOIN_WITH_PREVIOUS(-1, CMainFrame::OnCustomEventJoinWithPrevious)
+	EVT_SPLIT_IT(-1, CMainFrame::OnCustomEventSplitIt)
+	EVT_INSERT_WIDENER(-1, CMainFrame::OnCustomEventInsertWidener)
+
+
+#if defined(_KBSERVER)
+	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
+#endif
 
 	//BEW added 10Dec12
 #if defined(SCROLLPOS) && defined(__WXGTK__)
@@ -1579,7 +1651,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_auiToolbar->AddTool(ID_REMOVE_RETRANSLATION, _("Remove A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_NULL_SRC, _("Insert A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), NULL);
-	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove a Placeholder, or Remove a Free Translation Widener"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), NULL);
 	m_auiToolbar->AddTool(ID_SHOWING_ALL, _("Show Target Text Only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show target text only"), _("Show target text only"), NULL);
@@ -2344,22 +2416,28 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 	// The "Adapt_It_Quick_Start.htm" file should go into the m_helpInstallPath
 	// for each platform, which is determined by the GetDefaultPathForHelpFiles() call.
 	wxString quickStartHelpFilePath = gpApp->GetDefaultPathForHelpFiles() + gpApp->PathSeparator + gpApp->m_quickStartHelpFileName;
+	bool bNormal = TRUE;	// normal execution is to use the default Web browser
+	bool bSuccess;
 
 #ifdef _USE_HTML_FILE_VIEWER
 	// for testing the CHtmlFileViewer class dialog
-	bool bSuccess = FALSE;
-#else
-	// for normal execution of the app
-	bool bSuccess = TRUE;
+	bNormal = FALSE;
 #endif
 
-	if (bSuccess)
+	if (bNormal)
+	// normal execution is to use the default Web browser
 	{
 		wxLogNull nogNo;
+#if defined (__WXMAC__) || defined (__WXGTK__)
+		// edb 10Sept 13: for 2.9.5, file urls aren't being encoded properly in wxLaunchBrowser.
+		// Explicitly encode the url before sending it down. GDLC 11SEP13 But this doesn't work with the file viewer
+		quickStartHelpFilePath = wxFileSystem::FileNameToURL(quickStartHelpFilePath);
+#endif
 		bSuccess = wxLaunchDefaultBrowser(quickStartHelpFilePath,wxBROWSER_NEW_WINDOW); // result of using wxBROWSER_NEW_WINDOW depends on browser's settings for tabs, etc.
 	}
-	if (!bSuccess)
+	else
 	{
+	// non-normal execution is to use the wxWidgets built in html viewer
 		wxString msg = _("Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, quickStartHelpFilePath.c_str());
 		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
@@ -2369,13 +2447,11 @@ void CMainFrame::OnQuickStartHelp(wxCommandEvent& WXUNUSED(event))
 			wxString title = _("Adapt It Quick Start");
 			gpApp->m_pHtmlFileViewer = new CHtmlFileViewer(gpApp->GetMainFrame(),&title,&quickStartHelpFilePath);
 			gpApp->m_pHtmlFileViewer->Show(TRUE);
-			gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
+			bSuccess = TRUE;
 		}
+		else bSuccess = FALSE;
 	}
-	else
-	{
-		gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
-	}
+	if (bSuccess) gpApp->LogUserAction(_T("Launched Adapt_It_Quick_Start.htm in browser"));
 }
 
 /*
@@ -2535,55 +2611,40 @@ void CMainFrame::OnKBSharingSetupDlg(wxCommandEvent& event)
 	bool bUserDidNotCancel = CheckUsername();
 	if (!bUserDidNotCancel)
 	{
-		// He or she cancelled. So remove KB sharing for this project
+		// He or she cancelled. So remove KB sharing for this project. ReleaseKBServer()
+		// checks for a non-defined instance, and does nothing if so; otherwise, it
+		// deletes the KbServer instance from the heap, and sets its pointer to NULL
 		gpApp->LogUserAction(_T("User cancelled from CheckUsername() in OnKBSharingSetupDlg() in MainFrm.cpp"));
 		gpApp->ReleaseKBServer(1); // the adapting one
 		gpApp->ReleaseKBServer(2); // the glossing one
 		gpApp->m_bIsKBServerProject = FALSE;
+		gpApp->m_bIsGlossingKBServerProject = FALSE;
 		wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
+"This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project, neither knowledge base is shared)."),
 		_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
 	}
 	else
 	{
-		// Valid m_strUserID and m_strUsername should be in place now, so
-		// go ahead with next step which is to check for valid language codes
-
-		// BEW added 22May13, check that needed language codes are defined for source, target
-		// and gloss languages - get them set up if not so. If user cancels, don't go
-		// ahead with the setup, and in that case if app's m_bIsKBServerProject is TRUE,
-		// make it FALSE
-
-		// BEW 21May13 added the CheckLanguageCodes() call and the if-else
-		// block, to ensure valid codes and if not, or if user cancelled, then
-		// turn off KB Sharing
-		bool bUserCancelled = FALSE;
-		// we want valid codes four source, target and glosses languages, so
-		// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-		bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-		if (!bDidItOK && bUserCancelled)
+        // Valid m_strUserID and m_strUsername are in place now, so go ahead with next step
+        // which is to ask for setup, or removal, of this current project being one for KB
+        // sharing - and find out which KBs are to be shared. We need to get values for
+        // m_bIsKBServerProject and m_bIsGlossingKBServerProject so we know which of
+        // SetupForKBServer(1) and SetupForKBServer(2) to invoke, or maybe both local KBs
+        // are to be shared
+		KbSharingSetup dlg(this); // make parent be the CMainFrame instance
+		dlg.Center();
+		if (dlg.ShowModal() == wxID_OK)
 		{
-			// We must assume the codes are wrong or incomplete, or that the
-			// user has changed his mind about KB Sharing being on - so turn
-			// it off
-			gpApp->LogUserAction(_T("User cancelled in CheckLanguageCodes() in CMainFrame::OnKBSharingSetupDlg()"));
-			gpApp->ReleaseKBServer(1); // the adapting one
-			gpApp->ReleaseKBServer(2); // the glossing one
-			gpApp->m_bIsKBServerProject = FALSE;
+			gpApp->LogUserAction(_T("KbSharingSetup instantiated from call CMainFrame::OnKBSharingSetupDlg()"));
+			// Authentication, by means of KBSharingStatelessSetupDlg call, has been done
+			// successfully in the OnOK() button handler of KbSharingSetup, and the wanted
+			// calls for one or both of SetupForKBServer(1) and SetupForKBServer(2) done,
+			// and checks for language codes completed successfully
 		}
 		else
 		{
-			// CheckLanguageCodes() succeeded, so go ahead
-			KBSharingSetupDlg dlg(this);
-			dlg.Center();
-			if (dlg.ShowModal() == wxID_OK)
-			{
-				gpApp->LogUserAction(_T("Closed OnKBSharingSetupDlg()"));
-			}
-			else
-			{
-				gpApp->LogUserAction(_T("Cancelled OnKBSharingSetupDlg()"));
-			}
+			gpApp->LogUserAction(_T("Cancelled KbSharingSetup instantiation after calling CMainFrame::OnKBSharingSetupDlg()"));
+			// The earlier state of the sharing settings has been restored
 		}
 	}
 }
@@ -2597,8 +2658,8 @@ void CMainFrame::OnUpdateKBSharingDlg(wxUpdateUIEvent& event)
 		return;
 	}
 	// The controls in the dialog can't be used if KB sharing is not turned on for the
-	// currently active project
-	if (!gpApp->m_bIsKBServerProject)
+	// currently active project - either to share adaptations, or glosses
+	if (!gpApp->m_bIsKBServerProject && !gpApp->m_bIsGlossingKBServerProject)
 	{
 		event.Enable(FALSE);
 		return;
@@ -2638,7 +2699,7 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 	wxString msg = _T("Type the knowledge base server's password.\nYou should have received it from your administrator.\nWithout the correct password, sharing your knowledge base data\nwith others cannot happen, nor can they share theirs with you.");
 	wxString caption = _T("Type the server's password");
 	wxString default_value = _T("");
-#if defined(_DEBUG)
+#if defined(_DEBUG) && defined(AUTHENTICATE_AS_BRUCE) // see top of Adapt_It.h
 	// Simplify my life during development
 	default_value = _T("TPI0907en");
 #endif
@@ -3572,6 +3633,9 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 	if (gpApp->m_bComposeBarWasAskedForFromViewMenu)
 	{
 		// show the Clear Contents and Select All buttons, hide the rest
+		ID_BSH_COMPOSE_RH_BUTTONS->Show(true);
+		ID_BSV_SECTIONS->Show(false);
+		ID_BSH_COMPOSE_LH_BUTTONS->Show(false);
 		wxButton* pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_APPLY);
 		pButton->Show(FALSE);
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_NEXT);
@@ -3590,6 +3654,12 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 		pRadioButton->Show(FALSE);
 		wxStaticText* pStatic = (wxStaticText*)m_pComposeBar->FindWindowById(IDC_STATIC_SECTION_DEF);
 		pStatic->Show(FALSE);
+		// BEW added next two 15Nov13
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
+		pButton->Show(FALSE);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_INSERT_WIDENER);
+		pButton->Show(FALSE);
+
 		// show these two only
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_CLEAR);
 		pButton->Show(TRUE);
@@ -3599,6 +3669,9 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 	else
 	{
 		// free translation mode, hide the Clear Contents and Select All buttons, show the rest
+		ID_BSH_COMPOSE_RH_BUTTONS->Show(false);
+		ID_BSV_SECTIONS->Show(true);
+		ID_BSH_COMPOSE_LH_BUTTONS->Show(true);
 		wxButton* pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_CLEAR);
 		pButton->Show(FALSE);
 		pButton = (wxButton*)m_pComposeBar->FindWindowById(IDC_BUTTON_SELECT_ALL);
@@ -3633,6 +3706,11 @@ void CMainFrame::ComposeBarGuts(enum composeBarViewSwitch composeBarVisibility)
 			pRadioButton->SetValue(FALSE);
 		wxStaticText* pStatic = (wxStaticText*)m_pComposeBar->FindWindowById(IDC_STATIC_SECTION_DEF);
 		pStatic->Show(TRUE);
+		// BEW added next two 15Nov13
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_ADJUST);
+		pButton->Show(TRUE);
+		pButton = (wxButton*)m_pComposeBar->FindWindowById(ID_BUTTON_INSERT_WIDENER);
+		pButton->Show(TRUE);
 	}
 
 	wxView* pView = pApp->GetView();
@@ -4015,6 +4093,45 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 	}
 
+	if (pApp->m_bEnableDelayedFreeTransOp)
+	{
+		// Post the wanted custom event which will get the wanted handler called for the
+		// particular free trans operation chosen by the user from the Adjust dialog
+		wxCommandEvent eventCustom;
+		switch (pApp->m_enumWhichFreeTransOp)
+		{
+		case join_with_next:
+			eventCustom.SetEventType(wxEVT_Join_With_Next);
+			wxPostEvent(this, eventCustom);
+			break;
+		case join_with_previous:
+			eventCustom.SetEventType(wxEVT_Join_With_Previous);
+			wxPostEvent(this, eventCustom);
+			break;
+		case split_it:
+			eventCustom.SetEventType(wxEVT_Split_It);
+			wxPostEvent(this, eventCustom);
+			break;
+		case insert_widener:
+			eventCustom.SetEventType(wxEVT_Insert_Widener);
+			wxPostEvent(this, eventCustom);
+			break;
+        case no_op:
+            DoNoOp(); // does nothing
+		}
+		event.RequestMore(); // request more idle events
+
+        // Restore default to FALSE (a test of this boolean wraps the call of Adjust dialog
+        // so that it is not called twice by two successive draws following two events from
+        // an edit operation in the composebar's editbox - such as a selection being
+        // replaced by a typed character)
+		pApp->m_bFreeTrans_EventPending = FALSE;
+		// Ensure nothing more happens than what was just requested
+		pApp->m_enumWhichFreeTransOp = no_op; 
+		// Restore default - prevents uncontrolled reentry
+		pApp->m_bEnableDelayedFreeTransOp = FALSE; 
+	}
+
 	if (pApp->m_bJustLaunched)
 	{
 		pApp->m_bJustLaunched = FALSE; // moved up before DoStartupWizardOnLaunch()
@@ -4077,6 +4194,21 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		_T(""), wxICON_INFORMATION | wxOK);
 	}
 
+	// BEW 2Dec13, I can't find any place where AI code handles CTRL+V, so I can't prevent the latter
+	// from inserting text from the clipboard into a free translation widener (the latter
+	// is a placeholder which has five dots ..... as well) - so check for this at the
+	// active location, and if there's text, beep and remove it 
+	if (pApp->m_pActivePile != NULL && IsFreeTransWidener(pApp->m_pActivePile->GetSrcPhrase()))
+	{
+		if (!pApp->m_pTargetBox->GetValue().IsEmpty())
+		{
+			// Remove the phrasebox contents, it's illegal at a widener
+			pApp->m_pTargetBox->SetValue(_T(""));
+			pApp->m_targetPhrase.Empty();
+			wxBell();
+		}
+	}
+
 	if (bUserCancelled)
 		bUserCancelled = FALSE; // ensure its turned back off
 
@@ -4124,7 +4256,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	// TODO -- code for cached new kbserver entries to be sent to remote server
 	KbServer* pKbSvr = NULL;
 	CKB* pKB = NULL;
-	if (gpApp->m_bIsKBServerProject)
+	if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 	{
 		if (gbIsGlossing)
 		{
@@ -4215,13 +4347,14 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			}
 
 		} // end of TRUE block for test: if (pKbSrv != NULL)
-	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject)
+	} // end of TRUE block for test: if (gpApp->m_bIsKBServerProject || gpApp->m_bIsGlossingKBServerProject)
 #endif // for _KBSERVER #defined
 
 	// mrh - if doc recovery is pending, we must skip all the following, since the doc won't be valid:
     if (pApp->m_recovery_pending)
         return;
 
+/* // bug fixed 24Sept13 BEW, so this hack is no longer needed, nor is the app member, limiter
 	if (pApp->limiter == 0 && gbPassedAppInitialization && pApp->m_pSourcePhrases->GetCount() > 1)
 	{
         // THE HACK (BEW 8Aug13) A hack fix for RossJones reported bug, of m_targetStr
@@ -4243,31 +4376,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		CPile* pPile = pView->GetPile(sn);
 		CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-
-		// Test here for what calls we need to make it work, "day" is the source text at
-		// sequ num == 16 in my test file, so my replacement text is larger - we need a
-		// recalc of the pile width, at whatever is the old sequ numb (gnOldSequNum) if we
-		// find that the m_targetStr value is wrong (of course, we force it in this test,
-		// but use the results further below) It works if we have the following...
-		/*
-		if (pSrcPhrase->m_nSequNumber == 16)
-		{
-			pSrcPhrase->m_targetStr = _T("!Daybreak?;"); // my replacement text
-			pApp->limiter = 1;
-#ifdef _NEW_LAYOUT
-			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-			pDoc->ResetPartnerPileWidth(pSrcPhrase,FALSE); // FALSE is the boolean
-						// bNoActiveLocationCalculation, we want the pile width recalculated
-						// at the pSrcPhrase location
-			pView->Invalidate();
-			pApp->GetLayout()->PlaceBox();
-			return;
-		}
-		*/
 
 		// Don't do the check if a) this pSrcPhrase is a merger, or b) it's a fixed space
 		// conjoining - why? because the bug is rare and we've no proof yet that it
@@ -4330,6 +4438,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
                 // THE HACK goes here... we'll add punctuation to m_adaption value, do
                 // autocaps adjustments if required, and store the result in m_targetStr,
                 // and then get the layout updated
+                tgtStr = adaptn;
 				bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case
 											  // done if possible
 				bool bNoError = TRUE;
@@ -4390,8 +4499,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			} // end of else block for test: if (bOK)
 
 		} // end of TRUE block for test: if (!((pSrcPhrase->m_nSrcWords > 1) || (IsFixedSpaceSymbolWithin(pSrcPhrase))))
-		pApp->limiter = 1; // prohibit reentry to this hack block until limiter is reset to 0
+		//pApp->limiter = 1; // prohibit reentry to this hack block until limiter is reset to 0
 	}
+	*/
 }
 
 // BEW added 10Dec12, to workaround the GTK scrollPos bug (it gets bogusly reset to old position)
@@ -5132,6 +5242,27 @@ cancel:		;
 	}
 }
 
+void CMainFrame::OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event))
+{
+    int     versionNum = gpApp->m_pDVCS->m_version_to_open;
+
+    wxASSERT(versionNum >= 0);
+
+    gpApp->GetDocument()->DoShowPreviousVersions (TRUE, versionNum);
+}
+
+//************  KbServer -- some handlers for Custom Events *******************
+
+#if defined(_KBSERVER)
+
+void CMainFrame::OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event))
+{
+	gpApp->StatusBar_ProgressOfKbDeletion();
+}
+
+#endif
+
+
 // The following is the handler for a custom wxEVT_Glosses_Edit event message, sent
 // to the window event loop by a wxPostEvent() call
 // BEW 26Mar10, no changes needed for support of doc version 5
@@ -5828,6 +5959,15 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
 
+	// BEW 19Nov13, if entering free translation mode, we use a different gap width, so
+	// set it and recalc the layout and redraw it before going on - the pile ptrs are not
+	// changed, only the strips recalculated
+	if (gpApp->m_saveCurGapWidth == 0)
+	{
+		// call's Layout's RecalcLayout() & Redraw(), uses m_nActiveSequNum
+		pFreeTrans->SetInterPileGapBeforeFreeTranslating();
+	}
+
     // determine what setup is required: control is coming from either adaptationsStep or
     // glossesStep, the former when the order is adaptations before glosses; but if the
     // order is glosses before adaptations, then the latter. These variations require
@@ -6041,6 +6181,11 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 											pRec->nFreeTranslationStep_StartingSequNum,
 											pRec->nFreeTranslationStep_EndingSequNum,
 											&pRec->freeTranslationStep_SrcPhraseList);
+#if defined(_DEBUG)
+						size_t count = pRec->freeTranslationStep_SrcPhraseList.GetCount();
+						wxLogDebug(_T("\n pRec->freeTranslationStep_SrcPhraseList.GetCount() at 6179 in OnCustomEventFreeTranslationsEdit(): count = %d"),
+							count);
+#endif
 						if (!bAllWasOK)
 						{
 							// if this failed, we must bail out of this vertical edit process
@@ -6484,6 +6629,31 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	return;
 }
 
+void CMainFrame::OnCustomEventJoinWithNext(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoJoinWithNext();
+}
+
+void CMainFrame::OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoJoinWithPrevious();
+}
+
+void CMainFrame::OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoSplitIt();
+}
+
+void CMainFrame::OnCustomEventInsertWidener(wxCommandEvent& WXUNUSED(event))
+{
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	pFreeTrans->DoInsertWidener();
+}
+
+
 /// BEW 26Mar10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
 void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
@@ -6714,6 +6884,15 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		wxLogDebug(_T("OnCustomEventEndVerticalEdit line 6259: PhraseBox contents:     %s"), gpApp->m_pTargetBox->GetValue());
 #endif
 	}
+
+	// If app's m_saveCurGapWidth is non-zero, then we've been in free translation mode,
+	// and so we need to restore the normal width and set m_savegapWidth to 0
+	if (gpApp->m_saveCurGapWidth != 0)
+	{
+		// call's Layout's RecalcLayout() & Redraw(), uses m_nActiveSequNum
+		pFreeTrans->RestoreInterPileGapAfterFreeTranslating();
+	}
+
     // When vertical editing is canceled we should hide the m_pRemovalsBar, and
     // m_pVertEditBar, - any and all that are visible.
 	if (m_pVertEditBar->IsShown())
@@ -7552,7 +7731,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		// clean up & restore original state
 	}
 #endif
-		wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+		wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit); // if free translation mode had been on, this
+											// event's handler will restore normal inter-pile gap width
 		wxPostEvent(this, eventCustom);
 		// whm Note: This event also calls the code which hides any of the
 		// vertical edit tool bars so they are not seen from the main window.
@@ -8321,5 +8501,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
         // flicker we need to make use of clipping region soon. BEW)
 	pLayout->PlaceBox();
 }
+
+void CMainFrame::DoNoOp(){}
 
 

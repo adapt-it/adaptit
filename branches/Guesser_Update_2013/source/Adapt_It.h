@@ -22,7 +22,7 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
-
+//#define AUTHENTICATE_AS_BRUCE
 
 // whm added 5Jun12 for debugging purposes. The FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 // is set at the beginning of Adapt_It.h. When set it does the following:
@@ -62,24 +62,6 @@
 // i.e., before svn r. 1633).
 //#define USE_OLD_WORD_RTF_TABLE_SPECS
 
-// a temporary #define for Mike to use when working on DVCS:
-#define TEST_DVCS
-
-// Symbolic menuIDs for the commands Mike will use (menu item appended to bottom of Edit menu)
-// Later this functionality will move to other places, but this is convenient for testing.
-const int ID_MENU_DVCS_VERSION			= 999;
-const int ID_MENU_INIT_REPOSITORY		= 998;
-const int ID_MENU_DVCS_ADD_FILE			= 997;
-const int ID_MENU_DVCS_ADD_ALL_FILES	= 996;
-const int ID_MENU_DVCS_REMOVE_FILE		= 995;
-const int ID_MENU_DVCS_REMOVE_PROJECT	= 994;
-/*
-const int ID_FILE_SAVE_COMMIT           = 993;
-const int ID_FILE_SHOW_REVISIONS		= 992;
-const int ID_DVCS_LOG_FILE              = 989;
-const int ID_DVCS_LOG_PROJECT           = 988;
-const int ID_FILE_TAKE_OWNERSHIP		= 987;
-*/
 
 // BEW note 14Jan13, for the KB sharing menu item in Advanced menu will use value 980 for
 // the present and add the menu item and preceding separator only in the _DEBUG build while
@@ -89,7 +71,7 @@ const int ID_FILE_TAKE_OWNERSHIP		= 987;
 
 // Action codes for calling the DVCS:
 enum{	DVCS_CHECK, DVCS_COMMIT_FILE,
-        DVCS_SETUP_VERSIONS, DVCS_GET_VERSION };
+        DVCS_SETUP_VERSIONS, DVCS_GET_VERSION, DVCS_ANY_CHANGES };
 				// More to be added if they come up, though actually I seem to be removing them!
 
 class DVCS;         // class of the object giving access to the DVCS operations
@@ -123,19 +105,17 @@ class NavProtectNewDoc; // for user navigation protection feature
 
 // forward declaration
 class KbServer;
+class KBSharingMgrTabbedDlg;
 
 // for a temporary ID for the "Controls For Knowledge Base Sharing" menu item on Advanced
 // menu; the menu item and a preceding separator are setup (for the _DEBUG build only,
-// while developing KB sharing functionality, in the app function OnInit())
-const int ID_MENU_SHOW_KBSERVER_DLG	= 980;
+// while developing KB sharing functionality, near the end of the app function OnInit()) -
+// at approx lines 21,454-471
+const int ID_MENU_SHOW_KBSERVER_DLG	= 9999; // was 980, then was wxNewId(), now keep less than 10000
 // for a temporary ID for the "Setup Knowledgebase Base Sharing" menu item on Advanced
 // menu; the menu item is setup (for the _DEBUG build only, while developing KB sharing
 // functionality, in the app function OnInit())
-const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
-// ID for m_KbServerDownloadTimer
-//const int ID_KBSERVER_DOWNLOAD_TIMER = 978;
-// ID for m_KbServerUploadTimer
-//const int ID_KBSERVER_UPLOAD_TIMER = 977; // BEW deprecated 11Feb13
+const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId(), now keep less than 10000
 
 #endif
 
@@ -196,14 +176,14 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 979;
 // ******** START ACCUMULATING COPIES OF THE AI_UserProfiles.xml *************************
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_MINOR_PART 4 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_MINOR_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 7
-#define VERSION_DATE_MONTH 6
+#define VERSION_DATE_DAY 18
+#define VERSION_DATE_MONTH 12
 #define VERSION_DATE_YEAR 2013
-const wxString appVerStr(_T("6.4.3"));
+const wxString appVerStr(_T("6.5.2"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -572,7 +552,8 @@ const char xml_pre[] = "PRE";
 const char xml_affixversion[] = "affixVersion";
 const char xml_source[] = "source";
 const char xml_target[] = "target";
-const char xml_suf[] = "SUFFIX";
+const char xml_suffix[] = "SUFFIX";
+const char xml_suf[] = "SUF";
 
 // tag names for LIFT i/o
 
@@ -704,6 +685,15 @@ enum ConfigFixType
     customPathsFix
 };
 
+enum DelayedFreeTransOperations
+{
+	no_op,
+	join_with_next,
+	join_with_previous,
+	split_it,
+	insert_widener
+};
+
 /// An enum for selecting which configuration file type in GetConfigurationFile()
 /// whether basic configuration file, or project configuration file.
 enum ConfigFileType
@@ -767,8 +757,8 @@ enum KBImportFileOfType
 /// either right or left.
 enum extendSelDir
 {
-	right,
-	left
+	toright, // BEW 2Oct13, changed from right to toright because of ambiguity with std::ios_base
+	toleft   // BEW 3Oct13, changed from left to toleft because of simlar ambiguity in std::ios_base
 };
 
 /// An enum for specifying how the ChooseInterfaceLanguage() function
@@ -2188,6 +2178,11 @@ public:
                 // fouling things, so I'll count times reentered and have the function exit
                 // immediately if the count gets over 1; the count is initialized to 1 in
                 // the AIPrintout() constructor, and in a few other places
+    bool		m_bSuppressFreeTransRestoreAfterPrint; // BEW added 18Nov13, so that the last
+					// code block in RecalcLayout() which sets up the active location's free
+					// translation, won't try to do so at the end of printing cleanup in
+					// DoPrintCleanup(). The RecalcLayout() call there should have this set
+					// TRUE beforehand, and default FALSE restored after it returns
 	SPList*		m_pSourcePhrases;
 	wxString*	m_pBuffer;  // in legacy versions was used to store source (untokenized)
                 // text data on the heap; and still does so while parsing source text, but
@@ -2270,12 +2265,13 @@ public:
                                         //    n = n commits have been done
 	int			m_trialVersionNum;		// non-negative if we're trialling a look at an earlier version.  Negative means no trial.
     int         m_versionCount;         // total number of versions in the log (applies to current trial)
+    bool        m_bBackedUpForTrial;    // true if a backup has been created over a trial
 
 	wxDateTime	m_versionDate;			// when this version was committed
 	wxString	m_owner;				// owner of this document, in the same format as m_AIuser.
 										// m_owner and m_strUserID must match before a commit is allowed,
 										// unless either is "no owner".
-    bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit)
+//  bool        m_saved_with_commit;    // true if last save also did a commit (to avoid a possible redundant commit) -- now superseded by calling git diff
     bool        m_DVCS_installed;       // true if our DVCS engine (git) is actually installed
     bool        m_recovery_pending;     // true if we hit an error reading a document, but it's under version control so
                                         //  we'll be trying to restore the latest revision
@@ -2286,7 +2282,7 @@ public:
 	DVCS*		m_pDVCS;				// the one and only DVCS object, giving access to the DVCS operations
     DVCSNavDlg* m_pDVCSNavDlg;          // the dialog for navigating over previous versions of the doc
 
-    wxArrayString* m_DVCS_log;          // points to the log returned from git, so our log dialog can get at it
+    wxArrayString m_DVCS_log;           // copy of the log returned from git, so our log dialog can get at it
 
 
 	/////////////////////////////////////////////////////////////////////////////////
@@ -2317,7 +2313,7 @@ public:
     // stick' bug after edited phrase box value was edited; observed first by RossJones on
     // Win7, and then by Bill and JerryPfaff on Linux, me a few times Win7 and not at all
     // on Linux. The hack is a block at the end of OnIdle(), where if (limiter == 0) is tested
-	int limiter;
+	//int limiter; // bug fixed 24Sept13 BEW
 
 	// for selection (other parameters are also involved besides this one)
 	CCellList	m_selection; // list of selected CCell instances
@@ -2412,26 +2408,6 @@ public:
                 // seconds)
 	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	bool m_bForceCollabModeON; // whm added 17Jan12
-	bool m_bForceCollabModeOFF; // whm added 17Jan12
-	bool m_bForceCollabExpectsFreeTrans; // whm added 9Feb12
-	wxString m_ForceCollabAIProjectName; // whm added 17Jan12
-	wxString m_ForceCollabProjectNames; // whm added 22Jan12
-	int m_nSavedCollabPTSetting; // whm added 17Jan12
-	int m_nSavedCollabBESetting; // whm added 17Jan12
-	int m_nSavedCollabExpectsFreeTrans; // whm added 23Jan12
-	wxString m_SavedCollabProjectForSourceInputs; // whm added 23Jan12
-	wxString m_SavedCollabProjectForTargetExports; // whm added 23Jan12
-	wxString m_SavedCollabProjectForFreeTransExports; // whm added 23Jan12
-	wxString m_SavedCollabAIProjName; // whm added 17Jan12
-	wxString m_SavedCollabSourceLangName; // whm added 23Jan12
-	wxString m_SavedCollabTargetLangName; // whm added 23Jan12
-	wxString m_SavedCurProjectName; // whm added 26Jan12
-	wxString m_SavedCurProjectPath; // whm added 26Jan12
-	*/
-
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
 	int	m_nMaxToDisplay; // max # of words/phrases to display at one time (this has to
@@ -2445,6 +2421,7 @@ public:
 	int	m_curLeading;	 // the between-strips leading value
 	int	m_curLMargin;	 // if user wants a left margin, he can set this
 	int	m_curGapWidth;	 // inter-pile gap, measured in pixels (follows a pile)
+	int m_saveCurGapWidth; // put normal width in here when free translating (which uses different gap)
 
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int	m_nSrcHeight;	// line height for source language text
@@ -2470,8 +2447,6 @@ public:
 	bool m_bToolBarVisible;
 	bool m_bModeBarVisible;
 
-
-//private: // <- BEW removed 1Mar10, because for unknown reason compiler fails to 'see' it otherwise
 	CNotes* m_pNotes;
 	CNotes* GetNotes();
 
@@ -2805,6 +2780,20 @@ public:
                 // the non-default constructor which does not require use of
                 // wxLocale::Init()) to which we will add localization catalogs, associate
                 // catalog lookup paths, and to which we can add wxLanguage values.
+ 
+
+	// Next two added 18Oct13, in support of a bulk pseudo-delete of user's chosen entries
+	// for deletion in KB Editor - these two arrays work in parallel. They are put here
+	// rather than in CKB instance, because if kbserver is involved in a high latency
+	// network, it might take many minutes or much longer if lots are to be deleted,
+	// before the kbserver's entries can get their deleted flag's set to 1; and in that
+	// time the project may be exited - which would leave the local KB and the remote
+	// kbserver not in sync - with no good way to fix it.
+	// Note, these are needed when the project is not a KB Sharing one, so they are not
+	// wrapped with #define(_KBSERVER)...#endif 
+	wxArrayString m_arrSourcesForPseudoDeletion;
+	wxArrayString m_arrTargetsForPseudoDeletion;
+
 
 	// project-defining attibutes
 	wxString	m_sourceName; // name of the source language
@@ -2820,7 +2809,28 @@ public:
 	wxString	m_glossesLanguageCode; // BEW 3Dec11 added, since LIFT can support glossing KB too
 	wxString	m_freeTransLanguageCode;  // the 2- or 3-letter code for free translation language
 
+	// Status bar support
+	void	RefreshStatusBarInfo();
+	void	StatusBarMessage(wxString& message);
+
 #if defined(_KBSERVER)
+	// more support for Status bar
+	void StatusBar_ProgressOfKbDeletion();
+
+#endif
+
+#if defined(_KBSERVER)
+
+	KBSharingMgrTabbedDlg* m_pKBSharingMgrTabbedDlg;
+	KBSharingMgrTabbedDlg* GetKBSharingMgrTabbedDlg();
+	// Next three are set when authenticating with the bool bStateless 2nd param of the
+	// KbSharingAuthentication constructor set TRUE. When TRUE, someone is authenticating
+	// to use the KB Sharing Manager gui; his credentials must be stored separately from
+	// the normal user's otherwise the advisor or administrator would overwrite the user's
+	// settings when he uses the mananger gui
+	wxString	m_strStatelessUsername;
+	wxString	m_strStatelessURL;
+	wxString	m_strStatelessPassword;
 
 	// BEW 1Oct12
 	// Note: the choice to locate m_pKBServer[2] pointers here, rather than one in each of
@@ -2854,7 +2864,11 @@ public:
 	void	  OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event));
 	void      OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event);
 
-
+	// This gap
+	// keeps the line
+	// numbers matching
+	// those in the
+	// KB Sharing Support.odt document
 
 	// BEW added 25Sep12 for support of kbserver sharing of kb data between clients
 	// For testing the development of the code, url, username and password are stored in
@@ -2865,11 +2879,45 @@ public:
 	// will be retained permanently. Some metadata may also be (perhaps) stored in a hidden file,
 	// .kbserver in the project folder -- but I've not done so yet.
 	// Next three are stored in the project configuration file
-	bool		m_bIsKBServerProject; // default FALSE, TRUE once the user opens a kbserver for
-									  // sharing kb data between clients in the same AI project;
-									  // two instances are created, one for adaptations, the
-									  // other for glosses
+	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
+									  // sharing kb data between clients in the same AI project								 
+	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
+									  // in the same AI project as for previous member
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
+
+	// Deleting an entire KB's entries in the entry table of kbserver will be done as a
+	// background task - so we need storage capability that persists after the KB Sharing
+	// Manager GUI has been closed (the button for getting the job started is in the GUI)
+	// - the job may take as long as a couple of days to complete, so the needed storage
+	// of ID values is the queue in the KbServer instance we use here for the job
+	bool		m_bKbSvrMgr_DeleteAllIsInProgress; // use to prevent 'entire deletion'
+                    // of more than one, of a shared kb from the currently accessed
+                    // kbserver, at a time; this will also absolve us of the need to set up
+                    // a mutex for this job, because the ChangedSince_Queued() download
+                    // that gets the array of IDs for entries in the entry table that have
+                    // to be deleted will be done synchronously at the start of the job,
+                    // and only after that will the background thread be fired to do the
+                    // job of emptying of entries
+	KbServer*		m_pKbServerForDeleting; // create a stateless one on heap, using 
+						// this member - the creation is done in the button handler
+						// of the KB sharing manager's GUI, on Kbs page...
+	// Note: m_pKbServerForDeleting has its own DownloadsQueue m_queue, which will store
+	// KbServerEntry structs from which we can extract the ID value from each; so no mutex
+	// is needed for our synchronous call of ChangedSince_Queued() to download the entries
+	// which we need to delete (ChangedSince_Queued() is supported by the s_QueueMutex, but
+	// we will not be synchronously trying to remove any queue members, so we can ignore
+	// that mutex - we'll do the removals after the download has filled the queue.)
+	size_t			m_nQueueSize; // set to entry count after download completes
+	size_t			m_nIterationCounter; // the N value of progress shown as "N:M" or N of M
+	long			kbID_OfDefinitionForDeletion; // store the kbID here, for when we need it
+	wxString		m_srcLangCodeOfCurrentRemoval;
+	wxString		m_nonsrcLangCodeOfCurrentRemoval;
+	int				m_kbTypeOfCurrentRemoval; // either undefined (-1) or 1 (adapting) or 2 (glossing)
+	// The next two store the state of the KB Sharing Manager gui when it is instantiated.
+	// These values only have meaning provided app's m_pKBSharingMgrTabbedDlg is not NULL
+	bool			m_bKbPageIsCurrent; // default is FALSE (these two are initialized in OnInit())
+	bool			m_bAdaptingKbIsCurrent; // default is TRUE
+
 
 #endif // for _KBSERVER
 
@@ -3536,6 +3584,30 @@ public:
                 // in the edit box within the Compose Bar when that particular free
                 // translation section is defined, FALSE if not, and default setting is
                 // FALSE
+	bool	m_bEnableDelayedFreeTransOp; // BEW 29Nov13 extensions available in Adjust dialog
+				// and Split... button interfere with Drawing if the posted custom event which
+				// calls their handlers results in the handler operating before the previous
+				// Draw() of the view is completed (this happened once, mostly it
+				// doesn't), so the posting of the events has to be done later - from the
+				// OnIdle() handler. This new boolean is default FALSE, and the posting of
+				// the custom events from the OnIdle() handler is then suppressed; but when
+				// it is true, the code for posting the events (a switch, based on an enum)
+				// gets the event for the wanted handler posted - and then the event enum
+				// is reset to no-op, and this boolean cleared back to default FALSE. The result
+				// of all this is that the running of the handler happens after the Draw
+				// of  the view has completed, and so the handler does not clear m_pFreeTransArray
+				// until after the Draw has finished needing it.
+				// The use of this boolean goes hand-in-hand with the enum DelayedFreeTransOperations
+				// which is defined at the top of this file - about lines 682-90
+	enum DelayedFreeTransOperations m_enumWhichFreeTransOp;
+	bool	m_bFreeTrans_EventPending; // TRUE when Adjust dialog has asked for an option
+                // to be done (such as inserting a widener), the OnIdle() block which
+                // handles the event resets it to FALSE. The idea of this member boolean is
+                // to prevent a second showing of the Adjust dialog when an edit operation
+                // in the composebar's editbox results in two sequential events being
+                // generated (two Draw() calls then each put up the Adjust dialog if the
+                // text is overlong) - so I'll use this boolean to wrap the Adjust dialog
+                // call, suppressing the dialog when the boolean is TRUE
 	bool	m_bComposeBarWasAskedForFromViewMenu; // TRUE if the user used the Compose Bar
                 // command on the View menu to open the Compose Bar (which then inhibits
                 // being able to turn on free translation mode), FALSE when the Compose Bar
@@ -3702,8 +3774,6 @@ public:
 	void OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event);
 	void OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event);
-	//void OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event));
-	//void OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event);
 	void OnTempRestoreUserProfiles(wxCommandEvent& WXUNUSED(event)); // whm added 14Feb12
 	void OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event); // whm added 14Feb12
 	void OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event));
@@ -3712,6 +3782,8 @@ public:
 	void OnUpdateHelpForAdministrators(wxUpdateUIEvent& event);
 
 	void OnEditChangeUsername(wxCommandEvent& WXUNUSED(event)); // BEW added 30May13
+	//void OnPasswordProtectCollaborationSwitching(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdatePasswordProtectCollaborationSwitching(wxUpdateUIEvent& event);
 
 protected:
 
@@ -3907,9 +3979,6 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString GetPathwayInstallDirPath();
 	bool	PathwayIsInstalled();
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	//void ForceCollabSettingsFromCommandLineSwitches();
-
 	void GetCollaborationSettingsOfAIProject(wxString projectName, wxArrayString& collabLabelsArray,
 													   wxArrayString& collabSettingsArray);
 	wxString GetCollabSettingsAsStringForLog();
@@ -4067,7 +4136,7 @@ public:
 	int		MapWXFontEncodingToMFCCharset(const wxFontEncoding fontEnc);
 	int		MapWXtoMFCPaperSizeCode(wxPaperSize id);
 	wxPaperSize MapMFCtoWXPaperSizeCode(int id);
-	void	RefreshStatusBarInfo();
+
 	void	RemoveMarkerFromString(wxString& filterMkrStr, wxString wholeMarker);
 	wxString MakeExtensionlessName(wxString anyName); // removes .xml if at end of anyName
 	void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1,
@@ -4085,6 +4154,7 @@ public:
 	bool	DealWithThePossibilityOfACustomWorkFolderLocation(); // BEW added 12Oct09
 	bool	SaveKB(bool bAutoBackup, bool bShowProgress = true);
 	bool	SaveGlossingKB(bool bAutoBackup);
+	void	SetProjectDefaults(wxString projectFolderPath); // whm 25Oct13 added
 	void	SetDefaultCaseEquivalences();
 	void	SetAllProjectLastPathStringsToEmpty();
 	void	SetLanguageNamesAndCodesStringsToEmpty();
@@ -4102,6 +4172,10 @@ public:
 	bool	UseSourceDataFolderOnlyForInputFiles(); // BEW created 22July10, to support
 				// user-protection from folder navigation when creating a new document
 				// for adaptation
+	wxArrayString	GetCollabSettingsFromINIFile();
+	void	SaveAppCollabSettingsToINIFile(wxString projectPathAndName);
+	wxString	ReplaceColonsWithAtSymbol(wxString inputStr);
+	wxString	ReplaceAtSymbolWithColons(wxString inputStr);
 	void	WriteFontConfiguration(const fontInfo fi, wxTextFile* pf);
 	void	WriteBasicSettingsConfiguration(wxTextFile* pf);
 	void	WriteProjectSettingsConfiguration(wxTextFile* pf);
@@ -4221,8 +4295,19 @@ private:
 	void	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13
 public:
 	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
-	// dialog, at the once location, from being shown twice
-	int		m_nPlacePunctDlgCallNumber;
+	// dialog, at the one location, from being shown twice or more
+	int		m_nPlacePunctDlgCallNumber; // set to 0 in OnInit() and at end of CLayout::Draw()
+				// and in CAdapt_ItView::OnChar() -- the latter is because if the user is
+				// typing in the phrasebox, any non-zero value of this variable would be
+				// and error (because the next call of MakeTargetStringIncludingPunctuation()
+				// would increase the value to 2 or more, and that would suppress using
+				// whatever is passed into that function's 2nd parameter, targetStr, to 
+				// update pSrcPhrase->m_targetStr to whatever the user typed. A Save
+				// set a non-0 value, and that was the source of what we called the 
+				// "Non-sticking / Truncation" bug -- the value of m_targetStr was not
+				// being updated to what the user typed when the phrasebox moved on.
+				// Clearing the variable to 0 in OnChar() fixes this bug, and the kludge
+				// in OnIdle() can now be removed 
 	int		m_nCurSequNum_ForPlacementDialog;
 
 	// variables related to the Administrator menu

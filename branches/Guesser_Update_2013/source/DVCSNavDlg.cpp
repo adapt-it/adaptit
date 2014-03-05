@@ -31,6 +31,11 @@
 
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
+#include "helpers.h"
+#include "Pile.h"
+#include "Cell.h"
+#include "MainFrm.h"
+#include "Adapt_ItCanvas.h"
 #include "DVCS.h"
 #include "DVCSNavDlg.h"
 
@@ -55,38 +60,54 @@ DVCSNavDlg::DVCSNavDlg(wxWindow *parent)
                                     wxDefaultSize,
                                     wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	m_dlgSizer = DVCSNavDlgFunc ( this, TRUE, TRUE );
-
-    m_version_comment = (wxTextCtrl*) FindWindowById(ID_VERSION_COMMENT);
-    m_version_date    = (wxStaticText*) FindWindowById(ID_VERSION_DATE);
-    m_version_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);
+    // color used for read-only text controls displaying static text info button face color
+    wxColour    sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
     
-    m_pApp = &wxGetApp();  wxASSERT (m_pApp != NULL);
-    m_pDoc = m_pApp->GetDocument();  wxASSERT (m_pDoc != NULL);
+	m_pDlgSizer = DVCSNavDlgFunc ( this, TRUE, TRUE );                          wxASSERT(m_pDlgSizer != NULL);
+
+    m_pVersion_comment   = (wxTextCtrl*) FindWindowById(ID_VERSION_COMMENT);    wxASSERT(m_pVersion_comment != NULL);
+    m_pVersion_date      = (wxStaticText*) FindWindowById(ID_VERSION_DATE);     wxASSERT(m_pVersion_date != NULL);
+    m_pVersion_committer = (wxStaticText*) FindWindowById(ID_COMMITTER);        wxASSERT(m_pVersion_committer != NULL);
+    
+    m_pApp = &wxGetApp();               wxASSERT (m_pApp != NULL);
+    m_pDoc = m_pApp->GetDocument();     wxASSERT (m_pDoc != NULL);
+    
+    m_pVersion_comment->SetBackgroundColour (sysColorBtnFace);
 }
 
 DVCSNavDlg::~DVCSNavDlg(void)
 { }
 
+void DVCSNavDlg::InitDialog()
+{
+    wxButton*    defaultButton = (wxButton*)FindWindowById(wxID_CANCEL);
+	this->Centre();
+
+	// Set the initial focus to "Return to latest"
+    defaultButton->SetFocus();
+}
+
 void DVCSNavDlg::ChooseVersion ( int version )
 {
     m_pDoc->DoChangeVersion (version);
     
-    m_version_comment->SetValue (m_pApp->m_pDVCS->m_version_comment);
-    m_version_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
-    m_version_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
+    m_pVersion_comment->ChangeValue (m_pApp->m_pDVCS->m_version_comment);
+    m_pVersion_date->SetLabel (m_pApp->m_pDVCS->m_version_date);
+    m_pVersion_committer->SetLabel (m_pApp->m_pDVCS->m_version_committer);
 
 }
 
 void DVCSNavDlg::OnPrev (wxCommandEvent& WXUNUSED(event))
 {    
     ChooseVersion (m_pApp->m_trialVersionNum + 1);
+    Layout();
     Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 
 void DVCSNavDlg::OnNext (wxCommandEvent& WXUNUSED(event))
 {    
     ChooseVersion (m_pApp->m_trialVersionNum - 1);
+    Layout();
     Raise();            // Changing version put the doc on top, so we need our dialog back on top
 };
 
@@ -97,15 +118,14 @@ void DVCSNavDlg::OnAccept (wxCommandEvent& WXUNUSED(event))
 
 void DVCSNavDlg::OnLatest (wxCommandEvent& WXUNUSED(event))
 {    
-    m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
+    m_pDoc->DoChangeVersion (-2);     // -2 means latest accepted, or the backup if it's there. Also removes the dialog and cleans up
 };
-
 
 // We need to catch the situation where the user clicks the dialog's close box while a trial is under way
 //  -- the most harmless thing to do is just to treat it as if "return to latest version" had been clicked.
 
 void DVCSNavDlg::OnClose (wxCloseEvent& WXUNUSED(event))
 {
-    m_pDoc->DoChangeVersion (0);     // zero is the latest - this also removes the dialog and cleans up
+    m_pDoc->DoChangeVersion (-2);     // -2 means latest accepted, or the backup if it's there. Also removes the dialog and cleans up
 }
 

@@ -39,12 +39,21 @@ WX_DEFINE_ARRAY_LONG(long, Array_of_long);
 
 #if defined(_KBSERVER)
 
+// A utility function to do the equivalent of curl's curl_easy_encode(), because the
+// latter seems to be interfering with heap cleanup when our url-encoded API functions
+// return, so that a heap error (crashing the app) occurs. Jonathan provided this
+// alternative which just uses std:string class - I'll code it here as a global function
+using namespace std;
+#include <string>
+//std::string urlencode(const std::string &s); // prototype
+
+
 /// The KbServerEntry struct is used for storing a single entry of the server's database,
 /// in a queue (actually an STL-based wxList<T> instance, which stores pointer to T) - periodic
-/// incremental downloads are pushed to the end of the list, and rentries popped from its
+/// incremental downloads are pushed to the end of the list, and entries popped from its
 /// start, during idle events. The pushes and pops need to be protected with a mutex,
 /// because popping is so as to merge an entry to the KB, but another incremental download
-/// might be have a push happening which has the queue in a compromised state, of vise versa.
+/// might be have a push happening which has the queue in a compromised state, or vise versa.
 /// Instances are created on the heap, stored in the queue until popped, and once the
 /// popped instance has had it's data merged to the KB, it is deleted
 struct KbServerEntry; // NOTE, omitting this forwards declaration and having the KbServerEntry
@@ -157,7 +166,7 @@ public:
 	int		 BulkUpload(int threadIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
-	int		 ChangedSince_Queued(wxString timeStamp);
+	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
 	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
@@ -211,6 +220,8 @@ public:
 	void	 SetPathSeparator(wxString separatorStr);
 	void	 SetCredentialsFilename(wxString credentialsFName);
 	void	 SetLastSyncFilename(wxString lastSyncFName);
+	// public getters
+	DownloadsQueue* GetDownloadsQueue();
 
 
 	wxString  ImportLastSyncTimestamp(); // imports the datetime ascii string literal

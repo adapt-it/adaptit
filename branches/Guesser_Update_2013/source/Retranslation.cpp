@@ -598,8 +598,8 @@ void CRetranslation::ReplaceMatchedSubstring(wxString strSearch, wxString& strRe
 	int nRight;
 	wxString left;
 	left.Empty();
-	wxString right;
-	right.Empty();
+	wxString onright; // BEW 2Oct13 changed from right to onright due to ambiguity
+	onright.Empty();
 	lenTgt = strSearch.Length(); // the search string's length
 	lenAdaptStr = strAdapt.Length(); // length of the string in which the search is done
 	nFound = strAdapt.Find(strSearch);
@@ -608,10 +608,10 @@ void CRetranslation::ReplaceMatchedSubstring(wxString strSearch, wxString& strRe
 	nRight = nFound + lenTgt;
 	wxASSERT(nRight <= lenAdaptStr);
 	nRight = lenAdaptStr - nRight;
-	right = strAdapt.Right(nRight);
+	onright = strAdapt.Right(nRight);
 
 	// put the final string into the strAdapt alias string in caller
-	strAdapt = left + strReplace + right;
+	strAdapt = left + strReplace + onright;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1574,6 +1574,18 @@ void CRetranslation::GetRetranslationSourcePhrasesStartingAnywhere(
 		if (pPile->GetSrcPhrase()->m_bEndRetranslation)
 			break;
 	}
+#if defined(_DEBUG)
+	SPList::Node* pos = pList->GetFirst();
+	int index = -1;
+	while (pos != NULL)
+	{
+		CSourcePhrase* pSrcPhrase = pos->GetData();
+		index++;
+		wxLogDebug(_T("GetRetranslationSourcePhrasesStartingAnywhere(): index = %d  m_key = %s"),
+			index, pSrcPhrase->m_key.c_str());
+		pos = pos->GetNext();
+	}
+#endif
 }
 
 void CRetranslation::SetNotInKBFlag(SPList* pList,bool bValue)
@@ -2670,7 +2682,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		SPList::Node* savePos = pos;
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		if (pSrcPhrase->m_bNullSourcePhrase)
+		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
+		// removed, only normal placeholders
+		if (IsNormalPlaceholderNotWidener(pSrcPhrase))
 		{
             // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
             // on every one, or if not so, then only the last will have a TRUE value
@@ -3537,7 +3551,9 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		SPList::Node* savePos = pos;
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		if (pSrcPhrase->m_bNullSourcePhrase)
+		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
+		// removed, only normal placeholders
+		if (IsNormalPlaceholderNotWidener(pSrcPhrase))
 		{
             // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
             // on every one, or if not so, then only the last will have a TRUE value
@@ -4429,6 +4445,14 @@ void CRetranslation::OnUpdateRemoveRetranslation(wxUpdateUIEvent& event)
 	// BEW 24Jan13 added first subtest to avoid spurious false positives
 	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
+		// First, protect against idle time update menu handler at app shutdown time, when
+		// piles no longer exist
+ 		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
 		// we require both head and tail of the selection to lie within the retranslation
 		CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
 		CCell* pCell = (CCell*)cpos->GetData();
@@ -4539,6 +4563,14 @@ void CRetranslation::OnUpdateButtonEditRetranslation(wxUpdateUIEvent& event)
 	//if (!gbIsGlossing && m_pApp->m_selectionLine != -1)
 	if (!gbIsGlossing && !m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
+		// First, protect against idle time update menu handler at app shutdown time, when
+		// piles no longer exist
+ 		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
 		// we require both head and tail of the selection to lie within the retranslation
 		CCellList::Node* cpos = m_pApp->m_selection.GetFirst();
 		CCell* pCell = (CCell*)cpos->GetData();
@@ -4633,7 +4665,15 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 	// BEW 24Jan13 added first subtest to avoid spurious false positives
 	if (!m_pApp->m_selection.IsEmpty() && m_pApp->m_selectionLine != -1)
 	{
-        // if there is at least one srcPhrase with m_bRetranslation == TRUE, then disable
+		// First, protect against idle time update menu handler at app shutdown time, when
+		// piles no longer exist
+ 		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
+		// if there is at least one srcPhrase with m_bRetranslation == TRUE, then disable
         // the button
 		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
 		while (pos != NULL)

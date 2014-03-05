@@ -26,16 +26,25 @@ public:
     DVCSNavDlg (wxWindow* parent);          // constructor
     virtual ~DVCSNavDlg (void);             // destructor
     
+	wxPoint		m_ptBoxTopLeft; // used for repositioning dialog away from phrase box location
+								// & the 'box' referred to here is top left of active pile's
+								// CCell(1) which is where the top left of the phrasebox would
+								// be located - this m_ptBoxTopLeft value has to be calculated
+								// after the FreeTransAdjustDlg has been created, but before
+								// the dlg.Show() call is done, so that InitDialog() can pick
+								// up and use the wxPoint values (this functionality uses
+								// RepositionDialogToUncoverPhraseBox_Version2(), a helpers.cpp function)
 //    int ShowNavDlg();
     
     CAdapt_ItApp*   m_pApp;
     CAdapt_ItDoc*   m_pDoc;
     
-    wxSizer*        m_dlgSizer;
-    wxStaticText*   m_version_committer;
-    wxStaticText*   m_version_date;
-    wxTextCtrl*     m_version_comment;
+    wxSizer*        m_pDlgSizer;
+    wxStaticText*   m_pVersion_committer;
+    wxStaticText*   m_pVersion_date;
+    wxTextCtrl*     m_pVersion_comment;
 
+    void InitDialog (void);
     void OnClose (wxCloseEvent& WXUNUSED(event));
     void OnPrev (wxCommandEvent& WXUNUSED(event));
 	void OnNext (wxCommandEvent& WXUNUSED(event));

@@ -49,6 +49,9 @@
 #include "LanguageCodesDlg.h"
 #include "KBSharingMgrTabbedDlg.h"
 #include "HtmlFileViewer.h"
+#include "Thread_DoEntireKbDeletion.h"
+
+extern bool gbIsGlossing;
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -119,6 +122,9 @@ KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constru
 
 KBSharingMgrTabbedDlg::~KBSharingMgrTabbedDlg()
 {
+	// restore defaults
+	m_pApp->m_bKbPageIsCurrent = FALSE;
+	m_pApp->m_bAdaptingKbIsCurrent = TRUE;
 }
 
 void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -225,7 +231,9 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pKbsList_Gls = new KbsList; // destroy it in OnOK() and OnCancel()
 	m_pKbsAddedInSession = new KbsList; // destroy it in OnOK() and OnCancel()
 
-	// Get the administrator's kbadmin and useradmin values from the app members for same
+	// Get the administrator's kbadmin and useradmin values from the app members for same;
+	// these app members are set by the login/authentication call (see KbSharingSetupDlg.h
+	// & .cpp, and which uses CheckForValidUsernameForKbServer() in helpers.cpp to set them)
 	m_bKbAdmin = m_pApp->m_kbserver_kbadmin;
 	m_bUserAdmin = m_pApp->m_kbserver_useradmin;
 
@@ -240,7 +248,9 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pOriginalKbStruct = NULL;
 
 	// Next 8 for Create Kbs page and Edit Kbs page
-	m_bKBisType1 = TRUE; // initialize
+	m_bKBisType1 = TRUE; // initialize, and the m_pRadioKBType1 button on kbs page is
+						 // preset (in wxDesigner) to be ON on first entry to that page
+						 // so it isn't necessary to do anything more here
 	m_tgtLanguageCodeLabel = _("Target language code:");
 	m_glossesLanguageCodeLabel = _("Glossing language code:");
 	m_tgtListLabel = _("Existing shared databases (as   source,target   comma delimited code pairs):");
@@ -367,6 +377,12 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		wxString username = m_pKbServer->GetKBServerUsername();
 		wxString password = m_pKbServer->GetKBServerPassword();
 		CURLcode result = CURLE_OK;
+
+		// Tell the app's status variables what page we are on -- Thread_DoEntireKbDeletion 
+		// may need this, if a KB deletion is later asked for
+		m_pApp->m_bKbPageIsCurrent = FALSE;
+		//m_pApp->m_bAdaptingKbIsCurrent = TRUE;
+
 		if (!username.IsEmpty() && !password.IsEmpty())
 		{
 			result = (CURLcode)m_pKbServer->ListUsers(username, password);
@@ -460,6 +476,16 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 																// field in the KB definition
 		wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
 		CURLcode result = CURLE_OK;
+
+		// Tell the app's status variables what page we are on -- Thread_DoEntireKbDeletion 
+		// may need this, if a KB deletion is later asked for; and track what kb type we
+		// are currently listing - tell the app that too, for same reason
+		m_pApp->m_bKbPageIsCurrent = TRUE;
+		if (m_bKBisType1)
+			m_pApp->m_bAdaptingKbIsCurrent = TRUE;
+		else
+			m_pApp->m_bAdaptingKbIsCurrent = FALSE;
+
 		if (!username.IsEmpty() && !password.IsEmpty())
 		{
 			result = (CURLcode)m_pKbServer->ListKbs(username, password);
@@ -604,14 +630,10 @@ KbServerUser* KBSharingMgrTabbedDlg::GetThisUsersStructPtr(wxString& username, U
 	if (pUsersList->empty())
 		return (KbServerUser*)NULL;
 	UsersList::iterator iter;
-	UsersList::compatibility_iterator c_iter;
-	int anIndex = -1;
 	for (iter = pUsersList->begin(); iter != pUsersList->end(); ++iter)
 	{
 		// Assign the KbServerUser struct's pointer to pEntry
-		anIndex++;
-		c_iter = pUsersList->Item((size_t)anIndex);
-		pEntry = c_iter->GetData();
+		pEntry = *iter;
 		if (pEntry->username == username)
 		{
 			// We found the struct, so return it
@@ -636,7 +658,6 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 	// Get the usernames into sorted order, by adding them to a wxSortedArrayString
 	wxSortedArrayString sorted_arrUsernames;
 	UsersList::iterator iter;
-	UsersList::compatibility_iterator c_iter;
 	int anIndex = -1;
 	int maxID = 0;
 	wxString strID;
@@ -645,13 +666,17 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 	for (iter = pUsersList->begin(); iter != pUsersList->end(); ++iter)
 	{
 		// Get the max ID value
-		anIndex++;
-		c_iter = pUsersList->Item((size_t)anIndex);
-		KbServerUser* pEntry = c_iter->GetData();
+		KbServerUser* pEntry = *iter;
 // Check if there are any NULL ptrs here
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+		anIndex++;
+		wxString aUsername = _T("null pointer"); // use this if pEntry is NULL
+		if (pEntry != NULL)
+		{
+			aUsername = pEntry->username;
+		}
 		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %x , username = %s , ID = %d"),
-			anIndex, (void*)pEntry, pEntry == NULL ? _T("null pointer") : pEntry->username.c_str(), pEntry->id);
+				anIndex, (void*)pEntry, aUsername.c_str(), pEntry->id);
 #endif
 		if (pEntry->id > maxID)
 		{
@@ -671,15 +696,13 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 		wxLogDebug(_T("LoadUsersListBox(): maxID = %d , number of characters in maxID = %d"), maxID, maxChars);
 #endif
 
-	anIndex = -1;
+//	anIndex = -1;
 	for (iter = pUsersList->begin(); iter != pUsersList->end(); ++iter)
 	{
 		// Assign the KbServerUser struct's pointer to pEntry, add the ID as a string at
 		// the end of the username with TAB character as a delimiter (we'll later move it
 		// to the front of the string to be inserted into the listbox)
-		anIndex++;
-		c_iter = pUsersList->Item((size_t)anIndex);
-		KbServerUser* pEntry = c_iter->GetData();
+		KbServerUser* pEntry = *iter;
 		username = pEntry->username;
 		username += tab;
 		wxItoa(pEntry->id, strID);
@@ -824,6 +847,21 @@ void KBSharingMgrTabbedDlg::OnTabPageChanged(wxNotebookEvent& event)
 	// If we get to here user selected a different page
 	m_nCurPage = pageNumSelected;
 
+	// We want each entry to the kbs page to have the adapting radio button preselected to
+	// be ON, rather than the old button-pair's selection to be remembered, so check here
+	// and reset the adapting one to be on if the glossing one is currently on
+	if (m_nCurPage == 1)
+	{
+		// We are entering the kbs page
+		bool bRadioBtnAdaptingIsOn = m_pRadioKBType1->GetValue();
+		if (!bRadioBtnAdaptingIsOn)
+		{
+			m_pRadioKBType2->SetValue(FALSE);
+			m_pRadioKBType1->SetValue(TRUE);
+			m_bKBisType1 = TRUE;
+		}
+	}
+
 	//Set up new page data by populating list boxes and controls
 	LoadDataForPage(m_nCurPage);
 }
@@ -869,6 +907,9 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	// and also delete their storage list from the heap (created in InitDialog())
 	delete m_pKbsAddedInSession;
 
+	// Delete the stateless KbServer instance we've been using
+	delete m_pKbServer;
+
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
 
@@ -902,6 +943,9 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 	m_pKbServer->ClearKbsList(m_pKbsAddedInSession);
 	// and also delete their storage list from the heap (created in InitDialog())
 	delete m_pKbsAddedInSession;
+
+	// Delete the stateless KbServer instance we've been using
+	delete m_pKbServer;
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -1053,6 +1097,47 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 				// checking for administrator or user confusion here...)
 	wxString textCtrl_SrcLangCode = m_pEditSourceCode->GetValue(); // source lang code wxTextCtrl
 	wxString textCtrl_NonSrcLangCode = m_pEditNonSourceCode->GetValue(); // non-source lang code wxTextCtrl
+
+	// The first test is to make sure the administrator is not trying to re-create a
+	// shared kb which is currently in the process of being removed. The app variables,
+	// wxString m_srcLangCodeOfCurrentRemoval; wxString m_nonsrcLangCodeOfCurrentRemoval;
+	// and int m_kbTypeOfCurrentRemoval; record the srcCode, non-srcCode and kbType of
+	// a kb definition currently in the process (in a background thread) of being removed
+	// - kb entries first, and then the definition iteself. The flag: bool
+	// m_bKbSvrMgr_DeleteAllIsInProgress will be TRUE if such a removal is going on.
+	 	if (m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
+	{
+		// A removal is happening. Check the proposed new kb definition addition has at
+		// least one code different, or a different kbType, than what is being removed.
+		int kbTypeInManagerDlg = m_bKBisType1 ? 1 : 2;
+		if (m_pApp->m_kbTypeOfCurrentRemoval == kbTypeInManagerDlg)
+		{
+			// The type to be added is of the same type as the one being removed, so check
+			// further
+			if (textCtrl_SrcLangCode == m_pApp->m_srcLangCodeOfCurrentRemoval)
+			{
+				// source lang code of the pair chosen for removal is the same as the
+				// source lang code of the pair about to be added - so there's still the
+				// potential for a clash - so check further
+				if (textCtrl_NonSrcLangCode == m_pApp->m_nonsrcLangCodeOfCurrentRemoval)
+				{
+					// ALARM!! User of the Manager GUI is attempting to re-create the
+					// kb definition of a remote kb database currently in the process of
+					// being removed. Prevent this, and warn accordingly.
+					wxBell();
+					wxString title = _("Warning: Adding what is being removed");
+					wxString msg = _("You are trying to add a shared database to the server, but that database is currently being removed from the same server.\nThis is illegal. The removal must be allowed to run to completion.\nIt is unlikely that you should attempt to add the database back to this server - because someone has decided this database is no longer needed.\nAsk for clarification from the server administrator. Most likely some other listed language code pair is the database you should be using.");
+					wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+					wxCommandEvent dummy;
+					OnButtonKbsPageClearListSelection(dummy);
+					OnButtonKbsPageClearBoxes(dummy);
+					return;
+				}
+			}
+		}
+	}
+	// If control gets to here, the new pair may be valid for creating a new definition -
+	// so continue checks etc
 	if (m_nSel != wxNOT_FOUND)
 	{
 		// There is a selection - so check the two editboxes' contents don't match any
@@ -1063,7 +1148,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 			// best to clear the controls to force him to start over
 			wxBell();
 			wxString title = _("Already exists");
-			wxString msg = _("Warning: you are trying to add a shared database which already exists in the server. This is illegal, each pair of codes must be unique.\n To add a new definition, one or both of the codes in the text entry boxes at the bottom must be different in some way from every listed pair.\nEdit the codes as necessary then use the Add Definition button.\nIf what you are trying to do is to edit one or both codes of an existing shared database, click the Update Selected Language Codes button instead.");
+			wxString msg = _("Warning: you are trying to add a shared database which already exists in the server. This is illegal, each pair of codes must be unique.\nTo add a new definition, one or both of the codes in the text entry boxes at the bottom must be different in some way from every listed pair.\nEdit the codes as necessary then use the Add Definition button.\nIf what you are trying to do is to edit one or both codes of an existing shared database, click the Update Selected Language Codes button instead.");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			wxCommandEvent dummy;
 			OnButtonKbsPageClearListSelection(dummy);
@@ -1302,6 +1387,14 @@ void KBSharingMgrTabbedDlg::OnButtonUserPageRemoveUser(wxCommandEvent& WXUNUSED(
 
 void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event))
 {
+	// Is the user of the Manager authorized to use this button?
+	if (!m_bKbAdmin && !m_bUserAdmin)
+	{
+		wxString msg = _("Sorry, you are not a kb administrator, nor a user administrator.\nYou are not authorized to use this button.");
+		wxString title = _("Authorization lacking");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		return;
+	}
 	// Get the ID value, if we can't get it, return
 	if (m_pOriginalKbStruct == NULL)
 	{
@@ -1310,7 +1403,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 	}
 	else
 	{
-		wxString msg = _("This shared database was not created in this session, so a background deletion of the database entries will be done.\n This may take several hours; but you can shut the machine down safely anytime and later do the removal again.\nWhen all entries in the selected database are deleted, the language codes for it are removed from the list as the last step.\nAt that time you can be certain the entire database no longer exists on the server to which you are currently connected");
+		wxString msg = _("This shared database was not created in this session, so a background deletion of the database entries will be done.\n This may take several hours; but you can shut the machine down safely anytime and later do the removal again.\nYou can safely close the Knowledge Base Sharing Manager while the deletions are in progress, and even work in a different project if you wish. The background deletions will continue for as long as the Adapt It session is active.\nWhen all entries in the selected database are deleted, the language codes for it are removed from the list as the last step.\nAt that time you can be certain the entire database no longer exists on the server to which you are currently connected");
 		wxString title = _("Warning: a lengthy background deletion will now start");
 
 		// Test for absence of the selected definition being in the list of KB definitions
@@ -1318,7 +1411,87 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 		// the TRUE block which follows, to have the deletion tried unilaterally)
 		if (!IsThisKBDefinitionInSessionList(m_pOriginalKbStruct, m_pKbsAddedInSession))
 		{
-			// This definition can be deleted, but if it owns database entries, it may
+			// If an "all entries" emptying as part of a removal is already in progress, 
+			// don't start another....
+			//m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = TRUE; // uncomment out to test showing
+																// of the information message
+			if (m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
+			{
+				wxString msg2 = _("Only one database emptying at a time is allowed.\nAn emptying is already in progress, and it may take a long time.\nWhen the one requested for deletion no longer displays its pair of language codes in the list,\nthe Manager is then ready for you to request deletion of another one.");
+				wxString title2 = _("Only one at a time");
+				wxMessageBox(msg2, title2, wxICON_INFORMATION | wxOK);
+				return;
+			}
+			// There is no removal of a parenting definition currently in progress, so the
+			// next check is to ensure we are not trying to remove a kb which is currently
+			// actively being shared with the open Adapt It project -- if we are, tell the
+			// administrator to first remove that sharing setup ( using menu Advance menu, 
+			// Setup Or Remove Knowledge Base Sharing) and then return to do the Removal
+			m_srcLangCodeOfDeletion = m_pOriginalKbStruct->sourceLanguageCode;
+			m_nonsrcLangCodeOfDeletion = m_pOriginalKbStruct->targetLanguageCode; // actually non-src
+			m_kbTypeOfDeletion = m_pOriginalKbStruct->kbType;
+			// Proceed if no project is active yet
+			if (m_pApp->m_bKBReady && m_pApp->m_bGlossingKBReady)
+			{
+				// A project is active, so check if it is setup for KB Sharing, if not, proceed
+				if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
+				{
+					// It's setup for KB Sharing (even if currently temporarily disabled,
+					// we ignore the latter possibility as it may be reversed at anytime,
+					// the important thing is that the project must not be sharing with
+					// the kb we want to delete -- so keep testing
+					
+					// We use the global gbIsGlossing, because this is easiest
+					if((!gbIsGlossing && m_kbTypeOfDeletion == 1) || 
+						(gbIsGlossing && m_kbTypeOfDeletion == 2))
+					{
+						// We are trying to delete a KbType which is the same as the currently
+						// active type for the open project, so keep checking -- get the
+						// srcLangCode and the non-srcLangCode -- if these match what's
+						// above, then we've got to prevent going further and tell the
+						// Manager user what to do, and then return etc
+						if (m_pApp->m_sourceLanguageCode == m_srcLangCodeOfDeletion)
+						{
+							// The srcLang codes match, so we've not yet eliminated the
+							// possibility that we are trying to remove the currently
+							// active shared database - so test for matching non-source codes
+							if ((m_kbTypeOfDeletion == 1 && 
+								(m_pApp->m_targetLanguageCode == m_nonsrcLangCodeOfDeletion))
+								||
+								(m_kbTypeOfDeletion == 2 && 
+								(m_pApp->m_glossesLanguageCode == m_nonsrcLangCodeOfDeletion)))
+							{
+								// We are either in adapting mode, and trying to delete
+								// the shared KB (srccode/tgtcode match the pair we
+								// selected) which is currently actively in use, or
+								// glossing mode is active and we are trying to delete the
+								// shared glossing KB. In either case, this is verbotten.
+								// So inform the user and prevent control from going further.
+								m_srcLangCodeOfDeletion.Empty();
+								m_nonsrcLangCodeOfDeletion.Empty();
+								wxCommandEvent dummy;
+								OnButtonKbsPageClearListSelection(dummy);
+								OnButtonKbsPageClearBoxes(dummy);
+								wxString msg3 = _("The knowledge base you selected for removal is active as a shared knowledge base for the currently open project.\nIt makes no sense to try to remove the contents of a knowledge base currently accepting new entries.\nClose this Knowledge Base Sharing Manager now, then use the Setup Or Remove Knowledge Base Sharing command in the Advanced menu to remove the sharing setup in the current project.\nThen reopen the Knowledge Base Sharing Manager and retry the removal. This time it should succeed.\n Please make sure no users anywhere are trying to use the shared database you are trying to remove from the server.");
+								wxString title3 = _("Illegal Removal Attempt");
+								wxMessageBox(msg3, title3, wxICON_INFORMATION | wxOK);
+								return;
+							}
+						}
+					}
+				}
+			}
+
+			// It's okay, we can go ahead with the removal request
+			m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = TRUE;
+			// Put the two codes in the app members, so we can check for and prevent new
+			// attempts on this machine to recreate the sharing with those old code
+			// values; and put the kbtype there too
+			m_pApp->m_srcLangCodeOfCurrentRemoval = m_srcLangCodeOfDeletion;
+			m_pApp->m_nonsrcLangCodeOfCurrentRemoval = m_nonsrcLangCodeOfDeletion;
+			m_pApp->m_kbTypeOfCurrentRemoval = m_kbTypeOfDeletion;
+
+			// This definition can be deleted, but it owns database entries, & so may
 			// take a long time because a https transmission is done for each entry
 			// deleted, and in a high latency environment this may turn a job that should
 			// only take minutes into one that may take a day or more -- but it is on a
@@ -1327,12 +1500,154 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 			// just get the deletion going again in a later session and there will be
 			// fewer entries to delete each such successive attempt made
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-			
 
-// TODO *********** the thread implementation goes here ***********************
+			// Create a new stateless KbServer instance that will persist on the heap for as
+			// long as the application is running (if this handler has not completed before
+			// Adapt It or the machine is closed) or until the this handler has completed its
+			// job - whichever comes first. (No permissions are checked for this new one, we
+			// have done that already above, we only need it's services so as to get the job done.)
+			m_pApp->m_pKbServerForDeleting = new KbServer(1, TRUE); // TRUE is bool bStateless, 
+					// 1 means "adapting type", but we could use either type for this job;
+					// Removing this instance from the heap should be done as the last step
+					// after the KB database has been cleared and it's KB language pair,
+					// which constitutes the database definition, has been removed from the
+					// kb table of the kbserver (doing so in the thread's end) -- or, if the
+					// user shuts down the app or machine prematurely, at the end of the 
+					// OnExit() function
+			// Most of m_pKbServerForDeleting members are as yet undefined, so populate them
+			// from the KB Sharing Manager's stateless KbServer instance
+			wxString aURL = m_pKbServer->GetKBServerURL();
+			m_pApp->m_pKbServerForDeleting->SetKBServerURL(aURL);
+			m_pApp->m_pKbServerForDeleting->SetSourceLanguageCode(m_srcLangCodeOfDeletion); 
+			if (m_kbTypeOfDeletion == 1)
+			{
+				m_pApp->m_pKbServerForDeleting->SetTargetLanguageCode(m_nonsrcLangCodeOfDeletion); 
+			}
+			else
+			{
+				m_pApp->m_pKbServerForDeleting->SetGlossLanguageCode(m_nonsrcLangCodeOfDeletion); 
+			}
+			m_pApp->m_pKbServerForDeleting->SetKBServerType(m_kbTypeOfDeletion);
 
+			// Which do we want to delete?
+			long nID = (int)m_pOriginalKbStruct->id; // this is the one we selected in the listbox
+			// Put a copy in the app instance, since the Manager GUI might be deleted long
+			// before the background deletion (thread) of the KB entries has completed,
+			// and we'll need to get the ID then for deleting that kb language code pair
+			m_pApp->kbID_OfDefinitionForDeletion = nID;
+			wxString theUsername = m_pKbServer->GetKBServerUsername();
+			m_pApp->m_pKbServerForDeleting->SetKBServerUsername(theUsername);
+			wxString thePassword = m_pKbServer->GetKBServerPassword();
+			m_pApp->m_pKbServerForDeleting->SetKBServerPassword(thePassword);
+			// The above are all that the ChangedSince_Queued() call needs, except for the
+			// timestamp, which we do next; and the DeleteSingleKbEntry() calls just need
+			// the above, and an ID for the entry - the ID we get from the data returned
+			// from the ChangedSince_Queued() call
 
+			// Get all the selected database's entries
+			int rv = 0; // rv is "return value", initialize it
+			wxString timestamp;
+			timestamp = _T("1920-01-01 00:00:00"); // earlier than everything!
+			rv = m_pApp->m_pKbServerForDeleting->ChangedSince_Queued(timestamp, FALSE);
+					// in above call, FALSE is value of the 2nd param, bDoTimestampUpdate
+			// Check for error
+			if (rv != 0)
+			{
+				// The download of all owned entries in the selected kb server definition
+				// did not succeed; the user probably needs to know, so make it localizable;
+				// and since we didn't succeed, just clear the list selection and the text boxes
+				wxCommandEvent dummy;
+				OnButtonKbsPageClearListSelection(dummy);
+				OnButtonKbsPageClearBoxes(dummy);
+				wxBell();
+				m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->clear();
+				wxString msg = _("The request to the remote server to download all the entries owned\nby the knowledge base selected for removal, failed unexpectedly.\nNothing has been changed, so you might try again later.");
+				wxString title = _("Error: downloading database failed");
+				m_pApp->LogUserAction(_T("OnButtonKbsPageRemoveKb() failed at the ChangedSince_Queued() download call"));
+				wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+			}
+			else
+			{
+				// All's well, continue processing...
+				// How many entries have to be deleted?
+				m_pApp->m_nQueueSize = m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->size();
 
+				if (m_pApp->m_nQueueSize == 0)
+				{
+					// We don't expect this, but if we get nothing back, we don't need to
+					// call the thread; instead, just do the kb definition deletion, and
+					// clean up
+					int nID = (int)m_pOriginalKbStruct->id;
+					// Remove the selected kb definition from the kbserver's kb table
+					CURLcode result = CURLE_OK;
+					result = (CURLcode)m_pKbServer->RemoveKb(nID);
+					// Update the page if we had success, if no success, just clear the controls
+					if (result == CURLE_OK)
+					{
+						LoadDataForPage(m_nCurPage);
+					}
+					else
+					{
+						// The removal did not succeed- this is quite unexpected, an English error
+						// message will do
+						wxCommandEvent dummy;
+						OnButtonKbsPageClearListSelection(dummy);
+						OnButtonKbsPageClearBoxes(dummy);
+						wxBell();
+						msg = _T("OnButtonKbsPageRemoveKb(): unexpected failure to remove a shared knowledge base (definition) which owns no entries.\nThe application will continue safely. Perhaps try the removal again later.");
+						title = _T("Error: could not remove the database");
+						m_pApp->LogUserAction(msg);
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+						return;
+					}
+					DeleteClonedKbServerKbStruct();
+					return;
+				}
+
+				// Create the detached thread which will do our database entry deletion job
+				Thread_DoEntireKbDeletion* pThread = new Thread_DoEntireKbDeletion(
+								m_pApp->m_pKbServerForDeleting, nID, m_pApp->m_nQueueSize);
+				wxThreadError error =  pThread->Create(2048); // give it a stack size of 2kb
+				if (error != wxTHREAD_NO_ERROR)
+				{
+					// There was a very unexpected error, an English message will do
+					m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->clear();
+					delete pThread;
+					wxCommandEvent dummy;
+					OnButtonKbsPageClearListSelection(dummy);
+					OnButtonKbsPageClearBoxes(dummy);
+					wxString msg = _T("pThread->Create(2048) failed unexpectedly in OnButtonKbsPageRemoveKb() call.");
+					wxString title = _T("Thread error: setting stack size failed");
+					m_pApp->LogUserAction(msg);
+					wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+					return;
+				}
+				else
+				{
+					// No error so run the thread, and we can then forget it if the
+					// running of it produces no error -- it will do it's own cleanup and
+					// removal of the kb definition at the end of the job, if it succeeds
+					// in running to completion before the machine or Adapt It is shut down
+					error = pThread->Run();
+
+					// We don't expect an error, so an English message will do here - and
+					// just remove the list selection and clear the text boxes too, as
+					// well as delete the thread object and clear the entries in the queue
+					if(error != wxTHREAD_NO_ERROR)
+					{
+						m_pApp->m_pKbServerForDeleting->GetDownloadsQueue()->clear();
+						delete pThread;
+						wxCommandEvent dummy;
+						OnButtonKbsPageClearListSelection(dummy);
+						OnButtonKbsPageClearBoxes(dummy);
+						wxString msg = _T("pThread->Run(): failure when starting the thread to remove the selected KB definition, in OnButtonKbsPageRemoveKb() call.");
+						wxString title = _T("Thread start error");
+						m_pApp->LogUserAction(msg);
+						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+						return;
+					}
+				} // end of else block for test: if (error != wxTHREAD_NO_ERROR)
+			} // end of else block for test: if (rv != 0)
 			return;
 		}
 		else
@@ -1830,6 +2145,10 @@ void KBSharingMgrTabbedDlg::OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(
 	m_pRadioKBType1->SetValue(TRUE);
 	m_pRadioKBType2->SetValue(FALSE);
 
+	// Tell the app what value we have chosen - Thread_DoEntireKbDeletion may
+	// need this value
+	m_pApp->m_bAdaptingKbIsCurrent = TRUE;
+
 	// Set the appropriate label for above the listbox
 	m_pAboveListBoxLabel->SetLabel(m_tgtListLabel);
 
@@ -1853,6 +2172,10 @@ void KBSharingMgrTabbedDlg::OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(
 	// The user's click has already changed the value held by the radio button
 	m_pRadioKBType2->SetValue(TRUE);
 	m_pRadioKBType1->SetValue(FALSE);
+
+	// Tell the app what value we have chosen - Thread_DoEntireKbDeletion may
+	// need this value
+	m_pApp->m_bAdaptingKbIsCurrent = FALSE;
 
 	// Set the appropriate label for above the listbox
 	m_pAboveListBoxLabel->SetLabel(m_glsListLabel);

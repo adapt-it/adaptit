@@ -36,18 +36,22 @@ static wxMutex s_QueueMutex; // only need one, because we cannot have
 							 // glossing & adapting modes on concurrently
 static wxMutex s_DoGetAllMutex; // UploadToKbServer() calls DoGetAll() which
 			// fills the 7 parallel arrays with remote DB data; but a manual
-			// ChangedSince() or DoChangedSince() call also fills the same
+			// ChangedSince() or DoChangedSince() call also fill the same
 			// arrays - so we have to enforce sequentiality on the use of
 			// these arrays
 wxMutex KBAccessMutex; // ChangedSince() may be entering entries into
-			// the local KB at while UploadToKbServer() is looping over it's entries
+			// the local KB while UploadToKbServer() is looping over it's entries
 			// to work out which need to be sent to the remote DB
+wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used sometimes
+			// in normal adapting work, but a lot in a bulk pseudo delete, so enforce
+			// sequentiality on the use of the storage infrastructure; likewise for
+			// LookupEntryFields()
 			
 #include <wx/listimpl.cpp>
 
 
-using namespace std;
-#include <string>
+//using namespace std;
+//#include <string>
 
 #include "Adapt_It.h"
 #include "TargetUnit.h"
@@ -79,28 +83,30 @@ WX_DEFINE_LIST(KbsList);    // for use by the ListKbs() client, stores KbServerK
 
 extern bool		gbIsGlossing;
 
-// A Note on the placement of SetupForKBServer(), and the protective wrapping boolean
-// m_bIsKBServerProject, defaulting to FALSE initially and then possibly set to TRUE by
-// reading the project configuration file.
+// A Note on the placement of SetupForKBServer(), and the protective wrapping booleans
+// m_bIsKBServerProject and m_bIsGlossingKBServerProject defaulting to FALSE initially
+// and then possibly set to TRUE by reading the project configuration file.
 // Since the KBs must be loaded before SetupForKBServer() is called, and the function for
 // setting them up is CreateAndLoadKBs(), it may appear that at the end of the latter
 // would be an appropriate place, within the TRUE block of an if (m_bIsKBServerProject)
-// test. However, looking at which functionalities, at a higher level, call
+// test or an if (m_bIsGlossingKBServerProject) text. 
+// However, looking at which functionalities, at a higher level, call
 // CreateAndLoadKBs(), many of these are too early for any association of a project with
 // a kbserver to have been set up already. Therefore, possibly after a read of the
 // project configuration file may be appropriate - since it's that configuration file 
-// which sets or clears the m_bIsKBServerProject app member boolean. This is so: there are
+// which sets or clears the ywo above boolean flags. This is so: there are
 // 4 contexts where the project config file is read: in DoUnpackDocument(), in
 // HookUpToExistingProject() for setting up a collaboration, in the
 // OpenExistingProjectDlg.cpp file, associated with the "Access an existing adaptation
 // project" feature (for transforming adaptations to glosses); and most importantly, in the
 // frequently called OnWizardPageChanging() function of ProjectPage.cpp. These are all
 // appropriate places for calling SetupForKBServer() late in such functions, in an if TRUE
-// test block using m_bIsKBServerProject. (There is no need, however, to call it in
-// OpenExistingProjectDlg() because the project being opened is not changed in the process,
-// and since it's adaptations are being transformed to glosses, it would not be appropriate
-// to assume that the being-constructed new project should be, from it's inception, a kb
-// sharing one. The user can later make it one if he so desires.)
+// test block using m_bIsKBServerProject, or similarly for the glossing one if the other
+// flag is TRUE. (There is no need, however, to call it in OpenExistingProjectDlg() because 
+// the project being opened is not changed in the process, and since it's adaptations are
+// being transformed to glosses, it would not be appropriate to assume that the
+// being-constructed new project should be, from it's inception, a kb sharing one. The user
+// can later make it one if he so desires.)
 // Scrap the above comment if we choose instead to instantiate KbServer on demand and
 // destroy it immediately afterwards.
 
@@ -115,6 +121,32 @@ std::string str_CURLheaders;
 // sequentiality on the processing of the threads
 std::string str_CURLbuff[50];
 
+// And the helper for doing url-encoding...
+/* -- don't need it, we'll use curl_easy_escape() & curl_free() instead, along with CBString
+std::string urlencode(const std::string &s)
+{
+    //RFC 3986 section 2.3 Unreserved Characters (January 2005)
+    //const std::string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
+	// BEW try these instead
+	const std::string unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
+    std::string escaped="";
+    for(size_t i=0; i<s.length(); i++)
+    {
+        if (unreserved.find_first_of(s[i]) != std::string::npos)
+        {
+            escaped.push_back(s[i]);
+        }
+        else
+        {
+            escaped.append("%");
+            char buf[3];
+            sprintf(buf, "%.2X", s[i]);
+            escaped.append(buf);
+        }
+    }
+    return escaped;
+}
+*/
 IMPLEMENT_DYNAMIC_CLASS(KbServer, wxObject)
 
 KbServer::KbServer()
@@ -142,7 +174,7 @@ KbServer::KbServer()
 
 KbServer::KbServer(int whichType)
 {
-	// This is the constructor we should always use, explicitly at least
+	// This is the constructor we should normally use for sharing of KBs
 	wxASSERT(whichType == 1 || whichType == 2);
 	m_kbServerType = whichType;
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -154,6 +186,8 @@ KbServer::KbServer(int whichType)
 // I had to give the next contructor the int whichType param, because just having a single
 // bool param isn't enough to distinguish it from KbServer(int whichType) above, and the
 // compiler was wrongly calling the above, instead KbServer(bool bStateless)
+// Note: NEVER CALL THIS CONSTRUCTOR WITH THE PARAMETERS (2,FALSE). But (1,TRUE) or
+// (2,TRUE) are safe values.
 KbServer::KbServer(int whichType, bool bStateless)
 {
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -163,8 +197,12 @@ KbServer::KbServer(int whichType, bool bStateless)
 	// about an unused variable
 	if (whichType != 1)
 	{
-		whichType = 1; // we don't want any CKB instance, 
-					   // but if we did, we'd just use an adapting one
+		whichType = 1; // we use this constructor only for jobs where we don't
+					   // need to specify a KB type, such as support for the
+					   // KB sharing manager GUI, or for entire deletion of a given
+					   // type of kb (whether adapting or glossing) and all its entries,
+					   // so choose a adapting instantiation - it makes no difference
+					   // choice we make
 	}
 	m_queue.clear();
 	m_bStateless = bStateless;
@@ -781,8 +819,15 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 	wxItoa(GetKBServerType(),kbType);
 	wxString container = _T("entry");
 
+	// The URL has to be url-encoded for safety
+	char *encodedsource = NULL;	// Encoded source string
+	// url-encode  sourcePhrase   before appending 
+	// to charUrl within the if (curl) block below
+	CBString utf8Src = ToUtf8(sourcePhrase); // could be a phrase, so it needs to be url-encoded
+	char* pUtf8Src = (char*)utf8Src; // need in this form for the curl_easy_escape() call below
+
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
-			slash + GetTargetLanguageCode() + slash + kbType + slash + wxStr_SourceEntry;
+			slash + GetTargetLanguageCode() + slash + kbType + slash;
 	charUrl = ToUtf8(aUrl);
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
@@ -790,6 +835,9 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 	curl = curl_easy_init();
 
 	if (curl) {
+		encodedsource = curl_easy_escape(curl, pUtf8Src, strlen(pUtf8Src));
+		strcat(charUrl, encodedsource);	// Append encoded source to URL
+
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -817,6 +865,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 
 			str_CURLbuffer.clear(); // always clear it before returning
 			curl_easy_cleanup(curl);
+			curl_free(encodedsource);
 			return (int)result;
 		}
 	}
@@ -839,6 +888,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 			wxMessageBox(_T("LookupEntriesForSourcePhrase(): reader.Parse() returned errors, so will return wxNOT_FOUND"),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
+			curl_free(encodedsource);
 			return -1;
 		}
 		int listSize = jsonval.Size();
@@ -858,6 +908,7 @@ int KbServer::LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry )
 			//m_arrTimestamp.Add(jsonval[index][_T("timestamp")].AsString());
 		}
 		str_CURLbuffer.clear(); // always clear it before returning
+		curl_free(encodedsource);
 	}
 
 	return 0;
@@ -1063,18 +1114,19 @@ int KbServer::ChangedSince(wxString timeStamp)
             }
             else
             {
-				// some other HTTP error presumably, report it in debug mode, and return a
-				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
+				// Some other situation, report it in debug mode, and don't update the 
+				// lastsync timestamp. Most likely, there was no JSON data to send. This
+				// isn't actually an error...
 #if defined (_DEBUG)
 				wxString msg;
-				msg  = msg.Format(_T("ChangedSince()error: HTTP status: %d   %s"),
-                                  m_httpStatusCode, m_httpStatusText.c_str());
-                wxMessageBox(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
+				msg  = msg.Format(_T("ChangedSince(): HTTP status: %d   Probably no JSON data was returned."),
+                                  m_httpStatusCode);
+                wxMessageBox(msg, _T("No useful data returned"), wxICON_EXCLAMATION | wxOK);
 #endif
  				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
 				pStatusBar->FinishProgress(_("Receiving..."));
-				return CURLE_HTTP_RETURNED_ERROR; // = 22
+				return (int)CURLE_OK;
            }
 		}
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
@@ -1082,7 +1134,7 @@ int KbServer::ChangedSince(wxString timeStamp)
     str_CURLbuffer.clear();
     str_CURLheaders.clear();
 	pStatusBar->FinishProgress(_("Receiving..."));
-	return 0;
+	return (int)CURLE_OK;
 }
 
 void KbServer::ClearStrCURLbuffer()
@@ -1507,14 +1559,26 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 	wxString colon(_T(':'));
 	wxString container = _T("user");
 
+	// The URL has to be url-encoded for safety
+	//char *encodeduser = NULL;	// Encoded username string
+
 	aUrl = url + slash + container + slash + whichusername;
+	//aUrl = url + slash + container + slash; // later add url-encoded whichusername;
 	charUrl = ToUtf8(aUrl);
 	aPwd = username + colon + password;
 	charUserpwd = ToUtf8(aPwd);
 
+	// url-encode  whichusername   before appending 
+	// to charUrl within the if (curl) block below
+	//CBString utf8User = ToUtf8(whichusername); // justs in case it's a phrase, make it url-encoded
+	//char* pUtf8User = (char*)utf8User; // need in this form for the curl_easy_escape() call below
+
 	curl = curl_easy_init();
 
 	if (curl) {
+		//encodeduser = curl_easy_escape(curl, pUtf8User, strlen(pUtf8User));
+		//strcat(charUrl, encodeduser);	// Append url-encoded username to URL
+
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1552,6 +1616,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 			wxMessageBox(msg, _T("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
+			//curl_free(encodeduser);
 			return (int)result;
 		}
 	}
@@ -1566,6 +1631,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 		ClearUserStruct();
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
+		//curl_free(encodeduser);
 		return CURLE_HTTP_RETURNED_ERROR; // 22
 	}
 
@@ -1587,6 +1653,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 				_T("kbserver error"), wxICON_ERROR | wxOK);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
+			//curl_free(encodeduser);
 			return CURLE_HTTP_RETURNED_ERROR;
 		}
 		// We extract id, username, fullname, kbadmin flag value, useradmin flag value,
@@ -1605,6 +1672,7 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
+		//curl_free(encodeduser);
 	}
 	return 0;
 }
@@ -1837,6 +1905,8 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 // need to get.
 // Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
 // HTTP error - such as no matching entry, or a badly formed request
+// BEW 3Oct13, modified to use a url-encoded url string (to lookup phrases properly,
+// otherwise it looks up only the first word of the phrase)
 int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 {
 	CURL *curl;
@@ -1848,23 +1918,52 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 
 	CBString charUrl;
 	CBString charUserpwd;
+	// Try a CBString solution for url-encoding, and using curl_easy_encode() etc
+	// (because the sourcePhrase and/or targetPhrase strings may be phrases)
+	char *encodedsource = NULL;	// ptr to encoded source string, initialize
+	char *encodedtarget = NULL;	// ptr to encoded target string, initialize
+	CBString charSrc = ToUtf8(sourcePhrase);
+	CBString charTgt = ToUtf8(targetPhrase);
+	int lenSrc = charSrc.GetLength();
+	int lenTgt = charTgt.GetLength();
+	char* pCharSrc = (char*)charSrc;
+	char* pCharTgt = (char*)charTgt;
 
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString kbType;
 	wxItoa(GetKBServerType(),kbType);
 	wxString container = _T("entry");
+	// The URL has to be url-encoded -- do it with Jonathan's custom function, urlencode()
+	// This is instead of using curl_easy_encode() and curl_free(); these are okay but
+	// involve creating a heap block, and we can avoid that using urlencode() instead
+	//CBString utf8Src = ToUtf8(sourcePhrase); // could be a phrase, so it needs to be url-encoded
+	//CBString utf8Tgt = ToUtf8(targetPhrase); // before being appended to charUrl, & ditto for tgt one
 
+	//aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
+	//		slash + GetTargetLanguageCode() + slash + kbType + slash + sourcePhrase
+	//		+ slash + targetPhrase;
 	aUrl = GetKBServerURL() + slash + container + slash+ GetSourceLanguageCode() +
-			slash + GetTargetLanguageCode() + slash + kbType + slash + sourcePhrase +
-			slash + targetPhrase;
+			slash + GetTargetLanguageCode() + slash + kbType + slash; // url-encode the new 2 fields
 	charUrl = ToUtf8(aUrl);
+    
+	// Create the username:password string
 	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
 	charUserpwd = ToUtf8(aPwd);
 
 	curl = curl_easy_init();
-
 	if (curl) {
+		encodedsource = curl_easy_escape(curl, pCharSrc, lenSrc); // need LHS for curl_free() call below
+		encodedtarget = curl_easy_escape(curl, pCharTgt, lenTgt); //  ditto
+		CBString encodedSrc(encodedsource);
+		CBString encodedTgt(encodedtarget);
+		charUrl += encodedSrc;
+		charUrl += "/";
+		charUrl += encodedTgt;
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+		wxString wxencodedUrl = ToUtf16(charUrl);
+		wxLogDebug(_T("LookupEntryFields(): encoded Url = %s"), wxencodedUrl.c_str());
+#endif
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1873,9 +1972,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 		// We want separate storage for headers to be returned, to get the HTTP status code
 		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
-
 		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
-													//headers separately
+													  //headers separately
 		result = curl_easy_perform(curl);
 
 #if defined (_DEBUG) //&& defined (__WXGTK__)
@@ -1901,6 +1999,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 				result, error.c_str());
 			wxMessageBox(msg, _T("Error when looking up an entry"), wxICON_EXCLAMATION | wxOK);
 
+			curl_free(encodedsource);
+			curl_free(encodedtarget);
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
@@ -1914,6 +2014,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	{
 		// whether 400 or 404, return CURLE_HTTP_RETURNED_ERROR (ie. 22) to the caller
 		ClearEntryStruct(); // if we subsequently access it, its source member is an empty string
+		curl_free(encodedsource);
+		curl_free(encodedtarget);
 		str_CURLbuffer.clear();
 		str_CURLheaders.clear();
 		return CURLE_HTTP_RETURNED_ERROR;
@@ -1935,6 +2037,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			// A non-localizable message will do, it's unlikely to happen (we hope)
 			wxMessageBox(_T("In LookupEntryFields(): json reader.Parse() failed. Unexpected bad data from server."),
 				_T("kbserver error"), wxICON_ERROR | wxOK);
+			curl_free(encodedsource);
+			curl_free(encodedtarget);
 			str_CURLbuffer.clear(); // always clear it before returning
 			str_CURLheaders.clear();
 			return CURLE_HTTP_RETURNED_ERROR;
@@ -1949,6 +2053,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		m_entryStruct.username = jsonval[_T("user")].AsString();
 		m_entryStruct.deleted = jsonval[_T("deleted")].AsInt();
 
+		curl_free(encodedsource);
+		curl_free(encodedtarget);
 		str_CURLbuffer.clear(); // always clear it before returning
 		str_CURLheaders.clear();
 	}
@@ -2759,19 +2865,22 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	return 0;
 }
 
-// This one is like RemoveUser() and RemoveKb(), except that we'll simplify even further
-// and not bother to ask for any http headers to be returned. We'll just assume the
-// deletion happened without error.
+// This one is like RemoveUser() and RemoveKb(), and http errors need to be checked for,
+// as it is the only way to know when the deletion loop has deleted all that need to be
+// deleted
 int KbServer::DeleteSingleKbEntry(int entryID)
 {
 	wxString entryIDStr;
 	wxItoa(entryID, entryIDStr);
 	CURL *curl;
 	CURLcode result; // result code
+	struct curl_slist* headers = NULL; // get headers in case of HTTP error
 	wxString slash(_T('/'));
 	wxString colon(_T(':'));
 	wxString container = _T("entry");
 	wxString aUrl, aPwd;
+
+	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
 
 	CBString charUrl; // use for curl options
 	CBString charUserpwd; // ditto
@@ -2788,16 +2897,35 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 	result = (CURLcode)0; // initialize
 	if (curl)
 	{
+		// add headers
+		headers = curl_slist_append(headers, "Accept: application/json");
+		headers = curl_slist_append(headers, "Content-Type: application/json");
 		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
 		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way when no json is expected back...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
 
 		result = curl_easy_perform(curl);
 
+#if defined (_DEBUG)
+        CBString s(str_CURLbuffer.c_str());
+        wxString showit = ToUtf16(s);
+        wxLogDebug(_T("\n\n DeleteSingleEntry() Returned: %s    CURLcode %d  for entryID = %d"), 
+					showit.c_str(), (unsigned int)result, entryID);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+
+		curl_slist_free_all(headers);
 		if (result) {
 			wxString msg;
 			CBString cbstr(curl_easy_strerror(result));
@@ -2810,7 +2938,19 @@ int KbServer::DeleteSingleKbEntry(int entryID)
 		}
 	}
 	curl_easy_cleanup(curl);
-	return (CURLcode)result;
+	str_CURLbuffer.clear();
+
+	// handle any HTTP error code, if one was returned
+	if (m_httpStatusCode >= 400)
+	{
+		// Most likely, a 404 Not Found error when the parent loop has finally
+		// deleted the last entry in that particular kb database
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		return CURLE_HTTP_RETURNED_ERROR; 
+	}
+	return (CURLcode)0;
 }
 
 
@@ -2837,7 +2977,7 @@ int KbServer::RemoveUser(int userID)
 	aUrl = GetKBServerURL() + slash + container + slash + userIDStr;
 	charUrl = ToUtf8(aUrl);
 
-		// prepare curl
+	// prepare curl
 	curl = curl_easy_init();
 
 	if (curl)
@@ -3449,7 +3589,9 @@ void KbServer::UploadToKbServer()
 	wxDateTime now = wxDateTime::Now();
 	wxLogDebug(_T("UploadToKBServer() start time: %s\n"), now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
-	if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
+	if ((m_pApp->m_bIsKBServerProject && (this->m_kbServerType == 1) && this->IsKBSharingEnabled())
+		||
+		(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
 	{
 		s_DoGetAllMutex.Lock();
 
@@ -3674,7 +3816,10 @@ void KbServer::UploadToKbServer()
 		DeleteUploadEntries();
 		ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
 
-	} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject && this->IsKBSharingEnabled())
+	} // end of TRUE block for test: 	
+	//  if ((m_pApp->m_bIsKBServerProject && (this->m_kbServerType == 1) && this->IsKBSharingEnabled())
+	//	||
+	//	(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
 
 #if defined(_DEBUG)
 	now = wxDateTime::Now();
@@ -3722,6 +3867,11 @@ bool KbServer::IsQueueEmpty()
 	return m_queue.empty(); // return TRUE if m_queue is empty
 }
 
+DownloadsQueue* KbServer::GetDownloadsQueue()
+{
+	return &m_queue;
+}
+
 // Return the CURLcode value, downloaded JSON data is extracted and copied, entry by
 // entry, into a series of KbServerEntry structs, each created on the heap, and stored at
 // the end of the m_queue member (derived from wxList<T>). This ChangedSince_Queued() is
@@ -3744,7 +3894,7 @@ bool KbServer::IsQueueEmpty()
 // storage. (Of course, the next successful ChangedSince_Queued() call will update what is
 // stored in persistent storage; and the timeStamp value used for that call is whatever is
 // currently within the variable m_kbServerLastSync).
-int KbServer::ChangedSince_Queued(wxString timeStamp)
+int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 {
 	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
 	str_CURLheaders.clear(); // BEW added 9Feb13
@@ -3903,8 +4053,13 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
             str_CURLbuffer.clear(); // always clear it before returning
             str_CURLheaders.clear(); // BEW added 9Feb13
 
-			// since all went successfully, update the lastsync timestamp
-			UpdateLastSyncTimestamp();
+			// since all went successfully, update the lastsync timestamp, if requested
+			// (when using ChangedSince_Queued() to download entries for deleting an entire
+			// KB, we don't want any timestamp update done)
+			if (bDoTimestampUpdate)
+			{
+				UpdateLastSyncTimestamp();
+			}
 		} // end of TRUE block for test: if (offset == 0)
 		else
 		{
@@ -3916,28 +4071,42 @@ int KbServer::ChangedSince_Queued(wxString timeStamp)
 				// more recent than the last saved timestamp value, so do nothing here
 				// except update the lastsync timestamp, there's no point in keeping the
 				// earlier value unchanged
-                UpdateLastSyncTimestamp();
+ 				if (bDoTimestampUpdate)
+				{
+					UpdateLastSyncTimestamp();
+				}
             }
             else
             {
-				// some other HTTP error presumably, report it in debug mode, and return a
-				// CURLE_HTTP_RETURNED_ERROR CURLcode; don't update the lastsync timestamp
+				// Some other "error", so don't update the lastsync timestamp. The most
+				// likely thing that happened is that there have been no new entries to
+				// the entry table since the last 'changed since' sync - in which case no
+				// JSON is produced. No JSON means that the test above for "[{" will not
+				// find those two metacharacters for a JSON array - which means that the
+				// else branch sends control to the else block above but with
+				// m_httpStatusCode value of 200 (ie. success), so we don't actually have
+                // an error situation at all; and testing for a possible http error fails
+                // to find any error, and so the present else block is entered. So we are
+                // here almost certainly because there was no data to send in the
+                // transmission. This should be treated as a successful transmission, and
+				// not show a 'failure' message - even if just in the debug build. It's
+				// okay as well to not update the lastsync timestamp in this circumstance
 #if defined (_DEBUG)
 				wxString msg;
-				msg  = msg.Format(_T("ChangedSince_Queued() error:  HTTP status: %d   %s"),
-                                  m_httpStatusCode, m_httpStatusText.c_str());
-                wxMessageBox(msg, _T("HTTP error"), wxICON_EXCLAMATION | wxOK);
+				msg  = msg.Format(_T("ChangedSince_Queued():  HTTP status: %d   No JSON data was returned. (This is an advisory message shown only in the Debug build.)"),
+                                  m_httpStatusCode);
+                wxMessageBox(msg, _T("No data returned"), wxICON_EXCLAMATION | wxOK);
 #endif
 				str_CURLbuffer.clear();
 				str_CURLheaders.clear();
-				return CURLE_HTTP_RETURNED_ERROR; // = 22
+				return (int)CURLE_OK;
             }
 		}
 	} // end of TRUE block for test: if (!str_CURLbuffer.empty())
 
     str_CURLbuffer.clear(); // always clear it before returning
     str_CURLheaders.clear(); // BEW added 9Feb13
-	return 0;
+	return (int)CURLE_OK;
 }
 
 

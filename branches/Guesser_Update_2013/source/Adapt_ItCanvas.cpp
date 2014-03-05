@@ -1527,7 +1527,7 @@ x:					CCell* pCell = 0;
                     // trying to debug the failure of an edited form to "stick" when the
                     // phrase box moves on. RossJones, Bill, JerryPfaff, and me (once) have
                     // observed it, and also nation translators on Linux netbooks
-					pApp->limiter = 0;
+					//pApp->limiter = 0; // bug fixed 24Sept13 BEW
 
 					// set up a temporary pile pointer
 					CPile* pile = NULL;
@@ -1766,6 +1766,10 @@ x:					CCell* pCell = 0;
 
 						// mark the current section
 						pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
+#ifdef _DEBUG
+//			wxString amsg = _T("Line 1768, OnLButtonDown(), in Adapt_ItCanvas.cpp");
+//			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
+#endif
 						if (pApp->m_nActiveSequNum >= 0 &&
 												pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
 						{
@@ -1909,11 +1913,11 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 		if (pApp->m_pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber <=
 											pCell->GetPile()->GetSrcPhrase()->m_nSequNumber)
 		{
-				pApp->m_curDirection = right;
+				pApp->m_curDirection = toright; // BEW 2Oct13 changed from right to toright due to ambiguity
 		}
 		else
 		{
-				pApp->m_curDirection = left;
+				pApp->m_curDirection = toleft; // BEW 3Oct13 changed to toleft from left due to ambiguity
 		}
 
         // finish drag select, but only if not halted at a boundary (note: if selecting
@@ -1944,7 +1948,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 				pCell->SetSelected(TRUE);
 
 				// preserve record of the selection
-				if (pApp->m_curDirection == right)
+				if (pApp->m_curDirection == toright) // BEW 2Oct13 changed from right to toright due to ambiguity
 				{
 					pApp->m_selection.Append(pCell);
 				}

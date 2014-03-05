@@ -62,6 +62,7 @@ public:
 	wxButton*		m_pBtnUpdate;
 	wxButton*		m_pBtnAdd;
 	wxButton*		m_pBtnRemove;
+	wxButton*		m_pBtnRemoveSomeTgtEntries;
 	wxButton*		m_pBtnMoveUp;
 	wxButton*		m_pBtnMoveDown;
 	wxButton*		m_pBtnAddNoAdaptation;
@@ -117,6 +118,7 @@ protected:
 	void OnButtonUpdate(wxCommandEvent& WXUNUSED(event));
 	void OnButtonAdd(wxCommandEvent& event);
 	void OnButtonRemove(wxCommandEvent& WXUNUSED(event));
+	void OnButtonRemoveSomeTgtEntries(wxCommandEvent& WXUNUSED(event));
 	void OnButtonMoveUp(wxCommandEvent& WXUNUSED(event));
 	void OnButtonMoveDown(wxCommandEvent& event);
 	void OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event));

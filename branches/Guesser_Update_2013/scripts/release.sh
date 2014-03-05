@@ -8,7 +8,7 @@
 # Date: 2012-10-03
 
 PBUILDFOLDER=${PBUILDFOLDER:-~/pbuilder}
-OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring sid"}
+OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy sid"}
 DEVTOOLS="ubuntu-dev-tools debhelper libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
 
@@ -28,7 +28,7 @@ DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("raring" "quantal" "precise" "oneiric" "natty" "maverick" "lucid"
+UBUNTU_SUITES=("saucy" "raring" "quantal" "precise" "oneiric" "natty" "maverick" "lucid"
      "karmic" "jaunty" "intrepid" "hardy" "gutsy")
 
 # Mirrors to use. Update these to your preferred mirror.

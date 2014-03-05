@@ -63,7 +63,8 @@ enum WhatYouAre {
 	merger,
 	conjoined,
 	manual_placeholder,
-	placeholder_in_retrans
+	placeholder_in_retrans,
+	freetrans_widener  // BEW added 2Dec13
 };
 
 struct Subspan {
@@ -346,6 +347,10 @@ void	TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool
 void	TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bAICustomMkrsAlso, 
 						 bool bFlagsToo, bool bClearAfterwards);
 bool	TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
+				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+// BEW 2Dec13 added next one for support of free translation wideners (placeholders with
+// ..... as their m_key and m_srcPhrase members, never contain anything in m_adaption or m_targetStr
+bool	TransferToFreeTransWidener(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
 				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
 bool	TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
 		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);

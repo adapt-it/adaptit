@@ -92,6 +92,7 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	ExportOptionsDlg.$(OBJEXT) ExportSaveAsDlg.$(OBJEXT) \
 	FilenameConflictDlg.$(OBJEXT) FindReplace.$(OBJEXT) \
 	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
+	FreeTransAdjustDlg.$(OBJEXT) FreeTransSplitterDlg.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
 	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
 	jsonreader.$(OBJEXT) jsonval.$(OBJEXT) jsonwriter.$(OBJEXT) \
@@ -99,12 +100,13 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	KBExportImportOptionsDlg.$(OBJEXT) KBEditor.$(OBJEXT) \
 	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KbServer.$(OBJEXT) \
 	KBSharing.$(OBJEXT) KBSharingMgrTabbedDlg.$(OBJEXT) \
-	KBSharingSetupDlg.$(OBJEXT) LanguageCodesDlg.$(OBJEXT) \
-	LanguagesPage.$(OBJEXT) Layout.$(OBJEXT) \
-	ListDocumentsInOtherFolderDialog.$(OBJEXT) MainFrm.$(OBJEXT) \
-	md5.$(OBJEXT) md5_SB.$(OBJEXT) MergeUpdatedSrc.$(OBJEXT) \
-	MoveDialog.$(OBJEXT) Mover.$(OBJEXT) MyListBox.$(OBJEXT) \
-	NavProtectNewDoc.$(OBJEXT) NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
+	KBSharingStatelessSetupDlg.$(OBJEXT) KbSharingSetup.$(OBJEXT) \
+	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
+	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
+	MainFrm.$(OBJEXT) md5.$(OBJEXT) md5_SB.$(OBJEXT) \
+	MergeUpdatedSrc.$(OBJEXT) MoveDialog.$(OBJEXT) Mover.$(OBJEXT) \
+	MyListBox.$(OBJEXT) NavProtectNewDoc.$(OBJEXT) \
+	NoteDlg.$(OBJEXT) Notes.$(OBJEXT) \
 	OpenExistingProjectDlg.$(OBJEXT) OutputFilenameDlg.$(OBJEXT) \
 	Pathway.$(OBJEXT) PeekAtFile.$(OBJEXT) PhraseBox.$(OBJEXT) \
 	Pile.$(OBJEXT) Placeholder.$(OBJEXT) \
@@ -112,16 +114,18 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	PlaceRetranslationInternalMarkers.$(OBJEXT) \
 	PrintOptionsDlg.$(OBJEXT) ProjectPage.$(OBJEXT) \
 	PunctCorrespPage.$(OBJEXT) ReadOnlyProtection.$(OBJEXT) \
-	RefString.$(OBJEXT) RefStringMetadata.$(OBJEXT) \
-	Retranslation.$(OBJEXT) RetranslationDlg.$(OBJEXT) \
-	scrollingdialog.$(OBJEXT) scrollingwizard.$(OBJEXT) \
-	SetDelay.$(OBJEXT) SetEncodingDlg.$(OBJEXT) \
-	SetupEditorCollaboration.$(OBJEXT) \
+	RefString.$(OBJEXT) RemoveSomeTgtEntries.$(OBJEXT) \
+	RefStringMetadata.$(OBJEXT) Retranslation.$(OBJEXT) \
+	RetranslationDlg.$(OBJEXT) scrollingdialog.$(OBJEXT) \
+	scrollingwizard.$(OBJEXT) SetDelay.$(OBJEXT) \
+	SetEncodingDlg.$(OBJEXT) SetupEditorCollaboration.$(OBJEXT) \
 	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) StatusBar.$(OBJEXT) \
 	Strip.$(OBJEXT) TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
+	Thread_BulkPseudoDelete.$(OBJEXT) \
 	Thread_ChangedSince.$(OBJEXT) Thread_CreateEntry.$(OBJEXT) \
+	Thread_DoEntireKbDeletion.$(OBJEXT) \
 	Thread_KbEditorUpdateButton.$(OBJEXT) \
 	Thread_PseudoDelete.$(OBJEXT) Thread_PseudoUndelete.$(OBJEXT) \
 	Thread_UploadMulti.$(OBJEXT) Thread_UploadToKBServer.$(OBJEXT) \
@@ -455,7 +459,8 @@ adaptit_SOURCES = \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
-	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
+	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/FreeTransAdjustDlg.cpp ../../source/FreeTransSplitterDlg.cpp \
+	../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
 	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h \
 	../../source/jsonval.cpp ../../source/jsonval.h \
@@ -463,7 +468,7 @@ adaptit_SOURCES = \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/KbServer.cpp ../../source/KBSharing.cpp ../../source/KBSharingMgrTabbedDlg.cpp \
-	../../source/KBSharingSetupDlg.cpp \
+	../../source/KBSharingStatelessSetupDlg.cpp ../../source/KbSharingSetup.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
 	../../source/md5_SB.cpp ../../source/MergeUpdatedSrc.cpp \
@@ -476,6 +481,7 @@ adaptit_SOURCES = \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
 	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp \
+	../../source/RemoveSomeTgtEntries.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
@@ -483,8 +489,9 @@ adaptit_SOURCES = \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/tellenc.cpp \
+	../../source/tellenc.cpp ../../source/Thread_BulkPseudoDelete.cpp \
 	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
+	../../source/Thread_DoEntireKbDeletion.cpp \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
 	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
 	../../source/Thread_UploadToKBServer.cpp ../../source/Timer_KbServerChangedSince.cpp \
@@ -638,6 +645,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FindReplace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FontPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTrans.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTransAdjustDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTransSplitterDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GetSourceTextFromEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GoToDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GuesserSettingsDlg.Po@am__quote@
@@ -650,8 +659,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBSharing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBSharingMgrTabbedDlg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBSharingSetupDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBSharingStatelessSetupDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KbServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KbSharingSetup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguageCodesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguagesPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Layout.Po@am__quote@
@@ -680,6 +690,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ReadOnlyProtection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RefString.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RefStringMetadata.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RemoveSomeTgtEntries.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Retranslation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RetranslationDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetDelay.Po@am__quote@
@@ -693,8 +704,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatusBar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_BulkPseudoDelete.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_ChangedSince.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_CreateEntry.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_DoEntireKbDeletion.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_KbEditorUpdateButton.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_PseudoDelete.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_PseudoUndelete.Po@am__quote@
@@ -1480,6 +1493,34 @@ FreeTrans.obj: ../../source/FreeTrans.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTrans.obj `if test -f '../../source/FreeTrans.cpp'; then $(CYGPATH_W) '../../source/FreeTrans.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTrans.cpp'; fi`
 
+FreeTransAdjustDlg.o: ../../source/FreeTransAdjustDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTransAdjustDlg.o -MD -MP -MF $(DEPDIR)/FreeTransAdjustDlg.Tpo -c -o FreeTransAdjustDlg.o `test -f '../../source/FreeTransAdjustDlg.cpp' || echo '$(srcdir)/'`../../source/FreeTransAdjustDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTransAdjustDlg.Tpo $(DEPDIR)/FreeTransAdjustDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTransAdjustDlg.cpp' object='FreeTransAdjustDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTransAdjustDlg.o `test -f '../../source/FreeTransAdjustDlg.cpp' || echo '$(srcdir)/'`../../source/FreeTransAdjustDlg.cpp
+
+FreeTransAdjustDlg.obj: ../../source/FreeTransAdjustDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTransAdjustDlg.obj -MD -MP -MF $(DEPDIR)/FreeTransAdjustDlg.Tpo -c -o FreeTransAdjustDlg.obj `if test -f '../../source/FreeTransAdjustDlg.cpp'; then $(CYGPATH_W) '../../source/FreeTransAdjustDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTransAdjustDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTransAdjustDlg.Tpo $(DEPDIR)/FreeTransAdjustDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTransAdjustDlg.cpp' object='FreeTransAdjustDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTransAdjustDlg.obj `if test -f '../../source/FreeTransAdjustDlg.cpp'; then $(CYGPATH_W) '../../source/FreeTransAdjustDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTransAdjustDlg.cpp'; fi`
+
+FreeTransSplitterDlg.o: ../../source/FreeTransSplitterDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTransSplitterDlg.o -MD -MP -MF $(DEPDIR)/FreeTransSplitterDlg.Tpo -c -o FreeTransSplitterDlg.o `test -f '../../source/FreeTransSplitterDlg.cpp' || echo '$(srcdir)/'`../../source/FreeTransSplitterDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTransSplitterDlg.Tpo $(DEPDIR)/FreeTransSplitterDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTransSplitterDlg.cpp' object='FreeTransSplitterDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTransSplitterDlg.o `test -f '../../source/FreeTransSplitterDlg.cpp' || echo '$(srcdir)/'`../../source/FreeTransSplitterDlg.cpp
+
+FreeTransSplitterDlg.obj: ../../source/FreeTransSplitterDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FreeTransSplitterDlg.obj -MD -MP -MF $(DEPDIR)/FreeTransSplitterDlg.Tpo -c -o FreeTransSplitterDlg.obj `if test -f '../../source/FreeTransSplitterDlg.cpp'; then $(CYGPATH_W) '../../source/FreeTransSplitterDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTransSplitterDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FreeTransSplitterDlg.Tpo $(DEPDIR)/FreeTransSplitterDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/FreeTransSplitterDlg.cpp' object='FreeTransSplitterDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FreeTransSplitterDlg.obj `if test -f '../../source/FreeTransSplitterDlg.cpp'; then $(CYGPATH_W) '../../source/FreeTransSplitterDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/FreeTransSplitterDlg.cpp'; fi`
+
 GetSourceTextFromEditor.o: ../../source/GetSourceTextFromEditor.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GetSourceTextFromEditor.o -MD -MP -MF $(DEPDIR)/GetSourceTextFromEditor.Tpo -c -o GetSourceTextFromEditor.o `test -f '../../source/GetSourceTextFromEditor.cpp' || echo '$(srcdir)/'`../../source/GetSourceTextFromEditor.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GetSourceTextFromEditor.Tpo $(DEPDIR)/GetSourceTextFromEditor.Po
@@ -1704,19 +1745,33 @@ KBSharingMgrTabbedDlg.obj: ../../source/KBSharingMgrTabbedDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharingMgrTabbedDlg.obj `if test -f '../../source/KBSharingMgrTabbedDlg.cpp'; then $(CYGPATH_W) '../../source/KBSharingMgrTabbedDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharingMgrTabbedDlg.cpp'; fi`
 
-KBSharingSetupDlg.o: ../../source/KBSharingSetupDlg.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharingSetupDlg.o -MD -MP -MF $(DEPDIR)/KBSharingSetupDlg.Tpo -c -o KBSharingSetupDlg.o `test -f '../../source/KBSharingSetupDlg.cpp' || echo '$(srcdir)/'`../../source/KBSharingSetupDlg.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharingSetupDlg.Tpo $(DEPDIR)/KBSharingSetupDlg.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharingSetupDlg.cpp' object='KBSharingSetupDlg.o' libtool=no @AMDEPBACKSLASH@
+KBSharingStatelessSetupDlg.o: ../../source/KBSharingStatelessSetupDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharingStatelessSetupDlg.o -MD -MP -MF $(DEPDIR)/KBSharingStatelessSetupDlg.Tpo -c -o KBSharingStatelessSetupDlg.o `test -f '../../source/KBSharingStatelessSetupDlg.cpp' || echo '$(srcdir)/'`../../source/KBSharingStatelessSetupDlg.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharingStatelessSetupDlg.Tpo $(DEPDIR)/KBSharingStatelessSetupDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharingStatelessSetupDlg.cpp' object='KBSharingStatelessSetupDlg.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharingSetupDlg.o `test -f '../../source/KBSharingSetupDlg.cpp' || echo '$(srcdir)/'`../../source/KBSharingSetupDlg.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharingStatelessSetupDlg.o `test -f '../../source/KBSharingStatelessSetupDlg.cpp' || echo '$(srcdir)/'`../../source/KBSharingStatelessSetupDlg.cpp
 
-KBSharingSetupDlg.obj: ../../source/KBSharingSetupDlg.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharingSetupDlg.obj -MD -MP -MF $(DEPDIR)/KBSharingSetupDlg.Tpo -c -o KBSharingSetupDlg.obj `if test -f '../../source/KBSharingSetupDlg.cpp'; then $(CYGPATH_W) '../../source/KBSharingSetupDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharingSetupDlg.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharingSetupDlg.Tpo $(DEPDIR)/KBSharingSetupDlg.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharingSetupDlg.cpp' object='KBSharingSetupDlg.obj' libtool=no @AMDEPBACKSLASH@
+KBSharingStatelessSetupDlg.obj: ../../source/KBSharingStatelessSetupDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KBSharingStatelessSetupDlg.obj -MD -MP -MF $(DEPDIR)/KBSharingStatelessSetupDlg.Tpo -c -o KBSharingStatelessSetupDlg.obj `if test -f '../../source/KBSharingStatelessSetupDlg.cpp'; then $(CYGPATH_W) '../../source/KBSharingStatelessSetupDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharingStatelessSetupDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KBSharingStatelessSetupDlg.Tpo $(DEPDIR)/KBSharingStatelessSetupDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KBSharingStatelessSetupDlg.cpp' object='KBSharingStatelessSetupDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharingSetupDlg.obj `if test -f '../../source/KBSharingSetupDlg.cpp'; then $(CYGPATH_W) '../../source/KBSharingSetupDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharingSetupDlg.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KBSharingStatelessSetupDlg.obj `if test -f '../../source/KBSharingStatelessSetupDlg.cpp'; then $(CYGPATH_W) '../../source/KBSharingStatelessSetupDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KBSharingStatelessSetupDlg.cpp'; fi`
+
+KbSharingSetup.o: ../../source/KbSharingSetup.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KbSharingSetup.o -MD -MP -MF $(DEPDIR)/KbSharingSetup.Tpo -c -o KbSharingSetup.o `test -f '../../source/KbSharingSetup.cpp' || echo '$(srcdir)/'`../../source/KbSharingSetup.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KbSharingSetup.Tpo $(DEPDIR)/KbSharingSetup.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KbSharingSetup.cpp' object='KbSharingSetup.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KbSharingSetup.o `test -f '../../source/KbSharingSetup.cpp' || echo '$(srcdir)/'`../../source/KbSharingSetup.cpp
+
+KbSharingSetup.obj: ../../source/KbSharingSetup.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT KbSharingSetup.obj -MD -MP -MF $(DEPDIR)/KbSharingSetup.Tpo -c -o KbSharingSetup.obj `if test -f '../../source/KbSharingSetup.cpp'; then $(CYGPATH_W) '../../source/KbSharingSetup.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KbSharingSetup.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/KbSharingSetup.Tpo $(DEPDIR)/KbSharingSetup.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/KbSharingSetup.cpp' object='KbSharingSetup.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o KbSharingSetup.obj `if test -f '../../source/KbSharingSetup.cpp'; then $(CYGPATH_W) '../../source/KbSharingSetup.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/KbSharingSetup.cpp'; fi`
 
 LanguageCodesDlg.o: ../../source/LanguageCodesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LanguageCodesDlg.o -MD -MP -MF $(DEPDIR)/LanguageCodesDlg.Tpo -c -o LanguageCodesDlg.o `test -f '../../source/LanguageCodesDlg.cpp' || echo '$(srcdir)/'`../../source/LanguageCodesDlg.cpp
@@ -2124,6 +2179,20 @@ RefString.obj: ../../source/RefString.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o RefString.obj `if test -f '../../source/RefString.cpp'; then $(CYGPATH_W) '../../source/RefString.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/RefString.cpp'; fi`
 
+RemoveSomeTgtEntries.o: ../../source/RemoveSomeTgtEntries.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT RemoveSomeTgtEntries.o -MD -MP -MF $(DEPDIR)/RemoveSomeTgtEntries.Tpo -c -o RemoveSomeTgtEntries.o `test -f '../../source/RemoveSomeTgtEntries.cpp' || echo '$(srcdir)/'`../../source/RemoveSomeTgtEntries.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/RemoveSomeTgtEntries.Tpo $(DEPDIR)/RemoveSomeTgtEntries.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/RemoveSomeTgtEntries.cpp' object='RemoveSomeTgtEntries.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o RemoveSomeTgtEntries.o `test -f '../../source/RemoveSomeTgtEntries.cpp' || echo '$(srcdir)/'`../../source/RemoveSomeTgtEntries.cpp
+
+RemoveSomeTgtEntries.obj: ../../source/RemoveSomeTgtEntries.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT RemoveSomeTgtEntries.obj -MD -MP -MF $(DEPDIR)/RemoveSomeTgtEntries.Tpo -c -o RemoveSomeTgtEntries.obj `if test -f '../../source/RemoveSomeTgtEntries.cpp'; then $(CYGPATH_W) '../../source/RemoveSomeTgtEntries.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/RemoveSomeTgtEntries.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/RemoveSomeTgtEntries.Tpo $(DEPDIR)/RemoveSomeTgtEntries.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/RemoveSomeTgtEntries.cpp' object='RemoveSomeTgtEntries.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o RemoveSomeTgtEntries.obj `if test -f '../../source/RemoveSomeTgtEntries.cpp'; then $(CYGPATH_W) '../../source/RemoveSomeTgtEntries.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/RemoveSomeTgtEntries.cpp'; fi`
+
 RefStringMetadata.o: ../../source/RefStringMetadata.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT RefStringMetadata.o -MD -MP -MF $(DEPDIR)/RefStringMetadata.Tpo -c -o RefStringMetadata.o `test -f '../../source/RefStringMetadata.cpp' || echo '$(srcdir)/'`../../source/RefStringMetadata.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/RefStringMetadata.Tpo $(DEPDIR)/RefStringMetadata.Po
@@ -2362,6 +2431,20 @@ tellenc.obj: ../../source/tellenc.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tellenc.obj `if test -f '../../source/tellenc.cpp'; then $(CYGPATH_W) '../../source/tellenc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/tellenc.cpp'; fi`
 
+Thread_BulkPseudoDelete.o: ../../source/Thread_BulkPseudoDelete.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_BulkPseudoDelete.o -MD -MP -MF $(DEPDIR)/Thread_BulkPseudoDelete.Tpo -c -o Thread_BulkPseudoDelete.o `test -f '../../source/Thread_BulkPseudoDelete.cpp' || echo '$(srcdir)/'`../../source/Thread_BulkPseudoDelete.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_BulkPseudoDelete.Tpo $(DEPDIR)/Thread_BulkPseudoDelete.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_BulkPseudoDelete.cpp' object='Thread_BulkPseudoDelete.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_BulkPseudoDelete.o `test -f '../../source/Thread_BulkPseudoDelete.cpp' || echo '$(srcdir)/'`../../source/Thread_BulkPseudoDelete.cpp
+
+Thread_BulkPseudoDelete.obj: ../../source/Thread_BulkPseudoDelete.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_BulkPseudoDelete.obj -MD -MP -MF $(DEPDIR)/Thread_BulkPseudoDelete.Tpo -c -o Thread_BulkPseudoDelete.obj `if test -f '../../source/Thread_BulkPseudoDelete.cpp'; then $(CYGPATH_W) '../../source/Thread_BulkPseudoDelete.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_BulkPseudoDelete.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_BulkPseudoDelete.Tpo $(DEPDIR)/Thread_BulkPseudoDelete.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_BulkPseudoDelete.cpp' object='Thread_BulkPseudoDelete.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_BulkPseudoDelete.obj `if test -f '../../source/Thread_BulkPseudoDelete.cpp'; then $(CYGPATH_W) '../../source/Thread_BulkPseudoDelete.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_BulkPseudoDelete.cpp'; fi`
+
 Thread_ChangedSince.o: ../../source/Thread_ChangedSince.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_ChangedSince.o -MD -MP -MF $(DEPDIR)/Thread_ChangedSince.Tpo -c -o Thread_ChangedSince.o `test -f '../../source/Thread_ChangedSince.cpp' || echo '$(srcdir)/'`../../source/Thread_ChangedSince.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_ChangedSince.Tpo $(DEPDIR)/Thread_ChangedSince.Po
@@ -2389,6 +2472,20 @@ Thread_CreateEntry.obj: ../../source/Thread_CreateEntry.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_CreateEntry.cpp' object='Thread_CreateEntry.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_CreateEntry.obj `if test -f '../../source/Thread_CreateEntry.cpp'; then $(CYGPATH_W) '../../source/Thread_CreateEntry.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_CreateEntry.cpp'; fi`
+
+Thread_DoEntireKbDeletion.o: ../../source/Thread_DoEntireKbDeletion.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_DoEntireKbDeletion.o -MD -MP -MF $(DEPDIR)/Thread_DoEntireKbDeletion.Tpo -c -o Thread_DoEntireKbDeletion.o `test -f '../../source/Thread_DoEntireKbDeletion.cpp' || echo '$(srcdir)/'`../../source/Thread_DoEntireKbDeletion.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_DoEntireKbDeletion.Tpo $(DEPDIR)/Thread_DoEntireKbDeletion.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_DoEntireKbDeletion.cpp' object='Thread_DoEntireKbDeletion.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_DoEntireKbDeletion.o `test -f '../../source/Thread_DoEntireKbDeletion.cpp' || echo '$(srcdir)/'`../../source/Thread_DoEntireKbDeletion.cpp
+
+Thread_DoEntireKbDeletion.obj: ../../source/Thread_DoEntireKbDeletion.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_DoEntireKbDeletion.obj -MD -MP -MF $(DEPDIR)/Thread_DoEntireKbDeletion.Tpo -c -o Thread_DoEntireKbDeletion.obj `if test -f '../../source/Thread_DoEntireKbDeletion.cpp'; then $(CYGPATH_W) '../../source/Thread_DoEntireKbDeletion.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_DoEntireKbDeletion.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Thread_DoEntireKbDeletion.Tpo $(DEPDIR)/Thread_DoEntireKbDeletion.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_DoEntireKbDeletion.cpp' object='Thread_DoEntireKbDeletion.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_DoEntireKbDeletion.obj `if test -f '../../source/Thread_DoEntireKbDeletion.cpp'; then $(CYGPATH_W) '../../source/Thread_DoEntireKbDeletion.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_DoEntireKbDeletion.cpp'; fi`
 
 Thread_KbEditorUpdateButton.o: ../../source/Thread_KbEditorUpdateButton.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Thread_KbEditorUpdateButton.o -MD -MP -MF $(DEPDIR)/Thread_KbEditorUpdateButton.Tpo -c -o Thread_KbEditorUpdateButton.o `test -f '../../source/Thread_KbEditorUpdateButton.cpp' || echo '$(srcdir)/'`../../source/Thread_KbEditorUpdateButton.cpp

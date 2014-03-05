@@ -348,6 +348,8 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	{
 		pApp->GetView()->CloseProject();
 	}
+    
+	pApp->m_trialVersionNum = -1;		// restore normal default.  Negative means no trial going on.
 
 	// first, use the current navigation text font for the list box
 	#ifdef _RTL_FLAGS
@@ -644,7 +646,7 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			wxInitDialogEvent idevent;
 			pLanguagesPage->InitDialog(idevent);
 		}
-		else
+		else // existing project selected
 		{
 			// Note: The name of the project entered is stored in the local m_projectName
 			// variable
@@ -707,6 +709,20 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// When the collaboration-related settings were stored app-wide in the basic
 			// configuration file, it would have been read in its entirety before invoking
 			// the GetSourceTextFromEditorDlg dialog.
+			// whm 26Oct13 Note: It is in the GetProjectConfiguration()
+			// function that the user has the option of doing a SHFIT-DOWN
+			// opening of the project. If a SHIFT-DOWN startup is done, many
+			// of the project's configuration settings are reset to their
+			// defaults, essentially by not reading the project's
+			// AI-ProjectConfiguration.aic file. Not reading that file has the
+			// effect of leaving many of the project settings at the defaults 
+			// that are set at program startup in the OnInit() function. 
+			// However, some other settings are restored to particular defaults 
+			// by calling the App's SetProjectDefaults() function. That function 
+			// calls SetDefaultCaseEquivalences() and also restores the last valid 
+			// project collaboration settings for this selected project from 
+			// any that were stored in the Adapt_It_WX.ini/.Adapt_It_WX file for
+			// this project.
 			pApp->GetProjectConfiguration(pApp->m_curProjectPath);
 
 			// whm modified 18Feb12. Now that the project config file has been read we
@@ -1292,7 +1308,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
             // SetupForKBServer() calls to get two instances running, and basic
             // credentials, and the lastsync datetime into the appropriate holding
             // variables defined in the CAdapt_ItApp class
-			if (pApp->m_bIsKBServerProject)
+			if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 			{
 				// Ask for the password --- we no longer use a "credentials.txt"
 				// temporary file. Returns an empty string if nothing is typed
@@ -1323,8 +1339,9 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 						pApp->ReleaseKBServer(1); // the adapting one
 						pApp->ReleaseKBServer(2); // the glossing one
 						pApp->m_bIsKBServerProject = FALSE;
+						pApp->m_bIsGlossingKBServerProject = FALSE;
 						wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
+"This project previously shared one or both of its knowledge bases.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
 						_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
 					}
 					else
@@ -1354,6 +1371,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 							pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
 							pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
 							pApp->m_bIsKBServerProject = FALSE;
+							pApp->m_bIsGlossingKBServerProject = FALSE;
 							wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.");
 							msg = msg.Format(msg, pApp->m_strUserID.c_str());
 							wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
@@ -1361,30 +1379,78 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 						else
 						{
 							// The username is valid for this kbserver, so check language codes
-
-							// we want valid codes four source, target and glosses languages, so
-							// first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-							bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-							if (!bDidItOK && bUserCancelled)
+							bool bDidFirstOK = TRUE;
+							bool bDidSecondOK = TRUE;
+							bool bFirstBlockFailure = FALSE;
+							if (pApp->m_bIsKBServerProject)
 							{
-								// We must assume the codes are wrong or incomplete, or that the
-								// user has changed his mind about KB Sharing being on - so turn
-								// it off
-								pApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-								pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-								pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
-								pApp->m_bIsKBServerProject = FALSE;
+								bDidFirstOK = CheckLanguageCodes(TRUE, TRUE, FALSE, FALSE, bUserCancelled);
+								if (!bDidFirstOK || bUserCancelled)
+								{
+									bFirstBlockFailure = TRUE;
+
+									// We must assume the src/tgt codes are wrong or incomplete, or that the
+									// user has changed his mind about KB Sharing being on - so turn it off
+									pApp->LogUserAction(_T("Wrong src/tgt codes, or user cancelled in CheckLanguageCodes() in ProjectPage::OnWizardPageChanging()"));
+									wxString title = _("Adaptations language code check failed");
+									wxString msg = _("Either the source or target language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
+									wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+									pApp->ReleaseKBServer(1); // the adapting one
+									pApp->ReleaseKBServer(2); // the glossing one
+									pApp->m_bIsKBServerProject = FALSE;
+									pApp->m_bIsGlossingKBServerProject = FALSE;
+								}
+							}
+							// Now, check for the glossing kb code, if that kb is to be shared
+							// and we haven't already clobbered the setup in the above block
+							bUserCancelled = FALSE; // re-initialize
+							if (pApp->m_bIsGlossingKBServerProject && !bFirstBlockFailure)
+							{
+								bDidSecondOK = CheckLanguageCodes(TRUE, FALSE, TRUE, FALSE, bUserCancelled);
+								if (!bDidSecondOK || bUserCancelled)
+								{
+									// We must assume the src/gloss codes are wrong or incomplete, or that the
+									// user has changed his mind about KB Sharing being on - so turn it off
+									pApp->LogUserAction(_T("Wrong src/glossing codes, or user cancelled in CheckLanguageCodes() in KbSharingSetup::OnOK()"));
+									wxString title = _("Glosses language code check failed");
+									wxString msg = _("Either the source or glossing language code is wrong, incomplete or absent; or you chose to Cancel.\nSharing has been turned off. First setup correct language codes, then try again.");
+									wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+									pApp->ReleaseKBServer(1); // the adapting one
+									pApp->ReleaseKBServer(2); // the glossing one
+									pApp->m_bIsKBServerProject = FALSE;
+									pApp->m_bIsGlossingKBServerProject = FALSE;
+								}
 							}
 							else
 							{
 								// All's well, go ahead
-								pApp->LogUserAction(_T("SetupForKBServer() entered within OnWizardPageChanging() in ProjectPage.cpp"));
-								// instantiate an adapting and a glossing KbServer class instance
-								if (!pApp->SetupForKBServer(1) || !pApp->SetupForKBServer(2)) // also enables each by default
+								pApp->LogUserAction(_T("SetupForKBServer(1 or 2 or both) called OnWizardPageChanging() in ProjectPage.cpp"));
+								// instantiate an adapting and/or a glossing KbServer class instance
+								if (pApp->m_bIsKBServerProject)
 								{
-									// an error message will have been shown, so just log the failure
-									pApp->LogUserAction(_T("SetupForKBServer() failed in OnWizardPageChanging() in ProjectPage.cpp)"));
-									pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+									if (!pApp->SetupForKBServer(1)) // also enables it by default
+									{
+										// an error message will have been shown, so just log the failure
+										pApp->LogUserAction(_T("SetupForKBServer(1) failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+										pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+										// Tell the user
+										wxString title = _("Setup of adaptations sharing failed");
+										wxString msg = _("The attempt to share the adaptations knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+										wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+									}
+								}
+								if (pApp->m_bIsGlossingKBServerProject)
+								{
+									if (!pApp->SetupForKBServer(2)) // also enables it by default
+									{
+										// an error message will have been shown, so just log the failure
+										pApp->LogUserAction(_T("SetupForKBServer(2) failed in OnWizardPageChanging() in ProjectPage.cpp)"));
+										pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
+										// Tell the user
+										wxString title = _("Setup of glosses sharing failed");
+										wxString msg = _("The attempt to share the glossing knowledge base failed.\nYou can continue working, but sharing of this knowledge base will not happen.");
+										wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+									}
 								}
 							}
 						} // end of else block for test: if (!bUserIsValid)
@@ -1394,6 +1460,7 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				{
 					wxString msg = _("No password was typed. Knowledge base sharing setup is cancelled.\nUse the command on the Advanced menu to setup manually; but you must first find out your correct password. Ask your kbserver administrator.");
 					pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
+					pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
 					wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
 					pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed"));
 				}

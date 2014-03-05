@@ -57,23 +57,42 @@
 					<Add library="/wx28/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
-			<Target title="ReleaseWX2.8">
-				<Option output="bin/ReleaseWX2.8/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/ReleaseWX2.8/" />
+			<Target title="DebugWX2.9">
+				<Option output="bin/DebugWX2.9/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX2.9/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="1" />
-				<Option projectIncludeDirsRelation="1" />
 				<Compiler>
-					<Add option="-O2" />
-					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
-					<Add directory="/wx28/include" />
+					<Add option="-g" />
+					<Add option="`/wx29/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_KBSERVER" />
+					<Add directory="/wx29/include" />
 				</Compiler>
 				<Linker>
-					<Add option="-s" />
-					<Add option="`/wx28/buildgtku/wx-config  --version=2.8 --unicode=yes --debug=no --libs`" />
+					<Add option="`/wx29/buildgtkud/wx-config  --version=2.9 --unicode=yes --debug=yes --libs`" />
 					<Add option="-lcurl -luuid" />
-					<Add library="/wx28/buildgtku/lib/*.*" />
+					<Add library="/wx29/buildgtkud/lib/*.*" />
+				</Linker>
+			</Target>
+			<Target title="DebugWX3.0">
+				<Option output="bin/DebugWX3.0/adaptit" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/DebugWX3.0/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="`/wx30/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --cppflags`" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_KBSERVER" />
+					<Add directory="/wx30/include" />
+				</Compiler>
+				<Linker>
+					<Add option="`/wx30/buildgtkud/wx-config  --version=3.0 --unicode=yes --debug=yes --libs`" />
+					<Add option="-lcurl -luuid" />
+					<Add library="/wx30/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
 			<Target title="DebugWX-svn">
@@ -95,27 +114,10 @@
 					<Add library="/wx-svn/buildgtkud/lib/*.*" />
 				</Linker>
 			</Target>
-			<Target title="ReleaseWX-svn">
-				<Option output="bin/ReleaseWX-svn/adaptit" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/ReleaseWX-svn/" />
-				<Option type="0" />
-				<Option compiler="gcc" />
-				<Option projectLinkerOptionsRelation="1" />
-				<Compiler>
-					<Add option="-O2" />
-					<Add option="`/wx-svn/buildgtku/wx-config  --version=2.9 --unicode=yes --debug=no --cppflags`" />
-					<Add directory="/wx-svn/include" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-					<Add option="`/wx-svn/buildgtku/wx-config  --version=2.9 --unicode=yes --debug=no --libs`" />
-					<Add option="-lcurl -luuid" />
-					<Add library="/wx-svn/buildgtku/lib/*.*" />
-				</Linker>
-			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-Wno-unused-local-typedefs" />
 		</Compiler>
 		<ExtraCommands>
 			<Add before="#define __WXGTK__" />
@@ -374,6 +376,10 @@
 		<Unit filename="../../source/FontPage.h" />
 		<Unit filename="../../source/FreeTrans.cpp" />
 		<Unit filename="../../source/FreeTrans.h" />
+		<Unit filename="../../source/FreeTransAdjustDlg.cpp" />
+		<Unit filename="../../source/FreeTransAdjustDlg.h" />
+		<Unit filename="../../source/FreeTransSplitterDlg.cpp" />
+		<Unit filename="../../source/FreeTransSplitterDlg.h" />
 		<Unit filename="../../source/GetSourceTextFromEditor.cpp" />
 		<Unit filename="../../source/GetSourceTextFromEditor.h" />
 		<Unit filename="../../source/GoToDlg.cpp" />
@@ -398,10 +404,12 @@
 		<Unit filename="../../source/KBSharing.h" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.cpp" />
 		<Unit filename="../../source/KBSharingMgrTabbedDlg.h" />
-		<Unit filename="../../source/KBSharingSetupDlg.cpp" />
-		<Unit filename="../../source/KBSharingSetupDlg.h" />
+		<Unit filename="../../source/KBSharingStatelessSetupDlg.cpp" />
+		<Unit filename="../../source/KBSharingStatelessSetupDlg.h" />
 		<Unit filename="../../source/KbServer.cpp" />
 		<Unit filename="../../source/KbServer.h" />
+		<Unit filename="../../source/KbSharingSetup.cpp" />
+		<Unit filename="../../source/KbSharingSetup.h" />
 		<Unit filename="../../source/LanguageCodesDlg.cpp" />
 		<Unit filename="../../source/LanguageCodesDlg.h" />
 		<Unit filename="../../source/LanguagesPage.cpp" />
@@ -461,6 +469,8 @@
 		<Unit filename="../../source/RefString.h" />
 		<Unit filename="../../source/RefStringMetadata.cpp" />
 		<Unit filename="../../source/RefStringMetadata.h" />
+		<Unit filename="../../source/RemoveSomeTgtEntries.cpp" />
+		<Unit filename="../../source/RemoveSomeTgtEntries.h" />
 		<Unit filename="../../source/Retranslation.cpp" />
 		<Unit filename="../../source/Retranslation.h" />
 		<Unit filename="../../source/RetranslationDlg.cpp" />
@@ -487,10 +497,14 @@
 		<Unit filename="../../source/Strip.h" />
 		<Unit filename="../../source/TargetUnit.cpp" />
 		<Unit filename="../../source/TargetUnit.h" />
+		<Unit filename="../../source/Thread_BulkPseudoDelete.cpp" />
+		<Unit filename="../../source/Thread_BulkPseudoDelete.h" />
 		<Unit filename="../../source/Thread_ChangedSince.cpp" />
 		<Unit filename="../../source/Thread_ChangedSince.h" />
 		<Unit filename="../../source/Thread_CreateEntry.cpp" />
 		<Unit filename="../../source/Thread_CreateEntry.h" />
+		<Unit filename="../../source/Thread_DoEntireKbDeletion.cpp" />
+		<Unit filename="../../source/Thread_DoEntireKbDeletion.h" />
 		<Unit filename="../../source/Thread_KbEditorUpdateButton.cpp" />
 		<Unit filename="../../source/Thread_KbEditorUpdateButton.h" />
 		<Unit filename="../../source/Thread_PseudoDelete.cpp" />

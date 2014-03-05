@@ -37,7 +37,7 @@ class CFreeTrans;
 class CNotes;
 struct AutoFixRecord;
 struct AutoFixRecordG;
-
+class CStatusBar;
 
 /// wxList declaration and partial implementation of the AFList class being
 /// a list of pointers to AutoFixRecord objects
@@ -230,6 +230,7 @@ protected:
 public:
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);
+	void			PutPhraseBoxAtDocEnd();
 	bool			ReOpenDocument(	CAdapt_ItApp* pApp,	
 									wxString savedWorkFolderPath,			// for setting current working directory
 									wxString curOutputPath,					// includes filename
@@ -440,7 +441,10 @@ protected:
     bool            Commit_valid();
     bool            Git_installed();
 
-
+	bool			ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsClosed, bool& bDocForcedToClose,
+						CStatusBar* pStatusBar, AFList* afListPtr, AFGList* afgListPtr); // return TRUE if
+						// there was no error, otherwise return FALSE - caller should then
+						// return as well
 #ifdef CONSCHK
 	void ListBothArrays(wxArrayString& arrSetNotInKB, wxArrayString& arrRemoveNotInKB);
 #endif
@@ -458,10 +462,12 @@ public:
 	void OnSaveAndCommit (wxCommandEvent& WXUNUSED(event));
     void OnUpdateSaveAndCommit (wxUpdateUIEvent& event);
 	int  DoSaveAndCommit (wxString blurb);
+    void EndTrial (bool restoreBackup);
     void DoChangeVersion ( int revNum );
     void DoShowPreviousVersions ( bool fromLogDialog, int startHere );
 	void OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event));
     void DoAcceptVersion (void);
+    bool IsLatestVersionChanged (void);
     bool RecoverLatestVersion (void);
     void OnShowFileLog (wxCommandEvent& WXUNUSED(event));
     void OnShowProjectLog (wxCommandEvent& WXUNUSED(event));
@@ -520,7 +526,7 @@ private:
 	void	RemoveAutoFixList(AFList& afList); // for adaptating data
 	void	RemoveAutoFixGList(AFGList& afgList); // for glossing data
 	bool	m_bHasPrecedingStraightQuote; // default FALSE, set TRUE when a straight quote
-	bool	m_bPreserveKBsWhenClosingDocument;		// default FALSE - set true when we're going to reopen the doc
+	bool	m_bReopeningAfterClosing;	  // default FALSE - set true when we're going to reopen the doc
 
 	DECLARE_EVENT_TABLE()
 };

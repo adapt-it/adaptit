@@ -2663,6 +2663,20 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 	}
 	if (m_pApp->m_selectionLine != -1)
 	{
+		// Having a current selection and then clicking app closure button generates a
+		// crash with control entering here to try update the menus, but the
+		// CSourcePhrases list and layout are clobbered -- so filter out this state here,
+		// otherwise piles and so forth are attempted to be accessed after their memory
+		// has been freed.
+		if (m_pApp->GetLayout()->GetPileList() == NULL ||
+			m_pApp->GetLayout()->GetPileList()->IsEmpty())
+		{
+			// There is no layout, so we are being called at app closure, so just disable
+			// the menu item & return
+			event.Enable(FALSE);
+			return;
+		}
+
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
 		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
@@ -2769,6 +2783,22 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_pApp->m_selectionLine != -1)
 	{
         // if there is a selection, then disable the button (doing the jump
@@ -2859,6 +2889,14 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 		return;
 	}
 	if (m_pApp->m_bFreeTranslationMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
 	{
 		event.Enable(FALSE);
 		return;
@@ -3109,7 +3147,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 					CCell* pCell = pNewPile->GetCell(0);
 					m_pApp->m_selection.Insert(pCell);
 					m_pApp->m_pAnchor = pCell;
-					m_pApp->m_curDirection = right;
+					m_pApp->m_curDirection = toright;// BEW 2Oct13 changed from right to toright due to ambiguity
 					m_pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected
@@ -3177,6 +3215,14 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 	{
 		// there already is a note dialog open, 
 		// so we can't move one until it is closed
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
 		event.Enable(FALSE);
 		return;
 	}
@@ -3400,7 +3446,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 					CCell* pCell = pNewPile->GetCell(0);
 					m_pApp->m_selection.Insert(pCell);
 					m_pApp->m_pAnchor = pCell;
-					m_pApp->m_curDirection = left;
+					m_pApp->m_curDirection = toleft;
 					m_pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected
@@ -3467,6 +3513,14 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, so we can't move one until it is closed
+		event.Enable(FALSE);
+		return;
+	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (m_pApp->GetLayout()->GetPileList() == NULL ||
+		m_pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
 		event.Enable(FALSE);
 		return;
 	}

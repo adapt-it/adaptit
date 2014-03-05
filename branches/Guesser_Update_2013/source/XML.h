@@ -61,6 +61,8 @@ const UInt32 footnoteEndMask			= 1048576; // position 21
 //const UInt32 paragraphMask			= 2097152; // position 22
 const UInt32 unusedMask					= 2097152; // position 22
 
+//bool	mb_loadingGuesserPrefixes;  // required to signal XML.cpp AtAffixEmptyElemClose()
+
 /*
 // whm note: I've moved the following constants to Adapt_It.h
 // for Adapt It document output as XML, and parsing of elements

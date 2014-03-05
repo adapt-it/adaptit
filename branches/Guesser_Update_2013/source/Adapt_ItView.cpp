@@ -132,6 +132,9 @@
 #include "MergeUpdatedSrc.h"
 #include "KBExportImportOptionsDlg.h"
 
+// Temporary - while using OnAdvancedDelay() as a way to test code for kbserver class
+#include "KbServer.h"
+
 // vectorized toolbar images (for toggle toolbars)
 #include "../res/vectorized/bounds_go_16.cpp"
 #include "../res/vectorized/bounds_stop_16.cpp"
@@ -1213,22 +1216,26 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 void CAdapt_ItView::UpdateAppearance (void)
 {
 	CLayout*	ptrLayout;
-    wxWindow*   pMyWind = GetFrame();
+    //wxWindow*   pMyWind = GetFrame(); // removed 16Sep13, it's not needed below
+    CAdapt_ItApp* pApp = &wxGetApp();
 
     ptrLayout = GetLayout();
 	if (ptrLayout != NULL)
 	{
-		ptrLayout->Redraw();		// Not actually needed on Mac, but doesn't hurt
-		ptrLayout->PlaceBox();		// Sets the parameters for the updated placement of the phrase box if changing
-        //  direction, also gets rid of all the pink if making doc editable!
+		ptrLayout->Redraw();	// Not actually needed on Mac, but doesn't hurt
+		ptrLayout->PlaceBox();	// Sets the parameters for the updated placement of the phrase box if changing
+								// direction, also gets rid of all the pink if making doc editable!
     }
     else
         wxASSERT_MSG(FALSE,_T("WARNING: Redraw() called with GetLayout() == NULL"));
 
-    pMyWind->Refresh();         // mark whole window area dirty
-    pMyWind->Update();          // force redraw
-    pMyWind->ScrollWindow (0, 1);
-            // for some unaccountable reason we need this on the Mac at least, to really get rid of all the pink!!
+//    pMyWind->Refresh();         // mark whole window area dirty
+//    pMyWind->Update();          // force redraw
+//    pMyWind->ScrollWindow (0, 1);
+    
+    // for some unaccountable reason we need this on the Mac at least, 
+    // to really get rid of all the pink!!
+    pApp->GetMainFrame()->SendSizeEvent();
 }
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;
@@ -2024,6 +2031,15 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		}
 	}
 
+    // BEW 2Dec13 If we are trying to paste test into a free translation widener, tell the
+    // user this is not allowed, and return without pasting
+	if (IsFreeTransWidener(pApp->m_pActivePile->GetSrcPhrase()))
+	{
+		wxMessageBox(_(
+		"Adding text to a free translation widener is not permitted."),
+		_T(""),wxICON_INFORMATION | wxOK);
+		return;
+	}
     // if there is a text selection in the current targetBox, erase the selected chars,
     // then get its text and the caret offset - this is where pasteStr must be inserted wx
     // Note: MFC's CEdit::Clear() deletes (clears) the current selection (if any) in the
@@ -6051,6 +6067,16 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 	}
 
+	// BEW 10Dec13, if the user changed the punctuation settings, the global
+	// gbSpacelessTgtPunctuation needs recalculating, because free translation mode uses
+	// it a lot and if the user is in free translation mode and just edited the punct
+	// settings (e.g. to make ] not be a punct character so as to be able to have [ ]
+	// brackets within adaptations without them forcing a new section to be shorter than
+	// wanted) then his edit needs to "take" immediately
+	gSpacelessTgtPunctuation = pApp->m_punctuation[1];
+	// get rid of the spaces
+	gSpacelessTgtPunctuation.Replace(_T(" "), _T(""));
+
     // BEW 22May09 moved idle processing down to here so that idle events won't come before
     // the m_pActivePile has a chance to be reset to the valid active pile resulting from
     // the shenanigans that go on in RecalcLayout()! Failure to do so can result in system
@@ -6245,8 +6271,17 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	// we close the project and also turn collaboration OFF, which also
 	// is needed to remove the parenthetical information from the
 	// File > Open and File > Save labels.
-	pApp->m_bCollaboratingWithParatext = FALSE;
-	pApp->m_bCollaboratingWithBibledit = FALSE;
+	// whm 25Nov2013 modified. No, it is better to retain the state of which
+	// external editor was last used for collaboration, even when
+	// m_bStartWorkUsingCollaboration is FALSE. If we don't reset the
+	// following settings to FALSE, then the user should see the last selected
+	// radio button still selected in the ChooseCollabOptionsDlg. This is
+	// better I think that automatically selecting the second radio button
+	// after a File > Close Project command. It is better to have the last
+	// used setting remain persistent even after a close project command.
+	//pApp->m_bCollaboratingWithParatext = FALSE;
+	//pApp->m_bCollaboratingWithBibledit = FALSE;
+	
 	// Remove the parenthetical info from File > Open and File Save menu labels
 	pApp->MakeMenuInitializationsAndPlatformAdjustments(); //(collabIndeterminate);
 
@@ -6332,7 +6367,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		mssg = mssg.Format(_("  Current Folder: %s"),undef.c_str());
 		message += mssg;
 	}
-	StatusBarMessage(message); // don't want a glossing/adapting prefix, since we are closing
+	pApp->StatusBarMessage(message); // don't want a glossing/adapting prefix, since we are closing
 
     // restore the glossing support flags to their default values, so an open of another
     // project will have the default 2-rows per strip interface in effect
@@ -6386,18 +6421,20 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 			pApp->LogUserAction(msg);
 		}
 	}
-//*
 #if defined(_KBSERVER)
 	// BEW 28Sep12, clean up and make persistent any volatile data, if kbserver
 	// support is active
 	if (pApp->m_bIsKBServerProject)
 	{
 		pApp->ReleaseKBServer(1); // the adaptations one
+		pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnFileCloseProject()"));
+	}
+	if (pApp->m_bIsGlossingKBServerProject)
+	{
 		pApp->ReleaseKBServer(2); // the glossings one
-		pApp->LogUserAction(_T("ReleaseKBServer() called in OnFileCloseProject()"));
+		pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnFileCloseProject()"));
 	}
 #endif
-//*/
 	// BEW 28Sep12 moved KB erasure code to be here -- see note above
 	// Delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
@@ -6434,6 +6471,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 /// Disables the "Close Project" item on the File menu if Vertical Editing is in progress.
 /// Enables the item if the KBs are in a ready state, otherwise it disables the menu item.
 /////////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -6441,9 +6479,11 @@ void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+    
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	// the kbs are closed or opened together
-	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
+    
+	// the kbs are closed or opened together, but if a trial is under way, the item is disabled no matter what
+	event.Enable (pApp->m_bKBReady && pApp->m_bGlossingKBReady && (pApp->m_trialVersionNum < 0));
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -10015,7 +10055,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 				if (!pApp->m_targetPhrase.IsEmpty())
 				{
 					// skip if selecting left and src text was copied
-					if (!(pApp->m_curDirection == left && pApp->m_pTargetBox->m_bAbandonable))
+					if (!(pApp->m_curDirection == toleft && pApp->m_pTargetBox->m_bAbandonable))
 					{
 						strOldAdaptation += _T(" ") + pApp->m_targetPhrase;
 					}
@@ -10084,6 +10124,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10112,6 +10153,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10127,6 +10169,32 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		if (pList != NULL) // whm 11Jun12 added NULL test
 			delete pList;
 		pList = (SPList*)NULL;
+		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
+		if (pApp->m_pTargetBox->GetHandle() != NULL)
+		{
+			pApp->m_pTargetBox->SetFocus();
+			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+		}
+		gbMergeSucceeded = FALSE;
+		Invalidate();
+		GetLayout()->PlaceBox();
+		RemoveSelection();
+		GetLayout()->Redraw();
+		return;
+	}
+
+	// BEW 2Dec13, check for a free translation widener in the section - as just above,
+	// but a widener also has five dots, ..... as well as m_bNullSrcPhrase TRUE
+	if (IsFreeTransWidenerInSelection(pList))
+	{
+		// IDS_NO_NULL_SRCPHRASE_IN_SEL
+		wxMessageBox(_(
+"Merging a selection which contains a free translation widener (...) is not permitted."),
+		_T(""), wxICON_EXCLAMATION | wxOK);
+		pList->Clear();
+		if (pList != NULL) // whm 11Jun12 added NULL test
+			delete pList;
+		pList = (SPList*)NULL;
 		RemoveSelection();
 		// WX Note: There is no ::IsWindow() equivalent in wxWidgets
 		if (pApp->m_pTargetBox->GetHandle() != NULL)
@@ -10137,6 +10205,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		RemoveSelection();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10164,6 +10234,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10188,6 +10259,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		gbMergeSucceeded = FALSE;
 		Invalidate();
 		GetLayout()->PlaceBox();
+		GetLayout()->Redraw();
 		return;
 	}
 
@@ -10471,7 +10543,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // user typed); or the active location will not have a selection (use m_bAbandonable ==
     // FALSE) and so we assume that the box's text is to be retained and accumulated with
     // the rest which was accumulated earlier
-	if (pApp->m_curDirection == left)
+	if (pApp->m_curDirection == toleft)
 	{
 		// implementing a protocol for leftwards selections...
 
@@ -11093,6 +11165,14 @@ void CAdapt_ItView::OnUpdateButtonRestore(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// Protect against idle time update menu handler at app shutdown time, when
+	// piles no longer exist
+	if (pApp->GetLayout()->GetPileList() == NULL ||
+		pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (pApp->m_selectionLine != -1 && pApp->m_selection.GetCount() == 1)
 	{
 		CCellList::Node* cpos = pApp->m_selection.GetFirst();
@@ -11451,7 +11531,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	{
         // if we are extending to the right in a selection to the left, we have to remove
         // the first pile's selection
-		if (pApp->m_curDirection == left)
+		if (pApp->m_curDirection == toleft)
 		{
 			// find the leftmost cell of the selection
 			CCellList::Node* cpos = pApp->m_selection.GetFirst();
@@ -11569,7 +11649,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	{
 		// no selection yet, so select the cell in the active pile before extending right
 		pApp->m_bSelectByArrowKey = TRUE;
-		pApp->m_curDirection = right;
+		pApp->m_curDirection = toright;// BEW 2Oct13 changed from right to toright due to ambiguity
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
 		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 		CCell* pCell = pActivePile->GetCell(0);
@@ -11667,7 +11747,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	{
 		// if we are backing up in a selection to the right, we have to remove
 		// the last pile's selection
-		if (pApp->m_curDirection == right)
+		if (pApp->m_curDirection == toright)// BEW 2Oct13 changed from right to toright due to ambiguity
 		{
 			// find the rightmost cell of the selection
 			CCellList::Node* cpos = pApp->m_selection.GetLast();
@@ -11777,7 +11857,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	{
 		// no selection yet, so select the cell in the active pile before extending left
 		pApp->m_bSelectByArrowKey = TRUE;
-		pApp->m_curDirection = left;
+		pApp->m_curDirection = toleft;
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
 		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 		CCell* pCell = pActivePile->GetCell(0);
@@ -12919,6 +12999,14 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	// Protect against idle time update menu handler action at app shutdown 
+	// time, when piles no longer exist - we must prevent pile access then
+	if (pApp->GetLayout()->GetPileList() == NULL ||
+		pApp->GetLayout()->GetPileList()->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	long nStartChar1; long nEndChar1;
 	pEdit->GetSelection(&nStartChar1,&nEndChar1);
 	bComposeSel = nStartChar1 != nEndChar1;
@@ -13958,17 +14046,6 @@ void CAdapt_ItView::OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event)
 	}
 }
 
-void CAdapt_ItView::StatusBarMessage(wxString &message)
-{
-	CMainFrame *pFrame = wxGetApp().GetMainFrame();
-	wxASSERT(pFrame != NULL);
- 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
-	if (pStatusBar != NULL)
-	{
-		pStatusBar->SetStatusText(message,0); // use first field 0
-	}
-}
-
 // whm 28Feb12 modified. This OnFileStartupWizard() handler is now called only
 // by the File > Start Working... menu item. It is no longer called by
 // DoStartupWizardOnLaunch(). The original code in this handler that called
@@ -14054,10 +14131,24 @@ a:	if (pApp->m_bJustLaunched && !pApp->m_bUseStartupWizardOnLaunch)
 	}
 }
 
+// BEW 2Dec13, Added support for free translation wideners. These are placeholders with
+// fice dots. We don't allow this checkbox to change one into the other at any time
 void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	if ((pApp->m_pActivePile != NULL))
+	{
+		// Don't allow the click to operate on a widener rather than a placeholder
+		CSourcePhrase* pSP = pApp->m_pActivePile->GetSrcPhrase();
+		if (IsFreeTransWidener(pSP))
+		{
+			wxMessageBox(_(
+			"The active location has a free translation widener, not a placeholder. The click will be ignored."),
+			_("Illegal change to widener"), wxICON_WARNING | wxOK);
+			return;
+		}
+	}
 	if (gbIsGlossing)
 	{
 		// if glossing is ON, keep the box checked at all times since
@@ -14193,13 +14284,16 @@ void CAdapt_ItView::CloseProject()
 // of doing an export; the how and why of all this is explain below in extensive comments
 // about a third of the way into the function.
 void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhrase, wxString targetStr)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
+{	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
 	pApp->m_nPlacePunctDlgCallNumber++;
 	int theSequNum = pSrcPhrase->m_nSequNumber;
 
+/* #if defined(_DEBUG)
+	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at start: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s"),
+		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str());
+#endif */
     // BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is about
     // to leave a hole which may or may not have had punctuation there; the former
     // m_targetStr is preserved in gStrSavedTargetStringWithPunctInReviewingMode, and the
@@ -14223,12 +14317,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			{
 				// it is still empty, so do the restoration etc.
 				pSrcPhrase->m_targetStr = gStrSavedTargetStringWithPunctInReviewingMode;
-//#if defined(_DEBUG)
-//				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), m_targetPhrase was empty, Reviewing??\nsequnum = %d ;  m_key =  %s  ;  m_adaption =  %s  ;  m_targetStr =  %s"),
-//					pSrcPhrase->m_nSequNumber, pSrcPhrase->m_key.c_str(), pSrcPhrase->m_adaption.c_str(),
-//					gStrSavedTargetStringWithPunctInReviewingMode.c_str());
-//#endif
 				gStrSavedTargetStringWithPunctInReviewingMode.Empty();
 				gbSavedTargetStringWithPunctInReviewingMode = FALSE; // restore default value
 				return;
@@ -14240,11 +14328,26 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 		}
 	}
 
+/* #if defined(_DEBUG)
+	// When the non-stick or truncation happens, control never enters the next block which
+	// is the normal block for processing the passed in values! So the Save done
+	// previously must somehow be causing the test to fail - and if it fails, then
+	// targetStr is never used anywhere to change what's in m_targetStr, hence the
+	// non-stick bug manifests. So test the parameters to see if this analysis is correct
+	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() THE TEST: theSequNum = %d , pApp->m_nCurSequNum_ForPlacementDialog = %d , pApp->m_nPlacePunctDlgCallNumber = %d , Are first two equal && 3rd > 1, if so block is skipped"),
+		theSequNum, pApp->m_nCurSequNum_ForPlacementDialog, pApp->m_nPlacePunctDlgCallNumber);
+#endif */
+
     // BEW added 1Jul09, don't do the code in this function if the function has been called
     // once before at this current active location
 	if ( !(theSequNum == pApp->m_nCurSequNum_ForPlacementDialog &&
 		  pApp->m_nPlacePunctDlgCallNumber > 1) )
 	{
+/* #if defined(_DEBUG)
+	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() second: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s"),
+		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str());
+#endif */
+
         // BEW 11Oct10, have to handle ~ -- need a separate block for this as it is more
         // complex, and also need to take m_follOuterPunct into consideration in both
         // blocks
@@ -14358,11 +14461,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// targetStr parameter, with the m_lastAdaptionsPattern member of
 						// the current active pSrcPhrase instance passed in
 						bool bNoChange =  IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str);
-//#if defined(_DEBUG)
-//				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,299 IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str) returns %d  for sequnum  %d"),
-//					bNoChange ? 1 : 0, pSrcPhrase->m_nSequNumber);
-//#endif
+/* #if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,379 IsPhraseBoxAdaptionUnchanged(pSrcPhrase, str) returns %d  for sequnum  %d; m_targetStr = %s , str = %s"),
+					bNoChange ? 1 : 0, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_targetStr.c_str(), str.c_str());
+#endif */
 						if (bNoChange)
 						{
 							// let control continue to the block further below
@@ -14456,6 +14559,10 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 						// punctuation placement, and word spellings, are unchanged and so
 						// can be restored here without recourse to the placement dialog
 						str = pSrcPhrase->m_punctsPattern;
+/* #if defined(_DEBUG)
+						wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at restoring m_punctsPattern: sn = %d , targetStr = %s , m_punctsPattern = %s  (assigned to str)"),
+							theSequNum, targetStr.c_str(), pSrcPhrase->m_punctsPattern.c_str());
+#endif */
 					}
 				} // end of TRUE block for test: if (pSrcPhrase->m_bHasInternalPunct)
 			}
@@ -14519,11 +14626,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					}
 				}
 				pSrcPhrase->m_targetStr = str;
-//#if defined(_DEBUG)
-//				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,460 Setting m_targetStr with:  %s   [& then returns]"),
-//					str.c_str());
-//#endif
+/* #if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,460 Setting m_targetStr with:  %s   [& then returns]"),
+					str.c_str());
+#endif */
 				// do housekeeping (for explanation, see end of the function's comment)
 				pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
 				return;
@@ -14692,12 +14799,18 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					}
 				}
 				// now add the final form of the target string to the source phrase
+/* #if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,720, before copying src = %s , into m_targetStr current = %s"),
+					str.c_str(), pSrcPhrase->m_targetStr.c_str());
+#endif */
 				pSrcPhrase->m_targetStr = str;
-//#if defined(_DEBUG)
-//				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,637, after copying src puncts (if any), Setting m_targetStr with:  %s   [& then returns]"),
-//					str.c_str());
-//#endif
+
+/* #if defined(_DEBUG)
+				// In case the RossJones m_targetStr not sticking bug comes from here
+				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), line 14,723, after copying: m_targetStr has:  %s   [& then returns]"),
+					pSrcPhrase->m_targetStr.c_str());
+#endif */
 			} // end of else block for test: if (!pApp->m_bCopySourcePunctuation)
 		} // end of TRUE block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 		else
@@ -14785,18 +14898,8 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					wxASSERT(pSrcPhrWord1 != NULL && pSrcPhrWord2 != NULL);
 					pSrcPhrWord1->m_adaption = word1Proper;
 					pSrcPhrWord1->m_targetStr = word1Proper;
-//#if defined(_DEBUG)
-//				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), conjoined_first, line 14,729 Setting m_targetStr with:  %s   [& then returns]"),
-//					word1Proper.c_str());
-//#endif
 					pSrcPhrWord2->m_adaption = word2Proper;
 					pSrcPhrWord2->m_targetStr = word2Proper;
-//#if defined(_DEBUG)
-//				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), conjoined_second, line 14,740 Setting m_targetStr with:  %s   [& then returns]"),
-//					word2Proper.c_str());
-//#endif
 				}
 				// and the parent should then be empty for m_adaption and m_targetStr
 				pSrcPhrase->m_adaption.Empty();
@@ -14968,11 +15071,6 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			{
 				// best we can do in this circumstance is just use targetStr 'as is'
 				pSrcPhrase->m_targetStr = targetStr;
-//#if defined(_DEBUG)
-//				// In case the RossJones m_targetStr not sticking bug comes from here
-//				wxLogDebug(_T("MakeTargetStringIncludingPunctuation(pSrcPhrase, targetStr), conjoined at end, line 14,907 Setting m_targetStr with:  %s   [& then returns]"),
-//					targetStr.c_str());
-//#endif
 			}
 
 		} // end of else block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
@@ -14984,6 +15082,11 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
     // is reset to 0 at the end of CLayout::Draw(), and at the same place the
     // m_nCurSequNum_ForPlacementDialog is reset to default -1
 	pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
+
+/* #if defined(_DEBUG)
+	wxLogDebug(_T("MakeTargetStringIncludingPunctuation() at end: sn = %d , targetStr = %s , m_targetPhrase = %s , m_targetStr = %s"),
+		theSequNum, targetStr.c_str(), pApp->m_targetPhrase.c_str(), pSrcPhrase->m_targetStr.c_str());
+#endif */
 }
 
 void CAdapt_ItView::DoFileSaveKB()
@@ -18993,8 +19096,8 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			int nRight;
 			wxString left;
 			left.Empty();
-			wxString right;
-			right.Empty();
+			wxString onright;// BEW 2Oct13 changed from right to onright due to ambiguity
+			onright.Empty();
 			if (bIncludePunct)
 			{
 				lenTgt = tgt.Length(); // the search string's length
@@ -19007,7 +19110,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgt.Right(nRight);
+				onright = oldTgt.Right(nRight);
 			}
 			else
 			{
@@ -19021,13 +19124,13 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgtNoPunct.Right(nRight);
+				onright = oldTgtNoPunct.Right(nRight);
 			}
 
             // put the final string into the global translation variable, which with
             // selector value of 1 in the PlacePhraseBox call, will ensure it goes into
             // m_targetPhrase member, and ends up in the created phrase box
-			translation = left + replStr + right;
+			translation = left + replStr + onright;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -19071,8 +19174,8 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			int nRight;
 			wxString left;
 			left.Empty();
-			wxString right;
-			right.Empty();
+			wxString onright;// BEW 2Oct13 changed from right to onright due to ambiguity
+			onright.Empty();
 			if (bIncludePunct)
 			{
 				// bIncludePunct is always FALSE for glossing, so this block
@@ -19088,7 +19191,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgt.Right(nRight);
+				onright = oldTgt.Right(nRight);
 			}
 			else
 			{
@@ -19104,11 +19207,11 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgtNoPunct.Right(nRight);
+				onright = oldTgtNoPunct.Right(nRight);
 			}
 
 			// put the final string into the temporary store
-			finalStr = left + replStr + right;
+			finalStr = left + replStr + onright;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -19174,8 +19277,8 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			int nRight;
 			wxString left;
 			left.Empty();
-			wxString right;
-			right.Empty();
+			wxString onright;// BEW 2Oct13 changed from right to toright due to ambiguity
+			onright.Empty();
 			if (bIncludePunct)
 			{
 				lenTgt = tgt.Length(); // the search string's length
@@ -19188,7 +19291,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgt.Right(nRight);
+				onright = oldTgt.Right(nRight);
 			}
 			else
 			{
@@ -19202,11 +19305,11 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 				nRight = nFound + lenTgt;
 				wxASSERT(nRight <= lenOldTgt);
 				nRight = lenOldTgt - nRight;
-				right = oldTgtNoPunct.Right(nRight);
+				onright = oldTgtNoPunct.Right(nRight);
 			}
 
 			// put the final string into the temporary store
-			finalStr = left + replStr + right;
+			finalStr = left + replStr + onright;
 
 			// prepare for phrase box creation
 			pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -20323,10 +20426,10 @@ void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 	// set the direction
 	if (pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber <
 					pCurrent->GetPile()->GetSrcPhrase()->m_nSequNumber)
-		pApp->m_curDirection = right;
+		pApp->m_curDirection = toright;// BEW 2Oct13 changed from right to toright due to ambiguity
 	else if (pAnchor->GetPile()->GetSrcPhrase()->m_nSequNumber >
 					pCurrent->GetPile()->GetSrcPhrase()->m_nSequNumber)
-		pApp->m_curDirection = left;
+		pApp->m_curDirection = toleft;
 	else
 		return; // since we must be at the anchor which is already selected,
 				// so nothing to be done yet
@@ -20341,7 +20444,7 @@ void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 	CCell* pCell = pAnchor;
 	bool bAtEnd = FALSE;
 	bool bAtBoundary = FALSE;
-	if (pApp->m_curDirection == right)
+	if (pApp->m_curDirection == toright)// BEW 2Oct13 changed from right to toright due to ambiguity
 	{
 a:		pCell = GetNextCell(pCell,cellIndex);
 
@@ -20914,6 +21017,56 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+// Removes all <CR> and <LF> characters from the passed in string.
+// OnImportEditedSourceText() uses this, because when a source text is exported, for
+// readability the code inserts newlines before the free translation and other
+// begin-markers, and those, if left there, when the data is unstructured, result in \p
+// markers being inserted - which changes the document structure unhelpfully; when the
+// document is structure, it doesn't matter (I think)
+wxString CAdapt_ItView::RemoveAllCRandLF(wxString* pStr)
+{
+	wxChar CR = _T('\r');
+	wxChar LF = _T('\n');
+	wxString inputStr = *pStr;
+	wxString outputStr;
+	int len = inputStr.Length();
+	if (len == 0)
+	{
+		// nothing to do
+		outputStr = *pStr;
+		return outputStr;
+	}
+	const wxChar* pBuf = inputStr.GetData();
+	wxChar* pStartChar = (wxChar*)pBuf;
+	wxChar* pEnd = pStartChar + len;
+	wxASSERT(*pEnd == (wxChar)0);
+	int offset = 0;
+	while(pStartChar < pEnd)
+	{
+		if (*pStartChar == CR)
+		{
+			// we're at a carriage return character, so skip it
+			offset++;
+			pStartChar++;
+		}
+		else if (*pStartChar == LF)
+		{
+			// we're at a line feed character, so skip it
+			offset++;
+			pStartChar++;
+		}
+		else
+		{
+			// it's neither, so store it
+			outputStr += *pStartChar;
+			offset++;
+			pStartChar++;
+		}
+	}
+	// return the final string
+	return outputStr;
+}
+
 void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -20965,6 +21118,11 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	{
 	case getNewFile_success:
 	{
+		// BEW added 2Dec13, to get rid of spurious \p insertions when the file is not sfm-structured
+		*pBuffer = RemoveAllCRandLF(pBuffer);
+		pApp->m_nInputFileLength = pBuffer->Len();
+
+
         // BEW added 26Aug10. In case we are loading a marked up file we earlier
         // exported, our custom markers in the exported output would have been changed
         // to \z-prefixed forms, \zfree, \zfree*, \znote, etc. Here we must convert
@@ -28042,15 +28200,8 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 /// whm modified 30Aug111 to remove the label and jump
 void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 {
-
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	/*
-	CSourcePhrase* pSrcPhrase;
-	bool bOK;
-	CSourcePhrase* pSaveSrcPhrase;
-	int nSequNum;
-	*/
 	// whm Note: Only log user action when explicitly interacting with
 	// the menu item, not when OnAdvancedEnablglossing() is called by
 	// other functions.
@@ -28063,145 +28214,6 @@ void CAdapt_ItView::OnAdvancedSeeGlosses(wxCommandEvent& event)
 	}
 
 	ShowGlosses();
-	/*
-	// save the current sequence number
-	int nSaveSequNum = pApp->m_nActiveSequNum;
-
-	// won't allow a selection to be preserved, this is too major a modality change
-	if (pApp->m_selectionLine != -1)
-		RemoveSelection();
-
-    // before we redraw the layout and phrasebox, we have to save what is in the box
-    // (provided it's contents are not abandonable or null text) in the appropriate KB,
-    // then ready the pApp->m_targetPhrase member to have the correct text before
-    // the layout is recalculated
-	pApp->m_bSaveToKB = TRUE;
-
-	if (pApp->m_pActivePile != NULL)
-	{
-		pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-		if (gbIsGlossing) // flag has not been toggled yet
-		{
-			// we are changing from glossing to adapting, so we must store to the glossing
-			// KB and then ready the pApp->m_targetPhrase member with the sourcephrase's
-			// m_adaption contents and remove its refString from the adapting KB
-			if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
-			{
-				// we can assume no errors for StoreTest call
-				bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
-			}
-
-			// if the active location is within a retranslation, we can't leave the box there
-			// when we are in adapting mode, so if that is the case then find a safe location
-			if (pSrcPhrase->m_bRetranslation)
-			{
-				pSaveSrcPhrase = pSrcPhrase;
-				pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase); // try first for a location
-															   // after retranslation section
-				if (pSrcPhrase == NULL)
-				{
-					pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSrcPhrase);
-				}
-				// we assume (we won't test) one of the above Get... calls will succeed
-				nSequNum = pSrcPhrase->m_nSequNumber;
-				pApp->m_nActiveSequNum = nSaveSequNum = nSequNum;
-				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-			}
-
-			// now the adaptation stuff
-			pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
-			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, useTargetPhraseForLookup);
-		}
-	}
-
-	// get the Enable Glossing menu pointer
-	CMainFrame *pFrame = wxGetApp().GetMainFrame();
-	wxASSERT(pFrame != NULL);
-	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pAdvancedMenuSeeGlosses = pMenuBar->FindItem(ID_ADVANCED_SEE_GLOSSES);
-
-	// get the checkbox pointer
-	wxPanel* pControlBar;
-	pControlBar = pFrame->m_pControlBar;
-	wxASSERT(pControlBar != NULL);
-	wxCheckBox* pCheckboxIsGlossing =
-				(wxCheckBox*)pControlBar->FindWindowById(IDC_CHECK_ISGLOSSING);
-
- 	// whm 30Aug11 Note: We do not switch between "<no adaptation>" and "<no gloss>" here
- 	// because the OnAdvancedSeeGlosses() does not actually switch the app into glossing
- 	// mode. That is done in OnCheckIsGlossing() and ToggleGlossingMode().
-
-	// toggle the setting: note; whether going to or from glossing we will not change the
-    // current values of gbGlossingUsesNavFont because the user might go back and forwards
-    // from having glossing allowed or actually on (in the one session,) and it would be a
-    // nuisance to have to manually restore this flag to its former setting each time the
-    // user enables glossing again in the one session. (Leaving the flag ON is benign when
-    // adapting.)
-	if (gbGlossingVisible)
-	{
-		// toggle the checkmark to OFF
-		if (pAdvancedMenuSeeGlosses != NULL)
-		{
-			pAdvancedMenuSeeGlosses->Check(FALSE);
-		}
-		gbGlossingVisible = FALSE;
-		gbIsGlossing = FALSE; // must be off whenever the other flag is off
-
-		// hide the mode bar checkbox when glossing is not allowed to be visible
-		// and when not visible it obligatorily must be adapting
-		if (pCheckboxIsGlossing != NULL)
-		{
-			pCheckboxIsGlossing->SetValue(FALSE); // not glossing, ie. is adapting
-			pCheckboxIsGlossing->Show(FALSE);
-		}
-	}
-	else
-	{
-		// toggle the checkmark to ON
-		if (pAdvancedMenuSeeGlosses != NULL)
-		{
-			pAdvancedMenuSeeGlosses->Check(TRUE);
-		}
-		gbGlossingVisible = TRUE;
-
-		// show the mode bar checkbox when glossing is allowed to be visible - user can
-		// then choose either to do glossing, or to do adapting
-		if (pCheckboxIsGlossing != NULL)
-		{
-			pCheckboxIsGlossing->Show(TRUE);
-		}
-	}
-
-	// redraw the layout etc.
-	CLayout* pLayout = GetLayout();
-
-	// BEW added 10Jun09, support phrase box matching of the text colour chosen
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-	{
-		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
-	}
-	else
-	{
-		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
-	}
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
-#endif
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
-	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
-
-	// restore focus to the targetBox, if it is visible
-	if (pApp->m_pTargetBox != NULL)
-		if (pApp->m_pTargetBox->IsShown())
-			pApp->m_pTargetBox->SetFocus();
-	Invalidate();
-	GetLayout()->PlaceBox();
-	*/
 }
 
 // BEW added 19Sep08, for support of mode transitions within vertical edit mode
@@ -28865,6 +28877,41 @@ void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->LogUserAction(_T("Initiated OnAdvancedDelay()"));
+
+	/* //a handy way to try CreateEntry() calls for kbserver, to debug why I am getting 411 http
+	// error, and to do other kbserver testing things
+	KbServer* pKbServer = pApp->GetKbServer(1); // I'm working with the adapting database for this debugging stuff
+	// test data known not to be in the database yet
+	wxString srcText = _T("i olsem");
+	wxString tgtText = _T("is similar to");
+	//wxString srcText = _T("i stap");
+	//wxString tgtText = _T("are remaining");
+	int rv = pKbServer->CreateEntry(srcText, tgtText);
+	//int rv = pKbServer->LookupEntryFields(srcText, tgtText);
+	bool ishappy = rv == 0 ? TRUE : FALSE;
+	wxASSERT(ishappy);
+	wxASSERT(FALSE); // don't go further while using this test code
+	*/
+
+	/* a handy way to get a pixel width for a bit of text to be shown in the CStatusBar of AI
+	CMainFrame *pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+ 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
+	int barWidth; int barHeight;
+	pStatusBar->GetClientSize(&barWidth, &barHeight);
+	// get pixed width of sample progress message for kb database deletion & 
+	// comment this out when done
+	wxString aText = _T("Deleting 29999 of 49999");
+	// Get the font used in the status bar & its pointsize
+	wxFont font = pStatusBar->GetFont();
+	//int pointsize = font.GetPointSize(); <<-- don't need this
+	// We need a wxClientDC to measure text extents
+	wxClientDC dc(pFrame);
+	dc.SetFont(font);
+	wxCoord w; wxCoord h; // width and height of field 0's text
+	wxCoord *descent = NULL; wxCoord *externalLeading = NULL;
+	dc.GetTextExtent(aText, &w, &h, descent, externalLeading, &font);
+	*/
 	/*
 	// test SyncScrollReceive() code here (delay is unrelated, just use its button)
 	wxString strValue = _T("1JN 2:19");
@@ -28879,6 +28926,7 @@ void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
 								nVerse, strChapVerse);
 	// end of code test
 	*/
+
 	CSetDelay dlg(pApp->GetMainFrame());
 
 	dlg.m_nDelay = pApp->m_nCurDelay;

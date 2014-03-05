@@ -24,6 +24,18 @@
     #pragma interface "EditPreferencesDlg.h"
 #endif
 
+enum PrefsPageIndices {
+fontsPageIndex = 0,
+punctuationPageIndex,
+toolbarPageIndex,
+casePageIndex,
+kbPageIndex,
+viewPageIndex,
+autosavePageIndex,
+unitsPageIndex,
+filterPageIndex
+};
+
 // forward references
 class CFontPagePrefs;
 class CPunctCorrespPagePrefs;

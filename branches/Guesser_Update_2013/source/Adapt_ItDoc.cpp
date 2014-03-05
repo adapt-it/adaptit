@@ -321,7 +321,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItDoc, wxDocument)
 	EVT_MENU (ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnTakeOwnership)
     EVT_UPDATE_UI(ID_FILE_TAKE_OWNERSHIP, CAdapt_ItDoc::OnUpdateTakeOwnership)
     EVT_MENU (ID_DVCS_VERSION,	   CAdapt_ItDoc::OnDVCS_Version)
-    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_item)
+//    EVT_UPDATE_UI(ID_DVCS_VERSION, CAdapt_ItDoc::OnUpdateDVCS_item) - now leaving this one always enabled.
 
 	EVT_MENU(wxID_CLOSE, CAdapt_ItDoc::OnFileClose)
 	EVT_UPDATE_UI(wxID_CLOSE, CAdapt_ItDoc::OnUpdateFileClose)
@@ -358,10 +358,10 @@ END_EVENT_TABLE()
 /// **** OnInit() METHOD                                          *****
 CAdapt_ItDoc::CAdapt_ItDoc()
 {
-	m_bHasPrecedingStraightQuote = FALSE; // this one needs to be initialized to
-										  // FALSE every time a doc is recreated
-	m_bLegacyDocVersionForSaveAs = FALSE; // whm added 14Jan11
-	m_bPreserveKBsWhenClosingDocument = FALSE;	// mrh Oct12 - normal default
+	m_bHasPrecedingStraightQuote = FALSE;   // this one needs to be initialized to
+                                            // FALSE every time a doc is recreated
+	m_bLegacyDocVersionForSaveAs = FALSE;   // whm added 14Jan11
+	m_bReopeningAfterClosing = FALSE;       // mrh Oct12 - normal default
 
 	// WX Note: All Doc constructor initializations moved to the App
 	// **** DO NOT PUT INITIALIZATIONS HERE IN THE DOCUMENT'S CONSTRUCTOR *****
@@ -408,14 +408,16 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 /// or READ-ONLY access (if TRUE is returned). (Also added to LoadKB() and OnOpenDocument()
 /// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
+
 bool CAdapt_ItDoc::OnNewDocument()
-// ammended for support of glossing or adapting
+// amended for support of glossing or adapting
 {
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
 
     pApp->m_owner = pApp->m_strUserID;  // this is our doc
+    pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
 
 	// BEW changed 9Apr12, support discontinuous auto-inserted spans highlighting
 	gpApp->m_pLayout->ClearAutoInsertionsHighlighting();
@@ -1485,16 +1487,41 @@ void CAdapt_ItDoc::OnTakeOwnership (wxCommandEvent& WXUNUSED(event))
     // **** being typed in each of its two wxTextCtl widgets. The function which checks for
     // empty string or **** is CheckUsername() - it's in helpers.cpp.
 
-	if (gpApp->m_owner == gpApp->m_strUserID)
-		return;								// if we're already the owner, there's nothing to do
+    gpApp->LogUserAction (_T("OnTakeOwnership() called - m_owner = ") + gpApp->m_owner + _T(" m_strUserID = ") + gpApp->m_strUserID );
+
+    if ( gpApp->m_strUserID.IsEmpty() || gpApp->m_strUsername.IsEmpty() )   // this can happen if AI is launched with shift down
+    {
+        wxCommandEvent	dummy;
+
+        gpApp->OnEditChangeUsername (dummy);
+
+		// BEW 4Nov13, added 2nd test for empty m_strUserID
+        if ( gpApp->m_strUserID == NOOWNER || gpApp->m_strUserID.IsEmpty()) // did we get a username?
+        {                                               // nope - whinge and bail out.
+            wxMessageBox (_("No username entered -- owner not changed."));
+            gpApp->LogUserAction (_T("No username entered -- owner not changed."));
+            return;
+        }
+    }
+
+    // BEW 4Nov13 added outer test. It was possible to get here with m_bReadOnlyAccess
+    // TRUE, but no username in the config file -- by running 6.4.3 for instance, which
+    // shows doc read only, but my username was already in the doc from earlier runs with
+    // the 6.5.0 code, so after the Username Input dialog allowed me to reset username and
+    // informal name, the unprotected inner test would return control to the caller without
+    // read-only status being removed, hence the need for the outer test
+	if (!gpApp->m_bReadOnlyAccess)
+	{
+		if (gpApp->m_owner == gpApp->m_strUserID)
+			return;                             // if we're already the owner, there's nothing to do
+	}
 
 	gpApp->m_owner = gpApp->m_strUserID;	// force doc's owner to be logged-in user, no matter what
 	gpApp->m_bReadOnlyAccess = FALSE;		// make doc editable
 	Modify (TRUE);							// mark doc dirty, to ensure new owner gets saved
 
-	gpApp->GetView()->UpdateAppearance();
+	gpApp->GetView()->UpdateAppearance();   // get rid of the pink
 }
-
 
 /*	mrh - May 2012.
 	This function is needed for the version control stuff, but might be more generally useful
@@ -1519,6 +1546,8 @@ void CAdapt_ItDoc::DocChangedExternally()
 	int				savedTrialVersionNum = gpApp->m_trialVersionNum;
 	wxString		dirPath;
 
+    gpApp->LogUserAction (_T("Entering DocChangedExternally()"));
+
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		dirPath = gpApp->m_bibleBooksFolderPath;
 	else
@@ -1529,9 +1558,9 @@ void CAdapt_ItDoc::DocChangedExternally()
 	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
 	bOK = bOK; // whm added 13Aug12 to suppress gcc warning "set but not used"
 
-	m_bPreserveKBsWhenClosingDocument = TRUE;	// to prevent KB being clobbered -- we want only the doc closed
+	m_bReopeningAfterClosing = TRUE;	// to prevent KB being clobbered -- we want only the doc closed
 	OnCloseDocument();
-	m_bPreserveKBsWhenClosingDocument = FALSE;	// restore normal default
+	m_bReopeningAfterClosing = FALSE;	// restore normal default
 
 	gpApp->m_bDocReopeningInProgress = TRUE;	// suppresses warning message about project folder with same name
 
@@ -1558,6 +1587,8 @@ bool  CAdapt_ItDoc::Git_installed()
     if (!gpApp->m_DVCS_installed)
     {
         wxMessageBox(_T("Adapt It cannot maintain a history of its documents because your administrator has not yet installed the Git program on this computer. Please talk to your administrator."));
+        gpApp->LogUserAction (_T("Adapt It cannot maintain a history of its documents because your administrator has not yet installed the Git program on this computer. Please talk to your administrator."));
+
         return FALSE;
     }
     return TRUE;
@@ -1569,12 +1600,14 @@ bool  CAdapt_ItDoc::Commit_valid()
 
     if ( gpApp->m_strUserID == NOOWNER )
     {
-		wxMessageBox (_T("Before saving in the document history, you must enter a username for yourself."));
+		wxMessageBox (_("Before saving in the document history, you must enter a username for yourself."));
+		gpApp->LogUserAction (_T("Before saving in the document history, you must enter a username for yourself."));
         gpApp->OnEditChangeUsername (dummy);
 
         if ( gpApp->m_strUserID == NOOWNER )           // did we get a username?
         {                                              // nope - whinge and bail out.
-            wxMessageBox(_T("No username entered -- document not saved."));
+            wxMessageBox (_("No username entered -- document not saved."));
+            gpApp->LogUserAction (_T("No username entered -- document not saved."));
             return FALSE;
         }
     }
@@ -1583,7 +1616,10 @@ bool  CAdapt_ItDoc::Commit_valid()
 
 	if (gpApp->m_strUserID != gpApp->m_owner)
 	{
-		wxMessageBox ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
+		wxMessageBox ( _("Sorry, it appears the owner of this document is ") + gpApp->m_owner
+					  + _(" but the currently logged in user is ") + gpApp->m_strUserID
+					  + _(".  Only the document's owner can save in the document history.") );
+		gpApp->LogUserAction ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
 					  + _T(" but the currently logged in user is ") + gpApp->m_strUserID
 					  + _T(".  Only the document's owner can save in the document history.") );
 		return FALSE;
@@ -1598,6 +1634,7 @@ bool  CAdapt_ItDoc::Commit_valid()
 
 int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 {
+    CAdapt_ItApp*   pApp = &wxGetApp();
 	int				resultCode;
 	wxCommandEvent	dummy;
 	wxDateTime		localDate,
@@ -1605,52 +1642,56 @@ int CAdapt_ItDoc::DoSaveAndCommit (wxString blurb)
 	wxString		origOwner = gpApp->m_owner;
     int             origCommitCnt = gpApp->m_commitCount;
 
-	if (gpApp->m_trialVersionNum >= 0)
+    pApp->LogUserAction(_T("Entering DoSaveAndCommit()"));
+
+	if (pApp->m_trialVersionNum >= 0)
 	{
-		wxMessageBox (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
+		wxMessageBox (_("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
+		pApp->LogUserAction (_T("Before saving in the document history, you must either ACCEPT the revision or RETURN to the latest one."));
 		return -1;
 	}
 
     if (!Commit_valid())
 		return -1;              // bail out if the ownership etc. isn't right
 
-    if ( !gpApp->m_pDVCS->AskSaveAndCommit (blurb) )
+    if ( !pApp->m_pDVCS->AskSaveAndCommit (blurb) )
         return -1;              // or if user cancelled dialog
-
 
 // Now we find the date/time and the commit count, which we'll save in the file before we do the commit.
 // We use UTC for the date/time, which may avoid problems when we're pushing/pulling to a remote location.
 
 	localDate = wxDateTime::Now();
-	gpApp->m_versionDate = localDate.ToUTC (FALSE);
+	pApp->m_versionDate = localDate.ToUTC (FALSE);
 
-    if ( gpApp->m_commitCount < 0 )
-        gpApp->m_commitCount = 0;
+    if ( pApp->m_commitCount < 0 )
+        pApp->m_commitCount = 0;
 
-	gpApp->m_commitCount += 1;					// bump the commit count
+	pApp->m_commitCount += 1;					// bump the commit count
 
-	gpApp->m_owner = gpApp->m_strUserID;		// owner may have been NOOWNER, but must be assigned on a commit
+	pApp->m_owner = gpApp->m_strUserID;		// owner may have been NOOWNER, but must be assigned on a commit
 
-	gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
+	pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 	OnFileSave (dummy);							// save the file, ready to commit
 
-	resultCode = gpApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
+	resultCode = pApp->m_pDVCS->DoDVCS (DVCS_COMMIT_FILE, 0);
 
 	if (resultCode)
 	{
 	// What do we do here??  We've already saved the document with the above info updated.  I think we
 	//  should roll everything back and re-save.  The DVCS code will already have given a message.
-		gpApp->m_versionDate = origDate;
-		gpApp->m_commitCount = origCommitCnt;
-		gpApp->m_owner = origOwner;
 
-		gpApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
+        pApp->LogUserAction (_T("Rolling back and re-saving"));
+
+		pApp->m_versionDate = origDate;
+		pApp->m_commitCount = origCommitCnt;
+		pApp->m_owner = origOwner;
+
+		pApp->m_bShowProgress = true;	// edb 16Oct12: explicitly set m_bShowProgress before OnFileSave()
 		OnFileSave (dummy);
 		return -2;
 	}
 
 // all OK
-    gpApp->m_saved_with_commit = TRUE;
 	return 0;
 }
 
@@ -1659,26 +1700,96 @@ void CAdapt_ItDoc::OnSaveAndCommit (wxCommandEvent& WXUNUSED(event))
     if (!Git_installed())
         return;                     // Shows message if git not installed
 
+    // BEW added 3Feb14, If the user has finished adapting to the end of the document, and
+    // the phrasebox is no longer visible, and he chooses to save & commit, then the
+    // DoSaveAndCommit() call below crashes if the phrasebox is not at some pile - thereby
+    // making the pile active. So check and if not visible, put it at the end of the
+    // document first.
+ 	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
+	{
+		PutPhraseBoxAtDocEnd();
+	}
 	DoSaveAndCommit(_T(""));        // Ignore returned result - if an error occurred, a message will have been shown.
+}
+
+void CAdapt_ItDoc::EndTrial (bool restoreBackup)
+{
+    CAdapt_ItApp*   pApp = &wxGetApp();
+    bool            backupExists = pApp->m_bBackedUpForTrial;
+
+    pApp->m_pDVCSNavDlg->Destroy();         // take down the dialog
+    pApp->m_pDVCSNavDlg = NULL;
+    pApp->m_trialVersionNum = -1;           // no trial now
+    pApp->m_bBackedUpForTrial = FALSE;      // restore normal default here at the start
+
+// now if we did a backup because of uncommitted changes when we started the trial, we may need to restore from the backup:
+    if (backupExists)
+    {
+        wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
+
+        if (restoreBackup)
+        {
+            pApp->m_bBackedUpForTrial = FALSE;
+
+            bool        bCopiedSuccessfully = ::wxCopyFile (backupPath, pApp->m_curOutputPath, TRUE);   // summarily overwrite!
+            wxASSERT(bCopiedSuccessfully);
+			bCopiedSuccessfully = bCopiedSuccessfully; // prevent compiler warning in release build
+        }
+
+    // so far so good, so we remove the backup:
+        bool        bRemovedSuccessfully = ::wxRemoveFile (backupPath);
+        if (!bRemovedSuccessfully)
+        {
+            // tell developer or user, if the removal failed.  This isn't critical - just a warning.
+            wxMessageBox(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
+            gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, EndTrial()'s call of ::wxRemoveFile() failed, at line 1709."));
+        }
+
+    }
+    DocChangedExternally();                     // Even if we didn't restore from the backup, the read-only status
+                                                //  has changed, so we need this.
+    pApp->GetView()->UpdateAppearance();        // whatever happened, the on-screen appearance will have changed
 }
 
 void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 {
-    int returnCode;
+    CAdapt_ItApp*   pApp = &wxGetApp();
+    int             returnCode;
+    wxString        temp;
 
-    wxASSERT (revNum >= 0);
+    temp = temp.Format (_T("DoChangeVersion() called with revNum = %d"), revNum);
+    pApp->LogUserAction (temp);
+
+    wxASSERT(revNum >= -2);
+
+    if (revNum == -2)       // "return to latest" was clicked in the dialog.  Whatever we do, we first need to go to the
+                            // latest committed version.
+    {
+        returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, 0);			// get the latest committed revision
+
+        wxASSERT(returnCode >= 0);      // a negative returnCode means a bug
+        if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
+                                        //  message should have been displayed already.
+
+        EndTrial (TRUE);                 // end the trial, restoring the backup
+        return;
+    }
+
+    if ( revNum < 0 )
+    {                   // bail out if no more, coming forward
+        wxMessageBox (_("There are no more recent versions in the history!") );
+        return;
+    }
 
     if ( revNum >= gpApp->m_versionCount )
-    {                   // bail out if no more -- eventually dialog button will be dimmed so we shouldn't get here
-        wxMessageBox (_T("We're already back at the earliest version saved!") );
+    {                   // bail out if no more, going back
+        wxMessageBox (_("We're already back at the earliest version saved!") );
 		return;
     }
 
- 	returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
+ 	returnCode = pApp->m_pDVCS->DoDVCS (DVCS_GET_VERSION, revNum);			// get the requested revision
 
-// a negative returnCode means a bug, so let's catch it:
-    wxASSERT(returnCode >= 0);
-
+    wxASSERT(returnCode >= 0);      // a negative returnCode means a bug
     if (returnCode)  return;        // positive nonzero returnCode means git returned an error -- an error
                                     //  message should have been displayed already.
 
@@ -1686,16 +1797,24 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 // the doc becomes read-only since ReadOnlyProtection sees that m_trialVersionNum is non-negative.
 // If an error has come up, we've already bailed out, leaving the trial status alone.
 
-    gpApp->m_trialVersionNum = revNum;          // successfully got to requested revision
+    pApp->LogUserAction (_T("Successfully got the version - now calling EndTrial() or DocChangedExternally()"));
+    pApp->m_trialVersionNum = revNum;           // successfully got to requested revision
+
     DocChangedExternally();
 
-    if (revNum == 0)
-    {                                           // we're at the latest revision, so the trial's over
-        gpApp->m_pDVCSNavDlg->Destroy();        // take down the dialog
-        gpApp->m_pDVCSNavDlg = NULL;
-        gpApp->m_trialVersionNum = -1;
-        gpApp->m_saved_with_commit = TRUE;      // in effect, a commit has just been done
-    }
+    if (revNum == 0 && !pApp->m_bBackedUpForTrial)
+        EndTrial (TRUE);                        // we're at the latest committed version, and that's really the latest.  The trial's over.
+    else
+        pApp->GetView()->UpdateAppearance();    // still going, but we have to update the on-screen appearance
+}
+
+// IsLatestVersionChanged() calls DVCS to check if the current version on disk is the same as the latest version
+//  committed.  It returns TRUE if there are any changes.
+
+bool CAdapt_ItDoc::IsLatestVersionChanged (void)
+{
+    int  returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_ANY_CHANGES,  0);		// returns 0 if no changes, nonzero otherwise
+    return (returnCode != 0);
 }
 
 /*
@@ -1713,67 +1832,99 @@ void CAdapt_ItDoc::DoChangeVersion ( int revNum )
 */
 void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 {
+    CAdapt_ItApp*   pApp = &wxGetApp();
     int				returnCode;
     wxCommandEvent	dummy;
     int				trialRevNum = gpApp->m_trialVersionNum;
     DVCSNavDlg*     pNavDlg;
-    bool            didCommit = FALSE;
+    bool            needBackup = FALSE;
+    wxString        temp;
 
-    wxASSERT (startHere >= 0);
+    temp = temp.Format (_T("DoShowPreviousVersions() called with startHere = %d"), startHere);
+    pApp->LogUserAction (temp);
 
-    if (gpApp->m_commitCount <= 0)
+    wxASSERT (startHere >= 0);          // 0 is the latest version committed, 1 the next previous, and so on.
+
+    if (pApp->m_commitCount <= 0)
     {
-        wxMessageBox (_T("There are no earlier versions saved!") );
+        wxMessageBox (_("There are no earlier versions saved!") );
         return;
     }
 
     if (trialRevNum == 0)
     {
-        wxMessageBox (_T("We're already back at the earliest version saved!") );
+        wxMessageBox (_("We're already back at the earliest version saved!") );
         return;
     }
 
     if (trialRevNum > 0)
     {
-        wxMessageBox (_T("We're shouldn't have got here!") );
+        wxMessageBox (_T("We shouldn't have got here!") );
         return;
     }
 
-    // We're initiating a trial review of previoius versions.  We need to save and commit the current
-    // version, so we can come back to it if necessary.  But we don't need to do this if the doc
-    // has just been committed with no subsequent changes.  Note: if the doc is SAVED without a commit,
-    // we set m_saved_with_commit false for this test, since calling IsModified() will return false.
+    // We're initiating a trial review of previoius versions.  The current version needs to be backed up so we can come
+    // back to it if necessary, so we copy it to a file with the same name with "__bak" appended, in the same folder.
+    // But we don't need to do this if the doc has just been committed with no subsequent changes.
 
-    if ( IsModified() || !gpApp->m_saved_with_commit )
+#if defined(_DEBUG)
+	wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum);
+#endif
+    pApp->m_bBackedUpForTrial = FALSE;
+    if ( IsModified() )
     {
-        if (DoSaveAndCommit(_T("Before we can go back to previous versions we must save and remember the document as it is now.  You can enter a \
-                               comment in the box above to identify this version of the document, then click OK to proceed.")))
-            return;			// bail out on error or if user cancelled - message should be already displayed
-        didCommit = TRUE;
+        pApp->DoAutoSaveDoc();       // if the doc is modified, we have to save it, so it's just like an autosave, and we'll need a backup
+#if defined(_DEBUG)
+		wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum);
+#endif
+        needBackup = TRUE;
+    }
+    else
+        needBackup = IsLatestVersionChanged();      // if not modified, but the latest version isn't the same as the latest committed, we need a backup.
+
+// (Oct 13 -- we're now always doing the backup, no matter what, so "return to latest" will always have the expected result of returning to exactly where
+//  we started.
+//    if (needBackup)
+	needBackup = needBackup; // whm added to prevent GCC warning about variable set but not used
+    {
+        wxString    backupPath = pApp->m_curOutputPath + _T("__bak");
+        bool        bCopiedSuccessfully = ::wxCopyFile(pApp->m_curOutputPath, backupPath, TRUE);   // overwrite any previous copy
+        wxASSERT(bCopiedSuccessfully);
+		bCopiedSuccessfully = bCopiedSuccessfully; // prevent compiler warning in release build
+        pApp->m_bBackedUpForTrial = TRUE;
+        if (!fromLogDialog)  startHere--;       // if we've been called sraight from the menu, the "previous version" is actually the
+                                                //  last committed, since subsequent changes have been made to the doc.  So we need to
+                                                //  adjust where we start from.  But if we were called from the dialog, the actual version
+                                                //  has been specified, so we mustn't change it.
     }
 
-    if (!fromLogDialog || didCommit)
+    if (!fromLogDialog)
     {
-        returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
+        returnCode = pApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// (re-)reads the log, and hangs on to it
         if (returnCode < 0)
             return;                             // bail out on error
 
-        gpApp->m_versionCount = returnCode;     // success - now we have the current total number of log entries
-        if (fromLogDialog)  startHere++;        // log versions will have gone up by 1
+        pApp->m_versionCount = returnCode;      // success - now we have the current total number of log entries
     }
 
-    if (startHere == 0)  return;                // presumably the latest version was chosen in the log dialog,
-                                                // and we didn't commit a later one, so there's nothing more to do!
+    if (startHere == 0 && !pApp->m_bBackedUpForTrial)  return;
+                                                // presumably the latest version was chosen in the log dialog,
+                                                // and we didn't backup a later one, so there's nothing more to do!
 
     gpApp->m_trialVersionNum = startHere;                       // and here's where we'll start from
+
+    pApp->LogUserAction(_T("Bringing up the DVCSNavDlg"));
 
     pNavDlg = new (DVCSNavDlg) ( gpApp->GetMainFrame() );		// create the version navigation dialog
     pNavDlg->Move(100, 100);                                    // put it near the top left corner initially
     pNavDlg->ChooseVersion (startHere);                         // changes the doc version, and sets fields in the dialog
-    pNavDlg->Show();                                            // show it, non-modally.  By showing it after changing the
+	DoChangeVersion (startHere);								// we seem to need this on Windows, and is harmless otherwise
+	pNavDlg->Show();                                            // show it, non-modally.  By showing it after changing the
                                                                 // doc version, it appears on top so we avoid having to Raise()
                                                                 //  it which would look uglier.
-    gpApp->m_pDVCSNavDlg = pNavDlg;
+	pNavDlg->AcceptsFocus();
+    pNavDlg->InitDialog();
+    pApp->m_pDVCSNavDlg = pNavDlg;
 }
 
 // The "look at previous version" menu item takes us to the last one saved, which is item 1 in the log.
@@ -1786,19 +1937,18 @@ void CAdapt_ItDoc::OnShowPreviousVersions (wxCommandEvent& WXUNUSED(event))
     DoShowPreviousVersions (FALSE, 1);
 }
 
+
 void CAdapt_ItDoc::DoAcceptVersion (void)
 {
+    gpApp->LogUserAction(_T("Entering DoAcceptVersion()"));
+
 	if (gpApp->m_trialVersionNum < 0)
 	{
-		wxMessageBox (_T("We're not looking at earlier revisions!"));
+		wxMessageBox (_("We're not looking at earlier revisions!"));
+        gpApp->LogUserAction(_T("We're not looking at earlier revisions!"));
 		return;
 	}
-	gpApp->m_trialVersionNum = -1;		// cancel trialling.  m_commitCount should be OK as we read it from
-										//  the doc when we reverted.
-	DocChangedExternally();				// will become read-write again
-    gpApp->m_saved_with_commit = TRUE;  // In effect, a commit has just been done
-    gpApp->m_pDVCSNavDlg->Destroy();    // take down the navigation dialog
-    gpApp->m_pDVCSNavDlg = NULL;
+    EndTrial (FALSE);           // the trial's over, but we don't restore from any backup.
 }
 
 
@@ -1807,9 +1957,10 @@ bool  CallOpenDocument ( wxString path )
     return gpApp->GetDocument()->OnOpenDocument (path, false);
 }
 
-/*  RecoverLatestVersion() is called when an xml error comes up while reading a document.  If we can, we
-    revert to the latest committed version.  We return TRUE on success, FALSE otherwise.
-*/
+
+// RecoverLatestVersion() is called when an xml error comes up while reading a document.  If we can, we
+// revert to the latest committed version.  We return TRUE on success, FALSE otherwise.
+
 bool CAdapt_ItDoc::RecoverLatestVersion (void)
 {
     int             returnCode;
@@ -1817,7 +1968,7 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     wxString        docPath, docName;
     CAdapt_ItApp*   pApp = gpApp;
 
-//    wxMessageBox(_T("RecoverLatestVersion() called!"));
+    pApp->LogUserAction(_T("Entering RecoverLatestVersion()"));
 
     pApp->m_recovery_pending = FALSE;                  // restore normal default, so opening the doc after recovery works properly
 
@@ -1835,8 +1986,14 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
 //  doc has a wrong name. So on any nonzero returnCode we return FALSE since we can't
 //  recover the doc.
 
-    if (returnCode)  return FALSE;
+    if (returnCode)
+    {
+        wxString    temp;
+        temp = temp.Format (_T("Returning FALSE from RecoverLatestVersion() - returnCode = %d"), returnCode);
+        pApp->LogUserAction (temp);
 
+        return FALSE;
+    }
 
 /*  OK, the doc's recovered!  What we do now depends on what was happening when the doc was opened.  The normal situation
     is a simple doc opening, and in this case m_reopen_recovered_doc will be TRUE.  In this situation we'd like to
@@ -1848,13 +2005,14 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
     There are currently two other places where we read a document.  We don't attempt to continue these ops from partway
     through, but just ask the user to re-attempt what they were doing.
 */
-    
+
     if (!pApp->m_reopen_recovered_doc)          // here the caller will display a message, so we don't do it here.
         return TRUE;
 
     pApp->m_reopen_recovered_doc = FALSE;       // restore normal default
 
-    wxMessageBox(_T("This document was corrupt, but we have restored the latest version saved in the document history."));
+    wxMessageBox(_("This document was corrupt, but we have restored the latest version saved in the document history."));
+    pApp->LogUserAction (_T("This document was corrupt, but we have restored the latest version saved in the document history."));
 
 	CAdapt_ItView* pView = pApp->GetView();
 
@@ -1925,14 +2083,15 @@ bool CAdapt_ItDoc::RecoverLatestVersion (void)
         // outset.  Yes, we really DO need this here!!!
         pView->canvas->Refresh();
     }
-
-    pApp->m_saved_with_commit = TRUE;       // no changes since the restored version was committed
     return TRUE;                            // success!
 }
 
 void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
 {
-    int     returnCode, itemIndex = -1;
+    int     returnCode;
+    long    itemIndex = -1;
+
+    gpApp->m_pDVCS->m_version_to_open = -1;     // ensure this is initialized to something
 
     if (!Git_installed())
         return;                    // Shows message if git not installed
@@ -1942,22 +2101,37 @@ void CAdapt_ItDoc::OnShowFileLog (wxCommandEvent& WXUNUSED(event))
     returnCode = gpApp->m_pDVCS->DoDVCS (DVCS_SETUP_VERSIONS, 0);		// reads the log, and hangs on to it
     if (returnCode < 0)
     {                                           // an error probably means this is a new repository so there's nothing there yet.
-        wxMessageBox (_T("There are no previous versions in the history!"));
+        wxMessageBox (_("There are no previous versions in the history!"));
         return;                                 // in this case we don't show the dialog
     }
 
     gpApp->m_versionCount = returnCode;         // this is the total number of log entries
 
+    if (returnCode == 0)
+    {                                           // there's a repository, but no versions saved yet
+        wxMessageBox (_("There are no previous versions in the history!"));
+        return;                                 // in this case we don't show the dialog either
+    }
+
     DVCSLogDlg  logDlg ( gpApp->GetMainFrame() );
+    logDlg.InitDialog();
     returnCode = logDlg.ShowModal();
 
 // now, which button was hit?
     if (returnCode == wxID_OK)
     {                   // Show selected version
+        wxCommandEvent      eventCustom (wxEVT_Show_version);
+
         itemIndex = logDlg.m_pList->GetNextItem (itemIndex, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
         if (itemIndex == -1) return;
 
-        DoShowPreviousVersions (TRUE, itemIndex);          // easy!
+// We've found that if we just open the nav dialog from here, it doesn't appear as properly in focus on Windows.  So instead
+// we'll post a custom event to do it.
+
+        gpApp->LogUserAction(_T("Posting custom event to open the DVCSNavDlg"));
+        gpApp->m_pDVCS->m_version_to_open = (int)itemIndex;     // put the version we want in our DVCS object for the
+                                                                // event to pick up
+        wxPostEvent (gpApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
     }
 }
 
@@ -1988,14 +2162,36 @@ void CAdapt_ItDoc::OnUpdateDVCS_item (wxUpdateUIEvent& event)
 {
     int	 trialRevNum = gpApp->m_trialVersionNum;
 
-    event.Enable ( trialRevNum < 0 );         // item gets enabled iff no trial current
+    event.Enable ( (trialRevNum < 0) && (gpApp->m_pKB != NULL) && (gpApp->IsDocumentOpen()) );
 }
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
 {
-    event.Enable ( gpApp->m_owner != gpApp->m_strUserID );     // if user is already the owner, we disable the menu item
+    event.Enable ( (gpApp->m_owner != gpApp->m_strUserID) && (gpApp->m_trialVersionNum == -1) && (gpApp->m_pKB != NULL) && (gpApp->IsDocumentOpen()) );
+                    // enable only if user isn't the owner, and a trial is not under way
 }
 
+void CAdapt_ItDoc::PutPhraseBoxAtDocEnd()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	int sequNumAtEnd = pApp->GetMaxIndex();
+	pApp->m_pActivePile = GetPile(sequNumAtEnd);
+	pApp->m_nActiveSequNum = sequNumAtEnd;
+	wxString boxValue;
+	if (gbIsGlossing)
+	{
+		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_gloss;
+	}
+	else
+	{
+		boxValue = pApp->m_pActivePile->GetSrcPhrase()->m_adaption;
+		translation = boxValue;
+	}
+	pApp->m_targetPhrase = boxValue;
+	pApp->m_pTargetBox->ChangeValue(boxValue);
+	pApp->GetView()->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2);
+	pApp->GetView()->Invalidate();
+}
 
 // a smarter wrapper for DoFileSave(), to replace where that is called in various places
 // Is called from the following 8 functions: the App's DoAutoSaveDoc(), OnFileSave(),
@@ -2036,23 +2232,11 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 	// the document before going on
 	if (gpApp->m_pActivePile == NULL || gpApp->m_nActiveSequNum == -1)
 	{
-		int sequNumAtEnd = gpApp->GetMaxIndex();
-		gpApp->m_pActivePile = GetPile(sequNumAtEnd);
-		gpApp->m_nActiveSequNum = sequNumAtEnd;
-		wxString boxValue;
-		if (gbIsGlossing)
-		{
-			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_gloss;
-		}
-		else
-		{
-			boxValue = gpApp->m_pActivePile->GetSrcPhrase()->m_adaption;
-			translation = boxValue;
-		}
-		gpApp->m_targetPhrase = boxValue;
-		gpApp->m_pTargetBox->ChangeValue(boxValue);
-		gpApp->GetView()->PlacePhraseBox(gpApp->m_pActivePile->GetCell(1),2);
-		gpApp->GetView()->Invalidate();
+		PutPhraseBoxAtDocEnd();
+#if defined(_DEBUG)
+		wxLogDebug(_T("DoFileSave_Protected() relocation codeblock: translation = %s , m_pTargetBox has: %s"),
+			translation.c_str(), gpApp->m_pTargetBox->GetValue().c_str());
+#endif
 	}
 
     // SaveType enum value (2nd param) for the following call is default: normal_save BEW
@@ -2073,10 +2257,18 @@ bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg, const wxString& progr
 			if (!bRemovedSuccessfully)
 			{
 				// tell developer or user, if the removal failed
-				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 1714. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				wxMessageBox(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
+				gpApp->LogUserAction(_T("Adapt_ItDoc.cpp, DoFileSave_Protected()'s call of ::wxRemoveFile() failed, at line 2122. Processing continues, but you should immediately shut down WITHOUT saving, manually remove the old file copy, and then relaunch the application"));
 				return TRUE;
 			}
 		}
+#if defined(_DEBUG)
+		CPile* myPilePtr = gpApp->m_pActivePile;
+		CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+		wxLogDebug(_T("DoFileSave_Protected() before returns TRUE: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+			mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
+			mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+#endif
 		return TRUE;
 	}
 	else // handle failure
@@ -2471,6 +2663,14 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 {
 	bUserCancelled = FALSE;
 
+#if defined(_DEBUG)
+	CPile* myPilePtr = gpApp->m_pActivePile;
+	CSourcePhrase* mySrcPhrasePtr = myPilePtr->GetSrcPhrase();
+	wxLogDebug(_T("DoFileSave() start: sn = %d , src key = %s , m_adaption = %s , m_targetStr = %s , m_targetPhrase = %s"),
+		mySrcPhrasePtr->m_nSequNumber, mySrcPhrasePtr->m_key.c_str(), mySrcPhrasePtr->m_adaption.c_str(),
+		mySrcPhrasePtr->m_targetStr.c_str(), gpApp->m_targetPhrase.c_str());
+#endif
+
 	// BEW added 19Apr10 -- ensure we start with the latest doc version for saving if the
 	// save is a normal_save, but if a Save As... was asked for, the user may be about to
 	// choose a legacy doc version number for the save, in which case the call of the
@@ -2493,6 +2693,8 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	}
 
     CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
+
+	pApp->LogUserAction(_T("Initiated File Save by calling DoFileSave()"));
 
 	// make the working directory the "Adaptations" one; or the current Bible book folder
 	// if the m_bBookMode flag is TRUE
@@ -2541,7 +2743,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type,
 	bool bNoStore = FALSE;
 	bOK = FALSE;
 
-    // BEW 9Aug11, in the call below, param1 TRUE is bArremptStoreToKB, param2 bNoStore
+    // BEW 9Aug11, in the call below, param1 TRUE is bAttemptStoreToKB, param2 bNoStore
     // returns TRUE to the caller if the attempted store fails for some reason, for all
     // other circumstances it returns FALSE, and param3 bSuppressWarningOnStoreKBFailure
     // has its default value of FALSE; this call replaces the commented out stuff
@@ -2790,7 +2992,7 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		}
 		else
 		{
-			// docVersion = the current VERSION_NUMBER value is wanted; currently it's 6
+			// docVersion = the current VERSION_NUMBER value is wanted; currently it's 8
 			m_bLegacyDocVersionForSaveAs = FALSE;
 		}
 
@@ -2977,7 +3179,6 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 	}
 	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was
 												   // used for this save operation
-    gpApp->m_saved_with_commit = FALSE;            // mrh - this was a plain save, no commit
 
 	// Do the document backup if required (This call supports a docVersion 4 choice, and
 	// also a request to rename the document; by internally accessing the private members
@@ -3219,6 +3420,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				{
 					bRemovedSuccessfully = ::wxRemoveFile(newAbsPath);
 					wxASSERT(bRemovedSuccessfully);
+					bRemovedSuccessfully = bRemovedSuccessfully;  // prevent compiler warning, one of these is enough
 				}
 				// and also the temp copy
 				bSomethingOfThatNameExists = ::wxFileExists(tempFileAbsPath);
@@ -3730,7 +3932,7 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
                 wxCommandEvent  dummyEvent;
                 wxString        savedOutputFilename = pApp->m_curOutputFilename;
                 wxString        savedAdaptationsPath = pApp->m_curAdaptationsPath;
-                
+
                 OnFileClose(dummyEvent);                            // the file's corrupt, so we close it to avoid crashes
                 pApp->m_reopen_recovered_doc = FALSE;               // so the recovery code doesn't try to re-open the doc
                 pApp->m_curOutputFilename = thePath;                // have to make these source values current for the recovery
@@ -3738,10 +3940,10 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 				bReadOK = RecoverLatestVersion();
                 pApp->m_curOutputFilename = savedOutputFilename;    // restore target values
                 pApp->m_curAdaptationsPath = savedAdaptationsPath;
-                
+
                 if (bReadOK)                                        // if we recovered the doc, we retry the original read
                     bReadOK = ReadDoc_XML (thePath, this, _("Opening Document In Another Project"), nTotal);
-                
+
                 if (bReadOK)
 				{
 					wxString msg;
@@ -3781,7 +3983,6 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
     pApp->m_commitCount = -1;			//  means not under version control (yet)
     pApp->m_versionDate = wxInvalidDateTime;
     pApp->m_nActiveSequNum = 0;         // sensible default if we don't get a "real" value
-    pApp->m_saved_with_commit = FALSE;  // not saved/committed yet
 
 	return TRUE;
 }
@@ -3991,6 +4192,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 /// immediately returns. Otherwise, the item is enabled if m_pSourcePhrases has at least one
 /// item in its list; otherwise the item is disabled.
 ///////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -3998,8 +4200,15 @@ void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+    if (gpApp->m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
+
 	if (pApp->m_pSourcePhrases->GetCount() > 0)
 	{
 		event.Enable(TRUE);
@@ -4179,7 +4388,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenam
 		{
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
             // get a deep copy, so that we can change the data to what is compatible
-            // with docc version 4 without corrupting the pSrcPhrase which remains in
+            // with doc version 4 without corrupting the pSrcPhrase which remains in
             // doc version 5
 			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
 			pDeepCopy->DeepCopy();
@@ -5420,7 +5629,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	//	gpApp->m_pTargetBox->GetCancelAndSelectFlag());
 
 	// refactored 10Mar09
-	gpApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
+	pApp->m_nSaveActiveSequNum = 0;     // reset to a default initial value, safe for any length of doc
 
     // whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use
     // the legacy version's OnOpenDocument() serialization facilities, and can thus avoid
@@ -5711,97 +5920,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 		wxASSERT_MSG(FALSE,_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 		pApp->LogUserAction(_T("In OnOpenDocument() m_pKB is NULL. Probable Programming Error after disabling MRU code."));
 	}
-
-    // whm 1Oct12 removed MRU code
-	/*
-	// if we get here by having chosen a document file from the Recent_File_List, then it is
-	// possible to in that way to choose a file from a different project; so the app will crash
-	// unless we here set up the required directory structures and load the document's KB
-
-	if (pApp->m_pKB == NULL)
-	{
-        //ensure we have the right KB & project (the parameters SetupDirectories() needs
-        //are stored in the document, so will be already serialized back in; and our
-        //override of CWinApp's OnOpenRecentFile() first does a CloseProject (which ensures
-        //m_pKB gets set to null) before OnOpenDocument is called.
-        //WX Note: We override CMainFrame's OnMRUFile().
-        // If we did not come via a File... MRU file choice, then the m_pKB will not be
-        // null and the following call won't be made. The SetupDirectories call has
-        // everything needed in order to silently change the project to that of the
-        // document being opened
-        // Note; if gbAbortMRUOpen is TRUE, we can't open this document because it was
-        // saved formerly in folder mode, and folder mode has become disabled (due to a bad
-        // file read of books.xml or a failure to parse the XML document therein correctly)
-        // The gbAbortMRUOpen flag is only set true by a test within SetupDirectories() -
-        // and we are interested only in this after a click of an MRU item on the File
-        // menu.
-
-		// mrh 3May12 - since the document variables are now in the app instead of the doc, the
-		//  following call causes some to be re-initialized, which we don't want.  So we need
-		//  to save and restore them.  A redesign should avoid the need for this!
-
-		wxString	savedOwner = pApp->m_owner;
-		int			savedCommitCount = pApp->m_commitCount;
-		wxDateTime	savedRevisionDate = pApp->m_revisionDate;
-
-		pApp->SetupDirectories(); // also sets KB paths and loads KBs & Guesser
-
-		if (gbViaMostRecentFileList)
-		{
-			// test for the ability to get the needed information from the document - we can't get
-			// the BookNamePair info (needed for setting up the correct project path) if the
-			// books.xml parse failed, the latter failure sets m_bDisableBookMode to true.
-			if (gbAbortMRUOpen)
-			{
-				pApp->GetView()->ClobberDocument();
-				gbAbortMRUOpen = FALSE; // restore default value
-				// IDS_NO_MRU_NOW
-				wxMessageBox(_(
-"Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."),
-				_T(""), wxICON_EXCLAMATION | wxOK);
-				pApp->LogUserAction(_T("Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."));
-				if (nTotal > 0 && bShowProgress)
-				{
-					pStatusBar->FinishProgress(_("Opening the Document"));
-				}
-				return FALSE;
-			}
-			bool bSaveFlag = gpApp->m_bBookMode;
-			int nSaveIndex = gpApp->m_nBookIndex;
-            // the next call may clobber user's possible earlier choice of mode and index,
-            // so restore these after the call (project config file is not updated until
-            // project exited, and so the user could have changed the mode or the book
-            // folder from what is in the config file)
-			gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // ensure gbSfmOnlyAfterNewlines
-															   // is set to what it should be,
-															   // and same for gSFescapechar
-			gpApp->m_bBookMode = bSaveFlag;
-			gpApp->m_nBookIndex = nSaveIndex;
-
-			// the MRU open may have changed the AI project, and this one may be a KB
-			// sharing one, and if so we should call SetupForKBServer() twice here provided the
-			// above reading of the project config file has set m_bIsKBServerProject to TRUE
-#if defined(_KBSERVER)
-			if (gpApp->m_bIsKBServerProject)
-			{
-				gpApp->LogUserAction(_T("SetupForKBServer() called in the block for a MRU file open, in OnOpenDocument()"));
-				if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
-				{
-					// an error message will have been shown, so just log the failure
-					gpApp->LogUserAction(_T("SetupForKBServer() failed in the block for a MRU file open, in OnOpenDocument()"));
-				}
-			}
-#endif
-		}
-		gbAbortMRUOpen = FALSE; // make sure the flag has its default setting again
-		gbViaMostRecentFileList = FALSE; // clear it to default setting
-
-		pApp->m_owner = savedOwner;					// restore saved quantities
-		pApp->m_commitCount = savedCommitCount;
-		pApp->m_revisionDate = savedRevisionDate;
-	}
-	*/
-
 	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc
 
     // place the phrase box, but inhibit placement on first pile if doing a consistency
@@ -6423,7 +6541,7 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 		MarkStripInvalid(pPile); // sets CStrip::m_bValid to FALSE, and adds the
 								 // strip index to CLayout::m_invalidStripArray
 
-		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
+		// now go ahead and get rid of the partner pile for the passed in pSrcPhrase
 		pPile->SetStrip(NULL);
 
 		// if destroying the CPile instance pointed at by app's m_pActivePile, set the
@@ -18011,6 +18129,16 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	wxASSERT(pView);
 
+    // mrh Sept 13 - if a trial look at previously committed versions is current, we MUST NOT close the document!
+    // However we can be called from DocumentChangedExternally(), in which case m_bReopeningAfterClosing is TRUE, and in this
+    //  case we must perform the close.
+
+    if (pApp->m_trialVersionNum >= 0 && !m_bReopeningAfterClosing)
+    {
+        wxMessageBox (_("Before closing the document, you must either ACCEPT the revision or RETURN to the latest one."));
+        return FALSE;
+    }
+
 	// put up a Wait dialog
 	CWaitDlg waitDlg(pApp->GetMainFrame());
 	// indicate we want the closing the document wait message
@@ -18088,9 +18216,9 @@ bool CAdapt_ItDoc::OnCloseDocument()
     // kbType here before the KBs are clobbered (App closure by File > Exit, or the X
     // checkbox at top right of the frame window, causes control to go thru here - so we
     // need to save the kbserver params - particularly the m_kbServerLastSync datetime
-    // value. A preceding WriteProjectConfiguration() all is really needed too, so that we
-    // ensure the m_bIsKBServerProject flag's value is made persistent for the current AI
-    // project
+    // value. A preceding WriteProjectConfiguration() is really needed too, so that we
+    // ensure the m_bIsKBServerProject and m_bIsGlossingKBServerProject flags' values
+    // are made persistent for the current AI project
 	bool bOK;
 	if (!pApp->m_curProjectPath.IsEmpty())
 	{
@@ -18122,18 +18250,25 @@ bool CAdapt_ItDoc::OnCloseDocument()
 // mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve the current KB, so we now have
 //  a private flag to indicate this.
 
-	if (!m_bPreserveKBsWhenClosingDocument)
+	if (!m_bReopeningAfterClosing)
 	{
-//*
-	#if defined(_KBSERVER)
+
+#if defined(_KBSERVER)
 		if (pApp->m_bIsKBServerProject)
 		{
-			pApp->ReleaseKBServer(1); // the adaptations one
-			pApp->ReleaseKBServer(2); // the glossings one
-			pApp->LogUserAction(_T("ReleaseKBServer() called in OnCloseDocument()"));
+			if (pApp->m_bIsKBServerProject)
+			{
+				pApp->ReleaseKBServer(1); // the adaptations one
+				pApp->LogUserAction(_T("ReleaseKBServer(1) called in OnCloseDocument()"));
+			}
+			if (pApp->m_bIsGlossingKBServerProject)
+			{
+				pApp->ReleaseKBServer(2); // the glossings one
+				pApp->LogUserAction(_T("ReleaseKBServer(2) called in OnCloseDocument()"));
+			}
 		}
-	#endif
-//*/
+#endif
+
 		// the EraseKB() call will also try to remove any read-only protection
 		EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
 		pApp->m_pKB = (CKB*)NULL; // whm added
@@ -20798,6 +20933,7 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// active. It should only be the "Unpack Document..." command that should be disabled when
 /// when collaboration with Paratext/Bibledit is activated.
 ///////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
 	//if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
@@ -20810,6 +20946,12 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+    if (gpApp->m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
+
     // enable if there is a KB ready (even if only a stub), and the document loaded and
     // glossing mode is turned off
 	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady && !gbIsGlossing)
@@ -20835,6 +20977,7 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 /// whm added 7Jul11 Don't allow unpacking of documents when collaborating with an external
 /// editor such as Paratext or Bibledit.
 ///////////////////////////////////////////////////////////////////////////////
+
 void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 {
 	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
@@ -20842,6 +20985,11 @@ void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+    if (gpApp->m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
 	if (gpApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
@@ -21307,7 +21455,8 @@ bool CAdapt_ItDoc::DoUnpackDocument(wxFile* pFile) // whm changed to return bool
 #else
 	wxString sourceName = srcName.GetBuffer();
 	wxString targetName = tgtName.GetBuffer();
-	wxString storeFilenameStr(utf8Filename);
+	//wxString storeFilenameStr(utf8Filename);
+	wxString storeFilenameStr = wxString::FromUTF8(utf8Filename); // whm modified 2Nov13 for ANSI builds
 #endif
 
 	// we now can set up the directory structures, if they are not already setup
@@ -21572,14 +21721,14 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as
 															// noted in comments above
 	// BEW 28Sep12, if this project is a KB sharing one, then the project configuration
-	// read should have set m_bIsKBServerProject to TRUE, so once we have the KB's loaded,
-	// we can call SetupForKBServer() twice below.
+	// read should have set m_bIsKBServerProject to TRUE, and/or possibly
+	// m_bIsGlossingKBServerProject as well; so once we have the KB's loaded,
+	// we can call SetupForKBServer( as required below.
 
 	gpApp->SetupKBPathsEtc();
 
     // now we can save the xml document file to the destination folder (either Adaptations
-    // or a book folder), then parse it in and display the document in the main window.
-
+    // or a book folder), then parse it in and display the document in the main window....
 	// write out the xml document file to the folder it belongs in and with the same
 	// filename as on the source machine (path is given by m_curOutputPath above)
 	nFileLength = packByteStr.GetLength();
@@ -21628,100 +21777,45 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
 	}
 
 #if defined(_KBSERVER)
+	// It isn't a foregone conclusion that because the sender was sharing one or both kbs,
+	// that the one who receives and unpacks the document will also want to share. He may
+	// only want to inspect what was sent. So check if the sender had sharing one, and
+	// give a suitable message to inform the user which kbs the sender was sharing and
+	// invite him to do the same if the wants to share any editing changes he makes
+	bool bForeignAdaptingSharing = FALSE;
+	bool bForeignGlossingSharing = FALSE;
 	if (bGotItOK && gpApp->m_bIsKBServerProject)
 	{
-		// BEW 21May13 added the CheckLanguageCodes() call and the if-else block, to
-		// ensure valid codes and if not, or if user cancelled, then turn off KB Sharing
-		bool bUserCancelled = FALSE;
-
-        // BEW added 28May13, check the m_strUserID and m_strUsername strings are setup up,
-        // if not, open the dialog to get them set up -- the dialog cannot be closed except
-        // by providing non-empty strings for the two text controls in it. Setting the
-        // strings once from any project, sets them for all projects forever unless the
-		// user deliberately opens the dialog using the command in the View menu. (The
-		// strings are not set up if one is empty, or was the  ****  (NOOWNER) string)
-		bool bUserDidNotCancel = CheckUsername();
-		if (!bUserDidNotCancel)
+		bForeignAdaptingSharing = TRUE;
+	}
+	if (bGotItOK && gpApp->m_bIsGlossingKBServerProject)
+	{
+		bForeignGlossingSharing = TRUE;
+	}
+	if (bForeignAdaptingSharing || bForeignGlossingSharing)
+	{
+		wxString title = _("A message about knowledge base sharing");
+		wxString msg;
+		if (bForeignAdaptingSharing && !bForeignGlossingSharing)
 		{
-			// He or she cancelled. So remove KB sharing for this project
-			gpApp->LogUserAction(_T("User cancelled from CheckUsername() in DoUnpackDocument() in Adapt_ItDoc.cpp"));
-			gpApp->ReleaseKBServer(1); // the adapting one
-			gpApp->ReleaseKBServer(2); // the glossing one
-			gpApp->m_bIsKBServerProject = FALSE;
-			wxMessageBox(_(
-"This project previously shared its knowledge base.\nThe username, or the informal username, is not set.\nYou chose to Cancel from the dialog for fixing this problem.\nTherefore knowledge base sharing is now turned off for this project."),
-			_T("A username is not correct"), wxICON_EXCLAMATION | wxOK);
+			msg = _("The person who packed the document was sharing the adaptations knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
+			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		}
+		else if (!bForeignAdaptingSharing && bForeignGlossingSharing)
+		{
+			msg = _("The person who packed the document was sharing the glossing knowledge base to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
+			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 		}
 		else
 		{
-			// Valid m_strUserID and m_strUsername should be in place now, so
-			// go ahead with next steps which are to get the password to this server, and
-			// then to check for valid language codes
-
-			// Get the server password. Returns an empty string if nothing is typed, or if the
-			// user Cancels from the dialog
-			CMainFrame* pFrame = gpApp->GetMainFrame();
-			wxString pwd = pFrame->GetKBSvrPasswordFromUser();
-			// there will be a beep if no password was typed, or it the user cancelled; and an
-			// empty string is returned if so
-			if (!pwd.IsEmpty())
-		{
-				pFrame->SetKBSvrPassword(pwd); // store the password in CMainFrame's instance,
-											   // ready for SetupForKBServer() below to use it
-                // Since a password has now been typed, we can check if the username is
-                // listed in the user table. If he isn't, the hookup can still succeed, but
-                // we must turn KB sharing to be OFF
-
-                // The following call will set up a temporary instance of the adapting
-                // KbServer in order to call it's LookupUser() member, to check that this
-                // user has an entry in the entry table; and delete the temporary instance
-                // before returning
-				bool bUserIsValid = CheckForValidUsernameForKbServer(gpApp->m_strKbServerURL, gpApp->m_strUserID, pwd);
-				if (!bUserIsValid)
-				{
-                    // Access is denied to this user, so turn off the setting which says
-                    // that this project is one for sharing, and tell the user
-					gpApp->LogUserAction(_T("Kbserver user is invalid; in DoUnpackDocument() in Adapt_ItDoc.cpp"));
-					gpApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-					gpApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
-					gpApp->m_bIsKBServerProject = FALSE;
-					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
-					msg = msg.Format(msg, gpApp->m_strUserID.c_str());
-					wxMessageBox(msg, _("Invalid username"), wxICON_WARNING | wxOK);
-					return TRUE; // failure to reinstate KB sharing doesn't constitute a
-					// failure to unpack, so return TRUE here
-				}
-				else
-				{
-					// we want to ensure valid codes four source, target and glosses languages,
-					// so first 3 params are TRUE (CheckLanguageCodes is in helpers.h & .cpp)
-					bool bDidItOK = CheckLanguageCodes(TRUE, TRUE, TRUE, FALSE, bUserCancelled);
-					if (!bDidItOK && bUserCancelled)
-					{
-						// We must assume the codes are wrong or incomplete, or that the
-						// user has changed his mind about KB Sharing being on - so turn
-						// it off
-						gpApp->LogUserAction(_T("User cancelled from CheckLanguageCodes() in ProjectPage.cpp"));
-						gpApp->ReleaseKBServer(1); // the adapting one, no harm if m_pKbServer[0] is NULL still
-						gpApp->ReleaseKBServer(2); // the glossing one, no harm if m_pKbServer[1] is NULL still
-						gpApp->m_bIsKBServerProject = FALSE;
-					}
-					else
-					{
-						// Go ahead...
-						gpApp->LogUserAction(_T("SetupForKBServer() called in DoUnpackDocument()"));
-						// instantiate both adapting and glossing KbServer class instances, enabled by default
-						if (!gpApp->SetupForKBServer(1) || !gpApp->SetupForKBServer(2))
-						{
-							// an error message will have been shown, so just log the failure
-							gpApp->LogUserAction(_T("SetupForKBServer() failed in DoUnpackDocument()"));
-							gpApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-						}
-					}
-				} // end of else block for test: if (!bUserIsValid)
-			} // end of TRUE block for test: if (!pwd.IsEmpty())
-		} // end of else block for test: if (!bUserDidNotCancel)
-	} // end of TRUE block for test: if (bGotItOK && gpApp->m_bIsKBServerProject)
+			// must have been sharing both kb types
+			msg = _("The person who packed the document was sharing both the adapting and the glossing knowledge bases to a server with this URL: %s.\nIf you intent to make editing changes in the unpacked document which should be shared, you may wish to do the same.");
+			msg = msg.Format(msg, gpApp->m_strKbServerURL.c_str());
+			wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+		}
+	}
 #endif
 
 	return TRUE;
@@ -22278,8 +22372,8 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	bool	 savedDisableBookmodeFlag = pApp->m_bDisableBookMode;		// ditto
 	int		 savedBookIndex = pApp->m_nBookIndex;
 	BookNamePair*	pSavedCurBookNamePair = pApp->m_pCurrBookNamePair;
-	bool bDocIsClosed = FALSE;
-	bDocIsClosed = pApp->m_pSourcePhrases->GetCount() == 0;
+	bool bDocIsClosed = FALSE; // initialize, set it at next line
+	bDocIsClosed = pApp->m_pSourcePhrases->GetCount() == 0; // set bDocIsClosed
 	bool bDocForcedToClose = FALSE;
 	bool bConsCheckDone = TRUE;
 
@@ -22296,38 +22390,27 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 		{
 			// check open doc only (whether in Adaptations or a book folder)
 
- 			// save and remove open doc, if open
+            // BEW added 01Aug06, ensure the current document's contents are removed,
+            // otherwise we will get a doubling of the doc data when OnOpenDocument()
+            // is called because the latter will append to whatever is in
+            // m_pSourcePhrases, so the latter list must be cleared to avoid the data
+            // doubling bug
+            
+			// If there is a document open when the command was invoked, clobber it so
+			// that it's data doesn't get mixed into the first doc to be checked 
+			bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+										bDocForcedToClose, pStatusBar, &afList, &afgList);
+			if (!bClobberedSuccessfully)
+			{
+				// If there was an error, afList or afgList (which depends on
+				// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+				// and progress bar finished off; all that remains to do here is return
+				return;
+			}
+			// This open-doc-only option is available only provided a document is
+			// currently visible in the client window of the canvas
 			if (!bDocIsClosed)
 			{
-               // Save the Doc (and DoFileSave() also automatically saves, without backup,
-                // both the glossing and adapting KBs)
-				// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
-				// protection against data loss in the event of a failure
-				bool fsOK = DoFileSave_Protected(TRUE,_T("")); // TRUE - show the wait/progress dialog
-				if (!fsOK)
-				{
-					// something's real wrong!
-					wxMessageBox(_(
-					"Could not save the current document. Consistency Check Command aborted."),
-					_T(""), wxICON_EXCLAMATION | wxOK);
-                    // whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
-                    // current working directory has not changed, so no need here to reset
-                    // it before return.
-					pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
-					pStatusBar->FinishProgress(_("Performing Consistency Check"));
-					return;
-				}
-				pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Checking current document"));
-
-
-                // BEW added 01Aug06, ensure the current document's contents are removed,
-                // otherwise we will get a doubling of the doc data when OnOpenDocument()
-                // is called because the latter will append to whatever is in
-                // m_pSourcePhrases, so the latter list must be cleared to avoid the data
-                // doubling bug
-                bDocForcedToClose = TRUE;
-				pApp->GetView()->ClobberDocument();
-
 				// Ensure that our current document is the only doc in the accepted files list
 				pApp->m_acceptedFilesList.Clear();
 				pApp->m_acceptedFilesList.Add(docName);
@@ -22389,51 +22472,17 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 			{
 				// book mode is on, do the check over all books in all book folders
 
-				// first save and remove open doc, if open
-				if (!bDocIsClosed)
+				// If there is a document open when the command was invoked, clobber it so
+				// that it's data doesn't get mixed into the first doc to be checked 
+				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+											bDocForcedToClose, pStatusBar, &afList, &afgList);
+				if (!bClobberedSuccessfully)
 				{
-				   // Save the Doc (and DoFileSave() also automatically saves, without backup,
-					// both the glossing and adapting KBs)
-					// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
-					// protection against data loss in the event of a failure
-					pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Saving Current Document"));
-					bool fsOK = DoFileSave_Protected (false, _T("")); // don't show progress on this task
-					if (!fsOK)
-					{
-						// something's real wrong!
-						wxMessageBox(_(
-						"Could not save the current document. Consistency Check Command aborted."),
-						_T(""), wxICON_EXCLAMATION | wxOK);
-						// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
-						// current working directory has not changed, so no need here to reset
-						// it before return.
-						pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
-						// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
-						// glossing mode
-						if (gbIsGlossing)
-						{
-							RemoveAutoFixGList(afgList);
-						}
-						else
-						{
-							RemoveAutoFixList(afList);
-						}
-						pStatusBar->FinishProgress(_("Performing Consistency Check"));
-						return;
-					}
-
-					// BEW added 01Aug06, ensure the current document's contents are removed,
-					// otherwise we will get a doubling of the doc data when OnOpenDocument()
-					// is called because the latter will append to whatever is in
-					// m_pSourcePhrases, so the latter list must be cleared to avoid the data
-					// doubling bug
-					bDocForcedToClose = TRUE;
-					pApp->GetView()->ClobberDocument();
-
-					// Ensure that our current document is the only doc in the accepted files list
-					pApp->m_acceptedFilesList.Clear();
-				} // end of TRUE block for test: if (!bDocIsClosed)
-
+					// If there was an error, afList or afgList (which depends on
+					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+					// and progress bar finished off; all that remains to do here is return
+					return;
+				}
 				pApp->LogUserAction(_T("Check all docs within all book folders"));
 				// DoConsistencyCheck() relies on the fact that EnumerateDocFiles() having
 				// been called in prior to DoConsistencyCheck() being called will have set
@@ -22553,6 +22602,24 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 				// (dirPath has been set to pApp->m_curAdaptationsPath if book mode is not
 				// on, that is, to Adaptations folder)
 
+                // BEW 13Nov13 added call below -- it was omitted by mistake back in
+                // 1Aug2006!! Ross Jones found the error a few days ago. Without this
+                // block, the CSourcePhrase instances of the open document in the view
+                // remain in m_pSourcePhrases, so the next OnOpenDocument() call (i.e. the
+                // first doc of the list in m_acceptedFilesList) gets appended to the open
+                // doc, and saved as part of the appended doc (at its start)
+
+				// If there is a document open when the command was invoked, clobber it so
+				// that it's data doesn't get mixed into the first doc to be checked 
+				bool bClobberedSuccessfully = ConsistencyCheck_ClobberDoc(pApp, bDocIsClosed, 
+											bDocForcedToClose, pStatusBar, &afList, &afgList);
+				if (!bClobberedSuccessfully)
+				{
+					// If there was an error, afList or afgList (which depends on
+					// gbIsGlossing) is cleared internally, as is m_acceptedFilesList, 
+					// and progress bar finished off; all that remains to do here is return
+					return;
+				}
 				// need a copy of pKB to check for inconsistencies in
 				pKBCopy = new CKB();
 				pKBCopy->Copy(*pKB);
@@ -22685,6 +22752,56 @@ void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 	pStatusBar->FinishProgress(_("Performing Consistency Check"));
 }
 
+bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsClosed, bool& bDocForcedToClose,
+						CStatusBar* pStatusBar, AFList* afListPtr, AFGList* afgListPtr)
+{            
+	// save and remove open doc, if a doc is open
+	if (!bDocIsClosed)
+	{
+	   // Save the Doc (and DoFileSave() also automatically saves, without backup,
+		// both the glossing and adapting KBs)
+		// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
+		// protection against data loss in the event of a failure
+		pStatusBar->UpdateProgress(_("Performing Consistency Check"), 1, _("Saving Current Document"));
+		bool fsOK = DoFileSave_Protected (false, _T("")); // don't show progress on this task
+		if (!fsOK)
+		{
+			// something's real wrong!
+			wxMessageBox(_(
+			"Could not save the current document. Consistency Check Command aborted."),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+			// whm note 5Dec06: Since EnumerateDocFiles has not yet been called the
+			// current working directory has not changed, so no need here to reset
+			// it before return.
+			pApp->LogUserAction(_T("Could not save the current document. Consistency Check Command aborted."));
+			// remove any contents added to the AutoFixRecord, or AutoFixRecordG for
+			// glossing mode
+			if (gbIsGlossing)
+			{
+				RemoveAutoFixGList(*afgListPtr);
+			}
+			else
+			{
+				RemoveAutoFixList(*afListPtr);
+			}
+			pStatusBar->FinishProgress(_("Performing Consistency Check"));
+			return FALSE;
+		}
+
+        // BEW added 01Aug06, ensure the current document's contents are
+        // removed, otherwise we will get the CSourcePhrases of the first of
+        // the listed docs that we open appended to the currently open doc's
+        // data when OnOpenDocument() is called because the latter will append
+        // to whatever is in m_pSourcePhrases, so the latter list must be
+        // cleared to avoid the data doubling bug
+		bDocForcedToClose = TRUE;
+		pApp->GetView()->ClobberDocument();
+		pApp->m_acceptedFilesList.Clear();
+	} // end of TRUE block for test: if (!bDocIsClosed)
+	return TRUE;
+}
+
+
 // Allow "Change Punctuation or Markers Placement" while document is open, but only if the
 // active location's CSourcePhrase stores content in one or more of the
 // m_lastAdaptionsPattern, m_tgtMkrPattern, m_glossMkrPattern, or m_punctsPattern members
@@ -22786,11 +22903,11 @@ void CAdapt_ItDoc::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	//if (pDoc == NULL)
-	//{
-	//	event.Enable(FALSE);
-	//	return;
-	//}
+	if (pApp->m_pSourcePhrases->IsEmpty())
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	bool bKBReady = FALSE;
 	if (gbIsGlossing)
 		bKBReady = pApp->m_bGlossingKBReady;
@@ -24657,6 +24774,7 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 		if (bUserCancelled)
 			break; // don't do any more saves of the KB if user cancelled
 	} // end iteration of document files for (int i=0; i < nCount; i++)
+
 	pStatusBar->FinishProgress(_("Consistency Check"));
 
 	gbConsistencyCheckCurrent = FALSE;	// restore normal default

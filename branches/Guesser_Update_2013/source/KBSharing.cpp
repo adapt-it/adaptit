@@ -150,13 +150,13 @@ void KBSharing::OnRadioOnOff(wxCommandEvent& WXUNUSED(event))
 {
 	// We shouldn't be able to see the dlg if its not a KB sharing project,
 	// let alone get this far!!
-	wxASSERT(m_pApp->m_bIsKBServerProject == TRUE);
+	wxASSERT(m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject);
 
 	// Get the new state of the radiobox
 	m_nRadioBoxSelection = m_pRadioBox->GetSelection();
 	// make the KB sharing state match the new setting; both KbServer instances must be
 	// changed in parallel
-	if (m_pApp->m_bIsKBServerProject)
+	if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
 	{
         // respond only if this project is currently designated as one for supporting KB
         // sharing

@@ -58,6 +58,20 @@ DECLARE_EVENT_TYPE(wxEVT_End_Vertical_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
 DECLARE_EVENT_TYPE(wxEVT_Recover_Doc, -1)
+DECLARE_EVENT_TYPE(wxEVT_Show_version, -1)
+// BEW 26Nov13, next 3 are for support of the free translation Adjust dialog
+DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
+DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
+DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
+DECLARE_EVENT_TYPE(wxEVT_Insert_Widener, -1)
+
+
+#if defined(_KBSERVER)
+
+DECLARE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress, -1)
+
+#endif
+
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     DECLARE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos, -1)
@@ -218,7 +232,7 @@ public:
 	void OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
-    
+
 #if defined(_KBSERVER)
 
 	void OnKBSharingDlg(wxCommandEvent& event);
@@ -232,7 +246,8 @@ public:
 	// two accessors
 	wxString GetKBSvrPassword();
 	void	 SetKBSvrPassword(wxString pwd);
-	// The function for getting the kbserver password typed in by the user
+	// Next is the function for getting the kbserver password typed in by the
+	// user via a dialog
 	wxString GetKBSvrPasswordFromUser();
 
 #endif
@@ -256,6 +271,18 @@ public:
 	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
 
+	// Declare custom events for free translation's Adjust dialog
+	void OnCustomEventJoinWithNext(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventInsertWidener(wxCommandEvent& WXUNUSED(event));
+
+#if defined(_KBSERVER)
+	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
+#endif
+
+    void OnCustomEventShowVersion (wxCommandEvent& WXUNUSED(event));
+
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 	void OnCustomEventAdjustScrollPos(wxCommandEvent& WXUNUSED(event));
 #endif
@@ -265,6 +292,7 @@ public:
 
   private:
 	//wxHelpController		m_help;
+    void DoNoOp(); // does nothing - used in switch in OnIdle()
 
    DECLARE_CLASS(CMainFrame);
 	// Used inside a class declaration to declare that the class should

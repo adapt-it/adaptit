@@ -46,6 +46,9 @@
 #include "Adapt_ItCanvas.h"
 #include "Adapt_ItDoc.h"
 #include "FreeTrans.h"
+#include "FreeTransAdjustDlg.h"
+#include "Pile.h"
+#include "Cell.h"
 #include "ComposeBarEditBox.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -92,7 +95,6 @@ void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 	if (!event.AltDown())
 		event.Skip();
 	// The actual text characters typed in the compose bar's edit box go through here
-
 }
 
 void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
@@ -102,6 +104,10 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 	{
 		if (this->IsModified())
 		{
+			CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+			wxASSERT(pFreeTrans != NULL);
+			pFreeTrans->m_adjust_dlg_reentrancy_limit = 1; // make Adjust dialog accessible
+
 			CAdapt_ItView* pView = gpApp->GetView();
 			wxASSERT(pView != NULL);
 
@@ -113,29 +119,53 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 				pDoc->Modify(TRUE);
 			}
 
+#ifdef _DEBUG
+//			wxString amsg = _T("Line 123, OnEditBoxChanged(), in ComposeBarEditBox.cpp");
+//			pFreeTrans->DebugPileArray(amsg, pFreeTrans->m_pCurFreeTransSectionPileArray);
+#endif
+			// BEW 20Nov13
+			wxString text = this->GetValue();
+
 			wxClientDC dc((wxWindow*)gpApp->GetMainFrame()->canvas);
 			pView->canvas->DoPrepareDC(dc); // need to call this because we are drawing outside OnDraw()
-			CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
-			wxASSERT(pFreeTrans != NULL);
 			CPile* pOldActivePile; // set in StoreFreeTranslation but unused here
 			CPile* saveThisPilePtr; // set in StoreFreeTranslation but unused here
-			// StoreFreeTranslation uses the current (edited) content of the edit box
-			pFreeTrans->StoreFreeTranslation(pFreeTrans->m_pCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
-				retain_editbox_contents, this->GetValue());
+			dc.SetFont(*gpApp->m_pTargetFont);
+
+			wxString trimmedText = text;
+			trimmedText.Trim(); // trims at end by default
+			trimmedText.Trim(FALSE); // trims start of text
+
+			// Before it's stored, we update the trimmed string's width (in pixels) - we
+			// do this at every wxChar typed, so we can ensure the user does not type
+			// beyond what the display rectangles for the current section can display -
+			// and if the does, he'll have to either join or split - and will be asked
+			wxSize extent;
+			dc.GetTextExtent(trimmedText,&extent.x,&extent.y);
+			pFreeTrans->m_curTextWidth = extent.x;
+
+			// StoreFreeTranslation uses the current (edited) content of the edit box,
+			// trimmed of any final whitespace
+			pFreeTrans->StoreFreeTranslation(pFreeTrans->m_pCurFreeTransSectionPileArray,
+					pOldActivePile,saveThisPilePtr, retain_editbox_contents, trimmedText);
 			// for wx version we need to set the background mode to wxSOLID and the text background
 			// to white in order to clear the background as we write over it with spaces during
 			// real-time edits of free translation.
 			dc.SetBackgroundMode(gpApp->m_backgroundMode); // do not use wxTRANSPARENT here!!!
 			dc.SetTextBackground(wxColour(255,255,255)); // white
 			pFreeTrans->DrawFreeTranslationsAtAnchor(&dc, gpApp->m_pLayout);
+
 			// whm 4Apr09 note on problem of free translations in main window not being cleared for
-			// deletes or other edits the result in a shorter version: We need both Refresh and Update
+			// deletes or other edits that result in a shorter version: We need both Refresh and Update
 			// here to force the edit updates to happen in the main window. Note, however, that we must
 			// not have Refresh and Update in the View's OnDraw after DrawFreeTranslations is called
 			// because there they cause the OnDraw() function to be called repeatedly in a continuous
 			// loop resulting in flicker on Windows and program hang on Mac.
-			pView->canvas->Refresh();
-			pView->canvas->Update();
+            // BEW 21Nov13 removed - it resulted in double draws. Better to define an 
+            // EraseDrawRectangle() function and call it prior to drawing each rectangle's contents. 
+            // It works well whether typing or deleting characters. See FreeTrans.cpp for its definition
+			//pView->canvas->Refresh();
+			//pView->canvas->Update();
 
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);

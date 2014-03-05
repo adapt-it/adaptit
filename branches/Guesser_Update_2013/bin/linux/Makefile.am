@@ -86,7 +86,8 @@ adaptit_SOURCES = \
 	../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
-	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/GetSourceTextFromEditor.cpp \
+	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/FreeTransAdjustDlg.cpp ../../source/FreeTransSplitterDlg.cpp \
+	../../source/GetSourceTextFromEditor.cpp \
 	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
 	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h \
 	../../source/jsonval.cpp ../../source/jsonval.h \
@@ -94,7 +95,7 @@ adaptit_SOURCES = \
 	../../source/JoinDialog.cpp ../../source/KB.cpp ../../source/KBExportImportOptionsDlg.cpp \
 	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp \
 	../../source/KbServer.cpp ../../source/KBSharing.cpp ../../source/KBSharingMgrTabbedDlg.cpp \
-	../../source/KBSharingSetupDlg.cpp \
+	../../source/KBSharingStatelessSetupDlg.cpp ../../source/KbSharingSetup.cpp \
 	../../source/LanguageCodesDlg.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/md5.cpp \
 	../../source/md5_SB.cpp ../../source/MergeUpdatedSrc.cpp \
@@ -107,6 +108,7 @@ adaptit_SOURCES = \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
 	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp \
+	../../source/RemoveSomeTgtEntries.cpp \
 	../../source/RefStringMetadata.cpp ../../source/Retranslation.cpp ../../source/RetranslationDlg.cpp \
 	../../source/scrollingdialog.cpp ../../source/scrollingwizard.cpp \
 	../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp ../../source/SetupEditorCollaboration.cpp \
@@ -114,8 +116,9 @@ adaptit_SOURCES = \
 	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
 	../../source/StartWorkingWizard.cpp ../../source/StatusBar.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/tellenc.cpp \
+	../../source/tellenc.cpp ../../source/Thread_BulkPseudoDelete.cpp \
 	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
+	../../source/Thread_DoEntireKbDeletion.cpp \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
 	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
 	../../source/Thread_UploadToKBServer.cpp ../../source/Timer_KbServerChangedSince.cpp \

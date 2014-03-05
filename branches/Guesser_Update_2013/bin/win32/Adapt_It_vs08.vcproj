@@ -80,7 +80,7 @@
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wxmsw$(WXVER)d_aui.lib wxmsw$(WXVER)d_adv.lib wxmsw$(WXVER)d_html.lib wxmsw$(WXVER)d_core.lib wxbase$(WXVER)d.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				ShowProgress="0"
-				Version="6.4.2.0"
+				Version="6.5.2"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
@@ -180,7 +180,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wxmsw$(WXVER)_aui.lib wxmsw$(WXVER)_adv.lib wxmsw$(WXVER)_html.lib wxmsw$(WXVER)_core.lib wxbase$(WXVER).lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregex.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
-				Version="6.4.2.0"
+				Version="6.5.2"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
@@ -223,7 +223,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.4&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;&#x0D;&#x0A;"
+				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.5  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.5  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-3.0.0  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-3.0.0  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-3.0.0  ( If NOT %WXVER% == 30 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.5  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-3.0.0&quot; then WXVER should be set to 30&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.5&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;echo Building with wxWidgets found in %WXWIN%.&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -266,7 +266,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="wxmsw$(WXVER)ud_aui.lib wxmsw$(WXVER)ud_adv.lib wxmsw$(WXVER)ud_html.lib wxmsw$(WXVER)ud_core.lib wxbase$(WXVER)ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
-				Version="6.4.2.0"
+				Version="6.5.2"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;lib\silconverters"
@@ -311,7 +311,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.4  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.4&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;&#x0D;&#x0A;"
+				CommandLine="If /I %WXWIN% == C:\wxWidgets-2.9.5  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.5  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-3.0.0  ( If  &quot;$(ConfigurationName)&quot; == &quot;Debug&quot; ( goto configFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-3.0.0  ( If  &quot;$(ConfigurationName)&quot; == &quot;Release&quot; ( goto configFailed ) )&#x0D;&#x0A;&#x0D;&#x0A;If NOT DEFINED WXWIN goto buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXVER goto buildEventFailed&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-3.0.0  ( If NOT %WXVER% == 30 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.9.5  ( If NOT %WXVER% == 29 ( goto buildEventFailed ) )&#x0D;&#x0A;If /I %WXWIN% == C:\wxWidgets-2.8.12  ( If NOT %WXVER% == 28 ( goto buildEventFailed ) )&#x0D;&#x0A;goto buildEventOK&#x0D;&#x0A;:buildEventFailed&#x0D;&#x0A;If NOT DEFINED WXWIN (Set val_WXWIN=&quot;[NOT DEFINED]&quot;) Else Set val_WXWIN=&quot;%WXWIN%&quot;&#x0D;&#x0A;If NOT DEFINED WXVER (Set val_WXVER=&quot;[NOT DEFINED]&quot;) Else Set val_WXVER=&quot;%WXVER%&quot;&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo *** The WXWIN environment variable is set to %val_WXWIN% and the WXVER environment variable is set to %val_WXVER%&#x0D;&#x0A;echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!&#x0D;&#x0A;echo *** For example:&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-3.0.0&quot; then WXVER should be set to 30&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.9.5&quot; then WXVER should be set to 29&#x0D;&#x0A;echo ***    If WXWIN is set to &quot;c:\wxWidgets-2.8.12&quot; then WXVER should be set to 28&#x0D;&#x0A;echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!&#x0D;&#x0A;exit 1&#x0D;&#x0A;:configFailed&#x0D;&#x0A;echo *** Pre-Build event for $(ProjectName) FAILED&#x0D;&#x0A;echo ***    The Debug and Release build configurations cannot be used with %WXWIN%.&#x0D;&#x0A;echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.&#x0D;&#x0A;exit 1&#x0D;&#x0A;:buildEventOK&#x0D;&#x0A;echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK&#x0D;&#x0A;echo Building with wxWidgets found in %WXWIN%.&#x0D;&#x0A;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -355,7 +355,7 @@
 				AdditionalDependencies="wxmsw$(WXVER)u_aui.lib wxmsw$(WXVER)u_adv.lib wxmsw$(WXVER)u_html.lib wxmsw$(WXVER)u_core.lib wxbase$(WXVER)u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				ShowProgress="0"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
-				Version="6.4.2.0"
+				Version="6.5.2"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
@@ -645,6 +645,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\FreeTransAdjustDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\FreeTransSplitterDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\GetSourceTextFromEditor.cpp"
 				>
 			</File>
@@ -717,7 +725,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\KBSharingSetupDlg.cpp"
+				RelativePath="..\..\source\KbSharingSetup.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KBSharingStatelessSetupDlg.cpp"
 				>
 			</File>
 			<File
@@ -841,6 +853,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\RemoveSomeTgtEntries.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Retranslation.cpp"
 				>
 			</File>
@@ -905,11 +921,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_BulkPseudoDelete.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Thread_ChangedSince.cpp"
 				>
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_CreateEntry.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_DoEntireKbDeletion.cpp"
 				>
 			</File>
 			<File
@@ -1011,10 +1035,6 @@
 			>
 			<File
 				RelativePath="..\..\source\Adapt_It.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Adapt_It_Resources.h"
 				>
 			</File>
 			<File
@@ -1230,6 +1250,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\FreeTransAdjustDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\FreeTransSplitterDlg.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\GetSourceTextFromEditor.h"
 				>
 			</File>
@@ -1306,7 +1334,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KbSharingSetup.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\KBSharingSetupDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KBSharingStatelessSetupDlg.h"
 				>
 			</File>
 			<File
@@ -1426,6 +1462,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\RemoveSomeTgtEntries.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Retranslation.h"
 				>
 			</File>
@@ -1490,11 +1530,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Thread_BulkPseudoDelete.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Thread_ChangedSince.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_CreateEntry.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Thread_DoEntireKbDeletion.h"
 				>
 			</File>
 			<File

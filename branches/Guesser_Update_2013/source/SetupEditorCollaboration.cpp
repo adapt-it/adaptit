@@ -166,9 +166,6 @@ CSetupEditorCollaboration::CSetupEditorCollaboration(wxWindow* parent) // dialog
 	wxASSERT(pBtnClose != NULL);
 
 	// We have no Cancel button so no need to reverse buttons
-	//bool bOK;
-	//bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
-	//bOK = bOK; // avoid warning
 
 }
 
@@ -1859,6 +1856,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		newProjectPath = m_pApp->m_workFolderPath + m_pApp->PathSeparator
 								 + m_pApp->m_CollabAIProjectName;
 	}
+
 	// Call WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile)
 	// to save the settings in the project config file.
 	bool bOK;
@@ -1870,8 +1868,13 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		wxString msg = _("The collaboration settings for the \"%s\" project were successfully saved in the project's configuration file at:\n\n%s\n\nYou may now select or create another Adapt It project (step 1) and make collaboration settings for that Adapt It project (setps 2 - 4).\n\nIf you are finished, select \"Close\" to close the setup dialog and test your setup(s) using the Start Working Wizard.");
 		msg = msg.Format(msg,m_pApp->m_CollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
 		wxMessageBox(msg,_T("Save of collaboration settings successful"),wxICON_INFORMATION | wxOK);
-		m_bCollabChangedThisDlgSession = FALSE;
 		m_pApp->LogUserAction(msg);
+		m_bCollabChangedThisDlgSession = FALSE;
+		
+		// whm 25Oct13 added. This SaveAppCollabSettingsToINIFile() needs to be called
+		// at every point that significant collaboration settings change to keep the
+		// Adapt_It_WX.ini file up to date.
+		m_pApp->SaveAppCollabSettingsToINIFile(newProjectPath);
 	}
 	else
 	{
@@ -1882,6 +1885,7 @@ bool CSetupEditorCollaboration::DoSaveSetupForThisProject()
 		m_pApp->LogUserAction(msg);
 		return FALSE;
 	}
+
 
 	m_TempCollabProjectForSourceInputs = _T("");
 	m_TempCollabProjectForTargetExports = _T("");
@@ -1927,8 +1931,8 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 	// This is similar to the save routine that is found in the OnSaveSetupForThisProjNow() handler,
 	// except that we are saving blank values for the collab settings into the project config
 	// file.
-	m_pApp->m_bCollaboratingWithParatext = FALSE; // whm added 27Sep12
-	m_pApp->m_bCollaboratingWithBibledit = FALSE; // whm added 27Sep12
+	m_pApp->m_bCollaboratingWithParatext = FALSE;
+	m_pApp->m_bCollaboratingWithBibledit = FALSE;
 	m_pApp->m_CollabProjectForSourceInputs = _T("");
 	m_pApp->m_CollabProjectForTargetExports = _T("");
 	m_pApp->m_CollabProjectForFreeTransExports = _T("");
@@ -1967,6 +1971,13 @@ void CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(wxCommandEvent& 
 		msg = msg.Format(msg,m_TempCollabAIProjectName.c_str(),newAIconfigFilePath.c_str());
 		wxMessageBox(msg,_T("Removal of collaboration settings successful"),wxICON_INFORMATION | wxOK);
 		m_bCollabChangedThisDlgSession = FALSE;
+		
+		// whm 25Oct13 added. This SaveAppCollabSettingsToINIFile() needs to be called
+		// at every point that significant collaboration settings change to keep the
+		// Adapt_It_WX.ini file up to date. This does not remove the settings
+		// entirely from the ini file, it clears the existing settings to
+		// remove active collaboration.
+		m_pApp->SaveAppCollabSettingsToINIFile(newProjectPath);
 	}
 	else
 	{

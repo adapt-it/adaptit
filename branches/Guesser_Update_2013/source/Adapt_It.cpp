@@ -337,7 +337,6 @@ extern std::string str_CURLheaders;
 #include "HtmlFileViewer.h"
 #include "DVCS.h"
 #include "UsernameInput.h" // BEW added 28May13
-#include "KBSharingSetupDlg.h"
 
 //#include "md5.h"
 #include "md5_SB.h"
@@ -345,11 +344,12 @@ extern std::string str_CURLheaders;
 #if defined (_KBSERVER)
 
 #include "KbServer.h"
+//#include "KBSharingSetupDlg.h"
+#include "KBSharingStatelessSetupDlg.h"
 #include "Timer_KbServerChangedSince.h"
 #include "KBSharingMgrTabbedDlg.h"
 
 #endif
-
 
 // whm added 8Oct12
 #include <curl/curl.h>
@@ -394,6 +394,9 @@ extern int	gnFromChapter;
 extern int	gnFromVerse;
 extern int	gnToChapter;
 extern int	gnToVerse;
+
+/// This global is defined in CAdapt_ItView
+extern bool	gbCheckInclFreeTransText;
 
 /// This global is defined in TransferMarkersDlg.cpp.
 extern bool gbPropagationNeeded;
@@ -5834,13 +5837,17 @@ wxString szGlossesLanguageCode = _T("GlossesLanguageCode");
 /// m_freeTransLanguageCode member variable.
 wxString szFreeTransLanguageCode = _T("FreeTranslationLanguageCode");
 
-//#if defined (_KBSERVER)  -- mrh - let's define the string even if we don't use it
-// BEW added 25Sep12
-/// The label that identifies the whether or not the project is associated with a KBServer.
-/// This value is written in the "ProjectSettings" part of the project configuration file.
-/// Adapt It stores this string in the App's m_bIsKBServerProject member variable. Default
-/// is FALSE.
+/// The label that identifies the whether or not the project is associated with sharing a
+/// target language KB. This value is written in the "ProjectSettings" part of the project
+/// configuration file. Adapt It stores this string in the App's m_bIsKBServerProject
+/// member variable. Default is FALSE.
 wxString szIsKBServerProject = _T("IsKBServerProject");
+
+/// The label that identifies the whether or not the project is associated with sharing a
+/// glosses language KB. This value is written in the "ProjectSettings" part of the project
+/// configuration file. Adapt It stores this string in the App's m_bIsGlossingKBServerProject
+/// member variable. Default is FALSE.
+wxString szIsGlossingKBServerProject = _T("IsGlossingKBServerProject");
 
 // next two added 30Jan13
 /// The label for the project configuration file's line which stores the URL of the last
@@ -5943,8 +5950,8 @@ wxString szLastSourceOutputPath = _T("LastSourceTextExportPath");
 wxString szLastSourceRTFOutputPath = _T("LastSourceTextRTFExportPath");
 
 /// The label that identifies the following string as the project's
-/// "LastKBExportPath". This value is written in the "BasicSettings" part
-/// of the basic configuration file. Adapt It stores this path in the
+/// "LastKBExportPath". This value is written in the "ProjectSettings" part
+/// of the project configuration file. Adapt It stores this path in the
 /// App's m_lastKbOutputPath member variable.
 /// The old config label "KB_ExportPath" is retained for reading older
 /// config files.
@@ -8907,7 +8914,7 @@ void CAdapt_ItApp::ConfigureToolBarForUserProfile()
 		{ID_REMOVE_RETRANSLATION, _("Delete Retranslation"), _("Remove A Retranslation"), _("Remove the whole of the retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_22), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_NULL_SRC, _("New Placeholder"), _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), gpApp->wxGetBitmapFromMemory(placeholder_new_png_22), gpApp->wxGetBitmapFromMemory(placeholder_new_png_32)},
-		{ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Delete Placeholder"), _("Remove A Placeholder"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_22), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_32)},
+		{ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Delete Placeholder"), _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Restore selected phrase to a sequence of word objects"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_22), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_32)},
 		{0, _T(""), _T(""), _T(""), wxNullBitmap, wxNullBitmap, wxNullBitmap},
 		{ID_BUTTON_CHOOSE_TRANSLATION, _("Choose Translation"), _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_22), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_32)},
 		{ID_SHOWING_ALL, _("View Mode"), _("Show Target Text Only"), _("Show target text only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), gpApp->wxGetBitmapFromMemory(show_source_target_png_22), gpApp->wxGetBitmapFromMemory(show_source_target_png_32)},
@@ -9579,6 +9586,35 @@ void CAdapt_ItApp::OnEditChangeUsername(wxCommandEvent& WXUNUSED(event))
 	{
 		m_strUserID = dlg.m_finalUsername;
 		m_strUsername = dlg.m_finalInformalUsername;
+
+		// whm added 24Oct13. Save the UniqueUsername and InformalUsername
+		// Note: The code block here should be the same as in helpers.cpp's
+		// CheckUsername().
+		// values in the Adapt_It_WX.ini (.Adapt_It_WX) file for safe keeping
+		// and the ability to restore these values if the user does a Shift-Down
+		// startup of the application to reset the basic config file values.
+		bool bWriteOK = FALSE;
+		wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+		m_pConfig->SetPath(_T("/Usernames"));
+		// We want even a null string value for the UniqueUsername and InformalUsername strings
+		// to be saved in Adapt_It_WX.ini.
+		{ // block for wxLogNull
+			wxLogNull logNo; // eliminates spurious message from the system
+			bWriteOK = m_pConfig->Write(_T("unique_user_name"), m_strUserID);
+			if (!bWriteOK)
+			{
+				wxMessageBox(_T("OnEditChangeUsername() m_pConfig->Write() of m_strUserID returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+			}
+			bWriteOK = m_pConfig->Write(_T("informal_user_name"), m_strUsername);
+			if (!bWriteOK)
+			{
+				wxMessageBox(_T("OnEditChangeUsername() m_pConfig->Write() of m_strUsername returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+			}
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+		}
+		// restore the oldPath back to "/Recent_File_List"
+		m_pConfig->SetPath(oldPath);
+
 	}
 	else
 	{
@@ -12202,296 +12238,6 @@ wxString CAdapt_ItApp::GetFileNameForCollaboration(wxString collabPrefix, wxStri
 	return nameStr;
 }
 
-// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-/*
-// This function tests for the existence of "forced" collaboration values that are set
-// when the application is started up with command-line switches/options set that can
-// include -collab_on, -collab_off, -collab_proj, and -ai_proj. The "forced" tests utilize
-// these flags and strings: m_bForceCollabModeON, m_bForceCollabModeOFF,
-// m_bForceCollabExpectsFreeTrans, m_ForceCollabAIProjectName, and
-// m_ForceCollabProjectNames. Under the forced conditions this function
-// changes the App's applicable collaboration related values.
-void CAdapt_ItApp::ForceCollabSettingsFromCommandLineSwitches()
-{
-	// At this point the basic settings have been read into their App member
-	// values. We now check if command-line switches have been used to force
-	// the collaboration mode ON or OFF, and/or the PT/BE projects to be used,
-	// and or the AI project to be used during this session of AI.
-	//
-	// Note that we've saved the basic config file's values for
-	// CollaborationWithParatext in m_nSavedCollabPTSetting and the
-	// CollaborationWithBibledit value in m_nSavedCollabBESetting.
-	// When the WriteBasicSettingsConfiguration() function is called later
-	// during this session and/or at session end, it will always use the saved
-	// values from m_nSavedCollabPTSetting and m_nSavedCollabBESetting rather
-	// than the App's m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit
-	// values, because the command-line switches may force the App's values for
-	// collaboration during this session of the App.
-	// Note: m_bForceCollabModeON defaults to FALSE, but may be set to TRUE via
-	// command-line switch in OnInit()
-	if (m_bForceCollabModeON)
-	{
-		// When forcing collab mode ON for this session we should do some
-		// sanity checks to verify that projects have been set up properly
-		// before forcing the collab mode to ON.
-		// TODO: sanity checks
-		if (m_collaborationEditor == _T("Paratext"))
-		{
-			m_bCollaboratingWithParatext = TRUE;
-		}
-		else if (m_collaborationEditor == _T("Bibledit"))
-		{
-			m_bCollaboratingWithBibledit = TRUE;
-		}
-	}
-	if (m_bForceCollabModeOFF)
-	{
-		// No sanity check needed to turn collab mode OFF for the session.
-		if (m_collaborationEditor == _T("Paratext"))
-		{
-			m_bCollaboratingWithParatext = FALSE;
-		}
-		else if (m_collaborationEditor == _T("Bibledit"))
-		{
-			m_bCollaboratingWithBibledit = FALSE;
-		}
-	}
-	// Note: m_ForceCollabProjectNames defaults to an empty string, but may be set to
-	// a wxString of the form "PT/BE Src Proj:PT/BE Tgt Proj[:PT/BE FreeTrans Proj]"
-	// via command-line switch/option in OnInit()
-	if (m_ForceCollabProjectNames != _T(""))
-	{
-		if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
-		{
-			// Note: the m_ForceCollabProjectNames string follows the -collab_proj
-			// command-line option. It may have two fields of the form:
-			//
-			// "<source language project>:<target language project>"
-			//
-			// For example, when the string "Nyindrou:Tok Pisin" follows the -collab_proj
-			// command-line option, it indicates that Nyindrou is the PT/BE project to be
-			// used by AI for obtaining source texts for collaboration, and Tok Pisin is
-			// the PT/BE project to be used by AI for receiving target texts from AI during
-			// collaboration.
-			// Alternately, the m_ForceCollabProjectNames may have three fields of the form:
-			//
-			// "<source language project>:<target language project>:<freetrans language project>"
-			//
-			// in which the first two fields delimited by the : characters are the PT/BE projects
-			// for storing source texts and target texts (as described above), and the third field
-			// is the PT/BE project for storing the free translation texts. For example, the
-			// string "Tok Pisin:Nyindrou:English" following the -collab_proj command-line option
-			// indicates that the PT/BE "English" project should be used for the third PT/BE project
-			// involved in collaboration.
-			if (m_ForceCollabProjectNames.Find(_T(':')) != wxNOT_FOUND)
-			{
-				// m_ForceCollabProjectNames has content delimited by ':' characters, so parse it
-				wxStringTokenizer tkz(m_ForceCollabProjectNames,_T(":"));
-				wxString srcProjStr, tgtProjStr, freeTransProjStr;
-				int tokCt = 1;
-				while (tkz.HasMoreTokens())
-				{
-					// Get the third token in tempProjStr and compare it with
-					// the tmpSourceLangName and tmpTargetLangName for matches
-					wxString tokenStr = tkz.GetNextToken();
-					tokenStr.Trim(FALSE);
-					tokenStr.Trim(TRUE);
-					switch (tokCt)
-					{
-					case 1: srcProjStr = tokenStr;
-						break;
-					case 2: tgtProjStr = tokenStr;
-						break;
-					case 3: freeTransProjStr = tokenStr;
-						break;
-					}
-					tokCt++;
-				}
-				// Check to ensure that the parsed substrings represent valid collaboration editor
-				// projects
-				wxArrayString projList;
-				projList.Clear();
-				if (m_bCollaboratingWithParatext)
-				{
-					projList = GetListOfPTProjects();
-				}
-				else if (m_bCollaboratingWithBibledit)
-				{
-					projList = GetListOfBEProjects();
-				}
-				bool bProjectsAreValid = TRUE;
-				wxString tempCollabProjForSrcInputs = _T("");
-				wxString tempCollabProjForTgtExports = _T("");
-				wxString tempCollabProjForFreeTransExports = _T("");
-				wxString invalidProjStr = _T("");
-				if (!srcProjStr.IsEmpty())
-				{
-					ValidateCollabProject(srcProjStr,projList,tempCollabProjForSrcInputs);
-					if (tempCollabProjForSrcInputs.IsEmpty())
-					{
-						bProjectsAreValid = FALSE;
-						invalidProjStr = srcProjStr;
-					}
-				}
-				if (!tgtProjStr.IsEmpty())
-				{
-					ValidateCollabProject(tgtProjStr,projList,tempCollabProjForTgtExports);
-					if (tempCollabProjForTgtExports.IsEmpty())
-					{
-						bProjectsAreValid = FALSE;
-						if (!invalidProjStr.IsEmpty())
-							invalidProjStr += _T(", ");
-						invalidProjStr += tgtProjStr;
-					}
-				}
-				if (!freeTransProjStr.IsEmpty())
-				{
-					ValidateCollabProject(freeTransProjStr,projList,tempCollabProjForFreeTransExports);
-					if (tempCollabProjForFreeTransExports.IsEmpty())
-					{
-						bProjectsAreValid = FALSE;
-						if (!invalidProjStr.IsEmpty())
-							invalidProjStr += _T(", ");
-						invalidProjStr += freeTransProjStr;
-					}
-					else
-					{
-						m_bCollaborationExpectsFreeTrans = TRUE;
-						m_bForceCollabExpectsFreeTrans = TRUE; // whm added 9Feb12
-					}
-				}
-
-				if (bProjectsAreValid)
-				{
-					// all -collab_proj designated projects are valid PT/BE projects, so assign
-					// the App's values
-					m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
-					m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
-					m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
-					m_bCollaborationExpectsFreeTrans = !tempCollabProjForFreeTransExports.IsEmpty();
-					wxString tmpAIProjName = _T("");
-					wxString ai_srcLangName = _T("");
-					wxString ai_tgtLangName = _T("");
-					GetAIProjectFolderForCollab(tmpAIProjName, srcProjStr, tgtProjStr, m_CollabProjectForSourceInputs, m_CollabProjectForTargetExports);
-					// Note: The next three may be overridden if the -ai_proj "Lang A to Lang B adaptations"
-					// switch/option is also used (see the if (m_ForceCollabAIProjectName != _T("")) block below).
-					m_CollabAIProjectName = tmpAIProjName;
-					m_CollabSourceLangName = srcProjStr;
-					m_CollabTargetLangName = tgtProjStr;
-				}
-				else
-				{
-					// One or more of the collab projects following the -collab_proj option are
-					// invalid (not found as PT/BE projects).
-					// Notify the user of the error.
-					wxString collabEditor = m_collaborationEditor;
-					wxString msg = _("The command-line string \"%s\" designates at least one %s project that cannot be found (%s). The -collab_proj command-line option will be ignored.");
-					msg = msg.Format(msg,m_ForceCollabProjectNames.c_str(),collabEditor.c_str(),invalidProjStr.c_str());
-					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-					m_ForceCollabProjectNames.Empty(); // empty the string
-					m_bForceCollabExpectsFreeTrans = FALSE;
-				}
-			}
-			else
-			{
-				// m_ForceCollabProjectNames has no ':' delimiters so its content is not a properly
-				// formed string option for a -collab_proj command-line parameter. Therefore we will
-				// notify the user of the error.
-				wxString collabEditor = m_collaborationEditor;
-				wxString msg = _("The command-line string %s does not designate at least two %s projects in the form \"<source proj>:<target proj>\". The -collab_proj command-line option will be ignored.");
-				msg = msg.Format(msg,m_ForceCollabProjectNames.c_str(),collabEditor.c_str());
-				wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-				m_ForceCollabProjectNames.Empty(); // empty the string
-				m_bForceCollabExpectsFreeTrans = FALSE;
-			}
-		}
-		else
-		{
-			// The -collab_proj "..." option was used but the -collab_on was not used.
-			// TODO: Test this!
-			;
-		}
-	}
-	// Note: m_ForceCollabAIProjectName defaults to an empty string, but may be set to
-	// a wxString of the form "Lang A to Lang B adaptations" via command-line
-	// switch/option in OnInit(). If set this switch will override the -collab_proj
-	// switch's calculated AI project name (m_CollabAIProjectName) as well as the
-	// language names that get used during the session (m_CollabSourceLangName
-	// and m_CollabTargetLangName).
-	if (m_ForceCollabAIProjectName != _T(""))
-	{
-		// Check to see if there is a suitable collaboration project that matches
-		// the -ai_proj command-line option string. If so, we will try to have it
-		// pre-selected when the GetSourceTextFromEditor dialog appears during
-		// collaboration or when the projectPage appears in the wizard when collaboration
-		// is OFF.
-		wxArrayString aiProjList;
-		aiProjList.Clear();
-		GetPossibleAdaptionProjects(&aiProjList);
-		// Check whether the forced ai project name is an actual project on the
-		// host machine.
-		wxString forced_aiProjName = m_ForceCollabAIProjectName;
-#ifdef __WXMSW__
-		forced_aiProjName.LowerCase();
-#endif
-		int ct;
-		bool bAiProjectFound = FALSE;
-		for (ct = 0; ct < (int)aiProjList.GetCount(); ct++)
-		{
-			wxString aiProjItem = aiProjList.Item(ct);
-#ifdef __WXMSW__
-			aiProjItem.LowerCase();
-#endif
-			if (aiProjItem == forced_aiProjName)
-			{
-				// m_ForceCollabAIProjectName exists as an AI project folder name
-				bAiProjectFound = TRUE;
-			}
-		}
-		if (!bAiProjectFound)
-		{
-			// No AI Project corresponds to the m_ForceCollabAIProjectName so notify user
-			// that the -ai_proj parameter will be ignored.
-			wxString msg = _("An Adapt It Project named %s was not found. The -ai_proj command-line option will be ignored.");
-			msg = msg.Format(msg,m_ForceCollabAIProjectName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-			m_ForceCollabAIProjectName.Empty();	// empty the string so other functions in the App will
-											// know that it is not in effect.
-		}
-
-		if (bAiProjectFound)
-		{
-			wxString tmpSourceLangName,tmpTargetLangName;
-			if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
-			{
-				// Collaboration is turned ON
-				// Parse the language names from the AI project name.
-				GetSrcAndTgtLanguageNamesFromProjectName(m_ForceCollabAIProjectName,
-					m_CollabSourceLangName,m_CollabTargetLangName);
-				// assign the forced name to m_CollabAIProject Name
-				m_CollabAIProjectName = m_ForceCollabAIProjectName;
-				// TODO: Check that the GetSourceTextFromEditor dialog now selects the
-				// ai_proj command-line specified project
-
-			} // end of if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
-			else
-			{
-				// Collaboration is turned OFF, so that the designated AI project will
-				// be preselected when the wizard appears.
-				// The selection of a project in the projectPage is based on the value
-				// contained in the App's m_curProjectName member
-				m_curProjectName = m_ForceCollabAIProjectName;
-				m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName; // see above
-			}
-		}
-		// At this point the wizard will appear (if collaboration is OFF or
-		// m_bForceCollabModeOFF is TRUE); or the GetSourceTextFromEditor
-		// dialog will appear. In either case those functions will try to
-		// pre-select the project declared in the -ai_proj command-line option
-	}
-}
-*/
-
 wxString CAdapt_ItApp::GetCollabSettingsAsStringForLog()
 {
 	// Gets the collab settings from the App's values and concatenates them into
@@ -12748,7 +12494,19 @@ bool CAdapt_ItApp::AIProjectIsACollabProject(wxString m_projectName)
 				strFollowingTab.Trim(TRUE);
 				if (!strFollowingTab.IsEmpty())
 					bFoundCollabLineStrOK3 = TRUE;
-				break; // break for the last string
+				// whm modified 25Nov2013 a break statement was used here
+				// previously and that assumed that the szCollabAIProjectName
+				// would sequence after the above two config settings
+				// (szCollabProjectForSourceInputs and
+				// szCollabProjectForTargetExports), but I changed the order
+				// of the Collab... setting values to have the
+				// szCollabAIProjectName sequence first in the list of
+				// Collab... values. However, that meant that was causing this
+				// AIProjectIsACollabProject() function to prematurely return
+				// FALSE for collab projects. Changing the break; to a
+				// continue; statement allows the function to work properly
+				// regardless of the ordering of values.
+				continue; // break for the last string
 			}
 		}
 		if (!bFoundCollabLineStrOK1 || !bFoundCollabLineStrOK2 || !bFoundCollabLineStrOK3)
@@ -15122,11 +14880,11 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	// store it for the user's adapting or glossing session in this project
 	SetKbServer(whichType, pKbSvr);
 
-	// enable it (that's default, if the project is a KB sharing one)
+	// enable it (that's default, if the project is a KB sharing one or either type)
 	pKbSvr->EnableKBSharing(TRUE);
 
-	// instantiate a single timer instance; once instantiated, the second call of
-	// SetupForKBServer() will skip this block
+	// instantiate a single timer instance; once instantiated, a second call of
+	// SetupForKBServer()for a different type will skip this block
 	if (m_pKbServerDownloadTimer == NULL)
 	{
 		// the first param makes CAdapt_ItApp instance the owner, and the timer's events
@@ -15155,12 +14913,12 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	wxString username; username.Empty();
 	wxString password; password.Empty();
 
-	// Deprecated 31Jan13, we get credentials, and show a password dialog, from the KbSharingSetupDlg
-	// now, and we store url and username as app variables m_strKbServerURL and
-	// m_strUserID from now on (these are saved in the project config file too),
-	// and we get those here now, instead of from the credentials.txt file; the password
-	// from the password dialog is stored in CMainFrame class as the member
-	// m_kbserverPassword, private, and so accessed with GetKBSvrPassword()
+    // Deprecated 31Jan13, we get credentials, and show a password dialog, from the
+    // KbSharingSetup now, and we store url and username as app variables m_strKbServerURL
+    // and m_strUserID from now on (these are saved in the project config file too), and we
+    // get those here now, instead of from the credentials.txt file; the password from the
+    // password dialog is stored in CMainFrame class as the member m_kbserverPassword,
+    // private, and so accessed with GetKBSvrPassword(), & SetKBSvrPassword(wxString pwd)
 	/*
 	bool bOpenedOK = GetCredentials(credsfilename, url, username, password);
 	if (!bOpenedOK)
@@ -15180,9 +14938,16 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	password = GetMainFrame()->GetKBSvrPassword();
 	wxASSERT(!password.IsEmpty());
 
-	GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
-	GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
-	GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
+	if (m_bIsKBServerProject)
+	{
+		GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
+		GetKbServer(whichType)->SetTargetLanguageCode(m_targetLanguageCode);
+	}
+	else
+	{
+		GetKbServer(whichType)->SetSourceLanguageCode(m_sourceLanguageCode);
+		GetKbServer(whichType)->SetGlossLanguageCode(m_glossesLanguageCode);
+	}
 	GetKbServer(whichType)->SetKBServerURL(url);
 	GetKbServer(whichType)->SetKBServerUsername(username);
 	GetKbServer(whichType)->SetKBServerPassword(password);
@@ -15199,28 +14964,41 @@ bool CAdapt_ItApp::SetupForKBServer(int whichType)
 	// by two calls of DeleteKbServer(int whichType). The following function is in helpers.cpp
 	if (whichType == 1)
 	{
-        // We test only for the adapting kb being in the table. This is sufficient because
-        // we always create, and remove access to, or delete, both adapting and glossing
-		// remote kbs together. We instantiate in an if-block, the adapting one first, so
-		// if it fails then the glossing one is not instantiated, and we then need not
-		// remove it. (A curl error is seen by the user, but the call below will return
-		// FALSE. However, unlike absence of the kb in the kb table of the server, a curl
-		// error might not happen on a later try, and thereby grant success for the
-		// attempt to establish sharing.)
-		bool bSharedKbExists = CheckForSharedKbInKbServer(url, username, password,
-									m_sourceLanguageCode, m_targetLanguageCode, 1);
-		if (!bSharedKbExists)
+        // Testing for the adapting kb being in the table.
+		bool bSharedAdaptingKbExists = CheckForSharedKbInKbServer(url, username, password,
+									m_sourceLanguageCode, m_targetLanguageCode, 1); // 1 is kbtype
+		if (!bSharedAdaptingKbExists)
 		{
-			// Remove our installation -- return FALSE, and the caller will clear to FALSE
-			// the CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
-			// message first though.
+            // Remove our installation -- return FALSE, and clear to FALSE the
+            // CAdapt_ItApp's flag m_bIsKBServerProject. The user must see a helpful
+            // message first though.
 			wxString msg;
-			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'KB administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nOne entry for each of the adapting and glossing knowledge bases is required.\nUntil this is done, sharing this project's local knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local adapting knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
 								m_sourceLanguageCode.c_str(), m_targetLanguageCode.c_str());
-			wxString title = _T("Remote adapting and glossing knowledge bases are absent");
+			wxString title = _T("Remote adapting knowledge base is absent");
 			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 			DeleteKbServer(1);
-			wxASSERT(GetKbServer(2) == NULL); // ensure the glossing one's pointer is still NULL
+			m_bIsKBServerProject = FALSE;
+			return FALSE;
+		}
+	}
+	else
+	{
+		//We must be testing for a glossing kb being in the table
+		bool bSharedGlossingKbExists = CheckForSharedKbInKbServer(url, username, password,
+									m_sourceLanguageCode, m_glossesLanguageCode, 2); // 2 is kbtype
+		if (!bSharedGlossingKbExists)
+		{
+            // Remove our installation -- return FALSE, and clear to FALSE the
+            // CAdapt_ItApp's flag m_bIsGlossingKBServerProject. The user must see a
+            // helpful message first though.
+			wxString msg;
+			msg = msg.Format(_("A shared knowledge base for language codes ( %s , %s ) does not exist on the remote server.\nSomeone with 'knowledge base administrator' access level must first create entries in the remote server using the Knowledge Base Sharing Manager.\nUntil this is done, sharing this project's local glossing knowledge base will not be possible.\n(The Knowledge Base Sharing Manager is available from the password-protected Administrator menu.)"),
+								m_sourceLanguageCode.c_str(), m_glossesLanguageCode.c_str());
+			wxString title = _T("Remote glossing knowledge base is absent");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+			DeleteKbServer(2);
+			m_bIsGlossingKBServerProject = FALSE;
 			return FALSE;
 		}
 	}
@@ -15378,12 +15156,40 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
 
-    // Initialize items relating to corrupt doc recovery:
+// Initialize items relating to corrupt doc recovery:
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
     m_suppress_KB_messages = FALSE;     // normal default
 
-	limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
+#if defined(_KBSERVER)
+
+	m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+	m_pKbServerForDeleting = NULL;
+	m_srcLangCodeOfCurrentRemoval.Empty();
+	m_nonsrcLangCodeOfCurrentRemoval.Empty();
+	m_kbTypeOfCurrentRemoval = -1; // undefined
+	m_nIterationCounter = 0; // size_t
+	m_bKbPageIsCurrent = FALSE;
+	m_bAdaptingKbIsCurrent = TRUE;
+
+
+	m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
+#endif
+	// BEW 18Nov13, initialize new boolean - always false except is TRUE just before final
+	// RecalcLayout() call at end of printing, in app function DoPrintCleanup()
+	m_bSuppressFreeTransRestoreAfterPrint = FALSE;
+
+	// initialize the saved m_curGapWidth to zero (we use 0 versus non-zero as a flag)
+	m_saveCurGapWidth = 0;
+	// initialize the protecting boolean which prevents unwanted attempts to call free
+	// translation extended functionality operations by posting custom events from the
+	// OnIdle() handler
+	m_bEnableDelayedFreeTransOp = FALSE;
+	m_enumWhichFreeTransOp = no_op;
+	m_bFreeTrans_EventPending = FALSE;
+
+	// bug fixed 24Sept13 BEW
+	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
                  // being done more than once in a series of OnIdle() calls. It's reset to
                  // 0 in OnLButtonDown() and in the CPhraseBox functions MoveToNextPile(),
                  // MoveToImmediateNextPile() and MoveToPrevPile(); otherwise once the hack
@@ -15424,7 +15230,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pKbServer[0] = NULL; // for adapting; always NULL, except when a KB sharing project is active
 	m_pKbServer[1] = NULL; // for glossing; always NULL, except when a KB sharing project is active
-	m_bIsKBServerProject = FALSE; // initialise
+	m_bIsKBServerProject = FALSE; m_bIsGlossingKBServerProject = FALSE; // initialise both flags
 	// start off with the timer not instantiated; only set a single one in first call of
 	// SetupForKbServer(), second call (for the glossing KB) should check for NULL and do
 	// nothing if the timer already exists; use similar logic for destroying the timer in
@@ -15451,18 +15257,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() #1: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
-	// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
-    //  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
-    //  and we want to change them over to use m_strUserID automatically.
+
+// mrh - the user was previously the login user, but now is read from the project dialog and stored in m_strUserID.
+//  We're just temporarily keeping the old m_AIuser because existing files will still be using this as their owner,
+//  and we want to change them over to use m_strUserID automatically.
 
 	m_AIuser = wxGetUserName() + _T("@") + wxGetHostName();
-
 	m_trialVersionNum = -1;			// negative means no trial going on - the normal case
+    m_bBackedUpForTrial = FALSE;
+	m_pDVCS = new (DVCS);           // the single object we use for all DVCS ops
 
-	m_pDVCS = new (DVCS);		// the single object we use for all DVCS ops
-
-// Now we check if git is actually installed:
-    m_DVCS_installed = ( m_pDVCS->DoDVCS (DVCS_CHECK, 0) == 0 );       // if this call returns an error, assume DVCS not installed
+// Note: our check for git being installed is now moved down to after the user log file setup, so we can log the git calls.
 
 	// initialize Printing support members
 	m_bFrozenForPrinting = FALSE;
@@ -15662,6 +15467,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// whm added 26Apr11 for AI-PT Collaboration support
 	m_pArrayOfCollabProjects = new wxArrayPtrVoid;
+
+	// testing of some util functions
+	//wxString sourcePTProj = _T("NYNT : Nyindrou NT : Nyindrou : lid");
+	//sourcePTProj = this->ReplaceColonsWithAtSymbol(sourcePTProj);
 
 	// testing of wxMessageBox() style flags
 	//long style;
@@ -15989,39 +15798,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by
 							  // use of command-line parameter -xo
 	m_toolbarSize = btnSmall; // set initial value of the toolbar size
-
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// The following m_...Force... values are used to track whether command-line switches have
-	// been used for the current session that "force" certain collab values to be used for the
-	// session due to the use of command-line switches that can control collaboration.
-	// The following two are used in conjunction with command-line switches -collab_on and -collab_off
-	m_bForceCollabModeON = FALSE; // whm added 17Jan12
-	m_bForceCollabModeOFF = FALSE; // whm added 17Jan12
-	// The following is used in conjunction with the command-line switch/option:
-	//    -collab_proj "PT/BE Src Proj:PT/BE Tgt Proj[:PT/BE FreeTrans Proj]"
-	m_ForceCollabProjectNames = _T(""); // whm added 22Jan12
-	// The following is used in conjunction with the command-line switch/option:
-	//    -ai_proj "<Lang A to Lang B adaptations>"
-	m_ForceCollabAIProjectName = _T(""); // whm added 17Jan12
-	m_bForceCollabExpectsFreeTrans = FALSE; // whm added 9Feb12
-
-	// The following m_...Saved... values are used to store the temporary collaboration-related
-	// values that are read in from the basic config file. When the basic config file is later
-	// saved it will use these values when writing the collab values back to the basic config
-	// file.
-	m_nSavedCollabPTSetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-	m_nSavedCollabBESetting = -1; // whm added 17Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-	m_SavedCollabAIProjName = _T("");
-	m_SavedCollabProjectForSourceInputs = _T(""); // whm added 23Jan12
-	m_SavedCollabProjectForTargetExports = _T(""); // whm added 23Jan12
-	m_SavedCollabProjectForFreeTransExports = _T(""); // whm added 23Jan12
-	m_SavedCollabSourceLangName = _T(""); // whm added 23Jan12
-	m_SavedCollabTargetLangName = _T(""); // whm added 23Jan12
-	m_nSavedCollabExpectsFreeTrans = -1; // whm added 23Jan12 // -1 means no setting was saved, 0 means FALSE, 1 means TRUE
-	m_SavedCurProjectName = _T(""); // whm added 26Jan12
-	m_SavedCurProjectPath = _T(""); // whm added 26Jan12
-	*/
 
 	m_bSuppressWelcome = FALSE;
 	m_bSuppressTargetHighlighting = FALSE;
@@ -17485,9 +17261,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
 	int itsokay = m_pParser->Parse(); // continue if it fails
-	//if (m_pParser->Parse())
-	// return false; // returns false if commandline help (-h or -help) is used or
-				   // if there is an error parsing the commandline
 
 	/*
 	if (m_pParser->Found(_T("v")))
@@ -20049,6 +19822,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_userLogFile = new wxFile(m_usageLogFilePathAndName,wxFile::write_append); // just append new data to end of log file; deleted in OnExit()
 
+    // Now the user log file is set up, we can call git:
+    m_DVCS_installed = ( m_pDVCS->DoDVCS (DVCS_CHECK, 0) == 0 );       // if this call returns an error, assume DVCS not installed
+
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
 
@@ -21318,6 +21094,7 @@ int ii = 1;
 	}
 	m_bControlIsWithinOnInit = FALSE;
 
+	CMainFrame* pFrame = GetMainFrame();
 
 	//GDLC 2010-02-12
 	// Create the free translation display handler
@@ -21326,19 +21103,19 @@ int ii = 1;
 	// whm 13Jun12 Note: I needed to add four calls to PopEventHandler(FALSE) in the
 	// CMainFrame's destructor in MainFrm.cpp, to avoid a crash in OnExit(). One call for
 	// each of the four PushEventHandler() calls below.
-	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans);
+	pFrame->PushEventHandler(m_pFreeTrans);
 
 	m_pNotes = new CNotes(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pNotes);
+	pFrame->PushEventHandler(m_pNotes);
 
 	m_pRetranslation = new CRetranslation(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pRetranslation);
+	pFrame->PushEventHandler(m_pRetranslation);
 
 	m_pPlaceholder = new CPlaceholder(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pPlaceholder);
+	pFrame->PushEventHandler(m_pPlaceholder);
 
 	wxASSERT(m_pRetranslation);
 	m_pRetranslation->SetSuppressRemovalOfRefString(FALSE); // must start off FALSE, otherwise
@@ -21404,53 +21181,10 @@ int ii = 1;
 #endif
 */
 
-	// support Mike's testing of DVCS work (inspired by Chorus)
-	// (TEST_DVCS is #defined at line 66 of Adapt_It.h)
-#if defined(TEST_DVCS) && defined(_DEBUG)
-
-	wxMenuBar* pAIMenuBar = NULL;
-	pAIMenuBar = GetMainFrame()->m_pMenuBar; // pointer to the frame's current menu bar
-	int nIndexOfFileMenu = pAIMenuBar->FindMenu(_T("File"));
-	int nIndexOfEditMenu = pAIMenuBar->FindMenu(_T("Edit"));
-	wxASSERT(nIndexOfFileMenu != wxNOT_FOUND);
-	wxASSERT(nIndexOfEditMenu != wxNOT_FOUND);
-//	wxMenu* pEditMenu = pAIMenuBar->GetMenu(nIndexOfEditMenu);
-//    wxMenu* pFileMenu = pAIMenuBar->GetMenu(nIndexOfFileMenu);
-
-//	pEditMenu->AppendSeparator();
-
-//	pEditMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));						// defaults for final 2 params for all these
-//	pEditMenu->Append (ID_MENU_INIT_REPOSITORY, _T("Set up version control"));
-//	pEditMenu->Append (ID_MENU_DVCS_ADD_FILE, _T("Put this file under version control"));
-//	pEditMenu->Append (ID_MENU_DVCS_REMOVE_FILE, _T("Remove this file from version control (file won't be deleted)"));
-//	pEditMenu->Append (ID_FILE_SAVE_COMMIT, _T("Save and Commit changes to this file"));
-//	pEditMenu->Append (ID_FILE_REVERT_FILE, _T("Look at previously committed version of this file"));
-//	pEditMenu->Append (ID_MENU_ACCEPT_REVISION, _T("Accept this revision as CURRENT, and DISCARD any later changes"));
-//	pEditMenu->Append (ID_MENU_RETURN_TO_LATEST, _T("Return to the latest revision of this file"));
-//	pEditMenu->Append (ID_MENU_DVCS_LOG_FILE, _T("Show version log for this document"));
-//	pEditMenu->Append (ID_MENU_DVCS_LOG_PROJECT, _T("Show version log for whole project"));
-//	pEditMenu->Append (ID_FILE_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this file"));
-
-
-// now moving items to the File menu ready for prime time
-/*
-    pFileMenu->AppendSeparator();
-
-    pFileMenu->Append (ID_FILE_SAVE_COMMIT, _T("Save and remember in history"));
-    pFileMenu->Append (ID_FILE_SHOW_REVISIONS, _T("Look at previously remembered version of this document"));
-	pFileMenu->Append (ID_FILE_TAKE_OWNERSHIP, _T("Make logged-in user the owner of this document"));
-    pFileMenu->Append (ID_DVCS_LOG_FILE, _T("Show history for this document"));
-    pFileMenu->Append (ID_DVCS_LOG_PROJECT, _T("Show history for whole project"));
-    pFileMenu->Append (ID_MENU_DVCS_VERSION, _T("DVCS version"));
-*/
-#endif
-	// end of code for supporting Mike's DVCS work
-
 #if defined(_KBSERVER)
     // append a menu separator and then a "Setup Knowledge Base Sharing..." menu item to
     // the Advanced menu in the _Debug build
 	size_t nAdvancedMenuIndex = 5;
-	CMainFrame* pFrame = GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxMenu* pAdvancedMenu = pMenuBar->GetMenu(nAdvancedMenuIndex);
 	pAdvancedMenu->AppendSeparator(); // ignore returned pointer
@@ -21484,7 +21218,7 @@ int ii = 1;
 	RemoveUnwantedOldUserProfilesFiles(); // BEW added 22Apr13 (UserProfiles support is handled
 				// in this OnInit() function at lines 19780 to 20,420 approximately)
 
-	GetMainFrame()->SendSizeEvent(); // needed to force redraw
+	pFrame->SendSizeEvent(); // needed to force redraw
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
@@ -21551,11 +21285,14 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
-	// BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
-	// this point, and so the call to PopEventHandler() can't be made here. But I also
-	// found out that not making the call does not leak memory, and presumably wxWidgets
-	// itself cleans up what is on its event stack, so we don't need to do it here
-	// ourselves. (Next 6 lines of comments now don't apply)
+    // BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
+    // this point, and so the call to PopEventHandler() can't be made here. Bill found out
+    // that these pushed handlers (pushed in OnInit() at approx lines 21341++) have to be
+    // popped - he did it at lines 1316 to 1319 of the CMainFrame destructor, ~MainFrame().
+    // What's there are just four lines which each are: PopEventHandler(FALSE); So that
+    // does the job, it only requires that we have one pop for each push that we did in
+    // OnInit(). The classes themselves, and others besides, are deleted immediately below.
+    //  (The following is the legacy comment)
 	// Our "new" classes need to have their event tables popped off the stack of windows
 	// event handlers - so do them in reverse order in which they were pushed.
 	// (Alternatively, we could pass the param TRUE to the pop call, and then the pop will
@@ -21566,7 +21303,8 @@ int CAdapt_ItApp::OnExit(void)
 	// The push order is so far:
 	// 1. CFreeTrans
 	// 2. CNotes
-	// 3.
+	// 3. CRetranslation
+	// 4. CPlaceholder
 	//wxEvtHandler* pHdlr = NULL;
 	// delete the Guesser objects
 	if (m_pAdaptationsGuesser != NULL)
@@ -21950,6 +21688,18 @@ int CAdapt_ItApp::OnExit(void)
 		m_pDVCS = (DVCS*)NULL;
 	}
 
+#if defined(_KBSERVER)
+	// If a kb database of entries in kbserver's entry table is being deleted one by one
+	// in a currently running thread, then m_pApp->m_pKbServerForDeleting  will be non-NULL;
+	// test for this and recover the heap memory now, the thread will then fail but
+	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
+	// next session, or over several sessions, until the particular kb database is gone
+	if (m_pKbServerForDeleting != NULL)
+	{
+		delete m_pKbServerForDeleting;
+		m_pKbServerForDeleting = (KbServer*)NULL;
+	}
+#endif
 	return 0;
 }
 
@@ -22574,27 +22324,50 @@ void CAdapt_ItApp::InitializePunctuation()
 /// If the user holds down the SHIFT key during application startup, or if the configuration
 /// file cannot be read, this function calls SetDefaults() instead.
 /// BEW modified 19Aug09 in support of adminstrator pointing app at custom work folder locations
+/// whm modified 29Oct13 to prompt user before proceeding with Shift-Down
+/// reset of basic config file settings.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to return bool
 											// whm 9Mar10 changed name from GetBasicConfigFileSettings
 											// to GetBasicConfiguration
 {
-	// Called from OnInit() at program startup. Or from CustomWorkFolderLocation() command
-	// handler when administrator has Administrator menu showing
-	// If user starts up with the SHIFT key down, or if an existing basic config file cannot
-	// be read successfully, SetupDefaults() is called and all initializations and settings
-	// are drawn from there. Otherwise, intializations and settings contained in the basic
-	// config file are used
-	// Now attempt to set source, target language fonts, and nav text font set up from the
-	// data in the configuration file
-	// ::wxGetKeyState() was not available as a global function in wxWidgets
-	// version 2.4.2, but ::wxGetKeyState() is available in wxWidgets version 2.5.3
-	// and later, so we use it here.
+	// whm 29Oct13 modified to prompt the user to verify that a Shift-Down
+	// startup should indeed be done, knowing the consequences of that action.
+    // Called from OnInit() at program startup. Or from the
+    // CustomWorkFolderLocation() command handler when an administrator has the
+    // Administrator menu showing. If user starts up with the SHIFT key down,
+    // or if the existing basic config file cannot be read successfully,
+    // SetupDefaults() is called and all initializations and settings are drawn
+    // from there - except for certain administrator controlled settings - see
+    // SetupDefaults() - which are restored from the Adapt_It_WX.ini or
+    // .Adapt_It_WX file. Otherwise, intializations and settings contained in
+    // the basic config file are used.
+    //
+    // Note: ::wxGetKeyState() was not available as a global function in
+    // wxWidgets version 2.4.2, but ::wxGetKeyState() is available in wxWidgets
+    // version 2.5.3 and later, so we use it here.
 	bool bReturn = FALSE;
-	bReturn = bReturn; // avoid compiler warning (appropriate here, else block doesn't use
-					   // this boolean, and we don't want to use wxCHECK_MSG() in this
-					   // function either)
-	if (!wxGetKeyState(WXK_SHIFT)) // if (keyState != WXK_SHIFT)
+	bReturn = bReturn; // avoid GCC warning
+	bool bDoNormalStart = TRUE;
+	bool bShiftDownByUser = wxGetKeyState(WXK_SHIFT);
+	if (bShiftDownByUser)
+	{
+		// Query user to verify intent to bypass reading the basic
+		// configuration file, and thus reset many basic settings
+		wxString msg;
+		msg = _("WARNING: Adapt It detected that you held the Shift key down during program startup.\n\nHolding the Shift key down should only be done during startup if you think that Adapt It's basic configuration file has become corrupted, and you want Adapt It to replace its basic configuration file with a fresh one that uses default settings. Any basic Preferences that you have set such as splash screen, main window position and size, toolbar and other view settings, will be changed to default values.\n\nDo you want to reset basic configuration settings?\n\nSelect \"Yes\" to reset the basic configuration settings. Select \"No\" to continue using your old settings.");
+		int result = wxMessageBox(msg,_("Detected Shift key down during startup"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		if (result == wxNO)
+		{
+			bDoNormalStart = TRUE;
+		}
+		else if (result == wxYES)
+		{
+			bDoNormalStart = FALSE;
+		}
+	}
+
+	if (bDoNormalStart) // not a Shift-Down startup
 	{
 		// Shift key is not down, so load the config file data for fonts & other settings.
 		// This version of the function uses configuration file, not the registry.
@@ -22633,6 +22406,7 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 		// pointing the application at a custom work folder location
 		SetDefaults();
 	}
+
 	return bReturn;
 }
 
@@ -22649,6 +22423,8 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
 /// settings from the project config file, but instead calls the App's
 /// SetDefaultCaseEquivalences() function (the other defaults will have been done from the
 /// application-level configuration file already).
+/// whm modified 29Oct13 to prompt user before proceeding with Shift-Down
+/// reset of basic config file settings.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 {
@@ -22658,7 +22434,26 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 	// effect)
 	bool bReturn = FALSE;
 	bReturn = bReturn; // avoid compiler warning
-	if (!wxGetKeyState(WXK_SHIFT))
+	bool bDoNormalProjectOpening = TRUE;
+	bool bShiftDownByUser = wxGetKeyState(WXK_SHIFT);
+	if (bShiftDownByUser)
+	{
+		// Query user to verify intent to bypass reading the project
+		// configuration file, and thus reset many project settings
+		wxString msg;
+		msg = _("WARNING: Adapt It detected that you held the Shift key down while opening a project.\n\nHolding the Shift key down should only be done while opening a project if you think that Adapt It's project configuration file has become corrupted, and you want Adapt It to replace its project configuration file with a fresh one that uses default settings. Any project Preferences that you have set such as fonts, font colors, punctuation, upper and lower case equivalences, last import-export paths, guesser settings, toolbar and other settings, will be changed to default values.\n\nDo you want to reset project configuration settings?\n\nSelect \"Yes\" to reset the project configuration settings. Select \"No\" to continue using your old settings.");
+		int result = wxMessageBox(msg,_("Detected Shift key down during project opening"), wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		if (result == wxNO)
+		{
+			bDoNormalProjectOpening = TRUE;
+		}
+		else if (result == wxYES)
+		{
+			bDoNormalProjectOpening = FALSE;
+		}
+	}
+
+	if (bDoNormalProjectOpening) // not a Shift-Down startup
 	{
 		// whm added 9Mar10 to ensure that a "foreign" project config file has been cloned,
 		// renamed, and modified to have the appropriate (or compatible) fonts for the project.
@@ -22692,15 +22487,18 @@ void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
 		if (!bReturn)
 		{
 			// failure to get it, so use the built-in defaults instead
-			SetDefaultCaseEquivalences();
+			SetProjectDefaults(projectFolderPath); // whm 25Oct13 changed. Originally only called SetDefaultCaseEquivalences();
 		}
 	}
 	else
 	{
-		// shift key is still down, so get the default character case equivalents only
-		// for the project; the other defaults will have been done from the application-level
-		// configuration file already
-		SetDefaultCaseEquivalences();
+		// whm 25Oct13 Note: Some project defaults will have been done from the
+		// application-level basic configuration file already. However, some
+		// critical project settings including collaboration settings for
+		// individual projects need to be preserved across a SHIFT-Down
+		// opening of the project. The SetProjectDefaults() below now takes
+		// care of the setting and preservation of certain settings.
+		SetProjectDefaults(projectFolderPath); // whm 25Oct13 changed. Originally only called SetDefaultCaseEquivalences();
 	}
 }
 
@@ -24550,13 +24348,13 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 	// KBs and load them with xml data from disk, and making unique adjustments for
 	// any failures there in the caller's code by handling them in a FALSE block test
 	// when calling this function.
-	//
 	// First, delete/erase any existing in-memory KB object to avoid leaking memory.
 	// This probably would also prevent the problems with an assert he described
 	// on 23Aug10 in the View's OnCreate() function.
 	// whm: TODO: move the EraseKB() function from the Doc to the App class (or even
 	// better to its own CKB class). Doing so would avoid having to get a pointer to
 	// the document when one is unsure if such a pointer exists.
+	// BEW 11Oct13 BEWARE OF THE ABOVE TODO - some time back I found it needs to stay as is
 	CAdapt_ItDoc* pDoc = GetDocument();
 	wxASSERT(pDoc != NULL);
 //*
@@ -24572,8 +24370,12 @@ bool CAdapt_ItApp::CreateAndLoadKBs() // whm 28Aug11 added
 		if (m_bIsKBServerProject)
 		{
 			ReleaseKBServer(1); // the adaptations one
+			LogUserAction(_T("ReleaseKBServer(1) called in CreateAndLoadKBs()"));
+		}
+		if (m_bIsGlossingKBServerProject)
+		{
 			ReleaseKBServer(2); // the glossings one
-			LogUserAction(_T("ReleaseKBServer() called in CreateAndLoadKBs()"));
+			LogUserAction(_T("ReleaseKBServer(2) called in CreateAndLoadKBs()"));
 		}
 	}
 #endif
@@ -25856,7 +25658,13 @@ void CAdapt_ItApp::OnUpdateFileStartupWizard(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	event.Enable(TRUE); // we want it always available, with several entry points
+    if (m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
+
+	event.Enable(TRUE);         // we want it always available, with several entry points
 }
 
 
@@ -26029,14 +25837,26 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
                 if (response == wxYES)
                 {
                     // The user selected to "Turn Collaboration OFF"
-                    if (m_collaborationEditor == _T("Paratext"))
-                    {
-                        m_bCollaboratingWithParatext = FALSE;
-                    }
-                    else if (m_collaborationEditor == _T("Bibledit"))
-                    {
-                        m_bCollaboratingWithBibledit = FALSE;
-                    }
+                    
+					// whm modified 25Nov2013. It is sufficient here to set
+					// the m_bStartWorkUsingCollaboration flag to FALSE. We
+					// should not reset the PT and BE m_bCollaboratingWith...
+					// flags here, so I've commented out the following if/else
+					// tests below. This should allow whatever collaboration
+					// that was taking place to still be the default selection
+					// in the 3-button dialog the next time it appears to the
+					// user. This I think is a more natural way to handle the
+					// situation rather than making the user explicitly select
+					// to work in collaboration mode again after cancelling
+					// from the GetTextFromEditor dialog.
+					//if (m_collaborationEditor == _T("Paratext"))
+                    //{
+                    //    m_bCollaboratingWithParatext = FALSE;
+                    //}
+                    //else if (m_collaborationEditor == _T("Bibledit"))
+                    //{
+                    //    m_bCollaboratingWithBibledit = FALSE;
+                    //}
                     // The user wants to get the wizard to select a different project.
                     LogUserAction(_T("Collaboration turned OFF by user after Cancel of GetSourceTextFromEditorDlg"));
                     m_bStartWorkUsingCollaboration = FALSE;
@@ -26341,6 +26161,25 @@ CPlaceholder*	CAdapt_ItApp::GetPlaceholder()
 	wxASSERT(m_pPlaceholder);
 	return m_pPlaceholder;
 }
+
+#if defined(_KBSERVER)
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the GetKBSharingMgrTabbedDlg object instance
+/// \remarks
+/// Gets a pointer to the current GetKBSharingMgrTabbedDlg object.
+////////////////////////////////////////////////////////////////////////////////////////
+KBSharingMgrTabbedDlg*	CAdapt_ItApp::GetKBSharingMgrTabbedDlg()
+{
+	if (m_pKBSharingMgrTabbedDlg != NULL)
+	{
+		return m_pKBSharingMgrTabbedDlg;
+	}
+	else
+	{
+		return (KBSharingMgrTabbedDlg*)NULL;
+	}
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view
@@ -26689,16 +26528,21 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 {
-#if defined (_DEBUG) && defined (__WXOSX__)
-	event.Enable(TRUE);		// mrh - on the Mac, need to force item to be enabled, for some reason
-	return;
-#endif
+//#if defined (_DEBUG) && defined (__WXOSX__)
+//	event.Enable(TRUE);		// mrh - on the Mac, need to force item to be enabled, for some reason -  ***not sure we need this any more
+//	return;
+//#endif
 
 	if (m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
 	}
+    if (m_trialVersionNum >= 0)
+    {
+        event.Enable(FALSE);
+        return;
+    }
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -27057,7 +26901,9 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
+
 #if defined (_KBSERVER)
+
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   ->  the wxCommandEvent that is generated when the associated
@@ -27073,7 +26919,29 @@ void CAdapt_ItApp::OnUpdateUnloadCcTables(wxUpdateUIEvent& event)
 /// The authentication dialog (KBSharingSetupDlg -- I should rename this to
 /// KBSharingAuthenticationDlg sometime) produces a stateless KbServer instance which the
 /// KB Sharing Manager GUI uses; it is produced on the heap, and deleted by the destructor
-/// of KBSharingSetupDlg when this handler function returns
+/// of KBSharingSetupDlg when this handler function returns.
+/// OnKBSharingManagerTabbedDlg handler class is a tabbed dialog with two tabs- one for
+/// adding, editing or removing users from the mysql user table; the second for adding,
+/// editing or removing shared knowledge bases from the kbs table - and since a kb
+/// definition owns entries in the entry table, removing a kb requires a lengthy prior
+/// removal of all owned kb entries from the database before the definition (the
+/// src/nonsrc code pair) can be removed.
+/// Because the removals need to be done by a detached thread, and due to netword latency
+/// might take anything from hours to days to complete, the thread doing the job can't
+/// assume this Manager GUI will remain open until the thread completes. It's permissible
+/// to shut Adapt It, or the machine, down before the thread completes. If so, another
+/// removal (of fewer entries) will be required to remove them all so that the definition
+/// can be removed as the last step. However, to communicate with this Mngr gui in the
+/// event that the removals go faster than exected, the thread can post events for cleanup
+/// if it completes while the mngr GUI is running. To facilitate this, wxPushEventHander()
+/// and wxPopEventHandler() are used so that this gui can be part of the event mechanism.
+/// Custom events used herein are defined in MainFrm.h and .cpp; and the Manager GUI is
+/// created on the heap as a m_pKBSharingMgrTabbedDlg ptr in the CAdapt_ItApp class. When
+/// the manager gui is not open, that pointer is set to NULL. Also, if the manager GUI is
+/// not running when the thread completes, a block of code at the end of OnExit() does the
+/// necessary housework.
+/// Hmmm... making it receive events, puts it into an infinite loop of focus events... can this be
+/// prevented? Nah, find another way.
 ///////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 {
@@ -27083,8 +26951,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 	LogUserAction(_T("Initiated OnKBSharingManagerTabbedDlg()"));
 
 	// The administrator must authenticate to whichever kbserver he wants to adjust or view
-	bool bStateless = TRUE;
-	KBSharingSetupDlg dlg(GetMainFrame(), bStateless);
+	// Note: the next line sets up a "stateless" instance of the dialog - it doesn't know
+	// or care about the adapting/glossing mode, the machine's owner, or either of the
+	// glossing or adapting local KBs. It only uses the KbServer class for the services it
+	// provides for the KB Sharing Manager gui
+	KBSharingStatelessSetupDlg dlg(GetMainFrame(),FALSE); // FALSE is bUserAuthenticating
 	dlg.Center();
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -27096,32 +26967,48 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	KBSharingMgrTabbedDlg kbSharingPropertySheet(pApp->GetMainFrame());
-	// Point the stateless KbServer instance created on the heap by the constructor of
-	// KBSharingSetupDlg at the m_pKbServer member of KBSharingMgrTabbedDlg
-	kbSharingPropertySheet.SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
+	m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
+
+	m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
+
+	// BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
+	// Oops, nope! It then receives command events when the object is instantiated it
+	// never displays because wx gets into an infinite loop of focus event handling which
+	// continues until the stack is full and the app crashes. The only way I think I can
+	// get what I want is to use the fact that the app class is tried last in the event
+	// loop, so send a custom event from the thread, have it trapped in CAdapt_ItApp
+	// instance, and the handler then checks for pApp->m_pKBSharingMgrTabbedDlg being
+	// non-NULL, and if so, uses other state-preserving variable on the app to determine
+	// which page is active (change to kb page if user page is active), which radio button
+	// is active (change to the one matching the kb type just removed, if necesary), and
+	// then get the page update done to show that the kb definition is no longer in the list)
+	//CMainFrame* pFrame = GetMainFrame();
+	//pFrame->PushEventHandler(pApp->m_pKBSharingMgrTabbedDlg); <<-- must NOT do this (see
+	//                                                             comment immediately above)
 
 	// make the font show only 12 point size in the dialog
 	CopyFontBaseProperties(m_pSourceFont,m_pDlgSrcFont);
 	m_pDlgSrcFont->SetPointSize(12);
 
 #if defined(_DEBUG)
-//*
 	wxLogDebug(_T("OnKBSharingManagerTabbedDialog() before ShowModal(): KbServer's m_usersList's count = %d"),
-		kbSharingPropertySheet.GetKbServer()->GetUsersList()->GetCount());
-//*/
+		pApp->m_pKBSharingMgrTabbedDlg->GetKbServer()->GetUsersList()->GetCount());
 #endif
 
 	// Get the "stateless" strings into the relevant storage in the stateless m_pKbServer
-	KbServer* pStatelessKbServer = kbSharingPropertySheet.GetKbServer();
+	KbServer* pStatelessKbServer = pApp->m_pKBSharingMgrTabbedDlg->GetKbServer();
 	pStatelessKbServer->SetKBServerUsername(dlg.m_strStatelessUsername);
 	pStatelessKbServer->SetKBServerURL(dlg.m_strStatelessURL);
 	pStatelessKbServer->SetKBServerPassword(dlg.m_strStatelessPassword);
 
 	// show the property sheet
-	if(kbSharingPropertySheet.ShowModal() == wxID_OK)
+	//if(kbSharingPropertySheet.ShowModal() == wxID_OK)
+	if(pApp->m_pKBSharingMgrTabbedDlg->ShowModal() == wxID_OK)
 	{
 	}
+	// When done, remove from the heap, and set the ptr to NULL
+	delete pApp->m_pKBSharingMgrTabbedDlg;
+	pApp->m_pKBSharingMgrTabbedDlg = (KBSharingMgrTabbedDlg*)NULL;
 }
 
 
@@ -27154,7 +27041,9 @@ void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 	// or remove user definitions.
 	event.Enable(TRUE);
 }
-#endif
+
+
+#endif // for _KBSERVER
 
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -28764,6 +28653,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szInformalUsername << tab << m_strUsername;
 	pf->AddLine(data);
 
+#if defined (_KBSERVER)
+
+	// whm 30Oct13 moved the KbServerURL value storage here from the project config file
+	data.Empty();
+	data << szKbServerURL << tab << m_strKbServerURL;
+	pf->AddLine(data);
+
+#endif
+
 	data.Empty();
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
@@ -28803,53 +28701,12 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 		data << szCustomWorkFolderPath << tab << _T(""); // no path written out
 	pf->AddLine(data);
 
-	/*
-	// whm 19Feb12 removed
-	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
-	// whm 26Jan12 added
-	if (!m_SavedCurProjectName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_curProjectName that was forced by the -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCurProjectName will be a string value that was actually read
-		// from the basic config file.
-		strCollabValueToUse = m_SavedCurProjectName;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForSourceInputs is empty meaning that it was not
-		// overridden by a -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_curProjectName.
-		strCollabValueToUse = m_curProjectName;
-	}
-	*/
 	data.Empty();
-	data << szCurProjectName << tab << m_curProjectName; //strCollabValueToUse;
+	data << szCurProjectName << tab << m_curProjectName;
 	pf->AddLine(data);
 
-	/*
-	// whm 19Feb12 removed
-	// whm 26Jan12 added
-	if (!m_SavedCurProjectPath.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_curProjectPath that was forced by the -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCurProjectPath will be a string value that was actually read
-		// from the basic config file.
-		strCollabValueToUse = m_SavedCurProjectPath;
-	}
-	else
-	{
-		// The value of m_SavedCurProjectPath is empty meaning that it was not
-		// overridden by a -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_curProjectPath.
-		strCollabValueToUse = m_curProjectPath;
-	}
-	*/
 	data.Empty();
-	data << szCurLanguagesPath << tab << m_curProjectPath; //strCollabValueToUse;
+	data << szCurLanguagesPath << tab << m_curProjectPath;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -28879,7 +28736,6 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	//data.Empty();
 	//data << szLastSourceInputPath << tab << m_lastSourceInputPath;
 	//pf->AddLine(data);
-
 
 	// whm 6Aug11: From version 6.x.x on store the m_lastTargetOutputPath
 	// only in the appropriate project config file under szLastTargetOutputPath
@@ -29044,251 +28900,6 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
 
-/*
-	// whm added 15Apr11 for Paratext/Bibledit collaboration
-	//
-	// whm Note 8Sep11. ALL of the collaboration-related settings need to be in
-	// the basic configuration file because the GetSourceTextFromEditor dialog
-	// needs them at the time that only the basic config file has been read in.
-	//
-	// whm modified 17Jan12 most of the collaboration-related values below to restore
-	// the App's collaboration settings to their previous settings as were contained
-	// in the basic config file when session started. This restores the App for the next
-	// run to what it was before the command-line switches were used, and hence the use
-	// of the command-line switches for some launcher icons won't disturb any sessions
-	// that are run on the same computer without employing any command-line switches.
-	int nCollabValueToUse; // this is reused below for each of the int value settings
-	if (m_nSavedCollabPTSetting != -1)
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_bCollaboratingWithParatext that was forced by the -collab_on or -collab_off switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_nSavedCollabPTSetting will be 0 or 1 reflecting what was
-		// actually read from the basic config file.
-		nCollabValueToUse = m_nSavedCollabPTSetting;
-	}
-	else
-	{
-		// The value of m_nSavedCollabPTSetting is -1 meaning that it was not
-		// overridden by a -collab_on or -collab_off command-line switch. In this case save the current
-		// session value of the App's m_bCollaboratingWithParatext (cast to an int of
-		// 1 or 0).
-		nCollabValueToUse = (int)m_bCollaboratingWithParatext;
-	}
-
-	if (nCollabValueToUse == 1) //if (m_bCollaboratingWithParatext)
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szCollaboratingWithParatext << tab << number;
-	pf->AddLine(data);
-
-	// whm added 15Apr11 for Bibledit collaboration
-	if (m_nSavedCollabBESetting != -1)
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_bCollaboratingWithBibledit that was forced by the -collab_on or -collab_off switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_nSavedCollabBESetting will be 0 or 1 reflecting what was
-		// actually read from the basic config file.
-		nCollabValueToUse = m_nSavedCollabBESetting;
-	}
-	else
-	{
-		// The value of m_nSavedCollabBESetting is -1 meaning that it was not
-		// overridden by a -collab_on or -collab_off command-line switch. In this case save the current
-		// session value of the App's m_bCollaboratingWithBibledit (cast to an int of
-		// 1 or 0).
-		nCollabValueToUse = (int)m_bCollaboratingWithBibledit;
-	}
-	// whm added 15Apr11 for Bibledit collaboration
-	if (nCollabValueToUse == 1)
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szCollaboratingWithBibledit << tab << number;
-	pf->AddLine(data);
-
-	// whm 23Jan11 added
-	if (!m_SavedCollabProjectForSourceInputs.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabProjectForSourceInputs that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabProjectForSourceInputs will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabProjectForSourceInputs;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForSourceInputs is empty meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabProjectForSourceInputs.
-		strCollabValueToUse = m_CollabProjectForSourceInputs;
-	}
-	data.Empty();
-	data << szCollabProjectForSourceInputs << tab << strCollabValueToUse;
-	pf->AddLine(data);
-
-	// whm 23Jan11 added
-	if (!m_SavedCollabProjectForTargetExports.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabProjectForTargetExports that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabProjectForTargetExports will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabProjectForTargetExports;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForTargetExports is empty meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabProjectForTargetExports.
-		strCollabValueToUse = m_CollabProjectForTargetExports;
-	}
-	data.Empty();
-	data << szCollabProjectForTargetExports << tab << strCollabValueToUse;
-	pf->AddLine(data);
-
-	// whm 23Jan11 added
-	if (!m_SavedCollabProjectForFreeTransExports.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabProjectForFreeTransExports that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabProjectForFreeTransExports will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabProjectForFreeTransExports;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForFreeTransExports is empty meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabProjectForFreeTransExports.
-		strCollabValueToUse = m_CollabProjectForFreeTransExports;
-	}
-	data.Empty();
-	data << szCollabProjectForFreeTransExports << tab << strCollabValueToUse;
-	pf->AddLine(data);
-
-	if (!m_SavedCollabAIProjName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabAIProjectName that was forced by the -collab_proj and/or -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabAIProjName will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabAIProjName;
-	}
-	else
-	{
-		// The value of m_SavedCollabAIProjName is empty meaning that it was not
-		// overridden by a -collab_proj and/or -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabAIProjectName.
-		strCollabValueToUse = m_CollabAIProjectName;
-	}
-	data.Empty();
-	data << szCollabAIProjectName << tab << strCollabValueToUse; //m_CollabAIProjectName;
-	pf->AddLine(data);
-
-	// whm 23Jan11 added
-	if (!m_SavedCollabSourceLangName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabSourceLangName that was forced by the -collab_proj and/or -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabSourceLangName will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabSourceLangName;
-	}
-	else
-	{
-		// The value of m_SavedCollabSourceLangName is empty meaning that it was not
-		// overridden by a -collab_proj and/or -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabSourceLangName.
-		strCollabValueToUse = m_CollabSourceLangName;
-	}
-	data.Empty();
-	data << szCollabSourceLangName << tab << strCollabValueToUse;
-	pf->AddLine(data);
-
-	// whm 23Jan11 added
-	if (!m_SavedCollabTargetLangName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabTargetLangName that was forced by the -collab_proj and/or -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabTargetLangName will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabTargetLangName;
-	}
-	else
-	{
-		// The value of m_SavedCollabTargetLangName is empty meaning that it was not
-		// overridden by a -collab_proj and/or -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabTargetLangName.
-		strCollabValueToUse = m_CollabTargetLangName;
-	}
-	data.Empty();
-	data << szCollabTargetLangName << tab << strCollabValueToUse;
-	pf->AddLine(data);
-
-	if (m_nSavedCollabExpectsFreeTrans != -1)
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_bCollaborationExpectsFreeTrans that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_nSavedCollabExpectsFreeTrans will be 0 or 1 reflecting what was
-		// actually read from the basic config file.
-		nCollabValueToUse = m_nSavedCollabExpectsFreeTrans;
-	}
-	else
-	{
-		// The value of m_nSavedCollabExpectsFreeTrans is -1 meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case save the current
-		// session value of the App's m_bCollaborationExpectsFreeTrans (cast to an int of
-		// 1 or 0).
-		nCollabValueToUse = (int)m_bCollaborationExpectsFreeTrans;
-	}
-	if (nCollabValueToUse) // whm added 9Aug11
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szCollabExpectsFreeTrans << tab << number;
-	pf->AddLine(data);
-
-	data.Empty();
-	data << szCollabBookSelected << tab << m_CollabBookSelected;
-	pf->AddLine(data);
-
-	if (m_bCollabByChapterOnly)
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szCollabByChapterOnly << tab << number;
-	pf->AddLine(data);
-
-	data.Empty();
-	data << szCollabChapterSelected << tab << m_CollabChapterSelected;
-	pf->AddLine(data);
-
-	if (m_bPwdProtectCollabSwitching)
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szCollabSwitchingPasswordProtected << tab << number; // whm added 2Feb12
-	pf->AddLine(data);
-
-	data.Empty();
-	data << szCollabSwitchingPassword << tab << m_collabSwitchingPassword; // whm added 2Feb12
-	pf->AddLine(data);
-*/
 	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
 	// because it we do that, the user could get confused if next time his document
 	// doesn't show and punctuation and he didn't realize he shut down with this setting
@@ -30229,6 +29840,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			m_strUsername = strValue;
             if (m_strUsername.IsEmpty())  m_strUsername = NOOWNER;  // ditto
         }
+#if defined (_KBSERVER)
+		// whm 30Oct13 moved the KbServerURL value handling here to the basic
+		// config file
+		else if (name == szKbServerURL)
+		{
+			m_strKbServerURL = strValue;
+		}
+#endif
 		else if (name == szAdaptitPath)
 		{
             // BEW changed 12Oct09, we come here when reading either the
@@ -30266,23 +29885,11 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		}
 		else if (name == szCurProjectName)
 		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_curProjectName
-			// can be overridden by the use of command-line switches.
 			m_curProjectName = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabAIProjectName.IsEmpty())
-			//	m_SavedCurProjectName = strValue;
 		}
 		else if (name == szCurLanguagesPath)
 		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_curProjectPath
-			// can be overridden by the use of command-line switches.
 			m_curProjectPath = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabAIProjectName.IsEmpty())
-			//	m_SavedCurProjectPath = strValue;
 		}
 		else if (name == szCurAdaptationsPath)
 		{
@@ -31665,6 +31272,242 @@ bool CAdapt_ItApp::MoveCollabSettingsToProjectConfigFile(wxString collabProjName
 	return TRUE;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \remarks
+/// Called from: the App's GetProjectConfiguration()
+/// Sets certain project defaults if SHIFT key is being held down while
+/// selecting a project from the "Select a Project" wizard page.
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetProjectDefaults(wxString projectFolderPath)
+{
+	SetDefaultCaseEquivalences(); // The GetProjectConfiguration() function originally only called this function
+
+	// whm 28Oct13 Note: The values for FoldersProtectedFromNavigation are
+	// stored in BOTH the AI-BasicConfiguration.aic file AND the
+	// AI-ProjectConfiguration.aic file. The ability to restore these
+	// navigation protection folder settings should be done for the project
+	// configuration file as well as the basic configuration file. Therefore,
+	// I am copying the code from SetDefaults() here in SetProjectDefaults().
+	//
+	// whm added 20Jun11. If the administrator has selected to use fixed locations for certain inputs
+	// and outputs folders at the time the user held down the SHIFT key to get the app going again, we
+	// would want those fixed location folders to continue to be used which are stored in Adapt_It_WX.ini.
+	// Read the value related to m_foldersProtectedFromNavigation from the Adapt_It_WX.ini file, and if
+	// it differs from what is stored in the App's m_foldersProtectedFromNavigation member (due to SHIFT
+	// down restart), restore the value stored in Adapt_It_WX.ini.
+	bool bReadOK = FALSE;
+	wxString tempFoldersProtectedFromNavigation;
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/Settings"));
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("folders_protected_from_navigation"), &tempFoldersProtectedFromNavigation);
+	} // end wxLogNull block
+	if (bReadOK && tempFoldersProtectedFromNavigation != m_foldersProtectedFromNavigation)
+	{
+		m_foldersProtectedFromNavigation = tempFoldersProtectedFromNavigation;
+		SetFolderProtectionFlagsFromCombinedString(m_foldersProtectedFromNavigation);
+	}
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
+
+	// whm 28Oct13 Note: The value for the WorkflowProfile is stored
+	// in BOTH the AI-BasicConfiguration.aic file AND the
+	// AI-ProjectConfiguration.aic file. The ability to restore the
+	// user's workflow profile (if one is set) should be done for the project
+	// configuration file as well as the basic configuration file. Therefore,
+	// I am copying the code from SetDefaults() here in SetProjectDefaults().
+	//
+	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
+	// the SHIFT key to get the app going again, we would want the workflow related values
+	// stored in Adapt_It_WX.ini to be restored, since it is likely to be accurate even if
+	// the basic config file needs to be re-created from scratch (most likely due to errant
+	// edits done by a user).
+	// The basic config file value of concern is m_nWorkflowProfile.
+	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file
+	// and restore it if it differs from what was stored in the corresponding App's
+	// m_nWorkflowProfile value (due to SHIFT-down restart).
+	bReadOK = FALSE;
+	int nTempUserProfile = 0;
+	oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/Settings"));
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("work_flow_profile"), &nTempUserProfile);
+	} // end wxLogNull block
+	if (bReadOK && nTempUserProfile != m_nWorkflowProfile)
+	{
+		m_nWorkflowProfile = nTempUserProfile;
+	}
+	// Restore the m_bAiSessionExpectsUserDefinedProfile flag to its administrator
+	// set value. The value of the flag should be TRUE when m_nWorkflowProfile is
+	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
+	m_bAiSessionExpectsUserDefinedProfile = (m_nWorkflowProfile != 0);
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
+
+
+    // Project collaboration settings for the selected Project need to be
+    // preserved across a SHIFT-Down opening of that project. The values
+    // related to collaboration that are stored in Adapt_It_WX.ini are likely
+    // to be accurate even if the project config file needs to be re-created
+    // from scratch (most likely due to errant edits done by a user).
+
+    // Read the collab values that were last stored in the Adapt_It_WX.ini file
+    // for the currently selected project and restore them if they differ from
+    // what was stored in the corresponding App's values (due to SHIFT-down
+    // restart).
+
+    // There are 13 collaboration values stored for each project. We can store
+    // all collab settings for a given project in a single string value using
+    // delimiters so that each project's collab settings take only one line
+    // within the [ProjCollabSettings] section of the Adapt_It_WX.ini
+    // (.Adapt_It_WX) file. The first field value of the storage string will be
+    // the AI project name - the very name that was selected while holding down
+    // the Shift key triggering the execution of this SetProjectDefaults
+    // function.
+    //
+	// We will use the following procedures:
+	// 1. Read any existing m_pConfig's [ProjCollabSettings] lines into a
+	// wxArrayString called collabProjectSettingsArray for processing.
+	// 2. Scan the array to see if there are collab settings stored
+	// for the current projectName project.
+	// 3. Compare the collab settings found there with those collab
+	// settings currently stored on the App, restore any that differ
+	// so that the App's values take on the setting values stored in
+	// the Adapt_It_WX.ini/.Adapt_It_WX file.
+	wxArrayString collabProjectSettingsArray;
+	collabProjectSettingsArray = GetCollabSettingsFromINIFile();
+	// The current project that was selected is stored in m_curProjectPath
+	// Extract the AI project name from the m_curProjectPath.
+	wxFileName fn(m_curProjectPath);
+	wxString projectName;
+	projectName = fn.GetFullName();
+	wxASSERT(!projectName.IsEmpty());
+	// Scan the collabProjectSettingsArray, and extract the composite string
+	// for this project.
+	int ct;
+	int tot = (int)collabProjectSettingsArray.GetCount();
+	wxString existingCompositeStr;
+	existingCompositeStr.Empty();
+	bool bFound = FALSE;
+	for (ct = 0; ct < tot; ct++)
+	{
+		existingCompositeStr = collabProjectSettingsArray.Item(ct);
+		existingCompositeStr.Trim(FALSE); // trim any whitespace from left end
+		//if (existingCompositeStr.Find(szCollabAIProjectName + equals + projectName) == 0)
+		if (existingCompositeStr.Find(projectName) == 0)
+		{
+			// We found the projectName string
+			bFound = TRUE;
+			break;
+		}
+	}
+	if (bFound && !existingCompositeStr.IsEmpty())
+	{
+		// existingCompositeStr has our data, so now we need to parse it and
+		// retrieve the collaboration settings and assign them to the App's
+		// collab settings.
+		// The existingCompositeStr is of the following format
+		// X to Y adaptations:1:0:NYNT @ Nyindrou NT @ Nyindrou @ lid:DTP @ DTPNT @ Tok Pisin @ tpi::Paratext:0:X:Y:Acts:1:3:
+		// Note: The GetCollabSettingsFromINIFile() function accumulates composite
+		// strings that have the name of the project folder initially; the
+		// function doesn't include a proj_collab_settings_N= prefix on the
+		// composite string.
+		// Now we can use the wxStringTokenizer to parse out the fields using
+		// ':' as delimiter.
+		wxString tokenStr;
+		int fieldNum = 1;
+		wxStringTokenizer tkz(existingCompositeStr,_T(":"));
+		while (tkz.HasMoreTokens())
+		{
+			// add the tokenStr to fitPartStr if it doesn't make fitPartStr get longer than extentRemaining
+			tokenStr = tkz.GetNextToken();
+			tokenStr.Trim(FALSE);
+			tokenStr.Trim(TRUE);
+			if (fieldNum == 1)
+			{
+				m_CollabAIProjectName = tokenStr;
+			}
+			else if (fieldNum == 2)
+			{
+				if (tokenStr == _T("1"))
+					m_bCollaboratingWithParatext = TRUE;
+				else
+					m_bCollaboratingWithParatext = FALSE;
+			}
+			else if (fieldNum == 3)
+			{
+				if (tokenStr == _T("1"))
+					m_bCollaboratingWithBibledit = TRUE;
+				else
+					m_bCollaboratingWithBibledit = FALSE;
+			}
+			else if (fieldNum == 4)
+			{
+				m_CollabProjectForSourceInputs = ReplaceAtSymbolWithColons(tokenStr);// Convert any @ characters back to colons
+			}
+			else if (fieldNum == 5)
+			{
+				m_CollabProjectForTargetExports = ReplaceAtSymbolWithColons(tokenStr);// Convert any @ characters back to colons
+			}
+			else if (fieldNum == 6)
+			{
+				m_CollabProjectForFreeTransExports = ReplaceAtSymbolWithColons(tokenStr);// Convert any @ characters back to colons
+			}
+			else if (fieldNum == 7)
+			{
+				m_collaborationEditor = tokenStr;
+			}
+			else if (fieldNum == 8)
+			{
+				if (tokenStr == _T("1"))
+					m_bCollaborationExpectsFreeTrans = TRUE;
+				else
+					m_bCollaborationExpectsFreeTrans = FALSE;
+
+			}
+			else if (fieldNum == 9)
+			{
+				m_CollabSourceLangName = tokenStr;
+			}
+			else if (fieldNum == 10)
+			{
+				m_CollabTargetLangName = tokenStr;
+			}
+			else if (fieldNum == 11)
+			{
+				m_CollabBookSelected = tokenStr;
+			}
+			else if (fieldNum == 12)
+			{
+				if (tokenStr == _T("1"))
+					m_bCollabByChapterOnly = TRUE;
+				else
+					m_bCollabByChapterOnly = FALSE;
+
+			}
+			else if (fieldNum == 13)
+			{
+				m_CollabChapterSelected = tokenStr;
+			}
+			else
+			{
+				wxASSERT_MSG(FALSE,_T("Composite string"));
+			}
+			fieldNum++; // next field
+		}
+	}
+	else
+	{
+		// No composite string was found for this project, or it is an empty
+		// string so we cannot restore any collab settings, maybe a project
+		// was opened that was last touched by an older version of AI.
+		;	// Just quietly allow the app to continue without any project-defined
+			// collab settings.
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -31950,10 +31793,10 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// Read the value related to m_foldersProtectedFromNavigation from the Adapt_It_WX.ini file, and if
 	// it differs from what is stored in the App's m_foldersProtectedFromNavigation member (due to SHIFT
 	// down restart), restore the value stored in Adapt_It_WX.ini.
-	bool bReadOK = FALSE;
-	wxString tempFoldersProtectedFromNavigation;
 	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
 	m_pConfig->SetPath(_T("/Settings"));
+	bool bReadOK = FALSE;
+	wxString tempFoldersProtectedFromNavigation;
 	{ // begin wxLogNull block
 	wxLogNull logNo; // eliminates spurious message from the system
 	bReadOK = m_pConfig->Read(_T("folders_protected_from_navigation"), &tempFoldersProtectedFromNavigation);
@@ -31963,168 +31806,39 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		m_foldersProtectedFromNavigation = tempFoldersProtectedFromNavigation;
 		SetFolderProtectionFlagsFromCombinedString(m_foldersProtectedFromNavigation);
 	}
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
 
-	// whm 29Feb12 removed the m_pConfig reading routines below for collaboration values
-	// Adapt It now does project-specific collaboration and user always has control over
-	// whether collaboration with a particular AI project gets turned ON or OFF.
-	/*
-	// whm added 7Jun11. If Paratext collaboration was ON at the time the user used the SHIFT
-	// key to get the app going again, we would want the values related to Paratext collaboration
-	// that are stored in Adapt_It_WX.ini to be restored since it is likely to be accurate even if
-	// the basic config file needs to be re-created from scratch (most likely due to errant edits
-	// done by a user).
-
-	// Read the PT related flags that were last stored in the Adapt_It_WX.ini file and restore
-	// them if they differ from what was stored in the corresponding App's values (due to SHIFT-down
-	// restart).
+	// whm added 24Oct13. As of AI 6.5.0 the DVCS (and eventually the KB Sharing)
+	// features require getting and storing a UniqueUsername and
+	// InformalUsername in the AI basic configuration file. If the user holds down
+	// the SHIFT key to reset the basic settings, these usernames are removed. But,
+	// since we want those usernames to continue to be used, a backup copy of them
+	// is stored in Adapt_It_WX.ini.
+	// Read the values related to m_strUserID and m_strUsername from the Adapt_It_WX.ini
+	// file, and if they differ from what is stored in the App's m_strUserID and
+	// m_strUsername members (due to SHIFT down restart), restore the value stored in
+	// Adapt_It_WX.ini.
+	oldPath = m_pConfig->GetPath();
+	m_pConfig->SetPath(_T("/Usernames"));
 	bReadOK = FALSE;
-	bool bReadOK2 = FALSE;
-	bool bReadOK3 = FALSE;
-	bool bReadOK4 = FALSE;
-	bool bReadOK5 = FALSE;
-	bool bReadOK6 = FALSE;
-	bool bReadOK7 = FALSE;
-	bool bReadOK8 = FALSE;
-	bool bReadOK9 = FALSE;
-	bool bReadOK10 = FALSE;
-	bool bTempCollabFlag = FALSE;
-	wxString tempCollabProjForSrcInputs = _T("");
-	wxString tempCollabProjForTgtExports = _T("");
-	wxString tempCollabProjForFreeTransExports = _T("");
-	wxString tempCollabBookSelected = _T("");
-	bool bTempCollabByChapterOnly = TRUE;
-	wxString tempCollabChapterSelected = _T("");
-	wxString tempCollabSourceLangName = _T("");
-	wxString tempCollabTargetLangName = _T("");
-	wxString tempCollabAIProjectName = _T("");
-	if (m_collaborationEditor == _T("Paratext"))
+	wxString tempUniqueUsername;
+	wxString tempInformalUsername;
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("unique_user_name"), &tempUniqueUsername);
+	if (bReadOK && tempUniqueUsername != m_strUserID)
 	{
-		{ // begin wxLogNull block
-		wxLogNull logNo; // eliminates spurious message from the system
-		bReadOK = m_pConfig->Read(_T("pt_collaboration"), &bTempCollabFlag);
-		bReadOK2 = m_pConfig->Read(_T("pt_collab_src_proj"), &tempCollabProjForSrcInputs);
-		bReadOK3 = m_pConfig->Read(_T("pt_collab_tgt_proj"), &tempCollabProjForTgtExports);
-		bReadOK4 = m_pConfig->Read(_T("pt_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
-		bReadOK5 = m_pConfig->Read(_T("pt_collab_book_selected"), &tempCollabBookSelected);
-		bReadOK6 = m_pConfig->Read(_T("pt_collab_by_chapter_only"), &bTempCollabByChapterOnly);
-		bReadOK7 = m_pConfig->Read(_T("pt_collab_chapter_selected"), &tempCollabChapterSelected);
-		bReadOK8 = m_pConfig->Read(_T("pt_collab_src_lang_name"), &tempCollabSourceLangName);
-		bReadOK9 = m_pConfig->Read(_T("pt_collab_tgt_lang_name"), &tempCollabTargetLangName);
-		bReadOK10 = m_pConfig->Read(_T("pt_collab_ai_proj_name"), &tempCollabAIProjectName);
-		} // end wxLogNull block
-		if (bReadOK && bTempCollabFlag != m_bCollaboratingWithParatext)
-		{
-			m_bCollaboratingWithParatext = bTempCollabFlag;
-
-			if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
-			{
-				m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
-			}
-			if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
-			{
-				m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
-			}
-			if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
-			{
-				m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
-			}
-			if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
-			{
-				m_CollabBookSelected = tempCollabBookSelected;
-			}
-			if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
-			{
-				m_bCollabByChapterOnly = bTempCollabByChapterOnly;
-			}
-			if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
-			{
-				m_CollabChapterSelected = tempCollabChapterSelected;
-			}
-			if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
-			{
-				m_CollabSourceLangName = tempCollabSourceLangName;
-			}
-			if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
-			{
-				m_CollabTargetLangName = tempCollabTargetLangName;
-			}
-			if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
-			{
-				m_CollabAIProjectName = tempCollabAIProjectName;
-			}
-		}
+		m_strUserID = tempUniqueUsername;
 	}
-
-	// Read the BE related flags that were last stored in the Adapt_It_WX.ini file and restore
-	// them if they differ from what was stored in the corresponding App's values (due to SHIFT-down
-	// restart).
-	tempCollabProjForSrcInputs = _T("");
-	tempCollabProjForTgtExports = _T("");
-	tempCollabProjForFreeTransExports = _T("");
-	tempCollabBookSelected = _T("");
-	bTempCollabByChapterOnly = TRUE;
-	tempCollabChapterSelected = _T("");
-	tempCollabSourceLangName = _T("");
-	tempCollabTargetLangName = _T("");
-	tempCollabAIProjectName = _T("");
-	if (m_collaborationEditor == _T("Bibledit"))
+	bReadOK = m_pConfig->Read(_T("informal_user_name"), &tempInformalUsername);
+	if (bReadOK && tempInformalUsername != m_strUsername)
 	{
-		{ // begin wxLogNull block
-		wxLogNull logNo; // eliminates spurious message from the system
-		bReadOK = m_pConfig->Read(_T("be_collaboration"), &bTempCollabFlag);
-		bReadOK2 = m_pConfig->Read(_T("be_collab_src_proj"), &tempCollabProjForSrcInputs);
-		bReadOK3 = m_pConfig->Read(_T("be_collab_tgt_proj"), &tempCollabProjForTgtExports);
-		bReadOK4 = m_pConfig->Read(_T("be_collab_free_trans_proj"), &tempCollabProjForFreeTransExports);
-		bReadOK5 = m_pConfig->Read(_T("be_collab_book_selected"), &tempCollabBookSelected);
-		bReadOK6 = m_pConfig->Read(_T("be_collab_by_chapter_only"), &bTempCollabByChapterOnly);
-		bReadOK7 = m_pConfig->Read(_T("be_collab_chapter_selected"), &tempCollabChapterSelected);
-		bReadOK8 = m_pConfig->Read(_T("be_collab_src_lang_name"), &tempCollabSourceLangName);
-		bReadOK9 = m_pConfig->Read(_T("be_collab_tgt_lang_name"), &tempCollabTargetLangName);
-		bReadOK10 = m_pConfig->Read(_T("be_collab_ai_proj_name"), &tempCollabAIProjectName);
-		} // end wxLogNull block
-		if (bReadOK && bTempCollabFlag != m_bCollaboratingWithBibledit)
-		{
-			m_bCollaboratingWithBibledit = bTempCollabFlag;
-
-			if (bReadOK2 && tempCollabProjForSrcInputs != m_CollabProjectForSourceInputs)
-			{
-				m_CollabProjectForSourceInputs = tempCollabProjForSrcInputs;
-			}
-			if (bReadOK3 && tempCollabProjForTgtExports != m_CollabProjectForTargetExports)
-			{
-				m_CollabProjectForTargetExports = tempCollabProjForTgtExports;
-			}
-			if (bReadOK4 && tempCollabProjForFreeTransExports != m_CollabProjectForFreeTransExports)
-			{
-				m_CollabProjectForFreeTransExports = tempCollabProjForFreeTransExports;
-			}
-			if (bReadOK5 && tempCollabBookSelected != m_CollabBookSelected)
-			{
-				m_CollabBookSelected = tempCollabBookSelected;
-			}
-			if (bReadOK6 && bTempCollabByChapterOnly != m_bCollabByChapterOnly)
-			{
-				m_bCollabByChapterOnly = bTempCollabByChapterOnly;
-			}
-			if (bReadOK7 && tempCollabChapterSelected != m_CollabChapterSelected)
-			{
-				m_CollabChapterSelected = tempCollabChapterSelected;
-			}
-			if (bReadOK8 && tempCollabSourceLangName != m_CollabSourceLangName)
-			{
-				m_CollabSourceLangName = tempCollabSourceLangName;
-			}
-			if (bReadOK9 && tempCollabTargetLangName != m_CollabTargetLangName)
-			{
-				m_CollabTargetLangName = tempCollabTargetLangName;
-			}
-			if (bReadOK10 && tempCollabAIProjectName != m_CollabAIProjectName)
-			{
-				m_CollabAIProjectName = tempCollabAIProjectName;
-			}
-		}
+		m_strUsername = tempInformalUsername;
 	}
-	*/
+	} // end wxLogNull block
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
 
 	// whm added 7Jun11. If a User Workflow Profile was in effect at the time the user used
 	// the SHIFT key to get the app going again, we would want the workflow related values
@@ -32135,6 +31849,8 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	// Read the Work Profile related value that was last stored in the Adapt_It_WX.ini file
 	// and restore it if it differs from what was stored in the corresponding App's
 	// m_nWorkflowProfile value (due to SHIFT-down restart).
+	oldPath = m_pConfig->GetPath();
+	m_pConfig->SetPath(_T("/Settings"));
 	bReadOK = FALSE;
 	int nTempUserProfile = 0;
 	{ // begin wxLogNull block
@@ -32145,16 +31861,38 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	{
 		m_nWorkflowProfile = nTempUserProfile;
 	}
-
 	// Restore the m_bAiSessionExpectsUserDefinedProfile flag to its administrator
 	// set value. The value of the flag should be TRUE when m_nWorkflowProfile is
 	// not 0 ("None"), FALSE otherwise (when m_nWorkflowProfile is 0).
 	m_bAiSessionExpectsUserDefinedProfile = (m_nWorkflowProfile != 0);
-
 	// restore the oldPath back to "/Recent_File_List"
 	m_pConfig->SetPath(oldPath);
 
-
+	// whm added 28Oct13. If an administrator sets up a special password for
+	// access to the Administrator menu, that password should be preserved in
+	// the event that the user uses the SHIFT key to get the app going again.
+	// Like other administrator settings (see above), we would want the
+	// password stored in Adapt_It_WX.ini to be restored, since it is likely
+	// to be accurate even if the basic config file needs to be re-created
+	// from scratch (most likely due to errant edits done by a user).
+	// The basic config file value of concern is m_adminPassword.
+	// Read the password value that was last stored in the Adapt_It_WX.ini file
+	// and restore it if it differs from what was stored in the corresponding
+	// App's m_adminPassword value (due to SHIFT-down restart).
+	oldPath = m_pConfig->GetPath();
+	m_pConfig->SetPath(_T("/AdminPassword"));
+	bReadOK = FALSE;
+	wxString tempAdminPassword;
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+	bReadOK = m_pConfig->Read(_T("admin_password"), &tempAdminPassword);
+	} // end wxLogNull block
+	if (bReadOK && tempAdminPassword != m_adminPassword)
+	{
+		m_adminPassword = tempAdminPassword;
+	}
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
 }
 
 // the code here is called in two places (OnInit() and SetDefaults()) and so I've pulled
@@ -32579,59 +32317,19 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szKbServerURL << tab << m_strKbServerURL;
+	data << szIsGlossingKBServerProject << tab << (int)m_bIsGlossingKBServerProject;
 	pf->AddLine(data);
+
+	// whm 30Oct13 moved the KbServerURL value handling to the basic config file
+	//data.Empty();
+	//data << szKbServerURL << tab << m_strKbServerURL;
+	//pf->AddLine(data);
 
 	data.Empty();
 	data << szKbServerDownloadInterval << tab << m_nKbServerIncrementalDownloadInterval;
 	pf->AddLine(data);
 
 #endif
-	wxString strCollabValueToUse; // this is reused below for each of the wxString value settings
-
-	/*
-	// whm added 17Feb12
-	if (!m_SavedCurProjectName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_curProjectName that was forced by the -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCurProjectName will be a string value that was actually read
-		// from the basic config file.
-		strCollabValueToUse = m_SavedCurProjectName;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForSourceInputs is empty meaning that it was not
-		// overridden by a -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_curProjectName.
-		strCollabValueToUse = m_curProjectName;
-	}
-	data.Empty();
-	data << szCurProjectName << tab << strCollabValueToUse;
-	pf->AddLine(data);
-
-	// whm 26Jan12 added
-	if (!m_SavedCurProjectPath.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_curProjectPath that was forced by the -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCurProjectPath will be a string value that was actually read
-		// from the basic config file.
-		strCollabValueToUse = m_SavedCurProjectPath;
-	}
-	else
-	{
-		// The value of m_SavedCurProjectPath is empty meaning that it was not
-		// overridden by a -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_curProjectPath.
-		strCollabValueToUse = m_curProjectPath;
-	}
-	data.Empty();
-	data << szCurLanguagesPath << tab << strCollabValueToUse;
-	pf->AddLine(data);
-	*/
 
 	// m_last...Path values below
 	data.Empty();
@@ -32679,11 +32377,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastXhtmlOutputPath << tab << m_lastXhtmlOutputPath; // whm added 23Jul12
+	data << szLastXhtmlOutputPath << tab << m_lastXhtmlOutputPath;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szLastPathwayOutputPath << tab << m_lastPathwayOutputPath; // whm added 23Jul12
+	data << szLastPathwayOutputPath << tab << m_lastPathwayOutputPath;
 	pf->AddLine(data);
 
 	// whm 22Nov2012 moved storage of the m_lastKbOutputPath value
@@ -32777,7 +32475,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	// whm 6Aug11 moved here from the basic config file
 	data.Empty();
 	data << szGuessHighlightColor << tab
-			<< WxColour2Int(m_GuessHighlightColor); // whm added 1Nov10
+			<< WxColour2Int(m_GuessHighlightColor);
 	pf->AddLine(data);
 	if (m_bBackupDocument)
 		number = _T("1");
@@ -32806,37 +32504,16 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szWorkflowProfile << tab << m_nWorkflowProfile;
 	pf->AddLine(data);
 
+	// !!!!!!!!!!!!!! BEGINNING OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!
+	// whm 26Oct13 reordered collab settings to match the order saved in the
+	// Adapt_It_WX.ini/.Adapt_It_WX file, in which the m_CollabAIProjectName
+	// value must come first in the group
 	// whm 17Feb12 added collaboration-related settings below to the project config file.
+	data.Empty();
+	data << szCollabAIProjectName << tab << m_CollabAIProjectName;
+	pf->AddLine(data);
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// whm added 15Apr11 for Paratext/Bibledit collaboration
-	// whm modified 17Jan12 most of the collaboration-related values below to restore
-	// the App's collaboration settings to their previous settings as were contained
-	// in the basic config file when session started. This restores the App for the next
-	// run to what it was before the command-line switches were used, and hence the use
-	// of the command-line switches for some launcher icons won't disturb any sessions
-	// that are run on the same computer without employing any command-line switches.
-	int nCollabValueToUse; // this is reused below for each of the int value settings
-	if (m_nSavedCollabPTSetting != -1)
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_bCollaboratingWithParatext that was forced by the -collab_on or -collab_off switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_nSavedCollabPTSetting will be 0 or 1 reflecting what was
-		// actually read from the basic config file.
-		nCollabValueToUse = m_nSavedCollabPTSetting;
-	}
-	else
-	{
-		// The value of m_nSavedCollabPTSetting is -1 meaning that it was not
-		// overridden by a -collab_on or -collab_off command-line switch. In this case save the current
-		// session value of the App's m_bCollaboratingWithParatext (cast to an int of
-		// 1 or 0).
-		nCollabValueToUse = (int)m_bCollaboratingWithParatext;
-	}
-	*/
-	if (m_bCollaboratingWithParatext) //if (nCollabValueToUse == 1) //
+	if (m_bCollaboratingWithParatext)
 		number = _T("1");
 	else
 		number = _T("0");
@@ -32844,29 +32521,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szCollaboratingWithParatext << tab << number;
 	pf->AddLine(data);
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// whm added 15Apr11 for Bibledit collaboration
-	if (m_nSavedCollabBESetting != -1)
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_bCollaboratingWithBibledit that was forced by the -collab_on or -collab_off switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_nSavedCollabBESetting will be 0 or 1 reflecting what was
-		// actually read from the basic config file.
-		nCollabValueToUse = m_nSavedCollabBESetting;
-	}
-	else
-	{
-		// The value of m_nSavedCollabBESetting is -1 meaning that it was not
-		// overridden by a -collab_on or -collab_off command-line switch. In this case save the current
-		// session value of the App's m_bCollaboratingWithBibledit (cast to an int of
-		// 1 or 0).
-		nCollabValueToUse = (int)m_bCollaboratingWithBibledit;
-	}
-	*/
-	// whm added 15Apr11 for Bibledit collaboration
-	if (m_bCollaboratingWithBibledit) //if (nCollabValueToUse == 1) //
+	if (m_bCollaboratingWithBibledit)
 		number = _T("1");
 	else
 		number = _T("0");
@@ -32874,99 +32529,16 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szCollaboratingWithBibledit << tab << number;
 	pf->AddLine(data);
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// whm 23Jan11 added
-	if (!m_SavedCollabProjectForSourceInputs.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabProjectForSourceInputs that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabProjectForSourceInputs will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabProjectForSourceInputs;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForSourceInputs is empty meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabProjectForSourceInputs.
-		strCollabValueToUse = m_CollabProjectForSourceInputs;
-	}
-	*/
 	data.Empty();
-	data << szCollabProjectForSourceInputs << tab << m_CollabProjectForSourceInputs; //strCollabValueToUse;
+	data << szCollabProjectForSourceInputs << tab << m_CollabProjectForSourceInputs;
 	pf->AddLine(data);
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// whm 23Jan11 added
-	if (!m_SavedCollabProjectForTargetExports.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabProjectForTargetExports that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabProjectForTargetExports will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabProjectForTargetExports;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForTargetExports is empty meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabProjectForTargetExports.
-		strCollabValueToUse = m_CollabProjectForTargetExports;
-	}
-	*/
 	data.Empty();
-	data << szCollabProjectForTargetExports << tab << m_CollabProjectForTargetExports; //strCollabValueToUse;
+	data << szCollabProjectForTargetExports << tab << m_CollabProjectForTargetExports;
 	pf->AddLine(data);
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// whm 23Jan11 added
-	if (!m_SavedCollabProjectForFreeTransExports.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabProjectForFreeTransExports that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabProjectForFreeTransExports will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabProjectForFreeTransExports;
-	}
-	else
-	{
-		// The value of m_SavedCollabProjectForFreeTransExports is empty meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabProjectForFreeTransExports.
-		strCollabValueToUse = m_CollabProjectForFreeTransExports;
-	}
-	*/
 	data.Empty();
-	data << szCollabProjectForFreeTransExports << tab << m_CollabProjectForFreeTransExports; //strCollabValueToUse;
-	pf->AddLine(data);
-
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	if (!m_SavedCollabAIProjName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabAIProjectName that was forced by the -collab_proj and/or -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabAIProjName will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabAIProjName;
-	}
-	else
-	{
-		// The value of m_SavedCollabAIProjName is empty meaning that it was not
-		// overridden by a -collab_proj and/or -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabAIProjectName.
-		strCollabValueToUse = m_CollabAIProjectName;
-	}
-	*/
-	data.Empty();
-	data << szCollabAIProjectName << tab << m_CollabAIProjectName; //strCollabValueToUse;
+	data << szCollabProjectForFreeTransExports << tab << m_CollabProjectForFreeTransExports;
 	pf->AddLine(data);
 
 	if (m_collaborationEditor.IsEmpty())
@@ -32984,83 +32556,23 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 		}
 	}
 	data.Empty();
-	data << szCollaborationEditor << tab << m_collaborationEditor; // whm added 4Apr12
+	data << szCollaborationEditor << tab << m_collaborationEditor;
 	pf->AddLine(data);
 
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// whm 23Jan11 added
-	if (!m_SavedCollabSourceLangName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabSourceLangName that was forced by the -collab_proj and/or -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabSourceLangName will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabSourceLangName;
-	}
-	else
-	{
-		// The value of m_SavedCollabSourceLangName is empty meaning that it was not
-		// overridden by a -collab_proj and/or -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabSourceLangName.
-		strCollabValueToUse = m_CollabSourceLangName;
-	}
-	*/
-	data.Empty();
-	data << szCollabSourceLangName << tab << m_CollabSourceLangName; //strCollabValueToUse;
-	pf->AddLine(data);
-
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	// whm 23Jan11 added
-	if (!m_SavedCollabTargetLangName.IsEmpty())
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_CollabTargetLangName that was forced by the -collab_proj and/or -ai_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_SavedCollabTargetLangName will be a string value that was actually read
-		// from the basic config file..
-		strCollabValueToUse = m_SavedCollabTargetLangName;
-	}
-	else
-	{
-		// The value of m_SavedCollabTargetLangName is empty meaning that it was not
-		// overridden by a -collab_proj and/or -ai_proj command-line switch. In this case
-		// save the current session value of the App's m_CollabTargetLangName.
-		strCollabValueToUse = m_CollabTargetLangName;
-	}
-	*/
-	data.Empty();
-	data << szCollabTargetLangName << tab << m_CollabTargetLangName; //strCollabValueToUse;
-	pf->AddLine(data);
-
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	/*
-	if (m_nSavedCollabExpectsFreeTrans != -1)
-	{
-		// Save the value that was read from the basic config file, rather than whatever value
-		// of m_bCollaborationExpectsFreeTrans that was forced by the -collab_proj switch at
-		// the command-line. In the forced collab mode situation the value of
-		// m_nSavedCollabExpectsFreeTrans will be 0 or 1 reflecting what was
-		// actually read from the basic config file.
-		nCollabValueToUse = m_nSavedCollabExpectsFreeTrans;
-	}
-	else
-	{
-		// The value of m_nSavedCollabExpectsFreeTrans is -1 meaning that it was not
-		// overridden by a -collab_proj command-line switch. In this case save the current
-		// session value of the App's m_bCollaborationExpectsFreeTrans (cast to an int of
-		// 1 or 0).
-		nCollabValueToUse = (int)m_bCollaborationExpectsFreeTrans;
-	}
-	*/
-	if (m_bCollaborationExpectsFreeTrans) //if (nCollabValueToUse) // whm added 9Aug11
+	if (m_bCollaborationExpectsFreeTrans)
 		number = _T("1");
 	else
 		number = _T("0");
 	data.Empty();
 	data << szCollabExpectsFreeTrans << tab << number;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szCollabSourceLangName << tab << m_CollabSourceLangName;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szCollabTargetLangName << tab << m_CollabTargetLangName;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -33078,21 +32590,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szCollabChapterSelected << tab << m_CollabChapterSelected;
 	pf->AddLine(data);
-
-	/*
-	if (m_bPwdProtectCollabSwitching)
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szCollabSwitchingPasswordProtected << tab << number; // whm added 2Feb12
-	pf->AddLine(data);
-
-	data.Empty();
-	data << szCollabSwitchingPassword << tab << m_collabSwitchingPassword; // whm added 2Feb12
-	pf->AddLine(data);
-	// whm 17Feb12 added above collaboration-related settings to the project config file
-	*/
+	// !!!!!!!!!!!!!! END OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!!!!!!!
 
 	// whm added next three for Guesser support
 	data.Empty();
@@ -33122,12 +32620,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szRTL_Layout << tab << number;
 	pf->AddLine(data);
-
-	// whm removed 8Aug11 from config file - not used since version 3
-	//data.Empty();
-	//data <<	szSFMescapechar << tab;
-	//data << gSFescapechar;
-	//pf->AddLine(data);
 
 	// BEW 8Jun10, removed support for checkbox "Recognise standard format
 	// markers only following newlines"
@@ -33200,7 +32692,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szAutoCapitalization << tab << number;
 	pf->AddLine(data);
 
-	if (gbSrcHasUcAndLc)	// not in MFC version; whm added for wx version
+	if (gbSrcHasUcAndLc)
 		number = _T("1");
 	else
 		number = _T("0");
@@ -33212,7 +32704,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szFontSizeForDialogs << tab << m_dialogFontSize;
 	pf->AddLine(data);
 
-	switch (gProjectSfmSetForConfig) // whm ammended 6May05 to use gProjectSfmSetForConfig
+	switch (gProjectSfmSetForConfig)
 	{
 		case UsfmOnly: number = szUsfmOnly;break;
 		case PngOnly: number = szPngOnly;break;
@@ -33224,7 +32716,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szUseFilterMarkers << tab << gProjectFilterMarkersForConfig; // whm added 13May05
+	data << szUseFilterMarkers << tab << gProjectFilterMarkersForConfig;
 	pf->AddLine(data);
 
 	if (m_bChangeFixedSpaceToRegularSpace)
@@ -33249,14 +32741,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szBookIndex << tab <<  m_nBookIndex;
 	pf->AddLine(data);
-
-	/* this flag is deprecated (Reading a project config must read it for backwards compatibility but do nothing with it)
-	// wx version: m_bSaveAsXML must always be true
-	number = _T("1");
-	data.Empty();
-	data << szSaveAsXML << tab << number;
-	pf->AddLine(data);
-	*/
 
 	data.Empty();
 	data << szSilConverterName << tab << m_strSilEncConverterName;
@@ -33394,10 +32878,22 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bIsKBServerProject = FALSE;
 			}
 		}
-		else if (name == szKbServerURL)
+		else if (name == szIsGlossingKBServerProject)
 		{
-			m_strKbServerURL = strValue;
+			if (strValue == _T("1"))
+			{
+				m_bIsGlossingKBServerProject = TRUE;
+			}
+			else
+			{
+				m_bIsGlossingKBServerProject = FALSE;
+			}
 		}
+		// whm 30Oct13 moved the KbServerURL value handling to the basic config file
+		//else if (name == szKbServerURL)
+		//{
+		//	m_strKbServerURL = strValue;
+		//}
 		else if (name == szKbServerDownloadInterval)
 		{
 			num = wxAtoi(strValue);
@@ -33407,6 +32903,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 #else		// mrh - avoid warning if we're switching from a kbserver to non-kbserver build
 		else if (name == szIsKBServerProject)
+			;	// do nothing
+		else if (name == szIsGlossingKBServerProject)
 			;	// do nothing
 		else if (name == szKbServerURL)
 			;	// do nothing
@@ -33445,17 +32943,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			// whm 20Feb12 removed from project config
 			;
-			//m_curProjectName = strValue;
-			//if (!m_ForceCollabAIProjectName.IsEmpty())
-			//	m_SavedCurProjectName = strValue;
 		}
 		else if (name == szCurLanguagesPath)
 		{
 			// whm 20Feb12 removed from project config
 			;
-			//m_curProjectPath = strValue;
-			//if (!m_ForceCollabAIProjectName.IsEmpty())
-			//	m_SavedCurProjectPath = strValue;
 		}
 
 
@@ -33484,7 +32976,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_lastSourceRTFOutputPath = strValue;
 		}
-		else if (name == szLastTargetOutputPath || name == szLastExportPath) // whm 6Aug11 added szLastTargetOutputPath
+		else if (name == szLastTargetOutputPath || name == szLastExportPath)
 		{
 			m_lastTargetOutputPath = strValue;
 		}
@@ -33508,11 +33000,11 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_lastFreeTransRTFOutputPath = strValue;
 		}
-		else if (name == szLastXhtmlOutputPath) // whm added 23Jul12
+		else if (name == szLastXhtmlOutputPath)
 		{
 			m_lastXhtmlOutputPath = strValue;
 		}
-		else if (name == szLastPathwayOutputPath) // whm added 23Jul12
+		else if (name == szLastPathwayOutputPath)
 		{
 			m_lastPathwayOutputPath = strValue;
 		}
@@ -33852,7 +33344,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bBackupDocument = FALSE;
 		}
-		else if (name == szWorkflowProfile) // whm added 3Sep10 for user workflow profile support
+		else if (name == szWorkflowProfile)
 		{
 			num = wxAtoi(strValue);
 			if (num < 0 || num > 10)
@@ -33860,158 +33352,86 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			m_nWorkflowProfile = num;
 		}
 
+		// !!!!!!!!!!!!!! BEGINNING OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!
+		// whm 26Oct13 reordered collab settings to match the order saved in the
+		// Adapt_It_WX.ini/.Adapt_It_WX file, in which the m_CollabAIProjectName
+		// value must come first in the group
 		// whm added 17Feb12 next 14 items for project-specific collaboration
-		else if (name == szCollaboratingWithParatext) // whm added 15Apr11
+		else if (name == szCollabAIProjectName)
+		{
+			m_CollabAIProjectName = strValue;
+		}
+		else if (name == szCollaboratingWithParatext)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
 				num = 0;
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_bCollaboratingWithParatext
-			// can be overridden by the use of the command-line switches -collab_on or -collab_off.
 			if (num == 1)
 			{
 				m_bCollaboratingWithParatext = TRUE;
-				// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-				//if (m_bForceCollabModeON)
-				//{
-				//	m_nSavedCollabPTSetting = 1;
-				//}
 			}
 			else
 			{
 				m_bCollaboratingWithParatext = FALSE;
-				// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-				//if (m_bForceCollabModeOFF)
-				//{
-				//	m_nSavedCollabPTSetting = 0;
-				//}
 			}
 		}
-		else if (name == szCollaboratingWithBibledit) // whm added 15Apr11
+		else if (name == szCollaboratingWithBibledit)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
 				num = 0;
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_bCollaboratingWithBibledit
-			// can be overridden by the use of the command-line switches -collab_on or -collab_off.
 			if (num == 1)
 			{
 				m_bCollaboratingWithBibledit = TRUE;
-				// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-				//if (m_bForceCollabModeON)
-				//{
-				//	m_nSavedCollabBESetting = 1;
-				//}
 			}
 			else
 			{
 				m_bCollaboratingWithBibledit = FALSE;
-				// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-				//if (m_bForceCollabModeOFF)
-				//{
-				//	m_nSavedCollabBESetting = 0;
-				//}
 			}
 		}
-		else if (name == szCollabProjectForSourceInputs) // whm added 15Apr11
+		else if (name == szCollabProjectForSourceInputs)
 		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_CollabProjectForSourceInputs
-			// can be overridden by the use of the command-line switch -collab_proj followed by the
-			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
-			// first part "Source Proj" is significant in this case.
 			m_CollabProjectForSourceInputs = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabProjectNames.IsEmpty())
-			//{
-			//	m_SavedCollabProjectForSourceInputs = strValue;
-			//}
 		}
-		else if (name == szCollabProjectForTargetExports) // whm added 15Apr11
+		else if (name == szCollabProjectForTargetExports)
 		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_CollabProjectForTargetExports
-			// can be overridden by the use of the command-line switch -collab_proj followed by the
-			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
-			// second part "Target Proj" is significant in this case.
 			m_CollabProjectForTargetExports = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabProjectNames.IsEmpty())
-			//{
-			//	m_SavedCollabProjectForTargetExports = strValue;
-			//}
 		}
-		else if (name == szCollabProjectForFreeTransExports) // whm added 30Jun11
+		else if (name == szCollabProjectForFreeTransExports)
 		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_CollabProjectForFreeTransExports
-			// can be overridden by the use of the command-line switch -collab_proj followed by the
-			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
-			// third part "FreeTrans Proj", if specifieded, is significant in this case.
 			m_CollabProjectForFreeTransExports = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabProjectNames.IsEmpty())
-			//{
-			//	m_SavedCollabProjectForFreeTransExports = strValue;
-			//}
 		}
-		else if (name == szCollabAIProjectName) // whm added 7Sep11
+		else if (name == szCollaborationEditor)
 		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_CollabAIProjectName
-			// can be overridden by the use of the command-line switch -ai_proj followed by
-			// the AI project name in the form "Lang A to Lang B adaptations".
-			m_CollabAIProjectName = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabAIProjectName.IsEmpty())
-			//{
-			//	m_SavedCollabAIProjName = strValue;	// whm added 20Jan12 used to restore m_CollabAIProjectName before
-			//								// saving value to basic config file after -ai_proj was used to
-			//								// force the project name from the command-line.
-			//}
-		}
-		else if (name == szCollaborationEditor) // whm added 4Apr12
-		{
-			// whm 25Apr12 added. Don't allow a blank config file entry for the CollaborationEditor to
+			//Don't allow a blank config file entry for the CollaborationEditor to
 			// remove the default or current m_collaborationEditor.
 			if (!strValue.IsEmpty())
 			{
 				m_collaborationEditor = strValue;
 			}
 		}
-		else if (name == szCollabExpectsFreeTrans) // whm added 9Aug11
+		else if (name == szCollabExpectsFreeTrans)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
 				num = 0;
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_bCollaborationExpectsFreeTrans
-			// can be overridden by the use of the command-line switch -collab_proj followed by the
-			// PT/BE project names in the form "Source Proj:Target Proj[:FreeTrans Proj]" where the
-			// third part "FreeTrans Proj", if specifieded, is significant in this case.
 			if (num == 1)
 			{
 				m_bCollaborationExpectsFreeTrans = TRUE;
-				// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-				//if (m_bForceCollabExpectsFreeTrans)
-				//{
-				//	m_nSavedCollabExpectsFreeTrans = 1;
-				//}
 			}
 			else
 			{
 				m_bCollaborationExpectsFreeTrans = FALSE;
-				// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-				//if (m_bForceCollabExpectsFreeTrans)
-				//{
-				//	m_nSavedCollabExpectsFreeTrans = 0;
-				//}
 			}
 		}
-		// whm Note: The next three having to do with book and chapter
-		// selection are not affected by command-line switches.
+		else if (name == szCollabSourceLangName)
+		{
+			m_CollabSourceLangName = strValue;
+		}
+		else if (name == szCollabTargetLangName)
+		{
+			m_CollabTargetLangName = strValue;
+		}
 		else if (name == szCollabBookSelected)
 		{
 			m_CollabBookSelected = strValue;
@@ -34020,7 +33440,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
-				num = 1; // whm modified 28Sep12 to make the value TRUE if num is out-of-range or missing
+				num = 1; // make the value TRUE if num is out-of-range or missing
 			if (num == 1)
 				m_bCollabByChapterOnly = TRUE;
 			else
@@ -34030,52 +33450,9 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		{
 			m_CollabChapterSelected = strValue;
 		}
-		// whm 4Sep11 added the next two
-		else if (name == szCollabSourceLangName)
-		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_CollabSourceLangName
-			// can be overridden by the use of command-line switches -collab_proj or -ai_proj
-			// followed by their associated strings indicating specified projects.
-			m_CollabSourceLangName = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabProjectNames.IsEmpty() || (!m_ForceCollabAIProjectName.IsEmpty()))
-			//{
-			//	m_SavedCollabSourceLangName = strValue;
-			//}
-		}
-		else if (name == szCollabTargetLangName)
-		{
-			// whm 15Apr11 Note: See the GetBasicSettingsConfiguration() call within
-			// the GetConfigurationFile() function where the value of m_CollabTargetLangName
-			// can be overridden by the use of command-line switches -collab_proj or -ai_proj
-			// followed by their associated strings indicating specified projects.
-			m_CollabTargetLangName = strValue;
-			// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-			//if (!m_ForceCollabProjectNames.IsEmpty() || (!m_ForceCollabAIProjectName.IsEmpty()))
-			//{
-			//	m_SavedCollabTargetLangName = strValue;
-			//}
-		}
-		/*
-		else if (name == szCollabSwitchingPasswordProtected) // whm added 2Feb12
-		{
-			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 1))
-				num = 0;
-			if (num == 0)
-				m_bPwdProtectCollabSwitching = FALSE;
-			else
-				m_bPwdProtectCollabSwitching = TRUE;
-		}
-		else if (name == szCollabSwitchingPassword) // whm added 2Feb12
-		{
-			m_collabSwitchingPassword = strValue;
-		}
-		// whm added 17Feb12 above 14 items for project-specific collaboration
-		*/
+		// !!!!!!!!!!!!!! END OF COLLABORATION SETTINGS !!!!!!!!!!!!!!!!!!!!!!!
 
-		else if (name == szUseAdaptationsGuesser) // whm added 28Oct10 for Guesser support
+		else if (name == szUseAdaptationsGuesser)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
@@ -34085,7 +33462,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 				m_bUseAdaptationsGuesser = FALSE;
 		}
-		else if (name == szGuessingLevel) // whm added 28Oct10 for Guesser support
+		else if (name == szGuessingLevel)
 		{
 			num = wxAtoi(strValue);
 			if (num < 0 || num > 100) // m_nGuessingLevel must be between 0 and 100; 50 is default
@@ -34094,7 +33471,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		}
 		// BEW 10Jun13, the next is the legacy code, it has a mislabelling, so I'll follow
 		// it with an alternative which has the changed correct labelling
-		else if (name == szAllowCConUnchangedGuesserOutput) // whm added 28Oct10 for Guesser support
+		else if (name == szAllowCConUnchangedGuesserOutput)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
@@ -34211,7 +33588,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 				gbAutoCaps = FALSE;
 		}
-		else if (name == szSrcHasUcAndLc) // whm added 12Aug04 - not in MFC version
+		else if (name == szSrcHasUcAndLc)
 		{
 			num = wxAtoi(strValue);
 			if (!(num == 0 || num == 1))
@@ -34399,9 +33776,9 @@ t:				m_pCurrBookNamePair = NULL;
         // and Filtering tab, or the USFM and Filtering page in the Start Working... wizard
         // upon creation of a new project.
 		gCurrentSfmSet = PngOnly;
-		gProjectSfmSetForConfig = gCurrentSfmSet; // whm added 6May05
-		gCurrentFilterMarkers = PngFilterMarkersStr; // whm added 13May05
-		gProjectFilterMarkersForConfig = gCurrentFilterMarkers; // whm added 13May05
+		gProjectSfmSetForConfig = gCurrentSfmSet;
+		gCurrentFilterMarkers = PngFilterMarkersStr;
+		gProjectFilterMarkersForConfig = gCurrentFilterMarkers;
 	}
 
 #ifdef _UNICODE
@@ -34901,6 +34278,297 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing inputStr with : chars replaced by @ chars
+/// \param      inputStr   -> a input string containing possible : chars
+/// \remarks
+/// Called from: the App's SaveAppCollabSettingsToINIFile().
+/// This function returns the original string if there are no ':' characters
+/// in the inputStr. Otherwise it returns a wxString in which any ':' characters
+/// have been replaced by '@' characters.
+////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::ReplaceColonsWithAtSymbol(wxString inputStr)
+{
+	if (inputStr.IsEmpty())
+		return inputStr;
+	inputStr.Replace(_T(":"),_T("@"));
+	return inputStr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString representing inputStr with @ chars replaced by : chars
+/// \param      inputStr   -> a input string containing possible @ chars
+/// \remarks
+/// Called from:
+/// This function returns the original string if there are no '@' characters
+/// in the inputStr. Otherwise it returns a wxString in which any '@' characters
+/// have been replaced by ':' characters.
+////////////////////////////////////////////////////////////////////////////////////////
+wxString CAdapt_ItApp::ReplaceAtSymbolWithColons(wxString inputStr)
+{
+	if (inputStr.IsEmpty())
+		return inputStr;
+	inputStr.Replace(_T("@"),_T(":"));
+	return inputStr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxArrayString containing all of the collab project composite strings
+/// \remarks
+/// Called from: the App's SaveAppCollabSettingsToINIFile() and SetProjectDefaults()
+/// This function returns a wxArrayString of all of the collab project
+/// composite strings found in the [ProjCollabSettings] section of the
+/// Adapt_It_WX.ini/.Adapt_It_WX file. The composite string starts with the
+/// name of the project folder; it doesn't include a proj_collab_settings_N=
+/// prefix on the composite string.
+////////////////////////////////////////////////////////////////////////////////////////
+wxArrayString CAdapt_ItApp::GetCollabSettingsFromINIFile()
+{
+	wxString entryName;
+	wxString valueStr;
+	wxArrayString collabProjectSettingsArray;
+	long dummy;
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/ProjCollabSettings")); // creates ProjCollabSettings path if it doesn't exist
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+
+	// Enumerate all entries under the [ProjCollabSettings] section
+	bool bReadOK = FALSE;
+	bool bEntryExists = m_pConfig->GetFirstEntry(entryName,dummy);
+	while (bEntryExists)
+	{
+		bReadOK = m_pConfig->Read(entryName,&valueStr);
+		bReadOK = bReadOK; // avoid warning
+		collabProjectSettingsArray.Add(valueStr);
+		bEntryExists = m_pConfig->GetNextEntry(entryName,dummy);
+	}
+	} // end wxLogNull block
+
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
+
+	return collabProjectSettingsArray;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      projectPathName -> the path and name of the AI project
+///             directory, of the form [Path]/languageA to languageB adaptations"
+/// \remarks
+/// Called from: CSetupEditorCollaboration::DoSaveSetupForThisProject(),
+/// CSetupEditorCollaboration::OnRemoveThisAIProjectFromCollab(), and
+/// CGetSourceTextFromEditorDlg::OnOK().
+/// This function saves the current collaboration settings stored on the App
+/// as composite strings associated with a proj_collab_settings_N key in
+/// the [ProjCollabSettings] section of the Adapt_It_WX.ini/.Adapt_It_WX file.
+/// Each time a composite string is changed or added to the ini file, all
+/// previous and any new strings are rewritten to the ini file, keeping the
+/// key-value pairs in sequence. This function is called when initially
+/// creating collaboration settings for an AI project, when removing a project
+/// from collaboration, and each time a successful collaboration project's
+/// document is opened (from CGetSourceTextFromEditorDlg::OnOK()). Collab
+/// setting values are stored in the Adapt_It_WX.ini/.Adapt_It_WX file as
+/// a backup mechanism so that, if a user does a Shift-Down opening of the
+/// project (bypassing the reading of the project config file, collaboration
+/// settings will be automatically restored for that project - when
+/// SetProjectDefaults() function is called.
+/// If the first collab setting contained in m_CollabAIProjectName is an empty
+/// string it is a signal that the caller is
+/// OnRemoveThisAIProjectFromCollab(), in which case any existing composite
+/// string for the project at projectPathAndName will be removed from the ini
+/// file.
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SaveAppCollabSettingsToINIFile(wxString projectPathAndName)
+{
+	// This function uses the current App values for the collab settings.
+	// The order of collab setting fields within the composite string is:
+	// m_CollabAIProjectName
+	// m_bCollaboratingWithParatext (bool value as wxString "0" or "1")
+	// m_bCollaboratingWithBibledit (bool value as wxString "0" or "1")
+	// m_CollabProjectForSourceInputs
+	// m_CollabProjectForTargetExports
+	// m_CollabProjectForFreeTransExports
+	// m_collaborationEditor
+	// m_bCollaborationExpectsFreeTrans (bool value as wxString "0" or "1")
+	// m_CollabSourceLangName
+	// m_CollabTargetLangName
+	// m_CollabBookSelected
+	// m_bCollabByChapterOnly (bool value as wxString "0" or "1")
+	// m_CollabChapterSelected
+	//
+	// Note: Any embedded colons ':' that can appear in the Source, Target and
+	// FreeTrans project names (in PT) are stored as @ characters, and converted
+	// back to colons when parsed from the composite string in
+	// CAdapt_ItApp::SetProjectDefaults().
+	wxString newCompositeStr;
+	wxString colon = _T(":");
+	wxString equals = _T("=");
+	newCompositeStr.Empty();
+	// FIELD 1 CollabAIProjectNa
+	newCompositeStr += m_CollabAIProjectName;
+	newCompositeStr += colon;
+	// FIELD 2 CollaboratingWithParatex
+	if (m_bCollaboratingWithParatext == TRUE)
+		newCompositeStr += _T("1"); // (bool value as wxString "0" or "1")
+	else
+		newCompositeStr += _T("0"); // (bool value as wxString "0" or "1")
+	newCompositeStr += colon;
+	// FIELD 3 CollaboratingWithBibledit
+	if (m_bCollaboratingWithBibledit == TRUE)
+		newCompositeStr += _T("1"); // (bool value as wxString "0" or "1")
+	else
+		newCompositeStr += _T("0"); // (bool value as wxString "0" or "1")
+	newCompositeStr += colon;
+	// FIELD 4 CollabProjectForSourceInputs
+	newCompositeStr += ReplaceColonsWithAtSymbol(m_CollabProjectForSourceInputs);
+	newCompositeStr += colon;
+	// FIELD 5 CollabProjectForTargetExports
+	newCompositeStr += ReplaceColonsWithAtSymbol(m_CollabProjectForTargetExports);
+	newCompositeStr += colon;
+	// FIELD 6 CollabProjectForFreeTransExports
+	newCompositeStr += ReplaceColonsWithAtSymbol(m_CollabProjectForFreeTransExports);
+	newCompositeStr += colon;
+	// FIELD 7 CollaborationEditor
+	newCompositeStr += m_collaborationEditor;
+	newCompositeStr += colon;
+	// FIELD 8 CollabExpectsFreeTrans
+	if (m_bCollaborationExpectsFreeTrans == TRUE)
+		newCompositeStr += _T("1"); // (bool value as wxString "0" or "1")
+	else
+		newCompositeStr += _T("0"); // (bool value as wxString "0" or "1")
+	newCompositeStr += colon;
+	// FIELD 9 CollabSourceLangName
+	newCompositeStr += m_CollabSourceLangName;
+	newCompositeStr += colon;
+	// FIELD 10 CollabTargetLangName
+	newCompositeStr += m_CollabTargetLangName;
+	newCompositeStr += colon;
+	// FIELD 11 CollabBookSelected
+	newCompositeStr += m_CollabBookSelected;
+	newCompositeStr += colon;
+	// FIELD 12 CollabByChapterOnly
+	if (m_bCollabByChapterOnly == TRUE)
+		newCompositeStr += _T("1"); // (bool value as wxString "0" or "1")
+	else
+		newCompositeStr += _T("0"); // (bool value as wxString "0" or "1")
+	newCompositeStr += colon;
+	// FIELD 13 CollabChapterSelected
+	newCompositeStr += m_CollabChapterSelected;
+	newCompositeStr += colon; // end composite string with a colon
+
+	// a sample composite string might look like the following:
+	// proj_collab_settings_0=X to Y adaptations:1:0:NYNT @ Nyindrou NT @ Nyindrou @ lid:DTP @ DTPNT @ Tok Pisin @ tpi::Paratext:0:X:Y:Acts:1:3:
+
+	// Note: successive keys would have the form proj_collab_settings_1,
+	// proj_collab_settings_2, proj_collab_settings_3 and so on. Each time a
+	// composite string is changed or added to the ini file, all previous
+	// and any new strings are rewritten to the ini file, keeping the
+	// key-value pairs in sequence.
+
+	// Update any existing collab project composite string in the ini
+	// file. If no project composite string exists for the current project
+	// add it to the ini file.
+
+	// To find out if the project exists we need to read all of the collab
+	// project composite strings from the ini file into an array.
+
+	// Extract the AI project name from the projectFolderPath incoming
+	// parameter.
+	wxFileName fn(projectPathAndName);
+	wxString projectName;
+	projectName = fn.GetFullName();
+
+	wxArrayString collabProjectSettingsArray;
+	collabProjectSettingsArray = GetCollabSettingsFromINIFile();
+
+	// Scan the array for the line that has the projectName collab settings
+	int ct;
+	int indexOfFoundItem = -1;
+	int tot = (int)collabProjectSettingsArray.GetCount();
+	wxString existingCompositeStr;
+	existingCompositeStr.Empty();
+	bool bFound = FALSE;
+	for (ct = 0; ct < tot; ct++)
+	{
+		existingCompositeStr = collabProjectSettingsArray.Item(ct);
+		existingCompositeStr.Trim(FALSE); // trim any whitespace from left end
+		//if (existingCompositeStr.Find(szCollabAIProjectName + equals + projectName) == 0)
+		if (existingCompositeStr.Find(projectName) == 0)
+		{
+			// We found the projectName string
+			bFound = TRUE;
+			indexOfFoundItem = ct;
+			break;
+		}
+	}
+	if (bFound)
+	{
+        // We found a composite string in the ini file that contains the collab
+        // settings string for this project, so we replace the whole existing
+        // string with the current collab settings, i.e., remove the old array
+        // string and insert the new one in the same location in the array. If,
+        // however, the m_CollabAIProjectName field of our newly composed
+        // composite string is empty (signaling that collab settings for this
+        // project are being removed), we don't Insert it into the array,
+        // effectively removing the string we found from the ini file.
+		collabProjectSettingsArray.RemoveAt(indexOfFoundItem,1);
+		if (!m_CollabAIProjectName.IsEmpty())
+		{
+			// Only Insert the new composite string when m_CollabAIProjectName
+			// has a non-empty value.
+			collabProjectSettingsArray.Insert(newCompositeStr,indexOfFoundItem,1);
+		}
+	}
+	else
+	{
+		// We did not find an existing collab project in the ini file, so we
+		// add the new one to the collabProjectSettingsArray, but not if it
+		// was a collab project removal.
+		if (!m_CollabAIProjectName.IsEmpty())
+		{
+			// Only Insert the new composite string when m_CollabAIProjectName
+			// has a non-empty value.
+			collabProjectSettingsArray.Add(newCompositeStr);
+		}
+	}
+	// Remove all entries from the [ProjCollabSettings] group, and then
+	// rewrite all the entries from the collabProjectSettingsArray out to the
+	// ini file, thus effectively replacing those that may have already been
+	// there.
+	wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+	m_pConfig->SetPath(_T("/ProjCollabSettings")); // creates ProjCollabSettings path if it doesn't exist
+	{ // begin wxLogNull block
+	wxLogNull logNo; // eliminates spurious message from the system
+
+	int numEntries;
+	wxString entryName;
+	long entryIndex;
+	numEntries = (int)m_pConfig->GetNumberOfEntries(FALSE); // FALSE don't count entries recursively
+	for (ct = 0; ct < numEntries; ct++)
+	{
+		m_pConfig->GetFirstEntry(entryName,entryIndex);
+		m_pConfig->DeleteEntry(entryName,FALSE); // FALSE don't delete group if last entry
+	}
+	wxASSERT(m_pConfig->GetNumberOfEntries(FALSE) == 0); // we've deleted the /ProjCollabSettings entries
+	int numArrayStrings;
+	numArrayStrings = (int)collabProjectSettingsArray.GetCount();
+	for (ct = 0; ct < numArrayStrings; ct++)
+	{
+		wxString keyStr = _T("proj_collab_settings_"); // each iteration uses this base name
+		keyStr << ct; // add a numeric suffix
+		m_pConfig->Write(keyStr,collabProjectSettingsArray.Item(ct));
+	}
+
+	} // end wxLogNull block
+
+	m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed
+	// restore the oldPath back to "/Recent_File_List"
+	m_pConfig->SetPath(oldPath);
+
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if destinationFolder is empty, if no configuration file yet
 ///             exists, or could not set directory path, otherwise TRUE indicating write
 ///             was successful
@@ -35335,8 +35003,6 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			MoveCollabSettingsToProjectConfigFile(collabProjectName);
 		}
 
-		// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-		//ForceCollabSettingsFromCommandLineSwitches();
 	}
 	else // project level
 	{
@@ -35359,20 +35025,66 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			gbSrcHasUcAndLc = TRUE;
 	}
 
-	// whm added 17Feb12. The collaboration-related command-line switches/options "force"
-	// certain of the collaboration values to adhere to the command-line switches/options
-	// via tests of the following 5 flags: m_bForceCollabModeON, m_bForceCollabModeOFF,
-	// m_bForceCollabExpectsFreeTrans, m_ForceCollabAIProjectName, and
-	// m_ForceCollabProjectNames. Those tests previously were in the block for getting
-	// the basic settings configuration. I've put those routines in a separate function
-	// called ForceCollabSettingsFromCommandLineSwitches() which now should be called
-	// also when getting the project settings configuration.
-
-	// whm 20Feb12 removed collab command-line support to implement project-specific collaboration
-	//ForceCollabSettingsFromCommandLineSwitches();
-
-
 	f.Close(); // closes the wxTextFile and frees memory used for it
+
+	// whm added 29Oct13 to add any administrator designated admin password to
+	// the Adapt_It_WX.ini / .Adapt_It_WX file if it doesn't already exist.
+	// Normally (as of 6.5.0) an administrator designated admin password would
+	// be stored in the Adapt_It_WX.ini / .Adapt_It_WX file at the time the
+	// administrator creates the password in the OnSetPassword() function.
+	// However, it may be that an administrator has already set such a
+	// password before upgrading to AI version 6.5.0. If that is the case,
+	// then there will be a password stored with the AdministratorPassword
+	// label within the AI-BasicConfiguration.aic file, but not yet stored
+	// within the Adapt_It_WX.ini / .Adapt_It_WX file. Therefore, we want to
+	// transfer any already-set password from the basic config file to the ini
+	// file the first time AI is run after upgrading to 6.5.0.
+	// This transfer will only be done once under the following conditions:
+	// 1. The basic config file contains a password defined for the
+	// AdministratorPassword label, and
+	// 2. There is no entry yet stored within the Adapt_It_WX.ini / .Adapt_It_WX
+	// file.
+	// First see if the Adapt_It_WX.ini / .Adapt_It_WX file has a value set
+	// for the admin_password key
+	if (configFType == basicConfigFile && !m_adminPassword.IsEmpty())
+	{
+		bool bIniFileHasValue;
+		wxString oldPath = m_pConfig->GetPath();
+		m_pConfig->SetPath(_T("/AdminPassword"));
+		bool bReadOK = FALSE;
+		wxString tempAdminPassword;
+		{ // begin wxLogNull block
+		wxLogNull logNo; // eliminates spurious message from the system
+		bReadOK = m_pConfig->Read(_T("admin_password"), &tempAdminPassword);
+		} // end wxLogNull block
+		if (bReadOK && !tempAdminPassword.IsEmpty())
+			bIniFileHasValue = TRUE;
+		else
+			bIniFileHasValue = FALSE;
+		// restore the oldPath back to "/Recent_File_List"
+		m_pConfig->SetPath(oldPath);
+
+		if (!bIniFileHasValue)
+		{
+			bool bWriteOK = FALSE;
+			wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+			m_pConfig->SetPath(_T("/AdminPassword"));
+			// We want even a null string value for the AdministratorPassword string
+			// to be saved in Adapt_It_WX.ini.
+			{ // block for wxLogNull
+				wxLogNull logNo; // eliminates spurious message from the system
+				bWriteOK = m_pConfig->Write(_T("admin_password"), m_adminPassword);
+				if (!bWriteOK)
+				{
+					wxMessageBox(_T("WriteConfigurationFile() m_pConfig->Write() of admin_password returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+				}
+				m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+			}
+			// restore the oldPath back to "/Recent_File_List"
+			m_pConfig->SetPath(oldPath);
+		}
+	}
+
 	// BEW added 17Apr13, to help with debugging config file errors at launch
 	{
 	wxString msg;
@@ -37530,7 +37242,6 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 {
 	// Initializations...
 	wxString srcKey = _T("");
-	CTargetUnit* pTU = NULL;
 	int mapIndex = wxNOT_FOUND;
 	// maxWords is the max number of MapKeyStringToTgtUnit maps allowed
 	CKB* pKB = NULL;
@@ -37567,9 +37278,10 @@ void CAdapt_ItApp::OnMakeAllKnowledgeBaseEntriesAvailable(wxCommandEvent& WXUNUS
 				// equivalent CTargetUnit, making the latter first if it does not yet exist
 				srcKey = iter->first;
 				wxASSERT(!srcKey.IsEmpty());
-				pTU = iter->second;
+				CTargetUnit* pTU = iter->second;
 				wxASSERT(pTU != NULL);
-				// Because we are working with hash tables, the following call will do a
+				pTU = pTU; // prevent compiler warning
+                // Because we are working with hash tables, the following call will do a
 				// lookup within the passed in pMap - it will find at most only two
 				// matches (one if there is no upper-case-keyed CTargetUnit with the
 				// needed key), and so the loops are not order-N-squared, but order-N only
@@ -39335,6 +39047,11 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 #endif
 }
 
+//**************************************************************************************
+//
+//           Status bar support (RefreshStatusBarInfo & StatusBarMessage)
+//
+//**************************************************************************************
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -39421,7 +39138,7 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	//message = message.Format(rscStr,gpApp->m_curProjectName.c_str());
 	message += message.Format(rscStr,gpApp->m_curProjectName.c_str());
 
-	// do nothing if there is no active pile or a bad sequence number of no target box
+	// do nothing if there is no active pile or a bad sequence number or no target box
 	bool bDocIsThere = TRUE;
 	if (gpApp->m_pTargetBox != NULL)
 	{
@@ -39508,10 +39225,150 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 		mssg = _("!! TRANSLITERATING !!");
 		message += _T("   ") + mssg;
 	}
-	pView->StatusBarMessage(message);
+	StatusBarMessage(message);
 	pFrame->m_pStatusBar->Update();
 
 }
+
+void CAdapt_ItApp::StatusBarMessage(wxString &message)
+{
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	wxASSERT(pFrame != NULL);
+ 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
+	if (pStatusBar != NULL)
+	{
+		pStatusBar->SetStatusText(message,0); // use first field 0
+	}
+}
+
+#if defined(_KBSERVER)
+
+/// \return      void
+/// \remarks
+/// Adjust the status bar to have a second field showing how many remote kb entries have
+/// been deleted out of a total of M. It is called when the detached thread posts a
+/// message requesting refreshing the progress display. Also, if the window is resized.
+/// It's not called if m_bKbSvrMgr_DeleteAllIsInProgress flag is FALSE. That flag is TRUE
+/// for as long as the detached thread doing the deletions continues to run.
+/// Also, if the flag is TRUE, then every place in the app where RefreshStatusBarInfo()
+/// is called, StatusBar_ProgressOfKbDeletion(() should be called immediately afterwards to
+/// get the appropriate adjustment done.
+/// Note: Erik's CStatusBar subclasses wxStatusBar. This StatusBar_ProgressOfKbDeletion()
+/// function is intended to work independently of that subclass. (It may be necessary, if
+/// the subclass is used while kb entries are being deleted, for Erik's solution to
+/// reestablish the number of fields, and their relative sizes. I'll cross that bridge
+/// when I come to it.)
+void CAdapt_ItApp::StatusBar_ProgressOfKbDeletion()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (!pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
+	{
+		// A detached thread for deleting database kb entries is not running, so exit
+		return;
+	}
+	CMainFrame *pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+ 	wxStatusBar* pStatusBar = pFrame->GetStatusBar();
+	int barWidth; int barHeight;
+	pStatusBar->GetClientSize(&barWidth, &barHeight);
+
+	// First, get the status text from field with index 0
+	int field = 0;
+	wxString fieldZeroText = pStatusBar->GetStatusText(field);
+	// Get the font used in the status bar & its pointsize
+	wxFont font = pStatusBar->GetFont();
+	//int pointsize = font.GetPointSize(); <<-- don't need this
+	// We need a wxClientDC to measure text extents
+	wxClientDC dc(pFrame);
+	dc.SetFont(font);
+	wxCoord w; wxCoord h; // width and height of field 0's text
+	wxCoord *descent = NULL; wxCoord *externalLeading = NULL;
+	dc.GetTextExtent(fieldZeroText, &w, &h, descent, externalLeading, &font);
+	// Get the client width and height for the status bar window
+
+	// Calculate the width of the field 2 deletion progress text
+	wxString strProgress;
+	strProgress = strProgress.Format(_("Deleting %d of %d"),(int)pApp->m_nIterationCounter,(int)pApp->m_nQueueSize);
+	wxCoord w2; wxCoord h2;
+	wxCoord *descent2 = NULL; wxCoord *externalLeading2 = NULL;
+	dc.GetTextExtent(strProgress, &w2, &h2, descent2, externalLeading2, &font);
+
+    // Work out a 3-field proportionality: field 0 is variable width, and must be able to
+    // fit the fieldZeroText comfortably, field two is fixed width (width of the progress
+    // text plus 8 pixels of slop) for the display of _("Deleting NNNN of MMMM") message,
+    // and a small third variable width field at the right of the status bar (empty, it's
+    // just there so the message doesn't appear right at the bar's end). But if the bar is
+    // too short, use a 2 field bar instead. For a 3 field solution, try (-6, fixedfield,
+    // -1) which means the variable part will be cut into 7 equal bits and field 0 will get
+    // 6 of the 7. For a two field solution, try for w + w2 < barWidth, and if that doesn't
+    // work, give the progress what it needs, and field 0 whatever width is left and too
+    // bad if the left status text is a bit truncated on the right.
+
+	// Define the relative field sizes. -ve values indicate expandable fields, see the
+	// documentation of wxStatusBar for an explanation of how these are used
+	int widths[] = {-6, w2 + 8, -1};
+	// Calculate the pixel span value for the expandable parts (fields 0 and 2)
+	int aSpan = (barWidth - (w2 + 8))/(6 + 1);
+	// Calculate whether or not the text of field 0 will fit in the first field using the
+	// calculations above
+	bool bItFits = (6 * aSpan) > w ? TRUE: FALSE;
+	if (bItFits)
+	{
+		// The 3 field solution (only first two are actually used) will work, do it here
+
+		// First thing to do is to set the bar to have 3 fields as above
+		pStatusBar->SetFieldsCount(3, widths);
+
+		// Set the text back in field 0, and the progress text in field 2
+		pStatusBar->SetStatusText(fieldZeroText, 0);
+		pStatusBar->SetStatusText(strProgress, 1);
+		pStatusBar->SetStatusText(_T(""), 2); // no text in small end field
+	}
+	else
+	{
+		// The 3 field solution won't work, so try using all available bar space and a
+		// 2-field solution
+		bItFits = w2 + 2 + w <= barWidth ? TRUE : FALSE;
+		if (bItFits)
+		{
+			// It all fits, including 2 pixels between the two strings, so set up the
+			// second field as variable width, the first as fixed length (including 2
+			// pixels of slop at its end)
+			int width2[] = {w + 2, -1};
+			pStatusBar->SetFieldsCount(2, width2);
+
+			// Set the text back in field 0, and the progress text in field 2
+			pStatusBar->SetStatusText(fieldZeroText, 0);
+			pStatusBar->SetStatusText(strProgress, 1);
+
+		}
+		else
+		{
+			// Doesn't all fit, so truncate the text at the end of the first field, but
+			// show all the progress text on the right in a fixed field large enough -
+			// actually we'll use 3 fields, second will be a small white space so that the
+			// number following doesn't bump against end of the first field's text
+			int width3[] = {-1, 3, w2 + 1};
+			pStatusBar->SetFieldsCount(3, width3);
+
+			// Set the text back in field 0, and the progress text in field 3
+			pStatusBar->SetStatusText(fieldZeroText, 0);
+			pStatusBar->SetStatusText(_T(""), 1); // no text in small middle field
+			pStatusBar->SetStatusText(strProgress, 2);
+		}
+	}
+	pStatusBar->Update();
+}
+
+#endif
+
+
+//**************************************************************************************
+//
+//      End of Status bar support (RefreshStatusBarInfo & StatusBarMessage)
+//
+//**************************************************************************************
+
 
 // Getters, setters, and shorthands.  Added by Jonathn Field 2005
 
@@ -41408,7 +41265,7 @@ void CAdapt_ItApp::DoPrintCleanup()
 
 	if (m_nAIPrintout_Destructor_ReentrancyCount == 1)
 	{
-		// so the the stuff in this block only when we enter this function the first time
+		// so do the stuff in this block only when we enter this function the first time
 
 		// restore original doc size
 		m_docSize = m_saveDocSize;
@@ -41456,24 +41313,38 @@ void CAdapt_ItApp::DoPrintCleanup()
 		pView->ClearPagesList();
 		// wx version: I think the All Pages button gets enabled
 
-        // layout again for the screen, get an updated pointer to the active location,
+
+        // BEW 18Nov13, moved this line back to be preceding the RecalcLayout() call,
+        // because otherwise the layout width stays as for A4 printing. But a new boolean,
+        // m_bSuppressFreeTransRestoreAfterPrint - a member of the app class, is used to
+        // suppress the block free translation restoration of focus in the ComposeBar's
+        // textbox - the latter relies on a valid active pile pointer, which we can't
+        // guarantee here - hence the need for the suppression. The older comment when the
+        // code was after the RecalcLayout() call is retained here for clarity.
+		// Old comment...
+        // BEW 29Nov11, moved this line to be after the RecalcLayout() call, the latter
+        // uses a TRUE value in a block near the end of RecalcLayout() which must not
+        // be entered when the layout has been clobbered, and it's the TRUE value of
+        // this flag which causes that block to be skipped. The block has the test:
+        // if (m_pApp->m_bFreeTranslationMode && !m_pApp->m_bIsPrinting && !gbCheckInclFreeTransText)
+        m_bIsPrinting = FALSE;
+
+		// layout again for the screen, get an updated pointer to the active location,
         // restore the phrase box, scroll, invalidate window to restore pre-printing
         // appearance (if we had been printing a selection, it will get restored now
         // because the globals will have been preserved)
 		m_nActiveSequNum = m_nSaveActiveSequNum; // restore active location sequ num
 		m_pActivePile = NULL; // the piles are destroyed and recreated
 							  // so the old pointer is useless
-
+		m_bSuppressFreeTransRestoreAfterPrint = TRUE; // ensure internal block (at 
+			// end) that requires a valid m_pActivePile is not entered for next call
 #ifdef _NEW_LAYOUT
 		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #else
 		m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
 #endif
-        // BEW 29Nov11, moved this line to be after the RecalcLayout() call, the latter
-        // uses a TRUE value in a block near the end of RecalcLayout() which must not
-        // be entered when the layout has been clobbered, and it's the TRUE value of
-        // this flag which causes that block to be skipped
-        m_bIsPrinting = FALSE;
+		m_bSuppressFreeTransRestoreAfterPrint = FALSE; // restore default value
+
 
 	} // kluge block ends here so that a call to ScrollIntoView() is done for each
       // time entered, otherwise, the scroll position gets lost for the second entrance,
@@ -41493,6 +41364,31 @@ void CAdapt_ItApp::DoPrintCleanup()
 		m_nEndChar = -1; // ensure initially all is selected
 		m_pTargetBox->SetSelection(-1,-1); // select all
 		m_pTargetBox->SetFocus();
+	}
+
+	// if cleaning up when free translation mode is active, override the focus being in
+	// the canvas's phrasebox, and put it instead in the compose bar's editbox
+	if (m_bFreeTranslationMode && gbCheckInclFreeTransText)
+	{
+		if (!gbSuppressSetup)
+		{
+			GetFreeTrans()->SetupCurrentFreeTransSection(m_nActiveSequNum);
+		}
+		wxTextCtrl* pEdit = (wxTextCtrl*)
+							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		pEdit->SetFocus();
+		if (!m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
+		{
+			pEdit->SetSelection(-1,-1); // -1, -1 selects it all
+		}
+		else
+		{
+			int len = pEdit->GetValue().Length();
+			if (len > 0)
+			{
+				pEdit->SetSelection(len,len);
+			}
+		}
 	}
 
 	pView->Invalidate();
@@ -42661,6 +42557,28 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 		LogUserAction(_T("Password accepted"));
 		// accept the password
 		m_adminPassword = password;
+		// whm 28Oct13 added. Also store this admin assigned password in the
+		// Adapt_It_WX.ini / .Adapt_It_WX file for safe keeping and the
+		// ability to restore these values if the user does a Shift-Down
+		// startup of the application to reset the basic config file values.
+
+		bool bWriteOK = FALSE;
+		wxString oldPath = m_pConfig->GetPath(); // is always absolute path "/Recent_File_List"
+		m_pConfig->SetPath(_T("/AdminPassword"));
+		// We want even a null string value for the AdministratorPassword string
+		// to be saved in Adapt_It_WX.ini.
+		{ // block for wxLogNull
+			wxLogNull logNo; // eliminates spurious message from the system
+			bWriteOK = m_pConfig->Write(_T("admin_password"), m_adminPassword);
+			if (!bWriteOK)
+			{
+				wxMessageBox(_T("OnSetPassword() m_pConfig->Write() of admin_password returned FALSE, processing will continue, but save, shutdown and restart would be wise"));
+			}
+			m_pConfig->Flush(); // write now, otherwise write takes place when m_pConfig is destroyed in OnExit().
+		}
+		// restore the oldPath back to "/Recent_File_List"
+		m_pConfig->SetPath(oldPath);
+
 	}
 }
 
