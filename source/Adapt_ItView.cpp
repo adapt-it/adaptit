@@ -13746,6 +13746,7 @@ wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 /// takes care of the selection of the appropriate Guesser object, either the
 /// m_pAdaptationsGuesser or the m_pGlossesGuesser. If a target guess is not found for
 /// the incoming str, str is not changed and is returned just as it was input.
+/// added code for new Guesser functionality 09/2013 -klb
 /////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItView::DoGuess(const wxString& str, bool& bIsGuess)
 {

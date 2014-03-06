@@ -77,7 +77,6 @@ enum{	DVCS_CHECK, DVCS_COMMIT_FILE,
 class DVCS;         // class of the object giving access to the DVCS operations
 class DVCSNavDlg;   // dialog for navigating through previous versions
 
-
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
 // boolean removal efforts with existing xml adaptation documents, and Bruce needs to test
 // his version 5 parsing of xml documents - so Bruce will wrap his code changes in a
@@ -261,6 +260,7 @@ inline int GetAISvnVersion()
 #include <wx/file.h>
 #include <wx/ffile.h>
 #include <wx/mstream.h> // edb 08June2012 - add for embedded .png support
+#include "GuesserAffix.h"
 
 // Does wxWidgets recognize/utilize these clipboard defines???
 #ifdef _UNICODE
@@ -344,8 +344,6 @@ class ReadOnlyProtection;
 //class Oxes;
 class Xhtml;
 
-// forward reference for Guesser support
-class Guesser;
 // forward for Admin Help
 class CHtmlFileViewer;
 
@@ -547,6 +545,16 @@ const char xml_mn[] = "mn";
 /// Attribute name used in Adapt It XML KB i/o
 const char xml_xmlns[] = "xmlns";
 
+// tag & attribute names for Guesser Prefix/Suffix i/o
+/// Tag name used in Adapt It XML Guesser i/o
+const char xml_prefix[] = "PREFIX";
+const char xml_pre[] = "PRE";
+const char xml_affixversion[] = "affixVersion";
+const char xml_source[] = "source";
+const char xml_target[] = "target";
+const char xml_suffix[] = "SUFFIX";
+const char xml_suf[] = "SUF";
+
 // tag names for LIFT i/o
 
 /// Tag name used in LIFT XML i/o
@@ -665,8 +673,6 @@ WX_DECLARE_LIST(PageOffsets, POList); // see list definition macro in .cpp file
 /// a list of pointers to CCell objects
 WX_DECLARE_LIST(CCell, CCellList); // see list definition macro in .cpp file
 
-
-
 // globals
 
 //GDLC 2010-02-12 Definition of FreeTrElement moved to FreeTrans.h
@@ -784,6 +790,15 @@ enum StartFromType
 	fromFirstListPos,
 	fromCurrentSelPosToListEnd,
 	fromCurrentSelPosCyclingBack
+};
+
+/// An enum for specifying the affix type, either prefix
+/// or suffix. Used by DoGuesserAffixWriteXML(). -KLB Sept 2013
+enum GuesserAffixType
+{
+	// whm 31Mar11 changed default to be KBExportSaveAsSFM, i.e., enum 0
+	GuesserPrefix,
+	GuesserSuffix
 };
 
 /// A struct for specifying time settings. Struct members include:
@@ -1902,7 +1917,7 @@ public:
 
 class wxDynamicLibrary;
 class AI_Server;
-class Timer_KbServerChangedSince;
+class Timer_KbServerChangedSince;	
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
@@ -2043,6 +2058,21 @@ private:
 		helpMenu,
 		administratorMenu
 	};
+
+	CGuesserAffixArray	m_GuesserPrefixArray; // list of input prefixes to improve guesser
+	CGuesserAffixArray	m_GuesserSuffixArray; // list of input suffixes to improve guesser
+
+	/// These variables signal that the prefix and suffix files for the guesser have or 
+	///     have not been loaded yet. 
+	/// Initially they will only be loaded at startup. These are set to false in 
+	///     CAdapt_ItApp::OnInit() and set to true in 
+	///     CAdapt_ItApp::LoadGuesser(CKB* m_pKB) (in version 1)
+	/// KLB 09/2013
+	bool GuesserPrefixesLoaded;
+	bool GuesserSuffixesLoaded;
+	bool GuesserPrefixCorrespondencesLoaded;
+	bool GuesserSuffixCorrespondencesLoaded;
+
     /// The application's m_pMainFrame member serves as the backbone for Adapt It's
     /// interface and its document-view framework. It is created in the App's OnInit()
     /// function and is the "parent" window for almost all other parts of Adapt It's
@@ -3411,6 +3441,11 @@ public:
 	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
 	int m_nCorrespondencesLoadedInAdaptationsGuesser;
 	int m_nCorrespondencesLoadedInGlossingGuesser;
+
+	CGuesserAffixArray*	GetGuesserPrefixes(); // get list of prefixes (if previously input) to improve guesser performance
+	CGuesserAffixArray*	GetGuesserSuffixes(); // get list of prefixes (if previously input) to improve guesser performance
+	bool DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType); // Write Guesser Prefix XML to file
+
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)
 	void	RemoveEmptiesFromMaps(CKB* pKB);
