@@ -14967,8 +14967,8 @@ $as_echo "#define _KBSERVER 1" >>confdefs.h
 
 fi
 
-CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"
-CXXFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -g -fexceptions"
+CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -g -fexceptions"
+CXXFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -g -fexceptions"
 
 WXCONFIG=wx-config
 

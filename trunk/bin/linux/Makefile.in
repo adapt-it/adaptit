@@ -94,12 +94,13 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	FontPage.$(OBJEXT) FreeTrans.$(OBJEXT) \
 	FreeTransAdjustDlg.$(OBJEXT) FreeTransSplitterDlg.$(OBJEXT) \
 	GetSourceTextFromEditor.$(OBJEXT) GoToDlg.$(OBJEXT) \
-	GuesserSettingsDlg.$(OBJEXT) HtmlFileViewer.$(OBJEXT) \
-	jsonreader.$(OBJEXT) jsonval.$(OBJEXT) jsonwriter.$(OBJEXT) \
-	JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
-	KBExportImportOptionsDlg.$(OBJEXT) KBEditor.$(OBJEXT) \
-	KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) KbServer.$(OBJEXT) \
-	KBSharing.$(OBJEXT) KBSharingMgrTabbedDlg.$(OBJEXT) \
+	GuesserAffix.$(OBJEXT) GuesserSettingsDlg.$(OBJEXT) \
+	HtmlFileViewer.$(OBJEXT) jsonreader.$(OBJEXT) \
+	jsonval.$(OBJEXT) jsonwriter.$(OBJEXT) JoinDialog.$(OBJEXT) \
+	KB.$(OBJEXT) KBExportImportOptionsDlg.$(OBJEXT) \
+	KBEditor.$(OBJEXT) KBEditSearch.$(OBJEXT) KBPage.$(OBJEXT) \
+	KbServer.$(OBJEXT) KBSharing.$(OBJEXT) \
+	KBSharingMgrTabbedDlg.$(OBJEXT) \
 	KBSharingStatelessSetupDlg.$(OBJEXT) KbSharingSetup.$(OBJEXT) \
 	LanguageCodesDlg.$(OBJEXT) LanguagesPage.$(OBJEXT) \
 	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
@@ -461,7 +462,8 @@ adaptit_SOURCES = \
 	../../source/FilenameConflictDlg.cpp ../../source/FindReplace.cpp \
 	../../source/FontPage.cpp ../../source/FreeTrans.cpp ../../source/FreeTransAdjustDlg.cpp ../../source/FreeTransSplitterDlg.cpp \
 	../../source/GetSourceTextFromEditor.cpp \
-	../../source/GoToDlg.cpp ../../source/GuesserSettingsDlg.cpp ../../source/HtmlFileViewer.cpp \
+	../../source/GoToDlg.cpp ../../source/GuesserAffix.cpp ../../source/GuesserSettingsDlg.cpp \
+	../../source/HtmlFileViewer.cpp \
 	../../source/json_defs.h ../../source/jsonreader.cpp ../../source/jsonreader.h \
 	../../source/jsonval.cpp ../../source/jsonval.h \
 	../../source/jsonwriter.cpp ../../source/jsonwriter.h \
@@ -649,6 +651,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeTransSplitterDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GetSourceTextFromEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GoToDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GuesserAffix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GuesserSettingsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HtmlFileViewer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/JoinDialog.Po@am__quote@
@@ -1548,6 +1551,20 @@ GoToDlg.obj: ../../source/GoToDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/GoToDlg.cpp' object='GoToDlg.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GoToDlg.obj `if test -f '../../source/GoToDlg.cpp'; then $(CYGPATH_W) '../../source/GoToDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/GoToDlg.cpp'; fi`
+
+GuesserAffix.o: ../../source/GuesserAffix.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GuesserAffix.o -MD -MP -MF $(DEPDIR)/GuesserAffix.Tpo -c -o GuesserAffix.o `test -f '../../source/GuesserAffix.cpp' || echo '$(srcdir)/'`../../source/GuesserAffix.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GuesserAffix.Tpo $(DEPDIR)/GuesserAffix.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/GuesserAffix.cpp' object='GuesserAffix.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GuesserAffix.o `test -f '../../source/GuesserAffix.cpp' || echo '$(srcdir)/'`../../source/GuesserAffix.cpp
+
+GuesserAffix.obj: ../../source/GuesserAffix.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GuesserAffix.obj -MD -MP -MF $(DEPDIR)/GuesserAffix.Tpo -c -o GuesserAffix.obj `if test -f '../../source/GuesserAffix.cpp'; then $(CYGPATH_W) '../../source/GuesserAffix.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/GuesserAffix.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GuesserAffix.Tpo $(DEPDIR)/GuesserAffix.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/GuesserAffix.cpp' object='GuesserAffix.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GuesserAffix.obj `if test -f '../../source/GuesserAffix.cpp'; then $(CYGPATH_W) '../../source/GuesserAffix.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/GuesserAffix.cpp'; fi`
 
 GuesserSettingsDlg.o: ../../source/GuesserSettingsDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GuesserSettingsDlg.o -MD -MP -MF $(DEPDIR)/GuesserSettingsDlg.Tpo -c -o GuesserSettingsDlg.o `test -f '../../source/GuesserSettingsDlg.cpp' || echo '$(srcdir)/'`../../source/GuesserSettingsDlg.cpp
