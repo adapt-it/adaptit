@@ -16977,7 +16977,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString dataDir, localDataDir, documentsDir;
 	wxString userConfigDir, userDataDir, userLocalDataDir;
 	wxString executablePath;
-#ifdef __WXGTKzzz__
+#ifdef __WXGTK__
 	wxString installPrefix;
 	wxStandardPaths stdPaths;
 #else
@@ -17013,7 +17013,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetUserLocalDataDir() = %s"),userLocalDataDir.c_str());
 	executablePath = stdPaths.GetExecutablePath();
 	wxLogDebug(_T("The wxStandardPaths::GetExecutablePath() = %s"),executablePath.c_str());
-#ifdef __WXGTKzzz__
+#ifdef __WXGTK__
 	// Only available on Linux
 	installPrefix = stdPaths.GetInstallPrefix();
 	wxLogDebug(_T("The wxStandardPaths::GetInstallPrefix() = %s"),installPrefix.c_str());
@@ -21156,6 +21156,11 @@ int ii = 1;
 	// Add Guesser support here. m_pAdaptationsGuesser and m_pGlossesGuesser are destroyed in OnExit()
 	m_pAdaptationsGuesser = new Guesser;
 	m_pGlossesGuesser = new Guesser;
+	
+	GuesserPrefixesLoaded = false;
+	GuesserSuffixesLoaded = false;
+	GuesserPrefixCorrespondencesLoaded = false;
+	GuesserSuffixCorrespondencesLoaded = false;
 
 	CAdapt_ItView* pView = (CAdapt_ItView*) GetView();
 	pView->m_pDoc = GetDocument(); // BEW added m_pDoc to CAdapt_ItView on 14Nov11
@@ -24656,6 +24661,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	MapKeyStringToTgtUnit::iterator iter;
 	CTargetUnit* pTU = 0;
 	CRefString* pRefStr;
+	int iFrequency = 0;
 	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
 	{
 		// BEW 19Mar13, next two lines are deprecated. Glossing KB now potentially
@@ -24715,6 +24721,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
 				wxASSERT(pRefStr != NULL);
 				gloss = pRefStr->m_translation;
+				iFrequency = pRefStr->m_refCount;
 				baseGloss = gloss;
 //#if defined(_DEBUG)
 //					wxLogDebug(_T("LoadGuesser() iteration %d [ %s ]<->[ %s ]  map index: %d  numCorrespondencesLoaded = %d  deleted? %s"),
@@ -24728,9 +24735,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				{
 					// Add correspondence to the Guesser
 					if (m_pKB->IsThisAGlossingKB())
-						m_pGlossesGuesser->AddCorrespondence(key,gloss);
+						m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
 					else
-						m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+						m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
 					numCorrespondencesLoaded++;
 				}
 				else if (bNotNotFound)
@@ -24753,6 +24760,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 						else
 						{
 							gloss = pRefStr->m_translation;
+							iFrequency = pRefStr->m_refCount;
 							bSkipIt_ItsEmpty = FALSE; // got one which is not pseudo-deleted
 							break;
 						}
@@ -24761,9 +24769,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					{
 						// Add correspondence to the Guesser
 						if (m_pKB->IsThisAGlossingKB())
-							m_pGlossesGuesser->AddCorrespondence(key,gloss);
+							m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
 						else
-							m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+							m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
 						numCorrespondencesLoaded++;
 					}
 				}
@@ -24787,15 +24795,16 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					wxASSERT(pRefStr != NULL);
 					posRef = posRef->GetNext(); // prepare for possibility of yet another
 					gloss = pRefStr->m_translation;
+					iFrequency = pRefStr->m_refCount;
 					baseGloss = gloss;
 
 					if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
 					{
 						// Add correspondence to the Guesser
 						if (m_pKB->IsThisAGlossingKB())
-							m_pGlossesGuesser->AddCorrespondence(key,gloss);
+							m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
 						else
-							m_pAdaptationsGuesser->AddCorrespondence(key,gloss);
+							m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
 						numCorrespondencesLoaded++;
 					}
 				} // end of inner loop for looping over CRefString instances
@@ -24817,6 +24826,216 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 		m_nCorrespondencesLoadedInAdaptationsGuesser = numCorrespondencesLoaded;
 		wxLogDebug(_T("The Adaptations guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
 	}
+
+	// Check for xml prefix file/document, and load prefixes into guesser if found
+	wxString sPrefixXMLFilePath = m_curProjectPath + PathSeparator + _T("GuesserPrefixes.xml");
+	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
+
+	if (GuesserPrefixesLoaded == false)
+	{
+		GuesserPrefixesLoaded = true;
+		if (wxFileExists(sPrefixXMLFilePath))
+		{
+			bool bReadOK = ReadGuesserPrefix_XML (sPrefixXMLFilePath, GetGuesserPrefixes(), (nTotal > 0) ? _("Loading Prefixes") : _T(""), nTotal);
+			if (!bReadOK)
+			{
+				//
+				wxMessageBox(_(
+					"Warning: a prefix file was found, but it was not readable."),
+					_T(""), wxICON_INFORMATION | wxOK);
+			}
+		}
+	}
+
+	// Check for xml suffix file/document, and load suffixes into guesser if found
+	wxString sSuffixXMLFilePath = m_curProjectPath + PathSeparator + _T("GuesserSuffixes.xml");
+
+	if (GuesserSuffixesLoaded == false)
+	{
+		GuesserSuffixesLoaded = true;
+		if (wxFileExists(sSuffixXMLFilePath))
+		{
+			bool bReadOK = ReadGuesserSuffix_XML (sSuffixXMLFilePath, GetGuesserSuffixes(), (nTotal > 0) ? _("Loading Suffixes") : _T(""), nTotal);
+			if (!bReadOK)
+			{
+				//
+				wxMessageBox(_(
+					"Warning: a suffix file was found, but it was not readable."),
+					_T(""), wxICON_INFORMATION | wxOK);
+			}
+		}
+	}
+
+	if (!GuesserPrefixCorrespondencesLoaded)
+	{
+		GuesserPrefixCorrespondencesLoaded = true;
+		if (GetGuesserPrefixes() && !GetGuesserPrefixes()->IsEmpty())
+		{	
+			CGuesserAffixArray* pArray = GetGuesserPrefixes();
+			for (int i = 0; i < (int)pArray->GetCount(); i++)
+			{				
+				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
+
+				// Add correspondence to the Guesser
+				if (m_pKB->IsThisAGlossingKB())
+					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -1);
+				else
+					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -1);
+				//numCorrespondencesLoaded++; NEEDED???
+			}
+		}
+	}
+
+
+	if (!GuesserSuffixCorrespondencesLoaded)
+	{
+		GuesserSuffixCorrespondencesLoaded = true;
+		if (GetGuesserSuffixes() && !GetGuesserSuffixes()->IsEmpty())
+		{	
+			CGuesserAffixArray* pArray = GetGuesserSuffixes();
+			for (int i = 0; i < (int)pArray->GetCount(); i++)
+			{				
+				CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
+
+				// Add correspondence to the Guesser
+				if (m_pKB->IsThisAGlossingKB())
+					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -2);
+				else
+					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -2);
+				//numCorrespondencesLoaded++; NEEDED???
+			}
+		}
+	}
+
+	//TEST KLB
+/*		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
+
+		wxFile f;
+		// first, the glossing KB export
+		if( !f.Open( path, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+		}	
+
+		DoGuesserAffixWriteXML(&f,GuesserPrefix);
+		//DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
+
+
+	wxTextCtrl *MainEditBox;
+
+// Initialize our text box with an id of TEXT_Main, and the label "hi"
+  MainEditBox = new wxTextCtrl(this, wxID_ANY, "Hi!", wxDefaultPosition, wxDefaultSize,  
+    wxTE_MULTILINE | wxTE_RICH , wxDefaultValidator, wxTextCtrlNameStr);
+		///TEST KLB
+
+*/
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
+/// \param      -> nothing
+/// \remarks
+/// Returns list of previously input prefixes (if they exist) from xml file. 
+/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance 
+///     by giving it more linguistic information to utilize, based on Guesser improvements 
+///     by Alan Buseman October 2013. -klb  
+/////////////////////////////////////////////////////////////////////////////////////////
+CGuesserAffixArray*	CAdapt_ItApp::GetGuesserPrefixes()
+{
+	return &m_GuesserPrefixArray;
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+/// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
+/// \param      -> nothing
+/// \remarks
+/// Returns list of previously input prefixes (if they exist) from xml file. 
+/// These can (optionally) be fed into the Guesser to hopefully improve guesser performance 
+///     by giving it more linguistic information to utilize, based on Guesser improvements 
+///     by Alan Buseman October 2013. -klb  
+/////////////////////////////////////////////////////////////////////////////////////////
+CGuesserAffixArray*	CAdapt_ItApp::GetGuesserSuffixes()
+{
+	return &m_GuesserSuffixArray;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the XML File was successfully written, otherwise FALSE
+/// \param      pFile   ->  output file name
+/// \param      inGuesserAffixType   ->  affix type (prefix or suffix). enum defined in Adapt_It.h
+/// \remarks
+/// Called from: ???
+/// If prefixes and/or suffixes are found in app (GetGuesserPrefixes() or GetGuesserSuffixes()), 
+///             writes xml file to disk.
+////////////////////////////////////////////////////////////////////////////////////////
+
+bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
+{
+	//
+	wxASSERT(pFile != NULL);
+
+	wxString s1 = gSFescapechar;
+
+	CBString m_sComposeXMLString,m_sXMLPrologue;
+	CBString m_sFirstString = "<PREFIX affixVersion=\"1\" max=\"1\">";
+	CBString m_sFinalString = "</PREFIX>";
+	if (inGuesserAffixType == GuesserSuffix)
+	{
+		m_sFirstString = "<SUFFIX affixVersion=\"1\" max=\"1\">";
+		m_sFinalString = "</SUFFIX>";
+	}
+
+	GetEncodingStringForXmlFiles(m_sXMLPrologue); // builds xmlPrologue and adds "\r\n"
+	m_sComposeXMLString = m_sXMLPrologue;
+	m_sComposeXMLString += "<!-- Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file. Instead, use NotePad or WordPad. -->";
+	m_sComposeXMLString += "\r\n";
+	m_sComposeXMLString += m_sFirstString;
+	m_sComposeXMLString += "\r\n";
+
+	// do loop
+	CGuesserAffixArray* pArray = NULL;
+	if (inGuesserAffixType == GuesserPrefix)
+	{
+		if (GetGuesserPrefixes() && !GetGuesserPrefixes()->IsEmpty())
+		{	
+			pArray = GetGuesserPrefixes();
+		}
+	}
+	else if (inGuesserAffixType == GuesserSuffix)
+	{
+		if (GetGuesserSuffixes() && !GetGuesserSuffixes()->IsEmpty())
+		{
+			pArray = GetGuesserSuffixes();
+		}
+	}
+	if (pArray == NULL || pArray->IsEmpty())
+	{
+		// message?
+		return false;
+	}
+
+	for (int i = 0; i < (int)pArray->GetCount(); i++)
+	{				
+		CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
+
+		// Add affix to XML
+		m_sComposeXMLString += "<PRE source=\"";
+		m_sComposeXMLString += m_currentGuesserAffix.getSourceAffix().ToUTF8();
+		m_sComposeXMLString += "\" target=\"";
+		m_sComposeXMLString += m_currentGuesserAffix.getTargetAffix().ToUTF8();
+		m_sComposeXMLString += "\" n=\"0\" ";
+		m_sComposeXMLString += "wC=\"kbradford:KBRADFORDSIL\" "; 
+		m_sComposeXMLString += "cDT=\"2012-10-24T14:13:06Z\" />";
+		m_sComposeXMLString += "\r\n";
+	}
+
+	m_sComposeXMLString += m_sFinalString;
+	m_sComposeXMLString += "\r\n";
+
+	DoWrite(*pFile, m_sComposeXMLString);
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

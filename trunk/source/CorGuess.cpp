@@ -15,8 +15,9 @@
 // For documentation see CorGuess.h
 
 
+#ifndef _MBCS // 1.6.0ad Update CorGuess.cpp for compiling in Adapt It // 1.6.1ba Update guesser to test _MCBS for non wxWidgets
 // ////////////////////////////////////////////////////////////////////////
-// whm added standard wxWidgets headers below which includes wx.h (and defines the __WXWINDOWS__ symbol needed below)
+// whm added standard wxWidgets headers below which includes wx.h
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "CorGuess.h"
 #endif
@@ -28,11 +29,11 @@
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
 #endif
-// whm added standard wxWidgets headers above which includes wx.h (and defines the __WXWINDOWS__ symbol needed below)
+// whm added standard wxWidgets headers above which includes wx.h
 // ////////////////////////////////////////////////////////////////////////
+#endif // 1.6.0ad 
 
-
-#ifndef __WXWINDOWS__
+#ifdef _MBCS // 1.6.1ba 
 #include <string.h> // Only generic string functions used
 #endif
 
@@ -113,17 +114,19 @@ Corresp::Corresp()
 	{
 	pszSrc = NULL;
 	pszTar = NULL;
+	iFreq = 0; // 1.6.1ad 
 	iNumInstances = 0;
 	iNumExceptions = 0;
 	pcorNext = NULL;
 	}
 
-Corresp::Corresp( const wxChar* pszSrc1, const wxChar* pszTar1 ) // Constructor that allocates strings for source and target
+Corresp::Corresp( const wxChar* pszSrc1, const wxChar* pszTar1, int iFreq ) // Constructor that allocates strings for source and target
 	{
 	pszSrc = new wxChar[ wxStrlen( pszSrc1 ) + 1 ];
 	wxStrcpy( pszSrc, pszSrc1 );
 	pszTar = new wxChar[ wxStrlen( pszTar1 ) + 1 ];
 	wxStrcpy( pszTar, pszTar1 );
+	iFreq = iFreq; // 1.6.1ad 
 	iNumInstances = 1;
 	iNumExceptions = 0;
 	pcorNext = NULL;
@@ -141,7 +144,6 @@ CorrespList::CorrespList()
 	{
 	pcorFirst = NULL;
 	pcorLast = NULL;
-//	iRequiredSuccessPercent = 50; // 1.5.8va This one not used, stored in guesser
 	}
 
 CorrespList::~CorrespList()
@@ -159,27 +161,70 @@ void CorrespList::ClearAll() // 1.4vyd Add ClearAll function
 		}
 	}
 
-void CorrespList::Add( Corresp* pcorNew ) // Add a new correspondence to the end ofthe list
+void CorrespList::Add( Corresp* pcorNew ) // Add a new correspondence to the end ofthe list // 1.6.1af Change to top of list
 	{
+	pcorNew->pcorNext = pcorFirst; // 1.6.1af Always add correspondence to top of list
+	if ( !pcorFirst ) // 1.6.1af If list was empty, need to set last
+		pcorLast = pcorNew; // 1.6.1af New becomes last
+	pcorFirst = pcorNew; // 1.6.1af 
+#ifdef AddLast
 	if ( !pcorFirst ) // If list was empty, new becomes first
 		pcorFirst = pcorNew;
 	else // Else, previous last points to new
 		pcorLast->pcorNext = pcorNew;
 	pcorLast = pcorNew; // New becomes last
+#endif
 	}
 
-void CorrespList::Add( const wxChar* pszSrc, const wxChar* pszTar, bool bCount = false ) // Add a new corresponcence to the end of the list
+void CorrespList::Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) // Add a new corresponcence to the list
+{
+	Corresp* pcorF = pcorFind( pszSrc, pszTar ); // See if pair already in list
+	if ( pcorF ) // 1.6.1bc If pair already in list, increment count
+		pcorF->iNumInstances++;
+	else // 1.6.1bc Else (pair not in list) add new
+		Add( new Corresp( pszSrc, pszTar, iFreq ) );
+	}
+
+void CorrespList::SortLongestFirst() // 1.6.1bd Sort longest first
 	{
-	if ( bCount )
+	unsigned int iLongest = 0; // 1.6.1bd 
+	CorrespList corlstTemp; // 1.6.1bd Make temp list
+	Corresp* pcor;
+	for ( pcor = pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
 		{
-		Corresp* pcorF = pcorFind( pszSrc, pszTar ); // If already in list, increment count
-		if ( pcorF )
-			{
-			pcorF->iNumInstances++;
-			return;
-			}
+		corlstTemp.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to temp list
+		unsigned int iLen = wxStrlen( pcor->pszSrc ); // 1.6.1bd 
+		if ( iLen > iLongest ) // 1.6.1bd If longer that previous longest, remember
+			iLongest = iLen;
 		}
-	Add( new Corresp( pszSrc, pszTar ) );
+	ClearAll(); // 1.6.1bd Delete all from main list
+	for ( unsigned int i = 1; i <= iLongest; i++ ) // 1.6.1bd For each length, copy ones of that length to main list
+		for ( pcor = corlstTemp.pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
+			{
+			if ( wxStrlen( pcor->pszSrc ) == i ) // 1.6.1bd If current length, copy
+				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to main list
+			}
+	}
+
+void CorrespList::SortLongestLast() // 1.6.1bf Sort longest last
+	{
+	unsigned int iLongest = 0; // 1.6.1bd 
+	CorrespList corlstTemp; // 1.6.1bd Make temp list
+	Corresp* pcor;
+	for ( pcor = pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
+		{
+		corlstTemp.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to temp list
+		unsigned int iLen = wxStrlen( pcor->pszSrc ); // 1.6.1bd 
+		if ( iLen > iLongest ) // 1.6.1bd If longer that previous longest, remember
+			iLongest = iLen;
+		}
+	ClearAll(); // 1.6.1bd Delete all from main list
+	for ( unsigned int i = iLongest; i >= 1; i-- ) // 1.6.1bf For each length, copy ones of that length to main list
+		for ( pcor = corlstTemp.pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
+			{
+			if ( wxStrlen( pcor->pszSrc ) == i ) // 1.6.1bd If current length, copy
+				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to main list
+			}
 	}
 
 Corresp* CorrespList::pcorFind( const wxChar* pszSrc, const wxChar* pszTar ) // Find the same pair, return NULL if not found
@@ -203,6 +248,33 @@ Corresp* CorrespList::pcorDelete( Corresp* pcor, Corresp* pcorPrev ) // Delete a
 	return pcorNext;
 	}
 
+void CorrespListKB::Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) // Add a new corresponcence to the end of the list // 1.6.1bc
+{
+	Corresp* pcorF = pcorFind( pszSrc ); // See if already in list
+	if ( pcorF ) // 1.6.1bc If in list, check frequency
+		{
+		if ( iFreq > pcorF->iFreq ) // 1.6.1ae If higher frequency, replace previous with this
+			{
+			delete pcorF->pszTar;
+			pcorF->pszTar = new wxChar[ wxStrlen( pszTar ) + 1 ];
+			wxStrcpy( pcorF->pszTar, pszTar ); // 1.6.1bb Store new target
+			pcorF->iFreq = iFreq; // 1.6.1ae Store new frequency
+			}
+		}
+	else // 1.6.1bc Else (not in list) add new
+		CorrespList::Add( new Corresp( pszSrc, pszTar, iFreq ) );
+	}
+
+Corresp* CorrespList::pcorFind( const wxChar* pszSrc ) // Find the same source, return NULL if not found // 1.6.1bc
+	{
+	for ( Corresp* pcor = pcorFirst; pcor; pcor = pcor->pcorNext )
+		{
+		if ( !wxStrcmp( pszSrc, pcor->pszSrc ) ) // 1.6.1bc
+			return pcor;
+		}
+	return NULL;
+	}
+
 Guesser::Guesser()
 	{
 	iRequiredSuccessPercent = 30; // Init required success percent
@@ -214,10 +286,13 @@ Guesser::Guesser()
 // =========== Start Main Routines
 void Guesser::Init( int iGuessLevel1 ) // 1.4vyd Add ClearAll function // 1.5.8u Change to Init, add guess level
 	{
-	corlstSuff.ClearAll(); // Guessed suffixes
-	corlstRoot.ClearAll(); // Guessed roots
-	corlstPref.ClearAll(); // Guess prefixes
-	corlst.ClearAll(); // Raw correspondences given to guesser
+	corlstSuffGuess.ClearAll(); // Guessed suffixes
+	corlstRootGuess.ClearAll(); // Guessed roots
+	corlstPrefGuess.ClearAll(); // Guessed prefixes
+	corlstSuffGiven.ClearAll(); // Given suffixes
+	corlstRootGiven.ClearAll(); // Given roots
+	corlstPrefGiven.ClearAll(); // Given prefixes
+	corlstKB.ClearAll(); // Raw correspondences given to guesser
 	iGuessLevel = iGuessLevel1; // 1.5.8u Set guess level
 	if ( iGuessLevel >= 50 )
 		iRequiredSuccessPercent = 30 - ( ( ( iGuessLevel - 50 ) * 100 ) / 170 ); // 1.5.8va
@@ -229,52 +304,28 @@ void Guesser::Init( int iGuessLevel1 ) // 1.4vyd Add ClearAll function // 1.5.8u
 		iMinSuffExamples = iMinSuffExamples + 1; // 1.5.8va Require more examples
 	}
 
-void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar ) // Make a correspondence to the list
+void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) // Make a correspondence to the list
 	{
-	if ( iGuessLevel == 0 ) // 1.5.8va 
+	if ( iGuessLevel == 0 ) // 1.5.8va If guesser turned off, don't store correspondences
 		return; // 1.5.8va 
-	corlst.Add( pszSrc, pszTar );
+	if ( iFreq == -1 ) // 1.6.1ad If given prefix store as that
+		corlstPrefGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given prefix // 1.6.1ag Use high freq
+	else if ( iFreq == -2 ) // 1.6.1ad If given suffix store as that
+		corlstSuffGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given suffix // 1.6.1ag Use high freq
+	else if ( iFreq == 0 ) // 1.6.1ad If given root store as that
+		corlstRootGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given prefix // 1.6.1ag Use high freq
+	else
+		corlstKB.Add( pszSrc, pszTar, iFreq );
 	}
 
-bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return target guess
+void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj Make this a function
 	{
-	if ( corlstSuff.bIsEmpty() ) // If correspondences have not been calculated, do it now
+	if ( corlstSuffGuess.bIsEmpty() ) // If correspondences have not been calculated, do it now
 		{
 		Corresp* pcor = NULL;
 		Corresp* pcorPrev = NULL;
-#ifdef RootAndAffixDiscovery
-		for ( pcor = corlst.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix possibilities
-			{
-			wxChar* pszS = pcor->pszSrc;
-			int iLen = wxStrlen( pszS );
-			int iMaxLen = iMaxSuffLen;
-			if ( iMaxLen > iLen - 1 )
-				iMaxLen = iLen - 1;
-			wxChar* pszSuffEnd = pszS + iLen;
-			wxChar* pszSuffStrt = pszSuffEnd - iMaxLen;
-			for ( ; *pszSuffStrt; pszSuffStrt++ )
-				corlstSuff.Add( pszSuffStrt, "", true ); // 1.4bs Collect and count possible suffix strings
-			}
-		Corresp* pcorPrev = NULL;
-		pcor = corlstSuff.pcorFirst;
-		while ( pcor )
-			{
-			bool bDelete = false;
-			if ( pcor->iNumInstances < iMinSuffExamples ) // Delete all suffixes that have too few occurrences
-				bDelete = true;
-			if ( bDelete )				
-				pcor = corlstSuff.pcorDelete( pcor, pcorPrev );
-			else
-				{
-				pcorPrev = pcor;
-				pcor = pcor->pcorNext;
-				}
-			}
-#endif
-#define CorrespondenceGuess
-#ifdef CorrespondenceGuess
 		int iStart, iEnd1, iEnd2 = 0;
-		for ( pcor = corlst.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix correspondences
+		for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix correspondences
 			{
 			wxChar* pszS = pcor->pszSrc;
 			wxChar* pszT = pcor->pszTar;
@@ -283,31 +334,29 @@ bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return t
 				{
 				pszS += iEnd1;
 				pszT += iEnd2;
-				corlstSuff.Add( pszS, pszT, true ); // Add to list, count if already there
+				corlstSuffGuess.Add( pszS, pszT, 0 ); // Add to list, count if already there
 				}
 			}
-		pcor = corlstSuff.pcorFirst;
+		pcor = corlstSuffGuess.pcorFirst;
 		while ( pcor )
 			{
 			bool bDelete = false;
 			if ( pcor->iNumInstances < iMinSuffExamples ) // Delete all correspondences that occur too few times // 1.5.8va 
 				bDelete = true;
 			if ( bDelete )				
-				pcor = corlstSuff.pcorDelete( pcor, pcorPrev );
+				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev );
 			else
 				{
 				pcorPrev = pcor;
 				pcor = pcor->pcorNext;
 				}
 			}
-		for ( Corresp* pcorSuff = corlstSuff.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext ) // Count exceptions for each correspondence
+		for ( Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext ) // Count exceptions for each correspondence
 			{
 			wxChar* pszSuffSrc = pcorSuff->pszSrc;
 			wxChar* pszSuffTar = pcorSuff->pszTar;
 			int iLenSrc = wxStrlen( pszSuffSrc );
-			//int iLenTar; // set but unused
-			//iLenTar = wxStrlen( pszSuffTar );
-			for ( pcor = corlst.pcorFirst; pcor; pcor = pcor->pcorNext ) // Look at each knowledge base pair to see if it is an exception
+			for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Look at each knowledge base pair to see if it is an exception
 				{
 				wxChar* pszEndSrc = pcor->pszSrc; // Get end of source of kb pair
 				pszEndSrc += wxStrlen( pszEndSrc ) - iLenSrc;
@@ -322,39 +371,135 @@ bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return t
 			}
 
 		pcorPrev = NULL;
-		pcor = corlstSuff.pcorFirst; // Delete correspondences that have less than required success percentage
+		pcor = corlstSuffGuess.pcorFirst; // Delete correspondences that have less than required success percentage
 		while ( pcor )
 			{
 			int iSuccessPercent = ( pcor->iNumInstances * 100 ) / ( pcor->iNumInstances + pcor->iNumExceptions );
 			if ( iSuccessPercent < iRequiredSuccessPercent ) // 1.4bd Make required success ratio a parameter
-				pcor = corlstSuff.pcorDelete( pcor, pcorPrev );
+				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev );
 			else
 				{
 				pcorPrev = pcor;
 				pcor = pcor->pcorNext;
 				}
 			}
-#endif
+		corlstSuffGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf Sort longest last so it will be first in guess list
+		corlstPrefGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf 
+		corlstRootGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length
+		for ( pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
+			corlstSuffGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
+		for ( pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
+			corlstPrefGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
+		for ( pcor = corlstRootGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
+			corlstRootGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		}
-	for ( Corresp* pcorSuff = corlstSuff.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext ) // See if a guess is possible for this string
+	}
+
+bool bStrMatch( const wxChar* pszS, const wxChar* pszMatch, int iStart ) // 1.6.1aj Utility function to test for match of pszMatch
+	{
+	const wxChar* pszT = pszS + iStart; // 1.6.1aj Set starting location
+	while ( *pszMatch != 0 ) // 1.6.1aj While more in match
 		{
-		**ppszTar = 0; // Clear target if no guess, safer in case caller tries to read it
-		wxChar* pszSuffSrc = pcorSuff->pszSrc;
-		int iLenSrc = wxStrlen( pszSuffSrc );
-		const wxChar* pszEndSrc = pszSrc; // Get end of source for guess
-		pszEndSrc += wxStrlen( pszEndSrc ) - iLenSrc;
-		if ( !wxStrcmp( pszSuffSrc, pszEndSrc ) ) // If source matches, replace it with target
+		if ( *pszT++ != *pszMatch++ )
+			return false;
+		}
+	return true;
+	}
+
+int iStrFind( const wxChar* pszS, const wxChar* pszFind ) // 1.6.1aj Utility function to find pszFind
+	{
+	int iLen = wxStrlen( pszS ); // 1.6.1aj Temp var to preven unsigned mismatch
+	for ( int i = 0; i < iLen ; i++ ) // 1.6.1aj At each location, check for match
+		if ( bStrMatch( pszS, pszFind, i ) )
+			return i; // 1.6.1aj Return place found for success
+	return -1; // 1.6.1aj Return -1 for failure
+	}
+
+void StrReplace( wxChar* pszS, wxChar* pszReplace, int iLoc, int iNum ) // 1.6.1aj Replace a section of pszS with pszReplace
+	{
+	wxChar* pszTail = new wxChar[ wxStrlen( pszS ) + 1 ]; // 1.6.1aj Temp storage of tail
+	wxStrcpy( pszTail, pszS + iLoc + iNum ); // 1.6.1aj Save tail
+	*(pszS + iLoc) = 0; // 1.6.1bb Terminate head // 1.6.1be Change back to pointer arithemetic
+//	wxStrcpy( pszS + iLoc, "" ); // 1.6.1aj Shorten source // 1.6.1bb 
+	wxStrcat( pszS, pszReplace ); // 1.6.1aj Copy replace in // 1.6.1bb Get rid of pointer arithmetic
+	wxStrcat( pszS, pszTail ); // 1.6.1aj Put tail back on // 1.6.1bb 
+	delete pszTail;
+	}
+
+bool Guesser::bRootReplace( const wxChar* pszSrc, wxChar** ppszTar ) // Try to replace a root // 1.6.1aj 
+	{
+	for ( Corresp* pcorRoot = corlstRootGuess.pcorFirst; pcorRoot; pcorRoot = pcorRoot->pcorNext ) // See if a guess is possible for this string
+		{
+		wxStrcpy( *ppszTar, pszSrc ); // Copy source to target, so caller can use it if no replace
+		wxChar* pszRootSrc = pcorRoot->pszSrc; // Pointer to root to match
+		wxChar* pszRootTar = pcorRoot->pszTar; // 1.6.1aj Pointer to target root
+		int iFind = iStrFind( pszSrc, pszRootSrc ); // 1.6.1aj See if root found
+		if ( iFind >= 0 ) // 1.6.1aj If root found, replace it
 			{
-			if ( wxStrlen( pszSrc ) >= ( MAX_GUESS_LENGTH - 10 ) ) // If not enough room for possible guess, don't try
-				return false;
-			wxChar* pszSuffTar = pcorSuff->pszTar;
-			//int iLenTar; // set but unused
-			//iLenTar = wxStrlen( pszSuffTar );
-			wxStrcpy( *ppszTar, pszSrc ); // Copy source to target
-			wxChar* pszStartReplace = *ppszTar + wxStrlen( pszSrc ) - iLenSrc;
-			wxStrcpy( pszStartReplace, pszSuffTar ); // Overwrite end of source with target
+			StrReplace( *ppszTar, pszRootTar, iFind, wxStrlen( pszRootSrc ) ); // 1.6.1aj Replace root
 			return true;
 			}
 		}
 	return false;
+	}
+
+bool Guesser::bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace ) // Try to replace a suffix // 1.6.1aj 
+	{
+	for ( Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext ) // See if a guess is possible for this string
+		{
+		wxStrcpy( *ppszTar, pszSrc ); // Copy source to target, so caller can use it if no replace
+		if ( !bReplace ) // 1.6.1aj If no replace, return target same as source
+			return false;
+		wxChar* pszSuffSrc = pcorSuff->pszSrc; // Pointer to suffix to match
+		int iLenSuffSrc = wxStrlen( pszSuffSrc ); // Get length of suffix to match
+		const wxChar* pszEndSrc = pszSrc + wxStrlen( pszSrc ) - iLenSuffSrc; // Get start of end of source for match
+		if ( !wxStrcmp( pszSuffSrc, pszEndSrc ) ) // If source matches, replace it with target
+			{
+			wxChar* pszSrcShortened = new wxChar[ wxStrlen( pszSrc ) + 1 ]; // 1.6.1aj Shortened source to try further suff
+			wxStrcpy( pszSrcShortened, pszSrc ); // Copy source to shortened source
+			*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source // 1.6.1be Change back to pointer arithmetic
+//			wxStrcpy( pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc, "" ); // 1.6.1aj Shorten source // 1.6.1bb 
+			bSuffReplace( pszSrcShortened, ppszTar, iGuessLevel >= 50 ); // 1.6.1aj Try replace suff on shortened source, but only if guess level 50 or more
+			wxStrcat( *ppszTar, pcorSuff->pszTar ); // 1.6.1aj Append target suff to end of target
+			delete pszSrcShortened; // 1.6.1aj 
+			return true;
+			}
+		}
+	return false;
+	}
+
+bool Guesser::bPrefReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace ) // Try to replace a prefix // 1.6.1aj 
+	{
+	for ( Corresp* pcorPref = corlstPrefGuess.pcorFirst; pcorPref; pcorPref = pcorPref->pcorNext ) // See if a guess is possible for this string
+		{
+		wxStrcpy( *ppszTar, pszSrc ); // Copy source to target, so caller can use it if no replace
+		if ( !bReplace ) // 1.6.1aj If no replace, return target same as source
+			return false;
+		wxChar* pszPrefSrc = pcorPref->pszSrc; // Pointer to prefix to match
+		int iLenPrefSrc = wxStrlen( pszPrefSrc ); // Get length of prefix to match
+		if ( bStrMatch( pszSrc, pszPrefSrc, 0 ) ) // If source matches, replace it with target
+			{
+			wxChar* pszSrcShortened = new wxChar[ wxStrlen( pszSrc ) + 1 ]; // 1.6.1aj Shortened source to try further pref
+			wxStrcpy( pszSrcShortened, pszSrc + iLenPrefSrc ); // Copy source to shortened source
+			bPrefReplace( pszSrcShortened, ppszTar, iGuessLevel >= 50 ); // 1.6.1aj Try replace pref on shortened source, but only if guess level 50 or more
+			StrReplace( *ppszTar, pcorPref->pszTar, 0, 0 ); // 1.6.1aj Prepend target pref to end of target
+			delete pszSrcShortened; // 1.6.1aj 
+			return true;
+			}
+		}
+	return false;
+	}
+
+bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return target guess
+	{
+	if ( corlstSuffGuess.bIsEmpty() ) // If correspondences have not been calculated, do it now
+		CalculateCorrespondences(); // 1.6.1aj 
+	bool bSucc = false; // 1.6.1aj 
+	if ( bRootReplace( pszSrc, ppszTar ) ) // 1.6.1aj 
+		bSucc = true;
+	if ( bSuffReplace( *ppszTar, ppszTar ) ) // 1.6.1aj 
+		bSucc = true;
+	if ( bPrefReplace( *ppszTar, ppszTar ) ) // 1.6.1aj 
+		bSucc = true;
+	return bSucc; // 1.6.1aj 
 	}
