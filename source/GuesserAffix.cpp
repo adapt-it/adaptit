@@ -22,7 +22,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "ClassName.h"
+    #pragma implementation "GuesserAffix.h"
 #endif
 
 #ifdef __BORLANDC__
