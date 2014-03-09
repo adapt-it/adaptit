@@ -28,6 +28,7 @@
 		27462BDB17474EBE005605DA /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD617474EBE005605DA /* jsonval.cpp */; };
 		27462BDC17474EBE005605DA /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD817474EBE005605DA /* jsonwriter.cpp */; };
 		27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27501E2C176FD106000AC145 /* md5_SB.cpp */; };
+		277D32EB18CD34700089CFC2 /* GuesserAffix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 277D32EA18CD34700089CFC2 /* GuesserAffix.cpp */; };
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
 		278D48BE1839859900562C6F /* FreeTransAdjustDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 278D48BC1839859900562C6F /* FreeTransAdjustDlg.cpp */; };
 		2791678616195D4D00744DF8 /* KBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2791678516195D4D00744DF8 /* KBServer.cpp */; };
@@ -228,6 +229,9 @@
 		27462BD917474EBE005605DA /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = "<group>"; };
 		27501E2C176FD106000AC145 /* md5_SB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5_SB.cpp; path = ../../source/md5_SB.cpp; sourceTree = "<group>"; };
 		27501E2D176FD106000AC145 /* md5_SB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5_SB.h; path = ../../source/md5_SB.h; sourceTree = "<group>"; };
+		277D32E018CD33B30089CFC2 /* GuesserAffix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GuesserAffix.h; path = ../../source/GuesserAffix.h; sourceTree = "<group>"; };
+		277D32E518CD33B30089CFC2 /* Thread_DoEntireKbDeletion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_DoEntireKbDeletion.h; path = ../../source/Thread_DoEntireKbDeletion.h; sourceTree = "<group>"; };
+		277D32EA18CD34700089CFC2 /* GuesserAffix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GuesserAffix.cpp; path = ../../source/GuesserAffix.cpp; sourceTree = "<group>"; };
 		2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_ChangedSince.cpp; path = ../../source/Thread_ChangedSince.cpp; sourceTree = "<group>"; };
 		2783C43A16CC457300C902E7 /* Thread_ChangedSince.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_ChangedSince.h; path = ../../source/Thread_ChangedSince.h; sourceTree = "<group>"; };
 		278D48BC1839859900562C6F /* FreeTransAdjustDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTransAdjustDlg.cpp; path = ../../source/FreeTransAdjustDlg.cpp; sourceTree = "<group>"; };
@@ -540,7 +544,6 @@
 		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
 			isa = PBXGroup;
 			children = (
-				270E0AE2184C0D91005FAB50 /* FreeTransSplitterDlg.cpp */,
 				7DC0399B0F4672720047FCAF /* scripts */,
 				20286C2AFDCF999611CA2CEA /* Sources */,
 				20286C2CFDCF999611CA2CEA /* Resources */,
@@ -554,6 +557,10 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				277D32EA18CD34700089CFC2 /* GuesserAffix.cpp */,
+				270E0AE2184C0D91005FAB50 /* FreeTransSplitterDlg.cpp */,
+				277D32E518CD33B30089CFC2 /* Thread_DoEntireKbDeletion.h */,
+				277D32E018CD33B30089CFC2 /* GuesserAffix.h */,
 				270E0AE1184BE287005FAB50 /* Adapt_It.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -1161,6 +1168,7 @@
 				27BD963C16E0161700583C59 /* Thread_KbEditorUpdateButton.cpp in Sources */,
 				27BD963D16E0161700583C59 /* Timer_KbServerChangedSince.cpp in Sources */,
 				27F3CA0216E867AE0065D2D6 /* Thread_UploadMulti.cpp in Sources */,
+				277D32EB18CD34700089CFC2 /* GuesserAffix.cpp in Sources */,
 				034B73FC16EFAC53009A6389 /* ToolbarPage.cpp in Sources */,
 				271F29C216FFCD0000E107A6 /* DVCSNavDlg.cpp in Sources */,
 				27D067361713A27800A2607D /* DVCSLogDlg.cpp in Sources */,
