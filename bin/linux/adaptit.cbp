@@ -384,6 +384,8 @@
 		<Unit filename="../../source/GetSourceTextFromEditor.h" />
 		<Unit filename="../../source/GoToDlg.cpp" />
 		<Unit filename="../../source/GoToDlg.h" />
+		<Unit filename="../../source/GuesserAffix.cpp" />
+		<Unit filename="../../source/GuesserAffix.h" />
 		<Unit filename="../../source/GuesserSettingsDlg.cpp" />
 		<Unit filename="../../source/GuesserSettingsDlg.h" />
 		<Unit filename="../../source/HtmlFileViewer.cpp" />
