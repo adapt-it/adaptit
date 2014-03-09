@@ -7098,7 +7098,7 @@ bool AtAffixAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& 
 			// Input prefix
 			wxASSERT(pNewAffix != NULL);
 #ifndef _UNICODE // ANSI version (ie. regular)
-			pNewAffix->setSourceAffix(attrValue);
+			pNewAffix->setSourceAffix(wxString::From8BitData(attrValue)); // whm modified 9Mar14 for ANSI builds
 #else // Unicode version
 			pNewAffix->setSourceAffix(attrValue.Convert8To16());
 #endif // for _UNICODE #defined
@@ -7108,7 +7108,7 @@ bool AtAffixAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& 
 			// Input prefix
 			wxASSERT(pNewAffix != NULL);
 #ifndef _UNICODE // ANSI version (ie. regular)
-			pNewAffix->setTargetAffix(attrValue);
+			pNewAffix->setTargetAffix(wxString::From8BitData(attrValue)); // whm modified 9Mar14 for ANSI builds
 #else // Unicode version
 			pNewAffix->setTargetAffix(attrValue.Convert8To16());
 #endif // for _UNICODE #defined
@@ -7122,7 +7122,7 @@ bool AtAffixAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& 
 			// Who Created
 			wxASSERT(pNewAffix != NULL);
 #ifndef _UNICODE // ANSI version (ie. regular)
-			pNewAffix->setCreatedBy(attrValue);
+			pNewAffix->setCreatedBy(wxString::From8BitData(attrValue)); // whm modified 9Mar14 for ANSI builds
 #else // Unicode version
 			pNewAffix->setCreatedBy(attrValue.Convert8To16());
 #endif // for _UNICODE #defined
