@@ -10268,7 +10268,7 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item15->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
     item14->Add( item15, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(-1,26), wxTE_CENTRE );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(120,26), wxTE_CENTRE );
     item16->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item16->SetToolTip( _("Type, or edit, the source language suffix, or prefix, here") );
     item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL, 5 );
@@ -10310,7 +10310,7 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item24->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
     item23->Add( item24, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(-1,26), wxTE_CENTRE );
+    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(120,26), wxTE_CENTRE );
     item25->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item25->SetToolTip( _("Type, or edit, the target language suffix, or prefix, here") );
     item23->Add( item25, 0, wxALIGN_CENTER_VERTICAL, 5 );
