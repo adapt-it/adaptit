@@ -37,11 +37,12 @@
 #endif
 
 // other includes
+#include "Adapt_It.h"
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
 #include <wx/colordlg.h>
-#include "Adapt_It.h"
+#include "GuesserAffixesListsDlg.h"
 #include "GuesserSettingsDlg.h"
 
 // event handler table
@@ -49,6 +50,8 @@ BEGIN_EVENT_TABLE(CGuesserSettingsDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CGuesserSettingsDlg::InitDialog)
 	EVT_BUTTON(ID_BUTTON_GUESS_HIGHLIGHT_COLOR, CGuesserSettingsDlg::OnChooseGuessHighlightColor)
 	EVT_BUTTON(wxID_OK, CGuesserSettingsDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, CGuesserSettingsDlg::OnCancel)
+	EVT_BUTTON(ID_BTN_GUESSER_HOW_TO_USE_DLG, CGuesserSettingsDlg::OnSuffixesAndPrefixesListsDlg)
 END_EVENT_TABLE()
 
 CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
@@ -62,6 +65,8 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	GuesserSettingsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	m_pApp = &wxGetApp();
+
 	// use wxValidator for simple dialog data transfer
 	// sample text control initialization below:
 	pCheckUseGuesser = (wxCheckBox*)FindWindowById(ID_CHECK_USE_GUESSER);
@@ -85,9 +90,11 @@ CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
 	pPanelGuessColorDisplay = (wxPanel*)FindWindowById(ID_PANEL_GUESS_COLOR_DISPLAY);
 	wxASSERT(pPanelGuessColorDisplay != NULL);
 
-	CAdapt_ItApp* pApp = &wxGetApp();
+	m_pSuffixesAndPrefixesListsDlg = (wxButton*)FindWindowById(ID_BTN_GUESSER_HOW_TO_USE_DLG);
+	wxASSERT(m_pSuffixesAndPrefixesListsDlg != NULL);
+
 	bool bOK;
-	bOK = pApp->ReverseOkCancelButtonsForMac(this);
+	bOK = m_pApp->ReverseOkCancelButtonsForMac(this);
 	bOK = bOK; // avoid warning
 	// other attribute initializations
 }
@@ -97,19 +104,24 @@ CGuesserSettingsDlg::~CGuesserSettingsDlg() // destructor
 	
 }
 
+void CGuesserSettingsDlg::OnCancel(wxCommandEvent& event)
+{
+	event.Skip();
+}
+
 void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
+	//CAdapt_ItApp* pApp = &wxGetApp();
 	//InitDialog() is not virtual, no call needed to a base class
-	bUseAdaptationsGuesser = pApp->m_bUseAdaptationsGuesser;
-	nGuessingLevel = pApp->m_nGuessingLevel;
-	bAllowGuesseronUnchangedCCOutput = pApp->m_bAllowGuesseronUnchangedCCOutput;
+	bUseAdaptationsGuesser = m_pApp->m_bUseAdaptationsGuesser;
+	nGuessingLevel = m_pApp->m_nGuessingLevel;
+	bAllowGuesseronUnchangedCCOutput = m_pApp->m_bAllowGuesseronUnchangedCCOutput;
 	pCheckUseGuesser->SetValue(bUseAdaptationsGuesser);
 	pSlider->SetValue(nGuessingLevel);
 	pAllowGuessertoOperateOnUnchangedOutput->SetValue(bAllowGuesseronUnchangedCCOutput);
-	tempGuessHighlightColor = pApp->m_GuessHighlightColor;
-	nCorrespondencesLoadedInAdaptationsGuesser = pApp->m_nCorrespondencesLoadedInAdaptationsGuesser;
-	nCorrespondencesLoadedInGlossingGuesser = pApp->m_nCorrespondencesLoadedInGlossingGuesser;
+	tempGuessHighlightColor = m_pApp->m_GuessHighlightColor;
+	nCorrespondencesLoadedInAdaptationsGuesser = m_pApp->m_nCorrespondencesLoadedInAdaptationsGuesser;
+	nCorrespondencesLoadedInGlossingGuesser = m_pApp->m_nCorrespondencesLoadedInGlossingGuesser;
 	wxString nCAStr;
 	nCAStr.Empty();
 	nCAStr << nCorrespondencesLoadedInAdaptationsGuesser;
@@ -118,7 +130,7 @@ void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	nCGStr << nCorrespondencesLoadedInGlossingGuesser;
 	pStaticTextNumCorInAdaptationsGuesser->SetLabel(nCAStr);
 	pStaticTextNumCorInGlossingGuesser->SetLabel(nCGStr);
-	pPanelGuessColorDisplay->SetBackgroundColour(pApp->m_GuessHighlightColor);
+	pPanelGuessColorDisplay->SetBackgroundColour(m_pApp->m_GuessHighlightColor);
 	pPanelGuessColorDisplay->Refresh();
 }
 
@@ -139,6 +151,23 @@ void CGuesserSettingsDlg::OnChooseGuessHighlightColor(wxCommandEvent& WXUNUSED(e
 		pPanelGuessColorDisplay->SetBackgroundColour(tempGuessHighlightColor);
 		pPanelGuessColorDisplay->Refresh();
 	}	
+}
+
+void CGuesserSettingsDlg::OnSuffixesAndPrefixesListsDlg(wxCommandEvent& WXUNUSED(event))
+{
+	GuesserAffixesListsDlg guesserListsDlg(this); // make the CGuesserSettingsDlg the parent in this case
+	guesserListsDlg.Center();
+	int returnValue = guesserListsDlg.ShowModal();
+	if (returnValue == wxID_CANCEL)
+	{
+		// user cancelled
+		return;
+	}
+	else
+	{
+		// all was well
+		return;
+	}
 }
 
 //CGuesserSettingsDlg::OnUpdateDoSomething(wxUpdateUIEvent& event)

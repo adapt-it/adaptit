@@ -10147,6 +10147,17 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 					&bFoundFixedSpaceMarker, &bFoundClosingBracket,
 					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
 	bFixedSpaceIsAhead = bFoundFixedSpaceMarker;
+	// BEW 11Feb14, test for ~ found, but it is followed by whitespace or buffer end or
+	// closing ] character. If so, it's not a USFM fixedspace marker, so we'd in that case
+	// treat is as a word - add code for that here (and a similar change was done in the
+	// above function to test the character at p+1)
+	if (bFixedSpaceIsAhead && (bFoundHaltingWhitespace || bFoundClosingBracket))
+	{
+		// pHaltLoc will have been returned as pointing at the ~ character, so advance
+		// pHaltLoc to point past it, and then reset bFixedSpaceIsAhead to FALSE
+		pHaltLoc += 1;
+		bFixedSpaceIsAhead = FALSE;
+	}
 	wxString aSpan(ptr,pHaltLoc); // this could be up to ~, or a [ or ], or a whitespace
 
 	// we know whether or not we found a USFM fixedspace marker, what we do next depends
@@ -10581,6 +10592,23 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 			{
 				nFixedSpaceOffset = (int)(p - ptr);
 				*pbFoundFixedSpaceMarker = TRUE;
+				// BEW added 11Feb14, the comment in IsFixedSpaceAhead() which immediately
+				// precedes the call of this FindParseHaltLocation() function has not been
+				// implemented correctly. Without the addition which follows here, control
+				// would break from the loop now, and *pbFoundHaltingWhitespace = TRUE; would
+				// not be set if a halting space followed the ~ character [that wouldn't be
+				// correct USFM markup, but someone has marked up their text in just that
+				// way!] and got a parser crash as a consequence], hence this fix. So test
+				// for whitespace following the tilde, or buffer end. Also test for ]
+				// following the tilde - that too is a halting condition
+				if ( !(p+1 < pEnd) || IsWhiteSpace(p+1) )
+				{
+					*pbFoundHaltingWhitespace = TRUE;
+				}
+				else if ( *(p+1) == _T(']') )
+				{
+					*pbFoundClosingBracket = TRUE;
+				}
 				break;
 			}
 			else if (*p == _T(']') && !IsClosingBracketWordBuilding(gpApp->m_punctuation[1]))
