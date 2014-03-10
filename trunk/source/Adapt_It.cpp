@@ -15335,6 +15335,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_adminHelpFileName = _T("Help_for_Administrators.htm");
 	m_quickStartHelpFileName = _T("Adapt_It_Quick_Start.htm");
 	m_rfc5646MessageFileName = _T("RFC5646message.htm"); // whm added 30Jul13 for BEW
+	m_GuesserExplanationMessageFileName = _T("GuesserExplanation.htm"); // BEW added 7Mar14
 
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;

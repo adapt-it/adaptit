@@ -19,35 +19,40 @@
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "GuesserSettingsDlg.h"
 #endif
+class CAdapt_ItApp;
 
 class CGuesserSettingsDlg : public AIModalDialog
 {
 public:
 	CGuesserSettingsDlg(wxWindow* parent); // constructor
 	virtual ~CGuesserSettingsDlg(void); // destructor
-	// other methods
-	wxCheckBox* pCheckUseGuesser;
-	wxSlider* pSlider;
-	wxCheckBox* pAllowGuessertoOperateOnUnchangedOutput;
-	wxStaticText* pStaticTextNumCorInAdaptationsGuesser;
-	wxStaticText* pStaticTextNumCorInGlossingGuesser;
-	wxPanel* pPanelGuessColorDisplay;
-	bool bUseAdaptationsGuesser;
-	int nGuessingLevel;
-	int nCorrespondencesLoadedInAdaptationsGuesser;
-	int nCorrespondencesLoadedInGlossingGuesser;
-	bool bAllowGuesseronUnchangedCCOutput;
-	wxColour tempGuessHighlightColor;
+	
+	wxButton*		m_pSuffixesAndPrefixesListsDlg;
+	wxCheckBox*		pCheckUseGuesser;
+	wxSlider*		pSlider;
+	wxCheckBox*		pAllowGuessertoOperateOnUnchangedOutput;
+	wxStaticText*	pStaticTextNumCorInAdaptationsGuesser;
+	wxStaticText*	pStaticTextNumCorInGlossingGuesser;
+	wxPanel*		pPanelGuessColorDisplay;
+	bool			bUseAdaptationsGuesser;
+	int				nGuessingLevel;
+	int				nCorrespondencesLoadedInAdaptationsGuesser;
+	int				nCorrespondencesLoadedInGlossingGuesser;
+	bool			bAllowGuesseronUnchangedCCOutput;
+	wxColour		tempGuessHighlightColor;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
 	void OnChooseGuessHighlightColor(wxCommandEvent& WXUNUSED(event));
+	void OnSuffixesAndPrefixesListsDlg(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes
 	// wxString m_stringVariable;
 	// bool m_bVariable;
+	CAdapt_ItApp*     m_pApp;
 	
 	// other class attributes
 

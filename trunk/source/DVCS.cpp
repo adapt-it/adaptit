@@ -555,7 +555,11 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
     pApp->ReverseOkCancelButtonsForMac(&dlg);           // fulfilling all righteousness here
 
     dlg.m_comment->SetFocus();          // we seem to need this on Linux at least
-	//dlg.Centre();
+	dlg.Centre();
+	// BEW Removed 11Feb14, because sometimes, even with a phasebox visible in the doc, the
+	// Reposition...() call below returned a myMonitor value of -1, and so crashed the
+	// save & store in history attempt with an app bogus index error in wxBaseArrayPtrVoid()
+	/*
 	// BEW 16Dec13, the dialog, when using dual monitors, can open on a different monitor
 	// than the running AI is on, so confine it to the latter monitor
 	wxPoint		m_ptBoxTopLeft; // used for repositioning dialog away from phrase box location
@@ -591,6 +595,7 @@ bool DVCS::AskSaveAndCommit (wxString blurb)
 	RepositionDialogToUncoverPhraseBox_Version2(m_pApp, 0, 0, rectDlg.width, rectDlg.height,
 										newXPos, newYPos, myTopCoord, myLeftCoord); // see helpers.cpp
 	dlg.SetSize(myLeftCoord, myTopCoord, wxDefaultCoord, wxDefaultCoord, wxSIZE_USE_EXISTING);
+	*/
 
 // Now if blurb is non-empty, we set that as the informative text in the dialog.  Otherwise we leave the
 //  default text which is already there.

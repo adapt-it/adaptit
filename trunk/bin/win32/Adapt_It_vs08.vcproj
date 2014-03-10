@@ -665,6 +665,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\GuesserAffixesListsDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\GuesserSettingsDlg.cpp"
 				>
 			</File>
@@ -1267,6 +1271,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\GuesserAffix.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\GuesserAffixesListsDlg.h"
 				>
 			</File>
 			<File
