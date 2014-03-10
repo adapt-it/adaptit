@@ -80,10 +80,10 @@ public:
 	bool			m_bSuffixesListIsCurrent;
 	// Support hiding the "hyphens" before or after the checkboxes, depending 
 	// on which radio button was chosen by the user
-	wxStaticLine*	m_pHyphenSrcSuffix; // to left of src affix text box
-	wxStaticLine*	m_pHyphenSrcPrefix; // to right of src affix text box
-	wxStaticLine*	m_pHyphenTgtSuffix; // to left of tgt affix text box
-	wxStaticLine*	m_pHyphenTgtPrefix; // to right of tgt affix text box
+	wxStaticText*	m_pHyphenSrcSuffix; // to left of src affix text box
+	wxStaticText*	m_pHyphenSrcPrefix; // to right of src affix text box
+	wxStaticText*	m_pHyphenTgtSuffix; // to left of tgt affix text box
+	wxStaticText*	m_pHyphenTgtPrefix; // to right of tgt affix text box
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

@@ -10264,19 +10264,18 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticLine *item15 = new wxStaticLine( parent, ID_LINE_SRC_SUFFIX, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL );
-    item15->SetFont( wxFont( 16, wxROMAN, wxNORMAL, wxBOLD ) );
-    item15->SetToolTip( _("Suffix follows") );
-    item14->Add( item15, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item15 = new wxStaticText( parent, ID_STATICTEXT_SRC_SUFFIX, wxT("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item15->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item14->Add( item15, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(-1,26), 0 );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(-1,26), wxTE_CENTRE );
+    item16->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item16->SetToolTip( _("Type, or edit, the source language suffix, or prefix, here") );
-    item14->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item16, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxStaticLine *item17 = new wxStaticLine( parent, ID_LINE_SRC_PREFIX, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL );
-    item17->SetFont( wxFont( 16, wxROMAN, wxNORMAL, wxBOLD ) );
-    item17->SetToolTip( _("Prefix precedes") );
-    item14->Add( item17, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_STATICTEXT_SRC_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item17->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item14->Add( item17, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
     item12->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -10307,19 +10306,18 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticLine *item24 = new wxStaticLine( parent, ID_LINE_TGT_SUFFIX, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL );
-    item24->SetFont( wxFont( 16, wxROMAN, wxNORMAL, wxBOLD ) );
-    item24->SetToolTip( _("Suffix follows") );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item24 = new wxStaticText( parent, ID_STATICTEXT_TGT_SUFFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item24->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item23->Add( item24, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(-1,26), 0 );
+    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(-1,26), wxTE_CENTRE );
+    item25->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item25->SetToolTip( _("Type, or edit, the target language suffix, or prefix, here") );
-    item23->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item23->Add( item25, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxStaticLine *item26 = new wxStaticLine( parent, ID_LINE_TGT_PREFIX, wxDefaultPosition, wxSize(10,-1), wxLI_HORIZONTAL );
-    item26->SetFont( wxFont( 16, wxROMAN, wxNORMAL, wxBOLD ) );
-    item26->SetToolTip( _("Prefix precedes") );
-    item23->Add( item26, 0, wxALIGN_CENTER|wxRIGHT|wxTOP|wxBOTTOM, 5 );
+    wxStaticText *item26 = new wxStaticText( parent, ID_STATICTEXT_TGT_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item26->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item23->Add( item26, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
     item21->Add( item23, 0, wxALIGN_CENTER, 5 );
 

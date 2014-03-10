@@ -1036,15 +1036,15 @@ const int ID_RADIO_SUFFIXES_LIST = 10785;
 const int ID_RADIO_PREFIXES_LIST = 10786;
 const int ID_LISTCTRL_SRC_TGT_AFFIX_PAIR = 10787;
 extern wxSizer *sizerHyphensArea;
-const int ID_LINE_SRC_SUFFIX = 10788;
+const int ID_STATICTEXT_SRC_SUFFIX = 10788;
 const int ID_TEXT_SRC_AFFIX = 10789;
-const int ID_LINE_SRC_PREFIX = 10790;
+const int ID_STATICTEXT_SRC_PREFIX = 10790;
 const int ID_BUTTON_ADD = 10791;
 const int ID_BUTTON_INSERT = 10792;
 const int ID_TEXT_TGT = 10793;
-const int ID_LINE_TGT_SUFFIX = 10794;
+const int ID_STATICTEXT_TGT_SUFFIX = 10794;
 const int ID_TEXT_TGT_AFFIX = 10795;
-const int ID_LINE_TGT_PREFIX = 10796;
+const int ID_STATICTEXT_TGT_PREFIX = 10796;
 wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 // Declare menubar functions

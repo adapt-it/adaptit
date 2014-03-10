@@ -66,10 +66,10 @@ GuesserAffixesListsDlg::GuesserAffixesListsDlg(wxWindow* parent) // dialog const
 	m_pRadioPrefixesList = (wxRadioButton*)FindWindowById(ID_RADIO_PREFIXES_LIST);
 	wxASSERT(m_pRadioPrefixesList != NULL);
 	
-	m_pHyphenSrcSuffix = (wxStaticLine*)FindWindowById(ID_LINE_SRC_SUFFIX); // to left of src affix text box
-	m_pHyphenSrcPrefix = (wxStaticLine*)FindWindowById(ID_LINE_SRC_PREFIX); // to right of src affix text box
-	m_pHyphenTgtSuffix = (wxStaticLine*)FindWindowById(ID_LINE_TGT_SUFFIX); // to left of tgt affix text box
-	m_pHyphenTgtPrefix = (wxStaticLine*)FindWindowById(ID_LINE_TGT_PREFIX); // to right of tgt affix text box
+	m_pHyphenSrcSuffix = (wxStaticText*)FindWindowById(ID_STATICTEXT_SRC_SUFFIX); // to left of src affix text box
+	m_pHyphenSrcPrefix = (wxStaticText*)FindWindowById(ID_STATICTEXT_SRC_PREFIX); // to right of src affix text box
+	m_pHyphenTgtSuffix = (wxStaticText*)FindWindowById(ID_STATICTEXT_TGT_SUFFIX); // to left of tgt affix text box
+	m_pHyphenTgtPrefix = (wxStaticText*)FindWindowById(ID_STATICTEXT_TGT_PREFIX); // to right of tgt affix text box
 
 
 
