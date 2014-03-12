@@ -116,7 +116,7 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wall" />
+			<Add option="-g" />
 			<Add option="-Wno-unused-local-typedefs" />
 		</Compiler>
 		<ExtraCommands>
@@ -386,6 +386,8 @@
 		<Unit filename="../../source/GoToDlg.h" />
 		<Unit filename="../../source/GuesserAffix.cpp" />
 		<Unit filename="../../source/GuesserAffix.h" />
+		<Unit filename="../../source/GuesserAffixesListsDlg.cpp" />
+		<Unit filename="../../source/GuesserAffixesListsDlg.h" />
 		<Unit filename="../../source/GuesserSettingsDlg.cpp" />
 		<Unit filename="../../source/GuesserSettingsDlg.h" />
 		<Unit filename="../../source/HtmlFileViewer.cpp" />
@@ -585,11 +587,21 @@
 			<envvars />
 			<debugger>
 				<search_path add="/wx-svn/src" />
+				<search_path add="/usr/bin" />
 			</debugger>
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
 				<gui name="wxWidgets" src="" main="" init_handlers="necessary" language="CPP" />
 			</wxsmith>
+			<DoxyBlocks>
+				<comment_style block="0" line="0" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
