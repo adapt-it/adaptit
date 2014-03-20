@@ -9753,7 +9753,9 @@ wxMemorySize MacGetFreeMemory()
 	if (host_statistics(host_port, HOST_VM_INFO, (host_info_t)&vm_stat, &host_size) != KERN_SUCCESS) return -1LL;
 
 	//	natural_t   mem_used = (vm_stat.active_count + vm_stat.inactive_count + vm_stat.wire_count) * pagesize;
-	natural_t   mem_free = vm_stat.free_count * pagesize;
+	//	GDLC 20MAR14 the natural_t type is now deprecated and is too small for Macs with 12GB of RAM
+	//	natural_t   mem_free = vm_stat.free_count * pagesize;
+	long long   mem_free = vm_stat.free_count * pagesize;
 	//	natural_t   mem_total = mem_used + mem_free;
 
 	return static_cast <wxMemorySize> (mem_free);
