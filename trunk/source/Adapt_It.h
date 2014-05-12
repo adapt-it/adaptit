@@ -155,6 +155,10 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // 1. The appVerStr const defined below (about line 186).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
+//    NOTE: Use an editor such as Notepad to edit Adapt_It.rc. DO NOT USE
+//    Visual Studio to edit this file, since Visual Studio will remove the
+//    #include "wx/msw/wx.rc" statement and add a lot of other
+//    Windows-specific stuff to the file - resulting in a build failure.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
 // 6. The Linux's ChangeLog (done automatically by batch file if the version number in
