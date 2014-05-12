@@ -2160,6 +2160,11 @@ void CAdapt_ItDoc::OnDVCS_Version (wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItDoc::OnUpdateDVCS_item (wxUpdateUIEvent& event)
 {
+ 	if (gpApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
     int	 trialRevNum = gpApp->m_trialVersionNum;
 
     event.Enable ( (trialRevNum < 0) && (gpApp->m_pKB != NULL) && (gpApp->IsDocumentOpen()) );
@@ -2167,6 +2172,11 @@ void CAdapt_ItDoc::OnUpdateDVCS_item (wxUpdateUIEvent& event)
 
 void CAdapt_ItDoc::OnUpdateTakeOwnership (wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
     event.Enable ( (gpApp->m_owner != gpApp->m_strUserID) && (gpApp->m_trialVersionNum == -1) && (gpApp->m_pKB != NULL) && (gpApp->IsDocumentOpen()) );
                     // enable only if user isn't the owner, and a trial is not under way
 }
@@ -3796,7 +3806,11 @@ void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 
 	if (pApp->m_bReadOnlyAccess)
 	{
@@ -3841,6 +3855,11 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
@@ -3867,6 +3886,30 @@ void CAdapt_ItDoc::OnUpdateFileSaveAs(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
+void CAdapt_ItDoc::OnUpdateSaveAndCommit (wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the document is successfully opened, otherwise FALSE.
@@ -4039,6 +4082,8 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 {
+	NormalizeState();
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	if (gbVerticalEditInProgress)
@@ -4195,14 +4240,21 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 
 void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 {
+	// BEW 10May14 I won't disable the close if clipboard adapting mode is still
+	// in effect, rather, the OnFileClose() call will automatically restore the
+	// cached document before doing anything else, and what will be closed will then
+	// correctly be the cached-but-now-has-become-the-active document. This is a nicer
+	// protocol than simply disabling all the File or document i/o, since a new user may
+	// not know why he can't save or get a new file, so he may want to just close to make
+	// things okay the brute force way - so we'll let him
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
 
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
     if (gpApp->m_trialVersionNum >= 0)
     {
         event.Enable(FALSE);
@@ -5311,6 +5363,8 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnSaveModified()
 {
+	NormalizeState();
+
 	// save project configuration fonts and settings
 	CAdapt_ItApp* pApp = &wxGetApp();
 
@@ -18899,19 +18953,19 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 {
-	// whm added 26Mar12.
-	if (gpApp->m_bReadOnlyAccess)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-
-	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_bReadOnlyAccess)
+	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
@@ -18921,14 +18975,14 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_bFreeTranslationMode)
+	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
     // BEW modified 03Nov05: let it be enabled for a dirty doc, but check for dirty flag
     // set and if so do an automatic save before attempting the split
-	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
+	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -18952,19 +19006,19 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 {
-	// whm added 15Mar12 for read-only mode
-	if (gpApp->m_bReadOnlyAccess)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-
-	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_bReadOnlyAccess)
+	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
@@ -18974,12 +19028,12 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_bFreeTranslationMode)
+	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_pKB != NULL && gpApp->m_pSourcePhrases->GetCount() > 0)
+	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -19003,19 +19057,19 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 {
-	// whm added 26Mar12.
-	if (gpApp->m_bReadOnlyAccess)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-
-	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_bReadOnlyAccess)
+	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
@@ -19025,13 +19079,13 @@ void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_bFreeTranslationMode)
+	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (gpApp->m_pKB != NULL && gpApp->m_bBookMode && gpApp->m_nBookIndex != -1
-			&& !gpApp->m_bDisableBookMode)
+	if (pApp->m_pKB != NULL && pApp->m_bBookMode && pApp->m_nBookIndex != -1
+			&& !pApp->m_bDisableBookMode)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -20964,17 +21018,19 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
-	//if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
-	//{
-	//	event.Enable(FALSE);
-	//	return;
-	//}
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-    if (gpApp->m_trialVersionNum >= 0)
+    if (pApp->m_trialVersionNum >= 0)
     {
         event.Enable(FALSE);
         return;
@@ -20982,7 +21038,7 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 
     // enable if there is a KB ready (even if only a stub), and the document loaded and
     // glossing mode is turned off
-	if ((gpApp->m_pLayout->GetStripArray()->GetCount() > 0) && gpApp->m_bKBReady && !gbIsGlossing)
+	if ((pApp->m_pLayout->GetStripArray()->GetCount() > 0) && pApp->m_bKBReady && !gbIsGlossing)
 	{
 		event.Enable(TRUE);
 	}
@@ -21008,17 +21064,24 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 
 void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 {
-	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-    if (gpApp->m_trialVersionNum >= 0)
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+    if (pApp->m_trialVersionNum >= 0)
     {
         event.Enable(FALSE);
         return;
     }
-	if (gpApp->m_bReadOnlyAccess)
+	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
 		return;
@@ -21877,8 +21940,15 @@ wxString CAdapt_ItDoc::GetCurrentDirectory()
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 5Sep11 disable receiving of sync scroll messages during PT/BE collaboration
-	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
 		return;
@@ -21889,7 +21959,7 @@ void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdate
 		return;
 	}
 	// the feature can be enabled only if we are in a project
-	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 #ifndef __WXMSW__
 	event.Enable(FALSE); // sync scrolling not yet implemented on Linux and the Mac
 #endif
@@ -21956,10 +22026,17 @@ void CAdapt_ItDoc::OnAdvancedReceiveSynchronizedScrollingMessages(wxCommandEvent
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// whm Note: 5Sep11 the sending of sync scroll messages during PT/BE collaboration should
 	// be OK
 	// the feature can be enabled only if we are in a project
-	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 #ifndef __WXMSW__
 	event.Enable(FALSE); // sync scrolling not yet implemented on Linux and the Mac
 #endif
@@ -22837,14 +22914,21 @@ bool CAdapt_ItDoc::ConsistencyCheck_ClobberDoc(CAdapt_ItApp* pApp, bool& bDocIsC
 // BEW created 27Feb12
 void CAdapt_ItDoc::OnUpdateChangePunctsOrMarkersPlacement(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	bool bKBReady = FALSE;
 	if (gbIsGlossing)
-		bKBReady = gpApp->m_bGlossingKBReady;
+		bKBReady = pApp->m_bGlossingKBReady;
 	else
-		bKBReady = gpApp->m_bKBReady;
-	if (bKBReady && gpApp->m_pActivePile != NULL) // whm 13Mar12 added m_pActivePile != NULL test
+		bKBReady = pApp->m_bKBReady;
+	if (bKBReady && pApp->m_pActivePile != NULL) // whm 13Mar12 added m_pActivePile != NULL test
 	{
-		CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase();
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 		wxASSERT(pSrcPhrase != NULL);
 		if (
 			!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty() ||
@@ -22911,6 +22995,11 @@ void CAdapt_ItDoc::OnChangePunctsOrMarkersPlacement(wxCommandEvent& WXUNUSED(eve
 void CAdapt_ItDoc::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);

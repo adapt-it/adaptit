@@ -7667,7 +7667,7 @@ void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 /// and before the menu is displayed. The "Free Translation Mode" item on the Advanced menu
 /// is disabled if the active pile pointer is NULL, or the application is only showing the
 /// target text, or there are no source phrases in the App's m_pSourcePhrases list. But, if
-/// m_curIndex is within a valid range and the composeBar was not already opened for
+/// m_nActiveSequNum is within a valid range and the composeBar was not already opened for
 /// another purpose (called from the View), the menu item is enabled.
 /// BEW 22Feb10 no changes needed for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
@@ -7693,22 +7693,6 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	// BEW 13Dec13m Bill suggested we should be able to invoke free trans mode when the
-	// composebar is showing - doing so should shut it down first, and then invoke turning
-	// on free trans mode
-    // the !m_pApp->m_bComposeBarWasAskedForFromViewMenu test makes sure we don't try to
-    // invoke free translation mode while the user already has the Compose Bar open for
-    // another purpose
-    //if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && m_pApp->m_nActiveSequNum >= 0
-	//	&& !m_pApp->m_bComposeBarWasAskedForFromViewMenu)
-	//{
-	//	event.Enable(TRUE);
-	//}
-	//else
-	//{
-	//	event.Enable(FALSE);
-	//}
-	//
 	event.Enable(TRUE);
 }
 
@@ -7772,7 +7756,7 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /// and before the menu is displayed. The "Use Target Text As Default Free Translation"
 /// item on the Advanced menu is disabled if the application is not in Free Translation
 /// mode, or if the active pile pointer is NULL, or if there are no source phrases in the
-/// App's m_pSourcePhrases list. But, if m_curIndex is within a valid range and the
+/// App's m_pSourcePhrases list. But, if m_nActiveSequNum is within a valid range and the
 /// composeBar was not already opened for another purpose (called from the View), the menu
 /// item is enabled.
 /// BEW 22Feb10 no changes needed for support of doc version 5
@@ -7865,9 +7849,9 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /// and before the menu is displayed. The "Use Gloss Text As Default Free Translation" item
 /// on the Advanced menu is disabled if the application is not in Free Translation mode, or
 /// if the active pile pointer is NULL, or if there are no source phrases in the App's
-/// m_pSourcePhrases list. But, if m_curIndex is within a valid range and the composeBar
-/// was not already opened for another purpose (called from the View), the menu item is
-/// enabled.
+/// m_pSourcePhrases list. But, if m_nActiveSequNum is within a valid range and the
+/// composeBar was not already opened for another purpose (called from the View), the menu
+/// item is enabled.
 /// BEW 22Feb10 no changes needed for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)

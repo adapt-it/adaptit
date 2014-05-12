@@ -80,7 +80,7 @@
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wxmsw$(WXVER)d_aui.lib wxmsw$(WXVER)d_adv.lib wxmsw$(WXVER)d_html.lib wxmsw$(WXVER)d_core.lib wxbase$(WXVER)d.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				ShowProgress="0"
-				Version="6.5.2"
+				Version="6.5.3"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
@@ -180,7 +180,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wxmsw$(WXVER)_aui.lib wxmsw$(WXVER)_adv.lib wxmsw$(WXVER)_html.lib wxmsw$(WXVER)_core.lib wxbase$(WXVER).lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregex.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
-				Version="6.5.2"
+				Version="6.5.3"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
@@ -266,7 +266,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="wxmsw$(WXVER)ud_aui.lib wxmsw$(WXVER)ud_adv.lib wxmsw$(WXVER)ud_html.lib wxmsw$(WXVER)ud_core.lib wxbase$(WXVER)ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
-				Version="6.5.2"
+				Version="6.5.3"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\;&quot;$(LIBCURL)\lib\Debug&quot;;&quot;$(OPENSSL)\lib&quot;;&quot;C:\Program Files\Visual Leak Detector\lib\Win32&quot;;lib\silconverters"
@@ -355,7 +355,7 @@
 				AdditionalDependencies="wxmsw$(WXVER)u_aui.lib wxmsw$(WXVER)u_adv.lib wxmsw$(WXVER)u_html.lib wxmsw$(WXVER)u_core.lib wxbase$(WXVER)u.lib wxtiff.lib wxjpeg.lib wxpng.lib wxzlib.lib wxregexu.lib wxexpat.lib winmm.lib comctl32.lib rpcrt4.lib ws2_32.lib oleacc.lib odbc32.lib wldap32.lib libcurl.lib libeay32.lib ssleay32.lib"
 				ShowProgress="0"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
-				Version="6.5.2"
+				Version="6.5.3"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)\contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;&quot;$(LIBCURL)\lib\Release&quot;;&quot;$(OPENSSL)\lib&quot;;lib\silconverters"
@@ -1474,6 +1474,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Retranslation.h"
 				>
 			</File>
@@ -1650,6 +1654,98 @@
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
+			<File
+				RelativePath="..\..\res\ai_32.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\blank.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\bullseye.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\cdrom.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\colours.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\computer.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\cross.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\csquery.bmp"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\drive.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\file1.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\floppy.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\folder1.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\folder2.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\hand.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\magnif1.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\pbrush.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\pencil.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\pntleft.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\pntright.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\removble.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\rightarr.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\roller.cur"
+				>
+			</File>
+			<File
+				RelativePath=".\wx\msw\std.ico"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ClassDiagram1.cd"

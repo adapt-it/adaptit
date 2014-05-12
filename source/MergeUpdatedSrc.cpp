@@ -7272,7 +7272,7 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// have any of that stuff - it will just have single-word CSourcePhrase instances, and
 /// the only variation for that is that conjoined pairs may be in the tokenized new
 /// instances too. So, what do we do?
-/// First, stored free translations, stored notes, andstored collected back
+/// First, stored free translations, stored notes, and stored collected back
 /// translations, we leave untouched - they are not stored with markers, so leaving them
 /// in the arrOld instances ought to be safe. (We can't preclude, however, that an editing
 /// change may occur at a word which, when tokenized, replaces an arrOld instance that
@@ -7303,7 +7303,7 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// arrNew instances, test for changes to punctuation and markers, and transfer any changes
 /// to the arrOld paired instance. Easy peasy, if somewhat tedious to code.
 /// *** Manually inserted PLACEHOLDERS in arrOld ***
-/// These are a headache, because there could be left or right association which as moved
+/// These are a headache, because there could be left or right association which are moved
 /// values for punctuation, markers, m_curTextType, m_bFirstOfType, m_bSpecialText, to or
 /// from a neighbouring instance. Of course, placeholders are never in the tokenized
 /// arrNew material, because the user doesn't get a chance to put any there. So our

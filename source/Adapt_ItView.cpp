@@ -4024,7 +4024,7 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 	// deep copy the saved list back to the original list (i.e. to m_pSourcePhrases list)
 	int countOriginals = pSaveList->GetCount();
 	bOK = DeepCopySourcePhraseSublist(pSaveList, 0, countOriginals - 1, pOriginalList);
-	wxCHECK_MSG(bOK, FALSE, _T("RestoreOriginalList(): DeepCopySourcePhraseSublist() failed, line 3883 in Adapt_ItView.cpp, so the document won't have been restored to its original pre-print state. Shut down WITHOUT saving, and relaunch"));
+	wxCHECK_MSG(bOK, FALSE, _T("RestoreOriginalList(): DeepCopySourcePhraseSublist() failed, line 4027 in Adapt_ItView.cpp, so the document won't have been restored to its original pre-print state. Shut down WITHOUT saving, and relaunch"));
 	// restore the former active sequ number; CSourcePhrase m_nSequNumber values are
 	// already correct
 	pApp->m_nActiveSequNum = pApp->m_nSaveActiveSequNum;
@@ -6500,6 +6500,11 @@ void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 16May11. Disallow File "New" menu item when PT/BE collaboration is active
 	if (pApp->m_bCollaboratingWithParatext || pApp->m_bCollaboratingWithBibledit)
 	{
@@ -6540,7 +6545,11 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -6583,12 +6592,18 @@ void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateFilePrint(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	event.Enable(pApp->IsDocumentOpen());
 }
 
@@ -6604,12 +6619,18 @@ void CAdapt_ItView::OnUpdateFilePrint(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	event.Enable(pApp->IsDocumentOpen());
 }
 
@@ -8773,6 +8794,12 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 void CAdapt_ItView::OnUpdateButtonStepDown(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -9355,6 +9382,12 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 void CAdapt_ItView::OnUpdateButtonStepUp(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -12060,12 +12093,19 @@ void CAdapt_ItView::RemoveFinalSpaces(wxString& rStr)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateChangeInterfaceLanguage(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	// should always be accessible
+	// should always be accessible provided state is not in some non-robust state
 	event.Enable(TRUE);
 }
 
@@ -12104,6 +12144,12 @@ void CAdapt_ItView::OnUpdateEditPreferences(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// Get all the setups done outside this mode being on
+		event.Enable(FALSE);
+		return;
+	}
 	if (pApp->m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
@@ -12482,11 +12528,17 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 /// If the application is not in Single Step Mode, but is set to Copy the Source text, and,
 /// either m_bUseConsistentChanges is TRUE or m_bUseSilConverter is TRUE, then this handler
 /// enables the "Accept Changes Without Stopping" item on the Tools menu, otherwise it
-/// disables the menu item.
+/// disables the menu item. Also disables if the clipboard adaptation mode is
+/// still running
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateAcceptChanges(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 
 	// whm added 26Mar12.
 	if (pApp->m_bReadOnlyAccess)
@@ -14193,6 +14245,8 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 // it in here
 void CAdapt_ItView::ClobberDocument()
 {
+	NormalizeState();
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItDoc* pDoc = (CAdapt_ItDoc*)GetDocument();
@@ -19798,7 +19852,8 @@ void CAdapt_ItView::OnToggleRespectBoundary(wxCommandEvent& WXUNUSED(event))
 /// Boundaries" toolbar item and returns immediately: The application is in Free
 /// Translation mode, in glossing mode, is showing only the target language text, the
 /// active pile is NULL, or there are no source phrases in the m_pSourcePhrases list.
-/// Otherwise, it enables the toolbar button if the m_curIndex represents a valid location.
+/// Otherwise, it enables the toolbar button if the m_nActiveSequNum represents a valid
+/// location.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateToggleRespectBoundary(wxUpdateUIEvent& event)
 {
@@ -19939,7 +19994,7 @@ void CAdapt_ItView::OnToggleShowPunctuation(wxCommandEvent& WXUNUSED(event))
 /// of the following conditions are TRUE, this handler disables the "Show Punctuation"
 /// toolbar item and returns immediately: The application is in Free Translation mode, in
 /// glossing mode, the active pile is NULL, or there are no source phrases in the
-/// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
+/// m_pSourcePhrases list. Otherwise, it enables the toolbar button if m_nActiveSequNum
 /// represents a valid location.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateToggleShowPunctuation(wxUpdateUIEvent& event)
@@ -20088,17 +20143,23 @@ void CAdapt_ItView::OnToggleShowSourceText(wxCommandEvent& WXUNUSED(event))
 /// of the following conditions are TRUE, this handler disables the "Show Target Text Only"
 /// toolbar item and returns immediately: Vertical Editing is in progress, the active pile
 /// is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise, it
-/// enables the toolbar button if m_endIndex is within a valid range.
+/// enables the toolbar button if m_endIndex is within a valid range. Also disables if
+/// clipboard adaptation mode is currently on
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateToggleShowSourceText(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
 	if (pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
@@ -20211,7 +20272,7 @@ void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event
 /// Copy" toolbar item (black punctuation characters on a green background) and returns
 /// immediately: The application is in Free Translation mode, in glossing mode, the active
 /// pile is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise,
-/// it enables the toolbar button if the m_curIndex represents a valid location.
+/// it enables the toolbar button if m_nActiveSequNum represents a valid location.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateToggleEnablePunctuationCopy(wxUpdateUIEvent& event)
 {
@@ -20714,6 +20775,13 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CGuesserSettingsDlg gsDlg(pApp->GetMainFrame());
+
+	// ********* NOTE ********** temporary code for 6.5.3-prelim, to hide the Suffix and
+	// Prefix Lists button because Kev's work on the dialog it shows is not yet complete
+	// Comment this out to have the button restored to a later version (eg. 6.5.3)
+	gsDlg.m_pSuffixesAndPrefixesListsDlg->Show(FALSE);
+	// ******** END of NOTE *********************
+
 	if (gsDlg.ShowModal() == wxID_OK)
 	{
 		// Assign any new settings to the App's corresponding members if we
@@ -20751,6 +20819,12 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// only imports from clipboard are valid in this mode
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 26Mar12.
 	if (pApp->m_bReadOnlyAccess)
 	{
@@ -21395,6 +21469,12 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// only imports from clipboard are valid in this mode
+		event.Enable(FALSE);
+		return;
+	}
 
 	// whm added 26Mar12.
 	if (pApp->m_bReadOnlyAccess)
@@ -21449,6 +21529,11 @@ void CAdapt_ItView::OnUpdateImportEditedSourceText(wxUpdateUIEvent& event)
 void CAdapt_ItView::OnUpdateButtonBack(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -21521,6 +21606,11 @@ void CAdapt_ItView::OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
@@ -27964,6 +28054,12 @@ void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec,
 void CAdapt_ItView::OnUpdateFileExportSource(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// only exports to clipboard are valid in this mode
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -27996,6 +28092,12 @@ void CAdapt_ItView::OnFileExportSource(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateFileExport(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// only exports to clipboard are valid in this mode
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -28031,6 +28133,11 @@ void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateExportGlossesAsText(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -28068,6 +28175,13 @@ void CAdapt_ItView::OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateExportFreeTranslations(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// in this mode, exports are only to clipboard, so turn off
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -28862,6 +28976,12 @@ void CAdapt_ItView::OnUpdateFileExportToRtf(wxUpdateUIEvent& event)
 	// added by Bill Martin 1June2003
 	// make sure there are some CSourcePhrase instances to work with
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// only exports to clipboard are valid in this mode
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -29239,6 +29359,11 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& event)
 void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 26Mar12.
 	if (pApp->m_bReadOnlyAccess)
 	{

@@ -72,7 +72,7 @@
 #include <wx/process.h> // for wxProcess::Exists()
 #include <wx/toolbar.h> // (to allow wxWidgets to select an appropriate toolbar class)
 #include <wx/tbarbase.h> // (the base class)
-
+#include <wx/clipbrd.h> // for the clipboard support needed for Bob Eaton's adapting of clipboard text feature
 
 // the next are for wxHtmlHelpController (wxWidgets chooses the appropriate help controller
 // class)
@@ -5527,6 +5527,14 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	//OnUpdateFind is in the View
 	//OnReplace is in the View
 	//OnUpdateReplace is in the View
+	EVT_MENU(ID_TOOLS_CLIPBOARD_ADAPT, CAdapt_ItApp::OnToolsClipboardAdapt)
+	EVT_UPDATE_UI(ID_TOOLS_CLIPBOARD_ADAPT, CAdapt_ItApp::OnUpdateToolsClipboardAdapt)
+	EVT_UPDATE_UI(ID_BUTTON_COPY_TO_CLIPBOARD, CAdapt_ItApp::OnUpdateButtonCopyToClipboard)
+	EVT_BUTTON(ID_BUTTON_COPY_TO_CLIPBOARD, CAdapt_ItApp::OnButtonCopyToClipboard)
+	EVT_UPDATE_UI(ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, CAdapt_ItApp::OnUpdateButtonCopyFreeTransToClipboard)
+	EVT_BUTTON(ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, CAdapt_ItApp::OnButtonCopyFreeTransToClipboard)
+	EVT_BUTTON(ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg)
+
 	EVT_MENU(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnToolsDefineCC)
 	EVT_UPDATE_UI(ID_TOOLS_DEFINE_CC, CAdapt_ItApp::OnUpdateLoadCcTables)
 	EVT_MENU(ID_UNLOAD_CC_TABLES, CAdapt_ItApp::OnToolsUnloadCcTables)
@@ -15155,8 +15163,15 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+    
+	// Initialize for no clipboard adaptation mode turned on yet
+	m_bClipboardAdaptMode = FALSE;
+	m_nSaveSequNumForDocRestore = 0; // 0 is a safer default than -1
+	m_pSavedDocForClipboardAdapt = new SPList; // destroy it in OnExit()
+	m_bClipboardTextLoaded = FALSE;
+	m_bADocIsLoaded = FALSE;
 
-// Initialize items relating to corrupt doc recovery:
+	// Initialize items relating to corrupt doc recovery:
 	m_recovery_pending = FALSE;
     m_reopen_recovered_doc = FALSE;
     m_suppress_KB_messages = FALSE;     // normal default
@@ -21285,6 +21300,15 @@ int CAdapt_ItApp::OnExit(void)
     // internal structures. All wxWidgets' objects that the program creates should be
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
+    
+	// m_pSavedDocForClipboardAdapt should be empty, but if not destroy the CSourcePhrase
+	// instances in it before deleting the list instance
+    if (m_pSavedDocForClipboardAdapt->size() > 0)
+	{
+		GetDocument()->DeleteSourcePhrases(m_pSavedDocForClipboardAdapt, FALSE); // FALSE means 
+												// 'don't try delete partner piles too'
+	}
+   	delete m_pSavedDocForClipboardAdapt;
 
     // BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
     // this point, and so the call to PopEventHandler() can't be made here. Bill found out
@@ -23932,7 +23956,6 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
 			{
 				// phrase box is visible somewhere in the data, so a pile will be active
 				m_nActiveSequNum = m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-				//gpApp->m_curIndex = activeSequNum;
 
 				// remove any current selection, as we can't be sure of any pointers
 				// depending on what user may choose to alter
@@ -25654,6 +25677,13 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileStartupWizard(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		// don't allow while clipboard adapting mode is on, there may be a cached document
+		// which needs to be uncached, and the wizard could lead to anything happening
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -26534,6 +26564,12 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 //	return;
 //#endif
 
+	if (m_bClipboardAdaptMode)
+	{
+		// play safe, don't allow it when clipboard adapting mode is on
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bReadOnlyAccess)
 	{
 		event.Enable(FALSE);
@@ -26846,6 +26882,371 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed.
+/// If the application is in read-only mode, or vertical edit is in progress, or no KBs
+/// are loaded, then disable the menu item; otherwise, enable it
+
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	// BEW added 9May14 for support of adapting clipboard text, requested by Bob Eaton in
+	// emails on 8 and 9 May.
+	// Note: in collaboration mode, the KBs are unloaded whenever the collaborating
+	// document is closed - so we can't use the clipboard adaptation functionality when
+	// there is no doc loaded and we are in collaboration mode; out of collaboration mode
+	// we can do that of course
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		//wxLogDebug(_T(" m_bReadOnlyAccess   %d"), (int)m_bReadOnlyAccess);
+		return;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		//wxLogDebug(_T(" gbVerticalEditInProgress   %d"), (int)gbVerticalEditInProgress);
+		return;
+	}
+	// Allow Tools > "Adapt clipboard text" only if a project is open (a doc need not be open)
+	if ((!gbIsGlossing && pApp->m_bKBReady) || (gbIsGlossing && pApp->m_bGlossingKBReady))
+	{
+		if (!m_bClipboardTextLoaded)
+		{
+			//wxLogDebug(_T(" m_KBReady   %d   m_bGlossingKBReady  %d"  ), (int)pApp->m_bKBReady, (int)pApp->m_bGlossingKBReady);
+			event.Enable(TRUE);
+		}
+		else
+		{
+			// Once the text is loaded, disable the menu command in case the user clicks
+			// it by mistake, rather than using one of the "Copy..." buttons in the bar;
+			// without this, a mistaken click of the menu item wipes out his adaptations
+			// (but KB contents are still updated fortunately) with the clipboard text
+			// again, requiring a second adaptation be done - we must prevent this
+			event.Enable(FALSE);
+		}
+	}
+	else
+	{
+		//wxLogDebug(_T(" m_KBReady   %d   m_bGlossingKBReady  %d"  ), (int)pApp->m_bKBReady, (int)pApp->m_bGlossingKBReady);
+		event.Enable(FALSE);
+	}
+}
+
+void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event))
+{
+    CAdapt_ItDoc* pDoc = GetDocument();
+	CLayout* pLayout = GetLayout();
+	CMainFrame* pMainFrame = GetMainFrame();
+	SPList* pSaveList = m_pSavedDocForClipboardAdapt; // our cache, if we need it
+	CAdapt_ItView* pView = GetView();
+	size_t nStartAt = 0;
+	size_t nEndAt = 0;
+	bool bIsOK = TRUE;
+	// Remove the fragment in m_pSourcePhrases
+	pDoc->DeleteSourcePhrases(m_pSourcePhrases, TRUE); // TRUE means delete partner piles
+	// hide the toolbar
+	if (pMainFrame->m_pClipboardAdaptBar->IsShown())
+	{
+		pMainFrame->m_pClipboardAdaptBar->Hide();
+	}
+	pMainFrame->SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and
+					 // do the needed redraw;
+	if (m_bADocIsLoaded)
+	{
+		nEndAt = pSaveList->size() - 1;
+		bIsOK = pView->DeepCopySourcePhraseSublist(pSaveList, (int)nStartAt, (int)nEndAt, m_pSourcePhrases);
+		m_nActiveSequNum = m_nSaveSequNumForDocRestore;
+		m_nSaveSequNumForDocRestore = 0; // a safe default
+		pDoc->DeleteSourcePhrases(pSaveList, FALSE); // FALSE means don't delete partner piles
+
+		// RecalcLayout() and place the phrase box
+		m_pActivePile = NULL;
+	}
+	#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+	#else
+		pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+	#endif
+	// recalculate the active pile & update location for phraseBox creation
+	m_pActivePile = pView->GetPile(m_nActiveSequNum);
+	pView->Invalidate();
+	if (m_bADocIsLoaded)
+	{
+		m_pTargetBox->ChangeValue(m_savedTextBoxStr); // restore cached string
+		m_targetPhrase = m_savedTextBoxStr;
+		pLayout->PlaceBox();
+		if (m_pActivePile != NULL)
+		{
+			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
+			m_nStartChar = 0;
+			m_nEndChar = -1; // ensure initially all is selected
+			m_pTargetBox->SetSelection(-1,-1); // select all
+			m_pTargetBox->SetFocus();
+		}
+	}
+	else
+	{
+		// When the main window was empty, the phrasebox is hidden, the sequnum is -1, the
+		// active pile is NULL, and the phrase box is empty, its tracking string is
+		// empty, and a selection cannot exist,so ensure those conditions are in force
+		pView->RemoveSelection();
+		m_targetPhrase.Empty();
+		m_nActiveSequNum = -1;
+		m_pTargetBox->Hide();
+		m_pTargetBox->ChangeValue(_T(""));
+		m_pActivePile = NULL;
+	}
+	m_bADocIsLoaded = FALSE; // restore default value
+	m_bClipboardTextLoaded = FALSE; // default, in case user does another 
+									// clipboard adaptation attempt
+	m_bClipboardAdaptMode = FALSE; // turn the mode flag back off to default FALSE
+	m_savedTextBoxStr.Empty();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   ->  the wxCommandEvent that is generated when the associated
+///                         menu item is selected
+/// \remarks
+/// Stores away the current document's SPList (if a document is currently open) for
+/// restoration later, clears the view window, loads the clipboard text into the empty
+/// document as new source text, uses the currently open KB for lookups and KB insertions
+/// of any new adaptations, lets the user adapt, and free translate too if wanted, and
+/// supports copying the adaptations back to the clipboard via a button in a toolbar
+/// temporarily set up, or free translations back to the clipboard via a different button
+/// on same toolbar; and a Close button on the same toolbar clobbers the temporary data
+/// and view and causes the stored away document to be restored, with phasebox at earlier
+/// location, etc, as if nothing had happened. What the user does with the results
+/// exported to the clipboard are the user's business. Adapt It doesn't care.
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
+{
+	m_bClipboardAdaptMode = TRUE; // set the flag which indicates the mode is turned on
+    CAdapt_ItDoc* pDoc = GetDocument();
+	CLayout* pLayout = GetLayout();
+	CMainFrame* pMainFrame = GetMainFrame();
+	SPList* pSaveList = m_pSavedDocForClipboardAdapt; // our cache, if we need it
+	bool bIsOK = TRUE;
+	size_t nStartAt = 0;
+	size_t nEndAt = 0;
+	CAdapt_ItView* pView = GetView();
+	pView->RemoveSelection(); // must not have an active selection, 
+							  // or the update handlers will give a crash of app
+	wxString loadedSrcText; loadedSrcText.Empty();
+	m_bIsPrinting = FALSE;
+
+	// Check if there is a document open - if there is, cache it (the SPList contents) in
+	// the dedicated alternative SPList storage on the Adapt_ItApp class
+	// (m_pSavedDocForClipboardAdapt), and store its active location in
+	// m_nSaveSequNumForDocRestore. Then clear the m_pSourcePhrases SPList ready for it to
+	// receive the parsed source text from the clipboard.
+	m_bADocIsLoaded = FALSE;
+	if (m_pSourcePhrases->size() > 0)
+	{
+		// There is a document loaded. Cache it until the user abandons the clipboard
+		// adaptation effort
+		m_bADocIsLoaded = TRUE;
+		nEndAt = m_pSourcePhrases->size() - 1;
+		bIsOK = pView->DeepCopySourcePhraseSublist(m_pSourcePhrases, (int)nStartAt, (int)nEndAt, pSaveList);
+		m_nSaveSequNumForDocRestore = m_nActiveSequNum;
+		// We do minimal damage to the original doc - so just clear out the sourcephrase
+		// list and their partner piles; leave all else untouched
+		pDoc->DeleteSourcePhrases(m_pSourcePhrases, TRUE); // TRUE means 'delete partner piles too'
+		m_savedTextBoxStr = m_pTargetBox->GetValue(); // cashe it pending restoration later
+	}
+	// Get the text from the clipboard, if open
+	bool bClipboardTextAbsent = TRUE;
+	if (wxTheClipboard->Open())
+	{
+		if (wxTheClipboard->IsSupported( wxDF_TEXT ))
+		{
+		  wxTextDataObject data;
+		  wxTheClipboard->GetData( data );
+		  loadedSrcText = data.GetText();
+		  //wxMessageBox( data.GetText() ); // <-  comment out later
+		  if (!loadedSrcText.IsEmpty())
+		  {
+			bClipboardTextAbsent = FALSE;
+		  }
+		}  
+		wxTheClipboard->Close();
+	}
+	// Check the clipboard is not empty, if it is, get out gracefully and with a message
+	if (bClipboardTextAbsent)
+	{
+		// we've nothing to do, so restore the document and active location if there was a
+		// doc loaded in the view window, then tell the user there is no clipboard text
+		// and exit this handler without doing anything. Nothing has changed in the GUI as
+		// yet, but a recalc of the layout is needed because the partner piles got
+		// clobbered at the DeleteSourcePhrases() call above
+		if (m_bADocIsLoaded)
+		{
+			bIsOK = pView->DeepCopySourcePhraseSublist(pSaveList, (int)nStartAt, (int)nEndAt, m_pSourcePhrases);
+			m_nActiveSequNum = m_nSaveSequNumForDocRestore;
+			m_nSaveSequNumForDocRestore = 0; // a safe default
+			pDoc->DeleteSourcePhrases(m_pSaveList, FALSE); // FALSE means don't delete partner piles
+
+			// RecalcLayout() and place the phrase box
+			m_pActivePile = NULL;
+			#ifdef _NEW_LAYOUT
+				pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+			#else
+				pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+			#endif
+			// recalculate the active pile & update location for phraseBox creation
+			m_pActivePile = pView->GetPile(m_nActiveSequNum);
+			if (m_pActivePile != NULL)
+			{
+				pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
+				m_nStartChar = 0;
+				m_nEndChar = -1; // ensure initially all is selected
+				m_pTargetBox->SetSelection(-1,-1); // select all
+				m_pTargetBox->SetFocus();
+			}
+			pView->Invalidate();
+			pLayout->PlaceBox();
+		}
+		wxMessageBox(_("The clipboard was empty; there is nothing to do."), 
+			_("No Source Text"), wxICON_INFORMATION | wxOK);
+		return;
+	}
+
+	// Now, fill the m_pSourcePhrases list with the parsed source text;
+	// 0 is the value of param: int nInitialSequNum
+	m_bClipboardTextLoaded = FALSE;
+	int numInstances = pView->TokenizeTextString(m_pSourcePhrases, loadedSrcText, 0);
+	if (numInstances > 0)
+	{
+		pView->UpdateSequNumbers(0);
+		m_bClipboardTextLoaded = TRUE;
+
+		// get rid of any relic text in phrase box storage
+		m_pTargetBox->Clear();
+		m_targetPhrase.Empty();		
+
+        // Make visible the mode's toolbar at the top of the client area of the frame
+        // window, and get the client area resized (using CMainFrm::OnSize()) and redrawn
+		pMainFrame->pClipboardAdaptBarSizer->Layout();
+		if (!pMainFrame->m_pClipboardAdaptBar->IsShown())
+		{
+			pMainFrame->m_pClipboardAdaptBar->Show(TRUE);
+		}
+        // whm Note: Client area is changing size so send a size event to get the layout to
+        // change since the doc/view framework won't do it for us.
+		pMainFrame->SendSizeEvent(); // forces the CMainFrame::SetSize() handler
+									 // to run and do the needed redraw
+		// Get the layout redrawn etc
+		m_nActiveSequNum = 0;
+		m_pActivePile = NULL;
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+#else
+		pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+#endif
+		// recalculate the active pile & update location for phraseBox creation
+		m_pActivePile = pView->GetPile(m_nActiveSequNum);
+		if (m_pActivePile != NULL)
+		{
+			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
+			m_nStartChar = 0;
+			m_nEndChar = -1; // ensure initially all is selected
+			m_pTargetBox->SetSelection(-1,-1); // select all
+			m_pTargetBox->SetFocus();
+		}
+		pView->Invalidate();
+		pLayout->PlaceBox();
+	} // end of TRUE block for test: if (numInstances > 0)
+}
+
+void CAdapt_ItApp::OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event)
+{
+	//CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	CMainFrame* pMainFrame = GetMainFrame();
+	if (pMainFrame->m_pClipboardAdaptBar->IsShown() && m_bClipboardAdaptMode)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+void CAdapt_ItApp::OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event))
+{
+	// We use the collaboration export, even if collaboration mode is not on, because this
+	// version filters out our custom markers and their info, such as notes, back
+	// translation, and the like
+	wxString exportedText = ExportTargetText_For_Collab(m_pSourcePhrases);
+
+	// Write it to the clipboard
+	if (wxTheClipboard->Open())
+	{
+		// Such data objects are held by the clipboard, so do not delete them in the app.
+		wxTheClipboard->SetData( new wxTextDataObject(exportedText) );
+		wxTheClipboard->Close();
+	}
+	else
+	{
+		// Alter user to the problem. Localizable message.
+		wxMessageBox(_("The clipboard could not be opened for writing."), 
+			_("Clipboard Unavailable"), wxICON_EXCLAMATION | wxOK);
+	}
+}
+
+// Disable the button if the bar is not shown, or it's not clipboard adaptation mode, or
+// if there are no free translations in the (short) document
+void CAdapt_ItApp::OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	CMainFrame* pMainFrame = GetMainFrame();
+	if (pMainFrame->m_pClipboardAdaptBar->IsShown() && m_bClipboardAdaptMode)
+	{
+		if (pApp->m_pFreeTrans->IsFreeTransInList(m_pSourcePhrases))
+		{
+			event.Enable(TRUE);
+		}
+		else
+		{
+			event.Enable(FALSE);
+		}
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+void CAdapt_ItApp::OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event))
+{
+	// We use the collaboration export, even if collaboration mode is not on, because this
+	// version filters out our custom markers and their info, such as notes, back
+	// translation, and the like
+	wxString exportedText = ExportFreeTransText_For_Collab(m_pSourcePhrases);
+
+	// Write it to the clipboard
+	if (wxTheClipboard->Open())
+	{
+		// Such data objects are held by the clipboard, so do not delete them in the app.
+		wxTheClipboard->SetData( new wxTextDataObject(exportedText) );
+		wxTheClipboard->Close();
+	}
+	else
+	{
+		// Alter user to the problem. Localizable message.
+		wxMessageBox(_("The clipboard could not be opened for writing."), 
+			_("Clipboard Unavailable"), wxICON_EXCLAMATION | wxOK);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   ->  the wxUpdateUIEvent that is generated when the Tools Menu
+///                         is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
 /// If the application is in Free Translation Mode, the "Load Consistent Changes..." item
 /// on the Tools menu is always disabled and this event handler returns immediately,
 /// otherwise the "Load Consistent Changes..." item on the Tools menu is enabled.
@@ -27029,6 +27430,11 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateKBSharingManagerTabbedDlg(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -35862,6 +36268,11 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFilePageSetup(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -36202,6 +36613,13 @@ void CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEve
 	// for the OnUpdate... handlers) when certain actions need to be taken based on
 	// whether the project and/or document is open or not.
 
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 26Mar12.
 	if (m_bReadOnlyAccess)
 	{
@@ -37560,6 +37978,11 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileChangeFolder(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -37717,6 +38140,14 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// turning book mode on or off should not be done while in clipboard adapt mode
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bCollaboratingWithParatext || m_bCollaboratingWithBibledit)
 	{
 		event.Enable(FALSE);
@@ -39826,8 +40257,7 @@ SPList *CAdapt_ItApp::GetSourcePhraseList()
 ////////////////////////////////////////////////////////////////////////////////////////
 CSourcePhrase *CAdapt_ItApp::GetCurrentSourcePhrase()
 {
-    // refactored 22Mar09: to be based on view's m_nActiveSequNum rather than bundle's
-    // m_curIndex because the latter has been removed
+    // refactored 22Mar09: to be based on view's m_nActiveSequNum
 	return GetSourcePhraseByIndex(m_nActiveSequNum);
 }
 
@@ -39994,8 +40424,8 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 /// Called from: CJoinDialog::OnBnClickedJoinNow(),
 /// CSplitDialog's SplitAtPhraseBoxLocation_Interactive() and
 /// SplitIntoChapters_Interactive().
-/// Updates sequence numbers and the various indices including: m_curIndex, m_beginIndex,
-/// m_endIndex, m_lowerIndex, and m_upperIndex to ensure they are within proper ranges.
+/// Updates sequence numbers and the various indices including: m_beginIndex, m_endIndex,
+/// m_lowerIndex, and m_upperIndex to ensure they are within proper ranges.
 /// Calls the View's Jump() on the current source phrase to effect any desired screen
 /// update.
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -42186,6 +42616,14 @@ bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& return
 // whm 12Jun11 added for Assign Locations For Inputs and Outputs... item on Administrator menu
 void CAdapt_ItApp::OnUpdateAssignLocationsForInputsAndOutputs(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// it's not the kind of thing to do while clipboard adapting mode is on
+		event.Enable(FALSE);
+		return;
+	}
 	// The "Assign Locations For Inputs And Outputs" item should be enabled except for
 	// when administrator has read-only access
 	if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
@@ -42217,6 +42655,12 @@ void CAdapt_ItApp::OnAssignLocationsForInputsAndOutputs(wxCommandEvent& WXUNUSED
 
 void CAdapt_ItApp::OnUpdateSetupEditorCollaboration(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		// can't do anything collaboration-wise while clipboard adapting mode is on
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 26Mar12.
 	if (m_bReadOnlyAccess)
 	{
@@ -42284,6 +42728,11 @@ void CAdapt_ItApp::OnSetupEditorCollaboration(wxCommandEvent& WXUNUSED(event))
 // whm added the next two handlers 14Feb12
 void CAdapt_ItApp::OnUpdateTempRestoreUserProfiles(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// Enable the menu item as long as m_bAiSessionExpectsUserDefinedProfile is TRUE.
 	// Note: The m_bAiSessionExpectsUserDefinedProfile flag is FALSE at initial program
 	// startup, but would be set to TRUE if, when reading the basic config file, the
@@ -42356,17 +42805,20 @@ void CAdapt_ItApp::OnUpdateEditUserMenuSettingsProfiles(wxUpdateUIEvent& event)
 	//{
 	//	event.Enable(FALSE);
 	//}
-	//else
-	//{
-		if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
-		{
-			event.Enable(TRUE);
-		}
-		else
-		{
-			event.Enable(FALSE);
-		}
-	//}
+	if (m_bClipboardAdaptMode)
+	{
+		// Probably a bit dangerous to allow profiles changes when in clipboard adapt mode
+		event.Enable(FALSE);
+		return;
+	}
+	if (m_bShowAdministratorMenu && !m_bReadOnlyAccess)
+	{
+		event.Enable(TRUE);
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
 }
 
 void CAdapt_ItApp::OnEditUserMenuSettingsProfiles(wxCommandEvent& WXUNUSED(event))
@@ -42501,6 +42953,12 @@ void CAdapt_ItApp::OnUpdateHelpForAdministrators(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		// it's not the kind of thing to allow when clipboard adapting mode is on
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 26Mar12.
 	if (m_bReadOnlyAccess)
 	{
@@ -42518,6 +42976,11 @@ void CAdapt_ItApp::OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnUpdateSetPassword(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bAdminMenuRemoved)
 	{
 		event.Enable(FALSE);
@@ -42585,6 +43048,11 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	//wxLogDebug(_T("m_bAdminMenuRemoved %d , equal paths %d , m_bUseCustomWorkFolderPath %d , m_customWorkFolderPath %s , m_workFolderpath %s"),
 	//			m_bAdminMenuRemoved, m_workFolderPath == m_customWorkFolderPath, m_bUseCustomWorkFolderPath ,
 	//			m_customWorkFolderPath, m_workFolderPath);
@@ -43118,6 +43586,11 @@ bool CAdapt_ItApp::IsURI(wxString& uriPath)
 
 void CAdapt_ItApp::OnUpdateLockCustomLocation(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 26Mar12.
 	if (m_bReadOnlyAccess)
 	{
@@ -43263,6 +43736,11 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& event)
 
 void CAdapt_ItApp::OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// whm added 26Mar12.
 	if (m_bReadOnlyAccess)
 	{
@@ -45175,6 +45653,11 @@ void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& event)
 
 void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 {
+	if (m_bClipboardAdaptMode)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bAdminMenuRemoved)
 	{
 		event.Enable(FALSE);
