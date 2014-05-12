@@ -37,8 +37,6 @@
 		27CABA1916D454BC00E85604 /* Thread_PseudoDelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0B16D454BC00E85604 /* Thread_PseudoDelete.cpp */; };
 		27CABA1A16D454BC00E85604 /* Thread_PseudoUndelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0D16D454BC00E85604 /* Thread_PseudoUndelete.cpp */; };
 		27CABA1B16D454BC00E85604 /* Thread_UploadToKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0F16D454BC00E85604 /* Thread_UploadToKBServer.cpp */; };
-		27E14B2418246EBA00107B11 /* RemoveSomeTgtEntries.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27E14B2318246EBA00107B11 /* RemoveSomeTgtEntries.cpp */; };
-		27E14B2818246EF400107B11 /* Thread_BulkPseudoDelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27E14B2618246EF400107B11 /* Thread_BulkPseudoDelete.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D4E56ED142EDDE0007A4424 /* AIPrintPreviewFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4E56EB142EDDE0007A4424 /* AIPrintPreviewFrame.cpp */; };
 		7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */; };
@@ -61,6 +59,8 @@
 		7DAEDB69184D803B009F942D /* FreeTransSplitterDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DAEDB66184D803B009F942D /* FreeTransSplitterDlg.cpp */; };
 		7DB6FC9F135BE3DD006CC95A /* GetSourceTextFromEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DB6FC9D135BE3DD006CC95A /* GetSourceTextFromEditor.cpp */; };
 		7DB6FCA2135BE402006CC95A /* SetupEditorCollaboration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */; };
+		7DBB9619192189CE00160C68 /* GuesserAffix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DBB9615192189CE00160C68 /* GuesserAffix.cpp */; };
+		7DBB961A192189CE00160C68 /* GuesserAffixesListsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DBB9617192189CE00160C68 /* GuesserAffixesListsDlg.cpp */; };
 		7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D20F462A570047FCAF /* AI_USFM.xml */; };
 		7DC038D50F462A570047FCAF /* books.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D30F462A570047FCAF /* books.xml */; };
 		7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0390C0F4654B30047FCAF /* Adapt It.icns */; };
@@ -239,10 +239,6 @@
 		27CABA0E16D454BC00E85604 /* Thread_PseudoUndelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_PseudoUndelete.h; path = ../../source/Thread_PseudoUndelete.h; sourceTree = SOURCE_ROOT; };
 		27CABA0F16D454BC00E85604 /* Thread_UploadToKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadToKBServer.cpp; path = ../../source/Thread_UploadToKBServer.cpp; sourceTree = SOURCE_ROOT; };
 		27CABA1016D454BC00E85604 /* Thread_UploadToKBServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadToKBServer.h; path = ../../source/Thread_UploadToKBServer.h; sourceTree = SOURCE_ROOT; };
-		27E14B2318246EBA00107B11 /* RemoveSomeTgtEntries.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RemoveSomeTgtEntries.cpp; path = ../../source/RemoveSomeTgtEntries.cpp; sourceTree = SOURCE_ROOT; };
-		27E14B2518246EF400107B11 /* RemoveSomeTgtEntries.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RemoveSomeTgtEntries.h; path = ../../source/RemoveSomeTgtEntries.h; sourceTree = SOURCE_ROOT; };
-		27E14B2618246EF400107B11 /* Thread_BulkPseudoDelete.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_BulkPseudoDelete.cpp; path = ../../source/Thread_BulkPseudoDelete.cpp; sourceTree = SOURCE_ROOT; };
-		27E14B2718246EF400107B11 /* Thread_BulkPseudoDelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_BulkPseudoDelete.h; path = ../../source/Thread_BulkPseudoDelete.h; sourceTree = SOURCE_ROOT; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UsfmFilterPage.cpp; path = ../../source/UsfmFilterPage.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2E125D7EAA005DF3C6 /* UsfmFilterPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UsfmFilterPage.h; path = ../../source/UsfmFilterPage.h; sourceTree = SOURCE_ROOT; };
@@ -282,6 +278,10 @@
 		7DB6FC9E135BE3DD006CC95A /* GetSourceTextFromEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GetSourceTextFromEditor.h; path = ../../source/GetSourceTextFromEditor.h; sourceTree = SOURCE_ROOT; };
 		7DB6FCA0135BE401006CC95A /* SetupEditorCollaboration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SetupEditorCollaboration.cpp; path = ../../source/SetupEditorCollaboration.cpp; sourceTree = SOURCE_ROOT; };
 		7DB6FCA1135BE401006CC95A /* SetupEditorCollaboration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SetupEditorCollaboration.h; path = ../../source/SetupEditorCollaboration.h; sourceTree = SOURCE_ROOT; };
+		7DBB9615192189CE00160C68 /* GuesserAffix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GuesserAffix.cpp; path = ../../source/GuesserAffix.cpp; sourceTree = SOURCE_ROOT; };
+		7DBB9616192189CE00160C68 /* GuesserAffix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GuesserAffix.h; path = ../../source/GuesserAffix.h; sourceTree = SOURCE_ROOT; };
+		7DBB9617192189CE00160C68 /* GuesserAffixesListsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GuesserAffixesListsDlg.cpp; path = ../../source/GuesserAffixesListsDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7DBB9618192189CE00160C68 /* GuesserAffixesListsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GuesserAffixesListsDlg.h; path = ../../source/GuesserAffixesListsDlg.h; sourceTree = SOURCE_ROOT; };
 		7DC038D20F462A570047FCAF /* AI_USFM.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = AI_USFM.xml; path = ../../xml/AI_USFM.xml; sourceTree = SOURCE_ROOT; };
 		7DC038D30F462A570047FCAF /* books.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = books.xml; path = ../../xml/books.xml; sourceTree = SOURCE_ROOT; };
 		7DC0390C0F4654B30047FCAF /* Adapt It.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Adapt It.icns"; path = "../../res/Adapt It.icns"; sourceTree = SOURCE_ROOT; };
@@ -563,6 +563,10 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7DBB9615192189CE00160C68 /* GuesserAffix.cpp */,
+				7DBB9616192189CE00160C68 /* GuesserAffix.h */,
+				7DBB9617192189CE00160C68 /* GuesserAffixesListsDlg.cpp */,
+				7DBB9618192189CE00160C68 /* GuesserAffixesListsDlg.h */,
 				7DAEDB64184D803A009F942D /* FreeTransAdjustDlg.cpp */,
 				7DAEDB65184D803B009F942D /* FreeTransAdjustDlg.h */,
 				7DAEDB66184D803B009F942D /* FreeTransSplitterDlg.cpp */,
@@ -1183,6 +1187,8 @@
 				7D9A354518247E040041565D /* RemoveSomeTgtEntries.cpp in Sources */,
 				7DAEDB68184D803B009F942D /* FreeTransAdjustDlg.cpp in Sources */,
 				7DAEDB69184D803B009F942D /* FreeTransSplitterDlg.cpp in Sources */,
+				7DBB9619192189CE00160C68 /* GuesserAffix.cpp in Sources */,
+				7DBB961A192189CE00160C68 /* GuesserAffixesListsDlg.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
