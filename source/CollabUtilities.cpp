@@ -5266,8 +5266,8 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 	}
 	fromVsStr = _T("10 of fromEditorVerseArr:  ");
 	fromVsStr += bit[0] + bit[1] + bit[2] + bit[3] + bit[4] + bit[5] + bit[6] + bit[7] + bit[8] + bit[9];
-	wxLogDebug(_T("  %s"), postVsStr);
-	wxLogDebug(_T("  %s"), fromVsStr);
+	wxLogDebug(_T("  %s"), postVsStr.c_str());
+	wxLogDebug(_T("  %s"), fromVsStr.c_str());
 #endif
 #endif
 	VerseInf* postEditVInf = NULL;
@@ -5359,7 +5359,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
 				wxLogDebug(_T(" Delineate...()  !!!! Successful match of postEditVerseArr_VerseStr %s  with fromEditorVerseArr_VerseStr  %s"),
-					postEditVerseArr_VerseStr, fromEditorVerseArr_VerseStr);
+					postEditVerseArr_VerseStr.c_str(), fromEditorVerseArr_VerseStr.c_str());
 #endif
 #endif
 				break;
@@ -5371,7 +5371,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
 				wxLogDebug(_T(" Delineate...()  Have postEditVerseArr verse %s and chapterStr = %s ; Searching for match in: fromEditorVerseArr"),
-					postEditVerseArr_VerseStr, postEditVInf->chapterStr);
+					postEditVerseArr_VerseStr.c_str(), postEditVInf->chapterStr.c_str());
 #endif
 #endif
 				int fromEditorVerseFwdsIndex_Temp = fromEditorVerseFwdsIndex;
@@ -5392,7 +5392,7 @@ void DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr,
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
 					wxLogDebug(_T(" Delineate...()  Have fromEditorVerseArr verse %s and chapterStr = %s ;  Searching for match in: postEditVerseArr"),
-						fromEditorVerseArr_VerseStr, fromEditorVInf->chapterStr);
+						fromEditorVerseArr_VerseStr.c_str(), fromEditorVInf->chapterStr.c_str());
 #endif
 #endif
 					int postEditVerseFwdsIndex_Temp = postEditVerseFwdsIndex;
@@ -5599,7 +5599,7 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
 			wxLogDebug(_T("      ======= index %d  Successful match of verse %s   with  %s  from VerseInf"),
-						index, verseNum, aVerseNum);
+				index, verseNum.c_str(), aVerseNum.c_str());
 #endif
 #endif
 				// matched, it could be two simple verses, or two identical bridges, etc
@@ -5611,7 +5611,7 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
 			wxLogDebug(_T("      ======= index %d  Successful match of chapter %s   with  %s  from VerseInf"),
-						index, chapterStr, viPtr->chapterStr);
+				index, chapterStr.c_str(), viPtr->chapterStr.c_str());
 #endif
 #endif
 				return index;
@@ -5622,7 +5622,7 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
 			wxLogDebug(_T("      ------- index %d  Mismatched chapter numbers %s   and Discarding  %s  from VerseInf"),
-						index, chapterStr, viPtr->chapterStr);
+				index, chapterStr.c_str(), viPtr->chapterStr.c_str());
 
 #endif
 #endif
@@ -5636,13 +5636,13 @@ int	FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString
 			if (chapterStr.IsEmpty())
 			{
 				wxLogDebug(_T("      ------- index %d  Attempting match of verse %s   Discarding  %s  from VerseInf"),
-							index, verseNum, aVerseNum);
+					index, verseNum.c_str(), aVerseNum.c_str());
 			}
 			else
 			{
 				// it should be impossible for control to ever enter here
 				wxLogDebug(_T("      ------- index %d  Attempting match of chapter %s   Discarding  %s  from VerseInf"),
-							index, chapterStr, viPtr->chapterStr);
+					index, chapterStr.c_str(), viPtr->chapterStr.c_str());
 			}
 		}
 #endif
@@ -6453,7 +6453,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			fromEdChap = fromStr.Mid(3,5);
 		}
 		wxLogDebug(_T("Same part: type = %s  INDEX = %d  postEdChap = %s  postEditArr  %s <<>> fromEdChap = %s fromEditorArr  %s"),
-					s.c_str(), ct, postEdChap, postStr.c_str(), fromEdChap, fromStr.c_str());
+			s.c_str(), ct, postEdChap.c_str(), postStr.c_str(), fromEdChap.c_str(), fromStr.c_str());
 	}
 #endif
 #endif
@@ -6931,7 +6931,7 @@ wxString GetUpdatedText_UsfmsChanged(
 		#ifdef OUT_OF_SYNC_BUG
 		#ifdef _DEBUG
 		wxLogDebug(_T("postEditArr_Index  %d    fromEditorArr_Index  %d    postEdit line:  %s   fromEditor line:  %s"),
-				postEditArr_Index, fromEditorArr_Index, postEditMd5Line, fromEditorMd5Line);
+			postEditArr_Index, fromEditorArr_Index, postEditMd5Line.c_str(), fromEditorMd5Line.c_str());
 		#endif
 		#endif
         // start testing: check that the markers match; if they don't, then the first thing
@@ -6981,7 +6981,7 @@ wxString GetUpdatedText_UsfmsChanged(
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
 			wxLogDebug(_T("MARKER_MISMATCH or, \\v (or \\vn) CONTENT MISMATCH  %s  %s   postEditArr_AfterChunkIndex: %d  fromEditorArr_AfterChunkIndex: %d    newText length: %d"),
-						postEditLineMkr, fromEditorLineMkr, postEditArr_AfterChunkIndex,
+				postEditLineMkr.c_str(), fromEditorLineMkr.c_str(), postEditArr_AfterChunkIndex,
 						fromEditorArr_AfterChunkIndex, newText.Len());
 			//*
             // get the first 10 MD5Map structs and display their offsets and the text
