@@ -1,10 +1,87 @@
-#define wxUSE_NO_MANIFEST 1
-adaptit ICON "../../res/ai_32.ico"
-#include "wx/msw/wx.rc"
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
 
-#define VER_SVNVERSION_STR "${svnversion}\0"
-#define VER_FILEVERSION_STR "6, 5, 2, " VER_SVNVERSION_STR
-#define VER_PRODUCTVERSION_STR "6, 5, 2, " VER_SVNVERSION_STR
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Australia) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENA)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+ADAPTIT                 ICON                    "../../res/ai_32.ico"
+WXICON_AAA              ICON                    "wx/msw/std.ico"
+WXICON_SMALL_CLOSED_FOLDER ICON                    "wx/msw/folder1.ico"
+WXICON_SMALL_OPEN_FOLDER ICON                    "wx/msw/folder2.ico"
+WXICON_SMALL_FILE       ICON                    "wx/msw/file1.ico"
+WXICON_SMALL_COMPUTER   ICON                    "wx/msw/computer.ico"
+WXICON_SMALL_DRIVE      ICON                    "wx/msw/drive.ico"
+WXICON_SMALL_CDROM      ICON                    "wx/msw/cdrom.ico"
+WXICON_SMALL_FLOPPY     ICON                    "wx/msw/floppy.ico"
+WXICON_SMALL_REMOVEABLE ICON                    "wx/msw/removble.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+WXWINDOWMENU MENU 
+BEGIN
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    4002
+        MENUITEM "Tile &Horizontally",          4001
+        MENUITEM "Tile &Vertically",            4005
+        MENUITEM "",                            65535
+        MENUITEM "&Arrange Icons",              4003
+        MENUITEM "&Next",                       4004
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+WXCURSOR_HAND           CURSOR                  "wx/msw/hand.cur"
+WXCURSOR_BULLSEYE       CURSOR                  "wx/msw/bullseye.cur"
+WXCURSOR_PENCIL         CURSOR                  "wx/msw/pencil.cur"
+WXCURSOR_MAGNIFIER      CURSOR                  "wx/msw/magnif1.cur"
+WXCURSOR_ROLLER         CURSOR                  "wx/msw/roller.cur"
+WXCURSOR_PBRUSH         CURSOR                  "wx/msw/pbrush.cur"
+WXCURSOR_PLEFT          CURSOR                  "wx/msw/pntleft.cur"
+WXCURSOR_PRIGHT         CURSOR                  "wx/msw/pntright.cur"
+WXCURSOR_BLANK          CURSOR                  "wx/msw/blank.cur"
+WXCURSOR_RIGHT_ARROW    CURSOR                  "wx/msw/rightarr.cur"
+WXCURSOR_CROSS          CURSOR                  "wx/msw/cross.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+CSQUERY                 BITMAP                  "wx/msw/csquery.bmp"
+WXBITMAP_STD_COLOURS    BITMAP                  "wx/msw/colours.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -12,8 +89,8 @@ adaptit ICON "../../res/ai_32.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 6,5,2,0
- PRODUCTVERSION 6,5,2,0
+ FILEVERSION 6,5,3,0
+ PRODUCTVERSION 6,5,3,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -29,12 +106,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "Adapt It WX Application"
-            VALUE "FileVersion", VER_FILEVERSION_STR
+            VALUE "FileVersion", "6, 5, 3, ${svnversion}"
             VALUE "InternalName", "Adapt_It"
             VALUE "LegalCopyright", "Copyright (C) SIL International, Bruce Waters, Bill Martin"
             VALUE "OriginalFilename", "Adapt_It.EXE"
             VALUE "ProductName", "Adapt It WX Application"
-            VALUE "ProductVersion", VER_PRODUCTVERSION_STR 
+            VALUE "ProductVersion", "6, 5, 3, ${svnversion}"
         END
     END
     BLOCK "VarFileInfo"
@@ -42,3 +119,39 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.\0"
+END
+
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (Australia) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

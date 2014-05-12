@@ -10151,3 +10151,24 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 
 #endif
 
+// A global function for doing any normalization operations necessary because a major
+// change is about to be done (such as changing doc, changing project, exit from app,
+// something requiring doc to be loaded and in a robust state, etc)
+void NormalizeState()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+
+	// The user may have just used the clipboard adaptation functionality, and forgotten
+	// to close it with Close button before attempting something which requires the cached
+	// document to have been restored, or the adapted fragment to not be treated as a
+	// valid doc - so force that mode to be closed
+	if (pApp->m_bClipboardAdaptMode)
+	{
+		// The mode is still on. Turn it off, remove the bar, restore the doc or empty
+		// view if no doc was loaded. The call will set the above flag to FALSE as well.
+		wxCommandEvent dummyEvt;
+		pApp->OnButtonCloseClipboardAdaptDlg(dummyEvt);
+	}
+	// Any other such operations, add below...
+}
+

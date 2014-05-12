@@ -2187,7 +2187,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				}
 				// we are at EOF, so set up safe end conditions
 				pApp->m_targetPhrase.Empty();
-				//pApp->m_nActiveSequNum = pApp->m_curIndex = -1;
 				pApp->m_nActiveSequNum = -1;
 				pApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow()
 				pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str

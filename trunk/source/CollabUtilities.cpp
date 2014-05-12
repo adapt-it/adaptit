@@ -103,10 +103,13 @@ extern bool gbDoingInitialSetup;
 #ifdef _UNICODE
 
 // comment out when this bug becomes history
-//#define OUT_OF_SYNC_BUG
+#define OUT_OF_SYNC_BUG
 // comment out next line when the debug display of indices with md5 lines
 // is no longer wanted
-//#define SHOW_INDICES_RANGE
+#define SHOW_INDICES_RANGE
+	// comment out next line when the wxLogDebug() in loop in MapMd5ArrayToItsText()
+	// data is not required
+#define FIRST_250
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -4267,7 +4270,7 @@ enum CompareUsfmTexts CompareUsfmTextStructureAndExtent(const wxArrayString& usf
 		// as their initial marker. We may want to also account for embedded verse
 		// markers such as \f footnotes, \fe endnotes, and other medial markers
 		// that can occur within the sacred text. We'll focus first on the \v n
-		// lines, and posibly handle footnotes as they are encountered. The MD5
+		// lines, and possibly handle footnotes as they are encountered. The MD5
 		// checksum is the most important part to deal with, as comparing them
 		// across corresponding verses will tell us whether there has been a
 		// change in the text between the two versions.
@@ -4958,7 +4961,7 @@ bool DoVerseAnalysis(const wxString& verseNum, VerseAnalysis& rVerseAnal)
 			}
 			if (count == numChars)
 			{
-				// it was "all delimiter" - a formatting error, as there is not verse
+				// it was "all delimiter" - a formatting error, as there is no verse
 				// number to indicate the end of the range - so just take the starting
 				// verse number (and any suffix) and return FALSE
 				rVerseAnal.strEndingVerse = rVerseAnal.strStartingVerse;
@@ -6402,7 +6405,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// something's different, so do the more complex algorithm
 
 #ifdef SHOW_INDICES_RANGE
-#if defined(_DEBUG) && defined(WXGTK)
+#if defined(_DEBUG) //&& defined(WXGTK)
 	//int ct;
 	//for (ct = 0; ct < (int)UsfmStructureAndExtentArray.GetCount(); ct++)
 	//{
@@ -6450,15 +6453,35 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			fromEdChap = fromStr.Mid(3,5);
 		}
 		wxLogDebug(_T("Same part: type = %s  INDEX = %d  postEdChap = %s  postEditArr  %s <<>> fromEdChap = %s fromEditorArr  %s"),
-					s, ct, postEdChap, postStr.c_str(), fromEdChap, fromStr.c_str());
+					s.c_str(), ct, postEdChap, postStr.c_str(), fromEdChap, fromStr.c_str());
 	}
 #endif
 #endif
 		// the USFM structure has changed in at least one location in the text
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+		wxLogDebug(_T("/n/n** ABOUT TO CALL GetUpdatedText_UsfmsChanged()  **"));
+
+#endif
 		text = GetUpdatedText_UsfmsChanged(preEditText, postEditText, fromEditorText,
 					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
 					postEditOffsetsArr, fromEditorOffsetsArr);
 
+    #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+    {
+		// show the first 1200 characters that are in the returned text wxString, or all
+		// of string if fewer than 1200 in length
+        int length = text.Len();
+		wxString s = _T("First 1200: ");
+		if ( length < 1200)
+			s += text;
+		else
+		{
+			s += text.Left(1200);
+		}
+        wxLogDebug(_T("%s"), s.c_str());
+        length = length; // put break point here
+    }
+    #endif
     #if defined(_DEBUG) && defined(WXGTK)
     {
         // show the last 240 characters that are in the returned text wxString
@@ -6639,12 +6662,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 // the text parameter
 void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArrayString& md5Arr)
 {
-	// comment out next line when the wxLogDebug() calls are no longer needed
-//#define FIRST_250
 #ifdef FIRST_250
 #ifdef _DEBUG
-	wxString twofifty = text.Left(250);
-	wxLogDebug(_T("MapMd5ArrayToItsText(), first 250 wxChars:\n%s"),twofifty.c_str());
+	wxString twofifty = text.Left(440); // 440, not 250
+	wxLogDebug(_T("MapMd5ArrayToItsText(), first 440 wxChars:\n%s"),twofifty.c_str());
 #endif
 #endif
 	// work with wxChar pointers for the text
@@ -6880,6 +6901,23 @@ wxString GetUpdatedText_UsfmsChanged(
 #endif
 	while (postEditArr_Index < (int)postEditMd5Arr_Count && fromEditorArr_Index < (int)fromEditorMd5Arr_Count)
 	{
+
+#if defined(_DEBUG)
+		{
+			if (postEditArr_Index >= 3)
+			{
+				int breakhere = 0;
+			}
+		}
+#endif
+
+		#ifdef OUT_OF_SYNC_BUG
+		#ifdef _DEBUG
+		wxLogDebug(_T("\n\nGetUpdateText_UsfmsChanged() LOOP BEGINS: postEditArr_Index  %d    fromEditorArr_Index  %d"),
+				postEditArr_Index, fromEditorArr_Index);
+		#endif
+		#endif
+
 		// get the next line from each of the MD5 structure&extents arrays
 		preEditMd5Line = preEditMd5Arr.Item(postEditArr_Index);
 		postEditMd5Line = postEditMd5Arr.Item(postEditArr_Index);
@@ -6890,12 +6928,12 @@ wxString GetUpdatedText_UsfmsChanged(
 		fromEditorMD5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
 		// comment out next line when this debug output is no longer needed
 
-#ifdef OUT_OF_SYNC_BUG
-#ifdef _DEBUG
+		#ifdef OUT_OF_SYNC_BUG
+		#ifdef _DEBUG
 		wxLogDebug(_T("postEditArr_Index  %d    fromEditorArr_Index  %d    postEdit line:  %s   fromEditor line:  %s"),
 				postEditArr_Index, fromEditorArr_Index, postEditMd5Line, fromEditorMd5Line);
-#endif
-#endif
+		#endif
+		#endif
         // start testing: check that the markers match; if they don't, then the first thing
         // to do is to delineate the span in each array which wraps the mismatched subset
         // of md5 lines - and then work out how to process the data within the "mismatched
@@ -6917,18 +6955,39 @@ wxString GetUpdatedText_UsfmsChanged(
         // functionality is not enabled in that mode), and the like.
 		wxString postEditLineMkr = GetStrictUsfmMarkerFromStructExtentString(postEditMd5Line);
 		wxString fromEditorLineMkr = GetStrictUsfmMarkerFromStructExtentString(fromEditorMd5Line);
-		if (postEditLineMkr != fromEditorLineMkr)
+		// We have to include \v or \vn cases in the test which follows, so get 1st two
+		// characters so that \v or \vn will give same result
+		wxString twoCharPostEdMkr = postEditLineMkr.Left(2); // just the \v part (or \c or \q etc)
+		wxString twoCharFromEditorMkr = fromEditorLineMkr.Left(2); // ditto
+		wxString postEditNumberPart = _T("");
+		wxString fromEditorNumberPart = _T("");
+		bool bCheckNumberPart = FALSE;
+		bool bNumberPartsDiffer = FALSE;
+		if ((twoCharPostEdMkr == _T("\\v")) && (twoCharFromEditorMkr == _T("\\v")))
+		{
+			bCheckNumberPart = TRUE;
+			postEditNumberPart = GetNumberFromChapterOrVerseStr(postEditMd5Line);
+			fromEditorNumberPart = GetNumberFromChapterOrVerseStr(fromEditorMd5Line);
+			if ( postEditNumberPart != fromEditorNumberPart )
+			{
+				bNumberPartsDiffer = TRUE;
+			}
+		}
+		// IF they are different markers; OR, if both markers start with \v AND the number
+		// info following them differ (either different numbers, or one might be a bridge or
+		// a verse part like 6b) THEN do the next block -- it handles complex matchups
+		if ((postEditLineMkr != fromEditorLineMkr) || (bCheckNumberPart && bNumberPartsDiffer))
 		{
 #ifdef OUT_OF_SYNC_BUG
 #ifdef _DEBUG
-			wxLogDebug(_T("      MARKER_MISMATCH   %s  %s   postEditArr_AfterChunkIndex: %d  fromEditorArr_AfterChunkIndex: %d    newText length: %d"),
+			wxLogDebug(_T("MARKER_MISMATCH or, \\v (or \\vn) CONTENT MISMATCH  %s  %s   postEditArr_AfterChunkIndex: %d  fromEditorArr_AfterChunkIndex: %d    newText length: %d"),
 						postEditLineMkr, fromEditorLineMkr, postEditArr_AfterChunkIndex,
 						fromEditorArr_AfterChunkIndex, newText.Len());
-			/*
+			//*
             // get the first 10 MD5Map structs and display their offsets and the text
             // delineated, for the fromEditorOffsetsArr (stores MD5Map struct ptrs) and its
             // fromEditorText
-			wxLogDebug(_T("\n  *** First 10 MD5Map structs & extracted substrings ***"));
+			wxLogDebug(_T("\n  *** First 10 MD5Map structs & extracted substrings BEFORE DelineateComplexChunksAssociation() called ***"));
 			MD5Map* pMap = NULL;
 			int i;
 			for (i = 0; i<10; i++)
@@ -6940,7 +6999,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				wxLogDebug(_T("map index %d   start wxChar offset  %d  end offset  %d , span size = %d   textSpanned =  %s"),
 					i, pMap->startOffset, pMap->endOffset, numCharsInSpan, strSpan.c_str());
 			}
-			*/
+			//*/
 #endif
 #endif
 			// first task is to delineate the extent of the mismatched sets of marker lines
@@ -6977,6 +7036,10 @@ wxString GetUpdatedText_UsfmsChanged(
             // happened), but we'll correct for that further below.
 			int postEditArr_LastLineIndex = postEditArr_AfterChunkIndex - 1;
 			int fromEditorArr_LastLineIndex = fromEditorArr_AfterChunkIndex - 1;
+			#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			wxLogDebug(_T("POTENTIAL 'Last' LINES (before adjustments): postEditArr_LastLineIndex  %d  fromEditorArr_LastLineIndex  %d"),
+					postEditArr_Index, fromEditorArr_Index);
+			#endif
 
 			// Deal with the above 3 scenarios
 			if (	postEditArr_AfterChunkIndex > postEditArr_Index
@@ -6988,6 +7051,9 @@ wxString GetUpdatedText_UsfmsChanged(
 				// material is retained; and both postEditArr_LastLineIndex and
 				// fromEditorArr_LastLineIndex have valid values and point at the last md5
 				// line of each array's complex chunk
+				#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+				wxLogDebug(_T("BOTH ARRAYS HAVE A CHUNK"));
+				#endif
 
 				// Recall that postEditArr_Index and postEditArr_LastLineIndex are the same for
 				// both preEditOffsetsArr and postEditOffsetsArr (because markers cannot be
@@ -7006,8 +7072,11 @@ wxString GetUpdatedText_UsfmsChanged(
 					// section back to the external edit's text - so get the offsets to the
 					// start and end of the whole section within postEditText, and then
 					// transfer it to the external editor's text updated text - in newText
+					#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+					wxLogDebug(_T("OVERWRITING WITH AI's DATA"));
+					#endif
 
-                    // An additional considerationhere is the following. The mismatch might
+                    // An additional consideration here is the following. The mismatch might
                     // not involve any \v markers in either array's mismatch chunk. For
                     // example, the source text may have \q1 \q2 \m markers because it is
                     // poetry, but the from-external-editor text might have something
@@ -7036,6 +7105,9 @@ wxString GetUpdatedText_UsfmsChanged(
 					// Adapt It within this mismatch section, so the external editor's current
 					// version of the text for this section is to be preserved unchanged.
 					// Extract it and add it to newText
+					#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+					wxLogDebug(_T("KEEPING PT's DATA"));
+					#endif
 					MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
 					MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
 					wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
@@ -7052,6 +7124,9 @@ wxString GetUpdatedText_UsfmsChanged(
 				// since we give priority to what is in AI, transfer these markers and
 				// their text contents to newText (in effect, 'inserting' it into the
 				// from-editor text at this location)
+				#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+				wxLogDebug(_T("INSERTING NEW AI DATA - NO PT ADVANCE HERE"));
+				#endif
 				wxASSERT(postEditArr_Index <= postEditArr_LastLineIndex);
 				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
 				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
@@ -7062,6 +7137,9 @@ wxString GetUpdatedText_UsfmsChanged(
 			else
 			{
 				// This is scenario (3) above
+				#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+				wxLogDebug(_T("PT DATA IS BEING LOST _ NO AI ADVANCE HERE"));
+				#endif
 				wxASSERT(fromEditorArr_Index <= fromEditorArr_LastLineIndex);
 				MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
 				MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
@@ -7082,6 +7160,9 @@ wxString GetUpdatedText_UsfmsChanged(
 			// fromEditorMD5Sum, and if so, then copy the span over from postEditText
 			// unilaterally (marker and text, or marker an no text, as the case may be -
 			// doesn't matter since the fromEditorText's marker had no content anyway)
+			#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			wxLogDebug(_T("DOING BLOCK FOR SIMPLE MATCHING PROTOCOL"));
+			#endif
 
 			postEditArr_AfterChunkIndex = postEditArr_Index;
 			fromEditorArr_AfterChunkIndex = fromEditorArr_Index;
@@ -7156,6 +7237,12 @@ wxString GetUpdatedText_UsfmsChanged(
 			fromEditorArr_Index = fromEditorArr_AfterChunkIndex;
 		} // end of else block for test: if (postEditLineMkr != fromEditorLineMkr)
 
+		#ifdef OUT_OF_SYNC_BUG
+		#ifdef _DEBUG
+		wxLogDebug(_T("GetUpdateText_UsfmsChanged() LOOP ENDS: with UPDATED INDICES: postEditArr_Index  %d    fromEditorArr_Index  %d"),
+				postEditArr_Index, fromEditorArr_Index);
+		#endif
+		#endif
 	} // end of while loop: while (postEditArr_Index < (int)postEditMd5Arr_Count &&
       // fromEditorArr_Index < (int)fromEditorMd5Arr_Count);
 

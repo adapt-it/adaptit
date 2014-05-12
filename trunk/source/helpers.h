@@ -510,6 +510,12 @@ CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
 #endif
 
+// A global function for doing any normalization operations necessary because a major
+// change is about to be done (such as changing doc, changing project, exit from app,
+// something requiring doc to be loaded and in a robust state, etc)
+void NormalizeState();
+
+
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
 // m_pSrcPhrase and m_pOwningPile, and so not being properly in sync with the doc list;

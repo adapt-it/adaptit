@@ -210,7 +210,9 @@ protected:
 	// end of collecting back translations support
 
 	// support for the Import Edited Free Translation function
+public:
 	bool		IsFreeTransInList(SPList* pSPList);
+protected:
 	int			FindEndOfRuinedSection(SPArray* pSPArray, int startFrom, bool& bFoundSectionEnd,
 										bool& bFoundSectionStart, bool& bFoundArrayEnd);
 	int			FindNextFreeTransSection(SPArray* pSPArray, int startFrom);

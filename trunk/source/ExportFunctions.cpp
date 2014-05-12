@@ -18048,7 +18048,10 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		// after the above, targetstr will end with space, if it is not empty
 
 		// handle when str contains only [, we don't want space after [
-		if (!targetstr.IsEmpty() && targetstr[targetstr.Len() - 2] == _T('['))
+		// BEW 8Apr14, added second subtest in next line, because if the input file has a
+		// single character as first word, the final subtest will fail because .Len() - 2
+		// will be -1 giving a bounds error crash
+		if (!targetstr.IsEmpty() && (targetstr.Len() > 1) && (targetstr[targetstr.Len() - 2] == _T('[')))
 		{
 			// in this circumstance we don't want the space which follows [
 			targetstr.Trim();
@@ -18725,6 +18728,12 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 // whm 17Sep11 modified to ensure that the buffer for output ends with an eol
 void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 {
+	// It could be an empty string...
+	if (text.IsEmpty())
+	{
+		return;
+	}
+
 	// remove any whitespace from the beginning of the string, and end
 	text.Trim(FALSE);
 	// BEW 13Jul11, wrapped the text.Trim() line in a test - when we have a doc parsed
@@ -18739,6 +18748,12 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 	if (expType != sourceTextExport)
 	{
 		text.Trim();
+	}
+
+	// That might have made it empty, so test again
+	if (text.IsEmpty())
+	{
+		return;
 	}
 
 	// whm 17Sep11 added: Test if text ends with an eol. If not, add the appropriate eol

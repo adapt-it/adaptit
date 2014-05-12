@@ -1,6 +1,26 @@
-
 ----------------------------------------------
-Bug fixes in 6.5.??
+Version 6.5.3 release 14 May 2014
+----------------------------------------------
+* Clipboard adaptation support. It is now possible to
+choose an "Adapt clipboard text" command on the Tools
+menu, to support quickly adapting the text (which can
+have full USFM markup) in the clipboard, and when that
+is done, to click a "Copy adaptation to clipboard" 
+button, or a "Copy free translation to clipboard" 
+button, to have the adaptation or free translation (if
+you have created one of course) copied back to the 
+clipboard - you are then free to Paste that wherever
+you like (for instance, in a window in running Paratext).
+Any document open when the command is invoked is
+temporarily hidden, and restored when the temporary
+adapting job is dismissed by a click of a "Close" button
+on the toolbar temporarily put up for the duration of
+the task. The knowledge base used is the one which is
+active for the currently Adapt It project. Adaptations
+flow into it in the normal way and persist after the
+temporary adapting (and or free translating) is finished.
+----------------------------------------------
+Bug fixes in 6.5.3
 ----------------------------------------------
 * If the phrasebox was not visible because the user had
 adapted all the document, and File > Save and remember in 
@@ -12,6 +32,18 @@ Look at previous versions in the document history... or
 View list of previously remembered versions... was
 invoked, the application crashed. These commands
 now show their dialog centered in the window.
+* If a text file with the first word being just a single
+character was used to create a document, doing a SFM
+export caused the application to crash.
+* If a bridge of verses is made, or unmade, in the
+Paratext or Bibledit source text project, and Adapt It
+is in collaboration mode, the adaptation (and any free
+translations entered) did not have the bridge, or
+undoing of the bridge, transferred across. Also, editing 
+some words of the source text in Paratext or Bibledit 
+could, where there was a bridge just created, or just
+removed, cause doubled up and wrongly structured text
+to be copied over.
 
 ----------------------------------------------
 Version 6.5.2 release 18 December 2013

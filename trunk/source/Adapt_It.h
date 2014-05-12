@@ -152,7 +152,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 //
 // whm 6Jan12 Note: When changing these version numbers we also need to change the version number
 // in the following:
-// 1. The appVerStr const defined below (about line 207).
+// 1. The appVerStr const defined below (about line 186).
 // 2. The applicationCompatibility attribute in the AI_UserProfiles.xml file in the xml folder.
 // 3. The Adapt_It.rc file's version numbers (4 instances within the file - located in adaptit\bin\win32\.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
@@ -177,13 +177,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 2 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 18
-#define VERSION_DATE_MONTH 12
-#define VERSION_DATE_YEAR 2013
-const wxString appVerStr(_T("6.5.2"));
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 14
+#define VERSION_DATE_MONTH 05
+#define VERSION_DATE_YEAR 2014
+const wxString appVerStr(_T("6.5.3"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
@@ -3756,6 +3756,9 @@ public:
 	void OnUpdateUnloadCcTables(wxUpdateUIEvent& event);
 	void OnUpdateLoadCcTables(wxUpdateUIEvent& event);
 
+	void OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event)); // BEW added 9May14
+	void OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event); // ditto
+
 	void OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEvent& event);
 	void OnToolsAutoCapitalization(wxCommandEvent& event);
@@ -3928,13 +3931,29 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	wxString m_CollabProjectForFreeTransExports;
 	wxString m_CollabAIProjectName; // whm added 7Sep11
 	wxString m_CollabBookSelected;
-	bool m_bCollabByChapterOnly;
+	bool     m_bCollabByChapterOnly;
 	wxString m_CollabChapterSelected;
 	wxString m_CollabSourceLangName; // whm added 4Sep11
 	wxString m_CollabTargetLangName; // whm added 4Sep11
 
 	bool m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
+
+	// Support for clipboard-based adaptation (and free translation)
+	bool     m_bClipboardAdaptMode; // BEW added 9May14, a feature suggested by Bob Eaton (SAG)
+	bool	 m_bClipboardTextLoaded; // TRUE when the text is in the doc, need for update handler
+	bool	 m_bADocIsLoaded; // TRUE if there was a normal doc active when the feature was invoked
+	int      m_nSaveSequNumForDocRestore;
+	wxString m_savedTextBoxStr; // cache the phrasebox contents here
+	SPList*  m_pSavedDocForClipboardAdapt;
+	void     OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event);
+	void     OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event));
+	void     OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event);
+	void     OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event));
+	// don't need an update handler for the Close button, it's always enabled
+	void     OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event));
+	// End of new variables for support of clipboard-based adaptation & free translation
+
 
 	// whm 17Oct11 removed
 	//wxArrayString m_ListOfPTProjects; // gets populated by GetListOfPTProjects()

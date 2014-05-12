@@ -164,14 +164,16 @@ public:
 	wxPanel* m_pComposeBar;		// handle/pointer to the composeBar
 	wxPanel* m_pRemovalsBar;	// whm added for 12Sep08 refactored source text editing
 	wxPanel* m_pVertEditBar;	// whm added for 12Sep08 refactored source text editing
+	wxPanel* m_pClipboardAdaptBar; // BEW added 9May14, for support of adapting clipboard text
 	//wxPanel* m_pVertEditStepTransBar; // whm added for 12Sep08 refactored source text editing
 	wxTextCtrl* m_pComposeBarEditBox;
 	wxComboBox* m_pRemovalsBarComboBox;
 	wxTextCtrl* m_pVertEditMsgBox;
 	//wxTextCtrl* m_pVertEditStepTransMsgBox;
-	//
+	
 	wxSizer* pRemovalsBarSizer;
 	wxSizer* pVertEditBarSizer;
+	wxSizer* pClipboardAdaptBarSizer;
 
 	int m_toolBarHeight;		// determined in CMainFrame constructor after toolBar is created
 	int m_controlBarHeight;		// determined in CMainFrame constructor after controlBar is created
@@ -179,6 +181,7 @@ public:
 	int m_statusBarHeight;
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
+	int m_clipboardAdaptBarHeight; // BEW added 9May14
 	//int m_vertEditStepTransBarHeight;
 
 	//wxHtmlHelpController m_help;

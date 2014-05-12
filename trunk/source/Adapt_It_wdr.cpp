@@ -73,10 +73,10 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.2"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.3"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("December 18, 2013"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("May 14, 2013"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -93,7 +93,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2013, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2014, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM, 0 );
@@ -10358,6 +10358,48 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     return item0;
 }
 
+wxSizer *ClipboardAdaptBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Copy to the Clipboard: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item3 = new wxButton( parent, ID_BUTTON_COPY_TO_CLIPBOARD, _("Adaptations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->SetToolTip( _("Copies the adaptation text to the clipboard, the dialog remains open") );
+    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item4 = new wxButton( parent, ID_BUTTON_COPY_FREETRANS_TO_CLIPBOARD, _("Free Translations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->SetToolTip( _("Copies the free translation to the clipboard, the dialog remains open") );
+    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item5 = new wxButton( parent, ID_BUTTON_CLIPBOARD_ADAPT_CLOSE, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetDefault();
+    item5->SetToolTip( _("Throw everything away except what was copied to the clipboard") );
+    item1->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -10433,7 +10475,10 @@ wxMenuBar *AIMenuBarFunc()
     item4->Append( wxID_FIND, _("&Find...\tCtrl-F"), _("Find text in source or target or both, or special search") );
     item4->Append( wxID_REPLACE, _("Find and &Replace...\tCtrl-H"), _("Replace in target text") );
     item4->AppendSeparator();
-    item4->Append( ID_TOOLS_DEFINE_CC, _("&Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
+    item4->Append( ID_TOOLS_CLIPBOARD_ADAPT, _("A&dapt Clipboard Text"), _("Hide document then adapt source text loaded from the clipboard") );
+    item4->AppendSeparator();
+    item4->Append( ID_TOOLS_DEFINE_CC, _("Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
+    item4->Append( wxID_ABOUT, _("&Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
     item4->Append( ID_UNLOAD_CC_TABLES, _("&Unload Consistent Changes"), _("Unload any loaded consistent changes tables") );
     item4->Append( ID_USE_CC, _("Use &Consistent Changes"), _("Use the consistent changes when copying source text"), wxITEM_CHECK );
     item4->Append( ID_ACCEPT_CHANGES, _("&Accept Changes Without Stopping"), _("Accept the changed source text as the translation and continue on"), wxITEM_CHECK );

@@ -227,9 +227,7 @@ void CPunctCorrespPageCommon::DoInit()
 	else
 	{
 		// we are somewhere in the midst of the data, so a pile will be active
-		//activeSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-		//pApp->m_curIndex = activeSequNum;
-
+		
 		// remove any current selection, as we can't be sure of any pointers
 		// depending on what user may choose to alter
 		pView->RemoveSelection();
