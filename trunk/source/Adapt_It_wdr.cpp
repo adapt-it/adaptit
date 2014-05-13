@@ -10477,7 +10477,7 @@ wxMenuBar *AIMenuBarFunc()
     item4->AppendSeparator();
     item4->Append( ID_TOOLS_CLIPBOARD_ADAPT, _("A&dapt Clipboard Text"), _("Hide document then adapt source text loaded from the clipboard") );
     item4->AppendSeparator();
-    item4->Append( ID_TOOLS_DEFINE_CC, _("Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
+    item4->Append( ID_TOOLS_DEFINE_CC, _("&Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
     item4->Append( ID_UNLOAD_CC_TABLES, _("&Unload Consistent Changes"), _("Unload any loaded consistent changes tables") );
     item4->Append( ID_USE_CC, _("Use &Consistent Changes"), _("Use the consistent changes when copying source text"), wxITEM_CHECK );
     item4->Append( ID_ACCEPT_CHANGES, _("&Accept Changes Without Stopping"), _("Accept the changed source text as the translation and continue on"), wxITEM_CHECK );
