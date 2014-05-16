@@ -9616,6 +9616,30 @@ void CFreeTrans::DoJoinWithPrevious()
 	// Store parameters pertaining to the original section, set params composebar text box
 	// will use
 	CPile* pOriginalAnchorPile = m_pApp->m_pActivePile;
+
+	// At this point the current free translation section won't have any of it's free
+	// translation supporting booleans set, all 3 are false on all the piles in 
+	// m_pCurFreeTransSectionPileArray; so unless we here make the current section into a
+	// valid one by setting the booleans correctly, the attempt to join with the previous
+	// section will fail because the assert which checks to see that this current
+	// section's anchor has m_bStartFreeTrans is set TRUE will trip, crashing the app. So
+	// we have to take the contents of the above array and set the booleans here before we
+	// proceed further
+	//int curSN = pOriginalAnchorPile->GetSrcPhrase()->m_nSequNumber;
+	CSourcePhrase* pCurAnchorSrcPhrase = ((CPile*)m_pCurFreeTransSectionPileArray->Item(0))->GetSrcPhrase();
+	pCurAnchorSrcPhrase->m_bStartFreeTrans = TRUE;
+	CPile* pCurLastPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(m_pCurFreeTransSectionPileArray->size()-1);
+	CSourcePhrase* pCurLastSrcPhrase = pCurLastPile->GetSrcPhrase();
+	pCurLastSrcPhrase->m_bEndFreeTrans = TRUE;
+	int curCount = (int)m_pCurFreeTransSectionPileArray->size();
+	//int itsSN = pCurLastSrcPhrase->m_nSequNumber;
+	int i;
+	for (i = 0; i < curCount; i++)
+	{
+		// Set the m_bHasFreeTrans boolean on each CSourcePhrase instance in the current section
+		((CPile*)m_pCurFreeTransSectionPileArray->Item(i))->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
+	}
+
 	m_pCurAnchorPile = pOriginalAnchorPile; // this will not be an anchor in the new (larger) section
 	CSourcePhrase* pSrcPhrase = pOriginalAnchorPile->GetSrcPhrase();
 	wxString strOriginalFreeTrans = pSrcPhrase->GetFreeTrans(); // now it's stored, we can
