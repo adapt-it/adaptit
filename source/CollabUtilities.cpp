@@ -7612,36 +7612,15 @@ wxString GetUpdatedText_UsfmsChanged(
 				fromEditorArr_ChunkEndIndex); // the index of the end of the mismatched
 					// chunk within fromEditorMd5Arr (was fromEditorArr_AfterChunkIndex)
 
-			// There are three possible results of the above call.
-            // (1) Both postEditArr_ChunkEndIndex and fromEditorArr_ChunkEndIndex have
-            // advanced from the input postEditArr_Index and fromEditorArr_Index values,
-            // respectively. These advancements ALWAYS go as far as the next verse, as it
-            // is the milestone matchups which halt the chunking. So we looked for verse
-            // identity in the AI chunk & PT chunk - that usually is a matching of the same
-            // simple chapter number, but it could be idential verse bridges, or part
-            // verses like a paired 7b.
-            // (2) No advancement in fromEditorArr, that is, fromEditorArr_ChunkEndIndex
-			// and fromEditorArr_Index are identical. (This is a typical scenario when the
-			// source text being adapted is a pre-published scripture text, and so has
-			// lots of extra markers which would not be in the adaptation project in PT or
-			// BT - which typically start out empty or with just \c markers and \v markers
-			// and no adaptation text at all).
-			// (3) No advancement in postEditArr, that is postEditArr_AfterChunkIndex
-			// and postEditArr_Index are identical. (This would be unusual, it
-			// would typically mean that the user has, between editing sessions done in
-            // AI, added extra markers and text to the external editor's project for the
-            // adaptation document being adapted. We can't stop this happening, so we have
-            // to allow for it and handle it robustly. It's not a recommended scenario
-            // though, as the user if using AI should do his editing in AI only until
-            // adapting work is done, and only then should he do what he needs to do in PT
-            // or BE as far as content edits and additional markers being inserted).
-
+            // In the refactored code of 13May14, there is currently no code in the above
+            // function which any loger returns one of the two enum values
+            // insertPostEditChunk or removeFromEditorChunk. I'll leave the processing
+            // chunks, however, in the if/then blocks below, in case I later reinstate
+            // those capabilities.
+			
             // Set the value for the last md5 line in the mismatched chunk for
             // each array
-            // BEW 13May14 refactored these - keep the names, but don't subtract -1 because
-            // the RHS values now are for the last md5 line of each matched chunk
-			//int postEditArr_LastLineIndex = postEditArr_AfterChunkIndex - 1;
-			//int fromEditorArr_LastLineIndex = fromEditorArr_AfterChunkIndex - 1;
+            // BEW 13May14 changed the names slightly
 			int postEditArr_LastLineIndex = postEditArr_ChunkEndIndex;
 			int fromEditorArr_LastLineIndex = fromEditorArr_ChunkEndIndex;
 
@@ -7650,22 +7629,17 @@ wxString GetUpdatedText_UsfmsChanged(
 					postEditArr_LastLineIndex, fromEditorArr_LastLineIndex);
 			#endif
 
-			// Deal with the above 3 scenarios
-			// BEW 13May14, deprecated the test of indices, test enum instead
-			//if (	postEditArr_ChunkEndIndex > postEditArr_Index
-			//	 && fromEditorArr_ChunkEndIndex > fromEditorArr_Index)
 			if ( myMatchType == replaceTheFromEditorChunk)
 			{
-                // This is situation (1) above -- there is chunked material in both arrays,
-                // and the AI material is assumed to have been edited (because in a complex
-                // chunk and we can't actually test for edits, so have to assume they may
-                // be there), must replace the from-external-editor material for this
-                // chunk. At least the postEdit, or from Editor, chunk is genuinely complex
-                // (e.g a verse bridge), the other side may be complex too, but most likely
-                // it is just the collection of simple verse chunks required to match up
-                // the content properly. Both postEditArr_LastLineIndex and
-                // fromEditorArr_LastLineIndex have valid values and point at the last md5
-                // line of each array's complex chunk
+                // There is chunked material in both arrays, and the AI material is assumed
+                // to have been edited (because in a complex chunk and we can't actually
+                // test for edits, so have to assume they may be there), must replace the
+                // from-external-editor material for this chunk. At least the postEdit, or
+                // from Editor, chunk is genuinely complex (e.g a verse bridge), the other
+                // side may be complex too, but most likely it is just the collection of
+                // simple verse chunks required to match up the content properly. Both
+                // postEditArr_LastLineIndex and fromEditorArr_LastLineIndex have valid
+                // values and point at the last md5 line of each array's complex chunk
 				#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 				wxLogDebug(_T("TWO CHUNKS - ASSUME USER EDITED, OVERWRITING PT CHUNK"));
 				#endif
@@ -7692,83 +7666,14 @@ wxString GetUpdatedText_UsfmsChanged(
 				wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 				newText += postEditTextSubstring;
+
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-				wxLogDebug(_T(" replaceTheFromEditorChunk  block, newText: %s"),newText.c_str());
+				wxLogDebug(_T("*** replaceTheFromEditorChunk  block, newText: %s"),newText.c_str());
 #endif
-				// BEW deprecated 13May14 because we MUST assume user edits for matched chunks
-				// must always overwrite the external editor's matched chunk
-				/*
-				// Recall that postEditArr_Index and postEditArr_LastLineIndex are the same for
-				// both preEditOffsetsArr and postEditOffsetsArr (because markers cannot be
-				// accessed and changed when in collaboration mode), and so param2 equals
-				// param5, and param3 equals param6 in the following call
-				// *** NOTE *** if ever we allow dynamic change to filter markers or SFM
-				// set when in collaboration mode, then the above assumption about the
-				// parameters will not necessarily always be true)
-				bool bTextAndOrPunctsChanged = IsTextOrPunctsChanged(preEditMd5Arr, postEditArr_Index,
-										postEditArr_LastLineIndex, postEditMd5Arr, postEditArr_Index,
-										postEditArr_LastLineIndex);
-				if (bTextAndOrPunctsChanged)
-				{
-
-					// The user has edited something in this "mismatch section" within the
-					// Adapt It document, and so we must honour that and pass this whole
-					// section back to the external edit's text - so get the offsets to the
-					// start and end of the whole section within postEditText, and then
-					// transfer it to the external editor's text updated text - in newText
-					#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-					wxLogDebug(_T("OVERWRITING WITH AI's DATA"));
-					#endif
-
-                    // An additional consideration here is the following. The mismatch might
-                    // not involve any \v markers in either array's mismatch chunk. For
-                    // example, the source text may have \q1 \q2 \m markers because it is
-                    // poetry, but the from-external-editor text might have something
-                    // different - perhaps a footnote or some other marker(s) - even text
-                    // formatting markers like italics etc. The protocol we've taken on
-                    // board will replace the footnote or other markers and contents with
-                    // the poetry and poetry markers. It would be nice for this not to
-                    // happen (by retaining both), but there is too much potential for the
-                    // same text information to end up being in the resulting data twice,
-                    // so we will just overwrite and let the user manually restore the lost
-					// markers if necessary. Loss of information in this way can happen,
-					// but it should be rare. (My test data, for example, has \h before \c
-					// 1 in the postEdit text, but the from Paratext data has \mt before
-					// \c 1, and so the \h will end up being preserved if the user has
-					// adapted the \h field's contents, but \mt will be preserved instead
-					// if he hasn't.)
-					MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
-					MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
-					wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-								pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-					newText += postEditTextSubstring;
-				}
-				else
-				{
-					// The user, since the last File / Save, has not edited either the punctuation or words within
-					// Adapt It within this mismatch section, so the external editor's current
-					// version of the text for this section is to be preserved unchanged.
-					// Extract it and add it to newText
-					#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-					wxLogDebug(_T("KEEPING PT's DATA"));
-					#endif
-					MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
-					MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
-					wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
-								pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-					newText += fromEditorTextSubstring;
-				}
-				*/
 			}
-			// BEW deprecated old test 13May14, test enum value instead
-			//else if (	postEditArr_AfterChunkIndex > postEditArr_Index
-			//		 && fromEditorArr_AfterChunkIndex == fromEditorArr_Index)
-			//{
 			else if (myMatchType == insertPostEditChunk)
 			{
-				// This is scenario (2) above (AI is inserting new material)
-
-				// the postEditText has one or more extra fields at this point, so
+				// The postEditText has one or more extra fields at this point, so
 				// since we give priority to what is in AI, transfer these markers and
 				// their text contents to newText (in effect, 'inserting' it into the
 				// from-editor text at this location)
@@ -7782,29 +7687,24 @@ wxString GetUpdatedText_UsfmsChanged(
 							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
 				newText += postEditTextSubstring;
 			}
-			else if (myMatchType == removeFromEditorChunk) // it must be myMatchType == removeFromEditorChunk
+			else if (myMatchType == removeFromEditorChunk)
 			{
-				// This is scenario (3) above (material in the PT side is to be removed)
 				#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 				wxLogDebug(_T("REMOVING PT DATA"));
 				#endif
-
-				// BEW deprecated 13May14, nothing to be added to newText from the PT or
-				// BE material, so get ready for next loop iteration
-				//wxASSERT(fromEditorArr_Index <= fromEditorArr_LastLineIndex);
-				//MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_Index);
-				//MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorArr_LastLineIndex);
-				//wxString fromEditorTextSubstring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
-				//			pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
-				//newText += fromEditorTextSubstring;
 			}
 			else if (myMatchType == transferAllThatRemains)
 			{
-				int oops = 1;
+				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_Index);
+				postEditArr_LastLineIndex = postEditMd5Arr_Count - 1; // last field in the postEdit array
+				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditArr_LastLineIndex);
+				wxString postEditTextSubstring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				newText += postEditTextSubstring;
 
-
-// TODO ****************
-// 
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+				wxLogDebug(_T("*** transferAllThatRemains  block, newText: %s"),newText.c_str());
+#endif
 			}
 
 			// update the loop indices
