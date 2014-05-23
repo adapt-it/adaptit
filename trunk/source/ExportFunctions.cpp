@@ -18846,7 +18846,7 @@ void FormatMarkerBufferForOutput(wxString& text, enum ExportType expType)
 		}
 		while (spacelessPuncts.Find(_T(' ')) != -1)
 		{
-		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
+			spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
 			// used in DetachedNonQuotePunctuationFollows() below
 		}
 		// whm 8Jun12 modified for wxWidgets-2.9.3 wxStrlen_() is invalid, use wxStrlen()

@@ -1823,6 +1823,157 @@ wxString SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet)
 	return span;
 }
 
+wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
+{
+	wxString spacelessPuncts;
+	// BEW 11Jan11, added test here so that the function can be used on target text as
+	// well as on source text
+	if (whichLang == targetLang)
+	{
+		spacelessPuncts = pApp->m_punctuation[1];
+	}
+	else
+	{
+		spacelessPuncts = pApp->m_punctuation[0];
+	}
+	while (spacelessPuncts.Find(_T(' ')) != -1)
+	{
+		// remove all spaces, leaving only the list of punctation characters
+		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
+	}
+	wxASSERT(!spacelessPuncts.IsEmpty());
+	return spacelessPuncts;
+}
+
+// Return FALSE if no character within charSet (these should be a string of characters,
+// typically punctuation ones by design, and no space character in the inventory) is a
+// match for the wxChar pointed at by pStart. Return TRUE if it is a match, and in that
+// case only, scan succeeding characters following pStart in the caller's buffer
+// (typically a wxString's buffer) until either a character not in charSet is encounted -
+// count the matched characters, return the count in the span param.
+// This function is a utility one used for constructing bleached strings of spaces, #
+// (representing a word) and punctuation characters from a string of text, to determine if
+// verse text in Adapt It has undergone a change of punctuation from what is in the same
+// verse's text within Paratext or Bibledit; during collaboration. pStart points to a
+// location within a string at which the next character is to be tested. pEnd points past
+// the last character of the string being tested. The span param is used by the caller to
+// extract the spanned substring (when TRUE is returned)
+// BEW created 22May14
+bool IsOneOfAndIfSoGetSpan(wxChar* pStart, wxChar* pEnd, wxString& charSet, int& span)
+{
+	wxChar* ptr = pStart;
+	span = 0;
+	int offset = charSet.Find(*ptr);
+	if (offset == wxNOT_FOUND)
+	{
+		return FALSE;
+	}
+	// There is at least one character from charSet in the substring starting at pStart
+	ptr++;
+	span++;
+	// Find any others, & count them
+	do {
+		offset = charSet.Find(*ptr);
+		if (offset == wxNOT_FOUND)
+			break;
+		// Advance ptr and count the character
+		ptr++;
+		span++;
+	} while (ptr < pEnd);
+	return TRUE;
+}
+
+// See the IsOneOfAndIfSoGetSpan() function above. IsNotOneOfNorSpaceAndIfSoGetSpan() is
+// used for detecting a non-space character, and then scanning across all such until a
+// space or a punctuation character (or buffer end) halts the scan. The scanned over
+// characters are counted and the count is returned in span. Return TRUE if at least one
+// is scanned over, FALSE if a space or punctuation character, or buffer end, is pointed
+// at by pStart on entry
+bool IsNotOneOfNorSpaceAndIfSoGetSpan(wxChar* pStart, wxChar* pEnd, wxString& charSet, int& span)
+{
+	wxChar* ptr = pStart;
+	span = 0;
+	if (*ptr == _T(' '))
+		return FALSE;
+	int offset = charSet.Find(*ptr);
+	if (offset != wxNOT_FOUND)
+		return FALSE;
+	// There is at least one character not from charSet, and not a space, in the substring 
+	// starting at pStart
+	ptr++;
+	span++;
+	// Find any others, & count them
+	do {
+		if (*ptr == _T(' '))
+			break;
+		offset = charSet.Find(*ptr);
+		if (offset != wxNOT_FOUND)
+			break;
+		// Advance ptr and count the character
+		ptr++;
+		span++;
+	} while (ptr < pEnd);
+	return TRUE;
+}
+
+// Generates and returns a string something like this: # #. # # #, "# #?
+// from an inputStr like this: Jesus wept. The disciples said, "How come?
+// The # character is used to represent anything which is not punctuation and not white
+// space. All consecutive white spaces are reduced to one. Punctuation is retained where
+// it is found in relation to the bleached word and delimiting space. The intent is to
+// generate, in collaboration, a string like this from the AI verse, and a similar or
+// identical one from the matched Paratext verse. If the strings are then identical, we
+// know that no punctuation has been changed. If punctuation is changed or moved, the
+// strings will not be exactly the same - and in that case our collaboration File > Save
+// will know the from-AI verse data must be sent to PT adaptation project overwrite
+// whatever is the current in_PT matching verse contents.
+// If the user only ever changes punctuation from within AI, this function would not be
+// needed because AI's md5sum arrays will detect that kind of punctuation change. What's
+// not detectable that way is when the user changes punctuation settings for a verse
+// within the Paratext (or Bibledit) source text project's verse - Adapt It receives those
+// changes as fait accomplis, and without this present function those punctuation changes
+// would be undetected, and result in the PT or BE verse being retained unchanged
+// (provided no text or marker changes were made of course). The collaboration function,
+// HasInfoChanged() calls this function.
+wxString ReduceStringToStructuredPuncts(wxString& inputStr)
+{
+	wxString bleached = _T("");
+	wxString hash = _T("#");
+	wxString space = _T(" ");
+	// This function is used only with adaptation text and/or free translation text, so we
+	// can assume target text punctuation characters
+	wxString charSet = MakeSpacelessPunctsString(gpApp, targetLang);
+	int spanLen = 0; // initialize
+	size_t inputStrLen = inputStr.size();
+	wxChar* pBuffStart = inputStr.GetWriteBuf(inputStrLen); // we only read it
+	wxChar* pEnd = pBuffStart + inputStrLen;
+	wxChar* ptr = pBuffStart; // ptr is our scanning pointer
+
+	while (ptr < pEnd)
+	{
+		if (IsWhiteSpace(ptr))
+		{
+			spanLen = ParseWhiteSpace(ptr);
+			bleached += space;
+			ptr = ptr + spanLen;
+		}
+		else if (IsNotOneOfNorSpaceAndIfSoGetSpan(ptr, pEnd, charSet, spanLen))
+		{
+			wxString out = wxString(ptr,(size_t)spanLen);
+			bleached += hash;
+			ptr = ptr + spanLen;
+		}
+		else if (IsOneOfAndIfSoGetSpan(ptr, pEnd, charSet, spanLen))
+		{
+			wxString out = wxString(ptr,(size_t)spanLen); // get the punctuation substring
+			bleached += out;
+			ptr = ptr + spanLen;
+		}
+	}
+	inputStr.UngetWriteBuf(inputStrLen);
+	return bleached;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	all characters preceding the first occurrence of a character from charSet. The character
 ///				from charSet and all characters following it in the inputStr are not returned.
@@ -1878,7 +2029,7 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 // because we don't use it in the reconstitute doc call for rebuilding the document when
 // the user changes punctuation settings)
 // Rationale for this function....
-// The overloaded SpanExluding(wxChar* ptr, ....) function is dangerous, as I only used it
+// The overloaded SpanExcluding(wxChar* ptr, ....) function is dangerous, as I only used it
 // to parse over a word as far as following punctuation - and that goes belly up if there
 // is an embedded punctuation character (which can happen if user changes punct settings)
 // so I've deprecated it; and the following ParseWordInwardsFromEitherEnd() replaces it.
@@ -5252,28 +5403,6 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	Tstr.Trim();
 	// don't have a final space, the caller will add one if it is needed
 	return Tstr;
-}
-
-wxString MakeSpacelessPunctsString(CAdapt_ItApp* pApp, enum WhichLang whichLang)
-{
-	wxString spacelessPuncts;
-	// BEW 11Jan11, added test here so that the function can be used on target text as
-	// well as on source text
-	if (whichLang == targetLang)
-	{
-		spacelessPuncts = pApp->m_punctuation[1];
-	}
-	else
-	{
-		spacelessPuncts = pApp->m_punctuation[0];
-	}
-	while (spacelessPuncts.Find(_T(' ')) != -1)
-	{
-		// remove all spaces, leaving only the list of punctation characters
-		spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
-	}
-	wxASSERT(!spacelessPuncts.IsEmpty());
-	return spacelessPuncts;
 }
 
 // BEW created 11Oct10, for support of improved doc version 5 functionality.

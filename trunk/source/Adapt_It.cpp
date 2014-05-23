@@ -15164,6 +15164,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
     
+	// Used when collaborating with PT or BE
+    m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
+
 	// Initialize for no clipboard adaptation mode turned on yet
 	m_bClipboardAdaptMode = FALSE;
 	m_nSaveSequNumForDocRestore = 0; // 0 is a safer default than -1

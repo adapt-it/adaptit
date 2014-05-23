@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.5.3 release 14 May 2014
+Version 6.5.3 release 22 May 2014
 ----------------------------------------------
 * Clipboard adaptation support. It is now possible to
 choose an "Adapt clipboard text" command on the Tools
@@ -43,7 +43,14 @@ undoing of the bridge, transferred across. Also, editing
 some words of the source text in Paratext or Bibledit 
 could, where there was a bridge just created, or just
 removed, cause doubled up and wrongly structured text
-to be copied over.
+to be copied over. And if markers (such as \q1 \q2 for 
+example) were added to the source text, they were not
+transferred to Paratext. All these problems are now fixed.
+* Collaboration mode did not support whole-book adapting 
+properly. This too is now fixed.
+* In free translation mode, if the use chose to join 
+a just-created free translation section to the
+preceding section, Adapt It crashed.
 
 ----------------------------------------------
 Version 6.5.2 release 18 December 2013
