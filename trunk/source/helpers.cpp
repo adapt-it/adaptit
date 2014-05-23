@@ -1945,32 +1945,36 @@ wxString ReduceStringToStructuredPuncts(wxString& inputStr)
 	wxString charSet = MakeSpacelessPunctsString(gpApp, targetLang);
 	int spanLen = 0; // initialize
 	size_t inputStrLen = inputStr.size();
-	wxChar* pBuffStart = inputStr.GetWriteBuf(inputStrLen); // we only read it
-	wxChar* pEnd = pBuffStart + inputStrLen;
-	wxChar* ptr = pBuffStart; // ptr is our scanning pointer
+	{	// scoped block for wxStringBuffer
+		wxStringBuffer pBuff(inputStr, inputStrLen); // we only read it
+		wxChar* pBuffStart = pBuff;
+//	wxChar* pBuffStart = inputStr.GetWriteBuf(inputStrLen); // not needed with wxStringBuffer
+		wxChar* pEnd = pBuffStart + inputStrLen;
+		wxChar* ptr = pBuffStart; // ptr is our scanning pointer
 
-	while (ptr < pEnd)
-	{
-		if (IsWhiteSpace(ptr))
+		while (ptr < pEnd)
 		{
-			spanLen = ParseWhiteSpace(ptr);
-			bleached += space;
-			ptr = ptr + spanLen;
+			if (IsWhiteSpace(ptr))
+			{
+				spanLen = ParseWhiteSpace(ptr);
+				bleached += space;
+				ptr = ptr + spanLen;
+			}
+			else if (IsNotOneOfNorSpaceAndIfSoGetSpan(ptr, pEnd, charSet, spanLen))
+			{
+				wxString out = wxString(ptr,(size_t)spanLen);
+				bleached += hash;
+				ptr = ptr + spanLen;
+			}
+			else if (IsOneOfAndIfSoGetSpan(ptr, pEnd, charSet, spanLen))
+			{
+				wxString out = wxString(ptr,(size_t)spanLen); // get the punctuation substring
+				bleached += out;
+				ptr = ptr + spanLen;
+			}
 		}
-		else if (IsNotOneOfNorSpaceAndIfSoGetSpan(ptr, pEnd, charSet, spanLen))
-		{
-			wxString out = wxString(ptr,(size_t)spanLen);
-			bleached += hash;
-			ptr = ptr + spanLen;
-		}
-		else if (IsOneOfAndIfSoGetSpan(ptr, pEnd, charSet, spanLen))
-		{
-			wxString out = wxString(ptr,(size_t)spanLen); // get the punctuation substring
-			bleached += out;
-			ptr = ptr + spanLen;
-		}
-	}
-	inputStr.UngetWriteBuf(inputStrLen);
+	}	// end of scoped block for wxStringBuffer
+//	inputStr.UngetWriteBuf(inputStrLen); // not needed with wxStringBuffer
 	return bleached;
 }
 
