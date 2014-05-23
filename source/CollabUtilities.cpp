@@ -5147,7 +5147,18 @@ bool GetMatchedChunksUsingVerseInfArrays(
 		// same bridge is in both texts. Similarly for a partial, like \v 7b, if it is in
 		// both texts.
 		postEditLoopIndex++;
-		postEditVInf = (VerseInf*)postEditVerseArr.Item(postEditLoopIndex);
+		// We may have just exceeded the maximum legal index value, so test, and if so
+		// break from the loop and we'd rely on the FALSE being returned at function end
+		// so that the caller will handle the last bit of data for transfer correctly
+		if (postEditLoopIndex >= postEditVerseArr_Count)
+		{
+			break;
+		}
+		else
+		{
+			// Keep iterating
+			postEditVInf = (VerseInf*)postEditVerseArr.Item(postEditLoopIndex);
+		}
 	}
 	while (postEditLoopIndex < postEditVerseArr_Count);
 
@@ -6700,22 +6711,48 @@ wxString GetUpdatedText_UsfmsChanged(
 		} // end of TRUE block for test: if (postEditVerseNumStr == fromEditorVerseNumStr)
 		else
 		{
-			// The two verse strings are not a match. Delineate the matched wrapping chunks which
-			// will subsume their differences within them. When we do this, we assume that
-			// the AI data is to be retained, at the expense of whatever the PT chunk holds
+            // The two verse strings are not a match, or we've come to the document's end
+            // with the returned postEditEnd and fromEditorEnd values not set, returning
+            // FALSE. Delineate the matched wrapping chunks which will subsume their
+            // differences within them. When we do this, we assume that the AI data is to
+            // be retained, at the expense of whatever the PT chunk holds
 			bOK = GetMatchedChunksUsingVerseInfArrays(postEditStart, fromEditorStart, 
 						postEditMd5Arr, fromEditorMd5Arr, postEditEnd, fromEditorEnd);
-			// Do the transfer of AI data to PT or BE, overwriting the external editor's
-			// material for the verse(s) chunk delimited by the above call
-			MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
-			MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
-			substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
-						pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
-			newText += substring;
+			if (bOK)
+			{
+				// Do the transfer of AI data to PT or BE, overwriting the external editor's
+				// material for the verse(s) chunk delimited by the above call
+				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				newText += substring;
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			wxLogDebug(_T("LOOP, MISMATCH function: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
-				postEditStart, postEditEnd, fromEditorStart, fromEditorEnd, substring.c_str());
+				wxLogDebug(_T("LOOP, MISMATCH function: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
+					postEditStart, postEditEnd, fromEditorStart, fromEditorEnd, substring.c_str());
 #endif
+			}
+			else
+			{
+				// Set the end indices to the end of the arrays, so that everything
+				// remaining gets transferred to PT or BE
+				postEditEnd = (int)postEditMd5Arr_Count - 1;
+				fromEditorEnd = (int)fromEditorMd5Arr_Count - 1;
+				wxASSERT(postEditStart <= postEditEnd);
+				wxASSERT(fromEditorStart <= fromEditorEnd);
+
+				// Do the transfer of AI data to PT or BE, overwriting the external editor's
+				// material for the verse(s) chunk delimited by the above call
+				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				newText += substring;
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+				wxLogDebug(_T("LOOP, MISMATCH function FALSE returned: AI chunk overwrites PT, postEdit [%d,%d]  fromEditor [%d,%d] Substring: %s"),
+					postEditStart, postEditEnd, fromEditorStart, fromEditorEnd, substring.c_str());
+#endif
+			}
 		} // end of else block for test: if (postEditVerseNumStr == fromEditorVerseNumStr)
 
         // Advance indices ready for iteration of loop line - it's the preEditStart,

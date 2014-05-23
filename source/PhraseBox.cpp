@@ -27,6 +27,7 @@
 // defines for debugging purposes
 //#define _FIND_DELAY
 //#define _AUTO_INS_BUG
+//#define LOOKUP_FEEDBACK
 
 
 #ifndef WX_PRECOMP
@@ -764,12 +765,12 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 		}
 		else // did not get a translation, or a gloss when glossing is current
 		{
-#if defined(_DEBUG)
+#if defined(_DEBUG) & defined(LOOKUP_FEEDBACK)
 			wxLogDebug(_T("HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan() Before MakeCopy...: sn = %d , key = %s , m_targetPhrase = %s"),
 				pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str());
 #endif
 			MakeCopyOrSetNothing(pApp, pView, pNewPile, bWantSelect);
-#if defined(_DEBUG)
+#if defined(_DEBUG) & defined(LOOKUP_FEEDBACK)
 			wxLogDebug(_T("HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan() After MakeCopy...: sn = %d , key = %s , m_targetPhrase = %s"),
 				pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile->GetSrcPhrase()->m_key.c_str(), pApp->m_targetPhrase.c_str());
 #endif

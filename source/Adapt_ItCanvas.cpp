@@ -60,6 +60,7 @@
 #include "FreeTrans.h"
 
 //#define _FT_ADJUST
+//#define CAPTUREMOUSE
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress;
@@ -1159,7 +1160,9 @@ x:					CCell* pCell = 0;
 			CaptureMouse(); //on Win32, SetCapture() is called via CaptureMouse()
 							// and DoCaptureMouse() in wxWidget sources wincmn.cpp
 							// and window.cpp
+#if defined(_DEBUG) && defined(CAPTUREMOUSE)
 			wxLogDebug(_T("CaptureMouse."));
+#endif
 		}
 
 	t:	if (pCell == NULL)
