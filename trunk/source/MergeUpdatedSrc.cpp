@@ -7486,18 +7486,22 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 			break;
 		case singleton_matches_new_conjoined:
 		case conjoined:
+			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case manual_placeholder:
+			// BW enhanced 21May14 to support external editor punctuation-only changes
 			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case freetrans_widener:
+			// BW not enhanced 21May14 - checked, and nothing needs to be done
 			bOK = TransferToFreeTransWidener(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case placeholder_in_retrans:
+			// BW not enhanced 21May14 - checked, and nothing needs to be done
 			bOK = TransferToPlaceholderInRetranslation(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
@@ -7611,10 +7615,8 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 	wxString follPunctsOld = pOldSP->m_follPunct;
 	wxString follOuterPunctsOld = pOldSP->GetFollowingOuterPunct();
 	wxString prePunctsNew, follPunctsNew, follOuterPunctsNew;
-	bool bPrecedingPunctsChanged = FALSE; // initialize
-	bool bFollowingPunctsChanged = FALSE;  // ditto
-
-
+	//bool bPrecedingPunctsChanged = FALSE; // initialize
+	//bool bFollowingPunctsChanged = FALSE;  // ditto
 
 	// test: is there no  ~ (USFM fixedspace marker) in pOldSP?
 	if (!IsFixedSpaceSymbolWithin(pOldSP))
@@ -7694,39 +7696,22 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			follPunctsNew = pOldNextSP->m_follPunct;
 			follOuterPunctsNew = pOldNextSP->GetFollowingOuterPunct();
 
-			// BEW 21May14 Determine if a punctuation change happened
+			// BEW 21May14 Determine if a punctuation change happened, set the flag
+			// m_bPunctChangesDetectedInSourceTextMerge particularly
 			if (prePunctsOld != prePunctsNew)
 			{
-				bPrecedingPunctsChanged = TRUE;
+				//bPrecedingPunctsChanged = TRUE;
 				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
 			}
 			if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
 			{
-				bFollowingPunctsChanged = TRUE;
+				//bFollowingPunctsChanged = TRUE;
 				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
 			}
-
 			// BEW 21May14, Get the m_targetStr members updated; use the following puncts
-			// on 1st, and preceding puncts on 2nd, to get the updates right
-			if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
-			{
-				wxString targetStr = pOldSP->m_adaption;
-				if (bPrecedingPunctsChanged) // on the first CSourcePhrase
-				{
-					targetStr = prePunctsNew + targetStr;
-					targetStr += pOldSP->m_follPunct;
-					targetStr += pOldSP->GetFollowingOuterPunct();
-				}
-				pOldSP->m_targetStr = targetStr;
-				targetStr = pOldNextSP->m_adaption;
-				if (bFollowingPunctsChanged) // on the second CSourcePhrase
-				{
-					targetStr = pOldNextSP->m_precPunct + targetStr;
-					targetStr += follPunctsNew + follOuterPunctsNew;
-				}
-				pOldNextSP->m_targetStr = targetStr;
-			}
-			
+			// on 1st, and preceding puncts on 2nd, to get the updates right - no need for
+			// this block, since the earlier code does this job, so I've removed it
+						
 			return TRUE;
 		}
 		else
@@ -7782,6 +7767,29 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			CSourcePhrase* pNewDeepCopy = new CSourcePhrase(*pNewSP);
 			pNewDeepCopy->DeepCopy();
 
+
+			// BEW 21May14 get the new punctuation, ignore medial puncts - there are not
+			// likely to be any in what was a conjoining
+			prePunctsNew = pNewWordFirst->m_precPunct;
+			follPunctsNew = pNewWordLast->m_follPunct;
+			follOuterPunctsNew = pNewWordLast->GetFollowingOuterPunct();
+
+			// BEW 21May14 Determine if a punctuation change happened, set the flag
+			// m_bPunctChangesDetectedInSourceTextMerge in particular
+			if (prePunctsOld != prePunctsNew)
+			{
+				//bPrecedingPunctsChanged = TRUE;
+				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+			}
+			if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
+			{
+				//bFollowingPunctsChanged = TRUE;
+				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+			}
+			// BEW 21May14, the m_targetStr members are in process of being updated
+			// correctly so no additional code is required in support of the above
+			// additions
+			
 			// now replace pOldSP with pNewDeepCopy and delete pOldSP
 #ifdef _WXDEBUG__
 			CSourcePhrase** pDetached = arrOld.Detach(oldIndex);
@@ -7821,6 +7829,29 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// FALSE, FALSE, is: bool bFlagsToo, bool bClearAfterwards
 			TransferFollowingMembers(pNewNextSP, pOldSP, FALSE, FALSE);
 
+			// BEW 21May14 get the new punctuation, ignore medial puncts - there are not
+			// likely to be any in what was a conjoining
+			prePunctsNew = pNewSP->m_precPunct;
+			follPunctsNew = pNewNextSP->m_follPunct;
+			follOuterPunctsNew = pNewNextSP->GetFollowingOuterPunct();
+
+			// BEW 21May14 Determine if a punctuation change happened, set the 
+			// m_bPunctChangesDetectedInSourceTextMerge in particular
+			if (prePunctsOld != prePunctsNew)
+			{
+				//bPrecedingPunctsChanged = TRUE;
+				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+			}
+			if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
+			{
+				//bFollowingPunctsChanged = TRUE;
+				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+			}
+			// BEW 21May14, Get the m_targetStr members updated; use the following puncts
+			// on 1st, and preceding puncts on 2nd, to get the updates right -- doing this
+			// is not needed, it's already in process of being done - so I've removed the
+			// block of code from here that would do that job otherwise
+			
 			// Now we need to rebuild pOldSP->m_srcPhrase, and pOldSP->m_targetStr with
 			// the new punctuation (possibly changed) settings, and also the same members
 			// in the instances stored in pOldSP->m_pSavedWords.
@@ -8158,6 +8189,13 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 
 		oldDoneToIncluding = oldLastPlaceholder;
 		newDoneToIncluding = newIndex - 1;
+
+		// BEW added 21May14, since a punctuation change originating from an edit in the
+		// external editor in this location is likely to be rare, it's not worth having
+		// extra testing code. More simple just to force the AI data, if there is a
+		// manual placeholder in the verse, to unilaterally overwrite the data in the
+		// external editor's verse
+		gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE;
 		return TRUE;
 	}
     // the non-placeholder which follows the only or last placeholder will NOT have been
