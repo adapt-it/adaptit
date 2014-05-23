@@ -19,6 +19,13 @@ the task. The knowledge base used is the one which is
 active for the currently Adapt It project. Adaptations
 flow into it in the normal way and persist after the
 temporary adapting (and or free translating) is finished.
+* Enhanced support for preserving changes when, in 
+collaboration mode, the changes are transferred back to
+Paratext or Bibledit. The algorithms were rewritten, and
+now support transferring punctuation when punctuation 
+is the only change made by the user in the Paratext or 
+Bibledit source text project; also, changes made in the 
+same place in USFM markup, are now correctly transferred.
 ----------------------------------------------
 Bug fixes in 6.5.3
 ----------------------------------------------
