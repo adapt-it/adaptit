@@ -3549,11 +3549,11 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 		wxString targetStr = pTo->m_adaption;
 		if (bPrecedingPunctsChanged)
 		{
-			targetStr = prePunctsNew + targetStr;
+			targetStr = GetConvertedPunct(prePunctsNew) + targetStr;
 		}
 		if (bFollowingPunctsChanged)
 		{
-			targetStr += follPunctsNew + follOuterPunctsNew;
+			targetStr += GetConvertedPunct(follPunctsNew) + GetConvertedPunct(follOuterPunctsNew);
 		}
 		pTo->m_targetStr = targetStr;
 	}
@@ -7646,7 +7646,7 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// punctuation changes will affect m_srcPhrase and m_targetStr in both pOldSP
 			// and pOldNextSP, so generate the relevant punctuated strings using the m_key
 			// and m_adaption members (both are punctuation-less members) as starting points
-			wxString srcPhrase = pOldSP->m_precPunct;
+			wxString srcPhrase = GetConvertedPunct(pOldSP->m_precPunct);
 			srcPhrase += pOldSP->m_key;
 			srcPhrase += pOldSP->m_follPunct;
 			srcPhrase += pOldSP->GetFollowingOuterPunct();
@@ -7661,10 +7661,10 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			wxString tgtStr;
 			if (!pOldSP->m_adaption.IsEmpty())
 			{
-				tgtStr = pOldSP->m_precPunct;
+				tgtStr = GetConvertedPunct(pOldSP->m_precPunct);
 				tgtStr += pOldSP->m_adaption;
-				tgtStr += pOldSP->m_follPunct;
-				tgtStr += pOldSP->GetFollowingOuterPunct();
+				tgtStr += GetConvertedPunct(pOldSP->m_follPunct);
+				tgtStr += GetConvertedPunct(pOldSP->GetFollowingOuterPunct());
 				pOldSP->m_targetStr = tgtStr;
 			}
 			else
@@ -7674,10 +7674,10 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// finally, the same for pOldNext...
 			if (!pOldNextSP->m_adaption.IsEmpty())
 			{
-				tgtStr = pOldNextSP->m_precPunct;
+				tgtStr = GetConvertedPunct(pOldNextSP->m_precPunct);
 				tgtStr += pOldNextSP->m_adaption;
-				tgtStr += pOldNextSP->m_follPunct;
-				tgtStr += pOldNextSP->GetFollowingOuterPunct();
+				tgtStr += GetConvertedPunct(pOldNextSP->m_follPunct);
+				tgtStr += GetConvertedPunct(pOldNextSP->GetFollowingOuterPunct());
 				pOldNextSP->m_targetStr = tgtStr;
 			}
 			else
@@ -7748,16 +7748,16 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			CSourcePhrase* pWordLast = posLast->GetData();
 
 			// first, rebuild pNewWordFirst->m_targetStr, starting from pWordFirst->adaption
-			pNewWordFirst->m_targetStr = pNewWordFirst->m_precPunct;
+			pNewWordFirst->m_targetStr = GetConvertedPunct(pNewWordFirst->m_precPunct);
 			pNewWordFirst->m_targetStr += pWordFirst->m_adaption;
-			pNewWordFirst->m_targetStr += pNewWordFirst->m_follPunct;
-			pNewWordFirst->m_targetStr += pNewWordFirst->GetFollowingOuterPunct();
+			pNewWordFirst->m_targetStr += GetConvertedPunct(pNewWordFirst->m_follPunct);
+			pNewWordFirst->m_targetStr += GetConvertedPunct(pNewWordFirst->GetFollowingOuterPunct());
 
 			// next, rebuild pNewWordLast->m_targetStr, starting from pWordLast->adaption
-			pNewWordLast->m_targetStr = pNewWordLast->m_precPunct;
+			pNewWordLast->m_targetStr = GetConvertedPunct(pNewWordLast->m_precPunct);
 			pNewWordLast->m_targetStr += pWordLast->m_adaption;
-			pNewWordLast->m_targetStr += pNewWordLast->m_follPunct;
-			pNewWordLast->m_targetStr += pNewWordLast->GetFollowingOuterPunct();
+			pNewWordLast->m_targetStr += GetConvertedPunct(pNewWordLast->m_follPunct);
+			pNewWordLast->m_targetStr += GetConvertedPunct(pNewWordLast->GetFollowingOuterPunct());
 
 			// finally, rebuild pNewSP->m_targetStr by concatenating the previous two with ~
 			pNewSP->m_targetStr = pNewWordFirst->m_targetStr + _T("~");
@@ -7871,10 +7871,10 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// Next, rebuild pWordFirstSP->m_targetStr from its m_adaption member
 			if (!pWordFirstSP->m_adaption.IsEmpty())
 			{
-				pWordFirstSP->m_targetStr = pNewSP->m_precPunct;
+				pWordFirstSP->m_targetStr = GetConvertedPunct(pNewSP->m_precPunct);
 				pWordFirstSP->m_targetStr += pWordFirstSP->m_adaption;
-				pWordFirstSP->m_targetStr += pNewSP->m_follPunct;
-				pWordFirstSP->m_targetStr += pNewSP->GetFollowingOuterPunct();
+				pWordFirstSP->m_targetStr += GetConvertedPunct(pNewSP->m_follPunct);
+				pWordFirstSP->m_targetStr += GetConvertedPunct(pNewSP->GetFollowingOuterPunct());
 			}
 			else
 			{
@@ -7883,10 +7883,10 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// Next, rebuild pWordLastSP->m_targetStr from its m_adaption member
 			if (!pWordLastSP->m_adaption.IsEmpty())
 			{
-				pWordLastSP->m_targetStr = pNewNextSP->m_precPunct;
+				pWordLastSP->m_targetStr = GetConvertedPunct(pNewNextSP->m_precPunct);
 				pWordLastSP->m_targetStr += pWordLastSP->m_adaption;
-				pWordLastSP->m_targetStr += pNewNextSP->m_follPunct;
-				pWordLastSP->m_targetStr += pNewNextSP->GetFollowingOuterPunct();
+				pWordLastSP->m_targetStr += GetConvertedPunct(pNewNextSP->m_follPunct);
+				pWordLastSP->m_targetStr += GetConvertedPunct(pNewNextSP->GetFollowingOuterPunct());
 			}
 			else
 			{
@@ -8181,10 +8181,10 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 		// TRUE, TRUE is:  bool bFlagsToo, bool bClearAfterwards
 		TransferFollowingMembers(pPrevSrcPhrase, pPlaceholder, TRUE, TRUE);
 
-		wxString tgtStr = pPlaceholder->m_precPunct;
+		wxString tgtStr = GetConvertedPunct(pPlaceholder->m_precPunct);
 		tgtStr += pPlaceholder->m_adaption;
-		tgtStr += pPlaceholder->m_follPunct;
-		tgtStr += pPlaceholder->GetFollowingOuterPunct();
+		tgtStr += GetConvertedPunct(pPlaceholder->m_follPunct);
+		tgtStr += GetConvertedPunct(pPlaceholder->GetFollowingOuterPunct());
 		pPlaceholder->m_targetStr = tgtStr;
 
 		oldDoneToIncluding = oldLastPlaceholder;
@@ -8382,7 +8382,7 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 		return FALSE;
 	}
 	// the indices are in range, get the CSourcePhrase instances which are matched
-	CAdapt_ItView* pView = gpApp->GetView();
+	//CAdapt_ItView* pView = gpApp->GetView();
 	CSourcePhrase* pOldSP = arrOld.Item(oldIndex);
 	CSourcePhrase* pNewSP = arrNew.Item(newIndex);
 #if defined( myLogDebugCalls) && defined(_DEBUG)
@@ -8434,9 +8434,28 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 	// view's member function MakeTargetStringIncludingPunctuation() for that job; but
 	// don't do it if the pOldSP instance is in a retranslation
 	pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
+	/* 
+	// BEW deprecated 21May14, it's not 100% trustworthy for here - so use the comparisons
+	// above and rebuild from those
 	if (!pOldSP->m_bRetranslation)
 	{
 		pView->MakeTargetStringIncludingPunctuation(pOldSP, pOldSP->m_targetStr);
+	}
+	*/
+	// BEW 21May14, changes to support punctuation changes at start of word and/or
+	// at end of word
+	if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
+	{
+		wxString targetStr = pOldSP->m_adaption;
+		if (bPrecedingPunctsChanged)
+		{
+			targetStr = GetConvertedPunct(prePunctsNew) + targetStr;
+		}
+		if (bFollowingPunctsChanged)
+		{
+			targetStr += GetConvertedPunct(follPunctsNew) + GetConvertedPunct(follOuterPunctsNew);
+		}
+		pOldSP->m_targetStr = targetStr;
 	}
 	return TRUE;
 }
