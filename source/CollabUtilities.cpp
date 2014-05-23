@@ -6649,12 +6649,6 @@ wxString GetUpdatedText_UsfmsChanged(
 		fromEditorVerseNumStr = GetNumberFromChapterOrVerseStr(fromEditorMd5Line);
 		if (postEditVerseNumStr == fromEditorVerseNumStr)
 		{
-#if defined(_DEBUG)
-			if (postEditStart == 20) // the \v 8 line
-			{
-				int break_here = 1;
-			}
-#endif
 			// Matched verse strings, or matched verse bridges, or matched part verses -
 			// whichever is the case, we test for structure or text changes, and then
 			// either transfer the AI information, or retain the PT or BE information, as
