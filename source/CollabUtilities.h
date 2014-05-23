@@ -124,9 +124,6 @@ class CSourcePhrase;
 	// is simple
 	bool			DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex);
 	void			DeleteAllVerseInfStructs(wxArrayPtrVoid& arr);
-	TypeOfMatch		DelineateComplexChunksAssociation(const wxArrayString& postEditMd5Arr, 
-							const wxArrayString& fromEditorMd5Arr, int postEditStart, 
-							int& postEditEnd, int fromEditorStart, int& fromEditorEnd);
 	bool			GetNextVerseLine(const wxArrayString& usfmText, int& index);
 	bool			GetAnotherVerseOrChapterLine(const wxArrayString& usfmText, int& index, wxString& chapterStr);
 	wxString		GetInitialUsfmMarkerFromStructExtentString(const wxString str);
@@ -136,7 +133,6 @@ class CSourcePhrase;
 	wxString		GetNumberFromChapterOrVerseStr(const wxString& verseStr);
 	void			GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart, 
 												wxArrayPtrVoid& verseLinesArr);
-	Complexity		SetComplexity(bool bPostEditIsComplex, bool bFromEditorIsComplex);
 	void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType, 
 								wxArrayString& usfmStructureAndExtentArray,
 								wxString collabCompositeProjectName,
@@ -145,39 +141,15 @@ class CSourcePhrase;
 								wxArrayString& chapterList,
 								wxArrayString& statusList,
 								bool& bBookIsEmpty);
-	//void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
-	//							wxArrayString& chapterList, wxArrayString& statusList);
 	wxString GetStatusOfChapter(enum CollabTextType cTextType, wxString collabCompositeProjectName,
 			const wxArrayString &usfmStructureAndExtentArray, int indexOfChItem, wxString bookFullName,
 			bool& bChapterIsEmpty, wxString& nonDraftedVerses);
-	bool ScanAllForMatch(enum SearchWhere whichArray,
-		int	  haltedAtVerseInfIndex, // the caller has halted at a VerseInf which potentially
-									 // could be a matchable location from the other array;
-									 // advance it one by one each call until we get a match
-		int&  matchedOtherVerseInfIndex, // return the index in the 'other' array (one of those below)
-		// which gives an exact match (whether simple or complex), -1 if no match found
-		bool& bHaltedIsComplex, // return whether or not the halt location VerseInf is simple or complex
-		bool& bOtherIsComplex, // return whether or not the matched VerseInf is simple or complex
-		const wxArrayPtrVoid& postEditVerseArr, // the temporary array of VerseInf structs for postEdit data
-		const wxArrayPtrVoid& fromEditorVerseArr); // the temporary array of VerseInf structs for fromEditor data
-
-	VerseInf* GetNextVerseInf(SearchWhere whichArray,
-		int   startAtIndex, // the index, in the postEditMd5Arr or fromEditorMd5Arr array at or after which
-							// the 'next' VerseInf instance in the relevant one of the
-							// passed in two arrays which follow, is to be found
-		const wxArrayPtrVoid& postEditVerseArr, // the temporary array of VerseInf structs for postEdit data
-		const wxArrayPtrVoid& fromEditorVerseArr); // the temporary array of VerseInf structs for fromEditor data
 
 	bool FindMatchingVerseInf(SearchWhere whichArray,
 		VerseInf*   matchThisOne, // the struct instance for what a matchup is being tried in the being-scanned array
 		int&		atIndex, // the index into the being-scanned VerseInf array at which the matchup succeeded
 		const wxArrayPtrVoid& postEditVerseArr, // the temporary array of VerseInf structs for postEdit data
 		const wxArrayPtrVoid& fromEditorVerseArr); // the temporary array of VerseInf structs for fromEditor data
-
-	bool AreTheMd5LinesMatched(int postEditIndex,
-	    int  fromEditorIndex,
-		const wxArrayString& postEditMd5Arr, // full md5 lines array for AI postEdit text
-		const wxArrayString& fromEditorMd5Arr); // full md5 lines array for PT or BE fromEditor text
 
 	bool GetMatchedChunksUsingVerseInfArrays(int postEditStart, // index of non-matched verse md5 line in postEditMd5Arr
 		int   fromEditorStart, // index of non-matched verse md5 line in fromEditorMd5Arr
@@ -186,17 +158,32 @@ class CSourcePhrase;
 		int&  postEditEnd,     // points at index in the md5 array of last postEdit field in the matched chunk
 		int&  fromEditorEnd	); // points at index into the md5 array of last fromEditor field in the matched chunk
 
+	bool HasInfoChanged(
+		int preEditIndex, // index of current preEdit text verse md5 line in preEditMd5Arr
+		int postEditIndex, // index of current postEdit text verse md5 line in postEditMd5Arr
+		int fromEditorIndex, // index of current fromEditor verse md5 line in fromEditorMd5Arr
+		const wxArrayString& preEditMd5Arr, // full one-chapter md5 lines array for AI preEdit text
+		const wxArrayString& postEditMd5Arr, // full one-chapter md5 lines array for AI postEdit text
+		const wxArrayString& fromEditorMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
+		int&  preEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+						  // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		int&  postEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+						   // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		int&  fromEditorEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
+						     // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		wxArrayPtrVoid& postEditOffsetsArr, // needed so we can grab the postEdit verse's text
+		wxArrayPtrVoid& fromEditorOffsetsArr, // needed so we can grab the fromEditor verse's text
+		const wxChar* pPostEditBuffer, // start of the postEdit text buffer
+		wxChar* pPostEditEnd,   // end of the postEdit text buffer
+		const wxChar* pFromEditorBuffer, // start of the fromEditor text buffer
+		wxChar* pFromEditorEnd);    // end of the fromEditor text buffer
+
 
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
-	int				FindMatchingVerseNumInOtherArray(const wxArrayPtrVoid& verseInfArr, wxString& verseNum,
-												wxString chapterStr);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
 	void			InitializeVerseAnalysis(VerseAnalysis& rVerseAnal);
 	bool			IsChapterLine(const wxArrayString& usfmText, int index, wxString& chapterStr);
 	bool			IsVerseLine(const wxArrayString& usfmText, int index);
-
-	bool			IsComplexVersificationLine(const wxArrayString& md5Arr, size_t lineIndex);
-	bool			IsComplexVersificationLine(const wxString& verseLineStr);
 
 	// The next subset are the main workhorses for the creation of the updated text...
 	
@@ -217,10 +204,10 @@ class CSourcePhrase;
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
 							wxArrayPtrVoid& fromEditorOffsetsArr);
-	wxString		GetUpdatedText_UsfmsChanged(wxString& preEditText, wxString& postEditText, 
-							wxString& fromEditorText, wxArrayString& preEditMd5Arr, 
-							wxArrayString& postEditMd5Arr, wxArrayString& fromEditorMd5Arr, 
-							wxArrayPtrVoid& postEditOffsetsArr, wxArrayPtrVoid& fromEditorOffsetsArr);
+	wxString		GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText, 
+							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
+							wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
+							wxArrayPtrVoid& fromEditorOffsetsArr);
 	////////////////// end of those for analysis of texts //////////////////////////
 
 
@@ -280,7 +267,6 @@ class CSourcePhrase;
 	wxString		GetTextFromFileInFolder(CAdapt_ItApp* pApp, wxString folderPath, wxString& fileTitle);
 	wxString		GetTextFromFileInFolder(wxString folderPathAndName); // an override of above function
 	wxString		GetShortNameFromProjectName(wxString projName);
-	//wxString		GetFullNameFromProjectName(wxString projName); // unused
 	wxString		GetLanguageNameFromProjectName(wxString projName);
 	void			GetAILangNamesFromAIProjectNames(const wxString aiProjectName, wxString& sourceLang, wxString& targetLang);
 	// The next three are the meaty ones, which together get the updated text back to the

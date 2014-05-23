@@ -113,12 +113,6 @@ protected:
 	void OnLBBookSelected(wxCommandEvent& WXUNUSED(event));
 	void OnLBChapterSelected(wxListEvent& WXUNUSED(event));
 	void OnLBDblClickChapterSelected(wxCommandEvent& WXUNUSED(event));
-	//void OnRadioBoxSelected(wxCommandEvent& WXUNUSED(event));
-
-	//bool DoChangeProjects();
-	//bool CollabProjectsExistAsAIProject(wxString LanguageNameSrc, 
-	//							wxString LanguageNameTgt, wxString& aiProjectFolderName,
-	//							wxString& aiProjectFolderPath);
 	void RecordArrayDataForLastUsfm();
 	void GetChapterListAndVerseStatusFromTargetBook(wxString targetBookFullName, 
 								wxArrayString& chapterList, wxArrayString& statusList);
@@ -128,17 +122,11 @@ protected:
 	wxString GetBareChFromLBChSelection(wxString lbChapterSelected);
 	EthnologueCodePair* MatchAIProjectUsingEthnologueCodes(wxString& editorSrcLangCode,
 								wxString& editorTgtLangCode);
-
 private:
 	bool m_bTextOrPunctsChanged;
 	bool m_bUsfmStructureChanged;
 	CAdapt_ItApp* m_pApp;
-	// class attributes
-	// wxString m_stringVariable;
-	// bool m_bVariable;
 	
-	// other class attributes
-
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
 	

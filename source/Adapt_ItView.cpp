@@ -14505,7 +14505,7 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
                     // happen only at export time, because markers are removed from needing
                     // to be handled explicitly until then - when they have to be put back
                     // in the right spots in order to export correct USFM markup for the
-                    // target text, or glosses-as-text export)
+                    // target text, or glosses-as-text export), will show
 					if (!pSrcPhrase->m_lastAdaptionsPattern.IsEmpty())
 					{
 						// m_lastAdaptionsPattern is not empty, therefore it contains the

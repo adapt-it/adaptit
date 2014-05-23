@@ -805,6 +805,15 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	if (newSPCount == 0)
 		return;
 
+	// BEW 21May14, added to support detection of punctuation changes done in the external
+	// editor's source text project - so that if these are the only changes, the
+	// GetUpdatedText_USFMsChanged() function will be called (rather than
+	// GetUpdatedText_USFMsUnchanged() - which fails to get such punctuation changes
+	// returned to the external editor's adaptation text), so that the punctuation changes
+	// will, where they occur, trigger AI overwriting the external editor's verse with its
+	// own verse and so the punct changes end up being reflected back in the external editor
+	gpApp->m_bPunctChangesDetectedInSourceTextMerge = FALSE; // initialize
+	
 	// do the merger of the two arrays
 	MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
 }
@@ -3448,6 +3457,24 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	int newStartAt = newIndex;
     int newEndAt = newIndex + pTo->m_nSrcWords - 1;
 
+	// BEW 21May14, added punctuation support for pre-phrase punctuation changes and
+	// post-phrase punctuation changes. Phrase-internal punctuation change support in the
+	// adaptation cannot be done algorithmically, because word orders and phrase length
+	// may not match the associated source text; only the prephrase and postphrase
+	// locations are deterministic. We'll try to support those two locations, and not
+	// attempt any phrase internal punctuation changes to adaptations. Free translations
+	// are another matter, their punctuation has to be manually typed within them, there
+	// is no way to support it other than by manual changes either in AI or PT (or BE)
+	// 
+	// Get the before-changes punctuation on the original merger; these are used for
+	// comparisons to what the fromEditor punctuations may be, to see if any have changed
+	wxString prePunctsOld = pTo->m_precPunct;
+	wxString follPunctsOld = pTo->m_follPunct;
+	wxString follOuterPunctsOld = pTo->GetFollowingOuterPunct();
+	wxString prePunctsNew, follPunctsNew, follOuterPunctsNew;
+	bool bPrecedingPunctsChanged = FALSE; // initialize
+	bool bFollowingPunctsChanged = FALSE;  // ditto
+
 	//int newCount = arrNew.GetCount();
 #if defined( _DEBUG)
 	int newRange = newEndAt - newStartAt + 1;
@@ -3459,8 +3486,32 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	int index;
 	for (index = newStartAt; index <= newEndAt; index++)
 	{
-		pRangeNew->Add(arrNew.Item(index));
+		// BEW changes 21May14 - see above
+		CSourcePhrase* pNew = (CSourcePhrase*)arrNew.Item(index);
+		pRangeNew->Add(pNew);
+		if (index == newStartAt)
+		{
+			prePunctsNew = pNew->m_precPunct;
+		}
+		if (index == newEndAt)
+		{
+			follPunctsNew = pNew->m_follPunct;
+			follOuterPunctsNew = pNew->GetFollowingOuterPunct();
+		}
 	}
+	// BEW 21May14, determine if punctuation was changed preceding first word or
+	// following the last word of the phrase
+	if (prePunctsOld != prePunctsNew)
+	{
+		bPrecedingPunctsChanged = TRUE;
+		gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+	}
+	if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
+	{
+		bFollowingPunctsChanged = TRUE;
+		gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+	}
+
 	int last = pRangeNew->GetCount() - 1;
 	// first, transfer preceding punctuation and markers to pTo, using the first
 	// CSourcePhrase in the new array's subrange as the source of the material to transfer;
@@ -3484,12 +3535,29 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 		pTo->m_srcPhrase = srcPhraseUpdated;
 	}
 
-	// The source text has been handled, and the m_targetStr members in m_pSavedWords
-	// also, but unfortunately we can't reliably rebuild the m_targetStr for the owning
-	// merged CSourcePhrase, because there may be fewer, the same or more words in the
-	// m_targetStr member, and the location of punctuation may be different. So all we can
-	// do is leave that member unchanged - it's up to the user to eyeball that instance
-	// and edit it using the phrase box if he's unsatisfied with it
+    // The source text has been handled, and original instances' m_targetStr members
+    // rebuilt, but unfortunately we can't reliably rebuild the m_targetStr for the owning
+    // merged CSourcePhrase, because there may be fewer, the same or more words in the
+    // m_targetStr member, and the location of punctuation may be different. So all we can
+    // do is leave that member unchanged - it's up to the user to eyeball that instance and
+    // edit it using the phrase box if he's unsatisfied with it
+    // 
+	// BEW 21May14, changes to support punctuation changes at start of first word and/or
+	// at end of last word of the merger
+	if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
+	{
+		wxString targetStr = pTo->m_adaption;
+		if (bPrecedingPunctsChanged)
+		{
+			targetStr = prePunctsNew + targetStr;
+		}
+		if (bFollowingPunctsChanged)
+		{
+			targetStr += follPunctsNew + follOuterPunctsNew;
+		}
+		pTo->m_targetStr = targetStr;
+	}
+
 
 	// do the storage of the updated CSourcePhrase instances in m_pSavedWords after
 	// adaptations were tranferred to the new instances first
@@ -7402,14 +7470,17 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 		switch (oldSPtype)
 		{
 		case singleton:
+			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex,
 									pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case singleton_in_retrans:
+			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex,
 									pSubspan, oldEndedAt, newEndedAt);
 			break;
 		case merger:
+			// BEW enhanced 21May14 to support external editor punctuation-only changes
 			bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldIndex,
 								newIndex, pSubspan, oldEndedAt, newEndedAt);
 			break;
@@ -7491,7 +7562,7 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 /// oldIndex, but the arrNew location has one at at newIndex; (2) both arrOld and arrNew
 /// have fixed space conjoinings at oldIndex and newIndex respectively; (3) arrOld has a
 /// conjoining at oldIndex, but arrNew no longer has one at newIndex.
-/// A complication is that we do not permit the number of CSourcePhrase instanes in arrOld
+/// A complication is that we do not permit the number of CSourcePhrase instances in arrOld
 /// and arrNew to be changed within the import merger process for edited source text. So
 /// we have to do the best we can with situations (1) and (3): what we'll do is just
 /// transfer punctuation and markers to what is in arrOld; for (2) we can instead copy the
@@ -7524,6 +7595,27 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	CSourcePhrase* pOldSP = arrOld.Item(oldIndex);
 	CSourcePhrase* pNewSP = arrNew.Item(newIndex);
+
+	// BEW 21May14, added punctuation support for pre-phrase punctuation changes and
+	// post-phrase punctuation changes. Phrase-internal punctuation change support in the
+	// adaptation cannot be done algorithmically, because word orders and phrase length
+	// may not match the associated source text; only the prephrase and postphrase
+	// locations are deterministic. We'll try to support those two locations, and not
+	// attempt any phrase internal punctuation changes to adaptations. Free translations
+	// are another matter, their punctuation has to be manually typed within them, there
+	// is no way to support it other than by manual changes either in AI or PT (or BE)
+	// 
+	// Get the before-changes punctuation on the original merger; these are used for
+	// comparisons to what the fromEditor punctuations may be, to see if any have changed
+	wxString prePunctsOld = pOldSP->m_precPunct;
+	wxString follPunctsOld = pOldSP->m_follPunct;
+	wxString follOuterPunctsOld = pOldSP->GetFollowingOuterPunct();
+	wxString prePunctsNew, follPunctsNew, follOuterPunctsNew;
+	bool bPrecedingPunctsChanged = FALSE; // initialize
+	bool bFollowingPunctsChanged = FALSE;  // ditto
+
+
+
 	// test: is there no  ~ (USFM fixedspace marker) in pOldSP?
 	if (!IsFixedSpaceSymbolWithin(pOldSP))
 	{
@@ -7595,6 +7687,46 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// get the indices right for where to kick off from in the parent
 			oldDoneToIncluding = oldNextIndex;
 			newDoneToIncluding = newIndex;
+
+			// BEW 21May14 get the new punctuation, ignore medial puncts - there are not
+			// likely to be any in what was a conjoining
+			prePunctsNew = pOldSP->m_precPunct;
+			follPunctsNew = pOldNextSP->m_follPunct;
+			follOuterPunctsNew = pOldNextSP->GetFollowingOuterPunct();
+
+			// BEW 21May14 Determine if a punctuation change happened
+			if (prePunctsOld != prePunctsNew)
+			{
+				bPrecedingPunctsChanged = TRUE;
+				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+			}
+			if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
+			{
+				bFollowingPunctsChanged = TRUE;
+				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+			}
+
+			// BEW 21May14, Get the m_targetStr members updated; use the following puncts
+			// on 1st, and preceding puncts on 2nd, to get the updates right
+			if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
+			{
+				wxString targetStr = pOldSP->m_adaption;
+				if (bPrecedingPunctsChanged) // on the first CSourcePhrase
+				{
+					targetStr = prePunctsNew + targetStr;
+					targetStr += pOldSP->m_follPunct;
+					targetStr += pOldSP->GetFollowingOuterPunct();
+				}
+				pOldSP->m_targetStr = targetStr;
+				targetStr = pOldNextSP->m_adaption;
+				if (bFollowingPunctsChanged) // on the second CSourcePhrase
+				{
+					targetStr = pOldNextSP->m_precPunct + targetStr;
+					targetStr += follPunctsNew + follOuterPunctsNew;
+				}
+				pOldNextSP->m_targetStr = targetStr;
+			}
+			
 			return TRUE;
 		}
 		else
@@ -8220,6 +8352,38 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 		pOldSP->m_key.c_str(), oldIndex, pNewSP->m_key.c_str(), newIndex);
 #endif
 	wxASSERT(pOldSP->m_key == pNewSP->m_key); // they should be in sync
+
+    // BEW 21May14, added punctuation support for preceding and following punctuation
+    // changes. Free translations are another matter, their punctuation has to be manually
+    // typed within them, there is no way to support it other than by manual changes either
+    // in AI or PT (or BE)
+	// 
+	// Get the before-changes punctuation on the original merger; these are used for
+	// comparisons to what the fromEditor punctuations may be, to see if any have changed
+	wxString prePunctsOld = pOldSP->m_precPunct;
+	wxString follPunctsOld = pOldSP->m_follPunct;
+	wxString follOuterPunctsOld = pOldSP->GetFollowingOuterPunct();
+	wxString prePunctsNew, follPunctsNew, follOuterPunctsNew;
+	bool bPrecedingPunctsChanged = FALSE; // initialize
+	bool bFollowingPunctsChanged = FALSE;  // ditto
+
+	// Determine what the punctuation settings are on pNewSP
+	prePunctsNew = pNewSP->m_precPunct;
+	follPunctsNew = pNewSP->m_follPunct;
+	follOuterPunctsNew = pNewSP->GetFollowingOuterPunct();
+
+	// BEW 21May14, determine if punctuation was changed preceding the word or
+	// following the word
+	if (prePunctsOld != prePunctsNew)
+	{
+		bPrecedingPunctsChanged = TRUE;
+		gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+	}
+	if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
+	{
+		bFollowingPunctsChanged = TRUE;
+		gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+	}
 
 	// transfer the USFM and punctuation data from the new instance to the old
 	// FALSE is: bool bClearAfterwards
@@ -10761,14 +10925,6 @@ bool AnalyseSPArrayChunks(SPArray* pInputArray, wxArrayPtrVoid* pChunkSpecs,
 		//bHasChapterPlusVerseChunk = FALSE;
 		//bHasSubheadingPlusVerseChunk = FALSE;
 		//bHasVerseChunk = FALSE;
-#if defined(_DEBUG)
-//		if (lastSuccessfulEndsAt == 71)
-//		{
-			// do one empty one, at 72 for verse 13, and then at 73 find out why it makes
-			// one which is [73,74] instead of two: [73,73] and [74,74]
-//			int halt_here = 1;
-//		}
-#endif
 		if (lastSuccessfulEndsAt != wxNOT_FOUND)
 		{
 			nStartsAt = lastSuccessfulEndsAt + 1;

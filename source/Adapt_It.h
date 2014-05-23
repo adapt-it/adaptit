@@ -184,7 +184,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 #define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 14
+#define VERSION_DATE_DAY 22
 #define VERSION_DATE_MONTH 05
 #define VERSION_DATE_YEAR 2014
 const wxString appVerStr(_T("6.5.3"));
@@ -3929,6 +3929,19 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	// wxASSERT(!m_collaborationEditor.IsEmpty()) before using it for %s string
 	// substitutions.
 	wxString m_collaborationEditor;
+	// BEW 21May14, the following boolean is to support when only punctuation changes are made in PT or
+	// BE's source text project; without it, the changes made it back to the AI document,
+	// but preEdit and postEdit md5 sums were identical  - so the lack of different md5sum
+	// values meant that GetUpdatedText_USFMsUnchanged() was used, and that meant that the
+	// in PT or in BE text already there gets retained, so that the user is left wondering
+	// why his punct changes don't make it back to the PT or BE adaptation project. So, we
+	// will detect punct changes in the fromPT or fromBE source text merge, and set this
+	// booean TRUE when at least one such change is detected. Then we'll use the TRUE
+	// value of it to force calling GetUpdatedText_USFMsChanged() - which will detect
+	// different md5sum values where the punctuation in the PT or BE verse differs from
+	// that in the AI verse, and do the required transfer of the in AI verse material
+	// overwriting that in the external editor's verse.
+	bool m_bPunctChangesDetectedInSourceTextMerge;
 
 	wxString m_CollabProjectForSourceInputs;
 	wxString m_CollabProjectForTargetExports;
