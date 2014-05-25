@@ -27,6 +27,7 @@
 		27462BDA17474EBE005605DA /* jsonreader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD417474EBE005605DA /* jsonreader.cpp */; };
 		27462BDB17474EBE005605DA /* jsonval.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD617474EBE005605DA /* jsonval.cpp */; };
 		27462BDC17474EBE005605DA /* jsonwriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27462BD817474EBE005605DA /* jsonwriter.cpp */; };
+		274AFAE11931B4DA0053BA13 /* GuesserAffixesListsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 274AFADF1931B4DA0053BA13 /* GuesserAffixesListsDlg.cpp */; };
 		27501E2E176FD106000AC145 /* md5_SB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27501E2C176FD106000AC145 /* md5_SB.cpp */; };
 		277D32EB18CD34700089CFC2 /* GuesserAffix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 277D32EA18CD34700089CFC2 /* GuesserAffix.cpp */; };
 		2783C43B16CC457300C902E7 /* Thread_ChangedSince.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2783C43916CC457300C902E7 /* Thread_ChangedSince.cpp */; };
@@ -227,6 +228,8 @@
 		27462BD717474EBE005605DA /* jsonval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonval.h; path = ../../source/jsonval.h; sourceTree = "<group>"; };
 		27462BD817474EBE005605DA /* jsonwriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = jsonwriter.cpp; path = ../../source/jsonwriter.cpp; sourceTree = "<group>"; };
 		27462BD917474EBE005605DA /* jsonwriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsonwriter.h; path = ../../source/jsonwriter.h; sourceTree = "<group>"; };
+		274AFADF1931B4DA0053BA13 /* GuesserAffixesListsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GuesserAffixesListsDlg.cpp; path = ../../source/GuesserAffixesListsDlg.cpp; sourceTree = "<group>"; };
+		274AFAE01931B4DA0053BA13 /* GuesserAffixesListsDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GuesserAffixesListsDlg.h; path = ../../source/GuesserAffixesListsDlg.h; sourceTree = "<group>"; };
 		27501E2C176FD106000AC145 /* md5_SB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = md5_SB.cpp; path = ../../source/md5_SB.cpp; sourceTree = "<group>"; };
 		27501E2D176FD106000AC145 /* md5_SB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = md5_SB.h; path = ../../source/md5_SB.h; sourceTree = "<group>"; };
 		277D32E018CD33B30089CFC2 /* GuesserAffix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GuesserAffix.h; path = ../../source/GuesserAffix.h; sourceTree = "<group>"; };
@@ -558,6 +561,8 @@
 			isa = PBXGroup;
 			children = (
 				277D32EA18CD34700089CFC2 /* GuesserAffix.cpp */,
+				274AFADF1931B4DA0053BA13 /* GuesserAffixesListsDlg.cpp */,
+				274AFAE01931B4DA0053BA13 /* GuesserAffixesListsDlg.h */,
 				270E0AE2184C0D91005FAB50 /* FreeTransSplitterDlg.cpp */,
 				277D32E518CD33B30089CFC2 /* Thread_DoEntireKbDeletion.h */,
 				277D32E018CD33B30089CFC2 /* GuesserAffix.h */,
@@ -1184,6 +1189,7 @@
 				C8D7E60C183DAF090099C11A /* Thread_BulkPseudoDelete.cpp in Sources */,
 				C8D7E60D183DAF090099C11A /* Thread_DoEntireKbDeletion.cpp in Sources */,
 				C8D7E610183DAF730099C11A /* KbSharingSetup.cpp in Sources */,
+				274AFAE11931B4DA0053BA13 /* GuesserAffixesListsDlg.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
