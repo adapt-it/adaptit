@@ -1510,6 +1510,33 @@ x:					CCell* pCell = 0;
 						}
 					}
 
+					// BEW 27May14, the following actions, in free translation mode,
+					// produced a crash:
+					// 1) finished entering text in a free translation early in document
+					// (actually at a word in 1:1 of James, but the actual location is irrelevant)
+					// 2) did nothing to make the active free translation be stored, but
+					// just navigated to much later on (most of the doc is unadapted)  to
+					// a little bit of adapted stuff in a \s field immediately prior to ch
+					// 2:1, although exactly where is also irrelevant, the bug happens if
+					// the click is at any place other than immediately after the old
+					// current section of free translation,
+					// 3) at the clicked location, only the word clicked because a new
+					// section, and attempts to Lengthen did nothing (the pile array was
+					// still at the old location, as was m_pFollowingAnchorPile), so I
+					// clicked the Adjust button to try join to the two CSourcePhrase
+					// instances ahead to make the section bigger, and got the crash.
+					// Analysis revealed that at no point was the old current section
+					// properly closed off and its free translation saved, and the
+					// relevant arrays and pointers for the old section cleared. So I'm
+					// going to try a StoreFreeTranslationOnLeaving() call here now, which
+					// should do all the proper closings off. It calls
+					// StoreFreeTranslation(), and also clears the pointer array for the
+					// old section's piles.
+					if (!gbIsGlossing && pApp->m_bFreeTranslationMode)
+					{
+						pFreeTrans->CloseOffCurFreeTransSection();
+					}
+
                     // We should clear target text highlighting if user clicks in a cell
                     // within a stretch of text that is not already highlighted. The
                     // highlighting should be retained if user clicks in a cell within a

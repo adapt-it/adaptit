@@ -138,6 +138,11 @@ public:
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
 	void		SetupCurrentFreeTransSection(int activeSequNum); // Adapt_It.cpp DoPrintCleanup() needs it
+	// BEW 27May14, two functions drawn cutting up OnNextButton() to support clicking (via
+	// OnLButtonDown()) to create a new section at some arbitrary other location; doing so
+	// crashes the app, unless these functions are used in OnLButtonDown()
+	void		CloseOffCurFreeTransSection();
+
 	//BEW 27Feb12, a setup function, compliant with docV6, for the two radio buttons in
 	//the GUI
 	void		SetupFreeTransRadioButtons(bool bSectionByPunctsValue);

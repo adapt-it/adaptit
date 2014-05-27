@@ -58,6 +58,11 @@ properly. This too is now fixed.
 * In free translation mode, if the use chose to join 
 a just-created free translation section to the
 preceding section, Adapt It crashed.
+* In free translation mode, if, while in a current free
+translation section the user uses the Lengthen button 
+at least once, and then clicks at some pile outside of
+that free translation to setup a new section at the
+clicked location, Adapt It crashed.
 
 ----------------------------------------------
 Version 6.5.2 release 18 December 2013

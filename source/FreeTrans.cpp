@@ -6901,6 +6901,53 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+// The code in this function is a copy of code in the first part of OnNextButton()
+void CFreeTrans::CloseOffCurFreeTransSection()
+{
+	gbSuppressSetup = FALSE; // restore default value, in case Shorten or
+		// Lengthen buttons were used, so that RecalcLayout() will, after 
+		// returning, call SetupCurrentFreeTransSection()
+	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
+	// for debugging
+	//int ftStartSN = gEditRecord.nFreeTranslationStep_StartingSequNum;
+	//int ftEndSN = gEditRecord.nFreeTranslationStep_EndingSequNum;
+
+	wxPanel* pBar = m_pFrame->m_pComposeBar;
+	if(pBar != NULL && pBar->IsShown())
+	{
+		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
+		if (pEdit != 0)
+		{
+			CPile* pOldActivePile = m_pApp->m_pActivePile;
+			CPile* saveLastPilePtr = m_pApp->m_pActivePile; // a safe default initialization
+#ifdef _DEBUG
+//			wxString amsg = _T("Line 6719, OnNextButton(), in FreeTrans.cpp");
+//			DebugPileArray(amsg, m_pCurFreeTransSectionPileArray);
+#endif
+			// The current free translation was not just removed so do the
+			// StoreFreeTranslation() call
+			if (m_pCurFreeTransSectionPileArray->GetCount() > 0)
+			{
+                // whm added 24Aug06 passing of current edits to StoreFreeTranslation() via
+                // the editedText parameter along with enum remove_editbox_contents to
+                // maintain legacy behavior when called from this handler
+				saveLastPilePtr = (CPile*)m_pCurFreeTransSectionPileArray->Item(
+									m_pCurFreeTransSectionPileArray->GetCount()-1);
+				if (!gbFreeTranslationJustRemovedInVFMdialog)
+				{
+					wxString editedText;
+					editedText = pEdit->GetValue();
+					StoreFreeTranslation(m_pCurFreeTransSectionPileArray, pOldActivePile,
+						saveLastPilePtr, remove_editbox_contents, editedText);
+				}
+			}
+			// make sure the kb entry flag is set correctly
+			CSourcePhrase* pSrcPhr = pOldActivePile->GetSrcPhrase();
+			FixKBEntryFlag(pSrcPhr);
+		}
+	}
+}
+
 // whm revised 24Aug06 to allow Prev button to move back to the previous actual or
 // potential free translation segment in the text
 // BEW 22Feb10 no changes needed for support of doc version 5
@@ -7393,7 +7440,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 			int end = (int)m_pCurFreeTransSectionPileArray->GetCount() - 1;
 			pPile = (CPile*)m_pCurFreeTransSectionPileArray->Item(end); // pile at end
                 // of current section the OnUpdateLengthenButton() handler will have
-                // already disabled the button if there is no next pile in the bundle, so
+                // already disabled the button if there is no next pile, so
                 // we can procede with confidence
 			pPile = m_pView->GetNextPile(pPile);
 			wxASSERT(pPile != NULL);
@@ -10226,6 +10273,8 @@ bool CFreeTrans::IsWidenerNext(CPile* pCurPileInScan, CPile*& pWidenerPile)
 
 void CFreeTrans::DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray)
 {
+	pPileArray = pPileArray; //avoid warning
+	msg = msg; // avoid warning
 #if defined(_DEBUG)
 	if (pPileArray->IsEmpty())
 	{
