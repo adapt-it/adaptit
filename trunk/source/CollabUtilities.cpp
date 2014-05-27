@@ -4882,7 +4882,20 @@ bool FindMatchingVerseInf(SearchWhere whichArray,
 	size_t editorCount = fromEditorVerseArr.size();
 	int index;
 	VerseInf* vi;
-	// Matchup criterion? The verseNumStr members, whether complex or simple, are an exact match
+	// Matchup criterion? The verseNumStr members, whether complex or simple, are an exact
+	// match. Remember that \c is treated, in this function, as if it was a verse marker
+	// with verse number 0 (i.e. the value of the verseNumStr will be 0).
+	// What prevents, when scanning forward for a matching verse, matching a verse from
+	// the wrong chapter ahead? GetRemainingMd5VerseLines(), (two calls of which create
+	// the two VerseInf arrays we match from), prevents this by only creating VerseInf
+	// instances from the current chapter - it scans only as far as the next \c marker or
+	// the end document, whichever occurs first. Since verse bridge creation or removal,
+	// and or the addition or removal of USFM marker fields, can never bridge or happen
+	// across a chapter boundary, this fact makes certain that only creating the two
+	// arrays as far as the next chapter (but not including the \c field of the next
+	// chapter) will be all that is needed for matching chunks within the current chapter.
+	// So matched VerseInf verses are guaranteed to be valid matches - that is, matches
+	// within the current chapter
 	switch (whichArray)
 	{
 	case aiData:
