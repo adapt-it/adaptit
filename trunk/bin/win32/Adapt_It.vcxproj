@@ -198,7 +198,6 @@ echo Building against build of WxWidgets found in %25WXWIN%25.
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>wxmsw$(WXVER)d_aui.lib;wxmsw$(WXVER)d_adv.lib;wxmsw$(WXVER)d_html.lib;wxmsw$(WXVER)d_core.lib;wxbase$(WXVER)d.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>NotSet</ShowProgress>
-      <Version>6.5.1</Version>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;C:\Program Files\Visual Leak Detector\lib\Win32;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -321,7 +320,6 @@ echo Building against build of WxWidgets found in %25WXWIN%25.
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>wxmsw$(WXVER)_aui.lib;wxmsw$(WXVER)_adv.lib;wxmsw$(WXVER)_html.lib;wxmsw$(WXVER)_core.lib;wxbase$(WXVER).lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregex.lib;wxexpat.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <Version>6.5.1</Version>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ProgramDatabaseFile>.\Release/Adapt_It.pdb</ProgramDatabaseFile>
@@ -439,7 +437,6 @@ echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.5.1</Version>
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
@@ -558,7 +555,6 @@ echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <Version>6.5.1</Version>
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
@@ -672,7 +668,6 @@ echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>6.5.1</Version>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "..\..\setup Unicode\"
@@ -795,7 +790,6 @@ echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-      <Version>6.5.1</Version>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "..\..\setup Unicode\"
@@ -858,6 +852,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\Adapt_It.cpp" />
+    <ClCompile Include="..\..\source\Adapt_ItKBServer.cpp" />
     <ClCompile Include="..\..\source\Adapt_It_wdr.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItCanvas.cpp" />
     <ClCompile Include="..\..\source\Adapt_ItDoc.cpp" />
@@ -909,8 +904,12 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\FindReplace.cpp" />
     <ClCompile Include="..\..\source\FontPage.cpp" />
     <ClCompile Include="..\..\source\FreeTrans.cpp" />
+    <ClCompile Include="..\..\source\FreeTransAdjustDlg.cpp" />
+    <ClCompile Include="..\..\source\FreeTransSplitterDlg.cpp" />
     <ClCompile Include="..\..\source\GetSourceTextFromEditor.cpp" />
     <ClCompile Include="..\..\source\GoToDlg.cpp" />
+    <ClCompile Include="..\..\source\GuesserAffix.cpp" />
+    <ClCompile Include="..\..\source\GuesserAffixesListsDlg.cpp" />
     <ClCompile Include="..\..\source\GuesserSettingsDlg.cpp" />
     <ClCompile Include="..\..\source\helpers.cpp" />
     <ClCompile Include="..\..\source\HtmlFileViewer.cpp" />
@@ -926,7 +925,8 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\KbServer.cpp" />
     <ClCompile Include="..\..\source\KBSharing.cpp" />
     <ClCompile Include="..\..\source\KBSharingMgrTabbedDlg.cpp" />
-    <ClCompile Include="..\..\source\KBSharingSetupDlg.cpp" />
+    <ClCompile Include="..\..\source\KbSharingSetup.cpp" />
+    <ClCompile Include="..\..\source\KBSharingStatelessSetupDlg.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg.cpp" />
     <ClCompile Include="..\..\source\LanguagesPage.cpp" />
     <ClCompile Include="..\..\source\Layout.cpp" />
@@ -957,6 +957,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\ReadOnlyProtection.cpp" />
     <ClCompile Include="..\..\source\RefString.cpp" />
     <ClCompile Include="..\..\source\RefStringMetadata.cpp" />
+    <ClCompile Include="..\..\source\RemoveSomeTgtEntries.cpp" />
     <ClCompile Include="..\..\source\Retranslation.cpp" />
     <ClCompile Include="..\..\source\RetranslationDlg.cpp" />
     <ClCompile Include="..\..\source\scrollingdialog.cpp" />
@@ -973,6 +974,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\Strip.cpp" />
     <ClCompile Include="..\..\source\TargetUnit.cpp" />
     <ClCompile Include="..\..\source\tellenc.cpp" />
+    <ClCompile Include="..\..\source\Thread_BulkPseudoDelete.cpp" />
     <ClCompile Include="..\..\source\Thread_ChangedSince.cpp" />
     <ClCompile Include="..\..\source\Thread_CreateEntry.cpp" />
     <ClCompile Include="..\..\source\Thread_DoEntireKbDeletion.cpp" />
@@ -1010,6 +1012,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\Adapt_It.h" />
+    <ClInclude Include="..\..\source\Adapt_ItKBServer.h" />
     <ClInclude Include="..\..\source\Adapt_It_Resources.h" />
     <ClInclude Include="..\..\source\Adapt_It_wdr.h" />
     <ClInclude Include="..\..\source\Adapt_ItCanvas.h" />
@@ -1026,6 +1029,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\BookNameDlg.h" />
     <ClInclude Include="..\..\source\BString.h" />
     <ClInclude Include="..\..\source\CaseEquivPage.h" />
+    <ClInclude Include="..\..\source\Ccdll.h" />
     <ClInclude Include="..\..\source\CCModule.h" />
     <ClInclude Include="..\..\source\CCTabbedDialog.h" />
     <ClInclude Include="..\..\source\CCTableEditDlg.h" />
@@ -1055,8 +1059,16 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\EditPreferencesDlg.h" />
     <ClInclude Include="..\..\source\EditSourceTextDlg.h" />
     <ClInclude Include="..\..\source\EmailReportDlg.h" />
+    <ClInclude Include="..\..\source\FreeTransAdjustDlg.h" />
+    <ClInclude Include="..\..\source\FreeTransSplitterDlg.h" />
+    <ClInclude Include="..\..\source\GuesserAffix.h" />
+    <ClInclude Include="..\..\source\GuesserAffixesListsDlg.h" />
     <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
+    <ClInclude Include="..\..\source\KbSharingSetup.h" />
+    <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
+    <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
+    <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
     <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
     <ClInclude Include="Equivalents_for_reference.h" />
@@ -1085,7 +1097,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\KBPage.h" />
     <ClInclude Include="..\..\source\KbServer.h" />
     <ClInclude Include="..\..\source\KBSharing.h" />
-    <ClInclude Include="..\..\source\KBSharingSetupDlg.h" />
     <ClInclude Include="..\..\source\LanguageCodesDlg.h" />
     <ClInclude Include="..\..\source\LanguagesPage.h" />
     <ClInclude Include="..\..\source\Layout.h" />
