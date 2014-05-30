@@ -4118,12 +4118,14 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 
 		lastMarkerNumericAugment.Empty();
 	}
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	//int ct;
 	//for (ct = 0; ct < (int)UsfmStructureAndExtentArray.GetCount(); ct++)
 	//{
-	//	wxLogDebug(UsfmStructureAndExtentArray.Item(ct));
+	//	wxString str = UsfmStructureAndExtentArray.Item(ct);
+	//	wxLogDebug(str.c_str());
 	//}
-
+#endif
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
 	// the actual last character so it represents the total number of characters in the buffer.
 	// Thus the Total Count below doesn't include the beginning UTF-16 BOM character, which is also the length
@@ -5651,7 +5653,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 				wxBell();
 				return emptyStr;
 			}
-			// remove BOM if present and get the data into wxString textFromEditor
+			// remove BOM if present and get the data into wxString fromEditorText
 			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_freeTrans_text);
 			// whm 21Sep11 Note: When grabbing the free translation text, we don't need
 			// to ensure the existence of any \id XXX line, therefore the second parameter
@@ -5697,7 +5699,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 				wxBell();
 				return emptyStr;
 			}
-			// remove the BOM and get the data into wxString textFromEditor
+			// remove the BOM and get the data into wxString fromEditorText
 			wxString absPath = MakePathToFileInTempFolder_For_Collab(collab_target_text);
 			// whm 21Sep11 Note: When grabbing the target text, we don't need
 			// to ensure the existence of any \id XXX line, therefore the second parameter
@@ -5845,16 +5847,18 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // where USFM hasn't changed is much better - in that case, every marker is the same in
     // the same part of every one of the 3 texts: the pre-edit text, the post-edit text,
     // and the grabbed-text (ie. just grabbed from the external editor). This fact allows
-    // for a much simpler processing algorithm, but unfortunately, it is overwhelmingly an
-    // uncommon situation - usually there'll be at least just chapter and verse markers in
-    // the external editor's chapter, and the adaptation document will come from published
-    // material and so have much richer USFM markup - so the "MarkersChanged" function
-    // version is almost always the one that gets used. To determine whether or not the
-    // USFM structure has changed we must now calculate the UsfmStructure&Extents arrays
-    // for each of the 3 text variants, then test if the USFM in the post-edit text is any
-    // different from the USFM in the grabbed text. (The pre-edit text is ALWAYS the same
-    // in USFM structure as the post-edit text, because editing of the source text is not
-    // allowed when in collaboration mode.
+    // for a much simpler processing algorithm. When starting out on a chapter or document, 
+	// there'll be just chapter and verse markers in the external editor's chapter, and the 
+	// adaptation document will come from published material and so have much richer USFM 
+	// markup - so the "MarkersChanged" function version is almost always the one that gets
+	// used in that circumstance. But after some initial transfers, markers will stay 
+	// unchanged and only the user's new adaptations etc are what changes - in that 
+	// circumstance it likely that the simpler algorithm is what is used. 
+	// To determine whether or not the USFM structure has changed we must now calculate the 
+	// UsfmStructure&Extents arrays for each of the 3 text variants, then test if the USFM
+	// in the post-edit text is any different from the USFM in the grabbed text. 
+	// (The pre-edit text is ALWAYS the same in USFM structure as the post-edit text, 
+	// because editing of the source text is not allowed when in collaboration mode.)
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
 #endif
@@ -5881,7 +5885,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	}
 	#endif
 
-    // Now use MD5Map stucts to map the individual lines of each UsfmStructureAndExtent
+    // Now use MD5Map structs to map the individual lines of each UsfmStructureAndExtent
     // array to the associated subspans within text variant which gave rise to the
     // UsfmStructureAndExtent array. In this way, for a given index value into the
     // UsfmStructureAndExtent array, we can quickly get the offsets for start and end of
@@ -6057,6 +6061,46 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	DeleteMD5MapStructs(fromEditorOffsetsArr);
 
 	return text;
+}
+
+void EmptyCollaborationTempFolder()
+{
+	// Make the path (without path separator at the end) to the .temp folder in
+	// in the Adapt It Unicode Work folder (We don't support Regular Adapt It 
+	// beyond versions 5)
+	wxString tempFolder = _T(".temp");
+	wxString path;
+	path = gpApp->m_workFolderPath + gpApp->PathSeparator + tempFolder;
+	// Set up the variables needed
+	wxArrayString filenamesArr;
+	// The .temp directory has no nested directories, just files and all have 
+	// file extension .tmp, but we'll just delete all contents regardless
+	if (wxDir::Exists(path))
+	{
+		// Only bother to delete its contents provided it actually exists
+		wxDir dir;
+		bool bOpened = dir.Open(path);
+		if (!bOpened)
+		{
+			// An English message will suffice, this is unlikely to fail
+			wxMessageBox(_T("Could not open the .temp folder within Adapt It Unicode Work folder. The files within it will not be removed at this time. You can do so manually later if you wish."),
+				_T("wxDir open attempt failed"), wxICON_INFORMATION | wxOK);
+			return;
+		}
+		size_t numFiles = dir.GetAllFiles(path, &filenamesArr, wxEmptyString, wxDIR_FILES);
+		if (numFiles > 0)
+		{
+			// The .temp directory will have been made the temporary working
+			// directory, so only the filenames are needed for accessing the files
+			size_t index;
+			for (index = 0; index < numFiles; index++)
+			{
+				// Ignore returned boolean, we don't care about any failures
+				wxRemoveFile(filenamesArr.Item(index));
+			}
+		}
+		dir.Close();
+	}
 }
 
 void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)

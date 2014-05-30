@@ -304,5 +304,15 @@ class CSourcePhrase;
 	wxString		ChangeFilenameExtension(wxString filenameOrPath, wxString extn);
 	wxString		RemoveIDMarkerAndCode(wxString textForSending);
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	///     Function for cleaning out the files aggregated in .temp folder in AI Unicode Work folder
+	/////////////////////////////////////////////////////////////////////////////////////
+
+	// Without this, the .temp folder will fill with potentially thousands of chapter files, or
+	// scores of whole-book files, wasting disk space needlessly. Call it from OnExit(). If
+	// OnExit() isn't called (eg. an abnormal shutdown) it won't matter, they can be removed
+	// at the next normal shutdown
+	void			EmptyCollaborationTempFolder();
+
 #endif
 

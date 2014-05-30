@@ -21303,6 +21303,9 @@ int CAdapt_ItApp::OnExit(void)
     // internal structures. All wxWidgets' objects that the program creates should be
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
+
+	// Remove any files lurking there, they don't need to persist
+	EmptyCollaborationTempFolder(); // see CollabUtilities.h (at bottom)
     
 	// m_pSavedDocForClipboardAdapt should be empty, but if not destroy the CSourcePhrase
 	// instances in it before deleting the list instance
