@@ -25,7 +25,15 @@ Paratext or Bibledit. The algorithms were rewritten, and
 now support transferring punctuation when punctuation 
 is the only change made by the user in the Paratext or 
 Bibledit source text project; also, changes made in the 
-same place in USFM markup, are now correctly transferred.
+external editor (e.g. Paratext) source project's USFM
+markup, are now correctly transferred to the external
+editor.
+* Support for whole-book adaptation in collaboration
+mode has been enhanced and made robust.
+* Temporary files in the .temp folder within the Adapt
+It Unicode Work folder are not needed after a collaboration
+session ends. They are now automatically removed, if
+present, each time Adapt It is shut down.
 ----------------------------------------------
 Bug fixes in 6.5.3
 ----------------------------------------------

@@ -2509,6 +2509,9 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 		// The returned postEditText (as exported from the AI document at the time the
 		// File / Save was invoked) now has to replace the saved preEditText in the
 		// private app member for that purpose, becoming the new preEditTargetText
+//#if defined(_DEBUG)
+//		wxLogDebug(_T("\n\nStoreTargetText_PreEdit(postEditText) in Doc.cpp 2512: %s"), postEditText.c_str());
+//#endif
 		gpApp->StoreTargetText_PreEdit(postEditText);
 
 		if (gpApp->m_bCollaborationExpectsFreeTrans)
