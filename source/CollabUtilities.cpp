@@ -4874,7 +4874,7 @@ int FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& v
 }
 
 // Return TRUE if a successful matchup was made, FALSE otherwise
-bool FindMatchingVerseInf(SearchWhere whichArray, 
+bool FindMatchingVerseInf(SearchWhere whichArray,
 		VerseInf*   matchThisOne, // the struct instance for what a matchup is being tried in the being-scanned array
 		int&		atIndex, // the index into the being-scanned VerseInf array at which the matchup succeeded
 		const wxArrayPtrVoid& postEditVerseArr, // the temporary array of VerseInf structs for postEdit data
@@ -4939,14 +4939,14 @@ bool FindMatchingVerseInf(SearchWhere whichArray,
 // the chunks involved are smaller, and after the chunk is tranferred (the AI chunk must
 // overwrite the PT chunk) the caller's loop will iterate to deal with more fields or with
 // chunks whenever there is mismatch detected.
-// 
+//
 // Internally, GetRemainingMd5VerseLines() is called on each of the Md5 line arrays, to
 // get temporary (and local to this function) smaller arrays of VerseInf struct pointers
 // which allow rapid computation of matched chunks end boundaries. It should not often
 // happen that this function will need to be called. Typical scenarios for calling it are
 // the introduction or removal of verse bridges, or the introduction (or removal even) of
 // verse-internal USFM markup - such as poetry, footnotes, cross references, and the like.
-// 
+//
 // Since the most common user source text editing workflow which involves USFM changes
 // would be to add extra markup within the Paratext or Bibledit project for storage of the
 // source USFM text which Adapt It grabs in collaboration mode, this results in the markup
@@ -4964,7 +4964,7 @@ bool FindMatchingVerseInf(SearchWhere whichArray,
 // algorithm fails, then we return FALSE and that will cause the caller of the caller to
 // just transfer whatever data remains, overwriting whatever PT data remains for that
 // chapter.
-// 
+//
 // When called, postEditStart and fromEditorStart must be pointing at md5 array lines which
 // are lines for verse beginings (i.e. have \v or \vn markers), and we expect them to not
 // be matched - but this is not a requirement because internal code will accept that
@@ -5244,7 +5244,7 @@ void GetRemainingMd5VerseLines(const wxArrayString& md5Arr, int nStart,
 		pVInf->verseNumStr = _T("0");
 		pVInf->bIsComplex = FALSE;
 		verseLinesArr.Add(pVInf);
-		// BEW 23Aug11, comment out next line to revert to all remaining fields being 
+		// BEW 23Aug11, comment out next line to revert to all remaining fields being
 		// collected (chapter markers always match, so no need to go further in this case)
 		return;
 	}
@@ -5847,17 +5847,17 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
     // where USFM hasn't changed is much better - in that case, every marker is the same in
     // the same part of every one of the 3 texts: the pre-edit text, the post-edit text,
     // and the grabbed-text (ie. just grabbed from the external editor). This fact allows
-    // for a much simpler processing algorithm. When starting out on a chapter or document, 
-	// there'll be just chapter and verse markers in the external editor's chapter, and the 
-	// adaptation document will come from published material and so have much richer USFM 
+    // for a much simpler processing algorithm. When starting out on a chapter or document,
+	// there'll be just chapter and verse markers in the external editor's chapter, and the
+	// adaptation document will come from published material and so have much richer USFM
 	// markup - so the "MarkersChanged" function version is almost always the one that gets
-	// used in that circumstance. But after some initial transfers, markers will stay 
-	// unchanged and only the user's new adaptations etc are what changes - in that 
-	// circumstance it likely that the simpler algorithm is what is used. 
-	// To determine whether or not the USFM structure has changed we must now calculate the 
+	// used in that circumstance. But after some initial transfers, markers will stay
+	// unchanged and only the user's new adaptations etc are what changes - in that
+	// circumstance it likely that the simpler algorithm is what is used.
+	// To determine whether or not the USFM structure has changed we must now calculate the
 	// UsfmStructure&Extents arrays for each of the 3 text variants, then test if the USFM
-	// in the post-edit text is any different from the USFM in the grabbed text. 
-	// (The pre-edit text is ALWAYS the same in USFM structure as the post-edit text, 
+	// in the post-edit text is any different from the USFM in the grabbed text.
+	// (The pre-edit text is ALWAYS the same in USFM structure as the post-edit text,
 	// because editing of the source text is not allowed when in collaboration mode.)
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
@@ -6066,14 +6066,14 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 void EmptyCollaborationTempFolder()
 {
 	// Make the path (without path separator at the end) to the .temp folder in
-	// in the Adapt It Unicode Work folder (We don't support Regular Adapt It 
+	// in the Adapt It Unicode Work folder (We don't support Regular Adapt It
 	// beyond versions 5)
 	wxString tempFolder = _T(".temp");
 	wxString path;
 	path = gpApp->m_workFolderPath + gpApp->PathSeparator + tempFolder;
 	// Set up the variables needed
 	wxArrayString filenamesArr;
-	// The .temp directory has no nested directories, just files and all have 
+	// The .temp directory has no nested directories, just files and all have
 	// file extension .tmp, but we'll just delete all contents regardless
 	if (wxDir::Exists(path))
 	{
@@ -6099,8 +6099,8 @@ void EmptyCollaborationTempFolder()
 				wxRemoveFile(filenamesArr.Item(index));
 			}
 		}
-		dir.Close();
-	}
+		//dir.Close();  Close() is lacking in wxWidgets-2.8.12, so comment out until Linux supports wx 3.0.0
+    }
 }
 
 void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
@@ -6506,7 +6506,7 @@ wxString GetUpdatedText_UsfmsChanged(
 			// or BE unilaterally
 			postEditIndex = GetNextVerseLine(postEditMd5Arr, postEditStart);
 			wxASSERT(postEditIndex != wxNOT_FOUND);
-			postEditEnd = postEditIndex - 1; 
+			postEditEnd = postEditIndex - 1;
 			MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
 			MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
 			substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
@@ -6619,7 +6619,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				wxASSERT(bOK != FALSE);
 				// Advance indices ready for the loop below
 				fromEditorStart = fromEditorIndex;
-				fromEditorEnd = wxNOT_FOUND; 
+				fromEditorEnd = wxNOT_FOUND;
 			}
 		}
 		else
@@ -6647,7 +6647,7 @@ wxString GetUpdatedText_UsfmsChanged(
 				wxASSERT(bOK != FALSE);
 				// Advance indices ready for the loop below
 				fromEditorStart = fromEditorIndex;
-				fromEditorEnd = wxNOT_FOUND; 
+				fromEditorEnd = wxNOT_FOUND;
 			}
 			// Transfer pre-verse 1 info across to PT or BE
 			postEditEnd = postEditIndex - 1; // index for end of chunk (inclusive)
@@ -6676,7 +6676,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxString postEditVerseNumStr;
 	wxString fromEditorVerseNumStr;
 	bool bStructureOrTextHasChanged = FALSE; // initialize
-	
+
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
 		wxLogDebug(_T("\n\n >>>>>   GetUpdatedText_UsfmsChanged() LOOP ENTERED  <<<<<\n\n"));
 #endif
@@ -6691,7 +6691,7 @@ wxString GetUpdatedText_UsfmsChanged(
 		wxASSERT(IsVerseLine(preEditMd5Arr, preEditStart));
 		wxASSERT(IsVerseLine(postEditMd5Arr, postEditStart));
 		wxASSERT(IsVerseLine(fromEditorMd5Arr, fromEditorStart));
-	
+
 		// To delimit the verse chunks that we need to inspect and transfer, or not
 		// transfer if there have been no structure or text changes, find the next md5
 		// verse line in each array. preEditIndex will have the same value as
@@ -6704,7 +6704,7 @@ wxString GetUpdatedText_UsfmsChanged(
 		// a different function that will produce a larger chunk to effect the transfer of
 		// information to PT or BE - the larger chunk will end at where verse string
 		// matching resumes (but not include that md5 matched verse lines in the chunk)
-		
+
 		postEditIndex = postEditStart; // initialize postEditIndex
 		preEditIndex = postEditStart; // initialize preEditIndex, by copying
 		fromEditorIndex = fromEditorStart; // initialize postEditIndex
@@ -6773,7 +6773,7 @@ wxString GetUpdatedText_UsfmsChanged(
             // FALSE. Delineate the matched wrapping chunks which will subsume their
             // differences within them. When we do this, we assume that the AI data is to
             // be retained, at the expense of whatever the PT chunk holds
-			bOK = GetMatchedChunksUsingVerseInfArrays(postEditStart, fromEditorStart, 
+			bOK = GetMatchedChunksUsingVerseInfArrays(postEditStart, fromEditorStart,
 						postEditMd5Arr, fromEditorMd5Arr, postEditEnd, fromEditorEnd);
 			if (bOK)
 			{
@@ -6864,7 +6864,7 @@ wxString RemoveIDMarkerAndCode(wxString text)
 // (such as in\q1 \q2 etc lines, or in a subtitle etc) - the preEdit and postEdit text
 // cannot differ in USFMarkup, as source text editing is forbidden in collaboration mode;
 // or a difference when comparing the USF structure of the pointed at postEdit md5lines within the
-// verse having such md5 lines, or the verse with absence of internal markup, comparing with the 
+// verse having such md5 lines, or the verse with absence of internal markup, comparing with the
 // USFM structure in the PT or BE fromEditor text for that verse; else returns FALSE -
 // indicating no AI user edits to the text and no USFM markup has changed between AI's
 // version of that verse and PT's version of that verse. The ref indices preEditEnd,
@@ -7051,7 +7051,7 @@ bool HasInfoChanged(
 #endif
 	if (postEditBleached != fromEditorBleached)
 	{
-		// The punctuation has been changed in the PT or BE source text project's 
+		// The punctuation has been changed in the PT or BE source text project's
 		// matching verse
 		return TRUE;
 	}
