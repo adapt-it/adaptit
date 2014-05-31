@@ -38,6 +38,7 @@
 #include "HtmlFileViewer.h"
 #include "GuesserAffixesListsDlg.h"
 
+
 // event handler table
 BEGIN_EVENT_TABLE(GuesserAffixesListsDlg, AIModalDialog)
 	EVT_INIT_DIALOG(GuesserAffixesListsDlg::InitDialog)
