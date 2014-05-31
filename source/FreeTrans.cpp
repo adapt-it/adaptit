@@ -4081,9 +4081,18 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
 
 void CFreeTrans::EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect)
 {
+	// Erasure of a limited area is best done by clipping the dc to the
+	// rectangle, then calling Clear. Works well.
+	pDC->DestroyClippingRegion(); // start with whole canvas unclipped
+	pDC->SetClippingRegion(pDrawingRect->x, pDrawingRect->y,
+							pDrawingRect->width, pDrawingRect->height);
+	pDC->Clear();
+	pDC->DestroyClippingRegion(); // leave canvas unclipped
+
+	/* the old code
 	wxBrush backgroundBrush = pDC->GetBackground();
 	wxColour backgroundColour = backgroundBrush.GetColour();
-	wxPen pen = pDC->GetPen();
+	wxPen pen = pDC->GetPen(); // <<-- on Windows, RHS returns an invalid pen, so don't use this
 	wxColour originalPenColour = pen.GetColour();
 	pen.SetColour(backgroundColour);
 	pDC->SetPen(pen);
@@ -4092,6 +4101,7 @@ void CFreeTrans::EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect)
 	// Restore the pen to have its original colour
 	pen.SetColour(originalPenColour);
 	pDC->SetPen(pen);
+	*/
 }
 
 // when the phrase box lands at the anchor location, it may clear the m_bHasKBEntry flag,
