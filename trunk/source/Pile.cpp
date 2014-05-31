@@ -784,7 +784,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			{
 				str = m_pSrcPhrase->m_chapterVerse;
 
-                // spurious bug: pogus wxString buffer overrun chars (anything for 20 to 60
+                // spurious bug: bogus wxString buffer overrun chars (anything for 20 to 60
                 // or so) shown after nav text m:n of final pile's CSourcePhrase's
                 // m_chapVerse text, that is, for the last CSourcePhrase instance in the
                 // doc which happens to be composed of contentless USFM markup from
@@ -798,14 +798,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				CPile* pLastPile = pos->GetData();
 				if (this == pLastPile)
 				{
-                    // chop off the bogus chars but only when the pile is the last one --
-                    // my test data has "2:7" for last CSourcePhrase instance's m_chapVerse
-                    // member, so shorten unilaterally to 3 chars; if it works, later do
-                    // general code
-					//if (str.Len() > 3)
-					//{
-					//	str = str.Left(3);
-					//}
+                    // Chop off the bogus chars but only when the pile is the last one --
 					wxString firstBit;
 					int offset = str.Find(_T(":"));
 					if (offset != wxNOT_FOUND)
@@ -813,12 +806,18 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 						firstBit = str.Left(offset + 1);
 						str = str.Mid(offset + 1);
 						int index = 0;
+						// Code is safe so far, but now we have the possibility of
+						// a bounds error in the loop below, so get the str length and 
+						// ensure we don't try access beyond the end of the string
+						int count = str.Len();
 						// test for digits, letters like a, b, or c, hyphen, comma or
 						// period - these are most likely the chars which will be in
 						// bridged verse or part verse if the verse isn't a simple one or
 						// more digits string; anything else, exit the loop
-						while(IsAnsiLetterOrDigit(str[index]) || str[index] == _T('-') ||
-							str[index] == _T(',') || str[index] == _T('.'))
+						while( index < count &&
+							  (IsAnsiLetterOrDigit(str[index]) || str[index] == _T('-')
+							   || str[index] == _T(',') || str[index] == _T('.'))
+							 )
 						{
 							firstBit += str[index];
 							index++;
