@@ -4087,21 +4087,13 @@ void CFreeTrans::EraseDrawRectangle(wxClientDC* pDC, wxRect* pDrawingRect)
 	pDC->SetClippingRegion(pDrawingRect->x, pDrawingRect->y,
 							pDrawingRect->width, pDrawingRect->height);
 	pDC->Clear();
+	// The clearing of the rectangle won't show unless there is an explicit Refresh() -
+	// leaving this call out would manifest (to the user) as the characters edited from the 
+	// compose bar's text control don't get removed from the mirrored text in the main
+	// window; but with the Refresh(), the text in the control matches that in the window
+	// whether adding more or deleting some
+	m_pApp->GetMainFrame()->canvas->Refresh();
 	pDC->DestroyClippingRegion(); // leave canvas unclipped
-
-	/* the old code
-	wxBrush backgroundBrush = pDC->GetBackground();
-	wxColour backgroundColour = backgroundBrush.GetColour();
-	wxPen pen = pDC->GetPen(); // <<-- on Windows, RHS returns an invalid pen, so don't use this
-	wxColour originalPenColour = pen.GetColour();
-	pen.SetColour(backgroundColour);
-	pDC->SetPen(pen);
-	// Draw the rectangle with pen and brush both set to the background colour
-	pDC->DrawRectangle(pDrawingRect->x,pDrawingRect->y,pDrawingRect->width,pDrawingRect->height);
-	// Restore the pen to have its original colour
-	pen.SetColour(originalPenColour);
-	pDC->SetPen(pen);
-	*/
 }
 
 // when the phrase box lands at the anchor location, it may clear the m_bHasKBEntry flag,
