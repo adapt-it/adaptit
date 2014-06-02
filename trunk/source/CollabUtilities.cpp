@@ -97,13 +97,16 @@ extern bool gbDoingInitialSetup;
 #ifdef _UNICODE
 
 // comment out when the bugs become history
-#define OUT_OF_SYNC_BUG
+//#define OUT_OF_SYNC_BUG
 // comment out next line when the debug display of indices with md5 lines
-// is no longer wanted
-#define SHOW_INDICES_RANGE
+// is no longer wanted (beware, if this is on, it will display a LOT of data)
+//#define SHOW_INDICES_RANGE
 	// comment out next line when the wxLogDebug() in loop in MapMd5ArrayToItsText()
 	// data is not required
-#define FIRST_250
+//#define FIRST_250
+// comment out next line when we don't want to see the contents of a verse range logged
+// for both the target export, and the free translation export
+#define LOG_EXPORT_VERSE_RANGE
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -4119,12 +4122,14 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 		lastMarkerNumericAugment.Empty();
 	}
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
-	//int ct;
-	//for (ct = 0; ct < (int)UsfmStructureAndExtentArray.GetCount(); ct++)
-	//{
-	//	wxString str = UsfmStructureAndExtentArray.Item(ct);
-	//	wxLogDebug(str.c_str());
-	//}
+	int ct;
+	int aCount = (int)UsfmStructureAndExtentArray.GetCount();
+	int aboutThirty = aCount / 5;
+	for (ct = 0; ct < aboutThirty ; ct++)
+	{
+		wxString str = UsfmStructureAndExtentArray.Item(ct);
+		wxLogDebug(str.c_str());
+	}
 #endif
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
 	// the actual last character so it represents the total number of characters in the buffer.
@@ -5381,7 +5386,16 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 	//wxString str;
 	//int length = text.Len();
 	//str = text.Mid(length - 200);
-	//wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
+	//wxLogDebug(_T("ExportTargetText_ForCollab() lasts 200 chars:  %s"), str.c_str());
+	#endif
+	#if defined(_DEBUG) && defined (LOG_EXPORT_VERSE_RANGE)
+	// adaptation text not transferred bug: chapter 1 verses 9 to 12 & wxLogDebug them
+	wxString str;
+	size_t offset = text.Find(_T("\\v 10"));
+	size_t offset2 = text.Find(_T("\\v 14"));
+	wxASSERT(offset != wxNOT_FOUND && offset2 != wxNOT_FOUND);
+	str = text(offset, (size_t)(offset2 - offset));
+	wxLogDebug(_T("\n\nExport_TARGET_Text_ForCollab() ch1 verses 10 to 13:  %s"), str.c_str());
 	#endif
 	return text;
 }
@@ -5409,6 +5423,15 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 	//int length = text.Len();
 	//str = text.Mid(length - 200);
 	//wxLogDebug(_T("ExportFreeTransText_ForCollab() lasts 200 chars:  %s"), str.c_str());
+	#endif
+	#if defined(_DEBUG) && defined (LOG_EXPORT_VERSE_RANGE)
+	// adaptation text not transferred bug: chapter 1 verses 9 to 12 & wxLogDebug them
+	wxString str;
+	size_t offset = text.Find(_T("\\v 10"));
+	size_t offset2 = text.Find(_T("\\v 14"));
+	wxASSERT(offset != wxNOT_FOUND && offset2 != wxNOT_FOUND);
+	str = text(offset, (size_t)(offset2 - offset));
+	wxLogDebug(_T("\n\nExport_FREE_TRANSLATION_Text_ForCollab() ch1 verses 10 to 13:  %s"), str.c_str());
 	#endif
 	return text;
 }
@@ -6215,10 +6238,41 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		{
 			// text from Paratext or Bibledit for this marker is absent so far, or the
 			// marker is a contentless one anyway (we have to transfer them too)
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			if (index > 16 && index < 23)
+			{
+				int break_here = 1;
+			}
+#endif
 			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
 			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			// next four lines, a quick way to see what's been added at the end of newText
+			wxString strEnd = newText;
+			strEnd = MakeReverse(strEnd);
+			strEnd = strEnd.Left(100);
+			strEnd = MakeReverse(strEnd);
+			wxLogDebug(_T("SfmsUnchanged: index = %d  , newText BEFORE: %s"), index, newText.c_str());
+			// For a couple of days in May 2014, either the adaptation transfer was being skipped (but
+			// I could not verify that it happened) or the += operation of the next line of code was
+			// not appending the fragmentStr contents to newText. Before I could track down what was
+			// happening, the problem went away. That's why I've left so much debugging code here - to
+			// track down the bug if it happens again.
+#endif
 			newText += fragmentStr;
+
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			// next four lines allow me to quickly check that the fragmentStr actually got appended
+			// without having to go to the log window
+			strEnd = newText;
+			strEnd = MakeReverse(strEnd);
+			strEnd = strEnd.Left(100);
+			strEnd = MakeReverse(strEnd);
+			wxLogDebug(_T("SfmsUnchanged: index = %d  , fromEditor md5 = %s  , Tfer to PT, Substring: %s"),
+				index, fromEditorMD5Sum.c_str(), fragmentStr.c_str());
+			wxLogDebug(_T("SfmsUnchanged: index = %d  , newText AFTER: %s"), index, newText.c_str());
+#endif
 		}
 		else
 		{
@@ -6236,6 +6290,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 				wxString fragmentStr = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
 								pFromEditorOffsets->startOffset, pFromEditorOffsets->endOffset);
 				newText += fragmentStr;
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			wxLogDebug(_T("SfmsUnchanged: index = %d  , SAME MD5: preEdit  %s  , postEdit  %s  , Keeping PT, Substring: %s"),
+				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
+#endif
 			}
 			else
 			{
@@ -6244,6 +6302,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 				wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 								pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
 				newText += fragmentStr;
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			wxLogDebug(_T("SfmsUnchanged: index = %d  , DIFF MD5: preEdit  %s  , postEdit  %s  , Tfer to PT, Substring: %s"),
+				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
+#endif
 			}
 		}
 	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
@@ -6256,8 +6318,8 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 {
 #ifdef FIRST_250
 #ifdef _DEBUG
-	wxString twofifty = text.Left(440); // 440, not 250
-	wxLogDebug(_T("MapMd5ArrayToItsText(), first 440 wxChars:\n%s"),twofifty.c_str());
+	//wxString twofifty = text.Left(440); // 440, not 250
+	//wxLogDebug(_T("MapMd5ArrayToItsText(), first 440 wxChars:\n%s"),twofifty.c_str());
 #endif
 #endif
 	// work with wxChar pointers for the text
