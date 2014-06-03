@@ -1579,6 +1579,38 @@ void CAdapt_ItDoc::DocChangedExternally()
 	gpApp->m_bDocReopeningInProgress = FALSE;
 	gpApp->m_commitCount = savedCommitCount;
 	gpApp->m_trialVersionNum = savedTrialVersionNum;
+
+	// BEW added 3June14 Since in general the phrasebox position in the restored
+	// document will be different than its position in the former current document, in
+	// free translation mode this would lead to the free translation (if one has been
+	// typed) in the ComposeBar's editbox being left there - and of course it would be
+	// wrong, because the restored doc would still be in free translation mode and the
+	// new box location would, if in no former free trans section, become the new anchor
+	// location for a newly created section - and it would be a bogus meaning; but if 
+	// the phrasebox was within a free trans section, AI's code would move it automatically
+	// back to the section's anchor - which is fine, and that should have the bogus free
+	// translation replaced by that section's correct one. So this would be okay. It's when
+	// the box is put at a location with no section that we get a problem. The safest thing
+	// to do is to check for free translation mode, and if turned ON, then clear the
+	// compose bar so that at least the user won't start out with a confusing wrong free
+	// translation string
+	if (gpApp->m_bFreeTranslationMode)
+	{
+		CMainFrame* pFrame = gpApp->GetMainFrame();
+		wxASSERT(pFrame != NULL);
+		wxPanel* pBar = pFrame->m_pComposeBar;
+		if (pBar != NULL && pBar->IsShown())
+		{
+			wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
+			if (pEdit != 0)
+			{
+				wxString tempStr;
+				// clear the Compose Bar's edit box
+				tempStr.Empty();
+				pEdit->ChangeValue(tempStr);
+			}
+		}
+	}
 }
 
 
@@ -1863,19 +1895,25 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
         return;
     }
 
-    // We're initiating a trial review of previoius versions.  The current version needs to be backed up so we can come
+    // We're initiating a trial review of previous versions.  The current version needs to be backed up so we can come
     // back to it if necessary, so we copy it to a file with the same name with "__bak" appended, in the same folder.
     // But we don't need to do this if the doc has just been committed with no subsequent changes.
 
 #if defined(_DEBUG)
-	wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum);
+	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
+	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
+	// the CPile pointer. The cast should fix it.
+	wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (void*)pApp->m_pActivePile, pApp->m_nActiveSequNum);
 #endif
     pApp->m_bBackedUpForTrial = FALSE;
     if ( IsModified() )
     {
         pApp->DoAutoSaveDoc();       // if the doc is modified, we have to save it, so it's just like an autosave, and we'll need a backup
 #if defined(_DEBUG)
-		wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), pApp->m_pActivePile, pApp->m_nActiveSequNum);
+	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
+	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
+	// the CPile pointer. The cast should fix it.
+		wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (void*)pApp->m_pActivePile, pApp->m_nActiveSequNum);
 #endif
         needBackup = TRUE;
     }
@@ -18332,8 +18370,8 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		}
 	}
 
-// mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve the current KB, so we now have
-//  a private flag to indicate this.
+// mrh Oct12 -- If OnCloseDocument() is called from DocChangedExternally(), we need to preserve 
+// the current KB, so we now have a private flag to indicate this.
 
 	if (!m_bReopeningAfterClosing)
 	{
