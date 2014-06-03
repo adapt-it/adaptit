@@ -9608,6 +9608,13 @@ void CFreeTrans::DoJoinWithNext()
 	// needed and it always is, so we can ignore it
 	RemoveWideners(m_pApp->m_pActivePile);
 
+	// BEW added 3Jun14 copy the joined arrays of pile pointers, because the RecalcLayout
+	// call will clobber m_pCurFreeTransSectionPileArray, and we'll want to restore the
+	// saved array after the recalc of the layout, so we can set the colouring correctly;
+	// the following does shallow copies only - but that's all we'll need as the view's piles
+	// array is not clobbered by the recalc (but that's not true if we undefine _NEW_LAYOUT)
+	wxArrayPtrVoid savedPilesArr(*m_pCurFreeTransSectionPileArray);
+
 	// pSrcPhrase can now be reused...
 	pSrcPhrase = pNewAnchorPile->GetSrcPhrase();
 	m_pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
@@ -9628,6 +9635,21 @@ void CFreeTrans::DoJoinWithNext()
 	// Now get the redraw done
 	m_pView->Invalidate();
 	m_pLayout->PlaceBox();
+
+	// Restore the contents of m_pCurFreeTransSectionPileArray
+	m_pCurFreeTransSectionPileArray->clear();
+	size_t count = savedPilesArr.size();
+	size_t i;
+	for (i = 0; i < count; i++)
+	{
+		CPile* pPile = (CPile*)savedPilesArr.Item(i);
+		// Get the bool, m_bIsCurrentFreeTransSection, on the CPile instance set TRUE
+		// so that the view's Draw() functions will colour those piles' backgrounds pink
+		pPile->SetIsCurrentFreeTransSection(TRUE);
+		m_pCurFreeTransSectionPileArray->Add(pPile);
+	}
+	savedPilesArr.clear();
+
 	// Put the latest free translation text into the composebar's edit box, and set the
 	// cursor location, and the focus to that box too
 	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();

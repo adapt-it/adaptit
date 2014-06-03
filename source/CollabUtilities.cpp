@@ -106,7 +106,7 @@ extern bool gbDoingInitialSetup;
 //#define FIRST_250
 // comment out next line when we don't want to see the contents of a verse range logged
 // for both the target export, and the free translation export
-#define LOG_EXPORT_VERSE_RANGE
+//#define LOG_EXPORT_VERSE_RANGE
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
