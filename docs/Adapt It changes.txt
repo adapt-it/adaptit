@@ -34,6 +34,7 @@ mode has been enhanced and made robust.
 It Unicode Work folder are not needed after a collaboration
 session ends. They are now automatically removed, if
 present, each time Adapt It is shut down.
+
 ----------------------------------------------
 Bug fixes in 6.5.3
 ----------------------------------------------
@@ -71,6 +72,17 @@ translation section the user uses the Lengthen button
 at least once, and then clicks at some pile outside of
 that free translation to setup a new section at the
 clicked location, Adapt It crashed.
+* In free translation mode, if an earlier version of the
+document is restored from the history repository, the
+old free translation in the ComposeBar was not erased.
+Now it is. (Safer than leaving a free translation there
+which probably doesn't match the active location's text.)
+* In free translation mode, if a short section was created
+and the user popped up the Adjust... dialog and asked for
+the current section to be joined to what follows, the
+join got done but the text's background colouring shows
+green instead of pink for the piles in the material that
+was lying ahead of the join point. Now its correctly pink.
 
 ----------------------------------------------
 Version 6.5.2 release 18 December 2013
