@@ -5575,7 +5575,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	//CAdapt_ItView* pView = gpApp->GetView();
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
-	wxString text; text.Empty(); // thhe final text for sending is build and stored in here
+	wxString text; text.Empty(); // the final text for sending is built and stored in here
 	wxString preEditText; // the adaptation or free translation text prior to the editing session
 	wxString fromEditorText; // the adaptation or free translation text just grabbed from PT or BE
 	fromEditorText.Empty();
@@ -5589,28 +5589,32 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	wxString m_collaborationEditor;
 	*/
     // If collaborating with Paratext, check if Paratext is running, if it is, warn user to
-    // close it now and then try again; it not running, the data transfer can take place
+    // close it now and then try again; if not running, the data transfer can take place
     // safely (i.e. it won't cause VCS conflicts which otherwise would happen when the user
     // in Paratext next did a Save there)
 	wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 	wxString msg;
-	msg = msg.Format(_("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to %s and shut it down, saving any unsaved work.\nThen switch back to Adapt It and click \"OK\" to try the save operation again, or \"Cancel\" to abort the save attempt (your next File / Save attempt should succeed)."),
+	// whm modified 4Jun12 to revise the dialog, simplify its warning text and
+	// use only an OK button. The dialog will disappear when the user clicks
+	// OK. If user stops Paratext, the dialog will not appear again and the
+	// local Save operation will succeed.
+	//msg = msg.Format(_("Adapt It has detected that %s is still running.\nTransferring your work to %s while it is running would probably cause data conflicts later on; so it is not allowed.\nLeave Adapt It running, switch to %s and shut it down, saving any unsaved work.\nThen switch back to Adapt It and click \"OK\" to try the save operation again, or \"Cancel\" to abort the save attempt (your next File / Save attempt should succeed)."),
+	//	gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+	msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
 		gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
 	if (gpApp->m_bCollaboratingWithParatext)
 	{
-		// Don't let the function proceed further, until Paratext is not running or the user clicks Cancel
+		// Don't let the function proceed further, until Paratext is not running
 		while (gpApp->ParatextIsRunning())
 		{
 			int response;
-			response = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
-			if (response == wxCANCEL)
-			{
-				return text; // text is currently an empty string
-			}
+			response = wxMessageBox(msg, _T(""), wxOK);
+			// Always return from dialog
+			return text; // text is currently an empty string
 		}
 	}
     // If collaborating with Bibledit, check if Bibledit is running, if it is, warn user to
-    // close it now and then try again; it not running, the data transfer can take place
+    // close it now and then try again; if not running, the data transfer can take place
     // safely (i.e. it won't cause VCS conflicts which otherwise would happen when the user
     // in Bibledit next did a Save there)
 	if (gpApp->m_bCollaboratingWithBibledit)
@@ -5619,11 +5623,9 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		{
 			// don't let the function proceed further, until Bibledit is not running or the user clicks Cancel
 			int response;
-			response = wxMessageBox(msg, _T(""), wxOK | wxCANCEL);
-			if (response == wxCANCEL)
-			{
-				return text; // text is currently an empty string
-			}
+			response = wxMessageBox(msg, _T(""), wxOK);
+			// Always return from dialog
+			return text; // text is currently an empty string
 		}
 	}
 
