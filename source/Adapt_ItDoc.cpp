@@ -1626,10 +1626,54 @@ bool  CAdapt_ItDoc::Git_installed()
     return TRUE;
 }
 
+
+/*  mrh - 5Jun14.
+    CollaborationAllowsSaving() checks if safe to Save with regard to collaboration.
+ 
+    If we're collaborating with Paratext or BibleEdit, and if the one we're collaborating with is currently running,
+    it would be unsafe to do a Save which would involve transferring data to the other application, as it might 
+    cause VCS conflicts when the user of that application next does a Save there.
+    In this situation, we warn the user to close the other application now and then try again, and we return
+    false from here which will block any Save or DVCS operation.
+ 
+    If we're not collaborating or the collaboration application isn't running, a Save is safe and we return true.
+*/
+
+/* app member variables
+ bool m_bCollaboratingWithParatext;
+ bool m_bCollaboratingWithBibledit;
+ bool m_bCollaborationExpectsFreeTrans;
+ bool m_bCollaborationDocHasFreeTrans;
+ wxString m_collaborationEditor;
+ */
+
+bool  CAdapt_ItDoc::CollaborationAllowsSaving()
+{
+    wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
+    
+    if ( (gpApp->m_bCollaboratingWithParatext && gpApp->ParatextIsRunning()) || (gpApp->m_bCollaboratingWithBibledit && gpApp->BibleditIsRunning()) )
+    {
+    // No, it's unsafe to Save.  Put up a message and return false.
+        
+        wxString msg;
+        msg = msg.Format(_("Adapt It cannot transfer your work to %s while %s is running.\nClick on OK to close this dialog. Leave Adapt It running, switch to %s and shut it down. Then switch back to Adapt It and do the save operation again."),
+                         gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str(), gpApp->m_collaborationEditor.c_str());
+        
+        wxMessageBox(msg, _T(""), wxOK);
+        return false;
+    }
+    
+    // All OK.
+    return true;
+}
+
+
 bool  CAdapt_ItDoc::Commit_valid()
 {
     wxCommandEvent	dummy;
 
+    if (!CollaborationAllowsSaving())  return false;    // Bail out on an unsafe collaboration situation
+    
     if ( gpApp->m_strUserID == NOOWNER )
     {
 		wxMessageBox (_("Before saving in the document history, you must enter a username for yourself."));
@@ -1640,11 +1684,11 @@ bool  CAdapt_ItDoc::Commit_valid()
         {                                              // nope - whinge and bail out.
             wxMessageBox (_("No username entered -- document not saved."));
             gpApp->LogUserAction (_T("No username entered -- document not saved."));
-            return FALSE;
+            return false;
         }
     }
 
-	if (gpApp->m_owner == NOOWNER)  return TRUE;        // if the doc doesn't have an owner, it's always OK to commit it
+	if (gpApp->m_owner == NOOWNER)  return true;        // if the doc doesn't have an owner, it's always OK to commit it
 
 	if (gpApp->m_strUserID != gpApp->m_owner)
 	{
@@ -1654,9 +1698,11 @@ bool  CAdapt_ItDoc::Commit_valid()
 		gpApp->LogUserAction ( _T("Sorry, it appears the owner of this document is ") + gpApp->m_owner
 					  + _T(" but the currently logged in user is ") + gpApp->m_strUserID
 					  + _T(".  Only the document's owner can save in the document history.") );
-		return FALSE;
+		return false;
 	}
-	else  return TRUE;
+	
+    // All OK!
+    return true;
 }
 
 

@@ -430,6 +430,9 @@ public:
 	// Destructor from the MFC version
 	virtual ~CAdapt_ItDoc();
 
+public:
+    bool            CollaborationAllowsSaving();        // Checks if safe to Save with regard to collaboration.
+
 protected:
 	void			ValidateNoteStorage(); // ensure no m_bHasNote flags are TRUE but lack
 						// any note being stored there, and that every stored note has the

@@ -5573,7 +5573,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 {
 	wxString emptyStr = _T("");
 	//CAdapt_ItView* pView = gpApp->GetView();
-	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 
 	wxString text; text.Empty(); // the final text for sending is built and stored in here
 	wxString preEditText; // the adaptation or free translation text prior to the editing session
@@ -5581,6 +5581,14 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	fromEditorText.Empty();
 	postEditText.Empty(); // the exported adaptation or free translation text at File / Save time
 
+    // mrh 5Jun14 - this call replaces the commented-out block of code below.
+
+    if (!pDoc->CollaborationAllowsSaving())     // If unsafe to save because the collaboration editor is running, return
+                                                //  an empty string so the caller won't do anything.  A message has
+                                                //  already been shown.
+        return text;
+    
+    
 	/* app member variables
 	bool m_bCollaboratingWithParatext;
 	bool m_bCollaboratingWithBibledit;
@@ -5588,6 +5596,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	bool m_bCollaborationDocHasFreeTrans;
 	wxString m_collaborationEditor;
 	*/
+/* ******* Factored out -- now in Adapt_ItDoc.cpp.
+ 
     // If collaborating with Paratext, check if Paratext is running, if it is, warn user to
     // close it now and then try again; if not running, the data transfer can take place
     // safely (i.e. it won't cause VCS conflicts which otherwise would happen when the user
@@ -5628,7 +5638,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			return text; // text is currently an empty string
 		}
 	}
-
+******** */
+    
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
 	wxASSERT(!bookCode.IsEmpty());
