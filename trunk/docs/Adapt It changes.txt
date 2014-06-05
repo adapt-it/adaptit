@@ -34,6 +34,8 @@ mode has been enhanced and made robust.
 It Unicode Work folder are not needed after a collaboration
 session ends. They are now automatically removed, if
 present, each time Adapt It is shut down.
+* The compose bar's button, Insert Widener, has been
+changed to be the more useful "Join To Next".
 
 ----------------------------------------------
 Bug fixes in 6.5.3
@@ -64,9 +66,13 @@ example) were added to the source text, they were not
 transferred to Paratext. All these problems are now fixed.
 * Collaboration mode did not support whole-book adapting 
 properly. This too is now fixed.
-* In free translation mode, if the use chose to join 
+* In free translation mode, if the user chose to join 
 a just-created free translation section to the
 preceding section, Adapt It crashed.
+* In free translation mode, if the user clicked to an
+arbitrary pile at a location without a free translation 
+and that location was not itself within a free translation,
+then Adapt It crashed.
 * In free translation mode, if, while in a current free
 translation section the user uses the Lengthen button 
 at least once, and then clicks at some pile outside of
@@ -83,6 +89,10 @@ the current section to be joined to what follows, the
 join got done but the text's background colouring shows
 green instead of pink for the piles in the material that
 was lying ahead of the join point. Now its correctly pink.
+* Joining to a previous free translation when the phrasebox
+is a the document start is now disallowed. Joining to a
+following free translation when the phrasebox is at the
+end of the document is also now disallowed.
 
 ----------------------------------------------
 Version 6.5.2 release 18 December 2013

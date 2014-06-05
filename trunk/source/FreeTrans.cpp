@@ -160,8 +160,8 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
 	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
 	// BEW 29Nov13, added next two
-	EVT_BUTTON(ID_BUTTON_INSERT_WIDENER, CFreeTrans::OnButtonInsertWidener)
-	EVT_UPDATE_UI(ID_BUTTON_INSERT_WIDENER, CFreeTrans::OnUpdateButtonInsertWidener)
+	EVT_BUTTON(ID_BUTTON_JOIN_TO_NEXT, CFreeTrans::OnMyButtonJoinToNext)
+	EVT_UPDATE_UI(ID_BUTTON_JOIN_TO_NEXT, CFreeTrans::OnUpdateMyButtonJoinToNext)
 	EVT_BUTTON(ID_BUTTON_ADJUST, CFreeTrans::OnButtonAdjust)
 	EVT_UPDATE_UI(ID_BUTTON_ADJUST, CFreeTrans::OnUpdateButtonAdjust)
 
@@ -9725,6 +9725,43 @@ void CFreeTrans::DoJoinWithPrevious()
 		// free translation (including a delimiter space at the join) to it before it is used
 		// within the compose bar's text box
 
+	// BEW 5Jun14, there may not be a section immediately preceding, for example, if the last
+	// active section was a verse or so earlier, and the user clicks later - either immediately
+	// after a later defined section, or at a location with no free translation in that viscinity.
+	// In such a circumstance, we don't want to use the real last active section's parameters,
+	// there may be unfree translated piles between that and where the current anchor is, and so
+	// to be safe we have to set m_pImmediatePreviousPile to the pile preceding the current
+	// anchor location, and test whether m_pImmediatePreviousPile is within a free trans
+	// section or not, and set the m_bFreeTransSectionImmediatelyPrecedes boolean accordingly.
+	// The if that is FALSE, set m_pPreviousAnchorPile to NULL, but if TRUE, then work out
+	// what that pile pointer is and set it correctly. Then the test further below can be
+	// done safely etc
+	m_pImmediatePreviousPile = m_pView->GetPrevPile(pOriginalAnchorPile);
+	m_pPreviousAnchorPile = NULL; // initialize
+	wxASSERT(m_pImmediatePreviousPile != NULL); // because the "Join to previous" radio button
+		// is hidden if the active pile is at sequNum zero, so sequNum must be > 0 at least
+	CSourcePhrase* pPrevSrcPhrase = m_pImmediatePreviousPile->GetSrcPhrase();
+	if (pPrevSrcPhrase->m_bEndFreeTrans)
+	{
+		m_bFreeTransSectionImmediatelyPrecedes = TRUE;
+		// Find its anchor pile
+		if (pPrevSrcPhrase->m_bStartFreeTrans)
+		{
+			// end is also the start - a single-pile section
+			m_pPreviousAnchorPile = m_pImmediatePreviousPile;
+		}
+		else
+		{
+			m_pPreviousAnchorPile = FindPreviousFreeTransSection(m_pImmediatePreviousPile);
+			wxASSERT(m_pPreviousAnchorPile != NULL);
+		}
+	}
+	else
+	{
+		m_bFreeTransSectionImmediatelyPrecedes = FALSE;
+	}
+	m_bAllowOverlengthTyping = FALSE; // default value
+
     // If no free translation immediately precedes, define the previous section and store
     // its piles in the wxArrayPtrVoid, m_pPreviousSectionPileArray. The FindSectionPiles()
     // call uses the currently set application member variable, m_bDefineFreeTransByPunctuation
@@ -9952,31 +9989,64 @@ void CFreeTrans::OnUpdateButtonAdjust(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
-void CFreeTrans::OnButtonInsertWidener(wxCommandEvent& WXUNUSED(event))
+void CFreeTrans::OnMyButtonJoinToNext(wxCommandEvent& WXUNUSED(event))
 {
-	// Widener insertion is likely to be done far more often than splitting, and so is a
-	// better candidate for what the button should do than splitting
-	DoInsertWidener();
-	//DoSplitIt();
+	// Joining to the next section (& creating a next section first if one is not
+	// already there) is likely to be done far more often than anything else,
+	// and so is the best candidate for what the button should do;
+	// we can rely on the update handler for having checked the active pile is
+	// not NULL and that m_pCurFreeTransSectionPileArray is not empty, and that
+	// the last pile of the current section is not the last pile of the doc
+
+	// Get the first pile following the end of the current section
+	m_pFollowingAnchorPile = m_pView->GetNextPile(
+		(CPile*)m_pCurFreeTransSectionPileArray->Item(m_pCurFreeTransSectionPileArray->GetCount() - 1));
+	// Set the flag which tells DoJoinNext() whether a free trans section follows or not
+	if (m_pFollowingAnchorPile->GetSrcPhrase()->m_bStartFreeTrans)
+	{
+		m_bFreeTransSectionImmediatelyFollows = TRUE;
+	}
+	else
+	{
+		m_bFreeTransSectionImmediatelyFollows = FALSE;
+	}
+	m_bAllowOverlengthTyping = FALSE; // default value
+	DoJoinWithNext();
 }
 
-void CFreeTrans::OnUpdateButtonInsertWidener(wxUpdateUIEvent& event)
+void CFreeTrans::OnUpdateMyButtonJoinToNext(wxUpdateUIEvent& event)
 {
+	if (m_pApp->m_pActivePile == NULL)
+	{
+		// There has to be an anchor pile before a join to anything is possible
+		event.Enable(FALSE);
+		return;
+	}
+	if (m_pCurFreeTransSectionPileArray->IsEmpty())
+	{
+		// The current section has to have at least one pile in it
+		event.Enable(FALSE);
+		return;
+	}
+	if ((m_pApp->m_pSourcePhrases->GetCount() - 1) == 
+		(size_t)((CPile*)m_pCurFreeTransSectionPileArray->Item(
+		m_pCurFreeTransSectionPileArray->GetCount() - 1))->GetSrcPhrase()->m_nSequNumber)
+	{
+		// The current section ends at the document's end, so there is nothing to 
+		// join on to lying ahead of the current section
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_pApp->m_bReadOnlyAccess)
 	{
+		// If read-only, we can't change the document structure in any way
 		event.Enable(FALSE);
 		return;
 	}
 	else
 	{
-		wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
-		if (freetrans.IsEmpty())
-		{
-			event.Enable(FALSE);
-			return;
-		}
         // BEW 2Dec13 disable in Free Trans mode when vertical edit is operating, support
-        // for Split button's action would clobber the carefully controlled lists of spans
+        // for Join... button's action would clobber the carefully controlled lists of spans
         // that vertical edit maintains
 		if (gbVerticalEditInProgress)
 		{

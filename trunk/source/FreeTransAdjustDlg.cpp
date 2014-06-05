@@ -127,6 +127,20 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// carrying the results of any previous split		 
 	m_pFreeTrans->m_strSplitForCurrentSection.Empty();
 	m_pFreeTrans->m_strSplitForNextSection.Empty();
+
+	// Joining to the previous material is disallowed if the phrasebox is at the 
+	// beginning of the document
+	if (m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber == 0)
+	{
+		m_pRadioJoinToPrevious->Show(FALSE);
+	}
+	// Joining to the following material is disallowed if the phrasebox is at the 
+	// end of the document
+	int lastsn = (int)m_pApp->m_pSourcePhrases->GetCount() - 1;
+	if (m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber == lastsn)
+	{
+		m_pRadioJoinToNext->Show(FALSE);
+	}
 }
 
 void FreeTransAdjustDlg::OnCancel(wxCommandEvent& event)
