@@ -5581,7 +5581,9 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	fromEditorText.Empty();
 	postEditText.Empty(); // the exported adaptation or free translation text at File / Save time
 
-    // mrh 5Jun14 - this call replaces the commented-out block of code below.
+    // mrh 5Jun14 - this call replaces the commented-out block of code below.  It should actually be
+    //  unnecessary now that we're doing the check at the start of CAdapt_ItDoc::DoCollabFileSave(), which
+    //  is the only routine that calls us here.
 
     if (!pDoc->CollaborationAllowsSaving())     // If unsafe to save because the collaboration editor is running, return
                                                 //  an empty string so the caller won't do anything.  A message has

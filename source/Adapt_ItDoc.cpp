@@ -2486,6 +2486,11 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 	long resultFreeTrans = -1; // ditto
 	wxArrayString outputTgt, outputFreeTrans; // for feedback from ::wxExecute()
 	wxArrayString errorsTgt, errorsFreeTrans; // for feedback from ::wxExecute()
+    
+// mrh 5Jun14 -- we now put our check for the collaborative editor running right here at the start, and do absolutely
+//  nothing if it's unsafe.
+   
+    if (!CollaborationAllowsSaving())  return false;    // Bail out on an unsafe collaboration situation
 
 	UpdateDocWithPhraseBoxContents(bAttemptStoreToKB, bNoStore, bSuppressWarningOnStoreKBFailure);
 
