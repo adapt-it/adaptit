@@ -66,6 +66,9 @@ CHtmlFileViewer::CHtmlFileViewer(wxWindow* parent, wxString* title, wxString* pa
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	m_pApp = (CAdapt_ItApp*)&wxGetApp();
+
+	// BEW 5Jun14, avoid compiler warning
+	title = title;
 	
 	// whm 15Sep11 Note: 
 	// The HtmlFileViewerDlgFunc() below is created by wxDesigner and it uses a generic 

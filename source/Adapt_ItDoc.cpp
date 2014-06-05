@@ -1949,7 +1949,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
 	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
 	// the CPile pointer. The cast should fix it.
-	wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (void*)pApp->m_pActivePile, pApp->m_nActiveSequNum);
+	wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (size_t)pApp->m_pActivePile, pApp->m_nActiveSequNum);
 #endif
     pApp->m_bBackedUpForTrial = FALSE;
     if ( IsModified() )
@@ -1959,7 +1959,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
 	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
 	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
 	// the CPile pointer. The cast should fix it.
-		wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (void*)pApp->m_pActivePile, pApp->m_nActiveSequNum);
+		wxLogDebug(_T("m_pActivePile = %x  , m_nActiveSequNum =  %d"), (size_t)pApp->m_pActivePile, pApp->m_nActiveSequNum);
 #endif
         needBackup = TRUE;
     }

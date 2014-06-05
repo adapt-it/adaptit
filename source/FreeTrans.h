@@ -181,8 +181,8 @@ public:
 	// BEW 29Nov13 added next 4
 	void		OnButtonAdjust(wxCommandEvent& WXUNUSED(event));
 	void		OnUpdateButtonAdjust(wxUpdateUIEvent& event);
-	void		OnButtonInsertWidener(wxCommandEvent& WXUNUSED(event));
-	void		OnUpdateButtonInsertWidener(wxUpdateUIEvent& event);
+	void		OnMyButtonJoinToNext(wxCommandEvent& WXUNUSED(event));
+	void		OnUpdateMyButtonJoinToNext(wxUpdateUIEvent& event);
 
 protected:
 	// Public free translation drawing functions
