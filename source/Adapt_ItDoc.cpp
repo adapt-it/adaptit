@@ -1649,6 +1649,7 @@ bool  CAdapt_ItDoc::Git_installed()
 
 bool  CAdapt_ItDoc::CollaborationAllowsSaving()
 {
+#ifndef __WXMAC__       // collaboration doesn't happen on the Mac, so we just return true.
     wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
     
     if ( (gpApp->m_bCollaboratingWithParatext && gpApp->ParatextIsRunning()) || (gpApp->m_bCollaboratingWithBibledit && gpApp->BibleditIsRunning()) )
@@ -1664,6 +1665,7 @@ bool  CAdapt_ItDoc::CollaborationAllowsSaving()
     }
     
     // All OK.
+#endif
     return true;
 }
 
@@ -1945,7 +1947,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     // back to it if necessary, so we copy it to a file with the same name with "__bak" appended, in the same folder.
     // But we don't need to do this if the doc has just been committed with no subsequent changes.
 
-#if defined(_DEBUG)
+#if defined(_DEBUGqqqqq) // mrh - still getting the assert trip on the Mac.  Disabling this for now.
 	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
 	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
 	// the CPile pointer. The cast should fix it.
@@ -1955,7 +1957,7 @@ void CAdapt_ItDoc::DoShowPreviousVersions ( bool fromLogDialog, int startHere )
     if ( IsModified() )
     {
         pApp->DoAutoSaveDoc();       // if the doc is modified, we have to save it, so it's just like an autosave, and we'll need a backup
-#if defined(_DEBUG)
+#if defined(_DEBUGqqqqq)
 	// BEW 3Jun14 added cast (void*) because without it, on Windows I got an assert trip saying that there was
 	// a format specifier which did not match its argument; %d is certainlyl save for the sequ num, so must have been
 	// the CPile pointer. The cast should fix it.
