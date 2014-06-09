@@ -36,7 +36,11 @@ session ends. They are now automatically removed, if
 present, each time Adapt It is shut down.
 * The compose bar's button, Insert Widener, has been
 changed to be the more useful "Join To Next".
-
+* Support for "free translation wideners" has been 
+removed. Their benefit was very limited. If you have
+one in a document, put the phrase box there and
+click the "Remove Placeholder" button on the toolbar
+to get rid of it.
 ----------------------------------------------
 Bug fixes in 6.5.3
 ----------------------------------------------
@@ -93,7 +97,11 @@ was lying ahead of the join point. Now its correctly pink.
 is a the document start is now disallowed. Joining to a
 following free translation when the phrasebox is at the
 end of the document is also now disallowed.
-
+* If two successive "split" operations were done on a
+typed free translation which encroached into the material
+should be the next free translation section, after the second
+split the anchor location did not display the correct 
+adaptation.
 ----------------------------------------------
 Version 6.5.2 release 18 December 2013
 ----------------------------------------------

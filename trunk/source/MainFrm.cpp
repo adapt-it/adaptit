@@ -376,7 +376,6 @@ DEFINE_EVENT_TYPE(wxEVT_Show_version)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
-DEFINE_EVENT_TYPE(wxEVT_Insert_Widener)
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -475,13 +474,6 @@ DEFINE_EVENT_TYPE(wxEVT_Adjust_Scroll_Pos)
             (wxObject *) NULL \
 ),
 
-#define EVT_INSERT_WIDENER(id, fn) \
-    DECLARE_EVENT_TABLE_ENTRY( \
-        wxEVT_Insert_Widener, id, wxID_ANY, \
-            (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
-            (wxObject *) NULL \
-),
-
 #if defined(_KBSERVER)
 
 #define EVT_KBDELETE_UPDATE_PROGRESS(id, fn) \
@@ -564,8 +556,6 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_JOIN_WITH_NEXT(-1, CMainFrame::OnCustomEventJoinWithNext)
 	EVT_JOIN_WITH_PREVIOUS(-1, CMainFrame::OnCustomEventJoinWithPrevious)
 	EVT_SPLIT_IT(-1, CMainFrame::OnCustomEventSplitIt)
-	EVT_INSERT_WIDENER(-1, CMainFrame::OnCustomEventInsertWidener)
-
 
 #if defined(_KBSERVER)
 	EVT_KBDELETE_UPDATE_PROGRESS(-1, CMainFrame::OnCustomEventKbDeleteUpdateProgress)
@@ -1651,7 +1641,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_auiToolbar->AddTool(ID_REMOVE_RETRANSLATION, _("Remove A Retranslation"), gpApp->wxGetBitmapFromMemory(retranslation_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_NULL_SRC, _("Insert A Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_new_png_16), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text"), NULL);
-	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove a Placeholder, or Remove a Free Translation Widener"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text"), NULL);
+	m_auiToolbar->AddTool(ID_BUTTON_REMOVE_NULL_SRCPHRASE, _("Remove a Placeholder"), gpApp->wxGetBitmapFromMemory(placeholder_delete_png_16), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder"), _("Remove the placeholder and its adaptation text"), NULL);
 	m_auiToolbar->AddSeparator();
 	m_auiToolbar->AddTool(ID_BUTTON_CHOOSE_TRANSLATION, _("Show The Choose Translation Dialog"), gpApp->wxGetBitmapFromMemory(dialog_choose_translation_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown"), NULL);
 	m_auiToolbar->AddTool(ID_SHOWING_ALL, _("Show Target Text Only"), gpApp->wxGetBitmapFromMemory(show_source_target_png_16), wxNullBitmap, wxITEM_NORMAL, _("Show target text only"), _("Show target text only"), NULL);
@@ -4163,10 +4153,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			eventCustom.SetEventType(wxEVT_Split_It);
 			wxPostEvent(this, eventCustom);
 			break;
-		case insert_widener:
-			eventCustom.SetEventType(wxEVT_Insert_Widener);
-			wxPostEvent(this, eventCustom);
-			break;
         case no_op:
             DoNoOp(); // does nothing
 		}
@@ -4243,21 +4229,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		wxMessageBox(
 		_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
 		_T(""), wxICON_INFORMATION | wxOK);
-	}
-
-	// BEW 2Dec13, I can't find any place where AI code handles CTRL+V, so I can't prevent the latter
-	// from inserting text from the clipboard into a free translation widener (the latter
-	// is a placeholder which has five dots ..... as well) - so check for this at the
-	// active location, and if there's text, beep and remove it 
-	if (pApp->m_pActivePile != NULL && IsFreeTransWidener(pApp->m_pActivePile->GetSrcPhrase()))
-	{
-		if (!pApp->m_pTargetBox->GetValue().IsEmpty())
-		{
-			// Remove the phrasebox contents, it's illegal at a widener
-			pApp->m_pTargetBox->SetValue(_T(""));
-			pApp->m_targetPhrase.Empty();
-			wxBell();
-		}
 	}
 
 	if (bUserCancelled)
@@ -6697,13 +6668,6 @@ void CMainFrame::OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event))
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	pFreeTrans->DoSplitIt();
 }
-
-void CMainFrame::OnCustomEventInsertWidener(wxCommandEvent& WXUNUSED(event))
-{
-	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
-	pFreeTrans->DoInsertWidener();
-}
-
 
 /// BEW 26Mar10, no changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2

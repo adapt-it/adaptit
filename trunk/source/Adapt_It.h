@@ -694,8 +694,7 @@ enum DelayedFreeTransOperations
 	no_op,
 	join_with_next,
 	join_with_previous,
-	split_it,
-	insert_widener
+	split_it
 };
 
 /// An enum for selecting which configuration file type in GetConfigurationFile()
@@ -3610,7 +3609,7 @@ public:
 				// which is defined at the top of this file - about lines 682-90
 	enum DelayedFreeTransOperations m_enumWhichFreeTransOp;
 	bool	m_bFreeTrans_EventPending; // TRUE when Adjust dialog has asked for an option
-                // to be done (such as inserting a widener), the OnIdle() block which
+                // to be done (such as joining to previous), the OnIdle() block which
                 // handles the event resets it to FALSE. The idea of this member boolean is
                 // to prevent a second showing of the Adjust dialog when an edit operation
                 // in the composebar's editbox results in two sequential events being

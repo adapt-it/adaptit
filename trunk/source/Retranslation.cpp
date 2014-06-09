@@ -2684,7 +2684,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		pos = pos->GetNext();
 		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
 		// removed, only normal placeholders
-		if (IsNormalPlaceholderNotWidener(pSrcPhrase))
+		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
             // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
             // on every one, or if not so, then only the last will have a TRUE value
@@ -3553,7 +3553,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		pos = pos->GetNext();
 		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
 		// removed, only normal placeholders
-		if (IsNormalPlaceholderNotWidener(pSrcPhrase))
+		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
             // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
             // on every one, or if not so, then only the last will have a TRUE value

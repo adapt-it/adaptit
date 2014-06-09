@@ -1654,12 +1654,6 @@ bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
 	{
 		pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
-		// BEW 2Dec13 remove placeholders, but leave free translation section wideners
-		if (IsFreeTransWidener(pSrcPhrase))
-		{
-			// It's a widener, so skip it
-			continue;
-		}
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
 			// It's a placeholder, so transfer dataa and then 
@@ -1677,11 +1671,6 @@ bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
 			savePos = pos;
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetPrevious();
-			if (IsFreeTransWidener(pSrcPhrase))
-			{
-				// It's a widener, so don't remove it
-				continue;
-			}
 			if (pSrcPhrase->m_bNullSourcePhrase)
 			{
 				m_pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase, FALSE);
@@ -1773,13 +1762,6 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		}
 		*/
 	}
-
-	// BEW 2Dec13 added support for "free translation widener" removal
-	bool bWidener = FALSE;
-	if (IsFreeTransWidener(pLastOne))
-	{
-		bWidener = TRUE;
-	}
 	
     // a null source phrase can (as of version 1.3.0) be last in the document, so we can no
     // longer assume there will be a non-null one following, if we are at the end of the
@@ -1824,121 +1806,106 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
     // earlier, then pPrevSrcPhrase is guaranteed to exist)
 	//if (!pFirstOne->GetEndMarkers().IsEmpty() && pPrevSrcPhrase != NULL)
 	wxASSERT(pLastOne != NULL);
-	if (!bWidener)
+	if ((!pLastOne->GetEndMarkers().IsEmpty() ||
+			!pLastOne->GetInlineNonbindingEndMarkers().IsEmpty() ||
+			!pLastOne->GetInlineBindingEndMarkers().IsEmpty() )
+			&& pPrevSrcPhrase != NULL)
 	{
-		// Do the following only if it is not a widener
-		if ((!pLastOne->GetEndMarkers().IsEmpty() ||
-			 !pLastOne->GetInlineNonbindingEndMarkers().IsEmpty() ||
-			 !pLastOne->GetInlineBindingEndMarkers().IsEmpty() )
-			 && pPrevSrcPhrase != NULL)
-		{
-			pPrevSrcPhrase->SetEndMarkers(pLastOne->GetEndMarkers());
-			pFirstOne->SetEndMarkers(emptyStr);
-			pPrevSrcPhrase->SetInlineNonbindingEndMarkers(pLastOne->GetInlineNonbindingEndMarkers());
-			pFirstOne->SetInlineNonbindingEndMarkers(emptyStr);
-			pPrevSrcPhrase->SetInlineBindingEndMarkers(pLastOne->GetInlineBindingEndMarkers());
-			pFirstOne->SetInlineBindingEndMarkers(emptyStr);
-		}
-		if ((!pLastOne->m_follPunct.IsEmpty() || !pLastOne->GetFollowingOuterPunct().IsEmpty())
-			&& nStartingSequNum > 0 && pPrevSrcPhrase != NULL)
-		{
-			// following punction was earlier transferred, so now tranfer it back
-			pPrevSrcPhrase->m_follPunct = pLastOne->m_follPunct;
-			pPrevSrcPhrase->SetFollowingOuterPunct(pLastOne->GetFollowingOuterPunct());
-			
-			// now footnote span end and punctuation boundary, we can unilaterally copy
-			// because if these were not changed then pPrevSrcPhrase won't originally have had
-			// them set anyway, so we'd be copying FALSE over FALSE, which does no harm
-			pPrevSrcPhrase->m_bFootnoteEnd = pLastOne->m_bFootnoteEnd;
-			pPrevSrcPhrase->m_bBoundary = pLastOne->m_bBoundary;
-			
-			// fix the m_targetStr member (we are just fixing punctuation on the m_targetStr
-			// member of pPrevSrcPhrase, so no store needed) the puncts are restored by the
-			// above lines, so give it the m_adaption string and let the stored puncts get
-			// converted and put in the appropriate places
-			m_pView->MakeTargetStringIncludingPunctuation(pPrevSrcPhrase, pPrevSrcPhrase->m_adaption);
-		}
-		// BEW added 25Jul05, a m_bHasFreeTrans = TRUE value can be ignored provided the
-		// m_bEndFreeTrans value is FALSE because pPrevSrcPhrase will have the value set
-		// already; but if the latter is TRUE, then we must move the value to the preceding
-		// sourcephrase
-		if (pLastOne->m_bEndFreeTrans && pPrevSrcPhrase != NULL)
-		{
-			pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
-			pPrevSrcPhrase->m_bHasFreeTrans = TRUE;
-		}
-
-		// now the transfers from the first, to the first of the following context
-
-		if ((!pFirstOne->m_markers.IsEmpty() || !pFirstOne->GetInlineNonbindingMarkers().IsEmpty()
-			 || !pFirstOne->GetInlineBindingMarkers().IsEmpty() ) && !bNoneFollows)
-		{
-			// BEW 27Sep10, for docVersion 5, m_markers stores only markers and chapter or
-			// verse number, so if non-empty transfer its contents & ditto for the inline ones
-			pSrcPhraseFollowing->m_markers = pFirstOne->m_markers;
-			pSrcPhraseFollowing->SetInlineNonbindingMarkers(pFirstOne->GetInlineNonbindingMarkers());
-			pSrcPhraseFollowing->SetInlineBindingMarkers(pFirstOne->GetInlineBindingMarkers());
-			
-			// now all the other things which depend on markers
-			pSrcPhraseFollowing->m_inform = pFirstOne->m_inform;
-			pSrcPhraseFollowing->m_chapterVerse = pFirstOne->m_chapterVerse;
-			pSrcPhraseFollowing->m_bVerse = pFirstOne->m_bVerse;
-			// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
-			//pSrcPhraseFollowing->m_bParagraph = pFirstOne->m_bParagraph;
-			pSrcPhraseFollowing->m_bUnused = pFirstOne->m_bUnused;
-			pSrcPhraseFollowing->m_bChapter = pFirstOne->m_bChapter;
-			pSrcPhraseFollowing->m_bSpecialText = pFirstOne->m_bSpecialText;
-			pSrcPhraseFollowing->m_bFootnote = pFirstOne->m_bFootnote;
-			pSrcPhraseFollowing->m_bFirstOfType = pFirstOne->m_bFirstOfType;
-			pSrcPhraseFollowing->m_curTextType = pFirstOne->m_curTextType;
-		}
-		// block ammended by BEW 25Jul05; preceding punctuation earlier moved forward to a
-		// right-associated placeholder now must be moved back (its presence flags the fact
-		// that it was transferred earlier)
-		if (!pFirstOne->m_precPunct.IsEmpty() && !bNoneFollows)
-		{
-			pSrcPhraseFollowing->m_precPunct = pFirstOne->m_precPunct;
-			
-			// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
-			m_pView->MakeTargetStringIncludingPunctuation(pSrcPhraseFollowing,
-														pSrcPhraseFollowing->m_adaption);
-		}
-		// BEW added 25Jul05 a m_bHasFreeTrans = TRUE value can be ignored provided
-		// m_bStartFreeTrans value is FALSE, if the latter is TRUE, then we must move the value
-		// to the following sourcephrase
-		if (pFirstOne->m_bStartFreeTrans && !bNoneFollows)
-		{
-			pSrcPhraseFollowing->m_bStartFreeTrans = TRUE;
-			pSrcPhraseFollowing->m_bHasFreeTrans = TRUE;
-
-			// and transfer the free translation text iteself
-			pSrcPhraseFollowing->SetFreeTrans(pFirstOne->GetFreeTrans());
-		}
-		// we don't now transfer notes, so we don't have to check for them and move them, but
-		// we do have to transfer any collected backtranslation (the free translation case was
-		// handled above already)
-		if (!pFirstOne->GetCollectedBackTrans().IsEmpty() && !bNoneFollows)
-		{
-			pSrcPhraseFollowing->SetCollectedBackTrans(pFirstOne->GetCollectedBackTrans());
-		}
-
-		// finally, information in m_filteredInfo moved forward when a placeholder was right
-		// associated has to be transferred back again
-		if (!pFirstOne->GetFilteredInfo().IsEmpty() && !bNoneFollows)
-		{
-			pSrcPhraseFollowing->SetFilteredInfo(pFirstOne->GetFilteredInfo());
-		}
-	} // end of TRUE block for test: if (!bWidener)
-	else
+		pPrevSrcPhrase->SetEndMarkers(pLastOne->GetEndMarkers());
+		pFirstOne->SetEndMarkers(emptyStr);
+		pPrevSrcPhrase->SetInlineNonbindingEndMarkers(pLastOne->GetInlineNonbindingEndMarkers());
+		pFirstOne->SetInlineNonbindingEndMarkers(emptyStr);
+		pPrevSrcPhrase->SetInlineBindingEndMarkers(pLastOne->GetInlineBindingEndMarkers());
+		pFirstOne->SetInlineBindingEndMarkers(emptyStr);
+	}
+	if ((!pLastOne->m_follPunct.IsEmpty() || !pLastOne->GetFollowingOuterPunct().IsEmpty())
+		&& nStartingSequNum > 0 && pPrevSrcPhrase != NULL)
 	{
-		// Since we only can remove a placeholder or widener one at a time, we don't need
-		// a loop here. A widener will have received the m_bEndFreeTrans value as TRUE, so
-		// we have to set that boolean on the previous CSourcePhrase instance so the
-		// section remains valid after the widener is removed
-		if (pPrevSrcPhrase != NULL)
-		{
-			pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
-		}
+		// following punction was earlier transferred, so now tranfer it back
+		pPrevSrcPhrase->m_follPunct = pLastOne->m_follPunct;
+		pPrevSrcPhrase->SetFollowingOuterPunct(pLastOne->GetFollowingOuterPunct());
+			
+		// now footnote span end and punctuation boundary, we can unilaterally copy
+		// because if these were not changed then pPrevSrcPhrase won't originally have had
+		// them set anyway, so we'd be copying FALSE over FALSE, which does no harm
+		pPrevSrcPhrase->m_bFootnoteEnd = pLastOne->m_bFootnoteEnd;
+		pPrevSrcPhrase->m_bBoundary = pLastOne->m_bBoundary;
+			
+		// fix the m_targetStr member (we are just fixing punctuation on the m_targetStr
+		// member of pPrevSrcPhrase, so no store needed) the puncts are restored by the
+		// above lines, so give it the m_adaption string and let the stored puncts get
+		// converted and put in the appropriate places
+		m_pView->MakeTargetStringIncludingPunctuation(pPrevSrcPhrase, pPrevSrcPhrase->m_adaption);
+	}
+	// BEW added 25Jul05, a m_bHasFreeTrans = TRUE value can be ignored provided the
+	// m_bEndFreeTrans value is FALSE because pPrevSrcPhrase will have the value set
+	// already; but if the latter is TRUE, then we must move the value to the preceding
+	// sourcephrase
+	if (pLastOne->m_bEndFreeTrans && pPrevSrcPhrase != NULL)
+	{
+		pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
+		pPrevSrcPhrase->m_bHasFreeTrans = TRUE;
+	}
+
+	// now the transfers from the first, to the first of the following context
+
+	if ((!pFirstOne->m_markers.IsEmpty() || !pFirstOne->GetInlineNonbindingMarkers().IsEmpty()
+			|| !pFirstOne->GetInlineBindingMarkers().IsEmpty() ) && !bNoneFollows)
+	{
+		// BEW 27Sep10, for docVersion 5, m_markers stores only markers and chapter or
+		// verse number, so if non-empty transfer its contents & ditto for the inline ones
+		pSrcPhraseFollowing->m_markers = pFirstOne->m_markers;
+		pSrcPhraseFollowing->SetInlineNonbindingMarkers(pFirstOne->GetInlineNonbindingMarkers());
+		pSrcPhraseFollowing->SetInlineBindingMarkers(pFirstOne->GetInlineBindingMarkers());
+			
+		// now all the other things which depend on markers
+		pSrcPhraseFollowing->m_inform = pFirstOne->m_inform;
+		pSrcPhraseFollowing->m_chapterVerse = pFirstOne->m_chapterVerse;
+		pSrcPhraseFollowing->m_bVerse = pFirstOne->m_bVerse;
+		// BEW 8Oct10, repurposed m_bParagraph as m_bUnused
+		//pSrcPhraseFollowing->m_bParagraph = pFirstOne->m_bParagraph;
+		pSrcPhraseFollowing->m_bUnused = pFirstOne->m_bUnused;
+		pSrcPhraseFollowing->m_bChapter = pFirstOne->m_bChapter;
+		pSrcPhraseFollowing->m_bSpecialText = pFirstOne->m_bSpecialText;
+		pSrcPhraseFollowing->m_bFootnote = pFirstOne->m_bFootnote;
+		pSrcPhraseFollowing->m_bFirstOfType = pFirstOne->m_bFirstOfType;
+		pSrcPhraseFollowing->m_curTextType = pFirstOne->m_curTextType;
+	}
+	// block ammended by BEW 25Jul05; preceding punctuation earlier moved forward to a
+	// right-associated placeholder now must be moved back (its presence flags the fact
+	// that it was transferred earlier)
+	if (!pFirstOne->m_precPunct.IsEmpty() && !bNoneFollows)
+	{
+		pSrcPhraseFollowing->m_precPunct = pFirstOne->m_precPunct;
+			
+		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
+		m_pView->MakeTargetStringIncludingPunctuation(pSrcPhraseFollowing,
+													pSrcPhraseFollowing->m_adaption);
+	}
+	// BEW added 25Jul05 a m_bHasFreeTrans = TRUE value can be ignored provided
+	// m_bStartFreeTrans value is FALSE, if the latter is TRUE, then we must move the value
+	// to the following sourcephrase
+	if (pFirstOne->m_bStartFreeTrans && !bNoneFollows)
+	{
+		pSrcPhraseFollowing->m_bStartFreeTrans = TRUE;
+		pSrcPhraseFollowing->m_bHasFreeTrans = TRUE;
+
+		// and transfer the free translation text iteself
+		pSrcPhraseFollowing->SetFreeTrans(pFirstOne->GetFreeTrans());
+	}
+	// we don't now transfer notes, so we don't have to check for them and move them, but
+	// we do have to transfer any collected backtranslation (the free translation case was
+	// handled above already)
+	if (!pFirstOne->GetCollectedBackTrans().IsEmpty() && !bNoneFollows)
+	{
+		pSrcPhraseFollowing->SetCollectedBackTrans(pFirstOne->GetCollectedBackTrans());
+	}
+
+	// finally, information in m_filteredInfo moved forward when a placeholder was right
+	// associated has to be transferred back again
+	if (!pFirstOne->GetFilteredInfo().IsEmpty() && !bNoneFollows)
+	{
+		pSrcPhraseFollowing->SetFilteredInfo(pFirstOne->GetFilteredInfo());
 	}
 
 	// remove the null source phrases from the list, after removing their 
@@ -1954,10 +1921,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		m_pView->GetDocument()->DeletePartnerPile(pSrcPhrase);
 		removePos = removePos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
-		if (!bWidener)
-		{
-			m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
-		}
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 		count++;
         // in the next call, FALSE means 'don't delete the partner pile' (no need to
         // because we already deleted it a few lines above)
@@ -2113,9 +2077,7 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
 		CSourcePhrase* pSrcPhraseCopy = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext(); 
 		wxASSERT(pSrcPhraseCopy != NULL);
-		// BEW 2Dec, don't delete wideners (these have five dots, ....., as well as
-		// m_bNullSrcPhrase TRUE)
-		if (IsNormalPlaceholderNotWidener(pSrcPhraseCopy))
+		if (pSrcPhraseCopy->m_bNullSourcePhrase)
 		{
             // we've found a null source phrase in the sublist, so get rid of its KB
             // presence, then delete it from the (temporary) sublist, and its instance from
@@ -2231,32 +2193,6 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 	}
-
-	// BEW 2Dec13 With the advent of "Free Translation (section) Wideners" we allow
-	// removal of these with this button too, but we must warn the user that doing so is
-	// not recommended (the free translation will then get shown truncated if he does so)
-	// We'll also no allow removal if in free translation mode (otherwise we could muck
-	// up a vertical edit)
-	CSourcePhrase* pTheSrcPhrase = pRemoveLocPile->GetSrcPhrase();
-	if (IsFreeTransWidener(pTheSrcPhrase) && !m_pApp->m_bFreeTranslationMode)
-	{
-		wxString title = _("Attempting removal of a free translation widener");
-		wxString msg = _("Removing a free translation widener is permitted, but not recommended. If you do so, its section of free translation would be displayed truncated. Do you wish to go ahead with the removal?");
-		int value = wxMessageBox(msg, title, wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
-		if ((value == wxNO))
-			return;
-	}
-	// Don't need another block for when it is free trans mode, because removal in 
-	// free trans mode is impossible as a) we cannot put the phrasebox at the widener,
-	// and b) we can't select it's source text while free trans mode is active
-	//else if (IsFreeTransWidener(pTheSrcPhrase) && m_pApp->m_bFreeTranslationMode)
-	//{
-	//	wxString title = _("Not permitted");
-	//	wxString msg = _("Removing a free translation widener is not permitted while free translation mode is active.");
-	//	wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-	//	return;
-	//}
-	
     // remove the placeholder - note, this will clobber the m_pActivePile pointer, and a
     // new partner pile will not be created, so we have to provide a temporary valid
     // m_pActivePile after this next call returns, so that our RecalcLayout() code which

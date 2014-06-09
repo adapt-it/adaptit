@@ -157,7 +157,6 @@ public:
 	void		RestoreInterPileGapAfterFreeTranslating();
 
 	// Support the Adjust dialog, and the Adjust... button & Split... button
-	void		DoInsertWidener();
 	void		DoJoinWithNext();
 	void		DoJoinWithPrevious();
 	void		DoSplitIt();
@@ -226,10 +225,6 @@ protected:
 						bool& bHasFlagIsUnset, bool& bLacksEnd, bool& bFoundArrayEnd);
 	// support for Split option, and Split... button
 	CPile*		TransferRemainderToWhatFollows(wxString& strRemainingFreeTrans);
-	// support for wideners in a vertical edit
-	bool		IsWidenerNext(CPile* pCurPileInScan, CPile*& pWidenerPile); // return TRUE if next is
-								// a pile storing CSourcePhrase which is a widener, and return the
-								// latter's pile pointer in pWidenerPile
 
 	// Private free translation drawing functions
 private:
@@ -262,7 +257,6 @@ private:
 	void		SingleRectFreeTranslation(	wxDC* pDC, wxString& str, wxString& ellipsis,
 						wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings);
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
-	int			RemoveWideners(CPile* pAnchorPile); // return a count of how many were removed
 
 #if defined(__WXGTK__)
     // BEW added 21Nov11, part of workaround for DrawFreeTranslationsForPrinting() not working in __WXGTK__ build
