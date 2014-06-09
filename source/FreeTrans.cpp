@@ -573,10 +573,28 @@ CPile* CFreeTrans::FindPreviousFreeTransSection(CPile* pStartingPile)
 // returning the CPile pointer for the end of the free translation section which
 // pStartingPile must be in - either at it's start or at some intermediate pile, or at the
 // ending pile; or NULL if an end could not be found
+// BEW 6June14 refactored the function. It can be called when the next pile is not within
+// the current section - for example, if the current section is just a single pile because
+// there is following punctuation at the word or phrase's end within the anchor pile. In such
+// a circumstance the 3 free translation flags are not yet set in the CSourcePhrase stored at
+// the anchor, and the legacy algorithm below relies on the m_bEndFreeTrans being TRUE in order
+// to detect the section end. It therefore finds no end, and goes on to the next pile which 
+// actually is outside the section, and in the else block below the assert trips for that pile.
+// The fix is to have a fall-back way to work out the end of the section when none of the flags
+// m_bHasFreeTrans, m_bStartFreeTrans, and m_bEndFreeTrans are as yet set TRUE. The fall back
+// is to use the contents of m_pCurFreeTransSectionPileArray which can be relied on to have the
+// current section's shallow copied pile pointers. So, if our code detects no end, in the else
+// block we'll check for m_bHasFreeTrans being TRUE after the GetNextPile() call - and if it
+// is FALSE, we'll use the m_pCurFreeTransSectionPileArray instead - provided that we verify
+// that the pStartingPile pointer is also a pile stored in that array; and when that is the case
+// we can get the final pile of the section from the array's end
 CPile* CFreeTrans::FindFreeTransSectionEnd(CPile* pStartingPile)
 {
 	CPile* pPile = pStartingPile;
 	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+	// BEWARE: the m_bEndFreeTrans flag may not be yet set to TRUE, even though pStartingPile
+	// may be the last pile of the section - so we have to be smart. See comments above.
+	bool bDoFallback = FALSE;
 	if (pSrcPhrase->m_bEndFreeTrans)
 	{
 		return pPile;
@@ -587,11 +605,52 @@ CPile* CFreeTrans::FindFreeTransSectionEnd(CPile* pStartingPile)
 			pPile = m_pView->GetNextPile(pPile);
 			if (pPile == NULL)
 			{
-				return pPile; // remember to test for NULL in the caller
+				//return pPile; // remember to test for NULL in the caller
+				return pStartingPile; // this is better, since pStartingPile should be in the section
 			}
 			pSrcPhrase = pPile->GetSrcPhrase();
-			wxASSERT(pSrcPhrase->m_bHasFreeTrans);
+			// BEW 6Jun14, instead of the assert, add the fall-back code described above
+			//wxASSERT(pSrcPhrase->m_bHasFreeTrans);
+			if (!pSrcPhrase->m_bHasFreeTrans)
+			{
+				// fall-back code, after the loop, needs to be used
+				bDoFallback = TRUE;
+				break;
+			}
 		} while (!pSrcPhrase->m_bEndFreeTrans);
+		if (bDoFallback)
+		{
+			// First, check that pStartingPile is within m_pCurFreeTransSectionPileArray
+			// and if it is, the end of the section will be the last pile pointer in it
+			if (m_pCurFreeTransSectionPileArray->IsEmpty())
+			{
+				return (CPile*)NULL; // fallback can't succeed
+			}
+			size_t count = m_pCurFreeTransSectionPileArray->size();
+			size_t index;
+			bool bIsWithin = FALSE;
+			CPile* pilePtr = NULL;
+			for (index = 0; index < count; index++)
+			{
+				pilePtr = (CPile*)m_pCurFreeTransSectionPileArray->Item(index);
+				if (pilePtr == pStartingPile)
+				{
+					bIsWithin = TRUE;
+					break;
+				}
+			}
+			if (bIsWithin)
+			{
+				// We can reuse pilePtr here
+				pilePtr = (CPile*)m_pCurFreeTransSectionPileArray->Item(count - 1);
+				return pilePtr; // this is the section's end pile
+			}
+			else
+			{
+				// not within this current section's piles, so we failed to find the end
+				return (CPile*)NULL;
+			}
+		}
 		return pPile; // this is the section's end pile
 	}
 }
@@ -5443,21 +5502,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 
 // FindSectionPiles() is called above in SetupCurrentFreeTransSection(), and can be called
 // elsewhere pPilesArray is for passing in which pile pointer array is to store the
-// section's pile ptrs 
-// BEW 2Dec13 There's a potential problem at each possible break location if we are in
-// vertical edit mode and are reconstituting (after a source text edit) this section and it
-// has one or more final wideners. The potential presence of a section-ending final
-// punctuation or other pre-existing halting condition still being present (if it wasn't
-// part of what the user edited) would finish off the section earlier, leaving the
-// widener(s) not in the array of piles - and then if Advance or Next buttons are pressed,
-// they find the first widener and try to make a spurious new section there. So we have to
-// prevent this. The way to do it is to check here if there are following wideners, and if
-// so, add the present pile to the array and then loop over as many wideners as there are
-// in sequence, and when we get to the end of those, we break from the loop. But do this
-// ONLY if vertical edit mode is in progress. This problem only arises then. The check
-// only needs to worry about word-final punctuation - because wideners to not have (U)SFM
-// markers and if we get to one of those, we'd have traversed any widener successfully
-// without breaking. 
+// section's pile ptrs
 void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray, int& wordcount)
 {
 	CPile* pile = pFirstPile;
@@ -5537,22 +5582,6 @@ void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray
 				{
 					// there is word-final punctuation, so this is a suitable place
 					// to close off this section (pile has already been added to the array)
-					// BEW 2Dec13 addition to support widener(s) at the end of the section
-					if (gbVerticalEditInProgress)
-					{
-						CPile* pWidenerPile = NULL;
-						bool bWidenerFollows = IsWidenerNext(pile, pWidenerPile);
-						while (bWidenerFollows)
-						{
-							pPilesArray->Add(pWidenerPile);
-							// Prepare for next iteration (there may be more wideners in
-							// this free translation section - if so, they are in sequence
-							// at the end of the section so that's all we need to worry
-							// about here)
-							pile = pWidenerPile;
-							bWidenerFollows = IsWidenerNext(pile, pWidenerPile);
-						}
-					}
 					break;
 				}
 			}
@@ -9603,11 +9632,6 @@ void CFreeTrans::DoJoinWithNext()
 	// Update the layout & set the typing location
 	m_pApp->m_pActivePile = pNewAnchorPile;
 
-	// Remove any wideners the user may have inserted (ignore the returned removalCount
-	// value because it's returned only so we can check if a RecalcLayout() and redraw is
-	// needed and it always is, so we can ignore it
-	RemoveWideners(m_pApp->m_pActivePile);
-
 	// BEW added 3Jun14 copy the joined arrays of pile pointers, because the RecalcLayout
 	// call will clobber m_pCurFreeTransSectionPileArray, and we'll want to restore the
 	// saved array after the recalc of the layout, so we can set the colouring correctly;
@@ -9626,11 +9650,6 @@ void CFreeTrans::DoJoinWithNext()
 #endif
     bIsOK = bIsOK; // avoid compiler warning
 	m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
-
-	// Remove any wideners the user may have inserted (ignore the returned removalCount
-	// value because it's returned only so we can check if a RecalcLayout() and redraw is
-	// needed and it always is, so we can ignore it
-	RemoveWideners(m_pApp->m_pActivePile);
 
 	// Now get the redraw done
 	m_pView->Invalidate();
@@ -9863,11 +9882,6 @@ void CFreeTrans::DoJoinWithPrevious()
 
 	// Update the layout & set the typing location
 	m_pApp->m_pActivePile = pNewAnchorPile;
-
-	// Remove any wideners the user may have inserted (ignore the returned removalCount
-	// value because it's returned only so we can check if a RecalcLayout() and redraw is
-	// needed and it always is, so we can ignore it
-	RemoveWideners(m_pApp->m_pActivePile);
 
 	// pSrcPhrase can now be reused...
 	pSrcPhrase = pNewAnchorPile->GetSrcPhrase();
@@ -10201,6 +10215,12 @@ void CFreeTrans::DoSplitIt()
 		bIsOK = bIsOK; // avoid compiler warning
 		m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
 
+		// BEW 9Jun14 the anchor pile can get the old active pile's adaptation if we don't 
+		// ensure that here it instead gets the new active pile's adaptation
+		m_pApp->m_pTargetBox->Clear();
+		m_pApp->m_targetPhrase = pAnchorSrcPhrase->m_adaption;
+		// PlaceBox() will put m_targetPhrase into the wxTextEdit which is the phrasebox
+
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 		// Put the latest free translation text into the composebar's edit box, and set the
@@ -10225,146 +10245,6 @@ void CFreeTrans::DoSplitIt()
 	}
 }
 
-void CFreeTrans::DoInsertWidener()
-{
-	CPile* pFollowingPile = NULL;
-	// Next call returns pFollowingPile if there is one, returns it as NULL if the current
-	// section ends at the document's end; returns TRUE if pFollowingPile is the anchor
-	// pile of a following section of free translation (whether or not is is an empty section)
-	bool bDoesFreeTransImmediatelyFollow = DoesFreeTransSectionFollow(pFollowingPile);
-	// Get the current section's end pile
-	CPile* pEndPile = FindFreeTransSectionEnd(m_pApp->m_pActivePile); // might return NULL
-	bDoesFreeTransImmediatelyFollow = bDoesFreeTransImmediatelyFollow; // avoid compiler warning
-	if (pEndPile == NULL)
-	{
-		// The current free translation didn't have an end (should not happen, but play safe)
-		wxString title = _("No correctly defined end ");
-		wxString msg = _("The current free translation section did not have a properly defined end. The attempt to insert a widener will be abandoned.");
-		wxMessageBox(msg,title,wxICON_WARNING | wxOK);
-		return;
-	}
-	// Store where the insertion location is
-	long to; long from;
-	m_pFrame->m_pComposeBarEditBox->GetSelection(&from, &to); // use the to value as insertion offset
-	m_savedTypingOffset = to; // text box in compose bar will use this value to restore
-		// the cursor to the location at which the user was typing when the join was invoked
-
-	// Make a widener, and a new CPile instance in parallel with it, and point its
-	// m_pSrcPhrase member at the new CSourcePhrase instance, and put each in their
-	// respective lists, and reorder the sequence numbers - we'll do a RecalcLayout so
-	// don't bother setting the strip pointer etc
-	CSourcePhrase* pWidener = new CSourcePhrase;
-	pWidener->m_srcPhrase = _T(".....");
-	pWidener->m_key = _T(".....");
-	pWidener->m_bNullSourcePhrase = TRUE;
-	CPile* pItsPile = new CPile;
-	pItsPile->SetSrcPhrase(pWidener); // CSourcePhrase instance now associated with its CPile instance
-	// It's not a normal Placeholder instance, but a widener, if it has five dots
-	
-	// Check if the free translation section ends at the doc end, if so, we have to append
-	// it; if not, we have to insert it before the pFollowingPile instance; we also have
-	// to move the flag values for end of free translation, and has free translation to it
-	SPList* pSPList = m_pApp->m_pSourcePhrases;
-	PileList* pPileList = m_pLayout->GetPileList();
-	if (pFollowingPile == NULL)
-	{
-		// If there is no section-following pile, the section must end at the doc end, so
-		// append the widener
-		pSPList->Append(pWidener);
-		pPileList->Append(pItsPile);
-	}
-	else
-	{
-		// There is a pile following the end of the section, so we must insert the widener
-		// before it
-		int indexInPileList = pPileList->IndexOf(pFollowingPile);
-		wxASSERT(indexInPileList != wxNOT_FOUND);
-		PileList::compatibility_iterator posPiles = pPileList->Insert((size_t)indexInPileList, pItsPile);
-		posPiles = posPiles; // avoid compiler warning
-		int indexInSPList = pSPList->IndexOf(pFollowingPile->GetSrcPhrase());
-		wxASSERT(indexInSPList != wxNOT_FOUND);
-		SPList::compatibility_iterator posSP = pSPList->Insert((size_t)indexInSPList, pWidener);
-		posSP = posSP; // avoid compiler warning
-	}
-	// Make sure we add it to m_pCurFreeTransSectionPileArray, otherwise OnButtonNext()
-	// will jump to the widener instead of to whatever follows it
-	m_pCurFreeTransSectionPileArray->Add(pItsPile);
-	// Fix the flags at the former end, and the new end
-	pEndPile->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
-	pEndPile->GetSrcPhrase()->m_bStartFreeTrans = FALSE;
-	pEndPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
-	// now, the new end
-	pItsPile->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
-	pItsPile->GetSrcPhrase()->m_bStartFreeTrans = FALSE;
-	pItsPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE;
-
-	// Reorder the doc's sequence numbers from start to finish
-	m_pApp->GetDocument()->UpdateSequNumbers(0); // second arg is NULL, so it updates m_pSourcePhrases
-
-	//m_pApp->GetDocument()->ResetPartnerPileWidth(pEndPile->GetSrcPhrase()); // pEndPile is close enough
-
-	// Recalc the layout, keep the piles, recreate the strips, and be sure to call ScrollIntoView()
-	// Make all the doc's piles lose their pile colouring so that the old section
-	// won't retain the pink background when it should go to green
-	m_pLayout->MakeAllPilesNonCurrent();
-
-	bool bIsOK = TRUE;
-#ifdef _NEW_LAYOUT
-	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
-#else
-	bIsOK = m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
-#endif
-	bIsOK = bIsOK; // avoid compiler warning
-	m_pApp->m_pActivePile = m_pApp->GetDocument()->GetPile(m_pApp->m_nActiveSequNum);
-
-	m_pView->Invalidate();
-	m_pLayout->PlaceBox();
-	// Put the latest free translation text into the composebar's edit box, and set the
-	// cursor location, and the focus to that box too
-	wxString freetrans = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
-	m_pFrame->m_pComposeBarEditBox->SetFocus();
-	m_pFrame->m_pComposeBarEditBox->ChangeValue(freetrans);
-	if (m_savedTypingOffset != wxNOT_FOUND)
-	{
-		m_pFrame->m_pComposeBarEditBox->SetSelection(m_savedTypingOffset, m_savedTypingOffset);
-	}
-	else
-	{
-		int length = freetrans.Len();
-		m_pFrame->m_pComposeBarEditBox->SetSelection(length, length);
-	}
-	m_savedTypingOffset = wxNOT_FOUND;
-	// Need the ScrollIntoView() because if the new active pile is on a different
-	// strip, the layout won't realize and will attempt to draw into draw rectangles
-	// which are away from where they should be
-	m_pFrame->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
-}
-
-// return TRUE if next is a pile storing CSourcePhrase which is a widener, and return the
-// latter's pile pointer in pWidenerPile
-bool CFreeTrans::IsWidenerNext(CPile* pCurPileInScan, CPile*& pWidenerPile)
-{
-	CPile* pNextPile = m_pView->GetNextPile(pCurPileInScan);
-	if (pNextPile == NULL)
-	{
-		pWidenerPile = NULL;
-		return FALSE;
-	}
-	else
-	{
-		CSourcePhrase* pSrcPhrase = pNextPile->GetSrcPhrase();
-		bool bIsWidener = IsFreeTransWidener(pSrcPhrase);
-		if (bIsWidener)
-		{
-			pWidenerPile = pNextPile;
-			return TRUE;
-		}
-	}
-	// Did not find one
-	pWidenerPile = NULL;
-	return FALSE;
-}
-
 void CFreeTrans::DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray)
 {
 	pPileArray = pPileArray; //avoid warning
@@ -10386,89 +10266,4 @@ void CFreeTrans::DebugPileArray(wxString& msg, wxArrayPtrVoid* pPileArray)
 			index, pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 	}
 #endif
-}
-
-int CFreeTrans::RemoveWideners(CPile* pAnchorPile)
-{
-	// Look for free translation wideners in the section, and remove any found from the
-	// list of CSourcePhrase instances, renumber the sequencenumbers from pile at 0 also.
-	// There is no need for wideners when joining, and this function is called as part of
-	// the join to following or previous option, to eliminate any wideners the user may
-	// have inserted before doing the join. In any join, a widener can never be the passed
-	// in anchor pile, so the loop below is safe. Return a count of how many were removed,
-	// if the returned count is non-zero, a recalc and redraw of the layout is required in
-	// the caller
-	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
-	CPile* pPile = pAnchorPile;
-	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-	SPList* pList = m_pApp->m_pSourcePhrases;
-	int removalCount = 0;
-	bool bAtDocEnd = FALSE;
-	CPile* pPrevPile = NULL;
-	while (!pSrcPhrase->m_bEndFreeTrans)
-	{
-		if (IsFreeTransWidener(pSrcPhrase))
-		{
-			// It's a widener, so remove it
-			removalCount++;
-
-			// Do the removal
-			int sequNum = pSrcPhrase->m_nSequNumber;
-			pList->remove(pSrcPhrase); // removes from m_pSourcePhrases list
-			pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // deletes pSrcPhrase from the heap,
-										// and also deletes its partner pile and removes
-										// the latter from the PileList in CLayout because
-										// the bDoParterPileDeletionFlat is default TRUE
-			// Update the state of the document, and prepare for iterating the loop
-			m_pView->UpdateSequNumbers(0);
-			pPile = m_pLayout->GetPile(sequNum); // the pPile following the deletion now
-												 // has the removed widener's sequ number
-			// pPile should not be NULL, because the widener was not m_bEndFreeTrans TRUE
-			pSrcPhrase = pPile->GetSrcPhrase(); // now iterate
-			continue;
-		}
-		pPile = m_pView->GetNextPile(pPile);
-		if (pPile == NULL)
-		{
-			// We've come to the end of the doc, bail out of the loop
-			bAtDocEnd = TRUE;
-			break;
-		}
-		pSrcPhrase = pPile->GetSrcPhrase();
-	} // end of loop
-
-	if (bAtDocEnd)
-	{
-		// do nothing, we don't expect to come to the doc end without encountering the
-		// m_bEndFreeTrans pile
-		;
-	}
-	else
-	{
-		// the loop does not process the pSrcPhrase which has m_bEndFreeTrans TRUE, so do
-		// it here because it might be a widener
-		if (IsFreeTransWidener(pSrcPhrase))
-		{
-			// It's a widener, so remove it, and don't forget to make the previous pile's
-			// m_bEndFreeTrans be set to TRUE as it will become the new end to the section
-			pPrevPile = m_pView->GetPrevPile(pPile);
-			wxASSERT(pPrevPile->GetSrcPhrase()->m_bHasFreeTrans);
-			wxASSERT(!pPrevPile->GetSrcPhrase()->m_bEndFreeTrans);
-			removalCount++;
-			pPrevPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE; // the new end to the section
-
-			// Do the removal
-			pList->remove(pSrcPhrase); // removes from m_pSourcePhrases list
-			pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // deletes pSrcPhrase from the heap,
-										// and also deletes its partner pile and removes
-										// the latter from the PileList in CLayout because
-										// the bDoParterPileDeletionFlat is default TRUE
-			// Update the state of the document, and prepare for iterating the loop
-			m_pView->UpdateSequNumbers(0);
-		}
-	}
-	// If we removed any we have updated the sequence numbers each time we remove one,
-	// so now return the removalCount so the caller can check if a RecalcLayout() and
-	// redraw is needed
-	return removalCount;
 }

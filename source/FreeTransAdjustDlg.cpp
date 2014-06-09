@@ -89,7 +89,6 @@ void FreeTransAdjustDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pRadioJoinToNext = (wxRadioButton*)FindWindowById(ID_RADIO_JOIN_TO_NEXT);
 	m_pRadioJoinToPrevious = (wxRadioButton*)FindWindowById(ID_RADIO_JOIN_TO_PREVIOUS);
 	m_pRadioSplitIt = (wxRadioButton*)FindWindowById(ID_RADIO_SPLIT_OFF);
-	m_pRadioInsertWidener = (wxRadioButton*)FindWindowById(ID_RADIO_INSERT_WIDENER);
 	m_pTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TELL_USER);
 
 	// Support the message text at the top being Right to Left
@@ -236,10 +235,9 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 			// translation section or not) if the first pile immediately preceding the
 			// start of the current free translation section is one which is the end of a
 			// footnote, endnote, or cross reference - if so, warn user and leave Adjust
-			// dialog open for the user to do something else (eg. insert a section widener
-			// instead)
+			// dialog open for the user to do something else
 			wxString title = _("Cannot join with what precedes");
-			wxString msg = _("The current free translation section is preceded by one of the following: a footnote, endnote, or cross reference. Joining to one of these is not allowed. Instead, join with what follows the current section, or take the option to insert a section widener.");
+			wxString msg = _("The current free translation section is preceded by one of the following: a footnote, endnote, or cross reference. Joining to one of these is not allowed. Instead, join with what follows the current section.");
 			wxMessageBox(msg,title,wxICON_WARNING | wxOK);
 			return; // stay in the Adjust dialog
 		} 
@@ -297,32 +295,13 @@ void FreeTransAdjustDlg::OnOK(wxCommandEvent& event)
 		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
 		m_pApp->m_enumWhichFreeTransOp = split_it; // defines which custom event OnIdle() will post
 
-	} else if (m_pRadioInsertWidener->GetValue())  // If fourth radio button is ON, do this block
-	{
-		// This is the block for inserting a free trans section widener (a placeholder
-		// which is m_bNotInKB set to TRUE)
-
-		//selection = 3;
-		m_pFreeTrans->m_bAllowOverlengthTyping = FALSE;
-
-		// A selection following by typing a character to replace it generates to textctrl
-		// changed events - one for the deletion of the selection, and another for the
-		// insertion of the replacement character - this leads to two shows of the Adjust
-		// dialog from the Draw() done for each event when the text is still overlong. To
-		// suppress the second Adjust dialog being called it needs to be wrapped with
-		// if (m_bFreeTrans_EventPending) then don't call the dialog. The other Adjust
-		// dialog options don't require this protection
-		m_pApp->m_bFreeTrans_EventPending = TRUE; // the handler block in OnIdle() will restore FALSE
-		m_pApp->m_bEnableDelayedFreeTransOp = TRUE; // so OnIdle()'s internal switch becomes accessible
-		m_pApp->m_enumWhichFreeTransOp = insert_widener; // defines which custom event OnIdle() will post
-	}
-	else
+	} else
 	{
 		// default is to do nothing except facilitate the user typing beyond the allowed
 		// space in the section without having the Adjust dialog open at every keystroke, 
-		// however... contnrol should not ever come thru here
+		// however... control should not ever come thru here
 		m_pFreeTrans->m_bAllowOverlengthTyping = TRUE;
-		//selection = 4;
+		//selection = 3;
 	}
 
 	// Prevent unwanted reentrancy

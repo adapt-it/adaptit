@@ -3779,11 +3779,6 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	wxString strNot = m_pApp->m_strNotInKB;
 	bool bStoringNotInKB = (strNot == tgtPhrase);
 
-	// BEW 2Dec13 Don't store a free translation widener
-	if (IsFreeTransWidener(pSrcPhrase))
-	{
-		return TRUE; // this is not an error, just suppression of the store
-	}
 	if (gbAutoCaps)
 	{
 		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
@@ -3976,9 +3971,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 		// subsequently deleted by him before the present; therefore we must test for the
 		// absence of this src/tgt pair and only upload if the entry really is going to be
 		// a new one.
-		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 			||
-			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() ))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
 
@@ -3991,7 +3986,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				pCreateEntryThread->m_source = key;
 				pCreateEntryThread->m_translation = pRefString->m_translation;
 				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
+				wxThreadError error =  pCreateEntryThread->Create(1024);
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					wxString msg;
@@ -4076,9 +4071,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 				||
-				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
 
@@ -4091,7 +4086,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 					pCreateEntryThread->m_source = key;
 					pCreateEntryThread->m_translation = pRefString->m_translation;
 					// now create the runnable thread with explicit stack size of 10KB
-					wxThreadError error = pCreateEntryThread->Create(1024); // was wxThreadError error = pCreateEntryThread->Create(10240);
+					wxThreadError error = pCreateEntryThread->Create(1024);
 					if (error != wxTHREAD_NO_ERROR)
 					{
 						wxString msg;
@@ -4212,9 +4207,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the kbserver.
-						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 							||
-							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
 
@@ -4226,7 +4221,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 								pPseudoUndeleteThread->m_source = key;
 								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
 								// now create the runnable thread with explicit stack size of 10KB
-								wxThreadError error =  pPseudoUndeleteThread->Create(1024); // was wxThreadError error =  pPseudoUndeleteThread->Create(10240);
+								wxThreadError error =  pPseudoUndeleteThread->Create(1024);
 								if (error != wxTHREAD_NO_ERROR)
 								{
 									wxString msg;
@@ -4346,9 +4341,9 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 				// BEW added 5Oct12, here is a suitable place for kbserver support of
 				// CreateEntry(), since both the key and the translation (both possibly
 				// with a case adjustment for the first letter) are defined.
-				if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+				if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 					||
-					(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+					(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 				{
 					KbServer* pKbSvr = GetMyKbServer();
 
@@ -4360,7 +4355,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 							pCreateEntryThread->m_source = key;
 							pCreateEntryThread->m_translation = pRefString->m_translation;
 							// now create the runnable thread with explicit stack size of 10KB
-							wxThreadError error =  pCreateEntryThread->Create(1024); // was wxThreadError error =  pCreateEntryThread->Create(10240);
+							wxThreadError error =  pCreateEntryThread->Create(1024);
 							if (error != wxTHREAD_NO_ERROR)
 							{
 								wxString msg;
@@ -4453,11 +4448,6 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	wxString strNot = m_pApp->m_strNotInKB;
 	bool bStoringNotInKB = (strNot == tgtPhrase);
 
-	// BEW 2Dec13 Don't store a free translation widener
-	if (IsFreeTransWidener(pSrcPhrase))
-	{
-		return TRUE; // this is not an error, just suppression of the store
-	}
     // do not permit storage if the source phrase has an empty key
 	if (pSrcPhrase->m_key.IsEmpty())
 	{
@@ -4806,9 +4796,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 		// BEW added 5Oct12, here is a suitable place for kbserver support of
 		// CreateEntry(), since both the key and the translation (both possibly with a case
 		// adjustment for the first letter) are defined.
-		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 			||
-			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 		{
 			KbServer* pKbSvr = GetMyKbServer();
 
@@ -4984,9 +4974,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
 			// since both the key and the translation (both possibly with a case adjustment
 			// for the first letter) are defined.
-			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 				||
-				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 			{
 				KbServer* pKbSvr = GetMyKbServer();
 
@@ -5153,9 +5143,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// keep use of <Not In KB> restricted to the particular user who
 						// wants to do that, and not propagate it and deletions /
 						// undeletions that may happen as part of it, to the kbserver.
-						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 							||
-							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 						{
 							KbServer* pKbSvr = GetMyKbServer();
 
@@ -5315,9 +5305,9 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 					// BEW added 5Oct12, here is a suitable place for kbserver support of
 					// CreateEntry(), since both the key and the translation (both possibly
 					// with a case adjustment for the first letter) are defined.
-					if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase))
+					if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
 						||
-						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() && !IsFreeTransWidener(pSrcPhrase)))
+						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
 					{
 						KbServer* pKbSvr = GetMyKbServer();
 

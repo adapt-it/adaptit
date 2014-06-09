@@ -10062,14 +10062,14 @@ wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TELL_USER, _("Not enough space to display all your typing. Choose an option below.  Splitting opens another dialog for you to control where to make the split.  This dialog can be forced open manually by clicking the Adjust... button located in the control bar. "), wxDefaultPosition, wxSize(-1,36), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_TELL_USER, _("Not enough space to display all your typing. Choose an option below.  Splitting opens another dialog for you to control where to make the split.  This dialog can be forced open manually by clicking the Adjust... button located in the control bar. "), wxDefaultPosition, wxSize(240,54), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxGridSizer *item3 = new wxGridSizer( 4, 0, 10 );
+    wxGridSizer *item3 = new wxGridSizer( 3, 0, 20 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
-    item4->Add( 14, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( 6, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxRadioButton *item5 = new wxRadioButton( parent, ID_RADIO_JOIN_TO_NEXT, _("Join to next"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->SetValue( TRUE );
@@ -10086,26 +10086,22 @@ wxSizer *FTAdjustFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item7->SetToolTip( _("Split. Keep the first part in the current section, join the remainder to what follows") );
     item3->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIO_INSERT_WIDENER, _("Insert widener"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->SetToolTip( _("Insert a section widener (.....) at the end of the section") );
-    item3->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
-
     item1->Add( item3, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    item9->Add( 100, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 60, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item10 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->SetDefault();
-    item9->Add( item10, 0, wxALIGN_CENTER, 5 );
+    wxButton *item9 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->SetDefault();
+    item8->Add( item9, 0, wxALIGN_CENTER, 5 );
 
-    item9->Add( 70, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+    item8->Add( 40, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item11 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item11, 0, wxALIGN_CENTER, 5 );
+    wxButton *item10 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item10, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -10627,7 +10623,7 @@ void AIToolBarFunc( wxToolBar *parent )
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggledFunc( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
     parent->EnableTool( ID_BUTTON_NULL_SRC, false );
-    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggledFunc( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text") );
+    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggledFunc( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder"), _("Remove the placeholder and its adaptation text") );
     parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );
@@ -10682,7 +10678,7 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
     parent->EnableTool( ID_BUTTON_NULL_SRC, false );
-    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text") );
+    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder"), _("Remove the placeholder and its adaptation text") );
     parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );

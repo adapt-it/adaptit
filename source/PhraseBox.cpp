@@ -2938,27 +2938,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	CAdapt_ItView* pView = pLayout->m_pView;
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
-	// 2Dec13 BEW, Disallow typing in free translation wideners
-	if (IsFreeTransWidener(pApp->m_pActivePile->GetSrcPhrase()))
-	{
-		if ((event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_TAB)
-			|| (event.GetKeyCode() == WXK_BACK) ||
-			(event.HasModifiers() || event.GetKeyCode() == WXK_DOWN || event.GetKeyCode() == WXK_UP
-			|| event.GetKeyCode() == WXK_LEFT || event.GetKeyCode() == WXK_RIGHT)
-		   ) 
-		{
-			; // allow one of these three to fall thru to code further below
-		}
-		else
-		{
-			// anything else, don't allow it
-			wxMessageBox(_(
-			"Adding text to a free translation widener is not permitted."),
-			_T(""),wxICON_INFORMATION | wxOK);
-			return;
-		}
-	}
-
 	// wx version note: In MFC this OnChar() function is NOT called for system key events,
 	// however in the wx version it IS called for combination system key events such as
 	// ALT+Arrow-key. We will immediately return if the CTRL or ALT key is down; Under

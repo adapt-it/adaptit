@@ -63,8 +63,6 @@ DECLARE_EVENT_TYPE(wxEVT_Show_version, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
-DECLARE_EVENT_TYPE(wxEVT_Insert_Widener, -1)
-
 
 #if defined(_KBSERVER)
 
@@ -278,7 +276,6 @@ public:
 	void OnCustomEventJoinWithNext(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventJoinWithPrevious(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventSplitIt(wxCommandEvent& WXUNUSED(event));
-	void OnCustomEventInsertWidener(wxCommandEvent& WXUNUSED(event));
 
 #if defined(_KBSERVER)
 	void OnCustomEventKbDeleteUpdateProgress(wxCommandEvent& WXUNUSED(event));
