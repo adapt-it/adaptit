@@ -2173,11 +2173,16 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				pLayout->Redraw(); // remove highlight before MessageBox call below
 				pLayout->PlaceBox();
 
-				// tell the user EOF has been reached
-				// IDS_AT_END
-				wxMessageBox(_(
+				// tell the user EOF has been reached...
+				// BEW added 9Jun14, don't show this message when in clipboard adapt mode, because
+				// it will come up every time a string of text is finished being adapted, and that
+				// soon become a nuisance - having to click it away each time
+				if (!pApp->m_bClipboardAdaptMode)
+				{
+					wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-				_T(""), wxICON_INFORMATION | wxOK);
+					_T(""), wxICON_INFORMATION | wxOK);
+				}
 				wxStatusBar* pStatusBar;
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				if (pFrame != NULL)
@@ -2384,11 +2389,16 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			//if ((!gbIsGlossing && pFwdPile->GetSrcPhrase()->m_bRetranslation) || pFwdPile == NULL)
 			if (pFwdPile == NULL)
 			{
-				// tell the user EOF has been reached
-
-				wxMessageBox(_(
+				// tell the user EOF has been reached...
+				// BEW added 9Jun14, don't show this message when in clipboard adapt mode, because
+				// it will come up every time a string of text is finished being adapted, and that
+				// soon become a nuisance - having to click it away each time
+				if (!pApp->m_bClipboardAdaptMode)
+				{
+					wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-				_T(""), wxICON_INFORMATION | wxOK);
+					_T(""), wxICON_INFORMATION | wxOK);
+				}
 				wxStatusBar* pStatusBar;
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				if (pFrame != NULL)

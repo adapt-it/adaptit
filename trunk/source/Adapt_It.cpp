@@ -27181,6 +27181,15 @@ void CAdapt_ItApp::OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnButtonCopyToClipboard(wxCommandEvent& WXUNUSED(event))
 {
+	// If the phrasebox is still at an active location, make sure the adaptation 
+	// there has been saved to the KB and m_targetStr constructed for its CSourcePhrase
+	// In the signature below, first bool is bAttamptyStoreToKB, second is bNoStore (a
+	// return value which tells us when the attempt went wrong and no store got done)
+	// and the third is bSuppressWarningOnStoreKBFailure - we'll suppress the warning,
+	// as failure not likely to happen often if at all
+	bool bNoStore = FALSE; // initialize
+	UpdateDocWithPhraseBoxContents(TRUE, bNoStore, TRUE);
+
 	// We use the collaboration export, even if collaboration mode is not on, because this
 	// version filters out our custom markers and their info, such as notes, back
 	// translation, and the like
@@ -27226,6 +27235,15 @@ void CAdapt_ItApp::OnUpdateButtonCopyFreeTransToClipboard(wxUpdateUIEvent& event
 
 void CAdapt_ItApp::OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event))
 {
+	// If the phrasebox is still at an active location, make sure the adaptation 
+	// there has been saved to the KB and m_targetStr constructed for its CSourcePhrase
+	// In the signature below, first bool is bAttamptyStoreToKB, second is bNoStore (a
+	// return value which tells us when the attempt went wrong and no store got done)
+	// and the third is bSuppressWarningOnStoreKBFailure - we'll suppress the warning,
+	// as failure not likely to happen often if at all
+	bool bNoStore = FALSE; // initialize
+	UpdateDocWithPhraseBoxContents(TRUE, bNoStore, TRUE);
+
 	// We use the collaboration export, even if collaboration mode is not on, because this
 	// version filters out our custom markers and their info, such as notes, back
 	// translation, and the like
