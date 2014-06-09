@@ -4224,11 +4224,17 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 	if (gbCameToEnd)
 	{
-		gbCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version was repeatedly calling wxMessageBox causing crash
-		// IDS_AT_END
-		wxMessageBox(
-		_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-		_T(""), wxICON_INFORMATION | wxOK);
+		gbCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version
+							 // was repeatedly calling wxMessageBox causing crash
+		// BEW added 9Jun14, don't show this message when in clipboard adapt mode, because
+		// it will come up every time a string of text is finished being adapted, and that
+		// soon become a nuisance - having to click it away each time
+		if (!pApp->m_bClipboardAdaptMode)
+		{
+			wxMessageBox(
+			_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
+			_T(""), wxICON_INFORMATION | wxOK);
+		}
 	}
 
 	if (bUserCancelled)
