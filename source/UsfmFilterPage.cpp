@@ -90,7 +90,7 @@ extern CUsfmFilterPageWiz* pUsfmFilterPageWiz;
 /// This global is defined in Adapt_It.cpp.
 extern CDocPage* pDocPage;
 
-wxString msgCannotFilterAndChangeSFMset = _("Trying to change the standard format marker set at the same time as trying to change the marker filtering settings is illegal.\nFinish one type of change then return to the same page to do the other.");
+wxString msgCannotFilterAndChangeSFMset = _T("Trying to change the standard format marker set at the same time as trying to change the marker filtering settings is illegal.\nFinish one type of change then return to the same page to do the other.");
 
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar;

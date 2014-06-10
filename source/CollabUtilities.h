@@ -25,9 +25,8 @@
 #include "Adapt_It.h"
 #include "helpers.h"
 
-// This createNewProjectInstead is used in GetAIProjectFolderForCollab(),
-// GetSourceTextFromEditor.cpp, and SetupEditorCollaboration.cpp.
-const wxString createNewProjectInstead = _("<Create a new project instead>");
+// mrh 11Jun14 - removed the const wxString createNewProjectInstead since on OSX localization is set up after const initialization, and in any case
+// this string is only used on one place, in GetAIProjectFolderForCollab().
 
 struct VerseAnalysis {
 	bool				bIsComplex; // TRUE if verse num is a range, or something like 6b,

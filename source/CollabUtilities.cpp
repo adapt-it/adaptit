@@ -1790,7 +1790,8 @@ wxString GetAIProjectFolderForCollab(wxString& aiProjName, wxString& aiSrcLangNa
 			// item from the combobox.
 			// Here leave empty the m_TempCollabAIProjectName, m_TempCollabSourceProjLangName,
 			// and m_TempCollabTargetProjLangName values.
-			aiProjectFolder = createNewProjectInstead;
+
+			aiProjectFolder = _T("<Create a new project instead>");;
 		}
 	}
 	return aiProjectFolder;

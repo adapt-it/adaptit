@@ -57,8 +57,6 @@
 #include "GetSourceTextFromEditor.h"
 #include "StatusBar.h"
 
-extern const wxString createNewProjectInstead;
-
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern bool gbIsGlossing;
 extern bool gbGlossingUsesNavFont;

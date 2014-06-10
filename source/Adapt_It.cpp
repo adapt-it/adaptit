@@ -799,280 +799,280 @@ extern int nCurrentSequNum;
 // work.
 
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _00BK = _("Genesis");
+const wxChar* _00BK = _T("Genesis");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _01BK = _("Exodus");
+const wxChar* _01BK = _T("Exodus");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _02BK = _("Leviticus");
+const wxChar* _02BK = _T("Leviticus");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _03BK = _("Numbers");
+const wxChar* _03BK = _T("Numbers");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _04BK = _("Deuteronomy");
+const wxChar* _04BK = _T("Deuteronomy");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _05BK = _("Joshua");
+const wxChar* _05BK = _T("Joshua");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _06BK = _("Judges");
+const wxChar* _06BK = _T("Judges");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _07BK = _("Ruth");
+const wxChar* _07BK = _T("Ruth");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _08BK = _("1 Samuel");
+const wxChar* _08BK = _T("1 Samuel");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _09BK = _("2 Samuel");
+const wxChar* _09BK = _T("2 Samuel");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _10BK = _("1 Kings");
+const wxChar* _10BK = _T("1 Kings");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _11BK = _("2 Kings");
+const wxChar* _11BK = _T("2 Kings");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _12BK = _("1 Chronicles");
+const wxChar* _12BK = _T("1 Chronicles");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _13BK = _("2 Chronicles");
+const wxChar* _13BK = _T("2 Chronicles");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _14BK = _("Ezra");
+const wxChar* _14BK = _T("Ezra");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _15BK = _("Nehemiah");
+const wxChar* _15BK = _T("Nehemiah");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _16BK = _("Esther");
+const wxChar* _16BK = _T("Esther");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _17BK = _("Job");
+const wxChar* _17BK = _T("Job");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _18BK = _("Psalms");
+const wxChar* _18BK = _T("Psalms");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _19BK = _("Proverbs");
+const wxChar* _19BK = _T("Proverbs");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _20BK = _("Ecclesiastes");
+const wxChar* _20BK = _T("Ecclesiastes");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _21BK = _("Song of Songs");
+const wxChar* _21BK = _T("Song of Songs");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _22BK = _("Isaiah");
+const wxChar* _22BK = _T("Isaiah");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _23BK = _("Jeremiah");
+const wxChar* _23BK = _T("Jeremiah");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _24BK = _("Lamentations");
+const wxChar* _24BK = _T("Lamentations");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _25BK = _("Ezekiel");
+const wxChar* _25BK = _T("Ezekiel");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _26BK = _("Daniel");
+const wxChar* _26BK = _T("Daniel");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _27BK = _("Hosea");
+const wxChar* _27BK = _T("Hosea");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _28BK = _("Joel");
+const wxChar* _28BK = _T("Joel");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _29BK = _("Amos");
+const wxChar* _29BK = _T("Amos");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _30BK = _("Obadiah");
+const wxChar* _30BK = _T("Obadiah");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _31BK = _("Jonah");
+const wxChar* _31BK = _T("Jonah");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _32BK = _("Micah");
+const wxChar* _32BK = _T("Micah");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _33BK = _("Nahum");
+const wxChar* _33BK = _T("Nahum");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _34BK = _("Habakkuk");
+const wxChar* _34BK = _T("Habakkuk");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _35BK = _("Zephaniah");
+const wxChar* _35BK = _T("Zephaniah");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _36BK = _("Haggai");
+const wxChar* _36BK = _T("Haggai");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _37BK = _("Zechariah");
+const wxChar* _37BK = _T("Zechariah");
+/// Bible books folders suppo(rt - folder name defaults for when there is no "books.XML" file in work folder.
+const wxChar* _38BK = _T("Malachi");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _38BK = _("Malachi");
+const wxChar* _39BK = _T("Matthew");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _39BK = _("Matthew");
+const wxChar* _40BK = _T("Mark");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _40BK = _("Mark");
+const wxChar* _41BK = _T("Luke");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _41BK = _("Luke");
+const wxChar* _42BK = _T("John");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _42BK = _("John");
+const wxChar* _43BK = _T("Acts");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _43BK = _("Acts");
+const wxChar* _44BK = _T("Romans");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _44BK = _("Romans");
+const wxChar* _45BK = _T("1 Corinthians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _45BK = _("1 Corinthians");
+const wxChar* _46BK = _T("2 Corinthians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _46BK = _("2 Corinthians");
+const wxChar* _47BK = _T("Galatians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _47BK = _("Galatians");
+const wxChar* _48BK = _T("Ephesians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _48BK = _("Ephesians");
+const wxChar* _49BK = _T("Philippians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _49BK = _("Philippians");
+const wxChar* _50BK = _T("Colossians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _50BK = _("Colossians");
+const wxChar* _51BK = _T("1 Thessalonians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _51BK = _("1 Thessalonians");
+const wxChar* _52BK = _T("2 Thessalonians");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _52BK = _("2 Thessalonians");
+const wxChar* _53BK = _T("1 Timothy");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _53BK = _("1 Timothy");
+const wxChar* _54BK = _T("2 Timothy");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _54BK = _("2 Timothy");
+const wxChar* _55BK = _T("Titus");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _55BK = _("Titus");
+const wxChar* _56BK = _T("Philemon");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _56BK = _("Philemon");
+const wxChar* _57BK = _T("Hebrews");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _57BK = _("Hebrews");
+const wxChar* _58BK = _T("James");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _58BK = _("James");
+const wxChar* _59BK = _T("1 Peter");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _59BK = _("1 Peter");
+const wxChar* _60BK = _T("2 Peter");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _60BK = _("2 Peter");
+const wxChar* _61BK = _T("1 John");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _61BK = _("1 John");
+const wxChar* _62BK = _T("2 John");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _62BK = _("2 John");
+const wxChar* _63BK = _T("3 John");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _63BK = _("3 John");
+const wxChar* _64BK = _T("Jude");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _64BK = _("Jude");
+const wxChar* _65BK = _T("Revelation");
 /// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _65BK = _("Revelation");
-/// Bible books folders support - folder name defaults for when there is no "books.XML" file in work folder.
-const wxChar* _66BK = _("Other Texts");
+const wxChar* _66BK = _T("Other Texts");
 
 // now the book codes
 
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _00BKCODE = _("GEN");
+const wxChar* _00BKCODE = _T("GEN");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _01BKCODE = _("EXO");
+const wxChar* _01BKCODE = _T("EXO");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _02BKCODE = _("LEV");
+const wxChar* _02BKCODE = _T("LEV");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _03BKCODE = _("NUM");
+const wxChar* _03BKCODE = _T("NUM");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _04BKCODE = _("DEU");
+const wxChar* _04BKCODE = _T("DEU");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _05BKCODE = _("JOS");
+const wxChar* _05BKCODE = _T("JOS");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _06BKCODE = _("JDG");
+const wxChar* _06BKCODE = _T("JDG");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _07BKCODE = _("RUT");
+const wxChar* _07BKCODE = _T("RUT");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _08BKCODE = _("1SA");
+const wxChar* _08BKCODE = _T("1SA");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _09BKCODE = _("2SA");
+const wxChar* _09BKCODE = _T("2SA");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _10BKCODE = _("1KI");
+const wxChar* _10BKCODE = _T("1KI");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _11BKCODE = _("2KI");
+const wxChar* _11BKCODE = _T("2KI");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _12BKCODE = _("1CH");
+const wxChar* _12BKCODE = _T("1CH");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _13BKCODE = _("2CH");
+const wxChar* _13BKCODE = _T("2CH");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _14BKCODE = _("EZR");
+const wxChar* _14BKCODE = _T("EZR");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _15BKCODE = _("NEH");
+const wxChar* _15BKCODE = _T("NEH");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _16BKCODE = _("EST");
+const wxChar* _16BKCODE = _T("EST");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _17BKCODE = _("JOB");
+const wxChar* _17BKCODE = _T("JOB");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _18BKCODE = _("PSA");
+const wxChar* _18BKCODE = _T("PSA");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _19BKCODE = _("PRO");
+const wxChar* _19BKCODE = _T("PRO");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _20BKCODE = _("ECC");
+const wxChar* _20BKCODE = _T("ECC");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _21BKCODE = _("SNG");
+const wxChar* _21BKCODE = _T("SNG");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _22BKCODE = _("ISA");
+const wxChar* _22BKCODE = _T("ISA");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _23BKCODE = _("JER");
+const wxChar* _23BKCODE = _T("JER");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _24BKCODE = _("LAM");
+const wxChar* _24BKCODE = _T("LAM");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _25BKCODE = _("EZK");
+const wxChar* _25BKCODE = _T("EZK");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _26BKCODE = _("DAN");
+const wxChar* _26BKCODE = _T("DAN");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _27BKCODE = _("HOS");
+const wxChar* _27BKCODE = _T("HOS");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _28BKCODE = _("JOL");
+const wxChar* _28BKCODE = _T("JOL");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _29BKCODE = _("AMO");
+const wxChar* _29BKCODE = _T("AMO");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _30BKCODE = _("OBA");
+const wxChar* _30BKCODE = _T("OBA");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _31BKCODE = _("JON");
+const wxChar* _31BKCODE = _T("JON");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _32BKCODE = _("MIC");
+const wxChar* _32BKCODE = _T("MIC");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _33BKCODE = _("NAH");
+const wxChar* _33BKCODE = _T("NAH");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _34BKCODE = _("HAB");
+const wxChar* _34BKCODE = _T("HAB");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _35BKCODE = _("ZEP");
+const wxChar* _35BKCODE = _T("ZEP");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _36BKCODE = _("HAG");
+const wxChar* _36BKCODE = _T("HAG");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _37BKCODE = _("ZEC");
+const wxChar* _37BKCODE = _T("ZEC");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _38BKCODE = _("MAL");
+const wxChar* _38BKCODE = _T("MAL");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _39BKCODE = _("MAT");
+const wxChar* _39BKCODE = _T("MAT");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _40BKCODE = _("MRK");
+const wxChar* _40BKCODE = _T("MRK");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _41BKCODE = _("LUK");
+const wxChar* _41BKCODE = _T("LUK");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _42BKCODE = _("JHN");
+const wxChar* _42BKCODE = _T("JHN");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _43BKCODE = _("ACT");
+const wxChar* _43BKCODE = _T("ACT");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _44BKCODE = _("ROM");
+const wxChar* _44BKCODE = _T("ROM");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _45BKCODE = _("1CO");
+const wxChar* _45BKCODE = _T("1CO");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _46BKCODE = _("2CO");
+const wxChar* _46BKCODE = _T("2CO");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _47BKCODE = _("GAL");
+const wxChar* _47BKCODE = _T("GAL");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _48BKCODE = _("EPH");
+const wxChar* _48BKCODE = _T("EPH");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _49BKCODE = _("PHP");
+const wxChar* _49BKCODE = _T("PHP");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _50BKCODE = _("COL");
+const wxChar* _50BKCODE = _T("COL");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _51BKCODE = _("1TH");
+const wxChar* _51BKCODE = _T("1TH");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _52BKCODE = _("2TH");
+const wxChar* _52BKCODE = _T("2TH");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _53BKCODE = _("1TI");
+const wxChar* _53BKCODE = _T("1TI");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _54BKCODE = _("2TI");
+const wxChar* _54BKCODE = _T("2TI");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _55BKCODE = _("TIT");
+const wxChar* _55BKCODE = _T("TIT");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _56BKCODE = _("PHM");
+const wxChar* _56BKCODE = _T("PHM");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _57BKCODE = _("HEB");
+const wxChar* _57BKCODE = _T("HEB");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _58BKCODE = _("JAS");
+const wxChar* _58BKCODE = _T("JAS");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _59BKCODE = _("1PE");
+const wxChar* _59BKCODE = _T("1PE");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _60BKCODE = _("2PE");
+const wxChar* _60BKCODE = _T("2PE");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _61BKCODE = _("1JN");
+const wxChar* _61BKCODE = _T("1JN");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _62BKCODE = _("2JN");
+const wxChar* _62BKCODE = _T("2JN");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _63BKCODE = _("3JN");
+const wxChar* _63BKCODE = _T("3JN");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _64BKCODE = _("JUD");
+const wxChar* _64BKCODE = _T("JUD");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _65BKCODE = _("REV");
+const wxChar* _65BKCODE = _T("REV");
 /// Bible books folders support - 3-letter book code defaults for when there is no "books.XML" file in work folder.
-const wxChar* _66BKCODE = _("OTX");
+const wxChar* _66BKCODE = _T("OTX");
 
-wxString dummyBack = _("&Finish"); // the wxstd.mo file doesn't seem to have
+wxString dummyBack = _T("&Finish"); // the wxstd.mo file doesn't seem to have
 			// this wizard button for localizing, so I add it here
-wxString dummyFinish = _("< &Back"); // the wxstd.mo file doesn't seem to have
+wxString dummyFinish = _T("< &Back"); // the wxstd.mo file doesn't seem to have
 			// this wizard button for localizing, so I add it here
 
 // support for USFM and SFM Filtering
@@ -2286,78 +2286,78 @@ wxString AllBookIds[] = {
 
 // Array of the English names of all books - from Paratext source canon.cs
 wxString AllBookNames[] = {
-    _("Genesis"),
-    _("Exodus"),
-    _("Leviticus"),
-    _("Numbers"),
-    _("Deuteronomy"),
-    _("Joshua"),
-    _("Judges"),
-    _("Ruth"),
-    _("1 Samuel"),
-    _("2 Samuel"),
+    _T("Genesis"),
+    _T("Exodus"),
+    _T("Leviticus"),
+    _T("Numbers"),
+    _T("Deuteronomy"),
+    _T("Joshua"),
+    _T("Judges"),
+    _T("Ruth"),
+    _T("1 Samuel"),
+    _T("2 Samuel"),
 
-    _("1 Kings"),
-    _("2 Kings"),
-    _("1 Chronicles"),
-    _("2 Chronicles"),
-    _("Ezra"),
-    _("Nehemiah"),
-    _("Esther (Hebrew)"),
-    _("Job"),
-    _("Psalms"),
-    _("Proverbs"),
+    _T("1 Kings"),
+    _T("2 Kings"),
+    _T("1 Chronicles"),
+    _T("2 Chronicles"),
+    _T("Ezra"),
+    _T("Nehemiah"),
+    _T("Esther (Hebrew)"),
+    _T("Job"),
+    _T("Psalms"),
+    _T("Proverbs"),
 
-    _("Ecclesiastes"),
-    _("Song of Songs"),
-    _("Isaiah"),
-    _("Jeremiah"),
-    _("Lamentations"),
-    _("Ezekiel"),
-    _("Daniel (Hebrew)"),
-    _("Hosea"),
-    _("Joel"),
-    _("Amos"),
+    _T("Ecclesiastes"),
+    _T("Song of Songs"),
+    _T("Isaiah"),
+    _T("Jeremiah"),
+    _T("Lamentations"),
+    _T("Ezekiel"),
+    _T("Daniel (Hebrew)"),
+    _T("Hosea"),
+    _T("Joel"),
+    _T("Amos"),
 
-	_("Obadiah"),
-    _("Jonah"),
-    _("Micah"),
-    _("Nahum"),
-    _("Habakkuk"),
-    _("Zephaniah"),
-    _("Haggai"),
-    _("Zechariah"),
-    _("Malachi"),
-    _("Matthew"),
+	_T("Obadiah"),
+    _T("Jonah"),
+    _T("Micah"),
+    _T("Nahum"),
+    _T("Habakkuk"),
+    _T("Zephaniah"),
+    _T("Haggai"),
+    _T("Zechariah"),
+    _T("Malachi"),
+    _T("Matthew"),
 
-	_("Mark"),
-    _("Luke"),
-    _("John"),
-    _("Acts"),
-    _("Romans"),
-    _("1 Corinthians"),
-    _("2 Corinthians"),
-    _("Galatians"),
-    _("Ephesians"),
-    _("Philippians"),
+	_T("Mark"),
+    _T("Luke"),
+    _T("John"),
+    _T("Acts"),
+    _T("Romans"),
+    _T("1 Corinthians"),
+    _T("2 Corinthians"),
+    _T("Galatians"),
+    _T("Ephesians"),
+    _T("Philippians"),
 
-	_("Colossians"),
-    _("1 Thessalonians"),
-    _("2 Thessalonians"),
-    _("1 Timothy"),
-    _("2 Timothy"),
-    _("Titus"),
-    _("Philemon"),
-    _("Hebrews"),
-    _("James"),
-    _("1 Peter"),
+	_T("Colossians"),
+    _T("1 Thessalonians"),
+    _T("2 Thessalonians"),
+    _T("1 Timothy"),
+    _T("2 Timothy"),
+    _T("Titus"),
+    _T("Philemon"),
+    _T("Hebrews"),
+    _T("James"),
+    _T("1 Peter"),
 
-	_("2 Peter"),
-    _("1 John"),
-    _("2 John"),
-    _("3 John"),
-    _("Jude"),
-    _("Revelation"),
+	_T("2 Peter"),
+    _T("1 John"),
+    _T("2 John"),
+    _T("3 John"),
+    _T("Jude"),
+    _T("Revelation"),
     _T("Tobit"),
     _T("Judith"),
     _T("Esther Greek"),
@@ -5143,7 +5143,7 @@ enum wxLanguage
 ////////////////////////////////////////////////////////////////////////////////////////
 LangInfo langsKnownToWX[] =
 {
-    { _("(Use system default language) [%s]"), wxLANGUAGE_DEFAULT, _T("default") },	// 0
+    { _T("(Use system default language) [%s]"), wxLANGUAGE_DEFAULT, _T("default") },	// 0
 
     // Note: I've added a couple three-letter short canonical forms from the IANA language
     // registry which may be found at:
