@@ -5335,6 +5335,9 @@ bool CFreeTrans::GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
+	// Start with no CPile instances marked for background colouring in pink
+	m_pLayout->MakeAllPilesNonCurrent();
+
 	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 
 	gbFreeTranslationJustRemovedInVFMdialog = FALSE; // restore to default
@@ -9539,7 +9542,12 @@ CPile* CFreeTrans::JoinFreeTransPileSets(wxArrayPtrVoid* pDestPiles, wxArrayPtrV
 	{
 		pPile = (CPile*)pPilesForAppend->Item(i);
 		pDestPiles->Add(pPile);
+		// Get the flags updated too
+		pPile->GetSrcPhrase()->m_bHasFreeTrans = TRUE;
 	}
+	// Set m_bEndFreeTrans on the last pile's instance of CSourcePhrase
+	pPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE;
+
 	// Return the (possibly new) anchor pile's ptr; when appending the following section
 	// to the current one, the anchor is unchanged; when appending the current section to
 	// the previous one, the anchor pile will move to the start of the previous section.
