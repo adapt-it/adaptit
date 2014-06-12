@@ -10471,7 +10471,7 @@ wxMenuBar *AIMenuBarFunc()
     item4->Append( wxID_FIND, _("&Find...\tCtrl-F"), _("Find text in source or target or both, or special search") );
     item4->Append( wxID_REPLACE, _("Find and &Replace...\tCtrl-H"), _("Replace in target text") );
     item4->AppendSeparator();
-    item4->Append( ID_TOOLS_CLIPBOARD_ADAPT, _("A&dapt Clipboard Text\tCtrl-5"), _("Hide document then adapt source text loaded from the clipboard") );
+    item4->Append( ID_TOOLS_CLIPBOARD_ADAPT, _("A&dapt Clipboard Text\tCtrl-7"), _("Hide document then adapt source text loaded from the clipboard") );
     item4->AppendSeparator();
     item4->Append( ID_TOOLS_DEFINE_CC, _("&Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
     item4->Append( ID_UNLOAD_CC_TABLES, _("&Unload Consistent Changes"), _("Unload any loaded consistent changes tables") );

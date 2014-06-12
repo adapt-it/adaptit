@@ -1519,10 +1519,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 #endif
 	// BEW 12Jun14 added next one, for support of clipboard adapt feature
 #ifdef __WXMAC__
-    // BEW Note: On Mac Command-5 does not appear to be reserved, so I'll use it
-    entries[37].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '5', ID_TOOLS_CLIPBOARD_ADAPT);
+    // BEW Note: On Mac Command-7 does not appear to be reserved, so I'll use it
+    entries[37].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '7', ID_TOOLS_CLIPBOARD_ADAPT);
 #else
-    entries[35].Set(wxACCEL_CTRL, (int) '5', ID_TOOLS_CLIPBOARD_ADAPT);
+    entries[35].Set(wxACCEL_CTRL, (int) '7', ID_TOOLS_CLIPBOARD_ADAPT);
 #endif
 
 
