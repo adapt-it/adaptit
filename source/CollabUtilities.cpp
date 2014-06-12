@@ -96,17 +96,22 @@ extern bool gbDoingInitialSetup;
 
 #ifdef _UNICODE
 
-// comment out when the bugs become history
-//#define OUT_OF_SYNC_BUG
+// comment out when the bugs become history - the next #define is the main one for
+// debugging collaboration sync failuress, and SHOW_INDICES_RANGE is also useful,
+// as also is LIST_MD5LINES
+#define OUT_OF_SYNC_BUG
 // comment out next line when the debug display of indices with md5 lines
 // is no longer wanted (beware, if this is on, it will display a LOT of data)
-//#define SHOW_INDICES_RANGE
+#define SHOW_INDICES_RANGE
 	// comment out next line when the wxLogDebug() in loop in MapMd5ArrayToItsText()
 	// data is not required
 //#define FIRST_250
 // comment out next line when we don't want to see the contents of a verse range logged
 // for both the target export, and the free translation export
 //#define LOG_EXPORT_VERSE_RANGE
+// comment out next line when we don't want to see the actual md5sum lines listed in 
+// the output pane
+#define LIST_MD5LINES
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -4122,6 +4127,17 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 
 		lastMarkerNumericAugment.Empty();
 	}
+#if defined(_DEBUG) && defined(LIST_MD5LINES)
+	// This version shows the whole list
+	int ct;
+	int aCount = (int)UsfmStructureAndExtentArray.GetCount();
+	for (ct = 0; ct < aCount ; ct++)
+	{
+		wxString str = UsfmStructureAndExtentArray.Item(ct);
+		wxLogDebug(str.c_str());
+	}
+#endif
+/*
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 	int ct;
 	int aCount = (int)UsfmStructureAndExtentArray.GetCount();
@@ -4132,6 +4148,8 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 		wxLogDebug(str.c_str());
 	}
 #endif
+*/
+
 	// Note: Our pointer is always incremented to pEnd at the end of the file which is one char beyond
 	// the actual last character so it represents the total number of characters in the buffer.
 	// Thus the Total Count below doesn't include the beginning UTF-16 BOM character, which is also the length
