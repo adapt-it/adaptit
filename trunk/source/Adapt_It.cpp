@@ -27028,6 +27028,13 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 {
+	if (m_bClipboardAdaptMode)
+	{
+		// Prevent a Ctrl-L accelerator from invoking the feature when it is already
+		// in operation
+		wxBell();
+		return;
+	}
 	m_bClipboardAdaptMode = TRUE; // set the flag which indicates the mode is turned on
     CAdapt_ItDoc* pDoc = GetDocument();
 	CLayout* pLayout = GetLayout();

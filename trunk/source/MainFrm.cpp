@@ -1424,10 +1424,11 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// to prevent them from executing if the user types the accelerator key combination.
 	//
 	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
+	// BEW modified 12Jun14, to add one more, Ctrl-5 or Command-5 on Mac, for Adapt Clipboard Text command
 #ifdef __WXMAC__
-    wxAcceleratorEntry entries[37];
+    wxAcceleratorEntry entries[38];
 #else
-    wxAcceleratorEntry entries[35];
+    wxAcceleratorEntry entries[36];
 #endif
 
 #ifdef __WXMAC__
@@ -1516,6 +1517,14 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// whm Note: On Mac both Command-Shift-/ is the usual hot key for getting app help
     entries[36].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '/', wxID_HELP);
 #endif
+	// BEW 12Jun14 added next one, for support of clipboard adapt feature
+#ifdef __WXMAC__
+    // BEW Note: On Mac Command-5 does not appear to be reserved, so I'll use it
+    entries[37].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '5', ID_TOOLS_CLIPBOARD_ADAPT);
+#else
+    entries[35].Set(wxACCEL_CTRL, (int) '5', ID_TOOLS_CLIPBOARD_ADAPT);
+#endif
+
 
 	//entries[35].Set(wxACCEL_ALT, (int) 'S', IDC_BUTTON_SHORTEN); // added to get compose bar button to work
     //entries[36].Set(wxACCEL_ALT, (int) 'L', IDC_BUTTON_LENGTHEN); // added to get compose bar button to work

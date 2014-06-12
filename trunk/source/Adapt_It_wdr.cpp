@@ -10471,7 +10471,7 @@ wxMenuBar *AIMenuBarFunc()
     item4->Append( wxID_FIND, _("&Find...\tCtrl-F"), _("Find text in source or target or both, or special search") );
     item4->Append( wxID_REPLACE, _("Find and &Replace...\tCtrl-H"), _("Replace in target text") );
     item4->AppendSeparator();
-    item4->Append( ID_TOOLS_CLIPBOARD_ADAPT, _("A&dapt Clipboard Text"), _("Hide document then adapt source text loaded from the clipboard") );
+    item4->Append( ID_TOOLS_CLIPBOARD_ADAPT, _("A&dapt Clipboard Text\tCtrl-5"), _("Hide document then adapt source text loaded from the clipboard") );
     item4->AppendSeparator();
     item4->Append( ID_TOOLS_DEFINE_CC, _("&Load Consistent Changes..."), _("Define and load one or more consistent changes tables") );
     item4->Append( ID_UNLOAD_CC_TABLES, _("&Unload Consistent Changes"), _("Unload any loaded consistent changes tables") );
@@ -10678,7 +10678,7 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
     parent->EnableTool( ID_BUTTON_NULL_SRC, false );
-    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder"), _("Remove the placeholder and its adaptation text") );
+    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove a Placeholder, or Remove a Free Translation Widener"), _("Remove the placeholder and its adaptation text") );
     parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, false );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );
