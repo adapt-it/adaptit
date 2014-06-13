@@ -27007,6 +27007,19 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
 									// clipboard adaptation attempt
 	m_bClipboardAdaptMode = FALSE; // turn the mode flag back off to default FALSE
 	m_savedTextBoxStr.Empty();
+
+	// Restore doc title from app's m_savedDocTitle wxString
+	wxString oldTitleStr = m_savedDocTitle;
+	GetDocument()->SetTitle(oldTitleStr);
+	GetDocument()->SetFilename(oldTitleStr,TRUE); // here TRUE means "notify the views"
+	m_savedDocTitle.Empty();
+	// Force a save of the adaptation KB, ignore returned boolean, we'll assume it
+	// worked (the Update handler does not allow clipboard adapt mode to be entered
+	// if the document is in read-only mode, so that issue is taken care of already)
+	SaveKB(FALSE, TRUE); // don't want backup produced, do want progress to be tracked
+	// Now that m_bClipboardAdaptMode is FALSE, the status bar refresh will restore the
+	// document information, or default info if no doc was loaded
+	RefreshStatusBarInfo();
 }
 
 
@@ -27035,7 +27048,21 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 		wxBell();
 		return;
 	}
+
+	// Save the window's titlebar's doc title while the mode is turned on, and write "Clipboard'
+	// (localizable) instead - save in app's m_savedDocTitle wxString
+	wxString modeTitleStr = _("Clipboard");
+	m_savedDocTitle = GetDocument()->GetTitle();
+	GetDocument()->SetTitle(modeTitleStr);
+	GetDocument()->SetFilename(modeTitleStr,TRUE); // here TRUE means "notify the views"
+
 	m_bClipboardAdaptMode = TRUE; // set the flag which indicates the mode is turned on
+
+	// Now that m_bClipboardAdaptMode is TRUE, the status bar refresh will have 
+	// the project information, etc, with "Clipboard Text" added at the end instead of
+	// Folder: followed by the folder name
+	RefreshStatusBarInfo();
+
     CAdapt_ItDoc* pDoc = GetDocument();
 	CLayout* pLayout = GetLayout();
 	CMainFrame* pMainFrame = GetMainFrame();
@@ -39656,28 +39683,55 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	{
 		if (gpApp->m_pCurrBookNamePair != NULL && gpApp->m_nBookIndex != -1)
 		{
-			// IDS_CURFOLDER
-			//mssg = mssg.Format(_("  Current Folder: %s"),
-			mssg = mssg.Format(_("  Folder: %s"),
+			wxString clipTxt;
+			clipTxt = _(" : Clipboard Text");
+			if (m_bClipboardAdaptMode)
+			{
+				// BEW added 13Jun14, override mssg with "Clipboard Text" if clipboard
+				// adapt mode is currently in effect
+				mssg = mssg.Format(_(" %s"),clipTxt.c_str());
+			}
+			else
+			{
+				mssg = mssg.Format(_("  Folder: %s"),
 							gpApp->m_pCurrBookNamePair->seeName.c_str());
+			}
 			message += mssg;
 		}
 		else
 		{
 			wxString undef;
-			// IDS_UNDEFINED
+			wxString clipTxt;
 			undef = _(" Undefined");
-			// IDS_CURFOLDER
-			//mssg = mssg.Format(_("  Current Folder: %s"),undef.c_str());
-			mssg = mssg.Format(_("  Folder: %s"),undef.c_str());
+			clipTxt = _(" : Clipboard Text");
+			if (m_bClipboardAdaptMode)
+			{
+				// BEW added 13Jun14, have mssg with "Clipboard Text" if clipboard
+				// adapt mode is currently in effect
+				mssg = mssg.Format(_(" %s"),clipTxt.c_str());
+
+			}
+			else
+			{
+				mssg = mssg.Format(_("  Folder: %s"),undef.c_str());
+			}
 			message += mssg;
 		}
 	}
 	else
 	{
-		// IDS_CURFOLDER
-		//mssg = mssg.Format(_("  Current Folder: %s"),_("Adaptations"));
-		mssg = mssg.Format(_("  Folder: %s"),_("Adaptations"));
+		wxString clipTxt;
+		clipTxt = _(" : Clipboard Text");
+		if (m_bClipboardAdaptMode)
+		{
+			// BEW added 13Jun14, override mssg with "Clipboard Text" if clipboard
+			// adapt mode is currently in effect
+			mssg = mssg.Format(_(" %s"),clipTxt.c_str());
+		}
+		else
+		{
+			mssg = mssg.Format(_("  Folder: %s"),_("Adaptations"));
+		}
 		message += mssg;
 	}
 	if (gpApp->m_bTransliterationMode)

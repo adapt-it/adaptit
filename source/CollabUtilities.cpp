@@ -85,7 +85,6 @@ extern int  gnOldSequNum;
 extern bool gbConsistencyCheckCurrent;
 extern bool gbDoingInitialSetup;
 
-
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
 #define nBOMLen 3
@@ -99,19 +98,18 @@ extern bool gbDoingInitialSetup;
 // comment out when the bugs become history - the next #define is the main one for
 // debugging collaboration sync failuress, and SHOW_INDICES_RANGE is also useful,
 // as also is LIST_MD5LINES
-#define OUT_OF_SYNC_BUG
+//#define OUT_OF_SYNC_BUG
 // comment out next line when the debug display of indices with md5 lines
 // is no longer wanted (beware, if this is on, it will display a LOT of data)
-#define SHOW_INDICES_RANGE
+//#define SHOW_INDICES_RANGE
 	// comment out next line when the wxLogDebug() in loop in MapMd5ArrayToItsText()
 	// data is not required
 //#define FIRST_250
 // comment out next line when we don't want to see the contents of a verse range logged
 // for both the target export, and the free translation export
 //#define LOG_EXPORT_VERSE_RANGE
-// comment out next line when we don't want to see the actual md5sum lines listed in 
-// the output pane
-#define LIST_MD5LINES
+// comment out when seeing md5sum lines is not wanted
+//#define LISTMD5LINES
 
 /// The UTF-8 byte-order-mark (BOM) consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding. Some applications like Notepad prefix UTF-8 files with
@@ -4128,13 +4126,29 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 		lastMarkerNumericAugment.Empty();
 	}
 #if defined(_DEBUG) && defined(LIST_MD5LINES)
-	// This version shows the whole list
-	int ct;
-	int aCount = (int)UsfmStructureAndExtentArray.GetCount();
-	for (ct = 0; ct < aCount ; ct++)
+	// This version shows the whole list, or just the bits we want if the gbShowFreeTransLogsOnly flag is not commented out
+	if (gbShowFreeTransLogsOnly)
 	{
-		wxString str = UsfmStructureAndExtentArray.Item(ct);
-		wxLogDebug(str.c_str());
+		// show range of indices from 22 to 25
+		int ct;
+		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
+		aCount = wxMin(aCount,25);
+		for (ct = 22; ct < aCount ; ct++)
+		{
+			wxString str = UsfmStructureAndExtentArray.Item(ct);
+			wxLogDebug(str.c_str());
+		}
+	}
+	else
+	{
+/*		int ct;
+		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
+		for (ct = 0; ct < aCount ; ct++)
+		{
+			wxString str = UsfmStructureAndExtentArray.Item(ct);
+			wxLogDebug(str.c_str());
+		}
+*/
 	}
 #endif
 /*
@@ -6021,50 +6035,52 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		// something's different, so do the more complex algorithm
 
 #if defined(SHOW_INDICES_RANGE) && defined(_DEBUG)
-	wxString s;
-	switch (makeTextType)
-	{
-	case makeFreeTransText:
-		s = _T("freeTrans text:");
+/*
+		wxString s;
+		switch (makeTextType)
+		{
+		case makeFreeTransText:
+			s = _T("freeTrans text:");
+				break;
+		default:
+		case makeTargetText:
+			s = _T("target text:");
 			break;
-	default:
-	case makeTargetText:
-		s = _T("target text:");
-		break;
-	}
-	int count1, count2;
-	count1 = (int)postEditMd5Arr.GetCount();
-	count2 = (int)fromEditorMd5Arr.GetCount();
-	int ctmin = wxMin(count1,count2);
-	int ctmax = wxMax(count1,count2);
-	if (ctmin == ctmax)
-	{
-		wxLogDebug(_T("\n\n***SAME LENGTH ARRAYS: numItems = %d"), ctmin);
-	}else
-	{
-		wxLogDebug(_T("\n\n***DIFFERENT LENGTH ARRAYS: postEditArr numItems = %d  fromEditorNumItems = %d"),
-					count1, count2);
-	}
-	int ct;
-	wxString postStr;
-	wxString fromStr;
-	wxString postEdChap;
-	wxString fromEdChap;
-	for (ct = 0; ct < ctmin; ct++)
-	{
-		postStr = postEditMd5Arr.Item(ct);
-		fromStr = fromEditorMd5Arr.Item(ct);
-		if (postStr.Find(_T("\\c ")) == 0)
-		{
-			postEdChap = postStr.Mid(3,5);
 		}
-		if (fromStr.Find(_T("\\c ")) == 0)
+		int count1, count2;
+		count1 = (int)postEditMd5Arr.GetCount();
+		count2 = (int)fromEditorMd5Arr.GetCount();
+		int ctmin = wxMin(count1,count2);
+		int ctmax = wxMax(count1,count2);
+		if (ctmin == ctmax)
 		{
-			fromEdChap = fromStr.Mid(3,5);
+			wxLogDebug(_T("\n\n***SAME LENGTH ARRAYS: numItems = %d"), ctmin);
+		}else
+		{
+			wxLogDebug(_T("\n\n***DIFFERENT LENGTH ARRAYS: postEditArr numItems = %d  fromEditorNumItems = %d"),
+						count1, count2);
 		}
-		wxLogDebug(_T("Data type = %s  INDEX = %d  postEdChap = %s  postEditArr  %s , fromEdChap = %s fromEditorArr  %s"),
-			s.c_str(), ct, postEdChap.c_str(), postStr.c_str(), fromEdChap.c_str(), fromStr.c_str());
-	}
+		int ct;
+		wxString postStr;
+		wxString fromStr;
+		wxString postEdChap;
+		wxString fromEdChap;
+		for (ct = 0; ct < ctmin; ct++)
+		{
+			postStr = postEditMd5Arr.Item(ct);
+			fromStr = fromEditorMd5Arr.Item(ct);
+			if (postStr.Find(_T("\\c ")) == 0)
+			{
+				postEdChap = postStr.Mid(3,5);
+			}
+			if (fromStr.Find(_T("\\c ")) == 0)
+			{
+				fromEdChap = fromStr.Mid(3,5);
+			}
+			wxLogDebug(_T("Data type = %s  INDEX = %d  postEdChap = %s  postEditArr  %s , fromEdChap = %s fromEditorArr  %s"),
+				s.c_str(), ct, postEdChap.c_str(), postStr.c_str(), fromEdChap.c_str(), fromStr.c_str());
+		}
+*/
 #endif
 		// the USFM structure has changed in at least one location in the text
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
@@ -6077,6 +6093,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 
     #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
     {
+		/*
 		// show the first 1200 characters that are in the returned text wxString, or all
 		// of string if fewer than 1200 in length
         int length = text.Len();
@@ -6089,6 +6106,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		}
         wxLogDebug(_T("%s"), s.c_str());
         length = length; // put break point here
+		*/
     }
     #endif
     #if defined(_DEBUG) && defined(WXGTK)
@@ -6273,17 +6291,20 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			// text from Paratext or Bibledit for this marker is absent so far, or the
 			// marker is a contentless one anyway (we have to transfer them too)
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			if (index > 16 && index < 23)
-			{
-				int break_here = 1;
-			}
+			//if (index > 21 && index < 26)
+			//{
+			//	int break_here = 1;
+			//}
 #endif
 			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
 			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			wxString strEnd;
+			if (index >= 22 && index <= 25)
+			{
 			// next four lines, a quick way to see what's been added at the end of newText
-			wxString strEnd = newText;
+			strEnd = newText;
 			strEnd = MakeReverse(strEnd);
 			strEnd = strEnd.Left(100);
 			strEnd = MakeReverse(strEnd);
@@ -6293,10 +6314,13 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			// not appending the fragmentStr contents to newText. Before I could track down what was
 			// happening, the problem went away. That's why I've left so much debugging code here - to
 			// track down the bug if it happens again.
+			}
 #endif
 			newText += fragmentStr;
 
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			if (index >= 22 && index <= 25)
+			{
 			// next four lines allow me to quickly check that the fragmentStr actually got appended
 			// without having to go to the log window
 			strEnd = newText;
@@ -6306,6 +6330,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			wxLogDebug(_T("SfmsUnchanged: index = %d  , fromEditor md5 = %s  , Tfer to PT, Substring: %s"),
 				index, fromEditorMD5Sum.c_str(), fragmentStr.c_str());
 			wxLogDebug(_T("SfmsUnchanged: index = %d  , newText AFTER: %s"), index, newText.c_str());
+			}
 #endif
 		}
 		else
@@ -6325,8 +6350,11 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 								pFromEditorOffsets->startOffset, pFromEditorOffsets->endOffset);
 				newText += fragmentStr;
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			if (index >= 22 && index <= 25)
+			{
 			wxLogDebug(_T("SfmsUnchanged: index = %d  , SAME MD5: preEdit  %s  , postEdit  %s  , Keeping PT, Substring: %s"),
 				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
+			}
 #endif
 			}
 			else
@@ -6337,8 +6365,11 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 								pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
 				newText += fragmentStr;
 #if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+			if (index >= 22 && index <= 25)
+			{
 			wxLogDebug(_T("SfmsUnchanged: index = %d  , DIFF MD5: preEdit  %s  , postEdit  %s  , Tfer to PT, Substring: %s"),
 				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
+			}
 #endif
 			}
 		}
@@ -6381,6 +6412,16 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	wxChar* pStrBegin = NULL;
 #endif
 #endif
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+	wxChar* pStrBegin = NULL;
+#endif
+
+
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+		wxString aSubrange = _T("Indices 22 to 25 inclusive");
+		wxLogDebug(_T("MapMd5ArrayToItsText(), a subrange logged:\n%s"),aSubrange.c_str());
+#endif
+
 	for (lineIndex = 0; lineIndex < md5ArrayCount; lineIndex++)
 	{
 		// get next line from md5Arr
@@ -6401,6 +6442,12 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 #ifdef _DEBUG
 		pStrBegin = ptr;
 #endif
+#endif
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+		if (lineIndex >= 22 && lineIndex <= 25)
+		{
+			pStrBegin = ptr;
+		}
 #endif
 		// create an MD5Map instance & store it & start populating it
 		pMapStruct = new MD5Map;
@@ -6445,6 +6492,15 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		wxString str = wxString(pStrBegin, nSpan);
 		wxLogDebug(_T("MapMd5ArrayToItsText(), map index = %d: nSpan = %d, textSpan = %s"),lineIndex, nSpan, str.c_str());
 #endif
+#endif
+#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+		if (lineIndex >= 22 && lineIndex <= 25)
+		{
+			// show what the subspan of text is
+			unsigned int nSpan = (unsigned int)((pStart + pMapStruct->endOffset) - pStrBegin);
+			wxString str = wxString(pStrBegin, nSpan);
+			wxLogDebug(_T("map index = %d: nSpan = %d, textSpan = %s"),lineIndex, nSpan, str.c_str());
+		}
 #endif
 		// the next test should be superfluous, but no harm in it
 		if (bReachedEnd)

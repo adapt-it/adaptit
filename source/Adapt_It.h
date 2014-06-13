@@ -3968,6 +3968,7 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	void     OnButtonCopyFreeTransToClipboard(wxCommandEvent& WXUNUSED(event));
 	// don't need an update handler for the Close button, it's always enabled
 	void     OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event));
+	wxString m_savedDocTitle; // temporarily save Titlebar's title string here when doing clipboard adapt
 	// End of new variables for support of clipboard-based adaptation & free translation
 
 
