@@ -9518,13 +9518,13 @@ CPile* CFreeTrans::JoinFreeTransPileSets(wxArrayPtrVoid* pDestPiles, wxArrayPtrV
 
 	pFirstAppendPile = (CPile*)pPilesForAppend->Item(0);
 #if defined(_DEBUG)
-	wxLogDebug(_T("JoinFreeTransPileSets - contents of 2nd pile array"));
-	int aCount = pPilesForAppend->GetCount();
-	int index;
-	for (index = 0; index < aCount; index++)
-	{
-		wxLogDebug( _T("index = %d     src text  =  %s"), index, ((CPile*)pPilesForAppend->Item(index))->GetSrcPhrase()->m_srcPhrase.c_str());
-	}
+	//wxLogDebug(_T("JoinFreeTransPileSets - contents of 2nd pile array"));
+	//int aCount = pPilesForAppend->GetCount();
+	//int index;
+	//for (index = 0; index < aCount; index++)
+	//{
+	//	wxLogDebug( _T("index = %d     src text  =  %s"), index, ((CPile*)pPilesForAppend->Item(index))->GetSrcPhrase()->m_srcPhrase.c_str());
+	//}
 #endif
 	pSrcPhrase = pFirstAppendPile->GetSrcPhrase();
 	// Remove indication of start of section

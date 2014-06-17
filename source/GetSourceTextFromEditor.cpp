@@ -1143,6 +1143,10 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 			// this might return an empty string, or USFMs only string, if no work has yet
 			// been done on the free translation
 			freeTransWholeBookBuffer = ExportFreeTransText_For_Collab(m_pApp->m_pSourcePhrases);
+#if defined (_DEBUG)
+			//wxLogDebug(_T("OnOK() of GetSourceTextFromEditor(), for Free Translation transfer - the preEdit text\n"));
+			//wxLogDebug(_T("%s\n"), freeTransWholeBookBuffer.c_str());
+#endif
 			m_pApp->StoreFreeTransText_PreEdit(freeTransWholeBookBuffer);
 		}
 	}
