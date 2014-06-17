@@ -6299,9 +6299,9 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			pPostEditOffsets = (MD5Map*)postEditOffsetsArr.Item(index);
 			wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 							pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxString strEnd;
-			if (index >= 22 && index <= 25)
+			if (index >= 23 && index <= 32)
 			{
 			// next four lines, a quick way to see what's been added at the end of newText
 			strEnd = newText;
@@ -6318,8 +6318,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 #endif
 			newText += fragmentStr;
 
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			if (index >= 22 && index <= 25)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			if (index >= 23 && index <= 32)
 			{
 			// next four lines allow me to quickly check that the fragmentStr actually got appended
 			// without having to go to the log window
@@ -6349,8 +6349,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 				wxString fragmentStr = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
 								pFromEditorOffsets->startOffset, pFromEditorOffsets->endOffset);
 				newText += fragmentStr;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			if (index >= 22 && index <= 25)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			if (index >= 23 && index <= 32)
 			{
 			wxLogDebug(_T("SfmsUnchanged: index = %d  , SAME MD5: preEdit  %s  , postEdit  %s  , Keeping PT, Substring: %s"),
 				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
@@ -6364,8 +6364,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 				wxString fragmentStr = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
 								pPostEditOffsets->startOffset, pPostEditOffsets->endOffset);
 				newText += fragmentStr;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			if (index >= 22 && index <= 25)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			if (index >= 23 && index <= 32)
 			{
 			wxLogDebug(_T("SfmsUnchanged: index = %d  , DIFF MD5: preEdit  %s  , postEdit  %s  , Tfer to PT, Substring: %s"),
 				index, preEditMD5Sum.c_str(), postEditMD5Sum.c_str(), fragmentStr.c_str());
