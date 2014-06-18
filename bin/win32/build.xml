@@ -104,9 +104,11 @@
 	<arg value="-y" />
     </exec>
 	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
+	<!--
     <unzip src="${3pt}/wxwidgets/current/wxWidgets-3.0.1.zip" 
 		dest="${3pt}/wxwidgets/current/wxWidgets-3.0.1">
     </unzip>
+	-->
     <unzip src="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.zip" 
 		dest="${3pt}/wxwidgets/2.8.12">
     </unzip>
@@ -114,7 +116,9 @@
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
 	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
+	<!--
     <copy file="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/setup.h"/>
+	-->
     <copy file="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/setup.h"/>
   </target>
 
