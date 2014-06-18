@@ -1,4 +1,108 @@
 ----------------------------------------------
+Version 6.5.3 release 18 June 2014
+----------------------------------------------
+* Clipboard adaptation support. It is now possible to
+choose an "Adapt clipboard text" command on the Tools
+menu, to support quickly adapting the text (which can
+have full USFM markup) in the clipboard, and when that
+is done, to click a "Copy adaptation to clipboard" 
+button, or a "Copy free translation to clipboard" 
+button, to have the adaptation or free translation (if
+you have created one of course) copied back to the 
+clipboard - you are then free to Paste that wherever
+you like (for instance, in a window in running Paratext).
+Any document open when the command is invoked is
+temporarily hidden, and restored when the temporary
+adapting job is dismissed by a click of a "Close" button
+on the toolbar temporarily put up for the duration of
+the task. The knowledge base used is the one which is
+active for the currently Adapt It project. Adaptations
+flow into it in the normal way and persist after the
+temporary adapting (and or free translating) is finished.
+* Enhanced support for preserving changes when, in 
+collaboration mode, the changes are transferred back to
+Paratext or Bibledit. The algorithms were rewritten, and
+now support transferring punctuation when punctuation 
+is the only change made by the user in the Paratext or 
+Bibledit source text project; also, changes made in the 
+external editor (e.g. Paratext) source project's USFM
+markup, are now correctly transferred to the external
+editor.
+* Support for whole-book adaptation in collaboration
+mode has been enhanced and made robust.
+* Temporary files in the .temp folder within the Adapt
+It Unicode Work folder are not needed after a collaboration
+session ends. They are now automatically removed, if
+present, each time Adapt It is shut down.
+* The compose bar's button, Insert Widener, has been
+changed to be the more useful "Join To Next".
+* Support for "free translation wideners" has been 
+removed. Their benefit was very limited. If you have
+one in a document, put the phrase box there and
+click the "Remove Placeholder" button on the toolbar
+to get rid of it.
+----------------------------------------------
+Bug fixes in 6.5.3
+----------------------------------------------
+* If the phrasebox was not visible because the user had
+adapted all the document, and File > Save and remember in 
+history... was chosen, the application crashed.
+* If the phrasebox was not visible because the user had
+adapted all the document, and either of the File menu
+commands:
+Look at previous versions in the document history... or
+View list of previously remembered versions... was
+invoked, the application crashed. These commands
+now show their dialog centered in the window.
+* If a text file with the first word being just a single
+character was used to create a document, doing a SFM
+export caused the application to crash.
+* If a bridge of verses is made, or unmade, in the
+Paratext or Bibledit source text project, and Adapt It
+is in collaboration mode, the adaptation (and any free
+translations entered) did not have the bridge, or
+undoing of the bridge, transferred across. Also, editing 
+some words of the source text in Paratext or Bibledit 
+could, where there was a bridge just created, or just
+removed, cause doubled up and wrongly structured text
+to be copied over. And if markers (such as \q1 \q2 for 
+example) were added to the source text, they were not
+transferred to Paratext. All these problems are now fixed.
+* Collaboration mode did not support whole-book adapting 
+properly. This too is now fixed.
+* In free translation mode, if the user chose to join 
+a just-created free translation section to the
+preceding section, Adapt It crashed.
+* In free translation mode, if the user clicked to an
+arbitrary pile at a location without a free translation 
+and that location was not itself within a free translation,
+then Adapt It crashed.
+* In free translation mode, if, while in a current free
+translation section the user uses the Lengthen button 
+at least once, and then clicks at some pile outside of
+that free translation to setup a new section at the
+clicked location, Adapt It crashed.
+* In free translation mode, if an earlier version of the
+document is restored from the history repository, the
+old free translation in the ComposeBar was not erased.
+Now it is. (Safer than leaving a free translation there
+which probably doesn't match the active location's text.)
+* In free translation mode, if a short section was created
+and the user popped up the Adjust... dialog and asked for
+the current section to be joined to what follows, the
+join got done but the text's background colouring shows
+green instead of pink for the piles in the material that
+was lying ahead of the join point. Now its correctly pink.
+* Joining to a previous free translation when the phrasebox
+is a the document start is now disallowed. Joining to a
+following free translation when the phrasebox is at the
+end of the document is also now disallowed.
+* If two successive "split" operations were done on a
+typed free translation which encroached into the material
+should be the next free translation section, after the second
+split the anchor location did not display the correct 
+adaptation.
+----------------------------------------------
 Version 6.5.2 release 18 December 2013
 ----------------------------------------------
 * The Free Translation feature has been improved. Formerly
