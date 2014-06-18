@@ -1,5 +1,5 @@
 ----------------------------------------------
-Version 6.5.3 release 22 May 2014
+Version 6.5.3 release 18 June 2014
 ----------------------------------------------
 * Clipboard adaptation support. It is now possible to
 choose an "Adapt clipboard text" command on the Tools
