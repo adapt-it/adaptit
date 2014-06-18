@@ -183,9 +183,9 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 #define VERSION_MINOR_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_BUILD_PART 3 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 22
-#define VERSION_DATE_MONTH 05
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 18
+#define VERSION_DATE_MONTH 06
 #define VERSION_DATE_YEAR 2014
 const wxString appVerStr(_T("6.5.3"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
@@ -3761,6 +3761,10 @@ public:
 
 	void OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event)); // BEW added 9May14
 	void OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event); // ditto
+private:
+	void RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum, 
+				int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded);
+public:
 
 	void OnAdvancedTransformAdaptationsIntoGlosses(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEvent& event);
