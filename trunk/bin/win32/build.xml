@@ -103,22 +103,18 @@
 	<arg value="-o${3pt}/boost/current" />
 	<arg value="-y" />
     </exec>
-	<!-- edb remove 2.9.x for now -->
-	<!--
-    <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
-	<arg value="x" />
-	<arg value="${3pt}/wxwidgets/current/wxWidgets-2.9.4.7z" />
-	<arg value="-o${3pt}/wxwidgets/current/wxWidgets" />
-	<arg value="-y" />
-    </exec>
-    <copy file="${3pt}/wxwidgets/current/wxWidgets/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets/include/wx/setup.h"/>
-	-->
+	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
+    <unzip src="${3pt}/wxwidgets/current/wxWidgets-3.0.1.zip" 
+		dest="${3pt}/wxwidgets/current/wxWidgets-3.0.1">
+    </unzip>
     <unzip src="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.zip" 
 		dest="${3pt}/wxwidgets/2.8.12">
     </unzip>
     <!-- wxWidgets needs us to tell it what OS platform we're building; we do this by
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
+	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
+    <copy file="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/setup.h"/>
     <copy file="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/setup.h"/>
   </target>
 
@@ -154,12 +150,20 @@
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
+	  <!-- edb 18 June 2014: use when compiling against 3.0.1
+	  <arg value="/p:Configuration=Debug" />
+ 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
+	  -->
 	  <arg value="/p:Configuration=Unicode Debug" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
     </exec>
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
+	  <!-- edb 18 June 2014: use when compiling against 3.0.1
+	  <arg value="/p:Configuration=Release" />
+ 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
+	  -->
 	  <arg value="/p:Configuration=Unicode Release" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
     </exec>
@@ -177,6 +181,10 @@
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
+		<!-- edb 18 June 2014: use when compiling against 3.0.1
+		<env key="WXVER" value="30"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.1"/>
+		-->
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
@@ -200,6 +208,10 @@
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
+		<!-- edb 18 June 2014: use when compiling against 3.0.1
+		<env key="WXVER" value="30"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.1"/>
+		-->
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
