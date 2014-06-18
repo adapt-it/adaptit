@@ -16320,7 +16320,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// fix the sequence numbers, so that they are in sequence with no gaps, from the
 	// beginning
 	tokBuffer.Empty();
+	// The next call does nothing if pList is empty
 	AdjustSequNumbers(nStartingSequNum,pList);
+	// There may be nothing in the list, check, and if so, return 0
+	if (pList->IsEmpty())
+		return 0;
 
 	// ensure pSrcPhrase->m_srcPhrase has no trailing spaces (a few CR LFs at the end
 	// of the plain text input file find their way into the trailing text of the last
@@ -18512,7 +18516,8 @@ void CAdapt_ItDoc::AdjustSequNumbers(int nValueForFirst, SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
 	SPList::Node *node = pList->GetFirst();
-	wxASSERT(node != NULL);
+	if (node == NULL)
+		return;
 	int sn = nValueForFirst-1;
 	while (node)
 	{

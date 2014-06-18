@@ -27115,38 +27115,9 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 	// Check the clipboard is not empty, if it is, get out gracefully and with a message
 	if (bClipboardTextAbsent)
 	{
-		// we've nothing to do, so restore the document and active location if there was a
-		// doc loaded in the view window, then tell the user there is no clipboard text
-		// and exit this handler without doing anything. Nothing has changed in the GUI as
-		// yet, but a recalc of the layout is needed because the partner piles got
-		// clobbered at the DeleteSourcePhrases() call above
-		if (m_bADocIsLoaded)
-		{
-			bIsOK = pView->DeepCopySourcePhraseSublist(pSaveList, (int)nStartAt, (int)nEndAt, m_pSourcePhrases);
-			m_nActiveSequNum = m_nSaveSequNumForDocRestore;
-			m_nSaveSequNumForDocRestore = 0; // a safe default
-			pDoc->DeleteSourcePhrases(m_pSaveList, FALSE); // FALSE means don't delete partner piles
-
-			// RecalcLayout() and place the phrase box
-			m_pActivePile = NULL;
-			#ifdef _NEW_LAYOUT
-				pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-			#else
-				pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-			#endif
-			// recalculate the active pile & update location for phraseBox creation
-			m_pActivePile = pView->GetPile(m_nActiveSequNum);
-			if (m_pActivePile != NULL)
-			{
-				pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
-				m_nStartChar = 0;
-				m_nEndChar = -1; // ensure initially all is selected
-				m_pTargetBox->SetSelection(-1,-1); // select all
-				m_pTargetBox->SetFocus();
-			}
-			pView->Invalidate();
-			pLayout->PlaceBox();
-		}
+		// nothing to do, so restore old state
+		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt, 
+											m_pSourcePhrases, m_bADocIsLoaded);
 		wxMessageBox(_("The clipboard was empty; there is nothing to do."), 
 			_("No Source Text"), wxICON_INFORMATION | wxOK);
 		return;
@@ -27156,8 +27127,19 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 	// 0 is the value of param: int nInitialSequNum
 	m_bClipboardTextLoaded = FALSE;
 	int numInstances = pView->TokenizeTextString(m_pSourcePhrases, loadedSrcText, 0);
-	if (numInstances > 0)
+	if (numInstances == 0)
 	{
+		// We can get here if, for example, the clipboard just contained some 
+		// whitespace characters; we treat this the same as an empty clipboard
+		RestoreDocStateWhenEmptyClipboard(pSaveList, (int)nStartAt, (int)nEndAt, 
+											m_pSourcePhrases, m_bADocIsLoaded);
+		wxMessageBox(_("The clipboard was empty; there is nothing to do."), 
+			_("No Source Text"), wxICON_INFORMATION | wxOK);
+		return;
+	}
+	else
+	{
+		// There is at least one CSourcePhrase instance ready for display
 		pView->UpdateSequNumbers(0);
 		m_bClipboardTextLoaded = TRUE;
 
@@ -27197,6 +27179,63 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 		pView->Invalidate();
 		pLayout->PlaceBox();
 	} // end of TRUE block for test: if (numInstances > 0)
+}
+
+void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList,	int nStartingSequNum, 
+	int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded) // this is a private function
+{
+    CAdapt_ItDoc* pDoc = GetDocument();
+	CLayout* pLayout = GetLayout();
+	CAdapt_ItView* pView = GetView();
+	CMainFrame* pMainFrame = GetMainFrame();
+	// We've nothing to do, so restore the document and active location if there was a
+	// doc loaded in the view window, then tell the user (in caller) there is no clipboard
+	// text and exit this handler without doing anything. Nothing has changed in the GUI as
+	// yet, but a recalc of the layout is needed because the partner piles got
+	// clobbered at the DeleteSourcePhrases() call in the caller
+	m_bClipboardAdaptMode = FALSE;
+	bool bIsOK = TRUE;
+	if (bDocIsLoaded)
+	{
+		bIsOK = pView->DeepCopySourcePhraseSublist(pList, (int)nStartingSequNum, (int)nEndingSequNum, pOldList);
+		m_nActiveSequNum = m_nSaveSequNumForDocRestore;
+		m_nSaveSequNumForDocRestore = 0; // a safe default
+		pDoc->DeleteSourcePhrases(m_pSaveList, FALSE); // FALSE means don't delete partner piles
+
+		// RecalcLayout() and place the phrase box
+		m_pActivePile = NULL;
+		#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+		#else
+			pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+		#endif
+		// recalculate the active pile & update location for phraseBox creation
+		m_pActivePile = pView->GetPile(m_nActiveSequNum);
+		if (m_pActivePile != NULL)
+		{
+			pMainFrame->canvas->ScrollIntoView(m_nActiveSequNum);
+			m_nStartChar = 0;
+			m_nEndChar = -1; // ensure initially all is selected
+			m_pTargetBox->SetSelection(-1,-1); // select all
+			m_pTargetBox->SetFocus();
+		}
+		pView->Invalidate();
+		pLayout->PlaceBox();
+	}
+
+	// Restore the status bar text, and the window's former Title
+	m_bADocIsLoaded = FALSE; // restore default value
+	m_bClipboardTextLoaded = FALSE; // default, in case user does another 
+									// clipboard adaptation attempt
+	m_savedTextBoxStr.Empty();
+	// the window title restore is next 4 lines
+	wxString oldTitleStr = m_savedDocTitle;
+	pDoc->SetTitle(oldTitleStr);
+	pDoc->SetFilename(oldTitleStr,TRUE); // here TRUE means "notify the views"
+	m_savedDocTitle.Empty();
+	// Now that m_bClipboardAdaptMode is FALSE, the status bar refresh will
+	// restore the document information, or default info if no doc was loaded
+	RefreshStatusBarInfo();
 }
 
 void CAdapt_ItApp::OnUpdateButtonCopyToClipboard(wxUpdateUIEvent& event)
