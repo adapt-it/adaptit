@@ -27066,6 +27066,11 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
     CAdapt_ItDoc* pDoc = GetDocument();
 	CLayout* pLayout = GetLayout();
 	CMainFrame* pMainFrame = GetMainFrame();
+	// If free translation mode is current, clear the ComposeBar's text box
+	if (m_bFreeTranslationMode)
+	{	
+		pMainFrame->m_pComposeBarEditBox->ChangeValue(wxEmptyString);
+	}
 	SPList* pSaveList = m_pSavedDocForClipboardAdapt; // our cache, if we need it
 	bool bIsOK = TRUE;
 	size_t nStartAt = 0;
