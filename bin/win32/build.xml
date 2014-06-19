@@ -83,7 +83,7 @@
   - Setup for the builds. This target unpacks the 3pt libraries, building them if
   - needed, then updates the environment variables that VSBuild needs to compile.
   -->
-  <target name="init-3pt" depends="check-3pt" unless="3pt.expanded">
+  <target name="init-3pt" depends="check-3pt" > <!--unless="3pt.expanded"-->
     <!-- extract 3pt libraries -->
     <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
 	<arg value="x" />
