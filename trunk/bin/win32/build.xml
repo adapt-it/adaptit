@@ -104,22 +104,21 @@
 	<arg value="-y" />
     </exec>
 	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
-	<!--
     <unzip src="${3pt}/wxwidgets/current/wxWidgets-3.0.1.zip" 
-		dest="${3pt}/wxwidgets/current/wxWidgets-3.0.1">
+		dest="${3pt}/wxwidgets/current">
     </unzip>
-	-->
+	<!-- edb 19 June 2014: remove 2.8.12 / ansi builds
     <unzip src="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12.zip" 
 		dest="${3pt}/wxwidgets/2.8.12">
     </unzip>
+	-->
     <!-- wxWidgets needs us to tell it what OS platform we're building; we do this by
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
-	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
-	<!--
     <copy file="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/setup.h"/>
-	-->
+	<!-- edb 19 June 2014: remove 2.8.12 / ansi builds
     <copy file="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/setup.h"/>
+	-->
   </target>
 
   <target name="init" depends="check-3pt" unless="3pt.expanded">
@@ -154,22 +153,22 @@
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
-	  <!-- edb 18 June 2014: use when compiling against 3.0.1
 	  <arg value="/p:Configuration=Debug" />
  	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
-	  -->
+	  <!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 	  <arg value="/p:Configuration=Unicode Debug" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
+	  -->
     </exec>
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
-	  <!-- edb 18 June 2014: use when compiling against 3.0.1
 	  <arg value="/p:Configuration=Release" />
  	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
-	  -->
+	  <!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 	  <arg value="/p:Configuration=Unicode Release" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
+	  -->
     </exec>
   </target>
   
@@ -185,12 +184,12 @@
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
-		<!-- edb 18 June 2014: use when compiling against 3.0.1
 		<env key="WXVER" value="30"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.1"/>
-		-->
+		<!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
+		-->
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
@@ -212,12 +211,12 @@
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
-		<!-- edb 18 June 2014: use when compiling against 3.0.1
 		<env key="WXVER" value="30"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.1"/>
-		-->
+		<!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
+		-->
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
@@ -228,8 +227,8 @@
   </target>
   
   <!-- 
-  - compile_msi target
-  - Builds the AI msi installers (ANSI and Unicode).
+  - compile_msi_unicode target
+  - Builds the AI msi unicode installers.
   -->
   <target name="compile_msi_unicode" depends="compile_unicode_release, copy"
         description="compile the unicode msi installer" >
@@ -271,28 +270,12 @@
   </target>
   
   <!-- 
-  - compile_msi target
-  - Builds the AI msi installers (ANSI and Unicode).
+  - compile_msi_ansi target
+  - Builds the ansi AI msi installers.
   -->
+  <!--
   <target name="compile_msi_ansi" description="compile the ansi msi installer" >
-	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
-    <!-- build the regular (ANSI) msi installer -->
-	<!--
-    <exec executable="MSBuild.exe" failonerror="yes">
-		<env key="WXVER" value="28"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
-		<env key="WXVER_VS05" value="28"/>
-		<env key="WXWIN_VS05" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
-		<env key="BOOST" value="${3pt}/boost/current/boost"/>
-		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
-		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixproj" />
-		<arg value="/target:rebuild" />
-		<arg value="/p:Configuration=Release" />
-    </exec>
-	-->
-	<!-- candle.exe: WiX compiler -->
     <exec executable="candle.exe" failonerror="yes">
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wxs" />
@@ -301,7 +284,6 @@
 		<arg value="-ext" />
 		<arg value="WixUIExtension" />
     </exec>
-	<!-- light.exe: WiX linker -->
     <exec executable="light.exe" failonerror="yes">
 		<arg value="-nologo" />
 		<arg value="${root}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.wixobj" />
@@ -310,38 +292,36 @@
 		<arg value="-ext" />
 		<arg value="WixUIExtension" />
     </exec>
-	<!-- copy the installer into the AIWX Installers directory -->
     <copy file="${root}/bin/Adapt It WX Regular Setup/Adapt_It_WX_Regular.msi" tofile="${dist}/Adapt_It_WX_6_5_3_Regular.msi"/>
   </target>
-
+  -->
+	
   <!-- 
   - compile_3pt_ansi target
   - compiles wxwidgets in ANSI release mode.
   -->
+  <!--
   <target name="compile_3pt_ansi" depends="init-3pt"
         description="compile wxWidgets ansi (release only) " >
-	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
-    <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
     </exec>
   </target>
+  -->
   
   <!-- 
   - compile_release target
   - compiles AI in ANSI release mode.
   -->
+  <!--
   <target name="compile_release" depends="init"
         description="compile the source " >
-	<!-- set the appropriate environment variables -->
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
-    <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
 	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
-    <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
@@ -355,6 +335,7 @@
 		<arg value="/p:Configuration=Release" />
     </exec>
   </target>
+  -->
 
   <!-- 
   - build_help target
@@ -418,9 +399,9 @@
   - output will be in the ${dist} directory if successful.
   - This target gets called from the daily build.
   -->
+  <!--
   <target name="generate_ansi_installers" depends="copy"
         description="generate the distribution" >
-    <!-- Run the Inno IDE scripts for ansi versions of Adapt It -->
     <exec executable="iscc" failonerror="yes">
 	<arg value="/q" />
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular - Documentation Only.iss" />
@@ -442,6 +423,7 @@
 	<arg value="${root}/Inno_Setup_Scripts/Adapt It Regular.iss" />
     </exec>
   </target>
+  -->
   
   <!-- 
   - build_continuous target
@@ -461,7 +443,8 @@
   - build_legacy target
   - Compiles the regular (ansi) Debug and Release builds using the VS 2005 compiler.
   -->
+  <!--
   <target name="build_ansi" depends="clean, init, compile_release, build_help, copy, generate_ansi_installers, compile_msi_ansi" description="ANSI Debug and Release build target" >
   </target>
-
+  -->
 </project>
