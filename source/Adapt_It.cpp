@@ -226,7 +226,7 @@ extern std::string str_CURLheaders;
 // detected by the debugger's Output report and it is not obvious what
 // is the cause of the leak from the report. Vld will pinpoint
 //
-// How to make this work with VC 9.0:
+// How to make this work with VC 11.0:
 // 1. Download and install VLD. The installer will prompt about adding
 // its bin path (C:\...\Visual Leak Detector\bin) to the PATH
 // environment variable. Accept it or add it manually yourself. Either
@@ -234,30 +234,27 @@ extern std::string str_CURLheaders;
 // the PATH to take effect. vld.dll and dbghelp.dll, from the bin
 // directory need to be available on the system path.
 //
-// 2. Make sure the Visual C++ project is in Debug mode.
+// 2. Make sure the Visual C++ project is in Unicode Debug mode.
 //
-// 3. Add the VLD include paths (C:\Program Files (x86)\Visual Leak
-// Detector\include) and (C:\Program Files\Visual Leak
-// Detector\include) to the Include Directories of the project. Both
-// the "Program Files (x86)" and "Program Files" paths are set in
-// Visual Studio's Include Directories even though only one will be
-// found. This makes the Visual Studio's project file work on either
-// 64-bit or 32-bit Windows OS.
+// 3. Add the VLD include paths ($(ProgramFiles)\Visual Leak
+// Detector\include) to the C++ compiler's "Additional Include 
+// Directories" and ($(ProgramFiles)\Visual Leak
+// Detector\lib\win32) to the Linker's "Additional Library 
+// Directories" of the project. The use of the $(ProgramFiles) macro 
+// will ensure that the "Program Files (x86)" directory is referenced
+// on 64-bit Windows and the "Program Files" directory is referenced
+// on 32-bit Windows systems. This makes the Visual Studio's project 
+// file work on either 64-bit or 32-bit Windows OS.
 //
-// 4. Add the VLD lib path (C:\Program Files (x86)\Visual Leak
-// Detector\lib) and (C:\Program Files\Visual Leak Detector\lib) to the
-// Additional Library Directories of the project. Both the "Program
-// Files (x86)" and "Program Files" paths are set in Visual Studio's
-// Linker Directories even though only one will be found. This makes
-// the Visual Studio's project file work on either 64-bit or 32-bit
-// Windows OS.
+// 4. Uncomment the #include "vld.h" line below. This header will 
+// bring in vld.lib during the linking stage.
 //
-// 5. Add #include <vld.h> to any of the C++ source files in the
-// project. This header will bring in vld.lib during the linking stage.
-//
-// 6. Rebuild the project and execute the compiled program in Debug
+// 5. Rebuild the project and execute the compiled program in Debug
 // mode. On program exit, VLD will print out the memory leak
 // information it detected in the Output window.
+//
+// 6. After debugging, comment out the #include "vld.h" line since
+// debugging with vld active slows down debugging in the IDE somewhat.
 //
 // If Visual Studio reports "memory leaks detected" and the source of
 // leak is unclear, uncomment the following include, recompile, run and
