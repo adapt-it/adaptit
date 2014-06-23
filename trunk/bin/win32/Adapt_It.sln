@@ -13,15 +13,9 @@ Global
 		Unicode Debug|Mixed Platforms = Unicode Debug|Mixed Platforms
 		Unicode Debug|Win32 = Unicode Debug|Win32
 		Unicode Debug|x86 = Unicode Debug|x86
-		Unicode Debug-wx2.9|Mixed Platforms = Unicode Debug-wx2.9|Mixed Platforms
-		Unicode Debug-wx2.9|Win32 = Unicode Debug-wx2.9|Win32
-		Unicode Debug-wx2.9|x86 = Unicode Debug-wx2.9|x86
 		Unicode Release|Mixed Platforms = Unicode Release|Mixed Platforms
 		Unicode Release|Win32 = Unicode Release|Win32
 		Unicode Release|x86 = Unicode Release|x86
-		Unicode Release-wx2.9|Mixed Platforms = Unicode Release-wx2.9|Mixed Platforms
-		Unicode Release-wx2.9|Win32 = Unicode Release-wx2.9|Win32
-		Unicode Release-wx2.9|x86 = Unicode Release-wx2.9|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
@@ -42,24 +36,12 @@ Global
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug|Win32.Build.0 = Unicode Debug|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug|x86.ActiveCfg = Unicode Debug|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug|x86.Build.0 = Unicode Debug|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug-wx2.9|Mixed Platforms.ActiveCfg = Unicode Debug-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug-wx2.9|Mixed Platforms.Build.0 = Unicode Debug-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug-wx2.9|Win32.ActiveCfg = Unicode Debug-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug-wx2.9|Win32.Build.0 = Unicode Debug-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug-wx2.9|x86.ActiveCfg = Unicode Debug-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Debug-wx2.9|x86.Build.0 = Unicode Debug-wx2.9|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release|Mixed Platforms.ActiveCfg = Unicode Release|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release|Mixed Platforms.Build.0 = Unicode Release|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release|Win32.ActiveCfg = Unicode Release|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release|Win32.Build.0 = Unicode Release|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release|x86.ActiveCfg = Unicode Release|Win32
 		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release|x86.Build.0 = Unicode Release|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release-wx2.9|Mixed Platforms.ActiveCfg = Unicode Release-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release-wx2.9|Mixed Platforms.Build.0 = Unicode Release-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release-wx2.9|Win32.ActiveCfg = Unicode Release-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release-wx2.9|Win32.Build.0 = Unicode Release-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release-wx2.9|x86.ActiveCfg = Unicode Release-wx2.9|Win32
-		{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}.Unicode Release-wx2.9|x86.Build.0 = Unicode Release-wx2.9|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
