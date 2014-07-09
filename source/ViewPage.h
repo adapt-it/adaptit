@@ -60,6 +60,7 @@ public:
 	wxPanel*		m_pPanelAutoInsertColor;
 	wxCheckBox*		m_pCheckShowAdminMenu;
 	wxRadioBox*		m_pRadioBox;
+	wxCheckBox*		m_pCheckboxEnableInsertZWSP;
 	int		tempMaxToDisplay;
 	int		tempPrecCntxt;
 	int		tempFollCntxt;
@@ -81,7 +82,7 @@ public:
 	void OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event));
 	void OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event));
 	void OnRadioPhraseBoxMidscreen(wxCommandEvent& WXUNUSED(event));
-
+	void OnCheckboxEnableInsertZWSP(wxCommandEvent& WXUNUSED(event));
 private:
 	// class attributes
 	

@@ -2077,6 +2077,14 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item39, 0, wxGROW|wxALL, 5 );
 
+    wxBoxSizer *item40 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_ENABLE_INSERT_ZWSP, _("Enable ZWSP insertion by Shift+Ctrl+spacebar"), wxDefaultPosition, wxDefaultSize, 0 );
+    item41->SetToolTip( _("Turns on or off the ability to insert a zero width space, using Ctrl-Shift-spacebar key combination") );
+    item40->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item40, 0, wxALIGN_CENTER_VERTICAL, 0 );
+
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
     item1->Add( item3, 1, wxALIGN_CENTER, 5 );

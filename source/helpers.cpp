@@ -10252,6 +10252,37 @@ bool CheckForValidUsernameForKbServer(wxString url, wxString username, wxString 
 
 #endif
 
+// Support for ZWSP insertion in any AI wxTextCtrl
+void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (!pApp->m_bEnableZWSPInsertion)
+		return;
+	wxChar zwsp = (wxChar)0x200B;
+	long curPos;
+	long from;
+	long to;
+	pTextCtrl->GetSelection(&from, &to);
+	// if there is a selection, the insertion should replace it before doing a
+	// ZWSP insertion there; otherwise, we'll just have an insertion point to 
+	// insert ZWSP at that spot
+	if (from != to)
+	{
+		pTextCtrl->Remove(from, to); // we now have just an insertion point at index to
+	}
+	curPos = pTextCtrl->GetInsertionPoint();
+	wxASSERT(curPos <= pTextCtrl->GetLastPosition());
+	wxString contents = pTextCtrl->GetValue();
+	wxString left = contents.Left(curPos);
+	wxString right = contents.Mid(curPos);
+	left += zwsp;
+	contents = left + right;
+	pTextCtrl->ChangeValue(contents);
+	pTextCtrl->SetSelection(curPos+1, curPos+1);
+	pTextCtrl->SetFocus();
+}
+
+
 // A global function for doing any normalization operations necessary because a major
 // change is about to be done (such as changing doc, changing project, exit from app,
 // something requiring doc to be loaded and in a robust state, etc)

@@ -4445,6 +4445,19 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		return;
 	}
 
+	// BEW 8Jul14 intercept the CTRL+SHIFT+<spacebar> combination to enter a ZWSP
+	// (zero width space) into the composebar's editbox; replacing a selection if
+	// there is one defined
+	if (event.GetKeyCode() == WXK_SPACE)	
+	{
+		if (!event.AltDown() && event.CmdDown() && event.ShiftDown())
+		{
+			OnCtrlShiftSpacebar(this); // see helpers.h & .cpp
+			return; // don't call skip - we don't want the end-of-line character entered
+			// into the edit box
+		}
+	}
+
 	// version 1.4.2 and onwards, we want a right or left arrow used to remove the
 	// phrasebox's selection to be considered a typed character, so that if a subsequent
 	// selection and merge is done then the first target word will not get lost; and so
