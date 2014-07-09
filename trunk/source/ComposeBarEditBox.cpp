@@ -49,6 +49,7 @@
 #include "FreeTransAdjustDlg.h"
 #include "Pile.h"
 #include "Cell.h"
+#include "helpers.h"
 #include "ComposeBarEditBox.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -195,6 +196,20 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 	}
 #endif
 	*/
+	
+	// BEW 8Jul14 intercept the CTRL+SHIFT+<spacebar> combination to enter a ZWSP
+	// (zero width space) into the composebar's editbox; replacing a selection if
+	// there is one defined
+	if (event.GetKeyCode() == WXK_SPACE)	
+	{
+		if (!event.AltDown() && event.CmdDown() && event.ShiftDown())
+		{
+			OnCtrlShiftSpacebar(this); // see helpers.h & .cpp
+			return; // don't call skip - we don't want the end-of-line character entered
+			// into the edit box
+		}
+	}
+
 	if (gpApp->m_bFreeTranslationMode)
 	{
 // GDLC 2010-03-27 pView no longer used

@@ -510,6 +510,9 @@ CBString MakeDigestPassword(const wxString& user, const wxString& password);
 
 #endif
 
+// Support for ZWSP insertion in any AI wxTextCtrl (e.g. see OnKeyUp() in ComposeBarEditBox.cpp)
+void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl);
+
 // A global function for doing any normalization operations necessary because a major
 // change is about to be done (such as changing doc, changing project, exit from app,
 // something requiring doc to be loaded and in a robust state, etc)

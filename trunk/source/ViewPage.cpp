@@ -60,6 +60,7 @@ BEGIN_EVENT_TABLE(CViewPage, wxPanel)
 	EVT_INIT_DIALOG(CViewPage::InitDialog)
 	EVT_BUTTON(IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, CViewPage::OnButtonHighlightColor)
 	EVT_CHECKBOX(IDC_CHECK_SHOW_ADMIN_MENU, CViewPage::OnCheckShowAdminMenu)
+	EVT_CHECKBOX(ID_CHECKBOX_ENABLE_INSERT_ZWSP, CViewPage::OnCheckboxEnableInsertZWSP)
 	EVT_RADIOBOX(ID_RADIOBOX_SCROLL_INTO_VIEW, CViewPage::OnRadioPhraseBoxMidscreen)
 END_EVENT_TABLE()
 
@@ -97,6 +98,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pPanelAutoInsertColor = (wxPanel*)FindWindowById(ID_PANEL_AUTO_INSERT_COLOR);
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
+	m_pCheckboxEnableInsertZWSP = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ENABLE_INSERT_ZWSP);
 }
 
 CViewPage::~CViewPage() // destructor
@@ -139,8 +141,24 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 	}	
 }
 
+void CViewPage::OnCheckboxEnableInsertZWSP(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bEnableZWSPInsertion)
+	{
+		// It's on, so turn it back off
+		pApp->m_bEnableZWSPInsertion = FALSE;
+	}
+	else
+	{
+		// It's off, so turn it on
+		pApp->m_bEnableZWSPInsertion = TRUE;
+	}
+}
+
 void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	bool enableMenuCode;
 	enableMenuCode = TRUE; 
 	//enableMenuCode = FALSE; // **** comment out this line to activate Admin menu handling ****
@@ -157,7 +175,6 @@ void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		// This block executed when enableMenuCode is TRUE
-		CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 		bool bFlag = pApp->m_bShowAdministratorMenu;
 		if (bFlag)
 		{
@@ -316,7 +333,8 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	tempAutoInsertionsHighlightColor = pApp->m_AutoInsertionsHighlightColor;
 	int nRadioBoxSelection = pApp->m_bKeepBoxMidscreen ? 0 : 1;
 	m_pRadioBox->SetSelection(nRadioBoxSelection);
-
+	// BEW added 9Jul14
+	m_pCheckboxEnableInsertZWSP->SetValue(pApp->m_bEnableZWSPInsertion);
 
 	// transfer initial values to controls
 	wxString strTemp;

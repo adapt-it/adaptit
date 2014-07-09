@@ -4355,6 +4355,10 @@ public:
 				// in OnIdle() can now be removed 
 	int		m_nCurSequNum_ForPlacementDialog;
 
+	// BEW 9Jul14 Support enabling/disabling of ZWSP (zero width space) insertion using
+	// a shift+ctrl+spacebar key combination - implemented for any focused wxTextCtrl
+	bool	m_bEnableZWSPInsertion; // initialize to FALSE in OnInit()
+
 	// variables related to the Administrator menu
 	// a boolean for whether or not to show the Administrator menu
 	bool		m_bShowAdministratorMenu;

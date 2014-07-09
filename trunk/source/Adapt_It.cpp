@@ -5657,6 +5657,10 @@ wxString szAdminBasicConfiguration = _T("AI-AdminBasicConfiguration");
 /// unchanged when/if that work folder is checked out of DVCS to that someone else's machine
 wxString szAdminProjectConfiguration = _T("AI-AdminProjectConfiguration");
 
+/// When its checkbox is TRUE, Shift-Ctrl-spacebar will insert a ZWSP in the focused wxTestCtrl,
+/// but nothing happens if the checkbox is FALSE. Checkbox is in the View page of Preferences
+wxString szEnableZWSPinsertion = _T("Enable_ZWSP_Insertion");
+
 /// The name that introduces the properties of the source font within both
 /// the basic and project configuration files.
 wxString szSourceFont = _T("SourceFont"); // don't need \n now
@@ -15164,6 +15168,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
 
+	// Support ZWSP insertion if user turns it on, see View page in Preferences
+	m_bEnableZWSPInsertion = FALSE; // initialize to FALSE
+
 	// Initialize for no clipboard adaptation mode turned on yet
 	m_bClipboardAdaptMode = FALSE;
 	m_nSaveSequNumForDocRestore = 0; // 0 is a safer default than -1
@@ -22374,6 +22381,9 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
     // Note: ::wxGetKeyState() was not available as a global function in
     // wxWidgets version 2.4.2, but ::wxGetKeyState() is available in wxWidgets
     // version 2.5.3 and later, so we use it here.
+
+	m_bEnableZWSPInsertion = FALSE; // initialize to FALSE, only project config can make it TRUE
+
 	bool bReturn = FALSE;
 	bReturn = bReturn; // avoid GCC warning
 	bool bDoNormalStart = TRUE;
@@ -32911,6 +32921,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
 	pf->AddLine(data);
 
+	// BEW added 9Jul14
+	data.Empty();
+	data << szEnableZWSPinsertion << tab << (int)m_bEnableZWSPInsertion;
+	pf->AddLine(data);
+
 	// BEW added 13Mar13 and removed support for it on 30Jul13; we no longer
 	// write it, but we'll read it if it occurs in anyone's projecct config file
 	//data.Empty();
@@ -33426,6 +33441,19 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			else
 			{
 				m_bKeepBoxMidscreen = FALSE;
+			}
+		}
+		// BEW added 9Jul14, supports ZWSP being inserted by Shift-Ctrl-spacebar
+		// in the current project
+		else if (name == szEnableZWSPinsertion)
+		{
+			if (strValue == _T("1"))
+			{
+				m_bEnableZWSPInsertion = TRUE;
+			}
+			else
+			{
+				m_bEnableZWSPInsertion = FALSE;
 			}
 		}
 		// BEW added 13Mar13 and removed support on 30Jul13, we'll read it
