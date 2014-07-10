@@ -56,11 +56,11 @@
 #include <wx/filename.h> // for wxFileName
 #include <wx/busyinfo.h>
 
+#include "Adapt_It.h"
 #include "XML.h"
 
 // AdaptItDana's XML support (unvalidated, & only elements and attributes)
 #include "Stack.h"
-#include "Adapt_It.h"
 #include "helpers.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItDoc.h"
@@ -3341,7 +3341,15 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-				if (attrName == xml_s)
+				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+				{
+					;// do nothing, ZWSP is not supported in ANSI build
+				}
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				{
+					;// do nothing, ZWSP is not supported in ANSI build
+				}
+				else if (attrName == xml_s)
 				{
 					//gpEmbeddedSrcPhrase->m_srcPhrase = attrValue;
 					gpEmbeddedSrcPhrase->m_srcPhrase = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
@@ -3492,7 +3500,15 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-				if (attrName == xml_s)
+				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+				{
+					;// do nothing, ZWSP is not supported in ANSI build
+				}
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				{
+					;// do nothing, ZWSP is not supported in ANSI build
+				}
+				else if (attrName == xml_s)
 				{
 					//gpSrcPhrase->m_srcPhrase = attrValue;
 					gpSrcPhrase->m_srcPhrase = wxString::From8BitData(attrValue); // whm modified 2Nov13 for ANSI builds
@@ -3781,7 +3797,19 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-				if (attrName == xml_s)
+				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+				{
+					// TODO
+					//gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
+
+				}
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				{
+					// TODO
+					
+	
+				}
+				else if (attrName == xml_s)
 				{
 					gpEmbeddedSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
 				}
@@ -3918,7 +3946,19 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-				if (attrName == xml_s)
+				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+				{
+					// TODO
+					//gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
+
+				}
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				{
+					// TODO
+					
+	
+				}
+				else if (attrName == xml_s)
 				{
 					gpSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
 				}
