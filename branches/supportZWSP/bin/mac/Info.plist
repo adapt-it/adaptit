@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleGetInfoString</key>
+	<string>$(PRODUCT_NAME) version 6.5.3, (c) 2014 Bruce Waters, Bill Martin, SIL International</string>
+	<key>CFBundleIconFile</key>
+	<string>Adapt It.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.adapt-it.adaptit</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>az</string>
+		<string>en</string>
+		<string>es</string>
+		<string>fr</string>
+		<string>id</string>
+		<string>pt</string>
+		<string>ru</string>
+		<string>swh</string>
+		<string>tpi</string>
+		<string>zh</string>
+	</array>
+	<key>CFBundleLongVersionString</key>
+	<string>6.5.3, (c) 2014 Bruce Waters, Bill Martin, SIL International</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>6.5.3</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>6.5.3</string>
+	<key>CSResourcesFileMapped</key>
+	<true/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSRequiresCarbon</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright 2014 Bruce Waters, Bill Martin, SIL International</string>
+</dict>
+</plist>
