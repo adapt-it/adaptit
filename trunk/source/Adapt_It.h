@@ -518,6 +518,30 @@ const char xml_gmpat[] = "gmpat"; // m_glossMkrPattern
 /// Attribute name used in Adapt It XML documents
 const char xml_pupat[] = "pupat"; // m_punctsPattern
 
+// new ones, July 9 2014, for support of doc version = 9, for SEAsian languages using ZWSP etc
+/// Attribute name used in Adapt It XML documents
+const char xml_srcwdbrk[] = "swb"; // m_srcWordBreak (a wxString in CSourcePhrase)
+/// Attribute name used in Adapt It XML documents
+const char xml_tgtwdbrks[] = "twbs"; // for colon delimited list in xml attribute,
+					 // but m_tgtWordBreaksArray (a wxArrayString) in CSourcePhrase
+
+// entity names (utf-8) for the ZWSP etc special space word-breaking delimiters
+const char xml_nbsp[] =         "&#x00A0;"; // standard Non-Breaking SPace
+const char xml_enquad[] =       "&#x2000;"; // En Quad or 'en space'
+const char xml_emquad[] =       "&#x2001;"; // Em Quad or 'em space'
+const char xml_enspace[] =      "&#x2002;"; // En Space or 'space', approx = latin space
+const char xml_emspace[] =      "&#x2003;"; // Em Space or 'em space'
+const char xml_3peremspace[] =  "&#x2004;"; // slightly thinner space
+const char xml_4peremspace[] =  "&#x2005;"; // mid space
+const char xml_6peremspace[] =  "&#x2006;"; // thin space
+const char xml_figurespace[] =  "&#x2007;"; // digit with of fixed width digits
+const char xml_punctspace[] =   "&#x2008;"; // punctuation space (equals narrow punctn of font)
+const char xml_thinspace[] =    "&#x2009;"; // thin space (about a fifth of an em)
+const char xml_hairspace[] =    "&#x200A;"; // hair space (thinner than thin, narrowest available)
+const char xml_zwsp[] =         "&#x200B;"; // ZWSP or 'zero width space'
+const char xml_wdjoinr[] =      "&#x2060;"; // zero width non-breaking Word Joiner (called WJ)
+
+
 // tag & attribute names for KB i/o
 
 /// Tag name used in Adapt It XML KB i/o

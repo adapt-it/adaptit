@@ -136,8 +136,18 @@ public:
 	wxString		m_glossMkrPattern; // remember where Place Medial Markers placed any markers, for glossing export
 	wxString		m_punctsPattern; // remember where Place Internal Punctuation placed any medial puncts (unused
 									 // for version 6.2.0.  Possibly will be used in a later version.
+	// for docVersion 9, added wxString storage for src text wordbreak character when it is not a space, 
+	// but empty if it is a space
+	// and storage as a wxArrayString for tgt text wordbreaks storage (when not a space) and empty if
+	// it is a space. It is an array for support of replacement of wordbreaks in tgt text in mergers
+	// and in retranslations
+	wxString		m_srcWordBreak;
+	wxArrayString	m_tgtWordBreaksArray; // in the XML output we store these as "entity1:entity2:entity3:.. etc
+				// where entity is of the form  &#hhhh;  hhhh is uppercase hex digits for the unicode codepoint
+
 	// booleans and TextType last -- each takes 1 byte presumably even though memory is
 	// word-aligned, because the whole lot is 136 bytes for the CSourcePhrase class
+	// character offsets below are too small as of docVersion 9
 	bool			m_bHasKBEntry;	// 60: TRUE when m_key of this source phrase is used to put an entry in
 									// the KB
 	bool			m_bNotInKB;		// 61: set TRUE if user specifies no KB map entry for this adaption, and 
