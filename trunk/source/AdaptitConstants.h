@@ -39,8 +39,8 @@
 // GetCurrentDocVersion() to get its value whenever needed.
 
 
-#define VERSION_NUMBER		9	// as of 9Jul14, for ZWSP support in exports for SE Asian languages
-//#define VERSION_NUMBER	8	// as of 29Oct12
+//#define VERSION_NUMBER		9	// as of 9Jul14, for ZWSP support in exports for SE Asian languages
+#define VERSION_NUMBER	8	// as of 29Oct12
 //#define VERSION_NUMBER	7	// as of 20Apr12
 //#define VERSION_NUMBER	6   // as of 13Feb12
 //#define VERSION_NUMBER	5   // superceded on 13Feb12

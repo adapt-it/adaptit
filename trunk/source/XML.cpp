@@ -3797,7 +3797,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+/*				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
 					// TODO
 					//gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
@@ -3809,7 +3809,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 					
 	
 				}
-				else if (attrName == xml_s)
+				else */if (attrName == xml_s)
 				{
 					gpEmbeddedSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
 				}
@@ -3946,7 +3946,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+/*				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
 					// TODO
 					//gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
@@ -3958,7 +3958,7 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 					
 	
 				}
-				else if (attrName == xml_s)
+				else */ if (attrName == xml_s)
 				{
 					gpSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
 				}

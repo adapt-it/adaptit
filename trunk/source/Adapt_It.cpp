@@ -6700,6 +6700,12 @@ wxString szUpperCaseGlossChars = _T("UpperCaseGlossLanguageChars");
 wxString szAutoCapitalization = _T("AutoCapitalizationFlag");
 
 /// The label that identifies the following string encoded value as the application's
+/// "UseSourceWordBreakFlag" choice. This value is written in the "Settings" part of the
+/// project configuration file. Adapt It stores this value in the App's m_bUseSrcWordBreak
+/// boolean member variable. If FALSE, word breaks programmatically added are spaces only.
+wxString szUseSourceWordBreak = _T("UseSourceWordBreakFlag");
+
+/// The label that identifies the following string encoded value as the application's
 /// "SourceHasUpperCaseAndLowerCase". This value is written in the "Settings" part of the
 /// basic configuration file. Adapt It stores this value in the App's gbSrcHasUcAndLc
 /// global variable.
