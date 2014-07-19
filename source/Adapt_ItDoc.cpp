@@ -2564,7 +2564,6 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 		resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
 		TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
 										outputTgt, errorsTgt, resultTgt);
-
 		// error handling
 		if (resultTgt != 0)
 		{
@@ -9146,6 +9145,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 {
+	//CAdapt_ItApp* pApp = &wxGetApp();
+
 	// BEW 30July11 -- the following block also needs to be added to the beginning of the
 	// following similar functions in helpers.cpp: IsWhiteSpace() and
 	// Is_NonEol_WhiteSpace() and has been

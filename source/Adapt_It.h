@@ -522,8 +522,7 @@ const char xml_pupat[] = "pupat"; // m_punctsPattern
 /// Attribute name used in Adapt It XML documents
 const char xml_srcwdbrk[] = "swb"; // m_srcWordBreak (a wxString in CSourcePhrase)
 /// Attribute name used in Adapt It XML documents
-const char xml_tgtwdbrks[] = "twbs"; // for colon delimited list in xml attribute,
-					 // but m_tgtWordBreaksArray (a wxArrayString) in CSourcePhrase
+const char xml_tgtwdbrk[] = "twb"; // for target wordbreak, in a retranslation
 
 // entity names (utf-8) for the ZWSP etc special space word-breaking delimiters
 const char xml_nbsp[] =         "&#x00A0;"; // standard Non-Breaking SPace

@@ -141,8 +141,8 @@ public:
 	// and storage as a wxArrayString for tgt text wordbreaks storage (when not a space) and empty if
 	// it is a space. It is an array for support of replacement of wordbreaks in tgt text in mergers
 	// and in retranslations
-	wxString		m_srcWordBreak;
-	wxArrayString	m_tgtWordBreaksArray; // in the XML output we store these as "entity1:entity2:entity3:.. etc
+	//wxString		m_srcWordBreak;
+	//wxArrayString	m_tgtWordBreaksArray; // in the XML output we store these as "entity1:entity2:entity3:.. etc
 				// where entity is of the form  &#hhhh;  hhhh is uppercase hex digits for the unicode codepoint
 
 	// booleans and TextType last -- each takes 1 byte presumably even though memory is

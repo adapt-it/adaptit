@@ -1696,6 +1696,11 @@ void DoExportAsType(enum ExportType exportType)
 	}
 
 	#else // Unicode
+	// BEW 11Jul14 add a utf16 bom, which will be converted to utf8 bom at the
+	// ConvertAndWrite() call, for each export type
+	wxChar utf16bom = (wxChar)0xFEFF;
+	wxString theBom = utf16bom;
+
 	switch (exportType)
 	{
 	case sourceTextExport:
@@ -1707,14 +1712,16 @@ void DoExportAsType(enum ExportType exportType)
 		gpApp->m_srcEncoding = wxFONTENCODING_UTF8; // BEW added 8Dec06 to
 			// force conversion to UTF-8 always when exporting, same as is now
 			// done for SFM export of the target text
-		// whm modification 29Nov07 Removed the FALSE parameter from ConvertAndWrite
-		// so that source text exports don't get written with a null char embedded as
-		// the last character of the file. The spurious null character was causing
-		// programs like WinMerge to consider "new source text.txt" files as binary
-		// files rather than plain text files. This (and else block below) are the
-		// only places where the FALSE parameter was used in the MFC code.
-		gpApp->ConvertAndWrite(gpApp->m_srcEncoding,&f,source); // ,FALSE);
-		gpApp->m_srcEncoding = saveSrcEncoding; // Bruce added 8Dec06
+			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+			source = theBom + source;
+			// whm modification 29Nov07 Removed the FALSE parameter from ConvertAndWrite
+			// so that source text exports don't get written with a null char embedded as
+			// the last character of the file. The spurious null character was causing
+			// programs like WinMerge to consider "new source text.txt" files as binary
+			// files rather than plain text files. This (and else block below) are the
+			// only places where the FALSE parameter was used in the MFC code.
+			gpApp->ConvertAndWrite(gpApp->m_srcEncoding,&f,source); // ,FALSE);
+			gpApp->m_srcEncoding = saveSrcEncoding; // Bruce added 8Dec06
 		}
 		break;
 	case glossesTextExport:
@@ -1723,6 +1730,8 @@ void DoExportAsType(enum ExportType exportType)
 		{
 			saveGlossEncoding = gpApp->m_navtextFontEncoding;
 			gpApp->m_navtextFontEncoding = wxFONTENCODING_UTF8;
+			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+			glosses = theBom +  glosses;
 			gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding,&f,glosses);
 			gpApp->m_navtextFontEncoding = saveGlossEncoding; // restore encoding
 		}
@@ -1730,6 +1739,8 @@ void DoExportAsType(enum ExportType exportType)
 		{
 			saveGlossEncoding = gpApp->m_tgtEncoding;
 			gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
+			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+			glosses = theBom +  glosses;
 			gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,glosses);
 			gpApp->m_tgtEncoding = saveGlossEncoding; // restore encoding
 		}
@@ -1742,6 +1753,8 @@ void DoExportAsType(enum ExportType exportType)
 		// conversion is done to UTF-8
 		wxFontEncoding saveFreeTransEncoding = gpApp->m_navtextFontEncoding;
 		gpApp->m_navtextFontEncoding = wxFONTENCODING_UTF8;
+		// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+		freeTrans = theBom +  freeTrans;
 		gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding,&f,freeTrans);
 		gpApp->m_navtextFontEncoding = saveFreeTransEncoding; // restore encoding
 		}
@@ -1752,6 +1765,8 @@ void DoExportAsType(enum ExportType exportType)
 		wxFontEncoding saveTgtEncoding;
 		saveTgtEncoding = gpApp->m_tgtEncoding;
 		gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
+		// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+		target = theBom +  target;
 		gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
 		gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
 		break;
