@@ -78,8 +78,6 @@ BEGIN_EVENT_TABLE(CKBPage, wxPanel)
 	EVT_RADIOBUTTON(IDC_RADIO_ADAPT_BEFORE_GLOSS, CKBPage::OnBnClickedRadioAdaptBeforeGloss)
 	EVT_RADIOBUTTON(IDC_RADIO_GLOSS_BEFORE_ADAPT, CKBPage::OnBnClickedRadioGlossBeforeAdapt)
 	EVT_BUTTON(ID_BUTTON_LOOKUP_CODES, CKBPage::OnBtnLookupCodes) // whm added 10May10
-	EVT_RADIOBUTTON(IDC_RADIO_COPY_SRC_WORD_DELIM, CKBPage::OnBnRadioCopySrcWordDelim)
-	EVT_RADIOBUTTON(IDC_RADIO_USE_ONLY_LATIN_SPACE, CKBPage::OnBnRadioUseLatinSpace)
 END_EVENT_TABLE()
 
 
@@ -143,12 +141,6 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	wxASSERT(pRadioAdaptBeforeGloss != NULL);
 	pRadioGlossBeforeAdapt = (wxRadioButton*)FindWindowById(IDC_RADIO_GLOSS_BEFORE_ADAPT);
 	wxASSERT(pRadioGlossBeforeAdapt != NULL);
-
-	pRadioUseSrcWordBreak = (wxRadioButton*)FindWindowById(IDC_RADIO_COPY_SRC_WORD_DELIM);
-	wxASSERT(pRadioUseSrcWordBreak != NULL);
-	pRadioUseLatinSpace = (wxRadioButton*)FindWindowById(IDC_RADIO_USE_ONLY_LATIN_SPACE);
-	wxASSERT(pRadioUseLatinSpace != NULL);
-
 
 	m_pCheckLegacySourceTextCopy = (wxCheckBox*)FindWindowById(IDC_CHECK_LEGACY_SRC_TEXT_COPY);
 	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
@@ -469,16 +461,5 @@ void CKBPage::OnBnClickedRadioGlossBeforeAdapt(wxCommandEvent& WXUNUSED(event))
 	pRadioGlossBeforeAdapt->SetValue(TRUE);
 }
 
-void CKBPage::OnBnRadioCopySrcWordDelim(wxCommandEvent& WXUNUSED(event))
-{
-	pApp->m_bUseSrcWordBreak = TRUE;
-	pRadioUseSrcWordBreak->SetValue(TRUE);
-	pRadioUseLatinSpace->SetValue(FALSE);
-}
 
-void CKBPage::OnBnRadioUseLatinSpace(wxCommandEvent& WXUNUSED(event))
-{
-	pApp->m_bUseSrcWordBreak = FALSE;
-	pRadioUseSrcWordBreak->SetValue(FALSE);
-	pRadioUseLatinSpace->SetValue(TRUE);
-}
+
