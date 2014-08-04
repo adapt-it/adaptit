@@ -376,7 +376,7 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 		}
 		else
 		{
-			phrases[index] = phrases[index - 1] + _T(" ") + pSrcPhrase->m_key;
+			phrases[index] = phrases[index - 1] + PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_key;
 			counter++;
 			if (pSrcPhrase->m_bBoundary || nNewSequNum + counter > nMaxIndex)
 				break;
@@ -819,7 +819,7 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 #endif */
 
 	// make sure pApp->m_targetPhrase doesn't have any final spaces
-	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
+	RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
 	CPile* pNextEmptyPile = pView->GetNextEmptyPile(pCurPile);
 	if (pNextEmptyPile == NULL)
@@ -1242,7 +1242,7 @@ bool CPhraseBox::MoveToNextPile_InTransliterationMode(CPile* pCurPile)
 	CLayout* pLayout = GetLayout();
 
 	// make sure pApp->m_targetPhrase doesn't have any final spaces
-	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
+	RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
 	CPile* pNextEmptyPile = pView->GetNextEmptyPile(pCurPile);
 	if (pNextEmptyPile == NULL)
@@ -3306,7 +3306,7 @@ bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
 
 	// make sure m_targetPhrase doesn't have any final spaces either
-	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
+	RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
 	// if we are at the start, we can't move back any further
 	// - but check vertical edit situation first
@@ -3677,7 +3677,7 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 	bool bOK;
 
 	// make sure m_targetPhrase doesn't have any final spaces
-	pView->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
+	RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 
 	// BEW changed 25Oct09, altered syntax so it no longer exits here if pFwd
 	// is NULL, otherwise the document-end typed meaning doesn't 'stick' in
@@ -4448,6 +4448,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	// BEW 8Jul14 intercept the CTRL+SHIFT+<spacebar> combination to enter a ZWSP
 	// (zero width space) into the composebar's editbox; replacing a selection if
 	// there is one defined
+
 	if (event.GetKeyCode() == WXK_SPACE)	
 	{
 		if (!event.AltDown() && event.CmdDown() && event.ShiftDown())
@@ -5656,4 +5657,137 @@ bool CPhraseBox::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetP
 	return bOK;
 }
 
+// BEW refactored 21Jul14 for support of ZWSP storage and replacement;
+// also moved the definition to be in PhraseBox.h & .cpp (was in view class)
+void CPhraseBox::RemoveFinalSpaces(CPhraseBox* pBox, wxString* pStr)
+{
+	// empty strings don't need anything done
+	if (pStr->IsEmpty())
+		return;
+
+	// remove any phrase final space characters
+	bool bChanged = FALSE;
+	int len = pStr->Length();
+	int nIndexLast = len-1;
+	// BEW 21Jul14 refactored for ZWSP support. The legacy code can be left unchanged for
+	// handling latin space; but for exotic spaces we'll use the overridden
+	// RemoveFinalSpaces() as its for any string - so test here for what is at the end.
+	// We'll assume the end doesn't have a mix of latin space with exotic ones
+	if (pStr->GetChar(nIndexLast) == _T(' '))
+	{
+		// Latin space is at the end, so do the legacy code
+		do {
+			if (pStr->GetChar(nIndexLast) == _T(' '))
+			{
+				// Note: wsString::Remove must have the second param as 1 here otherwise
+				// it will truncate the remainder of the string!
+				pStr->Remove(nIndexLast,1);
+				// can't trust the Remove's returned value, it exceeds string length by one
+				len = pStr->Length();
+				nIndexLast = len -1;
+				bChanged = TRUE;
+			}
+			else
+			{
+				break;
+			}
+		} while (len > 0 && nIndexLast > -1);
+	}
+	else
+	{
+		// There is no latin space at the end, but there might be one or more exotic ones,
+		// such as ZWSP. (We'll assume there's no latin spaces mixed in with them)
+		wxChar lastChar = pStr->GetChar(nIndexLast);
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CAdapt_ItDoc* pDoc = pApp->GetDocument();
+		if (pDoc->IsWhiteSpace(&lastChar))
+		{
+			// There must be at least one exotic space at the end, perhaps a ZWSP
+			bChanged = TRUE;
+			wxString revStr = *pStr; // it's not yet reversed, but will be in the next call
+									 // and restored to non-reversed order before its returned
+			RemoveFinalSpaces(revStr); // signature is ref to wxString
+
+			*pStr = revStr;
+			// pBox will have had its contents changed by at least one wxChar being
+			// chopped off the end, so let the bChanged block below do the phrasebox update
+		}
+		else
+		{
+			// There is no exotic space at the end either, so pStr needs nothing removed,
+			// so just return without changing the phrasebox contents
+			return;
+		}
+	}
+	if (bChanged) // need to do this, because for some reason rubbish is getting
+            // left in the earlier box when the ChooseTranslation dialog gets put up. That
+            // is, a simple call of SetWindowText with parameter pStr cast to (const char
+            // *) doesn't work right; but the creation & setting of str below fixes it
+	{
+		wxString str = *pStr;
+		pBox->ChangeValue(str);
+	}
+}
+
+// BEW added 30Apr08, an overloaded version which deletes final spaces in any CString's
+// text, and if there are only spaces in the string, it reduces it to an empty string
+// BEW 21Jul14, refactored to also remove ZWSP and other exotic white spaces from end of
+// the string as well; and moved to be in PhaseBox.h & .cpp (was in view class)
+void CPhraseBox::RemoveFinalSpaces(wxString& rStr)
+{
+    // whm Note: This could be done with a single line in wx, i.e., rStr.Trim(TRUE), but
+    // we'll go with the MFC version for now.
+	if (rStr.IsEmpty())
+		return;
+	rStr = MakeReverse(rStr);
+	wxChar chFirst = rStr[0];
+	if (chFirst == _T(' '))
+	{
+		// The legacy code - just remove latin spaces, we'll assume that when this is apt,
+		// there are no exotics there as well, such as ZWSP
+		while (chFirst == _T(' '))
+		{
+			rStr = rStr.Mid(1);
+			chFirst = rStr[0];
+		}
+		if (rStr.IsEmpty())
+			return;
+		else
+			rStr = MakeReverse(rStr);
+	}
+	else
+	{
+		// BEW 21Jul14 new code, to support ZWSP removals, etc, from end
+		// we reversed rStr, so chFirst is the last
+		CAdapt_ItApp* pApp = &wxGetApp();
+		CAdapt_ItDoc* pDoc = pApp->GetDocument();
+		if (pDoc->IsWhiteSpace(&chFirst))
+		{
+			// There is an exotic space at the end, remove it and do any more
+			rStr = rStr.Mid(1);
+			if (rStr.IsEmpty())
+			{
+				return;
+			}
+			chFirst = rStr[0];
+			while (pDoc->IsWhiteSpace(&chFirst))
+			{
+				rStr = rStr.Mid(1);
+				if (rStr.IsEmpty())
+				{
+					return;
+				}
+				chFirst = rStr[0];
+			}
+			rStr = MakeReverse(rStr);
+			return;
+		}
+		else
+		{
+			// No exotic space at the end, so re-reverse & return string
+			rStr = MakeReverse(rStr);
+		}
+		return;
+	}
+}
 

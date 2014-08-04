@@ -1696,6 +1696,11 @@ void DoExportAsType(enum ExportType exportType)
 	}
 
 	#else // Unicode
+	// BEW 11Jul14 add a utf16 bom, which will be converted to utf8 bom at the
+	// ConvertAndWrite() call, for each export type
+	wxChar utf16bom = (wxChar)0xFEFF;
+	wxString theBom = utf16bom;
+
 	switch (exportType)
 	{
 	case sourceTextExport:
@@ -1707,14 +1712,16 @@ void DoExportAsType(enum ExportType exportType)
 		gpApp->m_srcEncoding = wxFONTENCODING_UTF8; // BEW added 8Dec06 to
 			// force conversion to UTF-8 always when exporting, same as is now
 			// done for SFM export of the target text
-		// whm modification 29Nov07 Removed the FALSE parameter from ConvertAndWrite
-		// so that source text exports don't get written with a null char embedded as
-		// the last character of the file. The spurious null character was causing
-		// programs like WinMerge to consider "new source text.txt" files as binary
-		// files rather than plain text files. This (and else block below) are the
-		// only places where the FALSE parameter was used in the MFC code.
-		gpApp->ConvertAndWrite(gpApp->m_srcEncoding,&f,source); // ,FALSE);
-		gpApp->m_srcEncoding = saveSrcEncoding; // Bruce added 8Dec06
+			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+			source = theBom + source;
+			// whm modification 29Nov07 Removed the FALSE parameter from ConvertAndWrite
+			// so that source text exports don't get written with a null char embedded as
+			// the last character of the file. The spurious null character was causing
+			// programs like WinMerge to consider "new source text.txt" files as binary
+			// files rather than plain text files. This (and else block below) are the
+			// only places where the FALSE parameter was used in the MFC code.
+			gpApp->ConvertAndWrite(gpApp->m_srcEncoding,&f,source); // ,FALSE);
+			gpApp->m_srcEncoding = saveSrcEncoding; // Bruce added 8Dec06
 		}
 		break;
 	case glossesTextExport:
@@ -1723,6 +1730,8 @@ void DoExportAsType(enum ExportType exportType)
 		{
 			saveGlossEncoding = gpApp->m_navtextFontEncoding;
 			gpApp->m_navtextFontEncoding = wxFONTENCODING_UTF8;
+			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+			glosses = theBom +  glosses;
 			gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding,&f,glosses);
 			gpApp->m_navtextFontEncoding = saveGlossEncoding; // restore encoding
 		}
@@ -1730,6 +1739,8 @@ void DoExportAsType(enum ExportType exportType)
 		{
 			saveGlossEncoding = gpApp->m_tgtEncoding;
 			gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
+			// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+			glosses = theBom +  glosses;
 			gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,glosses);
 			gpApp->m_tgtEncoding = saveGlossEncoding; // restore encoding
 		}
@@ -1742,6 +1753,8 @@ void DoExportAsType(enum ExportType exportType)
 		// conversion is done to UTF-8
 		wxFontEncoding saveFreeTransEncoding = gpApp->m_navtextFontEncoding;
 		gpApp->m_navtextFontEncoding = wxFONTENCODING_UTF8;
+		// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+		freeTrans = theBom +  freeTrans;
 		gpApp->ConvertAndWrite(gpApp->m_navtextFontEncoding,&f,freeTrans);
 		gpApp->m_navtextFontEncoding = saveFreeTransEncoding; // restore encoding
 		}
@@ -1752,6 +1765,8 @@ void DoExportAsType(enum ExportType exportType)
 		wxFontEncoding saveTgtEncoding;
 		saveTgtEncoding = gpApp->m_tgtEncoding;
 		gpApp->m_tgtEncoding = wxFONTENCODING_UTF8;
+		// BEW 11Jul14, add the utf16 BOM, before the conversion to UTF8 is done
+		target = theBom +  target;
 		gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,&f,target);
 		gpApp->m_tgtEncoding = saveTgtEncoding; // restore encoding
 		break;
@@ -16496,6 +16511,10 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 // changes a marker from being unfiltered, to filtered, using Preferences)
 int RebuildSourceText(wxString& source, SPList* pUseThisList)
 {
+#if defined(_DEBUG)
+	wxLog::EnableLogging(true); // this undoes the effect of wxLogNull in DoExportAsType()
+#endif
+
 	wxString str; // local wxString in which to build the source text substrings
 
 	// compose the output data & write it out, phrase by phrase,
@@ -16648,6 +16667,34 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 		wxASSERT(pSrcPhrase != 0);
 		str.Empty();
 
+		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
+		wxString aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
+		//*
+#if defined(_DEBUG)
+		/*
+		if (!aBreak.IsEmpty())
+		{
+			wxChar aChar = aBreak.GetChar(0);
+			if (aChar == (wxChar)0x200B || aChar == _T(' '))
+			{
+				wxString s = aChar == _T(' ') ? _T("<space>") : _T("&#x200B");
+				wxLogDebug(_T("WordBreak before src: %s   =  %s"), pSrcPhrase->m_srcPhrase.c_str(), s.c_str());
+				//if (aChar == (wxChar)0x200B)
+				//{
+					// replace with <ZWSP> string temporarily, and note the output
+				//	aBreak = _T("<ZWSP>");
+				//}
+			}
+		}
+		*/
+#endif
+		//*/
+		if (!aBreak.IsEmpty())
+		{
+			str += aBreak;
+			source << str; // do it now, as str is emptied in a few places further below
+			str.Empty();
+		}
 		// BEW added to following block 16Jan09, for handling relocated markers on
 		// placeholders
 		bHasFilteredMaterial = HasFilteredInfo(pSrcPhrase);
@@ -16793,7 +16840,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 					}
 				}
 				str.Trim();
-				str << aSpace; // end it with a space
+				str << aSpace; // end it with a space when it's marker material
 				source << str;
 			} // end of TRUE block for test: if (bHasFilteredMaterial)
 			else
@@ -16807,15 +16854,31 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 					// of those markers is not at the start of tempStr
 					tempStr = AddSpaceIfNotFFEorX(tempStr, pSrcPhrase);
 					str += tempStr;
+					// BEW 21Jul14, after a begin-marker or begin-markers there is always
+					// a space, even in texts where ZWSP is used, so we test and add one
+					// here if it is needed
+					if (!tempStr.IsEmpty() && tempStr.GetChar(tempStr.Len() - 1) != aSpace)
+					{
+						str << aSpace;
+					}
 					tempStr.Empty();
 				}
 				source << str;
 			} // end of else block for test: if (bHasFilteredMaterial)
-			// reconstitute the source text from the merger originals
+			// reconstitute the source text from the merger originals; anything from the
+			// above blocks of preceding info will already have any needed final space, so
+			// we just add the following material to it
 			str = FromMergerMakeSstr(pSrcPhrase);
-			// append it to source
-			source.Trim();
-			source << aSpace << str;
+			//source.Trim(); <<-- a mistake, BEW 21Jul14, as it clobbers any space at end
+			//of m_markers, so that the verse number is followed immediately by text if
+			//the space insertion below is no longer done unilaterally, resulting in an
+			//error which is a USFM markup error, so I commented this line out
+
+			// append str to source
+			// BEW 21Jul14, we put in the word delimiter at the start now, not adding
+			// it at the end, so don't add a space first, just add the str only
+			//source << aSpace << str;
+			source << str;
 			str.Empty();
 		}
 		else
@@ -16876,8 +16939,10 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// words in the source text of the free translation section, if any)
 			str = FromSingleMakeSstr(pSrcPhrase, bAttachFiltered, bAttach_m_markers,
 									mMarkersStr, xrefStr, otherFiltered, TRUE, FALSE);
-
-			source.Trim();
+			// BEW 21Jul14, now that we put in whatever word delimiter is needed, in
+			// the caller, we should not risk clobbering a space after the verse of
+			// a verse marker, so comment next line out
+			//source.Trim();
 
 			// BEW added 13Jul1 next 3 lines: support Paratext usfm-only contentless
 			// chapters or books - the legacy code would output \v 1 followed by newline,
@@ -16885,7 +16950,7 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// m_key empty, and if so, add a space to str here and don't trim it off below
 			if (pSrcPhrase->m_key.IsEmpty())
 			{
-				str += aSpace;
+				str += aSpace; // needs to be a latin space, no ZWSP here
 			}
 
 			// if we return ']' bracket, we don't want a preceding space
@@ -16896,18 +16961,22 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			else if (!source.IsEmpty() && source[source.Len() - 1] == _T('['))
 			{
 				// in this circumstance we don't want an intervening space
+				// between the [ and what follows it
 				source << str;
 			}
 			else
 			{
-				source << aSpace << str;
+				// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
+				//source << aSpace << str;
+				source << str;
 			}
 			str.Empty();
 		}
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
 	source.Trim();
-	source << aSpace;
+	// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
+	//source << aSpace;
 
 	// update length
 	return source.Len();
@@ -17948,6 +18017,15 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 // BEW 7Apr10, updated for doc version 5 (changes were needed)
 int RebuildTargetText(wxString& target, SPList* pUseThisList)
 {
+	// BEW 21Jul14, I need the EnableLogging() call, because this function refuses to
+	// send its wxLogDebug() output to the Output window of the IDE, in both VS 2008 and
+	// VS 2012, no matter what is done to tweak the IDE. Adding the call makes it work.
+	// Ahh, Bill said it's because there must have been a prior wxLogNull call - and that
+	// is the case, there's one earlier in DoExportAsType()
+#if defined(_DEBUG)
+	wxLog::EnableLogging(true);
+#endif
+
 	SPList* pList = NULL;
 	if (pUseThisList == NULL)
 	{
@@ -17976,6 +18054,34 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != 0);
+#if defined(_DEBUG)
+//		if (pSrcPhrase->m_nSequNumber == 243)
+//		{
+//			int break_point = 1;
+//		}
+#endif
+		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
+		wxString aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
+#if defined(_DEBUG)
+		if (!aBreak.IsEmpty())
+		{
+			wxChar aChar = aBreak.GetChar(0);
+			if (aChar == (wxChar)0x200B || aChar == _T(' '))
+			{
+				wxString s = aChar == _T(' ') ? _T("<space>") : _T("&#x200B");
+				wxLogDebug(_T("WordBreak before tgt: %s   is  %s"), pSrcPhrase->m_targetStr.c_str(), s.c_str());
+				//if (aChar == (wxChar)0x200B)
+				//{
+					// replace with <ZWSP> string temporarily, and note the output
+				//	aBreak = _T("<ZWSP>");
+				//}
+			}
+		}
+#endif
+		if (!aBreak.IsEmpty())
+		{
+			targetstr += aBreak;
+		}
 
 //#if defined(_DEBUG)
 //		if (pSrcPhrase->m_nSequNumber == 4223)
@@ -18040,13 +18146,14 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		// no initial space, and targetstr may not end with a space, so we have to check
 		// for no space and add one if needed; but the check is only wanted if targetstr
 		// has something in it and str is not empty.
+		/* BEW 21Jul14, we put in the special or ordinary space at top now, now here
 		if (targetstr.Length() > 0 && !str.IsEmpty())
 		{
 			if (targetstr[targetstr.Length() - 1] != _T(' ') && str[0] != _T(' '))
 				targetstr += _T(' ');
 		}
 		// after the above, targetstr will end with space, if it is not empty
-
+		*/
 		// handle when str contains only [, we don't want space after [
 		// BEW 8Apr14, added second subtest in next line, because if the input file has a
 		// single character as first word, the final subtest will fail because .Len() - 2
@@ -18062,7 +18169,9 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		{
 			if (!bPlacedAlready)
 			{
-				targetstr << str << aSpace;
+				// BEW 21Jul14, we don't want space added any more, we put them in first now
+				//targetstr << str << aSpace;
+				targetstr << str;
 			}
 		}
 	}// end of while (pos != NULL)

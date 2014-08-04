@@ -75,8 +75,11 @@ BEGIN_EVENT_TABLE(CKBPage, wxPanel)
 	EVT_INIT_DIALOG(CKBPage::InitDialog)
 	EVT_CHECKBOX(IDC_CHECK_KB_BACKUP, CKBPage::OnCheckKbBackup)
 	EVT_CHECKBOX(IDC_CHECK_BAKUP_DOC, CKBPage::OnCheckBakupDoc)
+	EVT_CHECKBOX(IDC_CHECK_USE_ZWSP_IN_FREETRANS, CKBPage::OnCheckFreeTransUsesZWSP)
 	EVT_RADIOBUTTON(IDC_RADIO_ADAPT_BEFORE_GLOSS, CKBPage::OnBnClickedRadioAdaptBeforeGloss)
 	EVT_RADIOBUTTON(IDC_RADIO_GLOSS_BEFORE_ADAPT, CKBPage::OnBnClickedRadioGlossBeforeAdapt)
+	EVT_RADIOBUTTON(IDC_RADIO_COPY_SRC_WORD_DELIM, CKBPage::OnBnClickedRadioCopySrcDelim)
+	EVT_RADIOBUTTON(IDC_RADIO_USE_ONLY_LATIN_SPACE, CKBPage::OnBnClickedRadioUseLatinSpace)
 	EVT_BUTTON(ID_BUTTON_LOOKUP_CODES, CKBPage::OnBtnLookupCodes) // whm added 10May10
 END_EVENT_TABLE()
 
@@ -88,6 +91,9 @@ CKBPage::CKBPage()
 CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 {
 	Create( parent );
+
+	pApp = (CAdapt_ItApp*)&wxGetApp();
+
 
 	tempDisableAutoKBBackups = FALSE;
 	tempBackupDocument = FALSE;
@@ -142,9 +148,18 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	pRadioGlossBeforeAdapt = (wxRadioButton*)FindWindowById(IDC_RADIO_GLOSS_BEFORE_ADAPT);
 	wxASSERT(pRadioGlossBeforeAdapt != NULL);
 
+	pRadioUseSrcWordBreak = (wxRadioButton*)FindWindowById(IDC_RADIO_COPY_SRC_WORD_DELIM);
+	wxASSERT(pRadioUseSrcWordBreak != NULL);
+	pRadioUseLatinSpace = (wxRadioButton*)FindWindowById(IDC_RADIO_USE_ONLY_LATIN_SPACE);
+	wxASSERT(pRadioUseLatinSpace != NULL);
+
 	m_pCheckLegacySourceTextCopy = (wxCheckBox*)FindWindowById(IDC_CHECK_LEGACY_SRC_TEXT_COPY);
 	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
 	wxASSERT(m_pCheckLegacySourceTextCopy != NULL);
+
+	m_pCheckFreeTransUsesZWSP = (wxCheckBox*)FindWindowById(IDC_CHECK_USE_ZWSP_IN_FREETRANS);
+	wxASSERT(m_pCheckFreeTransUsesZWSP != NULL);
+
 	
 	pTextCtrlAsStaticTextBackupsKB = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE);
 	wxASSERT(pTextCtrlAsStaticTextBackupsKB != NULL);
@@ -192,6 +207,15 @@ void CKBPage::OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event))
 		tempBackupDocument = TRUE;
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
 	
+}
+
+void CKBPage::OnCheckFreeTransUsesZWSP(wxCommandEvent& WXUNUSED(event)) 
+{
+	if (bTempFreeTransUsesZWSP)
+		bTempFreeTransUsesZWSP = FALSE;
+	else
+		bTempFreeTransUsesZWSP = TRUE;
+	m_pCheckFreeTransUsesZWSP->SetValue(bTempFreeTransUsesZWSP);
 }
 
 // MFC's OnSetActive() has no direct equivalent in wxWidgets. 
@@ -329,14 +353,15 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 		pApp->m_freeTransName = tempFreeTransName; // Prefs will now display it when reopened,
 				// and it will be saved to basic and project config files
 	}
+
+	// BEW added 21Jul14 support for the two new flags - commit to their values as set
+	// temporarily currently
+	pApp->m_bUseSrcWordBreak = bTempUseSrcWordBreak;
+	pApp->m_bFreeTransUsesZWSP = bTempFreeTransUsesZWSP;
 }
 
 void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
-
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-
 	// initialize our local temp variables from those on the App
 	tempDisableAutoKBBackups = !pApp->m_bAutoBackupKB;
 	tempBackupDocument = pApp->m_bBackupDocument;
@@ -350,6 +375,9 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempTgtLangCode = pApp->m_targetLanguageCode;
 	tempGlsLangCode = pApp->m_glossesLanguageCode;
 	tempFreeTransLangCode = pApp->m_freeTransLanguageCode;
+	// BEW added 21Jul14, the next two
+	bTempUseSrcWordBreak = pApp->m_bUseSrcWordBreak;
+	bTempFreeTransUsesZWSP = pApp->m_bFreeTransUsesZWSP;
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
@@ -409,7 +437,24 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 		pApp->m_pDlgGlossFont->SetPointSize(pApp->m_dialogFontSize);
 		m_pEditGlsName->SetFont(*pApp->m_pDlgGlossFont);
 	}
-	
+
+	if (bTempUseSrcWordBreak)
+	{
+		wxCommandEvent dummy;
+		OnBnClickedRadioCopySrcDelim(dummy);
+	}
+	else
+	{
+		wxCommandEvent dummy;
+		OnBnClickedRadioUseLatinSpace(dummy);
+	}
+
+	// Set or clear the checkbox for the m_bFreeTransUsesZWSP flag
+	bTempFreeTransUsesZWSP = bTempFreeTransUsesZWSP? FALSE : TRUE; // reverse value
+	wxCommandEvent dummy;
+	// Now, make it what it is supposed to be, and the box ticked or cleared to agree
+	OnCheckFreeTransUsesZWSP(dummy);
+
 #ifdef _RTL_FLAGS
 	if (pApp->m_bSrcRTL)
 	{
@@ -442,8 +487,8 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 		m_pEditGlsName->SetLayoutDirection(wxLayout_LeftToRight);
 	}
 #endif
-}
 
+}
 
 void CKBPage::OnBnClickedRadioAdaptBeforeGloss(wxCommandEvent& WXUNUSED(event))
 {
@@ -461,5 +506,19 @@ void CKBPage::OnBnClickedRadioGlossBeforeAdapt(wxCommandEvent& WXUNUSED(event))
 	pRadioGlossBeforeAdapt->SetValue(TRUE);
 }
 
+
+void CKBPage::OnBnClickedRadioCopySrcDelim(wxCommandEvent& WXUNUSED(event))
+{
+	bTempUseSrcWordBreak = TRUE;
+	pRadioUseSrcWordBreak->SetValue(TRUE);
+	pRadioUseLatinSpace->SetValue(FALSE);
+}
+
+void CKBPage::OnBnClickedRadioUseLatinSpace(wxCommandEvent& WXUNUSED(event))
+{
+	bTempUseSrcWordBreak = FALSE;
+	pRadioUseSrcWordBreak->SetValue(FALSE);
+	pRadioUseLatinSpace->SetValue(TRUE);
+}
 
 

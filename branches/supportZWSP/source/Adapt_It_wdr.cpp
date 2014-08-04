@@ -1911,6 +1911,24 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    wxStaticBox *item35 = new wxStaticBox( parent, -1, _("Choose the top option to support copy of source text zero width spaces into the adaptation") );
+    wxStaticBoxSizer *item34 = new wxStaticBoxSizer( item35, wxVERTICAL );
+
+    wxRadioButton *item36 = new wxRadioButton( parent, IDC_RADIO_COPY_SRC_WORD_DELIM, _("Copy the source text word breaks to use them for the adaptation word breaks"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item36->SetValue( TRUE );
+    item36->SetToolTip( _("If ZWSP or similar special space precedes the source word, it will be used to precede the target word automatically") );
+    item34->Add( item36, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxRadioButton *item37 = new wxRadioButton( parent, IDC_RADIO_USE_ONLY_LATIN_SPACE, _("Programmatically join adaptation words only with normal spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetToolTip( _("Word joiner is normal space  when programmatic joining is done, but ZWSP can be manually typed in mergers and retranslations") );
+    item34->Add( item37, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxCheckBox *item38 = new wxCheckBox( parent, IDC_CHECK_USE_ZWSP_IN_FREETRANS, _("Support free translations using zero width spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetToolTip( _("Tick this box if you want the free translation to be in a script like LAO, it halts sections at normal latin spaces") );
+    item2->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
     item0->Add( item2, 1, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 10 );
 
     if (set_sizer)
