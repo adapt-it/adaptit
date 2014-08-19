@@ -403,6 +403,7 @@ CSourcePhrase*  CPlaceholder::CreateBasicPlaceholder()
 // also prevent left association or right association if the CSourcePhrase being
 // associated to has a USFM fixed space marker ~ conjoining two words (our doc model does
 // not support moving markers or puncts to/from such an instance)
+// BEW 21Jul14, refactored for support of ZWSP etc
 void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 										   CPile* pInsertLocPile,const int nCount,
 										   bool bRestoreTargetBox,bool bForRetranslation,
@@ -538,12 +539,29 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 			}
 		}
 	} // end of TRUE block for test: if (nStartingSequNum > 0)
-	
+
+	// Set a default src text wordbreak string for the placeholder - from previous instance
+	bool bWordBreakDifference = FALSE; // default
+	wxString defaultWordBreak = _T(" "); // a space, in case there is no previous CSourcePhrase
+	if (pPrevSrcPhrase != NULL)
+	{
+		defaultWordBreak = pPrevSrcPhrase->GetSrcWordBreak();
+	}
+
 	// get the sequ num for the insertion location 
 	// (it could be quite diff from active sequ num)
 	CSourcePhrase* pSrcPhraseInsLoc = pInsertLocPile->GetSrcPhrase();
 	int	nSequNumInsLoc = pSrcPhraseInsLoc->m_nSequNumber;
 	wxASSERT(nSequNumInsLoc >= 0 && nSequNumInsLoc <= m_pApp->GetMaxIndex());
+	// BEW 21Jul14 get the pile after the insert loc, and its CSourcePhrase so we can do
+	// transfers to the m_srcWordBrak contents in a right-association context
+	CPile* pPostInsertLocPile = m_pView->GetNextPile(pInsertLocPile); // will return NULL if
+									// the pInsertLocPile is at document's end
+	CSourcePhrase* pPostInsertLocSrcPhrase = NULL;
+	if (pPostInsertLocPile != NULL)
+	{
+		pPostInsertLocSrcPhrase = pPostInsertLocPile->GetSrcPhrase();
+	}
 	
 	wxASSERT(insertPos != NULL);
 	int nActiveSequNum = m_pApp->m_nActiveSequNum; // save, so we can restore later on, 
@@ -741,11 +759,49 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
         // are interested only in setting or clearing bFollowingMarkers, it would be best
         // to replace the block below with a function call to do the job --
         // IsRightAssociationTransferPossible() is it
-		bFollowingMarkers = IsRightAssociationTransferPossible(pSrcPhraseInsLoc);		
-		
-		// if one of the flags is true, ask the user for the direction of association
+		bFollowingMarkers = IsRightAssociationTransferPossible(pSrcPhraseInsLoc);
+
+		// BEW 21Jul14, preceding word-delimiter for each CSourcePhrase is an issue.
+		// Normally it is a space. However, for some SE Asian scripts it may be a space on
+		// the first instance, followed by a series of words with ZWSP delimitation. There
+		// may also quite likely be no marker, punctuation, or other information on the
+		// first following instance that triggers right association; however, the latin space on
+		// preceding the first instance if the second an subsequent instances have
+		// non-latin-space delimitation may require right association of the latin space
+		// to the placeholder, and copying forward of the next-to-first's (different)
+		// word break to the first instance. But if left associated, we don't do that,
+		// we'd have to transfer a copy of the preceding source phrase's word break
+		// forwards to the inserted placeholder. So we need an extra test and a boolean to
+		// save the results of the test. Then we'll include the boolean into the left or
+		// right association blocks below. But first we must give the placeholder a default
+		// m_srcWordBreak - we can't assume it is a space, so instead, since default
+		// association is to associate leftwards, we'll copy the previous CSourcePhrase's
+		// m_srcWordBreak to the placeholder. Then, our test will be to check if what's
+		// the placeholder's wordbreak is different than what follows. If so, we have to
+		// ask the user to define which way the association is to be - left or right.
+		wxString nextWordBreak = _T(" "); // default space in case pSrcPhraseInsLoc is NULL
+		if (pSrcPhraseInsLoc != NULL)
+		{
+			nextWordBreak = pSrcPhraseInsLoc->GetSrcWordBreak();
+		}
+		// Make our test:
+		if (defaultWordBreak != nextWordBreak)
+		{
+			bWordBreakDifference = TRUE;
+		}
+        // Okay, given the above explanation, for right association the m_srcWordBreak on
+        // pSrcPhraseInsLoc has to be copied to the placeholder - it could be a space being
+        // transferred, and what follows that instance may be ZWSP delimiters - so we can't
+        // just leave the pSrcPhraseInsLoc's m_srcWordBreak unchanged - what we have to do
+        // is to copy the next instance's (pPostInsertLocSrcPhrase's) to pSrcPhraseInsLoc's
+        // m_srcWordBreak to keep any potential chain of ZWSP delimiters intact.
+		// But for left association, we copy the previous instance's delimiter forwards to
+		// the placeholder, and change nothing in the delimiters which follow the placeholder
+
+		// If one of the flags is true, ask the user for the direction of association
 		// (bAssociatingRightwards is default FALSE when control reaches here)
-		if (bFollowingMarkers || bFollowingPrecPunct || bPreviousFollPunct || bEndMarkersPrecede)
+		if (bFollowingMarkers || bFollowingPrecPunct || bPreviousFollPunct || bEndMarkersPrecede
+			|| bWordBreakDifference)
 		{
 			// association leftwards or rightwards will be required,
 			// so set the flag for this
@@ -817,7 +873,6 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 						// Note: moving m_bFootnote flag value is handled in next block
 					}
 					
-					
 					// have to also copy various members, such as m_inform, so navigation
 					// text works right; but we don't want to copy everything - for
 					// instance, we don't want to incorporate it into a retranslation; so
@@ -875,7 +930,14 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 					// lost its preceding punctuation (tranferred to placeholder): the simplest
 					// solution is to make it same as the m_adaption member
 					pSrcPhraseInsLoc->m_targetStr = pSrcPhraseInsLoc->m_adaption;
-				}	
+				}
+				// Do any needed right association for wordbreaks
+				wxString aWordBreak = _T("");
+				aWordBreak = pSrcPhraseInsLoc->GetSrcWordBreak();
+				pFirstOne->SetSrcWordBreak(aWordBreak);
+				// now copy the following one forward as explained above
+				aWordBreak = pPostInsertLocSrcPhrase->GetSrcWordBreak();
+				pSrcPhraseInsLoc->SetSrcWordBreak(aWordBreak);
 			}
 			else // next block for Left-Association effects
 			{
@@ -941,9 +1003,21 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
 				// repurposed as m_bUnused
 				pLastOne->m_bUnused = pPrevSrcPhrase->m_bUnused;
 				pPrevSrcPhrase->m_bUnused = FALSE;
+
+                // BEW 21Jul14, for left association, the m_srcWordBreak on pPrevSrcPhrase
+                // has to be copied onwards to the placeholder (pLastOne)
+				wxString aWordBreak = _T("");
+				aWordBreak = pPrevSrcPhrase->GetSrcWordBreak();
+				pLastOne->SetSrcWordBreak(aWordBreak);
 			}
 		} // end of TRUE block for test: if (bFollowingMarkers || bFollowingPrecPunct || 
 		  //                                 bPreviousFollPunct || bEndMarkersPrecede)
+		else
+		{
+			// Associated neither left nor right, so give the placeholder the default
+			// wordbreak set near top
+			pLastOne->SetSrcWordBreak(defaultWordBreak);
+		}
 	} // end of TRUE block for test: if (!bForRetranslation)
 	else // next block is for Retranslation situation
 	{
@@ -956,6 +1030,10 @@ _T("Warning: Unacceptable Backwards Association"),wxICON_EXCLAMATION | wxOK);
         // values is done above, as also is the moving of the content of a final non-empty
 		// m_endMarkers member, and m_inlineNonbindingEndMarkers and
 		// m_inlineBindingEndMarkers to the last placeholder, in the insertion loop itself)
+		// 
+		// BEW 21Jul14, in this situation, no moving of m_srcWordBreak contents is
+        // involved here - because the padding instances get the last CSourcePhrase's
+        // m_scrWordBreak contents copied to them in the caller when the padding is done.
 		if (nPrevSequNum != -1)
 		{
 			if (!pPrevSrcPhrase->m_follPunct.IsEmpty() || 
@@ -1499,6 +1577,7 @@ bool CPlaceholder::IsPlaceholderInSublist(SPList* pSublist)
 //                   may not have some puncts, markers or flag changes due to
 //                   transfers made because it was inserted in a context which required
 //                   left or right association
+// BEW 21Jul14, refactored for support of ZWSP
 void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 														 CSourcePhrase* pSrcPhrase)
 {
@@ -1506,6 +1585,14 @@ void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 	// information or span end to the preceding context; then we deal with having to
 	// transfer information or span beginning to the following context in the blocks after
 	// that
+	// BEW 21Jul14, if there was left association of the placeholder, a ZWSP may have been
+	// copied to the placeholder. Since the placeholder is going to be deleted, nothing
+	// needs to be done to pPrevSrcPhrase's m_srcWordBreak, it's already correct. In the
+	// case of right association, however, there may have been a chain of ZWSP
+	// delimitations with a space delimitation at the start, and the space transferred to
+	// the placeholder being right-associated. So we can't ignore this possibility. We
+	// have to transfer the placeholder's m_srcWordBreak value to pSrcPhraseFolling, just
+	// in case it is a different type of space than the other following ones.
 	wxString emptyStr = _T("");
 	CSourcePhrase* pPrevSrcPhrase = NULL;
 	CSourcePhrase* pSrcPhraseFollowing = NULL;
@@ -1569,12 +1656,21 @@ void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 	} // end TRUE block for test: if (pPrevSrcPhrase != NULL) 
 	
 	// now the transfers from the first, to the first of the following context
+	// BEW 21Jul14, it's only here that we need to transfer m_srcWordBreak, and only forward -
+	// but we do the transfer of forwards only if the placeholder's m_srcWordBreak is not
+	// equal to whatever is pSrcPhraseFollowing's m_srcWordBreak
 
 	if (pSrcPhraseFollowing != NULL)
 	{
 		if ((!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty()
 			 || !pSrcPhrase->GetInlineBindingMarkers().IsEmpty() ))
 		{
+			// BEW 21Jul14 - first do any ZWSP supporting transfer that may be needed
+			if (pSrcPhrase->GetSrcWordBreak() != pSrcPhraseFollowing->GetSrcWordBreak())
+			{
+				pSrcPhraseFollowing->SetSrcWordBreak(pSrcPhrase->GetSrcWordBreak());
+			}
+
 			// BEW 27Sep10, for docVersion 5, m_markers stores only markers and chapter or
 			// verse number, so if non-empty transfer its contents & ditto for the inline ones
 			pSrcPhraseFollowing->m_markers = pSrcPhrase->m_markers;
@@ -2062,7 +2158,11 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 // BEW 11Oct10, updated to remove a bug (pSrcPhraseCopy deleted and then cleared to NULL
 // and then searched for in the main m_pSrcPhrases list. Not a good idea to search for NULL!)
 // This function is called only for removing placeholders from a retranslation - called
-// only in OnButtonRetranslation() to remove any earlier placeholders in the selection
+// only in OnButtonRetranslation() to remove any earlier placeholders in the selection.
+// Untransferring any transferred info from the context will have taken place first, by
+// a prior call of UntransferTransferredMarkersAndPuncts() in the caller.
+// BEW refactored 21Jul14, for ZWSP support - no change, provided 
+// UntransferTransferredMarkersAndPuncts() is called before this is called, which it is 
 void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,
 									int& nCount,int& nEndSequNum,
 									bool bActiveLocAfterSelection,

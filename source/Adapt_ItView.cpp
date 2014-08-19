@@ -2457,6 +2457,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 // location at which the user clicked to relocate the box there - it simplifies the flow of
 // code in PlacePhraseBox() for the sake of the human trying to follow what is going on
 // here
+// BEW 21Jul14, no changes needed for ZWSP support
 void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 		CSourcePhrase* pSrcPhrase, int selector, CPile* pActivePile, wxString& str,
 		bool bHasNothing, bool bNoValidText, bool bSomethingIsCopied)
@@ -2870,6 +2871,7 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 // Ammended, July 2003, for auto-capitalization support
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 22Jun10, no changes needed for support of kbVersion 2
+// BEW 21Jul14 for ZWSP support: no changes were necessary
 void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 {
 	// refactored 2Apr09
@@ -3007,7 +3009,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 				pApp->m_bUserTypedSomething = FALSE;
 
 				// make sure pApp->m_targetPhrase doesn't have any final spaces
-				RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
+				pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 
 				// any existing phraseBox text must be saved to the KB, unless its empty
 				bool bOK = TRUE;
@@ -4419,7 +4421,7 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 			// NormalizeToSpaces leaves the markers in m_markers delimited by spaces, at
 			// lease medially. We'll use the wxStringTokenizer method here.
 			wxString sfm;
-			wxStringTokenizer tkz(markerStr,_T(" "));
+			wxStringTokenizer tkz(markerStr,_T(" ")); // BEW 21Jul14, ZWSP support: keep this as latin space
 
 			while (tkz.HasMoreTokens())
 			{
@@ -4429,7 +4431,8 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 				{
 					sfm.Trim(TRUE); // trim right end
 					sfm.Trim(FALSE); // trim left end
-						sfm += _T(' '); // ensure the sfm is followed by a space
+					// BEW 21Jul14, ZWSP support: keep this as latin space
+					sfm += _T(' '); // ensure the sfm is followed by a space
                                         // for unique find in our wrap strings.
 					// If only one of the sfms within m_markers is a wrap
 					// marker, we should return TRUE.
@@ -4473,7 +4476,6 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 	// if we get here, we couldn't find a preceding section heading
 	return nOldSN;
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if the range op fouled up, otherwise TRUE
@@ -5273,7 +5275,7 @@ void CAdapt_ItView::GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPo
 				// NormalizeToSpaces leaves the markers in m_markers delimited by spaces, at
 				// lease medially. We'll use the Tokenize CString method here.
 				wxString sfm;
-				wxStringTokenizer tkz(markerStr,_T(" "));
+				wxStringTokenizer tkz(markerStr,_T(" ")); // BEW 21Jul14, ZWSP support: keep this as latin space
 
 				while (tkz.HasMoreTokens())
 				{
@@ -5283,7 +5285,8 @@ void CAdapt_ItView::GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPo
 					{
 						sfm.Trim(TRUE); // trim right end
 						sfm.Trim(FALSE); // trim left end
-							sfm += _T(' '); // ensure the sfm is followed by a space for unique find in
+						// BEW 21Jul14, ZWSP support: keep this as latin space
+						sfm += _T(' '); // ensure the sfm is followed by a space for unique find in
 											// our wrap strings.
 						// If only one of the sfms within m_markers is a wrap marker, we should return TRUE.
 						switch (pApp->gCurrentSfmSet)
@@ -6066,6 +6069,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	// wanted) then his edit needs to "take" immediately
 	gSpacelessTgtPunctuation = pApp->m_punctuation[1];
 	// get rid of the spaces
+	// BEW 21Jul14, ZWSP support: keep this as latin space
 	gSpacelessTgtPunctuation.Replace(_T(" "), _T(""));
 
     // BEW 22May09 moved idle processing down to here so that idle events won't come before
@@ -6653,6 +6657,7 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 	wxString sfm;
 	bool bValue = FALSE;
 
+	// BEW 21Jul14, ZWSP support: keep this as latin space
 	wxStringTokenizer tkz(markerStr,_T(" "));
 
 	while (tkz.HasMoreTokens())
@@ -6668,6 +6673,7 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 				sfm = sfm.Left(endMkrPos);
 			sfm.Trim(FALSE); // trim left end
 			sfm.Trim(TRUE); // trim right end
+			// BEW 21Jul14, ZWSP support: keep this as latin space
 			sfm += _T(' '); // ensure the sfm is followed by a space for unique find in
 							// our wrap strings.
 			// If only one of the sfms within markerStr is a wrap marker, we should return TRUE.
@@ -7959,6 +7965,10 @@ bool CAdapt_ItView::IsMarkerWithSpaceInFilterMarkersString(wxString& mkrWithSpac
 		return TRUE;
 }
 
+// Used in OnEditCopy()( only, for copying to the clipboard from a selection made in source
+// phrase - our copy copies the selection's target text, not the source text.
+// BEW 21Jul14, refactored for ZWSP support (& take into account whether its in a
+// retranslation or not, or overlapping one) 
 void CAdapt_ItView::DoSrcPhraseSelCopy()
 {
 	// refactored 7Apr09
@@ -7990,7 +8000,16 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 						if (str.IsEmpty())
 							str = pApp->m_targetPhrase;
 						else
-							str += _T(" ") + pApp->m_targetPhrase;
+						{
+							if (pSrcPhrase->m_bRetranslation)
+							{
+								str += PutTgtWordBreak(pSrcPhrase) + pApp->m_targetPhrase;
+							}
+							else
+							{
+								str += PutSrcWordBreak(pSrcPhrase) + pApp->m_targetPhrase;
+							}
+						}
 					}
 				}
 			}
@@ -8019,7 +8038,16 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 					else
 					{
 						if (!pSrcPhrase->m_targetStr.IsEmpty())
-							str += _T(" ") + pSrcPhrase->m_targetStr;
+						{
+							if (pSrcPhrase->m_bRetranslation)
+							{
+								str += PutTgtWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;	
+							}
+							else
+							{
+								str += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;	
+							}
+						}
 					}
 				}
 			}
@@ -9836,6 +9864,7 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 }
 
 // BEW updated OnButtonMerge() 16Feb10, for support of doc version 5
+// BEW refactored 21Jul14 for support of ZWSP
 void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 {
 	// 25Mar09 added partner pile updating
@@ -9900,6 +9929,12 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // the nWordsInPhrase (global) value in the PhraseBox file; otherwise, use the
     // selection (bLookAheadMerge is a static class boolean defined in the CAdapt_ItApp
     // class & set by the LookAhead function in CPhraseBox class)
+#if defined(_DEBUG)
+	// I want to see what values these app booleans have at this point
+	pApp->m_bFreeTransUsesZWSP = pApp->m_bFreeTransUsesZWSP;
+	pApp->m_bUseSrcWordBreak = pApp->m_bUseSrcWordBreak;
+	//pApp->m_bLegacyDocLacksZWSPstorage = pApp->m_bLegacyDocLacksZWSPstorage;
+#endif
 	if (pApp->bLookAheadMerge)
 	{
 		if (gbDoingInitialSetup && pApp->m_pTargetBox->GetHandle() == NULL)
@@ -9935,7 +9970,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			if (strOldAdaptation.IsEmpty())
 				strOldAdaptation = pSrcPhrase->m_adaption;
 			else
-				strOldAdaptation += _T(" ") + pSrcPhrase->m_adaption; // always concat in natural order
+				strOldAdaptation += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_adaption; // always concat in natural order
 			pList->Append(pSrcPhrase);  // add the pointer to the list
 		}
 
@@ -10081,7 +10116,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 					// skip if selecting left and src text was copied
 					if (!(pApp->m_curDirection == toleft && pApp->m_pTargetBox->m_bAbandonable))
 					{
-						strOldAdaptation += _T(" ") + pApp->m_targetPhrase;
+						strOldAdaptation += PutSrcWordBreak(pSrcPhrase) + pApp->m_targetPhrase;
 					}
 				}
 			}
@@ -10108,12 +10143,12 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 					{
 						if (pApp->m_bCopySource && !bSuppressCopyingExtraSourceWords)
 						if (pApp->m_bCopySource)
-							strOldAdaptation += _T(" ") +
+							strOldAdaptation += PutSrcWordBreak(pSrcPhrase) +
 							CopySourceKey(pSrcPhrase, pApp->m_bUseConsistentChanges);
 					}
 					else
 					{
-						strOldAdaptation += _T(" ") + pSrcPhrase->m_adaption;
+						strOldAdaptation += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_adaption;
 						bNoninitialSelectionsHaveTranslation = TRUE;
 					}
 				}
@@ -10337,7 +10372,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 					{
 						if (!pRefString->m_translation.IsEmpty())
 						{
-							pApp->m_targetPhrase = pApp->m_targetPhrase + _T(" ") +
+							pApp->m_targetPhrase = pApp->m_targetPhrase + PutSrcWordBreak(pSrcPhrase) +
 															pRefString->m_translation;
 						}
 					}
@@ -10363,7 +10398,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 						{
 							wxString str;
 							str = pApp->m_pTargetBox->GetValue();
-							pApp->m_targetPhrase = pApp->m_targetPhrase + _T(" ") + str;
+							pApp->m_targetPhrase = pApp->m_targetPhrase + PutSrcWordBreak(pSrcPhrase) + str;
 						}
 					}
 				}
@@ -10800,6 +10835,8 @@ void CAdapt_ItView::UpdateSequNumbers(int nFirstSequNum)
 // BEW 16Feb10, updated RestoreOriginalMinPhrases for doc version 5
 // BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, (and use all 10 maps
 // for glossing KB - but that is irrelevant to this function)
+// BEW refactored 21Jul14, for ZWSP support ( two calls needed, to PutSrcWordBreak(), and
+// two additional lines for transfer of m_srcWordBreak and m_tgtWordBreak )
 int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nStartingSequNum)
 {
 	// The following note is copied from Layout.cpp... it is very important
@@ -10925,6 +10962,13 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		// m_markers is not yet private, so it has no getter or setter
 		pSP->m_markers = pBigOne->m_markers; // transfer the material in m_markers to the first one
 	}
+
+    // BEW 21Jul14 Probably don't need to copy over the m_srcWordBreak and m_tgtWordBreak
+    // contents, since they were copied to pBigOne originally themselves. But we'll do so
+    // to be safe
+	pSP->SetSrcWordBreak(pBigOne->GetSrcWordBreak());
+	pSP->SetTgtWordBreak(pBigOne->GetTgtWordBreak());
+
 	// handle the flag for commencement of a free translation section
 	if (bStartsAFreeTranslation)
 	{
@@ -11054,7 +11098,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		if (pApp->m_targetPhrase.IsEmpty())
 			pApp->m_targetPhrase = pBigOne->m_targetStr;
 		else
-			pApp->m_targetPhrase = pApp->m_targetPhrase + _T(" ") + pBigOne->m_targetStr;
+			pApp->m_targetPhrase = pApp->m_targetPhrase + PutSrcWordBreak(pBigOne) + pBigOne->m_targetStr;
 	}
 	else // might be a deleted KB entry
 	{
@@ -11070,7 +11114,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 			else
 			{
 				if (!pBigOne->m_targetStr.IsEmpty())
-					pApp->m_targetPhrase = pApp->m_targetPhrase + _T(" ") + pBigOne->m_targetStr;
+					pApp->m_targetPhrase = pApp->m_targetPhrase + PutSrcWordBreak(pBigOne) + pBigOne->m_targetStr;
 			}
 		}
 	}
@@ -11209,7 +11253,9 @@ void CAdapt_ItView::UnmergePhrase()
 // the m_bHasNote flag value by setting it on the first CSourcePhrase instance in the
 // unmerged sequence, so I fixed it so it would do so
 //
-// BEW updated OnButtonRestore() 16Feb10 for support of doc version 5 (nothing needed to be done)
+// BEW updated OnButtonRestore() 16Feb10 for support of doc version 5 (nothing needed to be
+// done) 
+// BEW 21Jul14, no changes for ZWSP support
 void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 {
     // Since the Restore (Unmerge) toolbar button has an accelerator table hot key (CTRL-U
@@ -11493,6 +11539,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 // return TRUE if the selection extended, FALSE if not (would be false only if at a
 // boundary) m_pAnchor is always the pile at which the phraseBox currently is; this
 // function is only for the ALT plus arrow key selection method
+// BEW 21Jul14 no changes for ZWSP support
 bool CAdapt_ItView::ExtendSelectionRight()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -11710,6 +11757,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 // return TRUE if the selection extended, FALSE if not (would be false only if at a
 // boundary) this function works with selections on the 2nd line only; m_pAnchor is always
 // the pile at which the phraseBox currently is
+// BEW 21Jul14 no changes for ZWSP support
 bool CAdapt_ItView::ExtendSelectionLeft()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -11983,66 +12031,6 @@ void CAdapt_ItView::MergeWords()
 {
 	wxCommandEvent dummyevent;
 	OnButtonMerge(dummyevent);
-}
-
-void CAdapt_ItView::RemoveFinalSpaces(CPhraseBox* pBox, wxString* pStr)
-{
-	// empty strings don't need anything done
-	if (pStr->IsEmpty())
-		return;
-
-	// remove any phrase final space characters
-	bool bChanged = FALSE;
-	int len = pStr->Length();
-	int nIndexLast = len-1;
-	do {
-		if (pStr->GetChar(nIndexLast) == _T(' '))
-		{
-			// Note: wsString::Remove must have the second param as 1 here otherwise
-			// it will truncate the remainder of the string!
-			pStr->Remove(nIndexLast,1);
-			// can't trust the Delete's returned value, it exceeds string length by one
-			len = pStr->Length();
-			nIndexLast = len -1;
-			bChanged = TRUE;
-		}
-		else
-		{
-			break;
-		}
-	} while (len > 0 && nIndexLast > -1);
-
-	if (bChanged) // need to do this, because for some reason rubbish is getting
-            // left in the earlier box when the ChooseTranslation dialog gets put up. That
-            // is, a simple call of SetWindowText with parameter pStr cast to (const char
-            // *) doesn't work right; but the creation & setting of str below fixes it
-	{
-		wxString str = *pStr;
-		pBox->ChangeValue(str);
-	}
-
-}
-
-
-// BEW added 30Apr08, an overloaded version which deletes final spaces in any CString's
-// text, and if there are only spaces in the string, it reduces it to an empty string
-void CAdapt_ItView::RemoveFinalSpaces(wxString& rStr)
-{
-    // whm Note: This could be done with a single line in wx, i.e., rStr.Trim(TRUE), but
-    // we'll go with the MFC version for now.
-	if (rStr.IsEmpty())
-		return;
-	rStr = MakeReverse(rStr);
-	wxChar chFirst = rStr[0];
-	while (chFirst == _T(' '))
-	{
-		rStr = rStr.Mid(1);
-		chFirst = rStr[0];
-	}
-	if (rStr.IsEmpty())
-		return;
-	else
-		rStr = MakeReverse(rStr);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -12753,6 +12741,7 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 /// BEW 12Apr10, no changes needed for support of doc version 5
 /// BEW 11Oct10, changed to use the new version of ParseWord() and added support for
 /// stripping from a conjoined pair using ~ fixedspace symbol
+/// BEW 21Jul14, for ZWSP support - changes needed
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex)
 {
@@ -12825,6 +12814,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
     // do word1 -- it could be a sequence of words with or without punctuation, or the
     // first word of a conjoined ~ word pair with or without punctuation, or just a single
     // word with or without some punctuation
+	wxChar lastWhiteSpaceChar; // BEW 21Jul14 for ZWSP support
 	while (ptr < pEnd)
 	{
         // we are dealing with target text, but ParseWord() will treat it as source
@@ -12843,7 +12833,18 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		// update ptr to point at next part of string to be parsed
 		ptr += itemLen;
 
-		while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
+		// BEW 21Jul14 changed to use IsWhiteSpace() for the test
+		//while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
+		lastWhiteSpaceChar = _T('');
+		while (pDoc->IsWhiteSpace(ptr)) 
+		{ 
+			lastWhiteSpaceChar = *ptr;
+			ptr++; 
+		} // skip initial whitespaces, store the last such (if any)
+		// Put the last whitespace into the m_srcWordBreak of pSrcPhrase, so that
+		// PutSrcWordBreak() can access it below
+		wxString wdbrkStr(lastWhiteSpaceChar);
+		pSrcPhrase->SetSrcWordBreak(wdbrkStr);
 
 		if (strFinal.IsEmpty())
 		{
@@ -12851,7 +12852,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		}
 		else
 		{
-			strFinal += _T(" ") + theWord;
+			strFinal += PutSrcWordBreak(pSrcPhrase) + theWord;
 		}
 		pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase);
 	} // end of while loop: while (ptr < pEnd)
@@ -12879,17 +12880,10 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 
 			// update ptr to point at next part of string to be parsed
 			ptr2 += itemLen;
-
-			while (*ptr2 == _T(' ')) { ptr2++; } // skip initial whitespace
-
-			if (strFinal2.IsEmpty())
-			{
-				strFinal2 = theWord2;
-			}
-			else
-			{
-				strFinal2 += _T(" ") + theWord2;
-			}
+			// BEW 21Jul14, for ZWSP support - we'll assume that there will be no
+			// whitespace after the ~ marker, and so skip any such, and just append theWord2
+			while (pDoc->IsWhiteSpace(ptr2)) { ptr2++; } // skip initial whitespace, but shouldn't be any
+			strFinal2 = theWord2;
 			pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase2);
 		} // end of while loop: while (ptr2 < pEnd2)
 		if (!strFinal2.IsEmpty())
@@ -12951,6 +12945,7 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_selectionLine == 0)
 	{
 		// this has priority, ie. if there is or are sourcePhrase(s) selected
+		// BEW 21Jul14 refactored this for ZWSP support 
 		DoSrcPhraseSelCopy();
 	}
 	else
@@ -13322,79 +13317,6 @@ CSourcePhrase* CAdapt_ItView::GetPrevSrcPhrase(SPList::Node*& curPos,SPList::Nod
 		return (CSourcePhrase*)0;
 	}
 }
-
-
-// gets the preceding & following contexts for a 'retranslation' section of source text.
-// We cannot rely on the layout pointers being valid, because if there was an unmerge done,
-// they will have been clobbered prior to GetContext being called rather than use GetPile().
-// We accumulate 40 words of preceding context and 30 words of following context, and we
-// omit any m_markers content from the accumulations - we are just interested in the text.
-// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
-// BEW 9July10, no changes needed for support of kbVersion 2
-void CAdapt_ItView::GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
-							   wxString& strFoll,wxString& strPreTgt, wxString& strFollTgt)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	// get the preceding context first
-	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
-	SPList::Node* pos = pSrcPhrases->Item(nStartSequNum);
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetPrevious();
-	TextType textType = pSrcPhrase->m_curTextType;
-	wxString str; // temporary buffers
-	str.Empty();
-	wxString strTgt;
-	strTgt.Empty();
-
-	int count = 0;
-	while (count < NUM_PREWORDS && pos != NULL)
-	{
-		TextType type;
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetPrevious();
-		count++;
-		type = pSrcPhrase->m_curTextType;
-		if (type != textType)
-			break;
-		str = pSrcPhrase->m_srcPhrase;
-		strTgt = pSrcPhrase->m_targetStr;
-		strPre = str + _T(" ") + strPre;
-		strPreTgt = strTgt + _T(" ") + strPreTgt;
-	}
-
-	// now get the following context
-	pos = pSrcPhrases->Item(nEndSequNum);
-	pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	pos = pos->GetNext();
-	count = 0;
-	str.Empty();
-	strTgt.Empty();
-
-	while (count < NUM_FOLLWORDS && pos != NULL)
-	{
-		TextType type;
-		pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
-		count++;
-		type = pSrcPhrase->m_curTextType;
-		if (type != textType)
-			break;
-		str = pSrcPhrase->m_srcPhrase;
-		strTgt = pSrcPhrase->m_targetStr;
-		if (strFoll.IsEmpty())
-		{
-			strFoll = str;
-			strFollTgt = strTgt;
-		}
-		else
-		{
-			strFoll += _T(" ") + str;
-			strFollTgt += _T(" ") + strTgt;
-		}
-	}
-}
-
 
 int CAdapt_ItView::GetSelectionWordCount()
 {
@@ -14287,6 +14209,7 @@ void CAdapt_ItView::CloseProject()
 // placement dialog as well as support for redundant marker placement dialogs in the event
 // of doing an export; the how and why of all this is explain below in extensive comments
 // about a third of the way into the function.
+// BEW 21Jul14, for ZWSP support (nothing needed to be done)
 void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhrase, wxString targetStr)
 {	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -17148,7 +17071,7 @@ a:	nFirstChar = FindFromPos(strTarget,strSearch,nStart);
 /// \param      bIgnoreCase ->  Default is FALSE in caller, if TRUE passed in, strings are
 ///                             reset to lower case before testing for a match
 /// \param      nCount      ->  a count of how many words are to be matched (note, the
-///                             function is required event when nCount is 1 if the source
+///                             function is required even when nCount is 1 if the source
 ///                             text matched within a retranslation)
 /// \remarks
 /// Used for matching several words across more than one pile, or matching within a
@@ -17161,6 +17084,7 @@ a:	nFirstChar = FindFromPos(strTarget,strSearch,nStart);
 /// This is a complex function, BEWARE.
 /// If glossing is ON, this function should never get called.
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 21Jul14, refactored for support of ZWSP (4 places had PutSrcWordBreak() used)
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::DoExtendedSearch(int			selector,
 									 SPList::Node*&	pos,
@@ -17294,7 +17218,7 @@ a:			if (nCount == 1)
 					}
 					else
 					{
-						strConstruct += _T(" ") + pSP->m_srcPhrase;
+						strConstruct += PutSrcWordBreak(pSP) + pSP->m_srcPhrase;
 					}
 				}
 				else
@@ -17305,7 +17229,7 @@ a:			if (nCount == 1)
 					}
 					else
 					{
-						strConstruct += _T(" ") + pSP->m_key;
+						strConstruct += PutSrcWordBreak(pSP) + pSP->m_key;
 					}
 				}
 				count++; // count the word represented by this source phrase
@@ -17552,7 +17476,7 @@ b:			if (nCount == 1)
 					}
 					else
 					{
-						strConstruct += _T(" ") + pSP->m_srcPhrase;
+						strConstruct += PutSrcWordBreak(pSP) + pSP->m_srcPhrase;
 					}
 				}
 				else
@@ -17563,7 +17487,7 @@ b:			if (nCount == 1)
 					}
 					else
 					{
-						strConstruct += _T(" ") + pSP->m_key;
+						strConstruct += PutSrcWordBreak(pSP) + pSP->m_key;
 					}
 				}
 				count++; // count the word represented by this source phrase
@@ -17726,6 +17650,8 @@ b:			if (nCount == 1)
 // I figure I can get this past muster without anyone ever discovering it! In other words, when
 // glossing is ON, the search will be in source text where punctuation has been excluded.
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 21Jul14, no changes for ZWSP support (however, there were changes to one function
+// it calls, DoExtendedSearch() - four calls of PutSrcWordBreak() replacing _T(" "))
 bool CAdapt_ItView::DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 								  wxString& src,bool bIgnoreCase, int& nSequNum, int& nCount)
 {
@@ -17962,6 +17888,8 @@ c: if (gbIsGlossing)
 // and nCount must only return 1 (when glossing is ON). Glossing text by default allows any
 // typed punctuation to be stored; so bIncludePunct == FALSE does nothing to affect whether
 // gloss text has punctuation, it just stops certain blocks of code being entered.
+// BEW 21Jul14, no changes for ZWSP support (however, there were changes to one function
+// it calls, DoExtendedSearch() - four calls of PutSrcWordBreak() replacing _T(" "))
 bool CAdapt_ItView::DoTgtOnlyFind(int		nStartSequNum,
 								  bool		bIncludePunct,
 								  bool		bSpanSrcPhrases,
@@ -18030,6 +17958,7 @@ h:		while (pos != NULL)
 			wxString src;
 			src.Empty();
 			savePos = pos;
+			// BEW 21Jul14, this call has been refactored to support ZWSP
 			bFound = DoExtendedSearch(1,pos,pDoc,pTempList,nElements,
 									bIncludePunct,bIgnoreCase,nCount);
 			if (bFound)
@@ -18253,6 +18182,8 @@ e:	if (gbIsGlossing)
 // see the comments at the start of the DoSrcOnlyFind( ) and DoTgtOnlyFind( ) - same stuff
 // applies here; and tgt could be text to check in adaptations, or glosses, depending on
 // gbIsGlossing value
+// BEW 21Jul14, no changes for ZWSP support (however, there were changes to one function
+// it calls, DoExtendedSearch() - four calls of PutSrcWordBreak() replacing _T(" "))
 bool CAdapt_ItView::DoSrcAndTgtFind(int			nStartSequNum,
 									bool		bIncludePunct,
 									bool		bSpanSrcPhrases,
@@ -18330,6 +18261,7 @@ e:		while (pos != NULL)
 			wxString tgt;
 			tgt.Empty();
 			savePos = pos;
+			// BEW 21Jul14, this call supports ZWSP
 			bFound = DoExtendedSearch(0,pos,pDoc,pTempList,nElements,
 									bIncludePunct,bIgnoreCase,nCount1);
 			if (bFound)
@@ -18464,6 +18396,7 @@ e:		while (pos != NULL)
 			savePos = pos2; // DoExtendedSearch returns pos value at next
 							// location to the input parameter pos2 value,
 							// so to preserve the input one, we need savePos as well
+			// BEW 21Jul14, this call supports ZWSP
 			bFound = DoExtendedSearch(1,pos2,pDoc,pTempList2,nElements2,
 									bIncludePunct,bIgnoreCase,nCount2);
 			if (bFound)
@@ -18725,6 +18658,7 @@ e:		while (pos != NULL)
 						savePos = pos2; // DoExtendedSearch returns pos value at next location
 										// to the input parameter pos2 value, so to preserve the
 										// input one, we need savePos as well
+						// BEW 21Jul14, this call supports ZWSP
 						bFound = DoExtendedSearch(1,pos2,pDoc,pTempList2,
 												nElements,bIncludePunct,bIgnoreCase,nCount2);
 						if (bFound)
@@ -18923,6 +18857,7 @@ g:					sn++; // index for next CSourcePhrase instance to be searched
 	return FALSE;
 }
 
+// BEW 21Jul14, no changes needed for ZWSP support
 bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 							  bool		bIncludePunct,
 							  wxString& tgt,
@@ -23661,7 +23596,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			// space after them for concatenation, and that would comply with what the old
 			// markup standard used to so anyway, so we are safe) For USFM endmarker,
 			// we'll not put a space after it unless the to-be-concatenated string does
-			// not belong with a backslash (ie. if punctuation or a word starts it, then
+			// not begin with a backslash (ie. if punctuation or a word starts it, then
 			// we'd want an intervening space)
 			strSource.Trim(); // remove any space from its end
 			length = strSource.Len();
@@ -23672,13 +23607,15 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 			else if (strSource[length-1] != _T('*'))
 			{
 				// no endmarker at its end
+				// BEW refactored 21Jul14, need ZWSP here, since either a single or a
+				// merged pSrcPhrase yielded srcStr
 				if (srcStr[0] == gSFescapechar)
 				{
 					// srcStr starts with an SF marker - it's safe then to tuck it up to
 					// whatever precedes without any intervening space, but it will be
 					// more readable with a space, and this is a context where we won't
 					// have punctuation & filtering interacting, so add the space
-					strSource += _T(" ") + srcStr;
+					strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
 				}
 				else
 				{
@@ -23690,7 +23627,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 					}
 					else
 					{
-						strSource += _T(" ") + srcStr;
+						strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
 					}
 				}
 			}
@@ -23707,7 +23644,8 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 				{
 					// no marker at the start of srcStr, so a space would help readability (though
 					// otherwise unnecessary)
-					strSource += _T(" ") + srcStr;
+					// BEW 21Jul14 support restoring ZWSP here
+					strSource += PutSrcWordBreak(pSrcPhrase) + srcStr;
 				}
 			}
 			srcStr.Empty();
@@ -24481,7 +24419,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 			!gbByCopyOnly)
 		{
 			// make sure m_targetPhrase doesn't have any final spaces
-			RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
+			pApp->m_pTargetBox->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
 			// any existing phraseBox text must be saved to the KB or glossingKB,
 			// unless it's empty
@@ -25958,8 +25896,8 @@ bailout:	pAdaptList->Clear();
     // strings are built up from the meanings in the document's m_pSourcePhrases list,
     // because getting sufficient context may require looking at CSourcePhrase instances
     // preceding and/or following those in any of the sublists thus far populated
-	GetContext(pRec->nStartingSequNum,pRec->nEndingSequNum, precedingSrc, followingSrc,
-				precedingTgt, followingTgt);
+	pApp->GetRetranslation()->GetContext(pRec->nStartingSequNum,pRec->nEndingSequNum, 
+								precedingSrc, followingSrc, precedingTgt, followingTgt);
 	dlg.m_preContext = precedingSrc;
 	dlg.m_follContext = followingSrc;
 
@@ -26928,7 +26866,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 				// delimiter, to ensure we don't do something bad like butting a verse
 				// number right at the start of a word which is supposed to be adapted
 				nonEndmarkers.Trim();
-				nonEndmarkers += _T(" ");
+				nonEndmarkers += _T(" "); // For ZWSP support, this MUST remain a space
 
 				// pFollSrcPhrase may or may not have information in m_inform, and so
 				// might pLastSrcPhrase, so transfer that information too
@@ -26998,8 +26936,6 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 	// if control gets to here, we've done no transfers, so inform the caller
 	return FALSE;
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////////////
 ///	\return        nothing
@@ -27245,7 +27181,7 @@ bool CAdapt_ItView::PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRe
 		// no populating to be done, but this is no error; but make sure there is
 		// a space there at least, to keep the combobox visible
 		pCombo->Clear(); // remove old content, it could be glosses or free translations
-		index = pCombo->Append(_T(" "));
+		index = pCombo->Append(_T(" ")); // ZWSP support - keep this as a normal space
 		index = index; // avoid warning
 		return TRUE;
 	}
@@ -28023,6 +27959,7 @@ void CAdapt_ItView::OnUpdateFileExportSource(wxUpdateUIEvent& event)
 
 // whm revised Revised 1Aug03; bw revised 15 April 2004 to derive the source data
 // from the CSourcePhrase instances
+// BEW 21Jul14 refactored for ZWSP support
 void CAdapt_ItView::OnFileExportSource(wxCommandEvent& WXUNUSED(event))
 {
 	DoExportAsType(sourceTextExport); // BEW changed 21Jul2
@@ -28064,6 +28001,7 @@ void CAdapt_ItView::OnUpdateFileExport(wxUpdateUIEvent& event)
 		event.Enable(FALSE); // nothing to export since doc is empty
 }
 
+// BEW 21Jul14 refactored for ZWSP support
 void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 {
 	DoExportAsType(targetTextExport); // BEW changed 21Jul12
@@ -28104,6 +28042,8 @@ void CAdapt_ItView::OnUpdateExportGlossesAsText(wxUpdateUIEvent& event)
 // BEW created 6Aug09 to derive the a text formed by accumulating the contents of the
 // m_gloss members with an intervening space betwen each, and adding the SF markers where
 // appropriate, from the CSourcePhrase instances
+// BEW 21Jul14 refactored for ZWSP support - we only use latin spaces for wordbreaks in
+// glossing data
 void CAdapt_ItView::OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -28148,6 +28088,7 @@ void CAdapt_ItView::OnUpdateExportFreeTranslations(wxUpdateUIEvent& event)
 // BEW created 6Aug09 to derive the a text formed by accumulating the contents of the
 // filtered free translation sections with an intervening space betwen each, and adding the
 // SF markers where appropriate, from the CSourcePhrase instances
+// BEW 21Jul14 refactored for ZWSP support
 void CAdapt_ItView::OnExportFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -28905,6 +28846,9 @@ bool CAdapt_ItView::TransformSourcePhraseAdaptationsToGlosses(CAdapt_ItApp* pApp
 }
 
 // added by Bill Martin 1June2003
+// BEW 21Jul14 this type of export does NOT support ZWSP replacement. We consider that the
+// breakup into table cells must take precedence, otherwise strings with ZWSP within them
+// could be too long to be usefully displayed in this kind of text display
 void CAdapt_ItView::OnFileExportToRtf(wxCommandEvent& WXUNUSED(event))
 {
 	DoExportInterlinearRTF(); // now located in ExportFunctions.cpp and .h

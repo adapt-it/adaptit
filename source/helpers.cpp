@@ -3584,7 +3584,7 @@ void EmptyMarkersAndFilteredStrings(
 /// (Tstr), and if necessary it will call the PlaceInternalMarkers class to place medial
 /// markers into the editable string. It is used in RebuildTargetText() to compose
 /// non-editable and editable strings, these are source text and target text, from a merger
-/// (in the case of glosses, the glass would have been added after the merger since
+/// (in the case of glosses, the gloss would have been added after the merger since
 /// glossing mode does not permit mergers). It's also used in doc's
 /// ReconstituteAfterPunctuationChange().
 /// Mergers are illegal across filtered info, such info may only occur on the first
@@ -3641,6 +3641,9 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 	bool bFirst = TRUE;
 	bool bLast = FALSE;
 	//bool bNonFinalEndmarkers = FALSE;
+
+	// Add the word delimiter
+	//Tstr = PutSrcWordBreak(pMergedSrcPhrase) + Tstr;
 
 	wxArrayString markersToPlaceArray;
 	wxArrayString markersAtVeryEndArray; // for endmarkers on pMergedSrcPhrase
@@ -3884,6 +3887,13 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 
+		// BEW 21Jul14, we add the word delimiter from the 'next' CSourcePhrase
+		CSourcePhrase* pNextSrcPhrase = NULL;
+		if (pos != NULL)
+		{
+			pNextSrcPhrase = (CSourcePhrase*)pos->GetData();
+		}
+
 		// get the filtered stuff only for the non-first CSourcPhrase instance, because we
 		// got it already for the first, before we entered the loop, and we don't want a
 		// further call on the first of the saved ones to wipe out values
@@ -3904,6 +3914,12 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 						filteredInfoStr);
 			// for the non-first pSrcPhrase instances, we'll use markersStr and
 			// endMarkersStr in the code below the next block
+
+			// BEW 21Jul14 add the word delimiter from the 'next' CSourcePhrase
+			if (pNextSrcPhrase != NULL)
+			{
+				Sstr += PutSrcWordBreak(pNextSrcPhrase);
+			}
 		}
 
 		// deal with the last pSrcPhrase - the begin markers on it won't have been seen
@@ -4072,7 +4088,8 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 			}
 
 			// must add a space to Sstr, since at least one more word follows
-			Sstr << aSpace;
+			//Sstr << aSpace; <<-- as of 21Jul14, we add the word delimiter before the material
+			// which is to follow after it -- see above near the loop for Sstr building's start
 
 		} // end TRUE block for test: if (bFirst)
 		else if (!bFirst && !bLast)
@@ -4188,8 +4205,8 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 				Sstr << iNonBEMkrs;
 			}
 
-			// must add a space to Sstr, since at least one more word follows
-			Sstr << aSpace;
+			//Sstr << aSpace; <<-- as of 21Jul14, we add the word delimiter before the material
+			// which is to follow after it -- see above near the loop for Sstr building's start
 
 		} // end of TRUE block for test: else if (!bFirst && !bLast)
 
@@ -4305,12 +4322,14 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		markersPrefix.Trim();
 		if (!markersPrefix.IsEmpty())
 		{
-			markersPrefix += aSpace; // ensure a final space
+			markersPrefix += aSpace; // ensure a final space after markers
 			Tstr = markersPrefix + Tstr;
 		}
 	}
 	Tstr.Trim();
-	Tstr << aSpace; // have a final space
+
+	// BEW 21Jul14, don't add space after, use PutSrcWOrdBreak() before, at top
+	//Tstr << aSpace; // have a final space
 
 	markersToPlaceArray.Clear();
 	return Tstr;
@@ -4660,7 +4679,13 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
     bAddedSomething = FALSE;
 	if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
 	{
+		wxString s = pSrcPhrase->GetInlineNonbindingMarkers();
 		appendHere += pSrcPhrase->GetInlineNonbindingMarkers();
+		// BEW 21Jul14 ensure a latin space follows begin-marker(s)
+		if (s.GetChar(s.Len() - 1) != _T(' '))
+		{
+			appendHere += _T(' ');
+		}
 		bAddedSomething = TRUE;
 	}
 	if (!pSrcPhrase->m_precPunct.IsEmpty())
@@ -4671,9 +4696,14 @@ wxString GetSrcPhraseBeginningInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 	}
 	if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 	{
+		wxString s = pSrcPhrase->GetInlineBindingMarkers();
 		wxString binders = pSrcPhrase->GetInlineBindingMarkers();
 		binders.Trim(FALSE); // make sure no bogus space precedes
 		appendHere += binders;
+		if (s.GetChar(s.Len() - 1) != _T(' '))
+		{
+			appendHere += _T(' ');
+		}
 		bAddedSomething = TRUE;
 	}
 	return appendHere;
@@ -4812,7 +4842,10 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 				afterStr.Empty();
 			}
 			str.Trim();
-			str << aSpace;
+			// BEW 21Jul14, to support ZWSP etc, we don't add space after everything
+			// but rather put either space or special space preceding the material
+			// in the caller
+			//str << aSpace;
 		}
 
 		if (bFirst)
@@ -4835,7 +4868,10 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 				afterStr.Empty();
 			}
 			str.Trim();
-			str << aSpace;
+			// BEW 21Jul14, to support ZWSP etc, we don't add space after everything
+			// but rather put either space or special space preceding the material
+			// in the caller
+			//str << aSpace;
 		} // end TRUE block for test: if (bFirst)
 		else if (!bFirst && !bLast)
 		{
@@ -4862,13 +4898,19 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 				afterStr.Empty();
 			}
 			str.Trim();
-			str << aSpace;
+			// BEW 21Jul14, to support ZWSP etc, we don't add space after everything
+			// but rather put either space or special space preceding the material
+			// in the caller
+			//str << aSpace;
 		}
 	} // end of while loop
 
 	// finally, ensure there is just a single final space
 	str.Trim();
-	str << aSpace;
+	// BEW 21Jul14, to support ZWSP etc, we don't add space after everything
+	// but rather put either space or special space preceding the material
+	// in the caller
+	//str << aSpace;
 	return str;
 }
 
@@ -5040,6 +5082,9 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	bool bIsFixedSpaceConjoined = IsFixedSpaceSymbolWithin(pSingleSrcPhrase);
 	bool bBindingMkrsToReplace = FALSE;
 	wxString rebuiltTstr; rebuiltTstr.Empty();
+
+	// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
+	//PutSrcWordBreak(pSingleSrcPhrase); // tests for flag internally, if false, adds a legacy space
 
 	if (bIsFixedSpaceConjoined)
 	{
@@ -5386,7 +5431,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 		markersPrefix.Trim();
 		if (!markersPrefix.IsEmpty())
 		{
-			markersPrefix << aSpace; // ensure a final space
+			markersPrefix << aSpace; // ensure a final space after any markers
 			Tstr = markersPrefix + Tstr;
 		}
 	}
@@ -10303,4 +10348,61 @@ void NormalizeState()
 	}
 	// Any other such operations, add below...
 }
+
+// Gets the contents of m_srcWordBreak wxString  member of the passed in pSrcPhrase
+wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bUseSrcWordBreak)
+	{
+		// return whatever character or string m_srcWordBreak stores
+		// Note: if the app's flag m_bLegacyDocLacksZWSPstorage is TRUE, then
+		// GetSrcWordBreak() will unilaterally return only a normal latin space
+		return pSrcPhrase->GetSrcWordBreak(); 
+	}
+	else
+	{
+		// return a latin space
+		return wxString(_T(" ")); 
+	}
+}
+// Gets the contents of m_tgtWordBreak wxString  member of the passed in pSrcPhrase;
+// the internal test uses m_bUseSrcWordBreak -- this is not an error, that flag covers for
+// both situations where tgt text is wanted (only in a retranslation), and src text is
+// wanted - which is everywhere else, as well as the source text reconstitution within a
+// retranslation
+wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bUseSrcWordBreak)
+	{
+		// return whatever character or string m_srcWordBreak stores
+		// Note: if the app's flag m_bLegacyDocLacksZWSPstorage is TRUE, then
+		// GetTgtWordBreak() will unilaterally return only a normal latin space
+		return pSrcPhrase->GetTgtWordBreak(); 
+	}
+	else
+	{
+		// return a latin space
+		return wxString(_T(" ")); 
+	}
+}
+// Get it from m_srcWordBreak in pSrcPhrase, or return a latin space if app's 
+// m_bFreeTransUsesZWSP is FALSE - test internally
+wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bFreeTransUsesZWSP)
+	{
+		// return whatever character or string m_srcWordBreak stores
+		return pSrcPhrase->GetSrcWordBreak(); 
+	}
+	else
+	{
+		// return a latin space
+		return wxString(_T(" ")); 
+	}
+}
+
+
 

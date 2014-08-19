@@ -415,6 +415,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
+	// Next boolean supports the two new string members in CSourcePhrase, m_srcWordBreak and
+	// m_tgtWordBreak
+	//pApp->m_bLegacyDocLacksZWSPstorage = FALSE; // default, for docVersion 9 and above
+					// because 9 and above will store the word's preceding wordbreak char
+					// or chars in m_srcWordBreak
 
     pApp->m_owner = pApp->m_strUserID;  // this is our doc
     pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
@@ -2043,6 +2048,38 @@ bool  CallOpenDocument ( wxString path )
     return gpApp->GetDocument()->OnOpenDocument (path, false);
 }
 
+#if defined(_DEBUG) && defined(DEBUG_ZWSP)
+// copied from PunctCorrespPage.cpp for use here while debugging
+wxString MakeUNNNN(wxString& chStr)
+{
+	wxString prefix = _T(""); // some people said U+ makes the strings too wide, so leave
+							 // it off_T("U+");
+	// whm 11Jun12 Note: I think chStr will always have at least a value of T('\0'), so
+	// GetChar(0) won't ever be called on an empty string, but to be safe test for empty
+	// string.
+	wxChar theChar;
+	if (!chStr.IsEmpty())
+		theChar = chStr.GetChar(0);
+	else
+		theChar = _T('\0');
+	wxChar str[6] = {_T('\0'),_T('\0'),_T('\0'),_T('\0'),_T('\0'),_T('\0')};
+	wxChar* pStr = str;
+	wxSnprintf(pStr,6,_T("%x"),(int)theChar);
+	wxString s = pStr;
+	if (s == _T("0"))
+	{
+		s.Empty();
+		return s;
+	}
+	int len = s.Length();
+	if (len == 2)
+		s = _T("00") + s;
+	else if (len == 3)
+		s = _T("0") + s;
+	return prefix + s;
+}
+#endif
+
 
 // RecoverLatestVersion() is called when an xml error comes up while reading a document.  If we can, we
 // revert to the latest committed version.  We return TRUE on success, FALSE otherwise.
@@ -2564,6 +2601,7 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 		resultTgt = -1;  outputTgt.Clear(); errorsTgt.Clear();
 		TransferTextBetweenAdaptItAndExternalEditor(writing, collab_target_text,
 										outputTgt, errorsTgt, resultTgt);
+
 		// error handling
 		if (resultTgt != 0)
 		{
@@ -7966,8 +8004,8 @@ h:						bool bIsInitial = TRUE;
 									{
 										pSP2 = (CSourcePhrase*)posX->GetData();
 										posX = posX->GetNext();
-										pSP->m_srcPhrase += _T(" ") + pSP2->m_srcPhrase;
-										pSP->m_key += _T(" ") + pSP2->m_key;
+										pSP->m_srcPhrase += PutSrcWordBreak(pSP2) + pSP2->m_srcPhrase;
+										pSP->m_key += PutSrcWordBreak(pSP2) + pSP2->m_key;
 									}
 									// delete all the elements in pSP2, and then delete
 									// the list itself
@@ -9145,8 +9183,6 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 
 bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 {
-	//CAdapt_ItApp* pApp = &wxGetApp();
-
 	// BEW 30July11 -- the following block also needs to be added to the beginning of the
 	// following similar functions in helpers.cpp: IsWhiteSpace() and
 	// Is_NonEol_WhiteSpace() and has been
@@ -9177,7 +9213,8 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 		// Penny said (13Mar12) in an email that those two are used as word-forming
 		// characters in many Indian languages
 		wxChar WJ = (wxChar)0x2060; // WJ is "Word Joiner"
-		if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200B))
+		//if (*pChar == WJ || ((UInt32)*pChar >= 0x2000 && (UInt32)*pChar <= 0x200B))
+		if (*pChar == WJ || (*pChar >= (wxChar)0x2000 && *pChar <= (wxChar)0x200B))
 		{
 			return TRUE;
 		}
@@ -9492,7 +9529,7 @@ bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 /// markers in local string buffers; ensure the buffer ends with a space so that if an end
 /// marker is at the end of a string ParseMarker won't crash (TCHAR(0) won't help at the end
 /// of the buffer here because _istspace which is called from IsWhiteSpace() only recognizes
-/// 0x09 ?0x0D or 0x20 as whitespace for most locales.
+/// 0x09 ?0x0D or 0x20 as whitespace for most locales.)
 /// BEW 1Feb11, added test for forbidden marker characters using app::m_forbiddenInMarkers
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
@@ -10677,7 +10714,7 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// The IsFixedSpaceAhead() function, which is mission critical for delimiting a parsed
 /// word or conjoined pair of words in the ParseWord() function, requires a smart subparser
 /// which looks ahead for a fixed space marker (~), but only looks ahead a certain distance
-/// - ensuring the parsing pointer does not encroach into material which belows to any of
+/// - ensuring the parsing pointer does not encroach into material which belongs to any of
 /// the words which follow. This is that subparser. In doing it's job, it may parse over
 /// whitespace which is ignorable, and possibly one or more inline binding endmarkers.
 /// The halting conditions are:
@@ -11214,6 +11251,21 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 {
 	int len = 0;
 	wxChar* ptr = pChar;
+	// BEW 14Jul14, prior to this date, ParseWord would parse over any trailing whitespace
+	// at the end of the "word" (meaning, and markers and endmarkers, and prececeding and
+	// following and/or following outer, punctuation, and any internal to such structures
+	// spaces, and any outer punctuation such as curly quotes outside of curly quotes), but
+	// from now on we want the length value returned to the caller to just be the length of
+	// the parsed material as far as the START of the trailing whitespace which delimits the
+	// boundary between two successive "words" - because we want the called, TokenizeText()
+	// at the start of its parse loop to intercept and store in pSrcPhrase->m_srcWordBreak
+	// wxString member whatever the whitespace(s) char(s) is/are which precede each word.
+	// By storing them, we can use them to restore the whitespace types in the translation
+	// text at USFM marked up translation export time. So our approach below is to look for
+	// each place where len is returned, and prior to it, insert code which will backtrack 
+	// the ptr till it points at the first character of any immediately preceding whitespace,
+	// and decrement the len value accordingly, and then return it.
+
 	int itemLen;
 	wxString emptyStr = _T("");
 	wxString aSpace = _T(" ");
@@ -11724,6 +11776,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct;
 			}
 			pSrcPhrase->m_srcPhrase += theWord;
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
 		pEndWordProper = ptr;
@@ -11804,6 +11863,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				}
 				pSrcPhrase->m_srcPhrase += theWord;
 				pSrcPhrase->m_srcPhrase += pSrcPhrase->m_follPunct;
+				// BEW 14Jul14, decrement len until it points to start of any 
+				// preceding whitespace, and then return
+				while (IsWhiteSpace(ptr-1L))
+				{
+					ptr = ptr - 1L;
+					len--;
+				}
 				return len;
 			}
 			// are we at the end of word-medial punctuation? (but not at buffer end)
@@ -12127,6 +12193,14 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			// m_srcPhrase has been updated with any additional final punctuation within
 			// the above call, so just return len to the caller
+
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
 	} // end of TRUE block for test: if (bStartedPunctParse)
@@ -12137,11 +12211,23 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// unlikely, even a beginmarker). Whichever is the case, if pointing at
 		// whitespace, it is not required for anything, and we can parse over it and throw
 		// it away until we come to something we need to deal with.
+		// BEW 14Jul14, a word without following punctuation, endmarker, or ], will result
+		// in ptr getting here pointing at significant white space - that is, the whitespace
+		// which we would want to store on the NEXT word yet to be parsed; so we can only say that
+		// such whitespace is "potentially" insignificant - and would be so only if something
+		// non-white at the end of the word is yet to be parsed. We can't assume there will
+		// be such extra material here, so we proceed cautiously - that is, being prepared
+		// to cancel on the developing parse and to return a lesser value of len.
+		// We'll retain the somewhat misleadingly named bThrewAwayWhiteSpaceAfterWord
 		int saveLen = len;
+		// The following call passes in a reference to the pointer, so the internal loop
+		// will update ptr here in the caller for each whitespace character parsed over
 		len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
 		if (len > saveLen)
 		{
-			// some whites were thrown away
+			// These whites are to be considered "thrown away", but we may reverse that
+			// decision in code further down, if this whitespace turns out to be the word 
+			// delimitation whitespace
 			bThrewAwayWhiteSpaceAfterWord = TRUE; // if FALSE, code below knows we've
 							// started into parsing of following puncts & endmarkers
 		}
@@ -12153,6 +12239,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// endmarkers for the current word, check this out and return if so. Check for ] too.
 	if (*ptr == _T(']'))
 	{
+		// BEW 14Jul14, decrement len until it points to start of any 
+		// preceding whitespace, and then return
+		while (IsWhiteSpace(ptr-1L))
+		{
+			ptr = ptr - 1L;
+			len--;
+		}
 		return len;
 	}
 	if (bThrewAwayWhiteSpaceAfterWord)
@@ -12166,6 +12259,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// if it's opening quotes punctuation, then definitely return
 			if (IsOpeningQuote(ptr))
 			{
+				// BEW 14Jul14, decrement len until it points to start of any 
+				// preceding whitespace, and then return
+				while (IsWhiteSpace(ptr-1L))
+				{
+					ptr = ptr - 1L;
+					len--;
+				}
 				return len;
 			}
 			else
@@ -12204,16 +12304,31 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						ptr += countThem;
 						if (*ptr == _T(']'))
 						{
+							// BEW 14Jul14, decrement len until it points to start of any 
+							// preceding whitespace, and then return
+							while (IsWhiteSpace(ptr-1L))
+							{
+								ptr = ptr - 1L;
+								len--;
+							}
 							return len;
 						}
 						// let processing continue within this call of ParseWord()
 					}
 					else
 					{
-						// Nah, must belong to what follows on next ParseWord() call
+						// Nah, must belong to what follows on next ParseWord() call...
+
+						// BEW 14Jul14, decrement len until it points to start of any 
+						// preceding whitespace, and then return
+						while (IsWhiteSpace(ptr-1L))
+						{
+							ptr = ptr - 1L;
+							len--;
+						}
 						return len;
 					}
-				}
+				} // it's not punctuation
 				else
 				{
 					// if we enter here, the usual scenario is that a word doesn't have
@@ -12239,6 +12354,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						len += aLength;
 						// get the marker stored
 						pSrcPhrase->AddEndMarker(theEndMarker);
+					}
+					// BEW 14Jul14, decrement len until it points to start of any 
+					// preceding whitespace, and then return
+					while (IsWhiteSpace(ptr-1L))
+					{
+						ptr = ptr - 1L;
+						len--;
 					}
 					return len;
 				}
@@ -12287,6 +12409,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			// check for ] marker, if we are pointing at it, update len and return
 			if (*ptr == _T(']'))
 			{
+				// BEW 14Jul14, decrement len until it points to start of any 
+				// preceding whitespace, and then return
+				while (IsWhiteSpace(ptr-1L))
+				{
+					ptr = ptr - 1L;
+					len--;
+				}
 				return len;
 			}
             // if we found an endmarker, there might be a bogus space following it which is
@@ -12318,15 +12447,19 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				if (IsEndMarker(ptr2, pEnd))
 				{
 					// the legacy code ... using ptr; it's an endmarker, so we can
-					// abandon the whitespace preceding it
-					len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len);
+					// abandon the whitespace preceding it 
+					len = ParseOverAndIgnoreWhiteSpace(ptr, pEnd, len); // updates len and ptr
 				}
 				else
 				{
-					// it's not an endmarker, so we must return to the caller with an
-					// updated value of len, so that ptr is point past this
-					// word-delimiting one or more whitespace characters
-					len += length2;
+					// it's not an endmarker, so ...
+					// BEW 14Jul14, decrement len until it points to start of any 
+					// preceding whitespace, and then return
+					while (IsWhiteSpace(ptr-1L))
+					{
+						ptr = ptr - 1L;
+						len--;
+					}
 					return len;
 				}
 			}
@@ -12348,7 +12481,6 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
         if (!wordBuildersForPostWordLoc.IsEmpty())
 		{
 			ptr += wordBuildersForPostWordLoc.Len();
-
 		}
 		// do the same adjustment if we are at this point having parsed the secondWord of
 		// a conjoined word pair, and there is punctuation that has be reverted back to
@@ -12358,14 +12490,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			if (!wordBuildersFor2ndPostWordLoc.IsEmpty())
 			{
 				ptr += wordBuildersFor2ndPostWordLoc.Len();
-
 			}
 		}
 	}
 
 	// What now? Final punctuation may already have been collected and stored. But if we
 	// just parsed over at least one inline binding endmarker, this type of marker should
-	// preceded final punctuation, so we would need to have a further attempt to collect
+	// precede final punctuation, so we would need to have a further attempt to collect
 	// final punctuation now - because if there are final puncts, that's where we'd expect
 	// them to be. (If there's final puncts before the inline binding marker, wrongly, and
 	// also some after it, then we'll just concatenate all those puncts to the one storage
@@ -12380,8 +12511,6 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// unnecessary and probably unhelpful and should be ignored. This calls for some
 	// tricky parsing and delays of the decisions about what to do until all the ducks are
 	// lined up.
-	//wxChar* pWhiteSpaceStarts = ptr;
-	//pWhiteSpaceStarts = pWhiteSpaceStarts; // avoid compiler warning
 	wxChar* pWhiteSpaceEnds = ptr;
 	int nWhiteSpaceSpan = 0;
 	if (IsWhiteSpace(ptr))
@@ -12397,17 +12526,27 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			pWhiteSpaceEnds = ptr;
 		}
 		// delay our decision about what to do with this whitespace, but if we halted at ]
-		// then return and throw away this whitespace, but return updated len value so
-		// that caller's ptr will be pointing at the ] bracket
+		// then return with len reaching only to the start of the whitespace
 		if (*ptr == _T(']'))
 		{
-			len += nWhiteSpaceSpan;
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
+		}
+		else // BEW 14Jul14 added this else block, so we don't need to do 
+			 // this addition in blocks below
+		{
+			len += nWhiteSpaceSpan;
 		}
 	}
 	bool bGotSomeMorePuncts = FALSE; // set TRUE if we find some more in the next bit
 
-	//If ptr points at punctuation, start collecting it
+	// If ptr points at punctuation, start collecting it
 	bool bMorePunctsHaveBeenAccepted = FALSE;
 	wxChar* pMorePunctsStart = ptr;
 	wxChar* pMorePunctsEnd = ptr;
@@ -12415,7 +12554,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
     // Note, if parsing of the 'following' punctuation was not commenced in the main loop
     // above -- as will be the case when bMatchedFixedSpaceSymbol is TRUE - as the main
     // loop is then exited and expects punct parsing to completed later on, it is here
-    // that that punctuation first gets a chance to be parsed. The algorithm here was no
+    // that that punctuation first gets a chance to be parsed. The algorithm here was not
     // designed around supporting ~ conjoining's needs, and so if we parse punctuation
     // following the second word of such a conjoining in the following block, we'll
     // need, once the parsing of the puncts halts, a test for bMatchedFixedSpaceSymbol ==
@@ -12434,7 +12573,15 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// we are at the start of the next word's punctuation and must return here, not go on
 		if (IsOpeningQuote(ptr))
 		{
-			// oops, HALT! don't parse further
+			// oops, HALT! don't parse further, we've come to where the next word's stuff is
+
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
 		nMorePunctsSpan = 1;
@@ -12461,8 +12608,18 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				pSrcPhrWord2->m_srcPhrase += moreFinalPuncts;
 			}
 			len += nMorePunctsSpan;
-			if (nWhiteSpaceSpan > 0)
-				len += nWhiteSpaceSpan;
+			// remove next two lines, I've done this increment at the end of the last
+			// whitespace parse block
+			//if (nWhiteSpaceSpan > 0)
+			//	len += nWhiteSpaceSpan;
+
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
         // we could now be pointing at white space, and there may be detached endquotes we
@@ -12512,13 +12669,20 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				// concrete, so do the arithmetic to get len value correct (if not
 				// returning here, the arithmetic is done further down in ParseWord() when
 				// more is known about endmarkers etc)
-				if (nWhiteSpaceSpan > 0)
-				{
-					len += nWhiteSpaceSpan;
-				}
+				//if (nWhiteSpaceSpan > 0) <<-- done earlier as of 14Jul14
+				//{
+				//	len += nWhiteSpaceSpan;
+				//}
 				if (bMorePunctsHaveBeenAccepted && nMorePunctsSpan > 0)
 				{
 					len += nMorePunctsSpan;
+				}
+				// BEW 14Jul14, decrement len until it points to start of any 
+				// preceding whitespace, and then return
+				while (IsWhiteSpace(ptr-1L))
+				{
+					ptr = ptr - 1L;
+					len--;
 				}
 				return len;
 			}
@@ -12531,11 +12695,9 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 
 	// we might now be pointing at inline non-binding endmarker, or the endmarker for a
 	// footnote, endnote or crossReference. There might be a small possibility that we get
-	// here with ptr pointing at whitespace - just in case, remove any such before doing
-	// our tests for the above
+	// here with ptr pointing at whitespace - deal with the possibility
 	bool bNotEither = FALSE; // default value (yes, it should be false for the default)
 	int olderLen = len;
-	//pMaybeWhitesStart = ptr; // this will be null if control bypasses here
 	pMaybeWhitesEnd = ptr; // this will be null only if control bypasses here
 	if (IsWhiteSpace(ptr))
 	{
@@ -12555,11 +12717,11 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// anything). Before we do that, our delayed decisions above are to be delayed no
 		// longer - we must accept any 'more puncts' that we found, and throw away any
 		// whitespace we parsed over preceding them
-		if (nWhiteSpaceSpan > 0)
-		{
+		//if (nWhiteSpaceSpan > 0) <<-- I augmented using this earlier, as of 14Jul14
+		//{
 			// ignore it, but add the count of its whitespace characters to len
-			len += nWhiteSpaceSpan;
-		}
+		//	len += nWhiteSpaceSpan;
+		//}
 		if (nHowManyWhites > 0)
 		{
 			len += nHowManyWhites;
@@ -12617,6 +12779,14 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		if (*ptr == _T(']'))
 		{
 			// we must return
+
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
 		// now handle the possibility of more (outer) detached punctuation characters,
@@ -12648,6 +12818,14 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			// m_srcPhrase has been updated with any additional final punctuation within
 			// the above call, so just return len to the caller; ptr is updated too
+
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
 
@@ -12669,6 +12847,14 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		}
 		// IsEndMarker() knows to halt at ] so if that happened, ptr and len will be such
 		// that the caller's ptr will point at the ] bracket character
+
+		// BEW 14Jul14, decrement len until it points to start of any 
+		// preceding whitespace, and then return
+		while (IsWhiteSpace(ptr-1L))
+		{
+			ptr = ptr - 1L;
+			len--;
+		}
 		return len;
 	}
 	else if (IsMarker(ptr))
@@ -12705,11 +12891,11 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
                 // some, we must accept it all as belonging to our current pSrcPhrase as
                 // following punctuation - so deal with that first before parsing over the
                 // endmarker we just found.
-				if (nWhiteSpaceSpan > 0)
-				{
+				//if (nWhiteSpaceSpan > 0) <<-- I've already done this earlier, BEW 14Jul14
+				//{
 					// ignore it, but add the count of its whitespace characters to len
-					len += nWhiteSpaceSpan;
-				}
+				//	len += nWhiteSpaceSpan;
+				//}
 				if (nHowManyWhites > 0)
 				{
 					len += nHowManyWhites;
@@ -12742,6 +12928,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				// check for ptr pointing at ] bracket, return if it is
 				if (*ptr == _T(']'))
 				{
+					// BEW 14Jul14, decrement len until it points to start of any 
+					// preceding whitespace, and then return
+					while (IsWhiteSpace(ptr-1L))
+					{
+						ptr = ptr - 1L;
+						len--;
+					}
 					return len;
 				}
 				// as noted above, check for additional punctuation, but no spaces must be
@@ -12770,6 +12963,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						pSrcPhrase->m_srcPhrase += lastPuncts; // update m_srcPhrase for the view
 						len += nCountLastPuncts; // ptr is already at this location
 					}
+					// BEW 14Jul14, decrement len until it points to start of any 
+					// preceding whitespace, and then return
+					while (IsWhiteSpace(ptr-1L))
+					{
+						ptr = ptr - 1L;
+						len--;
+					}
 					return len;
 				}
 				// not pointing at ] bracket, so check... did we get to a second endmarker?
@@ -12797,6 +12997,13 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						pSrcPhrase->SetInlineNonbindingEndMarkers(enders);
 						len += length;
 						ptr += length;
+						// BEW 14Jul14, decrement len until it points to start of any 
+						// preceding whitespace, and then return
+						while (IsWhiteSpace(ptr-1L))
+						{
+							ptr = ptr - 1L;
+							len--;
+						}
 						return len;
 					}
 					else
@@ -12804,11 +13011,25 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 						// it' an endmarker, but not an inline non-binding one, this is probably
 						// a USFM markup error - so just return and let the caller deal
 						// with it
+						// BEW 14Jul14, decrement len until it points to start of any 
+						// preceding whitespace, and then return
+						while (IsWhiteSpace(ptr-1L))
+						{
+							ptr = ptr - 1L;
+							len--;
+						}
 						ptr = pLastPunctsStart;
 						return len;
 					}
 				} // end of TRUE block for test: if (IsEndMarker(ptr, pEnd)
 
+				// BEW 14Jul14, decrement len until it points to start of any 
+				// preceding whitespace, and then return
+				while (IsWhiteSpace(ptr-1L))
+				{
+					ptr = ptr - 1L;
+					len--;
+				}
 				return len;
 			} // end of TRUE block for test:
 			  // if (inlineNonbindingEndMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND)
@@ -12836,13 +13057,20 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 			len += nHowManyWhites;
 			len += nMorePunctsSpan;
 			ptr = pMorePunctsEnd;
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
 		else
 		{
 			// we can't risk including any 'more punctuation' in pSrcPhrase because it is
 			// far more likely it is preceding punctuation for the next word, so end the
-			// parse where the white space ends
+			// parse where the white space starts (BEW 14Jul14, formerly it said, 'ends')
 			ptr = pWhiteSpaceEnds; // ptr is at least here
 			len += nWhiteSpaceSpan; // count the white space (remember, could be zero)
 			if (nHowManyWhites > 0 && pMaybeWhitesEnd != NULL)
@@ -12850,9 +13078,24 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				len += nHowManyWhites;
 				ptr = pMaybeWhitesEnd;
 			}
+			// BEW 14Jul14, decrement len until it points to start of any 
+			// preceding whitespace, and then return
+			while (IsWhiteSpace(ptr-1L))
+			{
+				ptr = ptr - 1L;
+				len--;
+			}
 			return len;
 		}
 	} // end TRUE block for test: if (bNotEither)
+
+	// BEW 14Jul14, decrement len until it points to start of any 
+	// preceding whitespace, and then return
+	while (IsWhiteSpace(ptr-1L))
+	{
+		ptr = ptr - 1L;
+		len--;
+	}
 	return len;
 }
 
@@ -15121,6 +15364,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
+	// BEW added 10Jul14, store delimiter(s) which precede the being-parsed current word
+	wxString precWordDelim;
+
 	// whm Note: I'm declaring a local tokBuffer, in place of the buffer that MFC had on the doc
 	// and previously the wx version had on the App. This is in attempt to get beyond the string
 	// corruption problems.
@@ -15261,12 +15507,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		sequNumber++;
 		pSrcPhrase->m_nSequNumber = sequNumber; // number it in sequential order
 		//bHitMarker = FALSE;
+		precWordDelim.Empty(); // BEW added 10Jul14, it should be emptied before we break
+							   // out each 'next' parsed word
 
 		if (IsWhiteSpace(ptr))
 		{
-            // advance pointer past the white space (inter-word spaces should be thrown
-            // away, they have no useful role once tokenization has taken place)
+            // advance pointer past the white space (inter-word spaces, of whatever kind, now
+			// have to be stored on the pSrcPhrase, so they can be restored at export, so add
+			// code here, with precWordDelim as the intermediate storage wxString, and add it
+			// to pSrcPhrase->m_srcWordBreak wxString
 			itemLen = ParseWhiteSpace(ptr);
+			// BEW 10Jul14 added next 3 lines
+			wxString aDelimiter(*ptr,itemLen);
+			precWordDelim = aDelimiter; // intermediate location, in case we need to change or reuse later
+			pSrcPhrase->SetSrcWordBreak(precWordDelim);
 			ptr += itemLen;
 		}
 		// BEW 11Oct10 we need to support [ and ] brackets as markers indicating 'this is
@@ -15571,8 +15825,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                     // inline markers are known to USFM, so pUsfmAnalysis will not be
                     // false; the test succeeds if it is not an unknown marker, and is an
                     // inline marker, but not one of the inline markers which begin with
-                    // \x or \f; these are the ones which we immediately hand off to
-                    // ParseWord() to deal with
+                    // \x or \f, and neither is it \va nor \vp; any marker that gets
+					// through those tests is one which we immediately hand off in this
+					// block for ParseWord() to deal with
 
 					// the hand-off takes place outside the loop, so set the flags we need
 					// to know beforehand, they are needed for ParseWord()'s signature
@@ -15594,6 +15849,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // markers other than those we've bled out in the above block
 				// BEW 11Oct10, removed code for propagating TextType and m_bSpecialText
 				// from here, as we do it after ParseWord() call now
+
+				// BEW 10Jul14 comment added: for support of special spaces restoration
+				// in exports, such as ZWSP and friends, begin-markers always end with
+				// a space or nl or cr+lf, and those do not constitute grounds for storing
+				// such delimiters in pSrcPhrase->m_srcWordBreak; we've stored whatever
+				// preceded the begin-marker or sequence of begin-markers into
+				// pSrcPhrase->m_srcWordBreak already - and that's the significant
+				// delimiter, so in the code in this block we have nothing added for
+				// handling ZWSP etc.
 
 				// check if we have located an SFM designated as one to be filtered
 				// pUsfmAnalysis is populated regardless of whether it's a filter marker
@@ -15919,6 +16183,50 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// spaces before passing the punctuation characters themselves to TokenizeText())
 			// - if any functions within ParseWord() require space to be in the passed-in set
 			// of punctuation characters, they can add an explicit space when they first run
+
+
+
+#if defined (_DEBUG) && defined(DEBUG_ZWSP)
+			// Show Unicode values for next 12 characters
+			wxChar ch0 = *ptr;
+			wxChar ch1 = *(ptr+1);
+			wxChar ch2 = *(ptr+2);
+			wxChar ch3 = *(ptr+3);
+			wxChar ch4 = *(ptr+4);
+			wxChar ch5 = *(ptr+5);
+			wxChar ch6 = *(ptr+6);
+			wxChar ch7 = *(ptr+7);
+			wxChar ch8 = *(ptr+8);
+			wxChar ch9 = *(ptr+9);
+			wxChar ch10 = *(ptr+10);
+			wxChar ch11 = *(ptr+11);
+			wxString s0 = ch0;
+			wxString s1 = ch1;
+			wxString s2 = ch2;
+			wxString s3 = ch3;
+			wxString s4 = ch4;
+			wxString s5 = ch5;
+			wxString s6 = ch6;
+			wxString s7 = ch7;
+			wxString s8 = ch8;
+			wxString s9 = ch9;
+			wxString s10 = ch10;
+			wxString s11 = ch11;
+			s0 = MakeUNNNN(s0);
+			s1 = MakeUNNNN(s1);
+			s2 = MakeUNNNN(s2);
+			s3 = MakeUNNNN(s3);
+			s4 = MakeUNNNN(s4);
+			s5 = MakeUNNNN(s5);
+			s6 = MakeUNNNN(s6);
+			s7 = MakeUNNNN(s7);
+			s8 = MakeUNNNN(s8);
+			s9 = MakeUNNNN(s9);
+			s10 = MakeUNNNN(s10);
+			s11 = MakeUNNNN(s11);
+			wxLogDebug(_T("TWELVE: (0) %s (1) %s (2) %s (3) %s (4) %s (5) %s (6) %s (7) %s (8) %s (9) %s (10) %s (11) %s"),
+				s0.c_str(),s1.c_str(),s2.c_str(),s3.c_str(),s4.c_str(),s5.c_str(),s6.c_str(),s7.c_str(),s8.c_str(),s9.c_str(),s10.c_str(),s11.c_str());
+#endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 								pApp->m_inlineNonbindingMarkers,
 								pApp->m_inlineNonbindingEndMarkers,
@@ -16117,7 +16425,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// whm 9Jun12 in wxWidgets 2.9.3 if GetChar(0) is called on an empty m_markers
 			// string there is a debug assert generated from c:\Program Files\Microsoft Visual
 			// Studio 9.0\VC\include\xstring. I've eleminated the unnecessary if () part and
-			// just call the pSrcPhrase->m_martins.Trim(FALSE) statement
+			// just call the pSrcPhrase->m_markers.Trim(FALSE) statement
 			//if (pSrcPhrase->m_markers.GetChar(0) == _T(' '))
 			pSrcPhrase->m_markers.Trim(FALSE);
 
@@ -18456,6 +18764,8 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory -
 									  // EraseKB in the App in wx
 		pApp->m_pGlossingKB = (CKB*)NULL; // whm added
+
+		//pApp->m_bLegacyDocLacksZWSPstorage = FALSE;
 	}
 
 // GDLC 2010-03-27 pFreeTrans is now unused in this function

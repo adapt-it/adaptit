@@ -55,6 +55,8 @@ public:
 	void		RemoveRetranslation(SPList* pList, int first, int last, wxString& oldAdaptation); // remove 
 					// the retranslation which goes from indices first to last, from a passed in list
 					// of CSourcePhrase instances (BEW added 11May11). Return its old adaptation too
+	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
+							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
 
 	/* BEW deprecated 9Mar11
 	// a function for use when converting a sublist of (modified) CSourcePhrase instances
@@ -131,6 +133,9 @@ private:
 	bool m_bReplaceInRetranslation;		// default FALSE, set TRUE only if a Find & Replace match has been
 										// made and a replacement is being done within a
 										// retranslation, used only once, in OnButtonEditRetranslation()
+	wxString m_lastNonPlaceholderSrcWordBreak; // store a copy of the last CSourcePhase's m_srcWordBreak
+										// string here, and use it to copy wordbreaks to
+										// any added placeholders for padding at end
 	
 	DECLARE_EVENT_TABLE()
 };

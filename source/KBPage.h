@@ -24,6 +24,8 @@
     #pragma interface "KBPage.h"
 #endif
 
+class CAdapt_ItApp;
+
 /// The CKBPage class creates a wxPanel that allows the 
 /// user to define knowledge base backup options and to reenter the 
 /// source and target language names should they become corrupted. 
@@ -50,6 +52,7 @@ public:
 	wxCheckBox* m_pCheckDisableAutoBkups;
 	wxCheckBox* m_pCheckBkupWhenClosing;
 	wxCheckBox* m_pCheckLegacySourceTextCopy;
+	wxCheckBox* m_pCheckFreeTransUsesZWSP;
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* m_pEditGlsName;
@@ -65,10 +68,17 @@ public:
 
 	wxRadioButton* pRadioAdaptBeforeGloss;
 	wxRadioButton* pRadioGlossBeforeAdapt;
+	wxRadioButton* pRadioUseSrcWordBreak;
+	wxRadioButton* pRadioUseLatinSpace;
+	// We use temporary booleans, initialized to app flag member values, and only commit
+	// to a change in the value and updating of the relevant app flag at OnOK(), otherwise
+	// the app flag value stays unchanged (eg. by a Cancel click)
 	bool		tempDisableAutoKBBackups;
 	bool		tempAdaptBeforeGloss;
 	bool		tempNotLegacySourceTextCopy;
 	bool		tempBackupDocument;
+	bool		bTempUseSrcWordBreak; 
+	bool		bTempFreeTransUsesZWSP;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
 	wxString	tempGlsName;
@@ -88,8 +98,14 @@ public:
 	void OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event));// whm added 10May10
 	void OnCheckKbBackup(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event));
+	void OnCheckFreeTransUsesZWSP(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioAdaptBeforeGloss(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioGlossBeforeAdapt(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedRadioCopySrcDelim(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedRadioUseLatinSpace(wxCommandEvent& WXUNUSED(event));
+
+	CAdapt_ItApp* pApp;
+
 
 private:
 	// class attributes

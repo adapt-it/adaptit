@@ -273,7 +273,6 @@ public:
 										SPList::Node* nextPos, CSourcePhrase* pSrcPhrase);
 	void		AdjustDialogPosition(wxDialog* pDlg);
 	void		AdjustDialogPositionByClick(wxDialog* pDlg,wxPoint ptClick);
-	void		RemoveFinalSpaces(CPhraseBox* pBox,wxString* pStr);
 	void		UnmergePhrase();
 	void		UpdateSequNumbers(int nFirstSequNum);
 	bool		VerticalEdit_CheckForEndRequiringTransition(int nSequNum, ActionSelector select,
@@ -325,10 +324,6 @@ protected:
 								MapWholeMkrToFilterStatus* WXUNUSED(pMap), bool& bWasExtended); // BEW added 5July08
 	bool		ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nStartingSequNum,
 								int& nEndingSequNum, bool& bWasSuccessful); // BEW added 12Apr08
-public: // edb 05 March 2010 - set to public (this is called from CRetranslation)
-	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
-							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
-protected:
 	bool		GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
 							int& nEndingSequNum, int& WXUNUSED(nStartingFreeTransSequNum),
 							int& WXUNUSED(nEndingFreeTransSequNum),int& nStartingBackTransSequNum,
@@ -357,7 +352,6 @@ protected:
 	bool		IsFilteredMaterialNonInitial(SPList* pList);
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
 	bool		IsSelectionAcrossFreeTranslationEnd(SPList* pList);
-	void		RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
 	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec,
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
 					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,

@@ -441,6 +441,11 @@ bool CRetranslation::IsEndInCurrentSelection()
 	return bCurrentSection;
 }
 
+// BEW 21Jul14, refactored the next function to support ZWSP storage and replacement, using
+// the new CSourcePhrase member m_tgtWordBreak wxString (only retranslations use this member,
+// everything else uses the new member, m_srcWordBreak). We use helper.cpp's
+// PutTgtWordBreak() to access the m_tgtWordBreak string (for docs created before docVersion
+// 9, it will return a normal latin space, since m_tgtWordBreak member doesn't exist on those)
 void CRetranslation::AccumulateText(SPList* pList,wxString& strSource,wxString& strAdapt)
 {
 	SPList::Node* pos = pList->GetFirst();
@@ -448,34 +453,62 @@ void CRetranslation::AccumulateText(SPList* pList,wxString& strSource,wxString& 
 	wxString str;
 	wxString str2;
 
+	// BEW 21Jul14, the accumulation should not grab any m_tgtWordBreak for target text,
+	// nor m_srcWordBreak for source text, from the first pSrcPhase - because to the
+	// dialog, the first CSourcePhrase looks like it is document initial (albeit a very
+	// short document!), so we want the word delimiters only for subsequent ones. We'll
+	// therefore need a bool bFirst flag to support this protocol.
+	bool bFirst = TRUE;
 	while (pos != NULL)
 	{
 		// accumulate the old retranslation's text
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
+		// BEW 21Jul14, add the
 		str = pSrcPhrase->m_targetStr;
-		if (strAdapt.IsEmpty())
+		if (bFirst)
 		{
-			strAdapt += str;
+			bFirst = FALSE;
+			if (strAdapt.IsEmpty())
+			{
+				strAdapt += str;
+			}
+			// also accumulate the source language text (line 1), provided it
+			// is not a null source phrase
+			if (!pSrcPhrase->m_bNullSourcePhrase)
+			{
+				str2 = pSrcPhrase->m_srcPhrase;
+				if (strSource.IsEmpty())
+				{
+					strSource = str2;
+				}
+			}
 		}
 		else
 		{
-			if (!str.IsEmpty())
-				strAdapt += _T(" ") + str;
-		}
-
-		// also accumulate the source language text (line 1), provided it is not a null
-		// source phrase
-		if (!pSrcPhrase->m_bNullSourcePhrase)
-		{
-			str2 = pSrcPhrase->m_srcPhrase;
-			if (strSource.IsEmpty())
+			// non-first ones
+			if (strAdapt.IsEmpty())
 			{
-				strSource = str2;
+				strAdapt += str;
 			}
 			else
 			{
-				strSource += _T(" ") + str2;
+				if (!str.IsEmpty())
+					strAdapt += PutTgtWordBreak(pSrcPhrase) + str;
+			}
+			// also accumulate the source language text (line 1), provided it 
+			// is not a null source phrase
+			if (!pSrcPhrase->m_bNullSourcePhrase)
+			{
+				str2 = pSrcPhrase->m_srcPhrase;
+				if (strSource.IsEmpty())
+				{
+					strSource = str2;
+				}
+				else
+				{
+					strSource += PutSrcWordBreak(pSrcPhrase) + str2;
+				}
 			}
 		}
 	}
@@ -642,6 +675,7 @@ void CRetranslation::ReplaceMatchedSubstring(wxString strSearch, wxString& strRe
 // the pointers to the CSourcePhrase instances on the heap.
 //
 // BEW 16Feb10, no changes needed for support of doc version 5
+// BEW 21Jul14 refactored for docVersion 9 (support of restoration of ZWSP in target text etc)
 void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 													 wxString& strSource, wxString& strAdapt)
 {
@@ -671,7 +705,8 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 	}
 	strAdapt += str;
 
-	// accumulate the source language key text, provided it is not a null source phrase
+	// accumulate the source language text (including punctuation, provided it is not
+	// a null source phrase
 	if (!pSrcPhrase->m_bNullSourcePhrase)
 		str2 = pSrcPhrase->m_srcPhrase;
 	strSource += str2; // accumulate it
@@ -687,7 +722,7 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 		wxASSERT(pSrcPhrase);
 		pList->Append(pSrcPhrase);
 
-		// accumulate any adaptation
+		// accumulate any adaptation, first the target text
 		if (pSrcPhrase->m_targetStr.IsEmpty())
 		{
 			if (pPile == m_pApp->m_pActivePile)
@@ -703,26 +738,60 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 		{
 			str = pSrcPhrase->m_targetStr;
 		}
-
+		// BEW 21Jul14 add support for wordbreak being special space such as ZWSP. We get
+		// the wordbreak strings as copies of the source text's word breaks here, because
+		// as yet no retranslation has been typed, so we can't access anything useful in
+		// the m_tgtWordBreak string on currently accessed CSourcePhrase instance
 		if (strAdapt.IsEmpty())
-			strAdapt += str;
-		else
 		{
 			if (!str.IsEmpty())
-				strAdapt = strAdapt + _T(" ") + str;
+			{
+				// We have some target text to be added, as the first text in strAdapt
+				strAdapt += str;
+			}
+		}
+		else
+		{
+			// strAdapt already contains some target text, so append the appropriate
+			// wordbreak, and add the contents of str - but do those two things only if
+			// str is not empty
+			if (!str.IsEmpty())
+			{
+				strAdapt = strAdapt + PutSrcWordBreak(pSrcPhrase) + str;
+			}
 		}
 
-		// accumulate the source language text,
-		// provided it is not a null source phrase
+		// accumulate the source language text, provided it is not a null source phrase
 		if (!pSrcPhrase->m_bNullSourcePhrase)
+		{
 			str2 = pSrcPhrase->m_srcPhrase;
+		}
 		else
+		{
+			// When it's a placeholder, the source is just ... (an ellipsis), & we ignore it
 			str2.Empty();
+		}
+		// BEW 21Jul14, here too add ZWSP support, for docVersion 9
 		if (strSource.IsEmpty())
-			strSource += str2;
+		{
+			// There is nothing in strSource yet, so if str2 has content, add it because
+			// it will be the first source text content within strSource
+			if (!str2.IsEmpty())
+			{
+				strSource += str2;
+			}
+		}
 		else
-			strSource = strSource + _T(" ") + str2; // space before a
-		// marker will -> CR+LF on Export...
+		{
+			// strSource already contains some source text, so append the appropriate
+			// wordbreak, and add the contents of str2 - but do those two things only if
+			// str2 is not empty. We use PutSrcWordBreak() rather than PutTgtWordBreak()
+			// because there is as yet no typed retranslation in existence...
+			if (!str2.IsEmpty())
+			{
+				strSource = strSource + PutSrcWordBreak(pSrcPhrase) + str2;
+			}
+		}
 	}
 }
 
@@ -764,6 +833,8 @@ void CRetranslation::CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,
 // will be used later when the transfer of standard format markers, if any, is done.
 //
 // BEW updated 17Feb10 for support of doc version 5 (no changes were needed)
+// BEW refactored 21Jul14, for ZWSP support ( only needed a ZWSP-supporting tweak within
+// the called function RestoreOriginalMinPhrases() )
 void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrases,
 											int& nCount, int& nEndSequNum, bool bActiveLocAfterSelection,
 											int& nSaveActiveSequNum, bool bWantRetranslationFlagSet,
@@ -893,9 +964,25 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 	}
 }
 
-// BEW 17Feb10 updated to support doc version 5 (no changes were needed)
-// BEW 11Oct10, made a small change, but the essentials were already okay, it already
-// copies the punctuated m_srcPhrase string into m_targetStr
+// BEW 17Feb10 updated to support doc version 5 (no changes were needed) BEW 11Oct10, made
+// a small change, but the essentials were already okay, it already copies the punctuated
+// m_srcPhrase string into m_targetStr 
+// BEW refactored 21Jul14 to support storage of wordbreaks (eg. ZWSP, or space etc) in the
+// CSourcePhrase, so that exports can reconstitute them to the proper locations. For
+// retranslations, and only for retranslations, we store the wordbreaks gleaned here in the
+// CSourcePhase::m_tgtWordBreak wxString member, because the distribution of ZWSP and other
+// spaces or latin space may be quite different in the retranslation than is the case in
+// the source text syntax. So, in exports, when the export comes to a retranslation, it
+// will grab the wordbreak from the m_tgtWordBreak string, rather than from the
+// m_srcWordBreak member. We get the m_targetWordBreak string as a copy of the
+// m_srcWordBreak string from the tokenizing to a list of CSourcePhrase temporary instances
+// done in the caller to form pRetransList. Note: because the Tokenizing was done on a
+// subset of CSourcePhrase instances, the target string passed in won't have any preceding
+// text content - and so the pRetransList's first CSourcePhrase will have it's
+// m_srcWordBreak member empty; but the material has to be inserted back into
+// m_pSourcePhrases full doc list - so we'll get the first CSourcePhrase instance's
+// m_srcWordBreak value from the relevant pSrcPhrase in the full document list. The rest
+// can be got from pRetransList for indices 1 and onwards.
 void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransList,
 						int nStartSequNum,int nNewCount,int nCount,int& nFinish)
 {
@@ -915,12 +1002,21 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 			// mark the first one
 			pSrcPhrase->m_bBeginRetranslation = TRUE;
 			pSrcPhrase->m_bEndRetranslation = FALSE;
+			// BEW addition 21Jul14
+			// Get and store the wordbreak for the first one - see the end of the comment
+			// preceding the function signature for extra details about this (Note, remember
+			// that the CSourcePhrase instances we are accessing here are tokenized from
+			// the user's re-translation string, and so these instances will be storing the
+			// wordbreaks in their m_srcWordBreak members; so we are transfering these to
+			// the m_tgtWordBreak members in the CSourcePhrase instances in m_pSourcePhrases
+			pSrcPhrase->SetTgtWordBreak(pSrcPhrase->GetSrcWordBreak());
 		}
 		else if (j == nFinish - 1)
 		{
 			// mark the last one
 			pSrcPhrase->m_bEndRetranslation = TRUE;
 			pSrcPhrase->m_bBeginRetranslation = FALSE;
+
 		}
 		else
 		{
@@ -945,15 +1041,24 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 			//check that all is well
 			wxASSERT(pSrcPhrase->m_nSequNumber == pIncompleteSrcPhrase->m_nSequNumber);
 
+			// BEW addition 21Jul14, we've handled the j=0 case above, here we do the
+			// transfers of the wordbreaks for the m_tgtWordBreak members, for j > 0 up to
+			// nNewCount - 1, which corresponds to the last word of the target text
+			if (j > 0)
+			{
+				pSrcPhrase->SetTgtWordBreak(pIncompleteSrcPhrase->GetSrcWordBreak());
+			}
 			// BEW added 13Mar09 for refactored layout
 			pDoc->ResetPartnerPileWidth(pSrcPhrase); // resets width and marks the
 													 // owning strip invalid
 		}
 
         // if nNewCount was less than nCount, we must clear any old m_targetStr and
-        // m_adaption test off of the unused source phrases at the end of the selection (we
+        // m_adaption text off of the unused source phrases at the end of the selection (we
 		// will leave markers untouched) -- MakeTargetStringIncludingPunctuation() does
 		// not get called for setting up m_targetStr when we are in a retranslation
+		// BEW 21Jul14, no refactor needed for this block, m_tgtWordBreak appropriately
+		// remains empty on each of these instances
 		if (j >= nNewCount)
 		{
 			// BEW 11Oct10, added next two tests to remove content from m_adaption and
@@ -1155,13 +1260,24 @@ void CRetranslation::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 // words in the target text than the source piles can accomodate). nNewCount is the number
 // of target text words - it could be less, more, or the same as the number piles selected
 // (we test internally and act accordingly), and nCount is the number of CSourcePhrase
-// instances after all nulls removed, and mergers unmerged - both of which were done in the
-// caller beforehand. We have to be careful if nEndSequNumber is equal to GetMaxIndex()
-// value, because insertion of null source phrases has to take place before a sourcephrase
-// instance which would not exist, so we must detect this and temporarily add an extra
-// CSourcePhrase instance at the end of the main list, do the insertions preceding it, then
-// remove it.
+// instances after all placeholders removed, and mergers unmerged - both of which were done
+// in the caller beforehand. We have to be careful if nEndSequNumber is equal to
+// GetMaxIndex() value, because insertion of null source phrases has to take place before a
+// sourcephrase instance which would not exist, so we must detect this and temporarily add
+// an extra CSourcePhrase instance at the end of the main list, do the insertions preceding
+// it, then remove it.
 // BEW updated 17Feb10 for support of doc version 5 (no changes were needed)
+// BEW 21Jul14, no refactor for docVersion 9 (which supports ZWSP replacements) is needed,
+// because it is the caller's pRetransList which stores the temporary set of CSourcePhrase
+// instances resulting from the parse of the target text (using tgt language punctuations)
+// and which therefore contain in the m_srcWordBreak wxString members the particular
+// wordbreak strings which precede each target text word (these are stored as m_key and
+// m_srcPhrase of course, by the tokenization), and pRetransList is not passed in to this
+// padding function so we can't access the wordbreaks here. The padding is based on merely
+// there being a +ve result to nNewCOunt - nCount, and the placeholders inserted on that
+// basis. After this function is called, the caller will call
+// BuildRetranslationSourcePhraseInstances() which *does* pass in pRetransList, and so it
+// is in that that we do the refactoring which takes ZWSP storage into account etc.
 void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 							SPList* pSrcPhrases,int nEndSequNum,int nNewCount,int nCount)
 {
@@ -1210,6 +1326,16 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 			m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pPile,nExtras,FALSE,TRUE); // FALSE for restoring
 			// the phrase box, TRUE for doing it for a retranslation, and default TRUE for
 			// bInsertBefore flag at end
+			 
+			// BEW 21Jul14, ZWSP support: add the most likely needed space type to the
+			// extra placeholder piles added, copying m_lastNonPlaceholderSrcWordBreak
+			int ii;
+			for(ii = 1; ii <= nExtras; ii++)
+			{
+				CSourcePhrase* pPlaceholder = (m_pView->GetPile(nEndSequNum + ii))->GetSrcPhrase();
+				pPlaceholder->SetSrcWordBreak(m_lastNonPlaceholderSrcWordBreak);
+				pPlaceholder->SetTgtWordBreak(m_lastNonPlaceholderSrcWordBreak);
+			}
 
 			// now remove the dummy element, and make sure memory is not leaked!
 #ifdef _NEW_LAYOUT
@@ -1241,6 +1367,16 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 			m_pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pPile,nExtras,FALSE,TRUE); // FALSE is for
 			// restoring the phrase box, TRUE is for doing it for a retranslation
 			m_pApp->m_nActiveSequNum = nSaveActiveSN;
+
+			// BEW 21Jul14, ZWSP support: add the most likely needed space type to the
+			// extra placeholder piles added, copying m_lastNonPlaceholderSrcWordBreak
+			int ii;
+			for(ii = 1; ii <= nExtras; ii++)
+			{
+				CSourcePhrase* pPlaceholder = (m_pView->GetPile(nEndSequNum + ii))->GetSrcPhrase();
+				pPlaceholder->SetSrcWordBreak(m_lastNonPlaceholderSrcWordBreak);
+				pPlaceholder->SetTgtWordBreak(m_lastNonPlaceholderSrcWordBreak);
+			}
 		}
 	}
 	else
@@ -1264,6 +1400,7 @@ void CRetranslation::ClearSublistKBEntries(SPList* pSublist)
 }
 
 // BEW 17Feb10, updated for support of doc version 5 (no changes needed)
+// BEW 21Jul14, no changes needed for ZWSP support
 void CRetranslation::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum)
 {
 	SPList::Node* pos = pSrcPhrases->Item(nLocationSequNum);
@@ -1354,6 +1491,7 @@ bool CRetranslation::IsConstantType(SPList* pList)
 // original elements we are in the process of restoring to the main list on the app
 //
 // BEW 17Feb10, updated for support of doc version 5 (no changes needed)
+// BEW 21Jul14, no changes needed for ZWSP support
 void CRetranslation::RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,
 								int nCurCount, int nStartingSequNum,SPList* pSublist)
 {
@@ -1530,8 +1668,7 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 	}
 }
 
-
-
+// BEW 21Jul14, no changes needed for ZWSP support
 void CRetranslation::GetRetranslationSourcePhrasesStartingAnywhere(
 								CPile* pStartingPile, CPile*& pFirstPile, SPList* pList)
 {
@@ -1704,8 +1841,10 @@ void CRetranslation::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
 // InsertNullSourcePhrase() function called from PadWithNullSourcePhrasesAtEnd() had to
 // have a number of changes to handle placeholder inserts for retranslation and for manual
 // placeholder inserting & the left or right association choice)
+// BEW refactored 21Jul14, for ZWSP support, storage, and later restoration in exports
 void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 {
+	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
 	// refactored 16Apr09
     // Since the Do a Retranslation toolbar button has an accelerator table hot key (CTRL-R
     // see CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even
@@ -1872,13 +2011,14 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
     // Cancel button in the dialog, and save the old sequ num value for the active
     // location; we don't save copies of the pointers, but instead use the copy constructor
     // to make fresh copies of the original selection's source phrases - but note that the
-    // copy constructor (and also operator=) only copies pointers for any CSourcePhrases in
-    // each source phrase's m_pSavedWords sublist - which has implications for below (in
-    // particular, when deleting the copied list, we must not delete in the sublists, but
-    // only remove the pointers, otherwise the originals will have hanging pointers)
+    // copy constructor (and also operator=) only shallow copies pointers for any
+    // CSourcePhrases in each source phrase's m_pSavedWords sublist - which has
+    // implications for below (in particular, when deleting the copied list, we must not
+    // delete in the sublists, but only remove the pointers, otherwise the originals will
+    // have hanging pointers)
 	SPList* pSaveList = new SPList;
 	wxASSERT(pSaveList != NULL);
-	CopySourcePhraseList(pList,pSaveList);
+	CopySourcePhraseList(pList,pSaveList); // 3rd arg, bool bDoDeepCopy, is default FALSE
 
 	// BEW added 20Mar07: to suppress KB entry removal during a retranslation or edit of same
 	m_bIsRetranslationCurrent = TRUE;
@@ -1991,8 +2131,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 
     // at this point pList does not contain any null source phrases, and we have
     // accumulated any adaptations already typed into strAdapt. However, we might have
-    // merged phrases in pList to be unmerged, and we have not yet removed the translation
-    // for each pSrcPhrase in pList from the KB, so we must do those things next.
+    // merged phrases in pList to be unmerged, so we must do this next
 	UnmergeMergersInSublist(pList, pSrcPhrases, nCount, nEndSequNum, bActiveLocAfterSelection,
 							nSaveActiveSequNum, TRUE, TRUE); // final 2 flags should take
 	// default values (TRUE, and FALSE, respectively), but this leads to a
@@ -2038,6 +2177,27 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	CRetranslationDlg dlg(m_pApp->GetMainFrame());
 	dlg.Centre();
 
+	// BEW addition 08Sep08 for support of vertical editing
+	bool bVerticalEdit_SuppressPhraseBox = FALSE;
+	int nVerticalEdit_nExtras = 0;
+
+    // BEW addition 21Jul14, We are now thru all the checks, so since we are about to go
+    // ahead, copy the m_srcWordBreak to m_tgtWordBreak for each CSourcePhrase in the list,
+    // as the m_tgtWordBreak contents ae used for forming the editable adaptation
+	size_t index;
+	size_t count = pList->GetCount();
+	for (index = 0; index < count; index++)
+	{
+		SPList::Node* pos = pList->Item(index);
+		CSourcePhrase* pSPhr = (CSourcePhrase*)pos->GetData();
+		wxASSERT(pSPhr != NULL);
+		pSPhr->SetTgtWordBreak(pSPhr->GetSrcWordBreak());
+		if (index == count - 1)
+		{
+			m_lastNonPlaceholderSrcWordBreak = pSPhr->GetSrcWordBreak(); // set LHS, 
+					// in case placeholders are to be appended due to the user's edits
+		}
+	}
 	// initialize the edit boxes
 	dlg.m_sourceText = strSource;
 	dlg.m_retranslation = strAdapt;
@@ -2049,15 +2209,11 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	precedingTgt.Empty();
 	wxString followingTgt;
 	followingTgt.Empty();
-	m_pView->GetContext(nSaveSequNum,nEndSequNum,preceding,following,precedingTgt,followingTgt);
+	GetContext(nSaveSequNum,nEndSequNum,preceding,following,precedingTgt,followingTgt);
 	dlg.m_preContextSrc = preceding;
 	dlg.m_preContextTgt = precedingTgt;
 	dlg.m_follContextSrc = following;
 	dlg.m_follContextTgt = followingTgt;
-
-	// BEW addition 08Sep08 for support of vertical editing
-	bool bVerticalEdit_SuppressPhraseBox = FALSE;
-	int nVerticalEdit_nExtras = 0;
 
     // wx version: The wx version was crashing as soon as this CRetranslationDlg was shown.
     // The crashes were in OnUpdateButtonRestore(), an unrelated update handler, because in
@@ -2417,8 +2573,10 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 // BEW 18Feb10, modified for support of doc version 5 (some code added to handle
 // transferring endmarker content from the last placeholder back to end of the
 // CSourcePhrase list of non-placeholders, prior to showing the dialog)
+// BEW 21Jul14 refactored for support of ZWSP
 void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 {
+	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
     // Since the Edit Retranslation toolbar button has an accelerator table hot key (CTRL-E
     // see CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even
     // when they are disabled, we must check for a disabled button and return if disabled.
@@ -2473,9 +2631,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			{
 				// an error state
 				//IDS_NO_REMOVE_RETRANS
-			h:				wxMessageBox(_(
-										   "Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."),
-										 _T(""), wxICON_EXCLAMATION | wxOK);
+			h:	wxMessageBox(_(
+"Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."),
+				_T(""), wxICON_EXCLAMATION | wxOK);
 				m_pView->RemoveSelection();
 				if (pList != NULL) // whm 11Jun12 added NULL test
 					delete pList;
@@ -2511,6 +2669,35 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	m_pView->RemoveSelection();
 	CPile* pFirstPile = 0;
 	GetRetranslationSourcePhrasesStartingAnywhere(pStartingPile,pFirstPile,pList);
+	// BEW comment 21Jul14 re ZWSP support for docVersion 9. The set of CSourcePhrase
+	// instances will have content in their m_tgtWordBreak wxString member - we must not
+	// clobber these members' contents until we have finished using them to reconstitute
+	// the target text which is to be edited in the dialog
+	
+	// Work out where the last non-placeholder CSourcePhrase in the retranslation is - we
+	// will copy it's m_srcWordBreak to the member m_lastNonPlaceholderSrcWordBreak, so that
+	// it can be copied to both m_srcWordBreak and m_tgtWordBreak of any padding
+	// placeholders that may need to be created and inserted into the document
+	size_t indx;
+	size_t cnt = pList->GetCount();
+	CSourcePhrase* pLastNonPlaceholder = NULL;
+	CSourcePhrase* pMySPh = NULL;
+	// syntax of this loop is clumsy, but it works & I'm too tired to rethink it
+	for (indx = 0; indx < cnt; indx++)
+	{
+		pLastNonPlaceholder = pMySPh;
+		SPList::Node* pos = pList->Item(indx);
+		pMySPh = pos->GetData();
+		if (pMySPh->m_bNullSourcePhrase)
+		{
+			break;
+		}
+		if (indx == cnt - 1 && !pMySPh->m_bNullSourcePhrase)
+		{
+			pLastNonPlaceholder = pMySPh;
+		}
+	}
+	m_lastNonPlaceholderSrcWordBreak = pLastNonPlaceholder->GetSrcWordBreak();
 
 	int nSaveSequNum = pFirstPile->GetSrcPhrase()->m_nSequNumber; // save its sequ number,
 	// everything depends on this - its the first in the sublist
@@ -2611,12 +2798,16 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	str2.Empty();
 	wxString strSource; // the source text which is to be retranslated (now line 1, not line 2)
 	strSource.Empty();
+	// BEW 21Jul14, refactored the next function to support ZWSP storage and replacement, using
+	// the new CSourcePhrase member m_tgtWordBreak wxString (only retranslations use this member,
+	// everything else uses the new member, m_srcWordBreak)
 	AccumulateText(pList,strSource,strAdapt);
-
 
     // if we are invoking this function because of a Find & Replace match within the
     // retranslation, then replace the portion of the strAdapt string which was matched
     // with the replacement string returned by the View's GetReplacementString()
+// TODO - refactor the two functions in the next block, for ZWSP support -- I'll defer
+// this to later... when I refactor Find and Find and Replace functionality
 	if (m_bReplaceInRetranslation)
 	{
 		wxString replStr = m_pView->GetReplacementString();
@@ -2788,7 +2979,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	precedingTgt.Empty();
 	wxString followingTgt;
 	followingTgt.Empty();
-	m_pView->GetContext(nSaveSequNum,nEndSequNum,preceding,following,precedingTgt,followingTgt);
+	GetContext(nSaveSequNum,nEndSequNum,preceding,following,precedingTgt,followingTgt);
 	dlg.m_preContextSrc = preceding;
 	dlg.m_preContextTgt = precedingTgt;
 	dlg.m_follContextSrc = following;
@@ -2804,7 +2995,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 
         // tokenize the retranslation into a list of new CSourcePhrase instances on the
         // heap (they are incomplete - only m_key and m_nSequNumber are set)
-		nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
+		//nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
+		// the TRUE causes target text punctuation to be used in the parse - see OnButtonRetranslation()
+		nNewCount = m_pView->TokenizeTargetTextString(pRetransList,retrans,nSaveSequNum,TRUE);
 
         // ensure any call to InsertNullSrcPhrase() will work right - that function saves
         // the m_pApp->m_nActiveSequNum value, and increments it by how many null source
@@ -3338,6 +3531,7 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 // BEW 18Feb10, modified for support of doc version 5 (some code added to handle
 // transferring endmarker content from the last placeholder back to end of the
 // CSourcePhrase list of non-placeholders)
+// BEW 21Jul14 refactored for support of ZWSP etc storage and replacement
 void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 {
 	// Invalid function when glossing is ON, so it just returns.
@@ -3354,6 +3548,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	CPile* pStartingPile = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
 	CCell* pCell = NULL;
+	m_lastNonPlaceholderSrcWordBreak.Empty(); // unnecessary, but harmless to restore default state
 
     // get the source phrases which comprise the section which is retranslated; first check
     // if we have a selection, and if so start from the first pile in the selection;
@@ -3495,7 +3690,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		else
 		{
 			if (!str2.IsEmpty())
-				strAdapt += _T(" ") + str2;
+				strAdapt += PutTgtWordBreak(pSrcPhrase) + str2;
 		}
 	}
 
@@ -3509,6 +3704,20 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		{
 			pEdit->ChangeValue(strAdapt);
 		}
+	}
+
+    // BEW 21Jul14, for ZWSP support. At this point, pList holds the list of the
+    // retranslation's CSourcePhrase instances, including any final placeholders. We now
+    // must clear out the m_tgtWordBreak text on each such CSourcePhrase, as this member
+    // holds non-empty values only for the instances within a retranslation, and we are
+    // clobbering the retranslation. We must do this before the placeholders are removed
+    SPList::Node* position = pList->GetFirst();
+	wxString emptyStr = _T("");
+	while (position != NULL)
+	{
+		CSourcePhrase* pSP = position->GetData();
+		position = position->GetNext();
+		pSP->SetTgtWordBreak(emptyStr);
 	}
 
     // any null source phrases have to be thrown away, and the layout recalculated after
@@ -3693,13 +3902,14 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	// get the text to be displayed in the target box, if any
 	SPList::Node* spos = pList->GetFirst();
 	pSrcPhrase = (CSourcePhrase*)spos->GetData();
-	wxString str3;
+	wxString str3; str3.Empty();
 	if (pSrcPhrase->m_targetStr.IsEmpty() && !pSrcPhrase->m_bHasKBEntry &&
 		!pSrcPhrase->m_bNotInKB)
 	{
 		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
 		RestoreTargetBoxText(pSrcPhrase,str3); // for getting a suitable
-		// m_targetStr contents
+		// m_targetStr contents by looking up pSrcPhrase's m_key to try get an adaptation
+		// to put in str3
 	}
 	else
 	{
@@ -3707,6 +3917,8 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 		m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
 	}
 	m_pApp->m_targetPhrase = str3; // update what is to be shown in the phrase box
+	// BEW 24Jul14, make the box show it
+	m_pApp->m_pTargetBox->ChangeValue(str3);
 
 	// ensure the selection is removed
 	m_pView->RemoveSelection();
@@ -4692,5 +4904,117 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 		return;
 	}
 	event.Enable(FALSE);
+}
+
+// Gets the preceding & following contexts for a 'retranslation' section of source text.
+// We cannot rely on the layout pointers being valid, because if there was an unmerge done,
+// they will have been clobbered prior to GetContext being called rather than use GetPile().
+// We accumulate 40 words of preceding context and 30 words of following context, and we
+// omit any m_markers content from the accumulations - we are just interested in the text.
+// BEW 23Mar10, updated for support of doc version 5 (no changes needed)
+// BEW 9July10, no changes needed for support of kbVersion 2
+// BEW 21Jul14, refactored for support of ZWSP storage and replacement - we have to take
+// into account whether there is a previous retranslation, or a following retranslation,
+// so as to use the correct Put...() call for the word delimiter between each word pair
+// Also, at same date, moved this to be in Retranslation.cpp
+void CRetranslation::GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
+							   wxString& strFoll,wxString& strPreTgt, wxString& strFollTgt)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	// get the preceding context first
+	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+	SPList::Node* pos = pSrcPhrases->Item(nStartSequNum);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	pos = pos->GetPrevious();
+	TextType textType = pSrcPhrase->m_curTextType;
+	wxString str; // temporary buffers
+	str.Empty();
+	wxString strTgt;
+	strTgt.Empty();
+
+	int count = 0;
+	while (count < NUM_PREWORDS && pos != NULL)
+	{
+		TextType type;
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetPrevious();
+		count++;
+		type = pSrcPhrase->m_curTextType;
+		if (type != textType)
+			break;
+		if (!pSrcPhrase->m_bNullSourcePhrase)
+		{
+			str = pSrcPhrase->m_srcPhrase;
+			strPre = str + PutSrcWordBreak(pSrcPhrase) + strPre;
+		}
+		if (pSrcPhrase->m_bRetranslation)
+		{
+			strTgt = pSrcPhrase->m_targetStr;
+			strPreTgt = strTgt + PutTgtWordBreak(pSrcPhrase) + strPreTgt;
+		}
+		else
+		{
+			strTgt = pSrcPhrase->m_targetStr;
+			strPreTgt = strTgt + PutSrcWordBreak(pSrcPhrase) + strPreTgt;
+		}
+	}
+
+	// now get the following context
+	pos = pSrcPhrases->Item(nEndSequNum);
+	pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	pos = pos->GetNext();
+	count = 0;
+	str.Empty();
+	strTgt.Empty();
+	strFoll.Empty();
+	strFollTgt.Empty();
+
+	while (count < NUM_FOLLWORDS && pos != NULL)
+	{
+		TextType type;
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		count++;
+		type = pSrcPhrase->m_curTextType;
+		if (type != textType)
+			break;
+
+		str = pSrcPhrase->m_srcPhrase;
+		if (!pSrcPhrase->m_bNullSourcePhrase)
+		{
+			if (strFoll.IsEmpty())
+			{
+				strFoll = str;
+			}
+			else
+			{
+				strFoll += PutSrcWordBreak(pSrcPhrase) + str;
+			}
+		}
+		strTgt = pSrcPhrase->m_targetStr;
+		if (pSrcPhrase->m_bRetranslation)
+		{
+			if (strFoll.IsEmpty())
+			{
+				strFollTgt = strTgt;
+			}
+			else
+			{
+				strFollTgt += PutTgtWordBreak(pSrcPhrase) + strTgt;
+			}
+		}
+		else
+		{
+			if (strFoll.IsEmpty())
+			{
+				strFollTgt = strTgt;
+			}
+			else
+			{
+				strFollTgt += PutSrcWordBreak(pSrcPhrase) + strTgt;
+			}
+		}
+	}
 }
 

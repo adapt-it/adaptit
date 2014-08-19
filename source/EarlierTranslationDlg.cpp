@@ -52,6 +52,7 @@
 #if defined(_DEBUG)
 #include "MainFrm.h"			// mrh - These 2 #includes are needed on both the Mac and Linux.
 #include "Adapt_ItCanvas.h"
+#include "helpers.h"
 #endif
 
 
@@ -296,14 +297,15 @@ void CEarlierTranslationDlg::ScanVerse(SPList::Node*& pos, CSourcePhrase* pSrcPh
 {
 	// we've found the start of the verse, so extract its source and target text strings
 	m_strBeginChVerse = pSrcPhrase->m_chapterVerse;
-	m_srcText = m_strBeginChVerse + _T(" ") + pSrcPhrase->m_srcPhrase;
 	if (gbIsGlossing)
 	{
+		m_srcText = m_strBeginChVerse + _T(" ") + pSrcPhrase->m_srcPhrase;
 		m_tgtText = m_strBeginChVerse + _T(" ") + pSrcPhrase->m_gloss;
 	}
 	else // adapting
 	{
-		m_tgtText = m_strBeginChVerse + _T(" ") + pSrcPhrase->m_targetStr;
+		m_srcText = m_strBeginChVerse + PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
+		m_tgtText = m_strBeginChVerse + PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 	}
 	m_nFirstSequNumBasic = pSrcPhrase->m_nSequNumber;
 	m_nCurLastSequNum = pSrcPhrase->m_nSequNumber; // a safe default, until set again below
@@ -316,16 +318,17 @@ void CEarlierTranslationDlg::ScanVerse(SPList::Node*& pos, CSourcePhrase* pSrcPh
 		if (pSrcPhrase->m_markers.IsEmpty() && pSrcPhrase->m_pMedialMarkers->GetCount() == 0)
 		{
 			// no possibility of a new verse starting, so accumulate this one's strings
-			m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase; // source is never null
 			if (gbIsGlossing)
 			{
+				m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase; // source is never null
 				if (!pSrcPhrase->m_gloss.IsEmpty())
 					m_tgtText += _T(" ") + pSrcPhrase->m_gloss; // get target text if not null
 			}
 			else // adapting
 			{
+				m_srcText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase; // source is never null
 				if (!pSrcPhrase->m_targetStr.IsEmpty())
-					m_tgtText += _T(" ") + pSrcPhrase->m_targetStr; // get target text if not null
+					m_tgtText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr; // get target text if not null
 			}
 			m_nLastSequNumBasic = pSrcPhrase->m_nSequNumber;
 			m_nCurLastSequNum = pSrcPhrase->m_nSequNumber;
@@ -341,16 +344,17 @@ void CEarlierTranslationDlg::ScanVerse(SPList::Node*& pos, CSourcePhrase* pSrcPh
 			else
 			{
 				// accumulate this one's strings too
-				m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase; // source is never null
 				if (gbIsGlossing)
 				{
+					m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase; // source is never null
 					if (!pSrcPhrase->m_gloss.IsEmpty())
 						m_tgtText += _T(" ") + pSrcPhrase->m_gloss; // get target text if not null
 				}
 				else // adapting
 				{
+					m_srcText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase; // source is never null
 					if (!pSrcPhrase->m_targetStr.IsEmpty())
-						m_tgtText += _T(" ") + pSrcPhrase->m_targetStr; // get target text if not null
+						m_tgtText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr; // get target text if not null
 				}
 				m_nLastSequNumBasic = pSrcPhrase->m_nSequNumber;
 				m_nCurLastSequNum = pSrcPhrase->m_nSequNumber;
@@ -651,16 +655,17 @@ void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event))
 			wxASSERT(pSrcPhrase);
 
 			// accumulate the source and target strings
-			m_srcText = pSrcPhrase->m_srcPhrase + _T(" ") + m_srcText;
 			if (gbIsGlossing)
 			{
+				m_srcText = pSrcPhrase->m_srcPhrase + _T(" ") + m_srcText;
 				if (!pSrcPhrase->m_gloss.IsEmpty())
 					m_tgtText = pSrcPhrase->m_gloss + _T(" ") + m_tgtText;
 			}
 			else // adapting
 			{
+				m_srcText = pSrcPhrase->m_srcPhrase + PutSrcWordBreak(pSrcPhrase) + m_srcText;
 				if (!pSrcPhrase->m_targetStr.IsEmpty())
-					m_tgtText = pSrcPhrase->m_targetStr + _T(" ") + m_tgtText;
+					m_tgtText = pSrcPhrase->m_targetStr + PutSrcWordBreak(pSrcPhrase) + m_tgtText;
 			}
 
 			m_preContext[nIndex] = pSrcPhrase->m_nSequNumber;
@@ -741,16 +746,17 @@ a:	if (m_nCurLastSequNum >= (int)pList->GetCount() - 1)
 		}
 
 		// accumulate the source and target strings for this initial source phrase of the "next" verse
-		m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 		if (gbIsGlossing)
 		{
+			m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 			if (!pSrcPhrase->m_gloss.IsEmpty())
 				m_tgtText += _T(" ") + pSrcPhrase->m_gloss;
 		}
 		else // adapting
 		{
+			m_srcText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
 			if (!pSrcPhrase->m_targetStr.IsEmpty())
-				m_tgtText += _T(" ") + pSrcPhrase->m_targetStr;
+				m_tgtText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 		}
 
 		m_nCurLastSequNum = pSrcPhrase->m_nSequNumber;
@@ -770,16 +776,17 @@ a:	if (m_nCurLastSequNum >= (int)pList->GetCount() - 1)
 				if (pSrcPhrase->m_nSequNumber >= (int)pList->GetCount() - 1)
 				{
 					// we must accumulate these strings too, then exit the loop
-					m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 					if (gbIsGlossing)
 					{
+						m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 						if (!pSrcPhrase->m_gloss.IsEmpty())
 							m_tgtText += _T(" ") + pSrcPhrase->m_gloss;
 					}
 					else // adapting
 					{
+						m_srcText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
 						if (!pSrcPhrase->m_targetStr.IsEmpty())
-							m_tgtText += _T(" ") + pSrcPhrase->m_targetStr;
+							m_tgtText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 					}
 					m_nCurLastSequNum = pSrcPhrase->m_nSequNumber;
 					m_follContext[nIndex] = pSrcPhrase->m_nSequNumber;
@@ -789,16 +796,17 @@ a:	if (m_nCurLastSequNum >= (int)pList->GetCount() - 1)
 			else
 			{
 				// we are somewhere within the verse, so accumulate the strings
-				m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 				if (gbIsGlossing)
 				{
+					m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 					if (!pSrcPhrase->m_gloss.IsEmpty())
 						m_tgtText += _T(" ") + pSrcPhrase->m_gloss;
 				}
 				else // adapting
 				{
+					m_srcText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
 					if (!pSrcPhrase->m_targetStr.IsEmpty())
-						m_tgtText += _T(" ") + pSrcPhrase->m_targetStr;
+						m_tgtText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 				}
 				m_nCurLastSequNum = pSrcPhrase->m_nSequNumber;
 				m_follContext[nIndex] = pSrcPhrase->m_nSequNumber;
@@ -924,16 +932,17 @@ void CEarlierTranslationDlg::OnShowLessContext(wxCommandEvent& event)
 		}
 
 		// accumulate the source and target strings for this source phrase
-		m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 		if (gbIsGlossing)
 		{
+			m_srcText += _T(" ") + pSrcPhrase->m_srcPhrase;
 			if (!pSrcPhrase->m_gloss.IsEmpty())
 				m_tgtText += _T(" ") + pSrcPhrase->m_gloss;
 		}
 		else // adapting
 		{
+			m_srcText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
 			if (!pSrcPhrase->m_targetStr.IsEmpty())
-				m_tgtText += _T(" ") + pSrcPhrase->m_targetStr;
+				m_tgtText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 		}
 
 		// update the sequence number
