@@ -1,4 +1,4 @@
-﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
 <head>
 <meta name="GENERATOR" content="Microsoft FrontPage 5.0">
@@ -214,7 +214,7 @@ Adapt It version 6.0.x or 6.1.x previously, please note that as of version
 projects, and it is now the user's decision as to whether to turn collaboration 
 on or off for a given Adapt It project. Therefore, if you have previously used 
 version 6.0.x or 6.1.x of Adapt It for collaboration with Paratext, your 
-collaboration settings will be preserved in upgrading to 6.2.1, but please 
+collaboration settings will be preserved in upgrading to 6.2.1 or a later version, but please 
 review the&nbsp;section below carefully for differences in how collaboration is 
 now setup and used.&nbsp;</p>
 <h3>2. Prepare at least two&nbsp;Paratext projects for 
@@ -439,7 +439,7 @@ work in standard Adapt It documents.</p>
 <p align="right"><a href="#Top_of_doc" >Back to Top</a> </p>
 <h2><a name="Bibledit_Steps_Start"></a>Bibledit</h2>
 <h3>1. Ensure that the necessary versions of Adapt It 
-(6.2.1) and&nbsp;Bibledit&nbsp;(4.3 or newer) are installed</h3>
+(6.3.5 or newer) and&nbsp;Bibledit&nbsp;(4.3 or newer) are installed</h3>
 <p><strong>IMPORTANT</strong>: If you 
 used Adapt It version 6.0.x or 6.1.x previously, please note that as of version 
 6.2.1, collaboration with Bibledit can now be setup for individual Adapt It 
@@ -489,7 +489,7 @@ entered the correct line into your Other Software (step b above).</p>
 "Search" button and type <strong>adaptit</strong> in the 
 search box. When the&nbsp;adaptit packages appear, look&nbsp;at the "Installed 
 Version" and "Latest Version" columns. Ensure that the version listed for 
-adaptit is <strong>at least 6.2.1</strong>. If the "Latest 
+adaptit is <strong>at least 6.2.1, but preferably 6.5.3 or later</strong>. If the "Latest 
 Version" (if no version of adaptit is at least 6.2.1 make sure you have set up 
 the http://packages.sil.org/ubuntu line correctly in the Synaptic Package 
 Manager's Software Sources setup in step b above). If no version is listed in 
@@ -1005,11 +1005,11 @@ It to version 6 (if needed)</h3>
 <p>1. Log onto the <strong>Advisor</strong> account in the Balsa system.<br>2. Run the <strong>Synaptic Package 
 Manager</strong> by selecting it from the Applications &gt; System menu. In the 
 Quick search box type the word adaptit. The "Installed" version of adaptit 
-listed there should be at least 6.2.1. If the package manager doesn't indicate 
-that version 6.2.x is already installed, you should go ahead and mark it for 
+listed there should be at least 6.2.1, but preferably 6.5.3 or newer. If the package manager doesn't indicate 
+that the recommended version is already installed, you should go ahead and mark it for 
 installation. If you are using an 8GB SD card form of Balsa, you probably will 
 want to also mark adaptit-docs for installation (although please note 
-that&nbsp;the adaptit-docs package&nbsp;is about 11MB of download). <br>3. After you have ensured that Adapt It version 6.2.x is 
+that&nbsp;the adaptit-docs package&nbsp;is about 11MB of download). <br>3. After you have ensured that Adapt It version 6.2.x or newer is 
 installed, you can close the package manager and <strong>log off the Balsa Advisor account</strong>. Next you will 
 need to log on to the Balsa User account (see below).</p>
 <h3>Logging on to the Balsa User account and configuring 
@@ -1274,7 +1274,7 @@ version of Adapt It]</p>
 navigate to the Adapt It installation folder, and click on the Adapt It program 
 executable file,&nbsp;normally located&nbsp;at <strong>c:\Program Files\Adapt It WX 
 Unicode\Adapt_It_Unicode.exe</strong> for the Unicode version, or <strong>c:\Program Files\Adapt It WX\Adapt_It.exe</strong> for the 
-Regular (ANSI) version.<br>3. Right-click on the 
+Regular (ANSI) version. (On a 64bit Windows machine, the installation folder is within the <strong>Program Files (x86)</strong> folder.)<br>3. Right-click on the 
 Adapt_It_Unicode.exe (or Adapt_It.exe) file and select "<strong>Send To</strong>" &gt; "<strong>Desktop (create shortcut)</strong>".<br>4. Close or minimize&nbsp;Windows Explorer and any other 
 programs so you can see the shortcut that was created in the previous step. 
 <strong>Right-click</strong> on that shortcut and select 
@@ -1334,7 +1334,7 @@ switch/option used in step 6 according to the work scenario you want the
 launcher to run. </font>&nbsp;</p>
 <h3>Setting up desktop launchers in&nbsp;Balsa (Lucid)</h3>
 <p>1. <strong>Log on to the Advisor 
-Balsa account and install Adapt It version 6.2.1 or newer for your&nbsp;Lucid 
+Balsa account and install Adapt It version 6.5.3 or newer for your&nbsp;Lucid 
 distribution</strong>. <br>2. <strong>Right-click</strong> on the desktop and choose "<strong>Create Launcher...</strong>". The Balsa system displays the 
 "Create Launcher" dialog which looks like this:<br><br></p>
 <p align="center"><img border="0" hspace="0" src="Images/Admin_help/Balsa_create_launcher.gif" width="400" height="361" ></p>
@@ -1413,6 +1413,11 @@ switch you want the launcher to force Adapt It to use when it runs.</font> </p>
 </a></p>
 <h2><a name="trouble_shooting_collaboration"></a>Trouble Shooting</h2>
 <h3>Problems in Collaboration with Paratext</h3>
+<p>Note: the collaboration feature in versions of Adapt It earlier than <strong>6.5.3</strong> can 
+garble the data transfer to Paratext in some circumstances. Extensive changes to the 
+code were made to fix these problems, and the first version released with these 
+fixes within it was 6.5.3. If you run into collaboration problems, please first 
+make sure that 6.5.3 or later is what you are using.</p>
 <p>Adapt It relies on a separate utility program that it 
 uses to exchange data between Adapt It and Paratext. Adapt It installs a utility 
 program called <strong>rdwrtp7.exe</strong> that it 
@@ -1423,7 +1428,9 @@ configurations and architectures. So, if you get errors when attempting to setup
 collaboration between Adapt It and Paratext, it is likely that the problem could 
 be a compatibility problem that we have not yet had to account for between your 
 computer system and the version of the utility program installed by Adapt 
-It.</p>
+It. (There is an as yet unverified possibility that Kaspersky antivirus prevents the 
+successful transfer of adaptations to Paratext. Try "killing" the running Kaspersky 
+process in your current work session and then check if collaboration then works correctly.)</p>
 <p>When the Paratext development team releases a new 
 version of Paratext, and you have upgraded to the newer version, you should 
 insure that Adapt It can still collaborate with the newer&nbsp;version of 
@@ -1441,7 +1448,7 @@ Help menu.</p>
 <h3>Problems in Collaboration with Bibledit</h3>
 <p>Note: Most problems in collaboration between Adapt It 
 and Bibledit can be solved by ensuring that your version of Adapt It is at least 
-version 6.2.1 and your version of Bibledit is at least 4.3. See the <a href="#Bibledit_Steps_Start" >Step 1 of the Bibledit setup process</a>. 
+version 6.5.3 and your version of Bibledit is at least 4.3. See the <a href="#Bibledit_Steps_Start" >Step 1 of the Bibledit setup process</a>. 
 If you have done all the setup steps for Bibledit, but are still having 
 problems, the information below may be of some help.</p>
 <p>Adapt It relies on a separate utility program that it 
