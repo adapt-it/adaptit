@@ -3278,26 +3278,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			wxMessageBox (_T("It appears that this document has been created with a newer version of Adapt It. Some things that the newer version supports, won't be available."));
 			inputDocVersion = VERSION_NUMBER;
 		}
-
-		// BEW deprecated this protocol - remove the comment later, the protocol doesn't work
-        // If this is a "legacy" doc as far as having the m_srcWordBreak and m_tgtWordBreak
-        // members of CSourcePhrase - that is, the doc being input does not have these two
-        // members because it was created by a version of Adapt It with docVersion 8 or
-        // earlier; then all attempts to read these storage locations will yield just an
-        // empty string, because the attributes with names xml_srcwdbrk and xml_tgtwdbrk
-        // will not get matched. So because USFM exports now need the wordbreak strings
-        // from such members, we have to set the m_bLegacyDocLacksZWSPstorage boolean on
-        // the app, so that our code (like in RestoreTargetTexxt() for example) can detect
-        // it is a legacy doc and add the required latin space where required (we can't
-        // unfortunately guess about ZWSP though, so latin space it will have to be). So
-        // we'll here assume the doc is a legacy one (ie. docVersion 8 or earlier), and
-        // only in the blocks below which match a xml_srcwdbrk attribute will we reset the
-        // boolean to FALSE. The flag is used in the CSourcePhrase::GetSrcWordBreak() and
-        // GetTgtWordBreak() accessors, to return a string containing a single latin space
-        // when the flag is TRUE, otherwise, the stored word break character or string is
-        // accessed and returned.
-		//gpApp->m_bLegacyDocLacksZWSPstorage = TRUE;
-		
 		gnDocVersion = inputDocVersion;
 		return TRUE;
 	}
@@ -3576,7 +3556,6 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				ReplaceEntities(attrValue); // most require it, so do it on all
 				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
-					gpApp->m_bLegacyDocLacksZWSPstorage = FALSE; // see explanation near top of AtDocAttr()
 					gpEmbeddedSrcPhrase->SetSrcWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
 				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrk)
@@ -3736,7 +3715,6 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				ReplaceEntities(attrValue); // most require it, so do it on all
 				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
-					gpApp->m_bLegacyDocLacksZWSPstorage = FALSE; // see explanation near top of AtDocAttr()
 					gpSrcPhrase->SetSrcWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
 				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrk)

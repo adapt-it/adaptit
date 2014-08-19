@@ -2744,7 +2744,6 @@ void CSourcePhrase::SetTgtWordBreak(wxString wb)
 }
 wxString CSourcePhrase::GetSrcWordBreak()
 {
-	//if (gpApp->m_bLegacyDocLacksZWSPstorage)
 	if (this->m_srcWordBreak.IsEmpty())
 	{
         // There is no m_srcWordBreak member in the current document that we can access so
@@ -2755,7 +2754,6 @@ wxString CSourcePhrase::GetSrcWordBreak()
 }
 wxString CSourcePhrase::GetTgtWordBreak()
 {
-	//if (gpApp->m_bLegacyDocLacksZWSPstorage)
 	if (this->m_tgtWordBreak.IsEmpty())
 	{
 		// There is no m_tgtWordBreak member in the current document that we can access so

@@ -10356,7 +10356,7 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 	if (pApp->m_bUseSrcWordBreak)
 	{
 		// return whatever character or string m_srcWordBreak stores
-		// Note: if the app's flag m_bLegacyDocLacksZWSPstorage is TRUE, then
+		// Note: if the CSourcePhrase stores nothing yet in this member,
 		// GetSrcWordBreak() will unilaterally return only a normal latin space
 		return pSrcPhrase->GetSrcWordBreak(); 
 	}
@@ -10377,7 +10377,7 @@ wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
 	if (pApp->m_bUseSrcWordBreak)
 	{
 		// return whatever character or string m_srcWordBreak stores
-		// Note: if the app's flag m_bLegacyDocLacksZWSPstorage is TRUE, then
+		// Note: if the CSourcePhrase stores nothing yet in this member,
 		// GetTgtWordBreak() will unilaterally return only a normal latin space
 		return pSrcPhrase->GetTgtWordBreak(); 
 	}
