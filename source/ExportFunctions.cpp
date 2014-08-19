@@ -37,6 +37,7 @@
 #include <wx/txtstrm.h>
 #include <wx/dir.h>
 #include <wx/longlong.h>
+#include <wx/log.h>
 
 // BEW removed 15Jun11 until we support OXES
 // BEW reinstated 19May12, for OXES v1 support
@@ -17963,6 +17964,9 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 // BEW 7Apr10, updated for doc version 5 (changes were needed)
 int RebuildTargetText(wxString& target, SPList* pUseThisList)
 {
+#if defined(_DEBUG)
+	wxLog::EnableLogging(true);
+#endif
 	SPList* pList = NULL;
 	if (pUseThisList == NULL)
 	{
@@ -17991,6 +17995,10 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != 0);
+
+#if defined(_DEBUG)
+		//wxLogDebug(_T("RebuildTargetText() loop - an iteration"));
+#endif
 
 //#if defined(_DEBUG)
 //		if (pSrcPhrase->m_nSequNumber == 4223)

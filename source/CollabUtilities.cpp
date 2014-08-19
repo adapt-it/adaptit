@@ -98,7 +98,7 @@ extern bool gbDoingInitialSetup;
 // comment out when the bugs become history - the next #define is the main one for
 // debugging collaboration sync failuress, and SHOW_INDICES_RANGE is also useful,
 // as also is LIST_MD5LINES
-//#define OUT_OF_SYNC_BUG
+#define OUT_OF_SYNC_BUG
 // comment out next line when the debug display of indices with md5 lines
 // is no longer wanted (beware, if this is on, it will display a LOT of data)
 //#define SHOW_INDICES_RANGE
@@ -7209,3 +7209,4 @@ bool HasInfoChanged(
 	}
 	return FALSE;
 }
+
