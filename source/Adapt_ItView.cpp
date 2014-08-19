@@ -9933,7 +9933,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// I want to see what values these app booleans have at this point
 	pApp->m_bFreeTransUsesZWSP = pApp->m_bFreeTransUsesZWSP;
 	pApp->m_bUseSrcWordBreak = pApp->m_bUseSrcWordBreak;
-	//pApp->m_bLegacyDocLacksZWSPstorage = pApp->m_bLegacyDocLacksZWSPstorage;
 #endif
 	if (pApp->bLookAheadMerge)
 	{

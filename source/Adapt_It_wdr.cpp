@@ -1925,7 +1925,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item2->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item38 = new wxCheckBox( parent, IDC_CHECK_USE_ZWSP_IN_FREETRANS, _("Support free translations using zero width spaces"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item38 = new wxCheckBox( parent, IDC_CHECK_USE_ZWSP_IN_FREETRANS, _("Support section closure at normal space (for free translations using zero width spaces)"), wxDefaultPosition, wxDefaultSize, 0 );
     item38->SetToolTip( _("Tick this box if you want the free translation to be in a script like LAO, it halts sections at normal latin spaces") );
     item2->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

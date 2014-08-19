@@ -1,4 +1,76 @@
 ----------------------------------------------
+Version 6.5.4 release ??  ???? 2014
+----------------------------------------------
+* A command line switch -srcRespell has been implemented.
+If the app is launched with this switch, a smart merge of
+edited source text (whether in or out of collaboration mode)
+will attempt to retain any adaptations for source text words
+that had been respelled in the being-merged source text file.
+(A smart merge can be requested manually, by the Import
+Edited Source Text... command on the Export-Import menu;
+or is done at each opening of a document file during
+collaboration with Paratext or Bibledit.)
+Unfortunately, the -srcRespell switch will not be able to
+retain adaptations if the Adapt It document contains any
+merged phrases - so Adapt It automatically checks for
+mergers and disallows the switch's effect if one or more mergers
+are in the document. In that case, the normal smart merge is
+done instead - it will not retain adaptations at any document
+locations where the source text has been changed, and a 
+message will be shown to the user if that is the case. In such
+a circumstance, the user should just re-adapt the emptied
+locations after the smart merge has finished.
+* Scripts in languages like Lao of south east Asia commonly
+use ZWSP (zero width space) between words, with normal
+space now and then, the latter functioning like punctuation 
+in Roman script languages. In earlier Adapt It versions, ZWSP
+is parsed correctly when forming a new document, and the 
+display shows the individual words separated from each other.
+However, earlier versions did not restore the ZWSP, or other
+similar kinds of exotic Unicode space-like characters, when
+the adaptation text was exported. Now Adapt It will remember
+what space character is used before each word, and will restore
+that character in the exported translation. For retranslations,
+where the distribution of normal latin space and ZWSP may
+differ in the retranslation from what was in the source text, the
+new distribution of these word break characters is used in the
+export. Support for ZWSP is turned on by default. However, it
+can be turned off by a radio button choice in the Preferences
+page: Backups and Misc. If the user wants sectioning of
+free translations to be done using not just punctuation, but 
+also by the presence of a normal latin space, then there is a 
+checkbox for that also in the Backups and Misc page of 
+Preferences. (The sectioning algorithm looks at the source text
+in the document for deciding where to end a section, so if the
+source text contains mostly ZWSP with latin spaces breaking
+the text into a series of high level meaning units, then this
+checkbox should be turned on to give the 'section by 
+punctuation' option the best chance of delivering sectioning
+behavior helpful to the user.)
+The user normally types ZWSP by remapping the keyboard,
+with software like Keyman. However, the Preferences View
+menu contains a checkbox "Enable ZWSP insertion by
+Shift+Ctrl+spacebar", which, if clicked to be ON, will allow
+ZWSP to be inserted at the cursor location if the spacebar is
+pressed while holding down both the SHIFT and CTRL keys 
+on the keyboard.
+(Legacy documents which do not store the word break character
+are still opened correctly - a default latin space is used as each
+word break for these documents, and the spaces are stored in 
+the updated document file when the next File > Save is done.)
+* Unicode exports, now always commence with a byte order
+mark (BOM) at the start of the exported file, when the Unicode
+application is used. This enables such files (normally, they are
+UTF-8 encoded files) to be opened and displayed correctly in
+any word processor. Previously, the lack of a BOM would cause
+the word processor opening it to fail to display the text properly.
+----------------------------------------------
+Bug fixes in 6.5.4
+----------------------------------------------
+* The smart merge of edited source text was capable of 
+causing loss of merger data if the merger contained different
+source text. It now doesn't lose data.
+----------------------------------------------
 Version 6.5.3 release 18 June 2014
 ----------------------------------------------
 * Clipboard adaptation support. It is now possible to

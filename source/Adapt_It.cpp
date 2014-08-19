@@ -15177,11 +15177,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
     
-	//m_bLegacyDocLacksZWSPstorage = FALSE;  // default for docVersion 9 and up
-			// (set it TRUE in AtDocAttr() in XML.cpp if doc is version 8 or less,
-			// so that a wordbreaking space can be supplied programmatically in exports from
-			// such a document)
-
 	// Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
 	// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when

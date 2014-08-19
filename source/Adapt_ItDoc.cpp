@@ -415,11 +415,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc
-	// Next boolean supports the two new string members in CSourcePhrase, m_srcWordBreak and
-	// m_tgtWordBreak
-	//pApp->m_bLegacyDocLacksZWSPstorage = FALSE; // default, for docVersion 9 and above
-					// because 9 and above will store the word's preceding wordbreak char
-					// or chars in m_srcWordBreak
 
     pApp->m_owner = pApp->m_strUserID;  // this is our doc
     pApp->m_trialVersionNum = -1;		// negative means no trial going on - the normal case
@@ -18764,8 +18759,6 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory -
 									  // EraseKB in the App in wx
 		pApp->m_pGlossingKB = (CKB*)NULL; // whm added
-
-		//pApp->m_bLegacyDocLacksZWSPstorage = FALSE;
 	}
 
 // GDLC 2010-03-27 pFreeTrans is now unused in this function

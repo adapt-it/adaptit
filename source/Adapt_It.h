@@ -4476,13 +4476,6 @@ public:
 	// joining being done with plain latin space character (even if the user has joined words
 	// by manually typing ZWSP between each pair in the free translation)
 	bool m_bFreeTransUsesZWSP;
-	// Next flag is needed for when m_bUseSrcWordBreak is TRUE, but the document is a
-	// legacy one which does not have the m_srcWordBreak and m_tgtWordBreak member
-	// string storage. Because of the RebuildTgtText(), etc, exports, they don't have any
-	// storage to access in this case to get the CSourcePhrase's stored wordbreak string,
-	// and so we have to detect when this is the case in the XML input of AtDocAttr() and
-	// set this boolean to TRUE, so that our exports can provide a space as default word delimiter.
-	//bool m_bLegacyDocLacksZWSPstorage;
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12
