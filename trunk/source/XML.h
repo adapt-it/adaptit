@@ -161,11 +161,24 @@ CBString AddCloseAttrCloseEmptyElem(); // "/> + newline
 CBString AddClosingTagWithNewline(const char* tag); // </TAG> + newline
 CBString MakeMSWORDWarning(bool bExtraKBnote = FALSE);
 
+// Supporting special spaces entity replacements for things like "&#x200B;" CBStrings
+// The word delimiter may be a series of ascii characters, or a single special space
+// such as ZWSP, or a mix of ascii and converted-to-utf8 such special spaces (the
+// user should never type such a mix, but we have to allow for user misunderstandings)
+// and so so this function will look for the first special space of the form &#xNNNN;
+// and if present, extract it as a returned CBString; if there isn't any such special
+// space, it will return an empty string
+CBString ExtractSpecialSpaceFromEntityStr(CBString& rStr);
+
 // support for elements which contain entities
 void DoEntityInsert(CBString& s,Int16& offset,CBString& ch,const char* ent);
 void DoEntityReplace(CBString& s,Int16& offset,const char* ent,char ch);
 void InsertEntities(CBString& s); // handle & " ' < and > using &amp; etc)
 void ReplaceEntities(CBString& s);
+// BEW added 14Jul14 for support of unicode special whitespaces like ZWSP etc
+CBString InsertEntities_UWhites(wxChar myuchar);
+wxString ReplaceEntities_UWhites(CBString myentity);
+CBString InsertAllUWhitesEntities(wxString allWhites);
 
 // XML document parsing support
 bool IsWhiteSpace(char* pPos,char* pEnd);

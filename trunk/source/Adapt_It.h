@@ -520,9 +520,10 @@ const char xml_pupat[] = "pupat"; // m_punctsPattern
 
 // new ones, July 9 2014, for support of doc version = 9, for SEAsian languages using ZWSP etc
 /// Attribute name used in Adapt It XML documents
-const char xml_srcwdbrk[] = "swb"; // m_srcWordBreak (a wxString in CSourcePhrase)
+const char xml_srcwdbrk[] = "swbk"; // m_srcWordBreak (a wxString in CSourcePhrase)
 /// Attribute name used in Adapt It XML documents
-const char xml_tgtwdbrk[] = "twb"; // for target wordbreak, in a retranslation
+const char xml_tgtwdbrk[] = "twbk"; // for target wordbreak, in a retranslation
+
 
 // entity names (utf-8) for the ZWSP etc special space word-breaking delimiters
 const char xml_nbsp[] =         "&#x00A0;"; // standard Non-Breaking SPace
@@ -2374,6 +2375,16 @@ public:
                 // empty source phrase every time the user finishes editing something &
                 // hits RETURN) This flag's functionality is the same for adapting and for
                 // glossing.
+    bool m_bKeepAdaptationsForSrcRespellings; // default is FALSE, only -srcRespell turns it on
+				// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
+				// edited source text has spelling changes which are to be interpretted as simple
+				// orthography changes and typos fixed and so forth - with no actual meaning changes,
+				// that is, the words changed are changed to remain themselves in their current places
+				// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
+				// target text when the smart merge from Paratext's source text project is done back
+	            // to the Adapt It Document (associates with -srcRespell command line
+	            // switch) 
+
 	bool m_bForce_Review_Mode; // added by BEW, 23Oct09, to support Bob Eaton's wish for
 				// shell opening to add a frm switch to have the document opened be opened
 				// in a launched app where review mode radio button is obligatory on, and
@@ -4455,6 +4466,23 @@ public:
 									 // because project config files for versions 6.4.3 contain
 									 // this boolean (as 1 or 0) and so we'll read it if there,
 									 // but not write it anymore
+
+	// The next flag turns on or off the copy of the src text word break character for
+	// composing programmatically target text words into groups, default is TRUE
+	bool m_bUseSrcWordBreak;
+	// The next flag turns on or off the joining of free translation spans with whatever
+	// is stored in the anchor CSourcePhrase's m_srcWordBreak string - typically it would
+	// be ZWSP when the user wants this flag on; turning the flag off, results in programmatic
+	// joining being done with plain latin space character (even if the user has joined words
+	// by manually typing ZWSP between each pair in the free translation)
+	bool m_bFreeTransUsesZWSP;
+	// Next flag is needed for when m_bUseSrcWordBreak is TRUE, but the document is a
+	// legacy one which does not have the m_srcWordBreak and m_tgtWordBreak member
+	// string storage. Because of the RebuildTgtText(), etc, exports, they don't have any
+	// storage to access in this case to get the CSourcePhrase's stored wordbreak string,
+	// and so we have to detect when this is the case in the XML input of AtDocAttr() and
+	// set this boolean to TRUE, so that our exports can provide a space as default word delimiter.
+	//bool m_bLegacyDocLacksZWSPstorage;
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12

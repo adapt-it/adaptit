@@ -2953,6 +2953,220 @@ bool AtSFMEndTag(CBString& tag, CStack*& WXUNUSED(pStack))
 *
 *********************************************************************************/
 
+/* from Adapt_It.h lines 529++
+const char xml_nbsp[] =         "&#x00A0;"; // standard Non-Breaking SPace
+const char xml_enquad[] =       "&#x2000;"; // En Quad or 'en space'
+const char xml_emquad[] =       "&#x2001;"; // Em Quad or 'em space'
+const char xml_enspace[] =      "&#x2002;"; // En Space or 'space', approx == latin space
+const char xml_emspace[] =      "&#x2003;"; // Em Space or 'em space'
+const char xml_3peremspace[] =  "&#x2004;"; // slightly thinner space
+const char xml_4peremspace[] =  "&#x2005;"; // mid space
+const char xml_6peremspace[] =  "&#x2006;"; // thin space
+const char xml_figurespace[] =  "&#x2007;"; // digit with of fixed width digits
+const char xml_punctspace[] =   "&#x2008;"; // punctuation space (equals narrow punctn of font)
+const char xml_thinspace[] =    "&#x2009;"; // thin space (about a fifth of an em)
+const char xml_hairspace[] =    "&#x200A;"; // hair space (thinner than thin, narrowest available)
+const char xml_zwsp[] =         "&#x200B;"; // ZWSP or 'zero width space'
+const char xml_wdjoinr[] =      "&#x2060;"; // zero width non-breaking Word Joiner (called WJ)
+*/
+// BEW added 14Jul14 for support of unicode special whitespaces like ZWSP etc
+CBString InsertEntities_UWhites(wxChar myuchar)
+{
+	CBString whiteStr;
+	switch(myuchar)
+	{
+	case (wxChar)0x00A0:
+		whiteStr = "&#x00A0;";
+		break;
+	case (wxChar)0x2000:
+		whiteStr = "&#x2000;";
+		break;
+	case (wxChar)0x2001:
+		whiteStr = "&#x2001;";
+		break;
+	case (wxChar)0x2002:
+		whiteStr = "&#x2002;";
+		break;
+	case (wxChar)0x2003:
+		whiteStr = "&#x2003;";
+		break;
+	case (wxChar)0x2004:
+		whiteStr = "&#x2004;";
+		break;
+	case (wxChar)0x2005:
+		whiteStr = "&#x2005;";
+		break;
+	case (wxChar)0x2006:
+		whiteStr = "&#x2006;";
+		break;
+	case (wxChar)0x2007:
+		whiteStr = "&#x2007;";
+		break;
+	case (wxChar)0x2008:
+		whiteStr = "&#x2008;";
+		break;
+	case (wxChar)0x2009:
+		whiteStr = "&#x2009;";
+		break;
+	case (wxChar)0x200A:
+		whiteStr = "&#x200A;";
+		break;
+	case (wxChar)0x200B:
+		whiteStr = "&#x200B;";
+		break;
+	case (wxChar)0x2060:
+		whiteStr = "&#x2060;";
+		break;
+	default: // handle anything not the above
+		wxString out = myuchar;
+		whiteStr = gpApp->Convert16to8(out);
+	}
+	return whiteStr;
+}
+CBString InsertAllUWhitesEntities(wxString allWhites)
+{
+	CBString outStr; outStr.Empty();
+	if (allWhites.IsEmpty())
+		return outStr;
+	else
+	{
+		size_t i;
+		size_t length = allWhites.Len();
+		for (i=0; i<length; i++)
+		{
+			wxChar aChar = allWhites.GetChar(i);
+			outStr += InsertEntities_UWhites(aChar);
+		}
+	}
+	return outStr;
+}
+
+CBString ExtractSpecialSpaceFromEntityStr(CBString& rStr)
+{
+	CBString out; out.Empty();
+	int offset1 = rStr.Find('&');
+	if (offset1 == -1)
+		return out;
+	int offset2 = rStr.Find(';',offset1 + 7); // should be pointing at semicolon
+	if (offset2 == -1)
+	{
+		// not the expected entity, so make one more attempt before bailing out
+		offset1 = rStr.Find('&', offset1 +  1);
+		if (offset1 == -1)
+			return out;
+		int offset2 = rStr.Find(';',offset1 + 7); // should be pointing at semicolon
+		if (offset2 == -1)
+		{
+			// not the expected entity, so return empty string
+			return out;
+		}
+		else
+		{
+			// found semicolon at correct location, so extract the entity and return it
+			out = rStr.Mid(offset1, offset1 + 8);
+		}
+	} // end of 2nd test
+	else
+	{
+		// found semicolon at correct location, so extract the entity and return it
+		out = rStr.Mid(offset1, offset1 + 8);
+	}
+	return out;
+}
+
+wxString ReplaceEntities_UWhites(CBString myentity)
+{
+	wxString myStr;
+	CBString singleEntityStr = ExtractSpecialSpaceFromEntityStr(myentity);
+	if (singleEntityStr.IsEmpty())
+	{
+		// it is nothing special as a delimiter, so as it could be several spaces, 
+		// just return whatever it is converted to utf16 or utf32 on mac or linux
+		myStr = gpApp->Convert8to16(myentity);
+		return myStr;
+	}
+	else
+	{
+		// it found a special space entity string of form &#xNNNN; so use nested
+		// if else tests to find what the corresponding wxChar is, and return it
+		// in myStr. Check for ZWSP first, it's the most likely one; then fixed
+		// spaces, and then the narrow spaces, and then anything that remains -
+		// and if nothing matches (this would not be expected) then just return
+		// a ZWSP
+		if (singleEntityStr == "&#x200B;")
+		{
+			myStr =  wxString((wxChar)0x200B);
+			//size_t length = myStr.Len();
+			return myStr;
+		}
+		if (singleEntityStr == "&#x00A0;")
+		{
+			myStr =  wxString((wxChar)0x00A0); // standard non-breaking space
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2060;")
+		{
+			myStr =  wxString((wxChar)0x2060); // WJ (zero width non-breaking Word Joiner)
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2000;")
+		{
+			myStr =  wxString((wxChar)0x2000); // En Quad or 'en space'
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2001;")
+		{
+			myStr =  wxString((wxChar)0x2001); // Em Quad or 'em space'
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2002;")
+		{
+			myStr =  wxString((wxChar)0x2002); // En Space or 'space', approx == latin space
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2003;")
+		{
+			myStr =  wxString((wxChar)0x2003); // Em Space or 'em space'
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2004;")
+		{
+			myStr =  wxString((wxChar)0x2004); // slightly thinner space
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2005;")
+		{
+			myStr =  wxString((wxChar)0x2005); // mid space
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2006;")
+		{
+			myStr =  wxString((wxChar)0x2006); // thin space
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2007;")
+		{
+			myStr =  wxString((wxChar)0x2007); // digit with of fixed width digits
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2008;")
+		{
+			myStr =  wxString((wxChar)0x2008); // punctuation space (equals narrow punctn of font)
+			return myStr;
+		}
+		if (singleEntityStr == "&#x2009;")
+		{
+			myStr =  wxString((wxChar)0x2009); // thin space (about a fifth of an em)
+			return myStr;
+		}
+		if (singleEntityStr == "&#x20A0;")
+		{
+			myStr =  wxString((wxChar)0x20A0); // hair space (thinner than thin, narrowest available)
+			//return myStr;
+		}
+	}
+	return myStr;
+}
 
 bool AtDocTag(CBString& tag, CStack*& WXUNUSED(pStack))
 {
@@ -3064,6 +3278,25 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue, CStack*& WX
 			wxMessageBox (_T("It appears that this document has been created with a newer version of Adapt It. Some things that the newer version supports, won't be available."));
 			inputDocVersion = VERSION_NUMBER;
 		}
+
+		// BEW deprecated this protocol - remove the comment later, the protocol doesn't work
+        // If this is a "legacy" doc as far as having the m_srcWordBreak and m_tgtWordBreak
+        // members of CSourcePhrase - that is, the doc being input does not have these two
+        // members because it was created by a version of Adapt It with docVersion 8 or
+        // earlier; then all attempts to read these storage locations will yield just an
+        // empty string, because the attributes with names xml_srcwdbrk and xml_tgtwdbrk
+        // will not get matched. So because USFM exports now need the wordbreak strings
+        // from such members, we have to set the m_bLegacyDocLacksZWSPstorage boolean on
+        // the app, so that our code (like in RestoreTargetTexxt() for example) can detect
+        // it is a legacy doc and add the required latin space where required (we can't
+        // unfortunately guess about ZWSP though, so latin space it will have to be). So
+        // we'll here assume the doc is a legacy one (ie. docVersion 8 or earlier), and
+        // only in the blocks below which match a xml_srcwdbrk attribute will we reset the
+        // boolean to FALSE. The flag is used in the CSourcePhrase::GetSrcWordBreak() and
+        // GetTgtWordBreak() accessors, to return a string containing a single latin space
+        // when the flag is TRUE, otherwise, the stored word break character or string is
+        // accessed and returned.
+		//gpApp->m_bLegacyDocLacksZWSPstorage = TRUE;
 		
 		gnDocVersion = inputDocVersion;
 		return TRUE;
@@ -3343,11 +3576,12 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				ReplaceEntities(attrValue); // most require it, so do it on all
 				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
-					;// do nothing, ZWSP is not supported in ANSI build
+					gpApp->m_bLegacyDocLacksZWSPstorage = FALSE; // see explanation near top of AtDocAttr()
+					gpEmbeddedSrcPhrase->SetSrcWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
-				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrk)
 				{
-					;// do nothing, ZWSP is not supported in ANSI build
+					gpEmbeddedSrcPhrase->SetTgtWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
 				else if (attrName == xml_s)
 				{
@@ -3502,11 +3736,12 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				ReplaceEntities(attrValue); // most require it, so do it on all
 				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
-					;// do nothing, ZWSP is not supported in ANSI build
+					gpApp->m_bLegacyDocLacksZWSPstorage = FALSE; // see explanation near top of AtDocAttr()
+					gpSrcPhrase->SetSrcWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
-				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrk)
 				{
-					;// do nothing, ZWSP is not supported in ANSI build
+					gpSrcPhrase->SetTgtWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
 				else if (attrName == xml_s)
 				{
@@ -3797,19 +4032,17 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-/*				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
-					// TODO
-					//gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
-
+					//gpApp->m_bLegacyDocLacksZWSPstorage = FALSE; // see explanation near top of
+					//AtDocAttr() - deprecated 29Jul14
+					gpEmbeddedSrcPhrase->SetSrcWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
-				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrk)
 				{
-					// TODO
-					
-	
+					gpEmbeddedSrcPhrase->SetTgtWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
-				else */if (attrName == xml_s)
+				else if (attrName == xml_s)
 				{
 					gpEmbeddedSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
 				}
@@ -3946,19 +4179,17 @@ if ( (gpApp->m_owner == gpApp->m_AIuser) && (!gpApp->m_strUserID.IsEmpty()) )
 				// The rest of the string ones may potentially contain " or > (though unlikely),
 				// so ReplaceEntities() will need to be called
 				ReplaceEntities(attrValue); // most require it, so do it on all
-/*				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
+				if (gnDocVersion >= 9 && attrName == xml_srcwdbrk)
 				{
-					// TODO
-					//gpApp->m_bookName_Current = gpApp->Convert8to16 (attrValue);
-
+					//gpApp->m_bLegacyDocLacksZWSPstorage = FALSE; // see explanation near top of
+					//AtDocAttr() -deprecated 29Jul14
+					gpSrcPhrase->SetSrcWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
-				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrks)
+				else if (gnDocVersion >= 9 && attrName == xml_tgtwdbrk)
 				{
-					// TODO
-					
-	
+					gpSrcPhrase->SetTgtWordBreak(ReplaceEntities_UWhites(attrValue));
 				}
-				else */ if (attrName == xml_s)
+				else if (attrName == xml_s)
 				{
 					gpSrcPhrase->m_srcPhrase = gpApp->Convert8to16(attrValue);
 				}

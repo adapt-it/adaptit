@@ -813,6 +813,53 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 	// will, where they occur, trigger AI overwriting the external editor's verse with its
 	// own verse and so the punct changes end up being reflected back in the external editor
 	gpApp->m_bPunctChangesDetectedInSourceTextMerge = FALSE; // initialize
+
+	// Check if -srcRespell switch was ON at launch (TRUE if so, for the app boolean
+	// gpApp->m_bKeepAdaptationsForSrcRespellings), and turn that flag back off to FALSE
+	// if there is one or more mergers within arrOld. In that case, we cannot ensure that
+	// there is no respelling of source text within a merger which lies across the
+	// boundary between beforeSpan and commonSpan, or the boundary between commonSpan and
+	// afterSpan. If such was the case, the attempt to rebuild the merger would fail
+	// because not all the required CSourcePhrase instances lie within the beforeSpan or
+	// within the afterSpan - and then the merger would not get rebuilt and so data would
+	// be lost from within the document. We cannot allow data loss, and checking for there
+	// being no respellings within any merger is too expensive and difficult to be worth
+	// the botther. Our only recourse is to disallow retaining adaptations if the arrOld
+	// SPArray contains one or more mergers - since it's easy to check for there being no
+	// mergers - and when there are in fact no mergers, we can be sure that no data would
+	// be lost when attempting to retain adaptations. Disallowing the effect of the
+	// -srcRespell switch being on therefore just means that a legacy merge gets done,
+	// that is, there will be a  translation text "hole" at each location where a src text
+	// respelling occurred; requiring the user to re-adapt the document to fill such holes
+	// after the legacy smart merge has completed.
+	if (gpApp->m_bKeepAdaptationsForSrcRespellings)
+	{
+		size_t size = arrOld.GetCount();
+		size_t index = 0;
+		bool bHasMerger = FALSE;
+		CSourcePhrase* pSrcPhrase = NULL;
+		for (index = 0; index < size; index++)
+		{
+			pSrcPhrase = arrOld.Item(index);
+			if (pSrcPhrase->m_nSrcWords > 1)
+			{
+				bHasMerger = TRUE;
+				break;
+			}
+		}
+		if (bHasMerger)
+		{
+			// Disallow the attempt to retain adaptations because source text has only
+			// respellings; the legacy merge will therefore happen, but we must also warn
+			// the user that the attempt was disallowed...
+			gpApp->m_bKeepAdaptationsForSrcRespellings = FALSE;
+
+			// Here's the warning
+			wxString title = _T("Disallow -srcRespell switch");
+			wxString msg = _T("Adapt It was launched with the -srcRespell switch, to cause adaptations to be retained at locations where the source text was respelled externally. However one or more source text phrase mergers were detected in the document. Such mergers have the potential to cause data loss when -srcRespell is used, so a legacy normal merge will now take place. No data will be lost, but after the merger you will have to adapt again any places in the document where target text was not retained.");
+			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		}
+	}
 	
 	// do the merger of the two arrays
 	MergeUpdatedSrcTextCore(arrOld, arrNew, pMergedList, limit);
@@ -3430,10 +3477,28 @@ void TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool
 // BEW 28May11, changed the signature to conform to the other Transfer...() functions' signatures
 // old signature: bool TransferPunctsAndMarkersToMerger(SPArray& arrNew, int newStartAt,
 //                int newEndAt, CSourcePhrase* pTo)
+// BEW refactored 21Jul14 to support -srcRespell command line switch, adding the bool
+// param to end of signature. It's default FALSE, but when TRUE, the function will also
+// get called to do it's job for beforeSpan and for closed afterSpan, and additionally to
+// update the m_srcPhrase and m_key members from the words in arrNew because it is assumed
+// that the changed words in the new subspan been not been added to or remove, but just
+// respelled. 
+// Beware, the -srcRespell switch should only be used when no words are removed or added to
+// the PT or BE source text project, but only edits done to the spellings of some of them.
+// But edits to punctuation are 'sort-of' acceptable but will not transfer any changes to
+// punctuation which is medial to a merger, so for that reason it is best to avoid doing
+// any punctuation changes (in the PT source project) at the same time as respellings (in
+// the PT source project) when the command line switch -srcRespell is in effect). However,
+// if there are no medial puncts in the data at either the AI end or the PT end, then
+// punct changes would transfer reliably in a -srcRespell scenario. But who could be sure?
+// So best to avoid the possibility.
+// This function can now be called on beforeSpan and afterSpan spans, not just commonSpan.
+// At same time, also added support for ZWSP and other special spaces, for SE Asian languages
 bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldIndex,
-		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int & newDoneToIncluding)
+		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int & newDoneToIncluding,
+		bool bKeepAdaptationsForSrcRespellings)
 {
-	wxASSERT(pSubspan->spanType == commonSpan);
+	// wxASSERT(pSubspan->spanType == commonSpan); <<-- no longer a valid test
 
 	// check indices don't violate pSubspan's  bounds
 	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
@@ -3487,6 +3552,10 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	for (index = newStartAt; index <= newEndAt; index++)
 	{
 		// BEW changes 21May14 - see above
+		// BEW 21Jul14, for docVersion 9, these will also store in their
+		// m_srcWordBreak member, whatever word delimiter precedes each word
+		// (it could be a ZWSP if the src language is SE Asian, or space, or be force
+		// to be a space if the old array's document was created prior to docVersion 9)
 		CSourcePhrase* pNew = (CSourcePhrase*)arrNew.Item(index);
 		pRangeNew->Add(pNew);
 		if (index == newStartAt)
@@ -3517,6 +3586,11 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	// CSourcePhrase in the new array's subrange as the source of the material to transfer;
 	// FALSE, FALSE, FALSE is: bool bAICustomMkrsAlso, bool bFlagsToo, bool bClearAfterwards
 	TransferPrecedingMembers((CSourcePhrase*)pRangeNew->Item(0), pTo, FALSE, FALSE, FALSE);
+	// BEW 21Jul14, also transfer the from PT or from BE m_srcWordBreak value, it could
+	// have been changed in the external editor
+	wxString firstWordBreak = ((CSourcePhrase*)pRangeNew->Item(0))->GetSrcWordBreak();
+	pTo->SetSrcWordBreak(firstWordBreak);
+
 	// second, transfer the following punctuation and markers to pTo, using the last
 	// instance in new array's subrange (anything else will go, further below, in the
 	// m_pMedialPuncts wxArrayString, and m_pSavedWords SPList, using code further below)
@@ -3524,48 +3598,98 @@ bool TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldI
 	TransferFollowingMembers((CSourcePhrase*)pRangeNew->Item(last), pTo, FALSE, FALSE);
 
 	// now gather and transfer the medial punctuation, and markers, if any, and put into the
-	// m_pMedialPuncts array and m_pMedialMarkers array, as appropriate
+	// m_pMedialPuncts array and m_pMedialMarkers array, as appropriate; it also copies the
+	// pTo m_adaption and m_targetStr contents to the equivalent new CSourcePhrase
+	// instance, so that the m_pSavedWords list on pNewSrcPhrase gets updated with any src
+	// text respellings; and returns composed strings for updating m_srcPhrase and m_key
+	// on the merger if those were different in the arrNew data
 	wxString parentPrecPunct = pTo->m_precPunct;
 	wxString parentFollPunct = pTo->m_follPunct + pTo->GetFollowingOuterPunct();
 	wxString srcPhraseUpdated; srcPhraseUpdated.Empty();
+	wxString keyUpdated; keyUpdated.Empty();
 	ReplaceMedialPunctuationAndMarkersInMerger(pTo, pRangeNew, parentPrecPunct,
-								parentFollPunct, srcPhraseUpdated);
+							parentFollPunct, srcPhraseUpdated, keyUpdated);
 	if (!srcPhraseUpdated.IsEmpty())
 	{
 		pTo->m_srcPhrase = srcPhraseUpdated;
 	}
-
-    // The source text has been handled, and original instances' m_targetStr members
-    // rebuilt, but unfortunately we can't reliably rebuild the m_targetStr for the owning
-    // merged CSourcePhrase, because there may be fewer, the same or more words in the
-    // m_targetStr member, and the location of punctuation may be different. So all we can
-    // do is leave that member unchanged - it's up to the user to eyeball that instance and
-    // edit it using the phrase box if he's unsatisfied with it
-    // 
-	// BEW 21May14, changes to support punctuation changes at start of first word and/or
-	// at end of last word of the merger
-	if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
+	if (!keyUpdated.IsEmpty())
 	{
-		wxString targetStr = pTo->m_adaption;
-		if (bPrecedingPunctsChanged)
-		{
-			targetStr = GetConvertedPunct(prePunctsNew) + targetStr;
-		}
-		if (bFollowingPunctsChanged)
-		{
-			targetStr += GetConvertedPunct(follPunctsNew) + GetConvertedPunct(follOuterPunctsNew);
-		}
-		pTo->m_targetStr = targetStr;
+		pTo->m_key = keyUpdated;
 	}
-
-
+    // The source text & key have been handled, and original instances' m_targetStr and
+    // m_adaption members rebuilt, but unfortunately we can't reliably rebuild the
+    // m_targetStr for the owning merged CSourcePhrase, because there may be fewer, the
+    // same or more words in the m_targetStr member, and the location of punctuation may be
+    // different. So all we can do is leave that member unchanged - it's up to the user to
+    // eyeball that instance and edit it using the phrase box if he's unsatisfied with it
+    // pRangeNew has the updated (by ReplaceMedialPunctuationAndMarkersInMerger() call)
+	// set of new CSourcePhrase instances for the m_pSavedWords set for the merger; but
+	// these are not yet put into the pTo merger as replacements.
+	//
+    // BEW refactored next bit, 21Jul14: here, for -srcRespell on, make sure that pTo keeps
+    // old m_targetStr & m_adaption unchanged -- the commonSpan's block below will make
+    // limited changes in legacy situation, but we want a slightly different path thru what
+    // follows if -srcRespell is on, and a different path again if -srcRespell switch is
+    // not on, in this case the m_targetStr and m_adaption members of the updated merger
+    // must be cleared
+	if (pSubspan->spanType == commonSpan)
+	{
+		// BEW 21May14, changes to support punctuation changes at start of first word and/or
+		// at end of last word of the merger
+		if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
+		{
+			wxString targetStr = pTo->m_adaption;
+			if (bPrecedingPunctsChanged)
+			{
+				targetStr = GetConvertedPunct(prePunctsNew) + targetStr;
+			}
+			if (bFollowingPunctsChanged)
+			{
+				targetStr += GetConvertedPunct(follPunctsNew) + GetConvertedPunct(follOuterPunctsNew);
+			}
+			pTo->m_targetStr = targetStr;
+		}
+	}
+	else // it is either a beforeSpan or a closed afterSpan - a closed after span because the
+		 // caller will not call this function if the afterSpan is not a closed one
+	{
+		if (bKeepAdaptationsForSrcRespellings)
+		{
+			// We are running under the command line switch -srcRespell, and so we are
+			// asking for the smart merge from PT or BE to not throw away the adaptations
+			// because the source text changes done in PT or BE are all just respellings,
+			// eg. due to an orthography change, and so there are no meaning differences
+			// involved and that means the existing adaptations are still valid
+			;  // nothing to do, m_targetStr and m_adaption members are to be left 'as is'
+		}
+		else
+		{
+			// We are not running under the command line switch -srcRespell, and so we
+			// require that the smart merge from PT or BE must throw away the adaptations
+			// (well, just the m_targetStr and m_adaption members' contents for the merged
+			// CSourcePhrase, it's stored originals in m_pSavedWords should be kept with
+			// any adaptations that can be restored to them, because if any were restored
+			// to them, then they were put in them originally before the merger was made -
+			// and so they may still be valid (even though not seen unless the merger is
+			// unmade at some later time). So we'll clear the merger's m_targetStr and 
+			// m_adaption members
+			pTo->m_adaption.Empty();
+			pTo->m_targetStr.Empty();
+		}
+	}
 	// do the storage of the updated CSourcePhrase instances in m_pSavedWords after
 	// adaptations were tranferred to the new instances first
 	ReplaceSavedOriginalSrcPhrases(pTo, pRangeNew);
 
-	pRangeNew->Clear();
+	if (!pRangeNew->IsEmpty())
+	{
+		pRangeNew->Clear();
+	}
 	if (pRangeNew != NULL) // whm 11Jun12 added NULL test
+	{
 		delete pRangeNew;
+	}
 	// update the values to be returned as indices preceding the next kick-off locations
 	oldDoneToIncluding = oldIndex;
 	newDoneToIncluding = newEndAt;
@@ -3647,44 +3771,66 @@ int PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray)
 // members has been cleared of their former contents - if any. parentPrevPunct is for
 // inputting the intial m_precPunct value for the parent instance, and parentFollPunct
 // does the same for the m_follPunct and m_follOuterPunct values for the parent; while the
-// medial information builds strFromMedials from the new material's m_key members plus
+// medial information builds srcPhrFromInstances from the new material's m_key members plus
 // punctuation, and returns it to the caller by means of the signature, where it will have
 // the parent's previous and following puncts added - to form a new m_srcPhrase value.
 // We also rebuild the m_targetStr members for both parent and it's children.
 // This function is used within TransferPunctsAndMarkersToMerger()
+// BEW refactored 21Jul14, but only to support ZWSP etc storage and replacement. Support for
+// changes to m_srcPhrase and m_key for support of -srcRespell command line switch will be
+// done in a new function which is only to be invoked within
+// TransferPunctsAndMarkersToMerger() when the -srcRespell switch is in operation - and in
+// that scenario the code in the new function will assume *THERE ARE NO PUNCTUATION
+// CHANGES* in the arrNew data that has come from PT or BE in order to rebuild the merger
+// (if there are, well too bad, the resultant AI document will lack the puncts changes, but
+// will have the correct source respellings nevertheless)
+// Since we are supporting ZWSP and similar spaces here now, the first word's
+// CSourcePhrase will get whatever preceding wordbreak string is to be added, in the
+// caller, rather than here. So we only get and use the wordbreaks here from the second
+// and later CSourcePhrase new instances. We will, however, add a new parameter wxString&
+// keyFromInstances, since ZWSP support will need to potentially rebuild m_key for
+// pMergedSP as well as m_srcPhrase (only the latter was done in the past because if space
+// was the only wordbreak, m_key was able to be assumed to have not changed; but that is
+// no longer the case now)
 void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew,
-				wxString& parentPrevPunct, wxString& parentFollPunct, wxString& strFromMedials)
+				wxString& parentPrevPunct, wxString& parentFollPunct, wxString& srcPhrFromInstances,
+				wxString& keyFromInstances)
 {
-	wxString spaceStr = _T(" ");
+	//wxString spaceStr = _T(" ");
 
 	wxArrayPtrVoid arrRangeOfOldOnes;
 	SPList::Node* pos = pMergedSP->m_pSavedWords->GetFirst();
 	while (pos != NULL)
 	{
+		// BEW 21Jul14, no need to copy over to these the arrNew instance's m_srcWordBreak
+		// member, because we only use these old ones in order to get their m_adaption
+		// and m_targetStr member values to copy them to pNewSrcPhrase in the loop further below
 		arrRangeOfOldOnes.Add(pos->GetData());
 		pos = pos->GetNext();
 	}
 
+	keyFromInstances.Empty(); // initialize
 	pMergedSP->m_pMedialPuncts->Clear();
 	pMergedSP->m_pMedialMarkers->Clear();
 	int total = pArrayNew->GetCount();
-	strFromMedials += parentPrevPunct;
+	srcPhrFromInstances += parentPrevPunct; // the preceding wordbreak is handled in caller
 	int index;
 	wxString targetStr;
 	for (index = 0; index < total; index++)
 	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pArrayNew->Item(index);
+		CSourcePhrase* pNewSrcPhrase = (CSourcePhrase*)pArrayNew->Item(index);
 		if (index == 0)
 		{
             // add the new instance's m_key to the string being composed for parent's
             // m_srcPhrase updated value
-			strFromMedials += pSrcPhrase->m_key;
-			strFromMedials += pSrcPhrase->m_follPunct;
-			strFromMedials += pSrcPhrase->GetFollowingOuterPunct();
-			strFromMedials += spaceStr;
+			srcPhrFromInstances += pNewSrcPhrase->m_key;
+			srcPhrFromInstances += pNewSrcPhrase->m_follPunct;
+			srcPhrFromInstances += pNewSrcPhrase->GetFollowingOuterPunct();
+			//srcPhrFromInstances += spaceStr; <<-- index == 1 iteration now handles this one
+			keyFromInstances += pNewSrcPhrase->m_key;
 
 			// build a with-punctuation m_targetStr from the old stored original
-			// sourcephrase and copy it to the pSrcPhrase->m_targetStr member
+			// sourcephrase and copy it to the pNewSrcPhrase->m_targetStr member
 			CSourcePhrase* pOrig = (CSourcePhrase*)arrRangeOfOldOnes.Item(index);
 			if (!pOrig->m_adaption.IsEmpty())
 			{
@@ -3694,48 +3840,55 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				targetStr += pOrig->m_adaption;
 				targetStr += pOrig->m_follPunct;
 				targetStr += pOrig->GetFollowingOuterPunct();
-				// insert it into the m_targetStr member of pSrcPhrase, also copy
+				
+				// insert it into the m_targetStr member of pNewSrcPhrase, also copy
 				// m_adaption
-				pSrcPhrase->m_adaption = pOrig->m_adaption;
-				pSrcPhrase->m_targetStr = targetStr;
+				pNewSrcPhrase->m_adaption = pOrig->m_adaption;
+				pNewSrcPhrase->m_targetStr = targetStr;
 			}
 
-			// the first instance contributes only from stored end-marker fields, and
-			// following puncts and following outer puncts
+			// the first instance contributes to medial markers and medial puncts only 
+			// from stored end-marker fields, and following puncts and following outer puncts
 			// BEW 15Aug11, need to wrap each line in a test for non-empty string,
 			// otherwise it adds empty strings to m_pMedialMarkers and m_pMedialPuncts
-			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetEndMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetEndMarkers());
 			}
-			if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineBindingEndMarkers());
 			}
-			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineNonbindingEndMarkers());
 			}
 
-			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			if (!pNewSrcPhrase->m_follPunct.IsEmpty())
 			{
-				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
+				pMergedSP->m_pMedialPuncts->Add(pNewSrcPhrase->m_follPunct);
 			}
-			if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+			if (!pNewSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 			{
-				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
+				pMergedSP->m_pMedialPuncts->Add(pNewSrcPhrase->GetFollowingOuterPunct());
 			}
 		}
 		else if (index == total - 1)
 		{
-            // add the new instance's m_key to the string being composed for parent's
-            // m_srcPhrase updated value
-			strFromMedials += pSrcPhrase->m_precPunct;
-			strFromMedials += pSrcPhrase->m_key;
-			strFromMedials += parentFollPunct; // LHS combines m_follPunct + m_follOuterPunct
+            // at the last instance, add the new instance's m_key to the string being
+			// composed for parent's m_srcPhrase updated value; also precede with the
+			// wordbreak for this location
+			srcPhrFromInstances += PutSrcWordBreak(pNewSrcPhrase);
+			srcPhrFromInstances += pNewSrcPhrase->m_precPunct;
+			srcPhrFromInstances += pNewSrcPhrase->m_key;
+			srcPhrFromInstances += parentFollPunct; // LHS combines m_follPunct + m_follOuterPunct
+
+			keyFromInstances += PutSrcWordBreak(pNewSrcPhrase);
+			keyFromInstances += pNewSrcPhrase->m_key;
 
 			// build a with-punctuation m_targetStr from the old stored original
-			// sourcephrase and copy it to the pSrcPhrase->m_targetStr member, etc
+			// sourcephrase and copy it to the pNewSrcPhrase->m_targetStr member, etc
+			// and also handle the possibility of ZWSP 
 			CSourcePhrase* pOrig = (CSourcePhrase*)arrRangeOfOldOnes.Item(index);
 			if (!pOrig->m_adaption.IsEmpty())
 			{
@@ -3744,44 +3897,49 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				targetStr = pOrig->m_precPunct;
 				targetStr += pOrig->m_adaption;
 				targetStr += parentFollPunct; // combines m_follPunct + m_follOuterPunct
-				// insert it into the m_targetStr member of pSrcPhrase, also copy
+				// insert it into the m_targetStr member of pNewSrcPhrase, also copy
 				// m_adaption
-				pSrcPhrase->m_adaption = pOrig->m_adaption;
-				pSrcPhrase->m_targetStr = targetStr;
+				pNewSrcPhrase->m_adaption = pOrig->m_adaption;
+				pNewSrcPhrase->m_targetStr = targetStr;
 			}
 
 			// the last instance contributes only from stored begin-marker fields, and
 			// preceding puncts
-			if (!pSrcPhrase->m_markers.IsEmpty())
+			if (!pNewSrcPhrase->m_markers.IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->m_markers);
 			}
-			if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineBindingMarkers());
 			}
-			if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineNonbindingMarkers());
 			}
 
-			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			if (!pNewSrcPhrase->m_precPunct.IsEmpty())
 			{
-				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
+				pMergedSP->m_pMedialPuncts->Add(pNewSrcPhrase->m_precPunct);
 			}
 		}
 		else
 		{
             // add the new instance's m_key to the string being composed for parent's
             // m_srcPhrase updated value
-			strFromMedials += pSrcPhrase->m_precPunct;
-			strFromMedials += pSrcPhrase->m_key;
-			strFromMedials += pSrcPhrase->m_follPunct;
-			strFromMedials += pSrcPhrase->GetFollowingOuterPunct();
-			strFromMedials += spaceStr;
+			srcPhrFromInstances += PutSrcWordBreak(pNewSrcPhrase);
+			srcPhrFromInstances += pNewSrcPhrase->m_precPunct;
+			srcPhrFromInstances += pNewSrcPhrase->m_key;
+			srcPhrFromInstances += pNewSrcPhrase->m_follPunct;
+			srcPhrFromInstances += pNewSrcPhrase->GetFollowingOuterPunct();
+			//srcPhrFromInstances += spaceStr;
+
+			keyFromInstances += PutSrcWordBreak(pNewSrcPhrase);
+			keyFromInstances += pNewSrcPhrase->m_key;
+
 
 			// build a with-punctuation m_targetStr from the old stored original
-			// sourcephrase and copy it to the pSrcPhrase->m_targetStr member, etc
+			// sourcephrase and copy it to the pNewSrcPhrase->m_targetStr member, etc
 			CSourcePhrase* pOrig = (CSourcePhrase*)arrRangeOfOldOnes.Item(index);
 			if (!pOrig->m_adaption.IsEmpty())
 			{
@@ -3791,50 +3949,50 @@ void ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArra
 				targetStr += pOrig->m_adaption;
 				targetStr += pOrig->m_follPunct;
 				targetStr += pOrig->GetFollowingOuterPunct();
-				// insert it into the m_targetStr member of pSrcPhrase, also copy
+				// insert it into the m_targetStr member of pNewSrcPhrase, also copy
 				// m_adaption
-				pSrcPhrase->m_adaption = pOrig->m_adaption;
-				pSrcPhrase->m_targetStr = targetStr;
+				pNewSrcPhrase->m_adaption = pOrig->m_adaption;
+				pNewSrcPhrase->m_targetStr = targetStr;
 			}
 
 			// any other instances contribute from both begin-marker fields and end-marker
 			// fields; and preceding and following and followingOuter punctuation fields
-			if (!pSrcPhrase->m_markers.IsEmpty())
+			if (!pNewSrcPhrase->m_markers.IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->m_markers);
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->m_markers);
 			}
-			if (!pSrcPhrase->GetInlineBindingMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineBindingMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineBindingMarkers());
 			}
-			if (!pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineNonbindingMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineNonbindingMarkers());
 			}
-			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetEndMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetEndMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetEndMarkers());
 			}
-			if (!pSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineBindingEndMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineBindingEndMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineBindingEndMarkers());
 			}
-			if (!pSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
+			if (!pNewSrcPhrase->GetInlineNonbindingEndMarkers().IsEmpty())
 			{
-				pMergedSP->m_pMedialMarkers->Add(pSrcPhrase->GetInlineNonbindingEndMarkers());
+				pMergedSP->m_pMedialMarkers->Add(pNewSrcPhrase->GetInlineNonbindingEndMarkers());
 			}
 
-			if (!pSrcPhrase->m_precPunct.IsEmpty())
+			if (!pNewSrcPhrase->m_precPunct.IsEmpty())
 			{
-				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_precPunct);
+				pMergedSP->m_pMedialPuncts->Add(pNewSrcPhrase->m_precPunct);
 			}
-			if (!pSrcPhrase->m_follPunct.IsEmpty())
+			if (!pNewSrcPhrase->m_follPunct.IsEmpty())
 			{
-				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->m_follPunct);
+				pMergedSP->m_pMedialPuncts->Add(pNewSrcPhrase->m_follPunct);
 			}
-			if (!pSrcPhrase->GetFollowingOuterPunct().IsEmpty())
+			if (!pNewSrcPhrase->GetFollowingOuterPunct().IsEmpty())
 			{
-				pMergedSP->m_pMedialPuncts->Add(pSrcPhrase->GetFollowingOuterPunct());
+				pMergedSP->m_pMedialPuncts->Add(pNewSrcPhrase->GetFollowingOuterPunct());
 			}
 		}
 	}
@@ -7285,10 +7443,13 @@ void SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limi
 /// I've commented what happens in this detail so that anyone coming to this later on will
 /// not have to recreate all the thinking that went into making this import feature work
 /// robustly.
+/// BEW refactored 21Jul14 to add support for the -srcRespell switch (2 new params
+/// added, and code internally added to for called functions, to copy m_key and m_srcPhrase)
 ////////////////////////////////////////////////////////////////////////////////////////
-bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan)
+bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan,
+										bool bKeepAdaptationsForSrcRespellings)
 {
-	wxASSERT(pSubspan->spanType == commonSpan);
+	//wxASSERT(pSubspan->spanType == commonSpan);
 	int oldSpanStart = pSubspan->oldStartPos;
 	int oldSpanEnd = pSubspan->oldEndPos;
 	int newSpanStart = pSubspan->newStartPos;
@@ -7335,34 +7496,47 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 		{
 		case singleton:
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
-			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex,
-									pSubspan, oldEndedAt, newEndedAt);
+			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
+			// line switch (these are unrelated new features for 6.5.4)
+			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, pSubspan,
+							oldEndedAt, newEndedAt, bKeepAdaptationsForSrcRespellings);
 			break;
 		case singleton_in_retrans:
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
-			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex,
-									pSubspan, oldEndedAt, newEndedAt);
+			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
+			// line switch (these are unrelated new features for 6.5.4)
+			bOK = TransferToSingleton(arrOld, arrNew, oldIndex, newIndex, pSubspan, 
+							oldEndedAt, newEndedAt, bKeepAdaptationsForSrcRespellings);
 			break;
 		case merger:
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
-			bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldIndex,
-								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
+			// line switch (these are unrelated new features for 6.5.4)
+			bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldIndex, newIndex,
+					pSubspan, oldEndedAt, newEndedAt, bKeepAdaptationsForSrcRespellings);
 			break;
 		case singleton_matches_new_conjoined:
 		case conjoined:
 			// BEW enhanced 21May14 to support external editor punctuation-only changes
-			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex,
-								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
+			// line switch (these are unrelated new features for 6.5.4)
+			bOK = TransferForFixedSpaceConjoinedPair(arrOld, arrNew, oldIndex, newIndex,
+					pSubspan, oldEndedAt, newEndedAt, bKeepAdaptationsForSrcRespellings);
 			break;
 		case manual_placeholder:
 			// BW enhanced 21May14 to support external editor punctuation-only changes
-			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex,
-								newIndex, pSubspan, oldEndedAt, newEndedAt);
+			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
+			// line switch (these are unrelated new features for 6.5.4)
+			bOK = TransferToManualPlaceholder(arrOld, arrNew, oldIndex, newIndex,
+					pSubspan, oldEndedAt, newEndedAt, bKeepAdaptationsForSrcRespellings);
 			break;
 		case placeholder_in_retrans:
 			// BW not enhanced 21May14 - checked, and nothing needs to be done
+			// BEW enhanced 21Jul14 to support ZWSP transfer, and the -srcRespell command
+			// line switch (these are unrelated new features for 6.5.4)
 			bOK = TransferToPlaceholderInRetranslation(arrOld, arrNew, oldIndex,
-								newIndex, pSubspan, oldEndedAt, newEndedAt);
+								newIndex, pSubspan, oldEndedAt, newEndedAt, 
+								bKeepAdaptationsForSrcRespellings);
 			break;
 		default: // assume singleton
 			break;
@@ -7424,19 +7598,31 @@ bool DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* 
 /// oldIndex, but the arrNew location has one at at newIndex; (2) both arrOld and arrNew
 /// have fixed space conjoinings at oldIndex and newIndex respectively; (3) arrOld has a
 /// conjoining at oldIndex, but arrNew no longer has one at newIndex.
+/// Note: a conjoining at index x does not mean that the ~ marker is at the x
+/// CSourcePhrase instance, rather, it is between the instance at x and the CSourcePhrase
+/// instance which follows.
 /// A complication is that we do not permit the number of CSourcePhrase instances in arrOld
-/// and arrNew to be changed within the import merger process for edited source text. So
-/// we have to do the best we can with situations (1) and (3): what we'll do is just
-/// transfer punctuation and markers to what is in arrOld; for (2) we can instead copy the
-/// adaptations in the one in arrOld to the one in arrNew, make a deep copy of the arrNew
-/// one after doing that, and then replace the arrOld one with the deep copy. (This only
-/// changes what's in arrOld, not the SPList it comes from, but that doesn't matter
-/// because we will delete the latter and the deep copy will indeed get into pMergedList
-/// which replaces it when the import & merge has finished)
+/// and arrNew to be changed within the import merger process for edited source text. (The
+/// number of instances can, of course, be changed by the user editing the external
+/// editor's source text project's words to produce more or fewer, but one the import
+/// process starts, the word counts can't change.) So we have to do the best we can with
+/// situations (1) and (3): what we'll do is just transfer punctuation and markers to what
+/// is in arrOld; for (2) we can instead copy the adaptations in the one in arrOld to the
+/// one in arrNew, make a deep copy of the arrNew one after doing that, and then replace
+/// the arrOld one with the deep copy. (This only changes what's in arrOld, not the SPList
+/// it comes from, but that doesn't matter because we will delete the latter and the deep
+/// copy will indeed get into pMergedList which replaces it when the import & merge has
+/// finished)
+/// BEW 21Jul14 refactored for support of the -srcRespell command line switch, and also
+/// for the unrelated feature of ZWSP (and other special spaces, including ordinary latin
+/// space) storage and replacement in exports. The function now is called not just in
+/// commonSpan, but when the -srcRespell command line switch is on and the spanType is
+/// either a beforeSpan or a closed afterSpan
 bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int oldIndex,
-		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding,
+		bool bKeepAdaptationsForSrcRespellings)
 {
-	wxASSERT(pSubspan->spanType == commonSpan);
+	//wxASSERT(pSubspan->spanType == commonSpan); <<-- no longer a valid test
 
 	// check indices don't violate pSubspan's  bounds
 	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
@@ -7465,7 +7651,10 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 	// locations are deterministic. We'll try to support those two locations, and not
 	// attempt any phrase internal punctuation changes to adaptations. Free translations
 	// are another matter, their punctuation has to be manually typed within them, there
-	// is no way to support it other than by manual changes either in AI or PT (or BE)
+	// is no way to support it other than by manual changes either in AI or PT (or BE).
+    // BEw added 21Jul14, When the command line switch -srcRespell, is on, we also have to
+    // make sure that the old adaptations are retained when the subspan is a beforeSpan or
+    // closed afterSpan.
 	// 
 	// Get the before-changes punctuation on the original merger; these are used for
 	// comparisons to what the fromEditor punctuations may be, to see if any have changed
@@ -7504,43 +7693,53 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// punctuation changes will affect m_srcPhrase and m_targetStr in both pOldSP
 			// and pOldNextSP, so generate the relevant punctuated strings using the m_key
 			// and m_adaption members (both are punctuation-less members) as starting points
-			wxString srcPhrase = GetConvertedPunct(pOldSP->m_precPunct);
-			srcPhrase += pOldSP->m_key;
-			srcPhrase += pOldSP->m_follPunct;
-			srcPhrase += pOldSP->GetFollowingOuterPunct();
-			pOldSP->m_srcPhrase = srcPhrase;
-			// do the same for pOldNextSP's m_srcPhrase member
-			srcPhrase = pOldNextSP->m_precPunct;
-			srcPhrase += pOldNextSP->m_key;
-			srcPhrase += pOldNextSP->m_follPunct;
-			srcPhrase += pOldNextSP->GetFollowingOuterPunct();
-			pOldNextSP->m_srcPhrase = srcPhrase;
-			// now do pOldSP's m_targetStr member
-			wxString tgtStr;
-			if (!pOldSP->m_adaption.IsEmpty())
+			if (bKeepAdaptationsForSrcRespellings)
 			{
-				tgtStr = GetConvertedPunct(pOldSP->m_precPunct);
-				tgtStr += pOldSP->m_adaption;
-				tgtStr += GetConvertedPunct(pOldSP->m_follPunct);
-				tgtStr += GetConvertedPunct(pOldSP->GetFollowingOuterPunct());
-				pOldSP->m_targetStr = tgtStr;
+				pOldSP->m_key = pWordFirstSP->m_key;
+				pOldSP->m_srcPhrase = pWordFirstSP->m_srcPhrase;
+				pOldNextSP->m_key = pWordLastSP->m_key;
+				pOldNextSP->m_srcPhrase = pWordLastSP->m_srcPhrase;
 			}
 			else
 			{
-				pOldSP->m_targetStr.Empty();
-			}
-			// finally, the same for pOldNext...
-			if (!pOldNextSP->m_adaption.IsEmpty())
-			{
-				tgtStr = GetConvertedPunct(pOldNextSP->m_precPunct);
-				tgtStr += pOldNextSP->m_adaption;
-				tgtStr += GetConvertedPunct(pOldNextSP->m_follPunct);
-				tgtStr += GetConvertedPunct(pOldNextSP->GetFollowingOuterPunct());
-				pOldNextSP->m_targetStr = tgtStr;
-			}
-			else
-			{
-				pOldNextSP->m_targetStr.Empty();
+				wxString srcPhrase = GetConvertedPunct(pOldSP->m_precPunct);
+				srcPhrase += pOldSP->m_key;
+				srcPhrase += pOldSP->m_follPunct;
+				srcPhrase += pOldSP->GetFollowingOuterPunct();
+				pOldSP->m_srcPhrase = srcPhrase;
+				// do the same for pOldNextSP's m_srcPhrase member
+				srcPhrase = pOldNextSP->m_precPunct;
+				srcPhrase += pOldNextSP->m_key;
+				srcPhrase += pOldNextSP->m_follPunct;
+				srcPhrase += pOldNextSP->GetFollowingOuterPunct();
+				pOldNextSP->m_srcPhrase = srcPhrase;
+				// now do pOldSP's m_targetStr member
+				wxString tgtStr;
+				if (!pOldSP->m_adaption.IsEmpty())
+				{
+					tgtStr = GetConvertedPunct(pOldSP->m_precPunct);
+					tgtStr += pOldSP->m_adaption;
+					tgtStr += GetConvertedPunct(pOldSP->m_follPunct);
+					tgtStr += GetConvertedPunct(pOldSP->GetFollowingOuterPunct());
+					pOldSP->m_targetStr = tgtStr;
+				}
+				else
+				{
+					pOldSP->m_targetStr.Empty();
+				}
+				// finally, the same for pOldNext...
+				if (!pOldNextSP->m_adaption.IsEmpty())
+				{
+					tgtStr = GetConvertedPunct(pOldNextSP->m_precPunct);
+					tgtStr += pOldNextSP->m_adaption;
+					tgtStr += GetConvertedPunct(pOldNextSP->m_follPunct);
+					tgtStr += GetConvertedPunct(pOldNextSP->GetFollowingOuterPunct());
+					pOldNextSP->m_targetStr = tgtStr;
+				}
+				else
+				{
+					pOldNextSP->m_targetStr.Empty();
+				}
 			}
 
 			// the fixedspace get's lost, so that's all we can do here, and
@@ -7566,6 +7765,11 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 				//bFollowingPunctsChanged = TRUE;
 				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
 			}
+			// Probably the best thing with the ZWSP support is to transfer whatever
+			// wordbreak is on the conjoined new instance, to both pOldSP and pOldNextSP
+			pOldSP->SetSrcWordBreak(pNewSP->GetSrcWordBreak());
+			pOldNextSP->SetSrcWordBreak(pNewSP->GetSrcWordBreak());
+
 			// BEW 21May14, Get the m_targetStr members updated; use the following puncts
 			// on 1st, and preceding puncts on 2nd, to get the updates right - no need for
 			// this block, since the earlier code does this job, so I've removed it
@@ -7589,7 +7793,13 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 		{
 			// it's situation (2) as explained above, so copy the m_adaption contents from pOldSP
 			// to pNewSP, recreate the m_targetStr members using the possibly changed punctuation,
-			// then deep copy pNewSP and replace pOldSp with it
+			// then deep copy pNewSP and replace pOldSP with it
+			// BEW added 21Jul14, in the case of bKeepAdaptationsForSrcRespellings being
+			// TRUE (that is, the command line switch -srcRespell is currently in effect),
+			// the actions we do here should be the following:
+			// copy the m_adaption and m_targetStr contents from pOldSp to pNewSP, don't
+			// attempt any punctuation updates (there shouldn't be any for a respellings
+			// scenario), then deepCopy pNewSP and replace pOldSP with it)
 			pNewSP->m_adaption = pOldSP->m_adaption; // this is <word1>~<word2>, with no punctuation
 
 			// in order to build a pNewSP->m_targetStr with the possibly new punctuation
@@ -7605,49 +7815,61 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			CSourcePhrase* pWordFirst = pos->GetData();
 			CSourcePhrase* pWordLast = posLast->GetData();
 
-			// first, rebuild pNewWordFirst->m_targetStr, starting from pWordFirst->adaption
-			pNewWordFirst->m_targetStr = GetConvertedPunct(pNewWordFirst->m_precPunct);
-			pNewWordFirst->m_targetStr += pWordFirst->m_adaption;
-			pNewWordFirst->m_targetStr += GetConvertedPunct(pNewWordFirst->m_follPunct);
-			pNewWordFirst->m_targetStr += GetConvertedPunct(pNewWordFirst->GetFollowingOuterPunct());
+			// BEW 21Jul14, add a test here, so that the bKeepAdaptationsForSrcRespellings
+			// being TRUE actions are not done in commonSpan
+			if (bKeepAdaptationsForSrcRespellings && pSubspan->spanType != commonSpan)
+			{
+				pNewSP->m_targetStr = pOldSP->m_targetStr;
+				// pNew->m_adaption was already set above
+			}
+			else
+			{
+				// first, rebuild pNewWordFirst->m_targetStr, starting from pWordFirst->adaption
+				pNewWordFirst->m_targetStr = GetConvertedPunct(pNewWordFirst->m_precPunct);
+				pNewWordFirst->m_targetStr += pWordFirst->m_adaption;
+				pNewWordFirst->m_targetStr += GetConvertedPunct(pNewWordFirst->m_follPunct);
+				pNewWordFirst->m_targetStr += GetConvertedPunct(pNewWordFirst->GetFollowingOuterPunct());
 
-			// next, rebuild pNewWordLast->m_targetStr, starting from pWordLast->adaption
-			pNewWordLast->m_targetStr = GetConvertedPunct(pNewWordLast->m_precPunct);
-			pNewWordLast->m_targetStr += pWordLast->m_adaption;
-			pNewWordLast->m_targetStr += GetConvertedPunct(pNewWordLast->m_follPunct);
-			pNewWordLast->m_targetStr += GetConvertedPunct(pNewWordLast->GetFollowingOuterPunct());
+				// next, rebuild pNewWordLast->m_targetStr, starting from pWordLast->adaption
+				pNewWordLast->m_targetStr = GetConvertedPunct(pNewWordLast->m_precPunct);
+				pNewWordLast->m_targetStr += pWordLast->m_adaption;
+				pNewWordLast->m_targetStr += GetConvertedPunct(pNewWordLast->m_follPunct);
+				pNewWordLast->m_targetStr += GetConvertedPunct(pNewWordLast->GetFollowingOuterPunct());
 
-			// finally, rebuild pNewSP->m_targetStr by concatenating the previous two with ~
-			pNewSP->m_targetStr = pNewWordFirst->m_targetStr + _T("~");
-			pNewSP->m_targetStr += pNewWordLast->m_targetStr;
+				// finally, rebuild pNewSP->m_targetStr by concatenating the previous two with ~
+				pNewSP->m_targetStr = pNewWordFirst->m_targetStr + _T("~");
+				pNewSP->m_targetStr += pNewWordLast->m_targetStr;
 
+				// BEW 21May14 get the new punctuation, ignore medial puncts - there are not
+				// likely to be any in what was a conjoining
+				prePunctsNew = pNewWordFirst->m_precPunct;
+				follPunctsNew = pNewWordLast->m_follPunct;
+				follOuterPunctsNew = pNewWordLast->GetFollowingOuterPunct();
+
+				// BEW 21May14 Determine if a punctuation change happened, set the flag
+				// m_bPunctChangesDetectedInSourceTextMerge in particular
+				if (prePunctsOld != prePunctsNew)
+				{
+					//bPrecedingPunctsChanged = TRUE;
+					gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+				}
+				if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
+				{
+					//bFollowingPunctsChanged = TRUE;
+					gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
+				}
+				// BEW 21May14, the m_targetStr members are in process of being updated
+                // correctly so no additional code is required in support of the above
+                // additions
+			}
 			// now make a deep copy of pNewSP
 			CSourcePhrase* pNewDeepCopy = new CSourcePhrase(*pNewSP);
 			pNewDeepCopy->DeepCopy();
 
+            // BEW 21Jul14, For ZWSP support transfer whatever wordbreak is on the
+            // conjoined new instance, to pNewDeepCopy
+			pNewDeepCopy->SetSrcWordBreak(pNewSP->GetSrcWordBreak());
 
-			// BEW 21May14 get the new punctuation, ignore medial puncts - there are not
-			// likely to be any in what was a conjoining
-			prePunctsNew = pNewWordFirst->m_precPunct;
-			follPunctsNew = pNewWordLast->m_follPunct;
-			follOuterPunctsNew = pNewWordLast->GetFollowingOuterPunct();
-
-			// BEW 21May14 Determine if a punctuation change happened, set the flag
-			// m_bPunctChangesDetectedInSourceTextMerge in particular
-			if (prePunctsOld != prePunctsNew)
-			{
-				//bPrecedingPunctsChanged = TRUE;
-				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
-			}
-			if ((follPunctsOld != follPunctsNew) || (follOuterPunctsOld != follOuterPunctsNew))
-			{
-				//bFollowingPunctsChanged = TRUE;
-				gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE; // force use of GetUpdatedText_UsfmsChanged()
-			}
-			// BEW 21May14, the m_targetStr members are in process of being updated
-			// correctly so no additional code is required in support of the above
-			// additions
-			
 			// now replace pOldSP with pNewDeepCopy and delete pOldSP
 #ifdef _WXDEBUG__
 			CSourcePhrase** pDetached = arrOld.Detach(oldIndex);
@@ -7713,61 +7935,79 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 			// Now we need to rebuild pOldSP->m_srcPhrase, and pOldSP->m_targetStr with
 			// the new punctuation (possibly changed) settings, and also the same members
 			// in the instances stored in pOldSP->m_pSavedWords.
-			// Start by rebuilding pWordFirstSP->m_srcPhrase starting from its m_key member
-			pWordFirstSP->m_srcPhrase = pNewSP->m_precPunct;
-			pWordFirstSP->m_srcPhrase += pNewSP->m_key; // RHS could instead be pWordFirstSP->m_key
-			pWordFirstSP->m_srcPhrase += pNewSP->m_follPunct;
-			pWordFirstSP->m_srcPhrase += pNewSP->GetFollowingOuterPunct();
-			// Next, rebuild pWordLastSP->m_srcPhrase, starting from m_key
-			pWordLastSP->m_srcPhrase = pNewNextSP->m_precPunct;
-			pWordLastSP->m_srcPhrase += pNewNextSP->m_key; // RHS could instead be pWordLastSP->m_key
-			pWordLastSP->m_srcPhrase += pNewNextSP->m_follPunct;
-			pWordLastSP->m_srcPhrase += pNewNextSP->GetFollowingOuterPunct();
-			// now rebuild the parent's m_srcPhrase member
-			pOldSP->m_srcPhrase = pWordFirstSP->m_srcPhrase + _T("~");
-			pOldSP->m_srcPhrase += pWordLastSP->m_srcPhrase;
-			// Next, rebuild pWordFirstSP->m_targetStr from its m_adaption member
-			if (!pWordFirstSP->m_adaption.IsEmpty())
+			// BEW 21Jul14, for support of -srcRespell command line switch, we do just
+			// m_key and m_srcPhrase updating, when the span is not commonSpan and the 
+			// bKeepAdaptationsForSrcRespellings flag is TRUE
+			if (bKeepAdaptationsForSrcRespellings && pSubspan->spanType != commonSpan)
 			{
-				pWordFirstSP->m_targetStr = GetConvertedPunct(pNewSP->m_precPunct);
-				pWordFirstSP->m_targetStr += pWordFirstSP->m_adaption;
-				pWordFirstSP->m_targetStr += GetConvertedPunct(pNewSP->m_follPunct);
-				pWordFirstSP->m_targetStr += GetConvertedPunct(pNewSP->GetFollowingOuterPunct());
+				pOldSP->m_key = pNewSP->m_key;
+				pOldSP->m_key += _T("~");
+				pOldSP->m_key += pNewNextSP->m_key;
+				pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
+				pOldSP->m_srcPhrase += _T("~");
+				pOldSP->m_srcPhrase += pNewNextSP->m_srcPhrase;
 			}
 			else
 			{
-				pWordFirstSP->m_targetStr.Empty();
+				// Start by rebuilding pWordFirstSP->m_srcPhrase starting from its m_key member
+				pWordFirstSP->m_srcPhrase = pNewSP->m_precPunct;
+				pWordFirstSP->m_srcPhrase += pNewSP->m_key; // RHS could instead be pWordFirstSP->m_key
+				pWordFirstSP->m_srcPhrase += pNewSP->m_follPunct;
+				pWordFirstSP->m_srcPhrase += pNewSP->GetFollowingOuterPunct();
+				// Next, rebuild pWordLastSP->m_srcPhrase, starting from m_key
+				pWordLastSP->m_srcPhrase = pNewNextSP->m_precPunct;
+				pWordLastSP->m_srcPhrase += pNewNextSP->m_key; // RHS could instead be pWordLastSP->m_key
+				pWordLastSP->m_srcPhrase += pNewNextSP->m_follPunct;
+				pWordLastSP->m_srcPhrase += pNewNextSP->GetFollowingOuterPunct();
+				// now rebuild the parent's m_srcPhrase member
+				pOldSP->m_srcPhrase = pWordFirstSP->m_srcPhrase + _T("~");
+				pOldSP->m_srcPhrase += pWordLastSP->m_srcPhrase;
+				// Next, rebuild pWordFirstSP->m_targetStr from its m_adaption member
+				if (!pWordFirstSP->m_adaption.IsEmpty())
+				{
+					pWordFirstSP->m_targetStr = GetConvertedPunct(pNewSP->m_precPunct);
+					pWordFirstSP->m_targetStr += pWordFirstSP->m_adaption;
+					pWordFirstSP->m_targetStr += GetConvertedPunct(pNewSP->m_follPunct);
+					pWordFirstSP->m_targetStr += GetConvertedPunct(pNewSP->GetFollowingOuterPunct());
+				}
+				else
+				{
+					pWordFirstSP->m_targetStr.Empty();
+				}
+				// Next, rebuild pWordLastSP->m_targetStr from its m_adaption member
+				if (!pWordLastSP->m_adaption.IsEmpty())
+				{
+					pWordLastSP->m_targetStr = GetConvertedPunct(pNewNextSP->m_precPunct);
+					pWordLastSP->m_targetStr += pWordLastSP->m_adaption;
+					pWordLastSP->m_targetStr += GetConvertedPunct(pNewNextSP->m_follPunct);
+					pWordLastSP->m_targetStr += GetConvertedPunct(pNewNextSP->GetFollowingOuterPunct());
+				}
+				else
+				{
+					pWordLastSP->m_targetStr.Empty();
+				}
+				// now do pOldSP's m_targetStr member, creating the conjoining
+				wxString tgtStr;
+				wxString tilde = _T("~");
+				if (!pWordFirstSP->m_targetStr.IsEmpty())
+				{
+					tgtStr = pWordFirstSP->m_targetStr;
+				}
+				tgtStr += tilde;
+				if (!pWordLastSP->m_targetStr.IsEmpty())
+				{
+					tgtStr += pWordLastSP->m_targetStr;
+				}
+				if (tgtStr.Find(tilde) != wxNOT_FOUND && tgtStr.Len() == 1)
+				{
+					// don't accept a conjoining of two empty strings as meaning anything
+					tgtStr.Empty();
+				}
+				pOldSP->m_targetStr = tgtStr;
 			}
-			// Next, rebuild pWordLastSP->m_targetStr from its m_adaption member
-			if (!pWordLastSP->m_adaption.IsEmpty())
-			{
-				pWordLastSP->m_targetStr = GetConvertedPunct(pNewNextSP->m_precPunct);
-				pWordLastSP->m_targetStr += pWordLastSP->m_adaption;
-				pWordLastSP->m_targetStr += GetConvertedPunct(pNewNextSP->m_follPunct);
-				pWordLastSP->m_targetStr += GetConvertedPunct(pNewNextSP->GetFollowingOuterPunct());
-			}
-			else
-			{
-				pWordLastSP->m_targetStr.Empty();
-			}
-			// now do pOldSP's m_targetStr member, creating the conjoining
-			wxString tgtStr;
-			wxString tilde = _T("~");
-			if (!pWordFirstSP->m_targetStr.IsEmpty())
-			{
-				tgtStr = pWordFirstSP->m_targetStr;
-			}
-			tgtStr += tilde;
-			if (!pWordLastSP->m_targetStr.IsEmpty())
-			{
-				tgtStr += pWordLastSP->m_targetStr;
-			}
-			if (tgtStr.Find(tilde) != wxNOT_FOUND && tgtStr.Len() == 1)
-			{
-				// don't accept a conjoining of two empty strings as meaning anything
-				tgtStr.Empty();
-			}
-			pOldSP->m_targetStr = tgtStr;
+            // BEW 21Jul14, For ZWSP support transfer whatever wordbreak is on the first
+            // of the instances from arrNew, to the conjoining at pOldSP
+			pOldSP->SetSrcWordBreak(pNewSP->GetSrcWordBreak());
 
 			// get the indices right for where to kick off from in the parent
 			oldDoneToIncluding = oldIndex;
@@ -7819,15 +8059,22 @@ bool TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int ol
 /// these index values + 1. If the placeholder has right-association, then we need to
 /// update what follows it first, so that we can then apply the data transfers appropriate
 /// for right association - overwriting the relevant members in the placeolder with the
-/// possibly new data for markers and punctuation etc. The reason we pass in the whole
-/// arrOld and arrNew is that we may need to access a CSourcePhrase instance in arrOld and
-/// or arrNew which lies beyond the bounds of the commonSpan itself. Our approach in this
-/// function is to update what's either side of the merger, and then re-establish any left
-/// or right association that we detect.
+/// possibly new data for markers and punctuation etc. If it has left association, we
+/// would expect that the CSourcePhrase to its left has already been updated (if anything
+/// needed updating), and so we can just re-apply the left association by moving the
+/// material from the end of the previous CSourcePhrase to the beginning of the placeholder.
+/// The reason we pass in the whole arrOld and arrNew is that we may need to access a
+/// CSourcePhrase instance in arrOld and or arrNew which lies beyond the bounds of the
+/// commonSpan itself. Our approach in this function is to update what's either side of the
+/// placeholder, and then re-establish any left or right association that we detect.
+/// BEW 21Jul14 refactored for support of the -srcRespell command line switch, and also
+/// for the unrelated feature of ZWSP (and other special spaces, including ordinary latin
+/// space) storage and replacement in exports.
 bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,
-				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding,
+				bool bKeepAdaptationsForSrcRespellings)
 {
-	wxASSERT(pSubspan->spanType == commonSpan);
+	//wxASSERT(pSubspan->spanType == commonSpan); <<-- no longer a valid test
 
 	// check indices don't violate pSubspan's  bounds
 	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
@@ -7919,7 +8166,9 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 		// external editor in this location is likely to be rare, it's not worth having
 		// extra testing code. More simple just to force the AI data, if there is a
 		// manual placeholder in the verse, to unilaterally overwrite the data in the
-		// external editor's verse
+		// external editor's verse -- so long as the user has not edited (in Paratext)
+		// that particular verse outside of Adapt It, this would be safe; but if he has,
+		// those user edits would get lost
 		gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE;
 		return TRUE;
 	}
@@ -7936,11 +8185,17 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 	else
 	{
 		// it IS right associated, so we've some work to do to update what is at
-		// oldFollIndex -  it might be just a single-word CSourcePhrase instance, or a
+		// oldFollIndex first -  it might be just a single-word CSourcePhrase instance, or a
 		// merger, or a retranslation's beginning, or a fixedspace conjoined pair (if a
 		// retranslation beginning, right association isn't allowed, so just leave the
 		// placeholder as is)... so work out what is there and do the relevant processing,
-		// then re-do the right association
+		// then re-do the right association (right association means moving stuff off the
+		// beginning of the following CSourcePhrase instance, to store it on the end of
+		// the placeholder - such as begin markers, preceding puncts (which become
+		// preceing puncts on the placeholder) - and for ZWSP support, the wordbreak of
+		// the CSourcePhrase which is after the placeholder becomes the one stored on the
+		// placeholder, while the one on the CSourcePhrase needs to be a copy of the what
+		// is stored on the second CSourcePhrase after the placeholder
 		if (pFollSrcPhrase->m_bBeginRetranslation)
 		{
 			// we can't right associate
@@ -7955,8 +8210,17 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			bool bDidItOk = TRUE;
 			int nOldTempIndex;
 			int nNewTempIndex;
-			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex,
-						 pSubspan, nOldTempIndex, nNewTempIndex);
+			// BEW 21Jul14, this following instance needs to be updated from the arrNew
+			// data first - because the right association will involve moving potentially
+			// updated information off its start for storage in the placeholder. In a
+			// -srcRespell command line switch scenario, we'll want to keep the adaptation,
+			// but if that switch is not in effect, we'll empty the adaptation. Remember
+			// that TransferToManualPlaceholder now is called not only from commonSpan,
+			// but also from beforeSpan and a close afterSpan, and the -srcRespell switch
+			// has relevance (ie. it's TRUE value) only in either of the latter two span
+			// types
+			bDidItOk = TransferToSingleton(arrOld, arrNew, oldFollIndex, newIndex, pSubspan,
+						 nOldTempIndex, nNewTempIndex, bKeepAdaptationsForSrcRespellings);
 			// it's unlikely that the return value will be FALSE
 			gpApp->LogUserAction(_T("TransferToManualPlaceholder(): did not transfer - might be a bounds error, line 6333 in MergeUpdatedSrc.cpp"));
 			wxCHECK_MSG(bDidItOk, FALSE, _T("TransferToManualPlaceholder(): did not transfer - probably a bounds error, line 6333 in MergeUpdatedSrc.cpp, processing will continue..."));
@@ -7981,6 +8245,11 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			// we are done, set the kickoff locations and return TRUE
 			oldDoneToIncluding = nOldTempIndex;
 			newDoneToIncluding = nNewTempIndex;
+
+			// BEW 21Jul14, also force a rewrite of the PT or BE verse, even if there was
+			// no punctuation changes, that's better than a lot of testings here for a
+			// punct change as a precondition for the overwrite of the external editor's verse
+			gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE;
 			return TRUE;
 		}
 		// is it a merger? update it if so, etc
@@ -7991,8 +8260,10 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			numWords = numWords; // avoid compiler warning in release version
 			int dummyOldLoc;
 			int dummyNewLoc;
+			// BEW 21Jul14, see comment above for singleton scenario)
 			bool bOK = TransferPunctsAndMarkersToMerger(arrOld, arrNew, oldFollIndex,
-										newIndex, pSubspan, dummyOldLoc, dummyNewLoc);
+									newIndex, pSubspan, dummyOldLoc, dummyNewLoc, 
+									bKeepAdaptationsForSrcRespellings);
 			if (!bOK)
 			{
 				// unlikely to fail, but accomodate it just in case -- in this scenario,
@@ -8012,6 +8283,11 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 
 			// finally, rebuild pLastPlaceholder->m_targetStr because the punctuation may
 			// have changed
+			// BEW 21Jul14, to support -srcRespell switch here... I don't think anything
+			// new is required here (it's very unlikely to ever be the case that a
+			// respelling is done at a word pair also just conjoined but were not so
+			// before the respelling, so until someone hollers, I'll assume all is well
+			// here)
 			pLastPlaceholder->m_targetStr = pLastPlaceholder->m_precPunct;
 			pLastPlaceholder->m_targetStr += pLastPlaceholder->m_adaption;
 			pLastPlaceholder->m_targetStr += pLastPlaceholder->m_follPunct;
@@ -8021,6 +8297,11 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 			oldDoneToIncluding = dummyOldLoc;
 			newDoneToIncluding = dummyNewLoc;
 			wxASSERT(newDoneToIncluding == newIndex + numWords - 1);
+
+			// BEW 21Jul14, also force a rewrite of the PT or BE verse, even if there was
+			// no punctuation changes, that's better than a lot of testings here for a
+			// punct change as a precondition for the overwrite of the external editor's verse
+			gpApp->m_bPunctChangesDetectedInSourceTextMerge = TRUE;
 			return TRUE;
 		}
 		// is it a fixedspace conjoining in arrOld, or a singleton in arrOld which matches
@@ -8085,11 +8366,19 @@ bool TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex,
 /// these index values + 1. This function updates punctuation and SFM or USFM markers from
 /// the information of those types in the associated CSourcePhrase instance in arrNew,
 /// updating to the singleton in arrOld, which is being retained because it is "in common"
-/// with the new source text data and within the commonSpan, pSubspan, being processed
+/// with the new source text data and within the commonSpan, pSubspan, being processed.
+/// BEW refactored 21Jul4, added bool bKeepAdaptationsForSrcRespellings parameter, which
+/// if TRUE (but default is FALSE) will cause the new array's equivalent pNewSP to
+/// have it's m_srcPhrase and m_key member values transferred to the pOldSP - in a
+/// "respelling" scenario (beware, only respellings should be done, never add or remove
+/// a word from the Paratext src document when doing a collaboration with this -srcRespell
+/// switch in effect - otherwise adaptations can get put on the wrong pOldSP instances).
+/// Also refactored at same time to support ZWSP etc.
 bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,
-						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding,
+						bool bKeepAdaptationsForSrcRespellings)
 {
-	wxASSERT(pSubspan->spanType == commonSpan);
+	//wxASSERT(pSubspan->spanType == commonSpan); <<-- not a valid check as of 21Jul14
 
 	// check indices don't violate pSubspan's  bounds
 	if (oldIndex < pSubspan->oldStartPos || oldIndex > pSubspan->oldEndPos)
@@ -8114,13 +8403,30 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 	wxLogDebug(_T("singleton: <old key>  %s , at oldIndex = %d ; <new key>  %s , at newIndex = %d"),
 		pOldSP->m_key.c_str(), oldIndex, pNewSP->m_key.c_str(), newIndex);
 #endif
-	wxASSERT(pOldSP->m_key == pNewSP->m_key); // they should be in sync
+	//wxASSERT(pOldSP->m_key == pNewSP->m_key); // they should be in sync <<-- not valid
+	//after 21Jul14
+	
+	// BEW addition 21Jul14 to support the -srcRespell switch
+	if (bKeepAdaptationsForSrcRespellings)
+	{
+        // Since we are building on the base of the pOldSP, to keep the adaptations means
+        // we need to copy m_srcPhrase and m_key values from pNewSP to pOldSP, so we do it
+        // this way because the adapations, if they exist, can of course only be on pOldSP
+        // when a source text merger is taking place from PT to AI
+		pOldSP->m_key = pNewSP->m_key;
+		pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
+	}
+	// and for support of ZWSP (don't copy tgt one, as it is always empty for what comes
+	// from the PT or BE data, & it will only be non-empty at retranslations in pOldSp, so
+	// we don't risk overwriting it with an empty string)
+	pOldSP->SetSrcWordBreak(pNewSP->GetSrcWordBreak()); // in case user changed the wordbreak in PT src project
 
     // BEW 21May14, added punctuation support for preceding and following punctuation
-    // changes. Free translations are another matter, their punctuation has to be manually
-    // typed within them, there is no way to support it other than by manual changes either
-    // in AI or PT (or BE)
-	// 
+    // changes. Free translations are another matter, their punctuation (if a change is
+    // needed) have to be manually typed within them, there is no way to support such
+    // changes here; only manual changes doen later in free translation mode in AI, or
+    // direct editing of a free translation project in PT (or BE)
+	 
 	// Get the before-changes punctuation on the original merger; these are used for
 	// comparisons to what the fromEditor punctuations may be, to see if any have changed
 	wxString prePunctsOld = pOldSP->m_precPunct;
@@ -8154,33 +8460,54 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 	newDoneToIncluding = newIndex;
 	TransferPunctsAndMarkersOnly(pNewSP, pOldSP, FALSE);
 
-    // the m_srcPhrase value may have changed because of punctuation added, or punctuation
-    // removed, so copy it too; and set the punctuation for m_targetStr as well... use
-	// view's member function MakeTargetStringIncludingPunctuation() for that job; but
-	// don't do it if the pOldSP instance is in a retranslation
-	pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
-	/* 
-	// BEW deprecated 21May14, it's not 100% trustworthy for here - so use the comparisons
-	// above and rebuild from those
-	if (!pOldSP->m_bRetranslation)
+	if (pSubspan->spanType == commonSpan)
 	{
-		pView->MakeTargetStringIncludingPunctuation(pOldSP, pOldSP->m_targetStr);
+		// the m_srcPhrase value may have changed because of punctuation added, or punctuation
+		// removed, so copy it too; and set the punctuation for m_targetStr as well... use
+		// view's member function MakeTargetStringIncludingPunctuation() for that job; but
+		// don't do it if the pOldSP instance is in a retranslation
+		pOldSP->m_srcPhrase = pNewSP->m_srcPhrase;
+		/* 
+		// BEW deprecated 21May14, it's not 100% trustworthy for here - so use the comparisons
+		// above and rebuild from those
+		if (!pOldSP->m_bRetranslation)
+		{
+			pView->MakeTargetStringIncludingPunctuation(pOldSP, pOldSP->m_targetStr);
+		}
+		*/
+		// BEW 21May14, changes to support punctuation changes at start of word and/or
+		// at end of word
+		if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
+		{
+			wxString targetStr = pOldSP->m_adaption;
+			if (bPrecedingPunctsChanged)
+			{
+				targetStr = GetConvertedPunct(prePunctsNew) + targetStr;
+			}
+			if (bFollowingPunctsChanged)
+			{
+				targetStr += GetConvertedPunct(follPunctsNew) + GetConvertedPunct(follOuterPunctsNew);
+			}
+			pOldSP->m_targetStr = targetStr;
+		}
 	}
-	*/
-	// BEW 21May14, changes to support punctuation changes at start of word and/or
-	// at end of word
-	if (bPrecedingPunctsChanged || bFollowingPunctsChanged)
+	else // it's a beforeSpan or a closed afterSpan
 	{
-		wxString targetStr = pOldSP->m_adaption;
-		if (bPrecedingPunctsChanged)
+		if (bKeepAdaptationsForSrcRespellings)
 		{
-			targetStr = GetConvertedPunct(prePunctsNew) + targetStr;
+			; // nothing to do, pOldSP just keeps its m_adaption and m_targetStr members unchanged
+			// (and we assume there won't be any punctuation changes - but we don't
+			// force it, there could be, and they would be updated, but then m_targetStr
+			// would not agree with the new puncts - we've warned the user not to do punct
+			// changes at a respellings merger, so that's his problem to fix manually
 		}
-		if (bFollowingPunctsChanged)
+		else
 		{
-			targetStr += GetConvertedPunct(follPunctsNew) + GetConvertedPunct(follOuterPunctsNew);
+			// Since we are keeping the pOldSp if control gets to here, we must assume
+			// there is a meaning change and clear the m_adaption and m_targetStr members
+			pOldSP->m_adaption.Empty();
+			pOldSP->m_targetStr.Empty();
 		}
-		pOldSP->m_targetStr = targetStr;
 	}
 	return TRUE;
 }
@@ -8191,10 +8518,18 @@ bool TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int new
 // location. Autoinserted placeholders don't have any correspondence to anything in
 // arrNew, so there's no data to be moved here
 // return TRUE if all's well, FALSE if an index is out of bounds
+// BEW 21Jul14, refactored to support ZWSP storage and replacement, and also the unrelated
+// feature, support for the command line -srcRespell switch (the latter is for retaining
+// adaptations when a smart merge is done to PT source data which has had respellings done)
+// This function will now not only be called at a commonSpan, but also when the -srcRespell
+// switch is on, and at that time for a beforeSpan or closed afterSpan too.
 bool TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int oldIndex,
-		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding)
+				int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, 
+				int& newDoneToIncluding, bool bKeepAdaptationsForSrcRespellings)
 {
-	wxASSERT(pSubspan->spanType == commonSpan);
+	// wxASSERT(pSubspan->spanType == commonSpan); // <<-- this is no longer valid
+	bKeepAdaptationsForSrcRespellings = bKeepAdaptationsForSrcRespellings; // avoid compiler warning
+
 	arrOld.GetCount(); // to avoid compiler warning
 	arrNew.GetCount(); // to avoid compiler warning
 
@@ -8275,7 +8610,9 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 		// retain the old ones; but the data has to be scanned for changes to punctuation
 		// and SFM structure, and the retained old ones have to receive any alterations
 		// needed from the new CSourcePhrase instances before deep copies are made
-		bool bOK = DoUSFMandPunctuationAlterations(arrOld, arrNew, pSubspan);
+		// BEW 21Jul14, last param in the refactoring is ALWAYS false, for commonSpan, so
+		// that we get only the legacy behaviours of the function
+		bool bOK = DoUSFMandPunctuationAlterations(arrOld, arrNew, pSubspan, FALSE);
 		// we don't expect an error, but if we got a bad one, a non-localizable message
 		// will have been seen already, so just go on and use the material in arrOld's
 		// span with no updates of USFMs or punctuation from the error location onwards
@@ -8298,26 +8635,81 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 	}
 	else
 	{
-        // retain the new ones - but the situation is a bit more complex than that, we must
-        // distinguish between replacements, insertions, and removals (see the function
-        // description's Note 1.) Former human editing resulting in insertions
-        // or replacements just require deep copying the relevant subspan from arrNew here;
-        // instances removed by human editing, however, mean that the arrOld ones in this
-        // subspan are just ignored, and nothing is copied from arrNew.
-		int index;
-		CSourcePhrase* pSrcPhrase = NULL;
-		if (pSubspan->newStartPos != -1 && pSubspan->newEndPos != -1)
+		// BEW 21Jul14, this block is new code - it is entered only when the
+		// app is run with the -srcRespell switch, and in collab mode of course,
+		// out of collab mode it has no effect, and the only place it's associated
+		// boolean actually is used to do anything is right here
+		if (gpApp->m_bKeepAdaptationsForSrcRespellings)
 		{
-			// it's not a removal, that is, it's either an insertion or a replacement
-			for (index = pSubspan->newStartPos; index <= pSubspan->newEndPos; index++)
+			if ((pSubspan->spanType == beforeSpan) ||
+				(pSubspan->spanType == afterSpan && pSubspan->bClosedEnd))
 			{
-				pSrcPhrase = (CSourcePhrase*)arrNew.Item(index);
-				// make a deep copy and append to pMergedList
-				CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
-				pDeepCopy->DeepCopy();
-				pMergedList->Append(pDeepCopy);
+				// Our approach is to keep the old CSourcePhrase instances, but
+				// with replaced m_key and m_srcPhrase members with values copied
+				// from the new instances being merged back to the AI doc and we'll
+				// copy over puncts etc as if this was a commonSpan...
+				// We don't do this block if the subSpan is not closed - since such
+				// subspans are not necessarily matched forwards indefinitely
+				
+                // retain the old ones; but the data has to be scanned for changes to
+                // punctuation and SFM structure, and the retained old ones have to receive
+                // any alterations needed from the new CSourcePhrase instances before deep
+                // copies are made Note, the last param will be TRUE of course, and that
+                // will give us the extra actions of replacing m_srcPhrase and m_key with
+                // the values from the new array data from PT or BE
+				bool bOK = DoUSFMandPunctuationAlterations(arrOld, arrNew, pSubspan,
+									gpApp->m_bKeepAdaptationsForSrcRespellings);
+                // we don't expect an error, but if we got a bad one, a non-localizable
+                // message will have been seen already, so just go on and use the material
+                // in arrOld's span with no updates of USFMs or punctuation from the error
+                // location onwards
+				if (!bOK)
+				{
+					wxBell(); // do something here though
+				}
+
+				// now make the needed deep copies and store them on pMergedList
+				int index;
+				CSourcePhrase* pSrcPhrase = NULL;
+				for (index = pSubspan->oldStartPos; index <= pSubspan->oldEndPos; index++)
+				{
+					pSrcPhrase = (CSourcePhrase*)arrOld.Item(index);
+					// make a deep copy and append to pMergedList
+					CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+					pDeepCopy->DeepCopy();
+					pMergedList->Append(pDeepCopy);
+				}
 			}
 		}
+		else // end of TRUE block for test: if (gpApp->m_bKeepAdaptationsForSrcRespellings)
+		{
+			// Legacy code - the source text info cannot have any associated target
+			// text, so creating CSourcePhrase instances from it will of course only
+			// generate document "holes" in the updated document within Adapt It, where
+			// the user will afterwards have to re-adapt to get a correctly adapted
+			// document...
+			
+			// Retain the new ones - but the situation is a bit more complex than that, we must
+			// distinguish between replacements, insertions, and removals (see the function
+			// description's Note 1.) Former human editing resulting in insertions
+			// or replacements just require deep copying the relevant subspan from arrNew here;
+			// instances removed by human editing, however, mean that the arrOld ones in this
+			// subspan are just ignored, and nothing is copied from arrNew.
+			int index;
+			CSourcePhrase* pSrcPhrase = NULL;
+			if (pSubspan->newStartPos != -1 && pSubspan->newEndPos != -1)
+			{
+				// it's not a removal, that is, it's either an insertion or a replacement
+				for (index = pSubspan->newStartPos; index <= pSubspan->newEndPos; index++)
+				{
+					pSrcPhrase = (CSourcePhrase*)arrNew.Item(index);
+					// make a deep copy and append to pMergedList
+					CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+					pDeepCopy->DeepCopy();
+					pMergedList->Append(pDeepCopy);
+				}
+			}
+		} // end of else block for test: if (gpApp->m_bKeepAdaptationsForSrcRespellings)
 	}
 	// delete the Subspan instance
 #if defined(_DEBUG) && defined(myLogDebugCalls)
@@ -8330,15 +8722,17 @@ void MergeOldAndNew(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, SPList*
 	}
 	else if (pSubspan->spanType == beforeSpan)
 	{
+		// add support for -srcRespell here - it's not necessarily a deletion now
 		wxString typeStr = _T("beforeSpan");
-		wxLogDebug(_T("    ** DELETING in MergeOldAndNew() the  %s  which is Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+		wxLogDebug(_T("    ** DELETING? in MergeOldAndNew() the  %s  which is Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos,
 			pSubspan->newEndPos, (int)pSubspan->bClosedEnd);
 	}
 	else
 	{
+		// add support for -srcRespell here - it's not necessarily a deletion now
 		wxString typeStr = _T("afterSpan");
-		wxLogDebug(_T("    ** DELETING in MergeOldAndNew() the  %s  which is Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
+		wxLogDebug(_T("    ** DELETING? in MergeOldAndNew() the  %s  which is Subspan: { arrOld subspan(%d,%d) , arrNew subspan(%d,%d) } Closed-ended? %d"),
 			typeStr.c_str(), pSubspan->oldStartPos, pSubspan->oldEndPos, pSubspan->newStartPos,
 			pSubspan->newEndPos, (int)pSubspan->bClosedEnd);
 	}

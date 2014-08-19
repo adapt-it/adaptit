@@ -6700,10 +6700,16 @@ wxString szUpperCaseGlossChars = _T("UpperCaseGlossLanguageChars");
 wxString szAutoCapitalization = _T("AutoCapitalizationFlag");
 
 /// The label that identifies the following string encoded value as the application's
-/// "UseSourceWordBreakFlag" choice. This value is written in the "Settings" part of the
-/// project configuration file. Adapt It stores this value in the App's m_bUseSrcWordBreak
-/// boolean member variable. If FALSE, word breaks programmatically added are spaces only.
+/// "UseSourceWordBreak" boolean choice. This value is written in the "Settings" part of the
+/// project configuration file. It is stored in the App's m_bUseSrcWordBreak boolean 
+/// member variable.
 wxString szUseSourceWordBreak = _T("UseSourceWordBreakFlag");
+
+/// The label that identifies the following string encoded value as the application's
+/// "FreeTranslationUsesZWSP" boolean choice. This value is written in the "Settings" part of
+/// the project configuration file. It is stored in the App's m_bFreeTransUsesZWSP boolean 
+/// member variable.
+wxString szFreeTranslationUsesZWSP = _T("FreeTranslationUsesZWSPFlag");
 
 /// The label that identifies the following string encoded value as the application's
 /// "SourceHasUpperCaseAndLowerCase". This value is written in the "Settings" part of the
@@ -15171,8 +15177,47 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
     
+	//m_bLegacyDocLacksZWSPstorage = FALSE;  // default for docVersion 9 and up
+			// (set it TRUE in AtDocAttr() in XML.cpp if doc is version 8 or less,
+			// so that a wordbreaking space can be supplied programmatically in exports from
+			// such a document)
+
 	// Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
+	// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
+	// edited source text has spelling changes which are to be interpretted as simple
+	// orthography changes and typos fixed and so forth - with no actual meaning changes,
+	// that is, the words changed are changed to remain themselves in their current places
+	// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
+	// target text when the smart merge from Paratext's source text project is done back
+	// to the Adapt It Document
+	//*********************************************************************************************************************
+    // The -srcRespell switch had a problem - it lost data if a respelling was in a merger.
+    // If there were mergers in the AI text, and in PT src project the first word of what
+    // is to be that phrasal group again after the smart merge is done, is edited to be
+    // different - then the whole group drops out of the AI document. Same if done outside
+    // of collab mode. Reason? Because the algorithms which decide what goes into
+    // beforeSpan and afterSpan look for which words differ - and if the group of words
+    // spans that boundary (e.g. first word (changed in PT src proj) is in beforeSpan but
+    // the rest of the words to be in the merger are in the following commonSpan, then the
+	// attempt to rebuild the merger fails - the whole merger disappears. Ditto if the
+	// merger is across the boundary between commonSpan and the following afterSpan. 
+	// Since it's only mergers that give the potential for this data loss, the feature can
+	// be supported only for smart mergers of edited source text to an AI document which
+	// has no mergers. So that's what I've done. MergeUpdatedSourceText() tests for a
+	// merger and if the document contains one, it turns the flag
+	// m_bKeepAdaptationsForSrcRespellings back to FALSE, and gives the user a message
+	// telling him that the legacy smart merge will be done instead. 
+	// I've tested this, and tested with starting the app from a shortcut with the switch,
+	// and it works as it should. So this -srcRespell switch can now be released in 6.5.4
+	//*********************************************************************************************************************
+	m_bKeepAdaptationsForSrcRespellings = FALSE; // -srcRespell switch sets it to TRUE
+#if defined (_DEBUG)
+	//m_bKeepAdaptationsForSrcRespellings = TRUE; // for testing in debug mode, comment out when done testing
+#endif
+
+	// BEW added 17Jul14 in support of languages like Lao, Kmer, etc
+	m_bUseSrcWordBreak = true; // default until the project config file is read
 
 	// Support ZWSP insertion if user turns it on, see View page in Preferences
 	m_bEnableZWSPInsertion = FALSE; // initialize to FALSE
@@ -17248,6 +17293,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_SWITCH, _T("srcRespell"), _T("sourceRespell"), _T("Force respellings to keep adaptations"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		// BEW 28Feb11, moved frm switch to above, it was before the  BEW 12Nov09 line previously
 		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
@@ -17440,6 +17487,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// using the Programs menu or desktop shortcuts, etc, should not use this switch
 			// because it would turn off important functionality irrevokably on every launch
 			m_bForce_Review_Mode = TRUE;
+		}
+
+		if (m_pParser->Found(_T("srcRespell")))
+		{
+			// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
+			// edited source text has spelling changes which are to be interpretted as simple
+			// orthography changes and typos fixed and so forth - with no actual meaning changes,
+			// that is, the words changed are changed to remain themselves in their current places
+			// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
+			// target text when the smart merge from Paratext's source text project is done back
+			// to the Adapt It Document. See MergeOldAndNew() in MergeUpdatedSrc.cpp
+			m_bKeepAdaptationsForSrcRespellings = TRUE;
 		}
 
 		//m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for
@@ -33302,6 +33361,22 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szDoAdaptingBeforeGlossing_InVerticalEdit << tab << number;
 	pf->AddLine(data);
+
+	if (m_bUseSrcWordBreak)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szUseSourceWordBreak << tab << number;
+	pf->AddLine(data);
+
+	if (m_bFreeTransUsesZWSP)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szFreeTranslationUsesZWSP << tab << number;
+	pf->AddLine(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -34292,6 +34367,26 @@ t:				m_pCurrBookNamePair = NULL;
 				gbAdaptBeforeGloss = FALSE;
 			else
 				gbAdaptBeforeGloss = TRUE;
+		}
+		else if (name == szUseSourceWordBreak)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1; // default is ON
+			if (num == 1)
+				m_bUseSrcWordBreak = TRUE;
+			else
+				m_bUseSrcWordBreak = FALSE;
+		}
+		else if (name == szFreeTranslationUsesZWSP)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0; // default is OFF
+			if (num == 1)
+				m_bFreeTransUsesZWSP = TRUE;
+			else
+				m_bFreeTransUsesZWSP = FALSE;
 		}
 		else
 		{

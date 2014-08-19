@@ -162,6 +162,10 @@ CSourcePhrase::CSourcePhrase()
 	m_glossMkrPattern = _T("");
 	m_punctsPattern = _T("");
 
+	// for docVersion 9
+	m_srcWordBreak = _T("");
+	m_tgtWordBreak = _T("");
+
 //#ifdef _DEBUG
 // Leave this stuff here, commented out -- see comment in destructor for why
 //	wxLogDebug(_T("Creator: address = %x  first array = %x  second array = %x  SPList = %x"),
@@ -306,6 +310,10 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_tgtMkrPattern = sp.m_tgtMkrPattern;
 	m_glossMkrPattern = sp.m_glossMkrPattern;
 	m_punctsPattern = sp.m_punctsPattern;
+
+	// for docVersion 9
+	m_srcWordBreak = sp.m_srcWordBreak;
+	m_tgtWordBreak = sp.m_tgtWordBreak;
 }
 
 // BEW 27Feb12, replaced unused m_bHasBookmark with m_bSectionByVerse for improved free
@@ -441,6 +449,9 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_glossMkrPattern = sp.m_glossMkrPattern;
 	m_punctsPattern = sp.m_punctsPattern;
 
+	// for docVersion 9
+	m_srcWordBreak = sp.m_srcWordBreak;
+	m_tgtWordBreak = sp.m_tgtWordBreak;
 	return *this;
 }
 
@@ -521,6 +532,7 @@ void CSourcePhrase::CopySameTypeParams(const CSourcePhrase &sp)
 	m_bSpecialText = sp.m_bSpecialText;
 	m_bRetranslation = sp.m_bRetranslation;
 }
+
 
 bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhrase)
 {
@@ -715,7 +727,7 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	// and for text which is RTL, the resulting phrase will be laid out RTL in the CEdit
 	// For version 3, allow for empty strings; but m_srcPhrase cannot be empty so we
 	// don't need a test here, but we do for the key
-	m_srcPhrase += _T(" ") + pSrcPhrase->m_srcPhrase; 
+	m_srcPhrase += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase; 
 
 	// ditto for the key string, for version 3 allow for empty strings
 	if (m_key.IsEmpty())
@@ -724,7 +736,7 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	}
 	else
 	{
-		m_key += _T(" ") + pSrcPhrase->m_key;
+		m_key += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_key;
 	}
 
 	// do the same for the m_adaption and m_targetStr fields
@@ -732,14 +744,14 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_adaption = pSrcPhrase->m_adaption;
 	else
 	{
-			m_adaption += _T(" ") + pSrcPhrase->m_adaption;
+			m_adaption += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_adaption;
 	}
 
 	if (m_targetStr.IsEmpty())
 		m_targetStr = pSrcPhrase->m_targetStr;
 	else
 	{
-			m_targetStr += _T(" ") + pSrcPhrase->m_targetStr;
+			m_targetStr += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 	}
 
 	// likewise for the m_gloss field in VERSION_NUMBER == 3
@@ -759,9 +771,9 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
     // that makes sense (ie. accumulating two notes, or two free translations, etc if any
     // such should slip through our net of checks to prevent this)
 	if (!pSrcPhrase->m_freeTrans.IsEmpty())
-		m_freeTrans = m_freeTrans + _T(" ") + pSrcPhrase->m_freeTrans;
+		m_freeTrans = m_freeTrans + PutSrcWordBreakFrTr(pSrcPhrase) + pSrcPhrase->m_freeTrans;
 	if (!pSrcPhrase->m_note.IsEmpty())
-		m_note = m_note + _T(" ") + pSrcPhrase->m_note;
+		m_note = m_note + PutSrcWordBreakFrTr(pSrcPhrase) + pSrcPhrase->m_note;
 	if (!pSrcPhrase->m_collectedBackTrans.IsEmpty())
 		m_collectedBackTrans = m_collectedBackTrans + _T(" ") + pSrcPhrase->m_collectedBackTrans;
 	if (!pSrcPhrase->m_filteredInfo.IsEmpty())
@@ -1224,6 +1236,44 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 					bstr += "pupat=\"";
 				btemp = gpApp->Convert16to8(m_punctsPattern);
 				InsertEntities(btemp);
+				bstr += btemp; // add m_punctsPattern string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+		}
+
+		// tenth line -- 2 attributes each is possibly absent
+		// Supporting new docVersion9 storage strings (skip this block if docVersion is < 9):
+		// 	m_srcWordBreak, a wxString, and m_tgtWordBreak, a wxString
+		if ( ( docVersion >= 9) && 
+			 (!m_srcWordBreak.IsEmpty() || !m_tgtWordBreak.IsEmpty())
+		   )
+		{
+			// there is something in this group, so form the needed line
+			bstr += "\r\n";
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += tabUnit; // tab the start of the line
+			}
+			// first string in the 10th line, for  last m_srcWordBreak (it sometimes may 
+			// be more than a single character)
+			if (!m_srcWordBreak.IsEmpty())
+			{
+				bstr += "swbk=\"";
+				btemp = InsertAllUWhitesEntities(m_srcWordBreak);
+				bstr += btemp; // add entified contents of m_srcWordBreak string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// second string in the 10th line (or first), for m_tgtWordBreaksArray
+			if (!m_tgtWordBreak.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " twbk=\"";
+				else
+					bstr += "twbk=\"";
+				btemp = InsertAllUWhitesEntities(m_tgtWordBreak);
 				bstr += btemp; // add m_punctsPattern string
 				bstr += "\"";
 				//bStarted = TRUE; // uncomment out if we add more attributes to this block
@@ -2683,3 +2733,37 @@ void CSourcePhrase::SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray)
 	bAddedSomething = AddNewStringsToArray(pMedialsArray, &oldsArray);
 	bAddedSomething = bAddedSomething; // avoid warning (retain, as is)
 }
+
+void CSourcePhrase::SetSrcWordBreak(wxString wb)
+{
+	m_srcWordBreak = wb;
+}
+void CSourcePhrase::SetTgtWordBreak(wxString wb)
+{
+	m_tgtWordBreak = wb;
+}
+wxString CSourcePhrase::GetSrcWordBreak()
+{
+	//if (gpApp->m_bLegacyDocLacksZWSPstorage)
+	if (this->m_srcWordBreak.IsEmpty())
+	{
+        // There is no m_srcWordBreak member in the current document that we can access so
+        // just store and return a latin space
+		this->m_srcWordBreak = _T(' ');
+	}
+	return m_srcWordBreak;
+}
+wxString CSourcePhrase::GetTgtWordBreak()
+{
+	//if (gpApp->m_bLegacyDocLacksZWSPstorage)
+	if (this->m_tgtWordBreak.IsEmpty())
+	{
+		// There is no m_tgtWordBreak member in the current document that we can access so
+		// just store and return a latin space
+		this->m_tgtWordBreak = _T(' ');
+	}
+	return m_tgtWordBreak;
+}
+
+
+

@@ -495,6 +495,15 @@ void     RepositionDialogToUncoverPhraseBox_Version2(CAdapt_ItApp* pApp, int x, 
 // returned string isn't defined.
 bool     GetLanguageCodePrintName(wxString code, wxString& printName);
 
+wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase); // get it from m_srcWordBreak in pSrcPhrase,
+				// or return a latin space if app's m_bUseSrcWordBreak is FALSE - test internally
+wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase); // get it from m_tgtWordBreak in pSrcPhrase,
+				// or return a latin space if app's m_bUseSrcWordBreak is FALSE - test internally
+				// (yes, I meant m_bUseSrcWordBreak in the above line - it covers both tgt
+				// and src contexts when it comes to testing in an if then else test)
+wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase); // get it from m_srcWordBreak in pSrcPhrase,
+				// or return a latin space if app's m_bFreeTransUsesZWSP is FALSE - test internally
+
 //wxString RemoveCharFromString(wxString &str, wxChar ch); // removes all instances of ch from str
 
 // a handy utility for counting how many space-delimited words occur in str

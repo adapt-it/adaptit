@@ -246,7 +246,10 @@ void	CopySubArray(SPArray& arr, int fromIndex, int toIndex, SPArray& subArray);
 void	CopyToList(SPArray& arr, int fromIndex, int toIndex, SPList* pList);
 int		CountWords(SPArray* pArray, wxArrayPtrVoid* pChunksArray, int firstChunk, int lastChunk);
 bool	DoesChunkContainSourceText(SPArray* pArray, int startsAt, int endsAt);
-bool	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan);
+// Next one BEW refactored 21Jul14 to add support for the -srcRespell switch (one new param
+// added, and code internally added to for called functions, to copy m_key and m_srcPhrase)
+bool	DoUSFMandPunctuationAlterations(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan,
+										bool bKeepAdaptationsForSrcRespellings);
 void	EraseAdaptationsFromRetranslationTruncations(SPList* pMergedList);
 bool	FindClosestSafeMatchup(SPArray& arrOld, SPArray& arrNew, wxArrayPtrVoid* pOldChunks, 
 							wxArrayPtrVoid* pNewChunks, int oldStartChunk, int newStartChunk, 
@@ -331,26 +334,32 @@ void	InitializeNonVerseChunk(SfmChunk* pStruct);
 int		PutBeginMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray);
 int		PutEndMarkersIntoArray(CSourcePhrase* pSrcPhrase, wxArrayString* pArray);
 void	ReplaceMedialPunctuationAndMarkersInMerger(CSourcePhrase* pMergedSP, wxArrayPtrVoid* pArrayNew,
-						wxString& parentPrevPunct, wxString& parentFollPunct, wxString& strFromMedials);
+						wxString& parentPrevPunct, wxString& parentFollPunct, wxString& srcPhrFromInstances,
+						wxString& keyFromInstances);
 void	RemoveAll(SPArray* pSPArray);
 bool	SetupChildTuple(SPArray& arrOld, SPArray& arrNew, Subspan* pParentSubspan, Subspan* tuple[],
 						int limit);
 void	SetEndIndices(SPArray& arrOld, SPArray& arrNew, Subspan* pSubspan, int limit); // overload
 bool	TransferForFixedSpaceConjoinedPair(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,  
-						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+						Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding,
+						bool bKeepAdaptationsForSrcRespellings = FALSE);
 void	TransferFollowingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, 
 						bool bFlagsToo, bool bClearAfterwards);
 bool	TransferPunctsAndMarkersToMerger(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex,
-						Subspan* pSubspan, int& oldDoneToIncluding, int & newDoneToIncluding);
+						Subspan* pSubspan, int& oldDoneToIncluding, int & newDoneToIncluding,
+						bool bKeepAdaptationsForSrcRespellings = FALSE);
 void	TransferPunctsAndMarkersOnly(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bClearAfterwards);
 void	TransferPrecedingMembers(CSourcePhrase* pFrom, CSourcePhrase* pTo, bool bAICustomMkrsAlso, 
 						 bool bFlagsToo, bool bClearAfterwards);
 bool	TransferToManualPlaceholder(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
-				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+				Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding,
+				bool bKeepAdaptationsForSrcRespellings = FALSE);
 bool	TransferToPlaceholderInRetranslation(SPArray& arrOld, SPArray& arrNew, int oldIndex, 
-		int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+			int newIndex, Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding,
+			bool bKeepAdaptationsForSrcRespellings = FALSE);
 bool	TransferToSingleton(SPArray& arrOld, SPArray& arrNew, int oldIndex, int newIndex, 
-						 Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding);
+						 Subspan* pSubspan, int& oldDoneToIncluding, int& newDoneToIncluding,
+						 bool bKeepAdaptationsForSrcRespellings = FALSE);
 WhatYouAre	WhatKindAreYou(CSourcePhrase* pSrcPhrase, CSourcePhrase* pNewSrcPhrase);
 bool	WidenLeftwardsOnce(SPArray& arrOld, SPArray& arrNew, int oldStartAt, int oldEndAt,
 				int newStartAt, int newEndAt, int oldStartingPos, int newStartingPos,

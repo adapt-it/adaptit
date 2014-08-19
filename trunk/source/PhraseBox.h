@@ -100,6 +100,8 @@ public:
 	bool GetCancelAndSelectFlag(); // accessor for private bool m_bCancelAndSelectButtonPressed getting
 	void ChangeCancelAndSelectFlag(bool bValue); // accessor to change private bool m_bCancelAndSelectButtonPressed
 	// Generated message map functions
+	void RemoveFinalSpaces(CPhraseBox* pBox,wxString* pStr);
+	void RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
 protected:
 	void OnChar(wxKeyEvent& event);
 	void OnSysKeyUp(wxKeyEvent& event);

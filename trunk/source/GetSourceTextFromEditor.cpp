@@ -857,7 +857,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 					m_bUsfmStructureChanged = IsUsfmStructureChanged(oldSrcText, sourceWholeBookBuffer);
 				}
 
-				if (m_bTextOrPunctsChanged && m_pApp->m_bCopySource)
+				// BEW 21Jul14, added 3rd subtest, so that when adaptations are being
+				// retained, Copy Source does not get turned off, and the message box
+				// further below doesn't get shown in that case
+				if (m_bTextOrPunctsChanged && m_pApp->m_bCopySource &&
+					!m_pApp->m_bKeepAdaptationsForSrcRespellings)
 				{
 					// for safety's sake, turn off copying of the source text, but tell the
 					// user below that he can turn it back on if he wants
@@ -934,9 +938,13 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 				// whm 25Aug11 reset the App's maxProgDialogValue back to MAXINT
 				m_pApp->maxProgDialogValue = 2147483647; //MAXINT; // temporary hack while calling OpenDocWithMerger() above
 				
-				// warn user about the copy flag having been changed, if such a warning is necessary					   
+				// warn user about the copy flag having been changed, if such a warning is
+				// necessary; note the last test - if the -srcRespell command line flag is
+				// currently in operation, then there won't be any "holes" produced in the
+				// smart merger back to the AI document, so we don't have to turn off the
+				// copy source flag & no warning is therefore needed					   
 				if (m_pApp->m_bSaveCopySourceFlag_For_Collaboration && !m_pApp->m_bCopySource
-					&& m_bTextOrPunctsChanged)
+					&& m_bTextOrPunctsChanged && !m_pApp->m_bKeepAdaptationsForSrcRespellings)
 				{
                     // the copy flag was ON, and was just turned off above, and there are
                     // probably going to be new adaptable 'holes' in the document, so tell

@@ -5574,6 +5574,28 @@ void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray
 		// & it's been reset as = 1 for docV6 and higher (See AdaptitConstants.h)
 		if (wordcount >= MIN_FREE_TRANS_WORDS)
 		{
+            // BEW 21Jul14, support for ZWSP -- if app's m_bUseSrcWordBreak is TRUE, *AND*
+            // also app's m_bFreeTransUsesZWSP flg is TRUE, and pSrcPhrase stores a special
+            // space like ZWSP in it's m_srcWordBreak wxString member, *AND* pNextPile's
+            // CSourcePhrase instance (which we know is not NULL if control has reached
+            // here) stores one or more ordinary latin space characters, then we've come to
+            // a halting location between those two piles; but don't do this test if either
+            // flag is false
+			if (m_pApp->m_bUseSrcWordBreak && m_pApp->m_bFreeTransUsesZWSP)
+			{
+				wxString curWordBreak = pile->GetSrcPhrase()->GetSrcWordBreak(); // could be empty
+				wxString nextWordBreak = pNextPile->GetSrcPhrase()->GetSrcWordBreak(); // could be empty
+				if (!curWordBreak.IsEmpty() && (curWordBreak.GetChar(0) != _T(' ')) &&
+					!nextWordBreak.IsEmpty() && (nextWordBreak.GetChar(0) == _T(' ')))
+				{
+                    // We've got a situation where a special space occurs prior to the
+                    // current word, and after the current word there is at least one latin
+                    // space. This constitutes grounds for halting before pNextPile. The
+                    // current pile has already been accumulated, so just break from the loop
+					break;
+				}
+			}
+			
 			// test for final pile in this section
 			pSrcPhrase = pile->GetSrcPhrase();
 			wxASSERT(pSrcPhrase != NULL);
@@ -8962,6 +8984,8 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 ///     wishes, and the View Filtered material dialog is again the way to do it.)
 /// BEW 26Mar10, changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
+/// BEW 21Jul14, refactored to support ZWSP etc (special spaces), their replacements in
+/// the adaptation text - for example, in retranslations and exports of USFM src or tgt
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 {

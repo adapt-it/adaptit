@@ -39,6 +39,14 @@ struct AutoFixRecord;
 struct AutoFixRecordG;
 class CStatusBar;
 
+// Comment out to disable debugging code for the ZWSP etc support
+#define DEBUG_ZWSP
+
+#if defined(_DEBUG) && defined(DEBUG_ZWSP)
+// copied from PunctCorrespPage.cpp for use here while debugging
+wxString    MakeUNNNN(wxString& chStr);
+#endif
+
 /// wxList declaration and partial implementation of the AFList class being
 /// a list of pointers to AutoFixRecord objects
 WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp file
