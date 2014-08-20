@@ -108,6 +108,8 @@ CPlaceholder::~CPlaceholder()
 ///////////////////////////////////////////////////////////////////////////////
 
 // BEW 18Feb10 updated for doc version 5 support (no changes needed)
+// BEW 21Jul14, no change needed for support of ZWSP etc (internally it calls
+// InsertNullSourcePhrase() which has the refactored code for support of ZWSP)
 void CPlaceholder::InsertNullSrcPhraseBefore() 
 {
 	// first save old sequ num for active location
@@ -198,6 +200,8 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 }
 
 // BEW 18Feb10 updated for doc version 5 support (no changes needed)
+// BEW 21Jul14, no change needed for support of ZWSP etc (internally it calls
+// InsertNullSourcePhrase() which has the refactored code for support of ZWSP)
 void CPlaceholder::InsertNullSrcPhraseAfter() 
 {
 	// this function is public (called in PhraseBox.cpp)
@@ -540,7 +544,8 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 		}
 	} // end of TRUE block for test: if (nStartingSequNum > 0)
 
-	// Set a default src text wordbreak string for the placeholder - from previous instance
+	// BEW 21Jul14, Set a default src text wordbreak string for the placeholder
+	// - get it from the previous instance
 	bool bWordBreakDifference = FALSE; // default
 	wxString defaultWordBreak = _T(" "); // a space, in case there is no previous CSourcePhrase
 	if (pPrevSrcPhrase != NULL)
@@ -931,7 +936,7 @@ _T("Warning: Unacceptable Forwards Association"),wxICON_EXCLAMATION | wxOK);
 					// solution is to make it same as the m_adaption member
 					pSrcPhraseInsLoc->m_targetStr = pSrcPhraseInsLoc->m_adaption;
 				}
-				// Do any needed right association for wordbreaks
+				// BEW 21Jul14, Do any needed right association for wordbreaks
 				wxString aWordBreak = _T("");
 				aWordBreak = pSrcPhraseInsLoc->GetSrcWordBreak();
 				pFirstOne->SetSrcWordBreak(aWordBreak);
@@ -1425,6 +1430,9 @@ m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 // BEW 11Oct10 updated for adding tests for the new inline marker stores, for docV5
 // BEW 11Oct10 updated to prevent right association if the instance to the right is a word
 // pair conjoined with USFM fixed space marker ~
+// BEW 21Jul14, no change needed for ZWSP support - right association issues in the context
+// of ZWSP wordbreaks are handled by either RemoveNullSourcePhrase() or 
+// InsertNullSourcePhrase() internally, so we don't need to do anything here
 bool CPlaceholder::IsRightAssociationTransferPossible(CSourcePhrase* pSrcPhrase)
 {
 	// prevent right association when ~ is in the CSourcePhrase instance
@@ -1737,6 +1745,8 @@ void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 // Called from ScanSpanDoingSourceTextReconstruction() which is in turn called from 
 // OnEditSourceText()
 // BEW created 11Oct10
+// BEW 21Jul14, no change need for ZWSP support - the internal call of Untransfer...()
+// has been refactored for support of ZWSP untransfers etc.
 bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
 {
 	SPList::Node* pos = pSublist->GetFirst();
@@ -1754,7 +1764,7 @@ bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
 		pos = pos->GetNext();
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
-			// It's a placeholder, so transfer dataa and then 
+			// It's a placeholder, so transfer data & set flag for the block which follows 
 			bHasPlaceholders = TRUE;
 			UntransferTransferredMarkersAndPuncts(pSublist, pSrcPhrase);
 		}
@@ -1787,7 +1797,7 @@ bool CPlaceholder::RemovePlaceholdersFromSublist(SPList*& pSublist)
 // fixed.
 // BEW 11Oct10, added docversion 5 support for m_follOuterPunct, and the 4 wxString
 // members for the inline binding and non-binding begin and end markers
-// BEW 2Dec13 changed so that wideners are not included in the removal
+// BEW 21Jul14, refactored for support of ZWSP and other exotic wordbreaks
 void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount)
 {
     // while this function used to be able to handle nCount > 1, in actual fact we have
@@ -1946,6 +1956,15 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	}
 
 	// now the transfers from the first, to the first of the following context
+
+	// BEW 21Jul14, unilaterally check for the wordbreak on the placeholder being different
+	// than the one on pSrcPhraseFollowing, if different, then transfer the placeholder's
+	// wordbreak to pSrcPhraseFollowing
+	if (pSrcPhraseFollowing != NULL && 
+		(pFirstOne->GetSrcWordBreak() != pSrcPhraseFollowing->GetSrcWordBreak()))
+	{
+		pSrcPhraseFollowing->SetSrcWordBreak(pFirstOne->GetSrcWordBreak());
+	}
 
 	if ((!pFirstOne->m_markers.IsEmpty() || !pFirstOne->GetInlineNonbindingMarkers().IsEmpty()
 			|| !pFirstOne->GetInlineBindingMarkers().IsEmpty() ) && !bNoneFollows)
