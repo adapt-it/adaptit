@@ -1662,15 +1662,17 @@ void CPlaceholder::UntransferTransferredMarkersAndPuncts(SPList* pSrcPhraseList,
 
 	if (pSrcPhraseFollowing != NULL)
 	{
+		// BEW 21Jul14 - first do any ZWSP supporting transfer that may be needed; we
+		// do it here because we can't assume that other right-associating factors (than a
+		// difference in the wordbreak character) were present
+		if (pSrcPhrase->GetSrcWordBreak() != pSrcPhraseFollowing->GetSrcWordBreak())
+		{
+			pSrcPhraseFollowing->SetSrcWordBreak(pSrcPhrase->GetSrcWordBreak());
+		}
+
 		if ((!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetInlineNonbindingMarkers().IsEmpty()
 			 || !pSrcPhrase->GetInlineBindingMarkers().IsEmpty() ))
 		{
-			// BEW 21Jul14 - first do any ZWSP supporting transfer that may be needed
-			if (pSrcPhrase->GetSrcWordBreak() != pSrcPhraseFollowing->GetSrcWordBreak())
-			{
-				pSrcPhraseFollowing->SetSrcWordBreak(pSrcPhrase->GetSrcWordBreak());
-			}
-
 			// BEW 27Sep10, for docVersion 5, m_markers stores only markers and chapter or
 			// verse number, so if non-empty transfer its contents & ditto for the inline ones
 			pSrcPhraseFollowing->m_markers = pSrcPhrase->m_markers;

@@ -44,16 +44,16 @@
 #include <wx/valgen.h> // for wxGenericValidator
 
 #include "Adapt_It.h"
-#include "EarlierTranslationDlg.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "Pile.h"
+#include "helpers.h"
 #if defined(_DEBUG)
 #include "MainFrm.h"			// mrh - These 2 #includes are needed on both the Mac and Linux.
 #include "Adapt_ItCanvas.h"
-#include "helpers.h"
 #endif
+#include "EarlierTranslationDlg.h"
 
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
