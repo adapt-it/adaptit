@@ -12813,7 +12813,8 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
     // do word1 -- it could be a sequence of words with or without punctuation, or the
     // first word of a conjoined ~ word pair with or without punctuation, or just a single
     // word with or without some punctuation
-	wxChar lastWhiteSpaceChar; // BEW 21Jul14 for ZWSP support
+	wxString lastWhiteSpaceChar; // BEW 21Jul14 for ZWSP support, a string, 
+								 // but store only a wxChar in it
 	while (ptr < pEnd)
 	{
         // we are dealing with target text, but ParseWord() will treat it as source
@@ -12834,7 +12835,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 
 		// BEW 21Jul14 changed to use IsWhiteSpace() for the test
 		//while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
-		lastWhiteSpaceChar = _T('');
+		lastWhiteSpaceChar.Empty(); // initialize to an empty string
 		while (pDoc->IsWhiteSpace(ptr)) 
 		{ 
 			lastWhiteSpaceChar = *ptr;
