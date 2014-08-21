@@ -327,11 +327,11 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 			{
 				if (!pSrcPhrase->m_bNullSourcePhrase)
 				{
-					oldText += _T(" ") + pSrcPhrase->m_srcPhrase;
+					oldText += PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_srcPhrase;
 				}
 				if (!pSrcPhrase->m_targetStr.IsEmpty())
 				{
-					newText += _T(" ") + pSrcPhrase->m_targetStr;
+					newText += PutTgtWordBreak(pSrcPhrase) + pSrcPhrase->m_targetStr;
 				}
 			}
 			bJustEnded = TRUE;
@@ -345,8 +345,9 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 		{
 			if (bJustEnded)
 			{
-			a:				oldText += endText;
-				newText += endText + endText; // we want a blank line
+			a:	oldText += endText;
+				newText += endText;
+				//newText += endText + endText; // we want a blank line
 
 				// write out the entry to the file
 				if (pSrcPhrase->m_chapterVerse.IsEmpty())
@@ -369,10 +370,17 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 				}
 #ifndef _UNICODE
 				pFile->Write(oldText);
+				pFile->Write(newText);
+				newText = endText; // get a blank line
+				pFile->Write(newText); // write the blank line
+
 
 #else // _UNICODE version
 				// use UTF-8 encoding
 				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,oldText);
+				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,newText);
+				newText = endText; // get a blank line
+				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,newText); // write blank line
 #endif
 			}
 			oldText.Empty();
