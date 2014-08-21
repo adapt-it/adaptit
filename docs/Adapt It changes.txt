@@ -64,6 +64,13 @@ application is used. This enables such files (normally, they are
 UTF-8 encoded files) to be opened and displayed correctly in
 any word processor. Previously, the lack of a BOM would cause
 the word processor opening it to fail to display the text properly.
+* Prior versions of Adapt It would not accept consistent changes
+tables with symbolic commands within them, so that only tables
+with simple lines like
+"findx" > "replacewithy"
+would work. Now all correctly constructed consistent changes
+tables are accepted, and work properly.
+
 ----------------------------------------------
 Bug fixes in 6.5.4
 ----------------------------------------------

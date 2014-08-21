@@ -382,6 +382,7 @@ struct errorstruct errortable[] =
 typedef void (*stor_noarg) (char, char, char);
 stor_noarg stornoarg,storarg,storoparg,stordbarg;
 
+/* Bill's old struct tables, with function pointer as second member; I'm changing to enum values instead
 struct cmstruct cmsrch[] =
     {
         { "nl",		  stornoarg, CARRIAGERETURN, FALSE,			0 },
@@ -400,7 +401,7 @@ struct cmstruct cmsrch[] =
         { NULL,		  NULL,		0,				  FALSE,			0 }
     };
 
-/* Replacement Arguments (right side) */
+ // Replacement Arguments (right side) 
 
 struct cmstruct cmrepl[] =
     {
@@ -458,6 +459,87 @@ struct cmstruct cmrepl[] =
         { "fwdu",	  storoparg, FWDUCMD,		  FALSE,			0 },
         { "omitu",	  storoparg, OMITUCMD,		  FALSE,			0 },
         { NULL,		  NULL,		0,				  FALSE,			0 }
+    };
+*/ /* end Bill's old ones, with function pointers stored */
+
+/* BEW 21Aug14 retactored to use enum values for the second member in each */
+struct cmstruct cmsrch[] =
+    {
+        { "nl",		  storenoarg, CARRIAGERETURN, FALSE,			0 },
+        { "tab",	  storenoarg, TAB,            FALSE,			0 },
+        { "endfile",  storenoarg, ENDFILECMD,	  FALSE,			0 },
+        { "define",   storearg,	 DEFINECMD,		  DEFINED,		DEFINE_HEAD },
+        { "any",	  storearg,	 ANYCMD,		  REFERENCED,	STORE_HEAD },
+        { "prec",	  storearg,	 PRECCMD,		  REFERENCED,	STORE_HEAD },
+        { "fol",	  storearg,	 FOLCMD,		  REFERENCED,	STORE_HEAD },
+        { "wd",		  storearg,	 WDCMD,			  REFERENCED,	STORE_HEAD },
+        { "anyu",	  storearg,	 ANYUCMD,		  REFERENCED,	STORE_HEAD },
+        { "precu",	  storearg,	 PRECUCMD,		  REFERENCED,	STORE_HEAD },
+        { "folu",	  storearg,	 FOLUCMD,		  REFERENCED,	STORE_HEAD },
+        { "wdu",	  storearg,	 WDUCMD,		  REFERENCED,	STORE_HEAD },
+        { "cont",	  storearg,	 CONTCMD,		  REFERENCED,	STORE_HEAD },
+        { NULL,		  nothing,		0,				  FALSE,			0 }
+    };
+
+/* Replacement Arguments (right side) */
+
+/* BEW 21Aug14 retactored to use enum values for the second member in each */
+struct cmstruct cmrepl[] =
+    {
+        { "nl",		  storenoarg, CARRIAGERETURN, FALSE,			0 },
+        { "tab",		  storenoarg, TAB,            FALSE,			0 },
+        { "endfile",  storenoarg, ENDFILECMD,	  FALSE,			0 },
+        { "cont",	  storearg,	 CONTCMD,		  REFERENCED,	STORE_HEAD },
+        { "if",		  storearg,	 IFCMD,			  REFERENCED,	SWITCH_HEAD },
+        { "ifn",		  storearg,	 IFNCMD,			  REFERENCED,	SWITCH_HEAD },
+        { "else",	  storenoarg, ELSECMD,		  FALSE,			0 },
+        { "endif",	  storenoarg, ENDIFCMD,		  FALSE,			0 },
+        { "set",		  storearg,	 SETCMD,			  DEFINED,		SWITCH_HEAD },
+        { "clear",	  storearg,	 CLEARCMD,		  DEFINED,		SWITCH_HEAD },
+        { "begin",	  storenoarg, BEGINCMD,		  FALSE,			0 },
+        { "endstore", storenoarg, ENDSTORECMD,	  FALSE,			0 },
+        { "store",	  storearg,	 STORCMD,		  DEFINED,		STORE_HEAD },
+        { "append",   storearg,	 APPENDCMD,		  DEFINED,		STORE_HEAD },
+        { "out",		  storearg,	 OUTCMD,			  REFERENCED,	STORE_HEAD },
+        { "outs",	  storearg,	 OUTSCMD,		  REFERENCED,	STORE_HEAD },
+        { "dup",		  storenoarg, DUPCMD,			  FALSE,			0 },
+        { "back",	  storeoparg, BACKCMD,		  FALSE,			0 },
+        { "next",	  storenoarg, NEXTCMD,		  FALSE,			0 },
+        { "ifeq",	  storearg,	 IFEQCMD,		  REFERENCED,	STORE_HEAD },
+        { "ifneq",	  storearg,	 IFNEQCMD,		  REFERENCED,	STORE_HEAD },
+        { "ifgt",	  storearg,	 IFGTCMD,		  REFERENCED,	STORE_HEAD },
+        { "ifngt",    storearg,   IFNGTCMD,       REFERENCED,  STORE_HEAD },
+        { "iflt",     storearg,   IFLTCMD,        REFERENCED,  STORE_HEAD },
+        { "ifnlt",    storearg,   IFNLTCMD,       REFERENCED,  STORE_HEAD },
+        { "end",		  storenoarg, ENDCMD,			  FALSE,			0 },
+        { "repeat",   storenoarg, REPEATCMD,		  FALSE,			0 },
+        { "group",	  storearg,	 GROUPCMD,		  DEFINED,		GROUP_HEAD },
+        { "do",		  storearg,	 DOCMD,			  REFERENCED,	DEFINE_HEAD },
+        { "incl",	  storearg,	 INCLCMD,		  REFERENCED,	GROUP_HEAD },
+        { "excl",	  storearg,	 EXCLCMD,		  REFERENCED,	GROUP_HEAD },
+        { "fwd",		  storeoparg, FWDCMD,			  FALSE,			0 },
+        { "omit",	  storeoparg, OMITCMD,		  FALSE,			0 },
+        { "incr",	  storearg,	 INCRCMD,		  DEFINED,		STORE_HEAD },
+        { "decr",     storearg,   DECRCMD,        DEFINED,     STORE_HEAD },
+        { "add",		  storearg,	 ADDCMD,			  DEFINED,		STORE_HEAD },
+        { "sub",		  storearg,	 SUBCMD,			  DEFINED,		STORE_HEAD },
+        { "mul",		  storearg,	 MULCMD,			  DEFINED,		STORE_HEAD },
+        { "div",		  storearg,	 DIVCMD,			  DEFINED,		STORE_HEAD },
+        { "mod",		  storearg,	 MODCMD,			  DEFINED,		STORE_HEAD },
+        { "write",	  storenoarg, WRITCMD,		  FALSE,			0 },
+        { "wrstoree",  storearg,	 WRSTORECMD,	  REFERENCED,	STORE_HEAD },
+        { "read",	  storenoarg, READCMD,		  FALSE,			0 },
+        { "caseless", storenoarg, CASECMD,		  FALSE,			0 },
+        { "binary",   storenoarg, BINCMD,         FALSE,       0 },
+        { "doublebyte",storedbarg,DOUBLECMD,      FALSE,       0 },
+        { "unsorted",storenoarg,  UNSORTCMD,      FALSE,       0 },
+        { "ifsubset", storearg,	 IFSUBSETCMD,	  REFERENCED,	STORE_HEAD },
+        { "len",		  storearg,	 LENCMD,			  REFERENCED,	STORE_HEAD },
+        { "utf8",     storenoarg, UTF8CMD,		  FALSE,			0 },
+        { "backu",	  storeoparg, BACKUCMD,		  FALSE,			0 },
+        { "fwdu",	  storeoparg, FWDUCMD,		  FALSE,			0 },
+        { "omitu",	  storeoparg, OMITUCMD,		  FALSE,			0 },
+        { NULL,		  nothing,		0,				  FALSE,			0 }
     };
 
 char bytesFromUTF8[256] = {
@@ -4415,12 +4497,19 @@ void CCCModule::storeelement(int search)	/* Store a parsed element in internal c
  *													the arithmetic routines
  *									err -- display an error message
  *
+ * BEW 21Aug14, refactored to remove use of pointer-to-function, as the compiler cannot convert
+ * to the needed type when the functions have been made member functions of CCCModule. So the
+ * workaround is to have the tables cmsrch and cmrepl store not pointer-to-function as each
+ * struct's second member, but instead a WhichFunc enum (which can have only 4 possible values),
+ * and to extract the enum value and use it in a 4-case switch to directly call the correct
+ * function, passing in the extracted parameters as well.
  */
 
 {
-    int number,             /* General purpose integer variable            */
-    last_command;        /* Previous command stored in the table        */
-    int ch;                 /* Single character                            */
+    int number,             /* General purpose integer variable       */
+    last_command;           /* Previous command stored in the table   */
+    int ch;                 /* Single character                       */
+	WhichFunc aFunc;        /* save the extracted enum here           */
 
     struct cmstruct *cmpt;
     int nbytes;
@@ -4574,10 +4663,32 @@ void CCCModule::storeelement(int search)	/* Store a parsed element in internal c
                     * using the function
                     * from the search table
                     */
+					/* BEW 21Aug14, deprecated the use of function pointers, in favour of an enum instead
                     (*(cmpt->cmfunc))
                     ( cmpt->cmcode, cmpt->symbolic, cmpt->symbol_index );
-
-                    was_string = FALSE;
+					*/
+					/* BEW 21Aug14 - start refactored code */
+					aFunc = cmpt->cmfunc;
+					switch (aFunc)
+					{
+					case storenoarg:
+						stornoarg(cmpt->cmcode, cmpt->symbolic, cmpt->symbol_index);
+						break;
+					case storearg:
+						storarg(cmpt->cmcode, cmpt->symbolic, cmpt->symbol_index);
+						break;
+					case storeoparg:
+						storoparg(cmpt->cmcode, cmpt->symbolic, cmpt->symbol_index);
+						break;
+					case storedbarg:
+						stordbarg(cmpt->cmcode, cmpt->symbolic, cmpt->symbol_index);
+						break;
+					case nothing:
+						break; // end of table, do nothing
+					}
+					/* BEW 21Aug14 - end refactored code */
+										
+					was_string = FALSE;
                     /* Did we just process a math command? */
                     if (	number == ADDCMD ||
                             number == SUBCMD ||
