@@ -304,10 +304,26 @@ enum ccMsgType
 #define CCVERSIONMAJOR 3               /* ccversionmajor predefined store */
 #define CCVERSIONMINOR 4               /* ccversionminor predefined store */
 
+// BEW 21Aug14 in cmstruct, void	(*cmfunc) (char, char, char); will not
+// work as expected, because the functions have been made CCCModule member
+// functions, and so cmfunc will not get a valid function pointer at compile time,
+// and will just be left NULL. My workaround is to replace the function ptr in
+// cmstruct with an enum which has 4 values, one for each of the 4 functions
+// we need to support: storenoarg, storearg, storoparg, stordbarg
+enum WhichFunc {
+	nothing,
+	storenoarg,
+	storearg,
+	storeoparg,
+	storedbarg
+}; // note, these enum names are just the old function names with e inserted after stor
 struct cmstruct
 {
     char	 *cmname;			/* Name of operation */
-    void	(*cmfunc) (char, char, char);		 /* Function to call to compile it */
+	//void	(*cmfunc) (char, char, char);		 /* Function to call to compile it */ deprecated 21Aug14
+    enum	WhichFunc cmfunc; // to use this, add 'e' character in the relevant tables
+	// so that stornoarg becomes storenoarg, storarg becomes storearg, etc, in
+	// CCModule.cpp at lines 400++ approx
     char	cmcode;				/* Compiled code */
     char	symbolic;			/* Non-zero == command can take symbolic arguments */
     char	symbol_index;		/* If (symbolic)
@@ -627,6 +643,7 @@ public:
 	void storoparg(char comand, char dummy1, char dummy2);
 	void stordbarg(char comand, char dummy1, char dummy2);
 	char *cmdname(char cmd, int search);
+
 protected:
 
 private:
