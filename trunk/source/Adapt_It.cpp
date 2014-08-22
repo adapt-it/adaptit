@@ -9235,13 +9235,29 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
 		defaultMenuLabel = _("&Open...\tCtrl-O"); // must be same as in wxDesigner resource
 		labelFromPT = _("&Open... (Get Source Text From Paratext)\tCtrl-O");
 		labelFromBE = _("&Open... (Get Source Text From Bibledit)\tCtrl-O");
+		// whm modified 22Aug14. When a project is closed, we preserve the existing values of 
+		// m_bCollaboratingWithParatext and m_bCollaboratingWithBibledit so that the last
+		// option that was selected in the CollabOptionsDlg would still be selected. This is
+		// more often desired since after a Close>Project command, the user would most likely
+		// want to open the same project or another one that was at some time set up for
+		// collaboration. That being said, we need to remove the parenthetical material here
+		// when m_bStartWorkUsingCollaboration is set to FALSE, which happens upon a Close
+		// Project situation. Otherwise, when a user selects a non-collaboration project 
+		// after a Project>Close, the parenthetical material would still be appended to the
+		// menu item.
 		if (m_bCollaboratingWithParatext)
 		{
-			label = labelFromPT;
+			if (m_bStartWorkUsingCollaboration == FALSE)
+				label = defaultMenuLabel;
+			else
+				label = labelFromPT;
 		}
 		else if (m_bCollaboratingWithBibledit)
 		{
-			label = labelFromBE;
+			if (m_bStartWorkUsingCollaboration == FALSE)
+				label = defaultMenuLabel;
+			else
+				label = labelFromBE;
 		}
 		else
 		{
@@ -9259,16 +9275,24 @@ void CAdapt_ItApp::MakeMenuInitializationsAndPlatformAdjustments() //(enum Progr
 		//{
 		//	label.Remove(0,1);
 		//}
+		// whm modified 22Aug14. See comment above for the Open menu item. Same goes for
+		// the Save menu item here.
 		defaultMenuLabel = _("&Save\tCtrl-S"); // must be same as in wxDesigner resource
 		labelFromPT = _("&Save (Transfer Translation Draft To Paratext)\tCtrl-S");
 		labelFromBE = _("&Save (Transfer Translation Draft To Bibledit)\tCtrl-S");
 		if (m_bCollaboratingWithParatext)
 		{
-			label = labelFromPT;
+			if (m_bStartWorkUsingCollaboration == FALSE)
+				label = defaultMenuLabel;
+			else
+				label = labelFromPT;
 		}
 		else if (m_bCollaboratingWithBibledit)
 		{
-			label = labelFromBE;
+			if (m_bStartWorkUsingCollaboration == FALSE)
+				label = defaultMenuLabel;
+			else
+				label = labelFromBE;
 		}
 		else
 		{
@@ -17250,6 +17274,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
 		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_SWITCH, "frm", "forcereviewmode", "Force review mode ON",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		// whm added the following element to the wxCmdLineEntryDesc for this wxCHECT_VERSION
+		// block to parallel what Bruce added to the #else block below. Otherwise wxWidgets
+		// gives an Assert Failure in the OnInit() call about line 17511 due to "Unknown option
+		// srcRespell".
+		{ wxCMD_LINE_SWITCH, "srcRespell", "sourceRespell", "Force respellings to keep adaptations",
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		// BEW 28Feb11, moved frm switch to above, it was before the  BEW 12Nov09 line previously
 		{ wxCMD_LINE_SWITCH, "xo", "olpc", "Adjust GUI elements for OLPC XO Screen Resolution",
