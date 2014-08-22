@@ -77,6 +77,10 @@ Bug fixes in 6.5.4
 * The smart merge of edited source text was capable of 
 causing loss of merger data if the merger contained different
 source text. It now doesn't lose data.
+* Consistent Change functionality crashed the app if the changes
+table contained a symbolic command, such as dup, store, nl, etc.
+* Retranslation Report failed to write out the adaptation of a 
+restranslation. It now does. 
 ----------------------------------------------
 Version 6.5.3 release 18 June 2014
 ----------------------------------------------
