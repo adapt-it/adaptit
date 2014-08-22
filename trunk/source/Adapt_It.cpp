@@ -27058,6 +27058,7 @@ void CAdapt_ItApp::OnButtonCloseClipboardAdaptDlg(wxCommandEvent& WXUNUSED(event
 	{
 		nEndAt = pSaveList->size() - 1;
 		bIsOK = pView->DeepCopySourcePhraseSublist(pSaveList, (int)nStartAt, (int)nEndAt, m_pSourcePhrases);
+		bIsOK = bIsOK; // avoid warning
 		m_nActiveSequNum = m_nSaveSequNumForDocRestore;
 		m_nSaveSequNumForDocRestore = 0; // a safe default
 		pDoc->DeleteSourcePhrases(pSaveList, FALSE); // FALSE means don't delete partner piles
@@ -27191,6 +27192,7 @@ void CAdapt_ItApp::OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event))
 		m_bADocIsLoaded = TRUE;
 		nEndAt = m_pSourcePhrases->size() - 1;
 		bIsOK = pView->DeepCopySourcePhraseSublist(m_pSourcePhrases, (int)nStartAt, (int)nEndAt, pSaveList);
+		bIsOK = bIsOK; // avoid warning
 		m_nSaveSequNumForDocRestore = m_nActiveSequNum;
 		// We do minimal damage to the original doc - so just clear out the sourcephrase
 		// list and their partner piles; leave all else untouched
@@ -27300,6 +27302,7 @@ void CAdapt_ItApp::RestoreDocStateWhenEmptyClipboard(SPList* pList,	int nStartin
 	if (bDocIsLoaded)
 	{
 		bIsOK = pView->DeepCopySourcePhraseSublist(pList, (int)nStartingSequNum, (int)nEndingSequNum, pOldList);
+		bIsOK = bIsOK; // avoid warning
 		m_nActiveSequNum = m_nSaveSequNumForDocRestore;
 		m_nSaveSequNumForDocRestore = 0; // a safe default
 		pDoc->DeleteSourcePhrases(m_pSaveList, FALSE); // FALSE means don't delete partner piles
