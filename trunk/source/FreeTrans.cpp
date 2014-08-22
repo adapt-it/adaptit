@@ -231,6 +231,10 @@ CFreeTrans::~CFreeTrans()
 }
 
 // BEW 19Feb10 no changes needed for support of doc version 5
+// BEW 21Jul14 refactored for support of ZWSP when composing tgt text as a default free
+// trans, but not when doing it for glossing text as that will still use space only;
+// we'll also change from getting what's in m_adaption, to getting what's in m_targetStr
+// which makes more sense, since punctuation is relevant to the free translation
 wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 {
 	wxString str;
@@ -243,22 +247,44 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 	theText.Empty();
 	for (index = 0; index < nCount; index++)
 	{
-		if (m_pApp->m_bTargetIsDefaultFreeTrans)
+		// get the indexed CSourcePhrase pointer
+		CSourcePhrase* pSrcPhrase = ((CPile*)arr->Item(index))->GetSrcPhrase();
+		if (index == 0)
 		{
-			// get the text from the adaptation line's contents (exclude punctuation)
-			theText = ((CPile*)arr->Item(index))->GetSrcPhrase()->m_adaption;
+			// For index 0 case we don't want a wordbreak to precede
+			if (m_pApp->m_bTargetIsDefaultFreeTrans)
+			{
+				// get the text from the adaptation line's contents (include punctuation)
+				theText = pSrcPhrase->m_targetStr;
+			}
+			else if (m_pApp->m_bGlossIsDefaultFreeTrans)
+			{
+				// get the text from the glossing line's contents
+				theText = pSrcPhrase->m_gloss;
+			}
+			str += theText;
 		}
-		else if (m_pApp->m_bGlossIsDefaultFreeTrans)
+		else
 		{
-			// get the text from the glossing line's contents
-			theText = ((CPile*)arr->Item(index))->GetSrcPhrase()->m_gloss;
+			// Non-initial words and phrases need a delimiter added first
+			if (m_pApp->m_bTargetIsDefaultFreeTrans)
+			{
+				// add the appropriate wordbreak
+				str += PutSrcWordBreak(pSrcPhrase);
+				// get the text from the adaptation line's contents (in punctuation)
+				theText = pSrcPhrase->m_targetStr;
+			}
+			else if (m_pApp->m_bGlossIsDefaultFreeTrans)
+			{
+				// add space as wordbreak
+				str += _T(" ");
+				// get the text from the glossing line's contents
+				theText = pSrcPhrase->m_gloss;
+			}
+			str += theText;
 		}
-		str += theText;
-		str += _T(" "); // delimit with a single space
+
 	}
-	str = MakeReverse(str);
-	str = str.Mid(1); // remove trailing space
-	str = MakeReverse(str);
 	return str; // if neither flag was on, an empty string is returned
 }
 
@@ -7863,6 +7889,10 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /// composeBar was not already opened for another purpose (called from the View), the menu
 /// item is enabled.
 /// BEW 22Feb10 no changes needed for support of doc version 5
+/// BEW 21Jul14, refactored, because this is a choice that the user would want to make
+/// BEFORE he enters free translation mode, so that the first free translation text shown
+/// to him would default to what is collected from the appropriate member of CSourcePhrase
+/// instances
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 {
@@ -7876,19 +7906,24 @@ void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (!m_pApp->m_bFreeTranslationMode) // whm added 23Jan07 to wx version
-	{
+	// BEW 21Jul14 deprecated
+	//if (!m_pApp->m_bFreeTranslationMode) // whm added 23Jan07 to wx version
+	//{
 		// The Advanced menu item "Use Target Text As Default Free Translation"
 		// should be disabled when the app is not in Free Translation Mode.
-		event.Enable(FALSE);
-		return;
-	}
-	if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() &&
-			m_pApp->m_nActiveSequNum >= 0 &&
-			!m_pApp->m_bComposeBarWasAskedForFromViewMenu)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);
+	//	event.Enable(FALSE);
+	//	return;
+	//}
+	// BEW 21Jul14 deprecated also, because the value of the flag
+	// m_pApp->m_bComposeBarWasAskedForFromViewMenu is meaningless for this menu
+	// item before the user makes his choice to enter free translation mode
+	//if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() &&
+	//		m_pApp->m_nActiveSequNum >= 0 &&
+	//		!m_pApp->m_bComposeBarWasAskedForFromViewMenu)
+	//	event.Enable(TRUE);
+	//else
+	//	event.Enable(FALSE);
+	event.Enable(TRUE); // BEW added 21Jul14
 }
 
 // BEW 22Feb10 no changes needed for support of doc version 5
@@ -7956,6 +7991,8 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /// composeBar was not already opened for another purpose (called from the View), the menu
 /// item is enabled.
 /// BEW 22Feb10 no changes needed for support of doc version 5
+/// BEW 21Jul14 refactored so that the choice can be made before free translation mode is
+/// entered - that's more helpful. See OnUpdateAdvancedTargetTextIsDefault for more comments
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 {
@@ -7969,6 +8006,7 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
+	/* deprecated code, 21Jul14
 	if (!m_pApp->m_bFreeTranslationMode) // whm added 23Jan07 to wx version
 	{
 		// The Advanced menu item "Use Gloss Text As Default Free Translation"
@@ -7982,6 +8020,8 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
+	*/
+	event.Enable(TRUE);
 }
 
 void CFreeTrans::OnUpdateRadioDefineByPunctuation(wxUpdateUIEvent& event)

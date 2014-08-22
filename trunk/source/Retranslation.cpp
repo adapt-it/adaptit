@@ -222,6 +222,8 @@ void CRetranslation::DoRetranslationByUpArrow()
 	OnButtonRetranslation(dummyevent);
 }
 
+// BEW refactored 21Jul14 to add writing to file the adaptation line, and to support ZWSP
+// word breaks and other exotic word break characters
 void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile)
 {
 	wxASSERT(!pList->IsEmpty());
