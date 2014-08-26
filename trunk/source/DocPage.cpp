@@ -332,6 +332,14 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 		// Since I cannot get OnWizardFinish handler to work, I'll call its function here
 		OnWizardFinish(event); //event.Skip(); // do nothing
 
+
+		// BEW added 26Aug14, for fixing the floating phrasebox problem on doc open, when the
+		// active sequence number is large, and the doc is large
+		gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
+		gpApp->GetLayout()->PlaceBox();
+		gpApp->GetView()->Invalidate(); // get the layout drawn
+		// It works!!
+
         // BEW added 10Dec12 as a workaround for GTK version bogusly resetting scrollPos to 0 here
 #if defined(SCROLLPOS) && defined(__WXGTK__)
         gpApp->SetAdjustScrollPosFlag(TRUE); // OnIdle() will pick it up, post wxEVT_Adjust_Scroll_Pos
@@ -1064,7 +1072,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 
 		CMainFrame* pFrame = (CMainFrame*)pView->GetFrame();
-		pFrame->Raise();
+		pFrame->Raise(); // raise to top of Z-order (this unfortunately changes the
+						 // scroll car position to an arbitrary (wrong) position, 
+						 // as well, so scroll into view has to come later in a
+						 // caller of OnWizardFinish - try OnWizardPageChanging() )
 		if (pApp->m_bZoomed)
 			pFrame->SetWindowStyle(wxDEFAULT_FRAME_STYLE
 						| wxFRAME_NO_WINDOW_MENU | wxMAXIMIZE);

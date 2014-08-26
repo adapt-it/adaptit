@@ -6319,7 +6319,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename, bool bShowProgress /
 	}
 
 	// update status bar with project name
-	gpApp->RefreshStatusBarInfo();
+	pApp->RefreshStatusBarInfo();
 
 	return TRUE;
 }
@@ -22609,10 +22609,11 @@ bool CAdapt_ItDoc::ReOpenDocument (
 // doc unnecessary (we close and auto-reopen when done), but cover 3 of the 4 legacy choices
 // (ie. a: current doc only, b: all docs in Adaptations folders, c: all docs in all Bible
 // books folders. Not covered? All docs in current book folder. This will be a subset of
-// the resport from c: instead) Also removed legacy DoConsistencyCheck(), and added an int
+// the response from c: instead) Also removed legacy DoConsistencyCheck(), and added an int
 // nCumulativeTotal 4th param to the signature of its overloaded version, which now is the
 // only version; and restored a stats dialog for when all is done
-
+// BEW 22Aug14 When collaborating, the consistency check must be limited to a), that is,
+// to the current doc only
 void CAdapt_ItDoc::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used

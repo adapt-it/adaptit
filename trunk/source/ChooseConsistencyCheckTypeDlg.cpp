@@ -96,6 +96,8 @@ void CChooseConsistencyCheckTypeDlg::OnBnClickedRadioCheckSelectedDocs(wxCommand
 	pRadio->SetValue(FALSE);
 }
 
+// BEW 22Aug14, refactored to prevent choosing anything but the current doc being checked
+// when in collaboration mode with PT or BE
 void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
@@ -103,6 +105,12 @@ void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(even
 	// Make "Check this document only" the default selection
 	wxRadioButton* pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_CHECK_OPEN_DOC_ONLY);
 	wxASSERT(pRadio != NULL);
+
+	wxRadioButton* pRadioAll = (wxRadioButton*)FindWindowById(IDC_RADIO_CHECK_SELECTED_DOCS);
+	wxASSERT(pRadioAll != NULL);
+
+	wxTextCtrl* pTextCtrlMsg = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MSG);
+	wxASSERT(pTextCtrlMsg != NULL);
 
 	/*
 	wxTextCtrl* pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_CHOOSE_CONSISTENCY_CHECK_TYPE);
@@ -113,5 +121,16 @@ void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(even
 	*/
 	m_bCheckOpenDocOnly = TRUE;
 	pRadio->SetValue(TRUE);
+
+    // BEW 22Aug14 In collaboration mode, Adapt It must only work with a document that is
+    // known to be in collaboration. Having a consistency check jump to other documents
+    // which may be scripture ones, and potentially make changes, would have them become
+    // out of sync with what's in PT or BE. We should avoid situations where the result of
+    // allowing something has the potential to make unwelcome hassles arise consequentially.
+	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	{
+		pRadioAll->Hide();
+		pTextCtrlMsg->Hide();
+	}
 }
 
