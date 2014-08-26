@@ -2813,11 +2813,12 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// everything else uses the new member, m_srcWordBreak)
 	AccumulateText(pList,strSource,strAdapt);
 
-    // if we are invoking this function because of a Find & Replace match within the
+    // If we are invoking this function because of a Find & Replace match within the
     // retranslation, then replace the portion of the strAdapt string which was matched
     // with the replacement string returned by the View's GetReplacementString()
-// TODO - refactor the two functions in the next block, for ZWSP support -- I'll defer
-// this to later... when I refactor Find and Find and Replace functionality
+	// BEW 21Jul14, refactor the two functions in the next block, for ZWSP support? I have
+	// checked and there is nothing to do. The strings are used 'as is' and there are no
+	// spaces added or removed or tested for in ReplaceMatchedSubstring()
 	if (m_bReplaceInRetranslation)
 	{
 		wxString replStr = m_pView->GetReplacementString();

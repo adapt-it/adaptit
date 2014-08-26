@@ -9024,8 +9024,8 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 ///     wishes, and the View Filtered material dialog is again the way to do it.)
 /// BEW 26Mar10, changes needed for support of doc version 5
 /// BEW 9July10, no changes needed for support of kbVersion 2
-/// BEW 21Jul14, refactored to support ZWSP etc (special spaces), their replacements in
-/// the adaptation text - for example, in retranslations and exports of USFM src or tgt
+/// BEW 21Jul14, refactored to support ZWSP etc (special spaces), & their replacements in
+/// the adaptation text - for example, in retranslations and exports of USFM src or tgt 
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 {
@@ -9168,7 +9168,14 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 					}
 					else
 					{
-						strCollect += _T(' ');
+						if (bUseAdaptationsLine)
+						{
+							strCollect += PutSrcWordBreak(pSrcPhrase);
+						}
+						else
+						{
+							strCollect += _T(' ');
+						}
 						strCollect += abit;
 					}
 				}
@@ -9218,7 +9225,14 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 						}
 						else
 						{
-							strCollect += _T(' ');
+							if (bUseAdaptationsLine)
+							{
+								strCollect += PutSrcWordBreak(pSrcPhrase);
+							}
+							else
+							{
+								strCollect += _T(' ');
+							}
 							strCollect += abit;
 						}
 					}
