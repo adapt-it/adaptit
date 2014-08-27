@@ -15412,14 +15412,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bRetransReportInProgress = FALSE;
 	m_bDocReopeningInProgress = FALSE;		// mrh 2May12
 
-    // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
-    // check to see that the computer hardware has a certain minimum resolution, especially
-    // the screen's vertical pixels should be at least 480 pixels in height. Width should
-    // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
-    // the Start Working wizard shrink the wizard to an unusable size in which nothing
-    // can be seen and the only response possible is to hit the Esc key to close the wizard.
-    // Hence, if the screen size is below 480h x 640w we notify the user and shut down the
-    // application.
     bDelay_PlacePhraseBox_Call_Until_Next_OnIdle = FALSE; // in support of Collaboration with
 			// PT or BE; set when setting up a doc in collab mode, used to suppress the
 			// PlacePhraseBox() call until the next OnIdle() call is made - and cleared there
@@ -15429,6 +15421,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_rfc5646MessageFileName = _T("RFC5646message.htm"); // whm added 30Jul13 for BEW
 	m_GuesserExplanationMessageFileName = _T("GuesserExplanation.htm"); // BEW added 7Mar14
 
+    // whm added 8Jan11. Based on feedback from LSdev Linux group in Calgary, AI should
+    // check to see that the computer hardware has a certain minimum resolution, especially
+    // the screen's vertical pixels should be at least 480 pixels in height. Width should
+    // be at lease 640 pixels. Anything smaller especially in height makes the sizers for
+    // the Start Working wizard shrink the wizard to an unusable size in which nothing
+    // can be seen and the only response possible is to hit the Esc key to close the wizard.
+    // Hence, if the screen size is below 480h x 640w we notify the user and shut down the
+    // application.
 	int nDisplayHeightInPixels;
 	int nDisplayWidthInPixels;
 	::wxDisplaySize(&nDisplayWidthInPixels,&nDisplayHeightInPixels);
