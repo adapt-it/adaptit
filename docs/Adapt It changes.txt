@@ -93,7 +93,11 @@ restranslation. It now does.
 * Opening a document where the active location is not near
 its top, and the document is large, did not position the
 phrase box correctly and the scroll car was not at the
-correct loction. Fixed now.
+correct location. This now cannot happen.
+* If the phrasebox was left 'floating' at an invalid and wrong
+location at the time of opening a large document (see the
+previous bug fix), and an attempt was made to edit a 
+retranslation, Adapt It crashed.
 ----------------------------------------------
 Version 6.5.3 release 18 June 2014
 ----------------------------------------------
