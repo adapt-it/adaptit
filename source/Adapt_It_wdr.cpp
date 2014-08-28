@@ -1911,6 +1911,8 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
+    item2->Add( 20, 4, 0, wxALIGN_CENTER|wxTOP, 5 );
+
     wxStaticBox *item35 = new wxStaticBox( parent, -1, _("Choose the top option to support copy of source text zero width spaces into the adaptation") );
     wxStaticBoxSizer *item34 = new wxStaticBoxSizer( item35, wxVERTICAL );
 
