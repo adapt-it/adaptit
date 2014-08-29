@@ -2958,7 +2958,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 
     // clear the selection, else RecalcLayout() call will fail at the RestoreSelection()
     // call within it
-	m_pView->RemoveSelection();
+	//m_pView->RemoveSelection();
 
 	// we must have a valid layout, so we have to recalculate it before we go any further,
 	// because if preceding code deleted null phrases, the layout's pointers would be clobbered
