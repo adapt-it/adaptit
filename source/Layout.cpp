@@ -1415,7 +1415,10 @@ void CLayout::DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromLis
 	{
 		pos = pPileList->Find(pPile);
 		wxASSERT(pos != NULL);
-		pPileList->Erase(pos);
+		// BEW 29Aug14, I think the Erase(pos) call should instead be DeleteNode(pos)
+		// so change to use that - this may remove a crash in OnButtonEditRetranslation()
+		//pPileList->Erase(pos);
+		pPileList->DeleteNode(pos);
 	}
 	if (pPile != NULL) // whm 11Jun12 added NULL test
 		delete pPile;
