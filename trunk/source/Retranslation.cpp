@@ -2870,7 +2870,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
     // pSrcPhrase remaining in the list after all the null ones have been deleted. We do
     // this by setting a flag in the block below, and then using the set flag value in the
     // block which follows it
-
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+	wxLogDebug(_T("\n\nOnButtonEditRetranslation() has begun"));
+#endif
 	// BEW 18Feb10, for docVersion = 5, the m_endMarkers member of CSourcePhrase will have
 	// had an final endmarkers moved to the last placeholder, so we have to check for a
 	// non-empty member on the last placeholder, and if non-empty, save it's contents to a
@@ -2928,6 +2930,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			pSrcPhrase->m_bBeginRetranslation = FALSE;
 			pSrcPhrase->m_bEndRetranslation = FALSE;
 		}
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+	wxLogDebug(_T("OnButtonEditRetranslation() loop iteration removed one Placeholder"));
+#endif
 	}
 
 	// handle transferring the indication of the end of a free translation
@@ -2965,12 +2970,19 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// and moving the dialog window would crash the app when Draw messages use the dud pointers
 	m_pApp->m_nActiveSequNum = nSaveActiveSequNum; // legally can be a wrong location eg.
 	// in the retrans, & nothing will break
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+	wxLogDebug(_T("OnButtonEditRetranslation() RecalcLayout() begins now (it gets strips agreeing to m_pileArray changes)"));
+#endif
+
 #ifdef _NEW_LAYOUT
 	m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
 	m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
 	m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+	wxLogDebug(_T("OnButtonEditRetranslation() RecalcLayout() has ended"));
+#endif
 
 	//bool bConstType;
 	//bConstType = IsConstantType(pList); // need this only in case m_bInsertingWithinFootnote
@@ -2996,6 +3008,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	dlg.m_follContextSrc = following;
 	dlg.m_follContextTgt = followingTgt;
 
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+	wxLogDebug(_T("OnButtonEditRetranslation() ShowModal() is called next"));
+#endif
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		SPList* pRetransList = new SPList;

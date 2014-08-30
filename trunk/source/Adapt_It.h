@@ -42,6 +42,10 @@
 //#define FORCE_BIBLEDIT_IS_INSTALLED_FLAG
 #endif
 
+// BEW 30Aug14 for wrapping wxLogDebug calls for Roland Fumey's Edit Retranslation and
+// Remove Retranslation crashes (Kuni to KuniVE adaptations project)
+#define EditRetransCrash
+
 // support for incremental building of KB Server client code !! BEW 3Oct12, Moved to be a
 // preprocessor symbol in the Debug build!!
 //#if defined(_DEBUG)
