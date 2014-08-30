@@ -218,7 +218,13 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 
 	if (pView)
 	{
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+		wxLogDebug(_T("OnPaint():  pView->OnDraw() begins now"));
+#endif
 		pView->OnDraw(& paintDC);
+#if defined(EditRetransCrash)  && defined(_DEBUG)
+		wxLogDebug(_T("OnPaint():  pView->OnDraw() has ended"));
+#endif
 	}
 }
 
