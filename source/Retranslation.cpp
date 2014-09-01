@@ -2584,6 +2584,16 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 // transferring endmarker content from the last placeholder back to end of the
 // CSourcePhrase list of non-placeholders, prior to showing the dialog)
 // BEW 21Jul14 refactored for support of ZWSP
+// BEW 1Sep14, refactored to fix a crash reported by Roland Fumey, when the phrasebox
+// is a little ways off from where the retranslation is, using keep_strips_keep_piles was 
+// not not getting m_stripArray pile pointers in sync with m_pileList changes when old
+// placeholders were removed, leading to OnDraw() crashing. OnDraw for a merger uses
+// CLayout's AdjustForUserEdits() function to erase and redraw the strips in the region
+// of the active location, but if a retranslation is far from that location, the strips
+// with hanging pile pointers don't get those tweaks done by AdjustForUserEdits(), leading
+// to an inevitable crash. Solution is to use create_strips_keep_piles. Also, changed the
+// code so that no document changes are done prior to the ShowModal() call, so that if the
+// user clicks the Cancel button, no restoration of a prior state of the doc is required.
 void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 {
 	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
@@ -2862,127 +2872,13 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	bool bVerticalEdit_SuppressPhraseBox = FALSE;
 	int nVerticalEdit_nExtras = 0;
 	int nOriginalCount = nCount;
-
-    // BEW added 01Aug05, to support free translations -- removing null source phrases also
-    // removes m_bHasFreeTrans == TRUE instances as well, so the only thing we need check
-    // for is whether or not there is m_bEndFreeTrans == TRUE on the last null source
-    // phrase removed -- if so, we must set the same bool value to TRUE on the last
-    // pSrcPhrase remaining in the list after all the null ones have been deleted. We do
-    // this by setting a flag in the block below, and then using the set flag value in the
-    // block which follows it
 #if defined(EditRetransCrash)  && defined(_DEBUG)
 	wxLogDebug(_T("\n\nOnButtonEditRetranslation() has begun"));
 #endif
-	// BEW 18Feb10, for docVersion = 5, the m_endMarkers member of CSourcePhrase will have
-	// had an final endmarkers moved to the last placeholder, so we have to check for a
-	// non-empty member on the last placeholder, and if non-empty, save it's contents to a
-	// wxString, set a flag to signal this condition obtained, and in the block which
-	// follows put the endmarkers back on the last CSourcePhrase which is not a placeholder
-	wxString endmarkersStr = _T("");
-	bool bEndHasEndMarkers = FALSE;
-	bool bEndIsAlsoFreeTransEnd = FALSE;
-	while (pos != NULL)
-	{
-		SPList::Node* savePos = pos;
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
-		// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
-		// removed, only normal placeholders
-		if (pSrcPhrase->m_bNullSourcePhrase)
-		{
-            // it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
-            // on every one, or if not so, then only the last will have a TRUE value
-			if (pSrcPhrase->m_bEndFreeTrans)
-				bEndIsAlsoFreeTransEnd = TRUE;
 
-			// likewise, test for a non-empty m_endMarkers member at the end - there can
-			// only be one such member which has content - the last one
-			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
-			{
-				endmarkersStr = pSrcPhrase->GetEndMarkers();
-				bEndHasEndMarkers = TRUE;
-			}
-
-            // null source phrases in a retranslation are never stored in the KB, so we
-            // need only remove their pointers from the lists and delete them from the heap
-			SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
-			wxASSERT(pos1 != NULL); // it has to be there
-			pSrcPhrases->DeleteNode(pos1);	// remove its pointer from m_pSourcePhrases list
-			// on the doc
-			// BEW added 13Mar09 for refactor of layout; delete its partner pile too
-			m_pApp->GetDocument()->DeletePartnerPile(pSrcPhrase);
-
-			if (pSrcPhrase != NULL) // whm 11Jun12 added NULL test
-				delete pSrcPhrase; // delete the null source phrase itself
-			pList->DeleteNode(savePos); // also remove its pointer from the local sublist
-
-			nCount -= 1; // since there is one less source phrase in the selection now
-			nEndSequNum -= 1;
-			if (bActiveLocAfterSelection)
-				nSaveActiveSequNum -= 1;
-		}
-		else
-		{
-			// of those source phrases which remain, throw away the contents of their
-			// m_adaption and m_targetStr members
-			pSrcPhrase->m_adaption.Empty();
-			pSrcPhrase->m_targetStr.Empty();
-			pSrcPhrase->m_bBeginRetranslation = FALSE;
-			pSrcPhrase->m_bEndRetranslation = FALSE;
-		}
-#if defined(EditRetransCrash)  && defined(_DEBUG)
-	wxLogDebug(_T("OnButtonEditRetranslation() loop iteration removed one Placeholder"));
-#endif
-	}
-
-	// handle transferring the indication of the end of a free translation
-	if (bEndIsAlsoFreeTransEnd)
-	{
-		SPList::Node* tpos = pList->GetLast();
-		CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
-		pSPend->m_bEndFreeTrans = TRUE;
-	}
-	// handle transferring of m_endMarkers content
-	if (bEndHasEndMarkers)
-	{
-		SPList::Node* tpos = pList->GetLast();
-		CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
-		pSPend->SetEndMarkers(endmarkersStr);
-	}
-
-    // update the sequence number in the whole source phrase list on the app & update
-    // indices for bounds
-	m_pView->UpdateSequNumbers(0);
-
-    // now we can work out where to place the phrase box on exit from this function - it is
-    // currently the nSaveActiveSequNum value, unless the active location was within the
-    // selection, in which case we must make the active location the first pile after the
-    // selection
-	if (bActiveLocWithinSelection)
-		nSaveActiveSequNum = nEndSequNum + 1;
-
-    // clear the selection, else RecalcLayout() call will fail at the RestoreSelection()
-    // call within it
-	//m_pView->RemoveSelection();
-
-	// we must have a valid layout, so we have to recalculate it before we go any further,
-	// because if preceding code deleted null phrases, the layout's pointers would be clobbered
-	// and moving the dialog window would crash the app when Draw messages use the dud pointers
-	m_pApp->m_nActiveSequNum = nSaveActiveSequNum; // legally can be a wrong location eg.
-	// in the retrans, & nothing will break
-#if defined(EditRetransCrash)  && defined(_DEBUG)
-	wxLogDebug(_T("OnButtonEditRetranslation() RecalcLayout() begins now (it gets strips agreeing to m_pileArray changes)"));
-#endif
-
-#ifdef _NEW_LAYOUT
-	m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
-#else
-	m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-#endif
-	m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
-#if defined(EditRetransCrash)  && defined(_DEBUG)
-	wxLogDebug(_T("OnButtonEditRetranslation() RecalcLayout() has ended"));
-#endif
+	// BEW 1Sep14, removed from here the code which checks for and removes any
+	// existing placeholders and does data transfers of markers required etc, to
+	// put it instead in the TRUE block's top after the ShowModal() call
 
 	//bool bConstType;
 	//bConstType = IsConstantType(pList); // need this only in case m_bInsertingWithinFootnote
@@ -3008,20 +2904,134 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	dlg.m_follContextSrc = following;
 	dlg.m_follContextTgt = followingTgt;
 
-#if defined(EditRetransCrash)  && defined(_DEBUG)
-	wxLogDebug(_T("OnButtonEditRetranslation() ShowModal() is called next"));
-#endif
 	if (dlg.ShowModal() == wxID_OK)
 	{
 		SPList* pRetransList = new SPList;
 		wxASSERT(pRetransList);
 		wxString retrans = dlg.m_retranslation;
 		int nNewCount = 0; // number of CSourcePhrase instances returned from the
-		// tokenization operation
+						   // tokenization operation
 
-        // tokenize the retranslation into a list of new CSourcePhrase instances on the
-        // heap (they are incomplete - only m_key and m_nSequNumber are set)
-		//nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
+		// BEW 1Sep14, moved to here the removal of old placeholders, etc
+
+		// BEW added 01Aug05, to support free translations -- removing null source phrases also
+		// removes m_bHasFreeTrans == TRUE instances as well, so the only thing we need check
+		// for is whether or not there is m_bEndFreeTrans == TRUE on the last null source
+		// phrase removed -- if so, we must set the same bool value to TRUE on the last
+		// pSrcPhrase remaining in the list after all the null ones have been deleted. We do
+		// this by setting a flag in the block below, and then using the set flag value in the
+		// block which follows it
+		// BEW 18Feb10, for docVersion = 5, the m_endMarkers member of CSourcePhrase will have
+		// had an final endmarkers moved to the last placeholder, so we have to check for a
+		// non-empty member on the last placeholder, and if non-empty, save it's contents to a
+		// wxString, set a flag to signal this condition obtained, and in the block which
+		// follows put the endmarkers back on the last CSourcePhrase which is not a placeholder
+		wxString endmarkersStr = _T("");
+		bool bEndHasEndMarkers = FALSE;
+		bool bEndIsAlsoFreeTransEnd = FALSE;
+		while (pos != NULL)
+		{
+			SPList::Node* savePos = pos;
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pos = pos->GetNext();
+			// BEW 2Dec13, added 2nd subtest so that free translation wideners do not get
+			// removed, only normal placeholders
+			if (pSrcPhrase->m_bNullSourcePhrase)
+			{
+				// it suffices to test each one, since the m_bEndFreeTrans value will be FALSE
+				// on every one, or if not so, then only the last will have a TRUE value
+				if (pSrcPhrase->m_bEndFreeTrans)
+					bEndIsAlsoFreeTransEnd = TRUE;
+
+				// likewise, test for a non-empty m_endMarkers member at the end - there can
+				// only be one such member which has content - the last one
+				if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+				{
+					endmarkersStr = pSrcPhrase->GetEndMarkers();
+					bEndHasEndMarkers = TRUE;
+				}
+
+				// null source phrases in a retranslation are never stored in the KB, so we
+				// need only remove their pointers from the lists and delete them from the heap
+				SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
+				wxASSERT(pos1 != NULL); // it has to be there
+				pSrcPhrases->DeleteNode(pos1);	// remove its pointer from m_pSourcePhrases list
+				// on the doc
+				// BEW added 13Mar09 for refactor of layout; delete its partner pile too
+				m_pApp->GetDocument()->DeletePartnerPile(pSrcPhrase);
+
+				if (pSrcPhrase != NULL) // whm 11Jun12 added NULL test
+					delete pSrcPhrase; // delete the null source phrase itself
+				pList->DeleteNode(savePos); // also remove its pointer from the local sublist
+
+				nCount -= 1; // since there is one less source phrase in the selection now
+				nEndSequNum -= 1;
+				if (bActiveLocAfterSelection)
+					nSaveActiveSequNum -= 1;
+			}
+			else
+			{
+				// of those source phrases which remain, throw away the contents of their
+				// m_adaption and m_targetStr members
+				pSrcPhrase->m_adaption.Empty();
+				pSrcPhrase->m_targetStr.Empty();
+				pSrcPhrase->m_bBeginRetranslation = FALSE;
+				pSrcPhrase->m_bEndRetranslation = FALSE;
+			}
+		}
+
+		// handle transferring the indication of the end of a free translation
+		if (bEndIsAlsoFreeTransEnd)
+		{
+			SPList::Node* tpos = pList->GetLast();
+			CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
+			pSPend->m_bEndFreeTrans = TRUE;
+		}
+		// handle transferring of m_endMarkers content
+		if (bEndHasEndMarkers)
+		{
+			SPList::Node* tpos = pList->GetLast();
+			CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
+			pSPend->SetEndMarkers(endmarkersStr);
+		}
+
+		// update the sequence number in the whole source phrase list on the app & update
+		// indices for bounds
+		m_pView->UpdateSequNumbers(0); // ensure's view's GetPile(nSequNum) works right
+
+		// now we can work out where to place the phrase box on exit from this function - it is
+		// currently the nSaveActiveSequNum value, unless the active location was within the
+		// selection, in which case we must make the active location the first pile after the
+		// selection
+		if (bActiveLocWithinSelection)
+			nSaveActiveSequNum = nEndSequNum + 1;
+
+		// BEW 1Sep14 I think a RecalcLayout() call here is not needed. m_stripArray has hanging
+		// pile pointers (for any placeholders removed), but m_pSourcePhrases and m_pileList are
+		// in sync due to the UpdateSequNumbers() call above, and m_pileList does not have the
+		// removed old placeholders; so I think we only need a RecalcLayout with the enum value
+		// create_strips_keep_piles later below and all will be well. The hanging pointers in
+		// m_stripArray are not a problem so long as no Draw() is asked for before we do the
+		// later RecalcLayout() call to get a valid m_stripArray created first.
+		m_pApp->m_nActiveSequNum = nSaveActiveSequNum; // legally can be a wrong location eg.
+													   // in the retrans, & nothing will break
+		/* BEW 1Sep14 removed this call, see comment above
+	#ifdef _NEW_LAYOUT
+		// BEW 1Sep14 use create_strips_keep_piles instead of keep_strips_keep_piles so
+		// that we are sure the m_stripArray has no hanging pile pointers retained in it
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+	#else
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+	#endif
+		*/
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+
+		// BEW 1Sep14 end of block of code moved from before ShowModal() call
+
+        // Legacy code from here to end of TRUE block: tokenize the retranslation into a list
+		// of new CSourcePhrase instances on the heap (they are incomplete - only m_key and
+		// m_nSequNumber are set)
+		// nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
 		// the TRUE causes target text punctuation to be used in the parse - see OnButtonRetranslation()
 		nNewCount = m_pView->TokenizeTargetTextString(pRetransList,retrans,nSaveSequNum,TRUE);
 
@@ -3040,16 +3050,6 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 				nSaveActiveSequNum += nNewCount - nCount;
 		}
 		m_pApp->m_nActiveSequNum = nSaveActiveSequNum;
-
-        // we must have a valid layout, so we have to recalculate it before we go any
-        // further, because if preceding code deleted null phrases, then the layout's
-        // pointers will be clobbered
-#ifdef _NEW_LAYOUT
-		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
-#else
-		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-#endif
-		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 
 		// get a new valid starting pile pointer
 		pStartingPile = m_pView->GetPile(nSaveSequNum);
@@ -3143,90 +3143,24 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 												   // PlacePhraseBox() calls
 			m_bIsRetranslationCurrent = FALSE;
 		}
+
+        // we must have a valid layout, so we have to recalculate it before we go any
+        // further, because if preceding code deleted or changed the inventory of padding
+		// placeholders, then some of the layout's pointers in m_stripArray will be clobbered
+#ifdef _NEW_LAYOUT
+		// BEW 1Sep14 use create_strips_keep_piles here, so that m_stripArray only has
+		// valid pile pointers (the user's edits may have added a lot of new CPile instances,
+		// or changed there number, etc)
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#else
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	}
+	// OR CANCEL...
 	else
 	{
-		// user cancelled, so we have to restore the original retranslation
 		wxASSERT(pSaveList);
-		int nCurCount = nEndSequNum - nSaveSequNum + 1; // what the retranslation section
-		// now numbers
-		int nOldCount = pSaveList->GetCount();
-		wxASSERT(nOldCount >0);
-        // nOldCount >= nCurCount, because the only thing that could have happened is null
-        // source phrases were removed; (and cancellation does not result in parsing what
-        // may be in the dialog)
-		int nExtras = nOldCount - nCurCount; // needed for adjusting indices
-		wxASSERT(nExtras >= 0); // cannot be negative
-		m_bIsRetranslationCurrent = FALSE;
-
-        // insert the original (saved) source phrases after the nEndSequNum one (the layout
-        // may be different than at start, ie. null ones were removed) - nEndSequNum was
-        // reduced however so it has the correct value at this point
-		SPList::Node* pos = pSrcPhrases->Item(nEndSequNum);
-		wxASSERT(pos != 0);
-		SPList::Node* pos1 = pSaveList->GetLast();
-		wxASSERT(pos1 != 0);
-
-		// Get a node called newInsertBeforePos which points to the next node beyond pos
-		// in pSrcPhrases and use its position in the Insert() call (which only inserts
-		// BEFORE the indicated position). The result should be that the insertions
-		// will get placed in the list the same way that MFC's InsertAfter() places them.
-		SPList::Node* newInsertBeforePos = pos->GetNext();
-		while (pos1 != 0)
-		{
-			// these will be minimal ones, so no restoring in KB is required, as these are
-			// effectively not 'encountered' yet
-			CSourcePhrase* pSPhr = (CSourcePhrase*)pos1->GetData();
-			pos1 = pos1->GetPrevious();
-			wxASSERT(pSPhr != NULL);
-
-			// wxList has no equivalent to InsertAfter(). The wxList Insert() method
-			// inserts the new node BEFORE the current position/node. To emulate what
-			// the MFC code does, we insert before using newInsertBeforePos.
-			// wx note: If newInsertBeforePos is NULL, it means the insert position is
-			// at the end of the list; in this case we just append the item to the end
-			// of the list.
-			if (newInsertBeforePos == NULL)
-				pSrcPhrases->Append(pSPhr);
-			else
-				pSrcPhrases->Insert(newInsertBeforePos,pSPhr);
-
-			// BEW added 13Mar09 for refactored layout
-			m_pApp->GetDocument()->CreatePartnerPile(pSPhr);
-
-			// since we must now insert before the inserted node above, we need to get a
-			// previous node (which will actually be the just inserted source phrase)
-			newInsertBeforePos = newInsertBeforePos->GetPrevious();
-		}
-
-        // now remove the unwanted ones - be careful, some of these single-word ones will
-        // point to memory that any merged source phrases in the saved list will point to
-        // in their m_pSavedWords sublists, so don't delete the memory in the latter
-        // sublists, just remove the pointers!
-		RemoveUnwantedSourcePhraseInstancesInRestoredList(pSrcPhrases, nCurCount,
-														  nSaveSequNum, pSaveList);
-		// set the active sequ number - it must not be in the retranslation
-		int nSequNumImmedAfter = nSaveSequNum + nOldCount;
-		if (nSaveActiveSequNum < nSaveSequNum)
-		{
-			// it earlier than retranslation, so leave it unchanged
-			;
-		}
-		else if (nSaveActiveSequNum < nSequNumImmedAfter)
-		{
-			// it's still within the retranslation, which is illegal,
-			// so put it immed after
-			nSaveActiveSequNum = nSequNumImmedAfter;
-		}
-		else
-		{
-			// add nExtras to it, to preserve it's former value
-			nSaveActiveSequNum += nExtras; // we can assume nExtras is positive
-		}
-
-		// renumber the sequence numbers
-		m_pView->UpdateSequNumbers(0);
-
         // remove the pointers in the saved list, and delete the list, but leave the
         // instances undeleted since they are now pointed at by elements in the pSrcPhrases
         // list
@@ -3236,22 +3170,23 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		}
 		if (pSaveList != NULL) // whm 11Jun12 added NULL test
 			delete pSaveList; // don't leak memory
-	}
+		m_pView->RemoveSelection(); // make sure there is no selection in force
+
+		// recalculate the layout from the first strip in the selection,
+		// to force the text to change color; use keep_strips_keep_piles here
+		m_pApp->m_nActiveSequNum = nSaveActiveSequNum;
+#ifdef _NEW_LAYOUT
+		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
+		m_pApp->m_pActivePile = m_pView->GetPile(nSaveActiveSequNum);
+	} // end of user cancelled block
 
 	// delete the temporary list after removing its pointer copies
 	pList->Clear();
 	if (pList != NULL) // whm 11Jun12 added NULL test
 		delete pList;
-
-    // recalculate the layout from the first strip in the selection,
-    // to force the text to change color
-	m_pApp->m_nActiveSequNum = nSaveActiveSequNum;
-#ifdef _NEW_LAYOUT
-	m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
-#else
-	m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
-#endif
-	m_pApp->m_pActivePile = m_pView->GetPile(nSaveActiveSequNum);
 
 	// get the CSourcePhrase at the active location
 	pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
@@ -3321,7 +3256,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			m_pApp->m_pTargetBox->ChangeValue(str3);
 		}
 
-        // layout again, so that the targetBox won't encroach on the next cell's adaption
+        // layout , so that the targetBox won't encroach on the next cell's adaption
         // text (can't just layout the strip, because if the text is long then source
         // phrases get pushed off into limbo and we get access violation & null pointer
         // returned in the GetPile call)
@@ -3339,7 +3274,6 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		m_pApp->m_nEndChar = -1;
 
 		// remove selection and update the display
-		m_pView->RemoveSelection();
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
 	}
@@ -3919,7 +3853,8 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 
 	// now do the recalculation of the layout & update the active pile pointer
 #ifdef _NEW_LAYOUT
-	m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+	// BEW 1Sep14 try create_strips_keep_piles instead of keep_strips_keep_piles
+	m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #else
 	m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif

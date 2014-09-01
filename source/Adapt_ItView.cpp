@@ -11076,7 +11076,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		CSourcePhrase* pDummySrcPhrase = extraPos->GetData();
 		if (pDummySrcPhrase != NULL) // whm 11Jun12 added NULL test
 			delete pDummySrcPhrase;
-		pList->Erase(extraPos);
+		pList->DeleteNode(extraPos);
 	}
 
     // pBigOne will not be needed any longer, and its KB stuff must be removed or reference
