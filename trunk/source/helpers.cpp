@@ -1273,7 +1273,7 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 	{
 		pos = MainList->GetFirst();
 		CSourcePhrase* pSrcPhrase = pos->GetData();
-		MainList->Erase(pos);
+		MainList->DeleteNode(pos);
 		rv->Append(pSrcPhrase);
 		--FirstIndexToKeep;
 	}
@@ -8928,7 +8928,7 @@ SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhra
 	int sequNum = pOriginalSrcPhrase->m_nSequNumber;
 	SPList::Node* nextPos = pos;
 	nextPos->GetNext(); // we insert before this Node (this may not exist, if so, append)
-	pList->Erase(pos); // removes the Node* from the list
+	pList->DeleteNode(pos); // removes the Node* from the list
 	if (bDeleteOriginal)
 	{
 		gpApp->GetDocument()->DeleteSingleSrcPhrase(pOriginalSrcPhrase,bDeletePartnerPileToo);

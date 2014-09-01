@@ -7789,7 +7789,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
                                     // point an iterator to the last element and erase it
 									SPList::Node* lastOne;
 									lastOne = pSublist->GetLast();
-									pSublist->Erase(lastOne);
+									pSublist->DeleteNode(lastOne);
 
 									// delete the memory block to prevent a leak, update the count
 									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete a
@@ -8223,7 +8223,7 @@ h:						bool bIsInitial = TRUE;
 		{
 			// it needs to be deleted
 			gpApp->GetDocument()->DeleteSingleSrcPhrase(pLastSrcPhrase); // delete it and its partner pile
-			pList->Erase(posLast);
+			pList->DeleteNode(posLast);
 		}
 	} // end block for test bUnfilteringRequired
 
