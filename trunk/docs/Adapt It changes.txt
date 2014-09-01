@@ -94,10 +94,11 @@ restranslation. It now does.
 its top, and the document is large, did not position the
 phrase box correctly and the scroll car was not at the
 correct location. This now cannot happen.
-* If the phrasebox was left 'floating' at an invalid and wrong
-location at the time of opening a large document (see the
-previous bug fix), and an attempt was made to edit a 
-retranslation, Adapt It crashed.
+* If the active location was distant, even a few strips only,
+from the where a retranslation was and an attempt was 
+made to edit that retranslation, Adapt It crashed. Removing 
+a retranslation under the same circumstances would also 
+crash the app.
 ----------------------------------------------
 Version 6.5.3 release 18 June 2014
 ----------------------------------------------
