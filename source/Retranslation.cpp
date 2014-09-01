@@ -3492,6 +3492,10 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 // transferring endmarker content from the last placeholder back to end of the
 // CSourcePhrase list of non-placeholders)
 // BEW 21Jul14 refactored for support of ZWSP etc storage and replacement
+// BEW 1Sep14, refactored to do RecalcLayout() using the enum value create_strips_keep_piles
+// to avoid a crash due to m_stripArray having hanging pile pointers due to removal of
+// trailing placeholders. (OnButtonEditRetranslation() was also refactored, but more
+// extensively, for the same problem, and necessarily so.)
 void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 {
 	// Invalid function when glossing is ON, so it just returns.
