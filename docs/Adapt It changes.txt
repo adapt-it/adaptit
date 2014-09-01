@@ -99,6 +99,10 @@ from the where a retranslation was and an attempt was
 made to edit that retranslation, Adapt It crashed. Removing 
 a retranslation under the same circumstances would also 
 crash the app.
+* Making a retranslation could crash the app if the phrasebox
+was distant from the location where the retranslation is to
+be made, and that location is very close to the top of the
+document.
 ----------------------------------------------
 Version 6.5.3 release 18 June 2014
 ----------------------------------------------

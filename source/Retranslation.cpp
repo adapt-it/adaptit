@@ -1852,6 +1852,10 @@ void CRetranslation::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
 // have a number of changes to handle placeholder inserts for retranslation and for manual
 // placeholder inserting & the left or right association choice)
 // BEW refactored 21Jul14, for ZWSP support, storage, and later restoration in exports
+// BEW refactored 1Sep14, for RecalcLayout() to use create_strips_keep_piles in first
+// two RecalcLayout() calls; the one at the end can safely use keep_strips_keep_piles.
+// If these changes were not make, then for a retranslation of mergers at 1st or second
+// strip, get a crash (an index bounds error, when OnDraw() is called).
 void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 {
 	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
@@ -2286,7 +2290,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
         // retranslation and set it safely before a final layout calculation to get it all
         // correct
 #ifdef _NEW_LAYOUT
-		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #else
 		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
@@ -2497,7 +2501,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// recalculate the layout
 	m_pApp->m_nActiveSequNum = nSaveActiveSequNum;
 #ifdef _NEW_LAYOUT
-	m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+	m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #else
 	m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
