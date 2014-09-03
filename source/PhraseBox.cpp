@@ -3697,10 +3697,12 @@ bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 			CheckPhraseBoxDoesNotLandWithinRetranslation(pView,pFwd,pCurPile);
 		if (!gbIsGlossing && !bNotInRetranslation)
 		{
-			// IDS_NO_ACCESS_TO_RETRANS
-			wxMessageBox(_(
-"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
-			_T(""), wxICON_INFORMATION | wxOK);
+			// BEW removed this message, because it is already embedded in the prior
+			// CheckPhraseBoxDoesNotLandWithinRetranslation(pView,pFwd,pCurPile) call, and
+			// will be shown from there if relevant.
+			//wxMessageBox(_(
+            //"Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
+			//_T(""), wxICON_INFORMATION | wxOK);
 			pApp->m_pTargetBox->SetFocus();
 			GetLayout()->m_docEditOperationType = no_edit_op;
 			return FALSE;
