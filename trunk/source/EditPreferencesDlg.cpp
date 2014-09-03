@@ -291,7 +291,11 @@ void CEditPreferencesDlg::CreateControls()
 	}
 		
 	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")) 
-		&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit))
+		// BEW 3Sep14 removed the collaboration subtest, we want to allow filtering or unfiltering
+		// when collaboration is ON, because filtering footnotes & later unfiltering of them are
+		// the kind of things which need to be done easily when collaborating
+		//&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit)
+		)
 	{
 		usfmFilterPage = new CUsfmFilterPagePrefs(pNotebook);
 		pUsfmFilterPageInPrefs = usfmFilterPage; // set the App's pointer to the usfmPage
