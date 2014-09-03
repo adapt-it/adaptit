@@ -458,8 +458,11 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 		unitsPage->InitDialog(event);
 	}
 	// whm 22Aug11 modified - don't initialize the USFM and Filtering tab when collaborating with PT/BE
-	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering")) 
-		&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit))
+	if (TabIsVisibleInCurrentProfile(_("USFM and Filtering"))
+		// BEW 3Sep14, reinstated the initialization because we now allow the tab to be accessed
+		// when collaboration mode is on
+		//&& (!gpApp->m_bCollaboratingWithParatext && !gpApp->m_bCollaboratingWithBibledit)
+		)
 	{
 		usfmFilterPage->InitDialog(event);
 	}
