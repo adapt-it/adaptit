@@ -2351,7 +2351,21 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 			if (pPile == NULL)
 				break;
 		} while (pPile->GetSrcPhrase()->m_bHasKBEntry ||
-					pPile->GetSrcPhrase()->m_bNotInKB);
+					pPile->GetSrcPhrase()->m_bNotInKB ||
+					pPile->GetSrcPhrase()->m_bRetranslation);
+		// BEW 3Sep14, added 3rd subtest to the while () test, because some
+		// retranslations in Roland Fumey's glossary document had their padding
+		// placeholders with m_bNotInKB FALSE, when TRUE was expected (all the
+		// non-placeholders in the retranslation always had this flag TRUE). I don't
+		// know why these variations happened - perhaps an old version of AI did
+		// things differently. In this doc were 22 retranslations where the placeholders
+		// had this flag FALSE, and only 7 with it TRUE. Anyway, by testing for
+		// m_bRetranslation being TRUE, which is always correct in the retranslations,
+		// we won't get the bug of the search for a hole wrongly halting at the first
+		// placeholder (doing padding in a retranslation) with FALSE for the
+		// m_bNotInKB flag. That caused the message that editing of a retranslation
+		// could not be done by trying to place the box in the retranslation, to
+		// wrongly come up. So now this issue is fixed.
 	}
 	return pPile;
 }
