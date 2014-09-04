@@ -85,6 +85,7 @@
   -->
   <target name="init-3pt" depends="check-3pt" > <!--unless="3pt.expanded"-->
     <!-- extract 3pt libraries -->
+	<!--
     <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/curl/current/curl.7z" />
@@ -103,6 +104,16 @@
 	<arg value="-o${3pt}/boost/current" />
 	<arg value="-y" />
     </exec>
+	-->
+    <unzip src="${3pt}/curl/current/curl.zip" 
+		dest="${3pt}/curl/current">
+    </unzip>
+    <unzip src="${3pt}/openssl/current/openssl.zip" 
+		dest="${3pt}/openssl/current">
+    </unzip>
+    <unzip src="${3pt}/boost/current/boost.zip" 
+		dest="${3pt}/boost/current">
+    </unzip>	
 	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
     <unzip src="${3pt}/wxwidgets/current/wxWidgets-3.0.1.zip" 
 		dest="${3pt}/wxwidgets/current">
@@ -123,6 +134,7 @@
 
   <target name="init" depends="check-3pt" unless="3pt.expanded">
     <!-- extract 3pt libraries -->
+	<!--
     <exec dir="${root}\bin\win32" executable="7za.exe" failonerror="yes">
 	<arg value="x" />
 	<arg value="${3pt}/curl/current/curl.7z" />
@@ -141,6 +153,16 @@
 	<arg value="-o${3pt}/boost/current" />
 	<arg value="-y" />
     </exec>
+	-->
+    <unzip src="${3pt}/curl/current/curl.zip" 
+		dest="${3pt}/curl/current">
+    </unzip>
+    <unzip src="${3pt}/openssl/current/openssl.zip" 
+		dest="${3pt}/openssl/current">
+    </unzip>
+    <unzip src="${3pt}/boost/current/boost.zip" 
+		dest="${3pt}/boost/current">
+    </unzip>	
   </target>
   
   <!-- 
