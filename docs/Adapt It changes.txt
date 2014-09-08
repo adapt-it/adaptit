@@ -99,6 +99,13 @@ still, which can be used for manually suppressing other
 filtered markers from the export, as was the case earlier.
 The new filtering rules also apply for exports done to
 xhtml and/or Pathway.
+* Previous versions, at the end of the document, would
+advance the phrasebox into limbo, leaving it hidden. This
+is confusing to users. Now, it will leave it at the 
+end of the document if there is no retranslation at the 
+end of the document, but if there is, then before the
+retranslation. If the attempt fails, it will leave it
+at the start of the document.
 ----------------------------------------------
 Bug fixes in 6.5.4
 ----------------------------------------------
