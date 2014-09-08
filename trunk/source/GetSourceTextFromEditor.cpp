@@ -293,6 +293,13 @@ void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	dlgSize = pGetSourceTextFromEditorSizer->ComputeFittingWindowSize(this);
 	this->SetSize(dlgSize);
 	this->CenterOnParent();
+
+	// whm added 8Sept14. The OK button seems to loose its focus after the above calls, so I'm
+	// calling SetFocus() again here, as long as a book and chapter has been selected.
+	if (!m_TempCollabChapterSelected.IsEmpty() && !m_TempCollabBookSelected.IsEmpty())
+	{
+		pBtnOK->SetFocus();
+	}
  }
 
  // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
