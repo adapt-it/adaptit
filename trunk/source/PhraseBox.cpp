@@ -2207,6 +2207,8 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
                     // to unmerge a phrase
 				gSaveTargetPhrase = pApp->m_targetPhrase;
 				pLayout->m_docEditOperationType = no_edit_op;
+
+			    RestorePhraseBoxAtDocEndSafely(pApp, pView);  // BEW added 8Sep14
 				return; // must be at EOF;
 			} // end of block for !bSuccessful
 
@@ -2422,6 +2424,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 #else
 				pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
+			    RestorePhraseBoxAtDocEndSafely(pApp, pView); // BEW added 8Sep14
 			}
 			else // pFwdPile is valid, so must have bumped against a retranslation
 			{
@@ -4353,6 +4356,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04
 			pApp->m_targetPhrase.Empty();
 			pApp->m_nActiveSequNum = -1;
+
 #ifdef _NEW_LAYOUT
 			#ifdef _FIND_DELAY
 				wxLogDebug(_T("4. Before RecalcLayout"));
@@ -4366,6 +4370,9 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 #endif
 			pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
 			pLayout->m_docEditOperationType = no_edit_op;
+
+			RestorePhraseBoxAtDocEndSafely(pApp, pView);  // BEW added 8Sep14
+
 		} // end of TRUE block for test: if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
 
 		else // we have a non-null active pile defined, and sequence number >= 0
@@ -4392,7 +4399,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		wxLogDebug(_T("7. After ScrollIntoView"));
 	#endif
 
-
 	pLayout->m_docEditOperationType = relocate_box_op;
 	gbEnterTyped = TRUE; // keep it continuing to use the faster GetSrcPhras BuildPhrases()
 	pView->Invalidate(); // added 1Apr09, since we return at next line
@@ -4408,6 +4414,63 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	//pApp->m_bIsGuess = FALSE;
 
 	return TRUE; // all was okay
+}
+
+void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItView *pView)
+{
+	CLayout* pLayout = pApp->GetLayout();
+	int maxSN = pApp->GetMaxIndex();
+	CPile* pEndPile = pView->GetPile(maxSN);
+	wxASSERT(pEndPile != NULL);
+	CSourcePhrase* pTheSrcPhrase = pEndPile->GetSrcPhrase();
+	if (!pTheSrcPhrase->m_bRetranslation)
+	{
+		pApp->m_nActiveSequNum = maxSN;
+		pApp->m_pActivePile = pEndPile;
+	}
+	else
+	{
+		// The end pile is within a retranslation, so find a safe active location
+		int aSafeSN = maxSN + 1; // initialize to an illegal value 1 beyond
+									// maximum index, this will force the search
+									// for a safe location to search backwards
+									// from the document's end
+		int nFinish = 0; // can be set to num of piles in the retranslation but
+							// this will do, as the loop will iterate over them
+		// The next call, if successful, sets m_pActivePile
+		bool bGotSafeLocation =  pView->SetActivePilePointerSafely(pApp,
+							pApp->m_pSourcePhrases,aSafeSN,maxSN,nFinish);
+		if (bGotSafeLocation)
+		{
+			pApp->m_nActiveSequNum = aSafeSN;
+			pTheSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxASSERT(pTheSrcPhrase->m_nSequNumber == aSafeSN);
+		}
+		else
+		{
+			// failed to get a safe location, so use start of document
+			pApp->m_nActiveSequNum = 0;
+			pApp->m_pActivePile = pView->GetPile(0);
+		}
+	}
+	wxString transln = pTheSrcPhrase->m_adaption;
+	pApp->m_targetPhrase = transln;
+	pApp->m_pTargetBox->ChangeValue(transln);
+	int length = transln.Len();
+	pApp->m_pTargetBox->SetSelection(length,length);
+	pApp->m_bAutoInsert = FALSE; // ensure we halt for user to type translation
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	pApp->m_pTargetBox->SetFocus();
+	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	pApp->m_pTargetBox->SetFocus();
+	pLayout->m_docEditOperationType = no_edit_op;
+	pView->Invalidate();
+	pLayout->PlaceBox();
 }
 
 // This OnKeyUp function is called via the EVT_KEY_UP event in our CPhraseBox
