@@ -2390,7 +2390,9 @@ CBString Xhtml::DoXhtmlExport(wxString& buff)
 	m_pApp->LogUserAction(msg); // log where we are
 
 	// more per-export initializations (this should not find any \free ... \free*
-	// nor \note ... \note* markers, so each should be FALSE
+	// nor \note ... \note* markers, so each should be FALSE; because such things get
+	// filtered out in the caller's call of GetClearnExportedUSFMBaseText() which
+	// is called before DoXhtmlExport() is called.
 	m_freeMkr = _T("\\free");
 	m_noteMkr = _T("\\note");
 	m_bContainsFreeTrans = (m_pBuffer->Find(m_freeMkr) != wxNOT_FOUND) ? TRUE : FALSE;

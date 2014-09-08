@@ -101,6 +101,9 @@ bool		IsEndnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredEndnotes = F
 bool		IsFreeTransInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsBackTransInDoc(CSourcePhrase* pSrcPhrase);
 bool		IsNoteInDoc(CSourcePhrase* pSrcPhrase);
+bool		IsMarkerInCurrentFilterMarkers(wxString strFilteredMarkersInventory, wxString wholeMkr); // BEW added 5Sep14
+void		RemoveContentFromFootnotes(wxString* pText); // BEW added 5Sep14
+
 // BEW added next 13Dec10 to support export from documents which, in the original input
 // file, did not have any SFMs. (AI puts \p where each newline is, and these need to be
 // removed on export.) I wrote these then found out that FormatUnstructuredTextBufferForOutput()

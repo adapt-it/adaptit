@@ -643,11 +643,154 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	// remove the following markers and their text content... \free, \note, \bt and
 	// any \bt-initial custom markers, and \rem (Paratext note marker) from the string
 	// which defines the markers not to be included in the export
+	// BEW 5Sep14, ExcludeCustomMarkersAndRemFromExport() also checks filter settings for various
+	// markers and excludes them too if they are filtered, but it doesn't handle footnotes - because
+	// Jeff Webster (SAL) wanted filtered footnotes to get transferred to Paratext without content 
+	// when footnotes are filtered - so that job was done in the caller of 
+	// ExcludeCustomMarkersAndRemFromExport(). But here, the xhtml is not to get emptied footnote
+	// markers, that would be crazy, so here we'll instead ask for them to be fully removed if
+	// filtered, then ApplyOutputFilterToText() call will remove them too.
 	ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+
+	// Handle \f ...\f* removal
+	wxString footnote = _T("\\f ");
+	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			// Remove all footnote markers; they all begin with "\f"
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+
+		}
+	}
 	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+
 	// format for text oriented output in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(text, targetTextExport);
 	return text;
+}
+
+void RemoveContentFromFootnotes(wxString* pText)
+{
+	// Make a copy which we will manipulate
+	wxString text = *pText;
+	wxString base = _T("\\f");
+	wxChar space = _T(' ');
+	wxChar asterisk = _T('*');
+	// Scratch variables for our use of Left() and Mid()
+	wxString left;
+	wxString right;
+	wxString footnote = _T("\\f ");
+	wxString footnote_end = _T("\\f*"); // no space is needed at end, * suffices
+	int offset1 = text.Find(footnote);
+	if (offset1 == wxNOT_FOUND)
+		return;
+	int offset2 = FindFromPos(text, footnote_end, offset1 + 2);
+	if (offset2 == wxNOT_FOUND)
+		return;
+	// At this point we have delineated the span of the text from the first \f at offset1
+	// to the matching endmarker \f* at offset2; set up a do loop what repeats so long as
+	// we keep matching a new pair of \f followed by \f*
+	do {
+		left += text.Left((size_t)offset1 + 3); // include the begin-marker's following space
+		right = text.Mid((size_t)offset2); // leave \f* in the remainder
+
+		// Get the intervening part between the offsets, it typically contains some markers and
+		// their content, which we want to reduce to just markers followed by a space for each;
+		// and we'll do that here, then join up all the bits to form a new value for text, then
+		// go search for the next footnote, and iterate if successful in the find
+		wxString middle = text.Mid((size_t)offset1 + 3, (size_t)offset2 - ((size_t)offset1 + 3));
+		wxString accum; accum.Empty();
+		int offset3 = middle.Find(base);
+		if (offset3 == wxNOT_FOUND)
+		{
+			// We are done with the middle bit, so put together the results - accum has nothing
+			// we need, so text is shortened to be just right for the next iteration
+			text = right;
+		}
+		else
+		{
+			// We found a marker - deal with it
+			middle = middle.Mid((size_t)offset3 + 2); // Get everything after the matched \f
+			accum += base; // add the matched \f
+			// inner loop processes middle
+			do { 
+				// Now accumulate over addition characters of the marker until either space
+				// or asterisk (at end of endmarker) is matched
+				while (!middle.IsEmpty() && (middle.GetChar(0) != space && middle.GetChar(0) != asterisk))
+				{
+					accum += middle.GetChar(0);
+					middle = middle.Mid(1); 
+				}
+				// At this point, middle might be empty, or we have reached the * of an endmarker, or
+				// the space following a begin marker - deal with these possibilities
+				if (middle.IsEmpty())
+				{
+					// We are done, stitch together the parts and assign to text
+					left += accum;
+					text = right;
+					break; // from inner loop which processes middle
+				}
+				else
+				{
+					// We have reached a space or an asterisk
+					if (middle.GetChar(0) == space)
+					{
+						// Matched a space
+						accum += space;
+						middle = middle.Mid(1); 
+					}
+					else
+					{
+						// It was an asterisk that got matched
+						accum += asterisk;
+						middle = middle.Mid(1);
+						accum += space; // add a space as delimiter before any subsequent marker
+										// of if none, it will precede the final \f* at start of right
+					}
+				}
+				// Prepare for iterating the inner loop because middle is not yet consumed
+				offset3 = middle.Find(base);
+				if (offset3 == wxNOT_FOUND)
+				{
+					// We are done with middle, no more \f-like markers in it
+					left += accum; // add what we've accumulated
+					text = right; // text is now whatever remains, that is, \f* and what follows it
+					break;// from inner loop
+				}
+				else
+				{
+					// We have found another \f-like marker within the shortened middle, prepare
+					// and then iterate to deal with it
+					left += accum;
+					accum.Empty();
+					middle = middle.Mid((size_t)offset3 + 2); // Get everything after the matched \f
+					accum += base; // add the matched \f
+				}
+			} while (!middle.IsEmpty()); // end of inner loop
+		}
+
+		// Setup for next match, or break out if there is none
+		offset1 = text.Find(footnote);
+		if (offset1 == wxNOT_FOUND)
+		{
+			text = left + text;
+			break; // from outer loop
+		}
+		offset2 = FindFromPos(text, footnote_end, offset1 + 2);
+		if (offset2 == wxNOT_FOUND)
+		{
+			text = left + text;
+			break;
+		}
+	} while (offset1 != wxNOT_FOUND && offset2 != wxNOT_FOUND);
+	// restore the caller's string to what we now have, which lacks footnote contents
+	// but retains their markers
+	(*pText) = text;
 }
 
 /// normalize, by changing any \vn & \vt custom marker combinations to \v, change any
@@ -1487,12 +1630,18 @@ void DoExportAsType(enum ExportType exportType)
 	// filter option settings specify otherwise.
 
 	// Rebuild the text and apply the output filter to it.
+	bool bIsFiltered = FALSE; // initializations
+	wxString footnote = _T("\\f "); 
+	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
 	switch (exportType)
 	{
 	case sourceTextExport:
 		nTextLength = RebuildSourceText(source);
 		nTextLength = nTextLength; // avoid warning TODO: test for failures? (BEW
 								   // 3Jan12, No, allow length to be zero)
+		// BEW 5Sep14, added next line -- we should exclude our custom markers from a source export
+		ExcludeCustomMarkersAndRemFromExport(); // defined in ExportFunctions.cpp
+
 		// Apply output filter to the source text
 		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
@@ -1526,6 +1675,33 @@ void DoExportAsType(enum ExportType exportType)
 		break;
 	case glossesTextExport:
 		nTextLength = RebuildGlossesText(glosses);
+
+		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the 
+		// export, automatically, any marker and content which is filtered (not all such,
+		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
+		// can use the export dialog's Options button to excluded particular other ones
+		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
+		// cause the markers set for exclusion, plus their contents, to be removed
+		// from the exported text
+
+		// Handle \f ...\f* -- remove there, if relevant. For collaboration the 
+		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
+		// go to the output minus their markers' contents; but for our manual normal
+		// from-the-menu exports, if footnotes are filtered, we totally exclude them
+		// from the export.
+		bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+		if (bIsFiltered)
+		{
+			// Check for existence of the marker within the document
+			int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+			if (index != wxNOT_FOUND)
+			{
+				// no footnotes unfiltering into the free translation
+				m_exportFilterFlags[index] = 1;
+			}
+		}
+		// end of 5Sep14 addition
+
 		// Apply output filter to the glosses text
 		glosses = ApplyOutputFilterToText(glosses, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
@@ -1550,6 +1726,33 @@ void DoExportAsType(enum ExportType exportType)
 		break;
 	case freeTransTextExport:
 		nTextLength = RebuildFreeTransText(freeTrans);
+
+		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the 
+		// export, automatically, any marker and content which is filtered (not all such,
+		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
+		// can use the export dialog's Options button to excluded particular other ones
+		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
+		// cause the markers set for exclusion, plus their contents, to be removed
+		// from the exported text
+
+		// Handle \f ...\f* -- remove there, if relevant. For collaboration the 
+		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
+		// go to the output minus their markers' contents; but for our manual normal
+		// from-the-menu exports, if footnotes are filtered, we totally exclude them
+		// from the export.
+		bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+		if (bIsFiltered)
+		{
+			// Check for existence of the marker within the document
+			int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+			if (index != wxNOT_FOUND)
+			{
+				// no footnotes unfiltering into the free translation
+				m_exportFilterFlags[index] = 1;
+			}
+		}
+		// end of 5Sep14 addition
+
 		// Apply output filter to the freeTrans text
 		freeTrans = ApplyOutputFilterToText(freeTrans, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
@@ -1575,9 +1778,36 @@ void DoExportAsType(enum ExportType exportType)
 	default:
 	case targetTextExport:
 		nTextLength = RebuildTargetText(target);
+
+		// BEW 5Sep15 added the next 24 lines so that manual exports will filter out from the 
+		// export, automatically, any marker and content which is filtered (not all such,
+		// but the main ones, like \x, \f, \fe, \r, \rp, etc) - extra to this, the user
+		// can use the export dialog's Options button to excluded particular other ones
+		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
+		// cause the markers set for exclusion, plus their contents, to be removed
+		// from the exported text
+
+		// Handle \f ...\f* -- remove there, if relevant. For collaboration the 
+		// behaviour, requested by Jeff Webset (SAL), was for filtered footnotes to
+		// go to the output minus their markers' contents; but for our manual normal
+		// from-the-menu exports, if footnotes are filtered, we totally exclude them
+		// from the export.
+		bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+		if (bIsFiltered)
+		{
+			// Check for existence of the marker within the document
+			int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+			if (index != wxNOT_FOUND)
+			{
+				// no footnotes unfiltering into the free translation
+				m_exportFilterFlags[index] = 1;
+			}
+		}
+		// end of 5Sep14 addition
+
 		// Apply output filter to the target text
 		target =  ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
-		//target = ExportTargetText_For_Collab(gpApp->m_pSourcePhrases); <<- for testing it works right - it does
+
 
 		// format for text oriented output
 		FormatMarkerBufferForOutput(target, targetTextExport);
@@ -1916,7 +2146,7 @@ wxString RemoveCollectedBacktranslations(wxString& str)
 // strip off the backslash before using it, to search in the array for the index where the
 // marker is located, and then returns that index to the caller.
 // The function is used in ExcludeCustomMarkersFromExport() - see below, and the latter
-// does the call of GetMarkerInfentoryFromCurrentDoc() - the latter function sets all the
+// does the call of GetMarkerInventoryFromCurrentDoc() - the latter function sets all the
 // flags in the global wxArrayInt, m_exportFilterFlags to 0 (FALSE) at its start.
 // Returns wxNOT_FOUND if the passed in bareMkr is not in the inventory
 int	FindMkrInMarkerInventory(wxString bareMkr)
@@ -1924,6 +2154,10 @@ int	FindMkrInMarkerInventory(wxString bareMkr)
 	wxASSERT(!bareMkr.IsEmpty() && bareMkr.Len() > 0);
 	if (bareMkr.GetChar(0) == _T('\\'))
 		bareMkr = bareMkr.Mid(1);
+	// BEW 5Sep14, to allow passing in a marker with space appended, check for the space
+	// and remove before using the result
+	if (bareMkr.GetChar(bareMkr.Len() - 1) == _T(' '))
+		bareMkr = bareMkr.Left(bareMkr.Len() - 1);
 	int index = m_exportBareMarkers.Index(bareMkr);
 	return index;
 }
@@ -1966,6 +2200,10 @@ void ExcludeCustomMarkersFromExport()
 // \rem marker and its content from the export.
 // Usage: used in XHTML export support -- see DoExportAsType()
 // Created: BEW 19May12
+// BEW 5Sep12,extended so that filtered markers are checked for and removed from the
+// export when filtered - I'm thinking to support \x, \f (except for \f we'll just remove
+// the content when filtered but still send the markers with a space delimiter between
+// each), \fe, \fig, \sr, \r, \rq, and \d. That should cover the common ones in OT and NT.
 void ExcludeCustomMarkersAndRemFromExport()
 {
 	ExcludeCustomMarkersFromExport(); // exclude \note, \free, and also \bt & friends
@@ -1975,6 +2213,136 @@ void ExcludeCustomMarkersAndRemFromExport()
 	{
 		m_exportFilterFlags[index] = 1;
 	}
+	// BEW 5Sep14 additions... Note, the setting of the index in the filter flags does
+	// not accomplish an immediate filtering, but after this present function exits,
+	// the function ApplyOutputFilterToText() is immediately called, and that is what
+	// does the filtering ("filtering" in this context means "removal from the string
+	// which is to be sent to Paratext or Bibledit").
+	bool bIsFiltered = FALSE;
+	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+
+	// Handle \x .... \x* including internal markers
+	wxString xref = _T("\\x ");
+	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, xref);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		index = FindMkrInMarkerInventory(xref); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+		}
+	}
+	
+	// Handle \fig .... \fig* , figures (ie. captions)
+	wxString fig = _T("\\fig ");
+	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, fig);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		index = FindMkrInMarkerInventory(fig); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+		}
+	}
+
+	// Handle \fe .... \fe* endnotes including internal markers
+	wxString fe = _T("\\fe ");
+	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, fe);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		index = FindMkrInMarkerInventory(fe); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+		}
+	}
+
+	// Handle \r,  parallel references
+	wxString r = _T("\\r ");
+	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, r);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		index = FindMkrInMarkerInventory(r); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+		}
+	}
+
+	// Handle \sr,  section reference range
+	wxString sr = _T("\\sr ");
+	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, sr);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		index = FindMkrInMarkerInventory(sr); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+		}
+	}
+
+	// Handle \rq,  inline quotation references (typically OT ref, after \q1 or \q2 & content)
+	wxString rq = _T("\\rq ");
+	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, rq);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		index = FindMkrInMarkerInventory(rq); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+		}
+	}
+
+	// Handle \d,  descriptive title (e.g "Of David, when...", after \s1 & content, usually)
+	wxString d = _T("\\d ");
+	bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, r);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		index = FindMkrInMarkerInventory(d); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			m_exportFilterFlags[index] = 1; // this gets it filtered from the export
+		}
+	}
+
+	// Handle \f ...\f* -- when filtered, Jeff Webster (Nepal) wants the markers only
+	// to still get transferred to PT or BE, but without any content, so we have to
+	// use a function that looks for \f and stops at \f*, and at any intervening marker,
+	// and removes the content preceding the marker, leaving a single space between 
+	// markers. We will do this in the caller, because we need access to the exported
+	// text, which we don't have from here
+}
+
+bool IsMarkerInCurrentFilterMarkers(wxString strFilteredMarkersInventory, wxString wholeMkr) // BEW added 5Sep14
+{
+	wxString reverse = MakeReverse(wholeMkr);
+	wxChar last = reverse.GetChar(0);
+	if (last != _T(' '))
+	{
+		wholeMkr += _T(" "); // add space to end when one is not already there
+	}
+	wxChar first = wholeMkr.GetChar(0);
+	if (first == gSFescapechar)
+	{
+		int offset = wxNOT_FOUND;
+		// Including the final space in the match means we won't get spurious matches
+		// eg. won't match \xo because what we looked for was \x<space>
+		offset = strFilteredMarkersInventory.Find(wholeMkr);
+		if (offset == wxNOT_FOUND)
+		{
+			// wholeMarker is not in the inventory
+			return FALSE;
+		}
+		return TRUE; // it's in the inventory
+	}
+	return FALSE; // if no initial backslash treat as "marker not in inventory"
 }
 
 // The default option (2nd param is TRUE) for the following call is almost the functional
@@ -16297,8 +16665,11 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr,
 	wxString markersStr, wxString xrefStr,
 	bool bAttachFilteredInfo, bool bAttach_m_markers)
 {
+	// prefixStr was defined just before this function was called, and it was
+	// not initialized and so is empty, so the next line just results in
+	// markersPrefix being empty
 	wxString markersPrefix = prefixStr;
-	wxString aSpace = _T(' ');
+	wxString aSpace = _T(' '); // add a space
 	if (!markersStr.IsEmpty())
 	{
 		if (bAttach_m_markers)

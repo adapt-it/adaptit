@@ -80,6 +80,25 @@ check feature now only allows the currently open document to
 be checked. (Doing changes to other documents not open, when 
 collaborating, could produce unforseen and unwanted results,
 so we are playing safe by disallowing them.)
+* The the rules for what filtered information goes into the
+content of exports has been changed. Previously, the default
+for a manual export was to unfilter all filtered information
+and include it with the rest of the USFM exported text. This
+also applied to exports done when collaborating with Paratext
+or Bibledit. Now the new rules are that certain markers (\f
+\x \fe \fig \sr \r \rq and \d) have their filtered status
+checked. If any of these are designated as currently filtered,
+then those markers and any associated text content belonging
+to them, is not included in the export. (An exception is
+footnotes when exporting  to Paratext or Bibledit when 
+collaborating: if currently filtered, the footnote markers
+themselves are still exported, but not their contents.)
+For manual export requests (that is, using the Export-Import
+menu commands), the export dialog offers and Options button
+still, which can be used for manually suppressing other
+filtered markers from the export, as was the case earlier.
+The new filtering rules also apply for exports done to
+xhtml and/or Pathway.
 ----------------------------------------------
 Bug fixes in 6.5.4
 ----------------------------------------------
