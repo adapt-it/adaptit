@@ -5392,6 +5392,7 @@ int  FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBefor
 // this function exports the target text from the document, and programmatically causes
 // \free \note and \bt (and any \bt-initial markers) and the contents of those markers to
 // be excluded from the export
+// BEW 5Sep14 refactored to better sync with the filtered marker settings
 wxString ExportTargetText_For_Collab(SPList* pDocList)
 {
 	wxString text;
@@ -5405,11 +5406,32 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 	textLen = RebuildTargetText(text, pDocList); // from ExportFunctions.cpp
 	// set \note, \bt, and \free as to be programmatically excluded from the export
 	textLen = textLen; // avoid warning
-	ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
+	//ExcludeCustomMarkersFromExport(); // defined in ExportFunctions.cpp
+	ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
 	// cause the markers set for exclusion, plus their contents, to be removed
 	// from the exported text
 	bool bRTFOutput = FALSE; // we are working with USFM marked up text
 	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+
+	// Handle \f ...\f* -- when filtered, Jeff Webster (Nepal) wants the markers only
+	// to still get transferred to PT or BE, but without any content, so we have to
+	// use a function that looks for \f and stops at \f*, and at any intervening marker,
+	// and removes the content preceding the marker, leaving a single space between 
+	// markers. We will do this here, because we need access to the exported text.
+	wxString footnote = _T("\\f ");
+	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			// Remove the content from all footnote markers; they all begin with "\f"
+			RemoveContentFromFootnotes(&text);
+		}
+	}
+
 	// in next call, param 2 is from enum ExportType in Adapt_It.h
 	FormatMarkerBufferForOutput(text, targetTextExport);
 	text = RemoveMultipleSpaces(text);
@@ -5447,6 +5469,31 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 	textLen = RebuildFreeTransText(text, pDocList); // from ExportFunctions.cpp
 	// in next call, param 2 is from enum ExportType in Adapt_It.h
 	textLen = textLen; // avoid warning
+	ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp 
+	// cause the markers set for exclusion, plus their contents, to be removed
+	// from the exported text
+
+	// Handle \f ...\f* -- when filtered, Jeff Webster (Nepal) wants the markers only
+	// to still get transferred to PT or BE, but without any content, so we have to
+	// use a function that looks for \f and stops at \f*, and at any intervening marker,
+	// and removes the content preceding the marker, leaving a single space between 
+	// markers. We will do this here, because we need access to the exported text.
+	wxString footnote = _T("\\f ");
+	wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+	bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+	if (bIsFiltered)
+	{
+		// Check for existence of the marker within the document
+		int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+		if (index != wxNOT_FOUND)
+		{
+			// no footnotes unfiltering into the free translation
+			m_exportFilterFlags[index] = 1;
+		}
+	}
+	bool bRTFOutput = FALSE; // we are working with USFM marked up text
+	text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+
 	FormatMarkerBufferForOutput(text, freeTransTextExport);
 	text = RemoveMultipleSpaces(text);
 
@@ -5796,7 +5843,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		switch (makeTextType)
 		{
 		case makeFreeTransText:
-			// rebuild the free translation USFM marked-up text
+			// rebuild the free translation USFM marked-up text in ExportTargetText_For_Collab()
 			text = ExportFreeTransText_For_Collab(pDocList);
 			break;
 		default:
@@ -5804,6 +5851,24 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			// rebuild the adaptation USFM marked-up text
 			text = ExportTargetText_For_Collab(pDocList);
 			break;
+		}
+		// BEW 5Sep14 next lines copied for support of better syncing with filter settings,
+		// from the code within Export
+		bool bRTFOutput = FALSE;
+		ExcludeCustomMarkersAndRemFromExport();  // defined in ExportFunctions.cpp
+		text = ApplyOutputFilterToText(text, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
+		wxString footnote = _T("\\f ");
+		wxString filteredMkrs = gpApp->gCurrentFilterMarkers;
+		bool bIsFiltered = IsMarkerInCurrentFilterMarkers(filteredMkrs, footnote);
+		if (bIsFiltered)
+		{
+			// Check for existence of the marker within the document
+			int index = FindMkrInMarkerInventory(footnote); // signature accepts \mkr or mkr,
+			if (index != wxNOT_FOUND)
+			{
+				// Remove the content from all footnote markers; they all begin with "\f"
+				RemoveContentFromFootnotes(&text);
+			}
 		}
 		// ensure there is no initial \id or 3-letter code lurking in it, if it's a
 		// chapter doc

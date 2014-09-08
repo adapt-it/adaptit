@@ -5175,7 +5175,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 							pSrcPhrases, otherFiltered, collBackTransStr,
 							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr handled in a separate function, later below
-
+	
 	// BEW 11Oct10, the initial stuff is now more complex, so we can no longer insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
 	// string, strInitialStuff in which to build the stuff which precedes m_targetStr and
@@ -5184,6 +5184,9 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 	// now collect any beginmarkers and associated data from m_markers, into strInitialStuff,
 	// and if there is content in xrefStr (and bAttachFilteredInfo is TRUE) then put that
 	// content after the markersStr (ie. m_markers) content; delay placement until later
+	// BEW 5Sep14, when collaborating we don't want any auto-unfiltering of filtered
+	// information types, so wrap with a test - but we want some of this next stuff (the
+	// m_markers and m_endMarkers is wanted, for example), so tests will be done internally
 	strInitialStuff = GetUnfilteredCrossRefsAndMMarkers(strInitialStuff, markersStr, xrefStr,
 												bAttachFilteredInfo, bAttach_m_markers);
 	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
@@ -10355,12 +10358,28 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pApp->m_bUseSrcWordBreak)
 	{
-		// return whatever character or string m_srcWordBreak stores
-		// Note: if the CSourcePhrase stores nothing yet in this member,
-		// GetSrcWordBreak() will unilaterally return only a normal latin space
-		return pSrcPhrase->GetSrcWordBreak(); 
+		// return whatever character m_srcWordBreak stores, but make it intelligent
+		// because it may store CR + LF, and in mergers, retranslations, composing
+		// default free translations, doing retranslation reports, we actually don't 
+		// want any CR or CR+LF being returned. So we'll leave CR+LF stored in the 
+		// CSourcePhrase, but our Put...() functions will check what's in the string
+		// and reduce CR or LF or CR+LF to just a latin space, and then check if there
+		// is anything after the latin space and if so, remove that - whatever character
+		// or characters it may happen to be. This algorithm will work fine if all that
+		// is present is a character such as ZWSP or one of its friends. We'll also
+		// change tab to space.
+		wxString s = pSrcPhrase->GetSrcWordBreak();
+		wxString output; output.Empty();
+		if (s.GetChar(0) == _T('\r') || s.GetChar(0) == _T('\n') || s.GetChar(0) == _T('\t'))
+		{
+			output = _T(" ");
+			return output;
+		}
+		return s;
 	}
 	else
+	// Note: if the CSourcePhrase stores nothing yet in this member,
+	// GetSrcWordBreak() will unilaterally return only a normal latin space
 	{
 		// return a latin space
 		return wxString(_T(" ")); 
@@ -10376,11 +10395,19 @@ wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pApp->m_bUseSrcWordBreak)
 	{
-		// return whatever character or string m_srcWordBreak stores
-		// Note: if the CSourcePhrase stores nothing yet in this member,
-		// GetTgtWordBreak() will unilaterally return only a normal latin space
-		return pSrcPhrase->GetTgtWordBreak(); 
+		// return whatever character or string m_srcWordBreak stores - but intelligently,
+		// we don't want CR, or LF, or TAB, or CR+LF, put into a retranslation
+		wxString s = pSrcPhrase->GetTgtWordBreak(); 
+		wxString output; output.Empty();
+		if (s.GetChar(0) == _T('\r') || s.GetChar(0) == _T('\n') || s.GetChar(0) == _T('\t'))
+		{
+			output = _T(" ");
+			return output;
+		}
+		return s;
 	}
+	// Note: if the CSourcePhrase stores nothing yet in this member,
+	// GetTgtWordBreak() will unilaterally return only a normal latin space
 	else
 	{
 		// return a latin space
