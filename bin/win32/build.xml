@@ -126,7 +126,7 @@
   -->
   <target name="compile_3pt_unicode" depends="init-3pt" description="compile the wxWidgets unicode targets (debug and release)" >
 	<!-- set the appropriate environment variables -->
-	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" />
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
