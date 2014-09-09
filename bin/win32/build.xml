@@ -126,12 +126,16 @@
   -->
   <target name="compile_3pt_unicode" depends="init-3pt" description="compile the wxWidgets unicode targets (debug and release)" >
 	<!-- set the appropriate environment variables -->
-	<exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<!-- VS2012 -->
+	<!--<exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" /> -->
     <!-- build wxwidgets for wxwin -->
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Debug" />
- 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc11.sln" />
+ 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
+	<!-- VS2012 -->
+ 	  <!-- <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc11.sln" /> -->
 	  <!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 	  <arg value="/p:Configuration=Unicode Debug" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
@@ -141,7 +145,9 @@
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
- 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc11.sln" />
+ 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
+	<!-- VS2012 -->
+ 	  <!-- <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc11.sln" /> -->
 	  <!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 	  <arg value="/p:Configuration=Unicode Release" />
  	  <arg value="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/build/msw/wx_08.sln" />
@@ -155,10 +161,9 @@
   -->
   <target name="compile_unicode_debug" description="compile AI unicode debug target " >
 	<!-- set the appropriate environment variables -->
-	<!-- edb 5 Sept 2014: move to VS 2012 compiler
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
-	-->
-	<exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<!-- VS2012 -->
+	<!-- <exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" /> -->
     <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
 	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
@@ -173,10 +178,9 @@
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<!-- edb 5 Sept 2014: move to VS 2012 compiler
 		<arg value="${root}/bin/win32/Adapt_It_vs08.sln" />
-		-->
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
+	<!-- VS2012 -->
+		<!-- <arg value="${root}/bin/win32/Adapt_It.sln" /> -->
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Unicode Debug" />
     </exec>
@@ -188,10 +192,9 @@
   -->
   <target name="compile_unicode_release" description="compile the source " >
 	<!-- set the appropriate environment variables -->
-	<!-- edb 5 Sept 2014: move to VS 2012 compiler
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
-	-->
-	<exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<!-- VS2012 -->
+	<!-- <exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" /> -->
     <!-- Set the svn version numbers in Adapt_It.h and Adapt_It.rc. -->
 	<replace file="${root}\source\Adapt_It.h" token="VERSION_REVISION_PART 0" value="VERSION_REVISION_PART ${svnversion}" />
 	<replace file="Adapt_It.rc" token='VER_SVNVERSION_STR "0' value='VER_SVNVERSION_STR "${svnversion}' />
@@ -206,10 +209,9 @@
 		<env key="BOOST" value="${3pt}/boost/current/boost"/>
 		<env key="OPENSSL" value="${3pt}/openssl/current/openssl"/>
 		<env key="LIBCURL" value="${3pt}/curl/current/curl"/>
-		<!-- edb 5 Sept 2014: move to VS 2012 compiler
 		<arg value="${root}/bin/win32/Adapt_It_vs08.sln" />
-		-->
-		<arg value="${root}/bin/win32/Adapt_It.sln" />
+	<!-- VS2012 -->
+		<!-- <arg value="${root}/bin/win32/Adapt_It.sln" /> -->
 		<arg value="/target:rebuild" />
 		<arg value="/p:Configuration=Unicode Release" />
     </exec>
@@ -222,10 +224,9 @@
   <target name="compile_msi_unicode" depends="compile_unicode_release, copy"
         description="compile the unicode msi installer" >
 	<!-- set the appropriate environment variables -->
-	<!-- edb 5 Sept 2014: move to VS 2012 compiler
 	<exec executable="${env.VS90COMNTOOLS}/vsvars32.bat" failonerror="no" />
-	-->
-	<exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" />
+	<!-- VS2012 -->
+	<!-- <exec executable="${env.VS110COMNTOOLS}/vsvars32.bat" failonerror="no" /> -->
     <!-- build the unicode release msi installer -->
 	<!--
     <exec executable="MSBuild.exe" failonerror="yes">
