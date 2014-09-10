@@ -3611,6 +3611,7 @@ void EmptyMarkersAndFilteredStrings(
 /// or ] we return Tstr immediately. (No word counting is done, because in exports in a
 /// later function which the caller calls we join the brackets to the text which they
 /// bracket and so they don't contribute to the word count)
+/// BEW 21Jul14, refactored to support storage of wordbreaks, for later reconstituting in exports
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool bDoCount,
 							bool bCountInTargetText)
@@ -4750,6 +4751,7 @@ bool IsClosingBracketWordBuilding(wxString& strPunctuationCharSet)
 /// BEW 11Oct10, additions to the code for extra doc version 5 storage members,
 /// m_follOuterPunct and four wxString members for inline binding and non-binding markers
 /// or endmarkers.
+/// BEW 21Jul14 refactored to support ZWSP and replacement of wordbreaks in exports
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 {
@@ -4822,6 +4824,8 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
             // parameter, it uses pMergedSrcPhrase to collect endmarker and following
             // punctuation information from the merged sourcephrase rather than from the
             // saved original (non-merged) last pSrcPhrase we are currently looking at
+			str << PutSrcWordBreak(pSrcPhrase); // add the wordbreak
+
 			beforeStr.Empty();
 			bAddedSomething = FALSE;
 			// bIncludeNote is TRUE, bDoCountForFreeTrans is TRUE, bCountInTargetTextLine
@@ -4852,6 +4856,8 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 		{
 			bFirst = FALSE; // prevent this block from being re-entered
 
+			str << PutSrcWordBreak(pSrcPhrase); // add the wordbreak
+
 			beforeStr.Empty();
 			beforeStr = GetSrcPhraseBeginningInfo(beforeStr, pMergedSrcPhrase, bAddedSomething);
 			if (bAddedSomething)
@@ -4878,6 +4884,8 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 			// like the bFirst block, but the first function call is different, since it
 			// needs to check for m_markers info on the saved original (non-merged)
 			// pSrcPhrase we are currently looking at
+			str << PutSrcWordBreak(pSrcPhrase); // add the wordbreak
+
 			beforeStr.Empty();
 			bAddedSomething = FALSE;
 			// bIncludeNote is TRUE, bDoCountForFreeTrans is TRUE, bCountInTargetTextLine
