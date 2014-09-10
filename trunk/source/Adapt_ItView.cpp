@@ -20995,7 +20995,11 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 // readability the code inserts newlines before the free translation and other
 // begin-markers, and those, if left there, when the data is unstructured, result in \p
 // markers being inserted - which changes the document structure unhelpfully; when the
-// document is structure, it doesn't matter (I think)
+// document is structured, it doesn't matter (I think)
+// BEW 9Sep14. No!!! It does matter. Removing CR and LF will cause the word at a line
+// end to be joined to the word at the start of the next line, causing bogus "words" to
+// be created. Instead, change CR to <SP> and LF to <SP> if no <SP> precedes, but if
+// one precedes, then just skip it. The above will then work for Unix line ends and Win
 wxString CAdapt_ItView::RemoveAllCRandLF(wxString* pStr)
 {
 	wxChar CR = _T('\r');
@@ -21013,26 +21017,37 @@ wxString CAdapt_ItView::RemoveAllCRandLF(wxString* pStr)
 	wxChar* pStartChar = (wxChar*)pBuf;
 	wxChar* pEnd = pStartChar + len;
 	wxASSERT(*pEnd == (wxChar)0);
-	int offset = 0;
 	while(pStartChar < pEnd)
 	{
 		if (*pStartChar == CR)
 		{
-			// we're at a carriage return character, so skip it
-			offset++;
+			// we're at a carriage return character, so
+			// change it to a latin space, then skip over it
+			*pStartChar = _T(' '); // a latin space
+			outputStr += *pStartChar;
 			pStartChar++;
 		}
 		else if (*pStartChar == LF)
 		{
-			// we're at a line feed character, so skip it
-			offset++;
+			// we're at a line feed character, it could be the LF after a CR for a windows machine
+			// or the LF newline for Linux/Unix
+			if (*(pStartChar - 1L) != _T(' '))
+			{
+				// No latin space precedes, so change it to a latin space and store it
+				*pStartChar = _T(' '); // a latin space
+				outputStr += *pStartChar;
+			}
+			else
+			{
+				// We've got a space already, so just skip this LF
+				;
+			}
 			pStartChar++;
 		}
 		else
 		{
 			// it's neither, so store it
 			outputStr += *pStartChar;
-			offset++;
 			pStartChar++;
 		}
 	}
@@ -21092,9 +21107,14 @@ void CAdapt_ItView::OnImportEditedSourceText(wxCommandEvent& WXUNUSED(event))
 	case getNewFile_success:
 	{
 		// BEW added 2Dec13, to get rid of spurious \p insertions when the file is not sfm-structured
+#if defined(_DEBUG)
+		//wxLogDebug(_T("EditedSrc BEFORE: %s"), (*pBuffer).c_str());
+#endif
 		*pBuffer = RemoveAllCRandLF(pBuffer);
 		pApp->m_nInputFileLength = pBuffer->Len();
-
+#if defined(_DEBUG)
+		//wxLogDebug(_T("EditedSrc AFTER: %s"), (*pBuffer).c_str());
+#endif
 
         // BEW added 26Aug10. In case we are loading a marked up file we earlier
         // exported, our custom markers in the exported output would have been changed

@@ -8356,7 +8356,7 @@ h:						bool bIsInitial = TRUE;
 
             // NOTE: **** this algorithm allows the user to put italics substrings (marked
             // by \it ... \it*), or similar marker & endmarker pairs, within text spans
-            // potentially filterable - this should be a safe because such embedded content
+            // potentially filterable - this should be safe because such embedded content
             // marker pairs should have a TextType of none in the XML marker specifications
             // document, and Adapt It will skip such ones, but stop scanning when either
             // inLine is FALSE, or if TRUE, then when TextType is not none ****
@@ -8620,9 +8620,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 
 			// we can commence to build filteredStr now (Note: because filtering stores a
 			// string, rather than a sequence of CSoucePhrase instances, any adaptations
-			// will be thrown away irrecoverably. We could change this in the future, but
-			// it would be a major core change and require a docVersion 6 and a
-			// significant redevelopment effort; but it would be a better model.)
+			// will be thrown away irrecoverably.
 			filteredStr = filterMkr; // add the \~FILTER beginning marker
 			filteredStr += _T(' '); // add space
 			CSourcePhrase* pSrcPhraseFirst = new CSourcePhrase(*pSrcPhrase);
@@ -9409,7 +9407,10 @@ int CAdapt_ItDoc::ParseNumber(wxChar *pChar)
 	wxChar* ptr = pChar;
 	int length = 0;
 	// BEW 24Aug11, added 2nd test to next line
-	while (!IsWhiteSpace(ptr) && *ptr != _T('\0'))
+	// BEW 9Sep14, added subtest for \ of a marker, otherwise \c 4 followed by a line
+	// \s Stori.... gives m_markers with "\c 4\s " which gets interpretted by ParseNumber
+	// as "4\s" is the 'number' for the chapter, & carries it through each verse in doc!
+	while (!IsWhiteSpace(ptr) && *ptr != _T('\0') && *ptr != gSFescapechar)
 	{
 		ptr++;
 		length++;

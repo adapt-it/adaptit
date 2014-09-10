@@ -17240,6 +17240,9 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 			// above blocks of preceding info will already have any needed final space, so
 			// we just add the following material to it
 			str = FromMergerMakeSstr(pSrcPhrase);
+#if defined(_DEBUG)
+			wxLogDebug(_T("Merger: FromMergerMakeSstr produced:   %s"), str.c_str());
+#endif
 			//source.Trim(); <<-- a mistake, BEW 21Jul14, as it clobbers any space at end
 			//of m_markers, so that the verse number is followed immediately by text if
 			//the space insertion below is no longer done unilaterally, resulting in an
