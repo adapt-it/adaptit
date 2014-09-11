@@ -106,6 +106,24 @@ end of the document if there is no retranslation at the
 end of the document, but if there is, then before the
 retranslation. If the attempt fails, it will leave it
 at the start of the document.
+* When exporting, or when filtering out a marker and its
+text contents, earlier versions would put up a Placement
+dialog whenever there was ambiguity about where to
+restore USFM markers to the exported, or filtered out, text.
+This can be disconcerting when unexpected, since the user
+does not have to deal with this dialog very often, if at all, 
+depending on the complexity of the markup within the 
+source text on which the adapting work is based.
+The code has been made a little smarter. Typically it
+is only certain endmarkers that give us the ambiguity
+problem. So if the endmarker can be automatically 
+placed under certain conditions, it will be done without
+putting up the Placement dialog.
+More difficult placements will still need to be done
+manually using the dialog, but they should now be
+even more rare. The code changes should handle \f*, \x*,
+\fe*, or a few markers like \wj* (endmarker for 'words
+of Jesus' coloured text), automatically.
 ----------------------------------------------
 Bug fixes in 6.5.4
 ----------------------------------------------

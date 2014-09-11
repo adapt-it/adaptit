@@ -527,6 +527,11 @@ void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl);
 // something requiring doc to be loaded and in a robust state, etc)
 void NormalizeState();
 
+// BEW created 11Sep14 to try do as many auto-placements of markers when ambiguity for
+// placement is present; mostly endmarkers are all that are involved, but not necessarily so;
+// any remaining will require the Placement... dialog to be shown for the user to place those
+// manually. It should be possible to handle over 90% automatically
+wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMergedSrcPhrase, wxArrayString* arrMkrsPtr);
 
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially
