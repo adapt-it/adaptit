@@ -154,7 +154,7 @@ CGetSourceTextFromEditorDlg::~CGetSourceTextFromEditorDlg() // destructor
 
 void CGetSourceTextFromEditorDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
+	//InitDialog() is not virtual,  no call needed to a base class
 
 // whm 5Jun12 added the define below for testing and debugging of Setup Collaboration dialog only
 #if defined(FORCE_BIBLEDIT_IS_INSTALLED_FLAG)
@@ -1330,6 +1330,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	{
 		::wxMkdir(tempFolder);
 	}
+
 
 	wxString sourceProjShortName;
 	wxString targetProjShortName;

@@ -852,16 +852,22 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		{
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
-#if defined(__WXGTK__) && defined(Print_failure)
+//#if defined(__WXGTK__) && defined(Print_failure)
+/* I couldn't get the line-squeezing for no doc opened, when Adapt Clipboard Text used, compared to when doc is present
+#if defined(_DEBUG)
             {
                 CPile* pPile = GetPile();
                 int nPileIndex = pPile->GetPileIndex();
+				CStrip* pStrip = pPile->GetStrip();
+				int stripIndex = pStrip->GetStripIndex();
                 if (nPileIndex == 0)
                 {
-                   wxLogDebug(_T("DrawCell(): enclosingRect: TOP %d  LEFT %d  for first pile of strip"), enclosingRect.GetTop(), enclosingRect.GetLeft());
+                   //wxLogDebug(_T("DrawCell(): enclosingRect: TOP %d  LEFT %d  for first pile of strip"), enclosingRect.GetTop(), enclosingRect.GetLeft());
+                   wxLogDebug(_T("EnclosingRect: TOP %d  LEFT %d  for first pile of strip %d"), enclosingRect.GetTop(), enclosingRect.GetLeft(), stripIndex);
                 }
             }
 #endif
+*/
 /*
 #if defined(__WXGTK__)
 			// a kludge to see if we can get anything printed below the strip in GTK build when printing free trans

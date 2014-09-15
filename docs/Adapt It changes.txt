@@ -1,5 +1,5 @@
  ----------------------------------------------
-Version 6.5.4 release ??  ???? 2014
+Version 6.5.4 release 15 September 2014 (Preliminary)
 ----------------------------------------------
 * A command line switch -srcRespell has been implemented.
 If the app is launched with this switch, a smart merge of
