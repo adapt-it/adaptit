@@ -15279,6 +15279,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bEnableDelayedFreeTransOp = FALSE;
 	m_enumWhichFreeTransOp = no_op;
 	m_bFreeTrans_EventPending = FALSE;
+	m_bEnableDelayedGetChapterHandler = FALSE; // BEW added 15Sep14
 
 	// bug fixed 24Sept13 BEW
 	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
@@ -21815,7 +21816,7 @@ int CAdapt_ItApp::OnExit(void)
 
 #if defined(_KBSERVER)
 	// If a kb database of entries in kbserver's entry table is being deleted one by one
-	// in a currently running thread, then m_pApp->m_pKbServerForDeleting  will be non-NULL;
+	// in a currently running thread, then pApp->m_pKbServerForDeleting  will be non-NULL;
 	// test for this and recover the heap memory now, the thread will then fail but
 	// that's okay - the user can re-establish the deletion (with fewer to delete) in the
 	// next session, or over several sessions, until the particular kb database is gone

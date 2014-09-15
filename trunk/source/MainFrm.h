@@ -63,6 +63,7 @@ DECLARE_EVENT_TYPE(wxEVT_Show_version, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Next, -1)
 DECLARE_EVENT_TYPE(wxEVT_Join_With_Previous, -1)
 DECLARE_EVENT_TYPE(wxEVT_Split_It, -1)
+DECLARE_EVENT_TYPE(wxEVT_Delayed_GetChapter, -1)
 
 #if defined(_KBSERVER)
 
