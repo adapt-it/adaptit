@@ -3992,6 +3992,8 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 
 	bool m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
+	bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
+	bool m_bEnableDelayedGetWholeBookHandler; // ditto
 
 	// Support for clipboard-based adaptation (and free translation)
 	bool     m_bClipboardAdaptMode; // BEW added 9May14, a feature suggested by Bob Eaton (SAG)

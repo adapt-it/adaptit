@@ -123,10 +123,9 @@ protected:
 	EthnologueCodePair* MatchAIProjectUsingEthnologueCodes(wxString& editorSrcLangCode,
 								wxString& editorTgtLangCode);
 private:
-	bool m_bTextOrPunctsChanged;
-	bool m_bUsfmStructureChanged;
 	CAdapt_ItApp* m_pApp;
-	
+	bool m_bTextOrPunctsChanged;
+	bool m_bUsfsmSructureChanged;
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
 	

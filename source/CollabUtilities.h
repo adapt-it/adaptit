@@ -313,5 +313,7 @@ class CSourcePhrase;
 	// at the next normal shutdown
 	void			EmptyCollaborationTempFolder();
 
+	long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp);
+
 #endif
 

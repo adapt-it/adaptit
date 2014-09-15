@@ -85,6 +85,7 @@
 #include "FreeTrans.h"
 #include "KB.h"
 #include "StatusBar.h" // EDB added 2Oct12
+#include "CollabUtilities.h" // BEW added 15Sep14
 
 #if defined(_KBSERVER)
 #include "KBSharing.h" // BEW added 14Jan13
@@ -376,6 +377,7 @@ DEFINE_EVENT_TYPE(wxEVT_Show_version)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Next)
 DEFINE_EVENT_TYPE(wxEVT_Join_With_Previous)
 DEFINE_EVENT_TYPE(wxEVT_Split_It)
+DEFINE_EVENT_TYPE(wxEVT_Delayed_GetChapter)
 
 #if defined(_KBSERVER)
 DEFINE_EVENT_TYPE(wxEVT_KbDelete_Update_Progress)
@@ -4141,6 +4143,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			pApp->m_pReplaceDlg->Show(TRUE);
 			gbReplaceAllIsCurrent = FALSE;
 		}
+	}
+
+	if (pApp->m_bEnableDelayedGetChapterHandler )
+	{
+		pApp->m_bEnableDelayedGetChapterHandler = FALSE;
+		// The remainder of the OnOK() button handler is the following
+		// function, defined in CollabUtilities.cpp
+		long returnedVal = OK_btn_delayedHandler_GetSourceTextFromEditor(gpApp);
+		returnedVal = returnedVal; // avoid compiler warning
 	}
 
 	if (pApp->m_bEnableDelayedFreeTransOp)
