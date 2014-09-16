@@ -1,5 +1,8 @@
  ----------------------------------------------
-Version 6.5.4 release 15 September 2014 (Preliminary)
+Version 6.5.4 release 16 September 2014
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.4
 ----------------------------------------------
 * A command line switch -srcRespell has been implemented.
 If the app is launched with this switch, a smart merge of
@@ -66,7 +69,7 @@ any word processor. Previously, the lack of a BOM would cause
 the word processor opening it to fail to display the text properly.
 * Prior versions of Adapt It would not accept consistent changes
 tables with symbolic commands within them, so that only tables
-with simple lines like:              "findthis" > "replacewiththis"
+with simple lines like:  "findthis" > "replacewiththis"
 would work. Now all correctly constructed consistent changes
 tables are accepted, and work properly.
 * Prior versions of Adapt It disabled the two menu items:
@@ -80,7 +83,7 @@ check feature now only allows the currently open document to
 be checked. (Doing changes to other documents not open, when 
 collaborating, could produce unforseen and unwanted results,
 so we are playing safe by disallowing them.)
-* The the rules for what filtered information goes into the
+* The rules for what filtered information goes into the
 content of exports has been changed. Previously, the default
 for a manual export was to unfilter all filtered information
 and include it with the rest of the USFM exported text. This
@@ -94,7 +97,7 @@ footnotes when exporting  to Paratext or Bibledit when
 collaborating: if currently filtered, the footnote markers
 themselves are still exported, but not their contents.)
 For manual export requests (that is, using the Export-Import
-menu commands), the export dialog offers and Options button
+menu commands), the export dialog offers an Options button
 still, which can be used for manually suppressing other
 filtered markers from the export, as was the case earlier.
 The new filtering rules also apply for exports done to
@@ -159,6 +162,7 @@ crash the app.
 was distant from the location where the retranslation is to
 be made, and that location is very close to the top of the
 document.
+
 ----------------------------------------------
 Version 6.5.3 release 18 June 2014
 ----------------------------------------------
@@ -1011,7 +1015,7 @@ formatting error that could result in a confusing message that
 referenced the name of a different project than the project the 
 administator had designated as the one for storing target texts. 
 This message formatting error has now been fixed.
-* In some instances punctuation was being copied from the the
+* In some instances punctuation was being copied from the 
 source text into empty target text locations throughout a 
 document. This has been fixed.
 * The list of most recently used (MRU) document files is now 
