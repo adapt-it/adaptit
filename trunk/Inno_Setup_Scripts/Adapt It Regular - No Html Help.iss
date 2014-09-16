@@ -9,7 +9,7 @@
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX"
-#define MyAppVersion "6.5.3"
+#define MyAppVersion "6.5.4"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It.exe"
 #define MyAppShortName "Adapt It"
@@ -30,21 +30,21 @@ DefaultDirName={pf}\Adapt It WX
 DefaultGroupName=Adapt It WX
 LicenseFile={#SvnBase}\setup Regular - No Html Help\LICENSING.txt
 InfoBeforeFile={#SvnBase}\setup Regular - No Html Help\Readme.txt
-OutputBaseFilename=Adapt_It_WX_6_5_3_Regular_No_HTML_HELP
+OutputBaseFilename=Adapt_It_WX_6_5_4_Regular_No_HTML_HELP
 SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2014 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX
-VersionInfoProductVersion=6.5.3
+VersionInfoProductVersion=6.5.4
 WizardImageFile="{#SvnBase}\res\ai_wiz_bg.bmp"
 WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2014 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.5.3
+VersionInfoVersion=6.5.4
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX
 UsePreviousGroup=false

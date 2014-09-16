@@ -259,7 +259,7 @@
 		<arg value="WixUIExtension" />
     </exec>
 	<!-- copy the installer into the AIWX Installers directory -->
-    <copy file="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_Unicode.msi" tofile="${dist}/Adapt_It_WX_6_5_3_Unicode.msi"/>
+    <copy file="${root}/bin/Adapt It WX Unicode Setup/Adapt_It_WX_Unicode.msi" tofile="${dist}/Adapt_It_WX_6_5_4_Unicode.msi"/>
   </target>
   
   <!-- 
