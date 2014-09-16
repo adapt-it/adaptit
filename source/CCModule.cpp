@@ -5,10 +5,10 @@
 /// \date_created	15 March 2008
 /// \rcs_id $Id$
 /// \copyright		See below for original copyright notice for original cc source code.
-///                 Modified and adapted 2008 by permission for inclusion in the WX version 
+///                 Modified and adapted 2008 by permission for inclusion in the WX version
 ///                 by Bruce Waters, Bill Martin, SIL International.
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CCCModule class. 
+/// \description	This is the implementation file for the CCCModule class.
 /// The CCCModule class encapsulates the traditional SIL Consistent Changes functionality
 /// in a single C++ class. It only captures the CC functions which load a .cct table and
 /// process consistent changes defined by that table on a buffer.
@@ -30,23 +30,23 @@
 /////////////////////////////////////////////////////////////////////////////
 // Notice/Disclaimer:
 // My main goal in creating this CCCModule was to encapsulate the Consistent
-// Changes functionality for use in the wxWidgets based cross-platform 
+// Changes functionality for use in the wxWidgets based cross-platform
 // versions of Adapt It so that the same code base could build versions of
-// Adapt It for Windows, Linux and the Macintosh, without resort to creating 
-// separate stand alone .dll or .so dynamic libraries. This CCCModule can 
-// be plugged in to almost any other wxWidgets based application without need 
+// Adapt It for Windows, Linux and the Macintosh, without resort to creating
+// separate stand alone .dll or .so dynamic libraries. This CCCModule can
+// be plugged in to almost any other wxWidgets based application without need
 // for further changes.
-// 
+//
 // I have tried to preserve all the original cc algorithms as is - at least
-// I have tried to avoid accidentally messing with them. The most significant 
+// I have tried to avoid accidentally messing with them. The most significant
 // changes I've made relate to file i/o. A lot could still be done
 // to bring the code up to more modern standards, avoid use of fixed buffers,
-// remove deprecated library functions, etc. The reader will also note that 
-// I have not attempted to revise any of the original authors' comments that 
-// document the various functions taken from the various Consistent Changes 
-// source files. Hence, many of them refer to parameters or variables that 
-// are no longer part of the functions. Most variables that were declared 
-// in global scope as static variables in various source files are no longer 
+// remove deprecated library functions, etc. The reader will also note that
+// I have not attempted to revise any of the original authors' comments that
+// document the various functions taken from the various Consistent Changes
+// source files. Hence, many of them refer to parameters or variables that
+// are no longer part of the functions. Most variables that were declared
+// in global scope as static variables in various source files are no longer
 // declared as static. To make the code easier to follow, I've also eliminated
 // most of the numerous conditional defines. -whm.
 /////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ struct errorstruct errortable[] =
     {
 		// whm Note: I've left all CC errors enclosed within _T() so they won't be localized.
 		// Most CC error messages are so cryptic that they would end up being mostly just
-		// transliterations and as such most non-English speakers wouldn't make sense of 
+		// transliterations and as such most non-English speakers wouldn't make sense of
 		// them anyway.
         /*   0 */  { _T("?CC-E-Backed up too far\n"), MSG_noparms, ERROR_MESSAGE},
         /*   1 */  { _T("CC-Warning caseless ignored, incompatible with doublebyte\n\n"),
@@ -401,7 +401,7 @@ struct cmstruct cmsrch[] =
         { NULL,		  NULL,		0,				  FALSE,			0 }
     };
 
- // Replacement Arguments (right side) 
+ // Replacement Arguments (right side)
 
 struct cmstruct cmrepl[] =
     {
@@ -462,7 +462,7 @@ struct cmstruct cmrepl[] =
     };
 */ /* end Bill's old ones, with function pointers stored */
 
-/* BEW 21Aug14 retactored to use enum values for the second member in each */
+/* BEW 21Aug14 refactored to use enum values for the second member in each */
 struct cmstruct cmsrch[] =
     {
         { "nl",		  storenoarg, CARRIAGERETURN, FALSE,			0 },
@@ -483,7 +483,7 @@ struct cmstruct cmsrch[] =
 
 /* Replacement Arguments (right side) */
 
-/* BEW 21Aug14 retactored to use enum values for the second member in each */
+/* BEW 21Aug14 refactored to use enum values for the second member in each */
 struct cmstruct cmrepl[] =
     {
         { "nl",		  storenoarg, CARRIAGERETURN, FALSE,			0 },
@@ -562,7 +562,7 @@ char *names[4] =
 
 CCCModule::CCCModule() // constructor
 {
-	
+
 }
 
 CCCModule::~CCCModule() // destructor
@@ -668,7 +668,7 @@ int CCCModule::CCLoadTableCore(wxString lpszCCTableFile)
 /**************************************************************************/
 /*
  * Description:
- *                This DLL interface is passed a string with the name of 
+ *                This DLL interface is passed a string with the name of
  *                the CC table to be used.  It performs some CC processing
  *                to start things up with that CC table, and then it returns
  *                a handle for the area with the global variables after that.
@@ -821,7 +821,7 @@ int CCCModule::CCReinitializeTable()
 /**************************************************************************/
 /*
  * Description:
- *               This DLL routine is called to reinitialize CC without   
+ *               This DLL routine is called to reinitialize CC without
  *               starting over totally from scratch.  E.g. use this with
  *               new data, but using same change table.  It uses the global
  *               variables that are in the area pointed to by the handle.
@@ -978,11 +978,11 @@ void CCCModule::Process_msg(short nMsgIndex, wxString errStr, long unsigned lPar
 		wxMessageBox(tempStr,_T(""),MsgIcon);
         break;
     case MSG_S:
-		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg, errStr.c_str()); 
+		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg, errStr.c_str());
 		wxMessageBox(tempStr,_T(""),MsgIcon);
         break;
     case MSG_LD:
-		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg, 
+		tempStr = tempStr.Format(errortable[nMsgIndex].errmsg,
                 (long signed) lParam);
 		wxMessageBox(tempStr,_T(""),MsgIcon);
         break;
@@ -1229,7 +1229,7 @@ program. */
  *
  * Return values: none
  *
- * Globals input: 
+ * Globals input:
  *						sym_table -- table used for symbolic names within the
  *												change table
  *						tablelimit -- highest valid address in table
@@ -1330,7 +1330,7 @@ program. */
     else
     {
         filenm = tblarg;           /* copy name from command line */
-        namelen = filenm.Length(); 
+        namelen = filenm.Length();
 
 		// tries to open the file using tblarg name
 		if ((tablefile= wfopen(filenm,BINREAD)) == NULL)
@@ -1407,7 +1407,7 @@ program. */
             {											/* compile table */
                 inputaline();
                 iCurrentLine++;
-                
+
 				parse2pntr = line;
 
                 if (!wedgeinline())
@@ -1476,9 +1476,9 @@ program. */
         i--;
 
 		// TableLineIndexes below was only declared when _WINDLL was defined in original cc sources.
-		// 
-		// whm Note: Here in compilecc() is a test to see if TableLineIndexes[i] == -1 (a negative number). 
-		// This appears to be comparing the address of an array with a negative number. GCC gives a warning 
+		//
+		// whm Note: Here in compilecc() is a test to see if TableLineIndexes[i] == -1 (a negative number).
+		// This appears to be comparing the address of an array with a negative number. GCC gives a warning
 		// at this point that says, "warning: comparison between signed and unsigned integer expressions."
         if (TableLineIndexes[i] == -1)
             TableLineIndexes[i]= TableLineIndexes[i + 1];
@@ -1547,7 +1547,7 @@ void CCCModule::RestoreState()    /* restore our global variables  */
     RestoreVariable(sym_table[0]);
     RestoreVariable(sym_table[1]);
     RestoreVariable(sym_table[2]);
-    RestoreVariable(sym_table[3]);                                                                                                   
+    RestoreVariable(sym_table[3]);
 
     cctpath = ccGlobals.cctpath; //RestoreArray(cctpath,  PATH_LEN + 1);
     tblarg = cctpath; //tblarg = &cctpath[0];
@@ -1738,7 +1738,7 @@ void CCCModule::SaveState()    /* save state of global variables */
 /************************************************************************/
 /*
  * Description:
- *                This routine saves the state of many of CC's global 
+ *                This routine saves the state of many of CC's global
  *                variables.  It saves the state of the variables that
  *                are relevent when CC is called from a DLL, it does not
  *                save variables related to input and output files.
@@ -1949,9 +1949,9 @@ int CCCModule::CCProcessBuffer (char *lpInputBuffer, int nInBufLen,
  *
  *
  *
- * Output values: 
+ * Output values:
  *                The global variables referenced by hProHandle are updated.
- *                
+ *
  *                *lpOutputBuffer points to buffer with output data from CC.
  *
  *                *npOutBufLen points to the used size of the output buffer.
@@ -2066,7 +2066,7 @@ int CCCModule::CCSetUTF8Encoding(bool lutf8encoding)
  *
  *                lutf8encoding is set to TRUE to enable UTF-8 character
  *                processing and set to FALSE to disable UTF-8 character.
- *                note the the "u" encoding directive will still expand 
+ *                note the the "u" encoding directive will still expand
  *                a USC4 character to UTF-8 within the cc table even if
  *                UTF-8 processing is disabled.
  *
@@ -2074,7 +2074,7 @@ int CCCModule::CCSetUTF8Encoding(bool lutf8encoding)
  *
  * Return values:
  *                0           Success.
- *                
+ *
  *                non-zero    Error occurred.
  *
  *
@@ -2114,7 +2114,7 @@ int CCCModule::CCUnloadTable()
  *
  * Return values:
  *                0          Successful completion.
- *                          
+ *
  *                non-zero   An error occurred.
  *
  *
@@ -2142,10 +2142,10 @@ void CCCModule::out_char_buf(char inchar)               /* Output a single chara
  *              control this nicely with our logic, but at times like when
  *              we output a lot of data at EOF or when a match is found etc
  *              we will need to put out a lot of data.  If we would overflow
- *              our regular Windows DLL output buffer, then we will instead 
+ *              our regular Windows DLL output buffer, then we will instead
  *              put that to a separate buffer, and later copy that into the
  *              regular output buffer.  This routine checks for that case,
- *              and if we need to do that it allocates (or enlarges) the 
+ *              and if we need to do that it allocates (or enlarges) the
  *              new buffer, and moves the data there as appropriate.  Or in
  *              the usual case it will just copy data to the output buffer.
  *
@@ -2258,7 +2258,7 @@ void CCCModule::fillmatch()                          /* Fill match area, execute
     {
         bBeginExecuted= TRUE;
 
-		// whm combined the first conditional statement together with the following one to avoid 
+		// whm combined the first conditional statement together with the following one to avoid
 		// compiler warning of "potentially uninitialized local variable 'i' used"
         if ( numgroupson == 1 )
 		{
@@ -2746,7 +2746,7 @@ int CCCModule::leftexec(int ofs)					 /* Execute commands on left side of WEDGE 
     *		 (instead of right to left)
     */
 	SSINT * precptr; /* Pointer into buffer for the current character for an
-					  * anyutfcheck during a prec check 
+					  * anyutfcheck during a prec check
 					  */
 
 
@@ -2779,7 +2779,7 @@ int CCCModule::leftexec(int ofs)					 /* Execute commands on left side of WEDGE 
 			f = anycheck(*mchptr);
 
 			if (f)
-				mchptr++;			
+				mchptr++;
 		}
         return f;
 
@@ -2812,7 +2812,7 @@ int CCCModule::leftexec(int ofs)					 /* Execute commands on left side of WEDGE 
             {
                 tblptr += 2;		/* Skip the current store # and the next FOL */
 				if (utf8encoding || cngletter == FOLUCMD)
-					mchoffset+= UTF8AdditionalBytes((UTF8)*(mchptr + mchoffset)) + 1;					
+					mchoffset+= UTF8AdditionalBytes((UTF8)*(mchptr + mchoffset)) + 1;
 				else
 					mchoffset++;
             }
@@ -2863,7 +2863,7 @@ int CCCModule::leftexec(int ofs)					 /* Execute commands on left side of WEDGE 
         tblptr = &prec_array[i];		/* Execute out of the array */
 
         /* Now try them */
-		f = TRUE; 
+		f = TRUE;
 
 		if (!curstor || storend[curstor] == storebegin[curstor])
 		{
@@ -2892,13 +2892,13 @@ int CCCModule::leftexec(int ofs)					 /* Execute commands on left side of WEDGE 
 
 					if (utf8encoding || cngletter == PRECUCMD)
 					{
-						while (precptr > storebegin[curstor] && 
+						while (precptr > storebegin[curstor] &&
 							   ((*precptr) & 0xC0) == 0x80)
 							precptr--;
 
 						utf8char = precptr;
 					}
-				}				
+				}
 			}
 
 			if (storeexhausted)
@@ -2931,12 +2931,12 @@ int CCCModule::leftexec(int ofs)					 /* Execute commands on left side of WEDGE 
 
 			if (utf8encoding || cngletter == WDUCMD)
 			{
-				while (precptr > storebegin[curstor] && 
+				while (precptr > storebegin[curstor] &&
 					   ((*precptr) & 0xC0) == 0x80)
 					precptr--;
 
 				utf8char = precptr;
-			}        
+			}
 		}
         else
         {
@@ -2998,7 +2998,7 @@ int CCCModule::anyutf8check(SSINT * mcptr)             /* Is item in the specifi
 
 {
     register SSINT *wptr,           /* Working pointer */
-                   *endptr;         /* Pointer to end of store */ 
+                   *endptr;         /* Pointer to end of store */
 	register int i;					/* Index into UTF-8 character */
 	register int utf8charactersize; /* Size of UTF-8 character */
 
@@ -3071,12 +3071,12 @@ void CCCModule::freeMem()			/* frees memory allocated during execution */
    things up well, it may not be absolutely required, since subsequent
    runs of DoChangesToFile (or DLL routine CallCCMainPart) would use the
    already allocated memory.
-   This is not an issue for the DOS EXE version, since the exit to DOS 
+   This is not an issue for the DOS EXE version, since the exit to DOS
 	automatically frees all allocated memory.
    note: For DoChangesToString(), which will be called repeatedly, we should
 	 probably not free the memory each time. However, if strange errors occur
     on subsequent calls to DoChangesToString(), try freeing the mem each time.
-*/    
+*/
 {
     tblfree();
     storefree();
@@ -3194,60 +3194,60 @@ void CCCModule::discard_symbol_table()	  /* Discard symbol table */
 
 // whm revised 31Mar08 and simplified to use wxFile methods for file i/o.
 // whm Note: Original version used the now-archaic OpenFile() function.
-// MSDN says re the OpenFile function, "you cannot use the OpenFile 
-// function to open a file whose path length exceeds 128 characters. 
+// MSDN says re the OpenFile function, "you cannot use the OpenFile
+// function to open a file whose path length exceeds 128 characters.
 // The CreateFile function does not have such a path length limitation."
 // This limitation is likely the reason Bruce encountered the problem
 // of too long path names for .cct table files and wrote the hack of
 // copying the .cct table to a location with a shorter path.
-// Although they recommend using CreateFile() I am implementing a more 
+// Although they recommend using CreateFile() I am implementing a more
 // portable cross-platform solution via wxWidgets' wxFile class.
 WFILE * CCCModule::wfopen(wxString pszFileName, wxString mode)
 {
 // whm Note: the only actual access mode characters used in the cc source are:
-// r   Opens for reading. If the file does not exist or cannot be found, the 
+// r   Opens for reading. If the file does not exist or cannot be found, the
 //     fopen call fails.
-// a   Opens for writing at the end of the file (appending) without removing 
-//     the EOF marker before writing new data to the file; creates the file 
+// a   Opens for writing at the end of the file (appending) without removing
+//     the EOF marker before writing new data to the file; creates the file
 //     first if it doesn't exist.
-// w   Opens an empty file for writing. If the given file exists, its contents 
+// w   Opens an empty file for writing. If the given file exists, its contents
 //     are destroyed.
-// rb  Open [for reading, see r] in binary (untranslated) mode; translations 
+// rb  Open [for reading, see r] in binary (untranslated) mode; translations
 //     involving carriage-return and linefeed characters are suppressed.
-// ab  Open [for writing at end of file - see a] in binary (untranslated) mode; 
-//     translations involving carriage-return and linefeed characters are 
+// ab  Open [for writing at end of file - see a] in binary (untranslated) mode;
+//     translations involving carriage-return and linefeed characters are
 //     suppressed.
-// wb  Open [an empty file for writing - see w] in binary (untranslated) mode; 
-//     translations involving carriage-return and linefeed characters are 
+// wb  Open [an empty file for writing - see w] in binary (untranslated) mode;
+//     translations involving carriage-return and linefeed characters are
 //     suppressed.
 
-// Note: "rb" is the only mode actually used in wfopen calls in the present 
-// CCCModule. In the 'b' mode, any carriage-return and linefeed characters 
+// Note: "rb" is the only mode actually used in wfopen calls in the present
+// CCCModule. In the 'b' mode, any carriage-return and linefeed characters
 // are read as is for the given platform.
-// 
+//
 // The possible wxWidgets' wxFile::OpenMode values are:
-//   wxFile::read          Open file for reading or test if it can be opened 
+//   wxFile::read          Open file for reading or test if it can be opened
 //                         for reading with Access(). Use for 'r' or 'rb' mode.
-//   wxFile::write         Open file for writing deleting the contents of the 
-//                         file if it already exists or test if it can be 
+//   wxFile::write         Open file for writing deleting the contents of the
+//                         file if it already exists or test if it can be
 //                         opened for writing with Access(). Use for 'w' or
 //                         'wb' mode.
-//   wxFile::read_write    Open file for reading and writing; can not be used 
+//   wxFile::read_write    Open file for reading and writing; can not be used
 //                         with Access().
-//   wxFile::write_append  Open file for appending: the file is opened for 
-//                         writing, but the old contents of the file is not 
-//                         erased and the file pointer is initially placed at 
-//                         the end of the file; can not be used with Access(). 
-//                         This is the same as wxFile::write if the file 
+//   wxFile::write_append  Open file for appending: the file is opened for
+//                         writing, but the old contents of the file is not
+//                         erased and the file pointer is initially placed at
+//                         the end of the file; can not be used with Access().
+//                         This is the same as wxFile::write if the file
 //                         doesn't exist. Use for 'a' or 'ab' mode.
-//   wxFile::write_excl    Open the file securely for writing 
-//                         (Uses O_EXCL | O_CREAT). Will fail if the file 
-//                         already exists, else create and open it atomically. 
-//                         Useful for opening temporary files without being 
+//   wxFile::write_excl    Open the file securely for writing
+//                         (Uses O_EXCL | O_CREAT). Will fail if the file
+//                         already exists, else create and open it atomically.
+//                         Useful for opening temporary files without being
 //                         vulnerable to race exploits.
-// whm: In the original declaration of the WFILE struct (see CCModule.h) the hfile 
-// member was defined as pointer to wxFile (wxFile* hfFile) when defined(UNIX), but 
-// as a reference to the actual wxFile (wxFile hfile) otherwise. I have defined 
+// whm: In the original declaration of the WFILE struct (see CCModule.h) the hfile
+// member was defined as pointer to wxFile (wxFile* hfFile) when defined(UNIX), but
+// as a reference to the actual wxFile (wxFile hfile) otherwise. I have defined
 // hfFile the same way for both UNIX or non-unix ports, which enable us to get
 // rid of a number of #if defined(UNIX) ... #else...#endif conditional defines.
     WFILE * stream;
@@ -3284,7 +3284,7 @@ WFILE * CCCModule::wfopen(wxString pszFileName, wxString mode)
         stream->fTextMode= FALSE; // fTextMode is also used in wgetc
     else
         stream->fTextMode= TRUE; // fTextMode is also used in wgetc
-	
+
 	bool bOpenOK;
 	bOpenOK = FALSE;
 	//bool bFileAlreadyExists;
@@ -3292,7 +3292,7 @@ WFILE * CCCModule::wfopen(wxString pszFileName, wxString mode)
 	bOpenOK = stream->hfFile->Open(strFileName, wxmode);
 	if (!bOpenOK)
 	{
-		free(stream); 
+		free(stream);
 		stream= NULL;
 		// Any file opening error message should be done in the caller of wfopen.
 		return stream;
@@ -3301,7 +3301,7 @@ WFILE * CCCModule::wfopen(wxString pszFileName, wxString mode)
     if (wxmode == wxFile::write_append)
     {
 		dist = stream->hfFile->Seek(0, wxFromEnd);
-		dist = dist; // avoid "set but not used" warning 
+		dist = dist; // avoid "set but not used" warning
     }
 
     if (wxmode == wxFile::write)
@@ -3641,7 +3641,7 @@ SSINT * CCCModule::utf8characterfrombackbuffer(SSINT** buffer)
 	bptr = *buffer;
 	charptr = utf8character + MAXUTF8BYTES;
 
-	do 
+	do
 	{
 		bptr = bptr > backbuf ? bptr - 1 : backbuf + BACKBUFMAX - 1;
 		*--charptr = *bptr;
@@ -3649,7 +3649,7 @@ SSINT * CCCModule::utf8characterfrombackbuffer(SSINT** buffer)
 			 bptr != backoutptr);
 
 	*buffer = bptr;
-	
+
 	return charptr;
 }
 
@@ -3675,7 +3675,7 @@ int CCCModule::contcheck()		 /* Is next part of match == contents of store? */
  *										 next char beyond the match
  *
  * Error conditions: none
- * 
+ *
  * Other functions called: none
  *
  */
@@ -4687,7 +4687,7 @@ void CCCModule::storeelement(int search)	/* Store a parsed element in internal c
 						break; // end of table, do nothing
 					}
 					/* BEW 21Aug14 - end refactored code */
-										
+
 					was_string = FALSE;
                     /* Did we just process a math command? */
                     if (	number == ADDCMD ||
@@ -4816,7 +4816,7 @@ int CCCModule::cctsetup()					/* Set up pointers into table */
      * Return values:  TRUE == everything is set up OK
      *						FALSE == there was a problem somewhere
      *
-     * Globals input: 
+     * Globals input:
      *						errors -- Boolean: TRUE == table contains errors
      *						fontstart -- table of pointers to the start of fonts
      *						fontsection -- Boolean: TRUE == table contains old-style
@@ -5021,7 +5021,7 @@ void CCCModule::cctsort()									/* Sort CC table */
  *						the changes primarily in ascending order of first letter
  *						of match and secondarily in descending order of length
  *						of match.
- *						
+ *
  *						Find the beginning of left-executes for the group
  *						by going through the group, using j, until
  *						either the first letter of a change has the
@@ -5097,7 +5097,7 @@ bool CCCModule::goes_before(tbltype x,tbltype y)		/* Compare two changes */
 //tbltype y;			/* second change */
 
 /* Description -- Compares two changes and returns TRUE if x should sort
- *						before y in the table. NOTE: This function is 
+ *						before y in the table. NOTE: This function is
  *
  * Return values: TRUE if x goes before y, FALSE otherwise
  *
@@ -5989,7 +5989,7 @@ void CCCModule::resolve_predefined(int index)    /* Resolve value of predefined 
 /****************************************************************************/
 /*
  * Description:
- *             This routine resolves the value of predefined stores.   
+ *             This routine resolves the value of predefined stores.
  *             (Examples of these are cccurrentdate, cccurrenttime,
  *              ccversionmajor, and ccversionminor).
  *
@@ -7013,7 +7013,7 @@ int CCCModule::wfflush(WFILE * stream)
     {
         // In original code if defined(UNIX) the routine used:
         //fwrite(stream->Buffer + UNGETBUFFERSIZE, stream->iBufferEnd - UNGETBUFFERSIZE, 1, stream->hfFile)
-        // and other systems used: 
+        // and other systems used:
 		//ReturnCode= _lwrite(stream->hfFile, stream->Buffer + UNGETBUFFERSIZE, stream->iBufferEnd - UNGETBUFFERSIZE);
 		// The wxFile::Write() method override that uses a buffer returns the number of bytes actually
 		// written. The _lwrite() function also returns number of bytes written unless there is an
@@ -7486,7 +7486,7 @@ void CCCModule::buildkeyword()			/* Copy suspected keyword into the array keywor
 void CCCModule::stornoarg(char comand, char dummy1, char dummy2) /* Store commands which take no args */
 /****************************************************************************/
 //char	comand;	/* Command to store */
-//char	dummy1, dummy2;	
+//char	dummy1, dummy2;
 								/* These are only used by storarg, but they
 								 *   are passed to this procedure because it is called
 								 *   using a pointer to a function.
@@ -7684,7 +7684,7 @@ void CCCModule::storarg( char comand, char sym_args, char table_head ) /* Store 
 void CCCModule::storoparg( char comand, char dummy1, char dummy2) /* Store commands taking optional args */
 /****************************************************************************/
 //char	comand;		/* Command to be stored */
-//char	dummy1, dummy2;	
+//char	dummy1, dummy2;
 								/* These are only used by storarg, but they
 								 *   are passed to this procedure because it is called
 								 *   using a pointer to a function.
@@ -7727,7 +7727,7 @@ void CCCModule::storoparg( char comand, char dummy1, char dummy2) /* Store comma
 void CCCModule::stordbarg( char comand, char dummy1, char dummy2) /* Store dooublebyte command, args  */
 /****************************************************************************/
 //char	comand;		/* Command to be stored */
-//char	dummy1, dummy2;	
+//char	dummy1, dummy2;
 								/* These are only used by storarg, but they
 								 *   are passed to this procedure because it is called
 								 *   using a pointer to a function.
@@ -7991,9 +7991,9 @@ SSINT CCCModule::parsedouble (int *myflag)            /* parse doublebyte argume
 //int *myflag;      /* Return 1 for found valid digit, 0 otherwise  */
 
 /* Description:
- *                This procedure does the parsing for the arguments for  
+ *                This procedure does the parsing for the arguments for
  *                the doublebyte command.  This is passed whatever is
- *                within the parenthesis and commas.  The default is to 
+ *                within the parenthesis and commas.  The default is to
  *                parse in octal, but we will parse in decimal or hex if
  *                the input is preceeded by 'd' or 'x' (or 'D' or 'X').
  *
@@ -8056,14 +8056,14 @@ SSINT CCCModule::parsedouble (int *myflag)            /* parse doublebyte argume
 }
 
 /*************************************************************************/
-int CCCModule::search_table(int table_index, char sym_usage, char *sym_name, 
+int CCCModule::search_table(int table_index, char sym_usage, char *sym_name,
 							int sym_num, int type_of_search)
 /*************************************************************************/
 //int table_index;	  /* index into sym_table array */
 //char sym_usage,	  /* either REFERENCED or DEFINED */
 //*sym_name;	  /* if (type_of_search) name to be searched for */
 //int sym_num;		  /* if ( !type_of_search ) number to be searched for */
-//int type_of_search; 
+//int type_of_search;
 						/* 1 == search for name match
 							* 0 == search for number match
 							*/
