@@ -1,3 +1,168 @@
+ ----------------------------------------------
+Version 6.5.4 release 16 September 2014
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.4
+----------------------------------------------
+* A command line switch -srcRespell has been implemented.
+If the app is launched with this switch, a smart merge of
+edited source text (whether in or out of collaboration mode)
+will attempt to retain any adaptations for source text words
+that had been respelled in the being-merged source text file.
+(A smart merge can be requested manually, by the Import
+Edited Source Text... command on the Export-Import menu;
+or is done at each opening of a document file during
+collaboration with Paratext or Bibledit.)
+Unfortunately, the -srcRespell switch will not be able to
+retain adaptations if the Adapt It document contains any
+merged phrases - so Adapt It automatically checks for
+mergers and disallows the switch's effect if one or more mergers
+are in the document. In that case, the normal smart merge is
+done instead - it will not retain adaptations at any document
+locations where the source text has been changed, and a 
+message will be shown to the user if that is the case. In such
+a circumstance, the user should just re-adapt the emptied
+locations after the smart merge has finished.
+* Scripts in languages like Lao of south east Asia commonly
+use ZWSP (zero width space) between words, with normal
+space now and then, the latter functioning like punctuation 
+in Roman script languages. In earlier Adapt It versions, ZWSP
+is parsed correctly when forming a new document, and the 
+display shows the individual words separated from each other.
+However, earlier versions did not restore the ZWSP, or other
+similar kinds of exotic Unicode space-like characters, when
+the adaptation text was exported. Now Adapt It will remember
+what space character is used before each word, and will restore
+that character in the exported translation. For retranslations,
+where the distribution of normal latin space and ZWSP may
+differ in the retranslation from what was in the source text, the
+new distribution of these word break characters is used in the
+export. Support for ZWSP is turned on by default. However, it
+can be turned off by a radio button choice in the Preferences
+page: Backups and Misc. If the user wants sectioning of
+free translations to be done using not just punctuation, but 
+also by the presence of a normal latin space, then there is a 
+checkbox for that also in the Backups and Misc page of 
+Preferences. (The sectioning algorithm looks at the source text
+in the document for deciding where to end a section, so if the
+source text contains mostly ZWSP with latin spaces breaking
+the text into a series of high level meaning units, then this
+checkbox should be turned on to give the 'section by 
+punctuation' option the best chance of delivering sectioning
+behavior helpful to the user.)
+The user normally types ZWSP by remapping the keyboard,
+with software like Keyman. However, the Preferences View
+menu contains a checkbox "Enable ZWSP insertion by
+Shift+Ctrl+spacebar", which, if clicked to be ON, will allow
+ZWSP to be inserted at the cursor location if the spacebar is
+pressed while holding down both the SHIFT and CTRL keys 
+on the keyboard.
+(Legacy documents which do not store the word break character
+are still opened correctly - a default latin space is used as each
+word break for these documents, and the spaces are stored in 
+the updated document file when the next File > Save is done.)
+* Unicode exports, now always commence with a byte order
+mark (BOM) at the start of the exported file, when the Unicode
+application is used. This enables such files (normally, they are
+UTF-8 encoded files) to be opened and displayed correctly in
+any word processor. Previously, the lack of a BOM would cause
+the word processor opening it to fail to display the text properly.
+* Prior versions of Adapt It would not accept consistent changes
+tables with symbolic commands within them, so that only tables
+with simple lines like:  "findthis" > "replacewiththis"
+would work. Now all correctly constructed consistent changes
+tables are accepted, and work properly.
+* Prior versions of Adapt It disabled the two menu items:
+Use Target Text As Default Free Translation, and
+Use Gloss Text as Default Free Translation,  when free translation
+mode was not turned on. Now these are both enabled whenever
+a document is open, so that the user can make a choice to use
+either before entering Free Translation mode.
+* When collaborating with Paratext or Bibledit, the consistency
+check feature now only allows the currently open document to
+be checked. (Doing changes to other documents not open, when 
+collaborating, could produce unforseen and unwanted results,
+so we are playing safe by disallowing them.)
+* The rules for what filtered information goes into the
+content of exports has been changed. Previously, the default
+for a manual export was to unfilter all filtered information
+and include it with the rest of the USFM exported text. This
+also applied to exports done when collaborating with Paratext
+or Bibledit. Now the new rules are that certain markers (\f
+\x \fe \fig \sr \r \rq and \d) have their filtered status
+checked. If any of these are designated as currently filtered,
+then those markers and any associated text content belonging
+to them, is not included in the export. (An exception is
+footnotes when exporting  to Paratext or Bibledit when 
+collaborating: if currently filtered, the footnote markers
+themselves are still exported, but not their contents.)
+For manual export requests (that is, using the Export-Import
+menu commands), the export dialog offers an Options button
+still, which can be used for manually suppressing other
+filtered markers from the export, as was the case earlier.
+The new filtering rules also apply for exports done to
+xhtml and/or Pathway.
+* Previous versions, at the end of the document, would
+advance the phrasebox into limbo, leaving it hidden. This
+is confusing to users. Now, it will leave it at the 
+end of the document if there is no retranslation at the 
+end of the document, but if there is, then before the
+retranslation. If the attempt fails, it will leave it
+at the start of the document.
+* When exporting, or when filtering out a marker and its
+text contents, earlier versions would put up a Placement
+dialog whenever there was ambiguity about where to
+restore USFM markers to the exported, or filtered out, text.
+This can be disconcerting when unexpected, since the user
+does not have to deal with this dialog very often, if at all, 
+depending on the complexity of the markup within the 
+source text on which the adapting work is based.
+The code has been made a little smarter. Typically it
+is only certain endmarkers that give us the ambiguity
+problem. So if the endmarker can be automatically 
+placed under certain conditions, it will be done without
+putting up the Placement dialog.
+More difficult placements will still need to be done
+manually using the dialog, but they should now be
+even more rare. The code changes should handle \f*, \x*,
+\fe*, or a few markers like \wj* (endmarker for 'words
+of Jesus' coloured text), automatically.
+* In collaboration mode, when choosing a "whole book",
+the list of chapters was disabled - so that the list could
+not be scrolled. This is now changed to allow scrolling, 
+however clicks in the list of chapters still do nothing.
+* When getting source text from Paratext or Bibledit,
+a Placement dialog can show in order for placing an
+endmarker in the correct location. Formerly, when this
+happened, the Placement dialog and the dialog for
+getting source text, overlapped and it was difficult to
+get at the Placement dialog. Now the Placement dialog,
+if shown, will appear after the dialog for getting 
+source text has been dismissed from the screen.
+----------------------------------------------
+Bug fixes in 6.5.4
+----------------------------------------------
+* The smart merge of edited source text was capable of 
+causing loss of merger data if the merger contained different
+source text. It now doesn't lose data.
+* Consistent Change functionality crashed the app if the changes
+table contained a symbolic command, such as dup, store, nl, etc.
+* Retranslation Report failed to write out the adaptation of a 
+restranslation. It now does.
+* Opening a document where the active location is not near
+its top, and the document is large, did not position the
+phrase box correctly and the scroll car was not at the
+correct location. This now cannot happen.
+* If the active location was distant, even a few strips only,
+from the where a retranslation was and an attempt was 
+made to edit that retranslation, Adapt It crashed. Removing 
+a retranslation under the same circumstances would also 
+crash the app.
+* Making a retranslation could crash the app if the phrasebox
+was distant from the location where the retranslation is to
+be made, and that location is very close to the top of the
+document.
+
 ----------------------------------------------
 Version 6.5.3 release 18 June 2014
 ----------------------------------------------
@@ -850,7 +1015,7 @@ formatting error that could result in a confusing message that
 referenced the name of a different project than the project the 
 administator had designated as the one for storing target texts. 
 This message formatting error has now been fixed.
-* In some instances punctuation was being copied from the the
+* In some instances punctuation was being copied from the 
 source text into empty target text locations throughout a 
 document. This has been fixed.
 * The list of most recently used (MRU) document files is now 
