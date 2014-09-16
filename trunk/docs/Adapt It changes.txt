@@ -124,6 +124,18 @@ manually using the dialog, but they should now be
 even more rare. The code changes should handle \f*, \x*,
 \fe*, or a few markers like \wj* (endmarker for 'words
 of Jesus' coloured text), automatically.
+* In collaboration mode, when choosing a "whole book",
+the list of chapters was disabled - so that the list could
+not be scrolled. This is now changed to allow scrolling, 
+however clicks in the list of chapters still do nothing.
+* When getting source text from Paratext or Bibledit,
+a Placement dialog can show in order for placing an
+endmarker in the correct location. Formerly, when this
+happened, the Placement dialog and the dialog for
+getting source text, overlapped and it was difficult to
+get at the Placement dialog. Now the Placement dialog,
+if shown, will appear after the dialog for getting 
+source text has been dismissed from the screen.
 ----------------------------------------------
 Bug fixes in 6.5.4
 ----------------------------------------------

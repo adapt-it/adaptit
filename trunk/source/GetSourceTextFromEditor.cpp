@@ -444,7 +444,7 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	nSel = pListBoxBookNames->GetSelection();
 	fullBookName = pListBoxBookNames->GetString(nSel);
 	// When the user selects a book, this handler does the following:
-	// 1. Call rdwrtp7 to get a copies of the book in a temporary file at a specified location.
+	// 1. Call rdwrtp7 to get copies of the book in a temporary file at a specified location.
 	//    One copy is made of the source PT/BE project's book, and the other copy is made of the
 	//    destination/target PT/BE project's book
 	// 2. Open each of the temporary book files and read them into wxString buffers.
@@ -462,8 +462,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// a. We can easily find which verses of the destination text are empty and (if they are
 	// not also empty in the source text) conclude that those destination text verses have
 	// not yet been translated.
-	// b. We can easily compare the usfm structure has changed between the source and 
-	// destination texts to see if it has changed. 
+	// b. We can easily compare the usfm structure between the source and 
+	// destination texts to see if the structure has changed. 
 	// 
 	// Each string element of the wxArrayStrings is of the following form:
 	// \mkr:nnnn, where \mkr could be \s, \p, \c 2, \v 23, \v 42-44, etc., followed by
@@ -1222,7 +1222,8 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 			// whm added 29Jul11 Set focus on the OK button
 			pBtnOK->SetFocus();
 		}
-		pListCtrlChapterNumberAndStatus->Disable();
+
+		//pListCtrlChapterNumberAndStatus->Disable();
 		pStaticSelectAChapter->SetLabel(_("Chapter status of selected book:"));
 		pStaticSelectAChapter->Refresh();
 		wxString noteStr;
@@ -1242,7 +1243,6 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 	// This handler is called both for single click and double clicks on an
 	// item in the chapter list box, since a double click is sensed initially
 	// as a single click.
-
 	int itemCt;
 	itemCt = pListCtrlChapterNumberAndStatus->GetSelectedItemCount();
 	wxASSERT(itemCt <= 1);
@@ -1250,6 +1250,19 @@ void CGetSourceTextFromEditorDlg::OnLBChapterSelected(wxListEvent& WXUNUSED(even
 	long nSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1, wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
 	if (nSel != wxNOT_FOUND)
 	{
+		// BEW 15Sep14, Do nothing, if "whole book" is the current option
+		if (!m_bTempCollabByChapterOnly)
+		{
+			// Deselect immediately and refresh, so that the user's clicks
+			// do nothing, and then return so that nothing is written to
+			// the text control below the listctrl. But the scroll bars
+			// will still work and the user can check what's there in
+			// the book in terms of chapters
+			pListCtrlChapterNumberAndStatus->Select(nSel,FALSE); // deselect
+			pListCtrlChapterNumberAndStatus->Refresh();
+			return; 
+		}
+		// Continue on, when the "by chapter only" option is in effect
 		wxString tempStr = pListCtrlChapterNumberAndStatus->GetItemText(nSel);
 		m_TempCollabChapterSelected = GetBareChFromLBChSelection(tempStr);
 		// Update the wxTextCtrl at the bottom of the dialog with more detailed
