@@ -1,0 +1,1 @@
+This php folder contains the feedback.php script which is paced in the http://adapt-it.org/ folder of the Adapt It web site. It receives email posts from Adapt It, builds the email parts and calls the php mail() function to send the email to the developers. Internally Adapt It interacts with the feedback.php script from its EmailReportDlg class.

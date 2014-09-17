@@ -1,0 +1,925 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Debug|Win32">
+      <Configuration>Unicode Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Release|Win32">
+      <Configuration>Unicode Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>Adapt_It</ProjectName>
+    <ProjectGuid>{2FA3A51A-73EA-49BC-BB71-7A20A6E7F19D}</ProjectGuid>
+    <RootNamespace>Adapt_It</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>.\Debug\</OutDir>
+    <IntDir>.\Debug\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>.\Release\</OutDir>
+    <IntDir>.\Release\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <EmbedManifest>false</EmbedManifest>
+    <TargetName>$(ProjectName)_Unicode</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(ProjectName)_Unicode</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+
+If NOT DEFINED WXWIN goto buildEventFailed
+If NOT DEFINED WXVER goto buildEventFailed
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
+goto buildEventOK
+:buildEventFailed
+If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
+If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
+echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
+echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.4" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
+echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
+exit 1
+:configFailed
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
+echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
+exit 1
+:buildEventOK
+echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+
+</Command>
+    </PreBuildEvent>
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Debug/Adapt_It.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswd;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;C:\Program Files (x86)\Visual Leak Detector\include;C:\Program Files\Visual Leak Detector\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>.\Debug/Adapt_It.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
+      <ObjectFileName>.\Debug/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)/contrib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wxmsw$(WXVER)d_aui.lib;wxmsw$(WXVER)d_adv.lib;wxmsw$(WXVER)d_html.lib;wxmsw$(WXVER)d_core.lib;wxbase$(WXVER)d.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+      <Version>6.5.3</Version>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;C:\Program Files\Visual Leak Detector\lib\Win32;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AssemblyDebug>true</AssemblyDebug>
+      <ProgramDatabaseFile>.\Debug/Adapt_It.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "..\..\xml\AI_UserProfiles.xml" "Debug\AI_UserProfiles.xml"
+copy "..\..\xml\AI_USFM.xml" "Debug\AI_USFM.xml"
+copy "..\..\xml\aiDefault.css" "Debug\aiDefault.css"
+copy "..\..\docs\curl-ca-bundle.crt" "Debug\curl-ca-bundle.crt"
+copy "..\..\docs\iso639-3codes.txt" "Debug\iso639-3codes.txt"
+copy "..\..\docs\Help_for_Administrators.htm" "Debug\Help_for_Administrators.htm"
+copy "..\..\docs\RFC5646message.htm" "Debug\RFC5646message.htm"
+mkdir "..\..\docs\Images\Admin_help\"
+xcopy "..\..\docs\Images\Admin_help\*.*" "Debug\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Debug\Adapt_It_Quick_Start.htm"
+mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+mkdir "Debug\Languages\es"
+mkdir "Debug\Languages\fr"
+mkdir "Debug\Languages\id"
+mkdir "Debug\Languages\pt"
+mkdir "Debug\Languages\ru"
+mkdir "Debug\Languages\tpi"
+copy "..\..\po\es.mo" "Debug\Languages\es\Adapt_It.mo"
+copy "..\..\po\es.po" "Debug\Languages\es\es.po"
+copy "..\..\po\wxstd-es.mo" "Debug\Languages\es\wxstd.mo"
+copy "..\..\po\fr.mo" "Debug\Languages\fr\Adapt_It.mo"
+copy "..\..\po\fr.po" "Debug\Languages\fr\fr.po"
+copy "..\..\po\wxstd-fr.mo" "Debug\Languages\fr\wxstd.mo"
+copy "..\..\po\id.mo" "Debug\Languages\id\Adapt_It.mo"
+copy "..\..\po\id.po" "Debug\Languages\id\id.po"
+copy "..\..\po\pt.mo" "Debug\Languages\pt\Adapt_It.mo"
+copy "..\..\po\pt.po" "Debug\Languages\pt\pt.po"
+copy "..\..\po\wxstd-pt.mo" "Debug\Languages\pt\wxstd.mo"
+copy "..\..\po\ru.mo" "Debug\Languages\ru\Adapt_It.mo"
+copy "..\..\po\ru.po" "Debug\Languages\ru\ru.po"
+copy "..\..\po\wxstd-ru.mo" "Debug\Languages\ru\wxstd.mo"
+copy "..\..\po\tpi.mo" "Debug\Languages\tpi\Adapt_It.mo"
+copy "..\..\po\tpi.po" "Debug\Languages\tpi\tpi.po"
+copy "..\..\po\tpi_readme.txt" "Debug\Languages\tpi\tpi_readme.txt"
+copy "..\..\po\books_tpi.xml" "Debug\Languages\tpi\books_tpi.xml"
+copy "..\..\po\wxstd-tpi.mo" "Debug\Languages\tpi\wxstd.mo"
+copy "..\..\po\default.mo" "Debug\Languages\default.mo"
+copy "..\..\po\default.po" "Debug\Languages\default.po"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+
+If NOT DEFINED WXWIN goto buildEventFailed
+If NOT DEFINED WXVER goto buildEventFailed
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.4  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
+goto buildEventOK
+:buildEventFailed
+If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
+If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
+echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
+echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.4" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
+echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
+exit 1
+:configFailed
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
+echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
+exit 1
+:buildEventOK
+echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+
+</Command>
+    </PreBuildEvent>
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetEnvironment>Win32</TargetEnvironment>
+      <TypeLibraryName>.\Release/Adapt_It.tlb</TypeLibraryName>
+    </Midl>
+    <ClCompile>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\msw;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;__WINDOWS__;__WXMSW__;__WIN95__;__WIN32__;WINVER=0x0400;STRICT;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>.\Release/Adapt_It.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <WarningLevel>Level4</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)\contrib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wxmsw$(WXVER)_aui.lib;wxmsw$(WXVER)_adv.lib;wxmsw$(WXVER)_html.lib;wxmsw$(WXVER)_core.lib;wxbase$(WXVER).lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregex.lib;wxexpat.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Version>6.5.3</Version>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>.\Release/Adapt_It.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\..\setup Regular\"
+copy "Release\Adapt_It.exe" "..\..\setup Regular\Adapt_It.exe"
+mkdir "..\..\setup Regular - Minimal\"
+copy "Release\Adapt_It.exe" "..\..\setup Regular - Minimal\Adapt_It.exe"
+mkdir "..\..\setup Regular - No Html Help\"
+copy "Release\Adapt_It.exe" "..\..\setup Regular - No Html Help\Adapt_It.exe"
+copy "..\..\xml\AI_UserProfiles.xml" "Release\AI_UserProfiles.xml"
+copy "..\..\xml\AI_USFM.xml" "Release\AI_USFM.xml"
+copy "..\..\xml\aiDefault.css" "Release\aiDefault.css"
+copy "..\..\docs\curl-ca-bundle.crt" "Release\curl-ca-bundle.crt"
+copy "..\..\docs\iso639-3codes.txt" "Release\iso639-3codes.txt"
+copy "..\..\docs\Help_for_Administrators.htm" "Release\Help_for_Administrators.htm"
+copy "..\..\docs\RFC5646message.htm" "Release\RFC5646message.htm"
+mkdir "..\..\docs\Images\Admin_help\"
+xcopy "..\..\docs\Images\Admin_help\*.*" "Release\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Release\Adapt_It_Quick_Start.htm"
+mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+mkdir "Release\Languages\es"
+mkdir "Release\Languages\fr"
+mkdir "Release\Languages\id"
+mkdir "Release\Languages\pt"
+mkdir "Release\Languages\ru"
+mkdir "Release\Languages\tpi"
+copy "..\..\po\es.mo" "Release\Languages\es\Adapt_It.mo"
+copy "..\..\po\es.po" "Release\Languages\es\es.po"
+copy "..\..\po\wxstd-es.mo" "Release\Languages\es\wxstd.mo"
+copy "..\..\po\fr.mo" "Release\Languages\fr\Adapt_It.mo"
+copy "..\..\po\fr.po" "Release\Languages\fr\fr.po"
+copy "..\..\po\wxstd-fr.mo" "Release\Languages\fr\wxstd.mo"
+copy "..\..\po\id.mo" "Release\Languages\id\Adapt_It.mo"
+copy "..\..\po\id.po" "Release\Languages\id\id.po"
+copy "..\..\po\pt.mo" "Release\Languages\pt\Adapt_It.mo"
+copy "..\..\po\pt.po" "Release\Languages\pt\pt.po"
+copy "..\..\po\wxstd-pt.mo" "Release\Languages\pt\wxstd.mo"
+copy "..\..\po\ru.mo" "Release\Languages\ru\Adapt_It.mo"
+copy "..\..\po\ru.po" "Release\Languages\ru\ru.po"
+copy "..\..\po\wxstd-ru.mo" "Release\Languages\ru\wxstd.mo"
+copy "..\..\po\tpi.mo" "Release\Languages\tpi\Adapt_It.mo"
+copy "..\..\po\tpi.po" "Release\Languages\tpi\tpi.po"
+copy "..\..\po\tpi_readme.txt" "Release\Languages\tpi\tpi_readme.txt"
+copy "..\..\po\books_tpi.xml" "Release\Languages\tpi\books_tpi.xml"
+copy "..\..\po\wxstd-tpi.mo" "Release\Languages\tpi\wxstd.mo"
+copy "..\..\po\default.mo" "Release\Languages\default.mo"
+copy "..\..\po\default.po" "Release\Languages\default.po"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">
+    <PreBuildEvent>
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+
+If NOT DEFINED WXWIN goto buildEventFailed
+If NOT DEFINED WXVER goto buildEventFailed
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
+goto buildEventOK
+:buildEventFailed
+If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
+If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
+echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
+echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-3.0.0" then WXVER should be set to 30
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.5" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
+echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
+exit 1
+:configFailed
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
+echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
+exit 1
+:buildEventOK
+echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+echo Building with wxWidgets found in %25WXWIN%25.
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswud;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;C:\Program Files (x86)\Visual Leak Detector\include;lib\silconverters;C:\Program Files\Visual Leak Detector\include;C:\Program Files\Visual Leak Detector\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)/contrib/include;.;$(WXWIN)/lib/vc_lib/mswd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <PreLinkEvent>
+      <Command />
+    </PreLinkEvent>
+    <Link>
+      <AdditionalDependencies>wxmsw$(WXVER)ud_aui.lib;wxmsw$(WXVER)ud_adv.lib;wxmsw$(WXVER)ud_html.lib;wxmsw$(WXVER)ud_core.lib;wxbase$(WXVER)ud.lib;wxtiffd.lib;wxjpegd.lib;wxpngd.lib;wxzlibd.lib;wxregexud.lib;wxexpatd.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
+      <Version>
+      </Version>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;..\..\source\;$(LIBCURL)\lib\Debug;$(OPENSSL)\lib;C:\Program Files\Visual Leak Detector\lib\Win32;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+    </Link>
+    <PostBuildEvent>
+      <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
+copy "..\..\xml\AI_USFM.xml" "Unicode Debug\AI_USFM.xml"
+copy "..\..\xml\aiDefault.css" "Unicode Debug\aiDefault.css"
+copy "..\..\docs\curl-ca-bundle.crt" "Unicode Debug\curl-ca-bundle.crt"
+copy "..\..\docs\iso639-3codes.txt" "Unicode Debug\iso639-3codes.txt"
+copy "..\..\docs\Help_for_Administrators.htm" "Unicode Debug\Help_for_Administrators.htm"
+copy "..\..\docs\RFC5646message.htm" "Unicode Debug\RFC5646message.htm"
+mkdir "..\..\docs\Images\Admin_help\"
+xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Debug\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Debug\Adapt_It_Quick_Start.htm"
+mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+mkdir "Unicode Debug\Languages\es"
+mkdir "Unicode Debug\Languages\fr"
+mkdir "Unicode Debug\Languages\id"
+mkdir "Unicode Debug\Languages\pt"
+mkdir "Unicode Debug\Languages\ru"
+mkdir "Unicode Debug\Languages\tpi"
+mkdir "Unicode Debug\Languages\zh"
+mkdir "Unicode Debug\Languages\az"
+mkdir "Unicode Debug\Languages\swh"
+copy "..\..\po\es.mo" "Unicode Debug\Languages\es\Adapt_It_Unicode.mo"
+copy "..\..\po\es.po" "Unicode Debug\Languages\es\es.po"
+copy "..\..\po\wxstd-es.mo" "Unicode Debug\Languages\es\wxstd.mo"
+copy "..\..\po\fr.mo" "Unicode Debug\Languages\fr\Adapt_It_Unicode.mo"
+copy "..\..\po\fr.po" "Unicode Debug\Languages\fr\fr.po"
+copy "..\..\po\wxstd-fr.mo" "Unicode Debug\Languages\fr\wxstd.mo"
+copy "..\..\po\id.mo" "Unicode Debug\Languages\id\Adapt_It_Unicode.mo"
+copy "..\..\po\id.po" "Unicode Debug\Languages\id\id.po"
+copy "..\..\po\pt.mo" "Unicode Debug\Languages\pt\Adapt_It_Unicode.mo"
+copy "..\..\po\pt.po" "Unicode Debug\Languages\pt\pt.po"
+copy "..\..\po\wxstd-pt.mo" "Unicode Debug\Languages\pt\wxstd.mo"
+copy "..\..\po\ru.mo" "Unicode Debug\Languages\ru\Adapt_It_Unicode.mo"
+copy "..\..\po\ru.po" "Unicode Debug\Languages\ru\ru.po"
+copy "..\..\po\wxstd-ru.mo" "Unicode Debug\Languages\ru\wxstd.mo"
+copy "..\..\po\tpi.mo" "Unicode Debug\Languages\tpi\Adapt_It_Unicode.mo"
+copy "..\..\po\tpi.po" "Unicode Debug\Languages\tpi\tpi.po"
+copy "..\..\po\tpi_readme.txt" "Unicode Debug\Languages\tpi\tpi_readme.txt"
+copy "..\..\po\books_tpi.xml" "Unicode Debug\Languages\tpi\books_tpi.xml"
+copy "..\..\po\wxstd-tpi.mo" "Unicode Debug\Languages\tpi\wxstd.mo"
+copy "..\..\po\zh.mo" "Unicode Debug\Languages\zh\Adapt_It_Unicode.mo"
+copy "..\..\po\zh.po" "Unicode Debug\Languages\zh\zh.po"
+copy "..\..\po\wxstd-zh.mo" "Unicode Debug\Languages\zh\wxstd.mo"
+copy "..\..\po\az.mo" "Unicode Debug\Languages\az\Adapt_It_Unicode.mo"
+copy "..\..\po\az.po" "Unicode Debug\Languages\az\az.po"
+copy "..\..\po\swh.mo" "Unicode Debug\Languages\swh\Adapt_It_Unicode.mo"
+copy "..\..\po\swh.po" "Unicode Debug\Languages\swh\swh.po"
+copy "..\..\po\default.mo" "Unicode Debug\Languages\default.mo"
+copy "..\..\po\default.po" "Unicode Debug\Languages\default.po"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">
+    <PreBuildEvent>
+      <Command>If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Debug" ( goto configFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If  "$(Configuration)" == "Release" ( goto configFailed ) )
+
+If NOT DEFINED WXWIN goto buildEventFailed
+If NOT DEFINED WXVER goto buildEventFailed
+If /I %25WXWIN%25 == C:\wxWidgets-3.0.0  ( If NOT %25WXVER%25 == 30 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.9.5  ( If NOT %25WXVER%25 == 29 ( goto buildEventFailed ) )
+If /I %25WXWIN%25 == C:\wxWidgets-2.8.12  ( If NOT %25WXVER%25 == 28 ( goto buildEventFailed ) )
+goto buildEventOK
+:buildEventFailed
+If NOT DEFINED WXWIN (Set val_WXWIN="[NOT DEFINED]") Else Set val_WXWIN="%25WXWIN%25"
+If NOT DEFINED WXVER (Set val_WXVER="[NOT DEFINED]") Else Set val_WXVER="%25WXVER%25"
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo *** The WXWIN environment variable is set to %25val_WXWIN%25 and the WXVER environment variable is set to %25val_WXVER%25
+echo *** Quit Visual Studio and set your WXWIN and WXVER environment variables and ensure that their version numbers agree!
+echo *** For example:
+echo ***    If WXWIN is set to "c:\wxWidgets-3.0.0" then WXVER should be set to 30
+echo ***    If WXWIN is set to "c:\wxWidgets-2.9.5" then WXVER should be set to 29
+echo ***    If WXWIN is set to "c:\wxWidgets-2.8.12" then WXVER should be set to 28
+echo *** The environment variables WXWIN and WXVER must be set correctly in your Windows system to build Adapt It!
+exit 1
+:configFailed
+echo *** Pre-Build event for $(ProjectName) FAILED
+echo ***    The Debug and Release build configurations cannot be used with %25WXWIN%25.
+echo ***    Use either the Unicode Debug or Unicode Release build configurations instead.
+exit 1
+:buildEventOK
+echo Pre-Build wxWidgets version check for $(ProjectName) COMPLETED OK
+echo Building with wxWidgets found in %25WXWIN%25.
+
+</Command>
+    </PreBuildEvent>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader />
+      <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat />
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>__WXMSW__;_WINDOWS;NOPCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(WXWIN)/include;$(WXWIN)/contrib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>wxmsw$(WXVER)u_aui.lib;wxmsw$(WXVER)u_adv.lib;wxmsw$(WXVER)u_html.lib;wxmsw$(WXVER)u_core.lib;wxbase$(WXVER)u.lib;wxtiff.lib;wxjpeg.lib;wxpng.lib;wxzlib.lib;wxregexu.lib;wxexpat.lib;winmm.lib;comctl32.lib;rpcrt4.lib;ws2_32.lib;oleacc.lib;odbc32.lib;wldap32.lib;libcurl.lib;libeay32.lib;ssleay32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+      <OutputFile>$(OutDir)$(ProjectName)_Unicode.exe</OutputFile>
+      <Version>
+      </Version>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib;$(WXWIN)\contrib\lib;$(WXWIN)\lib\vc_lib;$(LIBCURL)\lib\Release;$(OPENSSL)\lib;lib\silconverters;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\..\setup Unicode\"
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode\Adapt_It_Unicode.exe"
+mkdir "..\..\setup Unicode - Minimal\"
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe"
+mkdir "..\..\setup Unicode - No Html Help\"
+copy "Unicode Release\Adapt_It_Unicode.exe" "..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe"
+copy "..\..\xml\AI_UserProfiles.xml" "Unicode Release\AI_UserProfiles.xml"
+copy "..\..\xml\AI_USFM.xml" "Unicode Release\AI_USFM.xml"
+copy "..\..\xml\aiDefault.css" "Unicode Release\aiDefault.css"
+copy "..\..\docs\curl-ca-bundle.crt" "Unicode Release\curl-ca-bundle.crt"
+copy "..\..\docs\iso639-3codes.txt" "Unicode Release\iso639-3codes.txt"
+copy "..\..\docs\Help_for_Administrators.htm" "Unicode Release\Help_for_Administrators.htm"
+copy "..\..\docs\RFC5646message.htm" "Unicode Release\RFC5646message.htm"
+mkdir "..\..\docs\Images\Admin_help\"
+xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Release\Images\Admin_help\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Release\Adapt_It_Quick_Start.htm"
+mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
+xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+mkdir "Unicode Release\Languages\es"
+mkdir "Unicode Release\Languages\fr"
+mkdir "Unicode Release\Languages\id"
+mkdir "Unicode Release\Languages\pt"
+mkdir "Unicode Release\Languages\ru"
+mkdir "Unicode Release\Languages\tpi"
+mkdir "Unicode Release\Languages\zh"
+mkdir "Unicode Release\Languages\az"
+mkdir "Unicode Release\Languages\swh"
+copy "..\..\po\es.mo" "Unicode Release\Languages\es\Adapt_It_Unicode.mo"
+copy "..\..\po\es.po" "Unicode Release\Languages\es\es.po"
+copy "..\..\po\wxstd-es.mo" "Unicode Release\Languages\es\wxstd.mo"
+copy "..\..\po\fr.mo" "Unicode Release\Languages\fr\Adapt_It_Unicode.mo"
+copy "..\..\po\fr.po" "Unicode Release\Languages\fr\fr.po"
+copy "..\..\po\wxstd-fr.mo" "Unicode Release\Languages\fr\wxstd.mo"
+copy "..\..\po\id.mo" "Unicode Release\Languages\id\Adapt_It_Unicode.mo"
+copy "..\..\po\id.po" "Unicode Release\Languages\id\id.po"
+copy "..\..\po\pt.mo" "Unicode Release\Languages\pt\Adapt_It_Unicode.mo"
+copy "..\..\po\pt.po" "Unicode Release\Languages\pt\pt.po"
+copy "..\..\po\wxstd-pt.mo" "Unicode Release\Languages\pt\wxstd.mo"
+copy "..\..\po\ru.mo" "Unicode Release\Languages\ru\Adapt_It_Unicode.mo"
+copy "..\..\po\ru.po" "Unicode Release\Languages\ru\ru.po"
+copy "..\..\po\wxstd-ru.mo" "Unicode Release\Languages\ru\wxstd.mo"
+copy "..\..\po\tpi.mo" "Unicode Release\Languages\tpi\Adapt_It_Unicode.mo"
+copy "..\..\po\tpi.po" "Unicode Release\Languages\tpi\tpi.po"
+copy "..\..\po\tpi_readme.txt" "Unicode Release\Languages\tpi\tpi_readme.txt"
+copy "..\..\po\books_tpi.xml" "Unicode Release\Languages\tpi\books_tpi.xml"
+copy "..\..\po\wxstd-tpi.mo" "Unicode Release\Languages\tpi\wxstd.mo"
+copy "..\..\po\zh.mo" "Unicode Release\Languages\zh\Adapt_It_Unicode.mo"
+copy "..\..\po\zh.po" "Unicode Release\Languages\zh\zh.po"
+copy "..\..\po\wxstd-zh.mo" "Unicode Release\Languages\zh\wxstd.mo"
+copy "..\..\po\az.mo" "Unicode Release\Languages\az\Adapt_It_Unicode.mo"
+copy "..\..\po\az.po" "Unicode Release\Languages\az\az.po"
+copy "..\..\po\swh.mo" "Unicode Release\Languages\swh\Adapt_It_Unicode.mo"
+copy "..\..\po\swh.po" "Unicode Release\Languages\swh\swh.po"
+copy "..\..\po\default.mo" "Unicode Release\Languages\default.mo"
+copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\Adapt_It.cpp" />
+    <ClCompile Include="..\..\source\Adapt_It_wdr.cpp" />
+    <ClCompile Include="..\..\source\Adapt_ItCanvas.cpp" />
+    <ClCompile Include="..\..\source\Adapt_ItDoc.cpp" />
+    <ClCompile Include="..\..\source\Adapt_ItView.cpp" />
+    <ClCompile Include="..\..\source\AdminEditMenuProfile.cpp" />
+    <ClCompile Include="..\..\source\AdminMoveOrCopy.cpp" />
+    <ClCompile Include="..\..\source\AIPrintout.cpp" />
+    <ClCompile Include="..\..\source\AIPrintPreviewFrame.cpp" />
+    <ClCompile Include="..\..\source\AssignLocationsForInputsAndOutputs.cpp" />
+    <ClCompile Include="..\..\source\AutoSavingPage.cpp" />
+    <ClCompile Include="..\..\source\base64.cpp" />
+    <ClCompile Include="..\..\source\BookNameDlg.cpp" />
+    <ClCompile Include="..\..\source\BString.cpp" />
+    <ClCompile Include="..\..\source\CaseEquivPage.cpp" />
+    <ClCompile Include="..\..\source\CCModule.cpp" />
+    <ClCompile Include="..\..\source\CCTabbedDialog.cpp" />
+    <ClCompile Include="..\..\source\CCTableEditDlg.cpp" />
+    <ClCompile Include="..\..\source\CCTableNameDlg.cpp" />
+    <ClCompile Include="..\..\source\Cell.cpp" />
+    <ClCompile Include="..\..\source\ChooseCollabOptionsDlg.cpp" />
+    <ClCompile Include="..\..\source\ChooseConsistencyCheckTypeDlg.cpp" />
+    <ClCompile Include="..\..\source\ChooseLanguageCode.cpp" />
+    <ClCompile Include="..\..\source\ChooseLanguageDlg.cpp" />
+    <ClCompile Include="..\..\source\ChooseTranslation.cpp" />
+    <ClCompile Include="..\..\source\ClientServerConnection.cpp" />
+    <ClCompile Include="..\..\source\CollabUtilities.cpp" />
+    <ClCompile Include="..\..\source\CollectBacktranslations.cpp" />
+    <ClCompile Include="..\..\source\ComposeBarEditBox.cpp" />
+    <ClCompile Include="..\..\source\ConsChk_Empty_noTU_Dlg.cpp" />
+    <ClCompile Include="..\..\source\conschk_exists_notu_dlg.cpp" />
+    <ClCompile Include="..\..\source\ConsistencyCheckDlg.cpp" />
+    <ClCompile Include="..\..\source\ConsistentChanger.cpp" />
+    <ClCompile Include="..\..\source\convauto.cpp" />
+    <ClCompile Include="..\..\source\CorGuess.cpp" />
+    <ClCompile Include="..\..\source\CreateNewAIProjForCollab.cpp" />
+    <ClCompile Include="..\..\source\DocPage.cpp" />
+    <ClCompile Include="..\..\source\DVCS.cpp" />
+    <ClCompile Include="..\..\source\DVCSLogDlg.cpp" />
+    <ClCompile Include="..\..\source\DVCSNavDlg.cpp" />
+    <ClCompile Include="..\..\source\EarlierTranslationDlg.cpp" />
+    <ClCompile Include="..\..\source\EditPreferencesDlg.cpp" />
+    <ClCompile Include="..\..\source\EditSourceTextDlg.cpp" />
+    <ClCompile Include="..\..\source\EmailReportDlg.cpp" />
+    <ClCompile Include="..\..\source\ExportFunctions.cpp" />
+    <ClCompile Include="..\..\source\ExportInterlinearDlg.cpp" />
+    <ClCompile Include="..\..\source\ExportOptionsDlg.cpp" />
+    <ClCompile Include="..\..\source\ExportSaveAsDlg.cpp" />
+    <ClCompile Include="..\..\source\FilenameConflictDlg.cpp" />
+    <ClCompile Include="..\..\source\FindReplace.cpp" />
+    <ClCompile Include="..\..\source\FontPage.cpp" />
+    <ClCompile Include="..\..\source\FreeTrans.cpp" />
+    <ClCompile Include="..\..\source\FreeTransAdjustDlg.cpp" />
+    <ClCompile Include="..\..\source\FreeTransSplitterDlg.cpp" />
+    <ClCompile Include="..\..\source\GetSourceTextFromEditor.cpp" />
+    <ClCompile Include="..\..\source\GoToDlg.cpp" />
+    <ClCompile Include="..\..\source\GuesserAffix.cpp" />
+    <ClCompile Include="..\..\source\GuesserAffixesListsDlg.cpp" />
+    <ClCompile Include="..\..\source\GuesserSettingsDlg.cpp" />
+    <ClCompile Include="..\..\source\helpers.cpp" />
+    <ClCompile Include="..\..\source\HtmlFileViewer.cpp" />
+    <ClCompile Include="..\..\source\JoinDialog.cpp" />
+    <ClCompile Include="..\..\source\jsonreader.cpp" />
+    <ClCompile Include="..\..\source\jsonval.cpp" />
+    <ClCompile Include="..\..\source\jsonwriter.cpp" />
+    <ClCompile Include="..\..\source\KB.cpp" />
+    <ClCompile Include="..\..\source\KBEditor.cpp" />
+    <ClCompile Include="..\..\source\KBEditSearch.cpp" />
+    <ClCompile Include="..\..\source\KBExportImportOptionsDlg.cpp" />
+    <ClCompile Include="..\..\source\KBPage.cpp" />
+    <ClCompile Include="..\..\source\KbServer.cpp" />
+    <ClCompile Include="..\..\source\KBSharing.cpp" />
+    <ClCompile Include="..\..\source\KBSharingMgrTabbedDlg.cpp" />
+    <ClCompile Include="..\..\source\KbSharingSetup.cpp" />
+    <ClCompile Include="..\..\source\KBSharingStatelessSetupDlg.cpp" />
+    <ClCompile Include="..\..\source\LanguageCodesDlg.cpp" />
+    <ClCompile Include="..\..\source\LanguagesPage.cpp" />
+    <ClCompile Include="..\..\source\Layout.cpp" />
+    <ClCompile Include="..\..\source\ListDocumentsInOtherFolderDialog.cpp" />
+    <ClCompile Include="..\..\source\MainFrm.cpp" />
+    <ClCompile Include="..\..\source\md5.cpp" />
+    <ClCompile Include="..\..\source\md5_SB.cpp" />
+    <ClCompile Include="..\..\source\MergeUpdatedSrc.cpp" />
+    <ClCompile Include="..\..\source\MoveDialog.cpp" />
+    <ClCompile Include="..\..\source\Mover.cpp" />
+    <ClCompile Include="..\..\source\MyListBox.cpp" />
+    <ClCompile Include="..\..\source\NavProtectNewDoc.cpp" />
+    <ClCompile Include="..\..\source\NoteDlg.cpp" />
+    <ClCompile Include="..\..\source\Notes.cpp" />
+    <ClCompile Include="..\..\source\OpenExistingProjectDlg.cpp" />
+    <ClCompile Include="..\..\source\OutputFilenameDlg.cpp" />
+    <ClCompile Include="..\..\source\Pathway.cpp" />
+    <ClCompile Include="..\..\source\PeekAtFile.cpp" />
+    <ClCompile Include="..\..\source\PhraseBox.cpp" />
+    <ClCompile Include="..\..\source\Pile.cpp" />
+    <ClCompile Include="..\..\source\Placeholder.cpp" />
+    <ClCompile Include="..\..\source\PlaceInternalMarkers.cpp" />
+    <ClCompile Include="..\..\source\PlaceInternalPunct.cpp" />
+    <ClCompile Include="..\..\source\PlaceRetranslationInternalMarkers.cpp" />
+    <ClCompile Include="..\..\source\PrintOptionsDlg.cpp" />
+    <ClCompile Include="..\..\source\ProjectPage.cpp" />
+    <ClCompile Include="..\..\source\PunctCorrespPage.cpp" />
+    <ClCompile Include="..\..\source\ReadOnlyProtection.cpp" />
+    <ClCompile Include="..\..\source\RefString.cpp" />
+    <ClCompile Include="..\..\source\RefStringMetadata.cpp" />
+    <ClCompile Include="..\..\source\RemoveSomeTgtEntries.cpp" />
+    <ClCompile Include="..\..\source\Retranslation.cpp" />
+    <ClCompile Include="..\..\source\RetranslationDlg.cpp" />
+    <ClCompile Include="..\..\source\scrollingdialog.cpp" />
+    <ClCompile Include="..\..\source\scrollingwizard.cpp" />
+    <ClCompile Include="..\..\source\SetDelay.cpp" />
+    <ClCompile Include="..\..\source\SetEncodingDlg.cpp" />
+    <ClCompile Include="..\..\source\SetupEditorCollaboration.cpp" />
+    <ClCompile Include="..\..\source\SilConverterSelectDlg.cpp" />
+    <ClCompile Include="..\..\source\SourcePhrase.cpp" />
+    <ClCompile Include="..\..\source\SplitDialog.cpp" />
+    <ClCompile Include="..\..\source\Stack.cpp" />
+    <ClCompile Include="..\..\source\StartWorkingWizard.cpp" />
+    <ClCompile Include="..\..\source\StatusBar.cpp" />
+    <ClCompile Include="..\..\source\Strip.cpp" />
+    <ClCompile Include="..\..\source\TargetUnit.cpp" />
+    <ClCompile Include="..\..\source\tellenc.cpp" />
+    <ClCompile Include="..\..\source\Thread_BulkPseudoDelete.cpp" />
+    <ClCompile Include="..\..\source\Thread_ChangedSince.cpp" />
+    <ClCompile Include="..\..\source\Thread_CreateEntry.cpp" />
+    <ClCompile Include="..\..\source\Thread_DoEntireKbDeletion.cpp" />
+    <ClCompile Include="..\..\source\Thread_KbEditorUpdateButton.cpp" />
+    <ClCompile Include="..\..\source\Thread_PseudoDelete.cpp" />
+    <ClCompile Include="..\..\source\Thread_PseudoUndelete.cpp" />
+    <ClCompile Include="..\..\source\Thread_UploadMulti.cpp" />
+    <ClCompile Include="..\..\source\Thread_UploadToKBServer.cpp" />
+    <ClCompile Include="..\..\source\Timer_KbServerChangedSince.cpp" />
+    <ClCompile Include="..\..\source\ToolbarPage.cpp" />
+    <ClCompile Include="..\..\source\TransformToGlossesDlg.cpp" />
+    <ClCompile Include="..\..\source\UnitsDlg.cpp" />
+    <ClCompile Include="..\..\source\UnitsPage.cpp" />
+    <ClCompile Include="..\..\source\UnpackWarningDlg.cpp" />
+    <ClCompile Include="..\..\source\UsernameInput.cpp" />
+    <ClCompile Include="..\..\source\UsfmFilterPage.cpp" />
+    <ClCompile Include="..\..\source\Uuid_AI.cpp" />
+    <ClCompile Include="..\..\source\ViewFilteredMaterialDlg.cpp" />
+    <ClCompile Include="..\..\source\ViewPage.cpp" />
+    <ClCompile Include="..\..\source\WaitDlg.cpp" />
+    <ClCompile Include="..\..\source\Welcome.cpp" />
+    <ClCompile Include="..\..\source\WhichBook.cpp" />
+    <ClCompile Include="..\..\source\WhichFilesDlg.cpp" />
+    <ClCompile Include="..\..\source\Xhtml.cpp" />
+    <ClCompile Include="..\..\source\XML.cpp" />
+    <ClCompile Include="..\..\source\XMLErrorDlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Adapt_It.rc">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">_DEBUG;__WXMSW__;__WXDEBUG__;_UNICODE;_WINDOWS;NOPCH</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">__WXMSW__;_UNICODE;_WINDOWS;NOPCH</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\Adapt_It.h" />
+    <ClInclude Include="..\..\source\Adapt_It_wdr.h" />
+    <ClInclude Include="..\..\source\Adapt_ItCanvas.h" />
+    <ClInclude Include="..\..\source\Adapt_ItDoc.h" />
+    <ClInclude Include="..\..\source\Adapt_ItView.h" />
+    <ClInclude Include="..\..\source\AdaptitConstants.h" />
+    <ClInclude Include="..\..\source\AdminEditMenuProfile.h" />
+    <ClInclude Include="..\..\source\AdminMoveOrCopy.h" />
+    <ClInclude Include="..\..\source\AIPrintout.h" />
+    <ClInclude Include="..\..\source\AIPrintPreviewFrame.h" />
+    <ClInclude Include="..\..\source\AssignLocationsForInputsAndOutputs.h" />
+    <ClInclude Include="..\..\source\AutoSavingPage.h" />
+    <ClInclude Include="..\..\source\base64.h" />
+    <ClInclude Include="..\..\source\BookNameDlg.h" />
+    <ClInclude Include="..\..\source\BString.h" />
+    <ClInclude Include="..\..\source\CaseEquivPage.h" />
+    <ClInclude Include="..\..\source\CCModule.h" />
+    <ClInclude Include="..\..\source\CCTabbedDialog.h" />
+    <ClInclude Include="..\..\source\CCTableEditDlg.h" />
+    <ClInclude Include="..\..\source\CCTableNameDlg.h" />
+    <ClInclude Include="..\..\source\Cell.h" />
+    <ClInclude Include="..\..\source\ChooseCollabOptionsDlg.h" />
+    <ClInclude Include="..\..\source\ChooseConsistencyCheckTypeDlg.h" />
+    <ClInclude Include="..\..\source\ChooseLanguageCode.h" />
+    <ClInclude Include="..\..\source\ChooseLanguageDlg.h" />
+    <ClInclude Include="..\..\source\ChooseTranslation.h" />
+    <ClInclude Include="..\..\source\ClientServerConnection.h" />
+    <ClInclude Include="..\..\source\CollabUtilities.h" />
+    <ClInclude Include="..\..\source\CollectBacktranslations.h" />
+    <ClInclude Include="..\..\source\ComposeBarEditBox.h" />
+    <ClInclude Include="..\..\source\ConsChk_Empty_noTU_Dlg.h" />
+    <ClInclude Include="..\..\source\conschk_exists_notu_dlg.h" />
+    <ClInclude Include="..\..\source\ConsistencyCheckDlg.h" />
+    <ClInclude Include="..\..\source\ConsistentChanger.h" />
+    <ClInclude Include="..\..\source\convauto.h" />
+    <ClInclude Include="..\..\source\CorGuess.h" />
+    <ClInclude Include="..\..\source\CreateNewAIProjForCollab.h" />
+    <ClInclude Include="..\..\source\DocPage.h" />
+    <ClInclude Include="..\..\source\DVCS.h" />
+    <ClInclude Include="..\..\source\DVCSLogDlg.h" />
+    <ClInclude Include="..\..\source\DVCSNavDlg.h" />
+    <ClInclude Include="..\..\source\EarlierTranslationDlg.h" />
+    <ClInclude Include="..\..\source\EditPreferencesDlg.h" />
+    <ClInclude Include="..\..\source\EditSourceTextDlg.h" />
+    <ClInclude Include="..\..\source\EmailReportDlg.h" />
+    <ClInclude Include="Equivalents_for_reference.h" />
+    <ClInclude Include="..\..\source\ExportFunctions.h" />
+    <ClInclude Include="..\..\source\ExportInterlinearDlg.h" />
+    <ClInclude Include="..\..\source\ExportOptionsDlg.h" />
+    <ClInclude Include="..\..\source\ExportSaveAsDlg.h" />
+    <ClInclude Include="..\..\source\FilenameConflictDlg.h" />
+    <ClInclude Include="..\..\source\FindReplace.h" />
+    <ClInclude Include="..\..\source\FontPage.h" />
+    <ClInclude Include="..\..\source\FreeTrans.h" />
+    <ClInclude Include="..\..\source\FreeTransAdjustDlg.h" />
+    <ClInclude Include="..\..\source\FreeTransSplitterDlg.h" />
+    <ClInclude Include="..\..\source\GetSourceTextFromEditor.h" />
+    <ClInclude Include="..\..\source\GoToDlg.h" />
+    <ClInclude Include="..\..\source\GuesserAffix.h" />
+    <ClInclude Include="..\..\source\GuesserAffixesListsDlg.h" />
+    <ClInclude Include="..\..\source\GuesserSettingsDlg.h" />
+    <ClInclude Include="..\..\source\helpers.h" />
+    <ClInclude Include="..\..\source\HtmlFileViewer.h" />
+    <ClInclude Include="..\..\source\JoinDialog.h" />
+    <ClInclude Include="..\..\source\json_defs.h" />
+    <ClInclude Include="..\..\source\jsonreader.h" />
+    <ClInclude Include="..\..\source\jsonval.h" />
+    <ClInclude Include="..\..\source\jsonwriter.h" />
+    <ClInclude Include="..\..\source\KB.h" />
+    <ClInclude Include="..\..\source\KBEditor.h" />
+    <ClInclude Include="..\..\source\KBEditSearch.h" />
+    <ClInclude Include="..\..\source\KBExportImportOptionsDlg.h" />
+    <ClInclude Include="..\..\source\KBPage.h" />
+    <ClInclude Include="..\..\source\KbServer.h" />
+    <ClInclude Include="..\..\source\KBSharing.h" />
+    <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
+    <ClInclude Include="..\..\source\KbSharingSetup.h" />
+    <ClInclude Include="..\..\source\KBSharingSetupDlg.h" />
+    <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />
+    <ClInclude Include="..\..\source\LanguageCodesDlg.h" />
+    <ClInclude Include="..\..\source\LanguagesPage.h" />
+    <ClInclude Include="..\..\source\Layout.h" />
+    <ClInclude Include="..\..\source\ListDocumentsInOtherFolderDialog.h" />
+    <ClInclude Include="..\..\source\MainFrm.h" />
+    <ClInclude Include="..\..\source\md5.h" />
+    <ClInclude Include="..\..\source\md5_SB.h" />
+    <ClInclude Include="..\..\source\MergeUpdatedSrc.h" />
+    <ClInclude Include="..\..\source\MoveDialog.h" />
+    <ClInclude Include="..\..\source\Mover.h" />
+    <ClInclude Include="..\..\source\MyListBox.h" />
+    <ClInclude Include="..\..\source\NavProtectNewDoc.h" />
+    <ClInclude Include="..\..\source\NoteDlg.h" />
+    <ClInclude Include="..\..\source\Notes.h" />
+    <ClInclude Include="..\..\source\OpenExistingProjectDlg.h" />
+    <ClInclude Include="..\..\source\OutputFilenameDlg.h" />
+    <ClInclude Include="..\..\source\PeekAtFile.h" />
+    <ClInclude Include="..\..\source\PhraseBox.h" />
+    <ClInclude Include="..\..\source\Pile.h" />
+    <ClInclude Include="..\..\source\Placeholder.h" />
+    <ClInclude Include="..\..\source\PlaceInternalMarkers.h" />
+    <ClInclude Include="..\..\source\PlaceInternalPunct.h" />
+    <ClInclude Include="..\..\source\PlaceRetranslationInternalMarkers.h" />
+    <ClInclude Include="..\..\source\PrintOptionsDlg.h" />
+    <ClInclude Include="..\..\source\ProjectPage.h" />
+    <ClInclude Include="..\..\source\PunctCorrespPage.h" />
+    <ClInclude Include="..\..\source\ReadOnlyProtection.h" />
+    <ClInclude Include="..\..\source\RefString.h" />
+    <ClInclude Include="..\..\source\RefStringMetadata.h" />
+    <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\..\source\Retranslation.h" />
+    <ClInclude Include="..\..\source\RetranslationDlg.h" />
+    <ClInclude Include="..\..\source\scrollingdialog.h" />
+    <ClInclude Include="..\..\source\scrollingwizard.h" />
+    <ClInclude Include="..\..\source\SetDelay.h" />
+    <ClInclude Include="..\..\source\SetEncodingDlg.h" />
+    <ClInclude Include="..\..\source\SetupEditorCollaboration.h" />
+    <ClInclude Include="..\..\source\SilConverterSelectDlg.h" />
+    <ClInclude Include="..\..\source\SourcePhrase.h" />
+    <ClInclude Include="..\..\source\SplitDialog.h" />
+    <ClInclude Include="..\..\source\Stack.h" />
+    <ClInclude Include="..\..\source\StartWorkingWizard.h" />
+    <ClInclude Include="..\..\source\StatusBar.h" />
+    <ClInclude Include="..\..\source\Strip.h" />
+    <ClInclude Include="..\..\source\TargetUnit.h" />
+    <ClInclude Include="..\..\source\tellenc.h" />
+    <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
+    <ClInclude Include="..\..\source\Thread_ChangedSince.h" />
+    <ClInclude Include="..\..\source\Thread_CreateEntry.h" />
+    <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />
+    <ClInclude Include="..\..\source\Thread_KbEditorUpdateButton.h" />
+    <ClInclude Include="..\..\source\Thread_PseudoDelete.h" />
+    <ClInclude Include="..\..\source\Thread_PseudoUndelete.h" />
+    <ClInclude Include="..\..\source\Thread_UploadMulti.h" />
+    <ClInclude Include="..\..\source\Thread_UploadToKBServer.h" />
+    <ClInclude Include="..\..\source\Timer_KbServerChangedSince.h" />
+    <ClInclude Include="..\..\source\ToolbarPage.h" />
+    <ClInclude Include="..\..\source\TransformToGlossesDlg.h" />
+    <ClInclude Include="..\..\source\UnitsDlg.h" />
+    <ClInclude Include="..\..\source\UnitsPage.h" />
+    <ClInclude Include="..\..\source\UnpackWarningDlg.h" />
+    <ClInclude Include="..\..\source\UsernameInput.h" />
+    <ClInclude Include="..\..\source\UsfmFilterPage.h" />
+    <ClInclude Include="..\..\source\Uuid_AI.h" />
+    <ClInclude Include="..\..\source\ViewFilteredMaterialDlg.h" />
+    <ClInclude Include="..\..\source\ViewPage.h" />
+    <ClInclude Include="..\..\source\WaitDlg.h" />
+    <ClInclude Include="..\..\source\Welcome.h" />
+    <ClInclude Include="..\..\source\WhichBook.h" />
+    <ClInclude Include="..\..\source\WhichFilesDlg.h" />
+    <ClInclude Include="..\..\source\Xhtml.h" />
+    <ClInclude Include="..\..\source\XML.h" />
+    <ClInclude Include="..\..\source\XMLErrorDlg.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\res\ai_32.ico" />
+    <Image Include="wx\msw\cdrom.ico" />
+    <Image Include="wx\msw\colours.bmp" />
+    <Image Include="wx\msw\computer.ico" />
+    <Image Include="wx\msw\csquery.bmp" />
+    <Image Include="wx\msw\drive.ico" />
+    <Image Include="wx\msw\file1.ico" />
+    <Image Include="wx\msw\floppy.ico" />
+    <Image Include="wx\msw\folder1.ico" />
+    <Image Include="wx\msw\folder2.ico" />
+    <Image Include="wx\msw\removble.ico" />
+    <Image Include="wx\msw\std.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wx\msw\blank.cur" />
+    <None Include="wx\msw\bullseye.cur" />
+    <None Include="wx\msw\cross.cur" />
+    <None Include="wx\msw\hand.cur" />
+    <None Include="wx\msw\magnif1.cur" />
+    <None Include="wx\msw\pbrush.cur" />
+    <None Include="wx\msw\pencil.cur" />
+    <None Include="wx\msw\pntleft.cur" />
+    <None Include="wx\msw\pntright.cur" />
+    <None Include="wx\msw\rightarr.cur" />
+    <None Include="wx\msw\roller.cur" />
+    <None Include="ClassDiagram1.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\source\NewClassHeaderTemplate.txt" />
+    <Text Include="..\..\source\NewClassImplementationTemplate.txt" />
+    <Text Include="..\..\source\NewDialogHeaderTemplate.txt" />
+    <Text Include="..\..\source\NewDialogImplementationTemplate.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

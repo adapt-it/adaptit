@@ -1,0 +1,270 @@
+adaptit (6.5.4-1) unstable; urgency=low
+
+  * pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Wed, 16 Sep 2014 16:00:00 -0600
+
+adaptit (6.5.3-1) unstable; urgency=low
+
+  * pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Wed, 18 Jun 2014 16:00:00 -0600
+
+adaptit (6.5.2-1) unstable; urgency=low
+
+  * pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Wed, 18 Dec 2013 16:00:00 -0600
+
+adaptit (6.5.1-1) unstable; urgency=low
+
+  * pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Wed, 13 Nov 2013 16:00:00 -0600
+
+adaptit (6.5.0-1) unstable; urgency=low
+
+  * debian/control:
+    - Added Recommends: git (>= 1.7.0) new version history and future 
+      send/receive features require git to function.
+
+ -- Bill Martin <bill_martin@sil.org>  Tue, 29 Oct 2013 16:00:00 -0600
+
+adaptit (6.4.3-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Erik Brommers <erik_brommers@sil.org>  Fri, 3 June 2013 16:00:00 -0600
+
+adaptit (6.4.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Fri, 3 May 2013 16:00:00 -0600
+
+adaptit (6.4.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Tue, 5 Feb 2013 16:00:00 -0600
+
+adaptit (6.4.0-1) unstable; urgency=low
+
+  * debian/control:
+    - Removed Recommends: bibledit-gtk (>= 4.2.93) now that Paratext for
+      Linux is available and the most likely app for collaboration with
+      adaptit.
+
+ -- Bill Martin <bill_martin@sil.org>  Wed, 9 Jan 2013 16:00:00 -0600
+
+adaptit (6.3.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Fri, 19 Oct 2012 16:00:00 -0600
+
+adaptit (6.3.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Mon, 10 Sep 2012 16:00:00 -0600
+
+adaptit (6.2.3-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Sat, 14 Jul 2012 14:00:00 -0600
+
+adaptit (6.2.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Tue, 5 Jun 2012 16:00:00 -0600
+
+adaptit (6.2.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Mon, 1 May 2012 14:00:00 -0600
+
+adaptit (6.2.0-1) unstable; urgency=low
+
+  * debian/control:
+    - Added Build-Depends: libgnomeprintui2.0-dev for better print support
+    - Added Recommends: libgnomeprintui (>= 2.0) for better print support
+
+ -- Bill Martin <bill_martin@sil.org>  Tue, 14 Mar 2012 14:00:00 -0600
+
+adaptit (6.1.1-1) unstable; urgency=low
+
+  * debian/copyright:
+    - Corrected Bruce Waters email address.
+    - Updated download URL.
+    - Updated year ranges in copyright lines.
+    - Specified version 2.1 of LGPL or later for packaging.
+    - Removed unwanted dh-make boilerplate comments.
+    - Reformatted to meet DEP5 standard.
+  * debian/control:
+    - Added Recommends: bibledit-gtk (>= 4.2.93) to ensure
+      and appropriately recent version of bibledit-gtk is used.
+    - Added ${Misc:Depends} to each package Depends: line.
+    - Re-wrapped extended description text.
+    - Added Section: docs for adaptit-docs package, since it is
+      documentation.
+    - Added Uploaders: including Bruce Waters and Jonathan Marsden.
+  * debian/rules:
+    - Removed useless generic comments added by dh-make.
+    - Added recommended build-arch and build-indep targets.
+
+ -- Bill Martin <bill_martin@sil.org>  Tue, 8 Jan 2012 18:00:00 -0600
+
+adaptit (6.1.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 20 Dec 2011 18:00:00 -0600
+
+adaptit (6.0.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 24 Oct 2011 18:00:00 -0600
+
+adaptit (6.0.0.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 22 Oct 2011 18:00:00 -0600
+
+adaptit (6.0.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 10 Oct 2011 18:00:00 -0600
+
+adaptit (5.2.4-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 8 Aug 2011 12:00:00 -0600
+
+adaptit (5.2.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 29 Mar 2010 18:00:00 -0600
+
+adaptit (5.2.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 15 Mar 2010 18:00:00 -0600
+
+adaptit (5.1.4-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 8 Sep 2009 13:00:00 -0600
+
+adaptit (5.1.3-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Wed, 2 Sep 2009 13:00:00 -0600
+
+adaptit (5.1.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 15 Aug 2009 13:00:00 -0600
+
+adaptit (5.0.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 3 Aug 2009 18:00:00 -0600
+
+adaptit (5.0.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 21 Jul 2009 13:00:00 -0600
+
+adaptit (4.1.5-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sun, 31 May 2009 16:00:00 -0600
+
+adaptit (4.1.4-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Wed, 29 Apr 2009 16:00:00 -0600
+
+adaptit (4.1.3.3-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 13 Apr 2009 18:00:00 -0600
+
+adaptit (4.1.3.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 13 Apr 2009 17:00:00 -0600
+
+adaptit (4.1.3.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 13 Apr 2009 12:00:00 -0600
+
+adaptit (4.1.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 24 Mar 2009 16:00:00 -0500
+
+adaptit (4.1.1-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 28 Feb 2009 20:00:00 -0500
+
+adaptit (4.1.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 31 Jan 2009 14:00:00 -0500
+
+adaptit (4.0.4-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 13 Dec 2008 17:00:00 -0500
+
+adaptit (4.0.3-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 26 Nov 2008 20:00:00 -0500
+
+adaptit (4.0.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 22 Nov 2008 18:00:00 -0500
+
+adaptit (4.0.1-1) unstable; urgency=low
+
+  * Split packaging adaptit and adaptit-docs
+
+ -- Joel Martin <joel@martintribe.org>  Wed, 29 Oct 2008 21:30:00 -0500
+
+adaptit (4.0.0-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Joel Maritn <joel@martintribe.org>  Wed, 10 Sep 2008 17:14:23 -0500
+
