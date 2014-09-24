@@ -286,6 +286,7 @@ extern std::string str_CURLheaders;
 #include "DocPage.h"
 #include "StatusBar.h"
 #include "WaitDlg.h"
+#include "GuesserAffixesListsDlg.h" //klb 9/2014
 
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
@@ -25036,6 +25037,8 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	}
 
 	//TEST KLB
+//	GuesserAffixesListsDlg dlg(GetMainFrame());
+//	if ( dlg.ShowModal() == wxID_OK ) {}
 /*		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
 
 		wxFile f;
@@ -25074,6 +25077,21 @@ CGuesserAffixArray*	CAdapt_ItApp::GetGuesserPrefixes()
 {
 	return &m_GuesserPrefixArray;
 }
+size_t	CAdapt_ItApp::FindGuesserPrefixIndex( CGuesserAffix inAffix )
+{
+	for (int i = 0; i < (int)GetGuesserPrefixes()->GetCount(); i++)
+	{				
+		CGuesserAffix m_currentGuesserAffix = GetGuesserPrefixes()->Item(i);
+		if (m_currentGuesserAffix.getSourceAffix() == inAffix.getSourceAffix() &&
+			m_currentGuesserAffix.getTargetAffix() == inAffix.getTargetAffix() )
+		{
+			return i;
+		}
+		
+	}
+	
+	return (size_t)-1;
+}
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     m_GuesserPrefixList, instance of CGuesserAffixList  
 /// \param      -> nothing
@@ -25087,32 +25105,112 @@ CGuesserAffixArray*	CAdapt_ItApp::GetGuesserSuffixes()
 {
 	return &m_GuesserSuffixArray;
 }
+size_t	CAdapt_ItApp::FindGuesserSuffixIndex( CGuesserAffix inAffix )
+{
+	for (int i = 0; i < (int)GetGuesserSuffixes()->GetCount(); i++)
+	{				
+		CGuesserAffix m_currentGuesserAffix = GetGuesserSuffixes()->Item(i);
+		if (m_currentGuesserAffix.getSourceAffix() == inAffix.getSourceAffix() &&
+			m_currentGuesserAffix.getTargetAffix() == inAffix.getTargetAffix() )
+		{
+			return i;
+		}
+		
+	}
+	
+	return (size_t)-1;
+}
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the XML File was successfully written, otherwise FALSE
+/// \param      pFile   ->  output file name
+/// \remarks
+/// Called from: ???
+/// Writes guesser prefixes, if they exist in app (GetGuesserPrefixes()), 
+///             to xml file on disk. Defaults to project path.
+////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::DoGuesserPrefixWriteToFile(wxFile* pFile) // Write Guesser prefixes to file
+{
+	GuesserAffixType mAffixType = GuesserPrefix;
+	if (pFile == NULL)
+	{
+		wxString path = gpApp->m_curProjectPath + gpApp->PathSeparator + _T("GuesserPrefixes.xml");
+
+		wxFile f;
+		if( !f.Open( path, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open default guesser prefixes file in DoGuesserPrefixWriteToFile(). Aborting the save process."),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+		}
+		DoGuesserAffixWriteXML(&f, mAffixType);
+	}
+	else
+		DoGuesserAffixWriteXML(pFile, mAffixType);
+	
+	return true;
+}
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the XML File was successfully written, otherwise FALSE
+/// \param      pFile   ->  output file name
+/// \remarks
+/// Called from: ???
+/// Writes guesser suffixes, if they exist in app (GetGuesserSuffixes()), 
+///             to xml file on disk. Defaults to project path.
+////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::DoGuesserSuffixWriteToFile(wxFile* pFile) // Write Guesser suffixes to file
+{
+	GuesserAffixType mAffixType = GuesserSuffix;
+	if (pFile == NULL)
+	{
+		wxString path = gpApp->m_curProjectPath + gpApp->PathSeparator + _T("GuesserSuffixes.xml");
+
+		wxFile f;
+		if( !f.Open( path, wxFile::write))
+		{
+			// we don't expect failure, English message will do
+			wxMessageBox(_T("Unable to open default guesser suffixes file in DoGuesserSuffixWriteToFile(). Aborting the save process."),
+			_T(""), wxICON_EXCLAMATION | wxOK);
+		}
+		DoGuesserAffixWriteXML(&f, mAffixType);
+	}
+	else
+		DoGuesserAffixWriteXML(pFile, mAffixType);
+	
+	return true;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if the XML File was successfully written, otherwise FALSE
 /// \param      pFile   ->  output file name
 /// \param      inGuesserAffixType   ->  affix type (prefix or suffix). enum defined in Adapt_It.h
 /// \remarks
-/// Called from: ???
+/// Called from: DoGuesserPrefixWriteToFile(), DoGuesserSuffixWriteToFile()
 /// If prefixes and/or suffixes are found in app (GetGuesserPrefixes() or GetGuesserSuffixes()), 
 ///             writes xml file to disk.
 ////////////////////////////////////////////////////////////////////////////////////////
-
-bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
+bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, GuesserAffixType inGuesserAffixType)
 {
 	//
 	wxASSERT(pFile != NULL);
 
 	wxString s1 = gSFescapechar;
 
-	CBString m_sComposeXMLString,m_sXMLPrologue;
-	CBString m_sFirstString = "<PREFIX affixVersion=\"1\" max=\"1\">";
-	CBString m_sFinalString = "</PREFIX>";
+	CBString m_sComposeXMLString,m_sXMLPrologue,m_sFirstString,m_sFinalString,m_sUserID;
 	if (inGuesserAffixType == GuesserSuffix)
 	{
 		m_sFirstString = "<SUFFIX affixVersion=\"1\" max=\"1\">";
 		m_sFinalString = "</SUFFIX>";
 	}
+	else
+	{
+		m_sFirstString = "<PREFIX affixVersion=\"1\" max=\"1\">";
+		m_sFinalString = "</PREFIX>";
+	}
+	if ( m_strUserID == NOOWNER )
+		m_sUserID = "Default";
+	else
+		m_sUserID = gpApp->m_strUserID.char_str();
+	wxDateTime m_Date = wxDateTime::Now().ToUTC (FALSE);
 
 	GetEncodingStringForXmlFiles(m_sXMLPrologue); // builds xmlPrologue and adds "\r\n"
 	m_sComposeXMLString = m_sXMLPrologue;
@@ -25148,13 +25246,25 @@ bool CAdapt_ItApp::DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType i
 		CGuesserAffix m_currentGuesserAffix = pArray->Item(i);
 
 		// Add affix to XML
-		m_sComposeXMLString += "<PRE source=\"";
+		if (inGuesserAffixType == GuesserSuffix)
+			m_sComposeXMLString += "<SUF source=\"";
+		else
+			m_sComposeXMLString += "<PRE source=\"";
 		m_sComposeXMLString += m_currentGuesserAffix.getSourceAffix().ToUTF8();
 		m_sComposeXMLString += "\" target=\"";
 		m_sComposeXMLString += m_currentGuesserAffix.getTargetAffix().ToUTF8();
 		m_sComposeXMLString += "\" n=\"0\" ";
-		m_sComposeXMLString += "wC=\"kbradford:KBRADFORDSIL\" "; 
-		m_sComposeXMLString += "cDT=\"2012-10-24T14:13:06Z\" />";
+		//m_sComposeXMLString += "wC=\"kbradford:KBRADFORDSIL\" "; 
+		m_sComposeXMLString += "wC=\""; 
+		m_sComposeXMLString += m_sUserID; 
+		m_sComposeXMLString += "\" "; 
+		//m_sComposeXMLString += "cDT=\"2012-10-24T14:13:06Z\" />";
+		m_sComposeXMLString += "cDT=\"";
+		m_sComposeXMLString += m_Date.FormatISODate().char_str();
+		m_sComposeXMLString += ":";
+		m_sComposeXMLString += m_Date.FormatISOTime().char_str();
+		m_sComposeXMLString += "\" />";
+		
 		m_sComposeXMLString += "\r\n";
 	}
 
