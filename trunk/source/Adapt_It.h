@@ -3485,8 +3485,12 @@ public:
 	int m_nCorrespondencesLoadedInGlossingGuesser;
 
 	CGuesserAffixArray*	GetGuesserPrefixes(); // get list of prefixes (if previously input) to improve guesser performance
+	size_t	CAdapt_ItApp::FindGuesserPrefixIndex( CGuesserAffix affix ); // Find index by value
 	CGuesserAffixArray*	GetGuesserSuffixes(); // get list of prefixes (if previously input) to improve guesser performance
-	bool DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType); // Write Guesser Prefix XML to file
+	size_t	CAdapt_ItApp::FindGuesserSuffixIndex( CGuesserAffix affix ); // Find index by value 
+	bool DoGuesserPrefixWriteToFile(wxFile* pFile = NULL); // Write Guesser prefixes to file
+	bool DoGuesserSuffixWriteToFile(wxFile* pFile = NULL); // Write Guesser suffixes to file
+	bool DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType); // Write Guesser Affix XML to file, file pointer required
 
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)

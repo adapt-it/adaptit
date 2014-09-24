@@ -74,10 +74,9 @@ public:
 	// The list control, and support for storing the pairs of prefixes in one list, and pairs
 	// of suffixes in another list
 	wxListCtrl*		m_pAffixPairsList;
-	AffixPairsArray* m_pSuffixesPairsArray;
-	AffixPairsArray* m_pPrefixesPairsArray;
+
 	// Support the 2 radio buttons
-	bool			m_bSuffixesListIsCurrent;
+	PairsListType	m_pltCurrentAffixPairListType;
 	// Support hiding the "hyphens" before or after the checkboxes, depending 
 	// on which radio button was chosen by the user
 	wxStaticText*	m_pHyphenSrcSuffix; // to left of src affix text box
@@ -94,9 +93,20 @@ protected:
 	void OnExplanationDlgWanted(wxCommandEvent& WXUNUSED(event));
 	void OnRadioButtonPrefixesList(wxCommandEvent& WXUNUSED(event));
 	void OnRadioButtonSuffixesList(wxCommandEvent& WXUNUSED(event));
+	void OnListItemSelected(wxListEvent& event);
+	void OnAdd(wxCommandEvent& event);
+	void OnUpdate(wxCommandEvent& event);
+	void OnInsert(wxCommandEvent& event);
+	void OnDelete(wxCommandEvent& event);
 
 
 	bool LoadDataForListType(PairsListType myType);
+
+	bool LoadPrefixes();
+	bool LoadSuffixes();
+
+	AffixPairsArray* GetPrefixes();
+	AffixPairsArray* GetSuffixes();
 
 private:
 	// class attributes
@@ -106,6 +116,16 @@ private:
 	wxWindow*			m_pParent; // the instance of GuesserSettingsDlg, wxStaticLine must know its parent
 	
 	// other class attributes
+	AffixPairsArray* m_pSuffixesPairsArray;
+	AffixPairsArray* m_pPrefixesPairsArray;
+	bool m_bPrefixesLoaded; // TRUE indicates that local affix arrays have been loaded from file / app
+	bool m_bSuffixesLoaded; // TRUE indicates that local affix arrays have been loaded from file / app
+	bool m_bPrefixesUpdated; // TRUE indicates that updates have been made that have not been written to file
+	bool m_bSuffixesUpdated; // TRUE indicates that updates have been made that have not been written to file
+
+	// Get index of selected item from control
+	long GuesserAffixesListsDlg::GetSelectedItemIndex();
+	wxString GuesserAffixesListsDlg::GetCellContentsString( long row_number, int column ); 
 
 	DECLARE_EVENT_TABLE()
 };

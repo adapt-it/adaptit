@@ -51,7 +51,7 @@ BEGIN_EVENT_TABLE(CGuesserSettingsDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_GUESS_HIGHLIGHT_COLOR, CGuesserSettingsDlg::OnChooseGuessHighlightColor)
 	EVT_BUTTON(wxID_OK, CGuesserSettingsDlg::OnOK)
 	EVT_BUTTON(wxID_CANCEL, CGuesserSettingsDlg::OnCancel)
-	EVT_BUTTON(ID_BTN_GUESSER_HOW_TO_USE_DLG, CGuesserSettingsDlg::OnSuffixesAndPrefixesListsDlg)
+	EVT_BUTTON(ID_BTN_GUESSER_HOW_TO_USE_DLG, CGuesserSettingsDlg::OnSuffixesAndPrefixesListsDlg)	
 END_EVENT_TABLE()
 
 CGuesserSettingsDlg::CGuesserSettingsDlg(wxWindow* parent) // dialog constructor
@@ -194,6 +194,7 @@ void CGuesserSettingsDlg::OnOK(wxCommandEvent& event)
 	// those on the App (for detecting changes made in this dialog class).
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }
+
 
 
 // other class methods
