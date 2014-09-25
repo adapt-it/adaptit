@@ -25037,9 +25037,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	}
 
 	//TEST KLB
-//	GuesserAffixesListsDlg dlg(GetMainFrame());
-//	if ( dlg.ShowModal() == wxID_OK ) {}
-/*		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
+/*	GuesserAffixesListsDlg dlg(GetMainFrame());
+	if ( dlg.ShowModal() == wxID_OK ) {}
+		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
 
 		wxFile f;
 		// first, the glossing KB export
