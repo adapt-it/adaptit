@@ -107,6 +107,7 @@ void GuesserAffixesListsDlg::OnCancel(wxCommandEvent& event)
 				bSuffixesOK = m_pApp->DoGuesserSuffixWriteToFile();
 		}
 	}
+	event.Skip();
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 }
 
@@ -120,6 +121,7 @@ void GuesserAffixesListsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 
 	m_pSrcLangAffix = (wxStaticText*)FindWindowById(ID_TEXT_SRC_AFFIX);
 	m_pTgtLangAffix = (wxStaticText*)FindWindowById(ID_TEXT_TGT_AFFIX);
+	m_pSrcLangAffix->SetFocus();
 
 	m_pBtnInsert = (wxButton*)FindWindowById(ID_BUTTON_INSERT);
 	m_pBtnInsert->Enable(false); // Nothing Selected, so cannot insert
@@ -137,14 +139,8 @@ void GuesserAffixesListsDlg::OnRadioButtonPrefixesList(wxCommandEvent& WXUNUSED(
 	m_pRadioPrefixesList->SetValue(TRUE);
 	m_pRadioSuffixesList->SetValue(FALSE);
 
-// TODO  add rest
-
 	bool result = LoadDataForListType(m_pltCurrentAffixPairListType = prefixesListType);
-	if (!result)
-	{
-		// Something went wrong.... fix it or whatever here
 
-	}
 }
 
 void GuesserAffixesListsDlg::OnRadioButtonSuffixesList(wxCommandEvent& WXUNUSED(event))
@@ -153,31 +149,24 @@ void GuesserAffixesListsDlg::OnRadioButtonSuffixesList(wxCommandEvent& WXUNUSED(
 	m_pRadioPrefixesList->SetValue(FALSE);
 	m_pRadioSuffixesList->SetValue(TRUE);
 
-// TODO  add rest
-
 	bool result = LoadDataForListType(m_pltCurrentAffixPairListType = suffixesListType);
-	if (!result)
-	{
-		// Something went wrong.... fix it or whatever here
-
-	}
 }
 
 
 bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 {
-	
-	wxWindow* pContainingWindow = sizerHyphensArea->GetContainingWindow();
+	//wxWindow* pContainingWindow = GetContainingWindow();
+	wxWindow* pContainingWindow = GetParent();
 	wxASSERT(pContainingWindow != NULL);
 
 	if (!m_bPrefixesLoaded)
 	{
-		// Load affixes from app / file
+		// Load affixes from app
 		LoadPrefixes();
 	}
 	if (!m_bSuffixesLoaded)
 	{
-		// Load affixes from app / file
+		// Load affixes from app
 		LoadSuffixes();
 	}
 
@@ -208,7 +197,12 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 		m_pHyphenTgtSuffix->Hide();
 		m_pHyphenSrcPrefix->Show(); // show the one to right of src affix text box
 		m_pHyphenTgtPrefix->Show(); // show the one to right of tgt affix text box
-		sizerHyphensArea->Layout();
+		//sizerHyphensArea->Layout();
+		if (pContainingWindow->GetSizer() != NULL)
+		{
+			pContainingWindow->GetSizer()->Layout();
+			DoLayoutAdaptation();
+		}
 		pContainingWindow->Refresh(); // needed, otherwise a phantom hyphen shows
 									  // at the start of the relocated textbox
 
@@ -238,9 +232,14 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 		m_pHyphenTgtPrefix->Hide();
 		m_pHyphenSrcSuffix->Show(); // show the one to left of src affix text box
 		m_pHyphenTgtSuffix->Show(); // show the one to left of tgt affix text box
-		sizerHyphensArea->Layout();
+		if (pContainingWindow->GetSizer() != NULL)
+		{
+			pContainingWindow->GetSizer()->Layout();
+			DoLayoutAdaptation();
+		}
 		pContainingWindow->Refresh(); // needed, otherwise a phantom hyphen shows
 									  // at the start of the relocated textbox
+
 
 		// Load Suffixes, if they exist -klb
 		if (GetSuffixes() && GetSuffixes()->Count() > 0)
@@ -260,35 +259,6 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 		return TRUE;
 	}
 }
-
-
-/*
-	// The user's click has already changed the value held by the radio button
-	m_pRadioKBType2->SetValue(TRUE);
-	m_pRadioKBType1->SetValue(FALSE);
-
-	// Tell the app what value we have chosen - Thread_DoEntireKbDeletion may
-	// need this value
-	m_pApp->m_bAdaptingKbIsCurrent = FALSE;
-
-	// Set the appropriate label for above the listbox
-	m_pAboveListBoxLabel->SetLabel(m_glsListLabel);
-
-	// Set the appropriate label text for the second text control
-	m_pNonSrcLabel->SetLabel(m_glossesLanguageCodeLabel);
-
-	// Record which type of KB we are defining
-	m_bKBisType1 = FALSE;
-
-	// Get it's data displayed (each such call "wastes" one of the sublists, we only
-	// display the sublist wanted, and a new ListKbs() call is done each time -- not
-	// optimal for efficiency, but it greatly simplifies our code)
-#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("OnRadioButton2KbsPageType2(): This page # (m_nCurPage + 1) = %d"), m_nCurPage + 1);
-#endif
-	LoadDataForPage(m_nCurPage);
-*/
-
 
 void GuesserAffixesListsDlg::OnExplanationDlgWanted(wxCommandEvent& WXUNUSED(event))
 {
@@ -492,6 +462,7 @@ void GuesserAffixesListsDlg::OnListItemSelected(wxListEvent& event)
 	m_pSrcLangAffix->SetLabel(GetCellContentsString(GetSelectedItemIndex(), 0));
 	m_pTgtLangAffix->SetLabel(GetCellContentsString(GetSelectedItemIndex(), 1));
 	m_pBtnInsert->Enable();
+	event.Skip();
 }
 
 AffixPairsArray* GuesserAffixesListsDlg::GetPrefixes()
@@ -504,7 +475,7 @@ AffixPairsArray* GuesserAffixesListsDlg::GetSuffixes()
 	return m_pSuffixesPairsArray;
 }
 
-// Load/refresh prefixes from file / app
+// Load/refresh prefixes from app
 bool GuesserAffixesListsDlg::LoadPrefixes() 
 {
 	m_bPrefixesLoaded = true;
@@ -533,7 +504,7 @@ bool GuesserAffixesListsDlg::LoadPrefixes()
 	return TRUE;
 }
 
-// Load/refresh suffixes from file / app
+// Load/refresh suffixes from app
 bool GuesserAffixesListsDlg::LoadSuffixes() 
 {
 	m_bSuffixesLoaded = true;

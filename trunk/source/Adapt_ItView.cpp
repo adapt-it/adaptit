@@ -20678,7 +20678,7 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 	// ********* NOTE ********** temporary code for 6.5.3-prelim, to hide the Suffix and
 	// Prefix Lists button because Kev's work on the dialog it shows is not yet complete
 	// Comment this out to have the button restored to a later version (eg. 6.5.3)
-	gsDlg.m_pSuffixesAndPrefixesListsDlg->Show(FALSE);
+	// gsDlg.m_pSuffixesAndPrefixesListsDlg->Show(FALSE);
 	// ******** END of NOTE *********************
 
 	if (gsDlg.ShowModal() == wxID_OK)

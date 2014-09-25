@@ -124,8 +124,8 @@ private:
 	bool m_bSuffixesUpdated; // TRUE indicates that updates have been made that have not been written to file
 
 	// Get index of selected item from control
-	long GuesserAffixesListsDlg::GetSelectedItemIndex();
-	wxString GuesserAffixesListsDlg::GetCellContentsString( long row_number, int column ); 
+	long GetSelectedItemIndex();
+	wxString GetCellContentsString( long row_number, int column ); 
 
 	DECLARE_EVENT_TABLE()
 };
