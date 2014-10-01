@@ -235,7 +235,7 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 		if (pContainingWindow->GetSizer() != NULL)
 		{
 			pContainingWindow->GetSizer()->Layout();
-			DoLayoutAdaptation();
+			//DoLayoutAdaptation();
 		}
 		pContainingWindow->Refresh(); // needed, otherwise a phantom hyphen shows
 									  // at the start of the relocated textbox
@@ -302,6 +302,7 @@ void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event)
 		bPrefixesOK = m_pApp->DoGuesserPrefixWriteToFile();
 	if (m_bSuffixesUpdated == true)
 		bSuffixesOK = m_pApp->DoGuesserSuffixWriteToFile();
+
 	event.Skip();
 }
 void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event) 
@@ -339,6 +340,20 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 	m_pSrcLangAffix->Layout();
 	m_pTgtLangAffix->SetLabel(_T(""));
 	m_pTgtLangAffix->Layout();
+
+	wxWindow* pContainingWindow = GetParent();
+	wxASSERT(pContainingWindow != NULL);
+
+	if (pContainingWindow->GetSizer() != NULL)
+	{
+		pContainingWindow->GetSizer()->Layout();
+		DoLayoutAdaptation();
+	}
+	pContainingWindow->Refresh(); // needed, otherwise a phantom hyphen shows
+									  // at the start of the relocated textbox
+
+	event.Skip();
+
 }
 void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event) 
 {
@@ -451,6 +466,10 @@ void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 			m_pApp->GetGuesserSuffixes()->RemoveAt(iIndex);
 			m_bSuffixesUpdated = true;
 		}
+		m_pSrcLangAffix->SetLabel(_T(""));
+		m_pSrcLangAffix->Layout();
+		m_pTgtLangAffix->SetLabel(_T(""));
+		m_pTgtLangAffix->Layout();
 		LoadDataForListType(m_pltCurrentAffixPairListType);
 	}
 }

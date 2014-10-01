@@ -21323,8 +21323,6 @@ int ii = 1;
 	bOKay = GetDocument()->IsMarker(ptr);
 	wxString wholeMarker = GetDocument()->GetWholeMarker(ptr);
 */
-	//klb test
-	//bool a = ParatextIsRunning();
 
 	//wxLogDebug(_T("At end of app's member function OnInit(), m_bCancelAndSelectButtonPressed = %d"),
 	//	m_pTargetBox->GetCancelAndSelectFlag());
@@ -21827,6 +21825,17 @@ int CAdapt_ItApp::OnExit(void)
 		m_pKbServerForDeleting = (KbServer*)NULL;
 	}
 #endif
+
+// Clear up Guesser Prefix/Suffix Arrays - klb
+	if (!m_GuesserPrefixArray.IsEmpty())
+	{
+		m_GuesserPrefixArray.Clear();
+	}
+	if (!m_GuesserSuffixArray.IsEmpty())
+	{
+		m_GuesserSuffixArray.Clear();
+	}
+
 	return 0;
 }
 
@@ -25035,33 +25044,6 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 			}
 		}
 	}
-
-	//TEST KLB
-/*	GuesserAffixesListsDlg dlg(GetMainFrame());
-	if ( dlg.ShowModal() == wxID_OK ) {}
-		wxString path = m_curProjectPath + PathSeparator + _T("GuesserPrefixesTestOutput.xml");
-
-		wxFile f;
-		// first, the glossing KB export
-		if( !f.Open( path, wxFile::write))
-		{
-			// we don't expect failure, English message will do
-			wxMessageBox(_T("Unable to open glossing knowledge base export file in AccessOtherAdaptationProject(). Aborting the transform process before it begins."),
-			_T(""), wxICON_EXCLAMATION | wxOK);
-		}	
-
-		DoGuesserAffixWriteXML(&f,GuesserPrefix);
-		//DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType)
-
-
-	wxTextCtrl *MainEditBox;
-
-// Initialize our text box with an id of TEXT_Main, and the label "hi"
-  MainEditBox = new wxTextCtrl(this, wxID_ANY, "Hi!", wxDefaultPosition, wxDefaultSize,  
-    wxTE_MULTILINE | wxTE_RICH , wxDefaultValidator, wxTextCtrlNameStr);
-		///TEST KLB
-
-*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
