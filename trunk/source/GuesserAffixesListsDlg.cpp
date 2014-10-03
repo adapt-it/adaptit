@@ -55,7 +55,7 @@ BEGIN_EVENT_TABLE(GuesserAffixesListsDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 GuesserAffixesListsDlg::GuesserAffixesListsDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Construct Suffixes and Prefixes Lists"),
+	: AIModalDialog(parent, -1, _T("Construct Suffixes and Prefixes Lists"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -97,7 +97,7 @@ void GuesserAffixesListsDlg::OnCancel(wxCommandEvent& event)
 		wxString msg = _(
 			"You have made changes to affixes: Do you want to save them?");
 		//msg = msg.Format(msg, helpFilePath.c_str());
-		int response = wxMessageBox(msg,_("Changes not saved!"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		int response = wxMessageBox(msg,_T("Changes not saved!"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 		if (response == wxYES)
 		{
 			bool bPrefixesOK, bSuffixesOK;
@@ -125,12 +125,29 @@ void GuesserAffixesListsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 
 	m_pBtnInsert = (wxButton*)FindWindowById(ID_BUTTON_INSERT);
 	m_pBtnInsert->Enable(false); // Nothing Selected, so cannot insert
+	m_pBtnUpdate = (wxButton*)FindWindowById(ID_BUTTON_UPDATE);	
+	m_pBtnUpdate->Enable(false);
+	m_pBtnDelete = (wxButton*)FindWindowById(ID_BUTTON_DELETE);
+	m_pBtnDelete->Enable(false);
 
 	m_bPrefixesUpdated = false;
 	m_bSuffixesUpdated = false;
 }
 
-GuesserAffixesListsDlg::~GuesserAffixesListsDlg(void){}
+GuesserAffixesListsDlg::~GuesserAffixesListsDlg(void)
+{
+	// Clear up Guesser Prefix/Suffix Arrays - klb
+	if (!m_pPrefixesPairsArray->IsEmpty())
+	{
+		m_pPrefixesPairsArray->Clear();
+	}
+	if (!m_pSuffixesPairsArray->IsEmpty())
+	{
+		m_pSuffixesPairsArray->Clear();
+	}
+	delete m_pPrefixesPairsArray;
+	delete m_pSuffixesPairsArray;
+}
 
 
 void GuesserAffixesListsDlg::OnRadioButtonPrefixesList(wxCommandEvent& WXUNUSED(event))
@@ -138,9 +155,14 @@ void GuesserAffixesListsDlg::OnRadioButtonPrefixesList(wxCommandEvent& WXUNUSED(
 	// The user's click has already changed the value held by the radio button
 	m_pRadioPrefixesList->SetValue(TRUE);
 	m_pRadioSuffixesList->SetValue(FALSE);
+	
+	// No longer anything selected so disable buttons
+	m_pBtnUpdate->Disable();
+	m_pBtnInsert->Disable();
+	m_pBtnDelete->Disable();
 
 	bool result = LoadDataForListType(m_pltCurrentAffixPairListType = prefixesListType);
-
+	result = result; // Avoid warning...figured I would leave in bool return for future error signaling
 }
 
 void GuesserAffixesListsDlg::OnRadioButtonSuffixesList(wxCommandEvent& WXUNUSED(event))
@@ -149,7 +171,13 @@ void GuesserAffixesListsDlg::OnRadioButtonSuffixesList(wxCommandEvent& WXUNUSED(
 	m_pRadioPrefixesList->SetValue(FALSE);
 	m_pRadioSuffixesList->SetValue(TRUE);
 
+		// No longer anything selected so disable buttons
+	m_pBtnUpdate->Disable();
+	m_pBtnInsert->Disable();
+	m_pBtnDelete->Disable();
+
 	bool result = LoadDataForListType(m_pltCurrentAffixPairListType = suffixesListType);
+	result = result; // Avoid warning...figured I would leave in bool return for future error signaling
 }
 
 
@@ -181,7 +209,7 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 	m_pAffixPairsList->InsertColumn(0, col[0]);
 
 	col[1].SetId(1);
-	col[1].SetText(_("Target"));
+	col[1].SetText(_T("Target"));
 	col[1].SetWidth(220);
 	m_pAffixPairsList->InsertColumn(1, col[1]);
 	m_pAffixPairsList->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
@@ -201,7 +229,7 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 		if (pContainingWindow->GetSizer() != NULL)
 		{
 			pContainingWindow->GetSizer()->Layout();
-			DoLayoutAdaptation();
+			//DoLayoutAdaptation();
 		}
 		pContainingWindow->Refresh(); // needed, otherwise a phantom hyphen shows
 									  // at the start of the relocated textbox
@@ -275,14 +303,14 @@ void GuesserAffixesListsDlg::OnExplanationDlgWanted(wxCommandEvent& WXUNUSED(eve
 
 	if (!bSuccess)
 	{
-		wxString msg = _(
+		wxString msg = _T(
 		"Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, helpFilePath.c_str());
-		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+		int response = wxMessageBox(msg,_T("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		m_pApp->LogUserAction(msg);
 		if (response == wxYES)
 		{
-			wxString title = _("How to use the Suffixes and Prefixes Lists dialog");
+			wxString title = _T("How to use the Suffixes and Prefixes Lists dialog");
 			m_pApp->m_pHtmlFileViewer = new CHtmlFileViewer(this,&title,&helpFilePath);
 			m_pApp->m_pHtmlFileViewer->Show(TRUE);
 			m_pApp->LogUserAction(_T("Launched GuesserExplanation.htm in HTML Viewer"));
@@ -315,8 +343,15 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_("Please input an affix pair to add"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_T("Please input an affix pair to add"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
+	}
+	else if ((m_pltCurrentAffixPairListType == prefixesListType && PrefixExistsAlready(sSrc)) ||
+			 (m_pltCurrentAffixPairListType == suffixesListType && SuffixExistsAlready(sSrc))) // If already exists
+	{
+		wxString msg = _T("Affix \"") + sSrc + _T("\" already exists. Multiple identical affixes are not allowed.");
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK, this);
+		event.Skip(); 
 	}
 	else
 	{
@@ -347,7 +382,7 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 	if (pContainingWindow->GetSizer() != NULL)
 	{
 		pContainingWindow->GetSizer()->Layout();
-		DoLayoutAdaptation();
+		//DoLayoutAdaptation();
 	}
 	pContainingWindow->Refresh(); // needed, otherwise a phantom hyphen shows
 									  // at the start of the relocated textbox
@@ -365,7 +400,7 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_("Please input an updated affix pair for the selected pair"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_T("Please input an updated affix pair for the selected pair"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 	}
 	else
@@ -405,7 +440,7 @@ void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_("Please input an affix pair to insert"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_T("Please input an affix pair to insert"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 	}
 	else
@@ -445,7 +480,7 @@ void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_("Please selet an affix pair to delete"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_T("Please selet an affix pair to delete"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 	}
 	else
@@ -481,6 +516,8 @@ void GuesserAffixesListsDlg::OnListItemSelected(wxListEvent& event)
 	m_pSrcLangAffix->SetLabel(GetCellContentsString(GetSelectedItemIndex(), 0));
 	m_pTgtLangAffix->SetLabel(GetCellContentsString(GetSelectedItemIndex(), 1));
 	m_pBtnInsert->Enable();
+	m_pBtnUpdate->Enable();
+	m_pBtnDelete->Enable();
 	event.Skip();
 }
 
@@ -500,7 +537,7 @@ bool GuesserAffixesListsDlg::LoadPrefixes()
 	m_bPrefixesLoaded = true;
 		
 	CGuesserAffixArray* pArray = NULL; // Pointer to current list
-	m_pPrefixesPairsArray->Empty();
+	m_pPrefixesPairsArray->Clear();
 
 	// Get and load prefixes (if any)
 	if (m_pApp->GetGuesserPrefixes() && !m_pApp->GetGuesserPrefixes()->IsEmpty())
@@ -529,7 +566,7 @@ bool GuesserAffixesListsDlg::LoadSuffixes()
 	m_bSuffixesLoaded = true;
 	
 	CGuesserAffixArray* pArray = NULL; // Pointer to current list
-	m_pSuffixesPairsArray->Empty();
+	m_pSuffixesPairsArray->Clear();
 
 	// Get and load suffixes (if any)
 	if (m_pApp->GetGuesserSuffixes() && !m_pApp->GetGuesserSuffixes()->IsEmpty())
@@ -562,20 +599,42 @@ long GuesserAffixesListsDlg::GetSelectedItemIndex()
 	// Got the selected item index
 	wxLogDebug(m_pAffixPairsList->GetItemText(itemIndex));
 	if (itemIndex == -1)
-		wxMessageBox(_("Selected affix pair not found!"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_T("Selected affix pair not found!"),_T(""),wxICON_INFORMATION | wxOK, this);
 	return itemIndex;
  
-/*	for (;;) {
-		itemIndex = m_pAffixPairsList->GetNextItem(itemIndex,
-			                                 wxLIST_NEXT_ALL,
-				                             wxLIST_STATE_SELECTED);
- 
-		if (itemIndex == -1) break;
- 
-		// Got the selected item index
-		wxLogDebug(m_pAffixPairsList->GetItemText(itemIndex));
-	}
-*/
+}
+bool GuesserAffixesListsDlg::PrefixExistsAlready(wxString sSrc)
+{
+	wxASSERT(m_pPrefixesPairsArray != NULL);
+	
+	// CHeck to see if Prefix Exists, return true if so
+	if(GetPrefixes() != NULL && GetPrefixes()->GetCount() > 0)
+		for (int i = 0; i < (int)GetPrefixes()->GetCount(); i++)
+		{				
+			if (m_pPrefixesPairsArray->Item(i)->srcLangAffix.CmpNoCase( sSrc ) == 0 )
+			{
+				return true;
+			}
+			
+		}
+	return false;
+}
+bool GuesserAffixesListsDlg::SuffixExistsAlready(wxString sSrc)
+{
+	wxASSERT(m_pSuffixesPairsArray != NULL);
+	
+	// Check to see if Suffix Exists, return true if so
+	if(GetSuffixes() != NULL && GetSuffixes()->GetCount() > 0)
+		for (int i = 0; i < (int)GetSuffixes()->GetCount(); i++)
+		{				
+			if (m_pSuffixesPairsArray->Item(i)->srcLangAffix.CmpNoCase( sSrc ) == 0 )
+			{
+				return true;
+			}
+			
+		}
+	return false;
+
 }
 // Column 0 = source, 1 = target
 wxString GuesserAffixesListsDlg::GetCellContentsString( long row_number, int column ) 
@@ -598,6 +657,8 @@ wxString GuesserAffixesListsDlg::GetCellContentsString( long row_number, int col
  
    return cell_contents_string;
 }
+
+
 
 
 

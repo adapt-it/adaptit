@@ -21826,7 +21826,7 @@ int CAdapt_ItApp::OnExit(void)
 	}
 #endif
 
-// Clear up Guesser Prefix/Suffix Arrays - klb
+	// Clear up Guesser Prefix/Suffix Arrays - klb
 	if (!m_GuesserPrefixArray.IsEmpty())
 	{
 		m_GuesserPrefixArray.Clear();
@@ -21836,7 +21836,6 @@ int CAdapt_ItApp::OnExit(void)
 		m_GuesserSuffixArray.Clear();
 	}
 
-	return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
