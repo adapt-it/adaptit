@@ -127,6 +127,10 @@ private:
 	long GetSelectedItemIndex();
 	wxString GetCellContentsString( long row_number, int column ); 
 
+	bool PrefixExistsAlready(wxString sSrc);
+	bool SuffixExistsAlready(wxString sSrc);
+
+
 	DECLARE_EVENT_TABLE()
 };
 #endif /* GuesserAffixesListsDlg_h */
