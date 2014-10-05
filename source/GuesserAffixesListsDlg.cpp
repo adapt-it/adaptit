@@ -55,7 +55,7 @@ BEGIN_EVENT_TABLE(GuesserAffixesListsDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 GuesserAffixesListsDlg::GuesserAffixesListsDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _T("Construct Suffixes and Prefixes Lists"),
+	: AIModalDialog(parent, -1, _("Construct Suffixes and Prefixes Lists"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -97,7 +97,7 @@ void GuesserAffixesListsDlg::OnCancel(wxCommandEvent& event)
 		wxString msg = _(
 			"You have made changes to affixes: Do you want to save them?");
 		//msg = msg.Format(msg, helpFilePath.c_str());
-		int response = wxMessageBox(msg,_T("Changes not saved!"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+		int response = wxMessageBox(msg,_("Changes not saved!"),wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 		if (response == wxYES)
 		{
 			bool bPrefixesOK, bSuffixesOK;
@@ -204,12 +204,12 @@ bool GuesserAffixesListsDlg::LoadDataForListType(PairsListType myType)
 	wxListItem col[2];
 	// Based on what Mike does in DVCSLogDlg...
 	col[0].SetId(0);
-	col[0].SetText(_T("Source"));
+	col[0].SetText(_("Source"));
 	col[0].SetWidth(22);
 	m_pAffixPairsList->InsertColumn(0, col[0]);
 
 	col[1].SetId(1);
-	col[1].SetText(_T("Target"));
+	col[1].SetText(_("Target"));
 	col[1].SetWidth(220);
 	m_pAffixPairsList->InsertColumn(1, col[1]);
 	m_pAffixPairsList->SetColumnWidth(0,wxLIST_AUTOSIZE_USEHEADER);
@@ -303,22 +303,22 @@ void GuesserAffixesListsDlg::OnExplanationDlgWanted(wxCommandEvent& WXUNUSED(eve
 
 	if (!bSuccess)
 	{
-		wxString msg = _T(
+		wxString msg = _(
 		"Could not launch the default browser to open the HTML file's URL at:\n\n%s\n\nYou may need to set your system's settings to open the .htm file type in your default browser.\n\nDo you want Adapt It to show the Help file in its own HTML viewer window instead?");
 		msg = msg.Format(msg, helpFilePath.c_str());
-		int response = wxMessageBox(msg,_T("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
+		int response = wxMessageBox(msg,_("Browser launch error"),wxICON_QUESTION | wxYES_NO | wxYES_DEFAULT);
 		m_pApp->LogUserAction(msg);
 		if (response == wxYES)
 		{
-			wxString title = _T("How to use the Suffixes and Prefixes Lists dialog");
+			wxString title = _("How to use the Suffixes and Prefixes Lists dialog");
 			m_pApp->m_pHtmlFileViewer = new CHtmlFileViewer(this,&title,&helpFilePath);
 			m_pApp->m_pHtmlFileViewer->Show(TRUE);
-			m_pApp->LogUserAction(_T("Launched GuesserExplanation.htm in HTML Viewer"));
+			m_pApp->LogUserAction(_("Launched GuesserExplanation.htm in HTML Viewer"));
 		}
 	}
 	else
 	{
-		m_pApp->LogUserAction(_T("Launched GuesserExplanation.htm in browser"));
+		m_pApp->LogUserAction(_("Launched GuesserExplanation.htm in browser"));
 	}
 }
 
@@ -343,14 +343,14 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_T("Please input an affix pair to add"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_("Please input an affix pair to add"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 	}
 	else if ((m_pltCurrentAffixPairListType == prefixesListType && PrefixExistsAlready(sSrc)) ||
 			 (m_pltCurrentAffixPairListType == suffixesListType && SuffixExistsAlready(sSrc))) // If already exists
 	{
-		wxString msg = _T("Affix \"") + sSrc + _T("\" already exists. Multiple identical affixes are not allowed.");
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK, this);
+		wxString msg = _("Affix \"") + sSrc + _("\" already exists. Multiple identical affixes are not allowed.");
+		wxMessageBox(msg,_(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip(); 
 	}
 	else
@@ -400,7 +400,7 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_T("Please input an updated affix pair for the selected pair"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_("Please input an updated affix pair for the selected pair"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 	}
 	else
@@ -440,7 +440,7 @@ void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_T("Please input an affix pair to insert"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_("Please input an affix pair to insert"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 	}
 	else
@@ -480,7 +480,7 @@ void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 			m_pSrcLangAffix->SetFocus();
 		else
 			m_pTgtLangAffix->SetFocus();
-		wxMessageBox(_T("Please selet an affix pair to delete"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_("Please selet an affix pair to delete"),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
 	}
 	else
@@ -599,7 +599,7 @@ long GuesserAffixesListsDlg::GetSelectedItemIndex()
 	// Got the selected item index
 	wxLogDebug(m_pAffixPairsList->GetItemText(itemIndex));
 	if (itemIndex == -1)
-		wxMessageBox(_T("Selected affix pair not found!"),_T(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(_("Selected affix pair not found!"),_T(""),wxICON_INFORMATION | wxOK, this);
 	return itemIndex;
  
 }
