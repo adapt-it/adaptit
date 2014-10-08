@@ -137,7 +137,9 @@ void GuesserAffixesListsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 GuesserAffixesListsDlg::~GuesserAffixesListsDlg(void)
 {
 	// Clear up Guesser Prefix/Suffix Arrays - klb
-	if (!m_pPrefixesPairsArray->IsEmpty())
+	ClearAffixList( prefixesListType );
+	ClearAffixList( suffixesListType );
+	/*	if (!m_pPrefixesPairsArray->IsEmpty())
 	{
 		m_pPrefixesPairsArray->Clear();
 	}
@@ -145,10 +147,37 @@ GuesserAffixesListsDlg::~GuesserAffixesListsDlg(void)
 	{
 		m_pSuffixesPairsArray->Clear();
 	}
+*/
 	delete m_pPrefixesPairsArray;
 	delete m_pSuffixesPairsArray;
 }
 
+void GuesserAffixesListsDlg::ClearAffixList( PairsListType type )
+{
+	// Clear desired list and delete items
+	wxASSERT(type == prefixesListType || type == suffixesListType);
+	int ct;
+	
+	if (type == prefixesListType && !m_pPrefixesPairsArray->IsEmpty())
+	{
+		for (ct = 0; ct < (int)m_pPrefixesPairsArray->GetCount(); ct++)
+		{ 
+			AffixPair* pAffix = m_pPrefixesPairsArray->Item(ct);
+			delete pAffix;
+		}
+		m_pPrefixesPairsArray->Clear();
+	}
+	else if (type == suffixesListType && !m_pSuffixesPairsArray->IsEmpty())
+	{
+		for (ct = 0; ct < (int)m_pSuffixesPairsArray->GetCount(); ct++)
+		{ 
+			AffixPair* pAffix = m_pSuffixesPairsArray->Item(ct);
+			delete pAffix;
+		}
+		m_pSuffixesPairsArray->Clear();
+	}
+	
+}
 
 void GuesserAffixesListsDlg::OnRadioButtonPrefixesList(wxCommandEvent& WXUNUSED(event))
 {
@@ -535,9 +564,9 @@ AffixPairsArray* GuesserAffixesListsDlg::GetSuffixes()
 bool GuesserAffixesListsDlg::LoadPrefixes() 
 {
 	m_bPrefixesLoaded = true;
-		
+
 	CGuesserAffixArray* pArray = NULL; // Pointer to current list
-	m_pPrefixesPairsArray->Clear();
+	ClearAffixList( prefixesListType );
 
 	// Get and load prefixes (if any)
 	if (m_pApp->GetGuesserPrefixes() && !m_pApp->GetGuesserPrefixes()->IsEmpty())
@@ -566,7 +595,7 @@ bool GuesserAffixesListsDlg::LoadSuffixes()
 	m_bSuffixesLoaded = true;
 	
 	CGuesserAffixArray* pArray = NULL; // Pointer to current list
-	m_pSuffixesPairsArray->Clear();
+	ClearAffixList( suffixesListType );
 
 	// Get and load suffixes (if any)
 	if (m_pApp->GetGuesserSuffixes() && !m_pApp->GetGuesserSuffixes()->IsEmpty())
