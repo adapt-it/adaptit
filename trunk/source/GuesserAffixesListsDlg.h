@@ -130,6 +130,7 @@ private:
 	bool PrefixExistsAlready(wxString sSrc);
 	bool SuffixExistsAlready(wxString sSrc);
 
+	void ClearAffixList ( PairsListType type );
 
 	DECLARE_EVENT_TABLE()
 };
