@@ -57,12 +57,18 @@
 #include "Pile.h"
 #include "Layout.h"
 #include "Cell.h"
+#include "FreeTrans.h" // BEW 6Oct14, required for graying out the piles not in 
+					   // the current free translation section
 
 // globals for support of vertical editing
 
 /// A gray color used to mark the non-editable surrounding context when vertical
 /// editing of source text is in progress
-wxColor gMidGray = wxColour(128,128,128); //COLORREF gMidGray = (COLORREF)RGB(128,128,128);
+wxColour gMidGray = wxColour(128,128,128); //COLORREF gMidGray = (COLORREF)RGB(128,128,128);
+wxColour gLighterGray = wxColour(196,196,196); // BEW added 6Oct14
+//wxColour gLighterGray = wxColour(172,172,172); // darker
+wxColour gVeryLightGray = wxColour(230,230,230); // BEW added 6Oct14
+
 
 /// This global is defined in Adapt_It.cpp.
 extern EditRecord gEditRecord;
@@ -127,7 +133,7 @@ extern const wxChar* filteredTextPlaceHolder;
 extern EditRecord gEditRecord;
 
 // whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets:
-// (BEW moved here from deprecated CText)
+// (BEW moved the following comments to here, taken from deprecated & removed CText)
 //    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) function
 //    does not have an nFormat parameter like MFC's CDC::DrawText(const CString& str,
 //    lPRECT lpRect, UINT nFormat) text-drawing function. The MFC function utilizes the
@@ -501,11 +507,11 @@ void CCell::Draw(wxDC* pDC)
         // being done)
 
     // vertical edit: change text colour to gray if it is before or after the editable
-    // span; we have to do it also in the m_pText CText member too, and beware because the
-    // latter can be NULL for some CCell instances. whm: initialized the following two ints
-    // to 0 to avoid "potentially uninitialized local variable" warnings, since they would
-    // be uninitialized when gbVerticalEditInProgress if FALSE (albeit the present code,
-    // they are not used anywhere but where gbVerticalEditInProgress tests true.
+    // span. 
+    // whm: initialized the following two ints to 0 to avoid "potentially uninitialized
+    // local variable" warnings, since they would be uninitialized when
+    // gbVerticalEditInProgress if FALSE (albeit the present code, they are not used
+    // anywhere but where gbVerticalEditInProgress tests true.
 	int nStart_Span = 0;
 	int nEnd_Span = 0;
 	if (gbVerticalEditInProgress && (gEditStep == adaptationsStep) && pRec->bAdaptationStepEntered)
@@ -548,12 +554,39 @@ void CCell::Draw(wxDC* pDC)
 			;
 		}
 	}
+
+	// BEW added 6Oct14, to support gray text and lighter gray background for piles either
+	// side of the current free translation section
+	int nFT_First = -1;
+	int nFT_Last  = -1;
+	if (m_pLayout->m_pApp->m_bFreeTranslationMode)
+	{
+		m_pLayout->m_pApp->GetFreeTrans()->GetCurSectionFirstAndLast(&nFT_First, &nFT_Last);
+		if (m_pOwningPile->m_pSrcPhrase->m_nSequNumber < nFT_First ||
+			m_pOwningPile->m_pSrcPhrase->m_nSequNumber > nFT_Last)
+		{
+			// It's a pile which is before or after the current free translation section.
+			// Colour it gray except when green background is wanted, in which case the
+			// default foreground colour should show instead
+			if (!m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans)
+			{
+				color = gMidGray;
+			}
+		}
+		else
+		{
+			// if its not one of those, just use the normal text colour as set within the
+			// CLayout instance only
+			;
+		}
+	}
+
     // In all the remainder of this Draw() function, only backgrounds are ever changed in
     // color, and the navigation whiteboard area's icons and text are drawn in the call to
     // DrawNavTextInfoAndIcons() at the end.
 	if (m_bSelected)
 	{
-		oldBkColor = pDC->GetTextBackground(); // yellow
+		oldBkColor = pDC->GetTextBackground(); // whatever it is
 		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is
 																	 // set to wxSOLID
 		pDC->SetTextBackground(wxColour(255,255,0)); // yellow
@@ -616,6 +649,23 @@ void CCell::Draw(wxDC* pDC)
 			pDC->SetTextBackground(m_pLayout->m_pApp->m_freeTransCurrentSectionBackgroundColor); // pink
 		}
 	}
+	// BEW 6Oct14, added this 2nd block for src text line
+	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode &&
+		!m_pLayout->m_pApp->m_bIsPrinting)// source text line when in free trans mode
+	{
+		//if (!m_pOwningPile->m_bIsCurrentFreeTransSection && !m_pOwningPile->GetSrcPhrase()->m_bHasFreeTrans)
+		// The following is a better test for visually helping users to constrain their
+		// attention to the current section
+		if (!m_pOwningPile->m_bIsCurrentFreeTransSection)
+		{
+			// BEW 6Oct14 added this block, for a lighter gray background for
+			// non-free-translated tsource text cells -- visually helps users
+			// to stop their free translating at the section end
+			pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is
+																		 // set to wxSOLID
+			pDC->SetTextBackground(gLighterGray); // lightish gray
+		}
+	}
 	if (m_nCell == 1)// active adapting or glossing line
 	{
 		if (m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting)
@@ -635,6 +685,14 @@ void CCell::Draw(wxDC* pDC)
 				// colour background pastel pink
 				pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
 				pDC->SetTextBackground(m_pLayout->m_pApp->m_freeTransCurrentSectionBackgroundColor); // pink
+			}
+			else if (!m_pOwningPile->m_bIsCurrentFreeTransSection && !m_pOwningPile->GetSrcPhrase()->m_bHasFreeTrans)
+			{
+				// BEW 6Oct14 added this block, for a very light gray background for
+				// non-free-translated target text cells
+				pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is
+																			 // set to wxSOLID
+				pDC->SetTextBackground(gVeryLightGray); // very light gray
 			}
 		}
 		else

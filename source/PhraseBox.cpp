@@ -4425,8 +4425,41 @@ void CPhraseBox::RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItVie
 	CSourcePhrase* pTheSrcPhrase = pEndPile->GetSrcPhrase();
 	if (!pTheSrcPhrase->m_bRetranslation)
 	{
-		pApp->m_nActiveSequNum = maxSN;
-		pApp->m_pActivePile = pEndPile;
+		// BEW 5Oct15, Buka island. Added test for free translation mode here, because
+		// coming to the end in free trans mode, putting the phrasebox at last pile
+		// results in the current section's last pile getting a spurious new 1-pile
+		// section created at the doc end. The fix is to put the phrasebox back at the
+		// current pile's anchor, so that no new section is created
+		if (pApp->m_bFreeTranslationMode)
+		{
+			// Find the old anchor pile, closest to the doc end; but just in case
+			// something is a bit wonky, test that the last pile has a free translation -
+			// if it doesn't, then it is save to make that the active location (and it
+			// would become an empty new free translation - which should be free
+			// translated probably, and then this function will be reentered to get that
+			// location as the final phrasebox location
+			CPile* pPile = pView->GetPile(maxSN);
+			if (!pPile->GetSrcPhrase()->m_bHasFreeTrans)
+			{
+				pApp->m_nActiveSequNum = maxSN;
+			}
+			else
+			{
+				while (!pPile->GetSrcPhrase()->m_bStartFreeTrans)
+				{
+					pPile = pView->GetPrevPile(pPile);
+					wxASSERT(pPile != NULL);
+				}
+				pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+			}
+			pApp->m_pActivePile = pPile;
+		}
+		else
+		{
+			// Normal mode, use the last pile as active location
+			pApp->m_nActiveSequNum = maxSN;
+			pApp->m_pActivePile = pEndPile;
+		}
 	}
 	else
 	{

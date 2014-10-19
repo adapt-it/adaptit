@@ -6895,7 +6895,6 @@ void CAdapt_ItView::RemoveFollowingAnchor(wxClientDC *pDC, CCell *pAnchor)
 	{
 		// there is selected CCell after the anchor cell,
 		// so get rid of it & any later ones
-		//CText* pText;
 		CCell* pFollCell;
 		while (pos != NULL)
 		{
@@ -9945,8 +9944,8 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // class & set by the LookAhead function in CPhraseBox class)
 #if defined(_DEBUG)
 	// I want to see what values these app booleans have at this point
-	pApp->m_bFreeTransUsesZWSP = pApp->m_bFreeTransUsesZWSP;
 	pApp->m_bUseSrcWordBreak = pApp->m_bUseSrcWordBreak;
+	pApp->m_bZWSPinDoc = pApp->m_bZWSPinDoc;
 #endif
 	if (pApp->bLookAheadMerge)
 	{

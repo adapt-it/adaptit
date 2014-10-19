@@ -75,7 +75,6 @@ BEGIN_EVENT_TABLE(CKBPage, wxPanel)
 	EVT_INIT_DIALOG(CKBPage::InitDialog)
 	EVT_CHECKBOX(IDC_CHECK_KB_BACKUP, CKBPage::OnCheckKbBackup)
 	EVT_CHECKBOX(IDC_CHECK_BAKUP_DOC, CKBPage::OnCheckBakupDoc)
-	EVT_CHECKBOX(IDC_CHECK_USE_ZWSP_IN_FREETRANS, CKBPage::OnCheckFreeTransUsesZWSP)
 	EVT_RADIOBUTTON(IDC_RADIO_ADAPT_BEFORE_GLOSS, CKBPage::OnBnClickedRadioAdaptBeforeGloss)
 	EVT_RADIOBUTTON(IDC_RADIO_GLOSS_BEFORE_ADAPT, CKBPage::OnBnClickedRadioGlossBeforeAdapt)
 	EVT_RADIOBUTTON(IDC_RADIO_COPY_SRC_WORD_DELIM, CKBPage::OnBnClickedRadioCopySrcDelim)
@@ -157,10 +156,6 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	//m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
 	wxASSERT(m_pCheckLegacySourceTextCopy != NULL);
 
-	m_pCheckFreeTransUsesZWSP = (wxCheckBox*)FindWindowById(IDC_CHECK_USE_ZWSP_IN_FREETRANS);
-	wxASSERT(m_pCheckFreeTransUsesZWSP != NULL);
-
-	
 	pTextCtrlAsStaticTextBackupsKB = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE);
 	wxASSERT(pTextCtrlAsStaticTextBackupsKB != NULL);
 	// Make the wxTextCtrl that is displaying static text have window background color
@@ -207,15 +202,6 @@ void CKBPage::OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event))
 		tempBackupDocument = TRUE;
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
 	
-}
-
-void CKBPage::OnCheckFreeTransUsesZWSP(wxCommandEvent& WXUNUSED(event)) 
-{
-	if (bTempFreeTransUsesZWSP)
-		bTempFreeTransUsesZWSP = FALSE;
-	else
-		bTempFreeTransUsesZWSP = TRUE;
-	m_pCheckFreeTransUsesZWSP->SetValue(bTempFreeTransUsesZWSP);
 }
 
 // MFC's OnSetActive() has no direct equivalent in wxWidgets. 
@@ -354,10 +340,9 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 				// and it will be saved to basic and project config files
 	}
 
-	// BEW added 21Jul14 support for the two new flags - commit to their values as set
-	// temporarily currently
+	// BEW added 21Jul14 support for new flag - commit to its value as set
+	// currently
 	pApp->m_bUseSrcWordBreak = bTempUseSrcWordBreak;
-	pApp->m_bFreeTransUsesZWSP = bTempFreeTransUsesZWSP;
 }
 
 void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -377,7 +362,6 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempFreeTransLangCode = pApp->m_freeTransLanguageCode;
 	// BEW added 21Jul14, the next two
 	bTempUseSrcWordBreak = pApp->m_bUseSrcWordBreak;
-	bTempFreeTransUsesZWSP = pApp->m_bFreeTransUsesZWSP;
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
@@ -448,12 +432,6 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 		wxCommandEvent dummy;
 		OnBnClickedRadioUseLatinSpace(dummy);
 	}
-
-	// Set or clear the checkbox for the m_bFreeTransUsesZWSP flag
-	bTempFreeTransUsesZWSP = bTempFreeTransUsesZWSP? FALSE : TRUE; // reverse value
-	wxCommandEvent dummy;
-	// Now, make it what it is supposed to be, and the box ticked or cleared to agree
-	OnCheckFreeTransUsesZWSP(dummy);
 
 #ifdef _RTL_FLAGS
 	if (pApp->m_bSrcRTL)

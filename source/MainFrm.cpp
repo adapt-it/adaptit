@@ -4144,14 +4144,26 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			gbReplaceAllIsCurrent = FALSE;
 		}
 	}
-
-	if (pApp->m_bEnableDelayedGetChapterHandler )
+	
+	if (pApp->m_bEnableDelayedGet_Handler ) // BEW changed to this boolean on 7Oct14
 	{
-		pApp->m_bEnableDelayedGetChapterHandler = FALSE;
+		pApp->m_bEnableDelayedGet_Handler = FALSE;
 		// The remainder of the OnOK() button handler is the following
 		// function, defined in CollabUtilities.cpp
 		long returnedVal = OK_btn_delayedHandler_GetSourceTextFromEditor(gpApp);
 		returnedVal = returnedVal; // avoid compiler warning
+		// BEW added 7Oct14
+		pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
+	}
+
+	if (pApp->m_bRestorePhraseBoxToActiveLocAfterFreeTransExited)
+	{
+		pApp->m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = FALSE;
+		CCell* pCell = pApp->m_pActivePile->GetCell(1);
+		int activeSN = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+		pView->PlacePhraseBox(pCell,1);
+		pApp->m_pActivePile = pView->GetPile(activeSN); // restore active pile ptr
+		pView->Invalidate();
 	}
 
 	if (pApp->m_bEnableDelayedFreeTransOp)

@@ -393,11 +393,11 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 		// just do an English notification
 		wxCHECK_RET(bReadOK, _T("GetSourceTextFromEditor(): WriteConfigurationFile() failed, line 1247."));
 	}
-
-	m_pApp->m_bEnableDelayedGetChapterHandler = TRUE; // OnIdle() handler has a
-		// block to be entered when this is TRUE, the code block calls
-		// OK_btn_delayedHandler_GetSourceTextFromEditor(gpApp) and also
-		// m_bEnableDelayedGetChapterHandler is set FALSE to ensure only one call
+	//m_pApp->m_bEnableDelayedGetChapterHandler = TRUE; // OnIdle() handler has a
+	m_pApp->m_bEnableDelayedGet_Handler = TRUE; // BEW changed 7Oct14
+        // OnIdle() handler has a block to be entered when this is TRUE, the code block
+        // calls OK_btn_delayedHandler_GetSourceTextFromEditor(gpApp) and also
+        // m_bEnableDelayedGet_Handler is then set FALSE to ensure only one call
 
 				
 	/* not needed, I've put 2nd and 3rd lines instead into the class destructor

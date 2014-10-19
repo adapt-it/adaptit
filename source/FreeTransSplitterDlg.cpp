@@ -66,6 +66,8 @@
 #include "Adapt_ItCanvas.h"
 #include "FreeTransSplitterDlg.h"
 
+extern CAdapt_ItApp* gpApp;
+
 // event handler table
 BEGIN_EVENT_TABLE(FreeTransSplitterDlg, AIModalDialog)
 	EVT_INIT_DIALOG(FreeTransSplitterDlg::InitDialog)
@@ -215,8 +217,13 @@ void FreeTransSplitterDlg::OnOK(wxCommandEvent& event)
 	event.Skip(); // we want the dialog to dispose of itself when OK is clicked
 }
 
+// BEW 9Oct14 added ZWSP support, and also made split smarter if splitting between
+// two words with only punctuation between them (user forgot to have a space there)
 void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 {
+	wxString puncts = gpApp->m_punctuation[1]; // use target text punctuation set
+	puncts.Replace(_T(" "),_T(""),TRUE); // TRUE = replace all - removes all spaces
+	
 	// Bump the hit count
 	m_nSplitButtonHitCount++;
 
@@ -243,11 +250,13 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
     // can be relied on.
 	wxString str = m_pEditFreeTrans->GetValue();
 	wxChar space = _T(' ');
+	wxChar zwsp = (wxChar)0x200B;
 	// If the insertion point has a space or spaces ahead, delete the space(s) until
 	// coming to the next word, or to the end of the string - whichever comes first
 	size_t length = str.Len();
 	bool bDidRemovals = FALSE;
-	while ((m_offset < length) && (str.GetChar(m_offset) == space))
+	while ((m_offset < length) && ((str.GetChar(m_offset) == space) ||
+									str.GetChar(m_offset) == zwsp))
 	{
 		str.Remove(m_offset,1);
 		length = str.Len();
@@ -261,16 +270,66 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 		m_FreeTransForNext = str.Mid(m_offset);
 		// Trim ends
 		m_FreeTransForCurrent.Trim(); // trim whitespace from its end
+		// Trim also any final ZWSP characters
+		while (m_FreeTransForCurrent.GetChar(m_FreeTransForCurrent.Len() - 1) == zwsp)
+		{
+			m_FreeTransForCurrent = m_FreeTransForCurrent.Left(m_FreeTransForCurrent.Len() - 1);
+		}
 		m_FreeTransForCurrent.Trim(FALSE); // and at its start
+		// And at its start for ZWSP too
+		while (m_FreeTransForCurrent.GetChar(0) == zwsp)
+		{
+			m_FreeTransForCurrent = m_FreeTransForCurrent.Mid(1);
+		}
 		m_FreeTransForNext.Trim(); // trim whitespace from its end
+		// Trim also any final ZWSP characters
+		while (m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
+		{
+			m_FreeTransForNext = m_FreeTransForNext.Left(m_FreeTransForNext.Len() - 1);
+		}
 		m_FreeTransForNext.Trim(FALSE); // there shouldn't be any at the start, but play safe
+		// And at its start for ZWSP too
+		while (m_FreeTransForNext.GetChar(0) == zwsp)
+		{
+			m_FreeTransForNext = m_FreeTransForNext.Mid(1);
+		}
 		// Load the two text controls and return
 		m_pEditForCurrent->ChangeValue(m_FreeTransForCurrent);
 		m_pEditForNext->ChangeValue(m_FreeTransForNext);
 		return;
 	}
+	// If the insertion place has a punctuation character preceding, assuming the user
+	// wants the cursor location to be the split location - just split there, but remove
+	// any space or zwsp at the start of the 'next' substring
+	wxChar prevChar = str.GetChar(m_offset - 1);
+	int offset2 = puncts.Find(prevChar);
+	if (offset2 != wxNOT_FOUND)
+	{
+		// The character before the cursor location is one of the target punctuation
+		// characters, so split at the cursor location
+		m_FreeTransForCurrent = str.Left(m_offset);
+		m_FreeTransForNext = str.Mid(m_offset);
+		m_FreeTransForNext.Trim(); // trim whitespace from its end
+		// Trim also any final ZWSP characters
+		while (m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
+		{
+			m_FreeTransForNext = m_FreeTransForNext.Left(m_FreeTransForNext.Len() - 1);
+		}
+		m_FreeTransForNext.Trim(FALSE); // and at the start
+		// And at its start for ZWSP too
+		while (m_FreeTransForNext.GetChar(0) == zwsp)
+		{
+			m_FreeTransForNext = m_FreeTransForNext.Mid(1);
+		}
+		// Load the two text controls and return
+		m_pEditForCurrent->ChangeValue(m_FreeTransForCurrent);
+		m_pEditForNext->ChangeValue(m_FreeTransForNext);
+		return;
+	}
+	
 	// If the insertion place is not at a space, move back until one precedes
-	while ((m_offset > 0) && (str.GetChar(m_offset - 1) != space))
+	while ((m_offset > 0) && ((str.GetChar(m_offset - 1) != space) ||
+								(str.GetChar(m_offset - 1) != space)))
 	{
 		// If we are not at the start of the string, check that the preceding character is
 		// not a space - as long as that is so, move back character by character until we
@@ -279,16 +338,32 @@ void FreeTransSplitterDlg::OnButtonSplitHere(wxCommandEvent& WXUNUSED(event))
 	}
     // Either m_offset is 0 and the first word will be the start of the remainder string
     // and the string to remain in the current section is empty, or m_offset is pointing at
-    // the first character of the first word of the remainder string and a space precedes
-	// and whatever precedes that space goes (when trimmed) in the current section. Either
-	// way, m_offset is set correctly for splitting using .Left() and .Mid()
+    // the first character of the first word of the remainder string and a space or ZWSP
+    // precedes and whatever precedes that space goes (when trimmed) in the current
+    // section. Either way, m_offset is set correctly for splitting using .Left() and
+    // .Mid()
 	m_FreeTransForCurrent = str.Left(m_offset);
 	m_FreeTransForNext = str.Mid(m_offset);
 	// Trim ends
 	m_FreeTransForCurrent.Trim(); // trim whitespace from its end
+	// Trim also any final ZWSP characters
+	while (m_FreeTransForCurrent.GetChar(m_FreeTransForCurrent.Len() - 1) == zwsp)
+	{
+		m_FreeTransForCurrent = m_FreeTransForCurrent.Left(m_FreeTransForCurrent.Len() - 1);
+	}
 	m_FreeTransForCurrent.Trim(FALSE); // and at its start
+	// And at its start for ZWSP too
+	while (m_FreeTransForCurrent.GetChar(0) == zwsp)
+	{
+		m_FreeTransForCurrent = m_FreeTransForCurrent.Mid(1);
+	}
 	m_FreeTransForNext.Trim(); // trim whitespace from its end
-	m_FreeTransForNext.Trim(FALSE); // there shouldn't be any at the start, but play safe
+	// Trim also any final ZWSP characters
+	while (m_FreeTransForNext.GetChar(m_FreeTransForNext.Len() - 1) == zwsp)
+	{
+		m_FreeTransForNext = m_FreeTransForNext.Left(m_FreeTransForNext.Len() - 1);
+	}
+
 	// Load the two text controls and return
 	m_pEditForCurrent->ChangeValue(m_FreeTransForCurrent);
 	m_pEditForNext->ChangeValue(m_FreeTransForNext);

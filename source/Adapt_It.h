@@ -3630,6 +3630,7 @@ public:
                 // in the edit box within the Compose Bar when that particular free
                 // translation section is defined, FALSE if not, and default setting is
                 // FALSE
+    bool	m_bRestorePhraseBoxToActiveLocAfterFreeTransExited; // default FALSE, used by OnIdle()
 	bool	m_bEnableDelayedFreeTransOp; // BEW 29Nov13 extensions available in Adjust dialog
 				// and Split... button interfere with Drawing if the posted custom event which
 				// calls their handlers results in the handler operating before the previous
@@ -3996,8 +3997,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 
 	bool m_bStartWorkUsingCollaboration; // whm added 19Feb12
 	wxArrayPtrVoid*	m_pArrayOfCollabProjects;
-	bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
-	bool m_bEnableDelayedGetWholeBookHandler; // ditto
+	//bool m_bEnableDelayedGetChapterHandler; // BEW added 15Sep14
+	bool m_bEnableDelayedGet_Handler; // BEW added 15Sep14
+	//bool m_bEnableDelayedGetWholeBookHandler; // ditto removed 7Oct14 (was not used)
 
 	// Support for clipboard-based adaptation (and free translation)
 	bool     m_bClipboardAdaptMode; // BEW added 9May14, a feature suggested by Bob Eaton (SAG)
@@ -4476,12 +4478,12 @@ public:
 	// The next flag turns on or off the copy of the src text word break character for
 	// composing programmatically target text words into groups, default is TRUE
 	bool m_bUseSrcWordBreak;
-	// The next flag turns on or off the joining of free translation spans with whatever
-	// is stored in the anchor CSourcePhrase's m_srcWordBreak string - typically it would
-	// be ZWSP when the user wants this flag on; turning the flag off, results in programmatic
-	// joining being done with plain latin space character (even if the user has joined words
-	// by manually typing ZWSP between each pair in the free translation)
-	bool m_bFreeTransUsesZWSP;
+	// The next flag gets set TRUE if we detect that the document contains a ZWSP. We assume
+	// that the presence of one implies many others, and so the language would be one of
+	// Sth East Asia; and hence free translations should break at latin spaces.
+	bool m_bZWSPinDoc;
+	bool IsZWSPinDoc(SPList* pList); // use to set of clear m_bZWSPinDoc at doc load 
+									 // or tfer from PT or BE
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12

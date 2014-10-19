@@ -52,7 +52,6 @@ public:
 	wxCheckBox* m_pCheckDisableAutoBkups;
 	wxCheckBox* m_pCheckBkupWhenClosing;
 	wxCheckBox* m_pCheckLegacySourceTextCopy;
-	wxCheckBox* m_pCheckFreeTransUsesZWSP;
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* m_pEditGlsName;
@@ -78,7 +77,6 @@ public:
 	bool		tempNotLegacySourceTextCopy;
 	bool		tempBackupDocument;
 	bool		bTempUseSrcWordBreak; 
-	bool		bTempFreeTransUsesZWSP;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
 	wxString	tempGlsName;
@@ -98,7 +96,6 @@ public:
 	void OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event));// whm added 10May10
 	void OnCheckKbBackup(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event));
-	void OnCheckFreeTransUsesZWSP(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioAdaptBeforeGloss(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioGlossBeforeAdapt(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioCopySrcDelim(wxCommandEvent& WXUNUSED(event));

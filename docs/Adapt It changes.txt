@@ -1,4 +1,48 @@
  ----------------------------------------------
+Version 6.5.5 release ??  ??  2014
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.5
+----------------------------------------------
+* Gray de-emphasis has been added to the display in free
+translation mode, so that the eye can easily see what lies
+before andbeyond the current section to be free translated.
+* In the dialog for setting up a collaboration, the list of
+projects from Paratext or Bible edit is now sorted. 
+* In the Join Documents dialog, the lists are now sorted.
+* The application now checks the open document for the
+presence of ZWSP (zero width space), and sets up 
+internal behaviours based on what it finds, automatically.
+This removes two radio buttons from the Preferences,
+that were added in 6.5.4. The old way was interfering
+with the "Join to Next" option in the free translations -
+it was joining only one pile, instead of the whole next
+section.
+* Join Documents feature is improved. The list box now only
+lists those documents which have a matching book ID to that
+of the currently open document to which the joining will be
+done. If the currently open document has no book ID, no test
+for documents with the same book ID is done, so all are 
+listed - in which case the user must rely on his own manual
+choice of which documents to join - as made within the
+dialog. Also, if there is an error, the application will
+now restore the pre-join state of the documents, keeping  
+the Join dialog open for you to try again if you wish.
+----------------------------------------------
+Bug fixes in 6.5.5
+----------------------------------------------
+* Changed to the xml document structure introduced by the
+support for zero width space in version 6.5.4, broke the
+Join Document feature. It now is fixed, and improved (see 
+above.)
+* Exiting from free translation mode, the phrasebox did not
+relocate to the active pile's "hole".
+* Free translating to the end of the document made a bogus
+one-pile free translation section at document end.
+* Splitting a free translation after the period of " word.word "
+resulted in the pair of words not being split apart to be in
+different sections, but both ended up in the remainder section.
+ ----------------------------------------------
 Version 6.5.4 release 16 September 2014
 ----------------------------------------------
 ----------------------------------------------

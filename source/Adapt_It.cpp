@@ -15201,6 +15201,17 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
+    m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = FALSE; // used to relocate the
+		// phrasebox to the active pile's hole when free trans mode is exited. (Because
+		// it stubbornly stayed at old anchor location on the screen)
+
+	m_bZWSPinDoc = FALSE; // set default value; each loaded doc will be checked for
+						  // presence of ZWSP, and if present, this flag is set TRUE
+						  // unilaterally for that document. It governs, mainly,
+						  // adding latin space as a halt location for free translations
+						  // done on se asian languages with ZWSP word delimiters, and
+						  // also in mergers for handling free trans, notes, collected
+						  // back translations - see PutSrcWordBreakFrTr() in helpers.cpp
     
 	// Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
@@ -15280,7 +15291,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bEnableDelayedFreeTransOp = FALSE;
 	m_enumWhichFreeTransOp = no_op;
 	m_bFreeTrans_EventPending = FALSE;
-	m_bEnableDelayedGetChapterHandler = FALSE; // BEW added 15Sep14
+	//m_bEnableDelayedGetChapterHandler = FALSE; // BEW added 15Sep14
+	m_bEnableDelayedGet_Handler = FALSE; // BEW changed to this on 7Oct14
 
 	// bug fixed 24Sept13 BEW
 	//limiter = 0; // BEW 8Aug13, used at end of CMainFrame::OnIdle() to prevent a hack from
@@ -21835,8 +21847,35 @@ int CAdapt_ItApp::OnExit(void)
 	{
 		m_GuesserSuffixArray.Clear();
 	}
-
+	return 0; // always return 0
 }
+
+// use to set of clear m_bZWSPinDoc at doc load or tfer from PT or BE
+bool CAdapt_ItApp::IsZWSPinDoc(SPList* pList)
+{
+	wxASSERT(pList != NULL);
+	wxChar zwsp = (wxChar)0x200B;
+	if (pList->size() == 0)
+		return FALSE;
+	SPList::Node* pos = pList->GetFirst();
+	CSourcePhrase* pSP = NULL;
+	wxString srcWordBreak;
+	int offset = wxNOT_FOUND;
+	while (pos != NULL)
+	{
+		pSP = pos->GetData();
+		pos = pos->GetNext();
+		srcWordBreak = pSP->GetSrcWordBreak();
+		offset = srcWordBreak.Find(zwsp);
+		if (offset != wxNOT_FOUND)
+		{
+			// we found a ZWSP (zero width space), so exit TRUE)
+			return TRUE;
+		}
+	}
+	return FALSE; // we didn't find any ZWSP word delimiters
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -26458,6 +26497,8 @@ void CAdapt_ItApp::DoFileOpen()
     // one way which Adapt It totally controls - to turn on or off book folders mode.
 	wxCommandEvent dummyevent;
 	DoStartWorkingWizard(dummyevent);
+	// BEW added 7Oct14
+	m_bZWSPinDoc = IsZWSPinDoc(m_pSourcePhrases);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -33490,6 +33531,8 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szUseSourceWordBreak << tab << number;
 	pf->AddLine(data);
 
+	/* //BEW 7Oct14 deprecated. We'll use instead m_bZWSPinDoc, which we'll set true
+	// automatically when we detect ZWSP within the document
 	if (m_bFreeTransUsesZWSP)
 		number = _T("1");
 	else
@@ -33497,6 +33540,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szFreeTranslationUsesZWSP << tab << number;
 	pf->AddLine(data);
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -34498,15 +34542,18 @@ t:				m_pCurrBookNamePair = NULL;
 			else
 				m_bUseSrcWordBreak = FALSE;
 		}
+		// BEW 7Oct14 deprecated. Keep it so any old config files don't complain
+		// but just don't use it in app. App will automatically detect ZWSP in
+		// the document, and set m_bZWSPinDoc true if so
 		else if (name == szFreeTranslationUsesZWSP)
 		{
-			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 1))
-				num = 0; // default is OFF
-			if (num == 1)
-				m_bFreeTransUsesZWSP = TRUE;
-			else
-				m_bFreeTransUsesZWSP = FALSE;
+			;//num = wxAtoi(strValue);
+			//if (!(num == 0 || num == 1))
+			//	num = 0; // default is OFF
+			//if (num == 1)
+			//	m_bFreeTransUsesZWSP = TRUE;
+			//else
+			//	m_bFreeTransUsesZWSP = FALSE;
 		}
 		else
 		{
@@ -40498,6 +40545,10 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 /// match, and does other housekeeping to make sure end markers and sequence numbers are
 /// handled properly.
 /// BEW 12Apr10, changed for support of doc version 5
+/// BEW 18Oct14 refactored the early part to allow appending the stored copy of the 
+/// old current document to an empty m_pSourcePhrases list - this, since empty, won't
+/// have any book ID to compare, so we just accept whatever ID is in the list being
+/// appended
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID,
 												 bool IsLastAppendUsingThisMethodRightNow)
@@ -40515,51 +40566,58 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 
     // get the current document's count of CSourcePhrase instances, so we can later locate
     // the active location to the first instance at the join location
-	int nOldCount = m_pSourcePhrases->GetCount();
-
-	// test for match of book ID codes here, return if they don't match
-	wxString lowerPassedInID = curBookID;
-	lowerPassedInID.MakeLower(); // it's now lower case
-	wxString appendingDoc_BookID;
-	wxString lowerAppendingBookID;
-	SPList::Node* pos = ol->GetFirst();
-	CSourcePhrase* pFirstSrcPhrase = (CSourcePhrase*)pos->GetData();
-	wxASSERT(pFirstSrcPhrase);
-	if (pFirstSrcPhrase->m_markers.Find(_T("\\id ")) == 0)
+	int nOldCount = 0;
+	if (!m_pSourcePhrases->IsEmpty())
 	{
-		// there is an \id defined, and so we can get it and check for a match
-		appendingDoc_BookID = pFirstSrcPhrase->m_srcPhrase; // if it had
-										// punctuation it would be invalid
-		if (IsValidBookID(appendingDoc_BookID))
+		nOldCount = m_pSourcePhrases->GetCount();
+	}
+	if (nOldCount > 0)
+	{
+		// test for match of book ID codes here, return if they don't match
+		wxString lowerPassedInID = curBookID;
+		lowerPassedInID.MakeLower(); // it's now lower case
+		wxString appendingDoc_BookID;
+		wxString lowerAppendingBookID;
+		SPList::Node* pos = ol->GetFirst();
+		CSourcePhrase* pFirstSrcPhrase = (CSourcePhrase*)pos->GetData();
+		wxASSERT(pFirstSrcPhrase);
+		if (pFirstSrcPhrase->m_markers.Find(_T("\\id ")) == 0)
 		{
-			// check if we have matching book IDs
-			lowerAppendingBookID = appendingDoc_BookID;
-			lowerAppendingBookID.MakeLower(); // it's now lower case too
-			if (lowerPassedInID != lowerAppendingBookID)
+			// there is an \id defined, and so we can get it and check for a match
+			appendingDoc_BookID = pFirstSrcPhrase->m_srcPhrase; // if it had
+											// punctuation it would be invalid
+			if (IsValidBookID(appendingDoc_BookID))
 			{
-				// mismatched
-				return FALSE;
+				// check if we have matching book IDs
+				lowerAppendingBookID = appendingDoc_BookID;
+				lowerAppendingBookID.MakeLower(); // it's now lower case too
+				if (lowerPassedInID != lowerAppendingBookID)
+				{
+					// mismatched
+					return FALSE;
+				}
+				else
+				{
+					// matched book IDs, so delete the first source phrase in the
+					// doc to be appended's list
+					ol->DeleteNode(ol->GetFirst()); //ol->RemoveHead();
+				}
 			}
 			else
 			{
-				// matched book IDs, so delete the first source phrase in the
-				// doc to be appended's list
-				ol->DeleteNode(ol->GetFirst()); //ol->RemoveHead();
+				// an invalid ID cannot possibly match the passed in bookID,
+				// so we have a mismatch
+				return FALSE;
 			}
 		}
 		else
 		{
-			// an invalid ID cannot possibly match the passed in bookID,
-			// so we have a mismatch
-			return FALSE;
+			// here is no \id, (the document might not have USFM or SFM markup),
+			// so don't make any book ID check
+			;
 		}
-	}
-	else
-	{
-		// here is no \id, (the document might not have USFM or SFM markup),
-		// so don't make any book ID check
-		;
-	}
+	} // if m_pSourcePhrases is empty, we just accept the book ID from the ol list
+
 	// Jonathan's code continues here...
 	//m_pSourcePhrases->Append(ol);
     // wx doesn't have a wxList method for appending one list onto another list, so we'll
@@ -47369,9 +47427,19 @@ wxString CAdapt_ItApp::GetBookCodeFastFromDiskFile(wxString pathAndName)
 			{
 				if (*ptr == '\\' && *(ptr+1) == 'i' && *(ptr+2) == 'd' && *(ptr+3) == ' ')
 				{
-					// we are at an \id marker. If the "\id " we've detected so far is followed
-					// by a quote mark and closing tag '>' then we know we are in an AI xml document
-					if (*(ptr+4) == '\"' && *(ptr+5) == '>')
+					// we are at an \id marker. 
+					// BEW 18Oct14: Bill's old comment follows: If the "\id " we've detected so far 
+					// is followed by a quote mark and closing tag '>' then we know we are in 
+					// an AI xml document. <<-- this assertion was invalidated by the introduction
+					// of ZWSP support, because now after the closing " there is a space, then
+					// swsp=" <a character here> ">   Because of this I have to change
+					// Bill's test to also test for a preceding m=" sequence, because testing
+					// for what follows, well, it could be space or newline or carriage return
+					// depending on platform, so testing for m="\id "  is a safer test and it
+					// also guarantees we are in an AI document. But beware, if in a USFM document
+					// then ptr-1 is likely to be out of bounds, so test carefully
+					//if (*(ptr+4) == '\"' && *(ptr+5) == '>') <<-- Bill's old test
+					if (ptr > (pBuff+3) && *(ptr-1) == '\"' && *(ptr-2) == '='&& *(ptr-3) == 'm') // as of 18Oct14
 					{
 						// We are in an AI xml document, so scan backwards to find the book code within
 						// the s= field.

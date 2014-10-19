@@ -142,6 +142,12 @@ public:
 	// OnLButtonDown()) to create a new section at some arbitrary other location; doing so
 	// crashes the app, unless these functions are used in OnLButtonDown()
 	void		CloseOffCurFreeTransSection();
+	void		GetCurSectionFirstAndLast(int* pIndexOfFirst, int* pIndexOfLast); // BEW added
+					// 6Oct14, CCell uses these pile indices for colouring the
+					// foreground text mid gray and the background a lighter gray
+					// for all piles preceding the first or after the last - so that
+					// the user is discouraged for free translating into an adjacent
+					// part of the document - he gets visible feedback where the end is
 
 	//BEW 27Feb12, a setup function, compliant with docV6, for the two radio buttons in
 	//the GUI
