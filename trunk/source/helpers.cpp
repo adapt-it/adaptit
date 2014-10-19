@@ -10623,11 +10623,11 @@ wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
 	}
 }
 // Get it from m_srcWordBreak in pSrcPhrase, or return a latin space if app's 
-// m_bFreeTransUsesZWSP is FALSE - test internally
+// m_bZWSPinDoc is FALSE
 wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	if (pApp->m_bFreeTransUsesZWSP)
+	if (pApp->m_bZWSPinDoc)
 	{
 		// return whatever character or string m_srcWordBreak stores
 		return pSrcPhrase->GetSrcWordBreak(); 

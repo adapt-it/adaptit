@@ -699,6 +699,9 @@ bool CAdapt_ItDoc::OnNewDocument()
                 //doc/view black box on which we rely, leading to our event handlers
                 //failing to be called, so return TRUE instead
 				pApp->LogUserAction(_T("User cancelled OnNewDocument() while bUseSourceDataFolderOnly"));
+
+				pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14, restore default
+
 				return TRUE;
 			}
 			else
@@ -708,9 +711,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 				wxASSERT(!strSelectedFilename.IsEmpty());
 
 				// the dialog handler can now be deleted and its point set to NULL
-				if (gpApp->m_pNavProtectDlg != NULL) // whm 11Jun12 added NULL test
+				if (pApp->m_pNavProtectDlg != NULL) // whm 11Jun12 added NULL test
 					delete gpApp->m_pNavProtectDlg;
-				gpApp->m_pNavProtectDlg = NULL;
+				pApp->m_pNavProtectDlg = NULL;
 
 				// create the path to the selected file (m_sourceInputsFolderPath is always
 				// defined when the app enters a project, as a folder "__SOURCE_INPUTS" which
@@ -767,6 +770,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 					//doc/view black box on which we rely, leading to our event handlers
 					//failing to be called, so return TRUE instead
 					pApp->LogUserAction(_T("User cancelled OnNewDocument() from wxFileDialog"));
+
+					// BEW 7Oct14, restore default
+					pApp->m_bZWSPinDoc = FALSE;
+
 					return TRUE;
 				}
 				else // must be wxID_OK
@@ -880,6 +887,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 							gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
 
 							pApp->LogUserAction(msg1);
+
+							pApp->m_bZWSPinDoc = FALSE; // BEW 6Oct14 restore default
+
 							return FALSE; // returns to OnWizardFinish() in DocPage.cpp (BEW 24Aug10, if
 										// that claim always is true, then no harm will be done;
 										// but if it returns FALSE to the wxWidgets doc/view
@@ -970,6 +980,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 						//doc/view black box on which we rely, leading to our event handlers
 						//failing to be called, so return TRUE instead
 						pApp->LogUserAction(_T("No output document name entered in OnNewDocument()"));
+
+						pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
+
 						return TRUE;
 					}
 
@@ -1003,6 +1016,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 					//doc/view black box on which we rely, leading to our event handlers
 					//failing to be called, so return TRUE instead
 					pApp->LogUserAction(_T("User canceled in OnNewDocument()"));
+
+					pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
+
 					return TRUE;
 				} // end of else block for test: if (dlg.ShowModal() == wxID_OK)
 			} // end of else block for test: if (bUserNavProtectionInForce)
@@ -1113,6 +1129,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pView->Invalidate();
 				GetLayout()->PlaceBox();
 				pApp->LogUserAction(_T("No source language data in input file in OnNewDocument()"));
+
+				pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
+
 				return TRUE; // BEW 25Aug10, never return FALSE from OnNewDocument() if
 							 // you want the doc/view framework to keep working right
 			}
@@ -1174,6 +1193,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// get rid of the stored rebuilt source text, leave a space there instead
 					if (pApp->m_pBuffer)
 						*pApp->m_pBuffer = _T(' ');
+
+					pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14 restore default
+
 					return TRUE;
 				}
 				else
@@ -1397,6 +1419,10 @@ bool CAdapt_ItDoc::OnNewDocument()
 		}
 	}
 	pApp->LogUserAction(_T("Return TRUE from OnNewDocument()"));
+
+	// BEW added 7Oct14
+	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
+
 	return TRUE;
 }
 
@@ -4185,6 +4211,8 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 	// NOTE: This OnFileOpen() handler calls DoFileOpen() in the App, which now simply
 	// calls DoStartWorkingWizard().
 	pApp->DoFileOpen();
+	// BEW added 7Oct14
+	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -19338,6 +19366,8 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	pApp->OnFileNew(event);
+	// BEW added 7Oct14
+	pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

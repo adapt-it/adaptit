@@ -681,6 +681,29 @@ CPile* CFreeTrans::FindFreeTransSectionEnd(CPile* pStartingPile)
 	}
 }
 
+// BEW added 6Oct14, CCell uses these pile indices for colouring the foreground text mid
+// gray and the background a lighter gray for all piles preceding the first or after the
+// last - so that the user is discouraged for free translating into an adjacent part of
+// the document - he gets visible feedback where the end is
+void CFreeTrans::GetCurSectionFirstAndLast(int* pIndexOfFirst, int* pIndexOfLast)
+{
+	wxArrayPtrVoid*	pPiles = m_pCurFreeTransSectionPileArray;
+	wxASSERT(pPiles != NULL);
+	if(pPiles->size() == 0)
+	{
+		// Cannot access the pile array, or it has nothing in it - send back bogus values (-1)
+		*pIndexOfFirst = wxNOT_FOUND;
+		*pIndexOfLast = wxNOT_FOUND;
+		return;
+	}
+	// All's well, get the first and last index values, and return them via signature
+	int first = ((CPile*)pPiles->Item(0))->GetSrcPhrase()->m_nSequNumber;
+	size_t count = pPiles->size();
+	int last = ((CPile*)pPiles->Item(count - 1))->GetSrcPhrase()->m_nSequNumber;
+	*pIndexOfFirst = first;
+	*pIndexOfLast = last;
+}
+
 void CFreeTrans::GetExistingFreeTransPileSet(CPile* pFirstPile, wxArrayPtrVoid* pSectionPiles)
 {
 	CPile* pPile = pFirstPile;
@@ -3127,7 +3150,7 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
     // ready the drawing context - we must handle ANSI & Unicode, and for the former we use
     // TextOut() and for the latter we use DrawText() and the Unicode app can be LTR or RTL
     // script (we use same text rending directionality as the target text line) - code from
-    // CCell.cpp and CText.cpp can be reused here
+    // CCell.cpp and the deprecated & now-removed CText.cpp can be reused here
 	// wx version note: wx version always uses DrawText
 	wxRect rectBounding;
 	bool bRTLLayout = FALSE;
@@ -3905,7 +3928,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout)
     // ready the drawing context - we must handle ANSI & Unicode, and for the former we use
     // TextOut() and for the latter we use DrawText() and the Unicode app can be LTR or RTL
     // script (we use same text rending directionality as the target text line) - code from
-    // CCell.cpp and CText.cpp can be reused here
+    // CCell.cpp and the deprecated & now-removed CText.cpp can be reused here
 	// wx version note: wx version always uses DrawText
 	wxRect rectBounding;
 	bool bRTLLayout = FALSE;
@@ -5097,9 +5120,16 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
         // scroll into view - otherwise these are not done and box can be off-window
 		m_pLayout->RecalcLayout(m_pApp->m_pSourcePhrases,keep_strips_keep_piles);
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
-		m_pLayout->m_pCanvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
+
+		// BEW 16Oct14, box got left at free trans anchor pile location, so move it to the
+		// active pile's hole - nothing I do here works, so just do the basics here,
+		// and delay the relocation to occur in first OnIdle() call -- this works
 		m_pView->Invalidate();
 		m_pLayout->PlaceBox();
+		m_pLayout->m_pCanvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
+		// make OnIdle()relocate the box, and clear bool to FALSE in the
+		// block which gets executed there
+		m_pApp->m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = TRUE; 
 	}
 }
 
@@ -5601,13 +5631,13 @@ void CFreeTrans::FindSectionPiles(CPile* pFirstPile, wxArrayPtrVoid* pPilesArray
 		if (wordcount >= MIN_FREE_TRANS_WORDS)
 		{
             // BEW 21Jul14, support for ZWSP -- if app's m_bUseSrcWordBreak is TRUE, *AND*
-            // also app's m_bFreeTransUsesZWSP flg is TRUE, and pSrcPhrase stores a special
-            // space like ZWSP in it's m_srcWordBreak wxString member, *AND* pNextPile's
+            // also app's m_bZWSPinDoc flg is TRUE, and pSrcPhrase stores a special space
+            // like ZWSP in it's m_srcWordBreak wxString member, *AND* pNextPile's
             // CSourcePhrase instance (which we know is not NULL if control has reached
             // here) stores one or more ordinary latin space characters, then we've come to
             // a halting location between those two piles; but don't do this test if either
             // flag is false
-			if (m_pApp->m_bUseSrcWordBreak && m_pApp->m_bFreeTransUsesZWSP)
+			if (m_pApp->m_bUseSrcWordBreak && m_pApp->m_bZWSPinDoc)
 			{
 				wxString curWordBreak = pile->GetSrcPhrase()->GetSrcWordBreak(); // could be empty
 				wxString nextWordBreak = pNextPile->GetSrcPhrase()->GetSrcWordBreak(); // could be empty

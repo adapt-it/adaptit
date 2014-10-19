@@ -1927,10 +1927,6 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item2->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item38 = new wxCheckBox( parent, IDC_CHECK_USE_ZWSP_IN_FREETRANS, _("Support section closure at normal space (for free translations using zero width spaces)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item38->SetToolTip( _("Tick this box if you want the free translation to be in a script like LAO, it halts sections at normal latin spaces") );
-    item2->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
     item0->Add( item2, 1, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 10 );
 
     if (set_sizer)
@@ -8551,7 +8547,7 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
     item8->Add( 15, 15, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxString *strs9 = (wxString*) NULL;
-    wxComboBox *item9 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(260,-1), 0, strs9, wxCB_DROPDOWN );
+    wxComboBox *item9 = new wxComboBox( parent, ID_COMBO_AI_PROJECTS, wxT(""), wxDefaultPosition, wxSize(260,-1), 0, strs9, wxCB_DROPDOWN|wxCB_SORT );
     item9->SetToolTip( _("Click Here to open the list of Adapt It projects, or to create a new Adapt It project for collaboration purposes") );
     item8->Add( item9, 1, wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -8595,7 +8591,7 @@ wxSizer *SetupCollaborationBetweenAIandEditorFunc( wxWindow *parent, bool call_f
     wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs18 = (wxString*) NULL;
-    wxListBox *item18 = new wxListBox( parent, IDC_LIST_OF_COLLAB_PROJECTS, wxDefaultPosition, wxSize(400,80), 0, strs18, wxLB_SINGLE );
+    wxListBox *item18 = new wxListBox( parent, IDC_LIST_OF_COLLAB_PROJECTS, wxDefaultPosition, wxSize(400,80), 0, strs18, wxLB_SINGLE|wxLB_SORT );
     item18->SetToolTip( _("List of potential projects currently available for Adapt It use") );
     item17->Add( item18, 1, wxGROW|wxALL, 0 );
 

@@ -11,6 +11,10 @@
 /// to combine Adapt It documents into larger documents.
 /// \derivation		The CJoinDialog class is derived from AIModalDialog.
 /// BEW 12Apr10, all changes for supporting doc version 5 are done for this file
+/// BEW 18Oct14, refactored the Join button's handler to support restoration of
+/// the pre-join state if there was a book ID mismatch, and to only list documents
+/// which have the same book ID, if the current open document as a book ID. This
+/// change will be released in 6.5.5
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -37,6 +41,9 @@
 #include "JoinDialog.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
+#include "MainFrm.h"
+#include "Adapt_ItCanvas.h"
+#include "Pile.h"
 #include "helpers.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -140,8 +147,6 @@ void CJoinDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 					pAcceptedFiles, pRejectedFiles, gpApp->m_pDlgGlossFont);
 	#endif
 
-	InitialiseLists();
-
 	// get the book ID code from the currently open document (in the case of book folders
 	// mode being on currently, it is gotten instead from the book folder's struct, an
 	// BookNamePair pointer, pertaining to the currently active Bible book folder). We
@@ -151,6 +156,14 @@ void CJoinDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	// document to be appended (it will be the first in the list) is automatically removed
 	// before the join is done -- because there can be only one \id marker per document
 	bookID = gpApp->GetBookID();
+
+	// BEW 18Oct14 moved InitialiseLists() to be after the getting of the book ID, because
+	// the refactoring I'm going to do within InitialiseLists() will automatically remove
+	// from the array of listable documents, any which don't have an identical book code.
+	// In the case where the currently open document has no book code, no such elimination
+	// will be done - and in that case success will depend on the user eyeballing the list
+	// and manually removing anything which should not take part in the join
+	InitialiseLists();
 
 	// select the top item as default
 	int index = 0;
@@ -272,38 +285,127 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 
+    // BEW 18Oct14, added failure protection. First, make a temporary copy of the open
+    // document in case we fail when merging the files into the current open document - in
+    // a fail scenario, we'd clobber the altered current document, and rename the temporary
+    // copy as that document so that it is restored, and return so that none of the
+    // original files get removed and nothing renamed.
+	wxString tempStr = _T("temp_");
+	wxString tempCurrent = tempStr + OldCurrentDocumentFileName;
+	wxString pathAndTempCurrent = ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(),tempCurrent);
+	wxString pathAndOldCurrent = ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(),OldCurrentDocumentFileName);
+	bool bSuccessful_1 = ::wxCopyFile(pathAndOldCurrent, pathAndTempCurrent); // we expect success
+	CAdapt_ItView* pView = gpApp->GetView();
+	// Our needed backup is created, now proceed to the joining
+
 	// In this loop we do the actual joining.
 	bool bNoIDMismatch = TRUE;
-	for (i = 0; i < (int)pAcceptedFiles->GetCount(); ++i) {
-
-		// General algorithm: (BEW modified 07Nov05) added bookID to signature
-		//   For each source document:
-		//     Read the source phrase list and append that list to the current source phrase list;
-		//		but abort the joining operation if the bookID code does not match the bookID passed in
-		//		for the current source phrase list.
-
+	for (i = 0; i < (int)pAcceptedFiles->GetCount(); ++i) 
+	{
+		// Algorithm: (BEW modified 07Nov05) added bookID to signature)
+		//  For each source document:
+		//   Read the source phrase list and append that list to the current source phrase list;
+		//	  but abort the joining operation if the bookID code does not match the bookID 
+		//	  passed in for the current source phrase list.
 		FileName = pAcceptedFiles->GetString(i);
 		FilePath = ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), FileName);
 
 		SPList* ol = gpApp->LoadSourcePhraseListFromFile(FilePath);
-		bNoIDMismatch = gpApp->AppendSourcePhrasesToCurrentDoc(ol, bookID, i == (int)pAcceptedFiles->GetCount() - 1);
+		bool bAtLastDoc = (i == (int)pAcceptedFiles->GetCount() - 1);
+		bNoIDMismatch = gpApp->AppendSourcePhrasesToCurrentDoc(ol, bookID, bAtLastDoc);
+//#if defined(_DEBUG)
+		// Test the bNoIDMismatch == TRUE recovery blocks below (I added renamed copies
+		// of ch2 and ch3 as ch4 and ch5 for my tests, and will remove those files now)
+		//if (i == 1)
+		//{
+		//	bNoIDMismatch = FALSE;
+		//}
+//#endif
 		if (!bNoIDMismatch)
 		{
 			// tell the user of the book ID mismatch, and then abort the joining of this and subsequent documents,
 			// if any -- the user message should indicate which doc (using FileName) is the offending one
 			wxString msg;
-			//IDS_MISMATCHED_BOOK_IDS
 			msg = msg.Format(_("The book ID in the document with filename %s does not match the book ID for the currently open document."),FileName.c_str());
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
-			break;
-		}
-		ol->Clear();
+
+			// BEW 18Oct14, restore the pre-Join state if things went pear shape.
+			ol->Clear(); // we don't want the concatenated list so far constructed
+			if (::wxFileExists(pathAndOldCurrent) && bSuccessful_1)
+			{
+				// Remove the partially added to current doc, provided we were
+				// able to successfully create a temporary copy of it before anything
+				// was joined to it; if we didn't succeed in making the copy, then
+				// keep it as-is, that's better than losing the data - and let the
+				// user try work out what to do (making the temporary copy should
+				// never fail, so there's not much risk of such a mess happening)
+				::wxRemoveFile(pathAndOldCurrent); // don't care about returned boolean
+			}
+			// Now restore the old current one by renaming the temporary copy
+			bool bOkay = TRUE;
+			if (bSuccessful_1)
+			{
+				// doc of first renamed to second,  default bool overwrite is true
+				bOkay = wxRenameFile(pathAndTempCurrent, pathAndOldCurrent); 
+			}
+			// Restore the view under the open dialog window
+			gpApp->GetDocument()->DeleteContents(); // m_pSourcePhrases is now empty, & strips & piles clobbered
+			SPList* ol = gpApp->LoadSourcePhraseListFromFile(pathAndOldCurrent);
+			// We can ignore the returned boolean in next call, the book ID won't
+			// have changed, and TRUE means this is the last append (in this case
+			// it is also the only append)
+			gpApp->AppendSourcePhrasesToCurrentDoc(ol, bookID, TRUE);
+
+			CCell* pCell = gpApp->m_pActivePile->GetCell(1);
+			int activeSN = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+			pView->PlacePhraseBox(pCell,1);
+			gpApp->m_pActivePile = pView->GetPile(activeSN); // restore active pile ptr
+			pView->Invalidate();
+			gpApp->GetMainFrame()->canvas->ScrollIntoView(activeSN);
+			
+			// Trigger a re-layout/re-render of the current document.
+			gpApp->CascadeSourcePhraseListChange(true);
+			InitialiseLists();
+			this->pJoiningWait->Show(FALSE);
+			gbDoingSplitOrJoin = FALSE; // restore default so document backups can happen again
+			wxString msg1Yes = _("Joining documents exited prematurely because of a mismatched book ID code. Restoring the pre-join state succeeded.");
+			wxString msg1No  = _("Joining documents exited prematurely because of a mismatched book ID code. Restoring the pre-join state failed. Beware, the open document may have some documents appended.");
+			if (bOkay)
+			{
+				// Success message
+				wxMessageBox(msg1Yes, _T(""),wxICON_EXCLAMATION | wxOK);
+				gpApp->LogUserAction(msg1Yes);
+			}
+			else
+			{
+				// Failure message, with a warning
+				wxMessageBox(msg1No,_T(""),wxICON_EXCLAMATION | wxOK);
+				gpApp->LogUserAction(msg1No);
+			}
+			ol->Clear(); // clear, but don't delete contents as they are now managed by m_pSourcePhrases
+			if (ol != NULL) // whm 11Jun12 added NULL test
+				delete ol;
+			// Clear the typed doc name box, for a failure & restoration it should not be
+			// left with something in it
+			pNewFileName->Clear();
+			return; // to the dialog window
+		} // end of TRUE block for test: if (!bNoIDMismatch) -- for recovery upon error
+		ol->Clear(); // clear, but don't delete contents as they are now managed by m_pSourcePhrases
 		if (ol != NULL) // whm 11Jun12 added NULL test
 			delete ol;
+	} // end of for loop for joining them
 
+	// After a successful join, clobber the temporary copied document
+	if (bSuccessful_1)
+	{
+		if (::wxFileExists(pathAndTempCurrent))
+		{
+			::wxRemoveFile(pathAndTempCurrent); // don't care about returned boolean
+		}
 	}
-	// set up safe indices range for the bundle; refresh the document view if the parameter passed in
-	// is true, skip the update if false is passed in
+
+	// Refresh the document view if the parameter passed in is true, skip the update 
+	// if false is passed in
 	gpApp->CascadeSourcePhraseListChange(false);
 	
 	// Change underlying filename if applicable.
@@ -316,19 +418,12 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 
 	// Delete source files, except current document, although even delete the old current document if 
 	// we've changed filename and thus have a new current document.
-	// POTENTIAL IMPROVEMENT : It would be good, when deleting a file, we also delete any associated MRU 
-	// ("most recently used files") entry.
-	// BEW note 08Nov05: I thought of doing that, but it would reduce the functionality too much. Adapt It
-	// currently can open a file, even when the file is an XML one, from a currently non-open project via
-	// the MRU list, and also get the project switched over silently in doing so. If we were to delete
-	// MRU listed files, we really would want to only have to examine the current project's folders to do so;
-	// otherwise checking the file is not in any folder in any project as a condition for deletion would
-	// be rather timeconsuming and minimally useful. Instead, if the file does not exist (and is an XML
-	// one), I've coded so that the user is told the file probably no longer exists and the Start Working
-	// wizard gets automatically opened to enable him to get into a project and get a file open that way.
+	// (As of 2011 (or thereabouts) we no longer have a MRU list, so we don't have to
+	// remove anything from such a list because the document inventory may have changed.)
 	if (bNoIDMismatch)
 	{
-		// no book ID mismatch occurred, so all the files in the list were processed
+		// no book ID mismatch occurred, so all the files in the list were processed; the
+		// list should be empty when the user next sees the Join dialog window
 		for (i = 0; i < (int)pAcceptedFiles->GetCount(); ++i) 
 		{
 			FileName = pAcceptedFiles->GetString(i);
@@ -342,6 +437,10 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			::wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), OldCurrentDocumentFileName));
 		}
 	}
+	/*
+    // BEW 18Oct14, in the case of a mismatch of book ID, we above attempt to restore the
+    // original pre-join state of the documents, and return from this handler early. So
+    // this legacy code of Jonathan's is no longer needed.
 	else
 	{
 		// a book ID mismatch was detected, so not all the files in the list were processed. The i index
@@ -361,7 +460,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			::wxRemoveFile(ConcatenatePathBits(gpApp->GetCurrentDocFolderPath(), OldCurrentDocumentFileName));
 		}
 	}
-
+	*/
 	// Trigger a re-layout/re-render of the current document.
 	gpApp->CascadeSourcePhraseListChange(true);
 
@@ -374,16 +473,8 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	wxString strUserTyped = gpApp->m_curOutputFilename;
 	d->SetDocumentWindowTitle(strUserTyped, strUserTyped);
 
-	if (bNoIDMismatch)
-	{
-		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION | wxOK);// IDS_JOIN_SUCCESSFUL
-		gpApp->LogUserAction(_T("Joining to the current document was successful."));
-	}
-	else
-	{
-		wxMessageBox(_("Joining documents exited prematurely because of a mismatched book ID code."),_T(""),wxICON_EXCLAMATION | wxOK); //IDS_BAD_JOIN_FROM_MISMATCH
-		gpApp->LogUserAction(_T("Joining documents exited prematurely because of a mismatched book ID code."));
-	}
+	wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION | wxOK);
+	gpApp->LogUserAction(_T("Joining to the current document was successful."));	
 
 	gpApp->RefreshStatusBarInfo();
 	gbDoingSplitOrJoin = FALSE; // restore default so document backups can happen again
@@ -452,18 +543,55 @@ void CJoinDialog::InitialiseLists()
 		pAcceptedFiles->Append(nextDoc);
 	}
 	
-	if (true) 
-	{ // Remove the current document from the file list.
-		CurrentDocFileName = gpApp->GetCurrentDocFileName();
-		for (i = 0; i < (int)pAcceptedFiles->GetCount(); ++i) {
-			FileName = pAcceptedFiles->GetString(i);
-			if (FileName.CmpNoCase(CurrentDocFileName) == 0) {
-				pAcceptedFiles->Delete(i);
-				break;
-			}
+	// Remove the current document from the file list.
+	CurrentDocFileName = gpApp->GetCurrentDocFileName();
+	for (i = 0; i < (int)pAcceptedFiles->GetCount(); ++i) 
+	{
+		FileName = pAcceptedFiles->GetString(i);
+		if (FileName.CmpNoCase(CurrentDocFileName) == 0) 
+		{
+			pAcceptedFiles->Delete(i);
+			break;
 		}
 	}
 	pRejectedFiles->Clear();
+
+	// BEW added 18Oct14, to reject any document which does not have a book ID matching
+	// the one stored in the member, bookID (and we won't even put these rejects in the
+	// pRejectedFiles list, because then the user could override this sensible protection
+	// from joining the wrong things together)
+	if (!bookID.IsEmpty() && pAcceptedFiles->GetCount() > 0)
+	{
+		bool bRemovedAForeigner;
+		int index = 0;
+		size_t count = pAcceptedFiles->GetCount();
+		do {
+			bRemovedAForeigner = FALSE;
+			for (index = 0; index < (int)count; index++)
+			{
+				wxString pathAndName = gpApp->GetCurrentDocFolderPath() + gpApp->PathSeparator + 
+										pAcceptedFiles->GetString(index);
+
+				wxString theBookCode = gpApp->GetBookCodeFastFromDiskFile(pathAndName);
+				if (bookID != theBookCode)
+				{
+					// Reject this list item - delete it from the list
+					pAcceptedFiles->Delete(index);
+					bRemovedAForeigner = TRUE; // we need to iterate the outer loop
+						// in order to try find another which is to be rejected
+					break;
+				}
+				else
+				{
+					// This one is kosher for joining to the currently open document,
+					// so iterate this inner loop
+					;
+				}
+			} // end of for loop
+			// Update the count of list items
+			count = pAcceptedFiles->GetCount();
+		} while (bRemovedAForeigner == TRUE && count > 0);
+	}
 
 	ListContentsOrSelectionChanged();
 }

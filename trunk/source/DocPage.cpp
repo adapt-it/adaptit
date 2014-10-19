@@ -918,6 +918,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		// dialog is called when no document is active.
 		if (!bResult || pApp->m_nActiveSequNum == -1)
 		{
+			pApp->m_bZWSPinDoc = FALSE; // restore default value if we had a failure
+
 			pApp->LogUserAction(_T("In DocPage: Call of OnNewDocument() failed or m_nActiveSequNum is -1"));
             // BEW added test on 21Mar07, to distinguish a failure due to a 3-letter code
             // mismatch preventing the document being constructed for the currently active
@@ -931,6 +933,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 				gbMismatchedBookCode = FALSE;
 				wxCommandEvent uevent;
 				pDoc->OnFileOpen(uevent); // get the Document page of the wizard open again
+				// (this call will set or clear m_bZWSPinDoc flag again, at the end of the
+				// function call -- BEW 7Oct14)
 				return; // TRUE; // MFC note: FALSE means: don't destroy the property sheet;
                     // TRUE means destroy it and as the above OnFileOpen() call is a nested
                     // call, a successful document creation should result in the wizard
@@ -1028,7 +1032,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			   dt2 = wxDateTime::UNow();
 #endif
 
-		bool bOK = pDoc->OnOpenDocument(docPath, true);
+		bool bOK = pDoc->OnOpenDocument(docPath, true); // BEW 7Oct14, this sets or
+					// clears the app boolean m_bZWSPinDoc at the end of the call
         
 		if (!bOK && !pApp->m_recovery_pending)      // The doc's corrupt, and we can't do a recovery:
 		{
@@ -1037,6 +1042,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 "Loading the document failed. Possibly it was created with a later version of Adapt It. Contact the developers if you cannot resolve the problem yourself.");
 			wxMessageBox(msg, _T(""), wxICON_STOP);
 			pApp->LogUserAction(msg);
+
+			pApp->m_bZWSPinDoc = FALSE; // BEW 7Oct14, restore default
+
 			return; // wxExit(msg); whm modified 27May11
 		}
 		// If we're going to recover the document, we skip this bit since it would probably crash!
@@ -1107,6 +1115,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
             pDoc->OnFileClose (dummyEvent);
             pApp->m_reopen_recovered_doc = TRUE;
             pDoc->RecoverLatestVersion();
+
+			// BEW added 7Oct14, set or clear the flag from the recovered version
+			pApp->m_bZWSPinDoc = pApp->IsZWSPinDoc(pApp->m_pSourcePhrases);
+
    //         wxPostEvent (pApp->GetMainFrame(), eventCustom);       // Custom event handlers are in CMainFrame
             return;
         }
@@ -1124,7 +1136,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			}
 		}
 
-    // mrh - section removed here relating to setting the phrase box with the older doc formats that didn't save the position.
+		// mrh - section removed here relating to setting the phrase box with 
+		// the older doc formats that didn't save the position.
         
 		gbDoingInitialSetup = FALSE;
 
