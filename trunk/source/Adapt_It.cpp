@@ -16225,6 +16225,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bDefineFreeTransByPunctuation = TRUE; // default
 	m_freeTransDefaultBackgroundColor = wxColour(189,255,189); // light pastel green
 	m_freeTransCurrentSectionBackgroundColor = wxColour(255,200,200); // light pastel pink
+	m_bForceVerseSectioning = FALSE; // default (BEW added 20Oct14)
 
 	m_bNotesExist = FALSE; // 12Sep05 BEW
 	m_bUnpacking = FALSE; // BEW added 10Jan06

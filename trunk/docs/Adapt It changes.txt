@@ -28,6 +28,20 @@ choice of which documents to join - as made within the
 dialog. Also, if there is an error, the application will
 now restore the pre-join state of the documents, keeping  
 the Join dialog open for you to try again if you wish.
+* The free translation functionality has been enhanced with 
+a new menu item on the Advanced menu, Force Free Translation
+Sectioning By Verse. When this is toggled On, all free 
+translation operations will be done with the "by verse"
+setting in place for how large sections are to be when
+created. As before, "by verse" is just a guide - the
+section will be shorter than the whole verse if there is 
+one or more significant standard format markers within 
+the verse, because such markers must not be ignored 
+when sectioning. To turn on this setting, it is not
+required that free translation mode be currently in
+effect. If on at a File > Save, it will force storage 
+of the 'by verse' setting in the document's xml, in the 
+ftsbp attribute of the <Settings> element, as before.
 ----------------------------------------------
 Bug fixes in 6.5.5
 ----------------------------------------------

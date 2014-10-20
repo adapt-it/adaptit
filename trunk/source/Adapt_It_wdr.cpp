@@ -10518,6 +10518,7 @@ wxMenuBar *AIMenuBarFunc()
     item6->Append( ID_ADVANCED_BOOKMODE, _("Storing Documents in Book Folders"), _("Turn on, or off, storage of documents to book folders"), wxITEM_CHECK );
     item6->AppendSeparator();
     item6->Append( ID_ADVANCED_FREE_TRANSLATION_MODE, _("Free Translation Mode"), _("Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"), wxITEM_CHECK );
+    item6->Append( ID_FORCE_VERSE_SECTIONING, _("Force Free Translation Sectioning By Verse"), _("Force free translation sectioning by verse or presence of major standard format markers"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, _("Use Target Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing target text"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, _("Use Gloss Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing gloss text"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, _("Remove Free Translations"), _("Removes all the filtered free translations in the document") );

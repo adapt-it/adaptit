@@ -166,11 +166,14 @@ public:
 	void		DoJoinWithNext();
 	void		DoJoinWithPrevious();
 	void		DoSplitIt();
+	// Support for the Force Free Translation Sectioning By Verse menu command
+	void		ForceVerseSectioning();
 
 	// the next group are the 26 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
 	void		OnUpdateAdvanceButton(wxUpdateUIEvent& event);
 	void		OnAdvancedFreeTranslationMode(wxCommandEvent& event);
+	void		OnForceVerseSectioning(wxCommandEvent& event); // BEW added 20Oct14
 	void		OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event));
@@ -200,6 +203,7 @@ protected:
 	bool		IsFreeTranslationStartDueToMarker(CPile* pThisPile, bool& bIncludeThisOne);
 
 	void		OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
+	void		OnUpdateForceVerseSectioning(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event);

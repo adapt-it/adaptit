@@ -4792,6 +4792,14 @@ CBString CAdapt_ItDoc::ConstructSettingsInfoAsXML(int nTabLevel)
 	{
 		// we aren't constructing a docV4 legacy document from a File / SaveAs... user choice
 		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		// BEW 20Oct14, if force verse sectioning is currently on, then ensure that
+		// 'verse' sectioning is in effect at doc save time
+		if (gpApp->m_bForceVerseSectioning)
+		{
+			// get m_bDefineFreeTransByPunction forced to value FALSE, and radio buttons
+			// synced to that value if free trans mode is in effect currently
+			gpApp->GetFreeTrans()->ForceVerseSectioning();
+		}
 		if (gpApp->m_bDefineFreeTransByPunctuation)
 		{
 			tempStr << (int)1;
