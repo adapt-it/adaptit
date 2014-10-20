@@ -3671,6 +3671,37 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 										pApp->m_curOutputFilename.c_str());
 	printTitle = printTitle.Format(_T("Printing %s"),pApp->m_curOutputFilename.c_str());
     wxPrintDialogData printDialogData(*pApp->pPrintData);
+
+	// BEW fiddles, 20Oct14, trying to get PrintPreview to show other than fixed 25mm
+	// page margins
+	//AIPrintout* pAIPrOut = new AIPrintout(previewTitle);
+	// next line tests if my manually set margin of 2mm is picked up
+	//wxPoint marginTopLeft = pApp->pPgSetupDlgData->GetMarginTopLeft(); // correctly returns (2,25)
+		// because I set the left margin to 100 thousandths of an inch in the basic config file
+		 
+	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData); // produces no change
+	//pAIPrOut->MapScreenSizeToPaper(); // produces no change
+	/*
+	int w;
+	int h;
+	pAIPrOut->GetPageSizeMM(&w, &h);
+	wxSize imagesize(w,h);
+	pAIPrOut->FitThisSizeToPaper(imagesize); // produces no change (still 25mm margins all round)
+	*/
+ 	//pAIPrOut->OffsetLogicalOrigin(-100,-100); // crashes
+	//wxRect paperRect = pAIPrOut->GetLogicalPaperRect(); // crashes, the paper rect in
+	//pixels is returned internally as (0,0,0,0) so I suspect that AIPrintout is not properly
+	//initialized in its internal fields & perhaps PrintPreview is substituting defaults in
+	//order to get a print preview done.
+	//wxRect marginsREct = pAIPrOut->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
+	// The following works, but the margins are just 25mm all round no matter what margins
+	// are within pPgSetupDlgData
+	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData);
+    //wxPrintPreview *preview = new wxPrintPreview(pAIPrOut, new AIPrintout(printTitle), & printDialogData);
+	
+	// End BEW fiddles 20Oct14
+	
+	// the following call is pre-6.5.5 - Bill and Kevin's code
     wxPrintPreview *preview = new wxPrintPreview(new AIPrintout(previewTitle),
 									new AIPrintout(printTitle), & printDialogData);
     if (!preview->Ok())

@@ -88,6 +88,9 @@ extern CPile* gpGreenWedgePile;
 /// This global is defined in Adapt_It.cpp.
 extern CPile* gpNotePile;
 
+/// This global is defined in Adapt_ItView.cpp
+extern bool gbIsBeingPreviewed;
+
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -559,7 +562,7 @@ void CCell::Draw(wxDC* pDC)
 	// side of the current free translation section
 	int nFT_First = -1;
 	int nFT_Last  = -1;
-	if (m_pLayout->m_pApp->m_bFreeTranslationMode)
+	if (m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsBeingPreviewed)
 	{
 		m_pLayout->m_pApp->GetFreeTrans()->GetCurSectionFirstAndLast(&nFT_First, &nFT_Last);
 		if (m_pOwningPile->m_pSrcPhrase->m_nSequNumber < nFT_First ||
