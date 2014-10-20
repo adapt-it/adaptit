@@ -3665,6 +3665,17 @@ public:
                 // translation sections), if FALSE then sections are defined as the whole
                 // verse (but a 'significant' USFM marker or endmarker occurring before verse
                 // end will cause the section to be closed off and a new one opened)
+    bool	m_bForceVerseSectioning; // FALSE by default. If the user toggles it to TRUE
+				// by doing Advanced > Force Free Translation Sectioning By Verse, then
+				// all free translation button handlers will commence with a function that
+				// tests if m_bDefineFreeTransByPunctuation is TRUE, and if so, changes it
+				// to FALSE (i.e. 'by verse' sectioning) and makes the radio buttons agree,
+				// so that only 'by verse' is in effect for as long as this boolen is TRUE.
+				// Also, since the document xml stores the m_bDefineFreeTransByPunctuation
+				// value in its <Setting> attribute's ftsbp attribute, which gets set at
+				// a File > Save, the function will also be in the file save handlers too.
+				// The function is wrapped by a test of m_bForceVerseSectioning so that
+				// it is called only when the flag is TRUE. (Requested by Kim Blewett, Oct2014)
 	bool	m_bNotesExist; // set TRUE by OnIdle() if there are one or more Adapt It notes
 				// in the document, else FALSE
 

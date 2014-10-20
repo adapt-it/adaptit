@@ -137,6 +137,8 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 
 	EVT_MENU(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnAdvancedFreeTranslationMode)
 	EVT_UPDATE_UI(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnUpdateAdvancedFreeTranslationMode)
+	EVT_MENU(ID_FORCE_VERSE_SECTIONING, CFreeTrans::OnForceVerseSectioning)
+	EVT_UPDATE_UI(ID_FORCE_VERSE_SECTIONING, CFreeTrans::OnUpdateForceVerseSectioning)
 	EVT_MENU(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedTargetTextIsDefault)
 	EVT_UPDATE_UI(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedTargetTextIsDefault)
 	EVT_MENU(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedGlossTextIsDefault)
@@ -4714,8 +4716,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 		else
 			m_pApp->LogUserAction(_T("Free Translation Mode ON"));
 	}
-
-	// klb 9/2011 extracted most of the code here and moved to SwitchScreenFreeTranslationMode()
+	// Kevin moved most of the functionality into SwitchScreenFreeTranslationMode()
 	if (m_pApp->m_bFreeTranslationMode)
 	{
 		SwitchScreenFreeTranslationMode(ftModeOFF);
@@ -4735,6 +4736,43 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& event)
 		SetInterPileGapBeforeFreeTranslating();
 
 		SwitchScreenFreeTranslationMode(ftModeON);
+	}
+}
+
+// BEW added 20Oct14
+void CFreeTrans::OnForceVerseSectioning(wxCommandEvent& event)
+{
+	if (event.GetId() == ID_FORCE_VERSE_SECTIONING)
+	{
+		if (m_pApp->m_bForceVerseSectioning)
+			m_pApp->LogUserAction(_T("Force Verse-based Sectioning going OFF")); // being turned off
+		else
+			m_pApp->LogUserAction(_T("Force Verse-based Sectioning going ON")); // being turned on
+	}
+	// Change the flag value and toggle the menu command accordingly
+	wxMenuBar* pMenuBar = m_pFrame->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
+	wxMenuItem* pAdvancedMenuForceVerseSectioning = pMenuBar->FindItem(ID_FORCE_VERSE_SECTIONING);
+	if (m_pApp->m_bForceVerseSectioning)
+	{
+		// Forcing 'by verse' was on, and is now being turned OFF
+		if (pAdvancedMenuForceVerseSectioning != NULL)
+		{
+			pAdvancedMenuForceVerseSectioning->Check(FALSE);
+		}
+		m_pApp->m_bForceVerseSectioning = FALSE;
+	}
+	else
+	{
+		// Forcing 'by verse' was off, and is now being turned ON
+		if (pAdvancedMenuForceVerseSectioning != NULL)
+		{
+			pAdvancedMenuForceVerseSectioning->Check(TRUE);
+		}
+		m_pApp->m_bForceVerseSectioning = TRUE;
+
+		// Make it instantly be On
+		ForceVerseSectioning();
 	}
 }
 
@@ -5403,6 +5441,13 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 	if (activeSequNum < 0)
 		// phrase box is not defined, no active location is valid, so return
 		return;
+
+	if (m_pApp->m_bForceVerseSectioning)
+	{
+        // BEW 18Oct14, get m_bDefineFreeTransByPunction forced to value FALSE, and radio
+        // buttons synced to that value if free trans mode is in effect currently
+		ForceVerseSectioning();
+	}
 
 #ifdef _DEBUG
 //	wxLogDebug(_T("\nActive SN passed in: %d"),activeSequNum);
@@ -6665,7 +6710,14 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 {
  	m_bAllowOverlengthTyping = FALSE; // ensure default is restored (BEW added 26Nov13)
 
-   // BEW added 19Oct06; if the ENTER key is pressed when not in Free Translation mode and
+ 	if (m_pApp->m_bForceVerseSectioning)
+	{
+        // BEW 18Oct14, get m_bDefineFreeTransByPunction forced to value FALSE, and radio
+        // buttons synced to that value if free trans mode is in effect currently
+		ForceVerseSectioning();
+	}
+
+  // BEW added 19Oct06; if the ENTER key is pressed when not in Free Translation mode and
     // focus is in the compose bar then it would invoke the OnAdvanceButton() handler even
     // though the button is hidden, so we prevent this by detecting when it happens and
     // exiting without doing anything.
@@ -6865,6 +6917,13 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 	// for debugging
 	//int ftStartSN = gEditRecord.nFreeTranslationStep_StartingSequNum;
 	//int ftEndSN = gEditRecord.nFreeTranslationStep_EndingSequNum;
+
+	if (m_pApp->m_bForceVerseSectioning)
+	{
+        // BEW 18Oct14, get m_bDefineFreeTransByPunction forced to value FALSE, and radio
+        // buttons synced to that value if free trans mode is in effect currently
+		ForceVerseSectioning();
+	}
 
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
 	if(pBar != NULL && pBar->IsShown())
@@ -7071,6 +7130,13 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 							 // or Lengthen buttons were used
 	m_bAllowOverlengthTyping = FALSE; // ensure default is restored
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
+
+	if (m_pApp->m_bForceVerseSectioning)
+	{
+        // BEW 18Oct14, get m_bDefineFreeTransByPunction forced to value FALSE, and radio
+        // buttons synced to that value if free trans mode is in effect currently
+		ForceVerseSectioning();
+	}
 
 	if(pBar != NULL && pBar->IsShown())
 	{
@@ -7855,6 +7921,31 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
+void CFreeTrans::OnUpdateForceVerseSectioning(wxUpdateUIEvent& event)
+{
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(TRUE); // allow in vertical edit
+		return;
+	}
+	if (m_pApp->m_pActivePile == NULL)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (gbShowTargetOnly)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (m_pApp->m_pSourcePhrases->GetCount() == 0)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE);
+}
+
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
 /// whm modified 21Sep10 to make safe for when selected user profile removes this menu item.
@@ -8064,6 +8155,34 @@ void CFreeTrans::OnUpdateRadioDefineByPunctuation(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
+// BEW 20Oct14, a feature requested by Kim Blewett. She wants a way to force sectioning
+// by verse sized sections to be turned on, and stay on. I've given her a menu command
+// Force Free Translation Sectioning By Verse, in the Advanced menu with the other
+// free translation commands. The flag m_bForceVerseSectioning, defined in Adapt_It.h, is
+// set by toggling the command to be on. (Command is a menu toggle.) Wrapping the following
+// function call by a test for that flag being TRUE is done at each relevant place in the
+// app. The relevant places are the start of each free translation button handler, and
+// also in the function(s) for saving the document, since the value of the boolean
+// m_bDefineFreeTransByPunctuation is preserved at each File > Save within the ftsbp
+// attribute in the <Settings> attribute of the document's xml.
+void CFreeTrans::ForceVerseSectioning()
+{
+	// Forcing the flag change can be done in or out of free translation mode, but syncing
+	// the radio buttons will only be possible when free trans mode is On
+	bool bToggledOnHere = FALSE;
+	if (m_pApp->m_bDefineFreeTransByPunctuation)
+	{
+		m_pApp->m_bDefineFreeTransByPunctuation = FALSE;
+		bToggledOnHere = TRUE;
+	}
+	if (m_pApp->m_bFreeTranslationMode && bToggledOnHere)
+	{
+		wxCommandEvent dummy;
+		OnRadioDefineByVerse(dummy);
+	}
+}
+
+
 // BEW 22Feb10 no changes needed for support of doc version 5
 // BEW 9July10, no changes needed for support of kbVersion 2
 // BEW 27Feb12, added support for saving the value of m_bDefineFreeTransByPunctuation
@@ -8071,6 +8190,13 @@ void CFreeTrans::OnUpdateRadioDefineByPunctuation(wxUpdateUIEvent& event)
 // 6.2.0) - now it changes only if the user explicitly causes it to change
 void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 {
+	if (m_pApp->m_bForceVerseSectioning)
+	{
+		wxString title = _("Cannot turn button On");
+		wxString msg = _("Sectioning by punctuation cannot be turned on, because the Advanced menu item \"Force Free Translation Sectioning By Verse\" is still turned On. Turn it Off, then this button will respond.");
+		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
+	}
+
 	wxPanel* pBar = m_pFrame->m_pComposeBar;
 	wxASSERT(pBar != NULL);
 	if(pBar != NULL && pBar->IsShown())
@@ -10073,6 +10199,13 @@ void CFreeTrans::GetCurrentSectionsTextAndFreeTranslation(wxString& theText, wxS
 
 void CFreeTrans::OnButtonAdjust(wxCommandEvent& WXUNUSED(event))
 {
+	if (m_pApp->m_bForceVerseSectioning)
+	{
+        // BEW 18Oct14, get m_bDefineFreeTransByPunction forced to value FALSE, and radio
+        // buttons synced to that value if free trans mode is in effect currently
+		ForceVerseSectioning();
+	}
+
 	FreeTransAdjustDlg dlg(m_pFrame);
 	// Provide the needed hook for the repositioning function to get the
 	// top left of phrasebox location
@@ -10127,6 +10260,13 @@ void CFreeTrans::OnMyButtonJoinToNext(wxCommandEvent& WXUNUSED(event))
 	// we can rely on the update handler for having checked the active pile is
 	// not NULL and that m_pCurFreeTransSectionPileArray is not empty, and that
 	// the last pile of the current section is not the last pile of the doc
+
+	if (m_pApp->m_bForceVerseSectioning)
+	{
+        // BEW 18Oct14, get m_bDefineFreeTransByPunction forced to value FALSE, and radio
+        // buttons synced to that value if free trans mode is in effect currently
+		ForceVerseSectioning();
+	}
 
 	// Get the first pile following the end of the current section
 	m_pFollowingAnchorPile = m_pView->GetNextPile(
