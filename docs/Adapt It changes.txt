@@ -4,6 +4,14 @@ Version 6.5.5 release ??  ??  2014
 ----------------------------------------------
 Feature changes and new features in 6.5.5
 ----------------------------------------------
+* This version supports USFM nested markers. These
+have the form: a begin marker is \+tag and \+tag* its
+the end marker - where tag is typically one of the
+tags in the "Special Text and Character Styles" section 
+of the USFM standard. (See the USFM documentation for
+version 2.4 for more details.)
+* The file naming dialog is larger in the vertical dimension,
+so that the contents do not get clipped.
 * Gray de-emphasis has been added to the display in free
 translation mode, so that the eye can easily see what lies
 before andbeyond the current section to be free translated.
