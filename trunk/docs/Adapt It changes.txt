@@ -29,9 +29,9 @@ dialog. Also, if there is an error, the application will
 now restore the pre-join state of the documents, keeping  
 the Join dialog open for you to try again if you wish.
 * The free translation functionality has been enhanced with 
-a new menu item on the Advanced menu, Force Free Translation
-Sectioning By Verse. When this is toggled On, all free 
-translation operations will be done with the "by verse"
+a new menu item on the Administrator menu, Force Free 
+Translation Sectioning By Verse. When this is toggled On, 
+free translation operations will be done with the "by verse"
 setting in place for how large sections are to be when
 created. As before, "by verse" is just a guide - the
 section will be shorter than the whole verse if there is 

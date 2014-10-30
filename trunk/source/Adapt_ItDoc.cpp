@@ -9317,14 +9317,14 @@ int CAdapt_ItDoc::ParseWhiteSpace(wxChar *pChar)
 /// Upon entry pChar must point to a filtering marker determined by a prior call to
 /// IsAFilteringSFM(). Parsing will include any embedded (inline) markers belonging to the
 /// parent marker.
-/// BEW 9Sep10 removed need for papram pBufStart, since only IsMarker() used to use it as
-/// its second param and with docVersion 5 changes that become unnecessary, so for now
-/// I've resorted to the identity assignment hack to avoid the compiler warning
+/// BEW 9Sep10 removed need for param pBufStart, since only IsMarker() used to use it as
+/// its second param and with docVersion 5 changes that become unnecessary
+/// BEW additions 24Oct14 for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 									wxChar *pBufStart, wxChar *pEnd)
 {
-	pBufStart = pBufStart; // a hack to avoid compiler warning
+	wxUnusedVar(pBufStart);
 	// whm added 10Feb2005 in support of USFM and SFM Filtering support
 	// BEW ammended 10Jun05 to have better parse termination criteria
 	// Used in TokenizeText(). For a similar named function used
@@ -9334,9 +9334,9 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 	// ParseFilteringSFM advances the ptr until one of the following
 	// conditions is true:
 	// 1. ptr == pEnd (end of buffer is reached).
-	// 2. ptr points just past a corresponding end marker.
+	// 2. ptr points just past a corresponding end marker to the one passed in.
 	// 3. ptr points to a subsequent non-inLine and non-end marker. This
-	//    means that the "content markers"
+	//    means the "content markers"
 	// whm ammended 30Apr05 to include "embedded content markers" in
 	// the parsed filtered marker, i.e., any \xo, \xt, \xk, \xq, and
 	// \xdc that follow the marker to be parsed will be included within
@@ -9351,6 +9351,12 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 		length++;
 		ptr++;
 	}
+	// BEW 24Oct14 added next 3 lines
+	//bool bIsNestedMkr = FALSE;
+	bool bIsWholeMkr = TRUE;
+	wxString theTag; theTag.Empty();
+	wxString baseOfEndMkr;
+
 	while (ptr != pEnd)
 	{
 		//if (IsMarker(ptr,pBufStart)) BEW changed 7Sep10
@@ -9365,6 +9371,17 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 				// of the filtered text up to the end marker
 				endMkrLength = wholeMkr.Length() + 1; // add 1 for *
 				return length + endMkrLength;
+			}
+			else if (IsInLineMarker(ptr, pEnd) && 
+				IsNestedMarkerOrMarkerTag(ptr, theTag, baseOfEndMkr, bIsWholeMkr))
+			{
+				// BEW 24Oct14 addition. Bleed the \+tag nested markers here, because
+				// the block following is for non-nested inline ones, like the content
+				// markers within footnotes or crossrefs or endnotes, and the next block's
+				// test checks the char following the backslash and we don't want that to
+				// be a +, so we handle the nested ones here first (note: IsInLineMarker()
+				// has been refactored to support USFM nested markers)
+				; // continue parsing, nested ones get included within a filtering, if encountered
 			}
 			else if (IsInLineMarker(ptr, pEnd) && *(ptr + 1) == wholeMkr.GetChar(1))
 			{
@@ -9388,6 +9405,7 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 			{
 				wxString bareMkr = GetBareMarkerForLookup(ptr);
 				wxASSERT(!bareMkr.IsEmpty());
+				// BEW 24Oct14, LookupSFM() has been refactored for support of USFM nested markers
 				USFMAnalysis* pAnalysis = LookupSFM(bareMkr);
 				if (pAnalysis)
 				{
@@ -9463,6 +9481,7 @@ int CAdapt_ItDoc::ParseNumber(wxChar *pChar)
 /// DoExportInterlinearRTF() and DoExportSrcOrTgtRTF().
 /// Determines if the marker at pChar is a verse marker. Intelligently handles verse markers
 /// of the form \v and \vn.
+/// BEW 24Oct14 no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsVerseMarker(wxChar *pChar, int& nCount)
 // version 1.3.6 and onwards will accomodate Indonesia branch's use
@@ -9563,6 +9582,7 @@ bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 /// of the buffer here because _istspace which is called from IsWhiteSpace() only recognizes
 /// 0x09 ?0x0D or 0x20 as whitespace for most locales.)
 /// BEW 1Feb11, added test for forbidden marker characters using app::m_forbiddenInMarkers
+/// BEW 24Oct14 no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 {
@@ -9609,12 +9629,12 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 /// Returns the whole marker by parsing through an existing marker until either whitespace is
 /// encountered or another backslash is encountered.
 /// BEW fixed 10Sep10, the last test used forward slash, and should be backslash
+/// BEW 24Oct14, no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd) // whm added 18Feb05
 {
 	int len = 0;
 	wxChar* ptr = pChar;
-	//while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('/'))
 	while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('\\'))
 	{
 		ptr++;
@@ -9754,6 +9774,7 @@ bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxString str)
 // NOTE: the endmarker for endnote is included in the test, so while the name of this
 // function suggests only \f* and \x* return TRUE, \fe* will also return TRUE
 // BEW 7Dec10, added check for \fe or \f when SFM set is PngOnly
+// BEW 24Oct14 no changes needed for support of USFM nested markers
 bool CAdapt_ItDoc::IsFootnoteOrCrossReferenceEndMarker(wxChar* pChar)
 {
 	wxString endMkr = GetWholeMarker(pChar);
@@ -9856,6 +9877,8 @@ bool CAdapt_ItDoc::IsAmbiguousQuote(wxChar* pChar)
 }
 
 // BEW 15Dec10, changes needed to handle PNG 1998 marker set's \fe and \F
+// BEW 24Oct14 no changes needed for support of USFM nested markers, the ones dealt
+// with here never take +
 bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase)
 {
 	if (gpApp->gCurrentSfmSet == PngOnly || gpApp->gCurrentSfmSet == UsfmAndPng)
@@ -9897,6 +9920,12 @@ bool CAdapt_ItDoc::IsTextTypeChangingEndMarker(CSourcePhrase* pSrcPhrase)
 		else if (endmarkers.Find(crossRefEnd) != wxNOT_FOUND)
 		{
 			return TRUE;
+		}
+		// BEW added 24Oct14 for support of USFM nested markers; nested markers
+		// are typically not ones which change the textType, so return FALSE
+		else if (endmarkers.GetChar(1) == _T('+'))
+		{
+			return FALSE;
 		}
 	}
 	return FALSE;
@@ -10030,6 +10059,7 @@ bool CAdapt_ItDoc::IsClosingQuote(wxChar* pChar)
 /// doc version 5
 /// BEW 2Feb11, added a string to signature for storing punctuation characters that have
 /// changed their status to being word-building
+/// BEW 24Oct14, no changes needed to support USFM nested markers
 //////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 		wxString& firstFollPuncts, int nEndMkrsCount, wxString& inlineBindingEndMarkers,
@@ -10331,10 +10361,12 @@ void CAdapt_ItDoc::ParseSpanBackwards(wxString& span, wxString& wordProper,
 /// about following punctuation, but that is a small matter because the latter is low
 /// frequency in the text, and the caller will reparse that information quickly anyway).
 /// BEW created 11Oct10, to support the improved USFM parser build into doc version 5
+/// BEW 24Oct14 no changes needed for support of USFM nested markers
 //////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart,
 	wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr,
-	wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts)
+	wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts,
+	bool bTokenizingTargetText)
 {
 	wxChar* p = ptr; // scan with p, so that we can return a ptr value which is at
 					 // the place we want the caller to pick up from (and that will
@@ -10363,7 +10395,8 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 	int nEndMarkerCount = 0;
 	pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
 					&bFoundFixedSpaceMarker, &bFoundClosingBracket,
-					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount,
+					bTokenizingTargetText);
 	bFixedSpaceIsAhead = bFoundFixedSpaceMarker;
 	// BEW 11Feb14, test for ~ found, but it is followed by whitespace or buffer end or
 	// closing ] character. If so, it's not a USFM fixedspace marker, so we'd in that case
@@ -10456,7 +10489,7 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 
 		// third, the contents for endMkr; there could be space(s) in the string, and
 		// they should be removed as they contribute nothing except to make things more
-		// complicated than is necessary for rendinging the markup for publishing, so we
+		// complicated than is necessary for rendering the markup for publishing, so we
 		// remove them
 		endMkr.Empty();
 		if (!inlineBindingEndMarkers.IsEmpty())
@@ -10537,12 +10570,19 @@ bool CAdapt_ItDoc::IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdSta
 /// return word-building characters to be added to ends of the word due to punctuation
 /// status becoming changed to word-building status (because user used Preferences
 /// Punctuation tab to dynamically change the punctuation settings)
+/// BEW 24Oct14, no changes for support of USFM nested markers. (But bTokenizingTargetText
+/// needed to be added to signature because the call FindMarseHaltLocation() had a hard-
+/// coded tgt punctuation string within it, which needed to be set to be src or target
+/// depending on what was passed to TokenizeText() - this produced a small cascade of 
+/// signature changes in a few functions, since FindMarseHaltLocation() as used in 
+/// various places - but at least now TokenizeText() uses either src or tgt puncts 
+/// throughout, and consistently one or the other, depending on bTokenizingTargetText
 //////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
 		wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr,
 		wxString& newPunctFrom2ndPreWordLoc, wxString& newPunctFrom2ndPostWordLoc,
 		wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc,
-		wxString& spacelessPuncts)
+		wxString& spacelessPuncts, bool bTokenizingTargetText)
 {
 	// Note: the punctAfter param is "punctuation after the ~ fixedspace, which, since
 	// this function is only used to parse the second of two conjoined words, is also the
@@ -10692,7 +10732,8 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 			int nEndMarkerCount = 0;
 			pHaltLoc = FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
 							&bFoundFixedSpaceMarker, &bFoundClosingBracket,
-							&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+							&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount,
+							bTokenizingTargetText);
 			wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a
 										  // whitespace or a beginmarker
 			// now parse backwards to extract the span's info
@@ -10770,14 +10811,19 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 /// bracket) when ] is not included in the list of punctuation characters. (Data which
 /// revealed the problem: adapt a word with the adaptation "voice [lit:neck]"  -- the ParseWord()
 /// function hung at the [ character.)
+/// BEW 24Oct14, no changes needed to support USFM nested markers (internally uses
+/// marker fast access strings, and the inlineBinding and nonBinding ones have
+/// nested markers within them explicitly as of 24Oct14)
+/// BEW 24Oct14 no changes needed for support of USFM nested markers
 //////////////////////////////////////////////////////////////////////////////////
 wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
-											bool* pbFoundInlineBindingEndMarker,
-											bool* pbFoundFixedSpaceMarker,
-											bool* pbFoundClosingBracket,
-											bool* pbFoundHaltingWhitespace,
-											int& nFixedSpaceOffset,
-											int& nEndMarkerCount)
+							bool* pbFoundInlineBindingEndMarker,
+							bool* pbFoundFixedSpaceMarker,
+							bool* pbFoundClosingBracket,
+							bool* pbFoundHaltingWhitespace,
+							int& nFixedSpaceOffset,
+							int& nEndMarkerCount,
+							bool bTokenizingTargetText)
 {
 	wxChar* p = ptr; // scan with p
 	wxChar* pHaltLoc = ptr; // initialize to the start of the word proper
@@ -10791,13 +10837,22 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 	nFixedSpaceOffset = -1;
 	nEndMarkerCount = 0;
 	wxString lastEndMarker; lastEndMarker.Empty();
+	wxString puncts;
+	if (bTokenizingTargetText)
+	{
+		puncts = gpApp->m_punctuation[1];
+	}
+	else
+	{
+		puncts = gpApp->m_punctuation[0];
+	}
 	int offsetToEndOfLastBindingEndMkr = -1;
 	// scan ahead, looking for the halt location prior to a following word or
 	// end-of-buffer
 	while (p < pEnd)
 	{
 		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpace(p) && !(*p == _T(']')
-			&& !IsClosingBracketWordBuilding(gpApp->m_punctuation[1])))
+			&& !IsClosingBracketWordBuilding(puncts)))
 		{
 			// if none of those, then it's part of the word, or part of punctuation which
 			// follows it, so keep scanning
@@ -10829,7 +10884,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 				}
 				break;
 			}
-			else if (*p == _T(']') && !IsClosingBracketWordBuilding(gpApp->m_punctuation[1]))
+			else if (*p == _T(']') && !IsClosingBracketWordBuilding(puncts))
 			{
 				*pbFoundClosingBracket = TRUE;
 				break;
@@ -10863,6 +10918,8 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 						// it's an endmarker, but we parse over only those which are
 						// inline binding ones, otherwise the marker halts scanning
 						wxString beginMkr = wholeMkr;
+						// BEW 24Oct14 no change needed here for support of USFM nested
+						// markers, and likewise for the text .Find() just below
 						beginMkr = beginMkr.Truncate(beginMkr.Len() - 1); // remove
 											// the * (we are assuming the asterisk was at
 											// the end where it should be)
@@ -10954,6 +11011,8 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							{
 								// it's an endmarker, but we parse over only those which are
 								// inline binding ones, otherwise the marker halts scanning
+								// BEW 24Oct14 no change needed here for support of USFM nested
+								// markers, and likewise for the text .Find() just below
 								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove
 													// the * (we are assuming the asterisk was at
 													// the end where it should be)
@@ -11034,6 +11093,8 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 							{
 								// it's an endmarker, but we parse over only those which are
 								// inline binding ones, otherwise the marker halts scanning
+								// BEW 24Oct14 no change needed here for support of USFM nested
+								// markers, and likewise for the text .Find() just below
 								wxString beginMkr = wholeMkr.Truncate(wholeMkr.Len() - 1); // remove
 													// the * (we are assuming the asterisk was at
 													// the end where it should be)
@@ -11271,6 +11332,7 @@ wxString CAdapt_ItDoc::SquirrelAwayMovedFormerPuncts(wxChar* ptr, wxChar* pEnd, 
 /// assigning it to an orphan CSourcePhrase, storing it in its m_follPunct member. This
 /// protocol for handling ] works the same way regardless of whether or not the ]
 /// character is designated a punctuation character - we treat it as if it was, even if not.
+/// BEW 24Oct14 changes made for support of USFM nested markers (of form \+tag )
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wxChar* pEnd,
@@ -11279,7 +11341,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		wxString& inlineNonbindingMrks, // fast access string for \wj \qt \sls \tl \fig
 		wxString& inlineNonbindingEndMrks, // for their endmarkers \wj* etc
 		bool& bIsInlineNonbindingMkr,
-		bool& bIsInlineBindingMkr)
+		bool& bIsInlineBindingMkr,
+		bool bTokenizingTargetText)
 {
 	int len = 0;
 	wxChar* ptr = pChar;
@@ -11332,23 +11395,46 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// character has just been made a punct character
 	wxString newPunctFrom2ndPreWordLoc;
 	wxString newPunctFrom2ndPostWordLoc; newPunctFrom2ndPostWordLoc.Empty();
+	// BEW 24Oct14 added next two lines for USFM nested marker support when parsing
+	wxString tagOnly;
+	bool bIsNestedMkr = FALSE;
+	wxString baseOfEndMkr;
 
-	// the first possibility to deal with is that we may be pointing at an inline
+	// The first possibility to deal with is that we may be pointing at an inline
 	// non-binding marker, there are 5 such, \wj \qt \sls \tl \fig, and the caller will
 	// have provided a boolean telling us we are pointing at one
+	// BEW 24Oct14, the caller knows about nested markers too, and \+wj etc are in the
+	// appropriate rapid access strings, so can be looked up directly
 	if (bIsInlineNonbindingMkr)
 	{
 		// we are pointing at one of these five markers, handle this situation...
-		pUsfmAnalysis = LookupSFM(ptr);
+		pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
 		bareMkr = emptyStr;
-		bareMkr = pUsfmAnalysis->marker;
+		// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
+		// is to be stored
+		if (baseOfEndMkr.IsEmpty())
+		{
+			// It's not an endmarker
+			if (bIsNestedMkr)
+				bareMkr = _T('+');
+			else
+				bareMkr.Empty();
+			bareMkr += pUsfmAnalysis->marker;
+		}
+		else
+		{
+			// It's an endmarker
+			if (bIsNestedMkr)
+				bareMkr = _T('+');
+			else
+				bareMkr.Empty();
+			bareMkr += pUsfmAnalysis->endMarker; // or, += tagOnly
+		}
 		wholeMkr = gSFescapechar + bareMkr;
 		wholeMkrPlusSpace = wholeMkr + aSpace;
 		wxASSERT(inlineNonbindingMrks.Find(wholeMkrPlusSpace) != wxNOT_FOUND);
-#ifndef _DEBUG
-		inlineNonbindingMrks.IsEmpty(); // does nothing, but avoids compiler warning
-#endif
+		wxUnusedVar(inlineNonbindingMrks); // avoid compiler warning
 		itemLen = wholeMkr.Len();
 
 		// store the whole marker, and a following space
@@ -11370,7 +11456,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	}
 	bIsInlineNonbindingMkr = FALSE; // it's passed by ref, so clear the value
 									// otherwise next entry will fail
-	// what might ptr be pointing at now? One of the following 3 possibilities:
+	// What might ptr be pointing at now? One of the following 3 possibilities:
 	// 1. punctuation which needs to be stored in m_precPunct, or
 	// 2. an inlineBindingMkr, such as \k or \w etc, or
 	// 3. the first character of the word to be stored as m_key in pSrcPhrase
@@ -11383,11 +11469,30 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	itemLen = 0;
 	if (bIsInlineBindingMkr)
 	{
-		pUsfmAnalysis = LookupSFM(ptr);
+		pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 		wxASSERT(pUsfmAnalysis != NULL); // must not be an unknown marker
 		bareMkr = emptyStr;
-		bareMkr = pUsfmAnalysis->marker;
-		wholeMkr = gSFescapechar + bareMkr;
+		// BEW 24Oct14, use the two new params of LookupSFM to construct the marker which
+		// is to be stored
+		if (baseOfEndMkr.IsEmpty())
+		{
+			// It's not an endmarker
+			if (bIsNestedMkr)
+				bareMkr = _T('+');
+			else
+				bareMkr.Empty();
+			bareMkr += pUsfmAnalysis->marker;
+		}
+		else
+		{
+			// It's an endmarker
+			if (bIsNestedMkr)
+				bareMkr = _T('+');
+			else
+				bareMkr.Empty();
+			bareMkr += pUsfmAnalysis->endMarker; // or, += tagOnly
+		}
+		wholeMkr = gSFescapechar + bareMkr; // it's reconstructed
 		wholeMkrPlusSpace = wholeMkr + aSpace;
 		wxASSERT(pUsfmAnalysis->inLine == TRUE);
 		itemLen = wholeMkr.Len();
@@ -11408,8 +11513,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	bIsInlineBindingMkr = FALSE; // it's passed by ref, so clear the value
 								 // otherwise next entry will fail
 
-	// what might ptr be pointing at now? If the above block actually stored a marker,
-	// then we'd expect to be pointing at the word proper'a first character. But...
+	// What might ptr be pointing at now? If the above block actually stored a marker,
+	// then we'd expect to be pointing at the word proper's first character. But...
 	// there may be incorrect markup, and punctuation could be next. And if we didn't
 	// enter the above block, then punctuation could be next, and then an inline binding
 	// marker could follow that, so the following 3 possibilities still apply:
@@ -11418,10 +11523,10 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// 3. the first character of the word to be stored as m_key in pSrcPhrase
 	// The first to check for is punctuation, then inlineBinbdingMkr
 
-    // first, parse over any 'detached' preceding punctuation, bearing in mind it may have
+    // First, parse over any 'detached' preceding punctuation, bearing in mind it may have
     // sequences of single and/or double opening quotation marks with one or more spaces
     // between each. We want to accumulate all such punctuation, and the spaces in-place,
-    // into the precedePunct CString. We assume only left quotations and left wedges can be
+    // into the precPunct CString. We assume only left quotations and left wedges can be
     // set off by spaces from the actual word and whatever preceding punctuation is on it.
     // We make the same assumption for punctuation following the word - but in that case
     // there should be right wedges or right quotation marks. We'll allow ordinary
@@ -11429,7 +11534,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
     // to be punctuation, even though this weakens the integrity of out algorithm - but it
     // would only be compromised if there were sequences of vertical quotes with spaces
     // both at the end of a word and at the start of the next word in the source text data,
-    // and this would be highly unlikely to ever occur.
+    // and this would be highly unlikely to ever occur in published source text.
 	while (IsOpeningQuote(ptr) || IsWhiteSpace(ptr))
 	{
 		// check if a straight quote is in the preceding punctuation - setting the boolean
@@ -11445,7 +11550,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
         // this block gets us over all detached preceding quotes and the spaces which
         // detach them; we exit this block either when the word proper has been reached, or
         // with ptr pointing at some non-quote punctuation attached to the start of the
-        // word, or with ptr pointing at an inline bound marker. In the event we exist
+        // word, or with ptr pointing at an inline bound marker. In the event we exit
         // pointing at non-quote punctuation, the next block will parse across any such
         // punctuation until the word proper has been reached, or until an inline bound mkr
         // is reached.
@@ -11472,17 +11577,16 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 	// handle these possibilities
 	if (IsMarker(ptr))
 	{
-        // we are pointing at an inline marker - it must be one with inLine TRUE, that is,
-        // an inline binding marker; beware, we can have \k \w word\w*\k*, and so we could
-        // be pointing at the first of a pair of them, so we can't assume there will be
-        // only one every time
-		//while (*ptr == gSFescapechar)
+        // Must be at an inline marker (non-inlines were handled by the caller -
+        // TokenizeText(), so this is one with inLine TRUE, that is, an inline binding
+        // marker; beware, we can have \k \w word\w*\k*, and so we could be pointing at the
+        // first of a pair of them, so we can't assume there will be only one every time
 		while (IsMarker(ptr))
 		{
-			// parse across as many as there are, and the obligatory white space following
+			// Parse across as many as there are, and the obligatory white space following
 			// each - normalizing \n or \r to a space at the same time
-			pUsfmAnalysis = LookupSFM(ptr);
-			// BEW 3Aug11 added ==NULL block to handle an unknown marker
+			pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
+			// BEW 3Aug11 added == NULL block to handle an unknown marker
 			if (pUsfmAnalysis == NULL)
 			{
 				// should not be an unknown marker, but might be if legacy SFM is mixed in
@@ -11498,7 +11602,25 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 				// it's a known marker; but it might be not inline - so check if it's \bt
 				// and if so store accordingly
 				bareMkr = emptyStr;
-				bareMkr = pUsfmAnalysis->marker;
+				// BEW 24Oct addition - as done above in other places
+				if (baseOfEndMkr.IsEmpty())
+				{
+					// It's not an endmarker
+					if (bIsNestedMkr)
+						bareMkr = _T('+');
+					else
+						bareMkr.Empty();
+					bareMkr += pUsfmAnalysis->marker;
+				}
+				else
+				{
+					// It's an endmarker
+					if (bIsNestedMkr)
+						bareMkr = _T('+');
+					else
+						bareMkr.Empty();
+					bareMkr += pUsfmAnalysis->endMarker; // or, += tagOnly
+				}
 				wholeMkr = gSFescapechar + bareMkr;
 				wholeMkrPlusSpace = wholeMkr + aSpace;
 				if (wholeMkr == _T("\\bt"))
@@ -11526,9 +11648,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			ptr += itemLen;
 			len += itemLen;
 			wxASSERT(ptr < pEnd);
-
 		}
-		// once control gets to here, ptr should be pointing at the first character of the
+		// Once control gets to here, ptr should be pointing at the first character of the
 		// actual word for saving in m_key of pSrcPhrase; we don't expect punctuation
 		// after a binding inline marker, but because of the possibility of user markup
 		// error, we'll allow it. It's not that we can't deal with it; it's just
@@ -11536,7 +11657,8 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 		// ParseWord() is being called to rebuild a doc after user changed punctuation
 		// settings, this can produce exceptions (see below) to the expectation we are now
 		// at the start of the word to be parsed.
-	}
+		
+	} // end of TRUE block for test: if (IsMarker(ptr))
 	else
 	{
 		// the legacy parser's code still applies here - to finish parsing over any
@@ -11551,7 +11673,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			len++;
 		}
 
-		// handle the undoing of the above block's code when the user has changed his mind and
+		// Handle the undoing of the above block's code when the user has changed his mind and
 		// reverted punctuation character(s) to being word-building ones
 		wordBuildersForPreWordLoc = SquirrelAwayMovedFormerPuncts(ptr, pEnd, spacelessPuncts);
 		// if we actually squirreled some away, then we must advance ptr over them, and update
@@ -11565,7 +11687,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			// and for when dealing with ~ fixedspaced conjoining, where wxString firstWord is
 			// defined
 		}
-        // when the above loop exits, and any squirreling required has been done, ptr may
+        // When the above loop exits, and any squirreling required has been done, ptr may
         // be pointing at the word, or at a preceding inline binding marker, like \k (for
         // keyword) or \w (for a wordlist word) or various other markers - many of which
         // are character formatting ones, like italics (\it), etc -- so handle the
@@ -11584,7 +11706,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar,
 			{
                 // parse across as many as there are, and the obligatory white space
                 // following each - normalizing \n or \r to a space at the same time
-				pUsfmAnalysis = LookupSFM(ptr);
+				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr); // BEW 24Oct14 overload
 				if (pUsfmAnalysis == NULL)
 				{
 					// must not be an unknown marker, tell the user to fix the input data
@@ -11601,7 +11723,25 @@ _("Adapt It does not recognise this marker: %s which is in the input file.\nEdit
 					return 0;
 				}
 				bareMkr = emptyStr;
-				bareMkr = pUsfmAnalysis->marker;
+				// BEW 24Oct addition - as done above in other places
+				if (baseOfEndMkr.IsEmpty())
+				{
+					// It's not an endmarker
+					if (bIsNestedMkr)
+						bareMkr = _T('+');
+					else
+						bareMkr.Empty();
+					bareMkr += pUsfmAnalysis->marker;
+				}
+				else
+				{
+					// It's an endmarker
+					if (bIsNestedMkr)
+						bareMkr = _T('+');
+					else
+						bareMkr.Empty();
+					bareMkr += pUsfmAnalysis->endMarker; // or, += tagOnly
+				}
 				wholeMkr = gSFescapechar + bareMkr;
 				wholeMkrPlusSpace = wholeMkr + aSpace;
 				if (pUsfmAnalysis->inLine == FALSE)
@@ -11674,7 +11814,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		}
 	}
 
-	// we are now a the first character of the word
+	// we are now at the first character of the word
 	wxChar* pWordProper = ptr;
 	// the next four variables are for support of words separated by ~ fixed space symbol
 	wxChar* pEndWordProper = NULL;
@@ -11729,8 +11869,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	// (which is usually space, or endmarker, or punctuation)
 	bMatchedFixedSpaceSymbol = IsFixedSpaceAhead(ptr, pEnd, pWordProper, pEndWordProper,
 				finalPunctBeforeFixedSpaceSymbol, inlineBindingEndMkrBeforeFixedSpace,
-				wordBuildersForPostWordLoc, spacelessPuncts); // the punctuationSet
-												// passed in has all spaces removed
+				wordBuildersForPostWordLoc, spacelessPuncts,
+				bTokenizingTargetText); // the punctuationSet passed in has all spaces removed
 	if (bMatchedFixedSpaceSymbol)
 	{
         // It's a pair of words conjoined by ~, so complete the parse of what follows the ~
@@ -11739,11 +11879,16 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		int nChangeInLenValue = ptr - savePtr;
 		len += nChangeInLenValue;
 		savePtr = ptr;
+		// BEW 24Oct14, added bTokenizingTargetText boolean because the next function
+		// calls FindParseHaltLocation() to which I had to had the same boolean to the
+		// signature; spaceless puncts is already either src or tgt puncts depending on
+		// what TokenizeText() was called to do, so it's a bit clumsy, but at least we
+		// are using the correct punctuation set throughout the parser etc
 		FinishOffConjoinedWordsParse(ptr, pEnd, pSecondWordBegins, pSecondWordEnds,
 				precedingPunctAfterFixedSpaceSymbol, inlineBindingMkrAfterFixedSpace,
 				newPunctFrom2ndPreWordLoc, newPunctFrom2ndPostWordLoc,
 				wordBuildersFor2ndPreWordLoc, wordBuildersFor2ndPostWordLoc,
-				spacelessPuncts);
+				spacelessPuncts, bTokenizingTargetText);
 		nChangeInLenValue = ptr - savePtr;
 		// if word-building characters have become punctuation, ptr may not be pointing at
 		// the end of the word, so augment it by the number of characters in the string
@@ -11824,7 +11969,6 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		// following punctuation), so we must parse forward again, below, over those
 		// punctuation characters a second time to get to the ] character which determines
 		// our return point - so that's why we keep looking for presence of ] below
-		//while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar))
 		while (!IsEnd(ptr) && !IsWhiteSpace(ptr) && !IsMarker(ptr))
 		{
 			// check if we are pointing at a punctuation character (it can't be a ]
@@ -11905,7 +12049,6 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 				return len;
 			}
 			// are we at the end of word-medial punctuation? (but not at buffer end)
-			//if (bStartedPunctParse && !IsWhiteSpace(ptr) && (*ptr != gSFescapechar)
 			if (bStartedPunctParse && !IsWhiteSpace(ptr) && !IsMarker(ptr)
 				&& (nFound = spacelessPuncts.Find(*ptr)) == wxNOT_FOUND && !IsEnd(ptr))
 			{
@@ -11942,7 +12085,9 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 	}
 	if (bMatchedFixedSpaceSymbol)
 	{
-		// create the children & store them
+		// create the children & store them; we create a pseudo-merger, so that if
+		// the user elects to unmerge, he in effect removes the fixed space, but
+		// retains the meaning unchanged
 		pSrcPhrWord1 = new CSourcePhrase;
 		pSrcPhrWord2 = new CSourcePhrase;
 		pSrcPhrase->m_pSavedWords->Append(pSrcPhrWord1);
@@ -11952,8 +12097,8 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 		{
 			pSrcPhrWord1->m_precPunct = pSrcPhrase->m_precPunct;
 		}
-		// other members of these will get their content from code further below, and
-		// more explanatory comments are there too to help complete the picture
+        // the member variables of these will get their content from code further below,
+        // and more explanatory comments are there too to help complete the picture
 	}
 
     // When we exit the above word-parsing loop, we included punctuation in the parse
@@ -13151,6 +13296,7 @@ _("This marker: %s  follows punctuation but is not an inline marker.\nIt is not 
 /// explicitly PngOnly before we interpret it as the former. If it's UsfmAndPng, we'll
 /// interpret it as the latter - and it that gives a false parse, then too bad. People
 /// should be using only Usfm by now anyway!
+/// BEW 24Oct14 no change needed for support of USFM nested markers
 bool CAdapt_ItDoc::IsEndMarkerRequiringStorageBeforeReturning(wxChar* ptr, wxString* pWholeMkr)
 {
 	if (gpApp->gCurrentSfmSet == PngOnly)
@@ -13306,6 +13452,7 @@ int CAdapt_ItDoc::ParseInlineEndMarkers(wxChar*& ptr, wxChar* pEnd,
 // parsed over.
 // BEW created 11Oct10
 // BEW 2Dec10 added ] character as cause to return, ptr should be pointing at it on return
+// BEW 24Oct14, no changes needed for support of USFM nested markers
 int CAdapt_ItDoc::ParseAdditionalFinalPuncts(wxChar*& ptr, wxChar* pEnd,
 					CSourcePhrase*& pSrcPhrase, wxString& spacelessPuncts,
 					int len, bool& bExitOnReturn, bool& bHasPrecedingStraightQuote,
@@ -13799,6 +13946,7 @@ void CAdapt_ItDoc::ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filter
 /// asterisk.
 /// BEW 15Sep10, it helps to have a predictable return if pChar on input is not pointing
 /// at a backslash - so test and return the empty string. (Better this way for OXES support)
+/// BEW 24Oct14, no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 {
@@ -13827,6 +13975,7 @@ wxString CAdapt_ItDoc::GetWholeMarker(wxChar *pChar)
 /// uses a pointer to a buffer.
 /// BEW 15Sep10, it helps to have a predictable return if pChar on input is not pointing
 /// at a backslash - so test and return the empty string. (Better this way for OXES support)
+/// BEW 24Oct14, no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetWholeMarker(wxString str)
 {
@@ -13860,6 +14009,7 @@ wxString CAdapt_ItDoc::GetWholeMarker(wxString str)
 /// IsEndMarkerForTextTypeNone(), the View's InsertNullSourcePhrase().
 /// Returns the standard format marker without the initial backslash, but includes any end
 /// marker asterisk. Internally calls GetWholeMarker().
+/// BEW 24Oct14, no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetMarkerWithoutBackslash(wxChar *pChar)
 {
@@ -13887,6 +14037,7 @@ wxString CAdapt_ItDoc::GetMarkerWithoutBackslash(wxChar *pChar)
 /// ApplyOutputFilterToText().
 /// Returns the standard format marker without the initial backslash, and without any end
 /// marker asterisk. Internally calls GetMarkerWithoutBackslash().
+/// BEW 24Oct14, no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 {
@@ -13920,6 +14071,7 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 /// if there is one).
 /// whm added str param 18Feb05
 /// BEW 24Mar10 no changes needed for support of doc version 5
+/// BEW 24Oct14, no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str)
 {
@@ -14123,6 +14275,7 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 /// MapSfmToUSFMAnalysisStruct hash map. If the marker has an association in the map it
 /// returns a pointer to the USFMAnalysis struct. NULL is returned if no marker could be
 /// parsed from pChar, or if the marker could not be found in the hash map.
+/// BEW 24Oct14 changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 {
@@ -14144,6 +14297,116 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 	{
 		// bareMkr starts with bt... so shorten it to simply bt for lookup purposes
 		bareMkr = _T("bt");
+	}
+	// BEW 24Oct14, add support here for USFM nested markers, these are of form \+tag
+	// so for any such, we have to extract the tag so as to be able to lookup the
+	// appropriate struct
+	bool bIsNestedMkr = FALSE;
+	bool bIsWholeMkr = FALSE;
+	wxString baseOfEndMkr;
+	wxString theTag; theTag.Empty();
+	bIsNestedMkr = IsNestedMarkerOrMarkerTag(&bareMkr, theTag, baseOfEndMkr, bIsWholeMkr);
+	wxUnusedVar(bIsNestedMkr); // here we don't need the boolean returned, we just want a lookup
+	if (baseOfEndMkr.IsEmpty())
+	{
+		bareMkr = theTag; // it was not an endmarker
+	}
+	else
+	{
+		bareMkr = baseOfEndMkr; // it was an endmarker
+	}
+	MapSfmToUSFMAnalysisStruct::iterator iter;
+	// The particular MapSfmToUSFMAnalysisStruct used for lookup below depends the appropriate
+	// sfm set being used as stored in gCurrentSfmSet enum.
+	switch (gpApp->gCurrentSfmSet)
+	{
+		case UsfmOnly:
+			iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
+			bFound = (iter != gpApp->m_pUsfmStylesMap->end());
+			break;
+		case PngOnly:
+			iter = gpApp->m_pPngStylesMap->find(bareMkr);
+			bFound = (iter != gpApp->m_pPngStylesMap->end());
+			break;
+		case UsfmAndPng:
+			iter = gpApp->m_pUsfmAndPngStylesMap->find(bareMkr);
+			bFound = (iter != gpApp->m_pUsfmAndPngStylesMap->end());
+			break;
+		default:
+			iter = gpApp->m_pUsfmStylesMap->find(bareMkr);
+			bFound = (iter != gpApp->m_pUsfmStylesMap->end());
+	}
+	if (bFound)
+	{
+		// iter->second points to the USFMAnalysis struct
+		return iter->second;
+	}
+	else
+	{
+		return (USFMAnalysis*)NULL;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		a pointer to the USFMAnalysis struct associated with the marker at pChar,
+///				or NULL if the marker was not found in the MapSfmToUSFMAnalysisStruct.
+/// \param		pChar	      -> a pointer to the first character of the marker in the
+///                              buffer (a backslash)
+/// \param      tagOnly       <- Whether \tag or \+tag or tag or +tag was passed in, it
+///                              returns the tag string here (it may have * at its end)
+/// \param      baseOfEndMkr  <- If an endmarker was passed in, it is the tagOnly without the
+///                              final * character; if not an endmarker passed in, then 
+///                              empty string is returned (This can be used as a defacto
+///                              test of whether what was passed in was an endmarker or
+///                              from an endmarker.)
+/// \param      bIsNestedMkr  <- TRUE if of form \+tag, FALSE if of form \tag
+/// \remarks
+/// Called from: the Doc's ParseWord(), IsMarker(), TokenizeText(), DoMarkerHousekeeping(),
+/// IsEndMarkerForTextTypeNone(), the View's InsertNullSourcePhrase(),
+/// Determines the marker pointed to at pChar and performs a look up in the
+/// MapSfmToUSFMAnalysisStruct hash map. If the marker has an association in the map it
+/// returns a pointer to the USFMAnalysis struct. NULL is returned if no marker could be
+/// parsed from pChar, or if the marker could not be found in the hash map.
+/// BEW 24Oct14 variant useful for support of USFM nested markers, used in ParseWord()
+///////////////////////////////////////////////////////////////////////////////
+USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar, wxString& tagOnly, 
+									  wxString& baseOfEndMkr, bool& bIsNestedMkr)
+{
+	// Looks up the sfm pointed at by pChar
+	// Returns a USFMAnalysis struct filled out with attributes
+	// if the marker is found in the appropriate map, otherwise
+	// returns NULL.
+	// whm ammended 11July05 to return the \bt USFM Analysis struct whenever
+	// any bare marker of the form bt... exists at pChar
+	wxChar* ptr = pChar;
+	bool bFound = FALSE;
+	// get the bare marker
+	wxString bareMkr = GetBareMarkerForLookup(ptr);
+	// look up and Retrieve the USFMAnalysis into our local usfmAnalysis struct
+	// variable.
+	// If bareMkr begins with bt... we will simply use bt which will return the
+	// USFMAnalysis struct for \bt for all back-translation markers based on \bt...
+	if (bareMkr.Find(_T("bt")) == 0)
+	{
+		// bareMkr starts with bt... so shorten it to simply bt for lookup purposes
+		bareMkr = _T("bt");
+	}
+	// BEW 24Oct14, add support here for USFM nested markers, these are of form \+tag
+	// so for any such, we have to extract the tag so as to be able to lookup the
+	// appropriate struct, and if a USFM endmarker, remove the * at the end
+	bIsNestedMkr = FALSE;
+	bool bIsWholeMkr = FALSE;
+	wxString theTag; theTag.Empty();
+	tagOnly.Empty(); baseOfEndMkr.Empty();
+	bIsNestedMkr = IsNestedMarkerOrMarkerTag(&bareMkr, tagOnly, baseOfEndMkr, bIsWholeMkr);
+	wxUnusedVar(bIsWholeMkr);
+	if (baseOfEndMkr.IsEmpty())
+	{
+		bareMkr = tagOnly;
+	}
+	else
+	{
+		bareMkr = baseOfEndMkr;
 	}
 	MapSfmToUSFMAnalysisStruct::iterator iter;
 	// The particular MapSfmToUSFMAnalysisStruct used for lookup below depends the appropriate
@@ -14178,6 +14441,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 }
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		a pointer to the USFMAnalysis struct associated with the bareMkr,
 ///				or NULL if the marker was not found in the MapSfmToUSFMAnalysisStruct.
@@ -14194,6 +14458,12 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 /// association in the map it returns a pointer to the USFMAnalysis struct. NULL is
 /// returned if the marker could not be found in the hash map.
 /// BEW 10Apr10, no changes for support of doc version 5
+/// BEW 24Oct14 changes needed for support of USFM nested markers. LookupSFM() does
+/// not try to lookup endmarkers, it is intended that TokenizeText() - which calls it,
+/// handles the begin markers, and then passes off parsing the word and any endmarkers
+/// to ParseWord() - so we don't bother in LookupSFM() to determine if a marker is
+/// an endmarker, because it should never encounter any.
+/// BEW 24Oct14 refactored for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 {
@@ -14215,6 +14485,23 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 	{
 		// bareMkr starts with bt... so shorten it to simply bt for lookup purposes
 		bareMkr = _T("bt"); // bareMkr is value param so only affects local copy
+	}
+	// BEW 24Oct14, add support here for USFM nested markers, these are of form \+tag
+	// so for any such, we have to extract the tag so as to be able to lookup the
+	// appropriaate struct
+	bool bIsNestedMkr = FALSE;
+	bool bIsWholeMkr = FALSE;
+	wxString tagOnly; tagOnly.Empty();
+	wxString baseOfEndMkr;
+	bIsNestedMkr = IsNestedMarkerOrMarkerTag(&bareMkr, tagOnly, baseOfEndMkr, bIsWholeMkr);
+	wxUnusedVar(bIsNestedMkr);
+	if (baseOfEndMkr.IsEmpty())
+	{
+		bareMkr = tagOnly;
+	}
+	else
+	{
+		bareMkr = baseOfEndMkr;
 	}
 	MapSfmToUSFMAnalysisStruct::iterator iter;
     // The particular MapSfmToUSFMAnalysisStruct used for lookup below depends the
@@ -14273,6 +14560,9 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 /// If the whole marker exists, the function returns TRUE and the array's index where the
 /// marker was found is returned in MkrIndex. If the marker doesn't exist in the array
 /// MkrIndex returns -1.
+/// BEW 24Oct14 no changes needed for support of USFM nested markers (note, coding logic
+/// errors leading to a nested marker being unrecognised as a USFM would cause the nested
+/// marker to end up in pUnkMarkers probably - and be marked as ??\+tag?? in the view)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::MarkerExistsInArrayString(wxArrayString* pUnkMarkers,
 											 wxString unkMkr, int& MkrIndex)
@@ -14302,11 +14592,20 @@ bool CAdapt_ItDoc::MarkerExistsInArrayString(wxArrayString* pUnkMarkers,
 /// \param		wholeMkr	-> the whole marker being checked to see if it exists in MarkerStr
 /// \param		markerPos	<- the index into the MarkerStr if wholeMkr is found, otherwise -1
 /// \remarks
-/// Called from: the App's SetupMarkerStrings().
+/// Called twice, but only from: the App's SetupMarkerStrings().
 /// Determines if a standard format marker (whole marker including backslash) exists in a
 /// given string. If the whole marker exists, the function returns TRUE and the zero-based
 /// index into MarkerStr is returned in markerPos. If the marker doesn't exist in the
-/// string markerPos returns -1.
+/// string markerPos returns -1. 
+/// BEW 24Oct14, the SetupMarkerStrings() calling function builds rapid access wxString
+/// marker collections based on the marker definitions in the m_pUsfmAndPngStylesMap, and so 
+/// knows nothing about USFM nested markers. So, to support USFM nested markers here, nothing
+/// needs to be done. We do have rapid access strings not constructed from m_pUsfmAndPngStylesMap,
+/// and for those, markes of form \+tag are included when appropriate (that is, only for
+/// inline binding and nonbinding markers) - so for those a Find() operation is appropriate,
+/// but for the strings made by SetupMarkerStrings(), a Find() should only be done after
+/// the tag of a \+tag structured marker has been extracted, and the appropriate equivalent
+/// unnested marker form (i.e. \tag ) reconstructed for the Find() lookup.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, int& markerPos)
 {
@@ -14331,6 +14630,7 @@ bool CAdapt_ItDoc::MarkerExistsInString(wxString MarkerStr, wxString wholeMkr, i
 /// Prior to calling IsAFilteringSFM, the caller should have called LookupSFM(wxChar* pChar)
 /// or LookupSFM(wxString bareMkr) to populate the pUsfmAnalysis struct, which should then
 /// be passed to this function.
+/// BEW 24Oct14, no changes for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
 {
@@ -14365,6 +14665,13 @@ bool CAdapt_ItDoc::IsAFilteringSFM(USFMAnalysis* pUsfmAnalysis)
 /// unkMKr should be an unknown marker in bare form (without backslash)
 /// Returns TRUE if unkMKr exists in the m_unknownMarkers array, and its filter flag
 /// in m_filterFlagsUnkMkrs is TRUE.
+/// BEW 24Oct14, no changes for support of USFM nested markers. A nested marker always has
+/// an known (to the USFM standard) unnested marker associated with it. So if our
+/// application's logic handles nested markers correctly, they should never be mistakenly
+/// be "unknown", but if one becomes unknown, it will be shown between ?? ?? in the view's
+/// whiteboard area - and so would signal that I've some wrong logic which I need to fix.
+/// So the appropriate thing to do here is to allow unknown markers with + as their initial
+/// character to be treated as unknowns. So make no changes herein.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 {
@@ -14399,6 +14706,7 @@ bool CAdapt_ItDoc::IsAFilteringUnknownSFM(wxString unkMkr)
 /// BEW 26Jan11, added test for character after the backslash, that it is alphabetic (this
 /// prevents spurious TRUE returns if a \ is followed by whitespace)
 /// BEW 31Jan11, made it smarter still
+/// BEW 24Oct14, added support for USFM nested markers (\+tag)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
 {
@@ -14432,6 +14740,11 @@ bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
                 return FALSE;
 			}
 		}
+		else if (*(pChar + 1) == _T('+') && IsAnsiLetter(*(pChar + 2)))
+		{
+			// BEW 24Oct14 added support for USFM nested markers
+			return TRUE;
+		}
 		else if (!IsAnsiLetter(*(pChar + 1)))
 		{
 			return FALSE;
@@ -14449,6 +14762,7 @@ bool CAdapt_ItDoc::IsMarker(wxChar *pChar)
 	}
 }
 
+// BEW 24Oct14 no changes needed for support of USFM nested markers
 bool CAdapt_ItDoc::IsMarker(wxString& mkr)
 {
 	const wxChar* pConstBuff = mkr.GetData();
@@ -14467,7 +14781,8 @@ bool CAdapt_ItDoc::IsMarker(wxString& mkr)
 /// and helper.cpp's FindSplitLocationForPunctsAndMkrsSubstringsPair().
 /// Determines if the marker at pChar is a USFM end marker (ends with an asterisk).
 /// BEW added to it, 11Feb10, to handle SFM endmarkers \F or \fe for 'footnote end'
-/// BEw added 11Oct10, support for halting at ] bracket
+/// BEW added 11Oct10, support for halting at ] bracket
+/// BEW 24Oct14, no changes needed for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -14515,15 +14830,48 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 /// in AI_USFM.xml with inLine="1" attribute. InLine markers are primarily "character
 /// style" markers and also include all the embedded content markers whose parent markers
 /// are footnote, endnotes and crossrefs.
+/// BEW 24Oct14, Such markers are typically the ones which potentially may be nested. 
+/// Therefore, some additions are below to support determining when a nested marker
+/// is in-line; nested markers are not enumerated in the USFM standard, but are constructable
+/// on-demand from any unnested one by addition of + following the backspace. So our
+/// approach here is to determine if the marker at pChar is a nested one, and construct
+/// its equivalent legacy associated marker - and use that for the lookup. (Footnote,
+/// endnote and crossref markers do not have nested equivalents however, but other inline
+/// markers legally may have them.)
+/// BEW 24Oct14 additions for support of USFM nested markers
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 {
 	// Returns TRUE if pChar points to a marker that has inLine="1" [true] attribute
 	wxChar* ptr = pChar;
 	wxString wholeMkr = GetWholeMarker(ptr);
-	int aPos = wholeMkr.Find(_T('*'));
-	if (aPos != -1)
-		wholeMkr.Remove(aPos,1);
+
+	// BEW 24Oct14, addition for support of nested UFSM markers (i.e. of form \+tag )
+	bool bIsNestedMkr = FALSE;
+	bool bIsWholeMkr = TRUE;
+	wxString tagOnly; tagOnly.Empty();
+	wxString baseOfEndMkr;
+	bIsNestedMkr = IsNestedMarkerOrMarkerTag(&wholeMkr, tagOnly, baseOfEndMkr, bIsWholeMkr);
+	wxUnusedVar(bIsNestedMkr);
+	wxUnusedVar(bIsWholeMkr);
+	// Prepare the correct lookup marker string
+	wholeMkr = gSFescapechar;
+	if (baseOfEndMkr.IsEmpty())
+	{
+		// not an endmarker, so tagOnly has the wanted tag
+		wholeMkr += tagOnly;
+	}
+	else
+	{
+		// it was an endmarker, so baseOfEndMkr has the wanted tag
+		wholeMkr += baseOfEndMkr;
+	}
+	// note: no + is present now, if it in fact was a ptr to \+tag passed in
+	
+	// end of 24Oct14 addition, and next 3 lines no longer needed
+	//int aPos = wholeMkr.Find(_T('*'));
+	//if (aPos != -1)
+	//	wholeMkr.Remove(aPos,1);
 	// whm revised 13Jul05. In order to get an accurate Find of wholeMkr below we
 	// need to ensure that the wholeMkr is followed by a space, otherwise Find would
 	// give a false positive when wholeMkr is "\b" and the searched string has \bd, \bk
@@ -14531,7 +14879,8 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 	wholeMkr.Trim(TRUE); // trim right end
 	wholeMkr.Trim(FALSE); // trim left end
 	wholeMkr += _T(' '); // ensure wholeMkr has a single final space
-
+	// These rapid access strings don't have nested marker definitions in them, that's
+	// why we constructed the whole marker without any + indicating nesting, above
 	switch(gpApp->gCurrentSfmSet)
 	{
 	case UsfmOnly:
@@ -14582,6 +14931,11 @@ bool CAdapt_ItDoc::IsInLineMarker(wxChar *pChar, wxChar* WXUNUSED(pEnd))
 /// IsCorresEndMarker returns TRUE if the marker matches wholeMkr and ends with an
 /// asterisk. It also returns TRUE if the gCurrentSfmSet is PngOnly and wholeMkr
 /// passed in is \f and marker being checked at ptr is \fe or \F.
+/// BEW 24Oct14, no changes needed for support of USFM nested markers. (Since
+/// this function is used for filtering, and because inline binding and inline
+/// nonbinding markers cannot be filtered, it's unlikely this function will
+/// be called for wholeMkr being a nested on (ie. of form \+tag ). However, it
+/// would handle such correctly without any changes being needed.
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* pEnd)
 {
@@ -14864,6 +15218,8 @@ int CAdapt_ItDoc::ClearBuffer()
 /// Called from: the Doc's TokenizeText().
 /// Returns TRUE if rText does not have any of the following markers: \id \v \vt \vn \c \p \f \s \q
 /// \q1 \q2 \q3 or \x.
+/// BEW 24Oct14, no changes needed for support of USFM nested markers. (Lack of \+ does
+/// not logically imply that it is not a USFM marked up text.)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsUnstructuredPlainText(wxString& rText)
 // we deem the absence of \id and any of \v \vt \vn \c \p \f \s \q
@@ -15271,6 +15627,9 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 /// instead, and without any preceding \bt. So the added parameter allows us to determine
 /// when we are parsing a marker starting with \bt but is not our own because of extra
 /// characters in it.
+/// BEW 24Oct14, no changes needed for support of USFM nested markers - because these
+/// three marker types are never nested, and so \+free, \+note, \+bt etc will never
+/// occur in valid USFM marked up text
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr)
 {
@@ -15389,12 +15748,23 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// support) quite significantly - somewhat simplifying TokenizeText() but completely
 /// rewriting the ParseWord() function it calls -- and the latter potentially consumes more
 /// data on each call. TokenizeText also reworked to handle text colouring better.
+/// BEW 24Oct14, various changes (mostly to called functions within) for support
+/// of USFM nested markers
+/// 
+/// TODO - currently, order information about what precedes a word and what follows it is
+/// lost. A useful change for more accurate exports, and reducing the user of Placement
+/// dialogs, would be to add order information (eg. enums in actual order in a couple of
+/// new CSourcePhrase string attributes) to the CSourcePhrase model. Do this someday!
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,
 							   int nTextLength, bool bTokenizingTargetText)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	// BEW 24Oct14 added next three lines
+	bool bIsNestedMkr = FALSE;
+	wxString tagOnly;
+	wxString baseOfEndMkr;
 
 	// BEW added 10Jul14, store delimiter(s) which precede the being-parsed current word
 	wxString precWordDelim;
@@ -15424,21 +15794,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	{
 		spacelessPuncts = MakeSpacelessPunctsString(pApp, sourceLang);
 	}
-	// BEW 11Jan11, added test here so that the function can be used on target text as
-	// well as on source text
-	//if (bTokenizingTargetText)
-	//{
-	//	spacelessPuncts = pApp->m_punctuation[1];
-	//}
-	//else
-	//{
-	//	spacelessPuncts = pApp->m_punctuation[0];
-	//}
-	//while (spacelessPuncts.Find(_T(' ')) != -1)
-	//{
-	//	// remove all spaces, leaving only the list of punctation characters
-	//	spacelessPuncts.Remove(spacelessPuncts.Find(_T(' ')),1);
-	//}
 	wxString boundarySet = spacelessPuncts;
 	while (boundarySet.Find(_T(',')) != -1)
 	{
@@ -15791,8 +16146,14 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			else
 			{
 				// neither verse nor chapter, but some other marker
-				pUsfmAnalysis = LookupSFM(ptr); // If an unknown marker, pUsfmAnalysis
-												// will be NULL
+				// BEW 24Oct14, LookupSFM() has been made USFM nested marker aware.
+				// If an unknown marker, pUsfmAnalysis will be NULL; if it's a nested
+				// marker, the non-nested equivalent will be constructed internally for
+				// the lookup and used, likewise, if its an endmarker, * will be removed
+				// as well. However, we should only be encountering legacy content
+				// begin-markers here in TokenizeText()
+				pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
+
                 // whm revised this block 11Feb05 to support USFM and SFM Filtering. When
                 // TokenizeText enounters previously filtered text (enclosed within
                 // \~FILTER ... \~FILTER* brackets), it strips off those brackets so that
@@ -15831,6 +16192,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // parser, that was not true).
                 // BEW 25Feb11, added code to use pUsfmAnalysis looked up to set
                 // m_curTextType and m_bSpecialText which were forgottten here
+                // BEW 24Oct14, the rapid access strings for binding markers- 
+                // m_inlineBindingMarkers, now contains a \+tag variant for each \tag
+                // marker; similarly and the two strings m_inlineNonbindingMarkers and
+				// m_inlineNonbindingEndMarkers likewise contain marker and nested marker
+				// variants - so these permit rapid lookup of nested markers; but other
+				// marker types (which never can be nested) do not have \+tag variants in
+				// their rapid access collections. Beware, and code accordingly....
 
 				//bool bDidSomeFiltering = FALSE; // set but not used
 
@@ -15859,7 +16227,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                     // inline marker, but not one of the inline markers which begin with
                     // \x or \f, and neither is it \va nor \vp; any marker that gets
 					// through those tests is one which we immediately hand off in this
-					// block for ParseWord() to deal with
+					// block for ParseWord() to deal with.
+					// BEW 24Oct14, none of \x \f \va or \vp can ever be a nested marker,
+					// and so if ptr is pointing at the + of a nested marker, we want to
+					// hand any such off to ParseWord() immediately too, so no change
+					// needed here - and the test using m_inlineNonbindindMarkers just
+					// below will correctly find any such, since they are included in
+					// this rapid access string for lookup purposes
 
 					// the hand-off takes place outside the loop, so set the flags we need
 					// to know beforehand, they are needed for ParseWord()'s signature
@@ -15927,6 +16301,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
                 // pUsfmAnalysis, and that comes from AI_USFM.xml, which by definition,
                 // never lists unknown markers. So the changes in the next few lines fix
                 // all this - the test after the || had to be added.
+                // BEW 24Oct14 add nested mkr support here -- have to construct an
+                // augmented reconstructed associated mkr; maybe we are looking at a 
+                // nested one
+				bool bIsWholeMkr = TRUE;
+				bIsNestedMkr = IsNestedMarkerOrMarkerTag(&wholeMkr, tagOnly, baseOfEndMkr, bIsWholeMkr);
+				wxUnusedVar(bIsNestedMkr);
+				wxUnusedVar(bIsWholeMkr);
+				// Prepare the correct lookup marker string
+				augmentedWholeMkr = gSFescapechar;
+				augmentedWholeMkr += tagOnly;
+				augmentedWholeMkr += _T(' ');
+				
+                // Do the lookup - these rapid access strings never contain nested markers
 				if (IsAFilteringSFM(pUsfmAnalysis) ||
 					(gpApp->gCurrentFilterMarkers.Find(augmentedWholeMkr) != -1))
 				{
@@ -16076,7 +16463,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// saved in m_markers; but for endmarkers we have to suppress their use
 					// for display in the navigation text area - we must do that job in
 					// AnalyseMarker() below - after the ParseWord() call.
-					itemLen = ParseMarker(ptr);
+					itemLen = ParseMarker(ptr); // BEW 24Oct14, handles USFM nested markers too
 					AppendItem(tokBuffer,temp,ptr,itemLen);
                     // being a non-filtering marker, it can't possibly be \free, and so we
                     // don't have to worry about the filter-related boolean flags in
@@ -16259,10 +16646,19 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			wxLogDebug(_T("TWELVE: (0) %s (1) %s (2) %s (3) %s (4) %s (5) %s (6) %s (7) %s (8) %s (9) %s (10) %s (11) %s"),
 				s0.c_str(),s1.c_str(),s2.c_str(),s3.c_str(),s4.c_str(),s5.c_str(),s6.c_str(),s7.c_str(),s8.c_str(),s9.c_str(),s10.c_str(),s11.c_str());
 #endif
+#if defined(_DEBUG)
+/*
+			if (pSrcPhrase->m_nSequNumber == 666)
+			{
+				int break_here = 1;
+			} 
+*/
+#endif
 			itemLen = ParseWord(ptr, pEnd, pSrcPhrase, spacelessPuncts,
 								pApp->m_inlineNonbindingMarkers,
 								pApp->m_inlineNonbindingEndMarkers,
-								bIsInlineNonbindingMkr, bIsInlineBindingMkr);
+								bIsInlineNonbindingMkr, bIsInlineBindingMkr,
+								bTokenizingTargetText);
 			ptr += itemLen; // advance ptr over what we parsed
 
 			// We do NormalizeToSpaces() only on the string of standard format markers which
@@ -16347,6 +16743,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 						// pUsfmAnalysis being NULL (returns TRUE, and TextType noType is
 						// assigned and m_inform gets the marker bracketted with ? and ? before
 						// and after) etc
+						// BEW 24Oct14, no change to AnalyseMarker() is needed for support of
+						// UFSM nested markers, because the above LookupSFM() works for them
+						// too, and returns the pUsfmAnalysis for the associated non-nested
+						// marker, and that is what is passed in here
 						pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase, pLastSrcPhrase,
 															pBufStart, length, pUsfmAnalysis);
 						// if there was a preceding poetry marker for a verse marker,
@@ -16407,6 +16807,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					bTextTypeChangeBlockEntered = TRUE;
 					pSrcPhrase->m_bFirstOfType = TRUE;
 				}
+				// BEW 24Oct14, next call supports USFM nested markers
 				else if (IsTextTypeChangingEndMarker(pSrcPhrase))
 				{
 					// the test is TRUE if pSrcPhase in its m_endMarkers member contains one
@@ -16416,6 +16817,9 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// ParseWord() returns, and causes default to verse TextType and
 					// m_bSpecialText FALSE - and subsequent code then may change it if
 					// necessary.
+					// BEW 24Oct14, if the endmarker is a nested one, it will not change
+					// the text type, so internally test for + after backslash and if exists
+					// then return FALSE
 					bEnded_f_fe_x_span = TRUE;
 					// propagation from pLastSrcPhrase to pSrcPhrase is required here, because
 					// this one's TextType isn't changed
@@ -17027,6 +17431,9 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 /// BEW 9July10, no changes needed for support of kbVersion 2
 /// BEW 11Oct10 (actually 6Jan11) added code for closing off a TextType span because of
 /// endmarker content within m_endMarkers - I missed doing this in the earlier tweaks
+/// BEW 24Oct14, some changes for support of USFM nested markers - and there are a
+/// few comments added within for explanatory purposes because some of the internal calls
+/// are calls to functions refactored for USFM nested marker support
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount),
 							TextType& propagationType, bool& bTypePropagationRequired)
@@ -17099,6 +17506,11 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
     // propagationType after the while loop. It may never happen that pos == NULL, but to
     // be sure I'm initializing finalType to noType
 	finalType = noType;
+
+	// BEW 24Oct14, next three lines added for the refactored LookupSFM() call later on
+	bool bIsNestedMkr = FALSE;
+	wxString tagOnly;
+	wxString baseOfEndMkr;
 
 	USFMAnalysis* pUsfmAnalysis = NULL; // whm added 11Feb05
 
@@ -17244,7 +17656,7 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 					pSrcPhrase->m_bSpecialText = pLastSrcPhrase->m_bSpecialText;
 				}
 			}
-		}
+		} // end of TRUE block for test: if (mkrBuffer.IsEmpty())
 		else
 		{
 			// there is a marker string on this sourcephrase instance
@@ -17384,8 +17796,21 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
                                 // about a following number, so just append the marker to
                                 // the buffer string
 
-								pUsfmAnalysis = LookupSFM(ptr); // NULL if unknown marker
-
+								// BEW 24Oct14 the next call also handles USFM nested markers
+								// correctly, but internally constructing the unnested equivalent
+								// marker and doing the lookup with that - so no change is
+								// needed here; ParseMarker() is also refactored for support
+								// of USFM nested markers. The markers we are dealing with are
+								// from m_markers member only, and there should never be a
+								// nested marker stored there. So we could use LookupSFM(ptr)
+								// equally well here; but if we use the 4 param signature
+								// override, then we should test that bIsNestedMkr is always
+								// FALSE here.
+								// Returns NULL if unknown marker
+								pUsfmAnalysis = LookupSFM(ptr, tagOnly, baseOfEndMkr, bIsNestedMkr);
+								wxASSERT(bIsNestedMkr == FALSE);
+								wxUnusedVar(tagOnly);
+								wxUnusedVar(baseOfEndMkr);
 								itemLen = ParseMarker(ptr);
 								AppendItem(pApp->buffer,temp,ptr,itemLen);
 
@@ -17403,6 +17828,12 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
                                 // filtering.
 								wxString mkr(ptr,itemLen); // construct the wholeMarker
 								wxString mkrPlusSpace = mkr + _T(' '); // add the trailing space
+								// BEW 24Oct14, USFM nested markers are not filterable
+								// because they are not important enough; so the way to
+								// support USFM markers here is simply to let a marker of form
+								// \+tag be passed in as-is, it will fail to be matched, which
+								// would result in wxNOT_FOUND being returned, and no filtering
+								// would be done due to it
 								int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
 								if (curPos >= 0)
 								{
@@ -17424,6 +17855,10 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 																	 // AnalyseMarker changes it
 
 								// analyse the marker and set fields accordingly
+								// BEW 24Oct14 this call, if the marker was a nested one,
+								// will use the pUsfmAnalysis obtained above, which will
+								// be obtained from the non-nested equivalent marker, so
+								// no other change is needed here
 								pSrcPhrase->m_bSpecialText = AnalyseMarker(pSrcPhrase,pLastSrcPhrase,
 															(wxChar*)ptr,itemLen,pUsfmAnalysis);
 
@@ -17451,7 +17886,7 @@ b:					if (IsMarker(ptr)) // pBuffer added for v1.4.1
 					}
 				}
 			}
-		}
+		} // end of else block for test: if (mkrBuffer.IsEmpty())
 
 		// make this one be the "last" one for next time through
 		pLastSrcPhrase = pSrcPhrase;
@@ -20473,6 +20908,10 @@ h:		gpApp->gCurrentSfmSet = newSet; // caller has done it already, or should hav
 /// Extracts each whole marker, removes the backslash, gets rid of any final * if an endmarkers somehow
 /// crept in unnoticed, and if unique, stores the bareMkr in the map; if the input string str is empty,
 /// it exits without doing anything.
+/// 
+/// BEW 24Oct14, leave unchanged for USFM nested markers support - this would mean
+/// the map may contain the +tag of a marker like \+tag - but we'll assume that's 
+/// what should happen until we find otherwise
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap,
 										  wxString str) // BEW added 06Jun05
@@ -20511,6 +20950,10 @@ void CAdapt_ItDoc::GetMarkerMapFromString(MapWholeMkrToFilterStatus*& pMkrMap,
 /// any markers and their content which were previously filtered and are to remain filtered
 /// when the change to the different SFM set has been effected (since these are already
 /// filtered, we leave them that way)
+/// BEW 24Oct14, no changes for support of USFM nested markers (according to the above
+/// comments, if any \+tag style of marker is in one of the sets (it would not be in both)
+/// then it would not be removed - that probably is what should happen) - see doc class,
+/// SetupForSFMSetChange(), the only place it is called
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2)
 {

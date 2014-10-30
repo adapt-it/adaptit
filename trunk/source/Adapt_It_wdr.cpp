@@ -512,7 +512,7 @@ wxSizer *GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 20, 4, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -524,13 +524,13 @@ wxSizer *GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("For example:  Romans"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( 20, 10, 0, wxALIGN_CENTER, 0 );
+    item1->Add( 20, 4, 0, wxALIGN_CENTER, 0 );
 
     wxFlexGridSizer *item5 = new wxFlexGridSizer( 3, 0, 0 );
 
     item5->Add( 20, 20, 1, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item6 = new wxTextCtrl( parent, IDC_EDIT_FILENAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    wxTextCtrl *item6 = new wxTextCtrl( parent, IDC_EDIT_FILENAME, wxT(""), wxDefaultPosition, wxSize(330,36), 0 );
     item6->SetToolTip( _("Type a brief name for the file here") );
     item5->Add( item6, 5, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -542,24 +542,24 @@ wxSizer *GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item1->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 20, 4, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Note: Do not use any of these characters in a file name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->SetToolTip( _("These characters are not allowed in the name") );
-    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_INVALID_CHARACTERS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item1->Add( 20, 4, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    item10->Add( 90, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item10->Add( 90, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item11 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetDefault();
@@ -10518,7 +10518,6 @@ wxMenuBar *AIMenuBarFunc()
     item6->Append( ID_ADVANCED_BOOKMODE, _("Storing Documents in Book Folders"), _("Turn on, or off, storage of documents to book folders"), wxITEM_CHECK );
     item6->AppendSeparator();
     item6->Append( ID_ADVANCED_FREE_TRANSLATION_MODE, _("Free Translation Mode"), _("Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"), wxITEM_CHECK );
-    item6->Append( ID_FORCE_VERSE_SECTIONING, _("Force Free Translation Sectioning By Verse"), _("Force free translation sectioning by verse or presence of major standard format markers"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, _("Use Target Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing target text"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, _("Use Gloss Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing gloss text"), wxITEM_CHECK );
     item6->Append( ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, _("Remove Free Translations"), _("Removes all the filtered free translations in the document") );
@@ -10552,6 +10551,7 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_MENU_HELP_FOR_ADMINISTRATORS, _("&Help for Administrators (HTML)"), _("Step-by-step procedures to help administrators set up Adapt It to use the features on this menu.") );
     item9->AppendSeparator();
     item9->Append( ID_SETUP_EDITOR_COLLABORATION, _("&Setup or Remove Collaboration..."), _("Configure Adapt It to use a Paratext or Bibledit project for its input (source) texts, and a different project for exporting its (target) texts") );
+    item9->Append( ID_FORCE_VERSE_SECTIONING, _("Force Free Translation Sectioning By Verse"), _("Force free translation sectioning by verse or presence of major standard format markers"), wxITEM_CHECK );
     item9->AppendSeparator();
     item9->Append( ID_EDIT_USER_MENU_SETTINGS_PROFILE, _("User &Workflow Profiles..."), _("Choose which menu items the user can access") );
     item9->Append( ID_MENU_TEMP_TURN_OFF_CURRENT_PROFILE, _("&Turn OFF the current user profile temporarily"), _("When ticked no user profiles will be in effect until program restart or until unticked; and all menus will be accessible"), wxITEM_CHECK );

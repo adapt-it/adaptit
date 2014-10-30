@@ -161,7 +161,7 @@ void GetChapterListAndVerseStatusFromBook(enum CollabTextType textType,
 {
 	// Retrieves several wxArrayString lists of information about the chapters
 	// and verses (and their status) from the PT/BE project's Scripture book
-	// represented in bookFillName.
+	// represented in bookFullName.
 	wxArrayString chapterArray;
 	wxArrayString statusArray;
 	chapterArray.Clear();

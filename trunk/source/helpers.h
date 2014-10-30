@@ -206,7 +206,8 @@ wxString  SpanIncluding(wxString inputStr, wxString charSet);
 wxString  SpanIncluding(wxChar* ptr, wxChar* pEnd, wxString charSet); // BEW added 11Oct10
 
 wxString  ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd, 
-			wxString& wordBuildersForPostWordLoc, wxString charSet); // BEW created 28Jan11
+			wxString& wordBuildersForPostWordLoc, wxString charSet,
+			bool bTokenizingTargetText); // BEW created 28Jan11
 
 wxString  SpanExcluding(wxString inputStr, wxString charSet);
 // the following is an overload for using in a parser  <<-- deprecated 29Jan11
@@ -531,7 +532,23 @@ void NormalizeState();
 // placement is present; mostly endmarkers are all that are involved, but not necessarily so;
 // any remaining will require the Placement... dialog to be shown for the user to place those
 // manually. It should be possible to handle over 90% automatically
-wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMergedSrcPhrase, wxArrayString* arrMkrsPtr);
+wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMergedSrcPhrase, 
+							  wxArrayString* arrMkrsPtr);
+
+// BEW 24Oct14, a helper for testing a marker, or its base tag, for presence of the +
+// character following the backslash or at start of base tab if that is what was passed in,
+// and returning the tag part and a flag value to indicate whether backslash was at the
+// start of the string passed in in pMkrOrTag; and  also return the *-less tag if an 
+// endmarker or base of an endmarker of either normal or nested type was passed in. The
+// idea is to pass in anything which is marker-like, and the returned bits will enable
+// the caller to work out what was passed in and to reconstruct anything needed from the
+// parts.
+bool	IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly, 
+								  wxString& baseOfEndMkr, bool& bWholeMkrPassedIn);
+// BEW 24Oct14, the next is an override of the above, used when parsing with ptrToMkr
+// across a string of text
+bool	IsNestedMarkerOrMarkerTag(wxChar* ptrToMkr, wxString& tagOnly, 
+								  wxString& baseOfEndMkr, bool& bWholeMkrPassedIn);
 
 // The following are two diagnostic functions which can be used for chasing any bug
 // resulting from the partner piles not having all required values filled out, especially

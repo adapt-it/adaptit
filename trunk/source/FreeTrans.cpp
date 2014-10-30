@@ -8193,7 +8193,7 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 	if (m_pApp->m_bForceVerseSectioning)
 	{
 		wxString title = _("Cannot turn button On");
-		wxString msg = _("Sectioning by punctuation cannot be turned on, because the Advanced menu item \"Force Free Translation Sectioning By Verse\" is still turned On. Turn it Off, then this button will respond.");
+		wxString msg = _("Sectioning by punctuation cannot be turned on, because the Administrator menu item \n\"Force Free Translation Sectioning By Verse\" is still turned On. \nTurn it Off, then this button will respond. \n(A password is needed for showing the Administrator menu.)");
 		wxMessageBox(msg, title, wxICON_INFORMATION | wxOK);
 	}
 

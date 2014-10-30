@@ -19018,6 +19018,8 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 // ApplyOutputFilterToText_For_Collaboration() does not rely on or use the filtering
 // mechanisms and structures designed by Bill, it is self-contained, and has no provision
 // for filtering for RTF purposes, but only for (U)SFM output.
+// BEW 24Oct14, no changes needed for support of USFM nested markers (the markers involved
+// never are nested ones)
 wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayString& bareMarkerArray)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -19081,7 +19083,7 @@ wxString ApplyOutputFilterToText_For_Collaboration(wxString& textStr, wxArrayStr
 				if (wholeMarker.Find(_T('*')) != wxNOT_FOUND && !bHitMkr)
 				{
 					// we hit this end marker before seeing a beginning marker in the input text
-					// if its non-end form it to be filtered we'll parse over it and omit it from
+					// if its non-end form is to be filtered we'll parse over it and omit it from
 					// the text, otherwise we'll leave it alone
 					if (IsBareMarkerInArray(bareMarkerForLookup, bareMarkerArray))
 					{
@@ -20854,7 +20856,7 @@ int ParseWordRTF(wxChar *pChar, wxString& precedePunct, wxString& followPunct,
 	// right quotation marks or a right wedge (and we'll assume that ordinary vertical
 	// double quote or apostrophe goes with the word which precedes, so long as there was
 	// preceding punctuation found - otherwise we'll assume it belongs with the next word
-	// to be parsed) We also don't card if there is a gFSescapechar in the next section -
+	// to be parsed) We also don't card if there is a gSFscapechar in the next section -
 	// we can assume it is being used as a word building character quite safely, because we
 	// don't have to consider the possibility of such a character being the start of a
 	// following (U)SFM until after the next white space character has been parsed over.
