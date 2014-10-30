@@ -3670,24 +3670,28 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	previewTitle = previewTitle.Format(_T("Print Preview of %s"),
 										pApp->m_curOutputFilename.c_str());
 	printTitle = printTitle.Format(_T("Printing %s"),pApp->m_curOutputFilename.c_str());
+	// BEW 21Oct14 set high quality
+	pApp->pPrintData->SetQuality(wxPRINT_QUALITY_HIGH);
     wxPrintDialogData printDialogData(*pApp->pPrintData);
 
 	// BEW fiddles, 20Oct14, trying to get PrintPreview to show other than fixed 25mm
 	// page margins
-	//AIPrintout* pAIPrOut = new AIPrintout(previewTitle);
+	AIPrintout* pAIPrOut = new AIPrintout(previewTitle);
 	// next line tests if my manually set margin of 2mm is picked up
-	//wxPoint marginTopLeft = pApp->pPgSetupDlgData->GetMarginTopLeft(); // correctly returns (2,25)
+	wxPoint marginTopLeft = pApp->pPgSetupDlgData->GetMarginTopLeft(); // correctly returns (2,25)
 		// because I set the left margin to 100 thousandths of an inch in the basic config file
 		 
 	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData); // produces no change
 	//pAIPrOut->MapScreenSizeToPaper(); // produces no change
-	/*
+	//*
 	int w;
 	int h;
 	pAIPrOut->GetPageSizeMM(&w, &h);
 	wxSize imagesize(w,h);
-	pAIPrOut->FitThisSizeToPaper(imagesize); // produces no change (still 25mm margins all round)
-	*/
+    pAIPrOut->FitThisSizeToPageMargins(wxSize(183,247), *pApp->pPgSetupDlgData);
+	//wxRect fitRect = pAIPrOut->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData); // <<--DC still bad
+	//pAIPrOut->FitThisSizeToPaper(imagesize); // produces no change (still 25mm margins all round)
+	//*/
  	//pAIPrOut->OffsetLogicalOrigin(-100,-100); // crashes
 	//wxRect paperRect = pAIPrOut->GetLogicalPaperRect(); // crashes, the paper rect in
 	//pixels is returned internally as (0,0,0,0) so I suspect that AIPrintout is not properly
@@ -3697,21 +3701,21 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	// The following works, but the margins are just 25mm all round no matter what margins
 	// are within pPgSetupDlgData
 	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData);
-    //wxPrintPreview *preview = new wxPrintPreview(pAIPrOut, new AIPrintout(printTitle), & printDialogData);
+    wxPrintPreview *preview = new wxPrintPreview(pAIPrOut, new AIPrintout(printTitle), & printDialogData);
 	
 	// End BEW fiddles 20Oct14
 	
-	// the following call is pre-6.5.5 - Bill and Kevin's code
-    wxPrintPreview *preview = new wxPrintPreview(new AIPrintout(previewTitle),
-									new AIPrintout(printTitle), & printDialogData);
+	//// the following call is pre-6.5.5 - Bill and Kevin's code
+    //wxPrintPreview *preview = new wxPrintPreview(new AIPrintout(previewTitle),
+	//								new AIPrintout(printTitle), & printDialogData);
     if (!preview->Ok())
     {
 		if (preview != NULL) // whm 11Jun12 added NULL test
 	        delete preview;
-        wxMessageBox(_T(
-"There was a problem previewing.\nPerhaps your current printer is not set correctly?"),
-		_T("Previewing"), wxOK);
-        pApp->LogUserAction(_T("There was a problem previewing.\nPerhaps your current printer is not set correctly?"));
+		wxString msg = _T(
+		"There was a problem previewing.\nPerhaps your current printer is not set correctly?");
+        wxMessageBox(msg,_T("Previewing"), wxOK);
+        pApp->LogUserAction(msg);
 		return;
     }
 
@@ -12789,6 +12793,7 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex)
 {
 	bool bHasFixedSpaceSymbol = IsFixedSpaceSymbolWithin(*pStr);
+	bool bTgtPuncts = nIndex == 1 ? TRUE : FALSE;
 
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pStr->IsEmpty())
@@ -12871,7 +12876,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		// be in m_follPunct
 		itemLen = pDoc->ParseWord(ptr, pEnd, pSrcPhrase, spacelessPunctsStr,
 					pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
-					bIsInlineNonbindingMkr, bIsInlineBindingMkr);
+					bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTgtPuncts);
 		theWord = pSrcPhrase->m_key;
 
 		// update ptr to point at next part of string to be parsed
@@ -12919,7 +12924,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			// be in m_follPunct
 			itemLen = pDoc->ParseWord(ptr2, pEnd2, pSrcPhrase2, spacelessPunctsStr,
 						pApp->m_inlineNonbindingMarkers, pApp->m_inlineNonbindingEndMarkers,
-						bIsInlineNonbindingMkr, bIsInlineBindingMkr);
+						bIsInlineNonbindingMkr, bIsInlineBindingMkr, bTgtPuncts);
 			theWord2 = pSrcPhrase2->m_key;
 
 			// update ptr to point at next part of string to be parsed

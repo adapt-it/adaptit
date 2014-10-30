@@ -5411,7 +5411,7 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 	wxString rev = MakeReverse(str);
 
 	//  extract the reversed endmarker, if one exists (code defensively, in case the
-	//  content string contains an embedded gFSescapechar)
+	//  content string contains an embedded gSFescapechar)
 	int offset = rev.Find(gSFescapechar);
 	if (offset == wxNOT_FOUND)
 	{
@@ -5427,12 +5427,12 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 	{
 		// there is an endmarker - what lies before it is the reversed characters of that
 		// endmarker 
-		const wxChar* ptr2 = rev.GetData(); // the gFSescapechar will cause premature
+		const wxChar* ptr2 = rev.GetData(); // the gSFescapechar will cause premature
 										// exit of ParseMarker() so allow for this below
 		length = ParseMarker(ptr2);
 		// BEW removed next line, 16Nov10, because I previously recoded ParseMarker() so
 		// that it would do the length adjustment within it when backslash was encountered
-		//length++; // count the back slash (i.e. gFSescapechar)
+		//length++; // count the back slash (i.e. gSFescapechar)
 		// BEW 8Dec10, I've changed ParseMarker() above to return 0 if the expectations
 		// internally within it are not met, and a return of 0 will be equivalent to
 		// assuming there was, in fact, no endmarker at the end of the string (that is,

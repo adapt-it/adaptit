@@ -6707,6 +6707,11 @@ wxString szAutoCapitalization = _T("AutoCapitalizationFlag");
 wxString szUseSourceWordBreak = _T("UseSourceWordBreakFlag");
 
 /// The label that identifies the following string encoded value as the application's
+/// m_bForceVerseSectioning boolean choice. This value is written in the project
+/// configuration file, and is settable from the Administrator menu
+wxString szForceVerseSectioning = _T("ForceVerseSectioning");
+
+/// The label that identifies the following string encoded value as the application's
 /// "FreeTranslationUsesZWSP" boolean choice. This value is written in the "Settings" part of
 /// the project configuration file. It is stored in the App's m_bFreeTransUsesZWSP boolean 
 /// member variable.
@@ -15460,6 +15465,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		return FALSE;
 	}
 	// markers like \ft* \fk* \fq* etc are no longer supported, similarly for cross ref markers
+	// BEW 24Oct14, the footnote and/or crossreference marker set, according to the usage of
+	// nested markers in the USFM 2.4 standard, do not ever take + (ie. are not ever nested)
+	// and so no markers like \+f \+ft ... \+x etc do not occur
 	m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* ");
 	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
 
@@ -15487,14 +15495,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_footnoteMarkerSet.Add(_T("\\fv "));
 	m_footnoteMarkerSet.Add(_T("\\fm "));
 
+	// BEW 24Oct14, Some of the following potentially may be nested, so instead of guessing
+	// which might qualify as such, just add all of them with + inserted within each, to
+	// each set
 	// BEW 11Oct10, we need this fast-access string for improving punctuation support when
 	// inline markers are in the immediate context (since endmarkers for inline markers
 	// should be handled within ParseWord(), we'll have two strings
-	m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* ");
-	m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig ");
+	m_inlineNonbindingEndMarkers = _T("\\wj* \\qt* \\sls* \\tl* \\fig* \\+wj* \\+qt* \\+sls* \\+tl* \\+fig* ");
+	m_inlineNonbindingMarkers = _T("\\wj \\qt \\sls \\tl \\fig \\+wj \\+qt \\+sls \\+tl \\+fig ");
 	// the next set each have an endmarkers, we'll not bother to have a separate string
 	// for the endmarkers, but just use this one string for both (BEW added \\qs on 9Feb11)
-	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs ");
+	m_inlineBindingMarkers = _T("\\add \\bk  \\dc \\k \\lit \\nd \\ord \\pn \\sig \\em \\bd \\it \\bdit \\no \\sc \\pb \\ndx \\pro \\w \\wg \\wh \\qs \\+add \\+bk  \\+dc \\+k \\+lit \\+nd \\+ord \\+pn \\+sig \\+em \\+bd \\+it \\+bdit \\+no \\+sc \\+pb \\+ndx \\+pro \\+w \\+wg \\+wh \\+qs ");
 	m_usfmIndicatorMarkers = _T("\\s2 \\s3 \\mt2 \\mt3 \\fr \\fq \\ft \\xo \\xt \\imt \\iot ");
 	// whm 20Dec10 added \\rr \\qh \\dvrf markers to the m_pngIndicatorMarkers below based on their usage in the
 	// Nyindrou New Testament (which had 300 \rr markers, 139 \qh markers and 76 of the \dvrf markers).
@@ -15502,7 +15513,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// the following characters must never be in a SFM or USFM marker (we'll have the XML
 	// metacharacters, and curly quotes for now - we can add more later if we need to)
-	m_forbiddenInMarkers = _T("<>'\"&"); // possibles for later:  _T("[],.{}()%$#@!^+=|/?:;")
+	// BEW 24Oct14, I added to the list the following: [](){}$?%  -- remember, as of
+	// USFM 2.4, + is permitted in certain markers to indicate nesting, so no longer is
+	// + forbidden
+	m_forbiddenInMarkers = _T("<>'\"&[](){}$?%"); // possibles for later:  _T(",.#@!^=|/:;")
 	// and append the single and double curly quotes
 	wxChar aChar;
 #ifdef _UNICODE
@@ -19472,6 +19486,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	pPrintData->SetOrientation(wxPORTRAIT);
 	// copy the printData info from the pageSetupDialog
 	(*pPrintData) = pPgSetupDlgData->GetPrintData();
+	pPrintData->SetPaperSize(wxSize(210,297)); // BEW added 21Oct because the m_paperSize was remaining (-1,-1)
 
 	//////////////////////////////////////////////////////////////////////////////////
     // Since we are about to read the config files, any data structures containing data
@@ -33532,6 +33547,14 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szUseSourceWordBreak << tab << number;
 	pf->AddLine(data);
 
+	if (m_bForceVerseSectioning)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szForceVerseSectioning << tab << number;
+	pf->AddLine(data);
+
 	/* //BEW 7Oct14 deprecated. We'll use instead m_bZWSPinDoc, which we'll set true
 	// automatically when we detect ZWSP within the document
 	if (m_bFreeTransUsesZWSP)
@@ -34542,6 +34565,16 @@ t:				m_pCurrBookNamePair = NULL;
 				m_bUseSrcWordBreak = TRUE;
 			else
 				m_bUseSrcWordBreak = FALSE;
+		}
+		else if (name == szForceVerseSectioning)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1; // default is ON
+			if (num == 1)
+				m_bForceVerseSectioning = TRUE;
+			else
+				m_bForceVerseSectioning = FALSE;
 		}
 		// BEW 7Oct14 deprecated. Keep it so any old config files don't complain
 		// but just don't use it in app. App will automatically detect ZWSP in
@@ -38654,9 +38687,13 @@ bool CAdapt_ItApp::ContainsOrdinaryQuote(wxString s, wxChar ch)
 /// \remarks
 /// Called from: the App's OnInit(), DoUsfmSetChanges(), the Doc's ResetUSFMFilterStructs()
 /// and ResetUSFMFilterStructs().
-/// Takes data from the sfm maps, and constructs some raipd access strings as a convenience
+/// Takes data from the sfm maps, and constructs some rapid access strings as a convenience
 /// for string Find operations. Strings are set up for wrap markers, section head markers,
 /// inline markers, filter markers and unknown markers.
+/// BEW 24Oct14, the rapid access marker strings are constructed from the m_pUsfmStylesMap
+/// and so there are no nested USFM markers added to any of the strings composed here. That
+/// means that code elsewhere in the app which uses one of these fast access strings, will
+/// have to first remove the + in a nested marker if the marker is to be successfully found
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupMarkerStrings()
 {

@@ -1448,6 +1448,7 @@ bool Is_AnsiLetter(wxChar c)
 	return wxIsalpha(c) != FALSE;
 }
 
+// BEW 24Oct14, no changes needed for support of USFM nested markers
 bool Is_ChapterMarker(wxChar* pChar)
 {
 	if (*pChar != _T('\\'))
@@ -1463,6 +1464,7 @@ bool Is_ChapterMarker(wxChar* pChar)
 		return FALSE;
 }
 
+// BEW 24Oct14, no changes needed for support of USFM nested markers
 bool Is_VerseMarker(wxChar *pChar, int& nCount)
 {
 	if (*pChar != _T('\\'))
@@ -1675,6 +1677,7 @@ int Parse_NonEol_WhiteSpace(wxChar *pChar)
 	return length;
 }
 
+// BEW 24Oct14, no changes needed to support USFM nested markers
 int Parse_Marker(wxChar *pChar, wxChar *pEnd)
 {
     // whm: see note in the Doc's version of ParseMarker for reasons why I've modified
@@ -2043,8 +2046,8 @@ wxString SpanExcluding(wxString inputStr, wxString charSet)
 // automatically add a space to charSet, so it is safe to pass in spacelessPuncts string.
 // BEW created 28Jan11, the code is adapted from the second half of doc class's
 // FinishOffConjoinedWordsParse() function
-wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
-								 wxString& wordBuildingForPostWordLoc, wxString charSet)
+wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,	wxString& wordBuildingForPostWordLoc,
+								 wxString charSet, bool bTokenizingTargetText)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	wxChar* p = ptr; // using this function, we expect any punctuation or markers or both
@@ -2060,7 +2063,8 @@ wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
 	int nEndMarkerCount = 0;
 	pHaltLoc = pDoc->FindParseHaltLocation( p, pEnd, &bFoundInlineBindingEndMarker,
 					&bFoundFixedSpaceMarker, &bFoundClosingBracket,
-					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount);
+					&bFoundHaltingWhitespace, nFixedSpaceOffset, nEndMarkerCount,
+					bTokenizingTargetText);
 	wxString aSpan(ptr,pHaltLoc); // this could be up to a [ or ], or a
 								  // whitespace or a beginmarker
 	// now parse backwards to extract the span's info
@@ -2073,6 +2077,73 @@ wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,
 						inlineBindingEndMarkers, secondFollPuncts,
 						ignoredWhiteSpaces, wordBuildingForPostWordLoc, charSet);
 	return wordProper;
+}
+
+// BEW 24Oct14, a helper for testing a marker, or its tag, for presence of the +
+// character following the backslash, and returning the base marker, or base tag,
+// respectively if so. Pass in \tag, tag, \+tag, or +tag (tag may include a final *)
+// Returns: TRUE if +tag or \+tag was passed in, FALSE if tag or \tag was passed in.
+// and the signature will return the tag in baseMkrOrTag and TRUE in bWholeMkrPassedIn if +
+// Params:
+// pMkrOrTag       ->  The input marker, or baseMkr passed in
+// tagOnly         <-  The marker tag, which will include a final * if it is an endmarker tag
+// baseOfEndMkr    <-  Empty string if baseMkrOrTag did not have a final *, if it does, then
+//                     return the tag with the * removed
+// bWholeMkrOrTag  <-  TRUE if the pMkrOrTag string passed in starts with a backslash,
+//                     FALSE if not 
+bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly, 
+							   wxString& baseOfEndMkr, bool& bWholeMkrPassedIn)
+{
+	bool bNested = FALSE;
+	tagOnly.Empty(); bWholeMkrPassedIn = FALSE;
+	wxString tag = *pMkrOrTag;
+	if (pMkrOrTag->GetChar(0) == gSFescapechar)
+	{
+		bWholeMkrPassedIn = TRUE;
+		tag = tag.Mid(1); // strip off the initial backslash
+	}
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		// 1998 SFM marker set does not support nested markers, so set
+		// params intelligently and return
+		baseOfEndMkr.Empty();
+		tagOnly = tag;
+		return FALSE;
+	}
+	// Continue, it must be UsfmOnly or UsfmAndPng (and the latter we treat as the former)
+	if (tag.GetChar(0) == _T('+'))
+	{
+		// It's a nested marker or tag for such, so remove the initial +
+		bNested = TRUE;
+		tagOnly = tag.Mid(1); // beware, this could have * of endmarker on it
+	}
+	else
+	{
+		// It's not a nested marker
+		tagOnly = tag;
+	}
+	// For lookups of the USFM struct, an endmarker needs to be stripped of the
+	// final *, and returned in baseOfEndMkr; if it's not an endmarker, return
+	// an empty string in it
+	int length = tagOnly.Len();
+	if (tagOnly.GetChar(length - 1) == _T('*'))
+	{
+		baseOfEndMkr = tagOnly.Truncate(length - 1);
+	}
+	else
+	{
+		baseOfEndMkr.Empty();
+	}
+	
+	return bNested;
+}
+// Overrided version of above
+bool IsNestedMarkerOrMarkerTag(wxChar* ptrToMkr, wxString& tagOnly,
+							   wxString& baseOfEndMkr, bool& bWholeMkrPassedIn)
+{
+	wxString wholeMkr;
+	gpApp->GetDocument()->GetWholeMarker(ptrToMkr);
+	return IsNestedMarkerOrMarkerTag(&wholeMkr, tagOnly, baseOfEndMkr, bWholeMkrPassedIn);
 }
 
 /* deprecated -- it's dangerous for parsing across a word, see comments for ParseWordInwardsFromEnd() above
@@ -2138,6 +2209,7 @@ wxString MakeReverse(wxString inputStr)
 // return an empty string if there are no SF markers in markers string, else return the
 // last of however many are stored in markers (if space follows the marker, the space is
 // not returned with the marker); return the empty string if there is no marker present
+// BEW 24Oct14, no changes needed for support of USFM nested markers
 wxString GetLastMarker(wxString markers)
 {
 	wxString mkr = _T("");
@@ -3189,6 +3261,7 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 // AddNewStringsToArray(), can be added to m_pMedialMarkers member of a merged
 // CSourcePhrase. (SmartTokenize() above won't work when there are no delimiters between
 // the markers, such as a sequence of endmarkers - these are stored without spaces.)
+// BEW 24Oct14, no changes needed for support of USFM nested markers
 bool GetSFMarkersAsArray(wxString& strToParse, wxArrayString& arr)
 {
 	arr.Clear();
@@ -5693,8 +5766,9 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use
 	// ParseWordInwardsFromEnd() instead
 	wxString wordBuildersForPostWordLoc;
+	// BEW 24Oct14 in the next call, TRUE is bool bTokenizingTargetText
 	word1 = ParseWordInwardsFromEnd(ptr, pEnd, wordBuildersForPostWordLoc,
-									gpApp->m_punctuation[1]);
+									gpApp->m_punctuation[1], TRUE);
 	if (!wordBuildersForPostWordLoc.IsEmpty())
 	{
 		// handle any punctuation characters the user has reverted to being word-building
@@ -5718,8 +5792,9 @@ wxString RebuildFixedSpaceTstr(CSourcePhrase* pSingleSrcPhrase)
 	// next, get word2
 	// BEW 28Jan11, deprecated dangerour SpanExcluding() to use
 	// ParseWordInwardsFromEnd() instead
+	// BEW 24Oct14 in the next call, TRUE is bool bTokenizingTargetText
 	word2 = ParseWordInwardsFromEnd(ptr, pEnd, wordBuildersForPostWordLoc,
-									gpApp->m_punctuation[1]);
+									gpApp->m_punctuation[1], TRUE);
 	if (!wordBuildersForPostWordLoc.IsEmpty())
 	{
 		// handle any punctuation characters the user has reverted to being word-building
@@ -6419,6 +6494,7 @@ int ParseWhiteSpace(const wxChar *pChar)
 // often didn't match with the original assumption that * would be at its start. So I've
 // tried to make it smarter, and if the situation is really indeterminate, return a value
 // of zero.
+// BEW 24Oct14, no changes needed for support of USFM nested markers
 int ParseMarker(const wxChar *pChar)
 {
 	// this algorithm differs from the one in CAdapt_ItDoc class by not having the code to
@@ -7326,6 +7402,9 @@ char* StrStrAI(char* super, char* sub)
 
 // tests for whether a passed in bare marker (ie. an SFM or USFM with its backslash stripped
 // off) matches any of the bare markers stored in the passed in arr array
+// BEW 24Oct14, no changes needed for support of USFM nested markers (the markers involved
+// are never nested ones, but only \free, \note, \bt and derivatives - it only called
+// in ExportFunctions.cpp - the ApplyOutputFilterToText_For_Collaboration() function)
 bool IsBareMarkerInArray(wxString& bareMkr, wxArrayString& arr)
 {
 	int count = arr.GetCount();
@@ -9164,6 +9243,7 @@ SPList::Node* SPList_ReplaceItem(SPList*& pList, CSourcePhrase* pOriginalSrcPhra
 // files. To allow space to be retained at the end of the empty \v number line.
 // Used in: FormatMarkerBufferForOutput(wxString& text, enum ExportType expType) see the
 // ExportFunctions.cpp file
+// BEW 24Oct14, changed to support USFM nested markers
 bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
 {
 	// the previous character must be a space
@@ -9180,7 +9260,8 @@ bool KeepSpaceBeforeEOLforVerseMkr(wxChar* pChar)
 	pCh = pCh - 1; // point at next previous one
 	for (i = 0; i < 5; i++)
 	{
-		if (IsAnsiLetterOrDigit(*pCh))
+		// BEW 24Oct10 added second subtest to support USFM nested markers
+		if (IsAnsiLetterOrDigit(*pCh) || (*pCh == _T('+')))
 		{
 			// back over it
 			pCh = pCh - 1;
@@ -9395,6 +9476,7 @@ int CalcLabelWidthDifference(wxString& oldLabel, wxString& newLabel, wxWindow* p
 // BEW created 17Jan11, used when converting back from docV5 to docV4 (only need this for
 // 5.2.4, but it could be put into the Save As... code for 6.x.y too - if so, we can retain
 // it for version 6 and higher)
+// BEW 24Oct14, no changes needed for support of USFM nested markers
 bool HasParagraphMkr(wxString& str)
 {
 	int offset = str.Find(_T("\\p"));

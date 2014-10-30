@@ -226,12 +226,13 @@ protected:
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	bool			IsFixedSpaceAhead(wxChar*& ptr, wxChar* pEnd, wxChar*& pWdStart, 
 							wxChar*& pWdEnd, wxString& punctBefore, wxString& endMkr, 
-							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts); // BEW created 11Oct10
+							wxString& wordBuildersForPostWordLoc, wxString& spacelessPuncts,
+							bool bTokenizingTargetText); // BEW created 11Oct10, 24Oct14 added final bool
 	void			FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxChar*& pWord2Start,
 							wxChar*& pWord2End, wxString& punctAfter, wxString& bindingMkr,
 							wxString& newPunctFrom2ndPreWordLoc, wxString& newPunctFrom2ndPostWordLoc,
 							wxString& wordBuildersFor2ndPreWordLoc, wxString& wordBuildersFor2ndPostWordLoc,
-							wxString& spacelessPuncts);
+							wxString& spacelessPuncts, bool bTokenizingTargetText);
 	bool			IsUnstructuredPlainText(wxString& rText);
 	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
@@ -355,6 +356,9 @@ public:
 	bool			IsLegacyDocVersionForFileSaveAs();
 	static SPList   *LoadSourcePhraseListFromFile(wxString FilePath);
 	USFMAnalysis*	LookupSFM(wxChar *pChar);
+	// Overloaded variant used in ParseWord()
+	USFMAnalysis*	LookupSFM(wxChar *pChar, wxString& tagOnly, wxString& baseOfEndMkr, bool& bIsNestedMkr);
+	// Overloaded variant used when passing in the marker minus its initial backslash
 	USFMAnalysis*	LookupSFM(wxString bareMkr);
 	// BEW created 13Jan11, pass in the CSourcePhrase instance's m_targetStr value (it may
 	// have punctuation, and possibly also be a fixed-space (~) conjoined pair; internally
@@ -379,12 +383,14 @@ public:
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
 							wxChar *pBuffStart, wxChar *pEnd);
 	wxChar*			FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
-											bool* pbFoundInlineBindingEndMarker,
-											bool* pbFoundFixedSpaceMarker,
-											bool* pbFoundClosingBracket,
-											bool* pbFoundHaltingWhitespace,
-											int& nFixedSpaceOffset,
-											int& nEndMarkerCount); // BEW created 25Jan11
+							bool* pbFoundInlineBindingEndMarker,
+							bool* pbFoundFixedSpaceMarker,
+							bool* pbFoundClosingBracket,
+							bool* pbFoundHaltingWhitespace,
+							int& nFixedSpaceOffset,
+							int& nEndMarkerCount,
+							bool bTokenizingTargetText); // BEW created 25Jan11, 24Oct14
+									// added the bTokenizingTargetText boolean
 	void			ParseSpanBackwards(wxString& span, wxString& wordProper, wxString& firstFollPuncts,
 							int nEndMkrsCount, wxString& inlineBindingEndMarkers,
 							wxString& secondFollPuncts, wxString& ignoredWhiteSpaces,
@@ -401,7 +407,8 @@ public:
 							wxString& inlineNonbindingEndMrks, // fast access string for \wj* \qt* \sls* \tl* \fig*
 							bool& bIsInlineNonbindingMkr, // TRUE if pChar is pointing at a beginmarker from
 							// the set of five non-binding ones, i.e. \wj \qt \tl \sls or \fig
-							bool& bIsInlineBindingMkr); // TRUE if pChar is pointing at a beginmarker
+							bool& bIsInlineBindingMkr, // TRUE if pChar is pointing at a beginmarker
+							bool bTokenizingTargetText);
 							// from the remaining inline marker set (but excluding \f* and
 							// \x* and any others beginning with \f or \x)
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
