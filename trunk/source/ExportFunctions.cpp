@@ -9736,9 +9736,16 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 			ptr += itemLen;					// advance the pointer past the white space
 		}
 
+		// whm note: In TokenizeText special handling is given for '[' and ']' brackets to store them
+		// in their own CSourcePhrase instances, but we allow them to pass through as is, in this 
+		// export routine.
+
 		// are we at the end of the text?
 		if (pDoc->IsEnd(ptr) || ptr >= pEnd)
-			goto d;
+		{
+			// whm 12Nov2014 revised to conform with refactored TokenizeText()
+			break; // goto d;
+		}
 
 		// are we pointing at a standard format marker?
 		// Note: Since we are examining text which is going to RTF output, our ApplyOutputFilterToText
@@ -9748,1789 +9755,60 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 		// following the backslash is an opening curly brace { or a closing curly brace }. Using it
 		// here also insures that \{ and \} sequences won't be dealt with by other Doc functions
 		// within this block like ParseMarker()
-b:		if (IsRTFControlWord(ptr,pEnd))
+		// whm 12Nov2014 revised to conform with refactored TokenizeText(). The TokenizeText() routinej
+		// does not call IsRTFControlWord(), and its IsMarker() test is now within a while () test loop.
+		// We have to test for both within a while loop and handle each test result within the while loop.
+		while (IsRTFControlWord(ptr, pEnd) || IsMarkerRTF(ptr, pBufStart))
 		{
-			// whm 8Nov07 comment: The IsRTFControlWord block is placed here to bleed off the cases
-			// where a backslash is escaping a {, }, or \ character in the character stream.
-			itemLen = ParseRTFControlWord(ptr,pEnd);
-			VernacText = wxString(ptr,itemLen);
-			//CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
-			if (!WriteOutputString(f,gpApp->m_systemEncoding,VernacText))
+//b:		
+			if (IsRTFControlWord(ptr, pEnd))
 			{
-				pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-				return;
-			}
-			ptr += itemLen;
-		}
-		else if (IsMarkerRTF(ptr,pBufStart))
-		{
-			//bHitMarker = TRUE;
-			int nMkrLen = 0;
-			// it's a marker of some kind
-
-			if (bUnknownMarker) // check known/unknown status of last marker processed
-			{
-				// the last marker encountered was an unknown marker and received either
-				// an _unknown_char_style or an _unknown_para_style. If it received an
-				// _unknown_char_style, the style tags and associated text were placed
-				// within a group after an initial brace. Since we now are dealing with
-				// a new marker we need to close off that unknown marker's character style
-				// group.
-
-				// we're at the end marker and the last style group needs closing so
-				// output the closing brace, but only if the unknown marker fit the context
-				// of a character style. bProcessingCharacterStyle was determined for last
-				// marker farther below.
-				if (bProcessingCharacterStyle) // check style type of last marker processed
-				{
-					MiscRTF = _T('}');
-
-					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-
-					Item sfm;
-					pCharStack->Pop(sfm); // pop an "unknown" character style marker
-					// Check if the stack has another character style marker in it.
-					// If so, we need to reset the character style to propagate that
-					// character style after the current one has closed.
-					if (pCharStack->IsEmpty())
-					{
-						bProcessingCharacterStyle = FALSE;
-					}
-					else
-					{
-						// There is another character style marker in the stack
-						// so we need to propagate that character style
-						Item sfm2;
-						pCharStack->Pop(sfm2);
-						wxString sfmMkr = wxString::FromAscii(sfm2);
-						rtfIter = rtfTagsMap.find(sfmMkr);
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// We found an associated value for Marker in map.
-							// We need only output the previous char style tags here without any
-							// opening curly brace.
-
-							pCharStack->Push(Marker.char_str()); // push it back on the stack
-
-							// RTF tags use gpApp->m_systemEncoding
-							wxString mkrTags = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-					}
-
-				}
-
-				// Note: bUnknownMarker status for the current Marker will be set again below
-				// but there is no harm in resetting it here since we've now closed off its
-				// group and will not be relevant to IsVerseMarker nor IsChapterMarker below.
-				bUnknownMarker = FALSE;
-			}
-
-			if (bProcessingEndlessCharMarker)
-			{
-				// The last style was a character style and a group was started, and not closed.
-				// Now, we have encountered another marker so close the group
-				MiscRTF = _T('}');
-
-				CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+				// whm 8Nov07 comment: The IsRTFControlWord block is placed here to bleed off the cases
+				// where a backslash is escaping a {, }, or \ character in the character stream.
+				itemLen = ParseRTFControlWord(ptr,pEnd);
+				VernacText = wxString(ptr,itemLen);
+				//CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,VernacText))
 				{
 					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 					return;
 				}
-				bProcessingEndlessCharMarker = FALSE;	// code below will turn this flag on if the current
-											// marker is also a table character style marker
+				ptr += itemLen;
 			}
+	//		else if (IsMarkerRTF(ptr,pBufStart))
+			if (IsMarkerRTF(ptr, pBufStart))
+			{
+				//bHitMarker = TRUE;
+				int nMkrLen = 0;
+				// it's a marker of some kind
 
-			// Get the marker, but don't advance ptr at this point
-			itemLen = pDoc->ParseMarker(ptr);
-			// We need to get the marker into Marker
-			Marker = wxString(ptr,itemLen);
-			Marker = Marker.Mid(1); // remove backslash - we want everything after
-									// the sfm escape character.
-			// Check for an unknown Marker
-			// Since the rtfTagsMap only stores the bare marker form without asterisk
-			// our test for whether Marker is unknown needs to be done with any asterisk
-			// temporarily stripped off
-			wxString testBareMkr = Marker;
-			int astPos = testBareMkr.Find(_T('*'));
-			if (astPos != -1)
-			{
-				testBareMkr.Remove(astPos,1); // delete the *
-			}
-			// if the marker is a back translation prefix marker \bt... we also need to
-			// just use the bt part for lookup in the rtfTagsMap
-			if (testBareMkr.Find(_T("bt")) == 0)
-			{
-				testBareMkr = _T("bt"); // use only the bt prefix part for lookup
-			}
-			rtfIter = rtfTagsMap.find(testBareMkr);
-			bUnknownMarker = rtfIter == rtfTagsMap.end();
-
-			if (bUnknownMarker)
-			{
-				// Marker is UNKNOWN because it is not in rtfTagsMap
-				// We will assign it a special unknown marker style, either an _unknown_para_style
-				// or an _unknown_char_style style, depending on the style type of the LastStyle
-				// we encountered.
-				bProcessingCharacterStyle = IsACharacterStyle(LastStyle,rtfTagsMap); // check LastStyle
-			}
-			else
-			{
-				// marker is KNOWN
-				bProcessingCharacterStyle = IsACharacterStyle(Marker,rtfTagsMap); // check Marker
-				// whm added 27Nov07 - \bt, \note and \free do their own handling of character style closing
-				// curly brace, so if Marker is "bt"..., \note or "free" we reset bProcessingCharacterStyle
-				// to FALSE. The reason: The associated text for \bt, \note and \free is not immediately
-				// output, but delayed until the next appropriate place/marker is encountered (in order
-				// to place it AFTER the material to which it applies). Another reason: if there are
-				// no intervening markers/halting points between the \bt, \note and \free material, right
-				// after the main while loop, text associated with \bt, \note and/or \free would still be
-				// pending output - and we don't want the code there to add a closing brace } char
-				// prematurely.
-				if (Marker == _T("free")
-					|| Marker == _T("note")
-					|| Marker.Find(_T("bt")) != -1)
+				if (bUnknownMarker) // check known/unknown status of last marker processed
 				{
-					if (bProcessingCharacterStyle)
-						bProcessingCharacterStyle = FALSE;
-				}
-			}
+					// the last marker encountered was an unknown marker and received either
+					// an _unknown_char_style or an _unknown_para_style. If it received an
+					// _unknown_char_style, the style tags and associated text were placed
+					// within a group after an initial brace. Since we now are dealing with
+					// a new marker we need to close off that unknown marker's character style
+					// group.
 
-
-			// BEGIN PRIMARY IF ELSE/IF BLOCKS
-			if (pDoc->IsVerseMarker(ptr,nMkrLen))
-			{
-				// it's a verse marker, so needs special handling of its following number
-				if (nMkrLen == 2)
-				{
-					Marker = _T("v");		// Marker holds map key
-					ptr += 2;				// point past the \v marker
-				}
-				else
-				{
-					Marker = _T("vn");		// Marker holds map key
-					ptr += 3;				// point past the \vn marker
-				}
-
-				// Fix a common error in sfm formatting, where user forgets to
-				// put a paragraph marker \p between a section head (\s, \s1, etc) and any
-				// following verse \v N, or between a chapter number (\c, \ca, etc) and any
-				// following verse, or between a reference (\r, \rq, etc) and any following verse.
-				if (LastStyle == _T("s") || LastStyle == _T("s1") || LastStyle == _T("s2")
-					|| LastStyle == _T("s3") || LastStyle == _T("s4") || LastStyle == _T("sr")
-					|| LastStyle == _T("sx") || LastStyle == _T("sz") || LastStyle == _T("sp")
-					|| LastStyle == _T("c") || LastStyle == _T("ca") || LastStyle == _T("cp")
-					|| LastStyle == _T("cl") || LastStyle == _T("cd")
-					|| LastStyle == _T("r") || LastStyle == _T("rem") || LastStyle == _T("rq") )
-				{
-					// Insert a "Paragraph" style to keep the paragraph that this new
-					// verse is in from becoming a Section Head, Chapter Number, or Reference
-					// paragraph. User may have intended a different paragraph
-					// style for the new paragraph, but we don't know what that might have
-					// been so we'll use the most common one - "Paragraph" style (\p).
-					rtfIter = rtfTagsMap.find(Sindoc_Paragraph_key);
-					if (rtfIter != rtfTagsMap.end())
+					// we're at the end marker and the last style group needs closing so
+					// output the closing brace, but only if the unknown marker fit the context
+					// of a character style. bProcessingCharacterStyle was determined for last
+					// marker farther below.
+					if (bProcessingCharacterStyle) // check style type of last marker processed
 					{
-						// we found an associated value for (Paragraph) Marker in map
-						// RTF tags use gpApp->m_systemEncoding
-						wxString paraTagStr = (wxString)rtfIter->second;
-						CountTotalCurlyBraces(paraTagStr,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,paraTagStr))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						LastParaStyle = Sindoc_Paragraph_key;	// we just changed it from Section Head to Paragraph
-						LastNonBoxParaStyle = Sindoc_Paragraph_key;
-						bLastOutputWasParTag = TRUE;
-					}
-				}
+						MiscRTF = _T('}');
 
-				if (bLastParagraphWasBoxed)
-				{
-					// There was a small break paragraph inserted and no paragraph style
-					// has intervened before this verse number, so propagate the
-					// LastNonBoxParaStyle
-					rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
-					if (rtfIter != rtfTagsMap.end())
-					{
-						// we found an associated value for Marker in map
-						// RTF tags use gpApp->m_systemEncoding
-						wxString lastStyTag = (wxString)rtfIter->second;
-						CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-					bLastParagraphWasBoxed = FALSE;
-				}
-
-				// Now, handle the tags for the present Verse Num
-				if (!(exportType == sourceTextExport))
-				{
-					// In Target text (because of the way the Buffer was filled):
-					// verses that follow text (i.e., not those directly following a paragraph tag) need to have
-					// a space added before the verse number tags, otherwise they will be juxtaposed to previous
-					// text without an intervening space, using source/target encoding
-					if (!bLastOutputWasParTag)
-					{
-						MiscRTF = _T(" ");
-						//CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no braces possible here
-						if (!WriteOutputString(f,EncodingSrcOrTgt,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-				}
-
-				// Use the marker as key and query our map and get its
-				// associated value (RTF tags) if any, and output them
-				if (Marker.Length() != 0)
-				{
-					rtfIter = rtfTagsMap.find(Marker);
-					if (rtfIter != rtfTagsMap.end())
-					{
-						// we found an associated value for (verse) Marker (\v or \vn) in map
-						// Need opening brace before verse number char style group)
-						MiscRTF = _T("{");
 						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
 						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 						{
 							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 							return;
 						}
-						// RTF tags use gpApp->m_systemEncoding
-						wxString mkrTags = (wxString)rtfIter->second;
-						CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces); // no braces possible here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-				}
 
-				itemLen = pDoc->ParseWhiteSpace(ptr);
-				// white space here is only delimiter for verse num marker so omit it from output
-				ptr += itemLen;	// point at verse number
-
-				itemLen = pDoc->ParseNumber(ptr);
-				// verse number is vernacular so output with EncodingSrcOrTgt
-				wxString numStr = wxString(ptr,itemLen);
-				CountTotalCurlyBraces(numStr,nOpeningBraces,nClosingBraces); // no braces likely here
-				if (!WriteOutputString(f,EncodingSrcOrTgt,numStr))
-				{
-					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-					return;
-				}
-				// add RTF non-breaking space and closing brace to close Verse Num char style group
-				MiscRTF = _T("\\~}");
-				CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
-				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				{
-					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-					return;
-				}
-				ptr += itemLen;	// point past verse number
-
-				itemLen = pDoc->ParseWhiteSpace(ptr);	// parse past white space after the marker
-				// white space here is only delimiting end of verse number so omit it from output
-
-				LastStyle = Marker;
-				// We don't update the LastParaStyle here since verse number is a character style
-				ptr += itemLen;	// point past the white space
-
-				goto b;			// check if another marker follows
-			}// end of if IsVerseMarker
-
-			// some other kind of marker - perhaps it's a chapter marker?
-			else if (pDoc->IsChapterMarker(ptr))
-			{
-				// It's a chapter marker, so needs special handling of its following number,
-				// any any immediately following \cl chapter label text.
-
-				// We shouldn't have two chapter number paragraphs in sequence
-				// so we won't check for it
-
-				ptr += 2; // point past the \c marker
-
-				itemLen = pDoc->ParseWhiteSpace(ptr);
-				// omit output of white space here
-				ptr += itemLen;	// point at chapter number
-
-				itemLen = pDoc->ParseNumber(ptr);
-
-				// get actual chapter number and output it
-				VernacText = wxString(ptr,itemLen);
-
-				// Note: chapter 1 bookmark (I) is inserted above before looping through
-				// actual text; here we insert bookmarks for chapter 2 and greater.
-				// Insert an RTF bookmark in the form of a Roman numeral equivalent to the
-				// number of the next chapter. These bookmarks are used by the RTF header
-				// fields we insert to display the chapters being displayed on the current page.
-				if (wxAtoi(VernacText) > 1)
-				{
-					wxString rtfBookMark = IntToRoman(wxAtoi(VernacText));
-					MiscRTF = _T("{\\*\\bkmkstart ") + rtfBookMark + _T('}')
-						+ _T("{\\*\\bkmkend ") + rtfBookMark + _T('}');
-					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 2 opening & 2 closing curly braces here
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-				}
-
-				ptr += itemLen;	// point past chapter number
-				itemLen = pDoc->ParseWhiteSpace(ptr);	// parse white space following the number
-				ptr += itemLen;	// point past it
-				// again, omit output of white space here
-
-				// Before we output the chapter number (or its style tags), we need to check to see if
-				// a \cl marker immediately follows the current \c n marker. If so, we assign the text
-				// assoc with the following \cl marker to chapterLabel, and omit the output the actual
-				// chapter number. We also want to use the paragraph style associated with \cl rather than
-				// that associated with \c. For example, the user may have "\c 3" followed by
-				// "\cl Chapter Three". In this case we first output the paragraph style associated with
-				// \cl, then output its assoc text "Chapter Three" instead of the style associated with
-				// \c and the number "3".
-				//
-				// At this point we've parsed the number (in VernacText), and any following whitespace.
-				// We'll first check for the existence of and parse any immediately following \cl marker
-				// and assoc text. If ParseAnyFollowingChapterLabel() returns zero there is no following
-				// \cl marker.
-				wxString tempLabel;
-				itemLen = ParseAnyFollowingChapterLabel(ptr, pBufStart, pEnd, tempLabel);
-				// ParseAnyFollowingChapterLabel() returns zero if no \cl immediately follows the
-				// intervening whitespace. It also returns the text associated with any \cl in
-				// tempLabel
-
-				if (itemLen != 0 && !tempLabel.IsEmpty())
-				{
-					// We have a \cl chapter label to deal with and it has associated text with it
-					Marker = _T("cl");
-					rtfIter = rtfTagsMap.find(Marker);
-					if (rtfIter != rtfTagsMap.end())
-					{
-						// we found an associated value for chapter Marker in map
-						// RTF tags use gpApp->m_systemEncoding
-						checkStr = (wxString)rtfIter->second;
-						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-
-					// output tempLabel instead of VernacText
-					CountTotalCurlyBraces(tempLabel,nOpeningBraces,nClosingBraces);
-					if (!WriteOutputString(f,EncodingSrcOrTgt,tempLabel))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-
-					ptr += itemLen; // point past the \cl and assoc text
-					itemLen = pDoc->ParseWhiteSpace(ptr);	// parse white space following the \cl and assoc text
-					ptr += itemLen;	// point past it
-				}
-				else
-				{
-					// There was no \cl chapter label immediately following.
-					// Before we output the usual c - Chapter Number style tags, we need to check if
-					// chapterLabel was defined by a \cl marker prior to the first chapter number \c 1.
-					// If \cl was defined, chapterLabel will contain the label text to be output.
-					if (!chapterLabel.IsEmpty())
-					{
-						// The chapterLabel was defined by a \cl marker prior to the first \c n marker.
-						Marker = _T("cl");
-						// if we are at chapter 1 the LastNonBoxParaStyle before reaching this point would
-						// normally have been \cl and its style tags would have been output at the bottom
-						// of this loop, so we'll only output the tags here if, for some reason, they
-						// weren't just output.
-						if (LastNonBoxParaStyle != _T("cl"))
-						{
-							rtfIter = rtfTagsMap.find(Marker);
-							if (rtfIter != rtfTagsMap.end())
-							{
-								// we found an associated value for chapter Marker in map
-								// RTF tags use gpApp->m_systemEncoding
-								checkStr = (wxString)rtfIter->second;
-								CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
-								if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
-								{
-									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-									return;
-								}
-							}
-						}
-
-						// Output tempLabel followed by a space followed by the number in VernacText.
-						// We will assume that the label preceeds the number. If this is not the case
-						// and the user desires it to be otherwise, s/he will need to use \cl markers
-						// following each chapter number to get the desired order.
-						wxString temp;
-						temp = chapterLabel + _T(' ') + VernacText;
-						CountTotalCurlyBraces(temp,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,EncodingSrcOrTgt,temp))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// no additional parsing needed here
-					}
-					else
-					{
-						// No chapterLabel has been defined so we just output the actual number
-						// currently in VernacText.
-						// Use the marker as key and query our map and get its
-						// associated value (RTF tags) if any, and output them
-						Marker = _T("c");		// Marker holds map key
-						rtfIter = rtfTagsMap.find(Marker);
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// we found an associated value for chapter Marker in map
-							// RTF tags use gpApp->m_systemEncoding
-							checkStr = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-
-						CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// no additional parsing needed here
-					}
-				}
-
-				LastStyle = Marker;
-				LastParaStyle = Marker;
-				LastNonBoxParaStyle = Marker;
-				bLastOutputWasParTag = TRUE;
-				bLastParagraphWasBoxed = FALSE;
-
-
-				goto b;			// check if another marker follows
-			}// end of if IsChapterMarker
-			else
-			{
-				// neither verse nor chapter but another kind of marker, at this point
-				// we don't have to worry about a following number, so process the marker
-
-				// NOTE: Among these styles, some need special handling, especially those
-				// which are embedded within other paragraphs. These include the character
-				// styles which have an sfm marker (Verse Num, Glos Definition) and the
-				// footnote begin marker (\f) as well as the footnote end markers (\fe, \fe* \f*).
-				// By treating these separately, it simplifies the treatment of all other
-				// paragraph styles.
-				// Also, we need to be able to shorten the indoc style tags
-				// to just \par when two paragraph styles with the same style occur in
-				// succession.
-
-				// The RTF standard defines "groups" which can consist of text, control words
-				// and/or control symbols. The text and its defining attributes are enclosed
-				// within braces {...}. The older sfm standards suffered from the weakness that
-				// many attributes did not have end markers to delimit the extent of text the
-				// given attribute would apply to. The exception in the old sfm standard was
-				// footnotes which had an end marker. In the new USFM 2 standard most markers
-				// that define "character" styles have end markers (containing a final *). These
-				// end markers make it easier to detect the extent of text to which an attribute
-				// marker applies. However, the fact that the embedded footnote and cross-reference
-				// markers have optional end markers complicates the processing of such markers.
-
-				// Note for Version 3: The parsing here needs to take into account the new USFM
-				// endMarker scheme of using the same base marker plus adding * suffixed to it.
-				// Most of these markers which have end markers are character styleType markers,
-				// and character styles in RTF are placed in groups defined by { and } braces,
-				// with the character style tag string coming first in the group followed by the
-				// text to which the character style is applied, followed by the closing brace }.
-				// Unfortunately, not all character styleTypes utilize end markers, and some that
-				// can have end markers such as the embedded content markers for footnotes and
-				// cross-references the end markers are optional. Hence, we have to treat the
-				// special situations before the normal situations.
-				// The special situations are:
-				// 1. Unknown markers. These will be treated as paragraph markers if encountered
-				//    while processing paragraph markers, or character markers if encountered
-				//    while processing character markers.
-				// 2. Markers which are paragraph styles \sN, but that also have corresponding end
-				//    markers utilizing *. These include: x...x*, f...f*, fe...fe*, free...free*,
-				//    and note...note*.
-				// 3. Markers which are character styles \csN, but that have no corresponding end
-				//    markers utilizing *. These include: all the table column heading markers
-				//    (\th1, \th2, \th3, \th4, thr1, \thr2, \thr3, \thr4) and the table cell data
-				//    markers (\tc1, \tc2, \tc3, \tc4, \tcr1, \tcr2, \tcr3, \tcr4), the PNG
-				//    verse text marker \vt, the PNG glossary definition marker \gd, the PNG
-				//    cross-reference markers \@ and \xr, and the PNG footnote end markers \fe
-				//    and \F. These all need special handling to close the character style group
-				//    and/or account for their special behavior.
-				// 4. Markers which are character styles \csN, and have end markers which are
-				//    optional. These are the embedded content markers that can occur optionally
-				//    embedded within cross-references or footnotes. These include the cross-reference
-				//    content markers \xo, \xt, \xk, \xq, and \xdc, and the footnote content
-				//    markers \fr, \fk, \fq, \fqa, \ft, \fdc, \fv, and \fm.
-
-				// The normal situations are:
-				// 1. Markers which are paragraph styles and have no corresponding end markers.
-				// 2. Markers which are character styles and always have corresponding end markers
-				//    using *.
-
-				// Use the marker as key and query our map and get its
-				// associated value (RTF tags) if any, and output them
-
-				// Handle formatting and output of any unknown markers
-				if (bUnknownMarker)
-				{
-					// We don't recognize this marker, so attach "Unk Para Style" to it
-					// If user intended it to be a character style this may flag the whole
-					// enclosing paragraph with a red color (as signal to user)
-					if (bLastParagraphWasBoxed)
-					{
-						// There was a small break paragraph inserted and no paragraph style
-						// has intervened, so propagate the LastNonBoxParaStyle
-						rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// we found an associated value for Marker in map
-							// RTF tags use gpApp->m_systemEncoding
-							wxString lastStyTag = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-						bLastParagraphWasBoxed = FALSE;
-					}
-
-					wxString unkMarker = Marker;
-					if (bProcessingCharacterStyle)
-						Marker = _T("_unknown_char_style");
-					else
-						Marker = _T("_unknown_para_style");
-					rtfIter = rtfTagsMap.find(Marker);		// this should not fail
-					if (rtfIter != rtfTagsMap.end())
-					{
-						if (bProcessingCharacterStyle)
-						{
-							pCharStack->Push(Marker.char_str()); // push an "unknown" character style marker
-							// we need to start the character style group with an opening brace
-							MiscRTF = _T('{');
-							// RTF tags use gpApp->m_systemEncoding
-							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace here
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-						// we found an associated value for "unknown" key in map
-						checkStr = (wxString)rtfIter->second;
-						// RTF tags use gpApp->m_systemEncoding
-						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-					// to help the user detect typos, output the unknown marker prefixed to its assoc text
-					unkMarker = _T("\\\\") + unkMarker + _T(' '); // RTF requires backslash be escaped with a '\'
-					CountTotalCurlyBraces(unkMarker,nOpeningBraces,nClosingBraces);
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,unkMarker))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-
-					bLastOutputWasParTag = TRUE;
-					// Don't update LastStyle nor LastParaStyle here - we want to maintain the
-					// previous paragraph's properties for subsequent processing
-				}
-				// Handle footnotes, endnotes and cross-references.
-				// Note: The following notes apply specifically to footnotes, but with a few minor
-				// adjustments, also apply to endnotes and cross-references.
-				//
-				// In the USFM 2.0 standard, the first non-space character or word
-				// after "\f " or "\fe " is supposed to be one of the following that determines
-				// the kind of footnote "caller" (the letter/character/symbol used within the
-				// text to denote the location of the footnote):
-				//   '+' for generating the caller automatically (with progressive letters or numbers)
-				//   '-' no caller generated (i.e., the footnote/endnote would require a reference
-				//       back to where the footnote/endnote would apply.
-				//   '*' where * could be a literal asterisk or a character or even a word used as the
-				//       caller (in this case the character/word would be defined by the user).
-				// The above behavior poses some challenges for our parsing here. For UsfmOnly sfm set
-				// use, we need to check for the existence of the '+', '-' and '*'. The '+' and '-' are
-				// easy to interpret, but the '*' is not if the user intends it to be a character or
-				// word other than a literal '*' (asterisk).
-				// ASSUMPTIONS:
-				//  1. We assume that if a '+' is the first non-space character following \f or \fe (in
-				// the UsfmOnly set), that the footnote caller should be generated automatically
-				// (via use of the \chftn RTF control tag). This applies also to '+' following endnote
-				// \fe and crossref \x.
-				//  2. We assume that if a '-' is the first non-space character following \f or \fe (in
-				// the UsfmOnly set), that the footnote caller should not appear at all in the
-				// text at the point the footnote is encountered. This applies also to '-' following
-				// endnote \fe and crossref \x.
-				//  3. We assume that if a '*' (literal asterisk) or any other non-marker text word is
-				// the first non-space character following the \f or \fe (in the UsfmOnly set), that
-				// it is intended to be the caller raised and placed within the text at that point.
-				// Tests show that Paratext 6 also makes this assumption. This applies also to '*'
-				// following endnote \fe and crossref \x.
-				//  4. We assume that if there is an embedded content marker (such as \fr, etc.)
-				// immediately following the \f or \fe, so that no '+', '-' or other non-marker word
-				// is present between the \f and the embedded content marker, that the user intends to
-				// have an asterisk '*' used as the caller. Tests show this is what Paratext 6 does.
-				// This applies to endnotes, and to the embedded content markers for crossrefs (such as
-				// \xo, etc.) immediately following the \x.
-				//  5. We assume a footnote that is malformed and has no footnote end marker, will
-				// end at the first non-embedded marker encountered following \f or \fe (for UsfmOnly).
-				// This assumption has been modified to allow for other character formatting markers
-				// and verse markers to intervene.
-				//
-				// With the above assumptions, we then can parse the word immediately following the
-				// \f or \fe markers, and check the contents of that word. If the word immediately
-				// following \f or \fe is a '+' or '-' we adjust the RTF tags to set up the kind of
-				// caller defined in 1. or 2. above. If the word is something other than '+' or '-'
-				// we will assume the word is intended to be caller, and its format will be raised
-				// within the text as a footnote caller. Paratext assumes that if there is no '+'
-				// or '-' after \f or \fe, the next word, regardless of how long, is always to be used
-				// as the caller. For parsing of footnotes, endnotes, and crossrefs we use the dedicated
-				// functions ParseFootnote(), ParseEndnote(), and ParseCrossRef() in the appropriate
-				// blocks below.
-				//
-				// Handle footnotes
-				else if (Marker == _T("f"))
-				{
-					// We parse the entire footnote here through the end marker. In doing so
-					// we will set itemLen to the entire length of the footnote (including its end marker).
-					// Parsing the footnote marker through its entire length here simplifies the
-					// outer loop of 'else if' statements because by treating the whole footnote
-					// here we don't have to worry about the corresponding footnote end markers
-					// and any footnote embedded content markers in the outer loop. The footnote
-					// embedded content markers being optional, and are also easier to treat within
-					// this inner block of the overall loop.
-
-					// Note: the following ParseFootnote overwrites the itemLen that was determined
-					// by ParseMarker() above and will move the ptr at the bottom of the outer
-					// loop to point just past the footnote end marker.
-					itemLen = ParseFootnote(ptr,pBufStart,pEnd,parseError); // parse the whole footnote
-					wxString fnStr;
-					wxString nullStr;
-					nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
-					fnStr = wxString(ptr,itemLen);
-
-					bool bIsAtEnd = FALSE; // set by ProcessAndWriteDestinationText() below
-					callerType = no_caller; // start with this setting, ProcessAndWriteDestinationText
-											// may change it
-
-					// ProcessAndWriteDestinationText below handles all the footnote processing
-					// and output of RTF tags
-					if (!ProcessAndWriteDestinationText(f, EncodingSrcOrTgt, fnStr,
-						bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
-						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
-					{
-						goto b; //check for another marker beyond what ParseFootnote processed
-					}
-
-					// add space after destination text unless followed by punctuation
-					bool bIsSource = exportType == sourceTextExport;
-					if (!PunctuationFollowsDestinationText(itemLen,ptr,pEnd,bIsSource))
-					{
-						// write a space after the destination text (footnote, endnote, crossref), but
-						// only if no punctuation immediately follows it.
-						wxString spFollowingDestText = _T(' ');
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-
-					if (bHasFreeTransToAddToFootnoteBody)
-					{
-						// the free translation was output in the body of the footnote so reset
-						// some variables to reflect that free trans is no longer pending
-						bHitFreeHaltingMkr = FALSE;
-						bHasFreeTransToAddToFootnoteBody = FALSE;
-						// ProcessAdnWriteDestinationText calls freeAssocStr.Empty()
-					}
-
-					LastStyle = Marker;
-					// Don't update LastParaStyle here - we want to maintain its properties for the
-					// rest of the paragraph (if any) after the footnote
-				}
-
-				// Handle endnotes
-				// Note: Endnotes were not part of the PngOnly set and we exclude the PngOnly
-				// case because \fe was the usual footnote end marker there.
-				else if (gpApp->gCurrentSfmSet != PngOnly && Marker == _T("fe"))
-				{
-					// We parse the entire endnote here through the end marker. In doing so
-					// we will set itemLen to the entire length of the endnote (including its end marker).
-					// Parsing the endnote marker through its entire length here simplifies the
-					// outer loop of 'else if' statements because by treating the whole endnote
-					// here we don't have to worry about the corresponding endnote end markers
-					// and any endnote embedded content markers in the outer loop. The endnote
-					// embedded content markers being optional, and are also easier to treat within
-					// this inner block of the overall loop.
-					// This routine is identical in structure to that of the footnote block above
-					// except for the differences between endnote and footnote details. A common
-					// function could be created to handle both (and crossrefs too), but I'm
-					// doing them separately for now as the functions would require a lot of
-					// parameters and a little restructuring.
-
-					// Note: the following ParseEndnote overwrites the itemLen that was determined
-					// by ParseMarker() above and will move the ptr at the bottom of the
-					// loop to point just past the endnote end marker.
-					itemLen = ParseEndnote(ptr,pBufStart,pEnd,parseError);	// parse the whole endnote
-					wxString enStr;
-					wxString nullStr;
-					nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
-					enStr = wxString(ptr,itemLen);
-
-
-					bool bIsAtEnd = FALSE;
-					callerType = no_caller; // start with this setting, ProcessAndWriteDestinationText
-											// may change it
-
-					// ProcessAndWriteDestinationText below handles all the endnote processing
-					// and output of RTF tags
-					if (!ProcessAndWriteDestinationText(f, EncodingSrcOrTgt, enStr,
-						bIsAtEnd, endnoteDest, rtfTagsMap, pDoc, parseError, callerType,
-						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
-					{
-						goto b; //check for another marker beyond what ParseFootnote processed
-					}
-
-					// add space after destination text unless followed by punctuation
-					bool bIsSource = exportType == sourceTextExport;
-					if (!PunctuationFollowsDestinationText(itemLen,ptr,pEnd,bIsSource))
-					{
-						// write a space after the destination text (footnote, endnote, crossref), but
-						// only if no punctuation immediately follows it.
-						wxString spFollowingDestText = _T(' ');
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-
-					if (bHasFreeTransToAddToFootnoteBody)
-					{
-						// the free translation was output in the body of the footnote so reset
-						// some variables to reflect that free trans is no longer pending
-						bHitFreeHaltingMkr = FALSE;
-						bHasFreeTransToAddToFootnoteBody = FALSE;
-						// ProcessAdnWriteDestinationText calls freeAssocStr.Empty()
-					}
-
-					LastStyle = Marker;
-					// Don't update LastParaStyle here - we want to maintain its properties for the
-					// rest of the paragraph (if any) after the endnote
-				}
-				// Handle cross-references
-				else if (gpApp->gCurrentSfmSet == UsfmOnly &&  Marker == _T("x") )
-				{
-					// We parse the entire crossref here through the end marker. In doing so
-					// we will set itemLen to the entire length of the crossref (including its end marker).
-					// Parsing the crossref marker through its entire length here simplifies the
-					// outer loop of 'else if' statements because by treating the whole crossref
-					// here we don't have to worry about the corresponding crossref end markers
-					// and any crossref embedded content markers in the outer loop. The crossref
-					// embedded content markers being optional, and are also easier to treat within
-					// this inner block of the overall loop.
-					// This routine is identical in structure to that of the endnote and footnote blocks
-					// above except for the differences between endnote and footnote details. A common
-					// function could be created to handle them all, but I'm doing them separately for
-					// now as the functions would require a lot of parameters and a little restructuring.
-
-					// Note: the following ParseCrossRef overwrites the itemLen that was determined
-					// by ParseMarker() above and will move the ptr at the bottom of the
-					// loop to point just past the endnote end marker.
-					itemLen = ParseCrossRef(ptr,pBufStart,pEnd,parseError); // parse the whole crossref
-					wxString crStr;
-					wxString nullStr;
-					nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
-					crStr = wxString(ptr,itemLen);
-
-					bool bIsAtEnd = FALSE;
-					callerType = no_caller; // start with this setting, ProcessAndWriteDestinationText
-											// may change it
-
-					// ProcessAndWriteDestinationText below handles all the endnote processing
-					// and output of RTF tags
-					if (!ProcessAndWriteDestinationText(f, EncodingSrcOrTgt, crStr,
-						bIsAtEnd, crossrefDest, rtfTagsMap, pDoc, parseError, callerType,
-						nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-					if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
-					{
-						goto b; //check for another marker beyond what ParseFootnote processed
-					}
-
-					// add space after destination text unless followed by punctuation
-					bool bIsSource = exportType == sourceTextExport;
-					if (!PunctuationFollowsDestinationText(itemLen,ptr,pEnd,bIsSource))
-					{
-						// write a space after the destination text (footnote, endnote, crossref), but
-						// only if no punctuation immediately follows it.
-						wxString spFollowingDestText = _T(' ');
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-
-					if (bHasFreeTransToAddToFootnoteBody)
-					{
-						// the free translation was output in the body of the footnote so reset
-						// some variables to reflect that free trans is no longer pending
-						bHitFreeHaltingMkr = FALSE;
-						bHasFreeTransToAddToFootnoteBody = FALSE;
-						// ProcessAdnWriteDestinationText calls freeAssocStr.Empty()
-					}
-
-					LastStyle = Marker;
-					// Don't update LastParaStyle here - we want to maintain its properties for the
-					// rest of the paragraph (if any) after the endnote
-				}
-
-				// Handle Glos Definition
-				else if (Marker == _T("gd"))
-				{
-					// We're at a gloss definition within a Glos Main Entry or Glos Sub-entry
-					if (bLastParagraphWasBoxed)
-					{
-						// There was a small break paragraph inserted and no paragraph style
-						// has intervened, so propagate the LastNonBoxParaStyle
-						rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// we found an associated value for Marker in map
-							// RTF tags use gpApp->m_systemEncoding
-							wxString lastStyTag = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-						bLastParagraphWasBoxed = FALSE;
-					}
-
-					rtfIter = rtfTagsMap.find(Marker);
-					if (rtfIter != rtfTagsMap.end())
-					{
-						// we found an associated value for Marker in map
-						checkStr = (wxString)rtfIter->second;
-						// RTF tags use gpApp->m_systemEncoding
-						CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-					LastStyle = Marker;
-					// Don't update LastParaStyle here - we want to maintain its properties for the
-					// rest of the paragraph (if any) after the gloss definition
-				}
-
-				// Handle USFM defined tables within the RTF Source/Target text.
-				// These tables are composed of a series of \tr new row markers followed by \thN,
-				// \thrN, \tcN, and/or \tcrN markers to define cell header and/or cell data making
-				// up the columns of the table rows defined by each \tr row marker that is present.
-				// As we did for footnotes, endnotes and crossrefs, we could parse the entire table
-				// here and output the tags for the table in the block below, rather than trying to
-				// construct the RTF tags for the table during repeated passes through the outer loop.
-				// However, because of the possibility of embedded footnotes, endnotes, etc, I will
-				// attempt to create a table first without recourse to a parse of the entire table
-				// at one time. The main challenges are:
-				//    1. Determining in advance the optimum cell width extents for \cellxN tags for
-				//       all rows.
-				//    2. Knowing in advance how many rows are in the table so when a \tr marker is
-				//       encountered we are about to process the last row of the table we can output a
-				//       \lastrow tag along with the other row tags that preceed the row data.
-				// The solution to these challenges is:
-				//    1. Once we've encountered the first \tr marker, scan ahead in the Buffer and
-				//       determine the text extents for all columns of data and determine the best
-				//       assignment of cell widths (extents) to assign to the table columns. During
-				//       this scan we can ensure that the table is well formed.
-				//    2. During the scan of the Buffer we also count the number of \tr markers
-				//       existing in the current table, and use that count to know when we are at the
-				//       last row and need to add the \lastrow tag.
-				// Like the footnote, endnote, and crossref, a table should have all of its related
-				// markers and associated text together in sequence in the Buffer (with the possibility
-				// of some other markers embedded within the table). We can expect that there might be
-				// some character style format markers embedded within the cell data items and
-				// possibly footnotes, endnotes, etc embedded within it. Generally, we should be able to
-				// parse the table by parsing through all table markers and any embedded character format
-				// markers, footnotes, endnotes, back translation, free translation, and notes, until we
-				// come to a non-table paragraph marker, which establishes the end point of the table.
-				// Although UBS examples of tables have verse markers collected together above the
-				// text of a table (i.e., \v 10-16), we will also allow \v N verse markers to be embedded
-				// within the table cell data.
-				//
-				// The following is an example of a table with four rows (including first header row)
-				// and three columns, followed by its USFM marker representation, followed by its
-				// RTF table tag representation.
-
-				//Here is the desired table (imagine it is in a 4 row x 3 column Word table):
-
-				//Day   Tribe     Leader
-				//1st   Judah     nahshon son of Amminadab
-				//2nd   Issachar  Nethanel son of Zuar
-				//3rd   Zebulun   Eliab son of Helon
-
-				//Here is the USFM representation:
-
-				//\tr \th1 Day\th2 Tribe\th3 Leader
-				//\tr \tc1 1st\tc2 Judah\tc3 Nahshon son of Amminadab
-				//\tr \tc1 2nd\tc2 Issachar\tc3 Nethanel son of Zuar
-				//\tr \tc1 3rd\tc2 Zebulun\tc3 Eliab son of Helon
-
-				//Here is a sample RTF representation. This is a minimal example. The actual set of
-				//tags will differ in some respects and there will be character style tags added to
-				//the cells.
-
-				//\pard\plain
-				//\trowd \irow0\irowband0\ts31\trgaph40\trleft0\ltrrow
-				//\cellx900
-				//\cellx2160
-				//\cellx5130
-				//\pard\plain
-				//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
-				//{Day\cell Tribe\cell Leader\cell }
-				//\pard\plain
-				//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
-				//{\trowd \irow0\irowband0\ts31\trgaph40\trleft0\ltrrow
-				//\cellx900
-				//\cellx2160
-				//\cellx5130\row }
-				//\pard\plain
-				//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
-				//{1st\cell Judah\cell Nahshon son of Amminadab\cell }
-				//\pard\plain
-				//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
-				//{\trowd \irow1\irowband1\ts31\trgaph40\trleft0\ltrrow
-				//\cellx900
-				//\cellx2160
-				//\cellx5130\row }
-				//\pard\plain
-				//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
-				//{2nd\cell Issachar\cell Nethanel son of Zuar\cell }
-				//\pard\plain
-				//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
-				//{\trowd \irow2\irowband2\ts31\trgaph40\trleft0\ltrrow
-				//\cellx900
-				//\cellx2160
-				//\cellx5130\row }
-				//\pard\plain
-				//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
-				//{3rd\cell Zebulun\cell Eliab son of Helon\cell }
-				//\pard\plain
-				//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
-				//{\trowd \irow3\irowband3\ts31\trgaph40\lastrow\trleft0\ltrrow  <-- note \lastrow tag
-				//\cellx900
-				//\cellx2160
-				//\cellx5130\row }\pard
-				//\qj \li0\ri0\widctlpar\ltrpar\nooverflow\rin0\lin0\itap0 \f0\fs22
-				//{\par }
-
-				// Handle the USFM table markers which, except for \tr, are "character" style and none
-				// have end markers. This "else if" block attempts to format USFM RTF tables as real
-				// Word tables with rows and column cells. It turns out that something in it causes
-				// Word to hang when scrolling with the thumb through a page with tables formatted
-				// with the routine below. Therefore, I'm commenting out this form and using the
-				// else if block below it which doesn't create real Word tables, but simply formats
-				// the data as paragraphs (which are color coded to identify the separate columns).
-
-				//else if (Marker == _T("tr") || Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
-				//{
-				//	// Handle the table row markers which are "paragraph" style markers
-				//	if (Marker == _T("tr"))
-				//	{
-				//		// \tr always indicates that we are at the first cell in a row
-				//		bAtFirstCellInRow = TRUE;
-
-				//		// The marker is a new row marker
-				//		if (!bProcessingTable)
-				//		{
-				//			// we are processing a table
-				//			bProcessingTable = TRUE;
-				//			// at the beginning of the table processing (before output of the first
-				//			// table row's RTF tags, we need to determine the best table dimensions
-				//			// so we must look ahead in the buffer to determine the dimensions we are
-				//			// to expect for the RTF formatted table.
-				//			if (bAtFirstTableRow)
-				//			{
-				//				// Scan ahead in the buffer to determine the dimensions of the how many rows are in the
-				//				// forthcoming table, and determine optimum N values for \cellxN tags. This
-				//				// scan must scan the entire table to determine bestTextExtents which could
-				//				// be determined in the last row.
-				//				GetTableDimensions(ptr, pBuffStart, pEnd, bestTextExtents,
-				//					OutputSrc, numRows, numCols, MaxRowWidth);
-				//				bAtFirstTableRow = FALSE;
-				//				nLastRowIndex = numRows - 1;
-				//				nLastColIndex = numCols - 1;
-				//			}
-				//			if (bLastTableRow)
-				//			{
-				//				bAtFirstTableRow = TRUE;
-				//			}
-				//			wxChar rowN[34];
-				//			wxChar cellN[34];
-				//			_itot(nCurrentRowIndex,rowN,10);
-				//			MiscRTF = _T("\\par \\pard\\plain");	// add \par to beginnning of the prefix stuff
-				//													// to ensure prev text doesn't end up in 1st
-				//													// table cell
-				//			MiscRTF += _T("\\trowd \\irow");
-				//			MiscRTF += rowN;
-				//			MiscRTF += _T("\\irowband");
-				//			MiscRTF += rowN;
-				//			MiscRTF += _T("\\ts") + TblGridSNum;
-				//			MiscRTF += _T("\\trgaph40");
-				//			MiscRTF += _T("\\trleft0\\ltrrow");
-
-				//			// add the \cellxN data for the first row
-				//			int colCt;
-				//			for (colCt = 0; colCt < bestTextExtents.GetCount(); colCt++)
-				//			{
-				//				_itot(bestTextExtents.GetAt(colCt),cellN,10);
-				//				wxString cellNStr = cellN;
-				//				if (cellNStr != _T("0"))
-				//				{
-				//					MiscRTF += _T("\n\\cellx");
-				//					MiscRTF += cellN;
-				//				}
-				//			}
-
-				//			// now output the tags up to this point
-				//			// RTF tags use gpApp->m_systemEncoding
-				//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//				return;
-
-				//		}
-				//		else
-				//		{
-				//			// bProcessingTable was already true when the current \tr marker is
-				//			// encountered. Since we've encountered this new \tr marker, it must
-				//			// signal an end to the delimiting of rows of text with postpositioned
-				//			// \cell markers, i.e., we've output the following string:
-				//			//    {text1\cell text2\cell text3\cell text4
-				//			// Note: The last column's text4 has been output, but, (if bLastCellTagOutput
-				//			// is still FALSE, the closing "\cell " for that column's text has not been
-				//			// output at this point. So,
-				//			// First we need to close off the last column's text with "\cell " and add
-				//			// the closing brace '}' to end the delimited representation of the row's text.
-				//			MiscRTF = _T("\\cell }");
-				//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//				return;
-				//			bLastCellTagOutput = TRUE;
-
-				//			// The remainder of the preceding row's row tags can now be output
-				//			// Output the __normal paragraph style tags
-				//			rtfIter = rtfTagsMap.find(_T("__normal"));
-				//			if (rtfIter != rtfTagsMap.end())
-				//			{
-				//				// we found an associated value for Marker in map
-				//				// RTF tags use gpApp->m_systemEncoding
-				//				wxString tempStyle = (wxString)rtfIter->second;
-				//				// remove the "\par " from the style tag string here
-				//				tempStyle = tempStyle.Mid(5);
-				//				if (!WriteOutputString(f,gpApp->m_systemEncoding,tempStyle))
-				//					return;
-				//			}
-				//			// output the "{\trowd \irowN\irowbandN\tsN\trgaph40\trleft0\\ltrrow" part
-				//			wxChar rowN[34];
-				//			wxChar cellN[34];
-				//			_itot(nCurrentRowIndex,rowN,10);// nCurrentRowIndex is incremented for new row below
-				//											// so it is the index for the row we are closing off
-				//			if (nCurrentRowIndex == nLastRowIndex)
-				//				bLastTableRow = TRUE;
-				//			MiscRTF = _T("\n{");
-				//			MiscRTF += _T("\\trowd \\irow");
-				//			MiscRTF += rowN;
-				//			MiscRTF += _T("\\irowband");
-				//			MiscRTF += rowN;
-				//			MiscRTF += _T("\\ts") + TblGridSNum;
-				//			if (bLastTableRow)
-				//				MiscRTF += _T("\\lastrow");
-				//			MiscRTF += _T("\\trgaph40");
-				//			MiscRTF += _T("\\trleft0\\ltrrow");
-				//			// add the \cellxN data for the first row
-				//			int colCt;
-				//			for (colCt = 0; colCt < bestTextExtents.GetCount(); colCt++)
-				//			{
-				//				_itot(bestTextExtents.GetAt(colCt),cellN,10);
-				//				wxString cellNStr = cellN;
-				//				if (cellNStr != _T("0"))
-				//				{
-				//					MiscRTF += _T("\n\\cellx");
-				//					MiscRTF += cellN;
-				//				}
-				//			}
-				//			// add the \row and closing brace '}'
-				//			MiscRTF += _T("\\row }");
-
-				//			// now output the tags up to this point
-				//			// RTF tags use gpApp->m_systemEncoding
-				//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//				return;
-
-				//			nCurrentRowIndex++;
-				//			nCurrentColIndex = 0; // new row starts at column zero
-				//			bAtFirstCellInRow = TRUE;
-				//			// Note: This ends the output of the previous row of the table
-				//		}
-
-				//		// Now we can output the initial tags for the new row that our current \tr
-				//		// marker is starting. This amounts to "\pard\plain", the row's paragraph
-				//		// style tags (based on 'm' style), and an opening brace for the cell text
-				//		// line.
-
-				//		//   Output the general paragraph style tags for the whole row (use the \m style)
-				//		rtfIter = rtfTagsMap.find(_T("m"));
-				//		if (rtfIter != rtfTagsMap.end())
-				//		{
-				//			// we found an associated value for Marker in map
-				//			// RTF tags use gpApp->m_systemEncoding
-				//			wxString tempStyle = (wxString)rtfIter->second;
-				//			// remove the "\par " from the style tag string here
-				//			tempStyle = tempStyle.Mid(5);
-
-				//			// change any \qc justification to \ql which looks better
-				//			// within table cells that have to wrap (regardless of user
-				//			// setting for \m paragraphs
-				//			int posqc = tempStyle.Find(_T("\\qc "));
-				//			if (posqc != -1)
-				//			{
-				//				tempStyle.Remove(posqc,3);
-				//				tempStyle.Insert(posqc,_T("\\ql"));
-				//			}
-				//			// output the modified "m" para style for the right justitied cell
-				//			if (!WriteOutputString(f,gpApp->m_systemEncoding,tempStyle))
-				//				return;
-				//		}
-				//		MiscRTF = _T("\n{");
-				//		//   Output the opening curly brace for the cell text '{'
-				//		if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//			return;
-				//		LastParaStyle = Marker;
-				//		LastNonBoxParaStyle = Marker;
-				//		//
-				//	}
-				//	// Handle the table header and normal cell markers. These are "character" style but
-				//	// have no end markers.
-				//	else if (Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
-				//	{
-				//		// we should have processed at least one \tr tag and bProcessingTable should have
-				//		// been set to TRUE before arriving here (unless the table was malformed)
-				//		wxASSERT(bProcessingTable == TRUE);
-
-				//		// Note: The processing of cell text items delimited by \cell tags is the same
-				//		// regardless of which row we are processing.
-
-				//		// If we are at a non-row-initial \th... or \tc... marker, we output the
-				//		// "\cell " tag string here to close off the preceeding cell
-				//		if (!bAtFirstCellInRow)
-				//		{
-				//			MiscRTF = _T("\\cell ");
-				//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//				return;
-				//			nCurrentColIndex++;	// the current col index increments when each
-				//								// \cell is output
-				//		}
-				//		// Once \cell is output we are no longer at first cell in row
-				//		bAtFirstCellInRow = FALSE;
-
-				//		// Output the cell text items for the row delimited with \cell tags
-
-				//		//   extract the nFoundColNum N of the marker, converting with _ttoi()
-				//		wxString NvalueStr;
-				//		if (Marker.Find(_T("thr")) == 0 || Marker.Find(_T("tcr")) == 0)
-				//			NvalueStr = Marker.Mid(3);
-				//		else if (Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
-				//			NvalueStr = Marker.Mid(2);
-				//		nFoundColNum = _ttoi(NvalueStr);
-				//		if (nFoundColNum > maxUSFMCols)
-				//		{
-				//			nFoundColNum = maxUSFMCols; // set it to the maxUSFMCol
-				//		}
-				//		nCollIndexFound = nFoundColNum -1;
-
-				//		// output any "\cell " tags for any empty columns in row. We do not output
-				//		// the current assoc text of \th... or \tc... here, because we must allow
-				//		// the processing of any embedded char format markers, footnotes, endnotes,
-				//		// crossrefs, \bt..., \free, and \note material. We do output a "\cell "
-				//		// tag string for a previous \th... or \tc... This situation is signalled
-				//		// when bAtFirstCellInRow is FALSE
-				//		int ct;
-				//		int nSaveCurrColIndex = nCurrentColIndex;
-				//		if (nCollIndexFound > nCurrentColIndex)
-				//		{
-				//			MiscRTF = _T("\\cell ");
-				//			for (ct = 0; ct < nCollIndexFound - nSaveCurrColIndex; ct++);
-				//			{
-				//				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//					return;
-				//				nCurrentColIndex++; // the current col index increments when each
-				//									// \cell is output
-				//			}
-				//		}
-
-				//		// Note: Once we have processed the last "th" or "tc" item for the current row,
-				//		// we need to close off the current row with a \row tag and closing brace '}'
-				//		// We cannot do this here, however, even when we are at the last \th... or last
-				//		// \tc... in a row, because we are only at the marker itself. We must allow a
-				//		// block of the loop below to process the text assoc with this current marker
-				//		// along with any embedded char format markers, footnotes, endnotes, crossrefs,
-				//		// \bt..., \free, and \note material FIRST. The output of the closing tags
-				//		// associated with the current row can occur in two places (1) in the \tr
-				//		// handling block above (for ...), and (2) in the block below where we encounter
-				//		// our first non-table marker indicating we've reached the end of the table.
-
-				//		// The marker is a table column heading or a table cell data marker \thN \thrN \tcN or
-				//		// \tcrN where N is 1, 2, 3, or 4. These are character markers but have no end forms
-				//		// so we need to output an opening brace to start the character group, lookup and
-				//		// output the RTF tags for the particular table char style, and then note that
-				//		// we are within a table so we can determine when to close the groups for these
-				//		// table markers.
-
-				//		if (bLastParagraphWasBoxed)
-				//		{
-				//			// There was a small break paragraph inserted and no paragraph style
-				//			// has intervened, so propagate the LastNonBoxParaStyle
-				//			rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
-				//			if (rtfIter != rtfTagsMap.end())
-				//			{
-				//				// we found an associated value for Marker in map
-				//				// RTF tags use gpApp->m_systemEncoding
-				//				if (!WriteOutputString(f,gpApp->m_systemEncoding,(wxString)rtfIter->second))
-				//					return;
-				//			}
-				//			bLastParagraphWasBoxed = FALSE;
-				//		}
-
-				//		wxString tempMkrR;
-				//		if (Marker.Find(_T("thr")) == 0 || Marker.Find(_T("tcr")) == 0)
-				//		{
-				//			// get the "m" marker from map in case we need it in block below
-				//			rtfIter = rtfTagsMap.find(_T("m"));
-				//			if (rtfIter != rtfTagsMap.end())
-				//			{
-				//				// we found an associated value for Marker in map
-				//				// RTF tags use gpApp->m_systemEncoding
-				//				tempMkrR = (wxString)rtfIter->second;
-				//				// remove the "\par " from the style tag string here
-				//			}
-				//		}
-
-				//		rtfIter = rtfTagsMap.find(Marker);
-				//		if (rtfIter != rtfTagsMap.end())
-				//		{
-				//			if (Marker.Find(_T("thr")) == 0 || Marker.Find(_T("tcr")) == 0)
-				//			{
-				//				// for right aligned cells we need to repeat the "m" paragraph
-				//				// style here before the character group for the cell, and the
-				//				// "m" paragraph style should only have \pard prefixed to it
-				//				// and its justification should be \qr rather than \qc or \ql
-				//				// remove the "\par \n\pard\plain" and prefix just \pard
-				//				tempMkrR = tempMkrR.Mid(18);
-				//				// add \plain
-				//				tempMkrR = _T("\\pard") + tempMkrR;
-				//				// change justification to \qr
-				//				int posqj = tempMkrR.Find(_T("\\qj "));
-				//				if (posqj != -1)
-				//				{
-				//					tempMkrR.Remove(posqj,3);
-				//					tempMkrR.Insert(posqj,_T("\\qr"));
-				//				}
-				//				int posqc = tempMkrR.Find(_T("\\qc "));
-				//				if (posqc != -1)
-				//				{
-				//					tempMkrR.Remove(posqc,3);
-				//					tempMkrR.Insert(posqc,_T("\\qr"));
-				//				}
-				//				// output the modified "m" para style for the right justitied cell
-				//				MiscRTF = tempMkrR;
-				//				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//					return;
-				//			}
-				//			// we found an associated value for Marker in map
-				//			if (bProcessingCharacterStyle)
-				//			{
-				//				// non-paragraph style strings need to start with an opening brace {
-				//				MiscRTF = _T("{");
-				//				// RTF tags use gpApp->m_systemEncoding
-				//				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-				//					return;
-				//			}
-				//			// RTF tags use gpApp->m_systemEncoding
-				//			if (!WriteOutputString(f,gpApp->m_systemEncoding,(wxString)rtfIter->second))
-				//				return;
-				//		}
-
-				//		// If bProcessingEndlessCharMarker is FALSE we are starting to process a marker that
-				//		// defines a character style but has no ending marker
-				//		if (!bProcessingEndlessCharMarker)
-				//		{
-				//			bProcessingEndlessCharMarker = TRUE;
-				//		}
-				//		LastStyle = Marker;
-				//		// Don't update LastParaStyle here - the above table markers are character style
-				//		// markers
-				//	}
-
-				//}
-
-				// BELOW WAS THE ORIGINAL BLOCK FOR PROCESSING CHARACTER TABLE STYLES:
-				// This block did not format USFM tables into real RTF tables, but treated
-				// the table rows (defined by \tr) as simple paragraphs
-				// Handle the table markers which are "character" style but have no end markers
-				else if (Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
-				{
-					// The marker is a table column heading or a table cell data marker \thN \thrN \tcN or
-					// \tcrN where N is 1, 2, 3, or 4. These are character markers but have no end forms
-					// so we need to output an opening brace to start the character group, lookup and
-					// output the RTF tags for the particular table char style, and then note that
-					// we are within a table so we can determine when to close the groups for these
-					// table markers.
-
-					if (bLastParagraphWasBoxed)
-					{
-						// There was a small break paragraph inserted and no paragraph style
-						// has intervened, so propagate the LastNonBoxParaStyle
-						rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// we found an associated value for Marker in map
-							// RTF tags use gpApp->m_systemEncoding
-							wxString lastStyTag = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-						bLastParagraphWasBoxed = FALSE;
-					}
-
-					rtfIter = rtfTagsMap.find(Marker);
-					if (rtfIter != rtfTagsMap.end())
-					{
-						// we found an associated value for Marker in map
-						if (bProcessingCharacterStyle)
-						{
-							// non-paragraph style strings need to start with an opening brace {
-							MiscRTF = _T("{");
-							// RTF tags use gpApp->m_systemEncoding
-							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-
-							pCharStack->Push(Marker.char_str()); // push a TABLE (\th... or \tc...) character style marker
-						}
-						// RTF tags use gpApp->m_systemEncoding
-						wxString mkrTags = (wxString)rtfIter->second;
-						CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-
-					// If bProcessingEndlessCharMarker is FALSE we are starting to process a marker that
-					// defines a character style but has no ending marker
-					if (!bProcessingEndlessCharMarker)
-					{
-						bProcessingEndlessCharMarker = TRUE;
-					}
-					LastStyle = Marker;
-					// Don't update LastParaStyle here - the above table markers are character style
-					// markers
-				}
-
-				// Handle any back translation markers beginning with \bt... which are "character"
-				// style but have no end markers
-				else if (Marker.Find(_T("bt")) == 0)
-				{
-					// Note: To get the back translation material to follow the text to which
-					// it applies, we first output bt... associated strings for any preceding bt...
-					// marker at this current bt marker's occurrence (a halting point); then we
-					// process the bt... material for the current Marker and store it to output at
-					// the next halting point (which would usually be another bt marker if the
-					// text is fully free translated); or at the end of the Buffer if no more bt...
-					// markers or halting points exist.
-					if (!btAssocStr.IsEmpty())
-					{
-						bool bIsAtEnd = FALSE;
-						if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,Marker,_T("bt"),btAssocStr,
-							LastStyle,LastParaStyle,btRefNumInt,bLastParagraphWasBoxed,
-							parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
-							single_border,pDoc))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// We have output the current \bt material at a succeeding \bt point, so
-						// reset our bHitBTHaltingMkr flag.
-						bHitBTHaltingMkr = FALSE;
-						if (bIsAtEnd)
-						{
-							goto b;
-						}
-					}
-
-					lastBTMarker = Marker;	// used in OutputAnyBTorFreeMaterial() at bottom of loop
-											// where bt material is placed after gap and where Marker
-											// is a subsequent non- bt marker.
-					// Now process the current bt... marker and assoc text.
-					// Parse the \bt... to retrieve its marker and associated text, then
-					// use that text above for formatting a boxed paragraph or footnote
-					// depending on the value of bPlaceBackTransInRTFText.
-					wxString wholeMarker = _T('\\') + Marker;
-					wxString btMarker = _T("bt"); // use only the short "bt" form
-					itemLen = ParseMarkerAndAnyAssociatedText(ptr,pBufStart,pEnd,btMarker,wholeMarker,TRUE,FALSE);
-					// TRUE above means we expect RTF text to parse
-					// FALSE above means don't include char format markers
-					wxString btStr;
-					btStr = wxString(ptr,itemLen);
-					// btStr still starts with \bt so just remove the backslash leaving the bare marker
-					// to function as caller when the string is used as a footnote, and add back the
-					// wholeMarker and space prefixed
-					btStr = btStr.Mid(1);
-					//if (btStr.Find(_T('\n')) != -1)
-					btStr.Replace(_T("\n"),_T(" "));
-					btStr.Replace(_T("\r"),_T(" "));
-					btAssocStr = btStr;
-				}
-				// Handle any Adapt It Note markers beginning with \note
-				else if (Marker == _T("note"))
-				{
-					// Parse the \note marker to retrieve its marker and associated text, then
-					// use that text below for the special formatting circumstances depending on the
-					// value of bPlaceAINotesInRTFText.
-					wxString wholeMarker = _T('\\') + Marker;
-					wxString noteMarker = _T("note");
-					itemLen = ParseMarkerAndAnyAssociatedText(ptr,pBufStart,pEnd,noteMarker,wholeMarker,TRUE,FALSE);
-					// TRUE above means we expect RTF text to parse
-					// FALSE above means don't include char format markers
-					wxString noteStr;
-					noteStr = wxString(ptr,itemLen);
-					// noteStr still starts with \note so just remove the backslash leaving the bare marker
-					// to function as caller when the string is used as a footnote, and add back the
-					// wholeMarker and space prefixed
-					noteStr.Remove(noteStr.Find(_T("\\note*")),6);
-
-					if (bPlaceAINotesInRTFText)
-					{
-						// The ExportOptionsDlg checkbox specifies that Adapt It Notes should be
-						// "placed in Comments (bubble text) within the right margin. We do this by
-						// formatting the note as an RTF annotation using the _annotation_text and
-						// _annotation_ref marker styles.
-
-						noteStr.Remove(0,6); // delete the "\note " string prefix
-
-						// first output opening brace for the _annotation_ref style
-						MiscRTF = _T('{');
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// next output the \cs style tags for _annotation_ref
-						rtfIter = rtfTagsMap.find(_T("_annotation_ref"));
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// we found an associated value for Marker in map
-							// RTF tags use gpApp->m_systemEncoding
-							wxString annotRefTags = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-						// next output the required RTF tags to prefix an annotation
-						MiscRTF = _T("{\\*\\atnid Adapt It Note:}{\\*\\atnauthor       }\\chatn {\\*\\annotation \\pard\\plain ");
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 open, 2 close braces added here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// output the _annotation_text paragraph style tags
-						rtfIter = rtfTagsMap.find(_T("_annotation_text"));
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// we found an associated value for Marker in map
-							// RTF tags use gpApp->m_systemEncoding
-							wxString annotTextTags = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(annotTextTags,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotTextTags))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-						// output the _annotation_ref style tags again
-						MiscRTF = _T('{');
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open brace here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// next output the \cs style tags for _annotation_ref
-						rtfIter = rtfTagsMap.find(_T("_annotation_ref"));
-						if (rtfIter != rtfTagsMap.end())
-						{
-							// we found an associated value for Marker in map
-							// RTF tags use gpApp->m_systemEncoding
-							wxString annotRefTags = (wxString)rtfIter->second;
-							CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
-							if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
-							{
-								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-								return;
-							}
-						}
-						MiscRTF = _T("\\chatn }{");
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open one closed added here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// now output the actual note string
-						CountTotalCurlyBraces(noteStr,nOpeningBraces,nClosingBraces);
-						// whm 8Nov07 changed below to use m_tgtEncoding to force
-						// the use of the \uN\'f3 RTF Unicode chars format.
-						if (!WriteOutputString(f,gpApp->m_tgtEncoding,noteStr)) // use m_tgtEncoding here
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						MiscRTF = _T("}}}"); // closing braces for note (annotation)
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 closing curly braces here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// update LastStyle only when doing boxed paragraph
-						LastStyle = Marker;
-					}
-					else
-					{
-						// The ExportOptionsDlg checkbox specifies that the Adapt It note should be
-						// formatted as footnotes. We do this by enclosing the \note character style
-						// and its text within the footnote destination set of tags. We use a
-						// special literal caller "note" in the text with the note itself
-						// in the footnote at the foot of the page. This can be handled with our
-						// ProcessAndWriteDestinationText() function
-						noteStr = noteStr.Mid(1); // just remove the backslash and leave "note" for caller
-						noteStr = wholeMarker + _T(' ') + noteStr + _T("\\f* "); // make it end like a footnote by
-																			// adding "\f* " so our function
-																			// ProcessAndWriteDestinationText
-																			// can handle it like one
-
-						bool bIsAtEnd = FALSE;; // set by ProcessAndWriteDestinationText() below
-						// construct numerically sequenced caller
-						//wxChar buf[34];
-						noteRefNumInt++; // increment the bt N to note 1, note 2, note 3, etc.
-						wxString bareNoteMarker = Marker; // backslash already removed
-						noteRefNumStr = bareNoteMarker + _T(' '); // "note "
-						noteRefNumStr << noteRefNumInt; // _itot(noteRefNumInt,buf,10);  // add N to "note N"
-						noteRefNumStr += _T(' ');
-						wxString callerStr = noteRefNumStr;
-						callerType = supplied_by_parameter;
-
-						wxString nullStr = _T("");
-						// we'll use system encoding to write the note text
-						//if (!ProcessAndWriteDestinationText(f, gpApp->m_systemEncoding, noteStr,
-						//	bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
-						//	callerStr, FALSE, nullStr)) // FALSE because there is no free trans to suffix to a note
-						// whm 8Nov07 note: We should use m_tgtEncoding to force the writing of the
-						// note text in the \uN\'f3 RTF Unicode format
-						if (!ProcessAndWriteDestinationText(f, gpApp->m_tgtEncoding, noteStr,
-							bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
-							callerStr, FALSE, nullStr)) // FALSE because there is no free trans to suffix to a note
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
-						{
-							goto b; //check for another marker beyond what ParseFootnote processed
-						}
-					}
-					// Adapt It Notes only appear as balloon text comments or footnotes; they don't
-					// appear as separate paragraphs within the text so we don't set LastStyle
-					// or LastParaStyle or LastNonBoxParaStyle here
-				}
-				// Handle any free translation markers beginning with \free
-				else if (Marker == _T("free"))
-				{
-					// Note: To get the free translation material to follow the text to which
-					// it applies, we first output free associated strings for any preceding free
-					// marker at this current free marker's occurrence (a halting point); then we
-					// process the free material for the current Marker and store it to output at
-					// the next halting point (which would usually be another \free marker if the
-					// text is fully free translated); or at the end of the Buffer if no more free
-					// markers or halting points exist.
-
-					if (!freeAssocStr.IsEmpty())
-					{
-						bool bIsAtEnd = FALSE;
-						if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,Marker,_T("free"),freeAssocStr,
-							LastStyle,LastParaStyle,freeRefNumInt,bLastParagraphWasBoxed,
-							parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
-							double_border,pDoc))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// We have output the current \free material at a succeeding \free point, so
-						// reset our bHitFreeHaltingMkr flag.
-						bHitFreeHaltingMkr = FALSE;
-						if (bIsAtEnd)
-						{
-							goto b;
-						}
-					}
-
-					lastFreeMarker = Marker;// used in OutputAnyBTorFreeMaterial() at bottom of loop
-											// where free material is placed after gap and where Marker
-											// is a subsequent non- free marker.
-					// Now process the current free marker and assoc text.
-					// Parse the \free to retrieve its marker and associated text, then
-					// use that text above for the special formatting circumstances depending on the
-					// value of bPlaceFreeTransInRTFText.
-					wxString wholeMarker = _T('\\') + Marker;
-					wxString freeMarker = _T("free");
-					itemLen = ParseMarkerAndAnyAssociatedText(ptr,pBufStart,pEnd,freeMarker,wholeMarker,TRUE,FALSE);
-					// TRUE above means we expect RTF text to parse
-					// FALSE above means don't include char format markers
-					wxString freeStr;
-					freeStr = wxString(ptr,itemLen);
-					// freeStr still starts with \free so just remove the backslash leaving the bare marker
-					// to function as caller when the string is used as a footnote, and add back the
-					// wholeMarker and space prefixed
-					freeStr = freeStr.Mid(1);
-					// remove the \free* end marker
-					int freeEndMkrPos = freeStr.Find(_T("\\free*"));
-					freeStr = freeStr.Left(freeEndMkrPos);
-					freeAssocStr = freeStr;
-					// Is this a free translation of a following footnote, endnote or crossref?
-					// If so, set flag to have ProcessAndWriteDestinationText() suffix the
-					// free translation to the end of the footnote text formatted in the
-					// appropriate boxed paragraph
-					if (NextMarkerIsFootnoteEndnoteCrossRef(ptr,pEnd,itemLen))
-					{
-						bHasFreeTransToAddToFootnoteBody = TRUE;
-					}
-					else
-					{
-						bHasFreeTransToAddToFootnoteBody = FALSE;
-					}
-				}
-				// The special cases have been handled, so now handle the regular end markers
-				// Handle character end markers
-				else if (Marker.Find(_T('*')) != -1)
-				{
-					// We are at an end marker (Marker has * in it)
-					// add the group closing brace } but only if the styleType of the marker
-					// is "character"
-					// Note: In situations where user has an end marker in the text but it had
-					// no corresponding begin marker, bProcessingCharacterStyle would normally
-					// be false and no spurious closing brace would be added in the code below.
-					if (bProcessingCharacterStyle)
-					{
-						MiscRTF = _T('}');
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-						// if the previous marker was a small break paragraph, we need to propagate
-						// the LastNonBoxParaStyle
-						// TODO: Check if the following propagation should only be done following
-						// a small para break, i.e., when bLastParagraphWasBoxed == TRUE
-						//if (bLastParagraphWasBoxed)
-						{
-							rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
-							if (rtfIter != rtfTagsMap.end())
-							{
-								// we found an associated value for Marker in map
-								wxString lastNBParaStyle = (wxString)rtfIter->second;
-								// remove the \par from the style string here because we don't want to
-								// insert a paragraph at closing of a character style, just propagate the
-								// previous non-boxed paragraph style
-								int nbPos = lastNBParaStyle.Find(_T("\\par ")); // whm 18Nov10 added space to find string; previously was "\\par"
-								lastNBParaStyle.Remove(nbPos, 5);
-								CountTotalCurlyBraces(lastNBParaStyle,nOpeningBraces,nClosingBraces);
-								if (!WriteOutputString(f,gpApp->m_systemEncoding,lastNBParaStyle))
-								{
-									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-									return;
-								}
-							}
-						}
-
-						Item sfm1;
-						pCharStack->Pop(sfm1); // pop a character style END marker
+						Item sfm;
+						pCharStack->Pop(sfm); // pop an "unknown" character style marker
 						// Check if the stack has another character style marker in it.
-						// If not, we can set the bProcessingCharacterStyle flag to FALSE.
 						// If so, we need to reset the character style to propagate that
 						// character style after the current one has closed.
 						if (pCharStack->IsEmpty())
@@ -11564,273 +9842,1346 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 							}
 						}
 
-						// Marker is either not a character style or is the same style as the last style
-						// marker encountered.
-						bProcessingCharacterStyle = FALSE; // we've finished processing the char style group
+					}
+
+					// Note: bUnknownMarker status for the current Marker will be set again below
+					// but there is no harm in resetting it here since we've now closed off its
+					// group and will not be relevant to IsVerseMarker nor IsChapterMarker below.
+					bUnknownMarker = FALSE;
+				}
+
+				if (bProcessingEndlessCharMarker)
+				{
+					// The last style was a character style and a group was started, and not closed.
+					// Now, we have encountered another marker so close the group
+					MiscRTF = _T('}');
+
+					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					{
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+						return;
+					}
+					bProcessingEndlessCharMarker = FALSE;	// code below will turn this flag on if the current
+												// marker is also a table character style marker
+				}
+
+				// Get the marker, but don't advance ptr at this point
+				itemLen = pDoc->ParseMarker(ptr);
+				// We need to get the marker into Marker
+				Marker = wxString(ptr,itemLen);
+				Marker = Marker.Mid(1); // remove backslash - we want everything after
+										// the sfm escape character.
+// TODO: Need to strip out any '+' embedded marker here ???
+				wxString testMkr = Marker;
+				wxString tagOnly;
+				wxString baseOfEndMkr;
+				bool bIsWholeMkr = FALSE;
+				if (IsNestedMarkerOrMarkerTag(&testMkr, tagOnly, baseOfEndMkr, bIsWholeMkr))
+				{
+					// Remove the '+' embedded symbol from the marker, but leave any final *
+					Marker.Replace(_T("+"), _T(""));
+				}
+
+				// Check for an unknown Marker
+				// Since the rtfTagsMap only stores the bare marker form without asterisk
+				// our test for whether Marker is unknown needs to be done with any asterisk
+				// temporarily stripped off
+				wxString testBareMkr = Marker;
+				int astPos = testBareMkr.Find(_T('*'));
+				if (astPos != -1)
+				{
+					testBareMkr.Remove(astPos,1); // delete the *
+				}
+				// if the marker is a back translation prefix marker \bt... we also need to
+				// just use the bt part for lookup in the rtfTagsMap
+				if (testBareMkr.Find(_T("bt")) == 0)
+				{
+					testBareMkr = _T("bt"); // use only the bt prefix part for lookup
+				}
+				rtfIter = rtfTagsMap.find(testBareMkr);
+				bUnknownMarker = rtfIter == rtfTagsMap.end();
+
+				if (bUnknownMarker)
+				{
+					// Marker is UNKNOWN because it is not in rtfTagsMap
+					// We will assign it a special unknown marker style, either an _unknown_para_style
+					// or an _unknown_char_style style, depending on the style type of the LastStyle
+					// we encountered.
+					bProcessingCharacterStyle = IsACharacterStyle(LastStyle,rtfTagsMap); // check LastStyle
+				}
+				else
+				{
+					// marker is KNOWN
+					bProcessingCharacterStyle = IsACharacterStyle(Marker,rtfTagsMap); // check Marker
+					// whm added 27Nov07 - \bt, \note and \free do their own handling of character style closing
+					// curly brace, so if Marker is "bt"..., \note or "free" we reset bProcessingCharacterStyle
+					// to FALSE. The reason: The associated text for \bt, \note and \free is not immediately
+					// output, but delayed until the next appropriate place/marker is encountered (in order
+					// to place it AFTER the material to which it applies). Another reason: if there are
+					// no intervening markers/halting points between the \bt, \note and \free material, right
+					// after the main while loop, text associated with \bt, \note and/or \free would still be
+					// pending output - and we don't want the code there to add a closing brace } char
+					// prematurely.
+					if (Marker == _T("free")
+						|| Marker == _T("note")
+						|| Marker.Find(_T("bt")) != -1)
+					{
+						if (bProcessingCharacterStyle)
+							bProcessingCharacterStyle = FALSE;
 					}
 				}
-				else // all remaining marker/styles
+
+
+				// BEGIN PRIMARY IF ELSE/IF BLOCKS
+				if (pDoc->IsVerseMarker(ptr,nMkrLen))
 				{
-					// we've dealt with the "problem" styles - all remaining ones should be
-					// straight forward.
-					// Note: Marker will not have any end forms with asterisks nor unknown
-					// markers at this point because these were handled in an else if block
-					// above.
-
-					//if (bProcessingTable && !bProcessingCharacterStyle)
-					//{
-					//	// we've been processing a USFM table and have come to a non-table,
-					//	// non-character formatting marker which signals the end of the table.
-					//	// We need to signal we've reached the end of the table
-					//	bProcessingTable = FALSE;
-					//	// Since the \cell markers are output after the actual cell text, we need to
-					//	// output a final "\cell " tag string to close off the last cell of the last
-					//	// row of the table
-					//	MiscRTF = _T("\\cell }");
-					//	if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-					//		return;
-					//	// No need to increment nCurrentColIndex here because it gets reset below.
-
-					//	// The remainder of the preceding row's row tags can now be output
-					//	// output \pard\plain
-					//	//MiscRTF = _T("\n\\pard\\plain");
-					//	//if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-					//	//	return;
-					//	// Output the __normal paragraph style tags
-					//	rtfIter = rtfTagsMap.find(_T("__normal"));
-					//	if (rtfIter != rtfTagsMap.end())
-					//	{
-					//		// we found an associated value for Marker in map
-					//		// RTF tags use gpApp->m_systemEncoding
-					//		wxString tempStyle = (wxString)rtfIter->second;
-					//		// remove the "\par " from the style tag string here
-					//		tempStyle = tempStyle.Mid(5);
-					//		if (!WriteOutputString(f,gpApp->m_systemEncoding,tempStyle))
-					//			return;
-					//	}
-					//	// output the "{\trowd \irowN\irowbandN\tsN\trgaph40\trleft0\\ltrrow" part
-					//	wxChar rowN[34];
-					//	wxChar cellN[34];
-					//	_itot(nCurrentRowIndex,rowN,10);// nCurrentRowIndex is incremented for new row below
-					//									// so it is the index for the row we are closing off
-					//	if (nCurrentRowIndex == nLastRowIndex)
-					//		bLastTableRow = TRUE;
-					//	MiscRTF = _T("\n{");
-					//	MiscRTF += _T("\\trowd \\irow");
-					//	MiscRTF += rowN;
-					//	MiscRTF += _T("\\irowband");
-					//	MiscRTF += rowN;
-					//	MiscRTF += _T("\\ts") + TblGridSNum;
-					//	if (bLastTableRow)
-					//		MiscRTF += _T("\\lastrow");
-					//		MiscRTF += _T("\\trgaph40");
-					//	MiscRTF += _T("\\trleft0\\ltrrow");
-					//	// add the \cellxN data for the first row
-					//	int colCt;
-					//	for (colCt = 0; colCt < bestTextExtents.GetCount(); colCt++)
-					//	{
-					//		_itot(bestTextExtents.GetAt(colCt),cellN,10);
-					//		wxString cellNStr = cellN;
-					//		if (cellNStr != _T("0"))
-					//		{
-					//			MiscRTF += _T("\n\\cellx");
-					//			MiscRTF += cellN;
-					//		}
-					//
-					//	}
-					//	// add the \row and closing brace '}'
-					//	MiscRTF += _T("\\row }");
-
-					//	// now output the tags up to this point
-					//	// RTF tags use gpApp->m_systemEncoding
-					//	if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-					//		return;
-
-					//	nCurrentRowIndex++;
-					//	nCurrentColIndex = 0; // new row starts at column zero
-					//	bAtFirstCellInRow = TRUE;
-					//	// Note: This ends the output of the previous row of the table
-
-					//	// Note: In the event that the last \tc... table cell marker is at the end of
-					//	// the file, this block (which was entered because of encountering a non-table
-					//	// marker, will not be entered and this \cell tag will not be output, therefor
-					//	// the tag bLastCellTagOutput below will signal that fact so that it can be
-					//	// processed elsewhere if it is still FALSE.
-					//	bLastCellTagOutput = TRUE;
-
-					//	// Ensure table related int vars are correctly set in case a subsequent table
-					//	// is encountered
-					//	nCurrentRowIndex = 0;
-					//	nLastRowIndex = 0;
-					//	nCurrentColIndex = 0;
-
-					//	// the following is used in the longer routine that attempts to format USFM
-					//	// tables as real Word tables.
-					//	//nLastColIndex = 0;
-
-					//	// Also we should ensure other table related flags are correctly set in case a
-					//	// subsequent table is encountered
-					//	bAtFirstTableRow = TRUE;
-					//	bAtFirstCellInRow = TRUE;
-					//	bLastTableRow = FALSE;
-
-
-					//	// clear out the arrays
-					//	bestTextExtents.RemoveAll();
-					//	cellText.RemoveAll();
-					//	rightAlignment.RemoveAll();
-
-					//	// lastly reset the overall table processing flag
-					//	bProcessingTable = FALSE;
-					//}
-					//else
-					//{
-					//	bLastCellTagOutput = FALSE;
-					//}
-
-					// Handle any pending bt and/or free material that should be output before
-					// the current Marker.
-					if (!btAssocStr.IsEmpty())
+					// it's a verse marker, so needs special handling of its following number
+					if (nMkrLen == 2)
 					{
-						// We have \bt material that is pending output at an appropriate halting point.
-						if (IsBTMaterialHaltingPoint(Marker))
-						{
-							// We are currently at a halting point. The first halting point immediately
-							// following \bt material is still preceding the material to which the \bt
-							// material applies. We only process the pending \bt material if we have
-							// already hit one halting marker.
-							if (bHitBTHaltingMkr)
-							{
-								// We've already hit a halting marker and are currently at the next halting
-								// marker. This is the first output opportunity following the material to
-								// which the \bt material applies, and we output the pending \bt material
-								// here.
-								// NOTE: The Marker variable here will not be a \bt... marker but
-								// some subsequent marker. We want to feed the last actual \bt...
-								// marker to OutputAnyBTorFreeMaterial() below because it uses it
-								// to format the bt... caller. The last actual \bt... marker is
-								// stored in the string lastBTMarker.
-								bool bIsAtEnd = FALSE;
-								if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,lastBTMarker,_T("bt"),
-									btAssocStr,
-									LastStyle,LastParaStyle,btRefNumInt,bLastParagraphWasBoxed,
-									parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
-									single_border,pDoc))
-								{
-									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-									return;
-								}
-								// Note: when OutputAnyBTorFreeMaterial is called it calls btAssocStr.Empty()
-								// which signals that there is no \bt material currently pending.
-								if (bIsAtEnd)
-								{
-									goto b;
-								}
-								bHitBTHaltingMkr = FALSE;
-							}
-							else
-							{
-								// We're at the first halting point. We don't output anything here, but
-								// set the bHitBTHaltingMkr for the next pass.
-								bHitBTHaltingMkr = TRUE;
-							}
-						}
-						else
-						{
-							// This Marker isn't a good halting point, so continue looking.
-							;
-						}
-					}
-
-					if (!freeAssocStr.IsEmpty())
-					{
-						// We have \free material that is pending output at an appropriate halting point.
-						if (IsFreeMaterialHaltingPoint(Marker))
-						{
-							// We are currently at a halting point. The first halting point immediately
-							// following \free material is still preceding the material to which the \free
-							// material applies. We only process the pending \free material if we have
-							// already hit one halting marker.
-							if (bHitFreeHaltingMkr)
-							{
-								// We've already hit a halting marker and are currently at the next halting
-								// marker. This is the first output opportunity following the material to
-								// which the \free material applies, and we output the pending \free material
-								// here.
-								// NOTE: The Marker variable here will not be a \free marker but
-								// some subsequent marker. We want to feed the last actual \free
-								// marker to OutputAnyBTorFreeMaterial() below because it uses it
-								// to format the free caller. The last actual \free marker is
-								// stored in the string lastFreeMarker.
-								bool bIsAtEnd = FALSE;
-								if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,lastFreeMarker,_T("free"),
-									freeAssocStr,
-									LastStyle,LastParaStyle,freeRefNumInt,bLastParagraphWasBoxed,
-									parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
-									double_border,pDoc))
-								{
-									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-									return;
-								}
-								// Note: When OutputAnyBTorFreeMaterial is called it calls freeAssocStr.Empty()
-								// which signals that there is no \free material currently pending.
-								if (bIsAtEnd)
-								{
-									goto b;
-								}
-								bHitFreeHaltingMkr = FALSE;
-							}
-							else
-							{
-								// We're at the first halting point. We don't output anything here, but
-								// set the bHitFreeHaltingMkr for the next pass.
-								bHitFreeHaltingMkr = TRUE;
-							}
-						}
-						else
-						{
-							// This Marker isn't a good halting point, so continue looking.
-							;
-						}
-					}
-
-					if (bProcessingCharacterStyle && bLastParagraphWasBoxed)
-					{
-						MiscRTF = _T("\\par ") + gpApp->m_eolStr; // insert \par tag and new line into RTF file
-						// RTF tags use gpApp->m_systemEncoding
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
-					}
-
-					if (Marker == LastNonBoxParaStyle
-						//&& !bProcessingTable
-						&& !bProcessingCharacterStyle
-						&& !bLastParagraphWasBoxed
-						)
-					{
-						// Most of the "non-problem" paragraph style markers go through here.
-						// The marker was a non-boxed paragraph seen just before the current marker,
-						// and no small break paragraph has intervened.
-						// Output the \par paragraph mark.
-						MiscRTF = _T("\\par ") + gpApp->m_eolStr; // insert \par tag and new line into RTF file
-						// RTF tags use gpApp->m_systemEncoding
-						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
-						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
-						{
-							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-							return;
-						}
+						Marker = _T("v");		// Marker holds map key
+						ptr += 2;				// point past the \v marker
 					}
 					else
 					{
-						// Most of the "non-problem" character style markers go through here.
-						// The marker is a non-paragraph style, or there was an intervening
-						// small paragraph - in any case we need to output the full complement
-						// of RTF indoc tags for this style.
+						Marker = _T("vn");		// Marker holds map key
+						ptr += 3;				// point past the \vn marker
+					}
+
+					// Fix a common error in sfm formatting, where user forgets to
+					// put a paragraph marker \p between a section head (\s, \s1, etc) and any
+					// following verse \v N, or between a chapter number (\c, \ca, etc) and any
+					// following verse, or between a reference (\r, \rq, etc) and any following verse.
+					if (LastStyle == _T("s") || LastStyle == _T("s1") || LastStyle == _T("s2")
+						|| LastStyle == _T("s3") || LastStyle == _T("s4") || LastStyle == _T("sr")
+						|| LastStyle == _T("sx") || LastStyle == _T("sz") || LastStyle == _T("sp")
+						|| LastStyle == _T("c") || LastStyle == _T("ca") || LastStyle == _T("cp")
+						|| LastStyle == _T("cl") || LastStyle == _T("cd")
+						|| LastStyle == _T("r") || LastStyle == _T("rem") || LastStyle == _T("rq") )
+					{
+						// Insert a "Paragraph" style to keep the paragraph that this new
+						// verse is in from becoming a Section Head, Chapter Number, or Reference
+						// paragraph. User may have intended a different paragraph
+						// style for the new paragraph, but we don't know what that might have
+						// been so we'll use the most common one - "Paragraph" style (\p).
+						rtfIter = rtfTagsMap.find(Sindoc_Paragraph_key);
+						if (rtfIter != rtfTagsMap.end())
+						{
+							// we found an associated value for (Paragraph) Marker in map
+							// RTF tags use gpApp->m_systemEncoding
+							wxString paraTagStr = (wxString)rtfIter->second;
+							CountTotalCurlyBraces(paraTagStr,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,paraTagStr))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							LastParaStyle = Sindoc_Paragraph_key;	// we just changed it from Section Head to Paragraph
+							LastNonBoxParaStyle = Sindoc_Paragraph_key;
+							bLastOutputWasParTag = TRUE;
+						}
+					}
+
+					if (bLastParagraphWasBoxed)
+					{
+						// There was a small break paragraph inserted and no paragraph style
+						// has intervened before this verse number, so propagate the
+						// LastNonBoxParaStyle
+						rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
+						if (rtfIter != rtfTagsMap.end())
+						{
+							// we found an associated value for Marker in map
+							// RTF tags use gpApp->m_systemEncoding
+							wxString lastStyTag = (wxString)rtfIter->second;
+							CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+						bLastParagraphWasBoxed = FALSE;
+					}
+
+					// Now, handle the tags for the present Verse Num
+					if (!(exportType == sourceTextExport))
+					{
+						// In Target text (because of the way the Buffer was filled):
+						// verses that follow text (i.e., not those directly following a paragraph tag) need to have
+						// a space added before the verse number tags, otherwise they will be juxtaposed to previous
+						// text without an intervening space, using source/target encoding
+						if (!bLastOutputWasParTag)
+						{
+							MiscRTF = _T(" ");
+							//CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no braces possible here
+							if (!WriteOutputString(f,EncodingSrcOrTgt,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+					}
+
+					// Use the marker as key and query our map and get its
+					// associated value (RTF tags) if any, and output them
+					if (Marker.Length() != 0)
+					{
+						rtfIter = rtfTagsMap.find(Marker);
+						if (rtfIter != rtfTagsMap.end())
+						{
+							// we found an associated value for (verse) Marker (\v or \vn) in map
+							// Need opening brace before verse number char style group)
+							MiscRTF = _T("{");
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// RTF tags use gpApp->m_systemEncoding
+							wxString mkrTags = (wxString)rtfIter->second;
+							CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces); // no braces possible here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+					}
+
+					itemLen = pDoc->ParseWhiteSpace(ptr);
+					// white space here is only delimiter for verse num marker so omit it from output
+					ptr += itemLen;	// point at verse number
+
+					itemLen = pDoc->ParseNumber(ptr);
+					// verse number is vernacular so output with EncodingSrcOrTgt
+					wxString numStr = wxString(ptr,itemLen);
+					CountTotalCurlyBraces(numStr,nOpeningBraces,nClosingBraces); // no braces likely here
+					if (!WriteOutputString(f,EncodingSrcOrTgt,numStr))
+					{
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+						return;
+					}
+					// add RTF non-breaking space and closing brace to close Verse Num char style group
+					MiscRTF = _T("\\~}");
+					CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
+					if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					{
+						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+						return;
+					}
+					ptr += itemLen;	// point past verse number
+
+					itemLen = pDoc->ParseWhiteSpace(ptr);	// parse past white space after the marker
+					// white space here is only delimiting end of verse number so omit it from output
+
+					LastStyle = Marker;
+					// We don't update the LastParaStyle here since verse number is a character style
+					ptr += itemLen;	// point past the white space
+
+					continue; // goto b;			// check if another marker follows
+				}// end of if IsVerseMarker
+
+				// some other kind of marker - perhaps it's a chapter marker?
+				else if (pDoc->IsChapterMarker(ptr))
+				{
+					// It's a chapter marker, so needs special handling of its following number,
+					// any any immediately following \cl chapter label text.
+
+					// We shouldn't have two chapter number paragraphs in sequence
+					// so we won't check for it
+
+					ptr += 2; // point past the \c marker
+
+					itemLen = pDoc->ParseWhiteSpace(ptr);
+					// omit output of white space here
+					ptr += itemLen;	// point at chapter number
+
+					itemLen = pDoc->ParseNumber(ptr);
+
+					// get actual chapter number and output it
+					VernacText = wxString(ptr,itemLen);
+
+					// Note: chapter 1 bookmark (I) is inserted above before looping through
+					// actual text; here we insert bookmarks for chapter 2 and greater.
+					// Insert an RTF bookmark in the form of a Roman numeral equivalent to the
+					// number of the next chapter. These bookmarks are used by the RTF header
+					// fields we insert to display the chapters being displayed on the current page.
+					if (wxAtoi(VernacText) > 1)
+					{
+						wxString rtfBookMark = IntToRoman(wxAtoi(VernacText));
+						MiscRTF = _T("{\\*\\bkmkstart ") + rtfBookMark + _T('}')
+							+ _T("{\\*\\bkmkend ") + rtfBookMark + _T('}');
+						CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 2 opening & 2 closing curly braces here
+						if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						{
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+							return;
+						}
+					}
+
+					ptr += itemLen;	// point past chapter number
+					itemLen = pDoc->ParseWhiteSpace(ptr);	// parse white space following the number
+					ptr += itemLen;	// point past it
+					// again, omit output of white space here
+
+					// Before we output the chapter number (or its style tags), we need to check to see if
+					// a \cl marker immediately follows the current \c n marker. If so, we assign the text
+					// assoc with the following \cl marker to chapterLabel, and omit the output the actual
+					// chapter number. We also want to use the paragraph style associated with \cl rather than
+					// that associated with \c. For example, the user may have "\c 3" followed by
+					// "\cl Chapter Three". In this case we first output the paragraph style associated with
+					// \cl, then output its assoc text "Chapter Three" instead of the style associated with
+					// \c and the number "3".
+					//
+					// At this point we've parsed the number (in VernacText), and any following whitespace.
+					// We'll first check for the existence of and parse any immediately following \cl marker
+					// and assoc text. If ParseAnyFollowingChapterLabel() returns zero there is no following
+					// \cl marker.
+					wxString tempLabel;
+					itemLen = ParseAnyFollowingChapterLabel(ptr, pBufStart, pEnd, tempLabel);
+					// ParseAnyFollowingChapterLabel() returns zero if no \cl immediately follows the
+					// intervening whitespace. It also returns the text associated with any \cl in
+					// tempLabel
+
+					if (itemLen != 0 && !tempLabel.IsEmpty())
+					{
+						// We have a \cl chapter label to deal with and it has associated text with it
+						Marker = _T("cl");
+						rtfIter = rtfTagsMap.find(Marker);
+						if (rtfIter != rtfTagsMap.end())
+						{
+							// we found an associated value for chapter Marker in map
+							// RTF tags use gpApp->m_systemEncoding
+							checkStr = (wxString)rtfIter->second;
+							CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+
+						// output tempLabel instead of VernacText
+						CountTotalCurlyBraces(tempLabel,nOpeningBraces,nClosingBraces);
+						if (!WriteOutputString(f,EncodingSrcOrTgt,tempLabel))
+						{
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+							return;
+						}
+
+						ptr += itemLen; // point past the \cl and assoc text
+						itemLen = pDoc->ParseWhiteSpace(ptr);	// parse white space following the \cl and assoc text
+						ptr += itemLen;	// point past it
+					}
+					else
+					{
+						// There was no \cl chapter label immediately following.
+						// Before we output the usual c - Chapter Number style tags, we need to check if
+						// chapterLabel was defined by a \cl marker prior to the first chapter number \c 1.
+						// If \cl was defined, chapterLabel will contain the label text to be output.
+						if (!chapterLabel.IsEmpty())
+						{
+							// The chapterLabel was defined by a \cl marker prior to the first \c n marker.
+							Marker = _T("cl");
+							// if we are at chapter 1 the LastNonBoxParaStyle before reaching this point would
+							// normally have been \cl and its style tags would have been output at the bottom
+							// of this loop, so we'll only output the tags here if, for some reason, they
+							// weren't just output.
+							if (LastNonBoxParaStyle != _T("cl"))
+							{
+								rtfIter = rtfTagsMap.find(Marker);
+								if (rtfIter != rtfTagsMap.end())
+								{
+									// we found an associated value for chapter Marker in map
+									// RTF tags use gpApp->m_systemEncoding
+									checkStr = (wxString)rtfIter->second;
+									CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
+									if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+									{
+										pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+										return;
+									}
+								}
+							}
+
+							// Output tempLabel followed by a space followed by the number in VernacText.
+							// We will assume that the label preceeds the number. If this is not the case
+							// and the user desires it to be otherwise, s/he will need to use \cl markers
+							// following each chapter number to get the desired order.
+							wxString temp;
+							temp = chapterLabel + _T(' ') + VernacText;
+							CountTotalCurlyBraces(temp,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,EncodingSrcOrTgt,temp))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// no additional parsing needed here
+						}
+						else
+						{
+							// No chapterLabel has been defined so we just output the actual number
+							// currently in VernacText.
+							// Use the marker as key and query our map and get its
+							// associated value (RTF tags) if any, and output them
+							Marker = _T("c");		// Marker holds map key
+							rtfIter = rtfTagsMap.find(Marker);
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for chapter Marker in map
+								// RTF tags use gpApp->m_systemEncoding
+								checkStr = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+
+							CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// no additional parsing needed here
+						}
+					}
+
+					LastStyle = Marker;
+					LastParaStyle = Marker;
+					LastNonBoxParaStyle = Marker;
+					bLastOutputWasParTag = TRUE;
+					bLastParagraphWasBoxed = FALSE;
+
+
+					continue; // goto b;			// check if another marker follows
+				}// end of if IsChapterMarker
+				else
+				{
+					// neither verse nor chapter but another kind of marker, at this point
+					// we don't have to worry about a following number, so process the marker
+
+					// NOTE: Among these styles, some need special handling, especially those
+					// which are embedded within other paragraphs. These include the character
+					// styles which have an sfm marker (Verse Num, Glos Definition) and the
+					// footnote begin marker (\f) as well as the footnote end markers (\fe, \fe* \f*).
+					// By treating these separately, it simplifies the treatment of all other
+					// paragraph styles.
+					// Also, we need to be able to shorten the indoc style tags
+					// to just \par when two paragraph styles with the same style occur in
+					// succession.
+
+					// The RTF standard defines "groups" which can consist of text, control words
+					// and/or control symbols. The text and its defining attributes are enclosed
+					// within braces {...}. The older sfm standards suffered from the weakness that
+					// many attributes did not have end markers to delimit the extent of text the
+					// given attribute would apply to. The exception in the old sfm standard was
+					// footnotes which had an end marker. In the new USFM 2 standard most markers
+					// that define "character" styles have end markers (containing a final *). These
+					// end markers make it easier to detect the extent of text to which an attribute
+					// marker applies. However, the fact that the embedded footnote and cross-reference
+					// markers have optional end markers complicates the processing of such markers.
+
+					// Note for Version 3: The parsing here needs to take into account the new USFM
+					// endMarker scheme of using the same base marker plus adding * suffixed to it.
+					// Most of these markers which have end markers are character styleType markers,
+					// and character styles in RTF are placed in groups defined by { and } braces,
+					// with the character style tag string coming first in the group followed by the
+					// text to which the character style is applied, followed by the closing brace }.
+					// Unfortunately, not all character styleTypes utilize end markers, and some that
+					// can have end markers such as the embedded content markers for footnotes and
+					// cross-references the end markers are optional. Hence, we have to treat the
+					// special situations before the normal situations.
+					// The special situations are:
+					// 1. Unknown markers. These will be treated as paragraph markers if encountered
+					//    while processing paragraph markers, or character markers if encountered
+					//    while processing character markers.
+					// 2. Markers which are paragraph styles \sN, but that also have corresponding end
+					//    markers utilizing *. These include: x...x*, f...f*, fe...fe*, free...free*,
+					//    and note...note*.
+					// 3. Markers which are character styles \csN, but that have no corresponding end
+					//    markers utilizing *. These include: all the table column heading markers
+					//    (\th1, \th2, \th3, \th4, thr1, \thr2, \thr3, \thr4) and the table cell data
+					//    markers (\tc1, \tc2, \tc3, \tc4, \tcr1, \tcr2, \tcr3, \tcr4), the PNG
+					//    verse text marker \vt, the PNG glossary definition marker \gd, the PNG
+					//    cross-reference markers \@ and \xr, and the PNG footnote end markers \fe
+					//    and \F. These all need special handling to close the character style group
+					//    and/or account for their special behavior.
+					// 4. Markers which are character styles \csN, and have end markers which are
+					//    optional. These are the embedded content markers that can occur optionally
+					//    embedded within cross-references or footnotes. These include the cross-reference
+					//    content markers \xo, \xt, \xk, \xq, and \xdc, and the footnote content
+					//    markers \fr, \fk, \fq, \fqa, \ft, \fdc, \fv, and \fm.
+
+					// The normal situations are:
+					// 1. Markers which are paragraph styles and have no corresponding end markers.
+					// 2. Markers which are character styles and always have corresponding end markers
+					//    using *.
+
+					// Use the marker as key and query our map and get its
+					// associated value (RTF tags) if any, and output them
+
+					// Handle formatting and output of any unknown markers
+					if (bUnknownMarker)
+					{
+						// We don't recognize this marker, so attach "Unk Para Style" to it
+						// If user intended it to be a character style this may flag the whole
+						// enclosing paragraph with a red color (as signal to user)
+						if (bLastParagraphWasBoxed)
+						{
+							// There was a small break paragraph inserted and no paragraph style
+							// has intervened, so propagate the LastNonBoxParaStyle
+							rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for Marker in map
+								// RTF tags use gpApp->m_systemEncoding
+								wxString lastStyTag = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+							bLastParagraphWasBoxed = FALSE;
+						}
+
+						wxString unkMarker = Marker;
+						if (bProcessingCharacterStyle)
+							Marker = _T("_unknown_char_style");
+						else
+							Marker = _T("_unknown_para_style");
+						rtfIter = rtfTagsMap.find(Marker);		// this should not fail
+						if (rtfIter != rtfTagsMap.end())
+						{
+							if (bProcessingCharacterStyle)
+							{
+								pCharStack->Push(Marker.char_str()); // push an "unknown" character style marker
+								// we need to start the character style group with an opening brace
+								MiscRTF = _T('{');
+								// RTF tags use gpApp->m_systemEncoding
+								CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace here
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+							// we found an associated value for "unknown" key in map
+							checkStr = (wxString)rtfIter->second;
+							// RTF tags use gpApp->m_systemEncoding
+							CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+						// to help the user detect typos, output the unknown marker prefixed to its assoc text
+						unkMarker = _T("\\\\") + unkMarker + _T(' '); // RTF requires backslash be escaped with a '\'
+						CountTotalCurlyBraces(unkMarker,nOpeningBraces,nClosingBraces);
+						if (!WriteOutputString(f,gpApp->m_systemEncoding,unkMarker))
+						{
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+							return;
+						}
+
+						bLastOutputWasParTag = TRUE;
+						// Don't update LastStyle nor LastParaStyle here - we want to maintain the
+						// previous paragraph's properties for subsequent processing
+					}
+					// Handle footnotes, endnotes and cross-references.
+					// Note: The following notes apply specifically to footnotes, but with a few minor
+					// adjustments, also apply to endnotes and cross-references.
+					//
+					// In the USFM 2.0 standard, the first non-space character or word
+					// after "\f " or "\fe " is supposed to be one of the following that determines
+					// the kind of footnote "caller" (the letter/character/symbol used within the
+					// text to denote the location of the footnote):
+					//   '+' for generating the caller automatically (with progressive letters or numbers)
+					//   '-' no caller generated (i.e., the footnote/endnote would require a reference
+					//       back to where the footnote/endnote would apply.
+					//   '*' where * could be a literal asterisk or a character or even a word used as the
+					//       caller (in this case the character/word would be defined by the user).
+					// The above behavior poses some challenges for our parsing here. For UsfmOnly sfm set
+					// use, we need to check for the existence of the '+', '-' and '*'. The '+' and '-' are
+					// easy to interpret, but the '*' is not if the user intends it to be a character or
+					// word other than a literal '*' (asterisk).
+					// ASSUMPTIONS:
+					//  1. We assume that if a '+' is the first non-space character following \f or \fe (in
+					// the UsfmOnly set), that the footnote caller should be generated automatically
+					// (via use of the \chftn RTF control tag). This applies also to '+' following endnote
+					// \fe and crossref \x.
+					//  2. We assume that if a '-' is the first non-space character following \f or \fe (in
+					// the UsfmOnly set), that the footnote caller should not appear at all in the
+					// text at the point the footnote is encountered. This applies also to '-' following
+					// endnote \fe and crossref \x.
+					//  3. We assume that if a '*' (literal asterisk) or any other non-marker text word is
+					// the first non-space character following the \f or \fe (in the UsfmOnly set), that
+					// it is intended to be the caller raised and placed within the text at that point.
+					// Tests show that Paratext 6 also makes this assumption. This applies also to '*'
+					// following endnote \fe and crossref \x.
+					//  4. We assume that if there is an embedded content marker (such as \fr, etc.)
+					// immediately following the \f or \fe, so that no '+', '-' or other non-marker word
+					// is present between the \f and the embedded content marker, that the user intends to
+					// have an asterisk '*' used as the caller. Tests show this is what Paratext 6 does.
+					// This applies to endnotes, and to the embedded content markers for crossrefs (such as
+					// \xo, etc.) immediately following the \x.
+					//  5. We assume a footnote that is malformed and has no footnote end marker, will
+					// end at the first non-embedded marker encountered following \f or \fe (for UsfmOnly).
+					// This assumption has been modified to allow for other character formatting markers
+					// and verse markers to intervene.
+					//
+					// With the above assumptions, we then can parse the word immediately following the
+					// \f or \fe markers, and check the contents of that word. If the word immediately
+					// following \f or \fe is a '+' or '-' we adjust the RTF tags to set up the kind of
+					// caller defined in 1. or 2. above. If the word is something other than '+' or '-'
+					// we will assume the word is intended to be caller, and its format will be raised
+					// within the text as a footnote caller. Paratext assumes that if there is no '+'
+					// or '-' after \f or \fe, the next word, regardless of how long, is always to be used
+					// as the caller. For parsing of footnotes, endnotes, and crossrefs we use the dedicated
+					// functions ParseFootnote(), ParseEndnote(), and ParseCrossRef() in the appropriate
+					// blocks below.
+					//
+					// Handle footnotes
+					else if (Marker == _T("f"))
+					{
+						// We parse the entire footnote here through the end marker. In doing so
+						// we will set itemLen to the entire length of the footnote (including its end marker).
+						// Parsing the footnote marker through its entire length here simplifies the
+						// outer loop of 'else if' statements because by treating the whole footnote
+						// here we don't have to worry about the corresponding footnote end markers
+						// and any footnote embedded content markers in the outer loop. The footnote
+						// embedded content markers being optional, and are also easier to treat within
+						// this inner block of the overall loop.
+
+						// Note: the following ParseFootnote overwrites the itemLen that was determined
+						// by ParseMarker() above and will move the ptr at the bottom of the outer
+						// loop to point just past the footnote end marker.
+						itemLen = ParseFootnote(ptr,pBufStart,pEnd,parseError); // parse the whole footnote
+						wxString fnStr;
+						wxString nullStr;
+						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
+						fnStr = wxString(ptr,itemLen);
+
+						bool bIsAtEnd = FALSE; // set by ProcessAndWriteDestinationText() below
+						callerType = no_caller; // start with this setting, ProcessAndWriteDestinationText
+												// may change it
+
+						// ProcessAndWriteDestinationText below handles all the footnote processing
+						// and output of RTF tags
+						if (!ProcessAndWriteDestinationText(f, EncodingSrcOrTgt, fnStr,
+							bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
+							nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
+						{
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+							return;
+						}
+						if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
+						{
+							continue; // goto b; //check for another marker beyond what ParseFootnote processed
+						}
+
+						// add space after destination text unless followed by punctuation
+						bool bIsSource = exportType == sourceTextExport;
+						if (!PunctuationFollowsDestinationText(itemLen,ptr,pEnd,bIsSource))
+						{
+							// write a space after the destination text (footnote, endnote, crossref), but
+							// only if no punctuation immediately follows it.
+							wxString spFollowingDestText = _T(' ');
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+
+						if (bHasFreeTransToAddToFootnoteBody)
+						{
+							// the free translation was output in the body of the footnote so reset
+							// some variables to reflect that free trans is no longer pending
+							bHitFreeHaltingMkr = FALSE;
+							bHasFreeTransToAddToFootnoteBody = FALSE;
+							// ProcessAdnWriteDestinationText calls freeAssocStr.Empty()
+						}
+
+						LastStyle = Marker;
+						// Don't update LastParaStyle here - we want to maintain its properties for the
+						// rest of the paragraph (if any) after the footnote
+					}
+
+					// Handle endnotes
+					// Note: Endnotes were not part of the PngOnly set and we exclude the PngOnly
+					// case because \fe was the usual footnote end marker there.
+					else if (gpApp->gCurrentSfmSet != PngOnly && Marker == _T("fe"))
+					{
+						// We parse the entire endnote here through the end marker. In doing so
+						// we will set itemLen to the entire length of the endnote (including its end marker).
+						// Parsing the endnote marker through its entire length here simplifies the
+						// outer loop of 'else if' statements because by treating the whole endnote
+						// here we don't have to worry about the corresponding endnote end markers
+						// and any endnote embedded content markers in the outer loop. The endnote
+						// embedded content markers being optional, and are also easier to treat within
+						// this inner block of the overall loop.
+						// This routine is identical in structure to that of the footnote block above
+						// except for the differences between endnote and footnote details. A common
+						// function could be created to handle both (and crossrefs too), but I'm
+						// doing them separately for now as the functions would require a lot of
+						// parameters and a little restructuring.
+
+						// Note: the following ParseEndnote overwrites the itemLen that was determined
+						// by ParseMarker() above and will move the ptr at the bottom of the
+						// loop to point just past the endnote end marker.
+						itemLen = ParseEndnote(ptr,pBufStart,pEnd,parseError);	// parse the whole endnote
+						wxString enStr;
+						wxString nullStr;
+						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
+						enStr = wxString(ptr,itemLen);
+
+
+						bool bIsAtEnd = FALSE;
+						callerType = no_caller; // start with this setting, ProcessAndWriteDestinationText
+												// may change it
+
+						// ProcessAndWriteDestinationText below handles all the endnote processing
+						// and output of RTF tags
+						if (!ProcessAndWriteDestinationText(f, EncodingSrcOrTgt, enStr,
+							bIsAtEnd, endnoteDest, rtfTagsMap, pDoc, parseError, callerType,
+							nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
+						{
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+							return;
+						}
+						if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
+						{
+							continue; // goto b; //check for another marker beyond what ParseFootnote processed
+						}
+
+						// add space after destination text unless followed by punctuation
+						bool bIsSource = exportType == sourceTextExport;
+						if (!PunctuationFollowsDestinationText(itemLen,ptr,pEnd,bIsSource))
+						{
+							// write a space after the destination text (footnote, endnote, crossref), but
+							// only if no punctuation immediately follows it.
+							wxString spFollowingDestText = _T(' ');
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+
+						if (bHasFreeTransToAddToFootnoteBody)
+						{
+							// the free translation was output in the body of the footnote so reset
+							// some variables to reflect that free trans is no longer pending
+							bHitFreeHaltingMkr = FALSE;
+							bHasFreeTransToAddToFootnoteBody = FALSE;
+							// ProcessAdnWriteDestinationText calls freeAssocStr.Empty()
+						}
+
+						LastStyle = Marker;
+						// Don't update LastParaStyle here - we want to maintain its properties for the
+						// rest of the paragraph (if any) after the endnote
+					}
+					// Handle cross-references
+					else if (gpApp->gCurrentSfmSet == UsfmOnly &&  Marker == _T("x") )
+					{
+						// We parse the entire crossref here through the end marker. In doing so
+						// we will set itemLen to the entire length of the crossref (including its end marker).
+						// Parsing the crossref marker through its entire length here simplifies the
+						// outer loop of 'else if' statements because by treating the whole crossref
+						// here we don't have to worry about the corresponding crossref end markers
+						// and any crossref embedded content markers in the outer loop. The crossref
+						// embedded content markers being optional, and are also easier to treat within
+						// this inner block of the overall loop.
+						// This routine is identical in structure to that of the endnote and footnote blocks
+						// above except for the differences between endnote and footnote details. A common
+						// function could be created to handle them all, but I'm doing them separately for
+						// now as the functions would require a lot of parameters and a little restructuring.
+
+						// Note: the following ParseCrossRef overwrites the itemLen that was determined
+						// by ParseMarker() above and will move the ptr at the bottom of the
+						// loop to point just past the endnote end marker.
+						itemLen = ParseCrossRef(ptr,pBufStart,pEnd,parseError); // parse the whole crossref
+						wxString crStr;
+						wxString nullStr;
+						nullStr.Empty(); // no caller supplied as parameter to ProcessAndWriteDestinationText
+						crStr = wxString(ptr,itemLen);
+
+						bool bIsAtEnd = FALSE;
+						callerType = no_caller; // start with this setting, ProcessAndWriteDestinationText
+												// may change it
+
+						// ProcessAndWriteDestinationText below handles all the endnote processing
+						// and output of RTF tags
+						if (!ProcessAndWriteDestinationText(f, EncodingSrcOrTgt, crStr,
+							bIsAtEnd, crossrefDest, rtfTagsMap, pDoc, parseError, callerType,
+							nullStr, bHasFreeTransToAddToFootnoteBody, freeAssocStr))
+						{
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+							return;
+						}
+						if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
+						{
+							continue; // goto b; //check for another marker beyond what ParseFootnote processed
+						}
+
+						// add space after destination text unless followed by punctuation
+						bool bIsSource = exportType == sourceTextExport;
+						if (!PunctuationFollowsDestinationText(itemLen,ptr,pEnd,bIsSource))
+						{
+							// write a space after the destination text (footnote, endnote, crossref), but
+							// only if no punctuation immediately follows it.
+							wxString spFollowingDestText = _T(' ');
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,spFollowingDestText))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+
+						if (bHasFreeTransToAddToFootnoteBody)
+						{
+							// the free translation was output in the body of the footnote so reset
+							// some variables to reflect that free trans is no longer pending
+							bHitFreeHaltingMkr = FALSE;
+							bHasFreeTransToAddToFootnoteBody = FALSE;
+							// ProcessAdnWriteDestinationText calls freeAssocStr.Empty()
+						}
+
+						LastStyle = Marker;
+						// Don't update LastParaStyle here - we want to maintain its properties for the
+						// rest of the paragraph (if any) after the endnote
+					}
+
+					// Handle Glos Definition
+					else if (Marker == _T("gd"))
+					{
+						// We're at a gloss definition within a Glos Main Entry or Glos Sub-entry
+						if (bLastParagraphWasBoxed)
+						{
+							// There was a small break paragraph inserted and no paragraph style
+							// has intervened, so propagate the LastNonBoxParaStyle
+							rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for Marker in map
+								// RTF tags use gpApp->m_systemEncoding
+								wxString lastStyTag = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+							bLastParagraphWasBoxed = FALSE;
+						}
+
+						rtfIter = rtfTagsMap.find(Marker);
+						if (rtfIter != rtfTagsMap.end())
+						{
+							// we found an associated value for Marker in map
+							checkStr = (wxString)rtfIter->second;
+							// RTF tags use gpApp->m_systemEncoding
+							CountTotalCurlyBraces(checkStr,nOpeningBraces,nClosingBraces);
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,checkStr))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+						LastStyle = Marker;
+						// Don't update LastParaStyle here - we want to maintain its properties for the
+						// rest of the paragraph (if any) after the gloss definition
+					}
+
+					// Handle USFM defined tables within the RTF Source/Target text.
+					// These tables are composed of a series of \tr new row markers followed by \thN,
+					// \thrN, \tcN, and/or \tcrN markers to define cell header and/or cell data making
+					// up the columns of the table rows defined by each \tr row marker that is present.
+					// As we did for footnotes, endnotes and crossrefs, we could parse the entire table
+					// here and output the tags for the table in the block below, rather than trying to
+					// construct the RTF tags for the table during repeated passes through the outer loop.
+					// However, because of the possibility of embedded footnotes, endnotes, etc, I will
+					// attempt to create a table first without recourse to a parse of the entire table
+					// at one time. The main challenges are:
+					//    1. Determining in advance the optimum cell width extents for \cellxN tags for
+					//       all rows.
+					//    2. Knowing in advance how many rows are in the table so when a \tr marker is
+					//       encountered we are about to process the last row of the table we can output a
+					//       \lastrow tag along with the other row tags that preceed the row data.
+					// The solution to these challenges is:
+					//    1. Once we've encountered the first \tr marker, scan ahead in the Buffer and
+					//       determine the text extents for all columns of data and determine the best
+					//       assignment of cell widths (extents) to assign to the table columns. During
+					//       this scan we can ensure that the table is well formed.
+					//    2. During the scan of the Buffer we also count the number of \tr markers
+					//       existing in the current table, and use that count to know when we are at the
+					//       last row and need to add the \lastrow tag.
+					// Like the footnote, endnote, and crossref, a table should have all of its related
+					// markers and associated text together in sequence in the Buffer (with the possibility
+					// of some other markers embedded within the table). We can expect that there might be
+					// some character style format markers embedded within the cell data items and
+					// possibly footnotes, endnotes, etc embedded within it. Generally, we should be able to
+					// parse the table by parsing through all table markers and any embedded character format
+					// markers, footnotes, endnotes, back translation, free translation, and notes, until we
+					// come to a non-table paragraph marker, which establishes the end point of the table.
+					// Although UBS examples of tables have verse markers collected together above the
+					// text of a table (i.e., \v 10-16), we will also allow \v N verse markers to be embedded
+					// within the table cell data.
+					//
+					// The following is an example of a table with four rows (including first header row)
+					// and three columns, followed by its USFM marker representation, followed by its
+					// RTF table tag representation.
+
+					//Here is the desired table (imagine it is in a 4 row x 3 column Word table):
+
+					//Day   Tribe     Leader
+					//1st   Judah     nahshon son of Amminadab
+					//2nd   Issachar  Nethanel son of Zuar
+					//3rd   Zebulun   Eliab son of Helon
+
+					//Here is the USFM representation:
+
+					//\tr \th1 Day\th2 Tribe\th3 Leader
+					//\tr \tc1 1st\tc2 Judah\tc3 Nahshon son of Amminadab
+					//\tr \tc1 2nd\tc2 Issachar\tc3 Nethanel son of Zuar
+					//\tr \tc1 3rd\tc2 Zebulun\tc3 Eliab son of Helon
+
+					//Here is a sample RTF representation. This is a minimal example. The actual set of
+					//tags will differ in some respects and there will be character style tags added to
+					//the cells.
+
+					//\pard\plain
+					//\trowd \irow0\irowband0\ts31\trgaph40\trleft0\ltrrow
+					//\cellx900
+					//\cellx2160
+					//\cellx5130
+					//\pard\plain
+					//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
+					//{Day\cell Tribe\cell Leader\cell }
+					//\pard\plain
+					//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
+					//{\trowd \irow0\irowband0\ts31\trgaph40\trleft0\ltrrow
+					//\cellx900
+					//\cellx2160
+					//\cellx5130\row }
+					//\pard\plain
+					//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
+					//{1st\cell Judah\cell Nahshon son of Amminadab\cell }
+					//\pard\plain
+					//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
+					//{\trowd \irow1\irowband1\ts31\trgaph40\trleft0\ltrrow
+					//\cellx900
+					//\cellx2160
+					//\cellx5130\row }
+					//\pard\plain
+					//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
+					//{2nd\cell Issachar\cell Nethanel son of Zuar\cell }
+					//\pard\plain
+					//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
+					//{\trowd \irow2\irowband2\ts31\trgaph40\trleft0\ltrrow
+					//\cellx900
+					//\cellx2160
+					//\cellx5130\row }
+					//\pard\plain
+					//\s1\qj \li0\ri0\widctlpar\intbl\yts31\ltrpar\nooverflow\rin0\lin0\itap0 \f1\fs22
+					//{3rd\cell Zebulun\cell Eliab son of Helon\cell }
+					//\pard\plain
+					//\qj \li0\ri0\widctlpar\intbl\ltrpar\nooverflow\rin0\lin0\itap0 \fs22
+					//{\trowd \irow3\irowband3\ts31\trgaph40\lastrow\trleft0\ltrrow  <-- note \lastrow tag
+					//\cellx900
+					//\cellx2160
+					//\cellx5130\row }\pard
+					//\qj \li0\ri0\widctlpar\ltrpar\nooverflow\rin0\lin0\itap0 \f0\fs22
+					//{\par }
+
+					// Handle the USFM table markers which, except for \tr, are "character" style and none
+					// have end markers. This "else if" block attempts to format USFM RTF tables as real
+					// Word tables with rows and column cells. It turns out that something in it causes
+					// Word to hang when scrolling with the thumb through a page with tables formatted
+					// with the routine below. Therefore, I'm commenting out this form and using the
+					// else if block below it which doesn't create real Word tables, but simply formats
+					// the data as paragraphs (which are color coded to identify the separate columns).
+
+					//else if (Marker == _T("tr") || Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
+					//{
+					//	// Handle the table row markers which are "paragraph" style markers
+					//	if (Marker == _T("tr"))
+					//	{
+					//		// \tr always indicates that we are at the first cell in a row
+					//		bAtFirstCellInRow = TRUE;
+
+					//		// The marker is a new row marker
+					//		if (!bProcessingTable)
+					//		{
+					//			// we are processing a table
+					//			bProcessingTable = TRUE;
+					//			// at the beginning of the table processing (before output of the first
+					//			// table row's RTF tags, we need to determine the best table dimensions
+					//			// so we must look ahead in the buffer to determine the dimensions we are
+					//			// to expect for the RTF formatted table.
+					//			if (bAtFirstTableRow)
+					//			{
+					//				// Scan ahead in the buffer to determine the dimensions of the how many rows are in the
+					//				// forthcoming table, and determine optimum N values for \cellxN tags. This
+					//				// scan must scan the entire table to determine bestTextExtents which could
+					//				// be determined in the last row.
+					//				GetTableDimensions(ptr, pBuffStart, pEnd, bestTextExtents,
+					//					OutputSrc, numRows, numCols, MaxRowWidth);
+					//				bAtFirstTableRow = FALSE;
+					//				nLastRowIndex = numRows - 1;
+					//				nLastColIndex = numCols - 1;
+					//			}
+					//			if (bLastTableRow)
+					//			{
+					//				bAtFirstTableRow = TRUE;
+					//			}
+					//			wxChar rowN[34];
+					//			wxChar cellN[34];
+					//			_itot(nCurrentRowIndex,rowN,10);
+					//			MiscRTF = _T("\\par \\pard\\plain");	// add \par to beginnning of the prefix stuff
+					//													// to ensure prev text doesn't end up in 1st
+					//													// table cell
+					//			MiscRTF += _T("\\trowd \\irow");
+					//			MiscRTF += rowN;
+					//			MiscRTF += _T("\\irowband");
+					//			MiscRTF += rowN;
+					//			MiscRTF += _T("\\ts") + TblGridSNum;
+					//			MiscRTF += _T("\\trgaph40");
+					//			MiscRTF += _T("\\trleft0\\ltrrow");
+
+					//			// add the \cellxN data for the first row
+					//			int colCt;
+					//			for (colCt = 0; colCt < bestTextExtents.GetCount(); colCt++)
+					//			{
+					//				_itot(bestTextExtents.GetAt(colCt),cellN,10);
+					//				wxString cellNStr = cellN;
+					//				if (cellNStr != _T("0"))
+					//				{
+					//					MiscRTF += _T("\n\\cellx");
+					//					MiscRTF += cellN;
+					//				}
+					//			}
+
+					//			// now output the tags up to this point
+					//			// RTF tags use gpApp->m_systemEncoding
+					//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//				return;
+
+					//		}
+					//		else
+					//		{
+					//			// bProcessingTable was already true when the current \tr marker is
+					//			// encountered. Since we've encountered this new \tr marker, it must
+					//			// signal an end to the delimiting of rows of text with postpositioned
+					//			// \cell markers, i.e., we've output the following string:
+					//			//    {text1\cell text2\cell text3\cell text4
+					//			// Note: The last column's text4 has been output, but, (if bLastCellTagOutput
+					//			// is still FALSE, the closing "\cell " for that column's text has not been
+					//			// output at this point. So,
+					//			// First we need to close off the last column's text with "\cell " and add
+					//			// the closing brace '}' to end the delimited representation of the row's text.
+					//			MiscRTF = _T("\\cell }");
+					//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//				return;
+					//			bLastCellTagOutput = TRUE;
+
+					//			// The remainder of the preceding row's row tags can now be output
+					//			// Output the __normal paragraph style tags
+					//			rtfIter = rtfTagsMap.find(_T("__normal"));
+					//			if (rtfIter != rtfTagsMap.end())
+					//			{
+					//				// we found an associated value for Marker in map
+					//				// RTF tags use gpApp->m_systemEncoding
+					//				wxString tempStyle = (wxString)rtfIter->second;
+					//				// remove the "\par " from the style tag string here
+					//				tempStyle = tempStyle.Mid(5);
+					//				if (!WriteOutputString(f,gpApp->m_systemEncoding,tempStyle))
+					//					return;
+					//			}
+					//			// output the "{\trowd \irowN\irowbandN\tsN\trgaph40\trleft0\\ltrrow" part
+					//			wxChar rowN[34];
+					//			wxChar cellN[34];
+					//			_itot(nCurrentRowIndex,rowN,10);// nCurrentRowIndex is incremented for new row below
+					//											// so it is the index for the row we are closing off
+					//			if (nCurrentRowIndex == nLastRowIndex)
+					//				bLastTableRow = TRUE;
+					//			MiscRTF = _T("\n{");
+					//			MiscRTF += _T("\\trowd \\irow");
+					//			MiscRTF += rowN;
+					//			MiscRTF += _T("\\irowband");
+					//			MiscRTF += rowN;
+					//			MiscRTF += _T("\\ts") + TblGridSNum;
+					//			if (bLastTableRow)
+					//				MiscRTF += _T("\\lastrow");
+					//			MiscRTF += _T("\\trgaph40");
+					//			MiscRTF += _T("\\trleft0\\ltrrow");
+					//			// add the \cellxN data for the first row
+					//			int colCt;
+					//			for (colCt = 0; colCt < bestTextExtents.GetCount(); colCt++)
+					//			{
+					//				_itot(bestTextExtents.GetAt(colCt),cellN,10);
+					//				wxString cellNStr = cellN;
+					//				if (cellNStr != _T("0"))
+					//				{
+					//					MiscRTF += _T("\n\\cellx");
+					//					MiscRTF += cellN;
+					//				}
+					//			}
+					//			// add the \row and closing brace '}'
+					//			MiscRTF += _T("\\row }");
+
+					//			// now output the tags up to this point
+					//			// RTF tags use gpApp->m_systemEncoding
+					//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//				return;
+
+					//			nCurrentRowIndex++;
+					//			nCurrentColIndex = 0; // new row starts at column zero
+					//			bAtFirstCellInRow = TRUE;
+					//			// Note: This ends the output of the previous row of the table
+					//		}
+
+					//		// Now we can output the initial tags for the new row that our current \tr
+					//		// marker is starting. This amounts to "\pard\plain", the row's paragraph
+					//		// style tags (based on 'm' style), and an opening brace for the cell text
+					//		// line.
+
+					//		//   Output the general paragraph style tags for the whole row (use the \m style)
+					//		rtfIter = rtfTagsMap.find(_T("m"));
+					//		if (rtfIter != rtfTagsMap.end())
+					//		{
+					//			// we found an associated value for Marker in map
+					//			// RTF tags use gpApp->m_systemEncoding
+					//			wxString tempStyle = (wxString)rtfIter->second;
+					//			// remove the "\par " from the style tag string here
+					//			tempStyle = tempStyle.Mid(5);
+
+					//			// change any \qc justification to \ql which looks better
+					//			// within table cells that have to wrap (regardless of user
+					//			// setting for \m paragraphs
+					//			int posqc = tempStyle.Find(_T("\\qc "));
+					//			if (posqc != -1)
+					//			{
+					//				tempStyle.Remove(posqc,3);
+					//				tempStyle.Insert(posqc,_T("\\ql"));
+					//			}
+					//			// output the modified "m" para style for the right justitied cell
+					//			if (!WriteOutputString(f,gpApp->m_systemEncoding,tempStyle))
+					//				return;
+					//		}
+					//		MiscRTF = _T("\n{");
+					//		//   Output the opening curly brace for the cell text '{'
+					//		if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//			return;
+					//		LastParaStyle = Marker;
+					//		LastNonBoxParaStyle = Marker;
+					//		//
+					//	}
+					//	// Handle the table header and normal cell markers. These are "character" style but
+					//	// have no end markers.
+					//	else if (Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
+					//	{
+					//		// we should have processed at least one \tr tag and bProcessingTable should have
+					//		// been set to TRUE before arriving here (unless the table was malformed)
+					//		wxASSERT(bProcessingTable == TRUE);
+
+					//		// Note: The processing of cell text items delimited by \cell tags is the same
+					//		// regardless of which row we are processing.
+
+					//		// If we are at a non-row-initial \th... or \tc... marker, we output the
+					//		// "\cell " tag string here to close off the preceeding cell
+					//		if (!bAtFirstCellInRow)
+					//		{
+					//			MiscRTF = _T("\\cell ");
+					//			if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//				return;
+					//			nCurrentColIndex++;	// the current col index increments when each
+					//								// \cell is output
+					//		}
+					//		// Once \cell is output we are no longer at first cell in row
+					//		bAtFirstCellInRow = FALSE;
+
+					//		// Output the cell text items for the row delimited with \cell tags
+
+					//		//   extract the nFoundColNum N of the marker, converting with _ttoi()
+					//		wxString NvalueStr;
+					//		if (Marker.Find(_T("thr")) == 0 || Marker.Find(_T("tcr")) == 0)
+					//			NvalueStr = Marker.Mid(3);
+					//		else if (Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
+					//			NvalueStr = Marker.Mid(2);
+					//		nFoundColNum = _ttoi(NvalueStr);
+					//		if (nFoundColNum > maxUSFMCols)
+					//		{
+					//			nFoundColNum = maxUSFMCols; // set it to the maxUSFMCol
+					//		}
+					//		nCollIndexFound = nFoundColNum -1;
+
+					//		// output any "\cell " tags for any empty columns in row. We do not output
+					//		// the current assoc text of \th... or \tc... here, because we must allow
+					//		// the processing of any embedded char format markers, footnotes, endnotes,
+					//		// crossrefs, \bt..., \free, and \note material. We do output a "\cell "
+					//		// tag string for a previous \th... or \tc... This situation is signalled
+					//		// when bAtFirstCellInRow is FALSE
+					//		int ct;
+					//		int nSaveCurrColIndex = nCurrentColIndex;
+					//		if (nCollIndexFound > nCurrentColIndex)
+					//		{
+					//			MiscRTF = _T("\\cell ");
+					//			for (ct = 0; ct < nCollIndexFound - nSaveCurrColIndex; ct++);
+					//			{
+					//				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//					return;
+					//				nCurrentColIndex++; // the current col index increments when each
+					//									// \cell is output
+					//			}
+					//		}
+
+					//		// Note: Once we have processed the last "th" or "tc" item for the current row,
+					//		// we need to close off the current row with a \row tag and closing brace '}'
+					//		// We cannot do this here, however, even when we are at the last \th... or last
+					//		// \tc... in a row, because we are only at the marker itself. We must allow a
+					//		// block of the loop below to process the text assoc with this current marker
+					//		// along with any embedded char format markers, footnotes, endnotes, crossrefs,
+					//		// \bt..., \free, and \note material FIRST. The output of the closing tags
+					//		// associated with the current row can occur in two places (1) in the \tr
+					//		// handling block above (for ...), and (2) in the block below where we encounter
+					//		// our first non-table marker indicating we've reached the end of the table.
+
+					//		// The marker is a table column heading or a table cell data marker \thN \thrN \tcN or
+					//		// \tcrN where N is 1, 2, 3, or 4. These are character markers but have no end forms
+					//		// so we need to output an opening brace to start the character group, lookup and
+					//		// output the RTF tags for the particular table char style, and then note that
+					//		// we are within a table so we can determine when to close the groups for these
+					//		// table markers.
+
+					//		if (bLastParagraphWasBoxed)
+					//		{
+					//			// There was a small break paragraph inserted and no paragraph style
+					//			// has intervened, so propagate the LastNonBoxParaStyle
+					//			rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
+					//			if (rtfIter != rtfTagsMap.end())
+					//			{
+					//				// we found an associated value for Marker in map
+					//				// RTF tags use gpApp->m_systemEncoding
+					//				if (!WriteOutputString(f,gpApp->m_systemEncoding,(wxString)rtfIter->second))
+					//					return;
+					//			}
+					//			bLastParagraphWasBoxed = FALSE;
+					//		}
+
+					//		wxString tempMkrR;
+					//		if (Marker.Find(_T("thr")) == 0 || Marker.Find(_T("tcr")) == 0)
+					//		{
+					//			// get the "m" marker from map in case we need it in block below
+					//			rtfIter = rtfTagsMap.find(_T("m"));
+					//			if (rtfIter != rtfTagsMap.end())
+					//			{
+					//				// we found an associated value for Marker in map
+					//				// RTF tags use gpApp->m_systemEncoding
+					//				tempMkrR = (wxString)rtfIter->second;
+					//				// remove the "\par " from the style tag string here
+					//			}
+					//		}
+
+					//		rtfIter = rtfTagsMap.find(Marker);
+					//		if (rtfIter != rtfTagsMap.end())
+					//		{
+					//			if (Marker.Find(_T("thr")) == 0 || Marker.Find(_T("tcr")) == 0)
+					//			{
+					//				// for right aligned cells we need to repeat the "m" paragraph
+					//				// style here before the character group for the cell, and the
+					//				// "m" paragraph style should only have \pard prefixed to it
+					//				// and its justification should be \qr rather than \qc or \ql
+					//				// remove the "\par \n\pard\plain" and prefix just \pard
+					//				tempMkrR = tempMkrR.Mid(18);
+					//				// add \plain
+					//				tempMkrR = _T("\\pard") + tempMkrR;
+					//				// change justification to \qr
+					//				int posqj = tempMkrR.Find(_T("\\qj "));
+					//				if (posqj != -1)
+					//				{
+					//					tempMkrR.Remove(posqj,3);
+					//					tempMkrR.Insert(posqj,_T("\\qr"));
+					//				}
+					//				int posqc = tempMkrR.Find(_T("\\qc "));
+					//				if (posqc != -1)
+					//				{
+					//					tempMkrR.Remove(posqc,3);
+					//					tempMkrR.Insert(posqc,_T("\\qr"));
+					//				}
+					//				// output the modified "m" para style for the right justitied cell
+					//				MiscRTF = tempMkrR;
+					//				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//					return;
+					//			}
+					//			// we found an associated value for Marker in map
+					//			if (bProcessingCharacterStyle)
+					//			{
+					//				// non-paragraph style strings need to start with an opening brace {
+					//				MiscRTF = _T("{");
+					//				// RTF tags use gpApp->m_systemEncoding
+					//				if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+					//					return;
+					//			}
+					//			// RTF tags use gpApp->m_systemEncoding
+					//			if (!WriteOutputString(f,gpApp->m_systemEncoding,(wxString)rtfIter->second))
+					//				return;
+					//		}
+
+					//		// If bProcessingEndlessCharMarker is FALSE we are starting to process a marker that
+					//		// defines a character style but has no ending marker
+					//		if (!bProcessingEndlessCharMarker)
+					//		{
+					//			bProcessingEndlessCharMarker = TRUE;
+					//		}
+					//		LastStyle = Marker;
+					//		// Don't update LastParaStyle here - the above table markers are character style
+					//		// markers
+					//	}
+
+					//}
+
+					// BELOW WAS THE ORIGINAL BLOCK FOR PROCESSING CHARACTER TABLE STYLES:
+					// This block did not format USFM tables into real RTF tables, but treated
+					// the table rows (defined by \tr) as simple paragraphs
+					// Handle the table markers which are "character" style but have no end markers
+					else if (Marker.Find(_T("th")) == 0 || Marker.Find(_T("tc")) == 0)
+					{
+						// The marker is a table column heading or a table cell data marker \thN \thrN \tcN or
+						// \tcrN where N is 1, 2, 3, or 4. These are character markers but have no end forms
+						// so we need to output an opening brace to start the character group, lookup and
+						// output the RTF tags for the particular table char style, and then note that
+						// we are within a table so we can determine when to close the groups for these
+						// table markers.
+
+						if (bLastParagraphWasBoxed)
+						{
+							// There was a small break paragraph inserted and no paragraph style
+							// has intervened, so propagate the LastNonBoxParaStyle
+							rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for Marker in map
+								// RTF tags use gpApp->m_systemEncoding
+								wxString lastStyTag = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(lastStyTag,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTag))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+							bLastParagraphWasBoxed = FALSE;
+						}
+
 						rtfIter = rtfTagsMap.find(Marker);
 						if (rtfIter != rtfTagsMap.end())
 						{
@@ -11840,14 +11191,14 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								// non-paragraph style strings need to start with an opening brace {
 								MiscRTF = _T("{");
 								// RTF tags use gpApp->m_systemEncoding
-								CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace added here
+								CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
 								if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
 								{
 									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
 									return;
 								}
 
-								pCharStack->Push(Marker.char_str()); // push a character style marker
+								pCharStack->Push(Marker.char_str()); // push a TABLE (\th... or \tc...) character style marker
 							}
 							// RTF tags use gpApp->m_systemEncoding
 							wxString mkrTags = (wxString)rtfIter->second;
@@ -11858,201 +11209,878 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 								return;
 							}
 						}
+
+						// If bProcessingEndlessCharMarker is FALSE we are starting to process a marker that
+						// defines a character style but has no ending marker
+						if (!bProcessingEndlessCharMarker)
+						{
+							bProcessingEndlessCharMarker = TRUE;
+						}
+						LastStyle = Marker;
+						// Don't update LastParaStyle here - the above table markers are character style
+						// markers
 					}
 
-
-					bLastOutputWasParTag = TRUE;
-					bLastParagraphWasBoxed = FALSE;
-					LastStyle = Marker;
-					if (!bProcessingCharacterStyle)
+					// Handle any back translation markers beginning with \bt... which are "character"
+					// style but have no end markers
+					else if (Marker.Find(_T("bt")) == 0)
 					{
-						LastParaStyle = Marker;
-						LastNonBoxParaStyle = Marker;
+						// Note: To get the back translation material to follow the text to which
+						// it applies, we first output bt... associated strings for any preceding bt...
+						// marker at this current bt marker's occurrence (a halting point); then we
+						// process the bt... material for the current Marker and store it to output at
+						// the next halting point (which would usually be another bt marker if the
+						// text is fully free translated); or at the end of the Buffer if no more bt...
+						// markers or halting points exist.
+						if (!btAssocStr.IsEmpty())
+						{
+							bool bIsAtEnd = FALSE;
+							if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,Marker,_T("bt"),btAssocStr,
+								LastStyle,LastParaStyle,btRefNumInt,bLastParagraphWasBoxed,
+								parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
+								single_border,pDoc))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// We have output the current \bt material at a succeeding \bt point, so
+							// reset our bHitBTHaltingMkr flag.
+							bHitBTHaltingMkr = FALSE;
+							if (bIsAtEnd)
+							{
+								continue; // goto b;
+							}
+						}
+
+						lastBTMarker = Marker;	// used in OutputAnyBTorFreeMaterial() at bottom of loop
+												// where bt material is placed after gap and where Marker
+												// is a subsequent non- bt marker.
+						// Now process the current bt... marker and assoc text.
+						// Parse the \bt... to retrieve its marker and associated text, then
+						// use that text above for formatting a boxed paragraph or footnote
+						// depending on the value of bPlaceBackTransInRTFText.
+						wxString wholeMarker = _T('\\') + Marker;
+						wxString btMarker = _T("bt"); // use only the short "bt" form
+						itemLen = ParseMarkerAndAnyAssociatedText(ptr,pBufStart,pEnd,btMarker,wholeMarker,TRUE,FALSE);
+						// TRUE above means we expect RTF text to parse
+						// FALSE above means don't include char format markers
+						wxString btStr;
+						btStr = wxString(ptr,itemLen);
+						// btStr still starts with \bt so just remove the backslash leaving the bare marker
+						// to function as caller when the string is used as a footnote, and add back the
+						// wholeMarker and space prefixed
+						btStr = btStr.Mid(1);
+						//if (btStr.Find(_T('\n')) != -1)
+						btStr.Replace(_T("\n"),_T(" "));
+						btStr.Replace(_T("\r"),_T(" "));
+						btAssocStr = btStr;
+					}
+					// Handle any Adapt It Note markers beginning with \note
+					else if (Marker == _T("note"))
+					{
+						// Parse the \note marker to retrieve its marker and associated text, then
+						// use that text below for the special formatting circumstances depending on the
+						// value of bPlaceAINotesInRTFText.
+						wxString wholeMarker = _T('\\') + Marker;
+						wxString noteMarker = _T("note");
+						itemLen = ParseMarkerAndAnyAssociatedText(ptr,pBufStart,pEnd,noteMarker,wholeMarker,TRUE,FALSE);
+						// TRUE above means we expect RTF text to parse
+						// FALSE above means don't include char format markers
+						wxString noteStr;
+						noteStr = wxString(ptr,itemLen);
+						// noteStr still starts with \note so just remove the backslash leaving the bare marker
+						// to function as caller when the string is used as a footnote, and add back the
+						// wholeMarker and space prefixed
+						noteStr.Remove(noteStr.Find(_T("\\note*")),6);
+
+						if (bPlaceAINotesInRTFText)
+						{
+							// The ExportOptionsDlg checkbox specifies that Adapt It Notes should be
+							// "placed in Comments (bubble text) within the right margin. We do this by
+							// formatting the note as an RTF annotation using the _annotation_text and
+							// _annotation_ref marker styles.
+
+							noteStr.Remove(0,6); // delete the "\note " string prefix
+
+							// first output opening brace for the _annotation_ref style
+							MiscRTF = _T('{');
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening brace here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// next output the \cs style tags for _annotation_ref
+							rtfIter = rtfTagsMap.find(_T("_annotation_ref"));
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for Marker in map
+								// RTF tags use gpApp->m_systemEncoding
+								wxString annotRefTags = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+							// next output the required RTF tags to prefix an annotation
+							MiscRTF = _T("{\\*\\atnid Adapt It Note:}{\\*\\atnauthor       }\\chatn {\\*\\annotation \\pard\\plain ");
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 open, 2 close braces added here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// output the _annotation_text paragraph style tags
+							rtfIter = rtfTagsMap.find(_T("_annotation_text"));
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for Marker in map
+								// RTF tags use gpApp->m_systemEncoding
+								wxString annotTextTags = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(annotTextTags,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,annotTextTags))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+							// output the _annotation_ref style tags again
+							MiscRTF = _T('{');
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open brace here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// next output the \cs style tags for _annotation_ref
+							rtfIter = rtfTagsMap.find(_T("_annotation_ref"));
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for Marker in map
+								// RTF tags use gpApp->m_systemEncoding
+								wxString annotRefTags = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(annotRefTags,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,annotRefTags))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+							MiscRTF = _T("\\chatn }{");
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one open one closed added here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// now output the actual note string
+							CountTotalCurlyBraces(noteStr,nOpeningBraces,nClosingBraces);
+							// whm 8Nov07 changed below to use m_tgtEncoding to force
+							// the use of the \uN\'f3 RTF Unicode chars format.
+							if (!WriteOutputString(f,gpApp->m_tgtEncoding,noteStr)) // use m_tgtEncoding here
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							MiscRTF = _T("}}}"); // closing braces for note (annotation)
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // 3 closing curly braces here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// update LastStyle only when doing boxed paragraph
+							LastStyle = Marker;
+						}
+						else
+						{
+							// The ExportOptionsDlg checkbox specifies that the Adapt It note should be
+							// formatted as footnotes. We do this by enclosing the \note character style
+							// and its text within the footnote destination set of tags. We use a
+							// special literal caller "note" in the text with the note itself
+							// in the footnote at the foot of the page. This can be handled with our
+							// ProcessAndWriteDestinationText() function
+							noteStr = noteStr.Mid(1); // just remove the backslash and leave "note" for caller
+							noteStr = wholeMarker + _T(' ') + noteStr + _T("\\f* "); // make it end like a footnote by
+																				// adding "\f* " so our function
+																				// ProcessAndWriteDestinationText
+																				// can handle it like one
+
+							bool bIsAtEnd = FALSE;; // set by ProcessAndWriteDestinationText() below
+							// construct numerically sequenced caller
+							//wxChar buf[34];
+							noteRefNumInt++; // increment the bt N to note 1, note 2, note 3, etc.
+							wxString bareNoteMarker = Marker; // backslash already removed
+							noteRefNumStr = bareNoteMarker + _T(' '); // "note "
+							noteRefNumStr << noteRefNumInt; // _itot(noteRefNumInt,buf,10);  // add N to "note N"
+							noteRefNumStr += _T(' ');
+							wxString callerStr = noteRefNumStr;
+							callerType = supplied_by_parameter;
+
+							wxString nullStr = _T("");
+							// we'll use system encoding to write the note text
+							//if (!ProcessAndWriteDestinationText(f, gpApp->m_systemEncoding, noteStr,
+							//	bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
+							//	callerStr, FALSE, nullStr)) // FALSE because there is no free trans to suffix to a note
+							// whm 8Nov07 note: We should use m_tgtEncoding to force the writing of the
+							// note text in the \uN\'f3 RTF Unicode format
+							if (!ProcessAndWriteDestinationText(f, gpApp->m_tgtEncoding, noteStr,
+								bIsAtEnd, footnoteDest, rtfTagsMap, pDoc, parseError, callerType,
+								callerStr, FALSE, nullStr)) // FALSE because there is no free trans to suffix to a note
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							if (bIsAtEnd) // ProcessAndWriteDestinationText got to the end of the string
+							{
+								continue; // goto b; //check for another marker beyond what ParseFootnote processed
+							}
+						}
+						// Adapt It Notes only appear as balloon text comments or footnotes; they don't
+						// appear as separate paragraphs within the text so we don't set LastStyle
+						// or LastParaStyle or LastNonBoxParaStyle here
+					}
+					// Handle any free translation markers beginning with \free
+					else if (Marker == _T("free"))
+					{
+						// Note: To get the free translation material to follow the text to which
+						// it applies, we first output free associated strings for any preceding free
+						// marker at this current free marker's occurrence (a halting point); then we
+						// process the free material for the current Marker and store it to output at
+						// the next halting point (which would usually be another \free marker if the
+						// text is fully free translated); or at the end of the Buffer if no more free
+						// markers or halting points exist.
+
+						if (!freeAssocStr.IsEmpty())
+						{
+							bool bIsAtEnd = FALSE;
+							if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,Marker,_T("free"),freeAssocStr,
+								LastStyle,LastParaStyle,freeRefNumInt,bLastParagraphWasBoxed,
+								parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
+								double_border,pDoc))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// We have output the current \free material at a succeeding \free point, so
+							// reset our bHitFreeHaltingMkr flag.
+							bHitFreeHaltingMkr = FALSE;
+							if (bIsAtEnd)
+							{
+								continue; // goto b;
+							}
+						}
+
+						lastFreeMarker = Marker;// used in OutputAnyBTorFreeMaterial() at bottom of loop
+												// where free material is placed after gap and where Marker
+												// is a subsequent non- free marker.
+						// Now process the current free marker and assoc text.
+						// Parse the \free to retrieve its marker and associated text, then
+						// use that text above for the special formatting circumstances depending on the
+						// value of bPlaceFreeTransInRTFText.
+						wxString wholeMarker = _T('\\') + Marker;
+						wxString freeMarker = _T("free");
+						itemLen = ParseMarkerAndAnyAssociatedText(ptr,pBufStart,pEnd,freeMarker,wholeMarker,TRUE,FALSE);
+						// TRUE above means we expect RTF text to parse
+						// FALSE above means don't include char format markers
+						wxString freeStr;
+						freeStr = wxString(ptr,itemLen);
+						// freeStr still starts with \free so just remove the backslash leaving the bare marker
+						// to function as caller when the string is used as a footnote, and add back the
+						// wholeMarker and space prefixed
+						freeStr = freeStr.Mid(1);
+						// remove the \free* end marker
+						int freeEndMkrPos = freeStr.Find(_T("\\free*"));
+						freeStr = freeStr.Left(freeEndMkrPos);
+						freeAssocStr = freeStr;
+						// Is this a free translation of a following footnote, endnote or crossref?
+						// If so, set flag to have ProcessAndWriteDestinationText() suffix the
+						// free translation to the end of the footnote text formatted in the
+						// appropriate boxed paragraph
+						if (NextMarkerIsFootnoteEndnoteCrossRef(ptr,pEnd,itemLen))
+						{
+							bHasFreeTransToAddToFootnoteBody = TRUE;
+						}
+						else
+						{
+							bHasFreeTransToAddToFootnoteBody = FALSE;
+						}
+					}
+					// The special cases have been handled, so now handle the regular end markers
+					// Handle character end markers
+					else if (Marker.Find(_T('*')) != -1)
+					{
+						// We are at an end marker (Marker has * in it)
+						// add the group closing brace } but only if the styleType of the marker
+						// is "character"
+						// Note: In situations where user has an end marker in the text but it had
+						// no corresponding begin marker, bProcessingCharacterStyle would normally
+						// be false and no spurious closing brace would be added in the code below.
+						if (bProcessingCharacterStyle)
+						{
+							MiscRTF = _T('}');
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one closing curly brace here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+							// if the previous marker was a small break paragraph, we need to propagate
+							// the LastNonBoxParaStyle
+							// TODO: Check if the following propagation should only be done following
+							// a small para break, i.e., when bLastParagraphWasBoxed == TRUE
+							//if (bLastParagraphWasBoxed)
+							{
+								rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
+								if (rtfIter != rtfTagsMap.end())
+								{
+									// we found an associated value for Marker in map
+									wxString lastNBParaStyle = (wxString)rtfIter->second;
+									// remove the \par from the style string here because we don't want to
+									// insert a paragraph at closing of a character style, just propagate the
+									// previous non-boxed paragraph style
+									int nbPos = lastNBParaStyle.Find(_T("\\par ")); // whm 18Nov10 added space to find string; previously was "\\par"
+									lastNBParaStyle.Remove(nbPos, 5);
+									CountTotalCurlyBraces(lastNBParaStyle,nOpeningBraces,nClosingBraces);
+									if (!WriteOutputString(f,gpApp->m_systemEncoding,lastNBParaStyle))
+									{
+										pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+										return;
+									}
+								}
+							}
+
+							Item sfm1;
+							pCharStack->Pop(sfm1); // pop a character style END marker
+							// Check if the stack has another character style marker in it.
+							// If not, we can set the bProcessingCharacterStyle flag to FALSE.
+							// If so, we need to reset the character style to propagate that
+							// character style after the current one has closed.
+							if (pCharStack->IsEmpty())
+							{
+								bProcessingCharacterStyle = FALSE;
+							}
+							else
+							{
+								// There is another character style marker in the stack
+								// so we need to propagate that character style
+								Item sfm2;
+								pCharStack->Pop(sfm2);
+								wxString sfmMkr = wxString::FromAscii(sfm2);
+								rtfIter = rtfTagsMap.find(sfmMkr);
+								if (rtfIter != rtfTagsMap.end())
+								{
+									// We found an associated value for Marker in map.
+									// We need only output the previous char style tags here without any
+									// opening curly brace.
+
+									pCharStack->Push(Marker.char_str()); // push it back on the stack
+
+									// RTF tags use gpApp->m_systemEncoding
+									wxString mkrTags = (wxString)rtfIter->second;
+									CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
+									if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+									{
+										pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+										return;
+									}
+								}
+							}
+
+							// Marker is either not a character style or is the same style as the last style
+							// marker encountered.
+							bProcessingCharacterStyle = FALSE; // we've finished processing the char style group
+						}
+					}
+					else // all remaining marker/styles
+					{
+						// we've dealt with the "problem" styles - all remaining ones should be
+						// straight forward.
+						// Note: Marker will not have any end forms with asterisks nor unknown
+						// markers at this point because these were handled in an else if block
+						// above.
+
+						//if (bProcessingTable && !bProcessingCharacterStyle)
+						//{
+						//	// we've been processing a USFM table and have come to a non-table,
+						//	// non-character formatting marker which signals the end of the table.
+						//	// We need to signal we've reached the end of the table
+						//	bProcessingTable = FALSE;
+						//	// Since the \cell markers are output after the actual cell text, we need to
+						//	// output a final "\cell " tag string to close off the last cell of the last
+						//	// row of the table
+						//	MiscRTF = _T("\\cell }");
+						//	if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						//		return;
+						//	// No need to increment nCurrentColIndex here because it gets reset below.
+
+						//	// The remainder of the preceding row's row tags can now be output
+						//	// output \pard\plain
+						//	//MiscRTF = _T("\n\\pard\\plain");
+						//	//if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						//	//	return;
+						//	// Output the __normal paragraph style tags
+						//	rtfIter = rtfTagsMap.find(_T("__normal"));
+						//	if (rtfIter != rtfTagsMap.end())
+						//	{
+						//		// we found an associated value for Marker in map
+						//		// RTF tags use gpApp->m_systemEncoding
+						//		wxString tempStyle = (wxString)rtfIter->second;
+						//		// remove the "\par " from the style tag string here
+						//		tempStyle = tempStyle.Mid(5);
+						//		if (!WriteOutputString(f,gpApp->m_systemEncoding,tempStyle))
+						//			return;
+						//	}
+						//	// output the "{\trowd \irowN\irowbandN\tsN\trgaph40\trleft0\\ltrrow" part
+						//	wxChar rowN[34];
+						//	wxChar cellN[34];
+						//	_itot(nCurrentRowIndex,rowN,10);// nCurrentRowIndex is incremented for new row below
+						//									// so it is the index for the row we are closing off
+						//	if (nCurrentRowIndex == nLastRowIndex)
+						//		bLastTableRow = TRUE;
+						//	MiscRTF = _T("\n{");
+						//	MiscRTF += _T("\\trowd \\irow");
+						//	MiscRTF += rowN;
+						//	MiscRTF += _T("\\irowband");
+						//	MiscRTF += rowN;
+						//	MiscRTF += _T("\\ts") + TblGridSNum;
+						//	if (bLastTableRow)
+						//		MiscRTF += _T("\\lastrow");
+						//		MiscRTF += _T("\\trgaph40");
+						//	MiscRTF += _T("\\trleft0\\ltrrow");
+						//	// add the \cellxN data for the first row
+						//	int colCt;
+						//	for (colCt = 0; colCt < bestTextExtents.GetCount(); colCt++)
+						//	{
+						//		_itot(bestTextExtents.GetAt(colCt),cellN,10);
+						//		wxString cellNStr = cellN;
+						//		if (cellNStr != _T("0"))
+						//		{
+						//			MiscRTF += _T("\n\\cellx");
+						//			MiscRTF += cellN;
+						//		}
+						//
+						//	}
+						//	// add the \row and closing brace '}'
+						//	MiscRTF += _T("\\row }");
+
+						//	// now output the tags up to this point
+						//	// RTF tags use gpApp->m_systemEncoding
+						//	if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+						//		return;
+
+						//	nCurrentRowIndex++;
+						//	nCurrentColIndex = 0; // new row starts at column zero
+						//	bAtFirstCellInRow = TRUE;
+						//	// Note: This ends the output of the previous row of the table
+
+						//	// Note: In the event that the last \tc... table cell marker is at the end of
+						//	// the file, this block (which was entered because of encountering a non-table
+						//	// marker, will not be entered and this \cell tag will not be output, therefor
+						//	// the tag bLastCellTagOutput below will signal that fact so that it can be
+						//	// processed elsewhere if it is still FALSE.
+						//	bLastCellTagOutput = TRUE;
+
+						//	// Ensure table related int vars are correctly set in case a subsequent table
+						//	// is encountered
+						//	nCurrentRowIndex = 0;
+						//	nLastRowIndex = 0;
+						//	nCurrentColIndex = 0;
+
+						//	// the following is used in the longer routine that attempts to format USFM
+						//	// tables as real Word tables.
+						//	//nLastColIndex = 0;
+
+						//	// Also we should ensure other table related flags are correctly set in case a
+						//	// subsequent table is encountered
+						//	bAtFirstTableRow = TRUE;
+						//	bAtFirstCellInRow = TRUE;
+						//	bLastTableRow = FALSE;
+
+
+						//	// clear out the arrays
+						//	bestTextExtents.RemoveAll();
+						//	cellText.RemoveAll();
+						//	rightAlignment.RemoveAll();
+
+						//	// lastly reset the overall table processing flag
+						//	bProcessingTable = FALSE;
+						//}
+						//else
+						//{
+						//	bLastCellTagOutput = FALSE;
+						//}
+
+						// Handle any pending bt and/or free material that should be output before
+						// the current Marker.
+						if (!btAssocStr.IsEmpty())
+						{
+							// We have \bt material that is pending output at an appropriate halting point.
+							if (IsBTMaterialHaltingPoint(Marker))
+							{
+								// We are currently at a halting point. The first halting point immediately
+								// following \bt material is still preceding the material to which the \bt
+								// material applies. We only process the pending \bt material if we have
+								// already hit one halting marker.
+								if (bHitBTHaltingMkr)
+								{
+									// We've already hit a halting marker and are currently at the next halting
+									// marker. This is the first output opportunity following the material to
+									// which the \bt material applies, and we output the pending \bt material
+									// here.
+									// NOTE: The Marker variable here will not be a \bt... marker but
+									// some subsequent marker. We want to feed the last actual \bt...
+									// marker to OutputAnyBTorFreeMaterial() below because it uses it
+									// to format the bt... caller. The last actual \bt... marker is
+									// stored in the string lastBTMarker.
+									bool bIsAtEnd = FALSE;
+									if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,lastBTMarker,_T("bt"),
+										btAssocStr,
+										LastStyle,LastParaStyle,btRefNumInt,bLastParagraphWasBoxed,
+										parseError,callerType,bProcessingTable,bPlaceBackTransInRTFText,
+										single_border,pDoc))
+									{
+										pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+										return;
+									}
+									// Note: when OutputAnyBTorFreeMaterial is called it calls btAssocStr.Empty()
+									// which signals that there is no \bt material currently pending.
+									if (bIsAtEnd)
+									{
+										continue; // goto b;
+									}
+									bHitBTHaltingMkr = FALSE;
+								}
+								else
+								{
+									// We're at the first halting point. We don't output anything here, but
+									// set the bHitBTHaltingMkr for the next pass.
+									bHitBTHaltingMkr = TRUE;
+								}
+							}
+							else
+							{
+								// This Marker isn't a good halting point, so continue looking.
+								;
+							}
+						}
+
+						if (!freeAssocStr.IsEmpty())
+						{
+							// We have \free material that is pending output at an appropriate halting point.
+							if (IsFreeMaterialHaltingPoint(Marker))
+							{
+								// We are currently at a halting point. The first halting point immediately
+								// following \free material is still preceding the material to which the \free
+								// material applies. We only process the pending \free material if we have
+								// already hit one halting marker.
+								if (bHitFreeHaltingMkr)
+								{
+									// We've already hit a halting marker and are currently at the next halting
+									// marker. This is the first output opportunity following the material to
+									// which the \free material applies, and we output the pending \free material
+									// here.
+									// NOTE: The Marker variable here will not be a \free marker but
+									// some subsequent marker. We want to feed the last actual \free
+									// marker to OutputAnyBTorFreeMaterial() below because it uses it
+									// to format the free caller. The last actual \free marker is
+									// stored in the string lastFreeMarker.
+									bool bIsAtEnd = FALSE;
+									if (!OutputAnyBTorFreeMaterial(f,gpApp->m_systemEncoding,lastFreeMarker,_T("free"),
+										freeAssocStr,
+										LastStyle,LastParaStyle,freeRefNumInt,bLastParagraphWasBoxed,
+										parseError,callerType,bProcessingTable,bPlaceFreeTransInRTFText,
+										double_border,pDoc))
+									{
+										pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+										return;
+									}
+									// Note: When OutputAnyBTorFreeMaterial is called it calls freeAssocStr.Empty()
+									// which signals that there is no \free material currently pending.
+									if (bIsAtEnd)
+									{
+										continue; // goto b;
+									}
+									bHitFreeHaltingMkr = FALSE;
+								}
+								else
+								{
+									// We're at the first halting point. We don't output anything here, but
+									// set the bHitFreeHaltingMkr for the next pass.
+									bHitFreeHaltingMkr = TRUE;
+								}
+							}
+							else
+							{
+								// This Marker isn't a good halting point, so continue looking.
+								;
+							}
+						}
+
+						if (bProcessingCharacterStyle && bLastParagraphWasBoxed)
+						{
+							MiscRTF = _T("\\par ") + gpApp->m_eolStr; // insert \par tag and new line into RTF file
+							// RTF tags use gpApp->m_systemEncoding
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+
+						if (Marker == LastNonBoxParaStyle
+							//&& !bProcessingTable
+							&& !bProcessingCharacterStyle
+							&& !bLastParagraphWasBoxed
+							)
+						{
+							// Most of the "non-problem" paragraph style markers go through here.
+							// The marker was a non-boxed paragraph seen just before the current marker,
+							// and no small break paragraph has intervened.
+							// Output the \par paragraph mark.
+							MiscRTF = _T("\\par ") + gpApp->m_eolStr; // insert \par tag and new line into RTF file
+							// RTF tags use gpApp->m_systemEncoding
+							CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // no curly braces added here
+							if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+							{
+								pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+								return;
+							}
+						}
+						else
+						{
+							// Most of the "non-problem" character style markers go through here.
+							// The marker is a non-paragraph style, or there was an intervening
+							// small paragraph - in any case we need to output the full complement
+							// of RTF indoc tags for this style.
+							rtfIter = rtfTagsMap.find(Marker);
+							if (rtfIter != rtfTagsMap.end())
+							{
+								// we found an associated value for Marker in map
+								if (bProcessingCharacterStyle)
+								{
+									// non-paragraph style strings need to start with an opening brace {
+									MiscRTF = _T("{");
+									// RTF tags use gpApp->m_systemEncoding
+									CountTotalCurlyBraces(MiscRTF,nOpeningBraces,nClosingBraces); // one opening curly brace added here
+									if (!WriteOutputString(f,gpApp->m_systemEncoding,MiscRTF))
+									{
+										pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+										return;
+									}
+
+									pCharStack->Push(Marker.char_str()); // push a character style marker
+								}
+								// RTF tags use gpApp->m_systemEncoding
+								wxString mkrTags = (wxString)rtfIter->second;
+								CountTotalCurlyBraces(mkrTags,nOpeningBraces,nClosingBraces);
+								if (!WriteOutputString(f,gpApp->m_systemEncoding,mkrTags))
+								{
+									pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+									return;
+								}
+							}
+						}
+
+
+						bLastOutputWasParTag = TRUE;
+						bLastParagraphWasBoxed = FALSE;
+						LastStyle = Marker;
+						if (!bProcessingCharacterStyle)
+						{
+							LastParaStyle = Marker;
+							LastNonBoxParaStyle = Marker;
+						}
+						else
+						{
+							LastCharacterStyle = Marker;
+						}
+
+					} // end of else - process all other non-special treatment markers
+
+					ptr += itemLen;	// advance pointer past the marker
+
+					itemLen = pDoc->ParseWhiteSpace(ptr); // parse white space following the marker
+					// Omit output of white space here when there is punctuation following the whitespace,
+					// otherwise include the white space in the output, but only for whitespace following
+					// end markers.
+					if (Marker.Find(_T('*')) == (int)Marker.Length()-1 && ptr + itemLen + 1 < pEnd && spaceless.Find(*(ptr + itemLen + 1)) == wxNOT_FOUND)
+					{
+						// We just processed an end marker, and the first char past whitespace is not a
+						// punctuation char, so output the whitespace. This is needed following character
+						// end markers.
+						// white space here usually would be part of vernacular so use EncodingSrcOrTgt
+						// but don't output \n new lines
+						WhiteSpace = wxString(ptr,itemLen);//testing only
+						WhiteSpace.Replace(_T("\n"),_T(" "));
+						WhiteSpace.Replace(_T("\r"),_T(" "));
+						while (WhiteSpace.Find(_T("  ")) != -1)
+						{
+							WhiteSpace.Remove(WhiteSpace.Find(_T("  ")),1);
+						}
+						if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
+						{
+							pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+							return;
+						}
 					}
 					else
 					{
-						LastCharacterStyle = Marker;
+						// the first char past whitespace is a punctuation char, so don't output the
+						// whitespace.
+						;
 					}
+					ptr += itemLen;	// point past it
 
-				} // end of else - process all other non-special treatment markers
+					continue; // goto b;	// check if another marker follows
+				}// end of else some other kind besides verse or chapter marker
+			}// end of if IsMarkerRTF
+		}// end of if (IsRTFControlWord(ptr, pEnd) || IsMarkerRTF(ptr, pBufStart))
 
-				ptr += itemLen;	// advance pointer past the marker
+		//else
+		//{
+		// must be a word or special text, normally vernacular
+		//
+		// whm added 8Nov07 check for end of text
+		// are we at the end of the text?
+		if (pDoc->IsEnd(ptr) || ptr >= pEnd)
+			break; // goto d;
 
-				itemLen = pDoc->ParseWhiteSpace(ptr); // parse white space following the marker
-				// Omit output of white space here when there is punctuation following the whitespace,
-				// otherwise include the white space in the output, but only for whitespace following
-				// end markers.
-				if (Marker.Find(_T('*')) == (int)Marker.Length()-1 && ptr + itemLen + 1 < pEnd && spaceless.Find(*(ptr + itemLen + 1)) == wxNOT_FOUND)
+		if (bLastParagraphWasBoxed)
+		{
+			// There was a small break paragraph inserted and no paragraph style
+			// has intervened, so propagate the LastNonBoxParaStyle
+			rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
+			if (rtfIter != rtfTagsMap.end())
+			{
+				// we found an associated value for Marker in map
+				// RTF tags use gpApp->m_systemEncoding
+				wxString lastStyTags = (wxString)rtfIter->second;
+				CountTotalCurlyBraces(lastStyTags,nOpeningBraces,nClosingBraces);
+				if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTags))
 				{
-					// We just processed an end marker, and the first char past whitespace is not a
-					// punctuation char, so output the whitespace. This is needed following character
-					// end markers.
-					// white space here usually would be part of vernacular so use EncodingSrcOrTgt
-					// but don't output \n new lines
-					WhiteSpace = wxString(ptr,itemLen);//testing only
-					WhiteSpace.Replace(_T("\n"),_T(" "));
-					WhiteSpace.Replace(_T("\r"),_T(" "));
-					while (WhiteSpace.Find(_T("  ")) != -1)
-					{
-						WhiteSpace.Remove(WhiteSpace.Find(_T("  ")),1);
-					}
-					if (!WriteOutputString(f,EncodingSrcOrTgt,WhiteSpace))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
+					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+					return;
 				}
-				else
-				{
-					// the first char past whitespace is a punctuation char, so don't output the
-					// whitespace.
-					;
-				}
-				ptr += itemLen;	// point past it
+			}
+			bLastParagraphWasBoxed = FALSE;
+		}
+		// whm 8Nov05 - Use Bruce's ParseWord() function. We'll then process
+		// any preceding or following punctuation and output any quotes with
+		// the appropriate RTF tags. To do that we'll need to identify the
+		// quote elements which can be single quotes (RTF tags are \lquote and
+		// \rquote) and double quotes (RTF tags are \ldblquote and \rdglquote).
+		//
+		precPunct.Empty();
+		follPunct.Empty();
 
-				goto b;	// check if another marker follows
-			}// end of else some other kind besides verse or chapter marker
-		}// end of if IsMarkerRTF
+		itemLen = ParseWordRTF(ptr, precPunct,follPunct,spaceless);
+
+		// make the word into a wxString
+		VernacText = wxString(ptr,itemLen);
+		bLastOutputWasParTag = FALSE;
+
+		// Note: Version 3 no longer checks for bar codes because at least one
+		// Unicode Adapt It user had problems because the bar code was interpreted
+		// wrongly as formatting code when it should have been vernacular text.
+		// Users who previously used bar codes will simply have to use the appropriate
+		// USFM markers.
+
+		// QUOTES: ParseWord identifies any preceding and following punctuation and
+		// places a copy of the leading punctuation in precPunct, and a copy of the
+		// following punctuation in follPunct, but it leaves all punctuation on the
+		// VernacText word itself. Also, itemLen includes the length of all punctuation
+		// on the word.
+		// For Unicode and ANSI quote marks we just pass those characters through to
+		// output. However, ParseWord also recognizes <, >, << and >> as quote characters
+		// when used on the borders of words. We will convert them to their equivalent
+		// RTF quote tags as we did in version 2.
+
+		// whm added 8Nov07. Behavior of IsMarkerRTF has changed so that it returns FALSE
+		// for the escaped RTF character \\, as well as for \{, and \}. We need to detect this
+		// situation here and parse through such escaped characters as valid text (previously
+		// they were wrongly detected as unknown markers and processed in the block above before
+		// the present else block). After correcting the behavior of IsMarkerRTF so that it
+		// returns FALSE for the escaped backslash sequence \\, it became possible for
+		// ProcessAndWriteDestinationText to get into an infinite loop causing a program
+		// hang/crash. This occurs due to the fact that when ptr points at the initial
+		// backslash of an escaped character, VernacText resolves to an empty string and
+		// itemLen from subsequent parsing functions is always set to zero resulting in
+		// ptr not advancing through the remainder of the destination text. We need to:
+		// (1) parse through any escaped \\, \{, or \} sequences, and (2) ensure that, if
+		// VernacText resolves to an empty string (for any other unanticipated reason), the
+		// current while loop can continue advancing through the destination string.
+		if (VernacText.IsEmpty())
+		{
+			// we likely have an escaped \\, \{, or \} sequence so parse it
+			itemLen = ParseEscapedCharSequence(ptr,pEnd);
+			// if itemLen is zero at this point, we had an empty VernacText for some
+			// other unknown reason. In this case it is best to simply advance ptr and
+			// goto b to check for another marker or pEnd.
+			if (itemLen == 0)
+			{
+				ptr++;
+				continue; // goto b; // check for another marker - from outer loop
+			}
+			// make the escaped char sequence into a wxString
+			VernacText = wxString(ptr,itemLen);
+			ptr += itemLen;
+			wxASSERT(VernacText != _T(""));
+			if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
+			{
+				pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+				return;
+			}
+			continue; // goto b; // check for another marker - from outer loop
+		}
+
+		if (VernacText.Find(_T("|@")) != -1)
+		{
+			wxASSERT(VernacText.Find(_T("@|")) != -1); // closing marks should also be present
+			// this word is the free translation word count of the form |@N@| where N is an
+			// number character string. We have no use for this "word" in RTF output so we
+			// will simply omit it from output
+			ptr += itemLen;
+			// no output of this word here
+			itemLen = pDoc->ParseWhiteSpace(ptr);
+			// also parse the whitespace following
+			ptr += itemLen;
+			// no output of this whitespace here
+		}
+		else if (VernacText.Find(_T('<')) == -1
+			&& VernacText.Find(_T('>')) == -1)
+		{
+			// there are no angle quote marks so output in vernacular encoding
+			CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
+			if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
+			{
+				pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+				return;
+			}
+			ptr += itemLen;
+		}
 		else
 		{
-			// must be a word or special text, normally vernacular
-			//
-			// whm added 8Nov07 check for end of text
-			// are we at the end of the text?
-			if (pDoc->IsEnd(ptr) || ptr >= pEnd)
-				goto d;
-
-			if (bLastParagraphWasBoxed)
+			// there is at least one angle quote mark in VernacText so we'll convert
+			// them to the appropriate RTF quote tags using the following function
+			// Note: The WriteOutputStringConvertingAngleBrackets() function is also used
+			// in footnote, endnote, and crossref output elsewhere in DoExportSrcOrTgtRTF.
+			CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces); // no curly braces added here
+			if (!WriteOutputStringConvertingAngleBrackets(f,EncodingSrcOrTgt,VernacText,ptr))
 			{
-				// There was a small break paragraph inserted and no paragraph style
-				// has intervened, so propagate the LastNonBoxParaStyle
-				rtfIter = rtfTagsMap.find(LastNonBoxParaStyle);
-				if (rtfIter != rtfTagsMap.end())
-				{
-					// we found an associated value for Marker in map
-					// RTF tags use gpApp->m_systemEncoding
-					wxString lastStyTags = (wxString)rtfIter->second;
-					CountTotalCurlyBraces(lastStyTags,nOpeningBraces,nClosingBraces);
-					if (!WriteOutputString(f,gpApp->m_systemEncoding,lastStyTags))
-					{
-						pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-						return;
-					}
-				}
-				bLastParagraphWasBoxed = FALSE;
+				pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
+				return;
 			}
-			// whm 8Nov05 - Use Bruce's ParseWord() function. We'll then process
-			// any preceding or following punctuation and output any quotes with
-			// the appropriate RTF tags. To do that we'll need to identify the
-			// quote elements which can be single quotes (RTF tags are \lquote and
-			// \rquote) and double quotes (RTF tags are \ldblquote and \rdglquote).
-			//
-			precPunct.Empty();
-			follPunct.Empty();
-
-			itemLen = ParseWordRTF(ptr, precPunct,follPunct,spaceless);
-
-			// make the word into a wxString
-			VernacText = wxString(ptr,itemLen);
-			bLastOutputWasParTag = FALSE;
-
-			// Note: Version 3 no longer checks for bar codes because at least one
-			// Unicode Adapt It user had problems because the bar code was interpreted
-			// wrongly as formatting code when it should have been vernacular text.
-			// Users who previously used bar codes will simply have to use the appropriate
-			// USFM markers.
-
-			// QUOTES: ParseWord identifies any preceding and following punctuation and
-			// places a copy of the leading punctuation in precPunct, and a copy of the
-			// following punctuation in follPunct, but it leaves all punctuation on the
-			// VernacText word itself. Also, itemLen includes the length of all punctuation
-			// on the word.
-			// For Unicode and ANSI quote marks we just pass those characters through to
-			// output. However, ParseWord also recognizes <, >, << and >> as quote characters
-			// when used on the borders of words. We will convert them to their equivalent
-			// RTF quote tags as we did in version 2.
-
-			// whm added 8Nov07. Behavior of IsMarkerRTF has changed so that it returns FALSE
-			// for the escaped RTF character \\, as well as for \{, and \}. We need to detect this
-			// situation here and parse through such escaped characters as valid text (previously
-			// they were wrongly detected as unknown markers and processed in the block above before
-			// the present else block). After correcting the behavior of IsMarkerRTF so that it
-			// returns FALSE for the escaped backslash sequence \\, it became possible for
-			// ProcessAndWriteDestinationText to get into an infinite loop causing a program
-			// hang/crash. This occurs due to the fact that when ptr points at the initial
-			// backslash of an escaped character, VernacText resolves to an empty string and
-			// itemLen from subsequent parsing functions is always set to zero resulting in
-			// ptr not advancing through the remainder of the destination text. We need to:
-			// (1) parse through any escaped \\, \{, or \} sequences, and (2) ensure that, if
-			// VernacText resolves to an empty string (for any other unanticipated reason), the
-			// current while loop can continue advancing through the destination string.
-			if (VernacText.IsEmpty())
-			{
-				// we likely have an escaped \\, \{, or \} sequence so parse it
-				itemLen = ParseEscapedCharSequence(ptr,pEnd);
-				// if itemLen is zero at this point, we had an empty VernacText for some
-				// other unknown reason. In this case it is best to simply advance ptr and
-				// goto b to check for another marker or pEnd.
-				if (itemLen == 0)
-				{
-					ptr++;
-					goto b; // check for another marker
-				}
-				// make the escaped char sequence into a wxString
-				VernacText = wxString(ptr,itemLen);
-				ptr += itemLen;
-				wxASSERT(VernacText != _T(""));
-				if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
-				{
-					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-					return;
-				}
-				goto b; // check for another marker
-			}
-
-			if (VernacText.Find(_T("|@")) != -1)
-			{
-				wxASSERT(VernacText.Find(_T("@|")) != -1); // closing marks should also be present
-				// this word is the free translation word count of the form |@N@| where N is an
-				// number character string. We have no use for this "word" in RTF output so we
-				// will simply omit it from output
-				ptr += itemLen;
-				// no output of this word here
-				itemLen = pDoc->ParseWhiteSpace(ptr);
-				// also parse the whitespace following
-				ptr += itemLen;
-				// no output of this whitespace here
-			}
-			else if (VernacText.Find(_T('<')) == -1
-				&& VernacText.Find(_T('>')) == -1)
-			{
-				// there are no angle quote marks so output in vernacular encoding
-				CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces);
-				if (!WriteOutputString(f,EncodingSrcOrTgt,VernacText))
-				{
-					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-					return;
-				}
-				ptr += itemLen;
-			}
-			else
-			{
-				// there is at least one angle quote mark in VernacText so we'll convert
-				// them to the appropriate RTF quote tags using the following function
-				// Note: The WriteOutputStringConvertingAngleBrackets() function is also used
-				// in footnote, endnote, and crossref output elsewhere in DoExportSrcOrTgtRTF.
-				CountTotalCurlyBraces(VernacText,nOpeningBraces,nClosingBraces); // no curly braces added here
-				if (!WriteOutputStringConvertingAngleBrackets(f,EncodingSrcOrTgt,VernacText,ptr))
-				{
-					pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
-					return;
-				}
-				ptr += itemLen;
-			}// end of else there's at least one quote mark
-		}// end of else not a marker, but word or special text
+			ptr += itemLen;
+		}// end of else there's at least one quote mark
+		//}// end of else not a marker, but word or special text
 	}// end of while (ptr < pEnd)
 
-d: // exit point for if ptr == pEnd
+	// this is the break point for if ptr == pEnd
+// d: // exit point for if ptr == pEnd
 
 	// remove the progress indicator window
 	pStatusBar->FinishProgress(_("Exporting To Rich Text Format"));
@@ -18437,6 +18465,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		// BEW 21Jul14 ZWSP etc support -- add the word delimiter before everything else
 		wxString aBreak = PutSrcWordBreak(pSrcPhrase); // tests for flag internally, if false, adds a legacy space
 #if defined(_DEBUG)
+		/*
 		if (!aBreak.IsEmpty())
 		{
 			wxChar aChar = aBreak.GetChar(0);
@@ -18451,6 +18480,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 				//}
 			}
 		}
+		*/
 #endif
 		if (!aBreak.IsEmpty())
 		{
