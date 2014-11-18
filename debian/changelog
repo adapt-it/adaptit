@@ -1,3 +1,9 @@
+adaptit (6.5.5-1) unstable; urgency=low
+
+  * pull in updates
+
+ -- Bill Martin <bill_martin@sil.org>  Fri, 28 Nov 2014 16:00:00 -0600
+
 adaptit (6.5.4-1) unstable; urgency=low
 
   * pull in updates
