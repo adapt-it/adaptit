@@ -1,5 +1,5 @@
  ----------------------------------------------
-Version 6.5.5 release ??  ??  2014
+Version 6.5.5 release 28 November 2014
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.5.5
@@ -50,6 +50,14 @@ required that free translation mode be currently in
 effect. If on at a File > Save, it will force storage 
 of the 'by verse' setting in the document's xml, in the 
 ftsbp attribute of the <Settings> element, as before.
+* Four recently added menu items can now be configured by
+an administrator to be visible or non-visible in the menu
+interface for certain User profiles. The default is that
+all of the following menu items are invisible in the Novice
+profile, but visible in the other user profiles:
+Edit menu items: "Change Username..." and "Change Punctuation 
+or Markers Placement"; Tools menu items: "Adapt Clipboard 
+Text" and "Make All Knowledge Base Entries Available".
 ----------------------------------------------
 Bug fixes in 6.5.5
 ----------------------------------------------
@@ -64,7 +72,8 @@ one-pile free translation section at document end.
 * Splitting a free translation after the period of " word.word "
 resulted in the pair of words not being split apart to be in
 different sections, but both ended up in the remainder section.
- ----------------------------------------------
+
+----------------------------------------------
 Version 6.5.4 release 16 September 2014
 ----------------------------------------------
 ----------------------------------------------
