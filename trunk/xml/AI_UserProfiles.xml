@@ -224,6 +224,60 @@ Description:	This file contains the user profile definitions and
 		>
 		</PROFILE>
 </MENU>
+<MENU itemID="ID_MENU_CHANGE_USERNAME"
+	itemType="subMenu"
+	itemText="Change User&amp;name..."
+	itemDescr="Edit menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_EDITMENU_CHANGE_PUNCTS_MKRS_PLACE"
+	itemType="subMenu"
+	itemText="Change Punctuation or Markers Placement"
+	itemDescr="Edit menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
 <MENU itemID="ID_EDIT_MOVE_NOTE_FORWARD"
 	itemType="subMenu"
 	itemText="Move Note Forward\tCtrl-3"
@@ -495,6 +549,33 @@ Description:	This file contains the user profile definitions and
 		>
 		</PROFILE>
 </MENU>
+<MENU itemID="ID_TOOLS_CLIPBOARD_ADAPT"
+	itemType="subMenu"
+	itemText="A&amp;dapt Clipboard Text\tCtrl-7"
+	itemDescr="Tools menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
 <MENU itemID="ID_TOOLS_DEFINE_CC"
 	itemType="subMenu"
 	itemText="&amp;Load Consistent Changes..."
@@ -687,6 +768,33 @@ Description:	This file contains the user profile definitions and
 <MENU itemID="ID_TOOLS_AUTO_CAPITALIZATION"
 	itemType="subMenu"
 	itemText="Use Automatic Capitalization"
+	itemDescr="Tools menu"
+	adminCanChange="1"
+	>
+		<PROFILE userProfile="Novice"
+			itemVisibility="0"
+			factory="0"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Experienced"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Skilled"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+		<PROFILE userProfile="Custom"
+			itemVisibility="1"
+			factory="1"
+		>
+		</PROFILE>
+</MENU>
+<MENU itemID="ID_MENU_UPPER_AVAIL"
+	itemType="subMenu"
+	itemText="Make All Knowledge Base Entries Available"
 	itemDescr="Tools menu"
 	adminCanChange="1"
 	>
