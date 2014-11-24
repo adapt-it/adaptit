@@ -11,7 +11,7 @@
 /// prefixes in two columns, each line being a src language prefix in column one, and a
 /// target language prefix in column two. Similarly, a separate list of suffix pairs can
 /// be created. No hyphens should be typed. Explicitly having these morpheme sets makes
-/// the guesser work far more accurately.
+/// the guesser work far more accurately. klb
 /// \derivation		The GuesserAffixesListsDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
