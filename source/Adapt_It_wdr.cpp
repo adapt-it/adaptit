@@ -10273,10 +10273,10 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxFlexGridSizer *item10 = new wxFlexGridSizer( 2, 10, 10 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Source Language Affix:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_LABEL_SRC_AFFIX, _("Source Language Suffix:"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_TGT, _("Target Language Affix:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item12 = new wxStaticText( parent, ID_LABEL_TGT_AFFIX, _("Target Language Suffix:"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
@@ -10285,10 +10285,10 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item14->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
     item13->Add( item14, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(120,26), wxTE_CENTRE );
+    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(110,26), wxTE_CENTRE );
     item15->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item15->SetToolTip( _("Type, or edit, the source language suffix, or prefix, here") );
-    item13->Add( item15, 1, wxALIGN_CENTER_VERTICAL, 5 );
+    item13->Add( item15, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item16 = new wxStaticText( parent, ID_STATICTEXT_SRC_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
     item16->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
@@ -10302,10 +10302,10 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
     item18->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
     item17->Add( item18, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(120,26), wxTE_CENTRE );
+    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(111,26), wxTE_CENTRE );
     item19->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
     item19->SetToolTip( _("Type, or edit, the target language suffix, or prefix, here") );
-    item17->Add( item19, 1, wxALIGN_CENTER_VERTICAL, 5 );
+    item17->Add( item19, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item20 = new wxStaticText( parent, ID_STATICTEXT_TGT_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
     item20->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
