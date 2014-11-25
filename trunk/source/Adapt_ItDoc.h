@@ -40,7 +40,7 @@ struct AutoFixRecordG;
 class CStatusBar;
 
 // Comment out to disable debugging code for the ZWSP etc support
-#define DEBUG_ZWSP
+//#define DEBUG_ZWSP
 
 #if defined(_DEBUG) && defined(DEBUG_ZWSP)
 // copied from PunctCorrespPage.cpp for use here while debugging

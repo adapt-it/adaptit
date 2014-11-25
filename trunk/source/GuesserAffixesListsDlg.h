@@ -57,8 +57,8 @@ public:
 	// and similarly for when Prefix List is chose, the two labels would be
 	// Source Language Prefix      and
 	// Target Language Prefix
-	wxStaticText*	m_pSrcLangAffix;
-	wxStaticText*	m_pTgtLangAffix;
+	wxStaticText*	m_pSrcLabel;
+	wxStaticText*	m_pTgtLabel;
 	// Store the above four label strings in the following members
 	wxString		m_strSrcLangSuffix;
 	wxString		m_strTgtLangSuffix;
@@ -114,7 +114,12 @@ private:
 	// bool m_bVariable;
 	CAdapt_ItApp*		m_pApp;
 	wxWindow*			m_pParent; // the instance of GuesserSettingsDlg, wxStaticLine must know its parent
-	
+	bool m_bSuffixListChosen;
+	wxString m_prefixesSrcLabel;
+	wxString m_prefixesTgtLabel;
+	wxString m_suffixesSrcLabel;
+	wxString m_suffixesTgtLabel;
+
 	// other class attributes
 	AffixPairsArray* m_pSuffixesPairsArray;
 	AffixPairsArray* m_pPrefixesPairsArray;
@@ -131,6 +136,7 @@ private:
 	bool SuffixExistsAlready(wxString sSrc);
 
 	void ClearAffixList ( PairsListType type );
+	void AdjustLabels(bool bSuffixListChosen);
 
 	DECLARE_EVENT_TABLE()
 };
