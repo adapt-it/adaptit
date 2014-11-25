@@ -14,6 +14,7 @@
 
 // For documentation see CorGuess.h
 
+#define DoLogging
 
 #ifndef _MBCS // 1.6.0ad Update CorGuess.cpp for compiling in Adapt It // 1.6.1ba Update guesser to test _MCBS for non wxWidgets
 // ////////////////////////////////////////////////////////////////////////
@@ -325,6 +326,9 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 		Corresp* pcor = NULL;
 		Corresp* pcorPrev = NULL;
 		int iStart, iEnd1, iEnd2 = 0;
+#if defined(_DEBUG) && defined(DoLogging)
+		int counter = 0;
+#endif
 		for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix correspondences
 			{
 			wxChar* pszS = pcor->pszSrc;
@@ -335,16 +339,30 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				pszS += iEnd1;
 				pszT += iEnd2;
 				corlstSuffGuess.Add( pszS, pszT, 0 ); // Add to list, count if already there
+#if defined(_DEBUG) && defined(DoLogging)
+				counter++;
+				wxLogDebug(_T("CalcCorresp: Add suffix guess: Src = %s   Tgt = %s            counter = %d"), pszS, pszT, counter);
+#endif
 				}
 			}
 		pcor = corlstSuffGuess.pcorFirst;
-		while ( pcor )
+#if defined(_DEBUG) && defined(DoLogging)
+			counter = 0;
+			wxLogDebug(_T("Deleting these ones..."));
+#endif		while ( pcor )
 			{
 			bool bDelete = false;
 			if ( pcor->iNumInstances < iMinSuffExamples ) // Delete all correspondences that occur too few times // 1.5.8va 
 				bDelete = true;
-			if ( bDelete )				
-				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev );
+			if (bDelete)
+			{
+#if defined(_DEBUG) && defined(DoLogging)
+				counter++;
+				wxLogDebug(_T("CalcCorresp: Deleting: Src = %s   Tgt = %s   NumInstances = %d     counter = %d"), 
+					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iNumInstances, counter);
+#endif
+				pcor = corlstSuffGuess.pcorDelete(pcor, pcorPrev);
+			}
 			else
 				{
 				pcorPrev = pcor;
