@@ -15250,6 +15250,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// phrasebox to the active pile's hole when free trans mode is exited. (Because
 		// it stubbornly stayed at old anchor location on the screen)
 
+	m_preGuesserStr.Empty();
+
 	m_bZWSPinDoc = FALSE; // set default value; each loaded doc will be checked for
 						  // presence of ZWSP, and if present, this flag is set TRUE
 						  // unilaterally for that document. It governs, mainly,

@@ -327,8 +327,15 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 		Corresp* pcorPrev = NULL;
 		int iStart, iEnd1, iEnd2 = 0;
 #if defined(_DEBUG) && defined(DoLogging)
+		wxBell();
 		int counter = 0;
 #endif
+		// BEW added 27Nov14, test for corlstKB == NULL, this is the case when a new project is created and the
+		// first document is being created with OnNewDocument() - which calls CopySourceKey() and if the setup has
+		// the guesser turned on, which is the default setting, pcor here gets set to NULL which causes a crash
+		// further down when that pointer is dereferenced
+		if (corlstKB.pcorFirst == NULL)
+			return;
 		for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix correspondences
 			{
 			wxChar* pszS = pcor->pszSrc;
@@ -349,7 +356,12 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 #if defined(_DEBUG) && defined(DoLogging)
 			counter = 0;
 			wxLogDebug(_T("Deleting these ones..."));
-#endif		while ( pcor )
+#endif
+			// BEW 27Nov14, pcor is set to NULL if, in a new project's first document at the first Enter keypress
+			// to advance the box from the sequ num = 0 position, there is only one entry in the KB, and then
+			// pcor is set to NULL, and then dereferenced in the while loop causing a crash, so add a subtest to
+			// prevent loop access when pcor is NULL (because while(pcor) does not prevent access when NULL passed in)
+			while (pcor != NULL && pcor)
 			{
 			bool bDelete = false;
 			if ( pcor->iNumInstances < iMinSuffExamples ) // Delete all correspondences that occur too few times // 1.5.8va 
@@ -390,7 +402,9 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 
 		pcorPrev = NULL;
 		pcor = corlstSuffGuess.pcorFirst; // Delete correspondences that have less than required success percentage
-		while ( pcor )
+		// BEW 27Nov14, while this one (as  while(pcor) ) did fail above but didn't fail here (dunno why - that's weird, since
+		// both places had pcor NULL) I thought I better add the same protection here too, so added pcor != NULL && 
+		while (pcor != NULL &&  pcor)
 			{
 			int iSuccessPercent = ( pcor->iNumInstances * 100 ) / ( pcor->iNumInstances + pcor->iNumExceptions );
 			if ( iSuccessPercent < iRequiredSuccessPercent ) // 1.4bd Make required success ratio a parameter

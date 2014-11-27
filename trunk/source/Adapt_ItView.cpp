@@ -13453,7 +13453,10 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		// (in glossing mode). In the former case, it tries to copy a gloss to the box
 		// if a gloss is available, otherwise source text used instead; in the latter case
 		// it tries to copy an adaptation as the default gloss, if an adaptation is
-		// available, otherwise source text is used instead
+		// available, otherwise source text is used instead. Roland Fumey requested these
+		// two special behaviours when non-legacy copy (which is to just copy the source text)
+		// is not wanted. The Backups and Misc tab of Preferences has the checkbox for choosing
+		// these non-legacy behaviours.
 		if (gbIsGlossing)
 		{
 			if (!pSrcPhrase->m_adaption.IsEmpty())
@@ -13518,9 +13521,22 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		// OR if it is being used AND m_bAllowGuesseronUnchangedCCOutput
 		// was set to true by the administrator checking the appropriate checkbox
 		// in the GuesserSettingsDlg.
+
+		// BEW 27Nov14 Store the pre-guesser form of the string, because the user may
+		// elect to hit the Esc key to reject the guess, so the OnKeyDown() code which
+		// grabs the value in order to restore it can find it in app's m_preGuesserStr
+		// public member wxString
+		pApp->m_preGuesserStr.Empty(); // we also clear it at the start of any function which moves the phrasebox
+		pApp->m_preGuesserStr = str;
 		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
 		{
 			str2 = DoGuess(str,bIsGuess);
+#if defined (_DEBUG)
+			if (bIsGuess)
+			{
+				int break_here = 1;
+			}
+#endif
 			pApp->m_bIsGuess = bIsGuess;
 		}
 	}
@@ -13725,7 +13741,7 @@ wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 /// \return     a wxString representing text after any Guess has been performed
 ///             on the text
 /// \param      str    -> the incoming string on which a Guess of corresponding target text
-///                         is to be performe
+///                         is to be performed
 /// \param      bIsGuess <- set to TRUE if a guess was returned, FALSE otherwise
 /// \remarks
 /// Called from: the View's CopySourceKey() and DoTargetBoxPaste().

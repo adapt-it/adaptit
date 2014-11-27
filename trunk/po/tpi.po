@@ -4,7 +4,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
 "POT-Creation-Date: 2014-09-16 16:08-0600\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Bill Martin <bill_martin@sil.org>\n"
+"Last-Translator: Bruce Waters <bruce_waters@sil.org>\n"
 "Language-Team: Adapt It Development <adaptitbill@gmail.com>\n"
 "Language: Tok Pisin (tpi)\n"
 "MIME-Version: 1.0\n"
@@ -3889,8 +3889,8 @@ msgid ""
 "adaptations in the form of retranslations?)"
 msgstr ""
 "Sori, \"Go Long\" oda i no wok. Adapt It i no inap painim wanpela gutpela "
-"ples bilong putim fres boks. (Olgeta trenselsen yu bin, wokim yu wokim olsem "
-"ritrenslesen tasol?)"
+"ples bilong putim fres bokis. (Olgeta trenselsen yu bin, wokim yu wokim "
+"olsem ritrenslesen tasol?)"
 
 #: source/Adapt_ItView.cpp:15675
 #, c-format
@@ -5412,7 +5412,7 @@ msgid ""
 "Copy the default phrase box contents from adaptation or gloss, depending on "
 "the mode"
 msgstr ""
-"Kopiim teks bilong fres boks i kam long adaptesen o i kam long glos (em i "
+"Kopiim teks bilong fres bokis i kam long adaptesen o i kam long glos (em i "
 "hangamap long wanem mod i stap)"
 
 #: source/Adapt_It_wdr.cpp:1916
@@ -5516,7 +5516,7 @@ msgstr "Ol namba i moa antap bai wokim moa spes long sait i stap long han kais"
 #: source/Adapt_It_wdr.cpp:2010
 msgid "Phrase Box white space slop and expansion multiplier (min 5, max 30)"
 msgstr ""
-"Spes bilong Fres Boks i ken i solap i go longpela (liklik 5, planti 30)"
+"Spes bilong Fres Bokis i ken i solap i go longpela (liklik 5, planti 30)"
 
 #: source/Adapt_It_wdr.cpp:2018
 msgid ""
@@ -5586,13 +5586,14 @@ msgstr "Pasword i lukautim. Sapos yu tikim, Administreta menu bai kamap"
 msgid ""
 "Keep phrase box approximately mid-screen (strips move relative to the box)"
 msgstr ""
-"Holim fres box i stap namel long skrin (Ol strip i mov i go kam tasol box i "
-"stap namel)"
+"Holim fres boxis i stap namel long skrin (Ol strip i mov i go kam tasol box "
+"i stap namel)"
 
 #: source/Adapt_It_wdr.cpp:2088
 msgid "Keep strips stationary until a scroll happens (phrase box moves down)"
 msgstr ""
-"Holim ol strip i no ken mov inap skrin i mas skrol (fres box i mov i go daun)"
+"Holim ol strip i no ken mov inap skrin i mas skrol (fres bokis i mov i go "
+"daun)"
 
 #: source/Adapt_It_wdr.cpp:2090
 msgid "Options for Scroll Into View"
@@ -5603,7 +5604,7 @@ msgid ""
 "Choose whether you want the strips to move vertically, or the phrase box, "
 "while working"
 msgstr ""
-"Yu makim pasin bilong ol strip na fres box i mov olsem wanem taim yu mekim "
+"Yu makim pasin bilong ol strip na fres bokis i mov olsem wanem taim yu mekim "
 "wok"
 
 #: source/Adapt_It_wdr.cpp:2102
@@ -5692,8 +5693,8 @@ msgid ""
 "Select this button to save the document and KB after a certain number of "
 "moves of the Phrase Box"
 msgstr ""
-"Selektim dispela batan bilong sevim dokumen wantaim KB sapos Fres Boks i mov "
-"haumas taim pinis "
+"Selektim dispela batan bilong sevim dokumen wantaim KB sapos Fres Bokis i "
+"mov haumas taim pinis "
 
 #: source/Adapt_It_wdr.cpp:2217
 msgid "Type the number of moves here"
@@ -5707,7 +5708,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:2226
 msgid "moves of the Phrase Box"
-msgstr "mov bilong Fres Boks"
+msgstr "mov bilong Fres Bokis"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:2237
@@ -5880,7 +5881,7 @@ msgstr "&Painim Neks Sapta"
 
 #: source/Adapt_It_wdr.cpp:2583
 msgid "Click this button to move the phrase box to the next chapter"
-msgstr "Klikim dispela batan bilong movim fres boks i go long neks sapta"
+msgstr "Klikim dispela batan bilong movim fres bokis i go long neks sapta"
 
 # Priority 1
 # Label of a button to split the document into assigned parts
@@ -5919,14 +5920,14 @@ msgstr "Brukim Long:"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:2623
 msgid "The phrase box location"
-msgstr "Ples bilong fres boks stret"
+msgstr "Ples bilong fres bokis stret"
 
 #: source/Adapt_It_wdr.cpp:2624
 msgid ""
 "Click this button to split the document at the current phrase box location"
 msgstr ""
 "Klikim dispela batan bilong brukim dokumen i hap stret long ples we fres "
-"boks nau i stap"
+"bokis nau i stap"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:2627
@@ -8201,7 +8202,7 @@ msgid ""
 "overwriting anything there."
 msgstr ""
 "Selektim item insait long dispela lista, na kopi bilong en bai go long Fres "
-"Boks"
+"Bokis"
 
 # Priority 1
 # Meaning: reverse the last copy that was made
@@ -8979,7 +8980,7 @@ msgid ""
 "from the guesser"
 msgstr ""
 "Selektim kala bilong bekgraun bilong fres boks, sapos gesa yet i kirapim tok "
-"insais long fres box"
+"insais long fres bokis"
 
 # Priority 1
 # Label above a slider that can be used to set the level of guessing of adaptations whether for fewer guesses or more guesses
@@ -11204,7 +11205,7 @@ msgstr "Kopi S&os"
 
 #: source/Adapt_It_wdr.cpp:10489
 msgid "Copy source text to phrase box as default translation"
-msgstr "Kopiim sos teks i kam long fres boks olsem trenslesen bilong traim"
+msgstr "Kopiim sos teks i kam long fres bokis olsem trenslesen bilong traim"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10490
@@ -14878,8 +14879,8 @@ msgid ""
 "Knowledge Base\" checkbox back to ON."
 msgstr ""
 "Sori, wanpela rot tasol bilong rausim dispela kain samting, em long putim "
-"fres boks i go long ples stret insait long dokumen, na putim tik i go bek "
-"insait long boks i tok: \"Sevim Long Nolis Bes\". "
+"fres bokis i go long ples stret insait long dokumen, na putim tik i go bek "
+"insait long bokis i tok: \"Sevim Long Nolis Bes\". "
 
 #: source/KBEditor.cpp:1637 source/KBEditor.cpp:1769
 msgid "Translations list box error when getting the current selection"
@@ -16569,7 +16570,7 @@ msgid ""
 "afterwards. Shorten the selection then try again."
 msgstr ""
 "Sori, yu selektim olgeta teks na yu laik wokim ritrenslesen long olgeta "
-"wantaim, tasol Adapt It i no ken mekim olsem nogut fres boks i nogat ples "
+"wantaim, tasol Adapt It i no ken mekim olsem nogut fres bokis i nogat ples "
 "bilong putim. Sotim seleksen pastaim na traim gen."
 
 # Priority 1
@@ -16595,7 +16596,7 @@ msgid ""
 "impossible to place the phrase box anywhere in the document."
 msgstr ""
 "Toksave: Dispela dokumen i pulap tru wantaim ol ritrenslesen tasol. Olsem "
-"Adapt It i nogat ples bilong putim fres boks insait long dokumen."
+"Adapt It i nogat ples bilong putim fres bokis insait long dokumen."
 
 #: source/Retranslation.cpp:2659 source/Retranslation.cpp:3540
 msgid ""
@@ -17456,8 +17457,8 @@ msgid ""
 "The split was aborted because the phrase box was still at the start of the "
 "document."
 msgstr ""
-"Adapt It i no brukim o hapim dokumen, bilong wanem fres boks i stap yet long "
-"stat bilong dokumen."
+"Adapt It i no brukim o hapim dokumen, bilong wanem fres bokis i stap yet "
+"long stat bilong dokumen."
 
 # Priority 1
 #: source/SplitDialog.cpp:433 source/SplitDialog.cpp:672

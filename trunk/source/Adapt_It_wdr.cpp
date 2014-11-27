@@ -7475,6 +7475,13 @@ wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer
 
     item1->Add( item23, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT_USE_ESC_KEY, _("To reject a displayed guess in the phrase box, press the Esc key."), wxDefaultPosition, wxSize(-1,18), wxALIGN_CENTRE );
+    item27->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxTOP, 5 );
+
+    item1->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 ); 
+
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)

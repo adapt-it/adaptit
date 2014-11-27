@@ -4467,6 +4467,10 @@ public:
 	wxString m_consCheck_msg1; // An adaptation exists. A knowledge base entry is expected, but is absent
 	wxString m_consCheck_msg2; // The knowledge base entry is %s, the document does not agree
 
+	// For enhanced guesser rejection support
+	wxString m_preGuesserStr; // set it in CopySourceText() just before DoGuesser() is tried
+							  // and empty it when phrasebox moves for any reason BEW added 27Nov14
+
 	bool m_bXhtmlExportInProgress; // BEW 9Jun12
 
 	bool m_bUsePrefixExportTypeOnFilename; // whm 9Dec11 added flag to include/exclude prefixing an
