@@ -510,7 +510,10 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView != NULL);
-
+	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
+				// is stored ready for user's Esc keypress to restore the pre-guesser
+				// form, clear it, because the box is gunna move and we want it
+				// restored to default empty ready for next box landing location
 	// whm modified 29Mar12. Left mouse clicks now beep only when certain parts of
 	// the canvas are clicked on, and allows other clicks to act normally (such as
 	// the opening/closing of the ViewFilteredMaterial dialog and the Notes dialog).

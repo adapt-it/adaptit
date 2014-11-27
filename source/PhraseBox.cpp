@@ -797,11 +797,19 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 // BEW 21Jun10, no changes for support of kbVersion 2, & removed pView from signature
 bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
 {
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
+		// is stored ready for user's Esc keypress to restore the pre-guesser
+		// form, clear it, because the box is gunna move and we want it
+		// restored to default empty ready for next box landing location
+	// whm modified 29Mar12. Left mouse clicks now beep only when certain parts of
+	// the canvas are clicked on, and allows other clicks to act normally (such as
+	// the opening/closing of the ViewFilteredMaterial dialog and the Notes dialog).
+
 	//bool bNoError = TRUE;
 	bool bWantSelect = FALSE; // set TRUE if any initial text in the new location is to be
 							  // shown selected
 	// store the translation in the knowledge base
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -1228,11 +1236,18 @@ void CPhraseBox::ChangeCancelAndSelectFlag(bool bValue)
 // BEW 21Jun10, no changes needed for support of kbVersion 2, & removed pView from signature
 bool CPhraseBox::MoveToNextPile_InTransliterationMode(CPile* pCurPile)
 {
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
+		// is stored ready for user's Esc keypress to restore the pre-guesser
+		// form, clear it, because the box is gunna move and we want it
+		// restored to default empty ready for next box landing location
+	// whm modified 29Mar12. Left mouse clicks now beep only when certain parts of
+	// the canvas are clicked on, and allows other clicks to act normally (such as
+	// the opening/closing of the ViewFilteredMaterial dialog and the Notes dialog).
 	//bool bNoError = TRUE;
 	bool bWantSelect = FALSE; // set TRUE if any initial text in the new location is to be
 							  // shown selected
 	// store the translation in the knowledge base
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView* pView = pApp->GetView();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -3296,10 +3311,17 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 // for glossing KB
 bool CPhraseBox::MoveToPrevPile(CPile *pCurPile)
 {
-    // store the current translation, if one exists, before retreating, since each retreat
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
+		// is stored ready for user's Esc keypress to restore the pre-guesser
+		// form, clear it, because the box is gunna move and we want it
+		// restored to default empty ready for next box landing location
+	// whm modified 29Mar12. Left mouse clicks now beep only when certain parts of
+	// the canvas are clicked on, and allows other clicks to act normally (such as
+	// the opening/closing of the ViewFilteredMaterial dialog and the Notes dialog).
+	// store the current translation, if one exists, before retreating, since each retreat
     // unstores the refString's translation from the KB, so they must be put back each time
     // (perhaps in edited form, if user changed the string before moving back again)
-	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView *pView = pApp->GetView();
@@ -3667,10 +3689,17 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 // for glossing KB
 bool CPhraseBox::MoveToImmedNextPile(CPile *pCurPile)
 {
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	pApp->m_preGuesserStr.Empty(); // BEW 27Nov14, in case a src string, or modified string
+		// is stored ready for user's Esc keypress to restore the pre-guesser
+		// form, clear it, because the box is gunna move and we want it
+		// restored to default empty ready for next box landing location
+	// whm modified 29Mar12. Left mouse clicks now beep only when certain parts of
+	// the canvas are clicked on, and allows other clicks to act normally (such as
+	// the opening/closing of the ViewFilteredMaterial dialog and the Notes dialog).
 	// store the current translation, if one exists, before moving to next pile, since each move
 	// unstores the refString's translation from the KB, so they must be put back each time
 	// (perhaps in edited form, if user changed the string before moving back again)
-	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	//pApp->limiter = 0; // BEW added Aug13, to support OnIdle() hack for m_targetStr non-stick bug // bug fixed 24Sept13 BEW
 	CAdapt_ItView *pView = pApp->GetView();
@@ -5011,8 +5040,13 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			// get the pSrcPhrase at this active location
 			CSourcePhrase* pSrcPhrase;
 			pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-			wxString str = pSrcPhrase->m_key;
+			//wxString str = pSrcPhrase->m_key; // BEW 27Bov14 deprecated, in favour of using the 
+			// stored pre-guesser version of the string, because it may have been modified
+			wxString str = pApp->m_preGuesserStr; // use this as the default restore string
 
+			// It was Roland Fumey in 16July08 that wanted strings other than the source text
+			// to be used for the restoration, if gbLegacySourceTextCopy was not in effect, so
+			// keep the following as it is the protocol he requested
 			if (!gbLegacySourceTextCopy)
 			{
 				// the user wants smart copying done to the phrase box when the active location
@@ -5040,6 +5074,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			this->SetBackgroundColour(wxColour(255,255,255)); // white;
 			this->m_bAbandonable = TRUE;
 			pApp->m_bIsGuess = FALSE;
+			pApp->m_preGuesserStr.Empty(); // clear this to empty, it's job is done
 			return;
 		}
 	}
