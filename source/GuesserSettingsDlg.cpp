@@ -189,6 +189,16 @@ void CGuesserSettingsDlg::OnOK(wxCommandEvent& event)
     // value of FALSE was not picked up, and the setting stayed TRUE
 	bUseAdaptationsGuesser = pCheckUseGuesser->GetValue();
 
+	// BEW added 27Nov14, there was no setting m_bGuessingLevel using the final value of
+	// nGuessingLevel, and so when the dialog was closed, the default 50% was immediately
+	// reinstated! So fix this here, if use of the guesser is still wanted
+	if (bUseAdaptationsGuesser)
+	{
+		nGuessingLevel = pSlider->GetValue();
+		m_pApp->m_nGuessingLevel = nGuessingLevel;
+		// m_nGuessingLevel is what gets written to the project config file
+	}
+
 	// Note: The App's member values are updated in CAdapt_ItView::OnButtonGuesserSettings()
 	// and LoadGuesser() called if necessary, by comparing this local class' values with 
 	// those on the App (for detecting changes made in this dialog class).

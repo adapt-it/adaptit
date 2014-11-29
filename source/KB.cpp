@@ -4791,6 +4791,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			// if something went wrong, just save as if gbAutoCaps was FALSE
 			pRefString->m_translation = tgtPhrase;
 		}
+		// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
+#if defined(_DEBUG)
+//		if (m_bGlossingKB)
+//			m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
+//		else
+//			m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
+#endif
 
 #if defined(_KBSERVER)
 		// BEW added 5Oct12, here is a suitable place for kbserver support of
@@ -4969,6 +4976,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				pRefString->m_translation = tgtPhrase;
 			}
+			// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
+#if defined(_DEBUG)
+//			if (m_bGlossingKB)
+//				m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
+//			else
+//				m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
+#endif
 
 #if defined(_KBSERVER)
 			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
@@ -5125,6 +5139,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// in next call, param bool bOriginatedFromTheWeb is default FALSE
 						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
 
+						// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
+#if defined(_DEBUG)
+//						if (m_bGlossingKB)
+//							m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
+//						else
+//							m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
+#endif
 #if defined(_KBSERVER)
 						// BEW added 18Oct12, we must first determine that an
 						// entry with the same src/tgt string is in the remote database,
@@ -5301,6 +5322,13 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						pRefString->m_translation = tgtPhrase;
 					}
 
+					// BEW 27Nov14 True hurrying up the guesser in real time  -- remove the conditional defines if Alan says this is a kosher thing to do
+#if defined(_DEBUG)
+//					if (m_bGlossingKB)
+//						m_pApp->m_pGlossesGuesser->AddCorrespondence(key, pRefString->m_translation);
+//					else
+//						m_pApp->m_pAdaptationsGuesser->AddCorrespondence(key, pRefString->m_translation);
+#endif
 #if defined(_KBSERVER)
 					// BEW added 5Oct12, here is a suitable place for kbserver support of
 					// CreateEntry(), since both the key and the translation (both possibly

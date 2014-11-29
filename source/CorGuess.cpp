@@ -381,7 +381,14 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				pcor = pcor->pcorNext;
 				}
 			}
-		for ( Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext ) // Count exceptions for each correspondence
+#if defined(_DEBUG) && defined(DoLogging)
+			counter = 0;
+			// Count exceptions (ie. the ends of the correpondence don't match; if they do match then they
+			// do not contribute to the iNumExceptions count for a given Corresp instance. The outer loop
+			// iterates over affix (suffix?) correspondences, in corlistSuffGuess list; the inner loop
+			// iterates over the whole KBs records set - as set earlier in corlstKB
+#endif
+			for (Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext) // Count exceptions for each correspondence
 			{
 			wxChar* pszSuffSrc = pcorSuff->pszSrc;
 			wxChar* pszSuffTar = pcorSuff->pszTar;
@@ -390,13 +397,19 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				{
 				wxChar* pszEndSrc = pcor->pszSrc; // Get end of source of kb pair
 				pszEndSrc += wxStrlen( pszEndSrc ) - iLenSrc;
-				if ( !wxStrcmp( pszSuffSrc, pszEndSrc ) ) // If source matches, see if target matches, if not this is an exception
+				if (!wxStrcmp(pszSuffSrc, pszEndSrc)) // If source matches, see if target matches, if not this is an exception
 					{
 					wxChar* pszEndTar = pcor->pszTar; // Get end of target of kb pair
 					pszEndTar += wxStrlen( pszEndTar ) - iLenSrc;
 					if ( wxStrcmp( pszSuffTar, pszEndTar ) ) // If exception, count it
 						pcorSuff->iNumExceptions++;
 					}
+#if defined(_DEBUG) && defined(DoLogging)
+				counter++;
+				wxLogDebug(_T("CalcCorresp: Exceptions counts: Src = %s   Tgt = %s  iFreq = %d   iNumInstances = %d   iNumExceptions = %d"),
+					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, 
+					((Corresp*)pcor)->iNumInstances, ((Corresp*)pcor)->iNumExceptions );
+#endif
 				}
 			}
 
@@ -404,6 +417,11 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 		pcor = corlstSuffGuess.pcorFirst; // Delete correspondences that have less than required success percentage
 		// BEW 27Nov14, while this one (as  while(pcor) ) did fail above but didn't fail here (dunno why - that's weird, since
 		// both places had pcor NULL) I thought I better add the same protection here too, so added pcor != NULL && 
+#if defined(_DEBUG) && defined(DoLogging)
+		counter = 0;
+		wxLogDebug(_T("\n\n *** SUCCEEDERS ***\n"));
+		// Log those that Succeed by exceeding the iRequiredSuccessPercent (which is 1% I think)
+#endif
 		while (pcor != NULL &&  pcor)
 			{
 			int iSuccessPercent = ( pcor->iNumInstances * 100 ) / ( pcor->iNumInstances + pcor->iNumExceptions );
@@ -411,6 +429,11 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev );
 			else
 				{
+#if defined(_DEBUG) && defined(DoLogging)
+				counter++;
+				wxLogDebug(_T("CalcCorresp: SUCCEEDERS: Src = %s   Tgt = %s   Percent = %d   iRequiredSuccessPercent = %d  counter = %d"),
+					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, iSuccessPercent, iRequiredSuccessPercent, counter);
+#endif				
 				pcorPrev = pcor;
 				pcor = pcor->pcorNext;
 				}
@@ -422,6 +445,16 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 			corlstSuffGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		for ( pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstPrefGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
+#if defined(_DEBUG) && defined(DoLogging)
+		counter = 0;
+		wxLogDebug(_T("\n\n *** Prefixes ***\n"));
+		for (pcor = corlstPrefGuess.pcorFirst; pcor; pcor = pcor->pcorNext)
+		{
+			counter++;
+			wxLogDebug(_T("CalcCorresp: Prefixes: Src = %s   Tgt = %s   counter = %d"),
+				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar,  counter);
+		}
+#endif
 		for ( pcor = corlstRootGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstRootGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		}
