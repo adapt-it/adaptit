@@ -427,7 +427,7 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 			 (m_pltCurrentAffixPairListType == suffixesListType && SuffixExistsAlready(sSrc))) // If already exists
 	{
 		wxString msg = _("Affix \"") + sSrc + _("\" already exists. Multiple identical affixes are not allowed.");
-		wxMessageBox(msg,_(""),wxICON_INFORMATION | wxOK, this);
+		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK, this);
 		//event.Skip(); 
 	}
 	else
