@@ -5071,6 +5071,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 				}
 			}
 			this->ChangeValue(str);
+			pApp->m_targetPhrase = str; // Required, otherwise the guess persists and gets used in auto-inserts subsequently
 			this->SetBackgroundColour(wxColour(255,255,255)); // white;
 			this->m_bAbandonable = TRUE;
 			pApp->m_bIsGuess = FALSE;

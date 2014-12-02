@@ -4298,6 +4298,67 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			pApp->m_bAutoInsert = FALSE;
 		}
 	}
+
+	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls
+	// which need to be done pretty often -- and which block the GUI whether done synchronously
+	// as is done here, or asynchronously on a thread (due to mutexes blocking KB saves and
+	// guesser lists' acccesses). So the best place to hide them is at idle time when the user
+	// is eyeballing what's in the gui or deciding what next to type. The calls are done here,
+	// deliberately *after* auto-insertions, to prevent accidently interruptions to the
+	// auto-insert mechanism of the block immediately above. *Don't change this order of these
+	// two blocks!*
+	// Support requires the following extra apparatus:
+	// 1. A member function of CKB class (it could be on the app, but KB.cpp is probably better)
+	// called GuesserUpdate(), returning void, which calls SaveKB() on the relevant KB, and then
+	// calls LoadGuesser() for the relevant KB type (adapting or glossing), to get the guesser
+	// lists updated with the edditions to the KB contents.
+	// 2. A function to check the aggregate count of the KB's first four maps (where most entries
+	// will be) and work out how many extra entries have to have been added in order to warrant
+	// kicking off a new call of GuesserUpdate(). size_t GetMinimumExtras( ), a member function
+	// of CKB also.
+	// 3. Some logic (here) in order to either do nothing, or to initiate an update
+	// 4. An counter, m_numLastEntriesAggregate, size_t, with which we can compare in order to
+	// determine when the minimum number of new entries added to the KB has been equalled or exceeded,
+	// so that we kick off the update when that has happened. Another, m_numLastGlossingEntriesAggregate
+	// is needed for the glossing KB support.
+	// 5. A local size_t counter (here) to receive the value for the minimum number of extra entries
+	// needed in order to warrant an update happening. And a local counter for the current
+	// number of KB entries we are interested in (first 4 maps only) size_t currEntriesAggregate
+	// for the latter, and size_t minimumAdded for the former.
+	if (pApp->m_bUseAdaptationsGuesser)
+	{
+		// We only need this stuff when the guesser is turned on. And even then, we update only when
+		// there has been a minimum number, which increases with KB size increases, of entries added 
+		// to the KB since the last update
+		size_t minimumAdded = 0;
+		size_t currEntriesAggregate; // beware, don't increment this until *after* GuesserUpdate()
+									 // has been called
+		size_t currGlossingEntriesAggregate; // ditto
+		CAdapt_ItApp* pApp = &wxGetApp();
+		if (pApp->m_bKBReady)
+		{
+			minimumAdded = pApp->m_pKB->GetMinimumExtras(currEntriesAggregate);
+			if (currEntriesAggregate > 0 &&
+				currEntriesAggregate >= pApp->m_numLastEntriesAggregate + minimumAdded)
+			{
+				pApp->m_pKB->GuesserUpdate();
+				// update the aggregate count which is to persist for next call
+				pApp->m_pKB->GetMinimumExtras(pApp->m_numLastEntriesAggregate);
+			}
+		}
+		if (pApp->m_bGlossingKBReady)
+		{
+			minimumAdded = pApp->m_pGlossingKB->GetMinimumExtras(currGlossingEntriesAggregate);
+			if (currGlossingEntriesAggregate > 0 &&
+				currGlossingEntriesAggregate >= pApp->m_numLastGlossingEntriesAggregate + minimumAdded)
+			{
+				pApp->m_pGlossingKB->GuesserUpdate();
+				// update the aggregate count which is to persist for next call
+				pApp->m_pGlossingKB->GetMinimumExtras(pApp->m_numLastGlossingEntriesAggregate);
+			}
+		}
+	} // end of TRUE block for test: if (pApp->m_bUseAdaptationsGuesser)
+
 #if defined(SCROLLPOS) && defined(__WXGTK__)
 	// BEW added 10Dec12, a workaround for the scrollPos bug
     if (pApp->GetAdjustScrollPosFlag())

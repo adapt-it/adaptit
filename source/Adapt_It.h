@@ -3491,6 +3491,8 @@ public:
 	bool DoGuesserPrefixWriteToFile(wxFile* pFile = NULL); // Write Guesser prefixes to file
 	bool DoGuesserSuffixWriteToFile(wxFile* pFile = NULL); // Write Guesser suffixes to file
 	bool DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType); // Write Guesser Affix XML to file, file pointer required
+	size_t m_numLastEntriesAggregate; // for the adapting KB, see OnIdle() near it's end for an explanation
+	size_t m_numLastGlossingEntriesAggregate; // for the glossing KB
 
 	EmailReportData* m_pEmailReportData; // EmailReportData struct used in the CEmailReportDlg class
 	wxString m_aiDeveloperEmailAddresses; // email addresses of AI developers (used in EmailReportDlg.cpp)

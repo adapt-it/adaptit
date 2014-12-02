@@ -99,6 +99,7 @@ class CorrespList // corlst List of correspondence structures
 	{
 public:
 	Corresp* pcorFirst; // First correspondence in the full list
+	int iLen; // 1.6.1dc Add len to correspondence list
 protected:
 	Corresp* pcorLast; // Last correspondence in the full list
 	void Add( Corresp *pcorNew ); // Helper function for Add new correspondence
@@ -128,6 +129,7 @@ protected: // Not to be changed by user, carefully tuned for maximum performance
 	int iMaxSuffLen; // Longest suffix length to be considered
 	int iMinSuffExamples; // Minimum number of examples of suffix to be considered
 	int iGuessLevel; // Level of guess, 0 is no guessing, 50 is conservative, 100 is wild guessing
+	bool bInit; // 1.6.1df Used to avoid calculate corresp during intial load
 protected:
 	CorrespListKB corlstKB; // Raw correspondences given to guesser
 	CorrespList corlstSuffGiven; // Given suffixes // 1.6.1ac Add place to store given affixes in guesser

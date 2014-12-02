@@ -60,6 +60,7 @@
 #include "CaseEquivPage.h"
 #include "UsfmFilterPage.h"
 #include "DocPage.h"
+#include "KB.h"
 #if wxCHECK_VERSION(2,9,0)
 	// Use the built-in scrolling wizard features available in wxWidgets  2.9.x
 #else
@@ -419,6 +420,24 @@ void CDocPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 
 	OnSetActive(); // wx version calls our internal function from InitDialog
 	gpApp->RefreshStatusBarInfo();
+
+	// Initialize the project's two aggregated values for the contents of first 4 maps of the two kbs
+
+	// Guesser support - initialize the current counts for each KB  (first 4 maps only) if guessing is 
+	// to be on. This also needs to be done in other places, like when entering a project, and also when 
+	// changing from guesser off to on
+	if (gpApp->m_bUseAdaptationsGuesser)
+	{
+		if (gpApp->m_pKB != NULL && gpApp->m_bKBReady)
+		{
+			gpApp->m_pKB->GetMinimumExtras(gpApp->m_numLastEntriesAggregate); // ignore returned minimumExtras value
+		}
+		if (gpApp->m_pGlossingKB != NULL && gpApp->m_bGlossingKBReady)
+		{
+			gpApp->m_pGlossingKB->GetMinimumExtras(gpApp->m_numLastGlossingEntriesAggregate); // ignore returned minimumExtras value
+		}
+	}
+
 }
 
 // wx version note: This OnSetActive() is not called by the EVT_ACTIVATE handler in wx, so it
