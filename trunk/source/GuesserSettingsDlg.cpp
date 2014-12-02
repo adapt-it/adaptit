@@ -44,6 +44,7 @@
 #include <wx/colordlg.h>
 #include "GuesserAffixesListsDlg.h"
 #include "GuesserSettingsDlg.h"
+#include "KB.h"
 
 // event handler table
 BEGIN_EVENT_TABLE(CGuesserSettingsDlg, AIModalDialog)
@@ -114,6 +115,23 @@ void CGuesserSettingsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//InitDialog() is not virtual, no call needed to a base class
 	bUseAdaptationsGuesser = m_pApp->m_bUseAdaptationsGuesser;
+	if (bUseAdaptationsGuesser)
+	{
+		// If turned on, make sure that the app variables are initialized...
+		// Guesser support - initialize the current counts for each KB  (first 4 maps only)
+		// if guessing is already on.
+		if (m_pApp->m_bUseAdaptationsGuesser)
+		{
+			if (m_pApp->m_pKB != NULL && m_pApp->m_bKBReady)
+			{
+				m_pApp->m_pKB->GetMinimumExtras(m_pApp->m_numLastEntriesAggregate); // ignore returned minimumExtras value
+			}
+			if (m_pApp->m_pGlossingKB != NULL && m_pApp->m_bGlossingKBReady)
+			{
+				m_pApp->m_pGlossingKB->GetMinimumExtras(m_pApp->m_numLastGlossingEntriesAggregate); // ignore returned minimumExtras value
+			}
+		}
+	}
 	nGuessingLevel = m_pApp->m_nGuessingLevel;
 	bAllowGuesseronUnchangedCCOutput = m_pApp->m_bAllowGuesseronUnchangedCCOutput;
 	pCheckUseGuesser->SetValue(bUseAdaptationsGuesser);
@@ -189,14 +207,34 @@ void CGuesserSettingsDlg::OnOK(wxCommandEvent& event)
     // value of FALSE was not picked up, and the setting stayed TRUE
 	bUseAdaptationsGuesser = pCheckUseGuesser->GetValue();
 
+	// If it was just turned on, then we have to initialize the app's aggregate counts...
+	// so that OnIdle()'s support of the guesser works right
+	if (bUseAdaptationsGuesser)
+	{
+		// Guesser support - initialize the current counts for each KB  (first 4 maps only)
+		// if guessing is to be on
+		if (m_pApp->m_bUseAdaptationsGuesser)
+		{
+			if (m_pApp->m_pKB != NULL && m_pApp->m_bKBReady)
+			{
+				m_pApp->m_pKB->GetMinimumExtras(m_pApp->m_numLastEntriesAggregate); // ignore returned minimumExtras value
+			}
+			if (m_pApp->m_pGlossingKB != NULL && m_pApp->m_bGlossingKBReady)
+			{
+				m_pApp->m_pGlossingKB->GetMinimumExtras(m_pApp->m_numLastGlossingEntriesAggregate); // ignore returned minimumExtras value
+			}
+		}
+	}
 	// BEW added 27Nov14, there was no setting m_bGuessingLevel using the final value of
 	// nGuessingLevel, and so when the dialog was closed, the default 50% was immediately
 	// reinstated! So fix this here, if use of the guesser is still wanted
 	if (bUseAdaptationsGuesser)
 	{
 		nGuessingLevel = pSlider->GetValue();
-		m_pApp->m_nGuessingLevel = nGuessingLevel;
-		// m_nGuessingLevel is what gets written to the project config file
+		// m_nGuessingLevel is what gets written to the project config file. Don't set it
+		// here because the success block in the caller must compare old and potentially new
+		// value to see if they are different, and if they are, to have LoadGuesser() called
+		// twice again, once on the adapting kb, and again on the glossing kb
 	}
 
 	// Note: The App's member values are updated in CAdapt_ItView::OnButtonGuesserSettings()

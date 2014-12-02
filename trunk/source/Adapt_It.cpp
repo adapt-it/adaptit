@@ -21407,6 +21407,21 @@ int ii = 1;
 #if defined(_DEBUG) && defined(__WXGTK__)
     wxLogDebug(_T("OnInit() at end: m_bCollaboratingWithBibledit = %d"), (int)m_bCollaboratingWithBibledit);
 #endif
+	
+	// Guesser support - initialize the current counts for each KB  (first 4 maps only) if guessing is 
+	// to be on. This also needs to be done in other places, like when entering a project, and also when 
+	// changing from guesser off to on
+	if (m_bUseAdaptationsGuesser)
+	{
+		if (m_pKB != NULL && m_bKBReady)
+		{
+			m_pKB->GetMinimumExtras(m_numLastEntriesAggregate); // ignore returned minimumExtras value
+		}
+		if (m_pGlossingKB != NULL && m_bGlossingKBReady)
+		{
+			m_pGlossingKB->GetMinimumExtras(m_numLastGlossingEntriesAggregate); // ignore returned minimumExtras value
+		}
+	}
 
 	return TRUE;
 }

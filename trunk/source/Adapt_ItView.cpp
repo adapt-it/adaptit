@@ -13531,12 +13531,12 @@ wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsis
 		if (!pApp->m_bUseConsistentChanges || (pApp->m_bUseConsistentChanges && pApp->m_bAllowGuesseronUnchangedCCOutput))
 		{
 			str2 = DoGuess(str,bIsGuess);
-#if defined (_DEBUG)
-			if (bIsGuess)
-			{
-				int break_here = 1;
-			}
-#endif
+//#if defined (_DEBUG)
+//			if (bIsGuess)
+//			{
+//				int break_here = 1;
+//			}
+//#endif
 			pApp->m_bIsGuess = bIsGuess;
 		}
 	}
@@ -20745,6 +20745,7 @@ void CAdapt_ItView::OnButtonGuesserSettings(wxCommandEvent& WXUNUSED(event))
 		if ((gsDlg.bUseAdaptationsGuesser && !pApp->m_bUseAdaptationsGuesser)
 			|| gsDlg.nGuessingLevel != pApp->m_nGuessingLevel)
 		{
+
 			pApp->LoadGuesser(pApp->m_pGlossingKB);
 			pApp->LoadGuesser(pApp->m_pKB);
 		}

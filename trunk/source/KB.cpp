@@ -6544,5 +6544,85 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 	errors.Clear(); // clear the array
 }
 
+/// \return							The number of extra entries needed for a KB of this size to warrant
+///									having the Guesser updated so the new entries can be used for guesses
+/// \param currEntriesAggregate <-	The aggregated count of the number of entries in the first four maps
+///									of this CKB instance (most entries are in the first 4 maps, that will
+///									do for getting a sensible value to return)
+/// \remarks	This function works out what the minimum number of new entries should be, based on
+///	the aggregated size. When the KB is sparsely populated, an update can be done often (every time the
+/// phrase box moves, for example) without impinging on GUI responsiveness. As the KB becomes more populated,
+/// the need for frequent updates becomes lesser, because more and more it becomes the case that additions
+/// don't result in new affixes, but just increases to already large enough reference counts. So when the
+/// the KB is quite large, updates can be relatively infrequent without negative effects on performance, 
+/// except for probably causing a transient drop in the GUI responsiveness at the time of the update happening.
+/// It's a balancing act between the need to keep the GUI responsive, the need to get new affixes available 
+/// for guessing as soon as possible, and to avoid wasting time on unnecessary calls.
+/// To keep the updates happening at the best possible time, they are done at idle time.
+/// BEW added 2Dec14
+size_t CKB::GetMinimumExtras(size_t& currEntriesAggregate)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	currEntriesAggregate = 0;
+	// This might be called during app initialization, so make it safe
+	if (pApp->m_pKB == NULL)
+		return 0;
+	if (pApp->m_pGlossingKB == NULL)
+		return 0;
+	size_t delta = 0;
+	size_t index;
+	// Ensure that the KBs for this project are loaded ready for use
+	bool bIsForGlossing = IsThisAGlossingKB();
+	if (bIsForGlossing && !pApp->m_bGlossingKBReady)
+	{
+		return 0;
+	}
+	else if (!bIsForGlossing && !pApp->m_bKBReady)
+	{
+		return 0;
+	}
+	// We've a KB ready, with content, so proceed
+	for (index = 0; index < 4; index++)
+	{ 
+		currEntriesAggregate += this->m_pMap[index]->size();
+	}
+	if (currEntriesAggregate < 500)
+		delta = 1;
+	else if (currEntriesAggregate < 1000)
+		delta = 2;
+	else if (currEntriesAggregate < 1400)
+		delta = 3;
+	else if (currEntriesAggregate < 1700)
+		delta = 5;
+	else if (currEntriesAggregate < 2000)
+		delta = 10;
+	else if (currEntriesAggregate < 3000)
+		delta = 14;
+	else if (currEntriesAggregate < 4000)
+		delta = 20;
+	else if (currEntriesAggregate < 5000)
+		delta = 30;
+	else if (currEntriesAggregate < 7000)
+		delta = 40;
+	else
+		delta = 50;
+	return delta;
+}
 
-
+void CKB::GuesserUpdate()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp);
+	if (pApp->m_bKBReady)
+		pApp->SaveKB(FALSE, FALSE); // FALSE for autobackup, FALSE for show progress, in that order
+	if (pApp->m_bGlossingKBReady)
+		pApp->SaveGlossingKB(FALSE); // FALSE for autobackup
+	if (pApp->m_bKBReady)
+	{
+		pApp->LoadGuesser(pApp->m_pKB);
+	}
+	if (pApp->m_bGlossingKBReady)
+	{
+		pApp->LoadGuesser(pApp->m_pGlossingKB);
+	}
+}

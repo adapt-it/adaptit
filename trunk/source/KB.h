@@ -166,7 +166,8 @@ public:
 	// return NULL in that param
 	bool			IsAbsentFrom(CTargetUnit* pTU, wxString& str, bool& bItsPseudoDeleted, 
 						CRefString*& pRefStrDeleted); 
-																   
+	size_t			GetMinimumExtras(size_t& currEntriesAggregate); // BEW added 2Dec14
+	void			GuesserUpdate();
 
 	// accessors for private members
 	int				GetCurrentKBVersion();
