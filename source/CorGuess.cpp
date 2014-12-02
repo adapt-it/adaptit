@@ -368,8 +368,9 @@ void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int
 		corlstRootGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given prefix // 1.6.1ag Use high freq
 	else
 		corlstKB.Add( pszSrc, pszTar, iFreq );
-	if ( !bInit && corlstKB.iLen < 1000 ) // 1.6.1df If kb is small, calculate at each new word
-		CalculateCorrespondences(); // 1.6.1df 
+	// BEW removed next two lines, 2Dec14, because the frequent call of GuesserUpdate() now does its work, and better
+	//if ( !bInit && corlstKB.iLen < 1000 ) // 1.6.1df If kb is small, calculate at each new word
+	//	CalculateCorrespondences(); // 1.6.1df 
 	}
 
 void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj Make this a function
