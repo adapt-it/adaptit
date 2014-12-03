@@ -373,6 +373,11 @@ void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int
 	//	CalculateCorrespondences(); // 1.6.1df 
 	}
 
+void Guesser::DoCalcCorrespondences() // a public accessor, BEW added 3Dec14
+{
+	this->CalculateCorrespondences();
+}
+
 void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj Make this a function
 	{
 	if ( corlstSuffGuess.bIsEmpty() ) // If correspondences have not been calculated, do it now
@@ -418,8 +423,8 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 			{
 #if defined(_DEBUG) && defined(DoLogging)
 				counter++;
-				wxLogDebug(_T("CalcCorresp: Deleting: Src = %s   Tgt = %s   NumInstances = %d     counter = %d"), 
-					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iNumInstances, counter);
+//				wxLogDebug(_T("CalcCorresp: Deleting: Src = %s   Tgt = %s   NumInstances = %d     counter = %d"), 
+//					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iNumInstances, counter);
 #endif
 				pcor = corlstSuffGuess.pcorDelete(pcor, pcorPrev);
 			}
@@ -429,6 +434,10 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				pcor = pcor->pcorNext;
 				}
 			}
+#if defined(_DEBUG) && defined(DoLogging)
+			wxLogDebug(_T("CalcCorresp: Deletions count:  %d"), counter);
+#endif
+
 #if defined(_DEBUG) && defined(DoLogging)
 			counter = 0;
 			// Count exceptions (ie. the ends of the correpondence don't match; if they do match then they
@@ -454,9 +463,9 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 					}
 #if defined(_DEBUG) && defined(DoLogging)
 				counter++;
-				wxLogDebug(_T("CalcCorresp: Exceptions counts: Src = %s   Tgt = %s  iFreq = %d   iNumInstances = %d   iNumExceptions = %d"),
-					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, 
-					((Corresp*)pcor)->iNumInstances, ((Corresp*)pcor)->iNumExceptions );
+//				wxLogDebug(_T("CalcCorresp: Exceptions counts: Src = %s   Tgt = %s  iFreq = %d   iNumInstances = %d   iNumExceptions = %d"),
+//					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, 
+//					((Corresp*)pcor)->iNumInstances, ((Corresp*)pcor)->iNumExceptions );
 #endif
 				}
 			}
@@ -486,23 +495,42 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				pcor = pcor->pcorNext;
 				}
 			}
+		/* Alan's original code, it produces short affixes early in the list, longer ones later
 		corlstSuffGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf Sort longest last so it will be first in guess list
 		corlstPrefGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf 
 		corlstRootGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length
-		for ( pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
-			corlstSuffGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
-		for ( pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
-			corlstPrefGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
+		*/
+		corlstSuffGiven.SortLongestFirst(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf Sort longest last so it will be first in guess list
+		corlstPrefGiven.SortLongestFirst(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf 
+		corlstRootGiven.SortLongestFirst(); // 1.6.1bd Sort given affixes and roots by length
 #if defined(_DEBUG) && defined(DoLogging)
 		counter = 0;
-		wxLogDebug(_T("\n\n *** Prefixes ***\n"));
-		for (pcor = corlstPrefGuess.pcorFirst; pcor; pcor = pcor->pcorNext)
-		{
-			counter++;
-			wxLogDebug(_T("CalcCorresp: Prefixes: Src = %s   Tgt = %s   counter = %d"),
-				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar,  counter);
-		}
+		wxLogDebug(_T("\n\n *** Suffix Guesses List ***\n"));
 #endif
+		for (pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
+		{
+			corlstSuffGuess.Add(pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag
+#if defined(_DEBUG) && defined(DoLogging)
+			counter++;
+			wxLogDebug(_T(": Suffix Guess: Src = %s   Tgt = %s   iFreq = %d   counter = %d (from corlstSuffGiven list)"),
+				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, counter);
+#endif
+		}
+		
+#if defined(_DEBUG) && defined(DoLogging)
+		counter = 0;
+		wxLogDebug(_T("\n\n *** Prefix Guesses List ***\n"));
+#endif
+		for (pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
+		{
+			corlstPrefGuess.Add(pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag 
+#if defined(_DEBUG) && defined(DoLogging)
+			counter++;
+			wxLogDebug(_T(": Prefix Guess: Src = %s   Tgt = %s   iFreq = %d   counter = %d (from corlstPrefGiven list)"),
+				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, counter);
+#endif
+		}
+
 		for ( pcor = corlstRootGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstRootGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		}
