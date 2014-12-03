@@ -66,6 +66,7 @@
 #include "Thread_CreateEntry.h"
 #include "Thread_PseudoUndelete.h"
 #include "Thread_PseudoDelete.h"
+#include "CorGuess.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -95,6 +96,9 @@ extern bool gbSuppressStoreForAltBackspaceKeypress;
 extern bool gbByCopyOnly;
 extern bool gbInhibitMakeTargetStringCall;
 //extern bool gbRemovePunctuationFromGlosses; BEW removed 13Nov10
+
+/// This global is defined in Adapt_ItView.cpp.
+extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -6613,16 +6617,30 @@ void CKB::GuesserUpdate()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
-	if (pApp->m_bKBReady)
-		pApp->SaveKB(FALSE, FALSE); // FALSE for autobackup, FALSE for show progress, in that order
-	if (pApp->m_bGlossingKBReady)
-		pApp->SaveGlossingKB(FALSE); // FALSE for autobackup
-	if (pApp->m_bKBReady)
+	// Clear the booleans saying that the prefixes and suffixes have been loaded, 
+	// the m_GuesserPrefixArray and m_GuesserSuffixArray need only be populated
+	// at the first call of LoadGuesser, but each GuesserUpdate() call needs to
+	// re-insert the given affixes into the correspondences lists
+	pApp->GuesserPrefixCorrespondencesLoaded = FALSE;
+	pApp->GuesserSuffixCorrespondencesLoaded = FALSE;
+	
+	// LoadGuesser loads correspondences objects into a "KB" list by scanning the relevant
+	// in-memory KB; and reads in whatever correspondences are in the GuesserPrefixes.xm
+	// and GuesserSuffixes.xml lists - updating the counts when doing so. It does not
+	// call CalculateCorrespondences().
+	// Since Adapt It is in either adapting or glossing mode and cannot be in both at once,
+	// there is no point in spending time updating the guesser for the mode not currently
+	// in effect, hence the user of the gbIsGlossing flag. We also test that the this pointer
+	// is actually pointing at a KB of the appropriate type, and that that KB is actually
+	// loaded into memory.
+	if (!gbIsGlossing && !IsThisAGlossingKB() && pApp->m_bKBReady)
 	{
 		pApp->LoadGuesser(pApp->m_pKB);
+		pApp->m_pAdaptationsGuesser->DoCalcCorrespondences();
 	}
-	if (pApp->m_bGlossingKBReady)
+	if (gbIsGlossing && IsThisAGlossingKB() && pApp->m_bGlossingKBReady)
 	{
 		pApp->LoadGuesser(pApp->m_pGlossingKB);
+		pApp->m_pGlossesGuesser->DoCalcCorrespondences();
 	}
 }

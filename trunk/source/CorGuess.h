@@ -137,12 +137,14 @@ protected:
 	CorrespList corlstPrefGiven; // Given prefixes // 1.6.1ac 
 	CorrespList corlstSuffGuess; // Guessed suffixes // 1.6.1ab Distinguish guessed affixes from given
 	CorrespList corlstRootGuess; // Guessed roots // 1.6.1ab 
-	CorrespList corlstPrefGuess; // Guessed prefixes // 1.6.1ab 
+	CorrespList corlstPrefGuess; // Guessed prefixes // 1.6.1ab
 	void CalculateCorrespondences(); // Calculate correspondences // 1.6.1aj Make this a function
+
 	bool bRootReplace( const wxChar* pszSrc, wxChar** ppszTar ); // Try to replace a root // 1.6.1aj 
 	bool bPrefReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace = true ); // Try to replace a prefix // 1.6.1aj 
 	bool bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace = true ); // Try to replace a suffix // 1.6.1aj 
 public:
+	void DoCalcCorrespondences(); // accessor for CalculateCorrespondences()
 	Guesser();
 	void Init( int iGuessLevel1 = 50 ); // 1.5.8u Change ClearAll to Init, add guess level
 	void AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int iFreq = 1 ); // Add a correspondence to the list // 1.6.1aa Add frequency arg to guesser AddCorrespondence

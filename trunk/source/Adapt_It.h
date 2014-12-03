@@ -2086,9 +2086,10 @@ private:
 		administratorMenu
 	};
 
+public: // BEW 3Dec14 made these public because GuesserUdate in KB.cpp needs to access them
 	CGuesserAffixArray	m_GuesserPrefixArray; // list of input prefixes to improve guesser
 	CGuesserAffixArray	m_GuesserSuffixArray; // list of input suffixes to improve guesser
-
+private:
 	/// These variables signal that the prefix and suffix files for the guesser have or 
 	///     have not been loaded yet. 
 	/// Initially they will only be loaded at startup. These are set to false in 
@@ -2097,8 +2098,11 @@ private:
 	/// KLB 09/2013
 	bool GuesserPrefixesLoaded;
 	bool GuesserSuffixesLoaded;
+	/// BEW 3Dec14 made these public, because GuesserUpdate() in KB.cpp needs to access them
+public:
 	bool GuesserPrefixCorrespondencesLoaded;
 	bool GuesserSuffixCorrespondencesLoaded;
+private:
 
     /// The application's m_pMainFrame member serves as the backbone for Adapt It's
     /// interface and its document-view framework. It is created in the App's OnInit()

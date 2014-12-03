@@ -25136,7 +25136,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -1);
 				else
 					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -1);
-				//numCorrespondencesLoaded++; NEEDED???
+				numCorrespondencesLoaded++; // BEW uncommented out, on 3Dec14.  NEEDED???
 			}
 		}
 	}
@@ -25157,7 +25157,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					m_pGlossesGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -2);
 				else
 					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -2);
-				//numCorrespondencesLoaded++; NEEDED???
+				numCorrespondencesLoaded++; // BEW uncommented out, on 3Dec14.   NEEDED???
 			}
 		}
 	}
