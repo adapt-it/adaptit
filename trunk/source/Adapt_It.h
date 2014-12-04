@@ -2102,6 +2102,7 @@ private:
 public:
 	bool GuesserPrefixCorrespondencesLoaded;
 	bool GuesserSuffixCorrespondencesLoaded;
+	void ClobberGuesser(); // call to make sure nothing can transfer over to a different project, and in OnExit()
 private:
 
     /// The application's m_pMainFrame member serves as the backbone for Adapt It's

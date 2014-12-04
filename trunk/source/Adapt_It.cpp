@@ -21518,6 +21518,8 @@ int CAdapt_ItApp::OnExit(void)
 	// 3. CRetranslation
 	// 4. CPlaceholder
 	//wxEvtHandler* pHdlr = NULL;
+
+	ClobberGuesser();
 	// delete the Guesser objects
 	if (m_pAdaptationsGuesser != NULL)
 		delete m_pAdaptationsGuesser;
@@ -25086,44 +25088,73 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	wxString sPrefixXMLFilePath = m_curProjectPath + PathSeparator + _T("GuesserPrefixes.xml");
 	const int nTotal = gpApp->GetMaxRangeForProgressDialog(XML_Input_Chunks) + 1;
 
+	bool bPrefixesFileExists = FALSE;
 	if (GuesserPrefixesLoaded == false)
 	{
-		GuesserPrefixesLoaded = true;
 		if (wxFileExists(sPrefixXMLFilePath))
 		{
 			bool bReadOK = ReadGuesserPrefix_XML (sPrefixXMLFilePath, GetGuesserPrefixes(), (nTotal > 0) ? _("Loading Prefixes") : _T(""), nTotal);
 			if (!bReadOK)
 			{
-				//
 				wxMessageBox(_(
 					"Warning: a prefix file was found, but it was not readable."),
 					_T(""), wxICON_INFORMATION | wxOK);
+				bPrefixesFileExists = FALSE;
+			}
+			else
+			{
+				bPrefixesFileExists = TRUE;
+				GuesserPrefixesLoaded = true;
 			}
 		}
+		else
+		{
+			bPrefixesFileExists = FALSE;
+		}
+	}
+	else
+	{
+		// The prefixes file was loaded earlier, so set bPrefixesFileExists so that
+		// the load of the correspondences, done further below, will still happen
+		bPrefixesFileExists = TRUE;
 	}
 
 	// Check for xml suffix file/document, and load suffixes into guesser if found
 	wxString sSuffixXMLFilePath = m_curProjectPath + PathSeparator + _T("GuesserSuffixes.xml");
 
+	bool bSuffixesFileExists = FALSE;
 	if (GuesserSuffixesLoaded == false)
 	{
-		GuesserSuffixesLoaded = true;
 		if (wxFileExists(sSuffixXMLFilePath))
 		{
 			bool bReadOK = ReadGuesserSuffix_XML (sSuffixXMLFilePath, GetGuesserSuffixes(), (nTotal > 0) ? _("Loading Suffixes") : _T(""), nTotal);
 			if (!bReadOK)
 			{
-				//
 				wxMessageBox(_(
 					"Warning: a suffix file was found, but it was not readable."),
 					_T(""), wxICON_INFORMATION | wxOK);
+				bSuffixesFileExists = FALSE;
+			}
+			else
+			{
+				bSuffixesFileExists = TRUE;
+				GuesserSuffixesLoaded = true;
 			}
 		}
+		else
+		{
+			bSuffixesFileExists = FALSE;
+		}
+	}
+	else
+	{
+		// The suffixes file was loaded earlier, so set bSuffixesFileExists so that
+		// the load of the correspondences, done further below, will still happen
+		bSuffixesFileExists = TRUE;
 	}
 
-	if (!GuesserPrefixCorrespondencesLoaded)
+	if (!GuesserPrefixCorrespondencesLoaded && bPrefixesFileExists)
 	{
-		GuesserPrefixCorrespondencesLoaded = true;
 		if (GetGuesserPrefixes() && !GetGuesserPrefixes()->IsEmpty())
 		{	
 			CGuesserAffixArray* pArray = GetGuesserPrefixes();
@@ -25138,13 +25169,13 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -1);
 				numCorrespondencesLoaded++; // BEW uncommented out, on 3Dec14.  NEEDED???
 			}
+			GuesserPrefixCorrespondencesLoaded = true;
 		}
 	}
 
 
-	if (!GuesserSuffixCorrespondencesLoaded)
+	if (!GuesserSuffixCorrespondencesLoaded && bSuffixesFileExists)
 	{
-		GuesserSuffixCorrespondencesLoaded = true;
 		if (GetGuesserSuffixes() && !GetGuesserSuffixes()->IsEmpty())
 		{	
 			CGuesserAffixArray* pArray = GetGuesserSuffixes();
@@ -25159,6 +25190,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					m_pAdaptationsGuesser->AddCorrespondence(m_currentGuesserAffix.getSourceAffix(),m_currentGuesserAffix.getTargetAffix(), -2);
 				numCorrespondencesLoaded++; // BEW uncommented out, on 3Dec14.   NEEDED???
 			}
+			GuesserSuffixCorrespondencesLoaded = true;
 		}
 	}
 }
@@ -48227,4 +48259,45 @@ void CAdapt_ItApp::ClearSavedSelection()
 	m_savedSelectionAnchorIndex = -1;
 	m_savedSelectionCount = -1;
 } // only makes the above 3 ints have the value -1
+
+void CAdapt_ItApp::ClobberGuesser()
+{
+	m_bUseAdaptationsGuesser = TRUE; // always TRUE, we don't support a glosses guesser, 
+	// and probably never will (unrelated languages, so a bad idea)
+	m_preGuesserStr.Empty();
+	m_bIsGuess = FALSE;
+	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
+	m_nCorrespondencesLoadedInGlossingGuesser = 0;
+	m_bAllowGuesseronUnchangedCCOutput = FALSE;
+
+
+	int count = (int)GetGuesserPrefixes()->GetCount();
+	if (count > 0)
+	{
+		GetGuesserPrefixes()->RemoveAt(0, count);
+	}
+	count = (int)GetGuesserSuffixes()->GetCount();
+	if (count > 0)
+	{
+		GetGuesserSuffixes()->RemoveAt(0, count);
+	}
+	GuesserPrefixesLoaded = FALSE;
+	GuesserSuffixesLoaded = FALSE;
+	GuesserPrefixCorrespondencesLoaded = FALSE;
+	GuesserSuffixCorrespondencesLoaded = FALSE;
+	m_nGuessingLevel = 50;
+	// We don't delete m_pAdaptationsGuesser, nor m_pGlossesGuesser, except in OnExit()
+	// because the Guesser objects are set up once per launch of AI, and persist until
+	// AI is shut down. Changing from one project to another just uses, or ignores, the
+	// existing Guesser objects. All we need to ensure that a guessing setup in one project
+	// does not get transferred to another when the user moves from one project to another.
+	// It's sufficient just to call Init() on the Guesser object, it clears all the
+	// correspondences lists
+	m_pAdaptationsGuesser->Init(); // defaults to guessing level 50%
+	m_pGlossesGuesser->Init(); // defaults to guessing level 50%
+	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
+	m_nCorrespondencesLoadedInGlossingGuesser = 0;
+	m_numLastEntriesAggregate = 0;
+	m_numLastGlossingEntriesAggregate = 0;
+}
 

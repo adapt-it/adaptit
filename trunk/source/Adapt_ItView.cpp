@@ -6258,6 +6258,9 @@ void CAdapt_ItView::OnUpdateFileSaveKB(wxUpdateUIEvent& event)
 		event.Enable(pApp->m_bKBReady);
 }
 
+// BEW 4Dec14 added ClobberGuesser() at the end, to get the Guesser objects back
+// to initialized state - which means emptying all their lists, and the given
+// affixes lists as well. We don't want to transfer guesser data between projects.
 void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 {
     // Since the Close Project menu item has an accelerator table hot key (CTRL-J see
@@ -6500,9 +6503,14 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
 	pApp->m_arrOldSearches.Clear(); // old search strings accumulated while in this project
 
-
 	// whm added 27Apr12. When the project is closed the m_curProjectPath should be an empty string.
 	pApp->m_curProjectPath.Empty();
+
+	// Ensure Guesser settings don't persist over the closure of the project which
+	// may have been using them; we clear the flags, and empty the lists and arrays
+	// by initializing the two Guesser objects (which are on the heap)
+	pApp->ClobberGuesser(); // it's only OnExit() which deletes the two Guesser objects
+							// until then they must persist to be available for a new guesser setup
 }
 
 /////////////////////////////////////////////////////////////////////////////////
