@@ -2925,10 +2925,10 @@ void MergeRecursively(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int
 				tuple[2] = pSubspan;
 
 #if defined(_DEBUG) && defined(_RECURSE_)
-				if (pairingsIndex == 2) // this correspondes to chapter 1 verse 3, which has 23 old and 24 new words
-				{
-				//	int break_here = 1;
-				}
+//				if (pairingsIndex == 2) // this correspondes to chapter 1 verse 3, which has 23 old and 24 new words
+//				{
+//					int break_here = 1;
+//				}
 #endif
 				// initialize tuple[2] to store an open-ended Subspan pointer spanning the whole
 				// extents of arrSubOld and arrSubNew

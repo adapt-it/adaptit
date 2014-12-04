@@ -233,7 +233,7 @@ void CorrespList::Add( const wxChar* pszSrc, const wxChar* pszTar, int iFreq ) /
 		Add( new Corresp( pszSrc, pszTar, iFreq ) );
 	}
 
-void CorrespList::SortLongestFirst() // 1.6.1bd Sort longest first
+void CorrespList::SortLongestLast() // 1.6.1bd Sort longest last // 1.6.1dg In guesser, fix bug in sort longest last
 	{
 	unsigned int iLongest = 0; // 1.6.1bd 
 	CorrespList corlstTemp; // 1.6.1bd Make temp list
@@ -250,11 +250,11 @@ void CorrespList::SortLongestFirst() // 1.6.1bd Sort longest first
 		for ( pcor = corlstTemp.pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
 			{
 			if ( wxStrlen( pcor->pszSrc ) == i ) // 1.6.1bd If current length, copy
-				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to main list
+				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to top of main list
 			}
 	}
 
-void CorrespList::SortLongestLast() // 1.6.1bf Sort longest last
+void CorrespList::SortLongestFirst() // 1.6.1bf Sort longest first // 1.6.1dg In guesser, fix bug in sort longest last
 	{
 	unsigned int iLongest = 0; // 1.6.1bd 
 	CorrespList corlstTemp; // 1.6.1bd Make temp list
@@ -271,7 +271,7 @@ void CorrespList::SortLongestLast() // 1.6.1bf Sort longest last
 		for ( pcor = corlstTemp.pcorFirst; pcor; pcor = pcor->pcorNext ) // 1.6.1bd Copy all to temp list
 			{
 			if ( wxStrlen( pcor->pszSrc ) == i ) // 1.6.1bd If current length, copy
-				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to main list
+				Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1bd Copy to top of main list
 			}
 	}
 
@@ -329,7 +329,7 @@ Guesser::Guesser()
 	iMaxSuffLen = 5; // Init max suffix length
 	iMinSuffExamples = 2; // Minimum number of examples of suffix to be considered
 	iGuessLevel = 50; // 1.5.8u Default guess level to conservative
-	bInit = true; // 1.6.1df Set for initialization phase
+//	bInit = true; // 1.6.1df Set for initialization phase // 1.6.1dh Remove calculate at each new word, didn't work
 	}
 
 // =========== Start Main Routines
@@ -342,7 +342,7 @@ void Guesser::Init( int iGuessLevel1 ) // 1.4vyd Add ClearAll function // 1.5.8u
 	corlstRootGiven.ClearAll(); // Given roots
 	corlstPrefGiven.ClearAll(); // Given prefixes
 	corlstKB.ClearAll(); // Raw correspondences given to guesser
-	bInit = true; // 1.6.1df Set for initialization phase
+//	bInit = true; // 1.6.1df Set for initialization phase // 1.6.1dh 
 	iGuessLevel = iGuessLevel1; // 1.5.8u Set guess level
 	if ( iGuessLevel >= 50 )
 //		iRequiredSuccessPercent = 30 - ( ( ( iGuessLevel - 50 ) * 100 ) / 170 ); // 1.5.8va 50=30% up to 100=0%
@@ -369,8 +369,8 @@ void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int
 	else
 		corlstKB.Add( pszSrc, pszTar, iFreq );
 	// BEW removed next two lines, 2Dec14, because the frequent call of GuesserUpdate() now does its work, and better
-	//if ( !bInit && corlstKB.iLen < 1000 ) // 1.6.1df If kb is small, calculate at each new word
-	//	CalculateCorrespondences(); // 1.6.1df 
+	//if ( !bInit && corlstKB.iLen < 1000 ) // 1.6.1df If kb is small, calculate at each new word // 1.6.1dh
+	//	CalculateCorrespondences(); // 1.6.1df  // 1.6.1dh
 	}
 
 void Guesser::DoCalcCorrespondences() // a public accessor, BEW added 3Dec14
@@ -389,7 +389,7 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 		//wxBell();
 		int counter = 0;
 #endif
-		for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Make and store all suffix correspondences
+		for ( pcor = corlstKB.pcorFirst; pcor != NULL; pcor = pcor->pcorNext ) // Make and store all suffix correspondences // 1.6.1de Change to avoid crash from bug in one compiler
 			{
 			wxChar* pszS = pcor->pszSrc;
 			wxChar* pszT = pcor->pszTar;
@@ -414,7 +414,7 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 			// to advance the box from the sequ num = 0 position, there is only one entry in the KB, and then
 			// pcor is set to NULL, and then dereferenced in the while loop causing a crash, so add a subtest to
 			// prevent loop access when pcor is NULL (because while(pcor) does not prevent access when NULL passed in)
-			while (pcor != NULL && pcor)
+		while ( pcor != NULL ) // 1.6.1de Change to avoid crash from bug in one compiler
 			{
 			bool bDelete = false;
 			if ( pcor->iNumInstances < iMinSuffExamples ) // Delete all correspondences that occur too few times // 1.5.8va 
@@ -426,7 +426,7 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 //				wxLogDebug(_T("CalcCorresp: Deleting: Src = %s   Tgt = %s   NumInstances = %d     counter = %d"), 
 //					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iNumInstances, counter);
 #endif
-				pcor = corlstSuffGuess.pcorDelete(pcor, pcorPrev);
+				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev);
 			}
 			else
 				{
@@ -445,7 +445,7 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 			// iterates over affix (suffix?) correspondences, in corlistSuffGuess list; the inner loop
 			// iterates over the whole KBs records set - as set earlier in corlstKB
 #endif
-			for (Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext) // Count exceptions for each correspondence
+			for ( Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext) // Count exceptions for each correspondence
 			{
 			wxChar* pszSuffSrc = pcorSuff->pszSrc;
 			wxChar* pszSuffTar = pcorSuff->pszTar;
@@ -479,7 +479,7 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 		wxLogDebug(_T("\n\n *** SUCCEEDERS ***\n"));
 		// Log those that Succeed by exceeding the iRequiredSuccessPercent (which is 1% I think)
 #endif
-		while (pcor != NULL &&  pcor)
+		while ( pcor != NULL ) // 1.6.1de Change to avoid crash from bug in one compiler
 			{
 			int iSuccessPercent = ( pcor->iNumInstances * 100 ) / ( pcor->iNumInstances + pcor->iNumExceptions );
 			if ( iSuccessPercent < iRequiredSuccessPercent ) // 1.4bd Make required success ratio a parameter
@@ -495,42 +495,36 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 				pcor = pcor->pcorNext;
 				}
 			}
-		/* Alan's original code, it produces short affixes early in the list, longer ones later
+
 		corlstSuffGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf Sort longest last so it will be first in guess list
 		corlstPrefGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf 
 		corlstRootGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length
-		*/
-		corlstSuffGiven.SortLongestFirst(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf Sort longest last so it will be first in guess list
-		corlstPrefGiven.SortLongestFirst(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf 
-		corlstRootGiven.SortLongestFirst(); // 1.6.1bd Sort given affixes and roots by length
 #if defined(_DEBUG) && defined(DoLogging)
 		counter = 0;
 		wxLogDebug(_T("\n\n *** Suffix Guesses List ***\n"));
 #endif
-		for (pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
+		for ( pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
 		{
-			corlstSuffGuess.Add(pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag
+			corlstSuffGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag
 #if defined(_DEBUG) && defined(DoLogging)
 			counter++;
 			wxLogDebug(_T(": Suffix Guess: Src = %s   Tgt = %s   iFreq = %d   counter = %d (from corlstSuffGiven list)"),
 				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, counter);
 #endif
-		}
-		
+		}	
 #if defined(_DEBUG) && defined(DoLogging)
 		counter = 0;
 		wxLogDebug(_T("\n\n *** Prefix Guesses List ***\n"));
 #endif
-		for (pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
+		for ( pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
 		{
-			corlstPrefGuess.Add(pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag 
+			corlstPrefGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag 
 #if defined(_DEBUG) && defined(DoLogging)
 			counter++;
 			wxLogDebug(_T(": Prefix Guess: Src = %s   Tgt = %s   iFreq = %d   counter = %d (from corlstPrefGiven list)"),
 				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, counter);
 #endif
 		}
-
 		for ( pcor = corlstRootGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstRootGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		}
@@ -604,7 +598,7 @@ bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return t
 	{
 	if ( corlstSuffGuess.bIsEmpty() ) // If correspondences have not been calculated, do it now
 		CalculateCorrespondences(); // 1.6.1aj 
-	bInit = false; // 1.6.1df Clear initialization to allow possible recalc corresp on add
+	bInit = false; // 1.6.1df Clear initialization to allow possible recalc corresp on add // 1.6.1dh
 	bool bSucc = false; // 1.6.1aj 
 	if ( bRootReplace( pszSrc, ppszTar ) ) // 1.6.1aj 
 		bSucc = true;

@@ -25,8 +25,8 @@
 
 class CGuesserAffix; // forward declare for array
 
-/// wxList declaration and partial implementation of the CGuesserAffixList class being
-/// a list of pointers to CCell objects
+/// declaration & partial implementation of the CGuesserAffixList class being
+/// a list of pointers to CGuesserAffix objects
 WX_DECLARE_OBJARRAY(CGuesserAffix, CGuesserAffixArray); // see list definition macro in .cpp file
 
 class CGuesserAffix : public wxObject
