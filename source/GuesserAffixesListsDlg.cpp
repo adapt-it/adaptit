@@ -88,6 +88,13 @@ GuesserAffixesListsDlg::GuesserAffixesListsDlg(wxWindow* parent) // dialog const
 
 	m_pPrefixesPairsArray = new AffixPairsArray();
 	m_pSuffixesPairsArray = new AffixPairsArray();
+
+	// BEW 5Dec14 added the following for support of limiting how many prefix and suffix guesses, per word, are allows
+	// and for tuning algorithms to the average length of affixes - a hint only, Less (long), Default, More (long) -
+	// the latter feature Alan may as yet disallow
+	// BEW 5Dec14 added support for affix limiting, and potentially for tuning algoriths to affix lengths
+	m_pMaxPrefixesChoice = (wxChoice*)FindWindowById(ID_CHOICE_PREFIXES_LIMIT);
+	m_pMaxSuffixesChoice = (wxChoice*)FindWindowById(ID_CHOICE_SUFFIXES_LIMIT);
 }
 
 void GuesserAffixesListsDlg::OnCancel(wxCommandEvent& event)
@@ -158,6 +165,33 @@ void GuesserAffixesListsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 
 	m_bPrefixesUpdated = false;
 	m_bSuffixesUpdated = false;
+
+	// BEW added 5Dec14
+	if (m_pApp->m_iMaxPrefixes == -1)
+	{
+		// It's never been set as yet
+		m_iMaxPrefxs = 1;
+	}
+	else
+	{
+		// It has been set earlier (value comes from project config file)
+		m_iMaxPrefxs = m_pApp->m_iMaxPrefixes;
+	}
+	m_pMaxPrefixesChoice->SetSelection(m_iMaxPrefxs);
+	if (m_pApp->m_iMaxSuffixes == -1)
+	{
+		// It's never been set as yet
+		m_iMaxSuffxs = 1;
+	}
+	else
+	{
+		// It has been set earlier (value comes from project config file)
+		m_iMaxSuffxs = m_pApp->m_iMaxSuffixes;
+	}
+	m_pMaxSuffixesChoice->SetSelection(m_iMaxSuffxs);
+
+// TODO -- handle the radio buttons, if Alan allows the length hinting
+
 }
 
 GuesserAffixesListsDlg::~GuesserAffixesListsDlg(void)
@@ -405,6 +439,24 @@ void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event)
 		bPrefixesOK = m_pApp->DoGuesserPrefixWriteToFile();
 	if (m_bSuffixesUpdated == true)
 		bSuffixesOK = m_pApp->DoGuesserSuffixWriteToFile();
+
+	// BEW 5Dec14 get the m_iMaxPrefxs and m_iMaxSuffxs values and put them into the
+	// app's m_iMaxPrefixes and m_iMaxSuffixes members, so they can be written out to the
+	// project configuration file
+	int nSel = m_pMaxPrefixesChoice->GetSelection(); // selection index is equiv to value, except
+													 // nSel == 3 is 'no limit' which we assign to 99
+	m_iMaxPrefxs = nSel;
+	if (nSel >= 3)
+		m_iMaxPrefxs = 99;
+
+	nSel = m_pMaxSuffixesChoice->GetSelection(); // selection index is equiv to value, except
+												 // nSel == 4 is 'no limit' which we assign to 99
+	m_iMaxSuffxs = nSel;
+	if (nSel >= 4)
+		m_iMaxSuffxs = 99;
+
+	m_pApp->m_iMaxPrefixes = m_iMaxPrefxs;
+	m_pApp->m_iMaxSuffixes = m_iMaxSuffxs;
 
 	event.Skip();
 }

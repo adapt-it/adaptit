@@ -7480,7 +7480,7 @@ wxSizer *GuesserSettingsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer
     wxStaticText *item28 = new wxStaticText( parent, ID_TEXT_USE_ESC_KEY, _("To reject a displayed guess in the phrase box, press the Esc key."), wxDefaultPosition, wxSize(-1,18), wxALIGN_CENTRE );
     item27->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxTOP, 5 );
 
-    item1->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 ); 
+    item1->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -10246,110 +10246,153 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
-    item3->Add( 36, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item3->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Choose which list to work on: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Limit guessed prefixes to: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( 26, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxString strs5[] = 
+    {
+        _("0"), 
+        _("1"), 
+        _("2"), 
+        _("no limit")
+    };
+    wxChoice *item5 = new wxChoice( parent, ID_CHOICE_PREFIXES_LIMIT, wxDefaultPosition, wxSize(90,-1), 4, strs5, 0 );
+    item5->SetToolTip( _("Limit maximum prefixes guessed, for one word, to this value") );
+    item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxRadioButton *item5 = new wxRadioButton( parent, ID_RADIO_SUFFIXES_LIST, _("Suffixes List"), wxDefaultPosition, wxDefaultSize, 0 );
-    item5->SetValue( TRUE );
-    item5->SetToolTip( _("Work with the list of matched pairs of suffixes (these occur after word roots)") );
-    item3->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item3->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( 6, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Limit guessed suffixes to: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxRadioButton *item6 = new wxRadioButton( parent, ID_RADIO_PREFIXES_LIST, _("Prefixes List"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->SetToolTip( _("Work with the list of matched pairs of prefixes (these occur preceding word roots)") );
-    item3->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxString strs7[] = 
+    {
+        _("0"), 
+        _("1"), 
+        _("2"), 
+        _("3"), 
+        _("no limit")
+    };
+    wxChoice *item7 = new wxChoice( parent, ID_CHOICE_SUFFIXES_LIMIT, wxDefaultPosition, wxSize(90,-1), 5, strs7, 0 );
+    item7->SetToolTip( _("Limit maximum sufffixes guessed, for one word, to this value") );
+    item3->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( 20, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item3->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item3, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+    item8->Add( 36, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxListCtrl *item9 = new wxListCtrl( parent, ID_LISTCTRL_SRC_TGT_AFFIX_PAIR, wxDefaultPosition, wxSize(180,-1), wxLC_REPORT|wxSUNKEN_BORDER );
-    item9->SetToolTip( _("Source language affixes in left column, target language equivalent affixes in right column") );
-    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Choose which list to work on: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item7->Add( item8, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item8->Add( 26, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxFlexGridSizer *item10 = new wxFlexGridSizer( 2, 10, 10 );
+    wxRadioButton *item10 = new wxRadioButton( parent, ID_RADIO_PREFIXES_LIST, _("Prefixes List"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("Work with the list of matched pairs of prefixes (these occur preceding word roots)") );
+    item8->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_LABEL_SRC_AFFIX, _("Source Language Suffix:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item8->Add( 6, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_LABEL_TGT_AFFIX, _("Target Language Suffix:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxRadioButton *item11 = new wxRadioButton( parent, ID_RADIO_SUFFIXES_LIST, _("Suffixes List"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetValue( TRUE );
+    item11->SetToolTip( _("Work with the list of matched pairs of suffixes (these occur after word roots)") );
+    item8->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
+    item8->Add( 20, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_STATICTEXT_SRC_SUFFIX, wxT("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
-    item14->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
-    item13->Add( item14, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
+    item1->Add( item8, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item15 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(110,26), wxTE_CENTRE );
-    item15->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
-    item15->SetToolTip( _("Type, or edit, the source language suffix, or prefix, here") );
-    item13->Add( item15, 0, wxALIGN_CENTER_VERTICAL, 5 );
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_STATICTEXT_SRC_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
-    item16->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
-    item13->Add( item16, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
+    wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
-    item10->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    wxListCtrl *item14 = new wxListCtrl( parent, ID_LISTCTRL_SRC_TGT_AFFIX_PAIR, wxDefaultPosition, wxSize(180,-1), wxLC_REPORT|wxSUNKEN_BORDER );
+    item14->SetToolTip( _("Source language affixes in left column, target language equivalent affixes in right column") );
+    item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
+    item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    wxStaticText *item18 = new wxStaticText( parent, ID_STATICTEXT_TGT_SUFFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
-    item18->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
-    item17->Add( item18, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
+    wxFlexGridSizer *item15 = new wxFlexGridSizer( 2, 10, 10 );
 
-    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(111,26), wxTE_CENTRE );
-    item19->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
-    item19->SetToolTip( _("Type, or edit, the target language suffix, or prefix, here") );
-    item17->Add( item19, 0, wxALIGN_CENTER_VERTICAL, 5 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_LABEL_SRC_AFFIX, _("Source Language Suffix:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_STATICTEXT_TGT_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
-    item20->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
-    item17->Add( item20, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
+    wxStaticText *item17 = new wxStaticText( parent, ID_LABEL_TGT_AFFIX, _("Target Language Suffix:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item10->Add( item17, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item21 = new wxButton( parent, ID_BUTTON_ADD, _("Add"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->SetToolTip( _("Add the affix pair to the end of the list") );
-    item10->Add( item21, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item19 = new wxStaticText( parent, ID_STATICTEXT_SRC_SUFFIX, wxT("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item19->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item18->Add( item19, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxButton *item22 = new wxButton( parent, ID_BUTTON_UPDATE, _("Update"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Update the spellings of the selected affix pair") );
-    item10->Add( item22, 0, wxALIGN_CENTER, 5 );
+    wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXT_SRC_AFFIX, wxT(""), wxDefaultPosition, wxSize(110,26), wxTE_CENTRE );
+    item20->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item20->SetToolTip( _("Type, or edit, the source language suffix, or prefix, here") );
+    item18->Add( item20, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxButton *item23 = new wxButton( parent, ID_BUTTON_INSERT, _("Insert"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->SetToolTip( _("Insert the affix pair preceding the selected pair in the list") );
-    item10->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item21 = new wxStaticText( parent, ID_STATICTEXT_SRC_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item21->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item18->Add( item21, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Remove the selected affix pair from the list") );
-    item10->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item15->Add( item18, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxButton *item25 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->SetDefault();
-    item10->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item26 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item26, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_STATICTEXT_TGT_SUFFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item23->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    item10->AddGrowableCol( 0 );
+    wxTextCtrl *item24 = new wxTextCtrl( parent, ID_TEXT_TGT_AFFIX, wxT(""), wxDefaultPosition, wxSize(111,26), wxTE_CENTRE );
+    item24->SetFont( wxFont( 13, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item24->SetToolTip( _("Type, or edit, the target language suffix, or prefix, here") );
+    item22->Add( item24, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
-    item10->AddGrowableCol( 1 );
+    wxStaticText *item25 = new wxStaticText( parent, ID_STATICTEXT_TGT_PREFIX, _("-"), wxDefaultPosition, wxSize(10,26), wxALIGN_CENTRE );
+    item25->SetFont( wxFont( 20, wxROMAN, wxNORMAL, wxBOLD ) );
+    item22->Add( item25, 0, wxALIGN_CENTER|wxBOTTOM, 10 );
 
-    item7->Add( item10, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item15->Add( item22, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_UPDATE, _("Update"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Update the spellings of the selected affix pair") );
+    item15->Add( item26, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_ADD, _("Add"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Add the affix pair to the end of the list") );
+    item15->Add( item27, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item28 = new wxButton( parent, ID_BUTTON_INSERT, _("Insert"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetToolTip( _("Insert the affix pair preceding the selected pair in the list") );
+    item15->Add( item28, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxButton *item29 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Remove the selected affix pair from the list") );
+    item15->Add( item29, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item15->Add( 20, 6, 0, wxALIGN_CENTER, 5 );
+
+    item15->Add( 20, 6, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item30 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetDefault();
+    item15->Add( item30, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxButton *item31 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item31, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    item15->AddGrowableCol( 0 );
+
+    item15->AddGrowableCol( 1 );
+
+    item12->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

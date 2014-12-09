@@ -84,6 +84,13 @@ public:
 	wxStaticText*	m_pHyphenTgtSuffix; // to left of tgt affix text box
 	wxStaticText*	m_pHyphenTgtPrefix; // to right of tgt affix text box
 
+	// BEW 5Dec14 added support for affix limiting, and potentially for tuning algoriths to affix lengths
+	wxChoice*		m_pMaxPrefixesChoice;
+	wxChoice*		m_pMaxSuffixesChoice;
+	wxRadioButton*	m_pRadioAffixSequLenHint_Less;
+	wxRadioButton*	m_pRadioAffixSequLenHint_Default;
+	wxRadioButton*	m_pRadioAffixSequLenHint_More;
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 
@@ -119,6 +126,9 @@ private:
 	wxString m_prefixesTgtLabel;
 	wxString m_suffixesSrcLabel;
 	wxString m_suffixesTgtLabel;
+	// BEW 5Dec14 added support for affix limiting, and potentially for tuning algoriths to affix lengths
+	int      m_iMaxPrefxs;  // 0 1 2 or 99 meaning 'no limit', -1 means 'unset'
+	int      m_iMaxSuffxs;  // 0 1 2 3 or 99 meaning 'no limit', -1 means 'unset'
 
 	// other class attributes
 	AffixPairsArray* m_pSuffixesPairsArray;

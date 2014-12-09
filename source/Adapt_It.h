@@ -3481,9 +3481,13 @@ public:
 									// effectively prevents the user from creating new projects.
 	bool m_bUseAdaptationsGuesser;	// If TRUE(the default) use the Guesser for adaptations
 	bool m_bIsGuess;				// If TRUE there is a guess for the current target text
-	int m_nGuessingLevel;			// The guesser level (can range from 0 to 100, default is 50)
+	int  m_nGuessingLevel;			// The guesser level (can range from 0 to 100, default is 50)
 	bool m_bAllowGuesseronUnchangedCCOutput; // If TRUE the Guesser can operate on unchanged
 									// Consistent Changes output; default is FALSE
+	// BEW 5Dec14, added the following three (treat each as a string when storing in Project config file
+	int  m_iMaxPrefixes;			// Maximum number allowed, per word, for prefixes (99 = no limit, else 0, 1 or 2, -1 = unset)
+	int  m_iMaxSuffixes;			// Maximum number allowed, per word, for suffixes (99 = no limit, else 0, 1, 2 or 3, -1 = unset)
+
 	Guesser* m_pAdaptationsGuesser;	// our Guesser object for adaptations
 	Guesser* m_pGlossesGuesser;		// out Guesser object for glosses
 	int m_nCorrespondencesLoadedInAdaptationsGuesser;
