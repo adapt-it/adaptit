@@ -6873,6 +6873,16 @@ wxString szAllowCConUnchangedGuesserOutput = _T("AllowCConUnchangedGuesserOutput
 //  config file writes will be the one below.
 wxString szAllowGuesseronUnchangedCCOutput = _T("AllowGuesseronUnchangedCCOutput");
 
+/// The label that identifies the following string encoded number as the application's
+/// maximum number of allowed guessed prefixes per word. Adapt It stores this value in
+/// the App's m_iMaxPrefixes member variable.
+wxString szGuesserMaxPrefixes = _T("GuesserMaxPrefixes(99 is 'no limit')");
+
+/// The label that identifies the following string encoded number as the application's
+/// maximum number of allowed guessed suffixes per word. Adapt It stores this value in
+/// the App's m_iMaxSuffixes member variable.
+wxString szGuesserMaxSuffixes = _T("GuesserMaxSuffixes(99 is 'no limit')");
+
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
 wxDynamicLibrary ecDriverDynamicLibrary;
 wxDynamicLibrary ptSharedDynamicLibrary;
@@ -15251,7 +15261,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// it stubbornly stayed at old anchor location on the screen)
 
 	m_preGuesserStr.Empty();
-
 	m_bZWSPinDoc = FALSE; // set default value; each loaded doc will be checked for
 						  // presence of ZWSP, and if present, this flag is set TRUE
 						  // unilaterally for that document. It governs, mainly,
@@ -16103,6 +16112,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 									// by config file settings
 	m_pAdaptationsGuesser = (Guesser*)NULL;
 	m_pGlossesGuesser = (Guesser*)NULL;
+	m_iMaxPrefixes = -1; // unset, until user supplies a value, at which point project
+	// config file will perpetuate his setting, until next changed
+	m_iMaxSuffixes = -1; // unset, until user supplies a value, at which point project
+	// config file will perpetuate his setting, until next changed
+
 
 /*  MD5 SUM TESTING
 #if defined(_DEBUG)
@@ -33471,6 +33485,15 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szAllowGuesseronUnchangedCCOutput << tab << number;
 	pf->AddLine(data);
 
+	// BEW 9Dec14 added next two, for support of guesser prefixes and suffixes
+	data.Empty();
+	data << szGuesserMaxPrefixes << tab << m_iMaxPrefixes; // allowed values, 0 1 2 or 99 (99 is 'no limit')
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szGuesserMaxSuffixes << tab << m_iMaxSuffixes; // allowed values, 0 1 2 3 or 99 (99 is 'no limit')
+	pf->AddLine(data);
+
 	if (m_bRTL_Layout)
 		number = _T("1");
 	else
@@ -34388,6 +34411,21 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bAllowGuesseronUnchangedCCOutput = TRUE;
 			else
 				m_bAllowGuesseronUnchangedCCOutput = FALSE;
+		}
+		// BEW 9Dec14 added next two
+		else if (name == szGuesserMaxPrefixes)
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || (num > 2 && num != 99)) // m_iMaxPrefixes must be 0, 1, 2, or 99
+				num = 1; // a reasonable default
+			m_iMaxPrefixes = num;
+		}
+		else if (name == szGuesserMaxSuffixes)
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || (num > 3 && num != 99)) // m_iMaxSuffixes must be 0, 1, 2, 3 or 99
+				num = 1; // a reasonable default
+			m_iMaxSuffixes = num;
 		}
 		else if (name == szRTL_Layout)
 		{
