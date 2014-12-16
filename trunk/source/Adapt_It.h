@@ -4141,7 +4141,9 @@ public:
 	bool m_bKeepBoxMidscreen; // default is TRUE, if set FALSE in the View page of Preferences
 							  // then ScrollIntoView uses the restored legacy code; the boolean
 							  // value is stored in the project config file
-
+	// BEW added 15Dec14, for better support of stacked diacritics (requested by Martin Schumacher
+	// of NTM in Laos) in email of 14Dec etc
+	int m_nExtraPixelsForDiacritics; // default is 0, the legacy (pre-6.5.5) situation
 
 	int GetMaxRangeForProgressDialog(enum ProgressDialogType progDlgType, wxString pathAndXMLFileName = wxEmptyString);
 	// for localization support

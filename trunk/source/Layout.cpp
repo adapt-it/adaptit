@@ -1142,6 +1142,9 @@ int CLayout::GetStripHeight()
 // translation mode is current (for printing, to print free translations, we turn that
 // mode on temporarily for the duration of the print, or print preview); so I had to fix
 // this for version 6, so that the addition was made whenever free translation mode is on
+// BEW 15Dec14 added 2 pixels more of height to src, tgt & gloss cells, since Martin
+// Schmumacher (NTM Laos) showed stacking diacritics being truncated; also adding a slider
+// for the user to be able to manually add up to 6 pixels in addition
 void CLayout::SetPileAndStripHeight()
 {
 	if (gbShowTargetOnly)
@@ -1152,6 +1155,7 @@ void CLayout::SetPileAndStripHeight()
 				m_nPileHeight = m_nNavTextHeight;
 			else
 				m_nPileHeight = m_nTgtHeight;
+
 		}
 		else // adapting mode
 		{

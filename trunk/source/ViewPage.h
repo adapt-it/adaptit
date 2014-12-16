@@ -41,7 +41,7 @@ public:
     bool Create( wxWindow* parent );
 
     /// Creates the controls and sizers
-    void CreateControls();
+    void CreateControls(); // based on what's in the wxDesigner resource
 
 	wxSizer* pViewPageSizer;
 
@@ -61,12 +61,14 @@ public:
 	wxCheckBox*		m_pCheckShowAdminMenu;
 	wxRadioBox*		m_pRadioBox;
 	wxCheckBox*		m_pCheckboxEnableInsertZWSP;
+	wxSlider*		m_pExtraPixelsSlider;
 	int		tempMaxToDisplay;
 	int		tempPrecCntxt;
 	int		tempFollCntxt;
 	int		tempLeading;
 	int		tempGapWidth;
 	int		tempLMargin;
+	int		tempExtraPixelsHeight;
 	short	tempMultiplier;
 	int		tempDlgFontSize;
 	bool	tempSuppressFirst;

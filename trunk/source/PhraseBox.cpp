@@ -2880,7 +2880,11 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 		wxPoint ptCurBoxLocation;
 		CCell* pActiveCell = pApp->m_pActivePile->GetCell(1);
-		pActiveCell->TopLeft(ptCurBoxLocation);
+		pActiveCell->TopLeft(ptCurBoxLocation); // returns the .x and .y values in the signature's ref variable
+		// BEW 25Dec14, cells are 2 pixels larger vertically as of today, so move TopLeft of box
+		// back up by 2 pixels, so text baseline keeps aligned
+		ptCurBoxLocation.y -= 2;
+
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
 			pView->ResizeBox(&ptCurBoxLocation, pLayout->m_curBoxWidth, pLayout->GetNavTextHeight(),

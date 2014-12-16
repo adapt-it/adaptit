@@ -5920,6 +5920,12 @@ wxString szInformalUsername = _T("InformalUsername");
 /// (defaulted to 5 minutes, in OnInit(), but project config file value will override)
 wxString szKbServerDownloadInterval = _T("KbServerIncrementalDownloadInterval");
 
+/// Default is 0. The user can use a slider control in View page of Preferences in order
+/// to cause some extra pixels to be added to cell heights in the layout, up to a maximum
+/// of 6 extra pixels. (This is for better support of stacked diacritics, to prevent
+/// unwanted truncation visually in some circumstances.)
+wxString szExtraPixelsForDiacritics = _T("ExtraPixelsForDiacritics");
+
 /// Default is TRUE, the strips then move up relative to the phrase box as the user's work
 /// moves to a new strip - this is visually unappealing to 3rd parties looking on (eg. by
 /// projection of the screen on a wall). If set FALSE (in Preferences > View), the strips
@@ -15268,7 +15274,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						  // done on se asian languages with ZWSP word delimiters, and
 						  // also in mergers for handling free trans, notes, collected
 						  // back translations - see PutSrcWordBreakFrTr() in helpers.cpp
-    
+
+	m_nExtraPixelsForDiacritics = 0; // default, but Project config file may override it 
+									 // (see View page of Prefs, the slider control)
+
 	// Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
 	// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
@@ -24258,10 +24267,15 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
 /// target font (m_nTgtHeight) and the navigation text font (m_nNavTextHeight). Each font
 /// is selected into the display context and the GetCharHeight() method of the display
 /// context is called to determine the height of each of the three fonts.
+/// BEW 25Dec14 following Martin Schumacher's email about truncation of stacking
+/// diacritics, I'm adding 2 pixels to src and tgt and gloss text heights unilaterally,
+/// and a user-settable additional incrememt of 1 to 6 pixels by a slider in the View page
+/// of Preferences
 /////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	int nExtraPixelsHeight = pApp->m_nExtraPixelsForDiacritics; // BEW added 15Dec14
 	wxASSERT(pApp != NULL);
 	// need a CDC
 	wxClientDC dC(pApp->GetMainFrame()->canvas);
@@ -24269,6 +24283,7 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView))
 	wxFont SaveFont = dC.GetFont();
 	dC.SetFont(*m_pSourceFont);
 	m_nSrcHeight = dC.GetCharHeight();
+	m_nSrcHeight += 2; m_nSrcHeight += nExtraPixelsHeight;  // BEW addition 15Dec14 (both added then)
 
     // whm note: The following is Bob Eaton's modification to detect if the font is a
     // symbol font, and if so, use a different "encoding" string in Adapt It's xml files.
@@ -24286,6 +24301,7 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView))
 
 	dC.SetFont(*m_pTargetFont);
 	m_nTgtHeight = dC.GetCharHeight();
+	m_nTgtHeight += 2; m_nTgtHeight += nExtraPixelsHeight;  // BEW addition 15Dec14 (both added then)
 
 	// whm Note: The wxDC class does not use a separate TEXTMETRIC struct. Within
 	// the wxDC class there appears to be no way to access an internal leading
@@ -24304,6 +24320,7 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pView))
 	// temporary - for use in fine tuning display code
 	dC.SetFont(*m_pNavTextFont); // now handle the navigation text's font
 	m_nNavTextHeight = dC.GetCharHeight();
+	m_nNavTextHeight += 2; m_nNavTextHeight += nExtraPixelsHeight;  // BEW addition 15Dec14 (both added then)
 	dC.SetFont(SaveFont); // restore original font
 }
 
@@ -33272,6 +33289,11 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szKeepPhraseBoxMidscreen << tab << (int)m_bKeepBoxMidscreen;
 	pf->AddLine(data);
 
+	// BEW added 15Dec14
+	data.Empty();
+	data << szExtraPixelsForDiacritics << tab << (int)m_nExtraPixelsForDiacritics;
+	pf->AddLine(data);
+
 	// BEW added 9Jul14
 	data.Empty();
 	data << szEnableZWSPinsertion << tab << (int)m_bEnableZWSPInsertion;
@@ -33829,6 +33851,13 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 			{
 				m_bKeepBoxMidscreen = FALSE;
 			}
+		}
+		else if (name == szExtraPixelsForDiacritics)
+		{
+			num = wxAtoi(strValue);
+			if (num < 0 || num > 6)
+				num = 0; // if out of range default to 0
+			m_nExtraPixelsForDiacritics = num;
 		}
 		// BEW added 9Jul14, supports ZWSP being inserted by Shift-Ctrl-spacebar
 		// in the current project
