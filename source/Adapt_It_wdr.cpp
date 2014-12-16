@@ -2099,6 +2099,15 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item41->SetToolTip( _("Turns on or off the ability to insert a zero width space, using Ctrl-Shift-spacebar key combination") );
     item40->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    item40->Add( 20, 16, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("More Diacritics Space: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->Add( item42, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxSlider *item43 = new wxSlider( parent, ID_DIACRITICS_SLIDER, 0, 0, 6, wxDefaultPosition, wxSize(100,-1), wxSL_HORIZONTAL|wxSL_LABELS );
+    item43->SetToolTip( _("Drag to right, to add from 1 to 6 pixels to target text cell height ") );
+    item40->Add( item43, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item4->Add( item40, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );

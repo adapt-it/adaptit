@@ -327,6 +327,15 @@ int CCell::Width()
 	return m_pOwningPile->Width();
 }
 
+// BEW 15Dec14 I added 2 pixel increments, but then removed them because in
+// CAdapt_ItApp::UpdateTextHeights() I incremented the app's m_nSrcHeight,
+// m_nTgtHeight and m_nNavTextHeight by 2 pixels, and those incremented values
+// get copied to identical members in CLayout, and CCell::Height() uses those
+// here and elsewhere - so a further 2 pixel increment here would be wrong. I'm
+// leaving this comment here so that if anyone wants to tweak the layout to
+// better support stacking diacritics (so they don't get visibly cropped by a
+// too-small enclosing display rectangle), the place to do the tweak is to add
+// pixels to CAdapt_ItApp::UpdateTextHeights() only.
 int CCell::Height()
 {
 	int height = -1;
@@ -434,11 +443,13 @@ int CCell::Top()
 			top = m_pOwningPile->Top() + m_pLayout->GetSrcTextHeight();
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
-				top += m_pLayout->GetNavTextHeight();
+				top += m_pLayout->GetNavTextHeight(); // BEW 15Dec14, this has the 2 pixel 
+												// augment added in app's UpdateTextHeights()
 			}
 			else
 			{
-				top += m_pLayout->GetTgtTextHeight();
+				top += m_pLayout->GetTgtTextHeight(); // BEW 15Dec14, this has the 2 pixel 
+				// augment added in app's UpdateTextHeights()
 			}
 		}
 		return top;
@@ -493,6 +504,8 @@ void CCell::CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index)
 // BEW 2Aug08, additions to for gray colouring of context regions in vertical edit steps
 void CCell::Draw(wxDC* pDC)
 {
+	int SrcIndex = 0;
+	int BoxLineIndex = 1; 
     // next call should not be needed now, the paint issue on wxMac had a different source,
     // but keep it for the present as it should be called before setting any clip region
     // later in the code
@@ -615,7 +628,7 @@ void CCell::Draw(wxDC* pDC)
 
     // BEW added 11Oct05 to have the top cell of the pile background coloured if the click
     // was on a green wedge or note icon
-	if (!gbShowTargetOnly && m_nCell == 0 && !m_pLayout->m_pApp->m_bIsPrinting &&
+	if (!gbShowTargetOnly && m_nCell == SrcIndex && !m_pLayout->m_pApp->m_bIsPrinting &&
 		(m_pOwningPile == gpGreenWedgePile || m_pOwningPile == gpNotePile))
 	{
 		// hilight the top cell under the clicked green wedge or note, with light yellow
@@ -631,7 +644,7 @@ void CCell::Draw(wxDC* pDC)
     // there is no target (or gloss) text that can be coloured, so that there will always
     // be visual feedback about what is free translated, and what is about to be, and what
     // is not.
-	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting
+	if (m_nCell == SrcIndex && m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting
 		&& ((!gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_targetStr.IsEmpty()) ||
 		(gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_gloss.IsEmpty())))
 	{
@@ -653,7 +666,7 @@ void CCell::Draw(wxDC* pDC)
 		}
 	}
 	// BEW 6Oct14, added this 2nd block for src text line
-	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode &&
+	if (m_nCell == SrcIndex && m_pLayout->m_pApp->m_bFreeTranslationMode &&
 		!m_pLayout->m_pApp->m_bIsPrinting)// source text line when in free trans mode
 	{
 		//if (!m_pOwningPile->m_bIsCurrentFreeTransSection && !m_pOwningPile->GetSrcPhrase()->m_bHasFreeTrans)
@@ -669,7 +682,7 @@ void CCell::Draw(wxDC* pDC)
 			pDC->SetTextBackground(gLighterGray); // lightish gray
 		}
 	}
-	if (m_nCell == 1)// active adapting or glossing line
+	if (m_nCell == BoxLineIndex)// active adapting or glossing line
 	{
 		if (m_pLayout->m_pApp->m_bFreeTranslationMode && !m_pLayout->m_pApp->m_bIsPrinting)
 		{
@@ -758,7 +771,7 @@ void CCell::Draw(wxDC* pDC)
 	// active sequence number would be the current owning pile's m_nSequNumber, we want to
 	// draw any target text for read-only mode that would normally be in the cell if the phrase 
 	// box were not located at the current cell.
-	if (m_pLayout->m_pApp->m_bReadOnlyAccess && m_nCell == 1 && 
+	if (m_pLayout->m_pApp->m_bReadOnlyAccess && m_nCell == BoxLineIndex &&
 		m_pOwningPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 	{
 		DrawCell(pDC, color);
@@ -773,7 +786,9 @@ void CCell::Draw(wxDC* pDC)
 
 void CCell::DrawCell(wxDC* pDC, wxColor color)
 {
-    // we assume at the time DrawCell() is called that it's owning pile's pointer to the
+	int SrcIndex = 0;
+	int BoxLineIndex = 1;
+	// we assume at the time DrawCell() is called that it's owning pile's pointer to the
     // CSourcePhrase has been updated, if necessary, to comply with the user's changes to
     // the document (if it hasn't, DrawCell() will crash, so we'll find out soon enough!)
     // Also, the caller must determine the text color, because it can be temporarily
@@ -795,7 +810,7 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 	bool bRTLLayout;
 	bRTLLayout = FALSE;
 #ifdef _RTL_FLAGS
-	if (m_nCell == 0)
+	if (m_nCell == SrcIndex)
 	{
 		// it's source text
 		if (m_pLayout->m_pApp->m_bSrcRTL)
@@ -832,7 +847,7 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 			// m_nCell == 1  or == 2 will be gloss text, which might be
 			// in the target text's direction, or navText's direction; any other option
 			// must be one of the target text cells
-			if ((gbIsGlossing && m_nCell == 1) || (!gbIsGlossing && m_nCell == 2))
+			if ((gbIsGlossing && m_nCell == BoxLineIndex) || (!gbIsGlossing && m_nCell == 2))
 			{
                 // it's gloss text - the direction will depend on the setting for the font
                 // used test to see which direction we have in operation for this cell

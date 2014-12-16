@@ -99,6 +99,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
 	m_pCheckboxEnableInsertZWSP = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ENABLE_INSERT_ZWSP);
+	m_pExtraPixelsSlider = (wxSlider*)FindWindowById(ID_DIACRITICS_SLIDER);
 }
 
 CViewPage::~CViewPage() // destructor
@@ -281,11 +282,25 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	CLayout* pLayout = pApp->m_pLayout;
 	pLayout->m_bViewParamsChanged = FALSE; // start by assuming the user made no changes
 
+	// BEW added 15Dec14
+	int extraPixelsValue = m_pExtraPixelsSlider->GetValue();
+	if (extraPixelsValue != tempExtraPixelsHeight)
+	{
+		pApp->m_nExtraPixelsForDiacritics = extraPixelsValue;
+		pLayout->m_bViewParamsChanged = TRUE;
+	}
+
+	// This next one must come AFTER the one above for setting extraPixelsValue, because
+	// to prevent nav text from encroaching into the bottom text of the strip above we
+	// also need to increase the distance the strips are apart commensurably
 	strTemp = m_pEditLeading->GetValue();
 	nVal = wxAtoi(strTemp);
-	if (nVal != pApp->m_curLeading)
+	if ((nVal != pApp->m_curLeading) || (extraPixelsValue != tempExtraPixelsHeight))
+	{
 		pLayout->m_bViewParamsChanged = TRUE;
-	pApp->m_curLeading = nVal;
+		pApp->m_curLeading = nVal;
+		pApp->m_curLeading += extraPixelsValue;
+	}
 
 	strTemp = m_pEditGapWidth->GetValue();
 	nVal = wxAtoi(strTemp);
@@ -308,6 +323,7 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	strTemp = m_pEditDlgFontSize->GetValue();
 	nVal = wxAtoi(strTemp);
 	pApp->m_dialogFontSize = nVal;
+
 
 	pApp->m_bSuppressFirst = TRUE; // retain these because the config file expects
 	pApp->m_bSuppressLast = TRUE; // them, but we won't use these values any more
@@ -335,6 +351,9 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pRadioBox->SetSelection(nRadioBoxSelection);
 	// BEW added 9Jul14
 	m_pCheckboxEnableInsertZWSP->SetValue(pApp->m_bEnableZWSPInsertion);
+	// BEW added 15Dec14
+	tempExtraPixelsHeight = pApp->m_nExtraPixelsForDiacritics; // current value, most likely from Project config file
+	m_pExtraPixelsSlider->SetValue(tempExtraPixelsHeight);
 
 	// transfer initial values to controls
 	wxString strTemp;
