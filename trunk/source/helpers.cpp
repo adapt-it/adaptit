@@ -2142,7 +2142,7 @@ bool IsNestedMarkerOrMarkerTag(wxChar* ptrToMkr, wxString& tagOnly,
 							   wxString& baseOfEndMkr, bool& bWholeMkrPassedIn)
 {
 	wxString wholeMkr;
-	gpApp->GetDocument()->GetWholeMarker(ptrToMkr);
+	wholeMkr = gpApp->GetDocument()->GetWholeMarker(ptrToMkr);
 	return IsNestedMarkerOrMarkerTag(&wholeMkr, tagOnly, baseOfEndMkr, bWholeMkrPassedIn);
 }
 
