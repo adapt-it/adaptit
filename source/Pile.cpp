@@ -1070,10 +1070,12 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 }
 
 // BEW 22Feb10, no changes for support of doc version 5
+// BEW addition 22Dec14, to support Seth Minkoff's request that just the selected 
+// src will be hidden when the Show Target Text Only button is pressed.
 void CPile::Draw(wxDC* pDC)
 {
-	// draw the cells this CPile instance owns, MAX_CELLS = 3
-	if (!gbShowTargetOnly)
+	// draw the cells this CPile instance owns, MAX_CELLS = 3; BEW changed 22Dec14 for Seth Minkoff request
+	if (!gbShowTargetOnly || (m_pLayout->m_pApp->m_selectionLine == 0)) // BEW 22Dec14 added 2nd subtest
 	{
 		m_pCell[0]->Draw(pDC);
 	}

@@ -1145,9 +1145,11 @@ int CLayout::GetStripHeight()
 // BEW 15Dec14 added 2 pixels more of height to src, tgt & gloss cells, since Martin
 // Schmumacher (NTM Laos) showed stacking diacritics being truncated; also adding a slider
 // for the user to be able to manually add up to 6 pixels in addition
+// BEW 22Dec14, added support for Seth Minkoff's request that just part of doc can have
+// the src text suppressed from showing
 void CLayout::SetPileAndStripHeight()
 {
-	if (gbShowTargetOnly)
+	if (gbShowTargetOnly && (m_pApp->m_selectionLine == -1))
 	{
 		if (gbIsGlossing)
 		{

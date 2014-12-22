@@ -336,13 +336,15 @@ int CCell::Width()
 // better support stacking diacritics (so they don't get visibly cropped by a
 // too-small enclosing display rectangle), the place to do the tweak is to add
 // pixels to CAdapt_ItApp::UpdateTextHeights() only.
+// BEW addition 22Dec14, to support Seth Minkoff's request that just the selected 
+// src will be hidden when the Show Target Text Only button is pressed.
 int CCell::Height()
 {
 	int height = -1;
 	switch (m_nCell)
 	{
 	case 0:
-		if (gbShowTargetOnly)
+		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1))
 		{
 			height = 0; // no source text line showing
 		}
@@ -394,13 +396,15 @@ int CCell::Left()
 	return m_pOwningPile->Left();
 }
 
+// BEW addition 22Dec14, to support Seth Minkoff's request that just the selected 
+// src will be hidden when the Show Target Text Only button is pressed.
 int CCell::Top()
 {
 	int top = -1;
 	switch (m_nCell)
 	{
 	case 0:
-		if (gbShowTargetOnly)
+		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1)) // BEW chagned 22Dec14
 		{
 			// the source text line is suppressed, but no harm if we return
 			// the pile's top
@@ -414,7 +418,7 @@ int CCell::Top()
 		}
 		return top;
 	case 1:
-		if (gbShowTargetOnly)
+		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1)) // BEW changed 22Dec 14
 		{
 			// the target, or gloss text, line is at the top of the pile when
 			// source line is suppressed
@@ -423,12 +427,12 @@ int CCell::Top()
 		else
 		{
             // source text line is not suppressed, so the target line's top will be the
-            // source text height lower down in the pile (whether glossing or adapting)
+            // source text height lower down in the pile (whether glossing or adapting) or only selection part is suppressed
 			top = m_pOwningPile->Top() + m_pLayout->GetSrcTextHeight();
 		}
 		return top;
 	case 2:
-		if (gbShowTargetOnly)
+		if (gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1)) // BEW changed 22Dec14
 		{
 			// this line is never shown when source line is suppressed, so a nonsense
 			// value will do
@@ -439,7 +443,7 @@ int CCell::Top()
             // source text line is not suppressed, so the third line's top, if the line is
             // visible, will be the second line's top, plus the height of the text in the
             // second line -- where the latter will depend on whether it is showing target
-            // text font,
+            // text font; or only the selected part of src text line is suppressed from being drawn
 			top = m_pOwningPile->Top() + m_pLayout->GetSrcTextHeight();
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
@@ -627,8 +631,9 @@ void CCell::Draw(wxDC* pDC)
 	}
 
     // BEW added 11Oct05 to have the top cell of the pile background coloured if the click
-    // was on a green wedge or note icon
-	if (!gbShowTargetOnly && m_nCell == SrcIndex && !m_pLayout->m_pApp->m_bIsPrinting &&
+    // was on a green wedge or note icon; 
+	// BEW 22Dec14 added: do so only no selection is current
+	if (!gbShowTargetOnly && (m_pLayout->m_pApp->m_selectionLine == -1) && m_nCell == SrcIndex && !m_pLayout->m_pApp->m_bIsPrinting &&
 		(m_pOwningPile == gpGreenWedgePile || m_pOwningPile == gpNotePile))
 	{
 		// hilight the top cell under the clicked green wedge or note, with light yellow
@@ -738,9 +743,16 @@ void CCell::Draw(wxDC* pDC)
 	}
 
     // finally, since the cell's background colour has been set appropriately, the
-    // foreground drawing (ie. the text drawning) can be done... so draw every cell except
+    // foreground drawing (ie. the text drawing) can be done... so draw every cell except
     // where the phrase box is going to be displayed - i.e. don't draw in the cell with
     // m_nCell index value == 1 at the active pile's location in the layout
+	// BEW 22Dec14, to support Seth Minkoff request (not to draw source which is selected
+	// when the user clicks the Show Target Text Only button), added a prior test which
+	// when evaluated to TRUE, skips the src cell Draw() call
+	if ((m_nCell == 0) && m_bSelected && gbShowTargetOnly)
+	{
+		; // Skip the Draw() call
+	} else
    	if (m_nCell != 1 ||
 		m_pOwningPile->m_pSrcPhrase->m_nSequNumber != m_pLayout->m_pApp->m_nActiveSequNum)
 	{

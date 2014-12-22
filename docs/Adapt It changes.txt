@@ -4,6 +4,22 @@ Version 6.5.5 release 28 November 2014
 ----------------------------------------------
 Feature changes and new features in 6.5.5
 ----------------------------------------------
+* The morphology Guesser (a feature supported by Alan
+Buseman) has been greatly enhanced. It now also starts
+showing guesses far more earlier than before. The
+enhancements are as follows:
+a) The guesser dialog has an extra button which shows
+a child dialong in which you can type in explicit suffixes
+into a suffixes list, and/or prefixes into a prefixes list.
+b) A button in the child dialog shows a "how to" html
+document in your machine's web browser, to explain
+how best to get value from the new Guesser features.
+c) The maximim number of suffixes to be guessed (3 or
+no limit) and prefixes to be guessed (2 or no limit) can
+be set from drop down choice lists.
+d) Entered affixes are stored automatically in files within
+the project, and the user's settings for the affixes max
+to be guessed are stored in the project configuration file.
 * This version supports USFM nested markers. These
 have the form: a begin marker is \+tag and \+tag* its
 the end marker - where tag is typically one of the
@@ -14,7 +30,7 @@ version 2.4 for more details.)
 so that the contents do not get clipped.
 * Gray de-emphasis has been added to the display in free
 translation mode, so that the eye can easily see what lies
-before andbeyond the current section to be free translated.
+before and beyond the current section to be free translated.
 * In the dialog for setting up a collaboration, the list of
 projects from Paratext or Bible edit is now sorted. 
 * In the Join Documents dialog, the lists are now sorted.
@@ -58,6 +74,14 @@ profile, but visible in the other user profiles:
 Edit menu items: "Change Username..." and "Change Punctuation 
 or Markers Placement"; Tools menu items: "Adapt Clipboard 
 Text" and "Make All Knowledge Base Entries Available".
+* The "Show Target Text Only" feature has been enhanced to
+better support a user's request. Formerly, the feature worked the
+same whether a source text selection was current or not. Now,
+if a source text selection is current, clicking the button only
+hides the source text which was selected. (In this mode, moving
+the phrase box will restore the view to normal - that is, both
+source and non-source text lines will show as normal; as also
+is the case if you click the button a second time as previously)
 ----------------------------------------------
 Bug fixes in 6.5.5
 ----------------------------------------------
