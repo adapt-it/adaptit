@@ -1098,6 +1098,9 @@ x:					CCell* pCell = 0;
 		// find which cell the click was in
 		CCell* pCell = pView->GetClickedCell(&point); // returns NULL if click was
 													  // not in a cell
+		// BEW 22Dec14 support Seth Minkoff request (for Show Tgt Only allowing only selected cells to be undrawn)
+		bool bSelectionWasActiveAtClick = pApp->m_selectionLine == 0; // a selection in src  line is active
+
 		// BEW added 03Aug08: disallow a click in the gray text area (preceding or following
 		// context) during vertical editing mode; I'll code this block as if I was supporting
 		// adaptations or glosses or free translations as entry points too, but for MFC it will
@@ -1197,8 +1200,8 @@ x:					CCell* pCell = 0;
 			if (event.ShiftDown())
 			{
 				// shift key is down, so extend the selection if there is an existing one on
-				// the matching line
-				pApp->m_bSelectByArrowKey = FALSE;
+				// the matching line;
+					pApp->m_bSelectByArrowKey = FALSE;
 				if (pApp->m_selectionLine == -1)
 				{
 					// no current selection, so treat the SHIFT+click as an ordinary
@@ -1779,6 +1782,17 @@ x:					CCell* pCell = 0;
 
 					// refresh status info at the bottom of the main window
 					pApp->RefreshStatusBarInfo();
+
+					// BEW addition 22Dec14, if Show Target Text Only is in effect with a selection
+					// in operation (as requested by Seth Minkoff), a click to a new location
+					// should cause normal view (ie. src text shown everywhere) be restored
+					if (bSelectionWasActiveAtClick // there was a selection in existence at user click
+						&& gbShowTargetOnly)       // the app is in Show Target Text Only mode
+					{
+						// Moved somewhere, so toggle back to normal mode
+						wxCommandEvent dummyevent;
+						pApp->GetView()->OnToggleShowSourceText(dummyevent); // normal view, showing source & target lines	
+					}
 
 					// if we are in free translation mode, there is a bit more to do...
 					if (pApp->m_bFreeTranslationMode)
