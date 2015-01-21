@@ -415,8 +415,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>
-      </Version>
+      <Version>6.5</Version>
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\xml\AI_UserProfiles.xml" "Unicode Debug\AI_UserProfiles.xml"
@@ -541,8 +540,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>
-      </Version>
+      <Version>6.5</Version>
     </Link>
     <PostBuildEvent>
       <Command>mkdir "..\..\setup Unicode\"

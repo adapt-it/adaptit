@@ -76,7 +76,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.5"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("November 28, 2014"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("January 22, 2015"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -93,7 +93,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2014, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT, _("Copyright (C) 2015, Bruce Waters, Bill Martin, SIL International"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item14->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM, 0 );
