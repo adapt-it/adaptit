@@ -111,7 +111,7 @@ void GuesserAffixesListsDlg::OnCancel(wxCommandEvent& event)
 			if (m_bPrefixesUpdated == true)
 			{
 				bPrefixesOK = m_pApp->DoGuesserPrefixWriteToFile();
-				wxUnusedVar(bSuffixesOK); // whm 21Jan2015 avoid warning
+				wxUnusedVar(bPrefixesOK); // whm 21Jan2015 avoid warning
 			}
 			if (m_bSuffixesUpdated == true)
 			{
@@ -445,7 +445,7 @@ void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event)
 	if (m_bPrefixesUpdated == true)
 	{
 		bPrefixesOK = m_pApp->DoGuesserPrefixWriteToFile();
-		wxUnusedVar(bSuffixesOK); // whm 21Jan2015 avoid warning
+		wxUnusedVar(bPrefixesOK); // whm 21Jan2015 avoid warning
 	}
 	if (m_bSuffixesUpdated == true)
 	{
