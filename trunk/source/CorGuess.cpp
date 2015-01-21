@@ -14,7 +14,6 @@
 
 // For documentation see CorGuess.h
 
-#define DoLogging
 
 #ifndef _MBCS // 1.6.0ad Update CorGuess.cpp for compiling in Adapt It // 1.6.1ba Update guesser to test _MCBS for non wxWidgets
 // ////////////////////////////////////////////////////////////////////////
@@ -39,6 +38,7 @@
 #endif
 
 #include "CorGuess.h"
+#include "Adapt_It.h"
 
 int iStrMatch( const wxChar* pszS, const wxChar* pszMatch ) // 1.6.1dc Utility function to show how far strings match
 	{
@@ -51,6 +51,26 @@ int iStrMatch( const wxChar* pszS, const wxChar* pszMatch ) // 1.6.1dc Utility f
 			iMatchLen++;
 		}
 	return iMatchLen; // 1.6.1dc If chars matched all the way to the end, return length of match
+	}
+
+int iStrMatchBack( const wxChar* pszS, const wxChar* pszMatch ) // 1.6.1dc Utility function to show how far strings match // 1.6.1dn 
+	{
+	int iLenMatch = 0; // 1.6.1dp Length of match from back
+	int iSLen = wxStrlen( pszS ); // 1.6.1dp 
+	int iSMatchLen = wxStrlen( pszMatch ); // 1.6.1dp 
+	int iMinLen = iSLen; // 1.6.1dp 
+	if ( iSLen > iSMatchLen ) // 1.6.1dp 
+		iMinLen = iSMatchLen; // 1.6.1dp Get length of shortest of two being matched
+	wxChar* pszSEnd = (wxChar*)pszS + iSLen - 1; // 1.6.1dn  // 1.6.1dp 
+	wxChar* pszMatchEnd = (wxChar*)pszMatch + iSMatchLen - 1; // 1.6.1dn  // 1.6.1dp 
+	for ( int i = 0; i < iMinLen; i++ ) // 1.6.1dc While more in match string, compare char
+		{
+		if ( *pszSEnd-- != *pszMatchEnd-- ) // 1.6.1dc If chars don't match, return length of match
+			return iLenMatch;
+		else  // 1.6.1dc If chars match, increment length of match
+			iLenMatch++;
+		}
+	return iLenMatch; // 1.6.1dc If chars matched all the way to the end, return length of match
 	}
 
 bool bStrMatch( const wxChar* pszS, const wxChar* pszMatch, int iStart ) // 1.6.1aj Utility function to test for match of pszMatch
@@ -84,6 +104,27 @@ void StrReplace( wxChar* pszS, wxChar* pszReplace, int iLoc, int iNum ) // 1.6.1
 	delete pszTail;
 	}
 
+int iCorrespondenceBack( wxChar* psz1, wxChar* psz2 ) // Return length of correspondence from start // 1.6.1dm Revise correspondence back func
+	{
+	unsigned int iMatchLen = iStrMatchBack( psz1, psz2 ); // 1.6.1dm See how much of front matches
+	if ( iMatchLen == wxStrlen( psz1 ) || iMatchLen == wxStrlen( psz1 ) ) // 1.6.1dm If complete match, no correspondence found
+		return 0; // 1.6.1dm 
+	if ( iMatchLen < 2 ) // 1.6.1dm If less than 2 chars match as root, no correspondence found
+		return 0; // 1.6.1dm 
+	return iMatchLen; // 1.6.1dm If an acceptable match length, return it
+	}
+
+int iCorrespondenceFront( wxChar* psz1, wxChar* psz2 ) // Return length of correspondence from end // 1.6.1dm Revise correspondence back func
+	{
+	unsigned int iMatchLen = iStrMatch( psz1, psz2 ); // 1.6.1dm See how much of back matches
+	if ( iMatchLen == wxStrlen( psz1 ) || iMatchLen == wxStrlen( psz1 ) ) // 1.6.1dm If complete match, no correspondence found
+		return 0; // 1.6.1dm 
+	if ( iMatchLen < 2 ) // 1.6.1dm If less than 2 chars match as root, no correspondence found
+		return 0; // 1.6.1dm 
+	return iMatchLen; // 1.6.1dm If an acceptable match length, return it
+	}
+
+#ifdef OLD
 int iCorrespondenceBack( wxChar* psz1, wxChar* psz2, int& iStart, int& iEnd1, int& iEnd2 ) // Return length of correspondence from start
 	{
 	// Find a difference, and return start and end of difference
@@ -144,8 +185,8 @@ int iCorrespondenceBack( wxChar* psz1, wxChar* psz2, int& iStart, int& iEnd1, in
 //					iEnd1--;
 //					iEnd2--;
 //					}
-				if ( iLen1 - iEnd1 > 5 ) // If longer than 5, don't do it as a back correspondence
-					return 0;
+//				if ( iLen1 - iEnd1 > 5 ) // If suffix length longer than max length, don't do it as a back correspondence // 1.6.1dm Remove max affix limit
+//					return 0;
 				return 1;
 				}
 			}
@@ -154,6 +195,7 @@ int iCorrespondenceBack( wxChar* psz1, wxChar* psz2, int& iStart, int& iEnd1, in
 		}
 	return 0; // Return no correspondence
 	}
+#endif // OLD
 
 Corresp::Corresp()
 	{
@@ -323,17 +365,53 @@ Corresp* CorrespList::pcorFind( const wxChar* pszSrc ) // Find the same source, 
 	return NULL;
 	}
 
+void CorrespList::DeleteTooFew( int iMinExamples ) // 1.6.1dn Change to function to use for both suff & pref
+	{
+	Corresp* pcor = pcorFirst;
+	Corresp* pcorPrev = NULL;
+	while ( pcor != NULL ) // 1.6.1de Change to avoid crash from bug in one compiler
+		{
+		bool bDelete = false;
+		if ( pcor->iNumInstances < iMinExamples ) // Delete all correspondences that occur too few times // 1.5.8va 
+			bDelete = true;
+		if ( bDelete )				
+			pcor = pcorDelete( pcor, pcorPrev );
+		else
+			{
+			pcorPrev = pcor;
+			pcor = pcor->pcorNext;
+			}
+		}
+	}
+
+void CorrespList::DeleteTooLowSucess( int iRequiredPercent ) // 1.6.1dn Change to function to use for both suff & pref
+	{
+	Corresp* pcor = pcorFirst;
+	Corresp* pcorPrev = NULL; // Delete correspondences that have less than required success percentage
+	while ( pcor != NULL ) // 1.6.1de Change to avoid crash from bug in one compiler
+		{
+		int iSuccessPercent = ( pcor->iNumInstances * 100 ) / ( pcor->iNumInstances + pcor->iNumExceptions );
+		if ( iSuccessPercent < iRequiredPercent ) // 1.4bd Make required success ratio a parameter
+			pcor = pcorDelete( pcor, pcorPrev );
+		else
+			{
+			pcorPrev = pcor;
+			pcor = pcor->pcorNext;
+			}
+		}
+	}
+
 Guesser::Guesser()
 	{
 	iRequiredSuccessPercent = 30; // Init required success percent
-	iMaxSuffLen = 5; // Init max suffix length
+//	iMaxSuffLen = 5; // Init max suffix length // 1.6.1dj 
 	iMinSuffExamples = 2; // Minimum number of examples of suffix to be considered
 	iGuessLevel = 50; // 1.5.8u Default guess level to conservative
 //	bInit = true; // 1.6.1df Set for initialization phase // 1.6.1dh Remove calculate at each new word, didn't work
 	}
 
 // =========== Start Main Routines
-void Guesser::Init( int iGuessLevel1 ) // 1.4vyd Add ClearAll function // 1.5.8u Change to Init, add guess level
+void Guesser::Init( int iGuessLevel1, int iMaxPref1, int iMaxSuff1 ) // 1.4vyd Add ClearAll function // 1.5.8u Change to Init, add guess level // 1.6.1dk Add max pref & suff
 	{
 	corlstSuffGuess.ClearAll(); // Guessed suffixes
 	corlstRootGuess.ClearAll(); // Guessed roots
@@ -343,6 +421,8 @@ void Guesser::Init( int iGuessLevel1 ) // 1.4vyd Add ClearAll function // 1.5.8u
 	corlstPrefGiven.ClearAll(); // Given prefixes
 	corlstKB.ClearAll(); // Raw correspondences given to guesser
 //	bInit = true; // 1.6.1df Set for initialization phase // 1.6.1dh 
+	iMaxPref = iMaxPref1; // 1.6.1dk Set max pref
+	iMaxSuff = iMaxSuff1; // 1.6.1dk Set max suff
 	iGuessLevel = iGuessLevel1; // 1.5.8u Set guess level
 	if ( iGuessLevel >= 50 )
 //		iRequiredSuccessPercent = 30 - ( ( ( iGuessLevel - 50 ) * 100 ) / 170 ); // 1.5.8va 50=30% up to 100=0%
@@ -368,84 +448,30 @@ void Guesser::AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int
 		corlstRootGiven.Add( pszSrc, pszTar, 10000 ); // 1.6.1ad Store as given prefix // 1.6.1ag Use high freq
 	else
 		corlstKB.Add( pszSrc, pszTar, iFreq );
-	// BEW removed next two lines, 2Dec14, because the frequent call of GuesserUpdate() now does its work, and better
-	//if ( !bInit && corlstKB.iLen < 1000 ) // 1.6.1df If kb is small, calculate at each new word // 1.6.1dh
-	//	CalculateCorrespondences(); // 1.6.1df  // 1.6.1dh
+//	if ( !bInit && corlstKB.iLen < 1000 ) // 1.6.1df If kb is small, calculate at each new word // 1.6.1dh 
+//		CalculateCorrespondences(); // 1.6.1df  // 1.6.1dh 
 	}
-
-void Guesser::DoCalcCorrespondences() // a public accessor, BEW added 3Dec14
-{
-	this->CalculateCorrespondences();
-}
 
 void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj Make this a function
 	{
-	if ( corlstSuffGuess.bIsEmpty() ) // If correspondences have not been calculated, do it now
+	if ( corlstSuffGuess.bIsEmpty() ) // If suffix correspondences have not been calculated, do it now
 		{
 		Corresp* pcor = NULL;
-		Corresp* pcorPrev = NULL;
-		int iStart, iEnd1, iEnd2 = 0;
-#if defined(_DEBUG) && defined(DoLogging)
-		//wxBell();
-		int counter = 0;
-#endif
 		for ( pcor = corlstKB.pcorFirst; pcor != NULL; pcor = pcor->pcorNext ) // Make and store all suffix correspondences // 1.6.1de Change to avoid crash from bug in one compiler
 			{
 			wxChar* pszS = pcor->pszSrc;
 			wxChar* pszT = pcor->pszTar;
-			int iCorrBack = iCorrespondenceBack( pszS, pszT, iStart, iEnd1, iEnd2 ); // See how different guess is from correct
+			int iCorrBack = iCorrespondenceFront( pszS, pszT ); // 1.6.1dm See if there is a suffix difference 
 			if ( iCorrBack ) // If there is a correspondence, store it
 				{
-				pszS += iEnd1;
-				pszT += iEnd2;
+				pszS += iCorrBack; // 1.6.1dm Move to unmatched tail
+				pszT += iCorrBack; // 1.6.1dm Move to unmatched tail
 				corlstSuffGuess.Add( pszS, pszT, 0 ); // Add to list, count if already there
-#if defined(_DEBUG) && defined(DoLogging)
-				counter++;
-				wxLogDebug(_T("CalcCorresp: Add suffix guess: Src = %s   Tgt = %s            counter = %d"), pszS, pszT, counter);
-#endif
 				}
 			}
-		pcor = corlstSuffGuess.pcorFirst;
-#if defined(_DEBUG) && defined(DoLogging)
-			counter = 0;
-			wxLogDebug(_T("Deleting these ones..."));
-#endif
-			// BEW 27Nov14, pcor is set to NULL if, in a new project's first document at the first Enter keypress
-			// to advance the box from the sequ num = 0 position, there is only one entry in the KB, and then
-			// pcor is set to NULL, and then dereferenced in the while loop causing a crash, so add a subtest to
-			// prevent loop access when pcor is NULL (because while(pcor) does not prevent access when NULL passed in)
-		while ( pcor != NULL ) // 1.6.1de Change to avoid crash from bug in one compiler
-			{
-			bool bDelete = false;
-			if ( pcor->iNumInstances < iMinSuffExamples ) // Delete all correspondences that occur too few times // 1.5.8va 
-				bDelete = true;
-			if (bDelete)
-			{
-#if defined(_DEBUG) && defined(DoLogging)
-				counter++;
-//				wxLogDebug(_T("CalcCorresp: Deleting: Src = %s   Tgt = %s   NumInstances = %d     counter = %d"), 
-//					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iNumInstances, counter);
-#endif
-				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev);
-			}
-			else
-				{
-				pcorPrev = pcor;
-				pcor = pcor->pcorNext;
-				}
-			}
-#if defined(_DEBUG) && defined(DoLogging)
-			wxLogDebug(_T("CalcCorresp: Deletions count:  %d"), counter);
-#endif
+		corlstSuffGuess.DeleteTooFew( iMinSuffExamples ); // 1.6.1dn 
 
-#if defined(_DEBUG) && defined(DoLogging)
-			counter = 0;
-			// Count exceptions (ie. the ends of the correpondence don't match; if they do match then they
-			// do not contribute to the iNumExceptions count for a given Corresp instance. The outer loop
-			// iterates over affix (suffix?) correspondences, in corlistSuffGuess list; the inner loop
-			// iterates over the whole KBs records set - as set earlier in corlstKB
-#endif
-			for ( Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext) // Count exceptions for each correspondence
+		for ( Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext ) // Count exceptions for each correspondence
 			{
 			wxChar* pszSuffSrc = pcorSuff->pszSrc;
 			wxChar* pszSuffTar = pcorSuff->pszTar;
@@ -461,70 +487,57 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 					if ( wxStrcmp( pszSuffTar, pszEndTar ) ) // If exception, count it
 						pcorSuff->iNumExceptions++;
 					}
-#if defined(_DEBUG) && defined(DoLogging)
-				counter++;
-//				wxLogDebug(_T("CalcCorresp: Exceptions counts: Src = %s   Tgt = %s  iFreq = %d   iNumInstances = %d   iNumExceptions = %d"),
-//					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, 
-//					((Corresp*)pcor)->iNumInstances, ((Corresp*)pcor)->iNumExceptions );
-#endif
 				}
 			}
+		corlstSuffGuess.DeleteTooLowSucess( iRequiredSuccessPercent ); // 1.6.1dn 
 
-		pcorPrev = NULL;
-		pcor = corlstSuffGuess.pcorFirst; // Delete correspondences that have less than required success percentage
-		// BEW 27Nov14, while this one (as  while(pcor) ) did fail above but didn't fail here (dunno why - that's weird, since
-		// both places had pcor NULL) I thought I better add the same protection here too, so added pcor != NULL && 
-#if defined(_DEBUG) && defined(DoLogging)
-		counter = 0;
-		wxLogDebug(_T("\n\n *** SUCCEEDERS ***\n"));
-		// Log those that Succeed by exceeding the iRequiredSuccessPercent (which is 1% I think)
-#endif
-		while ( pcor != NULL ) // 1.6.1de Change to avoid crash from bug in one compiler
+		// Calculate prefix correspondences // 1.6.1dn 
+		wxChar pszSFront[300]; // 1.6.1dn // 1.6.1dp 
+		wxChar pszTFront[300]; // 1.6.1dn  // 1.6.1dp 
+		for ( pcor = corlstKB.pcorFirst; pcor != NULL; pcor = pcor->pcorNext ) // Make and store all prefix correspondences // 1.6.1de Change to avoid crash from bug in one compiler
 			{
-			int iSuccessPercent = ( pcor->iNumInstances * 100 ) / ( pcor->iNumInstances + pcor->iNumExceptions );
-			if ( iSuccessPercent < iRequiredSuccessPercent ) // 1.4bd Make required success ratio a parameter
-				pcor = corlstSuffGuess.pcorDelete( pcor, pcorPrev );
-			else
+			wxChar* pszS = pcor->pszSrc;
+			wxChar* pszT = pcor->pszTar;
+			int iCorrBack = iCorrespondenceBack( pszS, pszT ); // 1.6.1dm See if there is a prefix difference // 1.6.1dn  // 1.6.1dp 
+			if ( iCorrBack ) // If there is a correspondence, store it // 1.6.1dp 
 				{
-#if defined(_DEBUG) && defined(DoLogging)
-				counter++;
-				wxLogDebug(_T("CalcCorresp: SUCCEEDERS: Src = %s   Tgt = %s   Percent = %d   iRequiredSuccessPercent = %d  counter = %d"),
-					((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, iSuccessPercent, iRequiredSuccessPercent, counter);
-#endif				
-				pcorPrev = pcor;
-				pcor = pcor->pcorNext;
+				wxStrcpy( pszSFront, pszS ); // 1.6.1dn 
+				int iSPrefLen = wxStrlen( pszSFront) - iCorrBack; // 1.6.1dp 
+				*(pszSFront + iSPrefLen) = 0; // 1.6.1dn  // 1.6.1dp 
+				wxStrcpy( pszTFront, pszT ); // 1.6.1dn 
+				int iTPrefLen = wxStrlen( pszTFront) - iCorrBack; // 1.6.1dp 
+				*(pszTFront + iTPrefLen) = 0; // 1.6.1dn  // 1.6.1dp 
+				corlstPrefGuess.Add( pszSFront, pszTFront, 0 ); // Add to list, count if already there // 1.6.1dn 
 				}
 			}
+		corlstPrefGuess.DeleteTooFew( iMinSuffExamples ); // 1.6.1dn 
+
+		for ( Corresp* pcorPref = corlstPrefGuess.pcorFirst; pcorPref; pcorPref = pcorPref->pcorNext ) // Count exceptions for each correspondence
+			{
+			wxChar* pszPrefSrc = pcorPref->pszSrc;
+			wxChar* pszPrefTar = pcorPref->pszTar;
+			int iLenSrc = wxStrlen( pszPrefSrc );
+			int iLenTar = wxStrlen( pszPrefTar );
+			for ( pcor = corlstKB.pcorFirst; pcor; pcor = pcor->pcorNext ) // Look at each knowledge base pair to see if it is an exception
+				{
+				int iLenMatchSrc = iStrMatch( pszPrefSrc, pcor->pszSrc ); // 1.6.1dp Get length of front match of src word to pref
+				if ( iLenMatchSrc == iLenSrc ) // 1.6.1dp If match full length of pref, see if tar matches
+					{
+					int iLenMatchTar = iStrMatch( pszPrefTar, pcor->pszTar ); // 1.6.1dp Get length of front match of tar word to tar pref
+					if ( iLenMatchTar < iLenTar ) // 1.6.1dp If not front match of tar pref, count as exception
+						pcorPref->iNumExceptions++; // 1.6.1dp 
+					}
+				}
+			}
+		corlstPrefGuess.DeleteTooLowSucess( iRequiredSuccessPercent ); // 1.6.1dn 
 
 		corlstSuffGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf Sort longest last so it will be first in guess list
 		corlstPrefGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length // 1.6.1bf 
 		corlstRootGiven.SortLongestLast(); // 1.6.1bd Sort given affixes and roots by length
-#if defined(_DEBUG) && defined(DoLogging)
-		counter = 0;
-		wxLogDebug(_T("\n\n *** Suffix Guesses List ***\n"));
-#endif
-		for ( pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
-		{
-			corlstSuffGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag
-#if defined(_DEBUG) && defined(DoLogging)
-			counter++;
-			wxLogDebug(_T(": Suffix Guess: Src = %s   Tgt = %s   iFreq = %d   counter = %d (from corlstSuffGiven list)"),
-				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, counter);
-#endif
-		}	
-#if defined(_DEBUG) && defined(DoLogging)
-		counter = 0;
-		wxLogDebug(_T("\n\n *** Prefix Guesses List ***\n"));
-#endif
-		for ( pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext)  // 1.6.1ag Add given affixes to guess list
-		{
-			corlstPrefGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq); // 1.6.1ag 
-#if defined(_DEBUG) && defined(DoLogging)
-			counter++;
-			wxLogDebug(_T(": Prefix Guess: Src = %s   Tgt = %s   iFreq = %d   counter = %d (from corlstPrefGiven list)"),
-				((Corresp*)pcor)->pszSrc, ((Corresp*)pcor)->pszTar, ((Corresp*)pcor)->iFreq, counter);
-#endif
-		}
+		for ( pcor = corlstSuffGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
+			corlstSuffGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
+		for ( pcor = corlstPrefGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
+			corlstPrefGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		for ( pcor = corlstRootGiven.pcorFirst; pcor; pcor = pcor->pcorNext )  // 1.6.1ag Add given affixes to guess list
 			corlstRootGuess.Add( pcor->pszSrc, pcor->pszTar, pcor->iFreq ); // 1.6.1ag 
 		}
@@ -533,6 +546,7 @@ void Guesser::CalculateCorrespondences() // Calculate correspondences // 1.6.1aj
 bool Guesser::bRootReplace( const wxChar* pszSrc, wxChar** ppszTar ) // Try to replace a root // 1.6.1aj 
 	{
 	wxStrcpy( *ppszTar, pszSrc ); // Copy source to target, so caller can use it if no replace // 1.6.1dc Fix guesser bug of no guess if no root list
+	/* This for loop gives spurious replacements of substrings within a word, so the code is not ready for prime time
 	for ( Corresp* pcorRoot = corlstRootGuess.pcorFirst; pcorRoot; pcorRoot = pcorRoot->pcorNext ) // See if a guess is possible for this string
 		{
 		wxChar* pszRootSrc = pcorRoot->pszSrc; // Pointer to root to match
@@ -544,51 +558,65 @@ bool Guesser::bRootReplace( const wxChar* pszSrc, wxChar** ppszTar ) // Try to r
 			return true;
 			}
 		}
+	*/
 	return false;
 	}
 
-bool Guesser::bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace ) // Try to replace a suffix // 1.6.1aj 
+bool Guesser::bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, int iLevel ) // Try to replace a suffix // 1.6.1aj  // 1.6.1dk Add level arg to limit number
 	{
+	int iLenSrc = wxStrlen( pszSrc ); // 1.6.1dm 
 	wxStrcpy( *ppszTar, pszSrc ); // Copy source to target, so caller can use it if no replace // 1.6.1dc Fix guesser bug of no guess if no root list
-	if ( !bReplace ) // 1.6.1aj If no replace, return target same as source
+	if ( iLevel >= iMaxSuff ) // 1.6.1aj If no replace, return target same as source // 1.6.1dk Stop if max number reached
 		return false;
+	if ( iLenSrc <= 2 ) // 1.6.1dm Don't try affix if only 2 letters of root left
+		return false; // 1.6.1dm 
+	iLevel++; // 1.6.1dk Count how many this is
 	for ( Corresp* pcorSuff = corlstSuffGuess.pcorFirst; pcorSuff; pcorSuff = pcorSuff->pcorNext ) // See if a guess is possible for this string
 		{
 		wxChar* pszSuffSrc = pcorSuff->pszSrc; // Pointer to suffix to match
 		int iLenSuffSrc = wxStrlen( pszSuffSrc ); // Get length of suffix to match
-		const wxChar* pszEndSrc = pszSrc + wxStrlen( pszSrc ) - iLenSuffSrc; // Get start of end of source for match
-		if ( !wxStrcmp( pszSuffSrc, pszEndSrc ) ) // If source matches, replace it with target
+		if ( ( iLenSrc - iLenSuffSrc ) >= 2 ) // 1.6.1dm Don't replace suff if it leaves less than 2 letters of root
 			{
-			wxChar* pszSrcShortened = new wxChar[ wxStrlen( pszSrc ) + 1 ]; // 1.6.1aj Shortened source to try further suff
-			wxStrcpy( pszSrcShortened, pszSrc ); // Copy source to shortened source
-			*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source // 1.6.1be Change back to pointer arithmetic
-//			wxStrcpy( pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc, "" ); // 1.6.1aj Shorten source // 1.6.1bb 
-			bSuffReplace( pszSrcShortened, ppszTar, iGuessLevel >= 40 ); // 1.6.1aj Try replace suff on shortened source, but only if guess level 40 or more
-			wxStrcat( *ppszTar, pcorSuff->pszTar ); // 1.6.1aj Append target suff to end of target
-			delete pszSrcShortened; // 1.6.1aj 
-			return true;
+			const wxChar* pszEndSrc = pszSrc + iLenSrc - iLenSuffSrc; // Get start of end of source for match
+			if ( !wxStrcmp( pszSuffSrc, pszEndSrc ) ) // If source matches, replace it with target
+				{
+				wxChar* pszSrcShortened = new wxChar[ wxStrlen( pszSrc ) + 1 ]; // 1.6.1aj Shortened source to try further suff
+				wxStrcpy( pszSrcShortened, pszSrc ); // Copy source to shortened source
+				*(pszSrcShortened + wxStrlen( pszSrc ) - iLenSuffSrc) = 0; // 1.6.1aj Shorten source // 1.6.1be Change back to pointer arithmetic
+				bSuffReplace( pszSrcShortened, ppszTar, iLevel ); // 1.6.1aj Try replace suff on shortened source, but only if guess level 40 or more // 1.6.1dk Pass in level
+				wxStrcat( *ppszTar, pcorSuff->pszTar ); // 1.6.1aj Append target suff to end of target
+				delete pszSrcShortened; // 1.6.1aj 
+				return true;
+				}
 			}
 		}
 	return false;
 	}
 
-bool Guesser::bPrefReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace ) // Try to replace a prefix // 1.6.1aj 
+bool Guesser::bPrefReplace( const wxChar* pszSrc, wxChar** ppszTar, int iLevel ) // Try to replace a prefix // 1.6.1aj  // 1.6.1dk Add level arg to limit number
 	{
+	int iLenSrc = wxStrlen( pszSrc ); // 1.6.1dm 
 	wxStrcpy( *ppszTar, pszSrc ); // Copy source to target, so caller can use it if no replace // 1.6.1dc Fix guesser bug of no guess if no root list
-	if ( !bReplace ) // 1.6.1aj If no replace, return target same as source
+	if ( iLevel >= iMaxPref ) // 1.6.1aj If no replace, return target same as source // 1.6.1dk Stop if max number reached
 		return false;
+	if ( iLenSrc <= 2 ) // 1.6.1dm Don't try affix if only 2 letters of root left
+		return false; // 1.6.1dm 
+	iLevel++; // 1.6.1dk Count how many this is
 	for ( Corresp* pcorPref = corlstPrefGuess.pcorFirst; pcorPref; pcorPref = pcorPref->pcorNext ) // See if a guess is possible for this string
 		{
 		wxChar* pszPrefSrc = pcorPref->pszSrc; // Pointer to prefix to match
 		int iLenPrefSrc = wxStrlen( pszPrefSrc ); // Get length of prefix to match
-		if ( bStrMatch( pszSrc, pszPrefSrc, 0 ) ) // If source matches, replace it with target
+		if ( ( iLenSrc - iLenPrefSrc ) >= 2 ) // 1.6.1dm Don't replace pref if it leaves less than 2 letters of root
 			{
-			wxChar* pszSrcShortened = new wxChar[ wxStrlen( pszSrc ) + 1 ]; // 1.6.1aj Shortened source to try further pref
-			wxStrcpy( pszSrcShortened, pszSrc + iLenPrefSrc ); // Copy source to shortened source
-			bPrefReplace( pszSrcShortened, ppszTar, iGuessLevel >= 40 ); // 1.6.1aj Try replace pref on shortened source, but only if guess level 40 or more
-			StrReplace( *ppszTar, pcorPref->pszTar, 0, 0 ); // 1.6.1aj Prepend target pref to front of target
-			delete pszSrcShortened; // 1.6.1aj 
-			return true;
+			if ( bStrMatch( pszSrc, pszPrefSrc, 0 ) ) // If source matches, replace it with target
+				{
+				wxChar* pszSrcShortened = new wxChar[ iLenSrc + 1 ]; // 1.6.1aj Shortened source to try further pref
+				wxStrcpy( pszSrcShortened, pszSrc + iLenPrefSrc ); // Copy source to shortened source
+				bPrefReplace( pszSrcShortened, ppszTar, iLevel ); // 1.6.1aj Try replace pref on shortened source, but only if guess level 40 or more // 1.6.1dk Pass in level
+				StrReplace( *ppszTar, pcorPref->pszTar, 0, 0 ); // 1.6.1aj Prepend target pref to front of target
+				delete pszSrcShortened; // 1.6.1aj 
+				return true;
+				}
 			}
 		}
 	return false;
@@ -598,7 +626,6 @@ bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return t
 	{
 	if ( corlstSuffGuess.bIsEmpty() ) // If correspondences have not been calculated, do it now
 		CalculateCorrespondences(); // 1.6.1aj 
-	bInit = false; // 1.6.1df Clear initialization to allow possible recalc corresp on add // 1.6.1dh
 	bool bSucc = false; // 1.6.1aj 
 	if ( bRootReplace( pszSrc, ppszTar ) ) // 1.6.1aj 
 		bSucc = true;
@@ -608,3 +635,22 @@ bool Guesser::bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ) // Return t
 		bSucc = true;
 	return bSucc; // 1.6.1aj 
 	}
+
+void Guesser::DoCalcCorrespondences() // a public accessor, BEW added 3Dec14
+{
+	this->CalculateCorrespondences();
+}
+
+// supplies the app's m_iMaxPrefixes value to the 2nd param of Init()
+int Guesser::GetUserMaxPrefixesValue()
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	return pApp->m_iMaxPrefixes;
+}
+
+// supplies the app's m_iMaxSuffixes value to the 3rd param of Init()
+int Guesser::GetUserMaxSuffixesValue()
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	return pApp->m_iMaxSuffixes;
+}

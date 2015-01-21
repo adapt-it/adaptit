@@ -105,6 +105,8 @@ protected:
 	void OnUpdate(wxCommandEvent& event);
 	void OnInsert(wxCommandEvent& event);
 	void OnDelete(wxCommandEvent& event);
+	// BEW added 21Jan15
+	void DeselectButtonsAfterClick();
 
 
 	bool LoadDataForListType(PairsListType myType);

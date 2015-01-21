@@ -76,6 +76,7 @@ enum{	DVCS_CHECK, DVCS_COMMIT_FILE,
 
 class DVCS;         // class of the object giving access to the DVCS operations
 class DVCSNavDlg;   // dialog for navigating through previous versions
+class TranslationsList; // the CTargetUnit's list of CRefString instances
 
 // while Graeme and Bruce work on the codefix refactoring, Graeme needs to test his
 // boolean removal efforts with existing xml adaptation documents, and Bruce needs to test
@@ -4242,6 +4243,7 @@ public:
 	bool	LoadKB(bool bShowProgress);
 	bool	LoadGlossingKB(bool bShowProgress);
 	void	LoadGuesser(CKB* Kb);
+	wxString GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr); // BEW added 21Jan15
 	bool	CreateAndLoadKBs(); // whm 28Aug11 added
 	wxFontEncoding MapMFCCharsetToWXFontEncoding(const int Charset);
 	int		MapWXFontEncodingToMFCCharset(const wxFontEncoding fontEnc);

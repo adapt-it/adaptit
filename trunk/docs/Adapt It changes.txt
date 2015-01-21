@@ -1,5 +1,5 @@
  ----------------------------------------------
-Version 6.5.5 release 28 November 2014
+Version 6.5.5 release 23 January 2015
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.5.5
@@ -14,12 +14,13 @@ into a suffixes list, and/or prefixes into a prefixes list.
 b) A button in the child dialog shows a "how to" html
 document in your machine's web browser, to explain
 how best to get value from the new Guesser features.
-c) The maximim number of suffixes to be guessed (3 or
-no limit) and prefixes to be guessed (2 or no limit) can
-be set from drop down choice lists.
+c) The maximim number of suffixes to be guessed (0,
+1, 2, 3 or no limit) and prefixes to be guessed (0, 1, 2 or 
+no limit) can be set from drop down choice lists.
 d) Entered affixes are stored automatically in files within
-the project, and the user's settings for the affixes max
-to be guessed are stored in the project configuration file.
+the project, and the user's settings for the maximum
+sequence on a given word for the guessed affixes are 
+stored in the project configuration file.
 * This version supports USFM nested markers. These
 have the form: a begin marker is \+tag and \+tag* its
 the end marker - where tag is typically one of the
@@ -27,7 +28,7 @@ tags in the "Special Text and Character Styles" section
 of the USFM standard. (See the USFM documentation for
 version 2.4 for more details.)
 * The file naming dialog is larger in the vertical dimension,
-so that the contents do not get clipped.
+so that the text contents do not get clipped.
 * Gray de-emphasis has been added to the display in free
 translation mode, so that the eye can easily see what lies
 before and beyond the current section to be free translated.
@@ -56,7 +57,7 @@ the Join dialog open for you to try again if you wish.
 a new menu item on the Administrator menu, Force Free 
 Translation Sectioning By Verse. When this is toggled On, 
 free translation operations will be done with the "by verse"
-setting in place for how large sections are to be when
+setting in place for setting how large sections are to be when
 created. As before, "by verse" is just a guide - the
 section will be shorter than the whole verse if there is 
 one or more significant standard format markers within 
