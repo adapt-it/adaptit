@@ -168,8 +168,7 @@ echo Building against build of WxWidgets found in %25WXWIN%25.
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>
-      </Version>
+      <Version>6.5</Version>
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\xml\AI_UserProfiles.xml" "Debug\AI_UserProfiles.xml"
@@ -184,6 +183,7 @@ xcopy "..\..\docs\Images\Admin_help\*.*" "Debug\Images\Admin_help\*.*" /Y /Q /EX
 copy "..\..\docs\Adapt_It_Quick_Start.htm" "Debug\Adapt_It_Quick_Start.htm"
 mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
 xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\GuesserExplanation.htm" "Debug\GuesserExplanation.htm"
 mkdir "Debug\Languages\es"
 mkdir "Debug\Languages\fr"
 mkdir "Debug\Languages\id"
@@ -289,8 +289,7 @@ echo Building against build of WxWidgets found in %25WXWIN%25.
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
-      <Version>
-      </Version>
+      <Version>6.5</Version>
       <ShowProgress>NotSet</ShowProgress>
       <LinkStatus>false</LinkStatus>
     </Link>
@@ -313,6 +312,7 @@ xcopy "..\..\docs\Images\Admin_help\*.*" "Release\Images\Admin_help\*.*" /Y /Q /
 copy "..\..\docs\Adapt_It_Quick_Start.htm" "Release\Adapt_It_Quick_Start.htm"
 mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
 xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\GuesserExplanation.htm" "Release\GuesserExplanation.htm"
 mkdir "Release\Languages\es"
 mkdir "Release\Languages\fr"
 mkdir "Release\Languages\id"
@@ -430,6 +430,7 @@ xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Debug\Images\Admin_help\*.*" /
 copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Debug\Adapt_It_Quick_Start.htm"
 mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
 xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Debug\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\GuesserExplanation.htm" "Unicode Debug\GuesserExplanation.htm"
 mkdir "Unicode Debug\Languages\es"
 mkdir "Unicode Debug\Languages\fr"
 mkdir "Unicode Debug\Languages\id"
@@ -561,6 +562,7 @@ xcopy "..\..\docs\Images\Admin_help\*.*" "Unicode Release\Images\Admin_help\*.*"
 copy "..\..\docs\Adapt_It_Quick_Start.htm" "Unicode Release\Adapt_It_Quick_Start.htm"
 mkdir "..\..\docs\Images\Adapt_It_Quick_Start\"
 xcopy "..\..\docs\Images\Adapt_It_Quick_Start\*.*" "Unicode Release\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\..\Exclude.txt
+copy "..\..\docs\GuesserExplanation.htm" "Unicode Release\GuesserExplanation.htm"
 mkdir "Unicode Release\Languages\es"
 mkdir "Unicode Release\Languages\fr"
 mkdir "Unicode Release\Languages\id"
