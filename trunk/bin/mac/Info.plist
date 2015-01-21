@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleGetInfoString</key>
-	<string>$(PRODUCT_NAME) version 6.5.5, (c) 2014 Bruce Waters, Bill Martin, SIL International</string>
+	<string>$(PRODUCT_NAME) version 6.5.5, (c) 2015 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleIconFile</key>
 	<string>Adapt It.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -28,7 +28,7 @@
 		<string>zh</string>
 	</array>
 	<key>CFBundleLongVersionString</key>
-	<string>6.5.5, (c) 2014 Bruce Waters, Bill Martin, SIL International</string>
+	<string>6.5.5, (c) 2015 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
@@ -46,6 +46,6 @@
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2014 Bruce Waters, Bill Martin, SIL International</string>
+	<string>Copyright 2015 Bruce Waters, Bill Martin, SIL International</string>
 </dict>
 </plist>
