@@ -3680,7 +3680,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	// next line tests if my manually set margin of 2mm is picked up
 	wxPoint marginTopLeft = pApp->pPgSetupDlgData->GetMarginTopLeft(); // correctly returns (2,25)
 		// because I set the left margin to 100 thousandths of an inch in the basic config file
-		 
+	wxUnusedVar(marginTopLeft); // whm 21Jan2015 avoid warning
 	//pAIPrOut->MapScreenSizeToPageMargins(*pApp->pPgSetupDlgData); // produces no change
 	//pAIPrOut->MapScreenSizeToPaper(); // produces no change
 	//*

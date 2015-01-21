@@ -109,9 +109,15 @@ void GuesserAffixesListsDlg::OnCancel(wxCommandEvent& event)
 		{
 			bool bPrefixesOK, bSuffixesOK;
 			if (m_bPrefixesUpdated == true)
+			{
 				bPrefixesOK = m_pApp->DoGuesserPrefixWriteToFile();
+				wxUnusedVar(bSuffixesOK); // whm 21Jan2015 avoid warning
+			}
 			if (m_bSuffixesUpdated == true)
+			{
 				bSuffixesOK = m_pApp->DoGuesserSuffixWriteToFile();
+				wxUnusedVar(bSuffixesOK); // whm 21Jan2015 avoid warning
+			}
 		}
 	}
 	event.Skip();
@@ -437,9 +443,15 @@ void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event)
 	
 	bool bPrefixesOK, bSuffixesOK;
 	if (m_bPrefixesUpdated == true)
+	{
 		bPrefixesOK = m_pApp->DoGuesserPrefixWriteToFile();
+		wxUnusedVar(bSuffixesOK); // whm 21Jan2015 avoid warning
+	}
 	if (m_bSuffixesUpdated == true)
+	{
 		bSuffixesOK = m_pApp->DoGuesserSuffixWriteToFile();
+		wxUnusedVar(bSuffixesOK); // whm 21Jan2015 avoid warning
+	}
 
 	// BEW 5Dec14 get the m_iMaxPrefxs and m_iMaxSuffxs values and put them into the
 	// app's m_iMaxPrefixes and m_iMaxSuffixes members, so they can be written out to the

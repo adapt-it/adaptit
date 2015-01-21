@@ -25145,7 +25145,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				// for a given target unit. Therefore I will comment out the code below which
 				// functions to add the additional CRefString instances within the same CTargetUnit
 				// instance. <<- Alan's comments made a few years before January 2015
-				//* BEW 21Jan15 reinstated this block of code, after Alan Buseman's email of
+				// * BEW 21Jan15 reinstated this block of code, after Alan Buseman's email of
 				// 21Jan13 'Re:where are things at' 1:44am. His comment was that reinstating this
 				// code would make the extra target strings look to the guesser like exceptions, and
 				// that would make the most frequent one of them be more inhibited from being put
