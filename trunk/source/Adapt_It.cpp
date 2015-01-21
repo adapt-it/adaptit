@@ -25054,6 +25054,7 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				}
 				posRef = pTU->m_pTranslations->GetFirst();
 				wxASSERT(posRef != 0);
+				wxUnusedVar(posRef); // whm 21Jan2015 avoid warning
                 // If control gets here, there will be at least one non-null posRef
                 
 				// BEW 21Jan15, Alan Buseman's suggestion of using just the most common tgt form
