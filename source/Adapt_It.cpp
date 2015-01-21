@@ -24911,7 +24911,64 @@ void CAdapt_ItApp::RemoveEmptiesFromMaps(CKB* pKB)
 	} // end of numWords outer loop
 }
 
+// returns a wxString which is the most frequent tgt language adaptation for the
+// passed in CTargetUnit instance. Used in LoadGuesser() to set up the correspondence
+// lists
+wxString CAdapt_ItApp::GetMostCommonForm(CTargetUnit* pTU, wxString* pNotInKBstr)
+{
+	TranslationsList::Node* posRef = 0;
+	posRef = pTU->m_pTranslations->GetFirst();
+	wxASSERT(posRef != 0);
 
+	wxString aForm; aForm.Empty();
+	wxString bestForm; bestForm.Empty();
+	int iFrequency = 0;
+	int maxSoFar = 0;
+	CRefString* pRefStr = NULL;
+
+	// Get the details for the first CRefString instance (it might be the only instance)
+	pRefStr = (CRefString*)posRef->GetData();
+	wxASSERT(pRefStr != NULL); // this one must exist
+	aForm = pRefStr->m_translation;
+	iFrequency = pRefStr->m_refCount;
+	bool bNotNotInKB = aForm.Find(*pNotInKBstr) == wxNOT_FOUND; // is it not <Not_In_KB>?
+	bool bSkipIt_ItsEmpty = aForm.IsEmpty();
+	bool bIsDeleted = pRefStr->GetDeletedFlag();
+
+	// If the first boolean is TRUE and next two are FALSE, then we can accept this aForm 
+	// as the first (perhaps only) possibility for presenting to the guesser
+	if (bNotNotInKB && !bSkipIt_ItsEmpty && !bIsDeleted)
+	{
+		bestForm = aForm;
+		maxSoFar = iFrequency;
+	}
+
+	// Handle any other forms associated with this source text key
+	posRef = posRef->GetNext(); // prepare for possibility of another CRefString
+	while (posRef != NULL)
+	{
+		pRefStr = (CRefString*)posRef->GetData();
+		wxASSERT(pRefStr != NULL);
+		aForm = pRefStr->m_translation;
+		iFrequency = pRefStr->m_refCount;
+		bNotNotInKB = aForm.Find(*pNotInKBstr) == wxNOT_FOUND; // is it not <Not_In_KB>?
+		bSkipIt_ItsEmpty = aForm.IsEmpty();
+		bIsDeleted = pRefStr->GetDeletedFlag();
+		// skip any form which is a pseudo-deleted one, a <Not_In_KB>, or empty
+		if (bNotNotInKB && !bSkipIt_ItsEmpty && !bIsDeleted)
+		{
+			if (iFrequency > maxSoFar) // use > rather than >= because if two forms are equally
+									   // frequent we assume the higher one in the list is better
+			{
+				bestForm = aForm;
+				maxSoFar = iFrequency;
+			}
+		}
+		// Prepare for another iteration
+		posRef = posRef->GetNext();
+	}
+	return bestForm;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -24936,27 +24993,33 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	// single deletion invalidates the loop's iterator)
 	RemoveEmptiesFromMaps(m_pKB);
 
-	// whm added 29Oct10 for Guesser support
+	// whm added 29Oct10 for Guesser support (we don't actually support a glosses guesser
+	// for the reason that glossing is going to be a quite different language and trying
+	// to do guesses for that kind of scenario makes no sense)
 	if (m_pKB->IsThisAGlossingKB())
-		m_pGlossesGuesser->Init(m_nGuessingLevel);
+	{
+		m_pGlossesGuesser->Init(m_nGuessingLevel); // use defaults for params 2 and 3, 
+		// as we never use a glosses guesser
+	}
 	else
-		m_pAdaptationsGuesser->Init(m_nGuessingLevel); // clears the Guesser correspondence list
+	{
+		m_pAdaptationsGuesser->Init(m_nGuessingLevel,
+			m_pAdaptationsGuesser->GetUserMaxPrefixesValue(),
+			m_pAdaptationsGuesser->GetUserMaxSuffixesValue()
+			); // clears the Guesser correspondence lists, etc
+	}
 	int numCorrespondencesLoaded = 0;
 	int numWords;
 	int counter = 0;
-	wxString key,baseKey,gloss,baseGloss;
+	wxString key,baseKey,form,baseForm; // BEW 21Jan15 formerly was gloss and baseGloss for last two
 	wxString strNotInKB = _T("<Not In KB>");
 	MapKeyStringToTgtUnit::iterator iter;
 	CTargetUnit* pTU = 0;
-	CRefString* pRefStr;
+	CRefString* pRefStr = 0;
+	wxUnusedVar(pRefStr); // comment this line out if we reinstate the commented out code below
 	int iFrequency = 0;
 	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
 	{
-		// BEW 19Mar13, next two lines are deprecated. Glossing KB now potentially
-		// uses all 10 maps.
-		//if (m_pKB->IsThisAGlossingKB() && numWords > 1)
-		//	continue; // when glossing we want to consider only the first map, the others
-					  // are all empty
 		if (m_pKB->m_pMap[numWords-1]->size() == 0)
 			continue;
 		else
@@ -24989,14 +25052,23 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					++iter;
 					continue;
 				}
-				else
-				{
-					posRef = pTU->m_pTranslations->GetFirst();
-					wxASSERT(posRef != 0);
-				}
-
+				posRef = pTU->m_pTranslations->GetFirst();
+				wxASSERT(posRef != 0);
                 // If control gets here, there will be at least one non-null posRef
-                //
+                
+				// BEW 21Jan15, Alan Buseman's suggestion of using just the most common tgt form
+				// is implemented by the following call
+				form = GetMostCommonForm(pTU, &strNotInKB);
+				if (!form.IsEmpty())
+				{
+					// Add the correspondence to the Guesser
+					if (m_pKB->IsThisAGlossingKB())
+						m_pGlossesGuesser->AddCorrespondence(key, form, iFrequency);
+					else
+						m_pAdaptationsGuesser->AddCorrespondence(key, form, iFrequency);
+					numCorrespondencesLoaded++;
+				}
+/* comment out following stuff -- as of 21Jan15 we use GetMostCommonForm() - see above
                 // BEW added to comment on 19Mar13: But if the user has been doing removals
                 // of KB entries (e.g. by editing a KB entry's source text and typing the
                 // Update button), the pseudo-deleted CRefString typically is stored
@@ -25006,38 +25078,38 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
                 // entry, then it searches further in the list of CRefString instances for
                 // a non-deleted one, and uses the first such that it finds.
 				pRefStr = (CRefString*)posRef->GetData();
-				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
 				wxASSERT(pRefStr != NULL);
-				gloss = pRefStr->m_translation;
+				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
+				form = pRefStr->m_translation;
 				iFrequency = pRefStr->m_refCount;
-				baseGloss = gloss;
+				baseForm = form;
 //#if defined(_DEBUG)
 //					wxLogDebug(_T("LoadGuesser() iteration %d [ %s ]<->[ %s ]  map index: %d  numCorrespondencesLoaded = %d  deleted? %s"),
 //						counter, key.c_str(), gloss.c_str(), numWords - 1, numCorrespondencesLoaded,
 //						pRefStr->GetDeletedFlag() ? _T("YES") : _T("NO"));
 //#endif
 				// Don't add correspondences for deleted or "<Not In KB>"
-				bool bNotNotFound = baseGloss.Find(strNotInKB) == wxNOT_FOUND;
+				bool bNotNotInKB = baseForm.Find(strNotInKB) == wxNOT_FOUND;
 				bool bSkipIt_ItsEmpty = FALSE;
-				if (!pRefStr->GetDeletedFlag() && bNotNotFound)
+				if (!pRefStr->GetDeletedFlag() && bNotNotInKB)
 				{
 					// Add correspondence to the Guesser
 					if (m_pKB->IsThisAGlossingKB())
-						m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
+						m_pGlossesGuesser->AddCorrespondence(key,form,iFrequency);
 					else
-						m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
+						m_pAdaptationsGuesser->AddCorrespondence(key,form,iFrequency);
 					numCorrespondencesLoaded++;
 				}
-				else if (bNotNotFound)
+				else if (bNotNotInKB)
 				{
 					// It was a pseudo-deleted first CRefString instance, so try find
 					// first which isn't pseudo-deleted, and use that
-					gloss.Empty();
+					form.Empty();
 					bSkipIt_ItsEmpty = TRUE; // initialize
 					while (posRef != NULL)
 					{
 						// find the first non-deleted one, remember, it may be an empty
-						// string, which is a perfectly valid adaptation or gloss
+						// string, which is a perfectly valid adaptation or gloss  form
 						pRefStr = (CRefString*)posRef->GetData();
 						posRef = posRef->GetNext(); // prepare for possibility of another CRefString
 						wxASSERT(pRefStr != NULL);
@@ -25047,9 +25119,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 						}
 						else
 						{
-							gloss = pRefStr->m_translation;
+							form = pRefStr->m_translation;
 							iFrequency = pRefStr->m_refCount;
-							bSkipIt_ItsEmpty = FALSE; // got one which is not pseudo-deleted
+							bSkipIt_ItsEmpty = form.IsEmpty(); // maybe got one which is not pseudo-deleted
 							break;
 						}
 					} // end of loop: while (posRef != NULL)
@@ -25057,9 +25129,9 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 					{
 						// Add correspondence to the Guesser
 						if (m_pKB->IsThisAGlossingKB())
-							m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
+							m_pGlossesGuesser->AddCorrespondence(key,form,iFrequency);
 						else
-							m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
+							m_pAdaptationsGuesser->AddCorrespondence(key,form,iFrequency);
 						numCorrespondencesLoaded++;
 					}
 				}
@@ -25072,32 +25144,47 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 				// probably also the one the user feels is the most frequent or important translation
 				// for a given target unit. Therefore I will comment out the code below which
 				// functions to add the additional CRefString instances within the same CTargetUnit
-				// instance.
-				/*
+				// instance. <<- Alan's comments made a few years before January 2015
+				//* BEW 21Jan15 reinstated this block of code, after Alan Buseman's email of
+				// 21Jan13 'Re:where are things at' 1:44am. His comment was that reinstating this
+				// code would make the extra target strings look to the guesser like exceptions, and
+				// that would make the most frequent one of them be more inhibited from being put
+				// forward as a guess. My reply was that this hibiting seems like a proper thing to do
+				// because (a) users don't always move the most common meaning to the top of the list,
+				// (b) they don't necessarily know which is most common anyway, and (c) biasing one
+				// particular meaning over others in order to get a guess is not an optimal strategy 
+				// (better to make no guess). Alan's view is that it's better to try a guess.
+				// Alan then replied that I should use the CRefString's frequency count to get the
+				// most commonly occurring form, to make that the only suggestion for the given source
+				// form. I'm inclined to try that for 6.5.5 so I'll keep the present code here, but
+				// commented out, and write a function that returns the one most common tgt form -
+				// see above, where it is called... it's GetMostCommonForm()
 
-				// now deal with any additional CRefString instances within the same
+				// This next while loop was formerly commented out, because Alan said it would
+				// make alternatives look like exceptions and so tend to inhibit possibly good
+				// guesses.
+				// Now deal with any additional CRefString instances within the same
 				// CTargetUnit instance
 				while (posRef != 0)
 				{
 					pRefStr = (CRefString*)posRef->GetData();
 					wxASSERT(pRefStr != NULL);
 					posRef = posRef->GetNext(); // prepare for possibility of yet another
-					gloss = pRefStr->m_translation;
+					form = pRefStr->m_translation;
 					iFrequency = pRefStr->m_refCount;
-					baseGloss = gloss;
+					baseForm = form;
 
-					if (!pRefStr->GetDeletedFlag() && baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+					if (!pRefStr->GetDeletedFlag() && baseForm.Find(strNotInKB) == wxNOT_FOUND)
 					{
 						// Add correspondence to the Guesser
 						if (m_pKB->IsThisAGlossingKB())
-							m_pGlossesGuesser->AddCorrespondence(key,gloss,iFrequency);
+							m_pGlossesGuesser->AddCorrespondence(key,form,iFrequency);
 						else
-							m_pAdaptationsGuesser->AddCorrespondence(key,gloss,iFrequency);
+							m_pAdaptationsGuesser->AddCorrespondence(key,form,iFrequency);
 						numCorrespondencesLoaded++;
 					}
 				} // end of inner loop for looping over CRefString instances
-
-				*/
+*/
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
 				// completeness has been obtained in traversing the map
 				iter++;
@@ -25107,12 +25194,13 @@ void CAdapt_ItApp::LoadGuesser(CKB* m_pKB)
 	if (m_pKB->IsThisAGlossingKB())
 	{
 		m_nCorrespondencesLoadedInGlossingGuesser = numCorrespondencesLoaded;
-		wxLogDebug(_T("The Glossing guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInGlossingGuesser);
+		//wxLogDebug(_T("The Glossing guesser has %d correspondences loaded"), m_nCorrespondencesLoadedInGlossingGuesser);
+		wxLogDebug(_T("The Glossing Guesser is not currently supported, and probably never will be."));
 	}
 	else
 	{
 		m_nCorrespondencesLoadedInAdaptationsGuesser = numCorrespondencesLoaded;
-		wxLogDebug(_T("The Adaptations guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
+		wxLogDebug(_T("The Adaptations Guesser has %d correspondences loaded"),m_nCorrespondencesLoadedInAdaptationsGuesser);
 	}
 
 	// Check for xml prefix file/document, and load prefixes into guesser if found
@@ -48337,7 +48425,6 @@ void CAdapt_ItApp::ClobberGuesser()
 	m_nCorrespondencesLoadedInGlossingGuesser = 0;
 	m_bAllowGuesseronUnchangedCCOutput = FALSE;
 
-
 	int count = (int)GetGuesserPrefixes()->GetCount();
 	if (count > 0)
 	{
@@ -48360,8 +48447,8 @@ void CAdapt_ItApp::ClobberGuesser()
 	// does not get transferred to another when the user moves from one project to another.
 	// It's sufficient just to call Init() on the Guesser object, it clears all the
 	// correspondences lists
-	m_pAdaptationsGuesser->Init(); // defaults to guessing level 50%
-	m_pGlossesGuesser->Init(); // defaults to guessing level 50%
+	m_pAdaptationsGuesser->Init(); // defaults to guessing level 50%, max prefixes 1, max suffixes 3
+	m_pGlossesGuesser->Init(); // defaults to guessing level 50%, max prefixes 1, max suffixes 3
 	m_nCorrespondencesLoadedInAdaptationsGuesser = 0;
 	m_nCorrespondencesLoadedInGlossingGuesser = 0;
 	m_numLastEntriesAggregate = 0;

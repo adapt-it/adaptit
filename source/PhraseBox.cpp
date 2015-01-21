@@ -5080,6 +5080,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			this->m_bAbandonable = TRUE;
 			pApp->m_bIsGuess = FALSE;
 			pApp->m_preGuesserStr.Empty(); // clear this to empty, it's job is done
+			this->Refresh();
 			return;
 		}
 	}

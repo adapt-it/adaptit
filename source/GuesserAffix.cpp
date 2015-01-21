@@ -56,7 +56,7 @@ CGuesserAffix::CGuesserAffix(wxString m_sInputSourceAffix, wxString m_sInputTarg
 
 CGuesserAffix::~CGuesserAffix() // destructor
 {
-	wxLogDebug(_T("LoadGuesser() EMPTY LIST, map index ,  Map size:: "));	
+	//wxLogDebug(_T("CGuesserAffix::~CGuesserAffix() destructor called "));	
 }
 wxString CGuesserAffix::getSourceAffix()
 {

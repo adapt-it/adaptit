@@ -30,7 +30,7 @@ Include CorGuess.h in the files in which you use the guesser.
 
 Interface consists of one class and 3 functions:
 	Guesser gue;
-	void gue.Init( int iGuessLevel ); // Clear old correspondences, prepare to start new load, set guess level
+	void gue.Init( int iGuessLevel, int iMaxPref, int iMaxSuff ); // Clear old correspondences, prepare to start new load, set guess level
 	void gue.AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int iFreq = 1 ); // Add a correspondence to the list
 	bool gue.bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ); // Return target guess
 
@@ -114,6 +114,8 @@ public:
 	Corresp* pcorFind( const wxChar* pszSrc, const wxChar* pszTar ); // Find the same pair, return NULL if not found
 	Corresp* pcorFind( const wxChar* pszSrc ); // Find the same source, return NULL if not found
 	Corresp* pcorDelete( Corresp* pcor, Corresp* pcorPrev ); // Delete a correspondence from the list, return next after deleted one
+	void DeleteTooFew( int iMinExamples ); // 1.6.1dn Change to function to use for both suff & pref
+	void DeleteTooLowSucess( int iRequiredPercent ); // 1.6.1dn Change to function to use for both suff & pref
 	};
 
 class CorrespListKB : public CorrespList // corlst List of KB correspondence structures // 1.6.1bc 
@@ -126,10 +128,12 @@ class Guesser // gue Guesser, main class that holds everything
 {
 protected: // Not to be changed by user, carefully tuned for maximum performance
 	int iRequiredSuccessPercent; // Required percentage of successes
-	int iMaxSuffLen; // Longest suffix length to be considered
+//	int iMaxSuffLen; // Longest suffix length to be considered // 1.6.1dj Guesser remove max suffix length
 	int iMinSuffExamples; // Minimum number of examples of suffix to be considered
 	int iGuessLevel; // Level of guess, 0 is no guessing, 50 is conservative, 100 is wild guessing
-	bool bInit; // 1.6.1df Used to avoid calculate corresp during intial load
+	int iMaxPref; // 1.6.1dk Max prefixes
+	int iMaxSuff; // 1.6.1dk Max suffixes
+//	bool bInit; // 1.6.1df Used to avoid calculate corresp during intial load // 1.6.1dh 
 protected:
 	CorrespListKB corlstKB; // Raw correspondences given to guesser
 	CorrespList corlstSuffGiven; // Given suffixes // 1.6.1ac Add place to store given affixes in guesser
@@ -137,18 +141,20 @@ protected:
 	CorrespList corlstPrefGiven; // Given prefixes // 1.6.1ac 
 	CorrespList corlstSuffGuess; // Guessed suffixes // 1.6.1ab Distinguish guessed affixes from given
 	CorrespList corlstRootGuess; // Guessed roots // 1.6.1ab 
-	CorrespList corlstPrefGuess; // Guessed prefixes // 1.6.1ab
+	CorrespList corlstPrefGuess; // Guessed prefixes // 1.6.1ab 
 	void CalculateCorrespondences(); // Calculate correspondences // 1.6.1aj Make this a function
-
 	bool bRootReplace( const wxChar* pszSrc, wxChar** ppszTar ); // Try to replace a root // 1.6.1aj 
-	bool bPrefReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace = true ); // Try to replace a prefix // 1.6.1aj 
-	bool bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, bool bReplace = true ); // Try to replace a suffix // 1.6.1aj 
+	bool bPrefReplace( const wxChar* pszSrc, wxChar** ppszTar, int iLevel = 0 ); // Try to replace a prefix // 1.6.1aj // 1.6.1dk Add level arg to limit number
+	bool bSuffReplace( const wxChar* pszSrc, wxChar** ppszTar, int iLevel = 0 ); // Try to replace a suffix // 1.6.1aj // 1.6.1dk Add level arg to limit number
 public:
-	void DoCalcCorrespondences(); // accessor for CalculateCorrespondences()
 	Guesser();
-	void Init( int iGuessLevel1 = 50 ); // 1.5.8u Change ClearAll to Init, add guess level
+	void Init( int iGuessLevel1 = 50, int iMaxPref1 = 1, int iMaxSuff1 = 3 ); // 1.5.8u Change ClearAll to Init, add guess level // 1.6.1dk Add max pref & suff
 	void AddCorrespondence( const wxChar* pszSrc, const wxChar* pszTar, int iFreq = 1 ); // Add a correspondence to the list // 1.6.1aa Add frequency arg to guesser AddCorrespondence
 	bool bTargetGuess( const wxChar* pszSrc, wxChar** ppszTar ); // Return target guess
+	// BEW 20Jan15 Next ones are needed accessors for interfacing our AI code to Alan's Guesser code
+	void DoCalcCorrespondences(); // accessor for CalculateCorrespondences()
+	int  GetUserMaxPrefixesValue(); // supplies the app's m_iMaxPrefixes value to the 2nd param of Init()
+	int  GetUserMaxSuffixesValue(); // supplies the app's m_iMaxSuffixes value to the 3rd param of Init()
 };
 
 #endif // CorGuess_h

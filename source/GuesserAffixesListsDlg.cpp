@@ -181,7 +181,8 @@ void GuesserAffixesListsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	if (m_pApp->m_iMaxSuffixes == -1)
 	{
 		// It's never been set as yet
-		m_iMaxSuffxs = 1;
+		//m_iMaxSuffxs = 1;
+		m_iMaxSuffxs = 3; // Alan Buseman's default is 3, so we'll go with that
 	}
 	else
 	{
@@ -462,6 +463,7 @@ void GuesserAffixesListsDlg::OnOK(wxCommandEvent& event)
 }
 void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event) 
 {
+	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
 	wxString sTgt = m_pTgtAffix->GetValue();
 	// BEW changed 24Nov14, it is acceptable (though not useful) for the target affix to be absent
@@ -512,12 +514,16 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 	}
 	pContainingWindow->Refresh(); // needed, otherwise a phantom hyphen shows
 								  // at the start of the relocated textbox
+	DeselectButtonsAfterClick();
 	event.Skip();
 }
 void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event) 
 {
+	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
 	wxString sTgt = m_pTgtAffix->GetValue();
+	long itemIndex = (long)wxNOT_FOUND; // initialize
+	wxString warningMsg = _("No selection!\nSelect the affix pair to be updated,\nthen click the button again.");
 	// BEW changed 24Nov14, it is acceptable (though not useful) for the target affix to be absent
 	//if (sSrc.IsNull() || sSrc.Len() == 0 || sTgt.IsNull() || sTgt.Len() == 0)
 	if (sSrc.IsNull() || sSrc.Len() == 0)
@@ -526,15 +532,25 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 			m_pSrcAffix->SetFocus();
 		//else
 		//	m_pTgtAffix->SetFocus();
-		wxMessageBox(_("Type in, or edit, one or both affixes of the selected pair to be Updated"),_T(""),wxICON_INFORMATION | wxOK, this);
+		DeselectButtonsAfterClick();
+		wxMessageBox(_("First select the pair to be Updated, so their affixes will appear in the two text boxes.\nEdit them there, then click Update."),_T(""),wxICON_INFORMATION | wxOK, this);
 		event.Skip();
+		return;
 	}
 	else
 	{		
+		itemIndex = GetSelectedItemIndex(); // will return (long)-1 if there is no selection current
+		if (itemIndex == (long)wxNOT_FOUND)
+		{
+			DeselectButtonsAfterClick();
+			wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
+			event.Skip();
+			return;
+		}
 		if (m_pltCurrentAffixPairListType == prefixesListType)
 		{
 			m_bPrefixesLoaded = false;
-			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(GetSelectedItemIndex(),0), GetCellContentsString(GetSelectedItemIndex(),1));
+			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(itemIndex, 0), GetCellContentsString(itemIndex, 1));
 			int iIndex = m_pApp->FindGuesserPrefixIndex(m_SelectedAffix);
 			m_pApp->GetGuesserPrefixes()->Item(iIndex).setSourceAffix(sSrc);
 			m_pApp->GetGuesserPrefixes()->Item(iIndex).setTargetAffix(sTgt);
@@ -543,21 +559,26 @@ void GuesserAffixesListsDlg::OnUpdate(wxCommandEvent& event)
 		else
 		{
 			m_bSuffixesLoaded = false;
-			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(GetSelectedItemIndex(),0), GetCellContentsString(GetSelectedItemIndex(),1));
+			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(itemIndex, 0), GetCellContentsString(itemIndex, 1));
 			int iIndex = m_pApp->FindGuesserSuffixIndex(m_SelectedAffix);
 			m_pApp->GetGuesserSuffixes()->Item(iIndex).setSourceAffix(sSrc);
 			m_pApp->GetGuesserSuffixes()->Item(iIndex).setTargetAffix(sTgt);
 			m_bSuffixesUpdated = true;
 		}
 		LoadDataForListType(m_pltCurrentAffixPairListType);
+		m_pSrcAffix->ChangeValue(_T(""));
+		m_pTgtAffix->ChangeValue(_T(""));
+		DeselectButtonsAfterClick();
+		event.Skip();
 	}
-	m_pSrcAffix->ChangeValue(_T(""));
-	m_pTgtAffix->ChangeValue(_T(""));
 }
 void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event) 
 {
+	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
 	wxString sTgt = m_pTgtAffix->GetValue();
+	long itemIndex = (long)wxNOT_FOUND; // initialize
+	wxString warningMsg = _("No selection!\nSelect the affix pair before which the new pair will be inserted,\nthen click the button again.");
 	// BEW changed 24Nov14, it is acceptable (though not useful) for the target affix to be absent
 	//if (sSrc.IsNull() || sSrc.Len() == 0 || sTgt.IsNull() || sTgt.Len() == 0)
 	if (sSrc.IsNull() || sSrc.Len() == 0)
@@ -567,16 +588,24 @@ void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 		//else
 		//	m_pTgtAffix->SetFocus();
 		wxMessageBox(_("Please type in an affix pair to Insert"),_T(""),wxICON_INFORMATION | wxOK, this);
+		DeselectButtonsAfterClick();
 		event.Skip();
+		return;
 	}
 	else
 	{
+		itemIndex = GetSelectedItemIndex(); // will return (long)-1 if there is no selection current
+		if (itemIndex == (long)wxNOT_FOUND)
+		{
+			wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
+			event.Skip();
+			return;
+		}
 		CGuesserAffix* pNewAffix = new CGuesserAffix(sSrc, sTgt);
-		
 		if (m_pltCurrentAffixPairListType == prefixesListType)
 		{
 			m_bPrefixesLoaded = FALSE;
-			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(GetSelectedItemIndex(),0), GetCellContentsString(GetSelectedItemIndex(),1));
+			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(itemIndex, 0), GetCellContentsString(itemIndex, 1));
 			int iIndex = m_pApp->FindGuesserPrefixIndex(m_SelectedAffix);
 			m_pApp->GetGuesserPrefixes()->Insert(pNewAffix, iIndex);
 			m_bPrefixesUpdated = true;
@@ -584,20 +613,25 @@ void GuesserAffixesListsDlg::OnInsert(wxCommandEvent& event)
 		else
 		{
 			m_bSuffixesLoaded = FALSE;
-			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(GetSelectedItemIndex(),0), GetCellContentsString(GetSelectedItemIndex(),1));
+			CGuesserAffix m_SelectedAffix = CGuesserAffix(GetCellContentsString(itemIndex,0), GetCellContentsString(itemIndex,1));
 			int iIndex = m_pApp->FindGuesserSuffixIndex(m_SelectedAffix);
 			m_pApp->GetGuesserSuffixes()->Insert(pNewAffix, iIndex);
 			m_bSuffixesUpdated = true;
 		}
 		LoadDataForListType(m_pltCurrentAffixPairListType);
+		m_pSrcAffix->ChangeValue(_T(""));
+		m_pTgtAffix->ChangeValue(_T(""));
+		DeselectButtonsAfterClick();
+		event.Skip();
 	}
-	m_pSrcAffix->ChangeValue(_T(""));
-	m_pTgtAffix->ChangeValue(_T(""));
 }
 void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event) 
 {
+	wxLogNull logNo;
 	wxString sSrc = m_pSrcAffix->GetValue();
 	wxString sTgt = m_pTgtAffix->GetValue();
+	long itemIndex = (long)wxNOT_FOUND; // initialize
+	wxString warningMsg = _("No selection!\nSelect the affix pair to be deleted,\nthen click the button again.");
 	// BEW changed 24Nov14, it is acceptable for the target affix to be absent
 	//if (sSrc.IsNull() || sSrc.Len() == 0 || sTgt.IsNull() || sTgt.Len() == 0)
 	if (sSrc.IsNull() || sSrc.Len() == 0)
@@ -606,15 +640,25 @@ void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 			m_pSrcAffix->SetFocus();
 		//else
 		//	m_pTgtAffix->SetFocus();
-		wxMessageBox(_("Please select an affix pair to delete"),_T(""),wxICON_INFORMATION | wxOK, this);
+		DeselectButtonsAfterClick();
+		wxMessageBox(_("Please select an affix pair to delete"), _T(""), wxICON_INFORMATION | wxOK, this);
 		event.Skip();
+		return;
 	}
 	else
 	{
+		itemIndex = GetSelectedItemIndex(); // will return (long)-1 if there is no selection current
+		if (itemIndex == (long)wxNOT_FOUND)
+		{
+			DeselectButtonsAfterClick();
+			wxMessageBox(warningMsg, _T(""), wxICON_INFORMATION | wxOK, this);
+			event.Skip();
+			return;
+		}
 		if (m_pltCurrentAffixPairListType == prefixesListType)
 		{
 			m_bPrefixesLoaded = FALSE;
-			CGuesserAffix m_CurrentAffix = CGuesserAffix(GetCellContentsString(GetSelectedItemIndex(),0), GetCellContentsString(GetSelectedItemIndex(),1));
+			CGuesserAffix m_CurrentAffix = CGuesserAffix(GetCellContentsString(itemIndex,0), GetCellContentsString(itemIndex,1));
 			int iIndex = m_pApp->FindGuesserPrefixIndex(m_CurrentAffix);
 			m_pApp->GetGuesserPrefixes()->RemoveAt(iIndex);
 			m_bPrefixesUpdated = true;
@@ -622,13 +666,14 @@ void GuesserAffixesListsDlg::OnDelete(wxCommandEvent& event)
 		else
 		{
 			m_bSuffixesLoaded = FALSE;
-			CGuesserAffix m_CurrentAffix = CGuesserAffix(GetCellContentsString(GetSelectedItemIndex(),0), GetCellContentsString(GetSelectedItemIndex(),1));
+			CGuesserAffix m_CurrentAffix = CGuesserAffix(GetCellContentsString(itemIndex,0), GetCellContentsString(itemIndex,1));
 			int iIndex = m_pApp->FindGuesserSuffixIndex(m_CurrentAffix);
 			m_pApp->GetGuesserSuffixes()->RemoveAt(iIndex);
 			m_bSuffixesUpdated = true;
 		}
 		m_pSrcAffix->ChangeValue(_T(""));
 		m_pTgtAffix->ChangeValue(_T(""));
+		DeselectButtonsAfterClick();
 		LoadDataForListType(m_pltCurrentAffixPairListType);
 	}
 }
@@ -642,6 +687,16 @@ void GuesserAffixesListsDlg::OnListItemSelected(wxListEvent& event)
 	m_pBtnDelete->Enable();
 	event.Skip();
 }
+
+void GuesserAffixesListsDlg::DeselectButtonsAfterClick()
+{
+	m_pSrcAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 0));
+	m_pTgtAffix->ChangeValue(GetCellContentsString(GetSelectedItemIndex(), 1));
+	m_pBtnInsert->Enable(FALSE);
+	m_pBtnUpdate->Enable(FALSE);
+	m_pBtnDelete->Enable(FALSE);
+}
+
 
 AffixPairsArray* GuesserAffixesListsDlg::GetPrefixes()
 {
@@ -719,9 +774,16 @@ long GuesserAffixesListsDlg::GetSelectedItemIndex()
 			                                 wxLIST_NEXT_ALL,
 				                             wxLIST_STATE_SELECTED);
 	// Got the selected item index
+#if defined(_DEBUG)
 	wxLogDebug(m_pAffixPairsList->GetItemText(itemIndex));
-	if (itemIndex == -1)
-		wxMessageBox(_("Selected affix pair not found!"),_T(""),wxICON_INFORMATION | wxOK, this);
+#endif
+	//if (itemIndex == -1)
+	//	wxMessageBox(_("Selected affix pair not found!"),_T(""),wxICON_INFORMATION | wxOK, this);
+	// BEW 21Jan15 A message here is too early. Instead, return the -1 for a 'not found' when there
+	// is no line currently selected in the list control, and then handle the -1 in the caller with
+	// an appropriate action and warning. The action should be to leave the text boxes unchanged but
+	// otherwise return from the caller without doing anything. The message should telll the user to
+	// first make a selection and then try the button click.
 	return itemIndex;
  
 }
