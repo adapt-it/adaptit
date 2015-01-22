@@ -1,0 +1,26 @@
+c UsfmXmlTidy.cct - by Bill Martin 7 February 2005 revised 15 October 2005
+c Usage: Before using this changes table, use the UsfmXml.cct table
+c        on the AI_USFM_full.xml SFM attributes file to produce a
+c        temporaty temp.xml output file.
+c        Then use temp.xml as the input file for this UsfmXmlTidy.cct
+c        changes table and AI_USFM.xml as the final output file
+c        for distribution with Adapt It version 3.
+
+c skip comments
+'<!-- '	> dup set(comment)
+' -->'	> dup clear(comment)
+'<?xml'	> dup set(comment)
+'?>'	> dup clear(comment)
+
+c change internally listed filename
+'AI_USFM_full.xml'		> 'AI_USFM.xml'
+
+c tidy up whitespace and spatial format (note: d009 is tab character)
+
+d009 nl				> if(comment) dup else '' endif
+nl nl				> if(comment) dup else nl back(1) endif
+c '" >'				> if(comment) dup else '"' nl '     >' endif
+'" >'				> if(comment) dup else '"' nl d009 '>' endif
+c '">'				> if(comment) dup else '"' nl '     >' endif
+'">'				> if(comment) dup else '"' nl d009 '>' endif
+'" ' nl				> if(comment) dup else '"' nl endif
