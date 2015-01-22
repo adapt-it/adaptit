@@ -60,6 +60,7 @@ xcopy "Adapt It Reference.doc" "..\setup Regular\" /Y
 xcopy "Adapt_It_Quick_Start.htm" "..\setup Regular\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Regular\" /Y
 xcopy "RFC5646message.htm" "..\setup Regular\" /Y
+xcopy "GuesserExplanation.htm" "..\setup Regular\" /Y
 mkdir "..\setup Regular\Images\Adapt_It_Quick_Start\"
 xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Regular\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular\Images\Admin_help\"
@@ -94,6 +95,7 @@ xcopy "Adapt It Reference.doc" "..\setup Regular - No Html Help\" /Y
 xcopy "Adapt_It_Quick_Start.htm" "..\setup Regular - No Html Help\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Regular - No Html Help\" /Y
 xcopy "RFC5646message.htm" "..\setup Regular - No Html Help\" /Y
+xcopy "GuesserExplanation.htm" "..\setup Regular - No Html Help\" /Y
 mkdir "..\setup Regular - No Html Help\Images\Adapt_It_Quick_Start\"
 xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Regular - No Html Help\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular - No Html Help\Images\Admin_help\"
@@ -119,6 +121,7 @@ xcopy "Adapt It Reference.doc" "..\setup Regular Documentation Only\" /Y
 xcopy "Adapt_It_Quick_Start.htm" "..\setup Regular Documentation Only\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Regular Documentation Only\" /Y
 xcopy "RFC5646message.htm" "..\setup Regular Documentation Only\" /Y
+xcopy "GuesserExplanation.htm" "..\setup Regular Documentation Only\" /Y
 mkdir "..\setup Regular Documentation Only\Images\Adapt_It_Quick_Start\"
 xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Regular Documentation Only\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Regular Documentation Only\Images\Admin_help\"
@@ -147,6 +150,7 @@ xcopy "Adapt It Reference.doc" "..\setup Unicode\" /Y
 xcopy "Adapt_It_Quick_Start.htm" "..\setup Unicode\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Unicode\" /Y
 xcopy "RFC5646message.htm" "..\setup Unicode\" /Y
+xcopy "GuesserExplanation.htm" "..\setup Unicode\" /Y
 mkdir "..\setup Unicode\Images\Adapt_It_Quick_Start\"
 xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Unicode\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode\Images\Admin_help\"
@@ -181,6 +185,7 @@ xcopy "Adapt It Reference.doc" "..\setup Unicode - No Html Help\" /Y
 xcopy "Adapt_It_Quick_Start.htm" "..\setup Unicode - No Html Help\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Unicode - No Html Help\" /Y
 xcopy "RFC5646message.htm" "..\setup Unicode - No Html Help\" /Y
+xcopy "GuesserExplanation.htm" "..\setup Unicode - No Html Help\" /Y
 mkdir "..\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\"
 xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Unicode - No Html Help\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode - No Html Help\Images\Admin_help\"
@@ -206,6 +211,7 @@ xcopy "Adapt It Reference.doc" "..\setup Unicode Documentation Only\" /Y
 xcopy "Adapt_It_Quick_Start.htm" "..\setup Unicode Documentation Only\" /Y
 xcopy "Help_for_Administrators.htm" "..\setup Unicode Documentation Only\" /Y
 xcopy "RFC5646message.htm" "..\setup Unicode Documentation Only\" /Y
+xcopy "GuesserExplanation.htm" "..\setup Unicode Documentation Only\" /Y
 mkdir "..\setup Unicode Documentation Only\Images\Adapt_It_Quick_Start\"
 xcopy "Images\Adapt_It_Quick_Start\*.*" "..\setup Unicode Documentation Only\Images\Adapt_It_Quick_Start\*.*" /Y /Q /EXCLUDE:..\Exclude.txt
 mkdir "..\setup Unicode Documentation Only\Images\Admin_help\"
