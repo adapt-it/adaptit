@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: adaptitbill@gmail.com\n"
-"POT-Creation-Date: 2015-01-22 18:54+1000\n"
+"POT-Creation-Date: 2015-01-22 08:19-0600\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Bruce Waters <bruce_waters@sil.org>\n"
+"Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Adapt It Development <adaptitbill@gmail.com>\n"
 "Language: Tok Pisin (tpi)\n"
 "MIME-Version: 1.0\n"
@@ -2560,7 +2560,7 @@ msgid ""
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons "
 "for those operations."
 msgstr ""
-"Sori, sapos yu laik editim o rausim retranslation, yu mas yusim baten long "
+"Sori, sapos yu laik editim o rausim ritranslation, yu mas yusim baten long "
 "tulba bilong wokim."
 
 # Priority 1
@@ -4031,7 +4031,7 @@ msgstr "Dispela vesin em i wok wantaim %s deta"
 
 #: source/Adapt_It_wdr.cpp:96
 msgid "Copyright (C) 2015, Bruce Waters, Bill Martin, SIL International"
-msgstr "Kopirait (C) 2013: Bruce Waters, Bill Martin, SIL International"
+msgstr "Kopirait (C) 2015: Bruce Waters, Bill Martin, SIL International"
 
 #: source/Adapt_It_wdr.cpp:113
 msgid "erik_brommers@sil.org"
@@ -5186,7 +5186,7 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:1634
 msgid "Type the retranslation here (including appropriate punctuation)"
 msgstr ""
-"Dispela hia em boks bilong taipim trenslesen nau (putim pangsuesen tu i go "
+"Dispela hia em boks bilong taipim ritrenslesen nau (putim pangsuesen tu i go "
 "stret long ples bilong en)"
 
 # Priority 1
@@ -5197,7 +5197,7 @@ msgstr "Kopi Long Klipbod"
 #: source/Adapt_It_wdr.cpp:1642
 msgid "Click here to copy the retranslation to the clipboard"
 msgstr ""
-"Klikim dispela baten long wokim kopi bilong retranslation i go long klipbod "
+"Klikim dispela baten long wokim kopi bilong ritranslation i go long klipbod "
 "(bilong wokim kopi bihain)"
 
 # Priority 1
@@ -11418,7 +11418,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:10550
 msgid "Re&translation Report..."
-msgstr "Re&trenslesen Ripot..."
+msgstr "Ri&trenslesen Ripot..."
 
 #: source/Adapt_It_wdr.cpp:10550
 msgid "Output a file listing all retranslations"
@@ -16096,7 +16096,7 @@ msgid ""
 "To edit or remove a retranslation you must use the toolbar buttons for those "
 "operations."
 msgstr ""
-"Sapos yu laik editim o rausim retrenslesen, yu mas yusim baten long tulba "
+"Sapos yu laik editim o rausim ritrenslesen, yu mas yusim baten long tulba "
 "bilong wokim."
 
 #: source/PhraseBox.cpp:4088 source/PhraseBox.cpp:4934
@@ -16824,7 +16824,7 @@ msgstr "Fail nem bilong Ritrenslesen Ripot"
 #: source/Retranslation.cpp:4337 source/Retranslation.cpp:4376
 #: source/Retranslation.cpp:4455 source/Retranslation.cpp:4487
 msgid "Generating Retranslation Report..."
-msgstr "Wokim Retrenslesen Ripot..."
+msgstr "Wokim Ritrenslesen Ripot..."
 
 #: source/Retranslation.cpp:4189
 msgid ""
@@ -17566,6 +17566,7 @@ msgstr "(nem)"
 
 # Priority 1
 #: source/SilConverterSelectDlg.cpp:73
+#: source/SilConverterSelectDlg.cpp.bak.cpp:73
 msgid "Choose SIL Converter"
 msgstr "Selektim SIL Konveta"
 
