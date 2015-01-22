@@ -39,7 +39,7 @@ misc_DATA = ../../docs/iso639-3codes.txt \
 htmlmaindir = $(pkgdatadir)/help
 htmlmain_DATA = ../../docs/Help_for_Administrators.htm \
 	../../docs/Adapt_It_Quick_Start.htm \
-	../../docs/RFC5646message.htm
+	../../docs/RFC5646message.htm \
 	../../docs/GuesserExplanation.htm
 docAdmindir = $(pkgdatadir)/help/Images/Admin_help
 docAdmin_DATA = $(wildcard $(srcdir)/../../docs/Images/Admin_help/*)
