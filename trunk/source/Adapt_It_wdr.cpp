@@ -10257,7 +10257,7 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item3->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Limit guessed prefixes to: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_PREFIX_LIMIT, _("Limit guessed prefixes to: "), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxString strs5[] = 
@@ -10273,7 +10273,7 @@ wxSizer *GuesserAffixListDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item3->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Limit guessed suffixes to: "), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_SUFFIX_LIMIT, _("Limit guessed suffixes to: "), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxString strs7[] = 
