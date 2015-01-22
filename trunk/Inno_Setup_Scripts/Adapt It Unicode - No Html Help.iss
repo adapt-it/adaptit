@@ -9,7 +9,7 @@
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.5.4"
+#define MyAppVersion "6.5.5"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -30,21 +30,21 @@ DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=Adapt It WX Unicode
 LicenseFile={#SvnBase}\setup Unicode - No Html Help\LICENSING.txt
 InfoBeforeFile={#SvnBase}\setup Unicode - No Html Help\Readme_Unicode_Version.txt
-OutputBaseFilename=Adapt_It_WX_6_5_4_Unicode_No_HTML_HELP
+OutputBaseFilename=Adapt_It_WX_6_5_5_Unicode_No_HTML_HELP
 SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir={#SvnBase}\AIWX Installers
-VersionInfoCopyright=2014 by Bruce Waters, Bill Martin, SIL International
+VersionInfoCopyright=2015 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.5.4
+VersionInfoProductVersion=6.5.5
 WizardImageFile="{#SvnBase}\res\ai_wiz_bg.bmp"
 WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
-AppCopyright=2014 Bruce Waters, Bill Martin, SIL International
+AppCopyright=2015 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.5.4
+VersionInfoVersion=6.5.5
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
@@ -70,6 +70,7 @@ Source: "{#SvnBase}\setup Unicode - No Html Help\Adapt It changes.txt"; DestDir:
 Source: "{#SvnBase}\setup Unicode - No Html Help\Adapt_It_Quick_Start.htm"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Help_for_Administrators.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode - No Html Help\RFC5646message.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode - No Html Help\GuesserExplanation.htm"; DestDir: "{app}"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode - No Html Help\Adapt It Reference.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\Adapt It Tutorial.doc"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SvnBase}\setup Unicode - No Html Help\AI_UserProfiles.xml"; DestDir: "{app}"; Flags: ignoreversion
