@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0311D9811A72F43D0052BC3E /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0311D9801A72F43D0052BC3E /* Images.xcassets */; };
 		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
-		033BB3081A72BE5B00729B35 /* Images-2.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 033BB3071A72BE5B00729B35 /* Images-2.xcassets */; };
 		034B73FC16EFAC53009A6389 /* ToolbarPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
 		0396BFCD11BEA67600100CC4 /* LanguageCodesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0396BFC511BEA67600100CC4 /* LanguageCodesDlg.cpp */; };
@@ -185,9 +185,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0311D9801A72F43D0052BC3E /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = AdaptIt/Images.xcassets; sourceTree = "<group>"; };
 		031BF31811932FF6005223ED /* Uuid_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid_AI.cpp; path = ../../source/Uuid_AI.cpp; sourceTree = SOURCE_ROOT; };
 		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
-		033BB3071A72BE5B00729B35 /* Images-2.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = "Images-2.xcassets"; path = "AdaptIt/Images-2.xcassets"; sourceTree = "<group>"; };
 		034B73FA16EFAC53009A6389 /* ToolbarPage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ToolbarPage.cpp; path = ../../source/ToolbarPage.cpp; sourceTree = "<group>"; };
 		034B73FB16EFAC53009A6389 /* ToolbarPage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ToolbarPage.h; path = ../../source/ToolbarPage.h; sourceTree = "<group>"; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
@@ -870,7 +870,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				033BB3071A72BE5B00729B35 /* Images-2.xcassets */,
+				0311D9801A72F43D0052BC3E /* Images.xcassets */,
 				7DA2D65F15D80A0700CA319B /* aiDefault.css */,
 				7D527D45124308E30077F9FE /* AI_UserProfiles.xml */,
 				C80E02BF1222483C00ECCA6A /* AIWX2.xpm */,
@@ -974,6 +974,11 @@
 			attributes = {
 				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "SIL Australia";
+				TargetAttributes = {
+					8D0C4E890486CD37000505A6 = {
+						DevelopmentTeam = C5GMB572MV;
+					};
+				};
 			};
 			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1008,13 +1013,13 @@
 				7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */,
 				7DA17E920F4BC8E000BDDF30 /* LICENSING.txt in Resources */,
 				C80E02C51222483C00ECCA6A /* AIWX2.xpm in Resources */,
-				033BB3081A72BE5B00729B35 /* Images-2.xcassets in Resources */,
 				C80E02C61222483C00ECCA6A /* AIWX2.bmp in Resources */,
 				C80E02C71222483C00ECCA6A /* ai_new.ico in Resources */,
 				C80E02C81222483C00ECCA6A /* ai_32.xpm in Resources */,
 				C80E02C91222483C00ECCA6A /* ai_32.ico in Resources */,
 				C80E02CA1222483C00ECCA6A /* ai_16.ico in Resources */,
 				C853F99A1222543700334B95 /* iso639-3codes.txt in Resources */,
+				0311D9811A72F43D0052BC3E /* Images.xcassets in Resources */,
 				7D527D46124308E30077F9FE /* AI_UserProfiles.xml in Resources */,
 				C85085A31338466C006E9457 /* curl-ca-bundle.crt in Resources */,
 				7DA2D66015D80A0700CA319B /* aiDefault.css in Resources */,
@@ -1229,7 +1234,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				COPY_PHASE_STRIP = NO;
@@ -1309,7 +1314,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -1393,7 +1398,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				COPY_PHASE_STRIP = NO;
@@ -1480,7 +1485,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -1571,7 +1576,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				COPY_PHASE_STRIP = NO;
@@ -1651,7 +1656,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				FRAMEWORK_SEARCH_PATHS = "";
@@ -1735,7 +1740,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				COPY_PHASE_STRIP = NO;
@@ -1815,7 +1820,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				FRAMEWORK_SEARCH_PATHS = "";
