@@ -494,7 +494,7 @@ void GuesserAffixesListsDlg::OnAdd(wxCommandEvent& event)
 	{
 		wxString msg;
 		msg = _("Affix \"%s\" already exists. Multiple identical affixes are not allowed.");
-		msg.Format(msg, sSrc.c_str());
+		msg = msg.Format(msg, sSrc.c_str());
 		wxMessageBox(msg,_T(""),wxICON_INFORMATION | wxOK, this);
 		//event.Skip(); 
 	}
