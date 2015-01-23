@@ -615,6 +615,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_CD4389D1D85843D5A7D4938E3E12FD92"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_CD9B54CB2294CB9E7FA3DC55144482B3"
         "OwnerKey" = "8:_49D74A3053571CDCC367EDAF51947151"
         "MsmSig" = "8:_UNDEFINED"
@@ -2977,6 +2983,26 @@
             "TargetName" = "8:Image8.gif"
             "Tag" = "8:"
             "Folder" = "8:_94116E1A67274F08AE90FF6296B31065"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CD4389D1D85843D5A7D4938E3E12FD92"
+            {
+            "SourcePath" = "8:..\\..\\docs\\GuesserExplanation.htm"
+            "TargetName" = "8:GuesserExplanation.htm"
+            "Tag" = "8:"
+            "Folder" = "8:_1CAE16ACBEAC4B628FED36CBC8B4F112"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
