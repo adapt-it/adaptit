@@ -8,8 +8,6 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleGetInfoString</key>
 	<string>$(PRODUCT_NAME) version 6.5.5, (c) 2015 Bruce Waters, Bill Martin, SIL International</string>
-	<key>CFBundleIconFile</key>
-	<string>Adapt It.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.adapt-it.adaptit</string>
 	<key>CFBundleInfoDictionaryVersion</key>
