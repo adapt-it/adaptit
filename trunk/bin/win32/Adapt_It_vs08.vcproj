@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswd&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;;lib\silconverters"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\lib\vc_lib\mswd&quot;;&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\include&quot;;&quot;C:\Program Files\Visual Leak Detector\include&quot;;lib\silconverters"
 				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;CURL_STATICLIB"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
@@ -150,7 +150,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(WXWIN)/include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\msw&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;lib\silconverters"
+				AdditionalIncludeDirectories="&quot;$(WXWIN)\lib\vc_lib\mswu&quot;;&quot;$(WXWIN)/include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(BOOST)&quot;;&quot;$(LIBCURL)\include&quot;;&quot;$(OPENSSL)\include&quot;;lib\silconverters"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;__WINDOWS__;__WXMSW__;__WIN95__;__WIN32__;WINVER=0x0400;STRICT;CURL_STATICLIB"
 				StringPooling="false"
 				RuntimeLibrary="0"
