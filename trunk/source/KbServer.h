@@ -202,9 +202,12 @@ public:
 	// for these will be in KBSharing.cpp)
 	void		DoChangedSince();
 	void		DoGetAll(bool bUpdateTimestampOnSuccess = TRUE);
-
-	// ///////////// end of API /////////////////////////////////////////////////////
-	
+	void		ClearReturnedCurlCodes(); // sets all 50 of the array of int to CURLE_OK
+	bool		AllEntriesGotEnteredInDB(); // returns TRUE if all entries in m_returnedCurlCodes
+						// array are CURLE_OK; FALSE if at least one is some other value
+						// (the current implementation permits only CURLE_HTTP_RETURNED_ERROR
+						// to be the 'other value', if a BulkUpload() call failed - we assume
+						// it was because it tried to upload an already entered db entry)
 	void	 DeleteUploadEntries();
 
 	// public setters
@@ -379,7 +382,10 @@ public:
 	wxArrayString*	GetTargetArray();
 	wxArrayString*	GetUsernameArray();
 	void			ClearAllPrivateStorageArrays();
-	
+
+	int				m_returnedCurlCodes[50]; // to track the up to 50 returned error codes,
+											 // most or all should be CURLE_OK, for a
+											 // bulk upload to the remote db
 	void			PushToQueueEnd(KbServerEntry* pEntryStruct); // protect with a mutex
 	KbServerEntry*	PopFromQueueFront(); // protect with a mutex
 	bool			IsQueueEmpty();

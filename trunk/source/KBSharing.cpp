@@ -301,6 +301,15 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// kind of problem, long operations should be done synchronously, and be tracked by
 	// the progress indicator at least - and they should close the dialog when they complete.
 	pKbServer->UploadToKbServer();
+
+
+
+
+
+
+
+
+
 	//pKbServer->UploadToKbServerThreaded(); // <<-- repurpose this later, see 31Jan13 comment above
 	
 	// make the dialog close (a good way to say, "it's been done"

@@ -75,15 +75,14 @@ void Thread_UploadMulti::OnExit()
 
 void* Thread_UploadMulti::Entry()
 {
-	int rv = CURLE_OK;
+	rv = CURLE_OK;
 	rv = m_pKbSvr->BulkUpload(m_threadIndex, m_url, m_username, m_password, m_jsonUtf8Str);
 	if (rv != CURLE_OK)
 	{
 		if (rv == CURLE_HTTP_RETURNED_ERROR)
 		{
-
-// ***** TODO  *******  -- a localizable error message -- some values didn't get stored in the remote DB,
-// try again later when noone is adapting or uploading
+			// the recursion support when there was an error -- nothing to do here
+			;
 		}
 		else if (rv == CURLE_COULDNT_RESOLVE_HOST)
 		{
