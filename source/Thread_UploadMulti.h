@@ -62,6 +62,17 @@ public:
 	wxString			m_url;
 	CBString			m_jsonUtf8Str;
 
+	// BEW added 29Jan15 for error support. If someone else enters and entry currently
+	// being uploaded within this thread's part of the bulk upload, we need to record
+	// which thread failed - so we'll store the thread index (which it is of the up to
+	// 50 possible, so the index will be between 0 and 49). KbServer.h & .cpp will
+	// also have a wxArrayInt to store the curl error code returned, which that class 
+	// can then interrogate to see if a recursion of the bulk upload is required to get
+	// the missed entries into the remote database. We will allow a max of two recursions.
+	// For these reasons, we'll make the returned curlcode value from the curl call
+	// be a class member here too, so the caller can store the returned value
+	int rv;
+
 	// wxThread::OnExit() is called when the thread exits at termination - for self
 	// destruction termination or by Delete(), but not if Kill() is used - the latter
 	// should never be used, it can leave resources in an indeterminate state

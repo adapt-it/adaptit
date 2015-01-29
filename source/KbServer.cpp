@@ -3594,6 +3594,34 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 	// from the local KB is not in the map, than to do the same check with an array or list
 }
 
+// sets all 50 of the array of int to CURLE_OK
+void KbServer::ClearReturnedCurlCodes()
+{
+	int i;
+	for (i = 0; i < 50; i++)
+	{
+		m_returnedCurlCodes[i] = CURLE_OK; // zero
+	}
+}
+
+// returns TRUE if all entries in m_returnedCurlCodes array are CURLE_OK; 
+// FALSE if at least one is some other value
+// (the current implementation permits only CURLE_HTTP_RETURNED_ERROR
+// to be the 'other value', if a BulkUpload() call failed - we assume
+// it was because it tried to upload an already entered db entry)
+bool KbServer::AllEntriesGotEnteredInDB()
+{
+	int i;
+	for (i = 0; i < 50; i++)
+	{
+		if (m_returnedCurlCodes[i] != CURLE_OK)
+		{
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 
 // The upload function - we do it by multiple threads (50 of them), each thread having
 // approx 1/50th of the inventory of normal entries which qualify for uploading, as payload
@@ -3799,12 +3827,16 @@ void KbServer::UploadToKbServer()
 				if (error != wxTHREAD_NO_ERROR)
 				{
 					// do something, we don't expect it to fail
-					wxASSERT(FALSE);
+					wxMessageBox(_T("Error: could not create an instance of Thread_UploadMulti.\nSome of the bulk upload was not uploaded. Try again."));
+					DeleteUploadEntries();
+					ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
+					return;
 				}
 				else
 				{
 					// successful instantiation, now fill its members
-					pThread->m_pKbSvr = this; 
+					threadIndex++; // update the index for this thread
+					pThread->m_pKbSvr = this;
 					pThread->m_threadIndex = threadIndex;
 					pThread->m_password = password;
 					pThread->m_username = username;
@@ -3813,7 +3845,20 @@ void KbServer::UploadToKbServer()
 				
 					// run the thread
 					error = pThread->Run(); // ignore error
-					wxASSERT(error == wxTHREAD_NO_ERROR);
+					//wxASSERT(error == wxTHREAD_NO_ERROR); // can't assume someone else won't cause an error
+					if (error != wxTHREAD_NO_ERROR)
+					{
+						wxMessageBox(_T("Error: an instance of Thread_UploadMulti failed to run.\nSome of the bulk upload was not uploaded. Try again."));
+						DeleteUploadEntries();
+						ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
+						return;
+					}
+					// No thread error, but there may have been a curl error - find out what the
+					// curlCode returned was; we expect CURLE_OK if the entries got uploaded successfully,
+					// but if CURLE_HTTP_RETURNED_ERROR was returned (I have that returned for any http
+					// error of 400 or above) we want to be able to recover the fact that a curl error
+					// happened, so we can cause recursion (up to two times) of UploadToKbServer()
+					m_returnedCurlCodes[threadIndex] = pThread->rv; // there will be numThreadsNeeded of these
 
 					// delete this JSON object from the heap & zero the entryCount ready
 					// for the next thread's creation
