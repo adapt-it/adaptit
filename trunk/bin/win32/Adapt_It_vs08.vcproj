@@ -957,10 +957,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Thread_UploadToKBServer.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Timer_KbServerChangedSince.cpp"
 				>
 			</File>
@@ -1571,10 +1567,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Thread_UploadMulti.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Thread_UploadToKBServer.h"
 				>
 			</File>
 			<File
