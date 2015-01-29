@@ -3293,8 +3293,9 @@ void KbServer::DoGetAll(bool bUpdateTimestampOnSuccess)
 		if (bUpdateTimestampOnSuccess)
 		{
 			// There was a cURL error, display it - but only if we were trying to do a
-			// DoGetAll() to update the local KB. It we were doing the latter for the
-			// first upload to the remote DB on kbserver, then the DoGetAll() returns a
+			// DoGetAll() to update the local KB. It we were calling DoGetAll() as the
+			// first step in the process required for the first upload of the local
+			// KB to the remote DB on kbserver, then the DoGetAll() returns a
 			// http error 404 NOT FOUND - and we don't want an error message to show in
 			// that circumstance, because the upload will deduce from the 7 parallel
 			// arrays being empty that the remote DB has nothing in it yet, and use that
@@ -3384,6 +3385,9 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 	// will use it in that case; we don't bother when the flag was passed in as FALSE
 	if( bRemoteDBContentDownloaded)
 	{
+		// The populating is done by iterating through the 7 parallel lists of strings
+		// downloaded from the ChangedSince() call done in the caller, and making
+		// fast access map entries so they can be looked up quickly
 		PopulateUploadsMap(this);
 		// Clearing the m_uploadsMap is done in the caller on return
 	}
@@ -3431,8 +3435,9 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 					if (pRefString->GetDeletedFlag() == FALSE)
 					{
 						// upload only "normal" entries, ignore pseudo-deleted ones;
-						// if the passed in flag is TRUE, then we accept only those
-						// which are not in the hashmap; if false, we accept each one
+						// if the passed in flag is TRUE then we accept only those
+						// which are not in the hashmap; if FALSE passed in, we 
+						// accept each one because no conflict is going to happen
 						if (bRemoteDBContentDownloaded)
 						{
 							// accept only the ones which aren't already in the 
@@ -3484,11 +3489,16 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 #if defined(_DEBUG)
 									// currently, "mi" <-> "I" is treated as an error as the
 									// php does a caseless compare, and it conflicts with
-									// exiting "mi" <-> "i", so exclude it; I've asked
-									// Jonathan to fix this in the PHP code at kbserver
+									// existing "mi" <-> "i", so exclude it)
 									if (srcPhrase == _T("mi") && tgtPhrase == _T("I"))
 										continue;
 #endif
+									// generalize the above conditional compile to handle non Tok Pisin
+									// languages. Any time "I" is the target entry, just refrain from
+									// sending it, ever.
+									if (tgtPhrase == _T("I"))
+										continue; // skip this iteration
+
 									if (tgtPhrase == empty) // empty is _T("<empty>")
 									{
 										tgtPhrase.Empty();
@@ -3510,6 +3520,11 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 							// none downloaded, so accept everything
 							reference = new KbServerEntry;
 							reference->source = srcPhrase;
+							// Don't send upper case "I" translation, php does a caseless compare
+							// at the server end, and we don't want to generate a conflict with
+							// "i" if the latter gets put in the remote db
+							if (pRefString->m_translation == _T("I"))
+								continue; // skip this iteration
 							reference->translation = pRefString->m_translation;
 							// store the new struct
 							m_uploadsList.Append(reference);
@@ -3535,7 +3550,7 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 	wxString src;
 	wxString tgt;
 	wxString empty = _T("<empty>");
-	size_t count = pKbSvr->m_arrSource.GetCount();
+	size_t count = pKbSvr->m_arrSource.GetCount(); // the source array of the 7 accepting downloaded fields
 	size_t i;
 	wxArrayString* pMyTranslations = NULL;
 	UploadsMap::iterator iter;
@@ -3613,7 +3628,8 @@ void KbServer::UploadToKbServer()
         // The remote DB has content, so our upload will need to be smart - it must
         // upload only entries which are not yet in the remote DB, and be mutex
         // protected (the access we are protecting is that within
-        // ChangedSince_Queued(), called in OnIdle() - see MainFrm.cpp)
+        // ChangedSince_Queued(), called in OnIdle() - see MainFrm.cpp;
+		// the mutex wraps the call: pKB->StoreOneEntryFromKbServer())
 		KBAccessMutex.Lock();
 
 		PopulateUploadList(this, bRemoteDBContentDownloaded);
