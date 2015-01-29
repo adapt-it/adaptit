@@ -44,7 +44,7 @@ obj/Debug/source/Thread_UploadToKBServer.o||In function `Thread_UploadToKBServer
 ||=== Build finished: 4 errors, 0 warnings ===|
 
 BILL alerted me to this error. It is totally misleading. It can be generated when there is a pragma inconsistency. And
-there is: in the #pragma interface... above, I had "MyListBox.h" instead of "Thead_CreateEntry.h"
+there is: in the #pragma interface... above, I had "MyListBox.h" instead of "Thread_CreateEntry.h"
 *******  LEAVE THIS COMMENT AND THE ABOVE ERRORS HERE, IN CASE THIS ERROR OCCURS ANOTHER TIME SOMEWHERE ********
 */
 

@@ -290,7 +290,7 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	pKbServer = m_pApp->GetKbServer((gbIsGlossing ? 2 : 1));
 
 	// BEW comment 31Jan13
-	// I think that temporaly long operations like uploading a whole KB or downloading the
+	// I think that temporally long operations like uploading a whole KB or downloading the
 	// server's contents for a given project should not be done on a work thread. My
 	// reasoning is the following... The dialog will close (or if EndModal() below is
 	// omitted in this handler, the dialog will become responsive again) and the user may
