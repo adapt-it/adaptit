@@ -735,7 +735,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\Thread_PseudoDelete.cpp" />
     <ClCompile Include="..\..\source\Thread_PseudoUndelete.cpp" />
     <ClCompile Include="..\..\source\Thread_UploadMulti.cpp" />
-    <ClCompile Include="..\..\source\Thread_UploadToKBServer.cpp" />
     <ClCompile Include="..\..\source\Timer_KbServerChangedSince.cpp" />
     <ClCompile Include="..\..\source\ToolbarPage.cpp" />
     <ClCompile Include="..\..\source\TransformToGlossesDlg.cpp" />
@@ -821,7 +820,6 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />
     <ClInclude Include="..\..\source\Thread_DoEntireKbDeletion.h" />
-    <ClInclude Include="..\..\source\Thread_UploadToKBServer.h" />
     <ClInclude Include="..\..\source\UsernameInput.h" />
     <ClInclude Include="Equivalents_for_reference.h" />
     <ClInclude Include="..\..\source\ExportFunctions.h" />
