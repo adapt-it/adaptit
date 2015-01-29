@@ -300,19 +300,45 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// the code resources which the thread is relying on to do its work. To avoid this
 	// kind of problem, long operations should be done synchronously, and be tracked by
 	// the progress indicator at least - and they should close the dialog when they complete.
+	// 
+	// BEW 29Jan15 Another kbserver client may happen to succeed in uploading a new entry 
+	// which is being attempted to be inserted into the remote DB by one of the up to 50 
+	// threads - if so, then when the thread with that same entry tries to have it entered
+	// into the remote DB, it will generate a http 401 error in the BulkEntry() call. We
+	// return all >= 400 errors as CURLE_HTTP_RETURNED_ERROR, (not that that has any special
+	// significance) but m_returnedCurlCodes[] array will store it. We check for there being
+	// at least one such error - if there is at least one, we call UploadToKbServer() a second
+	// time (there should be far fewer entries to upload on the second try, and the probability
+	// of the same error happening again almost non-zero; so we check again, and if we find
+	// an error still, we call it a third time. We don't check again, and even if there was still
+	// a failure of one of the bulk upload subsets to get all its entries into the mysql DB, 
+	// we'll not tell the user and not try again. We just assume that the entries not inserted
+	// won't change the adaptation experience in any significant way, and let the dialog be
+	// dismissed (which to the user will be interpretted as full success)
+
+	// First iteration - it should succeed in all but very rare circumstances - see above
+	pKbServer->ClearReturnedCurlCodes();
 	pKbServer->UploadToKbServer();
 
+	// Check for an error, if there was one, redo the upload
+	if (!pKbServer->AllEntriesGotEnteredInDB())
+	{
+		// Have a second try - far fewer entries should be involved in a second try
+		pKbServer->ClearReturnedCurlCodes();
+		pKbServer->UploadToKbServer();
 
-
-
-
-
-
-
-
-	//pKbServer->UploadToKbServerThreaded(); // <<-- repurpose this later, see 31Jan13 comment above
+		// Have a third and last try if necessary if the last call still generated an error, 
+		// if there was one, redo the upload
+		if (!pKbServer->AllEntriesGotEnteredInDB())
+		{
+			// A third try - even fewer entries should be involved this time
+			pKbServer->ClearReturnedCurlCodes();
+			pKbServer->UploadToKbServer();
+		}
+	}
+	pKbServer->ClearReturnedCurlCodes();
 	
-	// make the dialog close (a good way to say, "it's been done"
+	// make the dialog close (a good way to say, "it's been done")
 	EndModal(wxID_OK);
 }
 
