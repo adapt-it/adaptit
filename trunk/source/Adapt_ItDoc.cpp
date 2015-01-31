@@ -1676,7 +1676,7 @@ bool  CAdapt_ItDoc::Git_installed()
 bool  CAdapt_ItDoc::CollaborationAllowsSaving()
 {
 #ifndef __WXMAC__       // collaboration doesn't happen on the Mac, so we just return true.
-    wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
+    //wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
     
     if ( (gpApp->m_bCollaboratingWithParatext && gpApp->ParatextIsRunning()) || (gpApp->m_bCollaboratingWithBibledit && gpApp->BibleditIsRunning()) )
     {
