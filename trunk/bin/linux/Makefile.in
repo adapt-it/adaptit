@@ -129,7 +129,8 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) \
 	Thread_DoEntireKbDeletion.$(OBJEXT) \
 	Thread_KbEditorUpdateButton.$(OBJEXT) \
 	Thread_PseudoDelete.$(OBJEXT) Thread_PseudoUndelete.$(OBJEXT) \
-	Thread_UploadMulti.$(OBJEXT) ToolbarPage.$(OBJEXT) \
+	Thread_UploadMulti.$(OBJEXT) \
+	Timer_KbServerChangedSince.$(OBJEXT) ToolbarPage.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) UsernameInput.$(OBJEXT) \
 	UsfmFilterPage.$(OBJEXT) UnitsDlg.$(OBJEXT) \
 	UnitsPage.$(OBJEXT) UnpackWarningDlg.$(OBJEXT) \
@@ -496,6 +497,7 @@ adaptit_SOURCES = \
 	../../source/Thread_DoEntireKbDeletion.cpp \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
 	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
+	../../source/Timer_KbServerChangedSince.cpp \
 	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
 	../../source/UsernameInput.cpp ../../source/UsfmFilterPage.cpp \
 	../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
@@ -715,6 +717,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_PseudoDelete.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_PseudoUndelete.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread_UploadMulti.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Timer_KbServerChangedSince.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolbarPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
@@ -2571,6 +2574,20 @@ Thread_UploadMulti.obj: ../../source/Thread_UploadMulti.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Thread_UploadMulti.cpp' object='Thread_UploadMulti.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Thread_UploadMulti.obj `if test -f '../../source/Thread_UploadMulti.cpp'; then $(CYGPATH_W) '../../source/Thread_UploadMulti.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Thread_UploadMulti.cpp'; fi`
+
+Timer_KbServerChangedSince.o: ../../source/Timer_KbServerChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Timer_KbServerChangedSince.o -MD -MP -MF $(DEPDIR)/Timer_KbServerChangedSince.Tpo -c -o Timer_KbServerChangedSince.o `test -f '../../source/Timer_KbServerChangedSince.cpp' || echo '$(srcdir)/'`../../source/Timer_KbServerChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Timer_KbServerChangedSince.Tpo $(DEPDIR)/Timer_KbServerChangedSince.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Timer_KbServerChangedSince.cpp' object='Timer_KbServerChangedSince.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Timer_KbServerChangedSince.o `test -f '../../source/Timer_KbServerChangedSince.cpp' || echo '$(srcdir)/'`../../source/Timer_KbServerChangedSince.cpp
+
+Timer_KbServerChangedSince.obj: ../../source/Timer_KbServerChangedSince.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Timer_KbServerChangedSince.obj -MD -MP -MF $(DEPDIR)/Timer_KbServerChangedSince.Tpo -c -o Timer_KbServerChangedSince.obj `if test -f '../../source/Timer_KbServerChangedSince.cpp'; then $(CYGPATH_W) '../../source/Timer_KbServerChangedSince.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Timer_KbServerChangedSince.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Timer_KbServerChangedSince.Tpo $(DEPDIR)/Timer_KbServerChangedSince.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Timer_KbServerChangedSince.cpp' object='Timer_KbServerChangedSince.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Timer_KbServerChangedSince.obj `if test -f '../../source/Timer_KbServerChangedSince.cpp'; then $(CYGPATH_W) '../../source/Timer_KbServerChangedSince.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Timer_KbServerChangedSince.cpp'; fi`
 
 ToolbarPage.o: ../../source/ToolbarPage.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ToolbarPage.o -MD -MP -MF $(DEPDIR)/ToolbarPage.Tpo -c -o ToolbarPage.o `test -f '../../source/ToolbarPage.cpp' || echo '$(srcdir)/'`../../source/ToolbarPage.cpp
