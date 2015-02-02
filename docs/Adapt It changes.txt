@@ -1,4 +1,21 @@
- ----------------------------------------------
+----------------------------------------------
+Version 6.5.6 release 2 February 2015
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.6
+----------------------------------------------
+* No new features were added in 6.5.6
+----------------------------------------------
+Bug fixes in 6.5.5
+----------------------------------------------
+* Some users may find debug assertion "failed" messages
+appearing when they attempt to do a "Save and remember
+in history..." command or when executing other document 
+history commands in the File menu. Such messages can be 
+annoying and confusing. This bug fix update should 
+eliminate any such debug assertion "failed" messages.
+
+----------------------------------------------
 Version 6.5.5 release 22 January 2015
 ----------------------------------------------
 ----------------------------------------------
