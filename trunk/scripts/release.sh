@@ -6,9 +6,10 @@
 #
 # Author: Jonathan Marsden <jmarsden@fastmail.fm>
 # Date: 2012-10-03
+# Revised 2015-01-21 by Bill Martin to include "utopic"
 
 PBUILDFOLDER=${PBUILDFOLDER:-~/pbuilder}
-OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty sid"}
+OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic sid"}
 DEVTOOLS="ubuntu-dev-tools debhelper libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
 
@@ -28,7 +29,7 @@ DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("trusty" "saucy" "raring" "quantal" "precise" "oneiric" "natty" "maverick" "lucid"
+UBUNTU_SUITES=("utopic" "trusty" "saucy" "raring" "quantal" "precise" "oneiric" "natty" "maverick" "lucid"
      "karmic" "jaunty" "intrepid" "hardy" "gutsy")
 
 # Mirrors to use. Update these to your preferred mirror.
