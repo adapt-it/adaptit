@@ -161,6 +161,8 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 //    #include "wx/msw/wx.rc" statement and add a lot of other
 //    Windows-specific stuff to the file - resulting in a build failure.
 // 4. The Visual Studio 2008 Adapt_It > Properties > Linker > Version (do for All Configurations).
+//    For this version, just use the first two version digits, i.e., 6.5 to
+//    keep things compatible with newer versions of Visual Studio.
 // 5. The Mac's Info.plist file in adaptit/bin/mac/.
 // 6. The Linux's ChangeLog (done automatically by batch file if the version number in
 //    "Adapt It changes.txt" doc file is updated.
@@ -168,7 +170,8 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // 8. Various docs folder files including: Adapt It changes.txt, Readme.txt,
 //    Readme_Unicode_Version.txt, Known Issues and Limitations.txt, Adapt It Reference.doc.
 // 9. Within the AboutDlgFunc in wxDesigner change the version number for the
-//    ID_ABOUT_VERSION_NUM wxStaticText to the current version number.
+//    ID_ABOUT_VERSION_NUM wxStaticText to the current version number. Also
+//    update the release date there.
 //    TODO:
 //    Find out why for the Mac build this wxStaticText value is not getting
 //    updated from the code in MainFrm.cpp to use the current version number
@@ -182,13 +185,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 22
-#define VERSION_DATE_MONTH 1
+#define VERSION_DATE_DAY 2
+#define VERSION_DATE_MONTH 2
 #define VERSION_DATE_YEAR 2015
-const wxString appVerStr(_T("6.5.5"));
+const wxString appVerStr(_T("6.5.6"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
