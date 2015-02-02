@@ -36,7 +36,6 @@
 		27CABA1816D454BC00E85604 /* Thread_CreateEntry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0916D454BC00E85604 /* Thread_CreateEntry.cpp */; };
 		27CABA1916D454BC00E85604 /* Thread_PseudoDelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0B16D454BC00E85604 /* Thread_PseudoDelete.cpp */; };
 		27CABA1A16D454BC00E85604 /* Thread_PseudoUndelete.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0D16D454BC00E85604 /* Thread_PseudoUndelete.cpp */; };
-		27CABA1B16D454BC00E85604 /* Thread_UploadToKBServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27CABA0F16D454BC00E85604 /* Thread_UploadToKBServer.cpp */; };
 		7D4C1A2F125D7EAA005DF3C6 /* UsfmFilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */; };
 		7D4E56ED142EDDE0007A4424 /* AIPrintPreviewFrame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4E56EB142EDDE0007A4424 /* AIPrintPreviewFrame.cpp */; };
 		7D4EEBC11471932C003B4CC2 /* scrollingdialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D4EEBBD1471932C003B4CC2 /* scrollingdialog.cpp */; };
@@ -237,8 +236,6 @@
 		27CABA0C16D454BC00E85604 /* Thread_PseudoDelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_PseudoDelete.h; path = ../../source/Thread_PseudoDelete.h; sourceTree = SOURCE_ROOT; };
 		27CABA0D16D454BC00E85604 /* Thread_PseudoUndelete.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_PseudoUndelete.cpp; path = ../../source/Thread_PseudoUndelete.cpp; sourceTree = SOURCE_ROOT; };
 		27CABA0E16D454BC00E85604 /* Thread_PseudoUndelete.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_PseudoUndelete.h; path = ../../source/Thread_PseudoUndelete.h; sourceTree = SOURCE_ROOT; };
-		27CABA0F16D454BC00E85604 /* Thread_UploadToKBServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread_UploadToKBServer.cpp; path = ../../source/Thread_UploadToKBServer.cpp; sourceTree = SOURCE_ROOT; };
-		27CABA1016D454BC00E85604 /* Thread_UploadToKBServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread_UploadToKBServer.h; path = ../../source/Thread_UploadToKBServer.h; sourceTree = SOURCE_ROOT; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2D125D7EAA005DF3C6 /* UsfmFilterPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UsfmFilterPage.cpp; path = ../../source/UsfmFilterPage.cpp; sourceTree = SOURCE_ROOT; };
 		7D4C1A2E125D7EAA005DF3C6 /* UsfmFilterPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UsfmFilterPage.h; path = ../../source/UsfmFilterPage.h; sourceTree = SOURCE_ROOT; };
@@ -852,8 +849,6 @@
 				27CABA0C16D454BC00E85604 /* Thread_PseudoDelete.h */,
 				27CABA0D16D454BC00E85604 /* Thread_PseudoUndelete.cpp */,
 				27CABA0E16D454BC00E85604 /* Thread_PseudoUndelete.h */,
-				27CABA0F16D454BC00E85604 /* Thread_UploadToKBServer.cpp */,
-				27CABA1016D454BC00E85604 /* Thread_UploadToKBServer.h */,
 				03F6C91116EFAB5C008530F0 /* ToolbarPage.cpp */,
 				03F6C91216EFAB5C008530F0 /* ToolbarPage.h */,
 				27CAB9FA16D4548E00E85604 /* Adapt_ItKBServer.cpp */,
@@ -1167,7 +1162,6 @@
 				27CABA1816D454BC00E85604 /* Thread_CreateEntry.cpp in Sources */,
 				27CABA1916D454BC00E85604 /* Thread_PseudoDelete.cpp in Sources */,
 				27CABA1A16D454BC00E85604 /* Thread_PseudoUndelete.cpp in Sources */,
-				27CABA1B16D454BC00E85604 /* Thread_UploadToKBServer.cpp in Sources */,
 				27A17DF916E9AF0800795BF9 /* Thread_UploadMulti.cpp in Sources */,
 				27A17DFA16E9AF0800795BF9 /* Timer_KbServerChangedSince.cpp in Sources */,
 				03F6C91316EFAB5C008530F0 /* ToolbarPage.cpp in Sources */,
