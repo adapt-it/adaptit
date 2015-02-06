@@ -178,9 +178,8 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
     // The declaration is:
     // KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer);
 
-	bool bOK;
+	bool bOK = false;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-	bOK = bOK; // avoid warning
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 
@@ -1117,9 +1116,9 @@ void CKBEditor::DoRetain()
 	bool bStoreEmptyStringsToo = FALSE;
 	wxString contents = m_pEditSearches->GetValue();
 	// SmartTokenize always first clears the passed in wxArrayString
-	long numSearchStrings = SmartTokenize(delims, contents, gpApp->m_arrSearches,
+	long numSearchStrings = 0L;
+    numSearchStrings = SmartTokenize(delims, contents, gpApp->m_arrSearches,
 					  bStoreEmptyStringsToo);
-	numSearchStrings = numSearchStrings; // avoid compiler warning
 	// check what we got
 #ifdef _DEBUG
 	long index;
@@ -1605,10 +1604,9 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		nNewKeySel = gpApp->FindListBoxItem(m_pListBoxKeys, spStr, caseSensitive, exactString);
 		wxASSERT(nNewKeySel != -1);
 		// now delete the found item from the listbox
-		int keysCount;
+		int keysCount = 0;
 		keysCount = m_pListBoxKeys->GetCount();
 		wxASSERT(nNewKeySel < keysCount);
-		keysCount = keysCount; // avoid warning
 		m_pListBoxKeys->Delete(nNewKeySel);
 		// set nNewKeySel to be the previous item in listbox unless it already
 		// is the first item
@@ -1653,10 +1651,9 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	CRefString* pOldRefStr = NULL; // temporary store of CRefString ptr being moved
 
 	// change the order of the string in the list box
-	int count;
+	int count = 0;
 	count = m_pListBoxExistingTranslations->GetCount();
 	wxASSERT(nSel < count);
-	count = count; // avoid warning
 	if (nSel > 0)
 	{
 		nSel--;
@@ -2431,7 +2428,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				*/
 				continue;
 			}
-			int index;
+			int index = 0;
 			// BEW 22Jun10, for kbVersion 2 it is possible to have a CTargetUnit instance
 			// for which all of its stored CRefString instances are marked as deleted (for
 			// example, the user may have manually used the KBEditor to Remove each one);
@@ -2443,7 +2440,6 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				// there is at least one non-deleted element, so put this one in the list
 				// box
 				index = m_pListBoxKeys->Append(srcKeyStr,(void*)pCurTgtUnit);
-				index = index; // avoid warning (retain, as is)
 			}
 		}
 		// BEW 27May13, the loop has finished; remove any bad entries that were skipped over
@@ -2614,9 +2610,8 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// non-deleted instances, so use CKB::CountNonDeletedRefStringInstances(CTargetUnit*)
 	if (pCurTgtUnit != NULL)
 	{
-		int countNonDeleted;
+		int countNonDeleted = 0;
 		countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
-		countNonDeleted = countNonDeleted; // avoid warning
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
 		int nMatchedRefString = -1; // whm added 24Jan09
@@ -2865,7 +2860,9 @@ void CKBEditor::UpdateComboInEachPage()
 		m_pComboOldSearches->Append(gpApp->m_arrOldSearches.Item(index));
 	}
 	// select the top
-	m_pComboOldSearches->SetSelection(0);
+    if (count > 0) {
+        m_pComboOldSearches->SetSelection(0);
+    }
 }
 
 /* these two are not needed, as it turns out
