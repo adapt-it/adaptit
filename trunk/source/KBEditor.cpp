@@ -2851,16 +2851,17 @@ void CKBEditor::OnComboItemSelected(wxCommandEvent& event)
 
 void CKBEditor::UpdateComboInEachPage()
 {
-	int count = gpApp->m_arrOldSearches.GetCount(); // has new count value now
 	m_pComboOldSearches->Clear();
-	// refill with the longer set of items
-	int index;
-	for (index = 0; index < count; index++)
+
+	int count = gpApp->m_arrOldSearches.GetCount();
+	if (count > 0)
 	{
-		m_pComboOldSearches->Append(gpApp->m_arrOldSearches.Item(index));
-	}
-	// select the top
-    if (count > 0) {
+		// fill with the set of items
+		for (int index = 0; index < count; index++)
+		{
+			m_pComboOldSearches->Append(gpApp->m_arrOldSearches.Item(index));
+		}
+		// select the top
         m_pComboOldSearches->SetSelection(0);
     }
 }
