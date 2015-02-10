@@ -185,13 +185,13 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // ******** FILE.                                                *************************
 #define VERSION_MAJOR_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_MINOR_PART 5 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
-#define VERSION_BUILD_PART 6 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
+#define VERSION_BUILD_PART 7 // DO NOT CHANGE UNTIL YOU READ THE ABOVE NOTE AND COMMENTS !!!
 #define VERSION_REVISION_PART ${svnversion}
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 2
+#define VERSION_DATE_DAY 10
 #define VERSION_DATE_MONTH 2
 #define VERSION_DATE_YEAR 2015
-const wxString appVerStr(_T("6.5.6"));
+const wxString appVerStr(_T("6.5.7"));
 const wxString svnVerStr(_T("$LastChangedRevision$"));
 
 inline int GetAISvnVersion()
