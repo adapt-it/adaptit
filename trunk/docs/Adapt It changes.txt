@@ -1,4 +1,26 @@
 ----------------------------------------------
+Version 6.5.7 release 10 February 2015
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.7
+----------------------------------------------
+* No new features were added in 6.5.7
+----------------------------------------------
+Bug fixes in 6.5.7
+----------------------------------------------
+* Macintosh users may find debug assertion "failed" messages
+appearing in several places:
+- Knowledge Base editor
+- Changing the font for source / target / navigation text
+- Find / Replace dialogs
+- Split Document dialog
+Such messages can be annoying and confusing; in the
+case of the Font and Knowledge Base Editor dialogs, the
+message was followed by a crash of Adapt It on OSX 10.10.
+This bug fix update should eliminate any such debug 
+assertion "failed" messages, as well as the resulting 
+crashes on OS X 10.10.
+----------------------------------------------
 Version 6.5.6 release 2 February 2015
 ----------------------------------------------
 ----------------------------------------------
