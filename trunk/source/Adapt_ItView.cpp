@@ -1433,12 +1433,10 @@ void CAdapt_ItView::OnInitialUpdate()
 	//	OnButtonFromHidingToShowingPunct(dummyevent); // make punctuation visible in lines 1 & 2
 	//}
 
-	// whm note: The OnButtonEnablePunctCopy() handler functions as one
-	// half of the toolbar toggle button that toggles between "Copy Punctuation"
-	// and "No Copy Punctuation". It only sets m_bCopySourcePunctuation to TRUE
-	// if m_bCopySourcePunctuation is FALSE when OnButtonEnablePunctCopy() is
-	// called. The other half of the toggle function is done in
-	// OnButtonNoPunctCopy().
+	// BEW note: The OnToggleEnablePunctuationCopy() handler functions as the toolbar toggle 
+	// button that toggles between "Copy Punctuation" and "No Copy Punctuation". It sets 
+	// m_bCopySourcePunctuation to TRUE if m_bCopySourcePunctuation is FALSE when 
+	// OnToggleEnablePunctuationCopy() is called. And FALSE if TRUE when called.
 	if (pApp->m_bCopySourcePunctuation)
 	{
 		pApp->m_bCopySourcePunctuation = FALSE; // the function call will reset it to TRUE
@@ -14275,6 +14273,10 @@ void CAdapt_ItView::CloseProject()
 // clicks the No Punctuation Copy button on the command bar - so this flag was added to
 // support this new functionality. The flag is automatically reset TRUE once the phrase box
 // moves to a different location by any method.
+//
+// The goal of this function is to build a correct pSrcPhrase->m_targetStr string on the
+// passed in pSrcPhrase instance
+//
 // BEW 11Oct10, added more members for doc version 5, so changes needed for supporting
 // m_follOuterPunct and USFM fixedspace symbol ~ (which we now handle as a merger of two
 // words) in order to cope with all punctuation possibilities on a ~ bound pair
@@ -14389,6 +14391,31 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			// we don't worry about internal punctuation in the target if the target is empty
 			// in fact, we don't want any punctuation if the target is empty
 			bool bEmptyTarget = FALSE;
+			// BEW 2Mar15 some refactoring to better support [ and ] brackets replacements
+			bool bSquareBracketOnlyAsPunct = FALSE; // initialize
+			if (str.IsEmpty())
+			{
+				// [ if present, needs to be initial if there is more than one preceding punct;
+				// and ] if present, needs to be final if there is more than one following punct
+				// (The TokenizeText() parser nevertheless should immediately break out an [
+				// (whenever encountered) as a separate CSourcePhrase, and coming to a ] it
+				// immediately terminate the word parse, so that the ] will be broken out as
+				// a separate CSourcePhrase on the next iteration -- so it should never be the
+				// case that [ or ] are not the only punctuation character in m_precPunct or
+				// in m_follPunct. The code below could therefore be written more simply
+				// if we prefer - just assume [ or ] if present are the whole punct string.)
+				int offset1 = pSrcPhrase->m_precPunct.Find(_T("["));
+				int offset2 = pSrcPhrase->m_follPunct.Find(_T("]"));
+				if (offset1 == 0)
+				{
+					bSquareBracketOnlyAsPunct = TRUE;
+				}
+				else  if ((offset2 > wxNOT_FOUND) && 
+					(pSrcPhrase->m_follPunct.GetChar(pSrcPhrase->m_follPunct.Len()-1) == (wxChar)_T(']')))
+				{ 
+					bSquareBracketOnlyAsPunct = TRUE;
+				}
+			}
 			if (!str.IsEmpty() && pApp->m_bCopySourcePunctuation)
 			{
                 // Check for any medial punctuation, if there is any, see if it is all in
@@ -14637,6 +14664,30 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 			}
 			else // *Do* copy the source punctuation
 			{
+				// BEw 2Mar15, bleed out the [ or ] as punctuation requiring restoration
+				if (bEmptyTarget && bSquareBracketOnlyAsPunct)
+				{
+					// The string to place is either in m_precPunct or m_follPunct
+					if (!pSrcPhrase->m_precPunct.IsEmpty() &&
+						pSrcPhrase->m_precPunct.GetChar(0) == (wxChar)_T('['))
+					{
+						pSrcPhrase->m_targetStr = pSrcPhrase->m_precPunct;
+					}
+					else if (!pSrcPhrase->m_follPunct.IsEmpty() &&
+						pSrcPhrase->m_follPunct.GetChar(pSrcPhrase->m_follPunct.Len()-1) == (wxChar)_T(']'))
+					{
+						pSrcPhrase->m_targetStr = pSrcPhrase->m_follPunct;
+					}
+					// store the sequence number on the app class, so that if we reenter while at the same
+					// sequence number, the test at the top of the function can detect this and if the
+					// m_nPlacePunctDlgCallNumber value has just been incremented to be 2 or higher, we
+					// will skip the code contained in this function; the m_nPlacePunctDlgCallNumber value
+					// is reset to 0 at the end of CLayout::Draw(), and at the same place the
+					// m_nCurSequNum_ForPlacementDialog is reset to default -1
+					pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
+					return;
+				}
+
                 // Preceding punctuation can be handled silently. If the user typed
                 // different punctuation, then the user's must override the original
                 // punctuation. The target text string might be a phrase and hence contain
@@ -20159,6 +20210,12 @@ void CAdapt_ItView::OnUpdateToggleShowSourceText(wxUpdateUIEvent& event)
 /// circle and red diagonal bar) is displayed on the toolBar after this handler finishes
 /// because it shows the user what state the punctuation copy functionality would be if the
 /// user were to press that toolbar button, i.e., the opposite of the current state.
+/// When clicked, the m_bCopySourcePunctuation value is flipped. It's normally TRUE, so a
+/// click on it turns copying Src Puncts off at the phrasebox move which triggers
+/// MakeTargetStringIncludingPunctuation() to be called in order to construct m_tgtString
+/// member of the current CSourcePhrase instance being departed from. (The toggle to OFF
+/// lasts only for one phrasebox move, after that m_bCopySourcePunctuation reverts to
+/// being TRUE. Code elsewhere accomplishes the latter)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnToggleEnablePunctuationCopy(wxCommandEvent& WXUNUSED(event))
 {

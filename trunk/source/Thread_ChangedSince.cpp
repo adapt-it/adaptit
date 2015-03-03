@@ -52,6 +52,7 @@ extern wxMutex s_BulkDeleteMutex;
 Thread_ChangedSince::Thread_ChangedSince():wxThread()
 {
 	m_pApp = &wxGetApp();
+	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 }
 
 Thread_ChangedSince::~Thread_ChangedSince()

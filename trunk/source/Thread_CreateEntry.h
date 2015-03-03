@@ -51,6 +51,7 @@ there is: in the #pragma interface... above, I had "MyListBox.h" instead of "Thr
 // forward declarations
 class wxThread;
 class KbServer;
+class CAdapt_ItApp;
 
 class Thread_CreateEntry : public wxThread
 {
@@ -62,6 +63,7 @@ public:
 	KbServer*			m_pKbSvr; // it knows which type it is
 	wxString			m_source;
 	wxString			m_translation;
+	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
 
 	// other methods...
 

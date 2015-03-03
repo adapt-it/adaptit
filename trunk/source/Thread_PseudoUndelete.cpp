@@ -50,11 +50,12 @@ extern wxMutex s_BulkDeleteMutex;
 
 Thread_PseudoUndelete::Thread_PseudoUndelete():wxThread()
 {
-	//m_pApp = &wxGetApp();
+	m_pApp = &wxGetApp();
 	// The location which creates and fires off the thread should set
 	// m_source and m_translation after creating the thread object and 
 	// before calling Run()
 	m_translation.Empty(); // default, caller should set it after creation
+	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 }
 
 Thread_PseudoUndelete::~Thread_PseudoUndelete()

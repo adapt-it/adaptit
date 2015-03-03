@@ -64,12 +64,13 @@ extern wxMutex s_BulkDeleteMutex;
 
 Thread_KbEditorUpdateButton::Thread_KbEditorUpdateButton():wxThread()
 {
-	//m_pApp = &wxGetApp();
+	m_pApp = &wxGetApp();
 	// The location which creates and fires off the thread should set
 	// m_source and m_translation after creating the thread object and 
 	// before calling Run()
 	m_oldTranslation.Empty(); // default, caller should set it after creation
 	m_newTranslation.Empty(); // default, caller should set it after creation
+	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 }
 
 Thread_KbEditorUpdateButton::~Thread_KbEditorUpdateButton()

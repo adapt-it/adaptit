@@ -2624,18 +2624,19 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 										outputTgt, errorsTgt, resultTgt);
 
 		// error handling
+		wxString msg;
+		// BEW 27Feb15 added more details about a possible fix for the likely cause of the problem
+		msg = _(
+			"Error when trying to write free translation text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).\n\nThis error is known to happen when Paratext has been installed in the machine's Administrator account by someone with Paratext registration credentials (username, registration code, etc), but the user works in a standard account. A possible solution is to launch Paratext, open it in the standard user account, re-enter and accept the administrator's registration credentials, close Paratext. Shut down Adapt It. Turn off the computer, then restart it. Run Adapt It and retry the Save in collaboration mode. If the write to Paratext is accepted, the fix will be permanent.\nIf that fails, manual transfer can be done. Export the target text, load it into a word processor, copy it and paste chapter by chapter into Paratext; or if adapting a whole book, slightly rename the book in the My Paratext Projects project folder, remember its filename before you changed it, then copy the exported book to there, rename it to have the remembered filename.");
 		if (resultTgt != 0)
 		{
 			wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 			// Not likely to happen, but it is possible if there are no books created for the PT/BE
 			// project, or the files are locked/access denied.
-			wxString msg;
-			msg = _(
-"Error when trying to write target text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
 			msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
 			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 			wxString temp;
-			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing target text. resultTgt = %d"),resultTgt);
+			temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing target text. resultTgt = %d (Paratext permissions problem?)"),resultTgt);
 			gpApp->LogUserAction(temp);
 			wxLogDebug(temp);
 			int ct;
@@ -2723,13 +2724,10 @@ bool CAdapt_ItDoc::DoCollabFileSave(const wxString& progressItem,wxString msgDis
 					wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
 					// Not likely to happen, but it is possible if there are no books created for the PT/BE
 					// project, or the files are locked/access denied.
-					wxString msg;
-					msg = _(
-	"Error when trying to write free translation text to the %s project. Please ensure that the book exists in the %s project and that no other program is using the file and try again.\nIf the problem persists submit a problem report to the Adapt It developers (see the Help menu).");
 					msg = msg.Format(msg,gpApp->m_collaborationEditor.c_str(),gpApp->m_collaborationEditor.c_str());
 					wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);
 					wxString temp;
-					temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing free translation text. resultFreeTrans = %d"),resultFreeTrans);
+					temp = temp.Format(_T("PT/BE Collaboration wxExecute returned error when writing free translation text. resultFreeTrans = %d (PT permissions problem?)"),resultFreeTrans);
 					gpApp->LogUserAction(temp);
 					wxLogDebug(temp);
 					int ct;
@@ -10783,7 +10781,8 @@ void CAdapt_ItDoc::FinishOffConjoinedWordsParse(wxChar*& ptr, wxChar* pEnd, wxCh
 ///                                    and that whitespace is not ignorable (see comments
 ///                                    below for a definition of what is ignorable whitespace)
 /// \remarks
-/// Called from: the Doc's IsFixedSpaceAhead().
+/// Called from: the Doc's IsFixedSpaceAhead(), from TokenizeText(), from
+/// FinishOffConjoinedWordsParse(), and from ParseWordInwardsFromEnd()
 /// The IsFixedSpaceAhead() function, which is mission critical for delimiting a parsed
 /// word or conjoined pair of words in the ParseWord() function, requires a smart subparser
 /// which looks ahead for a fixed space marker (~), but only looks ahead a certain distance
@@ -10851,8 +10850,13 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 	// end-of-buffer
 	while (p < pEnd)
 	{
-		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpace(p) && !(*p == _T(']')
-			&& !IsClosingBracketWordBuilding(puncts)))
+		// the test
+		// BEW 2Mar15, refactored because we store ] on m_follPunct if it is punctuation, but
+		// instead on m_key & m_srcPhrase if word-building, and there is no need to call
+		// IsClosingBracketWordBuilding() here, it instead needs to be called in TokenizeText()
+		// where the storage decision will be made on the next iteration of that function's
+		// parsing loop. Here we unilaterally halt parsing when ] is reached
+		if (!IsMarker(p) && !IsWhiteSpace(p) && !IsFixedSpace(p) && (*p != _T(']')))
 		{
 			// if none of those, then it's part of the word, or part of punctuation which
 			// follows it, so keep scanning
@@ -10884,7 +10888,7 @@ wxChar* CAdapt_ItDoc::FindParseHaltLocation( wxChar* ptr, wxChar* pEnd,
 				}
 				break;
 			}
-			else if (*p == _T(']') && !IsClosingBracketWordBuilding(puncts))
+			else if (*p == _T(']'))
 			{
 				*pbFoundClosingBracket = TRUE;
 				break;
@@ -15912,7 +15916,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		}
 		// BEW 11Oct10 we need to support [ and ] brackets as markers indicating 'this is
 		// disputed material', and so we will do so by storing [ and ] on their own
-		// CSourcPhrase 'orphan' instances (ie. m_key and m_srcPhrase will be empty), with
+		// CSourcePhrase 'orphan' instances (ie. m_key and m_srcPhrase will be empty), with
 		// [ stored in m_precPunct (and follow it with space(s) only if space()s is in the
 		// data), and store ] in m_follPunct (and include preceding space(s) only if
 		// space(s) is in the input data). We do the above whether or not [ and ] are
@@ -15921,26 +15925,48 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// sets of source and target punctuation characters. (Further below, if [ follows
 		// such things as \v 33 then the accumulated m_markers text has to be stored on
 		// an orphaned CSourcePhrase carrying the [ bracket.)
+		//
+		// BEW 2Mar15 Changed the protocol described in the above paragraph. [ and ] are 
+		// still stored on orphaned CSourcePhrase instances, but where in the instance they
+		// get stored is more helpfully determined by whether or not they are listed as
+		// punctuation characters. If they are so listed, then store them on m_precPunct
+		// and m_follPunct as was done earlier. They will be auto-displayed as target text
+		// when the phrasebox moves on. If they are not listed as punctuation, then they
+		// should be handled like any other word-building character - stored in m_key and
+		// m_srcPhrase, and so eligible for automatic copying to the phrasebox when the
+		// phrasebox lands on the instance where either is stored. This would make their
+		// behaviour consistent with other words with or without punctuation.
 		if (*ptr == _T('[') || *ptr == _T(']'))
 		{
 			if (*ptr == _T('['))
 			{
 				// we've come to an opening bracket, [
-				pSrcPhrase->m_precPunct = *ptr; // store it here, whether punctuation or not
-				if (IsWhiteSpace(ptr + 1))
+				if (!IsClosingBracketWordBuilding(spacelessPuncts)) // see helpers.cpp
 				{
-					// store a following space as well, but just one - any other white
-					// space we'll ignore
-					pSrcPhrase->m_precPunct += _T(" ");
-					ptr += 2; // point past the [ and the first of the following white
-							  // space chars
+					// it's one of the punctuation characters
+					pSrcPhrase->m_precPunct = *ptr; // store it here, it's punctuation
+					if (IsWhiteSpace(ptr + 1))
+					{
+						// store a following space as well, but just one - any other white
+						// space we'll ignore
+						pSrcPhrase->m_precPunct += _T(" ");
+						ptr += 2; // point past the [ and the first of the following white
+						// space chars
+					}
+					else
+					{
+						ptr++; // point past the [
+					}
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct; // need this for the [
+					// bracket (and its following space if we stored one) to be visible
 				}
 				else
 				{
+					// it's not a punctuation character, so handle it as word-building instead
+					pSrcPhrase->m_key = *ptr;
+					pSrcPhrase->m_srcPhrase = *ptr;
 					ptr++; // point past the [
 				}
-				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_precPunct; // need this for the [
-						// bracket (and its following space if we stored one) to be visible
 				if (pSrcPhrase != NULL)
 				{
 					// put this completed orphan pSrcPhrase into the list
@@ -15953,16 +15979,27 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			else
 			{
 				// must be a closing bracket,  ]
-				pSrcPhrase->m_follPunct = *ptr; // store it here, whether punctuation or not
-				if (IsWhiteSpace(ptr - 1)) // we can assume ] is not at the start of the input file
+				if (!IsClosingBracketWordBuilding(spacelessPuncts))
 				{
-					// store a preceding space as well, but just one - any other white
-					// space we'll ignore
-					pSrcPhrase->m_follPunct = _T(" ") + pSrcPhrase->m_follPunct;
+					// it's a punctuation character
+					pSrcPhrase->m_follPunct = *ptr; // store it here, it's punctuation
+					if (IsWhiteSpace(ptr - 1)) // we can assume ] is not at the start of the input file
+					{
+						// store a preceding space as well, but just one - any other white
+						// space we'll ignore
+						pSrcPhrase->m_follPunct = _T(" ") + pSrcPhrase->m_follPunct;
+					}
+					ptr++; // point past the ]
+					pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ]
+					// bracket (and its preceding space if we stored one) to be visible
 				}
-				ptr++; // point past the ]
-				pSrcPhrase->m_srcPhrase = pSrcPhrase->m_follPunct; // need this for the ]
-						// bracket (and its preceding space if we stored one) to be visible
+				else
+				{
+					// it's not punctuation, so handle it as a word-building character
+					pSrcPhrase->m_key = *ptr;
+					pSrcPhrase->m_srcPhrase = *ptr;
+					ptr++; // point past the ]
+				}
 				if (pSrcPhrase != NULL)
 				{
 					// put this completed orphan pSrcPhrase into the list
@@ -16565,14 +16602,25 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			// bleed out the ptr pointing at [ bracket situation
 			if (*ptr == _T('['))
 			{
-				pSrcPhrase->m_precPunct = *ptr;
-				pSrcPhrase->m_srcPhrase = *ptr;
-				ptr++;
-				if (IsWhiteSpace(ptr))
+				if (!IsClosingBracketWordBuilding(spacelessPuncts))
 				{
-					// also store a following single space, if there was some white space
-					// following (this is so that SFM export will reproduce the space)
-					pSrcPhrase->m_precPunct += _T(" ");
+					// [ is a punctuation character
+					pSrcPhrase->m_precPunct = *ptr;
+					pSrcPhrase->m_srcPhrase = *ptr;
+					ptr++;
+					if (IsWhiteSpace(ptr))
+					{
+						// also store a following single space, if there was some white space
+						// following (this is so that SFM export will reproduce the space)
+						pSrcPhrase->m_precPunct += _T(" ");
+						ptr++;
+					}
+				}
+				else
+				{
+					// [ is not a punctuation character, handle it as a word-building one
+					pSrcPhrase->m_key = *ptr;
+					pSrcPhrase->m_srcPhrase = *ptr;
 					ptr++;
 				}
 				if (!tokBuffer.IsEmpty())

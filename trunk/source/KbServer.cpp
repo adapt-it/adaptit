@@ -206,6 +206,7 @@ KbServer::KbServer(int whichType, bool bStateless)
 	}
 	m_queue.clear();
 	m_bStateless = bStateless;
+	m_kbServerLastSync = GetDateTimeNow(); // BEW added 24Feb15, an inintial value, so accesses won't fail
 }
 
 
@@ -3780,7 +3781,6 @@ void KbServer::UploadToKbServer()
 			if (entryCount == 0)
 			{
 				jsonvalPtr = new wxJSONValue;
-				threadIndex++;
 			}
 			++entryCount; // DO NOT put this line above the above entryCount == 0 test!
 
