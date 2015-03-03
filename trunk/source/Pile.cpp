@@ -89,7 +89,7 @@
 #include "Adapt_It.h"
 #include "helpers.h"
 //#include "SourceBundle.h"
-//#include "Adapt_ItDoc.h"
+#include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "AdaptitConstants.h"
 // don't mess with the order of the following includes, Strip must precede View must
@@ -853,14 +853,35 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 			// whm added for testing 12Mar09 adding "end fn" to nav text at end of footnote
 			// (Requested by Wolfgang Stradner)
+			// BEW refactored the block on 3Mar15 because if the background was erased but
+			// a redraw of the text doesn't happen, the "end fn" disappeared. (That was
+			// Reported by Warren Glover by email on 25Feb15, and I've seen it on rare
+			// occasions too.) So I've put the code to add the "end fn" to the pSrcPhrase
+			// which gets m_bFootnoteEnd set to TRUE in TokenizeText() -- see Adapt_ItDoc
+			// at approx  line 16896. When that is done, the kludge below is not needed.
+			// Kludge: old documents that do not have m_inform with "end fn" at the 
+			// last CSourcPhrase of a footnote, will not show any nav text unless we
+			// make a test here and if it is not present, then add it to m_inform
+			// so it will be present thereafter, and also add it to str so it is
+			// displayed at this draw call
 			if (m_pSrcPhrase->m_bFootnoteEnd)
 			{
-				if (str.IsEmpty())
-					str = _("end fn");
-				else
+				wxString theEndTxt = _("end fn"); // it is localizable
+				int offset = m_pSrcPhrase->m_inform.Find(theEndTxt);
+				if (offset == wxNOT_FOUND)
 				{
-					str += _T(' ');
-					str += _("end fn");
+					// There is no "end fn" present in the m_inform member, so add it,
+					// and make the document 'dirty' so as to get it made persistent
+					m_pSrcPhrase->m_inform = theEndTxt;
+					m_pLayout->m_pApp->GetDocument()->Modify(TRUE);
+					// And append to str to have it drawn
+					if (str.IsEmpty())
+						str = theEndTxt;
+					else
+					{
+						str += _T(' ');
+						str += theEndTxt;
+					}
 				}
 			}
 

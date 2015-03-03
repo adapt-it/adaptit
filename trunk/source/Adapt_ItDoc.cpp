@@ -16881,11 +16881,20 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					// display in the nav text area of the view) -- note, \fe in m_endMarkers
 					// can only be the PNG SFM 1998 footnote endmarker, not USFM endnote
 					// beginmarker) likewise \F must be from the same 1998 set if found there
+					//
+					// BEW 3Mar15, refactored to have the "end fn" entered into the m_inform
+					// member of this pSrcPhrase here, rather than by DrawNavTextInfoAndIcons()
+					// because if the nav text is wiped and a doc redraw is not done (it can
+					// happen) then the "end fn" disappears. Marking the end of the footnote
+					// was requested by Wolfgang Stradner in 12 March 2009.
 					if ((pSrcPhrase->GetEndMarkers().Find(_T("\\f*")) != wxNOT_FOUND) ||
 						(pSrcPhrase->GetEndMarkers().Find(_T("\\fe")) != wxNOT_FOUND) ||
 						(pSrcPhrase->GetEndMarkers().Find(_T("\\F")) != wxNOT_FOUND))
 					{
 						pSrcPhrase->m_bFootnoteEnd = TRUE;
+						// Note: it's localizable if somebody wants to bother
+						pSrcPhrase->m_inform = _("end fn"); // there won't be anything else in m_inform
+													// at the end of the footnote, so no need to append
 					}
 				}
 				else
