@@ -45,6 +45,7 @@ struct KbServerEntry;
 class wxThread;
 class KbServer;
 class CBString;
+class CAdapt_ItApp;
 
 //#include "KbServer.h" // needed for KbServerEntry struct definition
 
@@ -61,6 +62,7 @@ public:
 	wxString			m_username;
 	wxString			m_url;
 	CBString			m_jsonUtf8Str;
+	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
 
 	// BEW added 29Jan15 for error support. If someone else enters and entry currently
 	// being uploaded within this thread's part of the bulk upload, we need to record

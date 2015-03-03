@@ -62,7 +62,8 @@ Thread_UploadMulti::Thread_UploadMulti():wxThread()
     // On creation, the creating function needs to then set the public variables m_pKbSvr,
     // and m_entry, if the thread is to actually do something useful
 	m_pKbSvr = NULL;
-	//m_pApp = &wxGetApp();
+	m_pApp = &wxGetApp();
+	m_pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 }
 
 Thread_UploadMulti::~Thread_UploadMulti()

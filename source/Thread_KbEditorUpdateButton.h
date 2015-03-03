@@ -47,7 +47,7 @@
 class wxThread;
 class CKB;
 class KbServer;
-//class CAdapt_ItApp;
+class CAdapt_ItApp;
 
 class Thread_KbEditorUpdateButton : public wxThread
 {
@@ -60,6 +60,7 @@ public:
 	wxString			m_source;
 	wxString			m_oldTranslation;
 	wxString			m_newTranslation;
+	CAdapt_ItApp*		m_pApp; // to access ptr to KB, and ptr to KbServer
 
 	// other methods...
 

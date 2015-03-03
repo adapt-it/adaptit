@@ -1737,7 +1737,30 @@ x:					CCell* pCell = 0;
 						// copies of source text being stored to the KB (unless of course he
 						// clicks in the box or edits, etc). The PlacePhraseBox() call, for
 						// either situation, calls RecalcLayout()
-						if (pApp->m_pTargetBox->m_bAbandonable)
+						//
+						// BEW 2Mar15 added a new test here, for when the 'no punctuation button'
+						// has been pressed (that means m_bCopySourcePunctuation will be temporarily
+						// FALSE), and the CSourcePhrase instance here stores only [ or ] as
+						// punctuation text (and no src or tgt 'word' text), and control is
+						// leaving this location (m_bAbandonable is TRUE if the user caused
+						// this by clicking at a new location). In these circumstances we
+						// want the [ or ] to not be retained as the m_targetStr value, and
+						// m_adaption should be empty. Effect this in the block immediately
+						// below, but generically enough to apply to more than just [ and ]
+						// when they are punctuation and there is no word-building chars.
+						// The old location's sequ number is preserved in gnOldSequNum
+						if (gnOldSequNum != -1 && !pApp->m_bCopySourcePunctuation)
+						{
+							CSourcePhrase* sp = pView->GetPile(gnOldSequNum)->GetSrcPhrase();
+							// In this circumstance, m_targetStr should be set to m_adaption,
+							// and no punctuation copies done
+							translation = sp->m_adaption;
+							sp->m_targetStr = sp->m_adaption;
+							pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
+							// is done at the leaving location, but a removal from the KB
+							// will be done at the landing location
+						}
+						else if (pApp->m_pTargetBox->m_bAbandonable)
 						{
 							translation.Empty();
 							pApp->m_targetPhrase.Empty();
