@@ -30,6 +30,9 @@ the document. This sometimes resulted in "end fn" not being
 visible in the layout. Support for "end fn" has been improved,
 so now it should never fail to be displayed at the end of the
 footnote.
+* The restriction that medial punctuation cannot be placed at the
+start or end of the box contents, has been removed; in the
+Place Medial Punctuation dialog. Gives user more flexibility.
 ----------------------------------------------
 Bug fixes in 6.5.8
 ----------------------------------------------
