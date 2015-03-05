@@ -9,7 +9,7 @@
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.5.7"
+#define MyAppVersion "6.5.8"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -30,21 +30,21 @@ DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=Adapt It WX Unicode
 LicenseFile={#SvnBase}\setup Unicode\LICENSING.txt
 InfoBeforeFile={#SvnBase}\setup Unicode\Readme_Unicode_Version.txt
-OutputBaseFilename=Adapt_It_WX_6_5_7_Unicode
+OutputBaseFilename=Adapt_It_WX_6_5_8_Unicode
 SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2015 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.5.7
+VersionInfoProductVersion=6.5.8
 WizardImageFile="{#SvnBase}\res\ai_wiz_bg.bmp"
 WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2015 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.5.7
+VersionInfoVersion=6.5.8
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false

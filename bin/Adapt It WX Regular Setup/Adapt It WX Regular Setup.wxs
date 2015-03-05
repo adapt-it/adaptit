@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding='UTF-8'?>
 <?ifndef Version?>
-<?define Version = "6.5.7" ?>
+<?define Version = "6.5.8" ?>
 <?endif ?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
