@@ -1,4 +1,66 @@
 ----------------------------------------------
+Version 6.5.8 release 5 March 2015
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.8
+----------------------------------------------
+* Older versions parsed [ and ] to be on their own individual
+document storage elements. However, they were always stored
+as if they were punctuation, even if no in the list of punctuation
+characters. Also, they were not automatically restored to the
+adaptation text, the user had to manually type them.
+This new version gives better behaviour. Their storage is
+done either as punctuation or a word-building character, 
+depending on whether listed as punctuation, or not, 
+respectively. And when adapting, just pressing Enter or Tab
+key gets the target text copy of the [ or ] done without
+anything manual needing to be done. The changes work 
+best when [ and ] are not listed as punctuation, because
+then they get autoinserted after they have been stored in
+the knowledge base.
+* USFM footnote and cross reference markers (like \fr, 
+\fq, \ft, etc in footnotes, and \xo, \xt etc in cross references)
+were not displayed in the layout. This made it difficult to
+determine where text for each information type begins and
+ends. This new version now shows suitable navigation text
+above the strip, so that the first word of each information
+type is marked with a label above it.
+* Older versions did not store "end fn" navigation text in
+the document. This sometimes resulted in "end fn" not being
+visible in the layout. Support for "end fn" has been improved,
+so now it should never fail to be displayed at the end of the
+footnote.
+* The restriction that medial punctuation cannot be placed at the
+start or end of the box contents, has been removed; in the
+Place Medial Punctuation dialog. Gives user more flexibility.
+----------------------------------------------
+Bug fixes in 6.5.8
+----------------------------------------------
+* No bug fixes in 6.5.8
+
+----------------------------------------------
+Version 6.5.7 release 10 February 2015
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.7
+----------------------------------------------
+* No new features were added in 6.5.7
+----------------------------------------------
+Bug fixes in 6.5.7
+----------------------------------------------
+* Macintosh users may find debug assertion "failed" messages
+appearing in several places:
+- Knowledge Base editor
+- Changing the font for source / target / navigation text
+- Find / Replace dialogs
+- Split Document dialog
+Such messages can be annoying and confusing; in the
+case of the Font and Knowledge Base Editor dialogs, the
+message was followed by a crash of Adapt It on OSX 10.10.
+This bug fix update should eliminate any such debug 
+assertion "failed" messages, as well as the resulting 
+crashes on OS X 10.10.
+----------------------------------------------
 Version 6.5.6 release 2 February 2015
 ----------------------------------------------
 ----------------------------------------------
@@ -6,7 +68,7 @@ Feature changes and new features in 6.5.6
 ----------------------------------------------
 * No new features were added in 6.5.6
 ----------------------------------------------
-Bug fixes in 6.5.5
+Bug fixes in 6.5.6
 ----------------------------------------------
 * Some users may find debug assertion "failed" messages
 appearing when they attempt to do a "Save and remember
