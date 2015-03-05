@@ -160,12 +160,18 @@ void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 	long nEnd;
 	m_ptgtPhraseBox->GetSelection(&nStart,&nEnd);
 	int len = m_tgtPhrase.Length();
-	if (nEnd > len || nEnd < 0 || nEnd == 0 || nEnd == len )
-	{
+	// BEW 5Mar15 comment out this test and message. Working with Sally Barton in Canberra it was
+	// a problem, she had a single word translation and the source text was 3 words with comma after
+	// the first word, and this test prevented comma placement at the end of the single world. It's 
+	// better to allow the placement be anywhere, and if at the end and there is stored ending punctuation
+	// which is different, the placed one is given preference - that's consistent with how things behave
+	// elsewhere in the app, so that's what we do now
+	//if (nEnd > len || nEnd < 0 || nEnd == 0 || nEnd == len )
+	//{
 		// IDS_WRONG_PASTE_LOCATION
-		wxMessageBox(_("Sorry, within this dialog it is an error to place phrase medial punctuation at the beginning or end of a phrase."),_T(""), wxICON_INFORMATION | wxOK);
-		return;
-	}
+	//	wxMessageBox(_("Sorry, within this dialog it is an error to place phrase medial punctuation at the beginning or end of a phrase."),_T(""), wxICON_INFORMATION | wxOK);
+	//	return;
+	//}
 
 	// must not allow a selection to cause loss of data, so to be safe
 	// we remove any selection the user might have left in the box
