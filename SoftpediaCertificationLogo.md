@@ -1,0 +1,1 @@
+![http://adapt-it.org/Softpedia_Certification_Logo.gif](http://adapt-it.org/Softpedia_Certification_Logo.gif)

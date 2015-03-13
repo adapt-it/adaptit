@@ -1,0 +1,9 @@
+# Introduction #
+
+Just out of curiosity, does AI have a dumb mode where it doesn’t offer a suggestion for the target language phrases (i.e. the lookup from the KB)?  In getting a back-translation for story crafting projects, we would never want to make a suggestion to the UNS as to what the source word means (because we’d be prejudicing him/her towards what the word meant the last time, which is considered a no-no). But at the same time, it would be nice to force the UNS to give a word-by-word (rather than sentence by sentence) back-translation. So if this were a way to get the word-by-word BT, that would be helpful, but we’d need to insure that the lookup from the KB wouldn’t be pre-populated.
+
+
+
+# Details #
+
+No, we haven't provided that explicitly, but on the other hand, you can probably get what you are wanting if you use the Mode bar's Reviewing button - turn it on. When Reviewing mode is on, advancing the phrase box adds the typed "adaptation" to the KB (which, in your situation presumably is the word-gloss, or phrase-gloss, depending on whether the UNS has not merged, or has merged, words to form a phrase, respectively), thereby building a KB of back translations; however, when the phrase box lands on the following location, which presumably will be a "hole" (ie. no back translation typed yet), no lookup of the KB is done and the phrase box remains empty - forcing the UNS to think about what word or phrase is appropriate there, and then he'll have to type it in. This dumbs down the adaptation process and there are no auto-insertions done. So I think this is what you are asking for, but we built this functionality for a different purpose (for someone to Enter key his way through a document reviewing the meanings/adaptations typed into it). If you've no adaptations to start with, then it becomes the "dumb mode" you are asking for, I think.
