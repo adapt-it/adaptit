@@ -1,4 +1,4 @@
-# ![Adapt It Logo](https://github.com/adapt-it/adaptit/blob/master/res/48x48/adaptit.png) Adapt It
+# ![Adapt It Logo](https://github.com/adapt-it/adaptit/blob/master/res/32x32/adaptit.png) Adapt It
 User site: http://adapt-it.org/
 
 Adapt It is an application that translates or adapts source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages. 
