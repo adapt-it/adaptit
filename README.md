@@ -1,3 +1,4 @@
+![Adapt It Logo](https://github.com/adapt-it/adaptit/blob/master/res/48x48/adaptit.png)
 # Adapt It
 User site: http://adapt-it.org/
 
