@@ -7,7 +7,7 @@ Adapt It maintains a Knowledge Base which stores word and phrase adaptations tha
 
 Adapt It is written in C++ and utilizes the wxWidgets cross-platform library. Supported platforms include Windows, OS X and Linux variants.
 
-## Downloading the Application
+## Installers
 
 ### Windows and Macintosh
 
