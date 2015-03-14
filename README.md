@@ -1,4 +1,6 @@
 # Adapt It
+User site: http://adapt-it.org/
+
 Adapt It is an application that translates or adapts source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages. 
 
 Adapt It maintains a Knowledge Base which stores word and phrase adaptations that can be automatically inserted into the target text, thus speeding the translation process. Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported as a USFM text file or a Rich Text format file.
