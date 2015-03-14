@@ -36,4 +36,4 @@ Adapt It is a free open source tool for quickly translating between related lang
 
 ## License
 
-See [LICENSE](https://github.com/adapt-it/adapt-it-mobile/blob/master/LICENSE).
+See [LICENSE](https://github.com/adapt-it/adaptit/blob/master/license/LICENSING.txt).
