@@ -146,21 +146,25 @@ fi
 # Install build dependencies
 sudo apt-get install $BUILDDEPS -y
 
-# Figure out which release to build -- default is latest numbered release in svn
-RELEASE=${1:-$(svn ls http://adaptit.googlecode.com/svn/tags/ |grep ^adaptit-[0-9] |sort |tail -1 |sed -e 's%adaptit-%%' -e 's%/$%%')}
+# Check out the code
+git clone https://github.com/adapt-it/adaptit.git
+
+# Figure out which release to build -- default is latest numbered release
+cd adaptit
+RELEASE=${1:-$(git describe --tags $(git rev-list --tags --max-count=1))}
 
 # Check out the desired release from svn
-svn -q checkout http://adaptit.googlecode.com/svn/tags/adaptit-${RELEASE} adaptit || exit 1
+git checkout tags/${RELEASE} -b ${RELEASE} || exit 1
 
-# Export the release, ready for creating a source tarball
-cd adaptit
-svn export --force . ../adaptit-${RELEASE} || exit 2
+# rename the release directory, ready for creating a source tarball
 cd ..
+mv ./adaptit ./adaptit-${RELEASE}
 
 # Delete unwanted non-source files here using find
 #find adaptit-${RELEASE} -type f -iname "*.hhc" -delete
 find adaptit-${RELEASE} -type f -iname "*.dll" -delete
 find adaptit-${RELEASE} -type f -iname "*.exe" -delete
+find adaptit-${RELEASE} -type f -iname ".git" -delete
 
 # Tar it up and create symlink for .orig.bz2
 tar jcf adaptit-${RELEASE}.tar.bz2 adaptit-${RELEASE} || exit 3
