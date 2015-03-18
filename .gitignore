@@ -1,0 +1,8 @@
+*.cache
+*.msi
+*.wixobj
+*.wixpdb
+*.obj
+*.ncb
+*.suo
+*.user

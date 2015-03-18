@@ -94,14 +94,14 @@
     <unzip src="${3pt}/boost/current/boost.zip" 
 		dest="${3pt}/boost/current">
     </unzip>	
-	<!-- edb 18 Jun 2014: add wxwin 3.0.1 -->
-    <unzip src="${3pt}/wxwidgets/current/wxWidgets-3.0.1.zip" 
+	<!-- edb 16 Mar 2015: add wxwin 3.0.2 -->
+    <unzip src="${3pt}/wxwidgets/current/wxWidgets-3.0.2.zip" 
 		dest="${3pt}/wxwidgets/current">
     </unzip>
     <!-- wxWidgets needs us to tell it what OS platform we're building; we do this by
 	     copying the setup.h file from the /msw directory up into the /include/wx directory.
          Do this now... (we'll build the wxWindows libs in the compile_xxx targets below) -->
-    <copy file="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets-3.0.1/include/wx/setup.h"/>
+    <copy file="${3pt}/wxwidgets/current/wxWidgets-3.0.2/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/current/wxWidgets-3.0.2/include/wx/setup.h"/>
 	<!-- edb 19 June 2014: remove 2.8.12 / ansi builds
     <copy file="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/msw/setup.h" tofile="${3pt}/wxwidgets/2.8.12/wxWidgets-2.8.12/include/wx/setup.h"/>
 	-->
@@ -133,7 +133,7 @@
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Debug" />
- 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
+ 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.2/build/msw/wx_vc9.sln" />
 	<!-- VS2012 -->
  	  <!-- <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc11.sln" /> -->
 	  <!-- edb 19 June 2014: remove 2.8.12 / ansi builds
@@ -145,7 +145,7 @@
     <exec executable="MSBuild.exe" failonerror="yes">
 	  <arg value="/target:rebuild" />
 	  <arg value="/p:Configuration=Release" />
- 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc9.sln" />
+ 	  <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.2/build/msw/wx_vc9.sln" />
 	<!-- VS2012 -->
  	  <!-- <arg value="${3pt}/wxwidgets/current/wxWidgets-3.0.1/build/msw/wx_vc11.sln" /> -->
 	  <!-- edb 19 June 2014: remove 2.8.12 / ansi builds
@@ -170,7 +170,7 @@
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="30"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.1"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.2"/>
 		<!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
@@ -201,7 +201,7 @@
     <!-- build Adapt It -->
     <exec executable="MSBuild.exe" failonerror="yes">
 		<env key="WXVER" value="30"/>
-		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.1"/>
+		<env key="WXWIN" value="${3pt}/wxWidgets/current/wxWidgets-3.0.2"/>
 		<!-- edb 19 June 2014: remove 2.8.12 / ansi builds
 		<env key="WXVER" value="28"/>
 		<env key="WXWIN" value="${3pt}/wxWidgets/2.8.12/wxWidgets-2.8.12"/>
