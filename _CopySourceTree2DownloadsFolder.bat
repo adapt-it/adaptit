@@ -26,12 +26,10 @@ xcopy "*.*" "downloads\adaptit\*.*" /Y /Q /EXCLUDE:Exclude.txt
 @echo on
 rem Copy bin files and linux mac and win32 subfolders to the "downloads\adaptit\bin\" folder
 @echo off
-mkdir "downloads\adaptit\bin\Adapt It WX Regular Setup\"
 mkdir "downloads\adaptit\bin\Adapt It WX Unicode Setup\"
 mkdir "downloads\adaptit\bin\linux\" 
 mkdir "downloads\adaptit\bin\mac\" 
 mkdir "downloads\adaptit\bin\win32\" 
-xcopy "bin\Adapt It WX Regular Setup\Adapt It WX Regular Setup.vdproj" "downloads\adaptit\bin\Adapt It WX Regular Setup\" /Y
 xcopy "bin\Adapt It WX Unicode Setup\Adapt It WX Unicode Setup.vdproj" "downloads\adaptit\bin\Adapt It WX Unicode Setup\" /Y
 xcopy "bin\linux" "downloads\adaptit\bin\linux" /Y /E /Q /EXCLUDE:Exclude.txt
 xcopy "bin\mac" "downloads\adaptit\bin\mac" /Y /E /Q /EXCLUDE:Exclude.txt

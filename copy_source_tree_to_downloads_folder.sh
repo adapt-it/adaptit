@@ -41,14 +41,12 @@ mkdir -p ${currentDir}/${adaptitDir}
 cp ${currentDir}/* ${currentDir}/${adaptitDir}
 
 # Copy/update appropriate linux mac and win32 subfolders to the "downloads\adaptit\bin\" folder
-mkdir -p "${currentDir}/${ai_regular_setupDir}"
 mkdir -p "${currentDir}/${ai_unicode_setupDir}"
 mkdir -p "${currentDir}/${linuxDir}"
 mkdir -p "${currentDir}/${macDir}"
 mkdir -p "${currentDir}/${macDir}/AdaptIt.xcodeproj"
 mkdir -p "${currentDir}/${macDir}/scripts"
 mkdir -p "${currentDir}/${win32Dir}" 
-cp "${currentDir}/bin/Adapt It WX Regular Setup/Adapt It WX Regular Setup.vdproj" "${ai_regular_setupDir}"
 cp "${currentDir}/bin/Adapt It WX Unicode Setup/Adapt It WX Unicode Setup.vdproj" "${ai_unicode_setupDir}"
 cp "${currentDir}/bin/linux/config.guess" "${linuxDir}"
 cp "${currentDir}/bin/linux/config.rpath" "${linuxDir}"

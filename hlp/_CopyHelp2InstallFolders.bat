@@ -15,13 +15,9 @@ echo 6. If Bill's Setup Generator folders exist, it copies the zipped
 echo    Adapt_It.htb Help file from the hlp folder to each of the 
 echo    following installation folders for processing by Setup Generator 
 echo    into Windows installers:
-echo      Setup Regular
-echo      Setup Regular Documentation Only
 echo      Setup Unicode
 echo      Setup Unicode Documentation Only
 echo ===================================================
-echo Adapt_It.htb is copied as Adapt_It.htb to the setup Regular folder
-echo Adapt_It.htb is copied as Adapt_It.htb to the setup Regular Documentation Only folder
 echo Adapt_It.htb is copied as Adapt_It_Unicode.htb to the setup Unicode folder
 echo Adapt_It.htb is copied as Adapt_It_Unicode.htb to the setup Unicode Documentation Only folder
 echo ===================================================
@@ -61,8 +57,6 @@ GOTO END
 :SETUPGEN
 echo Now we will copy the Adapt_It.htb files to installation
 echo directories for Setup Generator.
-copy Adapt_It.htb "..\setup Regular\Adapt_It.htb" /Y
-copy Adapt_It.htb "..\setup Regular Documentation Only\Adapt_It.htb" /Y
 copy Adapt_It.htb "..\setup Unicode\Adapt_It_Unicode.htb" /Y
 copy Adapt_It.htb "..\setup Unicode Documentation Only\Adapt_It_Unicode.htb" /Y
 echo ===================================================
