@@ -1,0 +1,5 @@
+before_install:
+- sudo apt-get update -qq
+- sudo apt-get install -qq uuid-dev curl libcurl4-gnutls-dev libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n
+
+script: ./scripts/build-ai.sh
