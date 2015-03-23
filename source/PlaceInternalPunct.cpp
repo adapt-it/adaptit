@@ -159,7 +159,7 @@ void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 	long nStart;
 	long nEnd;
 	m_ptgtPhraseBox->GetSelection(&nStart,&nEnd);
-	int len = m_tgtPhrase.Length();
+	//int len = m_tgtPhrase.Length();
 	// BEW 5Mar15 comment out this test and message. Working with Sally Barton in Canberra it was
 	// a problem, she had a single word translation and the source text was 3 words with comma after
 	// the first word, and this test prevented comma placement at the end of the single world. It's 

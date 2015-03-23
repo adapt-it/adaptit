@@ -12981,6 +12981,17 @@ enum AiProjectCollabStatus CAdapt_ItApp::GetAIProjectCollabStatus(wxString m_pro
 		// point configured by an administrator as a collaboration project.
 		// Check whether there is an actual installation of Paratext or Bibledit on the user's
 		// machine. If not we must return collabProjExistsButEditorNotInstalled.
+		// NOTE:
+		// BEW 23Mar15, If a unix or linux upgrade of the operating system is done, and Paratext (or
+		// Bibledit if relevant) is blown away in the OS upgrade, then the ParatextIsInstalled() call
+		// done here (or the one for BE) will return FALSE - this will drop control into the error
+		// block and so the StartWorking wizard is exited prematurely, with an error dialog. The
+		// config settings are squirreled away in a wxConfigFile instance, and remain intact across the
+		// OS upgrade - and even if I manually edit everything to remove all memory of collaboration,
+		// the wxConfigFile data get used to restore the old collaboration values. So the ONLY fix in
+		// this scenario is to reinstall Paratext after the OS upgrade (or BE if relevant) so as to
+		// be able to get the app running - and then the collaboration can be clobbered from within
+		// the running Adapt It if that is what is wanted. So BEWARE!!!
 		if (!CollabAiProjStrFound.IsEmpty() && !CollabSrcLangNameStrFound.IsEmpty() && !CollabTgtLangNameStrFound.IsEmpty()
 			&& !ParatextIsInstalled() && !BibleditIsInstalled())
 		{

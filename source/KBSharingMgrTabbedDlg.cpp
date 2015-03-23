@@ -658,7 +658,9 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 	// Get the usernames into sorted order, by adding them to a wxSortedArrayString
 	wxSortedArrayString sorted_arrUsernames;
 	UsersList::iterator iter;
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 	int anIndex = -1;
+#endif
 	int maxID = 0;
 	wxString strID;
 	wxString tab = _T('\t');
