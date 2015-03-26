@@ -26914,13 +26914,6 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 			// m_freeTrans, m_note, or m_collectedBackTrans is handled after the
 			// GetMarkersAndTextFromString() call
 			pMarkerList->Clear();
-#if defined(_DEBUG)
-			if (pSrcPhrase->m_nSequNumber >= 176)
-			{
-				// sn= 306 and 395 are places where also I have restored \p\v to be as before
-				int break_here = 1;
-			}
-#endif
 			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo(),
 										pSrcPhrase->GetEndMarkers());
 			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
