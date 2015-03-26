@@ -318,7 +318,7 @@ public:
 	wxString		GetWholeMarker(wxString str);
 	wxString		GetMarkerWithoutBackslash(wxChar *pChar);
 	wxString		GetBareMarkerForLookup(wxChar *pChar);
-	void			GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str);
+	void			GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers);
 	void			GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 											wxArrayString* pUnkMarkers,
 											wxArrayInt* pUnkMkrsFlags,

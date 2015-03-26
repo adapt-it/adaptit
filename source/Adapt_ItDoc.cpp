@@ -9628,11 +9628,26 @@ int CAdapt_ItDoc::ParseMarker(wxChar *pChar)
 /// encountered or another backslash is encountered.
 /// BEW fixed 10Sep10, the last test used forward slash, and should be backslash
 /// BEW 24Oct14, no changes needed for support of USFM nested markers
+/// BEW 25Mar15, refactored - it was returning nothing because pChar was pointing at
+/// backslash on entry, so added a code block to accumulate the backslash before doing
+/// the loop
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::MarkerAtBufPtr(wxChar *pChar, wxChar *pEnd) // whm added 18Feb05
 {
 	int len = 0;
 	wxChar* ptr = pChar;
+	// To make this code safe when the m_markers member contains \p\v sequence (with no
+	// intervening space) or the more common \p \v sequence (with intervening space),
+	// requires changes. First, on entry pChar points at the initial backslash, and so
+	// the && *ptr != _T('\\') subtest causes immediate break from the loop, leading to
+	// nothing being returned. So we need to accumulat that initial backslash unilaterally.
+	// After that, the loop will work correctly for either \p\v  or  \p \v  sequences
+	if (*ptr == _T('\\'))
+	{
+		ptr++;
+		len++;
+	}
+	// Now traverse the rest of the marker, up to the next whitespace or backslash
 	while (ptr < pEnd && !IsWhiteSpace(ptr) && *ptr != _T('\\'))
 	{
 		ptr++;
@@ -14076,8 +14091,17 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 /// whm added str param 18Feb05
 /// BEW 24Mar10 no changes needed for support of doc version 5
 /// BEW 24Oct14, no changes needed for support of USFM nested markers
+/// BEW 25Mar15, some refactoring to fix non-robust marker handling code - it failed
+/// when two markers (like \p\v ) occurred in sequence with no intervening space. The
+/// function GetMarkerAtBuf() was also similarly changed because it returned nothing
+/// when control was pointing at a \p\v sequence.
+/// BEW 25Mar15, as well as the above changes, the endmarker detection code in the
+/// legacy version of this function was made redundant by the docVersion change at 5
+/// if I remember correctly, where endmarkers no longer get stored in m_markers after their
+/// corresponding beginmarker, but rather in a separate m_endMarkers member of CSourcePhrase.
+/// So we have to look for a matching endmarker in m_endMarkers, rather than in m_markers.
 ///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str)
+void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString str, wxString endmarkers)
 {
 	// Populates a wxArrayString containing sfms and their associated
 	// text parsed from the input str. pMkrList will contain one list item for
@@ -14133,9 +14157,13 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 			// current accumStr.
 			// First save the marker we are at to check that any end marker
 			// that follows is indeed a corresponding end marker.
-			wxString currMkr = MarkerAtBufPtr(ptr,pEnd);
+			wxString currMkr = MarkerAtBufPtr(ptr,pEnd); // BEW 25Mar15, refactored this 
 			int itemLen;
-			while (ptr < pEnd && *(ptr+1) != gSFescapechar)
+			//while (ptr < pEnd && *(ptr + 1) != gSFescapechar) <<-- unsafe for a \p\v sequence
+			// Must accumulate the backslash being pointed at before entering the loop
+			accumStr += *ptr;
+			ptr++;
+			while (ptr < pEnd && (!IsWhiteSpace(ptr) && *ptr != gSFescapechar))
 			{
 				accumStr += *ptr;
 				ptr++;
@@ -14144,6 +14172,15 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 			ptr += itemLen;
 			if (itemLen > 0)
 				accumStr += _T(' ');
+			// BEW 25Mar15, the endmarker code here was made redundant at docVersion 5 (?) and
+			// above, because from that point onwards endmarkers are never stored in the
+			// m_markers member of a CSourcePhrase. Instead, they are stored in the
+			// m_endMarkers member. To get the endmarker showing correctly at the end of
+			// the string being composed, we therefore must take the currMkr string found
+			// above, append * to make it a 'correponding endmarker' possibility, and search
+			// to find out if that putative endmarker is indeed stored in m_endMarkers.
+			// If so, we can append it to accumStr
+			/*
 			if (IsEndMarker(ptr,pEnd))
 			{
 				//parse and accumulate to the * providing it is a corresponding end marker
@@ -14158,8 +14195,21 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 					ptr++;
 				}
 			}
-			accumStr.Trim(FALSE); // trim left end
+			*/
+			// If there is a matching endmarker, add it to accumStr too
+			if (!endmarkers.IsEmpty())
+			{
+				int offset = wxNOT_FOUND;
+				wxString endMkr = currMkr + _T('*');
+				offset = endmarkers.Find(endMkr);
+				if (offset != wxNOT_FOUND)
+				{
+					// A matching endmarker exists on this CSourcePhrase instance
+					accumStr += endMkr;
+				}
+			}
 			accumStr.Trim(TRUE); // trim right end
+			accumStr.Trim(FALSE); // trim left end
 			// add the non-filter sfm and associated text to list
 			pMkrList->Add(accumStr);
 			accumStr.Empty();
@@ -17205,6 +17255,9 @@ bool CAdapt_ItDoc::ForceAnEmptyUSFMBreakHere(wxString tokBuffer,
 ///     to TRUE if the unknown marker in the Doc was within \~FILTER ... \~FILTER* brackets,
 ///     otherwise sets the flag in the array to FALSE.
 /// BEW 24Mar10 updated for support of doc version 5 (some changes were needed)
+/// BEW 25Mar15, added 3rd argument to GetMarkersAndTextFromString() to accomodate the fact
+/// that in recent versions (docVersion >= 5?) endmarkers are no longer stored in m_markers
+/// but in m_endMarkers
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 											wxArrayString* pUnkMarkers,
@@ -17281,8 +17334,8 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
             // Filtered material enclosed within \~FILTER...\~FILTER* brackets will also be
             // listed as a single item (even though there may be other markers embedded
             // within the filtering brackets.
-			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
-
+			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo(),
+										pSrcPhrase->GetEndMarkers());
             // Now iterate through the strings in pMarkerList, check if the markers they
             // contain are known or unknown.
 			wxString resultStr;
@@ -26775,6 +26828,12 @@ bool CAdapt_ItDoc::MatchAutoFixGItem(AFGList* pList,CSourcePhrase *pSrcPhrase,
 }
 
 // BEW 24Mar10, updated for support of doc version 5 (some changes needed)
+// BEW 25Mar15, some refactoring of the marker extraction code was needed because
+// the original code worked right only provided two successive markers had at least
+// one space between them, and that isn't a requirement of the data model - for instance
+// our Hezekiah 7 document had \p\v in m_markers member of 16 CSourcePhrase instances.
+// The GetMarkersAndTextFromString() function, called internally, also needed refactoring
+// in a similar way, because \p\v defeated the algorithm.
 void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 {
     // Scans all the doc's source phrase m_markers and m_filteredInfo members and
@@ -26791,6 +26850,9 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 	// and thereby filters one or markers from export, then their
 	// corresponding flags in the CUIntArray called m_exportFilterFlags
 	// will be set to TRUE.
+	// BEW 25Mar15, Note: markers which in Adapt It are considered inline binding or
+	// inline non-binding are not entered into the inventory. These are not filterable
+	// because to do so would remove some scripture content from being adaptable.
 
 	// Any sfms that are currently filtered are listed with [FILTERED] prefixed
 	// to the description. Unknown markers are listed with [UNKNOWN MARKER] as
@@ -26836,6 +26898,9 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 	while (posn != 0)
 	{
 		pSrcPhrase = (CSourcePhrase*)posn->GetData();
+#if defined (_DEBUG)
+		wxLogDebug(_T("SrcPhrase: %s  sn = %d"), pSrcPhrase->m_srcPhrase.c_str(), pSrcPhrase->m_nSequNumber);
+#endif
 		posn = posn->GetNext();
 		wxASSERT(pSrcPhrase);
 		// retrieve sfms used from pSrcPhrase->m_markers & m_filteredInfo, etc
@@ -26849,7 +26914,15 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 			// m_freeTrans, m_note, or m_collectedBackTrans is handled after the
 			// GetMarkersAndTextFromString() call
 			pMarkerList->Clear();
-			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
+#if defined(_DEBUG)
+			if (pSrcPhrase->m_nSequNumber >= 176)
+			{
+				// sn= 306 and 395 are places where also I have restored \p\v to be as before
+				int break_here = 1;
+			}
+#endif
+			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo(),
+										pSrcPhrase->GetEndMarkers());
 			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
 			{
 				str = filtermkr + _T(" ") + _T("\\free ") + pSrcPhrase->GetFreeTrans() + _T("\\free* ") + filtermkrend;
@@ -27023,6 +27096,8 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc()
 // directly in the parallel wxArrayInt, m_exportFilterFlags rather than in
 // m_exportFilterFlagsBeforeEdit because the user doesn't get a chance to affect the
 // results with this variant
+// BEW 25Mar15, added 3rd argument to GetMarkersAndTextFromString() because now endmarkers
+// are not stored in m_markers, but in m_endMarkers
 void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc_For_Collab()
 {
     // Scans all the doc's source phrase m_markers and m_filteredInfo members and
@@ -27081,7 +27156,8 @@ void CAdapt_ItDoc::GetMarkerInventoryFromCurrentDoc_For_Collab()
         // empty the list on each iteration. Non-empty m_freeTrans, m_note, or
         // m_collectedBackTrans is handled after the GetMarkersAndTextFromString() call
 		pMarkerList->Clear();
-		GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
+		GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo(),
+									pSrcPhrase->GetEndMarkers());
 		if (!pSrcPhrase->GetFreeTrans().IsEmpty())
 		{
 			str = filtermkr + _T(" ") + _T("\\free ") + pSrcPhrase->GetFreeTrans() + _T("\\free* ") + filtermkrend;
