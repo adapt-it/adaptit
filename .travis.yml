@@ -1,3 +1,8 @@
+notifications:
+  email:
+    recipients:
+      - developers@adapt-it.org
+
 language: cpp
 
 before_install:
