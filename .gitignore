@@ -7,3 +7,10 @@
 *.suo
 *.user
 *.rtf#
+*.xcscheme
+
+*.hmap
+
+*.dep
+
+*.dat
