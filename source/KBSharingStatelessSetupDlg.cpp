@@ -254,6 +254,12 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 	// belonging to the administrator currently using the KB Sharing Manager GUI, not the
 	// owner of the machine who will later do adapting work
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	// Authentication has got the url and username, so hide the parent dialog before showing
+	// the child dialog for typing in the password (otherwise, after the password is accepted
+	// and its dialog disappears, the parent dialog shows still and my cause confusion and user
+	// error if he tries to do more before the app gets round to dismissing the parent dialog)
+	this->Show(FALSE);
+	// Now get the password...
 	wxString pwd = pFrame->GetKBSvrPasswordFromUser(); // show the password dialog
 
 	if (m_bUserIsAuthenticating)
