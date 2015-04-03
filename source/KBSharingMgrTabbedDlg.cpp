@@ -371,8 +371,8 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		// Get the users data from the server, store in the list of KbServerUser structs,
 		// the call will clear the list first before storing what the server returns
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %x , m_bStateless = %d  , page is Users page"),
-		(unsigned int)(wxObject*)m_pKbServer, (int)m_pKbServer->m_bStateless ? 1 : 0);
+	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %p , m_bStateless = %d  , page is Users page"),
+		m_pKbServer, (int)m_pKbServer->m_bStateless ? 1 : 0);
 #endif
 		wxString username = m_pKbServer->GetKBServerUsername();
 		wxString password = m_pKbServer->GetKBServerPassword();
@@ -469,8 +469,8 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 		// the call will clear the list first before storing what the server returns;
 		// then separate the structs into two lists, by type (adapting versus glossing)
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %x , m_bStateless = %d, page (1-based) = %d"),
-		(unsigned int)(wxObject*)m_pKbServer, (int)m_pKbServer->m_bStateless, pageNumSelected + 1);
+	wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %p , m_bStateless = %d, page (1-based) = %d"),
+		m_pKbServer, (int)m_pKbServer->m_bStateless, pageNumSelected + 1);
 #endif
 		wxString username = m_pKbServer->GetKBServerUsername(); // for authentication, and for the username 
 																// field in the KB definition
@@ -677,8 +677,8 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 		{
 			aUsername = pEntry->username;
 		}
-		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %x , username = %s , ID = %d"),
-				anIndex, (unsigned int)(wxObject*)pEntry, aUsername.c_str(), pEntry->id);
+		wxLogDebug(_T("LoadUsersListBox(): index = %d , pEntry = %p , username = %s , ID = %d"),
+				anIndex, pEntry, aUsername.c_str(), pEntry->id);
 #endif
 		if (pEntry->id > maxID)
 		{
@@ -2018,7 +2018,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeLangCodesList(wxCommandEvent& WXUNUSED(ev
 	// Get the entry's KbServerKb struct which is its associated client data
 	m_pKbStruct = (KbServerKb*)m_pKbsListBox->GetClientData(m_nSel);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("OnSelchangeLangCodesList(): ptr to client data... m_pKbStruct = %x"), (unsigned int)(wxObject*)m_pKbStruct);
+	wxLogDebug(_T("OnSelchangeLangCodesList(): ptr to client data... m_pKbStruct = %p"), m_pKbStruct);
 #endif
 
 	// Get the source language code & non-source language code
@@ -2091,7 +2091,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	// Get the entry's KbServerUser struct which is its associated client data
 	m_pUserStruct = (KbServerUser*)m_pUsersListBox->GetClientData(m_nSel);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pUserStruct = %x"), (unsigned int)(wxObject*)m_pUserStruct);
+	wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pUserStruct = %p"), m_pUserStruct);
 #endif
 	// Set the username from the struct, it doesn't have the ID prefixed to it
 	theUsername = m_pUserStruct->username;
@@ -2104,7 +2104,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeUsersList(wxCommandEvent& WXUNUSED(event)
 	DeleteClonedKbServerUserStruct();
 	m_pOriginalUserStruct = CloneACopyOfKbServerUserStruct(m_pUserStruct);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pOriginalUserStruct = %x"), (unsigned int)(wxObject*)m_pOriginalUserStruct);
+	wxLogDebug(_T("OnSelchangeUsersList(): ptr to client data... m_pOriginalUserStruct = %p"), m_pOriginalUserStruct);
     wxLogDebug(_T("OnSelchangeUsersList(): m_pUserStruct->username = %s  ,  useradmin = %d , kbadmin = %d"), 
 		m_pUserStruct->username.c_str(), m_pUserStruct->useradmin, m_pUserStruct->kbadmin);
 #endif
@@ -2311,8 +2311,8 @@ void KBSharingMgrTabbedDlg::LoadLanguageCodePairsInListBox_KbsPage(bool bKBTypeI
 					// used for either in the KbServerKb struct)
 			pListBox->Append(compositeStr, pEntry); // pEntry is not seen by user
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-    wxLogDebug(_T("LoadLanguageCodePairsInListBox(): compositeStr = %s , KbServerKb* pEntry = %x"), 
-		compositeStr.c_str(), (unsigned int)(wxObject*)pEntry);
+    wxLogDebug(_T("LoadLanguageCodePairsInListBox(): compositeStr = %s , KbServerKb* pEntry = %p"), 
+		compositeStr.c_str(), pEntry);
 #endif
 		}
 	}
