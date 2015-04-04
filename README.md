@@ -22,7 +22,7 @@ Adapt It is written in C++ and utilizes the wxWidgets cross-platform library. Su
 
 ## Contributing to the Project
 
-For those wanting to contribute to this project, check out the [wiki pages](https://github.com/adapt-it/adaptit/wiki#want-to-contribute). If you're a coder, tester, interface designer, or would like to localize Adapt It to your language, we'd love to talk!
+For those wanting to contribute to this project, check out the [wiki pages](https://github.com/adapt-it/adaptit/wiki#want-to-contribute). If you're a coder, tester, interface designer, technical writer, or would like to localize Adapt It to your language, we'd love to talk!
 
 ## Philosophy
 
