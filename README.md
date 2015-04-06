@@ -10,11 +10,11 @@
 
 [![Build Status](https://travis-ci.org/adapt-it/adaptit.svg?branch=master)](https://travis-ci.org/adapt-it/adaptit)
 
-**Adapt It** is an application that translates or adapts source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages. 
+**Adapt It** is an easy-to-use application that helps users translate or adapt source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages. In linguistics jargon, Adapt It is a _Machine Assisted Human Translation (MAHT)_ editor.
 
 <img src="https://github.com/adapt-it/adaptit/blob/master/res/screenshots/ai_main.png" width=512 height=400 alt="Main screen" title="Main screen" />
 
-Adapt It maintains a Knowledge Base which stores word and phrase adaptations that can be automatically inserted into the target text, thus speeding the translation process. Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported to several formats -- USFM, Rich Text (rtf), HTML, or -- on Windows and Linux -- mobile formats such as .epub via the [SIL Pathway](http://pathway.sil.org/) program.
+Adapt It maintains a translation memory called a _Knowledge Base_ which stores previously-entered word and phrase adaptations that can be automatically inserted into the target text, thus speeding the translation process. Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported to several formats -- USFM, Rich Text (rtf), HTML, or -- on Windows and Linux -- mobile formats such as .epub via the [SIL Pathway](http://pathway.sil.org/) program.
 
 <img src="https://github.com/adapt-it/adaptit/blob/master/res/screenshots/ai_export.png" width=444 height=400 alt="Export Options" title="Export Options" />
 
