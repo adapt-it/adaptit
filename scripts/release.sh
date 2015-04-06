@@ -153,8 +153,11 @@ git clone https://github.com/adapt-it/adaptit.git
 cd adaptit
 RELEASE=${1:-$(git describe --tags $(git rev-list --tags --max-count=1))}
 
-# Check out the desired release from svn
-git checkout tags/${RELEASE} -b ${RELEASE} || exit 1
+RELEASE=${RELEASE#adaptit-}    # Remove any leading adaptit- prefix
+
+# Check out the desired release from git
+#git checkout tags/${RELEASE} -b ${RELEASE} || exit 1
+git checkout -b ${RELEASE} adaptit-${RELEASE} || exit 1
 
 # rename the release directory, ready for creating a source tarball
 cd ..
@@ -164,7 +167,7 @@ mv ./adaptit ./adaptit-${RELEASE}
 #find adaptit-${RELEASE} -type f -iname "*.hhc" -delete
 find adaptit-${RELEASE} -type f -iname "*.dll" -delete
 find adaptit-${RELEASE} -type f -iname "*.exe" -delete
-find adaptit-${RELEASE} -type f -iname ".git" -delete
+find adaptit-${RELEASE} -type d -iname ".git" -delete
 
 # Tar it up and create symlink for .orig.bz2
 tar jcf adaptit-${RELEASE}.tar.bz2 adaptit-${RELEASE} || exit 3
