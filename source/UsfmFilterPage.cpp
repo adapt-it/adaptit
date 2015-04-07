@@ -304,11 +304,11 @@ void CUsfmFilterPageCommon::DoInit()
 	bFirstWarningGiven = FALSE;
 
 #ifdef _Trace_FilterMarkers
-	TRACE0("In Usfm Filter page's OnInitDialog AFTER all List Boxes Loaded:\n");
-	TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-	TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-	TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-	TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+	wxLogDebug(_T("In Usfm Filter page's OnInitDialog AFTER all List Boxes Loaded:\n"));
+	wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+	wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+	wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 
 	pUsfmFilterPageSizer->Layout(); // only needed here to ensure the layout of the help text in read-only edit is ok
@@ -1856,7 +1856,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXU
 
 #ifdef _Trace_FilterMarkers
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	TRACE0("SET CHANGE: In USFM and Filtering page DOC Sfm Set changed to UsfmOnly\n");
+	wxLogDebug(_T("SET CHANGE: In USFM and Filtering page DOC Sfm Set changed to UsfmOnly\n"));
 #endif
 }
 
@@ -2129,7 +2129,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& 
 
 #ifdef _Trace_FilterMarkers
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	TRACE0("SET CHANGE: In USFM and Filtering page DOC Sfm Set changed to PngOnly\n");
+	wxLogDebug(_T("SET CHANGE: In USFM and Filtering page DOC Sfm Set changed to PngOnly\n"));
 #endif
 }
 
@@ -2415,7 +2415,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNU
 
 #ifdef _Trace_FilterMarkers
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	TRACE0("SET CHANGE: In USFM and Filtering page DOC Sfm Set changed to UsfmAndPng\n");
+	wxLogDebug(_T("SET CHANGE: In USFM and Filtering page DOC Sfm Set changed to UsfmAndPng\n"));
 #endif
 }
 
@@ -2740,7 +2740,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& ev
 
 #ifdef _Trace_FilterMarkers
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	TRACE0("SET CHANGE: In USFM and Filtering page PROJ Sfm Set changed to UsfmOnly\n");
+	wxLogDebug(_T("SET CHANGE: In USFM and Filtering page PROJ Sfm Set changed to UsfmOnly\n"));
 #endif
 }
 
@@ -3036,7 +3036,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent&
 
 #ifdef _Trace_FilterMarkers
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	TRACE0("SET CHANGE: In USFM and Filtering page PROJ Sfm Set changed to PngOnly\n");
+	wxLogDebug(_T("SET CHANGE: In USFM and Filtering page PROJ Sfm Set changed to PngOnly\n"));
 #endif
 }
 
@@ -3341,7 +3341,7 @@ void CUsfmFilterPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& even
 
 #ifdef _Trace_FilterMarkers
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	TRACE0("SET CHANGE: In USFM and Filtering page PROJ Sfm Set changed to UsfmAndPng\n");
+	wxLogDebug(_T("SET CHANGE: In USFM and Filtering page PROJ Sfm Set changed to UsfmAndPng\n"));
 #endif
 }
 
@@ -3563,11 +3563,11 @@ void CUsfmFilterPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	// OnWizardFinish routine rather than here???
 
 #ifdef _Trace_FilterMarkers
-	TRACE0("In Usfm Filter page's OnWizardNext BEFORE DoUsfmFilterChanges call:\n");
-	TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-	TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-	TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-	TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+	wxLogDebug(_T("In Usfm Filter page's OnWizardNext BEFORE DoUsfmFilterChanges call:\n"));
+	wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+	wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n", gpApp->m_sfmSetBeforeEdit));
+	wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 
 	usfm_filterPgCommon.bSFMsetChanged = FALSE; // supplied for param list, used by filterPage to see if sfm set was changed
@@ -3578,11 +3578,11 @@ void CUsfmFilterPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	gpApp->DoUsfmFilterChanges(&usfm_filterPgCommon, NoReparse); // NoReparse within wizard since no doc is open there
 
 #ifdef _Trace_FilterMarkers
-	TRACE0("In Usfm Filter page's OnWizardNext AFTER DoUsfmFilterChanges call:\n");
-	TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-	TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-	TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-	TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+	wxLogDebug(_T("In Usfm Filter page's OnWizardNext AFTER DoUsfmFilterChanges call:\n"));
+	wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+	wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+	wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 
 	bool bMovingForward = event.GetDirection();
@@ -3691,11 +3691,11 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	// for this. What is done after it returns depends on whether or not the set has been changed.
 	
 #ifdef _Trace_FilterMarkers
-	TRACE0("In Edit Preferences AFTER OK but BEFORE DoUsfmSetChanges call:\n");
-	TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-	TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-	TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-	TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+	wxLogDebug(_T("In Edit Preferences AFTER OK but BEFORE DoUsfmSetChanges call:\n"));
+	wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+	wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+	wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 	
 #ifdef _Trace_UnknownMarkers
@@ -3737,11 +3737,11 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	{
 
 #ifdef _Trace_FilterMarkers
-		TRACE0("In Edit Preferences AFTER DoUsfmSetChanges SET CHANGE = TRUE, BEFORE DoUsfmFilterChanges call:\n");
-		TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-		TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-		TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-		TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+		wxLogDebug(_T("In Edit Preferences AFTER DoUsfmSetChanges SET CHANGE = TRUE, BEFORE DoUsfmFilterChanges call:\n"));
+		wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+		wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+		wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+		wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 	
 #ifdef _Trace_UnknownMarkers
@@ -3791,11 +3791,11 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	{
 
 #ifdef _Trace_FilterMarkers
-		TRACE0("In Edit Preferences AFTER DoUsfmSetChanges SET CHANGE = FALSE, BEFORE DoUsfmFilterChanges call:\n");
-		TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-		TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-		TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-		TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+		wxLogDebug(_T("In Edit Preferences AFTER DoUsfmSetChanges SET CHANGE = FALSE, BEFORE DoUsfmFilterChanges call:\n"));
+		wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+		wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+		wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+		wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 
 #ifdef _Trace_UnknownMarkers
@@ -3811,11 +3811,11 @@ void CUsfmFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 
 #ifdef _Trace_FilterMarkers
-	TRACE0("In Edit Preferences AFTER DoUsfmSetChanges and/or DoUsfmFilterChanges BEFORE GetUnknownMarkersFromDoc call:\n");
-	TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-	TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-	TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-	TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+	wxLogDebug(_T("In Edit Preferences AFTER DoUsfmSetChanges and/or DoUsfmFilterChanges BEFORE GetUnknownMarkersFromDoc call:\n"));
+	wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+	wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+	wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 
 #ifdef _Trace_UnknownMarkers

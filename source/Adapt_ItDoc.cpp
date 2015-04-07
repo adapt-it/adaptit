@@ -5408,11 +5408,11 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 	buffer << _T(":");
 
 #ifdef _Trace_FilterMarkers
-		TRACE0("In SERIALIZE OUT DOC SAVE:\n");
-		TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-		TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-		TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",gpApp->m_sfmSetBeforeEdit);
-		TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",gpApp->m_filterMarkersBeforeEdit);
+	wxLogDebug(_T("In SERIALIZE OUT DOC SAVE:\n"));
+	wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+	wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+	wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 
 	// add the sfm user set enum
@@ -7237,7 +7237,12 @@ bool CAdapt_ItDoc::ReconstituteOneAfterPunctuationChange(CAdapt_ItView* pView,
 	//wxLogDebug(_T("  ReconsistuteOneAfterPunctuationChange: 5076  pSrcPhrase sn = %d  m_srcPhrase = %s"),
 	//				pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
 //#endif
-
+#if defined(_DEBUG)
+	if (pSrcPhrase->m_nSequNumber >= 39)
+	{
+		int break_here = 1;
+	}
+#endif
 	srcPhrase = FromSingleMakeSstr(pSrcPhrase, bAttachFilteredInfo, bAttach_m_markers,
 					mMarkersStr, xrefStr, filteredInfoStr, bDoCount, bCountInTargetText);
 	gloss = pSrcPhrase->m_gloss; // we don't care if glosses have punctuation or not
@@ -15950,7 +15955,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		//bHitMarker = FALSE;
 		precWordDelim.Empty(); // BEW added 10Jul14, it should be emptied before we break
 							   // out each 'next' parsed word
-
+#if defined(_DEBUG)
+		if (pSrcPhrase->m_nSequNumber >= 39)
+			int break_here = 1;
+#endif
 		if (IsWhiteSpace(ptr))
 		{
             // advance pointer past the white space (inter-word spaces, of whatever kind, now

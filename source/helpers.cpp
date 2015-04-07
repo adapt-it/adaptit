@@ -2816,7 +2816,7 @@ wxString RemoveMultipleSpaces(wxString& rString)
 void RemoveFilterMarkerFromString(wxString& filterMkrStr, wxString wholeMarker)
 {
 	// if the wholeMarker already exists in filterMkrStr, remove it.
-	// Assumes wholeMarker begins with backslash, and insures it ends with a delimiting space.
+	// Assumes wholeMarker begins with backslash, and ensures it ends with a delimiting space.
 	wholeMarker.Trim(TRUE); // trim right end
 	wholeMarker.Trim(FALSE); // trim left end
 	wxASSERT(!wholeMarker.IsEmpty());
@@ -2892,7 +2892,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 	if (wholeMarker == _T("\\x "))
 	{
 		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
-		// to the filterMkrStr.
+		// \xtSee and \xtSeeAlso to the filterMkrStr.
 		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
 		// plus all of the associated content markers; each includes the initial backslash and following
 		// space.

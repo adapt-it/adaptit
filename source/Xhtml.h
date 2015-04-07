@@ -188,8 +188,11 @@ const wxChar feMkr[] = _T("\\fe");   // for endnote \fe ... \fe*,
 const wxChar rqMkr[] = _T("\\rq");     // for crossReference \rq ... \rq* inline x reference, usually right-aligned in the text
 const wxChar xMkr[] = _T("\\x");     // for crossReference \x ... \x* TE does not appear to support these
 const wxChar xoMkr[] = _T("\\xo");   // for crossReference, origin reference \xo (handled same as \fr)
-const wxChar xtMkr[] = _T("\\xk");   // for crossReference, keyword  \xk marker
-const wxChar xkMkr[] = _T("\\xt");   // for crossReference, the list of refs \xt
+const wxChar xtMkr[] = _T("\\xt");   // for crossReference, keyword  \xk marker
+// BEW added next two, 7Apr15, treat same as \xt
+const wxChar xtSeeMkr[] = _T("\\xtSee");   // for crossReference See <target>, (handled same as \xt)
+const wxChar xtSeeAlsoMkr[] = _T("\\xtSeeAlso");   // for crossReference SeeAlso <target>, (handled same as \xt)
+const wxChar xkMkr[] = _T("\\xk");   // for crossReference, the list of refs \xt
 const wxChar qMkr[] = _T("\\q");     // for poetry, level 1
 const wxChar q1Mkr[] = _T("\\q1");   // for poetry, level 1
 const wxChar q2Mkr[] = _T("\\q2");   // for poetry, level 2

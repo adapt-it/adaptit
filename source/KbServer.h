@@ -100,6 +100,13 @@ struct KbServerUser {
 	wxString	timestamp;
 };
 
+struct KbServerLanguage {
+	wxString	code; // the 2- or 3-letter code, or a RFC5646 code <<-- primary key, since each code is unique
+	wxString	username; // which user is creating or has created this language code
+	wxString	description; // which language, in a way humans would understand it
+	wxString	timestamp;
+};
+
 struct KbServerKb {
 	long		id; // 1-based, from the kb table
 	wxString	sourceLanguageCode;
@@ -168,6 +175,7 @@ public:
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
 	int		 CreateEntry(wxString srcPhrase, wxString tgtPhrase);
+	int		 CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description);
 	int		 CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin);
 	int		 CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt);
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
@@ -187,6 +195,7 @@ public:
 	int		 UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
 						int kbType, KbServerKb* pEditedKbStruct);
 	void	 UploadToKbServer();
+	int		 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode);
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
 	// it gets all tgt words and phrases for a given source text word or phrase
 	/* deprecated by BEW 5Jun13
@@ -312,6 +321,13 @@ public:
 	// and stored there for the session (it only changes if the project changes and even
 	// then only if a different kb server was used for the other project, which would be
 	// unlikely)
+	// Note, when setting a stateless KbServer instance (eg. as when using the Manager), if the
+	// bStateless flag is TRUE, then 'stateless' temporary storage strings are used for the url,
+	// password and username - and those will get stored in the relevant places in the ptr to the
+	// "stateless" KbServer ptr instance which, for example, the Manager points at with its
+	// m_pKbServer member. So then the getters below will get the stateless strings, and that means
+	// any user settings for access to a kbserver instance, whether same one or not, won't get 
+	// clobbered by some administrator person accessing the KB Sharing Manager from the user's machine.
 	wxString	GetKBServerURL();
 	wxString	GetKBServerUsername();
 	wxString	GetKBServerPassword();
@@ -367,6 +383,8 @@ private:
 	KbServerUser	m_userStruct;
 	// Ditto, but for a single entry from the kb table
 	KbServerKb	m_kbStruct;
+	// Ditto, but for a single entry from the language table
+	KbServerLanguage	m_languageStruct;
 
 public:
 
@@ -401,6 +419,8 @@ public:
 	KbServerKb		GetKbStruct();
 	void			ClearKbStruct();
 
+	KbServerLanguage GetLanguageStruct();
+	void			 ClearLanguageStruct();
 
 	UsersList*		GetUsersList();
 	void			ClearUsersList(UsersList* pUsrList); // deletes from the heap all KbServerUser struct ptrs within

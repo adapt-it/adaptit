@@ -201,6 +201,7 @@ inline int GetAISvnVersion()
 }
 
 //#define Print_failure
+#define _Trace_FilterMarkers
 
 // whm added 30Jan12 to force all platforms to use TCP based IPC - even on the Windows
 // platform rather that its usual DDE.
@@ -2885,7 +2886,7 @@ public:
 	// times when local KBs are instantiated for processes that are best handled without
 	// an active connection to a remote kbserver database - for instance, transferring
 	// adaptations to glosses in a new project; KB restoration via the File > Restore
-	// Knowledge Base command; reconstituting a CKB from a mercurial repository, and maybe
+	// Knowledge Base command; reconstituting a CKB from a git repository, and maybe
 	// others. So we'll instantiate KbServer instances only when appropriate.
 
 	// m_pKbServer is an array of two pointers to KbServer instances. Each is NULL
