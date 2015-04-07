@@ -1107,7 +1107,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 	// a kb definition currently in the process (in a background thread) of being removed
 	// - kb entries first, and then the definition iteself. The flag: bool
 	// m_bKbSvrMgr_DeleteAllIsInProgress will be TRUE if such a removal is going on.
-	 	if (m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
+	if (m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress)
 	{
 		// A removal is happening. Check the proposed new kb definition addition has at
 		// least one code different, or a different kbType, than what is being removed.
@@ -1128,7 +1128,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 					// being removed. Prevent this, and warn accordingly.
 					wxBell();
 					wxString title = _("Warning: Adding what is being removed");
-					wxString msg = _("You are trying to add a shared database to the server, but that database is currently being removed from the same server.\nThis is illegal. The removal must be allowed to run to completion.\nIt is unlikely that you should attempt to add the database back to this server - because someone has decided this database is no longer needed.\nAsk for clarification from the server administrator. Most likely some other listed language code pair is the database you should be using.");
+					wxString msg = _("You are trying to add a shared database to the server, but that database is currently being removed from the same server.\nThis is illegal. The removal must be allowed to run to completion.\nIt is unlikely that you should attempt to add the database back to this server - because someone has decided this database is no longer needed.\nAsk for clarification from the server administrator.");
 					wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 					wxCommandEvent dummy;
 					OnButtonKbsPageClearListSelection(dummy);
@@ -1138,28 +1138,33 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 			}
 		}
 	}
-	// If control gets to here, the new pair may be valid for creating a new definition -
-	// so continue checks etc
+	// If control gets to here, the new pair of codes may be valid for creating a new definition -
+	// so continue checks etc...
+	// First check the two editboxes' contents don't match any of the listed code pairs,
+	// (i.e. one of the src code - non-src code pairs) -- if they do match, disallow & warn user
+	bool bPairMatchesAListedKB = MatchExistingKBDefinition(m_pKbsListBox, textCtrl_SrcLangCode, textCtrl_NonSrcLangCode);
+	if (bPairMatchesAListedKB)
+	{
+		// Oops, he's trying to add a KB which is already there. Warn, and probably
+		// best to clear the controls to force him to start over
+		wxBell();
+		wxString title = _("Already exists");
+		wxString msg = _("Warning: you are trying to add a shared database which already exists in the server. This is illegal, each pair of codes must be unique.\nTo add a new definition, one or both of the codes in the text entry boxes at the bottom must be different in some way from every listed pair.\nEdit the codes as necessary then use the Add Definition button.\nIf what you are trying to do is to edit one or both codes of an existing shared database, click the Update Selected Language Codes button instead.)");
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		wxCommandEvent dummy;
+		OnButtonKbsPageClearListSelection(dummy);
+		OnButtonKbsPageClearBoxes(dummy);
+		return;
+	}
+	// Clear the listbox selection, it can play no further part (Note: there could have been
+	// a selection - because the user could click an existing kb definition, and then add
+	// custom RFC5646 tag or tags manually, or remove same, thereby producing a unique new
+	// pair starting from an existing definition, or doing so by changing one of the iso639
+	// codes, etc.)
 	if (m_nSel != wxNOT_FOUND)
 	{
-		// There is a selection - so check the two editboxes' contents don't match any
-		// listed src code - non-src code pair -- if they do, disallow & warn user
-		if (MatchExistingKBDefinition(m_pKbsListBox, textCtrl_SrcLangCode, textCtrl_NonSrcLangCode))
-		{
-			// Oops, he's trying to add a KB which is already there. Warn, and probably
-			// best to clear the controls to force him to start over
-			wxBell();
-			wxString title = _("Already exists");
-			wxString msg = _("Warning: you are trying to add a shared database which already exists in the server. This is illegal, each pair of codes must be unique.\nTo add a new definition, one or both of the codes in the text entry boxes at the bottom must be different in some way from every listed pair.\nEdit the codes as necessary then use the Add Definition button.\nIf what you are trying to do is to edit one or both codes of an existing shared database, click the Update Selected Language Codes button instead.");
-			wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-			wxCommandEvent dummy;
-			OnButtonKbsPageClearListSelection(dummy);
-			OnButtonKbsPageClearBoxes(dummy);
-			return;
-		}
+		m_pKbsListBox->SetSelection(wxNOT_FOUND);
 	}
-	// Clear the listbox selection, it can play no further part
-	m_pKbsListBox->SetSelection(wxNOT_FOUND);
 
 	// Test that neither wxTextCtrl has an empty string in it, and that each string is at
 	// least 2 chars in length
@@ -1168,15 +1173,161 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 	if ((srcCodeLength < 2) || (nonsrcCodeLength < 2))
 	{
 		wxString msg;
-		msg = _("One or more of the two text boxes (next to the Create Shared Database button) contain too short a code, or no code.\nEach of these must have an appropriate language code typed into them before the Create Shared Database request will be honoured. Do so now.\nIt may help if you find the correct codes by first using the Lookup Language Codes... button, and if you are dealing with dialects, the instructions in Help For Adding Dialect Subtags... should be read and followed.");
+		msg = _("One or more of the two text boxes (next to the Create Shared Database button) contain too short a code, or no code.\nEach of these must have an appropriate language code within them before the create request will be honoured. Fix that now, then try again.\nIt may help if you find the correct codes by first using the Lookup Language Codes... button, and if you are dealing with one or more dialects for which a code has never been declared, the instructions in Help For Adding Dialect Subtags... should be read and followed.");
 		wxString title = _("Warning: Illegal or empty code");
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
-		return;
+		return; // back to parent dialog so user can edit the deviant code or codes
 	}
 	else
 	{
-		// Create the new KB definition in the kbserver's kb table
+		// Create the new KB definition in the kbserver's kb table.
+		
+		// Now that Jonathan has created a languageadmin permission, we must add extra code here.
+		// Analysis dictates that languageadmin level must be identical to kbadmin level. That is,
+		// if a user can create, edit or delete a kb, then he also must be able to create, edit or
+		// delete a language definition; and if he does not have kbadmin level, there's no point in
+		// him having languageadmin permission, because he can't do anything useful with the latter
+		// unless he has kbadmin permission. So we don't have any GUI widget for allowing or denying
+		// languageadmin permission separate from allowing or denying kbadmin permission.
+		// What does this mean here? Well, since the user has to have kbadmin permision to get to
+		// the page of the tabbed dialog this button handler is only accessible from, so we can
+		// languageadmin is TRUE, and use a local variable for it, and then use it in a kbserver
+		// access to find out if each of the language codes is already in the remote database, and for
+		// any which are not, add a language definition for each such. Since adding a language code
+		// will require a string be sent which is the "language definition" - a human readable 
+		// description about what language/dialect is meant by the new code being added, we'll need
+		// to show a child dialog for the user to type in the definition string, when a code is being
+		// added for the first time.
+
+        // Add the code for the dialog for typing in a language description, plus the calls to readlanguage
+		// and createlanguage equivalents here. readlanguage with a 404 fail means that no such language
+		// code is in the remote database's language table; if so, we use createlanguage to create the
+		// new code, after requesting a description string from the user, etc -- all done here before the
+		// CreateKb() call is done further below.
+
+		// Note: KB Sharing Manager uses a stateless setup of the KbServer class. That means that
+		// the Manager's class instance's m_pKbServer instance points at a stateless instance, and that
+		// the url, username and password stored within it are separate from any used by the user for
+		// a kbserver access as stored in the project config file; so the following calls will not clobber
+		// any of the user's authentication credentials. Any person with relevant permissions and valid
+		// credentials can use the KB Sharing Manager from anyone's computer, with complete safety.
+		wxString username = m_pKbServer->GetKBServerUsername(); // for authentication
+		wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
+		wxString url = m_pKbServer->GetKBServerURL(); // for authentication to this server's url
 		CURLcode result = CURLE_OK;
+		bool bSrcLangCodeExistsInDB = FALSE;
+		bool bNonSrcLangCodeExistsInDB = FALSE;
+		if (!username.IsEmpty() && !password.IsEmpty())
+		{
+			// Check first for the source language code being already present in the language table
+			result = (CURLcode)m_pKbServer->ReadLanguage(url,  username, password, textCtrl_SrcLangCode);
+			if (result == CURLE_OK)
+			{
+				// Check that the passed in language code is identical to what got returned in the JSON
+				wxString thecode =  m_pKbServer->GetLanguageStruct().code; // RHS has just be filled out from the returned JSON
+				if (thecode != textCtrl_SrcLangCode)
+				{
+					// Don't expect an inequality, so an English message will suffice
+					wxMessageBox(_T("ReadLanguage() data error, in create KBs page, the returned source language code does not match the one passed in for the ReadLanguage() call. Fix this."),
+						_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
+					return;
+				}
+
+				// The source language code exists in the language table. Check next for the non-source code also existing in the language table
+				bSrcLangCodeExistsInDB = TRUE;
+			}
+			else
+			{
+				// Error, which we'll assume is a 404 error - in which case, this 
+				// language code needs to be created & stored in the language table
+				;
+			}
+			// Now check for the non-source language code being already present in the language table
+			m_pKbServer->ClearLanguageStruct();
+			result = (CURLcode)m_pKbServer->ReadLanguage(url, username, password, textCtrl_NonSrcLangCode);
+			if (result == CURLE_OK)
+			{
+				// Check that the passed in language code is identical to what got returned in the JSON
+				wxString thecode = m_pKbServer->GetLanguageStruct().code; // RHS has just be filled out from the returned JSON
+				if (thecode != textCtrl_NonSrcLangCode)
+				{
+					// Don't expect an inequality, so an English message will suffice
+					wxMessageBox(_T("ReadLanguage() data error, in create KBs page, the returned non-source language code does not match the one passed in for the ReadLanguage() call. Fix this."),
+						_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
+					return;
+				}
+
+				// The source language code exists in the language table. Check next for the non-source code also existing in the language table
+				bNonSrcLangCodeExistsInDB = TRUE;
+			}
+			else
+			{
+				// Error, which we'll assume is a 404 error - in which case, this 
+				// language code needs to be created & stored in the language table
+				;
+			}
+		}
+		else
+		{
+			// Don't username or password to be empty, so an English message will suffice
+			wxMessageBox(_T("ReadLanguage() authentication error, at create KBs page, either the password or username string was empty. Fix this."),
+				_T("ReadLanguage() athentication error"), wxICON_WARNING | wxOK);
+			return;
+		}
+		m_pKbServer->ClearLanguageStruct();
+		// Now do any necessary language code creations -- this will require typing in a description
+		// we'll need to ask user via a dialog, called here..
+
+		wxString description_default = _("Unknown name");
+		wxString langDescription; // to receive typed description
+		wxString theMsg;
+		wxString caption = _("Type a suitable language description");
+		if (!bSrcLangCodeExistsInDB)
+		{
+			// Create it...
+			//First, ask user or administrator for a suitable language description (e.g. language name)
+			theMsg = theMsg.Format(_("Remove'Unknown name' and type a language description that suits this code:\n                  %s\nA suitable language description would be its commonly used name.\nThe name can be more than one word, but try keep it short."),
+				textCtrl_SrcLangCode.c_str());
+			langDescription = wxGetTextFromUser(theMsg, caption, description_default, this);
+			// Pass the langDescription to the CreateLanguage() call
+			result = (CURLcode)m_pKbServer->CreateLanguage(url, username, password, textCtrl_SrcLangCode, langDescription);
+			if (result != CURLE_OK)
+			{
+				// Don't expect an error of this kind, so an English message will suffice
+				wxString msg;
+				msg = msg.Format(_T("ReadLanguage() error (in create KBs page): CreateLanguage() failed, for new source language code: %s with description: %s"),
+					textCtrl_SrcLangCode.c_str(), langDescription.c_str());
+				wxMessageBox(msg, _T("KB Sharing Manager language code error"), wxICON_WARNING | wxOK);
+				return;
+			}
+		}
+		if (!bNonSrcLangCodeExistsInDB)
+		{
+			// Create it...
+			//First, ask user or administrator for a suitable language description (e.g. language name)
+			theMsg = theMsg.Format(_("Remove'Unknown name' and type a language description that suits this code:\n                  %s\nA suitable language description would be its commonly used name.\nThe name can be more than one word, but try keep it short."),
+				textCtrl_NonSrcLangCode.c_str());
+			langDescription = wxGetTextFromUser(theMsg, caption, description_default, this);
+			// Pass the langDescription to the CreateLanguage() call
+			result = (CURLcode)m_pKbServer->CreateLanguage(url, username, password, textCtrl_NonSrcLangCode, langDescription);
+			if (result != CURLE_OK)
+			{
+				// Don't expect an error of this kind, so an English message will suffice
+				wxString msg;
+				msg = msg.Format(_T("ReadLanguage() error (in create KBs page): CreateLanguage() failed, for new non-source language code: %s with description: %s"),
+					textCtrl_NonSrcLangCode.c_str(), langDescription.c_str());
+				wxMessageBox(msg, _T("KB Sharing Manager language code error"), wxICON_WARNING | wxOK);
+				return;
+			}
+		}
+
+		// If control gets to here, we've verified the needed source and non-source language codes are in
+		// the language table already, or have just been created there successfully - so we can progress to
+		// the CreateKb() attempt.
+
+		// The CreateKb() call here will work only provided that the language table of the remote database
+		// contains at this point in time an existing language code for each of the src and non-src
+		// languages in this new definition.
 		result = (CURLcode)m_pKbServer->CreateKb(textCtrl_SrcLangCode, textCtrl_NonSrcLangCode, m_bKBisType1);
 		// Update the page if we had success, if no success, just clear the controls
 		if (result == CURLE_OK)

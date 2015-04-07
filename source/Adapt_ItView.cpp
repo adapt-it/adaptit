@@ -356,9 +356,9 @@ wxString charFormatMkrs = _T("\\qac \\qs \\qt \\nd \\tl \\dc \\bk \\pn \\wj \\k 
 wxString charFormatEndMkrs = _T("\\qac* \\qs* \\qt* \\nd* \\tl* \\dc* \\bk* \\pn* \\wj* \\k* \\no* \\bd* \\it* \\bdit* \\em* \\sc* ");
 // The following string is a list of markers that are embedded content
 // markers for footnotes, endnotes and crossrefs
-wxString embeddedWholeMkrs = _T("\\fr \\fk \\fq \\fqa \\ft \\fdc \\fv \\fm \\xo \\xt \\xk \\xq \\xdc ");
+wxString embeddedWholeMkrs = _T("\\fr \\fk \\fq \\fqa \\ft \\fdc \\fv \\fm \\xo \\xt \\xk \\xq \\xdc \\xtSee \\xtSeeAlso ");
 // and the end marker forms
-wxString embeddedWholeEndMkrs = _T("\\fr* \\fk* \\fq* \\fqa* \\ft* \\fdc* \\fv* \\fm* \\xo* \\xt* \\xk* \\xq* \\xdc* ");
+wxString embeddedWholeEndMkrs = _T("\\fr* \\fk* \\fq* \\fqa* \\ft* \\fdc* \\fv* \\fm* \\xo* \\xt* \\xk* \\xq* \\xdc* \\xtSee* \\xtSeeAlso* ");
 
 // The following string is a list of sfms which are significant enough to become a halting
 // point for the immediate placement of pending back translation material.

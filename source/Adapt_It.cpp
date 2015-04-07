@@ -15540,7 +15540,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// nested markers in the USFM 2.4 standard, do not ever take + (ie. are not ever nested)
 	// and so no markers like \+f \+ft ... \+x etc do not occur
 	m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* ");
-	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
+	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* \\xtSee \\xtSee* \\xtSeeAlso \\xtSeeAlso* ");
 
 	// whm 8Jul12 added these wxArrayString elements
 	m_crossRefMarkerSet.Add(_T("\\x ")); // include the parent cross reference marker
@@ -15551,6 +15551,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_crossRefMarkerSet.Add(_T("\\xot "));
 	m_crossRefMarkerSet.Add(_T("\\xnt "));
 	m_crossRefMarkerSet.Add(_T("\\xdc "));
+	m_crossRefMarkerSet.Add(_T("\\xtSee "));
+	m_crossRefMarkerSet.Add(_T("\\xtSeeAlso "));
 
 	// whm 8Jul12 added these wxArrayString elements
 	m_footnoteMarkerSet.Add(_T("\\f ")); // include the parent footnote marker
@@ -24187,29 +24189,29 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
 	{
 
 #ifdef _Trace_FilterMarkers
-		TRACE0("In DoUsfmSetChanges BEFORE SetupMarkerStrings call:\n");
-		TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-		TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-		TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-		TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+		wxLogDebug(_T("In DoUsfmSetChanges BEFORE SetupMarkerStrings call:\n"));
+		wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+		wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+		wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), m_sfmSetBeforeEdit);
+		wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), m_filterMarkersBeforeEdit.c_str());
 #endif
 
 		// Sfm set change requires updating the rapid access data strings
 		gpApp->SetupMarkerStrings();
 
 #ifdef _Trace_FilterMarkers
-		TRACE0("In DoUsfmSetChanges AFTER SetupMarkerStrings call:\n");
-		TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-		TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-		TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-		TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+		wxLogDebug(_T("In DoUsfmSetChanges AFTER SetupMarkerStrings call:\n"));
+		wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+		wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+		wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+		wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), m_filterMarkersBeforeEdit.c_str());
 
 #endif
 		if (reparseDoc == DoReparse)
 		{
 
 #ifdef _Trace_FilterMarkers
-			TRACE0("In DoUsfmSetChanges reparse == DoReparse so calling RetokenizeText next\n");
+			wxLogDebug(_T("In DoUsfmSetChanges reparse == DoReparse so calling RetokenizeText next\n"));
 #endif
 
 			// Reparse the Document
@@ -24235,11 +24237,11 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUsfmFilterPageCommon* pUsfmFilterPageCommon
 										FALSE,  // because any filtering changes are
 										bSetChanged); // done as a side-effect
 #ifdef _Trace_FilterMarkers
-			TRACE0("In DoUsfmSetChanges AFTER RetokenizeText call:\n");
-			TRACE1("   App's gCurrentSfmSet = %d\n",gpApp->gCurrentSfmSet);
-			TRACE1("   App's gCurrentFilterMarkers = %s\n",gpApp->gCurrentFilterMarkers);
-			TRACE1("   Doc's m_sfmSetBeforeEdit = %d\n",pDoc->m_sfmSetBeforeEdit);
-			TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
+			wxLogDebug(_T("In DoUsfmSetChanges AFTER RetokenizeText call:\n"));
+			wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
+			wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
+			wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
+			wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), m_filterMarkersBeforeEdit.c_str());
 #endif
 
 			nNewSrcPhraseCount = nNewSrcPhraseCount; // avoids a compile warning
@@ -27948,7 +27950,7 @@ void CAdapt_ItApp::OnKBSharingManagerTabbedDlg(wxCommandEvent& WXUNUSED(event))
 
 	m_pKBSharingMgrTabbedDlg = new KBSharingMgrTabbedDlg(pApp->GetMainFrame());
 
-	m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer);
+	m_pKBSharingMgrTabbedDlg->SetStatelessKbServerPtr(dlg.m_pStatelessKbServer); // sets up our m_pKbServer pointer
 
 	// BEW 14Sept. Push this object on to the event queue, so it can trap our custom events
 	// Oops, nope! It then receives command events when the object is instantiated it
@@ -41990,6 +41992,8 @@ wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMark
 		AddFilterMarkerToString(markerStr, _T("\\xot "));
 		AddFilterMarkerToString(markerStr, _T("\\xnt "));
 		AddFilterMarkerToString(markerStr, _T("\\xdc "));
+		AddFilterMarkerToString(markerStr, _T("\\xtSee "));
+		AddFilterMarkerToString(markerStr, _T("\\xtSeeAlso "));
 	}
 	else
 	{
@@ -42002,6 +42006,8 @@ wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMark
 		RemoveFilterMarkerFromString(markerStr, _T("\\xot "));
 		RemoveFilterMarkerFromString(markerStr, _T("\\xnt "));
 		RemoveFilterMarkerFromString(markerStr, _T("\\xdc "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xtSee "));
+		RemoveFilterMarkerFromString(markerStr, _T("\\xtSeeAlso "));
 	}
 	if (bFootNoteMkrExists || bEndNoteMkrExists)
 	{
@@ -46736,7 +46742,7 @@ void CAdapt_ItApp::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 {
 	refNum = refNum; // avoid compiler warning
-	/* for displaying rapid-access markers in UsfmFilterMarkersStr
+	//* for displaying rapid-access markers in UsfmFilterMarkersStr
 	wxString s = UsfmFilterMarkersStr;
 	wxArrayString arr;
 	wxStringTokenizer tokens(s);
@@ -46770,7 +46776,7 @@ void CAdapt_ItApp::ShowFilterMarkers(int refNum)
 	msg = msg.Format(_T("***FILTERED MARKERS:    location: %d\n%s\nEND FILTERED MARKERS***"),
 		refNum, s.c_str());
 	wxLogDebug(msg);
-	*/
+	//*/
 }
 #endif
 

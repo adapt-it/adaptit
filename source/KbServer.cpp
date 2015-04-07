@@ -2107,6 +2107,19 @@ void KbServer::ClearKbStruct()
 	m_kbStruct.deleted = 0;
 }
 
+KbServerLanguage KbServer::GetLanguageStruct()
+{
+	return m_languageStruct;
+}
+
+void KbServer::ClearLanguageStruct()
+{
+	m_languageStruct.code.Empty();
+	m_languageStruct.username.Empty();
+	m_languageStruct.description.Empty();
+	m_languageStruct.timestamp.Empty();
+}
+
 
 //void KbServer::SetUserStruct(KbServerUser userStruct)
 //{
@@ -2368,6 +2381,120 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 	return 0;
 }
 
+// Pass in the params, because we use this only from the KB Sharing Manager, and there's no guarantee that
+// the person doing the administrative task is the computer's normal user; we con't want administrator
+// temporary access to clobber the normal user's kbserver access credentials
+int	KbServer::CreateLanguage(wxString url, wxString username, wxString password, wxString langCode, wxString description)
+{
+	CURL *curl;
+	CURLcode result = CURLE_OK; // initialize result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxJSONValue jsonval; // construct JSON object
+	CBString strVal; // to store wxString form of the jsonval object, for curl
+	wxString container = _T("language");
+	wxString aPwd, aUrl;
+	str_CURLbuffer.clear(); // always make sure it is cleared for accepting new data
+	str_CURLheaders.clear();
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = username + colon + password;
+	charUserpwd = ToUtf8(aPwd);
+
+	// populate the JSON object
+	jsonval[_T("user")] = username;
+	jsonval[_T("description")] = description;
+	jsonval[_T("id")] = langCode;
+
+	// convert it to string form
+	wxJSONWriter writer; wxString str;
+	writer.Write(jsonval, str);
+	// convert it to utf-8 stored in CBString
+	strVal = ToUtf8(str);
+
+	aUrl = url + slash + container;
+	charUrl = ToUtf8(aUrl);
+
+	// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		headers = curl_slist_append(headers, "Accept: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
+		// ask for the headers to be prepended to the body - this is a good choice here
+		// because no json data is to be returned
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) // && defined (__WXGTK__)
+		CBString s(str_CURLbuffer.c_str());
+		wxString showit = ToUtf16(s);
+		wxLogDebug(_T("\n\n *** CreateLanguage() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+
+		curl_slist_free_all(headers);
+		str_CURLbuffer.clear();
+
+		// Typically, result will contain CURLE_OK if an error was a HTTP one and so the
+		// next block won't then be entered; don't bother to localize this one, we don't
+		// expect it will happen much if at all
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("CreateLanguage() result code: %d Error: %s"),
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when creating a language in the language table"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+	// Work out what to return, depending on whether or not a HTTP error happened, and
+	// which one it was
+	if (m_httpStatusCode >= 400)
+	{
+		// For a CreateEntry() call, 400 "Bad Request" should be the only one we get.
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+
+		// We found an existing entry, so it could be a normal one, or a pseudo-deleted
+		// one, and therefore we'll return CURLE_HTTP_RETURNED_ERROR (22); this allows us
+		// to check for this code in the caller and when it has been returned, to do
+		// further calls in the thread before it destructs. For CreateEntry() this would
+		// mean a LookupFields() to determine what the deleted flag value is, and if it's a
+		// pseudo deleted entry, then we can call the function for restoring it to be a
+		// normal entry - 3 calls, and heaps of latency delay, but it would be a rare
+		// scenario.
+		return CURLE_HTTP_RETURNED_ERROR;
+	}
+	return 0; // no error
+}
+
 int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassword, bool bKbadmin, bool bUseradmin)
 {
 	CURL *curl;
@@ -2491,6 +2618,121 @@ int	KbServer::CreateUser(wxString username, wxString fullname, wxString hisPassw
 		return CURLE_HTTP_RETURNED_ERROR; 
 	}
 	return 0; // no error
+}
+
+// Note: url, username and password are passed in, because this request can be made before
+// the app's m_pKbServer[2] pointers have been instantiated
+int KbServer::ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode)
+{
+	CURL *curl;
+	CURLcode result;
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+	str_CURLbuffer.clear();
+	str_CURLheaders.clear();
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString container = _T("language");
+
+	aUrl = url + slash + container + slash + languageCode;
+	charUrl = ToUtf8(aUrl);
+	aPwd = username + colon + password;
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		// We want separate storage for headers to be returned, to get the HTTP status code
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
+		//headers separately
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+		CBString s2(str_CURLheaders.c_str());
+		wxString showit2 = ToUtf16(s2);
+		wxLogDebug(_T("ReadLanguage(): Returned headers: %s"), showit2.c_str());
+
+		CBString s(str_CURLbuffer.c_str());
+		wxString showit = ToUtf16(s);
+		wxLogDebug(_T("ReadLanguage() str_CURLbuffer has: %s    , The CURLcode is: %d"),
+			showit.c_str(), (unsigned int)result);
+#endif
+		// Get the HTTP status code, and the English message
+		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
+
+		// If the only error was a HTTP one, then result will contain CURLE_OK, in which
+		// case the next block is skipped
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("ReadLanguage() result code: %d cURL Error: %s"),
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when reading the language table to get a language definition"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			//curl_free(encodeduser);
+			return (int)result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+	// If there was a HTTP error -- typically, it would be 404 Not Found, because the
+	// language code is not in the language table yet; if so then exit early, & there 
+	// won't be json data to handle if that was the case
+	if (m_httpStatusCode >= 400)
+	{
+		// whether 400 or 404, return CURLE_HTTP_RETURNED_ERROR (ie. 22) to the caller
+		ClearUserStruct();
+		str_CURLbuffer.clear();
+		str_CURLheaders.clear();
+		//curl_free(encodeduser);
+		return CURLE_HTTP_RETURNED_ERROR; // 22
+	}
+
+	// That takes care of what happens when the lookup did not find the wanted language code
+	// in the table. Now we look after what happens if it succeeded. Json will be returned.
+
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//  We requested separate headers callback be used, so str_CURLbuffer should only have
+	//  the json string for the looked up entry
+	if (!str_CURLbuffer.empty())
+	{
+		wxString myObject = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxJSONValue jsonval;
+		wxJSONReader reader;
+		int numErrors = reader.Parse(myObject, &jsonval);
+		if (numErrors > 0)
+		{
+			// A non-localizable message will do, it's unlikely to happen (we hope)
+			wxMessageBox(_T("In ReadLanguage(): json reader.Parse() failed. Unexpected bad data from server."),
+				_T("kbserver error"), wxICON_ERROR | wxOK);
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear();
+			return CURLE_HTTP_RETURNED_ERROR;
+		}
+		// We extract id (the code), username, description, and the timestamp at which the definition
+		// was added to the language table.
+		ClearLanguageStruct(); // re-initializes private member, m_languageStruct, to be empty strings
+		m_languageStruct.code = jsonval[_T("id")].AsString();
+		m_languageStruct.username = jsonval[_T("username")].AsString();
+		m_languageStruct.description = jsonval[_T("fullname")].AsString();
+		m_userStruct.timestamp = jsonval[_T("timestamp")].AsString();
+
+		str_CURLbuffer.clear(); // always clear it before returning
+		str_CURLheaders.clear();
+	}
+	return 0; // CURLE_OK
 }
 
 int KbServer::CreateKb(wxString srcLangCode, wxString nonsrcLangCode, bool bKbTypeIsScrTgt)

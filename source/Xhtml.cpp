@@ -124,6 +124,9 @@ void Xhtml::SetupXhtmlApparatus()
 	(*m_pUsfm2IntMap)[xMkr] = (int)crossReference_;
 	(*m_pUsfm2IntMap)[xkMkr] = (int)crossref_referenced_text_;
 	(*m_pUsfm2IntMap)[xtMkr] = (int)crossReference_target_reference_; // for \xt (we just delete \xt)
+	// BEW added next two, 7Apr15, treat same as \xt
+	(*m_pUsfm2IntMap)[xtSeeMkr] = (int)crossReference_target_reference_; // for \xtSee (we just delete \xtSee)
+	(*m_pUsfm2IntMap)[xtSeeAlsoMkr] = (int)crossReference_target_reference_; // for \xtSeeAlso (we just delete \xtSeeAlso)
 	(*m_pUsfm2IntMap)[rqMkr] = (int)inline_crossReference_; // for \rq ... \rq*
 
 	// chapter and verse and paragraph ones
@@ -1350,6 +1353,12 @@ CBString Xhtml::BuildCrossReferenceParts(XhtmlTagEnum key, CBString uuid, wxStri
 	wxString xoMarker  = _T("\\xo");
 	wxString xkMarker  = _T("\\xk");
 	wxString itMarker  = itMkr;
+	//BEW 7Apr15 added the support for \xtSee and \xtSeeAlso markers, to be handled same as \xt
+	// these can have endmarkers, but that usage is now discouraged
+	wxString xtSeeMarker = _T("\\xtSee");
+	wxString xtSeeAlsoMarker = _T("\\xtSeeAlso");
+
+
 	// I'm using wxStringBuffer class. This will give me a writable pointer to the
 	// original wxString's buffer, PROVIDED wxUSE_STL is 0 (which is the wxWidgets default
 	// value) - if it is 1, then there will be a new EMPTY buffer created and no data
@@ -1373,14 +1382,6 @@ CBString Xhtml::BuildCrossReferenceParts(XhtmlTagEnum key, CBString uuid, wxStri
 	int contentLen = 0;
 	int itemLen = 0;
 	wxChar* pContent = NULL; // use this for the start of span of text being parsed over
-
-#if defined(_DEBUG)
-	//if (m_curChapter == _T("17") && m_curVerse == _T("35"))
-//	if (m_curChapter == _T("1") && m_curVerse == _T("5"))
-//	{
-//		int breakpoint_here = 1;
-//	}
-#endif
 
 	// get past white space, store the caller character, get past 
 	// any whitespace which follows it
@@ -1531,9 +1532,9 @@ CBString Xhtml::BuildCrossReferenceParts(XhtmlTagEnum key, CBString uuid, wxStri
 					aMarker.Empty();
 					continue; // iterate
 				}
-
+				// BEW 7Apr15m added extra markers to the tests here
 				if (aMarker == xtMarker || aMarker == xkMarker || aMarker == xoMarker
-					|| aMarker == itMarker)
+					|| aMarker == itMarker || aMarker == xtSeeMarker || aMarker == xtSeeAlsoMarker)
 				{
                     // We've reached the end of a collection span, but we may have only
                     // just begun to collect - we don't expect control to get into the
@@ -1570,13 +1571,14 @@ CBString Xhtml::BuildCrossReferenceParts(XhtmlTagEnum key, CBString uuid, wxStri
                         // (contentLen is 0) but ptr is pointing at either \xo or \xt or
                         // \xk or \it etc
 
-						// this is where the footnote-internal markers, including \it for
+						// this is where the crossref-internal markers, including \it for
 						// italics (and I can add blocks for \bd etc if necessary) are
 						// processed
-						if (aMarker == xtMarker)
+						// BEW added 2 extra tests, 7Apr15
+						if (aMarker == xtMarker || aMarker == xtSeeMarker || aMarker == xtSeeAlsoMarker)
 						{
-							// we came to an \xt marker; so parse it's content and stop at
-							// the next marker, or at end of the buffer, and build the span
+							// we came to an \xt marker, or \xtSee or \xtSeeAlso; so parse it's content
+							// and stop at the next marker, or at end of the buffer, and build the span
 							
 							// parse over the \ft marker
 							itemLen = pDoc->ParseMarker(ptr);

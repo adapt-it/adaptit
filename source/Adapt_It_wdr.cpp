@@ -8424,7 +8424,7 @@ wxSizer *KBExportImportOptionsFunc( wxWindow *parent, bool call_fit, bool set_si
 
     wxString strs1[] = 
     {
-        _("Standard Format (\\x and \\ge)"), 
+        _("Standard Format (\\lx and \\ge)"), 
         _("LIFT (XML) Format")
     };
     wxRadioBox *item1 = new wxRadioBox( parent, ID_RADIOBOX_KB_EXPORT_IMPORT_OPTIONS, _("Choose Type of %s, or Cancel to abort"), wxDefaultPosition, wxDefaultSize, 2, strs1, 1, wxRA_SPECIFY_COLS );
