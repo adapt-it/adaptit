@@ -3566,7 +3566,7 @@ void CUsfmFilterPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	wxLogDebug(_T("In Usfm Filter page's OnWizardNext BEFORE DoUsfmFilterChanges call:\n"));
 	wxLogDebug(_T("   App's gCurrentSfmSet = %d\n"), gpApp->gCurrentSfmSet);
 	wxLogDebug(_T("   App's gCurrentFilterMarkers = %s\n"), gpApp->gCurrentFilterMarkers.c_str());
-	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n", gpApp->m_sfmSetBeforeEdit));
+	wxLogDebug(_T("   Doc's m_sfmSetBeforeEdit = %d\n"), gpApp->m_sfmSetBeforeEdit);
 	wxLogDebug(_T("   Doc's m_filterMarkersBeforeEdit = %s\n"), gpApp->m_filterMarkersBeforeEdit.c_str());
 #endif
 
