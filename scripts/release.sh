@@ -168,6 +168,7 @@ mv ./adaptit ./adaptit-${RELEASE}
 find adaptit-${RELEASE} -type f -iname "*.dll" -delete
 find adaptit-${RELEASE} -type f -iname "*.exe" -delete
 find adaptit-${RELEASE} -type d -iname ".git" -delete
+find adaptit-${RELEASE} -type f -iname "bin2c" -delete
 
 # Tar it up and create symlink for .orig.bz2
 tar jcf adaptit-${RELEASE}.tar.bz2 adaptit-${RELEASE} || exit 3
