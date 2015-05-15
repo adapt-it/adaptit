@@ -134,12 +134,7 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 	//CBString psz(tempBuff);
 	// whm: an easier method of conversion is just to use the wxString constructor with wxConvUTF8 conversion parameter
 	// whm 8Jun12 modified. The lpPath is already a wxString, so it doesn't need any further conversion with wxConvUTF8
-	//iResult = ccModule->CCLoadTable(lpPath); // <<-- failed due to -118 error, see below (BEW 23Apr15)
-	//iResult = ccModule->CCLoadTable(wxString(lpPath,wxConvUTF8)); // BEW 23Apr15, <<-- won't compile, it's ambiguous between char* versus wchar_t*
-	// BEW 23Apr15 retry old code, I was getting an invalid char error (-118, which is upper ascii if unsigned)
-	wxCharBuffer tempBuff = lpPath.mb_str(wxConvUTF8);
-	CBString psz(tempBuff);
-	iResult = ccModule->CCLoadTable((char*)psz);
+	iResult = ccModule->CCLoadTable(lpPath);
 
 	// make the environment enabled for UTF-8 support
 	iResult2 = ccModule->CCSetUTF8Encoding(TRUE);
