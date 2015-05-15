@@ -437,6 +437,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 // BEW 26Mar10, no changes needed for support of doc version 5
 // BEW 17Jul11, changed for GetRefString() to return KB_Entry enum, and use all 10 maps
 // for glossing KB
+// BEW 23Apr15 added support for using / as a word-breaking whitespace character
 void CFindDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -547,6 +548,11 @@ void CFindDlg::DoFindNext()
 	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
 	m_srcStr = m_pEditSrc->GetValue();
 	m_tgtStr = m_pEditTgt->GetValue();
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	m_srcStr = FwdSlashtoZWSP(m_srcStr);
+	m_tgtStr = FwdSlashtoZWSP(m_tgtStr);
+#endif
 	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
 	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
 	m_bFindRetranslation = m_pFindRetranslation->GetValue();
@@ -995,6 +1001,11 @@ void CFindDlg::OnRadioNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	//TransferDataToWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataToWindow()
 	m_pCheckIgnoreCase->SetValue(m_bIgnoreCase);
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15 -- need to restore / from any ZWSP instances
+	m_srcStr = ZWSPtoFwdSlash(m_srcStr);
+	m_tgtStr = ZWSPtoFwdSlash(m_tgtStr);
+#endif
 	m_pEditSrc->ChangeValue(m_srcStr);
 	m_pEditTgt->ChangeValue(m_tgtStr);
 	m_pCheckIncludePunct->SetValue(m_bIncludePunct);
@@ -1311,6 +1322,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 }
 
 // BEW 26Mar10, no changes needed for support of doc version 5
+// BEW 23Apr15 added support for / used as a word-breaking whitespace character
 void CReplaceDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -1417,6 +1429,11 @@ void CReplaceDlg::DoFindNext()
 	//TransferDataFromWindow(); // whm removed 21Nov11
 	// whm added below 21Nov11 replacing TransferDataFromWindow()
 	m_bIgnoreCase = m_pCheckIgnoreCase->GetValue();
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15 -- need to change any / into ZWSP instances
+	m_srcStr = FwdSlashtoZWSP(m_srcStr);
+	m_tgtStr = FwdSlashtoZWSP(m_tgtStr);
+#endif
 	m_srcStr = m_pEditSrc->GetValue();
 	m_tgtStr = m_pEditTgt->GetValue();
 	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
@@ -1670,6 +1687,12 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
 	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
 	m_replaceStr = m_pEditReplace->GetValue();
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15 -- need to change any / into ZWSP instances
+	m_srcStr = FwdSlashtoZWSP(m_srcStr);
+	m_tgtStr = FwdSlashtoZWSP(m_tgtStr);
+	m_replaceStr = FwdSlashtoZWSP(m_replaceStr);
+#endif
 
 	// do nothing if past the end of the last srcPhrase, ie. at the EOF
 	if (gpApp->m_nActiveSequNum == -1)
@@ -1756,6 +1779,12 @@ void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event)
 	m_bIncludePunct = m_pCheckIncludePunct->GetValue();
 	m_bSpanSrcPhrases = m_pCheckSpanSrcPhrases->GetValue();
 	m_replaceStr = m_pEditReplace->GetValue();
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15 -- need to change any / into ZWSP instances
+	m_srcStr = FwdSlashtoZWSP(m_srcStr);
+	m_tgtStr = FwdSlashtoZWSP(m_tgtStr);
+	m_replaceStr = FwdSlashtoZWSP(m_replaceStr);
+#endif
 
 	// do nothing if past the end of the last srcPhrase, ie. at the EOF
 	if (gpApp->m_nActiveSequNum == -1)

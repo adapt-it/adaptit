@@ -133,8 +133,8 @@ wxString CConsistentChanger::loadTableFromFile(wxString tablePathName) // caller
 	//wxCharBuffer tempBuff = lpPath.mb_str(wxConvUTF8);
 	//CBString psz(tempBuff);
 	// whm: an easier method of conversion is just to use the wxString constructor with wxConvUTF8 conversion parameter
-	// whm 8Jun12 modified. The lpPath is already a wxString, so it doesn't need any further conversion with wxConfUTF8
-	iResult = ccModule->CCLoadTable(lpPath); //iResult = ccModule->CCLoadTable(wxString(lpPath,wxConvUTF8));
+	// whm 8Jun12 modified. The lpPath is already a wxString, so it doesn't need any further conversion with wxConvUTF8
+	iResult = ccModule->CCLoadTable(lpPath);
 
 	// make the environment enabled for UTF-8 support
 	iResult2 = ccModule->CCSetUTF8Encoding(TRUE);

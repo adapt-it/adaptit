@@ -47,6 +47,7 @@
 #include "helpers.h"
 #include "KbServer.h"
 #include "LanguageCodesDlg.h"
+#include "LanguageCodesDlg_Single.h"
 #include "KBSharingMgrTabbedDlg.h"
 #include "HtmlFileViewer.h"
 #include "Thread_DoEntireKbDeletion.h"
@@ -88,13 +89,21 @@ BEGIN_EVENT_TABLE(KBSharingMgrTabbedDlg, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_CLEAR_LIST_SELECTION, KBSharingMgrTabbedDlg::OnButtonKbsPageClearListSelection)
 	EVT_BUTTON(ID_BUTTON_CLEAR_BOXES, KBSharingMgrTabbedDlg::OnButtonKbsPageClearBoxes)
 	EVT_BUTTON(ID_BUTTON_ADD_DEFINITION, KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition)
-	EVT_LISTBOX(ID_LISTBOX_KB_CODE_PAIRS, KBSharingMgrTabbedDlg::OnSelchangeLangCodesList)
+	EVT_LISTBOX(ID_LISTBOX_KB_CODE_PAIRS, KBSharingMgrTabbedDlg::OnSelchangeKBsList)
 	EVT_BUTTON(ID_BUTTON_REMOVE_SELECTED_DEFINITION, KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb)
-	EVT_BUTTON(ID_BUTTON_UPDATE_LANG_CODES, KBSharingMgrTabbedDlg::OnButtonKbsPageUpdateKBDefinition)
-END_EVENT_TABLE()
+	//EVT_BUTTON(ID_BUTTON_UPDATE_LANG_CODES, KBSharingMgrTabbedDlg::OnButtonKbsPageUpdateKBDefinition) // BEW 15Apr15 removed
+	// For page 3: Custom Codes creation and deletion page
+	EVT_BUTTON(ID_BUTTON_LOOKUP_THE_CODE, KBSharingMgrTabbedDlg::OnBtnLanguagesPageLookupCode)
+	EVT_BUTTON(ID_BUTTON_ISO639, KBSharingMgrTabbedDlg::OnBtnLanguagesPageRFC5646Codes)
+	EVT_BUTTON(ID_BUTTON_CLEAR_BOXES2, KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearBoxes)
+	EVT_BUTTON(ID_BUTTON_CLEAR_LIST_SELECTION2, KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearListSelection)
+	EVT_BUTTON(ID_BUTTON_CREATE_CUSTOM_CODE, KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode)
+	EVT_BUTTON(ID_BUTTON_DELETE_CUSTOM_CODE, KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode)
+	EVT_LISTBOX(ID_LISTBOX_CUSTOM_CODES, KBSharingMgrTabbedDlg::OnSelchangeLanguagesList)
+	END_EVENT_TABLE()
 
 KBSharingMgrTabbedDlg::KBSharingMgrTabbedDlg(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Knowledge Base Server Manager"),
+	: AIModalDialog(parent, -1, _("Shared Database Server Manager"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	m_pApp = &wxGetApp();
@@ -139,6 +148,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pUsersListBox != NULL);
 	m_pKbsListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_KB_CODE_PAIRS);
 	wxASSERT(m_pKbsListBox != NULL);
+	m_pCustomCodesListBox = (wxListBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_LISTBOX_CUSTOM_CODES);
+	wxASSERT(m_pCustomCodesListBox != NULL);
 
 	// wxTextCtrls
 	m_pConnectedTo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_CONNECTED_TO);
@@ -151,20 +162,27 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pEditPersonalPassword != NULL);
 	m_pEditPasswordTwo = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_PASSWORD_TWO);
 	wxASSERT(m_pEditPasswordTwo != NULL);
-
+	// Kbs page text boxes
 	m_pEditSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_SRC); // src lang code on Create Kbs page
 	wxASSERT(m_pEditSourceCode != NULL);
 	m_pEditNonSourceCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_NONSRC); // non-src lang code on Create Kbs page
 	wxASSERT(m_pEditNonSourceCode != NULL);
-
 	m_pKbDefinitionCreator = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_CREATED_BY);
 	wxASSERT(m_pKbDefinitionCreator != NULL);
-	
-	// Checkboxes
+	// Custom languages code page text boxes
+	m_pEditCustomCode = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_CUSTOM_CODE); // custom code on languages page
+	wxASSERT(m_pEditCustomCode != NULL);
+	m_pEditDescription = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_DESCRIPTION); // definition of custom code on languages page
+	wxASSERT(m_pEditDescription != NULL);
+	m_pCustomCodeDefinitionCreator = (wxTextCtrl*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXTCTRL_CREATOR);
+	wxASSERT(m_pCustomCodeDefinitionCreator != NULL);
+
+	// Checkboxes (only the users page has them)
 	m_pCheckUserAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_USERADMIN);
 	wxASSERT(m_pCheckUserAdmin != NULL);
 	m_pCheckKbAdmin = (wxCheckBox*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_CHECKBOX_KBADMIN);
 	wxASSERT(m_pCheckKbAdmin != NULL);
+
 	// Buttons
 	m_pBtnUsersClearControls = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_CONTROLS);
 	wxASSERT(m_pBtnUsersClearControls != NULL);
@@ -174,7 +192,7 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	wxASSERT(m_pBtnUsersEditUser != NULL);
 	m_pBtnUsersRemoveUser = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_USER);
 	wxASSERT(m_pBtnUsersRemoveUser != NULL);
-
+	// Kbs page buttons
 	m_pBtnUsingRFC5646Codes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_RFC5646);
 	wxASSERT(m_pBtnUsingRFC5646Codes != NULL);
 	m_pBtnAddKbDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ADD_DEFINITION);
@@ -186,19 +204,34 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pBtnClearListSelection = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_LIST_SELECTION);
 	wxASSERT(m_pBtnClearListSelection != NULL);
 
-
 	m_pBtnClearBothLangCodeBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_BOXES);
 	wxASSERT(m_pBtnClearBothLangCodeBoxes != NULL);
 	m_pBtnRemoveSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_REMOVE_SELECTED_DEFINITION);
 	wxASSERT(m_pBtnRemoveSelectedKBDefinition != NULL);
-	m_pBtnUpdateSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_UPDATE_LANG_CODES);
-	wxASSERT(m_pBtnUpdateSelectedKBDefinition != NULL);
+	//m_pBtnUpdateSelectedKBDefinition = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_UPDATE_LANG_CODES);
+	//wxASSERT(m_pBtnUpdateSelectedKBDefinition != NULL); // BEW 14Apr15 removed
 
 	// Radiobuttons & wxStaticText
 	m_pRadioKBType1 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE1_KB);
 	m_pRadioKBType2 = (wxRadioButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_RADIOBUTTON_TYPE2_KB);
 	m_pNonSrcLabel  = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_TGT_LANG_CODE);
 	m_pAboveListBoxLabel = (wxStaticText*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_TEXT_EXISTING_KB_CODE_PAIRS);
+
+	// Custom language codes page's buttons
+	m_pBtnUsingRFC5646CustomCodes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_ISO639);
+	wxASSERT(m_pBtnUsingRFC5646CustomCodes != NULL); // this is the one for "Help for Adding Dialect Subtags"
+	m_pBtnCreateCustomCode = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CREATE_CUSTOM_CODE);
+	wxASSERT(m_pBtnCreateCustomCode != NULL);
+	m_pBtnDeleteCustomCode = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_DELETE_CUSTOM_CODE);
+	wxASSERT(m_pBtnDeleteCustomCode != NULL);
+	m_pBtnLookupISO639Code = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_LOOKUP_THE_CODE);
+	wxASSERT(m_pBtnLookupISO639Code != NULL);
+	m_pBtnClearBothBoxes = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_BOXES2);
+	wxASSERT(m_pBtnClearBothBoxes != NULL);
+	m_pBtnRemoveListSelection = (wxButton*)m_pKBSharingMgrTabbedDlg->FindWindowById(ID_BUTTON_CLEAR_LIST_SELECTION2);
+	wxASSERT(m_pBtnRemoveListSelection != NULL);
+
+
 
     // For an instantiated KbServer class instance to use, we use the stateless one created
     // within KBSharingSetupDlg's creator function; and it has been assigned to
@@ -213,6 +246,8 @@ void KBSharingMgrTabbedDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_pUsersList = m_pKbServer->GetUsersList();
 	// Hook up to the m_kbsList member of the stateless KbServer instance
 	m_pKbsList = m_pKbServer->GetKbsList(); // this list contains both Type1 and Type2 KB definitions
+	// ditto for m_languagesList and m_filteredList
+	m_pLanguagesList = m_pKbServer->GetLanguagesList();
 
 	// Add the kbserver's URL to the static text 2nd from top of the tabbed dialog
 	wxString myStaticText = m_pConnectedTo->GetLabel();
@@ -325,6 +360,16 @@ void KBSharingMgrTabbedDlg::DeleteClonedKbServerKbStruct()
 		m_pOriginalKbStruct = NULL;
 	}
 }
+/* not needed
+void KBSharingMgrTabbedDlg::DeleteClonedKbServerLanguageStruct()
+{
+	if (m_pOriginalLanguageStruct != NULL)
+	{
+		delete m_pOriginalLanguageStruct;
+		m_pOriginalLanguageStruct = NULL;
+	}
+}
+*/
 
 wxString KBSharingMgrTabbedDlg::GetEarliestUseradmin(UsersList* pUsersList)
 {
@@ -561,9 +606,74 @@ void KBSharingMgrTabbedDlg::LoadDataForPage(int pageNumSelected)
 			m_listAfterUpdate.Clear();
 		}
 	}
-	else
+	else // must be Languages page
 	{
-		; // there isn't as yet a third page, and may never be
+		// Clear out anything from a previous button press done on this page
+		// ==================================================================
+		m_pCustomCodesListBox->Clear();
+		wxCommandEvent dummy;
+		OnButtonLanguagesPageClearBoxes(dummy);
+		//DeleteClonedKbServerLanguageStruct(); // ensure it's freed & ptr is NULL <<-- not needed
+		// m_pKbServer->ClearLanguagesList(m_pOriginalLanguagesList); <<-- not called because I don't make these copies
+		m_pKbServer->ClearLanguagesList(m_pLanguagesList);
+		// The m_pLanguagesList will be cleared within the ListLanguages() call done below,
+		// so it is unnecessary to do it here now
+		// ==================================================================
+		// Get the users data from the server, store in the list of KbServerUser structs,
+		// the call will clear the list first before storing what the server returns
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+		wxLogDebug(_T("KBSharingMgrTabbedDlg::LoadDataForPage(): m_pKbServer = %p , m_bStateless = %d  , page is Languages page"),
+			m_pKbServer, (int)m_pKbServer->m_bStateless ? 1 : 0);
+#endif
+		wxString username = m_pKbServer->GetKBServerUsername();
+		wxString password = m_pKbServer->GetKBServerPassword();
+		CURLcode result = CURLE_OK;
+		m_pKbServer->ClearStrCURLbuffer(); // clear the standard string used in the callback
+
+		if (!username.IsEmpty() && !password.IsEmpty())
+		{
+			// Ultimately we want to get a list only of the custom ones, those with -x- within their
+			// code; but the call necessarily gets them all (there are about 8000+ of the fixed ISO639
+			// codes we need to filter out). So we'll filter the unwanted ones out after the call returns
+			result = (CURLcode)m_pKbServer->ListLanguages(username, password); 
+			if (result == CURLE_OK)
+			{
+				// Return if there's nothing
+				if (m_pLanguagesList->empty())
+				{
+					// There may be no custom language codes defined yet, if empty, tell user
+					wxMessageBox(_("No custom language code definitions exist yet."),
+						_T("None yet"), wxICON_INFORMATION | wxOK);
+					m_pKbServer->ClearLanguagesList(m_pLanguagesList);
+					return;
+				}
+
+				// Copy the list, before user gets a chance to modify anything ?? I don't think I need this
+				//CopyLanguagesList(m_pLanguagesList, m_pOriginalLanguagesList); // param 1 is src list, param2 is dest list
+
+				// Load the username strings into m_pCustomCodesListBox, the ListBox is not sorted type;
+				// but the data will be sorted internally in the call below and shown in the list as sorted
+				// Note: the client data for each code string added to the list box is the ptr to the KbServerList 
+				// struct itself which supplied the code string, the struct coming from m_pLanguagesList, Internally
+				// the only surviving KbServerLanguage struct pointers are those that contain a custom code; and
+				// these are stored in the FilteredList instance.
+				LoadLanguagesListBox(m_pCustomCodesListBox,  m_pLanguagesList);
+				// after this, when clearing out the remaining KbServerLanguage structs, only
+				// ClearFilteredList() need be called, as all the ones for ISO639 codes have already been deleted
+			}
+			else
+			{
+				// If there was a cURL error, it will have been generated from within
+				// ListUsers() already, so that will suffice
+				;
+			}
+		}
+		else
+		{
+			// Don't expect this error, so an English message will do
+			wxMessageBox(_T("LoadDataForPage() unable to call ListLanguages() because password or username is empty, or both. The Manager won't work until this is fixed."),
+				_T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
+		}
 	}
 }
 
@@ -644,6 +754,30 @@ KbServerUser* KBSharingMgrTabbedDlg::GetThisUsersStructPtr(wxString& username, U
 	return (KbServerUser*)NULL;
 }
 
+// Return the pointer to the struct - this should never fail, but we'll return NULL if it does
+KbServerLanguage* KBSharingMgrTabbedDlg::GetThisLanguageStructPtr(wxString& customCode, LanguagesList* pLanguagesList)
+{
+	wxASSERT(pLanguagesList);
+	KbServerLanguage* pEntry = NULL;
+	if (pLanguagesList->empty())
+		return (KbServerLanguage*)NULL;
+	LanguagesList::iterator iter;
+	for (iter = pLanguagesList->begin(); iter != pLanguagesList->end(); ++iter)
+	{
+		// Assign the KbServerLanguage struct's pointer to pEntry
+		pEntry = *iter;
+		if (pEntry->code == customCode)
+		{
+			// We found the struct, so return it
+			return pEntry;
+		}
+	}
+	// control should not get here, but if it does, return NULL
+	return (KbServerLanguage*)NULL;
+}
+
+
+
 // Returns nothing. The ListBox is in sorted order by the usernames, although the ID value
 // precedes each username. This is achieved by having the wxListBox be unsorted, and
 // pre-storing the usernames in a wxSortedArrayString, and then adding the ID values at the
@@ -686,14 +820,14 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 		}
 	}
 	int maxChars = 0;
-	if (maxID <= 9)          {maxChars = 1;}
-	else if (maxID < 99)     {maxChars = 2;}
-	else if (maxID < 999)    {maxChars = 3;}
-	else if (maxID < 9999)   {maxChars = 4;}
-	else if (maxID < 99999)  {maxChars = 5;}
-	else if (maxID < 999999) {maxChars = 6;}
-	else if (maxID < 9999999){maxChars = 7;}
-	else                     {maxChars = 8;}	
+	if (maxID <= 9)           {maxChars = 1;}
+	else if (maxID <= 99)     {maxChars = 2;}
+	else if (maxID <= 999)    {maxChars = 3;}
+	else if (maxID <= 9999)   {maxChars = 4;}
+	else if (maxID <= 99999)  {maxChars = 5;}
+	else if (maxID <= 999999) {maxChars = 6;}
+	else if (maxID <= 9999999){maxChars = 7;}
+	else                      {maxChars = 8;}	
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
 		wxLogDebug(_T("LoadUsersListBox(): maxID = %d , number of characters in maxID = %d"), maxID, maxChars);
 #endif
@@ -742,6 +876,63 @@ void KBSharingMgrTabbedDlg::LoadUsersListBox(wxListBox* pListBox, size_t count, 
 	}
 }
 
+// The wxDesigner listbox is not sorted. Any sorting we'll take care of ourselves, prior to populating the list
+// We do the filtering earlier than here (at the JSON decode step in ListLanguages()) & here we put the
+// customCode strings into a wxSortedArrayString, and then load the list box
+// from that, using the GetThisLanguageStructPtr() function to grab the correct KbServerLanguage* to load as client
+// data into the list row being constructed
+void KBSharingMgrTabbedDlg::LoadLanguagesListBox(wxListBox* pListBox, LanguagesList* pLanguagesList)
+{
+	wxASSERT(pListBox); wxASSERT(pLanguagesList);
+	if (pLanguagesList == NULL || pLanguagesList->empty())
+		return;
+
+	// First, filter out any ISO639 codes (none should have come this far), 
+	// and put a copy of each custom code in a wxSortedArrayString, to establish 
+	// an alphabetical ascending order of the codes to be displayed in the list box
+	wxSortedArrayString sorted_arrCustomCodes;
+	LanguagesList::iterator iter;
+	LanguagesList::compatibility_iterator c_iter;
+	int anIndex = -1;
+	for (iter = pLanguagesList->begin(); iter != pLanguagesList->end(); ++iter)
+	{
+		anIndex++;
+		c_iter = pLanguagesList->Item((size_t)anIndex);
+		KbServerLanguage* pEntry = c_iter->GetData();
+		if (pEntry != NULL)
+		{
+			if (pEntry->code.Find(_T("-x-")) != wxNOT_FOUND)
+			{
+				// It's a custom code, so retain it -- this one will get displayed in the list
+				sorted_arrCustomCodes.Add(pEntry->code);
+			}
+			else
+			{
+				// It's a non-editable ISO639 code that somehow snuck thru, so throw it away - 
+				// we won't display it in the list (this block should not be entered)
+				delete pEntry; // frees its memory block
+			}
+		}
+	}
+	// Now iterate over all the sorted custom code values, adding them to the list box's rows,
+	// and for each, storing its originating ptr to KbServerLanguage struct as client data
+	size_t count = sorted_arrCustomCodes.Count();
+	if (count == 0)
+		return; // there are no custom codes in the list as yet
+	size_t i;
+	KbServerLanguage* pLanguage = NULL; // initialize
+	wxString customCode;
+	for (i = 0; i < count; i++)
+	{
+		customCode = sorted_arrCustomCodes.Item(i);
+		pLanguage = GetThisLanguageStructPtr(customCode, pLanguagesList);
+		if (pLanguage != NULL)
+		{
+			pListBox->Append(customCode, pLanguage);
+		}
+	}
+}
+
 KbServerUser* KBSharingMgrTabbedDlg::GetUserStructFromList(UsersList* pUsersList, size_t index)
 {
 	wxASSERT(!pUsersList->empty());
@@ -777,6 +968,29 @@ void KBSharingMgrTabbedDlg::CopyUsersList(UsersList* pSrcList, UsersList* pDestL
 	}
 }
 
+// Make deep copies of the KbServerLanguage struct pointers in pSrcList and save them to pDestList
+/* I don't think this will be needed for the custom languages page of the Manager
+void KBSharingMgrTabbedDlg::CopyLanguagesList(LanguagesList* pSrcList, LanguagesList* pDestList)
+{
+	if (pSrcList->empty())
+		return;
+	LanguagesList::iterator iter;
+	LanguagesList::compatibility_iterator c_iter;
+	int anIndex = -1;
+	for (iter = pSrcList->begin(); iter != pSrcList->end(); ++iter)
+	{
+		anIndex++;
+		c_iter = pSrcList->Item((size_t)anIndex);
+		KbServerLanguage* pEntry = c_iter->GetData();
+		KbServerLanguage* pNew = new KbServerLanguage;
+		pNew->code = pEntry->code;
+		pNew->username = pEntry->username;
+		pNew->description = pEntry->description;
+		pNew->timestamp = pEntry->timestamp;
+		pDestList->Append(pNew);
+	}
+}
+*/
 // Make deep copies of the KbServerKb struct pointers in pSrcList and save them to pDestList
 void KBSharingMgrTabbedDlg::CopyKbsList(KbsList* pSrcList, KbsList* pDestList)
 {
@@ -909,6 +1123,11 @@ void KBSharingMgrTabbedDlg::OnOK(wxCommandEvent& event)
 	// and also delete their storage list from the heap (created in InitDialog())
 	delete m_pKbsAddedInSession;
 
+	// The 3rd tab has LanguagesList. ISO639 codes are filtered & don't make it to
+	// that list, and so just the custom codes are there, so cleanup for the 3rd tab
+	// only requires clearing the m_languagesList
+	m_pKbServer->ClearLanguagesList(m_pLanguagesList);
+
 	// Delete the stateless KbServer instance we've been using
 	delete m_pKbServer;
 
@@ -946,6 +1165,11 @@ void KBSharingMgrTabbedDlg::OnCancel(wxCommandEvent& event)
 	// and also delete their storage list from the heap (created in InitDialog())
 	delete m_pKbsAddedInSession;
 
+	// The 3rd tab has LanguagesList. ISO639 codes are filtered & don't make it to
+	// that list, and so just the custom codes are there, so cleanup for the 3rd tab
+	// only requires clearing the m_languagesList
+	m_pKbServer->ClearLanguagesList(m_pLanguagesList);
+
 	// Delete the stateless KbServer instance we've been using
 	delete m_pKbServer;
 
@@ -972,11 +1196,27 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageClearListSelection(wxCommandEvent& WX
 	m_pKbDefinitionCreator->ChangeValue(emptyStr);
 }
 
+void KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearListSelection(wxCommandEvent& WXUNUSED(event))
+{
+	m_pCustomCodesListBox->SetSelection(wxNOT_FOUND);
+	// also clear the "Original Creator:" read-only text box
+	wxString emptyStr = _T("");
+	m_pCustomCodeDefinitionCreator->ChangeValue(emptyStr);
+}
+
 void KBSharingMgrTabbedDlg::OnButtonKbsPageClearBoxes(wxCommandEvent& WXUNUSED(event))
 {
 	wxString emptyStr = _T("");
 	m_pEditSourceCode->ChangeValue(emptyStr);
 	m_pEditNonSourceCode->ChangeValue(emptyStr);
+}
+
+void KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearBoxes(wxCommandEvent& WXUNUSED(event))
+{
+	wxString emptyStr = _T("");
+	m_pCustomCodesListBox->SetSelection(wxNOT_FOUND);
+	m_pEditCustomCode->ChangeValue(emptyStr);
+	m_pEditDescription->ChangeValue(emptyStr);
 }
 
 bool KBSharingMgrTabbedDlg::AreBothPasswordsEmpty(wxString password1, wxString password2)
@@ -1357,6 +1597,31 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 	}
 	DeleteClonedKbServerKbStruct();
 }
+
+void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent& WXUNUSED(event))
+{
+
+
+
+
+
+
+
+
+
+}
+
+void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent& WXUNUSED(event))
+{
+
+
+
+
+
+
+}
+
+
 /*
 void KBSharingMgrTabbedDlg::OnButtonEditKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event))
 {
@@ -1682,6 +1947,11 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 			}
 			m_pApp->m_pKbServerForDeleting->SetKBServerType(m_kbTypeOfDeletion);
 
+#if defined (_DEBUG)
+			wxLogDebug(_T("1. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+				m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+				(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 			// Which do we want to delete?
 			long nID = (int)m_pOriginalKbStruct->id; // this is the one we selected in the listbox
 			// Put a copy in the app instance, since the Manager GUI might be deleted long
@@ -1718,6 +1988,21 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				wxString title = _("Error: downloading database failed");
 				m_pApp->LogUserAction(_T("OnButtonKbsPageRemoveKb() failed at the ChangedSince_Queued() download call"));
 				wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+				if (m_pApp->m_pKbServerForDeleting != NULL)
+				{
+					delete m_pApp->m_pKbServerForDeleting;
+					m_pApp->m_pKbServerForDeleting = NULL;
+					m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+					m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+					m_pApp->m_kbTypeOfCurrentRemoval = -1;
+					m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+				}
+				DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+				wxLogDebug(_T("2. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+					m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+					(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 			}
 			else
 			{
@@ -1751,9 +2036,45 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						title = _T("Error: could not remove the database");
 						m_pApp->LogUserAction(msg);
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+						if (m_pApp->m_pKbServerForDeleting != NULL)
+						{
+							delete m_pApp->m_pKbServerForDeleting;
+							m_pApp->m_pKbServerForDeleting = NULL;
+							m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+							m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+							m_pApp->m_kbTypeOfCurrentRemoval = -1;
+							m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+						}
+						DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+						wxLogDebug(_T("3. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+							m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+							(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 						return;
 					}
 					DeleteClonedKbServerKbStruct();
+
+					// If the new kb has not been used yet, but we are in a new session of the
+					// KB sharing manager, then control will go through here. Check for the
+					// deletion server being deleted already, and if not deleted & it's pointer
+					// set to NULL, delete it here and clear the app members for storing the type
+					// and language codes
+					if (m_pApp->m_pKbServerForDeleting != NULL)
+					{
+						delete m_pApp->m_pKbServerForDeleting;
+						m_pApp->m_pKbServerForDeleting = NULL;
+						m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+						m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+						m_pApp->m_kbTypeOfCurrentRemoval = -1;
+						m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+					}
+					DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+					wxLogDebug(_T("4. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+						m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+						(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 					return;
 				}
 
@@ -1773,6 +2094,21 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 					wxString title = _T("Thread error: setting stack size failed");
 					m_pApp->LogUserAction(msg);
 					wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+					if (m_pApp->m_pKbServerForDeleting != NULL)
+					{
+						delete m_pApp->m_pKbServerForDeleting;
+						m_pApp->m_pKbServerForDeleting = NULL;
+						m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+						m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+						m_pApp->m_kbTypeOfCurrentRemoval = -1;
+						m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+					}
+					DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+					wxLogDebug(_T("5. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+						m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+						(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 					return;
 				}
 				else
@@ -1797,10 +2133,40 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 						wxString title = _T("Thread start error");
 						m_pApp->LogUserAction(msg);
 						wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+						if (m_pApp->m_pKbServerForDeleting != NULL)
+						{
+							delete m_pApp->m_pKbServerForDeleting;
+							m_pApp->m_pKbServerForDeleting = NULL;
+							m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+							m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+							m_pApp->m_kbTypeOfCurrentRemoval = -1;
+							m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+						}
+						DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+						wxLogDebug(_T("6. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+							m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+							(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 						return;
 					}
 				} // end of else block for test: if (error != wxTHREAD_NO_ERROR)
 			} // end of else block for test: if (rv != 0)
+			if (m_pApp->m_pKbServerForDeleting != NULL)
+			{
+				delete m_pApp->m_pKbServerForDeleting;
+				m_pApp->m_pKbServerForDeleting = NULL;
+				m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+				m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+				m_pApp->m_kbTypeOfCurrentRemoval = -1;
+				m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+			}
+			DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+			wxLogDebug(_T("7. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+				m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+				(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 			return;
 		}
 		else
@@ -1828,12 +2194,42 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(eve
 				title = _T("Error: could not remove the database");
 				m_pApp->LogUserAction(msg);
 				wxMessageBox(msg, title, wxICON_EXCLAMATION | wxOK);
+				if (m_pApp->m_pKbServerForDeleting != NULL)
+				{
+					delete m_pApp->m_pKbServerForDeleting;
+					m_pApp->m_pKbServerForDeleting = NULL;
+					m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+					m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+					m_pApp->m_kbTypeOfCurrentRemoval = -1;
+					m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+				}
+				DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+				wxLogDebug(_T("8. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+					m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+					(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 				return;
 			}
 			DeleteClonedKbServerKbStruct();
 		} // end of else block for test: 
 		  // if (!IsThisKBDefinitionInSessionList(m_pOriginalKbStruct, m_pKbsAddedInSession))
 	}
+	if (m_pApp->m_pKbServerForDeleting != NULL)
+	{
+		delete m_pApp->m_pKbServerForDeleting;
+		m_pApp->m_pKbServerForDeleting = NULL;
+		m_pApp->m_srcLangCodeOfCurrentRemoval.Empty();
+		m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
+		m_pApp->m_kbTypeOfCurrentRemoval = -1;
+		m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
+	}
+	DeleteClonedKbServerKbStruct();
+#if defined (_DEBUG)
+	wxLogDebug(_T("9. RemoveKb: m_pKbServerForDeleting %p, m_srcLangCodeOfCurrentRemoval %s m_nonsrcLangCodeOfCurrentRemoval %s kbType %d  DeleteAllIsInProgress %d"),
+		m_pApp->m_pKbServerForDeleting, m_pApp->m_srcLangCodeOfCurrentRemoval.c_str(), m_pApp->m_nonsrcLangCodeOfCurrentRemoval.c_str(),
+		(int)m_pApp->m_kbTypeOfCurrentRemoval, (int)m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress);
+#endif
 }
 
 // The box state will have already been changed by the time control enters the handler's body
@@ -2141,7 +2537,7 @@ bool KBSharingMgrTabbedDlg::MatchExistingKBDefinition(wxListBox* pKbsList,
 // When the administrator clicks on a kb definition line in the listbox of the Kbs page of
 // the Manager, follow through on populating the various structs etc, even though it is
 // only the final contents of the two text boxes that the CreateKb() call relies on
-void KBSharingMgrTabbedDlg::OnSelchangeLangCodesList(wxCommandEvent& WXUNUSED(event))
+void KBSharingMgrTabbedDlg::OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event))
 {
     if (m_pKbsListBox == NULL)
 	{
@@ -2164,12 +2560,12 @@ void KBSharingMgrTabbedDlg::OnSelchangeLangCodesList(wxCommandEvent& WXUNUSED(ev
 	wxString comma = _T(',');
 	int offset = wxNOT_FOUND;
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-    wxLogDebug(_T("OnSelchangeLangCodesList(): selection index m_nSel = %d"), m_nSel);
+    wxLogDebug(_T("OnSelchangeKBsList(): selection index m_nSel = %d"), m_nSel);
 #endif
 	// Get the entry's KbServerKb struct which is its associated client data
 	m_pKbStruct = (KbServerKb*)m_pKbsListBox->GetClientData(m_nSel);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-	wxLogDebug(_T("OnSelchangeLangCodesList(): ptr to client data... m_pKbStruct = %p"), m_pKbStruct);
+	wxLogDebug(_T("OnSelchangeKBsList(): ptr to client data... m_pKbStruct = %p"), m_pKbStruct);
 #endif
 
 	// Get the source language code & non-source language code
@@ -2181,7 +2577,7 @@ void KBSharingMgrTabbedDlg::OnSelchangeLangCodesList(wxCommandEvent& WXUNUSED(ev
 	wxASSERT(theSrcLangCode == m_pKbStruct->sourceLanguageCode);
 	wxString nonSrcLangCode = compositeStr.Mid(offset + 1);
 #if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
-    wxLogDebug(_T("OnSelchangeLangCodesList(): from list... source_lang_code = %s  non-source_langCode = %s  , kbType %d (1 or 2)"), 
+    wxLogDebug(_T("OnSelchangeKBsList(): from list... source_lang_code = %s  non-source_langCode = %s  , kbType %d (1 or 2)"), 
 		theSrcLangCode.c_str(), nonSrcLangCode.c_str(), m_pKbStruct->kbType);
 #endif
 	wxASSERT(nonSrcLangCode == m_pKbStruct->targetLanguageCode);
@@ -2198,6 +2594,59 @@ void KBSharingMgrTabbedDlg::OnSelchangeLangCodesList(wxCommandEvent& WXUNUSED(ev
 	// logged in user can then edit the parameters
 	m_pEditSourceCode->ChangeValue(theSrcLangCode);
 	m_pEditNonSourceCode->ChangeValue(nonSrcLangCode);
+}
+
+// When the administrator clicks on a custom code line in the listbox of the Languages page of
+// the Manager, fill the page's widgets with the selected entry's data from the client data
+// stored at the selected line
+void KBSharingMgrTabbedDlg::OnSelchangeLanguagesList(wxCommandEvent& WXUNUSED(event))
+{
+	if (m_pCustomCodesListBox == NULL)
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	if (m_pCustomCodesListBox->IsEmpty())
+	{
+		m_nSel = wxNOT_FOUND; // -1
+		return;
+	}
+	// The GetSelection() call returns -1 if there is no selection current. The CreateLanguage()
+	// call doesn't rely on a selection having been made, since if a language code is to be
+	// created, it will need to be different from the definition selected. However the selection
+	// will populate KbServerLanguage struct, and the administrator may want to spin off a new 
+	// custom language code definition by editing value(s) obtained from such a struct
+	m_nSel = m_pCustomCodesListBox->GetSelection();
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+	wxLogDebug(_T("OnSelchangeLanguagesList(): selection index m_nSel = %d"), m_nSel);
+#endif
+	// Get the entry's KbServerKb struct which is its associated client data
+	m_pLanguageStruct = (KbServerLanguage*)m_pCustomCodesListBox->GetClientData(m_nSel);
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+	wxLogDebug(_T("OnSelchangeLanguagesList(): ptr to client data... m_pLanguageStruct = %p"), m_pLanguageStruct);
+#endif
+
+	// Get the custom code & its description string, also that code's creator
+	wxString customCode;
+	wxString description;
+	wxString creator;
+	customCode = m_pCustomCodesListBox->GetString(m_nSel);
+	description = m_pLanguageStruct->description;
+	creator = m_pLanguageStruct->username;
+#if defined(_DEBUG) && defined(_WANT_DEBUGLOG)
+	wxLogDebug(_T("OnSelchangeLanguagesList(): from list... customCode = %s  description = %s  creator = %s"),
+		customCode.c_str(), description.c_str(), creator.c_str());
+#endif
+	wxASSERT(!customCode.IsEmpty());
+
+	// Put the username for who created it in the  "Creator of the selected code"
+	// read-only text box
+	m_pCustomCodeDefinitionCreator->ChangeValue(creator);
+
+	// Fill the KB definition page's controls with their required data; the
+	// logged in user can then edit the parameters
+	m_pEditCustomCode->ChangeValue(customCode);
+	m_pEditDescription->ChangeValue(description);
 }
 
 // The user clicked on a different line of the listbox for usernames
@@ -2348,6 +2797,26 @@ void KBSharingMgrTabbedDlg::OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(
 	LoadDataForPage(m_nCurPage);
 }
 
+void KBSharingMgrTabbedDlg::OnBtnLanguagesPageLookupCode(wxCommandEvent& WXUNUSED(event))
+{
+	// Call up CLanguageCodesDlg_Single here so the user can choose the ISO639 language code
+	// which is the first part of the custom code definition which he is about to create
+	CLanguageCodesDlg_Single lcDlg(this);
+	lcDlg.Center();
+
+	lcDlg.m_langCode = m_pEditCustomCode->GetValue();
+
+	int returnValue = lcDlg.ShowModal();
+	if (returnValue == wxID_CANCEL)
+	{
+		// user cancelled
+		return;
+	}
+	// user pressed OK so update the edit box & string members in the custom codes page
+	m_customLangCode = lcDlg.m_langCode;
+	m_pEditCustomCode->SetValue(m_customLangCode);
+}
+
 void KBSharingMgrTabbedDlg::OnBtnKbsPageLookupCodes(wxCommandEvent& WXUNUSED(event))
 {
 	// Call up CLanguageCodesDlg here so the user can enter language codes for
@@ -2408,8 +2877,7 @@ void KBSharingMgrTabbedDlg::OnBtnKbsPageLookupCodes(wxCommandEvent& WXUNUSED(eve
 	}
 	else
 	{
-		// We've wrongly called the constructor for not KB Sharing Manager instance so
-		// just clear the boxes
+		// Indeterminate result, so just clear the boxes
 		wxBell();
 		m_pEditSourceCode->ChangeValue(_T(""));
 		m_pEditNonSourceCode->ChangeValue(_T(""));
@@ -2476,12 +2944,19 @@ void KBSharingMgrTabbedDlg::LoadLanguageCodePairsInListBox_KbsPage(bool bKBTypeI
 	pListBox->SetSelection(wxNOT_FOUND);
 }
 
+void KBSharingMgrTabbedDlg::OnBtnLanguagesPageRFC5646Codes(wxCommandEvent& WXUNUSED(event))
+{
+	// Display the RFC5646message.htm file in the platform's web browser
+	DisplayRFC5646Message();
+}
+
 void KBSharingMgrTabbedDlg::OnBtnKbsPageRFC5646Codes(wxCommandEvent& WXUNUSED(event))
 {
 	// Display the RFC5646message.htm file in the platform's web browser
 	DisplayRFC5646Message();
 }
 
+/* BEW 14Apr15 removed, kb definitions cannot be directly edited
 void KBSharingMgrTabbedDlg::OnButtonKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event))
 {
 	// Calls:
@@ -2619,6 +3094,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageUpdateKBDefinition(wxCommandEvent& WX
 	}
 	DeleteClonedKbServerKbStruct();
 }
+*/
 
 #endif
 

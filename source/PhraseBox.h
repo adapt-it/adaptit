@@ -10,6 +10,9 @@
 /// The CPhraseBox class governs the behavior of the phrase or
 /// target box where the user enters and/or edits translations while adapting text.
 /// \derivation		The PhraseBox class derives from the wxTextCtrl class.
+/// BEW 23Apr15 Beware, support for / as a whitespace delimiter for word breaking was
+/// added as a user-chooseable option. When enabled, there is conversion to and from
+/// ZWSP and / to the opposite character. Done in an override of ChangeValue() 
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef PhraseBox_h
@@ -103,6 +106,10 @@ public:
 	void RemoveFinalSpaces(CPhraseBox* pBox,wxString* pStr);
 	void RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
 	void RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItView *pView);
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	void ChangeValue(const wxString& value); // will replace all ZWSP with / if app->m_bFwdSlashDelimiter is TRUE
+#endif
 protected:
 	void OnChar(wxKeyEvent& event);
 	void OnSysKeyUp(wxKeyEvent& event);

@@ -6,20 +6,20 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CLanguagesPage class. 
+/// \description	This is the implementation file for the CLanguagesPage class.
 /// The CLanguagesPage class creates a wizard panel that allows the user
 /// to enter the names of the languages that Adapt It will use to create a new
-/// project. The dialog also allows the user to specify whether sfm markers 
-/// start on new lines. The interface resources for the CLanguagesPage are 
+/// project. The dialog also allows the user to specify whether sfm markers
+/// start on new lines. The interface resources for the CLanguagesPage are
 /// defined in LanguagesPageFunc() which was developed and is maintained by wxDesigner.
 /// \derivation		The CLanguagesPage class is derived from wxWizardPage.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in LanguagesPage.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -114,14 +114,14 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 	// StartWorkingWizard.cpp. Having them in the InitDialog() instead they
 	// are set when InitDialog() is called from the ProjectPage.
 	/*
-	// InitDialog uses the following temp variables to initialize the 
+	// InitDialog uses the following temp variables to initialize the
 	// languagesPage's GUI controls.
 	tempSourceName = gpApp->m_sourceName;
 	tempTargetName = gpApp->m_targetName;
 	tempSourceLangCode = gpApp->m_sourceLanguageCode; // whm added 10May10
 	tempTargetLangCode = gpApp->m_targetLanguageCode; // whm added 10May10
 	*/
-	
+
 	tempSfmEscCharStr = gSFescapechar;
 	// BEW 8Jun10, removed support for checkbox "Recognise standard format
 	// markers only following newlines"
@@ -157,7 +157,7 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 
 CLanguagesPage::~CLanguagesPage() // destructor
 {
-	
+
 }
 
 bool CLanguagesPage::Create( wxWizard* parent)
@@ -166,8 +166,8 @@ bool CLanguagesPage::Create( wxWizard* parent)
 	CreateControls();
 	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
 	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
-	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
-	// scroll if necessary so the user can still access the whole wxWizardPage. 
+	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and
+	// scroll if necessary so the user can still access the whole wxWizardPage.
 	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
@@ -184,10 +184,10 @@ void CLanguagesPage::CreateControls()
 }
 
 // implement wxWizardPage functions
-wxWizardPage* CLanguagesPage::GetPrev() const 
-{ 
+wxWizardPage* CLanguagesPage::GetPrev() const
+{
 	// add code here to determine the previous page to show in the wizard
-	return pProjectPage; 
+	return pProjectPage;
 }
 wxWizardPage* CLanguagesPage::GetNext() const
 {
@@ -205,13 +205,13 @@ void CLanguagesPage::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
     //}
 	gpApp->LogUserAction(_T("In LanguagesPage: user Cancel from wizard"));
 }
-	
+
 void CLanguagesPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10May10
 {
 	// Call up CLanguageCodesDlg here so the user can enter language codes for
-	// the source and target languages which are needed for the LIFT XML lang attribute of 
+	// the source and target languages which are needed for the LIFT XML lang attribute of
 	// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
-	// 
+	//
     // BEW additional comment of 25Jul12, for xhtml exports we support not just src and tgt
     // language codes, but also language codes for glosses language, and free translation
     // language - all four languages are independently settable. However, while all four
@@ -223,13 +223,13 @@ void CLanguagesPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm ad
     // Backups and Misc page of the Preferences -- settings made there are remembered, and
 	// all four are saved to the basic and project configuration files - whether the
 	// document is saved or not on closure.
-    
-	CLanguageCodesDlg lcDlg(this); // make the CLanguagesPage the parent in this case
+
+	CLanguageCodesDlg lcDlg(this, all_possibilities); // make the CLanguagesPage the parent in this case
 	lcDlg.Center();
 
 	// initialize the language code edit boxes with the values currently in
-	// the LanguagePage's edit boxes (which InitDialog initialized to the current 
-	// values on the App, or which the user manually edited before pressing the 
+	// the LanguagePage's edit boxes (which InitDialog initialized to the current
+	// values on the App, or which the user manually edited before pressing the
 	// Lookup Codes button).
 	lcDlg.m_sourceLangCode = pSrcLangCodeBox->GetValue();
 	lcDlg.m_targetLangCode = pTgtLangCodeBox->GetValue();
@@ -246,10 +246,10 @@ void CLanguagesPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm ad
 	gpApp->m_targetLanguageCode = lcDlg.m_targetLangCode;
 }
 
-// MFC's OnSetActive() has no direct equivalent in wxWidgets. 
+// MFC's OnSetActive() has no direct equivalent in wxWidgets.
 // It would not be needed in any case since in our
-// design InitDialog is moved to public and called once 
-// in the App where the wizard pages are constructed before 
+// design InitDialog is moved to public and called once
+// in the App where the wizard pages are constructed before
 // wizard itself starts.
 
 void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -289,7 +289,7 @@ void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pSrcBox, pTgtBox,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bNavTextRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pSrcBox, pTgtBox, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pSrcBox, pTgtBox,
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 }
@@ -314,7 +314,7 @@ void CLanguagesPage::OnEditTargetLanguageName(wxCommandEvent& WXUNUSED(event)) /
 	if (!pTgtLangCodeBox->GetValue().IsEmpty())
 	pTgtLangCodeBox->ChangeValue(_T(""));
 }
-	
+
 //void CLanguagesPage::OnUILanguage(wxCommandEvent& WXUNUSED(event))
 //{
 //	// This is called when the Start Working Wizard is setting up a new project.
@@ -332,9 +332,9 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 	// the MFC equivalent of OnWizardNext() and OnWizardBack() here
 	bool bMovingForward = event.GetDirection();
 
-	// Notes: Any changes made to OnOK should also be made to 
+	// Notes: Any changes made to OnOK should also be made to
 	// OnWizardPageChanging below.
-	// In DoStartWorkingWizard, CLanguagesPage::OnWizardPageChanging() 
+	// In DoStartWorkingWizard, CLanguagesPage::OnWizardPageChanging()
 	// is called.
 	if (bMovingForward)
 	{
@@ -373,7 +373,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 		// BEW 8Jun10, removed support for checkbox "Recognise standard format
 		// markers only following newlines"
 		//gbSfmOnlyAfterNewlines = pSfmOnlyAfterNLCheckBox->GetValue();
-		
+
 		// whm: The stuff below was in MFC's fontPage, but it should go here in the languagesPage.
 		// set up the directories using the new names, plus a KB, for the new project
 		// (all the error conditions abort (I think), so ignore returned value)
@@ -407,7 +407,7 @@ void CLanguagesPage::OnWizardPageChanging(wxWizardEvent& event)
 			gpApp->LogUserAction(_T("In LanguagesPage SetupDirectories() failed"));
 		wxCHECK_RET(bDirectoriesOK, _T("OnWizardPageChanging(): SetupDirectories() failed, line 367 in LanguagesPage.cpp, processing will continue & app may be in an unstable state. Save and shutdown would be wise."));
 		// SetupDirectories does not set the CWD but does set m_curAdaptationsPath
-		
+
 		// have the name for the new project into the projectPage's listBox
 		pProjectPage->m_pListBox->Append(gpApp->m_curProjectName);
 		// stuff above was in MFC's fontPage

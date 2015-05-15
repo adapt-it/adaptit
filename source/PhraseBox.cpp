@@ -310,6 +310,10 @@ CPhraseBox::~CPhraseBox(void)
 // When glossing is ON, the build is constrained to phrases[0] only, and return value would then
 // be 1 always.
 // BEW 13Apr10, no changes needed for support of doc version 5
+// BEW 23Apr15, changed to support / as a word-breaking whitespace char, if m_bFwdSlashDelimiter is TRUE
+// because Lookups will, for mergers, want to test with ZWSP in strings of two or more words, since we
+// store in the kb with / replaced by ZWSP for mergers, and show strings with ZWSP in the interlinear
+// layout when the source and or target strings have 2 or more words
 int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSourcePhrases)
 {
 	// refactored 25Mar09, -- nothing needs to be done
@@ -350,7 +354,7 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 		// to have glossing KB use all ten tabs. So instead of putting the key into
 		// phrases[0] as before, it now must be put into whichever one of the array
 		// pertains to how many words, less one, are indicated by m_nSourceWords, and
-		// counter needs to be set to the latter's valuem rather than to 1 as used to be
+		// counter needs to be set to the latter's value rather than to 1 as used to be
 		// the case
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		int theIndex = pSrcPhrase->m_nSrcWords - 1;
@@ -377,6 +381,16 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 		else
 		{
 			phrases[index] = phrases[index - 1] + PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_key;
+#if defined(FWD_SLASH_DELIM)
+			CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+			if (pApp->m_bFwdSlashDelimiter)
+			{
+				// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
+				// to support lookups because we will have ZWSP rather than / in the KB
+				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+				phrases[index] = FwdSlashtoZWSP(phrases[index]);
+			}
+#endif
 			counter++;
 			if (pSrcPhrase->m_bBoundary || nNewSequNum + counter > nMaxIndex)
 				break;
@@ -5929,4 +5943,28 @@ void CPhraseBox::RemoveFinalSpaces(wxString& rStr)
 		return;
 	}
 }
+#if defined(FWD_SLASH_DELIM)
+// BEW 23Apr15 functions for support of / as word-breaking whitespace, with
+// conversion to ZWSP in strings not accessible to user editing, and replacement
+// of ZWSP with / for those strings which are user editable; that is, when
+// putting a string into the phrasebox, we restore / delimiters, when getting
+// the phrasebox string for some purpose, we replace all / with ZWSP
+
+void CPhraseBox::ChangeValue(const wxString& value)
+{
+	// uses function from helpers.cpp
+	wxString convertedValue = value; // needed due to const qualifier in signature
+	convertedValue = ZWSPtoFwdSlash(convertedValue); // no changes done if m_bFwdSlashDelimiter is FALSE
+	wxTextCtrl::ChangeValue(convertedValue);
+}
+
+//wxString CPhraseBox::GetValue2()
+//{
+//	wxString s = GetValue();
+//	// uses function from helpers.cpp
+//	s = FwdSlashtoZWSP(s); // no changes done if m_bFwdSlashDelimiter is FALSE
+//	return s;
+//}
+
+#endif
 

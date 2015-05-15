@@ -61,6 +61,7 @@ BEGIN_EVENT_TABLE(CViewPage, wxPanel)
 	EVT_BUTTON(IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, CViewPage::OnButtonHighlightColor)
 	EVT_CHECKBOX(IDC_CHECK_SHOW_ADMIN_MENU, CViewPage::OnCheckShowAdminMenu)
 	EVT_CHECKBOX(ID_CHECKBOX_ENABLE_INSERT_ZWSP, CViewPage::OnCheckboxEnableInsertZWSP)
+	EVT_CHECKBOX(ID_CHECKBOX_SOLIDUS_WDBREAK, CViewPage::OnCheckboxSolidusWordBreak)
 	EVT_RADIOBOX(ID_RADIOBOX_SCROLL_INTO_VIEW, CViewPage::OnRadioPhraseBoxMidscreen)
 END_EVENT_TABLE()
 
@@ -99,6 +100,9 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
 	m_pCheckboxEnableInsertZWSP = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ENABLE_INSERT_ZWSP);
+#if defined(FWD_SLASH_DELIM)
+	m_pCheckboxSolidusSupport = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SOLIDUS_WDBREAK);
+#endif
 	m_pExtraPixelsSlider = (wxSlider*)FindWindowById(ID_DIACRITICS_SLIDER);
 }
 
@@ -156,6 +160,23 @@ void CViewPage::OnCheckboxEnableInsertZWSP(wxCommandEvent& WXUNUSED(event))
 		pApp->m_bEnableZWSPInsertion = TRUE;
 	}
 }
+
+#if defined(FWD_SLASH_DELIM)
+void CViewPage::OnCheckboxSolidusWordBreak(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bFwdSlashDelimiter)
+	{
+		// It's on, so turn it back off
+		pApp->m_bFwdSlashDelimiter = FALSE;
+	}
+	else
+	{
+		// It's off, so turn it on
+		pApp->m_bFwdSlashDelimiter = TRUE;
+	}
+}
+#endif
 
 void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
@@ -351,6 +372,9 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pRadioBox->SetSelection(nRadioBoxSelection);
 	// BEW added 9Jul14
 	m_pCheckboxEnableInsertZWSP->SetValue(pApp->m_bEnableZWSPInsertion);
+#if defined(FWD_SLASH_DELIM)
+	m_pCheckboxSolidusSupport->SetValue(pApp->m_bFwdSlashDelimiter);
+#endif
 	// BEW added 15Dec14
 	tempExtraPixelsHeight = pApp->m_nExtraPixelsForDiacritics; // current value, most likely from Project config file
 	m_pExtraPixelsSlider->SetValue(tempExtraPixelsHeight);

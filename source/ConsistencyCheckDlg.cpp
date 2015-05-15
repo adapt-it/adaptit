@@ -239,7 +239,11 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	else
 		m_adaptationStr = m_pSrcPhrase->m_adaption;
 	// the top two boxes are made read-only at the end of this function
-
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	m_adaptationStr = ZWSPtoFwdSlash(m_adaptationStr);
+	m_keyStr = FwdSlashtoZWSP(m_keyStr);
+#endif
 	wxString mainStaticTextStr;
 	// put in the correct string, for this main message label - either "adaptation" or "gloss"
 	wxString msg = pMainMsg->GetLabel();
@@ -683,7 +687,16 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 	m_bDoAutoFix = m_pCheckAutoFix->GetValue(); // whm added 21Nov11
 	m_chVerse = m_pEditCtrlChVerse->GetValue(); // whm added 21Nov11
 	m_adaptationStr = m_pEditCtrlAdaptation->GetValue(); // whm added 21Nov11
-	m_keyStr = m_pEditCtrlKey->GetValue(); // whm added 21Nov11
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	m_adaptationStr = FwdSlashtoZWSP(m_adaptationStr);
+#endif
+	m_keyStr = m_pEditCtrlKey->GetValue(); // whm added 21Nov11 BEW 23Apr15 note: for support
+	  // of / as a word-breaking character, no conversion is needed for m_keyStr because as
+	  // far as I can tell from my code, the caller does *NOT* use this passed back value (that
+	  // is, editing the source text when able to do so in the dialog, is not supported as a way
+	  // to get a source text edit done while consistency checking; so I won't attempt any 
+	  // / <-> ZWSP conversions within the ialog, nor in the caller, for the source text& 
 
 	if (m_pRadioAcceptHere->GetValue())
 	{

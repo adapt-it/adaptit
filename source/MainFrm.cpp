@@ -7939,7 +7939,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	// store a copy of phrase box text here in case Undo Last Copy button is used later
 	gOldEditBoxTextStr = pApp->m_pTargetBox->GetValue();
 
-	// if auto capitalization is on, determine the source text's case propertiess
+	// if auto capitalization is on, determine the source text's case properties
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{

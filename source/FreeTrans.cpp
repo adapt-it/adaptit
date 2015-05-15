@@ -237,6 +237,7 @@ CFreeTrans::~CFreeTrans()
 // trans, but not when doing it for glossing text as that will still use space only;
 // we'll also change from getting what's in m_adaption, to getting what's in m_targetStr
 // which makes more sense, since punctuation is relevant to the free translation
+// BEW 23Apr15 added support for / as a word-breaking char
 wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 {
 	wxString str;
@@ -287,6 +288,16 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 		}
 
 	}
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15, the word breaks restored above will be (probably) / (fwd slash)
+	// from the source text earlier parse; this is likely to be what is wanted, because
+	// to base a free translation on target or gloss text is probably meaning it is not
+	// for translation consultant viewing (if it was, probably spaces between words would
+	// be appropriate - for that, manually typed free translations should be used if we are
+	// supporting / used as a word-breaker character). So it just remains to call
+	// ZWSPtoFwdSlash() to convert to / any remaining ZWSP in the string (such as in mergers)
+	str = ZWSPtoFwdSlash(str);
+#endif
 	return str; // if neither flag was on, an empty string is returned
 }
 
@@ -1091,6 +1102,7 @@ void CFreeTrans::GetFreeTransPileSetForOneFreeTrans(CLayout* pLayout, wxArrayPtr
 ///  After that a third function will do any necessary text segmenting, and draw all the
 ///  free translations, or their apportioned parts, in the various rectangles belonging to
 ///  the current page being printed.
+///  BEW 23Apr15 added support for treating / as a word-breaking char
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& arrPileSets,
 											 wxArrayString& arrFreeTranslations)
@@ -1255,6 +1267,10 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 											// being delineated
 		pSrcPhrase = pPile->GetSrcPhrase(); // anchor pile's CSourcePhrase instance
 		wxString strFreeTrans = pSrcPhrase->GetFreeTrans();
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		strFreeTrans = FwdSlashtoZWSP(strFreeTrans);
+#endif
 		arrFreeTranslations.Add(strFreeTrans); // preserve the free translation text
 		arrPileSets.Add(pPileSetArray); // preserve the wxArrayPtrVoid* which will be
 										// populated with the section's CPile pointers
@@ -3129,6 +3145,10 @@ void CFreeTrans::SetSectionFreeTransFlags(CPile* pAnchorPile, wxArrayPtrVoid* pP
 /// removed. It "blicks" at every keystroke - at first I thought it was the
 /// ScrollIntoView() calls I put in, but not so. So one day it needs some attention to set
 /// up clipping rect but I've no time at present.
+/// BEW 23Apr15, support added for / as a word-breaking character. This function
+/// draws what the user has typed in the compose bar's text box (and he should be
+/// typing the / delimiter between words) so we need to call FwdSlashtoZWSP() on
+/// whatever is the current form of the typed string in that text box
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
 {
@@ -3235,6 +3255,10 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
     // calculations now; first, get the free translation text
 	pSrcPhrase = m_pFirstPile->GetSrcPhrase();
 	ftStr = pSrcPhrase->GetFreeTrans();
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	ftStr = FwdSlashtoZWSP(ftStr);
+#endif
 
     // Compare the width of the text to the total horizontal extent of the rectangle(s).
     // Also determine the number of rectangles we are to write this section into, and
@@ -4651,7 +4675,7 @@ bool CFreeTrans::IsEndOfFootnoteEndnoteOrXRef(CPile* pPile)
 void CFreeTrans::SetInterPileGapBeforeFreeTranslating()
 {
 	int newGap = (int)FREE_TRANS_INTER_PILE_GAP; // set at 40 in AdaptItConstants.h
-	m_pApp->m_saveCurGapWidth = m_pApp->m_curGapWidth; // this member can be used as a flag
+	m_pApp->m_saveCurGapWidth = m_pApp->m_curGapWidth; // this member can be used as a flag (BEW 23Apr15, not any more!)
 	m_pApp->m_curGapWidth = newGap;
 	m_pApp->GetLayout()->SetGapWidth(m_pApp);
 	// RecalcLayout and Redraw using the different gap width, active sequ num is constant
@@ -4666,7 +4690,8 @@ void CFreeTrans::SetInterPileGapBeforeFreeTranslating()
 void CFreeTrans::RestoreInterPileGapAfterFreeTranslating()
 {
 	m_pApp->m_curGapWidth = m_pApp->m_saveCurGapWidth;
-	m_pApp->m_saveCurGapWidth = 0; // this member can be used as a flag
+	m_pApp->m_saveCurGapWidth = 0; // this member can be used as a flag (BEW 23Apr15, not any more!
+								   // Fortunately, we never do use it that way)
 	m_pApp->GetLayout()->SetGapWidth(m_pApp);
 	// RecalcLayout and Redraw using the different gap width, active sequ num is constant
 	int save_SequNum = m_pApp->m_nActiveSequNum;
@@ -4864,7 +4889,7 @@ void CFreeTrans::SwitchScreenFreeTranslationMode(enum freeTransModeSwitch ftMode
             // m_pCurFreeTransSectionPileArray array will store hanging pointers,
 		    // so don't use it below (it also sets the radio buttons "Punctuation" and
 			// "Verse" to values based on what's in m_bDefineFreeTransByPunctuation,
-			// which could be not what is wanted, so aa call of SetupFreeTransRadioButtons()
+			// which could be not what is wanted, so a call of SetupFreeTransRadioButtons()
 			// is done below in order to get the radio buttons set right)
 	}
 	else
@@ -5426,6 +5451,7 @@ bool CFreeTrans::GetValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 ///	temporarily set the GUI's 'Verse' and 'Punctuation' radio buttons to consistent values
 ///	to whatever is stored in m_bSectionByVerse, but doing so without changing the app's
 ///	value for the flag m_bDefineFreerTransByPunctuation.
+/// BEW 23Apr15 added support for / as a word-breaking character
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
@@ -5463,6 +5489,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 	// whm 24Aug06 removed gFreeTranslationStr global here and below
 	wxString tempStr;
 	tempStr = pEdit->GetValue(); // set tempStr to whatever is in the box
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	tempStr = ZWSPtoFwdSlash(tempStr);
+#endif
 
 	m_pCurFreeTransSectionPileArray->Clear(); // start with an empty array
 #ifdef _DEBUG
@@ -5477,6 +5507,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		// it already has a free translation stored in the sourcephrase
 		pile = m_pApp->m_pActivePile;
 		tempStr = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		tempStr = ZWSPtoFwdSlash(tempStr);
+#endif
 		pEdit->ChangeValue(tempStr);	// show it in the ComposeBar's edit box, but
 				// don't have it selected - too easy for user to mistakenly lose it
 
@@ -5871,6 +5905,7 @@ void CFreeTrans::FindSectionPilesBackwards(CPile* pLastPile, wxArrayPtrVoid* pPi
 ///	the sectioning flag, in the m_bSectionByVerse flag member -- but if the user has
 ///	changed to a new value in the GUI, store that instead - so get the current value of
 ///	the "Punctuation" radio button, NOT it, and store that value
+/// BEW 23Apr15, added support for / treated as a word-breaking character
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,
 	CPile*& pLastPile,enum EditBoxContents editBoxContents, const wxString& storeStr)
@@ -5904,6 +5939,10 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
             //  passing in the rest; but just in case I miss some location, do it again
 			wxString s = storeStr;
 			s.Trim(); // trims from right by default
+#if defined(FWD_SLASH_DELIM)
+			// BEW added 23Apr15
+			s = FwdSlashtoZWSP(s);
+#endif
 			pFirstPile->GetSrcPhrase()->SetFreeTrans(s);
 
 			// BEW 27Feb12 block added, for m_bSectionByVerse support

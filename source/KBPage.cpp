@@ -6,10 +6,10 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CKBPage class. 
-/// The CKBPage class creates a wxPanel that allows the 
-/// user to define knowledge base backup options and to reenter the 
-/// source and target language names should they become corrupted. 
+/// \description	This is the implementation file for the CKBPage class.
+/// The CKBPage class creates a wxPanel that allows the
+/// user to define knowledge base backup options and to reenter the
+/// source and target language names should they become corrupted.
 /// The panel becomes a "Backups and KB" tab of the EditPreferencesDlg.
 /// The interface resources are loaded by means of the BackupsAndKBPageFunc()
 /// function which was developed and is maintained by wxDesigner.
@@ -17,11 +17,11 @@
 /// BEW 25Jul12, added support for free translation language name and language code
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in KBPage.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -184,30 +184,30 @@ void CKBPage::CreateControls()
 	pKBPageSizer = BackupsAndKBPageFunc(this, TRUE, TRUE);
 }
 
-void CKBPage::OnCheckKbBackup(wxCommandEvent& WXUNUSED(event)) 
+void CKBPage::OnCheckKbBackup(wxCommandEvent& WXUNUSED(event))
 {
 	if (tempDisableAutoKBBackups)
 		tempDisableAutoKBBackups = FALSE;
 	else
 		tempDisableAutoKBBackups = TRUE;
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
-	
+
 }
 
-void CKBPage::OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event)) 
+void CKBPage::OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event))
 {
 	if (tempBackupDocument)
 		tempBackupDocument = FALSE;
 	else
 		tempBackupDocument = TRUE;
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
-	
+
 }
 
-// MFC's OnSetActive() has no direct equivalent in wxWidgets. 
+// MFC's OnSetActive() has no direct equivalent in wxWidgets.
 // It would not be needed in any case since in our
-// design InitDialog is moved to public and called once 
-// in the App where the wizard pages are constructed before 
+// design InitDialog is moved to public and called once
+// in the App where the wizard pages are constructed before
 // wizard itself starts.
 
 // Prevent leaving the page if either the source or target language
@@ -220,12 +220,12 @@ void CKBPage::OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event))
 void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10May10
 {
 	// Call up CLanguageCodesDlg here so the user can enter language codes for
-	// the source and target languages which are needed for the LIFT XML lang attribute of 
+	// the source and target languages which are needed for the LIFT XML lang attribute of
 	// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
-	CLanguageCodesDlg lcDlg(this); // make the CKBPage the parent in this case
+	CLanguageCodesDlg lcDlg(this, all_possibilities); // make the CKBPage the parent in this case
 	lcDlg.Center();
 	// initialize the language code edit boxes with the values currently in
-	// the KBPage's edit boxes (which InitDialog initialized to the current values 
+	// the KBPage's edit boxes (which InitDialog initialized to the current values
 	// on the App, or which the user manually edited before pressing the
 	// Lookup Codes button).
 	tempSrcLangCode = pSrcLangCodeBox->GetValue();
@@ -277,9 +277,9 @@ void CKBPage::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)) // whm added 10M
 
 void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 {
-	// Notes: Any changes made to OnOK should also be made to 
+	// Notes: Any changes made to OnOK should also be made to
 	// OnWizardPageChanging above.
-	// In DoStartWorkingWizard, CKBPage::OnWizardPageChanging() 
+	// In DoStartWorkingWizard, CKBPage::OnWizardPageChanging()
 	// is called.
 	// Validation of the language page data should be done in the caller's
 	// OnOK() method before calling CKBPage::OnOK().
@@ -292,11 +292,11 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	// get the auto backup flag's value, etc
 	pApp->m_bAutoBackupKB = !tempDisableAutoKBBackups;
 	pApp->m_bBackupDocument = tempBackupDocument;
-	
+
 	gbAdaptBeforeGloss = tempAdaptBeforeGloss; // get the flag value for
 		// vertical edit order; whether adaptations updating precedes or follows
 		// glosses updating (this setting is preserved in the project config file)
-	
+
 	// determine what the Copy of the source text when pile has no adaptation, or gloss,
 	// should do in gloss mode, or adaptations mode, respectively (BEW added 16July08)
 	gbLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
@@ -400,7 +400,7 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	pApp->m_pDlgSrcFont->SetPointSize(pApp->m_dialogFontSize);
 	m_pEditSrcName->SetFont(*pApp->m_pDlgSrcFont);
 
-	CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgTgtFont);	
+	CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgTgtFont);
 	pApp->m_pDlgTgtFont->SetPointSize(pApp->m_dialogFontSize);
 	m_pEditTgtName->SetFont(*pApp->m_pDlgTgtFont);
 	// and free translations use a same font as is used for the target text
@@ -411,13 +411,13 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	// should be done in the nav text font -- set the font in the edit box accordingly
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
-		CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pDlgGlossFont);	
+		CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pDlgGlossFont);
 		pApp->m_pDlgGlossFont->SetPointSize(pApp->m_dialogFontSize);
 		m_pEditGlsName->SetFont(*pApp->m_pDlgGlossFont);
 	}
 	else
 	{
-		CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgGlossFont);	
+		CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgGlossFont);
 		pApp->m_pDlgGlossFont->SetPointSize(pApp->m_dialogFontSize);
 		m_pEditGlsName->SetFont(*pApp->m_pDlgGlossFont);
 	}

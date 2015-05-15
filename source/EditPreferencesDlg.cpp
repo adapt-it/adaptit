@@ -636,10 +636,16 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 		// BEW 18Nov13 changed 40 to 80 in test, the 80 limit has been set in the config
 		// file test for years, but was forgotten to be changed from 40 to 80 here too.
 		//if (intTemp < 6 || intTemp > 40)
-		if (intTemp < 6 || intTemp > 80)
-		{
+		// BEW 23Apr15 changed the minimum to 0, to support the east asian languages which
+		// are like Kmer or Chinese and don't recognise the concept of a word, and so are 
+		// hard to read when "words" as Adapt It knows them (or piles in this case) have
+		// a gap which makes user reading of the screen text difficult. In support of
+		// Dennis Walters (EAG) request for / being handled like a whitespace word delimiter
+		//if (intTemp < 6 || intTemp > 80)
+		if (intTemp < 0 || intTemp > 80)
+			{
 			//msg = msg.Format(subStr,_("inter-pile gap width"),6,40);
-			msg = msg.Format(subStr,_("inter-pile gap width"),6,80);
+			msg = msg.Format(subStr,_("inter-pile gap width"),0,80);
 			pNotebook->SetSelection(viewPageIndex);
 			wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
 			viewPage->m_pEditGapWidth->SetFocus();

@@ -59,7 +59,9 @@
 #include "Cell.h"
 #include "FreeTrans.h" // BEW 6Oct14, required for graying out the piles not in 
 					   // the current free translation section
-
+#if defined(FWD_SLASH_DELIM)
+#include "helpers.h" // BEW added 23Apr15 for support of / as a word-breaking whitespace
+#endif
 // globals for support of vertical editing
 
 /// A gray color used to mark the non-editable surrounding context when vertical
@@ -809,6 +811,16 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 
 	// assign to local var thePhrase whichever wxString should be written for this cell
 	wxString* pPhrase = GetCellText();
+
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15, if supporting / as a whitespace word-breaking character. 
+	// *pPhrase is a copy of the text, used for the DrawCell call, so does not make a
+	// permanent change to the stored text string. Here we remove any / contiguous to
+	// punctuation, and then any remaining / characters present get changed to ZWSP
+	// Check if this produces slow draws - if so, probably the first call can not be done
+	*pPhrase = DoFwdSlashConsistentChanges(removeAtPunctuation, *pPhrase);
+	*pPhrase = FwdSlashtoZWSP(*pPhrase);
+#endif
 	wxRect enclosingRect; // the rect where the text will be drawn
 	GetCellRect(enclosingRect); // set it
 	pDC->SetFont(*GetFont()); // pDC->SetFont(*m_pFont);

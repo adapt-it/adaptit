@@ -1,0 +1,142 @@
+﻿c FwdSlashInsertAtPuncts.cct
+c Inserts a forward slash ( / ) at the place between words where a word break is to be made,
+c but only when one or more punctuation characters is adjacent - either before, after, or sandwiched
+c by punctuation character(s) either side. Required for Paratext processing, for certain east asian 
+c languages
+c Order of lines in this table is NOT important. CC always tries longer changes before shorter ones.
+c It never applies two changes on any one pass through the listed change sets at any given location
+c in the input text.
+c Note: the changes can be applied safely to data which already has the / inserted. This is the
+c reason for the "bleeding changes" (ie. changes which bleed out other possibilities before those
+c possibilities can be tried and would then produce unwanted insertions).
+c Note 2: because Dennis's data had Latin spaces in the text (these should not be present), at the
+c last block of changes below, I included lines which match such bogus spaces as well, so as to
+c get them automatically eliminated without requiring the user to make manual edits.
+
+c The following set are the changes which get the / inserted in the correct location
+c comments should be ascii characters
+"：“" > "：/“"
+"：‘" > "：/‘"
+"”。" > "”。/"
+"，“" > "，/“"
+"”，" > "”，/"
+"。”" > "。”/"
+"！”" > "！”/"
+"！”" > "！”/"
+"’”" > "’”/"
+"“‘" > "/“‘"
+"），" > "），/"
+"。）" > "。）/"
+"！）" > "！/）"
+"？）" > "？）/"
+
+c The following set are the bleeding changes, for when the / is already present
+"：/“" > "：/“"
+"：/‘" > "：/‘"
+"”。/" > "”。/"
+"，/“" > "，/“"
+"”，/" > "”，/"
+"。”/" > "。”/"
+"！”/" > "！”/"
+"！”/" > "！”/"
+"’”/" > "’”/"
+"/“‘" > "/“‘"
+"），/" > "），/"
+"。）/" > "。）/"
+"！）/" > "！/）"
+"？）/" > "？）/"
+
+c helpful bleeders; these prevent / insertion prior to carriage return (utf8  x0D) 
+c or linefeed (utf8  x0A) when following certain punctuation characters that may
+c end a line (/ or ZWSP is not needed where a new line commences)
+"。" x0A > dup
+"。" x0D > dup
+"；" x0A > dup
+"；" x0D > dup
+":" x0A > dup
+":" x0D > dup
+"？" x0A > dup
+"？" x0D > dup
+"！" x0A > dup
+"！" x0D > dup
+x0A "“" > dup
+x0D "“" > dup
+"…" x0A > dup
+"…" x0D > dup
+c I could add more, but possibly those are the more common ones
+
+c Add the subset for singletons here (bleeders, for when / is already present)
+
+"。/" > "。/"
+"，/" > "，/"
+"、/" > "、/"
+"；/" > "；/"
+"：/" > "：/"
+"？/" > "？/"
+"！/" > "！/"
+"/“" > "/“"
+"”/" > "”/"
+"/‘" > "/‘"
+"’/" > "’/"
+"/（" > "/（"
+"）/" > "）/"
+"…/" > "…/"
+"—/" > "—/"
+"–/" > "–/"
+"/《" > "/《"
+"》/" > "》/"
+"/〈" > "/〈"
+"〉/" > "〉/"
+"·/" > "·/"
+"/［" > "/［"
+"］/" > "］/"
+
+c Add the subset for singletons here
+c Include a space after the punctuation character, and don't
+c copy it over to the output - correcting bogus spaces that 
+c creep in by human error
+
+"。" > "。/"
+"。 " > "。/" c with space, similarly below
+"，" > "，/"
+"， " > "，/"
+"、" > "、/"
+"、 " > "、/"
+"；" > "；/"
+"； " > "；/"
+"：" > "：/"
+"： " > "：/"
+"？" > "？/"
+"？ " > "？/"
+"！" > "！/"
+"！ " > "！/"
+"“" > "/“"
+" “" > "/“" c space *before* this one
+"”" > "”/"
+"” " > "”/"
+"‘" > "/‘"
+" ‘" > "/‘" c space *before* this one
+"’" > "’/"
+"’ " > "’/"
+"（" > "/（"
+" （" > "/（"  c space before the opening parenthesis
+"）" > "）/"
+"） " > "）/"
+"…" > "…/"
+"… " > "…/"
+"—" > "—/"
+"–" > "–/"
+"《" > "/《"
+" 《" > "/《"  c space before the chevrons
+"》" > "》/"
+"》 " > "》/"
+"〈" > "/〈"
+" 〈" > "/〈"  c space before the left wedge
+"〉" > "〉/"
+"〉 " > "〉/"
+"·" > "·/"
+"· " > "·/"
+"［" > "/［"
+" ［" > "/［"  c space before left bracket
+"］" > "］/"
+"］ " > "］/"

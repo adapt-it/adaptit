@@ -1,0 +1,98 @@
+﻿c FwdSlashRemoveAtPuncts.cct
+c Removes a forward slash ( / ) at the place between words where a word break is to be made,
+c but only when one or more punctuation characters is adjacent - either before, after, or sandwiched
+c by punctuation character(s) either side. Required for Paratext processing, for certain east asian 
+c languages
+c Order of lines in this table is NOT important. CC always tries longer changes before shorter ones.
+c It never applies two changes on any one pass through the listed change sets at any given location
+c in the input text.
+c Note: the changes can be applied safely to data which already has the / inserted. This is the
+c reason for the "bleeding changes" (ie. changes which bleed out other possibilities before those
+c possibilities can be tried and would then produce unwanted insertions).
+c Note 2: the lines in the last block of changes below are commented out. They don't need to be 
+c applied, as each one merely changes the matched character(s) to itself(themselves)
+
+c The following set are the changes which get the / removed in the correct location
+"：/“" > "：“"
+"：/‘" > "：‘"
+"”。/" > "”。"
+"，/“" > "，“"
+"”，/" > "”，"
+"。”/" > "。”"
+"！”/" > "！”"
+"！”/" > "！”"
+"’”/" > "’”"
+"/“‘" > "“‘"
+"），/" > "），"
+"。）/" > "。）"
+"！）/" > "！）"
+"？）/" > "？）"
+
+c The following set are the bleeding changes, for when the / is already absent
+"：“" > "：“"
+"：‘" > "：‘"
+"”。" > "”。"
+"，“" > "，“"
+"”，" > "”，"
+"。”" > "。”"
+"！”" > "！”"
+"！”" > "！”"
+"’”" > "’”"
+"“‘" > "“‘"
+"），" > "），"
+"。）" > "。）"
+"！）" > "！）"
+"？）" > "？）"
+c Add the subset for singletons here
+
+"。/" > "。"
+"，/" > "，"
+"、/" > "、"
+"；/" > "；"
+"：/" > "："
+"？/" > "？"
+"！/" > "！"
+"/“" > "“"
+"”/" > "”"
+"/‘" > "‘"
+"’/" > "’"
+"/（" > "（"
+"）/" > "）"
+"…/" > "…"
+"—/" > "—"
+"–/" > "–"
+"/《" > "《"
+"》/" > "》"
+"/〈" > "〈"
+"〉/" > "〉"
+"·/" > "·"
+"/［" > "［"
+"］/" > "］"
+
+
+c Add the subset for singletons here (bleeders, for the singletons, when / already absent)
+c These can be commented out until further notice, because they don't need to be called
+
+c "。" > "。"
+c "，" > "，"
+c "、" > "、"
+c "；" > "；"
+c "：" > "："
+c "？" > "？"
+c "！" > "！"
+c "“" > "“"
+c "”" > "”"
+c "‘" > "‘"
+c "’" > "’"
+c "（" > "（"
+c "）" > "）"
+c "…" > "…"
+c "—" > "—"
+c "–" > "–"
+c "《" > "《"
+c "》" > "》"
+c "〈" > "〈"
+c "〉" > "〉"
+c "·" > "·"
+c "［" > "［"
+c "］" > "］"

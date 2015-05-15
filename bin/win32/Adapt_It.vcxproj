@@ -517,7 +517,7 @@ echo Building using wxWidgets version at: %25WXWIN%25
       <Optimization>Disabled</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>$(WXWIN)\include;$(WXWIN)\contrib\include;$(WXWIN)\lib\vc_lib\mswu;$(BOOST);$(LIBCURL)\include;$(OPENSSL)\include;lib\silconverters;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;_KBSERVER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;__WXMSW__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;CURL_STATICLIB;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <PrecompiledHeaderOutputFile>$(IntDir)Adapt_It.pch</PrecompiledHeaderOutputFile>
@@ -681,6 +681,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\KbSharingSetup.cpp" />
     <ClCompile Include="..\..\source\KBSharingStatelessSetupDlg.cpp" />
     <ClCompile Include="..\..\source\LanguageCodesDlg.cpp" />
+    <ClCompile Include="..\..\source\LanguageCodesDlg_Single.cpp" />
     <ClCompile Include="..\..\source\LanguagesPage.cpp" />
     <ClCompile Include="..\..\source\Layout.cpp" />
     <ClCompile Include="..\..\source\ListDocumentsInOtherFolderDialog.cpp" />
@@ -816,6 +817,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\KBSharingMgrTabbedDlg.h" />
     <ClInclude Include="..\..\source\KbSharingSetup.h" />
     <ClInclude Include="..\..\source\KBSharingStatelessSetupDlg.h" />
+    <ClInclude Include="..\..\source\LanguageCodesDlg_Single.h" />
     <ClInclude Include="..\..\source\md5_SB.h" />
     <ClInclude Include="..\..\source\RemoveSomeTgtEntries.h" />
     <ClInclude Include="..\..\source\Thread_BulkPseudoDelete.h" />

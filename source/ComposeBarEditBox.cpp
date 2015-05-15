@@ -147,6 +147,10 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 			// StoreFreeTranslation uses the current (edited) content of the edit box,
 			// trimmed of any final whitespace
+			// BEW comment 23Apr15, when supporting / used as a word-breaking character, the
+			// StoreFreeTranslation() call will internally change any / characters into
+			// ZWSP characters before the store is done to CSourcePhrase's m_freeTrans member,
+			// so no tweak is needed in the present function block
 			pFreeTrans->StoreFreeTranslation(pFreeTrans->m_pCurFreeTransSectionPileArray,
 					pOldActivePile,saveThisPilePtr, retain_editbox_contents, trimmedText);
 			// for wx version we need to set the background mode to wxSOLID and the text background
