@@ -127,6 +127,8 @@ Source: "{#SvnBase}\setup Regular\CC\CCFiles.doc"; DestDir: "{app}\CC"; Flags: I
 Source: "{#SvnBase}\setup Regular\CC\CCW32.exe"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Regular\CC\CCW32.INI"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Regular\CC\reverse_lx_ge.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Regular\CC\FwdSlashInsertAtPuncts.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Regular\CC\FwdSlashRemoveAtPuncts.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Regular\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Regular\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 
