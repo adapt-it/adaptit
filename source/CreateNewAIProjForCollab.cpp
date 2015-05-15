@@ -6,18 +6,18 @@
 /// \rcs_id $Id$
 /// \copyright		2012 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CCreateNewAIProjForCollab class. 
+/// \description	This is the implementation file for the CCreateNewAIProjForCollab class.
 /// The CCreateNewAIProjForCollab class implements a simple dialog that allows the user to
 /// enter the source language and target language names that are to be used for a new Adapt It
 /// project.
 /// \derivation		The CCreateNewAIProjForCollab class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in CreateNewAIProjForCollab.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -64,19 +64,19 @@ CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog
 	// size dialog.
 	pCreateNewAIProjForCollabSizer = CreateNewAIProjForCollabFunc(this, FALSE, TRUE); // second param FALSE enables resize
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+
 	m_pApp = &wxGetApp();
-	
+
 	wxColour sysColorBtnFace; // color used for read-only text controls displaying
 	// color used for read-only text controls displaying static text info button face color
 	sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-	
+
 	pStaticTextTopInfoLine1 = (wxStaticText*)FindWindowById(ID_TEXT_TOP_INFO_1);
 	wxASSERT(pStaticTextTopInfoLine1 != NULL);
-	
+
 	pStaticTextTopInfoLine2 = (wxStaticText*)FindWindowById(ID_TEXT_TOP_INFO_2);
 	wxASSERT(pStaticTextTopInfoLine2 != NULL);
-	
+
 	pTextCtrlSrcLangName = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SRC_LANG_NAME);
 	wxASSERT(pTextCtrlSrcLangName != NULL);
 
@@ -100,7 +100,7 @@ CCreateNewAIProjForCollab::CCreateNewAIProjForCollab(wxWindow* parent) // dialog
 
 CCreateNewAIProjForCollab::~CCreateNewAIProjForCollab() // destructor
 {
-	
+
 }
 
 void CCreateNewAIProjForCollab::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -154,13 +154,13 @@ void CCreateNewAIProjForCollab::OnEnChangeTgtLangName(wxCommandEvent& WXUNUSED(e
 
 void CCreateNewAIProjForCollab::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event))
 {
-	CLanguageCodesDlg lcDlg(this); // make the CLanguagesPage the parent in this case
+	CLanguageCodesDlg lcDlg(this,source_and_target_only); // make the CLanguagesPage the parent in this case
 	lcDlg.Center();
 	// initialize the language code edit boxes with the values currently in
-	// the LanguagePage's edit boxes (which InitDialog initialized to the current 
-	// values on the App, or which the user manually edited before pressing the 
+	// the LanguagePage's edit boxes (which InitDialog initialized to the current
+	// values on the App, or which the user manually edited before pressing the
 	// Lookup Codes button).
-	// 
+	//
     // BEW additional comment of 25Jul12, for xhtml exports we support not just src and tgt
     // language codes, but also language codes for glosses language, and free translation
     // language - all four languages are independently settable. However, while all four
@@ -192,11 +192,11 @@ void CCreateNewAIProjForCollab::OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event)
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-void CCreateNewAIProjForCollab::OnOK(wxCommandEvent& event) 
+void CCreateNewAIProjForCollab::OnOK(wxCommandEvent& event)
 {
 	// Check for empty values (user hit OK without entering at least a value for the
 	// source and target language names. If one or both is empty, notify user and cancel
-	if (pTextCtrlSrcLangName->GetValue().IsEmpty()) 
+	if (pTextCtrlSrcLangName->GetValue().IsEmpty())
 	{
 		wxString msg = _("Please enter a name for the source language, or Cancel to quit.");
 		wxMessageBox(msg,_T(""),wxICON_EXCLAMATION | wxOK);

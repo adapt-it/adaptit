@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2010 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CLanguageCodesDlg class. 
+/// \description	This is the implementation file for the CLanguageCodesDlg class.
 /// The CLanguageCodesDlg class provides a dialog in which the user can enter
 /// the ISO639-3 3-letter language codes for the source and target languages.
 /// The dialog allows the user to search for the codes by language name.
@@ -14,11 +14,11 @@
 /// BEW 23Jul12, extended to include support for free translation's language & lang code
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in LanguageCodesDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
+// 1.
 //
 // Unanswered questions: (search for "???")
-// 1. 
-// 
+// 1.
+//
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -63,7 +63,7 @@ BEGIN_EVENT_TABLE(CLanguageCodesDlg, AIModalDialog)
 	EVT_LISTBOX(ID_LIST_LANGUAGE_CODES_NAMES, CLanguageCodesDlg::OnSelchangeListboxLanguageCodes)
 	EVT_TEXT_ENTER(ID_TEXTCTRL_SEARCH_LANG_NAME, CLanguageCodesDlg::OnEnterInSearchBox)
 END_EVENT_TABLE()
-
+/*
 CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Choose language codes for at least the Source and Target languages"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -77,12 +77,12 @@ CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent) // dialog constructor
 	SetPointers();
 	m_enumLangCodesChoice = all_possibilities;
 }
-
+*/
 
 CLanguageCodesDlg::CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choice)
-	: AIModalDialog(parent, -1, 
-	(choice == source_and_target_only ? _("Choose language codes for Source and Target languages") : 
-		_("Choose language codes for Source and Glossing languages")),	
+	: AIModalDialog(parent, -1,
+	(choice == source_and_target_only ? _("Choose language codes for Source and Target languages") :
+		_("Choose language codes for Source and Glossing languages")),
 			wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -192,7 +192,7 @@ void CLanguageCodesDlg::SetPointers()
 
 CLanguageCodesDlg::~CLanguageCodesDlg() // destructor
 {
-	
+
 }
 
 void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -210,20 +210,20 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 	m_freeTransLangName.Empty();
 
 
-	// Adapt It uses both the 2-letter iso639-1 codes and the 3-letter iso639-3 
+	// Adapt It uses both the 2-letter iso639-1 codes and the 3-letter iso639-3
 	// language codes concatenated together in a single UTF-8 plain text file
 	// called iso639-3codes.txt. There are 184 2-letter codes and they are placed
 	// first in the iso639-3codes.txt file. The 2-letter codes were reformatted
 	// from the table at: http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 	// The 3-letter codes were downloaded from SIL's site at:
 	// http://www.sil.org/iso639-3/download.asp#LNIndex
-	// under the section called "Language Names Index" using the "Download ISO 639-3 
+	// under the section called "Language Names Index" using the "Download ISO 639-3
 	// code set UTF-8" link.
-	// 
+	//
 	// Load the list box from the iso639-3codes.txt file located in the directory
 	// where they were installed. This directory is different on each platform but
 	// is the same directory where the xml install file AI_USFM.xml and books.xml
-	// were placed. That directory is retrieved using the App's 
+	// were placed. That directory is retrieved using the App's
 	// GetDefaultPathForXMLControlFiles() function.
 	wxString iso639_3CodesFileName = _T("iso639-3codes.txt");
 	wxString pathToLangCodesFile;
@@ -308,7 +308,7 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 				{
 					// skip chars from second tab to end of line
 					// this removes the inverted form of the line item
-					while(*ptr != _T('\n') && ptr < pEnd) 
+					while(*ptr != _T('\n') && ptr < pEnd)
 					{
 						ptr++;
 					}
@@ -353,12 +353,12 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 		}
 		m_curSel = 0;
 		if (pListBox->GetCount() > 0)
-        { 
+        {
 			pListBox->SetSelection(m_curSel,TRUE);
             pListBox->EnsureVisible(m_curSel);
         }
 		// if the user had previously designated a source language code and/or a
-		// target language code, and/or a gloss language code, enter those into 
+		// target language code, and/or a gloss language code, enter those into
 		// the appropriate edit boxes as initial/default values
 		if (!m_sourceLangCode.IsEmpty())
 			pEditSourceLangCode->ChangeValue(m_sourceLangCode);
@@ -373,9 +373,9 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 }
 
 // event handling functions
-	
+
 // whm revised 5Dec11 changed name of handler and modified to only search within the
-// code part of the list strings (up to the 5 spaces). This routine does a brute 
+// code part of the list strings (up to the 5 spaces). This routine does a brute
 // force linear search through the list. On a fast machine if the search
 // string is near the end of the list it can take 7 or 8 seconds, longer on a slower
 // machine, but this function is likely to be used only rarely when the code for
@@ -398,7 +398,7 @@ void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
     if (m_bFirstCodeSearch == TRUE)
     {
         // the first time through, search from the beginning of the list
-        nCurSel = 0; 
+        nCurSel = 0;
         m_bFirstCodeSearch = FALSE;
     }
     else {
@@ -446,7 +446,7 @@ void CLanguageCodesDlg::OnFindCode(wxCommandEvent& WXUNUSED(event))
 #ifdef _DEBUG
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("Find Code executed in %s ms"), 
+		wxLogDebug(_T("Find Code executed in %s ms"),
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 }
@@ -475,7 +475,7 @@ void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
     if (m_bFirstNameSearch == TRUE)
     {
         // the first time through, search from the beginning of the list
-        nCurSel = 0; 
+        nCurSel = 0;
         m_bFirstNameSearch = FALSE;
     }
     else {
@@ -523,7 +523,7 @@ void CLanguageCodesDlg::OnFindLanguage(wxCommandEvent& WXUNUSED(event))
 #ifdef _DEBUG
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("Find Language executed in %s ms"), 
+		wxLogDebug(_T("Find Language executed in %s ms"),
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 }
@@ -578,13 +578,13 @@ void CLanguageCodesDlg::OnEnterInSearchBox(wxCommandEvent& WXUNUSED(event))
 #ifdef _DEBUG
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("Search executed in %s ms"), 
+		wxLogDebug(_T("Search executed in %s ms"),
 			(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 
 }
 
-void CLanguageCodesDlg::OnSelchangeListboxLanguageCodes(wxCommandEvent& WXUNUSED(event)) 
+void CLanguageCodesDlg::OnSelchangeListboxLanguageCodes(wxCommandEvent& WXUNUSED(event))
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
@@ -611,7 +611,7 @@ void CLanguageCodesDlg::OnUseSelectedCodeForSrcLanguage(wxCommandEvent& WXUNUSED
 
 void CLanguageCodesDlg::OnUseSelectedCodeForTgtLanguage(wxCommandEvent& WXUNUSED(event))
 {
-	pEditTargetLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+	pEditTargetLangCode->ChangeValue(Get3LetterCodeFromLBItem());
 	m_associatedLanguageName.Empty();
 	m_bGlossBtnChosen = FALSE;
 	m_bFreeTransBtnChosen = FALSE;
@@ -619,14 +619,14 @@ void CLanguageCodesDlg::OnUseSelectedCodeForTgtLanguage(wxCommandEvent& WXUNUSED
 
 void CLanguageCodesDlg::OnUseSelectedCodeForGlsLanguage(wxCommandEvent& WXUNUSED(event))
 {
-	pEditGlossLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+	pEditGlossLangCode->ChangeValue(Get3LetterCodeFromLBItem());
 	m_bGlossBtnChosen = TRUE;
 	m_bFreeTransBtnChosen = FALSE;
 }
 
 void CLanguageCodesDlg::OnUseSelectedCodeForFreeTransLanguage(wxCommandEvent& WXUNUSED(event))
 {
-	pEditFreeTransLangCode->ChangeValue(Get3LetterCodeFromLBItem());	
+	pEditFreeTransLangCode->ChangeValue(Get3LetterCodeFromLBItem());
 	m_bGlossBtnChosen = FALSE;
 	m_bFreeTransBtnChosen = TRUE;
 }
@@ -636,7 +636,7 @@ void CLanguageCodesDlg::OnUseSelectedCodeForFreeTransLanguage(wxCommandEvent& WX
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-void CLanguageCodesDlg::OnOK(wxCommandEvent& event) 
+void CLanguageCodesDlg::OnOK(wxCommandEvent& event)
 {
 	m_sourceLangCode = pEditSourceLangCode->GetValue();
 	m_targetLangCode = pEditTargetLangCode->GetValue();

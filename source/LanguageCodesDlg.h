@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the CLanguageCodesDlg class. 
+/// \description	This is the header file for the CLanguageCodesDlg class.
 /// The CLanguageCodesDlg class provides a dialog in which the user can enter
 /// the ISO639-3 3-letter language codes for the source and target languages.
 /// The dialog allows the user to search for the codes by language name.
@@ -22,16 +22,16 @@
     #pragma interface "LanguageCodesDlg.h"
 #endif
 
-enum LangCodesChoice {
-	all_possibilities,
-	source_and_target_only,
-	source_and_glosses_only
-};
+//enum LangCodesChoice {
+//	all_possibilities,
+//	source_and_target_only,
+//	source_and_glosses_only
+//};
 
 class CLanguageCodesDlg : public AIModalDialog
 {
 public:
-	CLanguageCodesDlg(wxWindow* parent); // constructor
+	//CLanguageCodesDlg(wxWindow* parent); // constructor
 	CLanguageCodesDlg(wxWindow* parent, enum LangCodesChoice choice); // constructor for use in KB Sharing Manager GUI
 	virtual ~CLanguageCodesDlg(void); // destructor
 	// other methods
@@ -77,7 +77,7 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void SetPointers();
-	
+
 	void OnFindCode(wxCommandEvent& WXUNUSED(event));
 	void OnFindLanguage(wxCommandEvent& WXUNUSED(event));
 	void OnUseSelectedCodeForSrcLanguage(wxCommandEvent& WXUNUSED(event));
@@ -107,7 +107,7 @@ private:
 	// so only retain the knowledge of the last choice).
 	bool m_bGlossBtnChosen;
 	bool m_bFreeTransBtnChosen;
-	
+
 	// other class attributes
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()

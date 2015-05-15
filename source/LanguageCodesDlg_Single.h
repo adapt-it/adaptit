@@ -6,7 +6,7 @@
 /// \rcs_id $Id$
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the CLanguageCodesDlg_Single class. 
+/// \description	This is the header file for the CLanguageCodesDlg_Single class.
 /// The CLanguageCodesDlg_Single class provides a dialog in which the user can enter
 /// the ISO639-3 2- and 3-letter language code for creating the start of a custom language code.
 /// The dialog allows the user to search for the code by language name or the code.
@@ -26,7 +26,7 @@ class CLanguageCodesDlg_Single : public AIModalDialog
 {
 public:
 	CLanguageCodesDlg_Single(wxWindow* parent); // constructor
-	CLanguageCodesDlg_Single(wxWindow* parent, enum LangCodesChoice choice); // constructor for use in KB Sharing Manager GUI
+	//CLanguageCodesDlg_Single(wxWindow* parent, enum LangCodesChoice choice); // constructor for use in KB Sharing Manager GUI
 	virtual ~CLanguageCodesDlg_Single(void); // destructor
 	// other methods
 	wxString m_langCode; // was m_sourceLangCode;
@@ -49,7 +49,7 @@ protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	void SetPointers();
-	
+
 	void OnFindCode(wxCommandEvent& WXUNUSED(event));
 	void OnFindLanguage(wxCommandEvent& WXUNUSED(event));
 	void OnUseSelectedCodeForCode(wxCommandEvent& WXUNUSED(event)); // was OnUseSelectedCodeForSrcLanguage(wxCommandEvent& WXUNUSED(event));
@@ -58,7 +58,7 @@ protected:
 	wxString Get3LetterCodeFromLBItem(); // helper function
 
 private:
-	
+
 	// other class attributes
 
 	DECLARE_EVENT_TABLE()

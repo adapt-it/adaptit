@@ -30,6 +30,7 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="`wx-config  --version=2.8 --unicode=yes --debug=no --cppflags`" />
+					<Add option="-D_KBSERVER" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -416,6 +417,8 @@
 		<Unit filename="../../source/KbSharingSetup.h" />
 		<Unit filename="../../source/LanguageCodesDlg.cpp" />
 		<Unit filename="../../source/LanguageCodesDlg.h" />
+		<Unit filename="../../source/LanguageCodesDlg_Single.cpp" />
+		<Unit filename="../../source/LanguageCodesDlg_Single.h" />
 		<Unit filename="../../source/LanguagesPage.cpp" />
 		<Unit filename="../../source/LanguagesPage.h" />
 		<Unit filename="../../source/Layout.cpp" />
@@ -517,8 +520,6 @@
 		<Unit filename="../../source/Thread_PseudoUndelete.h" />
 		<Unit filename="../../source/Thread_UploadMulti.cpp" />
 		<Unit filename="../../source/Thread_UploadMulti.h" />
-		<Unit filename="../../source/Thread_UploadToKBServer.cpp" />
-		<Unit filename="../../source/Thread_UploadToKBServer.h" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.cpp" />
 		<Unit filename="../../source/Timer_KbServerChangedSince.h" />
 		<Unit filename="../../source/ToolbarPage.cpp" />

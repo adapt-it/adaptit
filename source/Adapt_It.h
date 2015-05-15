@@ -841,6 +841,12 @@ enum GuesserAffixType
 	GuesserSuffix
 };
 
+enum LangCodesChoice {
+	all_possibilities,
+	source_and_target_only,
+	source_and_glosses_only
+};
+
 /// A struct for specifying time settings. Struct members include:
 /// m_tsDoc, m_tsKB, m_tLastDocSave, and m_tLastKBSave.
 struct TIMESETTINGS
@@ -1957,7 +1963,7 @@ public:
 
 class wxDynamicLibrary;
 class AI_Server;
-class Timer_KbServerChangedSince;	
+class Timer_KbServerChangedSince;
 
 //////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
@@ -2103,10 +2109,10 @@ public: // BEW 3Dec14 made these public because GuesserUdate in KB.cpp needs to 
 	CGuesserAffixArray	m_GuesserPrefixArray; // list of input prefixes to improve guesser
 	CGuesserAffixArray	m_GuesserSuffixArray; // list of input suffixes to improve guesser
 private:
-	/// These variables signal that the prefix and suffix files for the guesser have or 
-	///     have not been loaded yet. 
-	/// Initially they will only be loaded at startup. These are set to false in 
-	///     CAdapt_ItApp::OnInit() and set to true in 
+	/// These variables signal that the prefix and suffix files for the guesser have or
+	///     have not been loaded yet.
+	/// Initially they will only be loaded at startup. These are set to false in
+	///     CAdapt_ItApp::OnInit() and set to true in
 	///     CAdapt_ItApp::LoadGuesser(CKB* m_pKB) (in version 1)
 	/// KLB 09/2013
 	bool GuesserPrefixesLoaded;
@@ -2401,7 +2407,7 @@ public:
 				// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
 				// target text when the smart merge from Paratext's source text project is done back
 	            // to the Adapt It Document (associates with -srcRespell command line
-	            // switch) 
+	            // switch)
 
 	bool m_bForce_Review_Mode; // added by BEW, 23Oct09, to support Bob Eaton's wish for
 				// shell opening to add a frm switch to have the document opened be opened
@@ -2835,7 +2841,7 @@ public:
                 // the non-default constructor which does not require use of
                 // wxLocale::Init()) to which we will add localization catalogs, associate
                 // catalog lookup paths, and to which we can add wxLanguage values.
- 
+
 
 	// Next two added 18Oct13, in support of a bulk pseudo-delete of user's chosen entries
 	// for deletion in KB Editor - these two arrays work in parallel. They are put here
@@ -2845,7 +2851,7 @@ public:
 	// time the project may be exited - which would leave the local KB and the remote
 	// kbserver not in sync - with no good way to fix it.
 	// Note, these are needed when the project is not a KB Sharing one, so they are not
-	// wrapped with #define(_KBSERVER)...#endif 
+	// wrapped with #define(_KBSERVER)...#endif
 	wxArrayString m_arrSourcesForPseudoDeletion;
 	wxArrayString m_arrTargetsForPseudoDeletion;
 
@@ -2935,7 +2941,7 @@ public:
 	// .kbserver in the project folder -- but I've not done so yet.
 	// Next three are stored in the project configuration file
 	bool		m_bIsKBServerProject; // TRUE if the user wants an adapting kbserver for
-									  // sharing kb data between clients in the same AI project								 
+									  // sharing kb data between clients in the same AI project
 	bool		m_bIsGlossingKBServerProject; // TRUE for sharing a glossing KB
 									  // in the same AI project as for previous member
 	wxString	m_strKbServerURL; // for the server's url, e.g. https://kbserver.jmarsden.org
@@ -2953,7 +2959,7 @@ public:
                     // to be deleted will be done synchronously at the start of the job,
                     // and only after that will the background thread be fired to do the
                     // job of emptying of entries
-	KbServer*		m_pKbServerForDeleting; // create a stateless one on heap, using 
+	KbServer*		m_pKbServerForDeleting; // create a stateless one on heap, using
 						// this member - the creation is done in the button handler
 						// of the KB sharing manager's GUI, on Kbs page...
 	// Note: m_pKbServerForDeleting has its own DownloadsQueue m_queue, which will store
@@ -3518,7 +3524,7 @@ public:
 	CGuesserAffixArray*	GetGuesserPrefixes(); // get list of prefixes (if previously input) to improve guesser performance
 	size_t	FindGuesserPrefixIndex( CGuesserAffix affix ); // Find index by value
 	CGuesserAffixArray*	GetGuesserSuffixes(); // get list of prefixes (if previously input) to improve guesser performance
-	size_t	FindGuesserSuffixIndex( CGuesserAffix affix ); // Find index by value 
+	size_t	FindGuesserSuffixIndex( CGuesserAffix affix ); // Find index by value
 	bool DoGuesserPrefixWriteToFile(wxFile* pFile = NULL); // Write Guesser prefixes to file
 	bool DoGuesserSuffixWriteToFile(wxFile* pFile = NULL); // Write Guesser suffixes to file
 	bool DoGuesserAffixWriteXML(wxFile* pFile, enum GuesserAffixType inGuesserAffixType); // Write Guesser Affix XML to file, file pointer required
@@ -3845,7 +3851,7 @@ public:
 	void OnToolsClipboardAdapt(wxCommandEvent& WXUNUSED(event)); // BEW added 9May14
 	void OnUpdateToolsClipboardAdapt(wxUpdateUIEvent& event); // ditto
 private:
-	void RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum, 
+	void RestoreDocStateWhenEmptyClipboard(SPList* pList, int nStartingSequNum,
 				int nEndingSequNum, SPList* pOldList, bool bDocIsLoaded);
 public:
 
@@ -4435,13 +4441,13 @@ public:
 				// typing in the phrasebox, any non-zero value of this variable would be
 				// and error (because the next call of MakeTargetStringIncludingPunctuation()
 				// would increase the value to 2 or more, and that would suppress using
-				// whatever is passed into that function's 2nd parameter, targetStr, to 
+				// whatever is passed into that function's 2nd parameter, targetStr, to
 				// update pSrcPhrase->m_targetStr to whatever the user typed. A Save
-				// set a non-0 value, and that was the source of what we called the 
+				// set a non-0 value, and that was the source of what we called the
 				// "Non-sticking / Truncation" bug -- the value of m_targetStr was not
 				// being updated to what the user typed when the phrasebox moved on.
 				// Clearing the variable to 0 in OnChar() fixes this bug, and the kludge
-				// in OnIdle() can now be removed 
+				// in OnIdle() can now be removed
 	int		m_nCurSequNum_ForPlacementDialog;
 
 	// BEW 9Jul14 Support enabling/disabling of ZWSP (zero width space) insertion using
@@ -4533,10 +4539,10 @@ public:
 	// that the presence of one implies many others, and so the language would be one of
 	// Sth East Asia; and hence free translations should break at latin spaces.
 	bool m_bZWSPinDoc;
-	bool IsZWSPinDoc(SPList* pList); // use to set of clear m_bZWSPinDoc at doc load 
+	bool IsZWSPinDoc(SPList* pList); // use to set of clear m_bZWSPinDoc at doc load
 									 // or tfer from PT or BE
 #if defined(FWD_SLASH_DELIM)
-	// BEW 23Apr15 support / as a word-breaking character for some asian languages during 
+	// BEW 23Apr15 support / as a word-breaking character for some asian languages during
 	// prepublication processing
 	bool m_bFwdSlashDelimiter; // public access
 	// An enum with two values, which will select which conversion to do, either fwd slash

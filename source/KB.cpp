@@ -449,7 +449,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 	}
 	// Check for a CTargetUnit instance which has a lower-case equivalent source text string
 	// as key. If we can't find one, then make one.
-	bool bLowerCaseTargetUnitExists = TRUE; // initialize by assuming one exists 
+	bool bLowerCaseTargetUnitExists = TRUE; // initialize by assuming one exists
 	CTargetUnit* pTU_ForLowerCaseKey = NULL;
 	iter = pMap->find(lowercaseKey);
 	if (iter != pMap->end())
@@ -480,7 +480,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 		// We've just created an empty one, so we can fill it without doing any tests to
 		// determine if the entries are already in it - except ignore any pseudo-deleted
 		// ones in pTU_ForUpperCaseKey, and don't copy <Not In KB> ones either. Transfer
-		// the ref count unchanged. 
+		// the ref count unchanged.
 		while (pos_forUpper != NULL)
 		{
 			pRefString_forUpper = pos_forUpper->GetData();
@@ -513,7 +513,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 			{
 				FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
 			}
-#endif 
+#endif
 		}
 	}
 	else
@@ -563,7 +563,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					{
 						FireOffPseudoUndeleteThread(lowercaseKey, pRefStrDeleted);
 					}
-#endif 
+#endif
 				}
 				else
 				{
@@ -588,7 +588,7 @@ void CKB::UpperToLowerAndTransfer(MapKeyStringToTgtUnit* pMap, wxString keyStr)
 					{
 						FireOffCreateEntryThread(lowercaseKey, pRefString_forLower);
 					}
-#endif 
+#endif
 				}
 			} // end of TRUE block for test:
 			  // if (IsAbsentFrom(pTU_ForLowerCaseKey, lowerStr, bItIsPseudoDeleted))
@@ -753,7 +753,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 					// did not define any source language case correspondences
 		if (gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
-			// we will have to change the case for the first lookup attempt, which will be 
+			// we will have to change the case for the first lookup attempt, which will be
 			// a lower case lookup; if it fails, what we do next depends on flag values above
 			saveKey = keyStr; // save for an upper case lookup if the first lookup fails
 							  // (BEW reinstated the above line, 13Mar13)
@@ -775,7 +775,7 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 			// if we simplistically think that we should have an uppercase entry looked
 			// up, if it exists, if the lowercase lookup fails. A better way is provided
 			// with the function call at this function's start.
-			// 
+			//
 			// BEW added 29Jul11, if the lowercase lookup failed, return FALSE with pTU
 			// NULL so that caller (eg. StoreText() etc) will create a new CTargetUnit to
 			// carry the converted to initial lowercase translation keyed to the
@@ -1456,14 +1456,14 @@ bool CKB::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
 /// \param username     ->  typically the user's email, or some other personal unique string
 /// \param bDeletedFlag ->  TRUE if pseudo-deleted, FALSE if a normal entry
 /// \remarks
-/// This is a handler for storing into the local KB a single downloaded entry from 
+/// This is a handler for storing into the local KB a single downloaded entry from
 /// the remote server. It is similar to StoreEntriesFromKbServer(), differing in respect
 /// to the following: the latter loops over potentially many entries in the JSON
 /// downloaded string; the latter has progress bar support; and the latter uses a set
 /// of arrays for accessing entries data whereas StoreOneENtryFromKbServer() gets, in the
 /// caller, the information from a struct on a queue. The mechanics of storing to the KB
 /// instance in both functions are identical.
-void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase, 
+void CKB::StoreOneEntryFromKbServer(wxString& key, wxString& tgtPhrase,
 									wxString& username, bool bDeletedFlag)
 {
 	// local variables needed for storing to the CKB instance
@@ -2067,7 +2067,7 @@ bool CKB::IsAlreadyInKB(int nWords, wxString key, wxString adaptation,
 	// finally. It's only taken 7 years to get it fixed!!!! (And some good data from Ross
 	// Jones, bless him.)
 	bool bNoError = TRUE;
-	gbByCopyOnly = FALSE; // restore default value (should have been done in caller, 
+	gbByCopyOnly = FALSE; // restore default value (should have been done in caller,
 						  // but this will make sure)
 	wxString adjusted = adaptation; // could have upper case initial character
 	if (gbAutoCaps)
@@ -2714,7 +2714,7 @@ void CKB::DoKBImport(wxString pathName,enum KBImportFileOfType kbImportFileOfTyp
 		pStatusBar->FinishProgress(_("Importing SFM Records to the Knowledge Base"));
 
 		// provide the user with a statistics summary, unless KB messages are suppressed
-        
+
         if (!m_pApp->m_suppress_KB_messages)
         {		wxString msg = _("Summary:\n\nNumber of lexical items processed %d\nNumber of Adaptations/Glosses Processed %d\nNumber of Adaptations/Glosses Added %d\nNumber of Adaptations Unchanged %d\nNumber of Deleted Items Unchanged %d\nNumber of Undeletions done %d ");
             msg = msg.Format(msg,nLexItemsProcessed, nAdaptationsProcessed, nAdaptationsAdded, nAdaptationsUnchanged, nDelItems, nUndeletions);
@@ -2975,7 +2975,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				// Call up CLanguageCodesDlg here so the user can enter language codes for
 				// the source and target languages which are needed for the LIFT XML lang attribute of
 				// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
-				CLanguageCodesDlg lcDlg((wxWindow*)m_pApp->GetMainFrame());
+				CLanguageCodesDlg lcDlg((wxWindow*)m_pApp->GetMainFrame(), source_and_target_only);
 				lcDlg.Center();
 				// in this case load any lang codes stored on the App into
 				// the code edit boxes
@@ -4546,7 +4546,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 						// undelete it. If it's not in the remote database at all yet, then
 						// we add it instead as a normal entry. If it's in the remote
 						// database already as a normal entry, then we make no change.
-						// 
+						//
 						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
 						// and when user locally unticks the Save in KB checkbox to make
 						// that key have only <Not In KB> as the pseudo-adaptation, it
@@ -5262,7 +5262,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 						// undelete it. If it's not in the remote database at all yet, then
 						// we add it instead as a normal entry. If it's in the remote
 						// database already as a normal entry, then we make no change.
-						// 
+						//
 						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
 						// and when user locally unticks the Save in KB checkbox to make
 						// that key have only <Not In KB> as the pseudo-adaptation, it
@@ -6617,9 +6617,9 @@ void CKB::DoKBRestore(int& nCount, int& nCumulativeTotal)
 /// phrase box moves, for example) without impinging on GUI responsiveness. As the KB becomes more populated,
 /// the need for frequent updates becomes lesser, because more and more it becomes the case that additions
 /// don't result in new affixes, but just increases to already large enough reference counts. So when the
-/// the KB is quite large, updates can be relatively infrequent without negative effects on performance, 
+/// the KB is quite large, updates can be relatively infrequent without negative effects on performance,
 /// except for probably causing a transient drop in the GUI responsiveness at the time of the update happening.
-/// It's a balancing act between the need to keep the GUI responsive, the need to get new affixes available 
+/// It's a balancing act between the need to keep the GUI responsive, the need to get new affixes available
 /// for guessing as soon as possible, and to avoid wasting time on unnecessary calls.
 /// To keep the updates happening at the best possible time, they are done at idle time.
 /// BEW added 2Dec14
@@ -6646,7 +6646,7 @@ size_t CKB::GetMinimumExtras(size_t& currEntriesAggregate)
 	}
 	// We've a KB ready, with content, so proceed
 	for (index = 0; index < 4; index++)
-	{ 
+	{
 		currEntriesAggregate += this->m_pMap[index]->size();
 	}
 	if (currEntriesAggregate < 500)
@@ -6676,13 +6676,13 @@ void CKB::GuesserUpdate()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
-	// Clear the booleans saying that the prefixes and suffixes have been loaded, 
+	// Clear the booleans saying that the prefixes and suffixes have been loaded,
 	// the m_GuesserPrefixArray and m_GuesserSuffixArray need only be populated
 	// at the first call of LoadGuesser, but each GuesserUpdate() call needs to
 	// re-insert the given affixes into the correspondences lists
 	pApp->GuesserPrefixCorrespondencesLoaded = FALSE;
 	pApp->GuesserSuffixCorrespondencesLoaded = FALSE;
-	
+
 	// LoadGuesser loads correspondences objects into a "KB" list by scanning the relevant
 	// in-memory KB; and reads in whatever correspondences are in the GuesserPrefixes.xm
 	// and GuesserSuffixes.xml lists - updating the counts when doing so. It does not

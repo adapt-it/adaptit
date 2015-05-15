@@ -1663,7 +1663,7 @@ bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase)
 /// \param  str			  ->	The text string (source or target text) which is to have / delimiter
 ///								either inserted at punctuation, or removed at punctuation, according
 ///								two which cc table the calling function supplies. The function is
-///								not generic, so it cannot be used for processing any str with any 
+///								not generic, so it cannot be used for processing any str with any
 ///								desired cc table; this is deliberate, so that no setup of table path
 ///								needs to be done prior to calling. We use enum values to select the table.
 /// \remarks
@@ -1696,7 +1696,7 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 		break;
 	}
 
-	// Next, test for the cct file being present. If it isn't, warn the user and just return 
+	// Next, test for the cct file being present. If it isn't, warn the user and just return
 	// the unmodified input string
 	bool bFileExists = wxFileExists(pathToCCTable);
 	if (!bFileExists)
@@ -1722,14 +1722,14 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 
 	// For this implimentation, we get the input string as utf-8, and its length (in bytes)
 	// and use malloc to create a suitable output buffer - we don't know how much bloat
-	// the cc changes will cause when inserting / at punctuation locations, but since words 
+	// the cc changes will cause when inserting / at punctuation locations, but since words
 	// can be assumed to be at least an average of 6 bytes, and punctuation somewhat uncommon,
-	// we will make the output buffer just 20% larger than the input one. That ought to be 
+	// we will make the output buffer just 20% larger than the input one. That ought to be
 	// safe for large files; for small files, expand by a larger factor
 
 	// The wxString::mb_str() method returns a wxCharBuffer. The wxConvUTF8 is a predefined
 	// instance of the wxMBConvUTF8 class which converts between Unicode (UTF-16) and UTF-8.
-	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8); 
+	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8);
 	CBString psz(tempBuf); // use this for the input buffer, with a (char*) cast
 	nInLength = strlen(psz) + 1; // + 1 for the null byte at the end
 	int anOutputLen = nInLength;
@@ -1789,7 +1789,7 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 }
 #endif
 
-// BEW 23Apr15 provisional support added for / being treated as a word-breaking 
+// BEW 23Apr15 provisional support added for / being treated as a word-breaking
 // character (as if it is whitespace) -- support certain east asian languages
 bool Is_NonEol_WhiteSpace(wxChar *pChar)
 {
@@ -2089,7 +2089,7 @@ bool IsNotOneOfNorSpaceAndIfSoGetSpan(wxChar* pStart, wxChar* pEnd, wxString& ch
 	int offset = charSet.Find(*ptr);
 	if (offset != wxNOT_FOUND)
 		return FALSE;
-	// There is at least one character not from charSet, and not a space, in the substring 
+	// There is at least one character not from charSet, and not a space, in the substring
 	// starting at pStart
 	ptr++;
 	span++;
@@ -2278,8 +2278,8 @@ wxString ParseWordInwardsFromEnd(wxChar* ptr, wxChar* pEnd,	wxString& wordBuildi
 // baseOfEndMkr    <-  Empty string if baseMkrOrTag did not have a final *, if it does, then
 //                     return the tag with the * removed
 // bWholeMkrOrTag  <-  TRUE if the pMkrOrTag string passed in starts with a backslash,
-//                     FALSE if not 
-bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly, 
+//                     FALSE if not
+bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly,
 							   wxString& baseOfEndMkr, bool& bWholeMkrPassedIn)
 {
 	bool bNested = FALSE;
@@ -2322,7 +2322,7 @@ bool IsNestedMarkerOrMarkerTag(wxString* pMkrOrTag, wxString& tagOnly,
 	{
 		baseOfEndMkr.Empty();
 	}
-	
+
 	return bNested;
 }
 // Overrided version of above
@@ -4540,7 +4540,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 		if (pMergedSrcPhrase->m_tgtMkrPattern.IsEmpty())
 		{
 			// BEW added 11Sep14, If there is just a single marker to be placed, try do it
-			// automatically. If the markersToPlaceArray is returned empty, then we won't 
+			// automatically. If the markersToPlaceArray is returned empty, then we won't
 			// need to show the placement dialog
 			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pMergedSrcPhrase, &markersToPlaceArray);
 
@@ -4630,11 +4630,11 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr, bool
 // they occur at the end of everything, except when there is outer punctuation. Any we
 // auto-place, we remove from the string array - and if that empties the array, then
 // the caller will not put up the Placement dialog. But if one or more markers remain
-// in the array for placement, those which remain will require the Placement dialog 
-// to be shown for the user to place those manually. It should be possible to auto-place 
+// in the array for placement, those which remain will require the Placement dialog
+// to be shown for the user to place those manually. It should be possible to auto-place
 // at lots of the places in the document which otherwise would ask for manual placement
 // The function supports the UsfmOnly versus PngOnly difference in marker sets.
-wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMergedSrcPhrase, 
+wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMergedSrcPhrase,
 							  wxArrayString* arrMkrsPtr)
 {
 	if (arrMkrsPtr->IsEmpty())
@@ -4704,8 +4704,8 @@ wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMe
 		}
 	}
 	else
-	{ 
-		// Probably is UsfmOnly set, but could be UsfmAndPng - we'll ignore the latter 
+	{
+		// Probably is UsfmOnly set, but could be UsfmAndPng - we'll ignore the latter
 		// and assume the former
 		// Handle the most common and easiest first - when \f* or \x* or \fe* occur at the end
 		CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -4717,7 +4717,7 @@ wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMe
 		{
 			// We've only got one marker to deal with, it should only be an endmarker; we can
 			// place it automatically after everything only provided there is nothing stored in
-			// the m_follOuterPunct member of the merged CSourcePhrase instance. 
+			// the m_follOuterPunct member of the merged CSourcePhrase instance.
 			wxString aMarker = arrMkrsPtr->Item(0);
 			// Trim any whitespace off its end (a beginmarker can be expected to have a terminating
 			// space stored with it, an endmarker should be stored without a final space, but we'll
@@ -4735,7 +4735,7 @@ wxString AutoPlaceSomeMarkers(wxString TheStr, wxString Sstr, CSourcePhrase* pMe
 				// It's not one of those endmarkers, but (1) is an endmarker, and (2) is one
 				// of the inline non-binding endmarkers, then we'll append it like in the
 				// block above. Such a one would be expected to also follow any outer
-				// punctuation - so we don't need to test for that. Any other options, 
+				// punctuation - so we don't need to test for that. Any other options,
 				// we'll handle manually
 				const wxChar* pBuff = aMarker.GetData();
 				wxChar* pEnd = (wxChar*)pBuff + (size_t)aMarker.Len();
@@ -5637,7 +5637,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 							pSrcPhrases, otherFiltered, collBackTransStr,
 							freeTransStr, noteStr, bDoCount, bCountInTargetText); // m_markers
 								// and xrefStr handled in a separate function, later below
-	
+
 	// BEW 11Oct10, the initial stuff is now more complex, so we can no longer insert
 	// markersStr preceding the passed in m_targetStr value; so we'll define a new local
 	// string, strInitialStuff in which to build the stuff which precedes m_targetStr and
@@ -5846,7 +5846,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 					// currently does not use it internally (one day, it might)
 
 			// BEW added 11Sep14, If there is just a single marker to be placed, try do it
-			// automatically. If the markersToPlaceArray is returned empty, then we won't 
+			// automatically. If the markersToPlaceArray is returned empty, then we won't
 			// need to show the placement dialog
 			Tstr = AutoPlaceSomeMarkers(Tstr, Sstr, pSingleSrcPhrase, &markersToPlaceArray);
 
@@ -5884,7 +5884,7 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr, bool
 			// make sure the doc is dirty, so the user will be prompted to save it -
 			// we don't want this setting to get lost unnecessarily
 			pDoc->Modify(TRUE);
-			
+
 		}
 		else
 		{
@@ -6629,7 +6629,7 @@ bool IsWhiteSpace(const wxChar *pChar)
 		return TRUE;
 }
 */
-// BEW 23Apr15 added provisional support for Dennis Walters request for / as a 
+// BEW 23Apr15 added provisional support for Dennis Walters request for / as a
 // like-whitespace wordbreak; only in Unicode version
 bool IsWhiteSpace(const wxChar *pChar)
 {
@@ -10451,7 +10451,7 @@ bool CheckLanguageCodes(bool bSrc, bool bTgt, bool bGloss, bool bFreeTrans, bool
 		{
 			// Call up CLanguageCodesDlg here so the user can enter language
 			// codes which are needed
-			CLanguageCodesDlg lcDlg((wxWindow*)gpApp->GetMainFrame());
+			CLanguageCodesDlg lcDlg((wxWindow*)gpApp->GetMainFrame(), all_possibilities);
 			lcDlg.Center();
 			// Load any lang codes already stored on the App into the dialog's edit boxes
 			lcDlg.m_sourceLangCode = gpApp->m_sourceLanguageCode;
@@ -10800,7 +10800,7 @@ void OnCtrlShiftSpacebar(wxTextCtrl* pTextCtrl)
 	long to;
 	pTextCtrl->GetSelection(&from, &to);
 	// if there is a selection, the insertion should replace it before doing a
-	// ZWSP insertion there; otherwise, we'll just have an insertion point to 
+	// ZWSP insertion there; otherwise, we'll just have an insertion point to
 	// insert ZWSP at that spot
 	if (from != to)
 	{
@@ -10848,8 +10848,8 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 	{
 		// return whatever character m_srcWordBreak stores, but make it intelligent
 		// because it may store CR + LF, and in mergers, retranslations, composing
-		// default free translations, doing retranslation reports, we actually don't 
-		// want any CR or CR+LF being returned. So we'll leave CR+LF stored in the 
+		// default free translations, doing retranslation reports, we actually don't
+		// want any CR or CR+LF being returned. So we'll leave CR+LF stored in the
 		// CSourcePhrase, but our Put...() functions will check what's in the string
 		// and reduce CR or LF or CR+LF to just a latin space, and then check if there
 		// is anything after the latin space and if so, remove that - whatever character
@@ -10870,7 +10870,7 @@ wxString PutSrcWordBreak(CSourcePhrase* pSrcPhrase)
 	// GetSrcWordBreak() will unilaterally return only a normal latin space
 	{
 		// return a latin space
-		return wxString(_T(" ")); 
+		return wxString(_T(" "));
 	}
 }
 // Gets the contents of m_tgtWordBreak wxString  member of the passed in pSrcPhrase;
@@ -10885,7 +10885,7 @@ wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
 	{
 		// return whatever character or string m_srcWordBreak stores - but intelligently,
 		// we don't want CR, or LF, or TAB, or CR+LF, put into a retranslation
-		wxString s = pSrcPhrase->GetTgtWordBreak(); 
+		wxString s = pSrcPhrase->GetTgtWordBreak();
 		wxString output; output.Empty();
 		if (s.GetChar(0) == _T('\r') || s.GetChar(0) == _T('\n') || s.GetChar(0) == _T('\t'))
 		{
@@ -10899,10 +10899,10 @@ wxString PutTgtWordBreak(CSourcePhrase* pSrcPhrase)
 	else
 	{
 		// return a latin space
-		return wxString(_T(" ")); 
+		return wxString(_T(" "));
 	}
 }
-// Get it from m_srcWordBreak in pSrcPhrase, or return a latin space if app's 
+// Get it from m_srcWordBreak in pSrcPhrase, or return a latin space if app's
 // m_bZWSPinDoc is FALSE
 wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 {
@@ -10910,12 +10910,12 @@ wxString PutSrcWordBreakFrTr(CSourcePhrase* pSrcPhrase)
 	if (pApp->m_bZWSPinDoc)
 	{
 		// return whatever character or string m_srcWordBreak stores
-		return pSrcPhrase->GetSrcWordBreak(); 
+		return pSrcPhrase->GetSrcWordBreak();
 	}
 	else
 	{
 		// return a latin space
-		return wxString(_T(" ")); 
+		return wxString(_T(" "));
 	}
 }
 
