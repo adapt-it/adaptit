@@ -51,7 +51,7 @@ rem "C:\Program Files\7-Zip\7za" a -tzip Adapt_It.htb * -xr!.svn -xr!*.bat -xr!*
 
 rem If we're doing this on a machine that doesn't have Bill's directories
 rem for Setup Generator, just end now.
-IF EXIST "..\setup Regular\LICENSING.txt" GOTO SETUPGEN
+IF EXIST "..\setup Unicode\LICENSING.txt" GOTO SETUPGEN
 
 GOTO END
 :SETUPGEN

@@ -9,7 +9,7 @@
 #include "it_download.iss"
 
 #define MyAppName "Adapt It WX Unicode"
-#define MyAppVersion "6.5.8"
+#define MyAppVersion "6.5.9"
 #define MyAppURL "http://www.adapt-it.org/"
 #define MyAppExeName "Adapt_It_Unicode.exe"
 #define MyAppShortName "Adapt It"
@@ -30,21 +30,21 @@ DefaultDirName={pf}\Adapt It WX Unicode
 DefaultGroupName=Adapt It WX Unicode
 LicenseFile={#SvnBase}\setup Unicode\LICENSING.txt
 InfoBeforeFile={#SvnBase}\setup Unicode\Readme_Unicode_Version.txt
-OutputBaseFilename=Adapt_It_WX_6_5_8_Unicode
+OutputBaseFilename=Adapt_It_WX_6_5_9_Unicode
 SetupIconFile={#SvnBase}\res\ai_32.ico
 Compression=lzma/Max
 SolidCompression=true
 OutputDir={#SvnBase}\AIWX Installers
 VersionInfoCopyright=2015 by Bruce Waters, Bill Martin, SIL International
 VersionInfoProductName=Adapt It WX Unicode
-VersionInfoProductVersion=6.5.8
+VersionInfoProductVersion=6.5.9
 WizardImageFile="{#SvnBase}\res\ai_wiz_bg.bmp"
 WizardSmallImageFile="{#SvnBase}\res\AILogo32x32.bmp"
 WizardImageStretch=false
 AppCopyright=2015 Bruce Waters, Bill Martin, SIL International
 PrivilegesRequired=poweruser
 DirExistsWarning=no
-VersionInfoVersion=6.5.8
+VersionInfoVersion=6.5.9
 VersionInfoCompany=SIL
 VersionInfoDescription=Adapt It WX Unicode
 UsePreviousGroup=false
@@ -136,6 +136,8 @@ Source: "{#SvnBase}\setup Unicode\CC\CCFiles.doc"; DestDir: "{app}\CC"; Flags: I
 Source: "{#SvnBase}\setup Unicode\CC\CCW32.exe"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\CC\CCW32.INI"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\CC\reverse_lx_ge.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode\CC\FwdSlashInsertAtPuncts.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
+Source: "{#SvnBase}\setup Unicode\CC\FwdSlashRemoveAtPuncts.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\CC\Summary.doc"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 Source: "{#SvnBase}\setup Unicode\CC\table series as one.cct"; DestDir: "{app}\CC"; Flags: IgnoreVersion; 
 
