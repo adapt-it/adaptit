@@ -20077,12 +20077,19 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15. The _CC_INPUTS_OUTPUTS folder now exists in the work folder. Path to
 	// it is:  m_ccTableInputsAndOutputsFolderPath, which will not be an empty string.
-	// The two CC table files, FwdSlashInsertAtPuncts.cct and FwdSlashRemoveAtPuncts.cct
-	// will be stored in the CC folder (with other .cct files) of the setup folder, which
-	// is the same path as in m_xmlInstallPath on all platforms. So we must set up a path
-	// to that CC folder; and check if those .cct table files are present etc. We'll
+	// whm: 15May15 corrected the value to be stored in AIccTableInstallFolderPathOnly 
+	// to reflect the fact that the two CC table files, FwdSlashInsertAtPuncts.cct and 
+	// FwdSlashRemoveAtPuncts.cct are stored in a CC subfolder on Windows' installations, 
+	// but not stored in a CC subfolder on Linux nor Mac installations. We set up a path
+	// to that CC subfolder on Windows, but not to a CC subfolder on the other
+	// two platforms. Then we check if those .cct table files are present etc. We'll
 	// eventually store the path in a new wxString, m_ccTableInstallPath
+	
+#ifdef __WXMSW__
 	AIccTableInstallFolderPathOnly = m_xmlInstallPath + PathSeparator + _T("CC");
+#else
+	AIccTableInstallFolderPathOnly = m_xmlInstallPath;
+#endif
 	bool bCcInstallFolderExists = wxDirExists(AIccTableInstallFolderPathOnly);
 	bool bWorkCcFwdSlashInsertTableFileExists = FALSE; // initialize, assume it is not in 
 									// _CCTABLE_INPUTS_OUTPUTS until we confirm it is there
@@ -20175,7 +20182,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 					else
 					{
 						bWorkCcFwdSlashInsertTableFileExists = FALSE;
-						wxString msg = _T("Could not copy newer version of FwdSlashInsertAtPuncts.cpp to user's work folder's _CCTABLE_INPUTS_OUTPUTS folder.");
+						wxString msg = _T("Could not copy newer version of FwdSlashInsertAtPuncts.cct to user's work folder's _CCTABLE_INPUTS_OUTPUTS folder.");
 						wxLogDebug(msg);
 						LogUserAction(msg);
 					}
@@ -20200,7 +20207,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				else
 				{
 					bWorkCcFwdSlashRemoveTableFileExists = FALSE;
-					wxString msg = _T("Could NOT copy existing FwdSlashRemoveAtPuncts.cpp from setup's CC folder to user's _CCTABLE_INPUTS_OUTPUTS folder in the work folder.");
+					wxString msg = _T("Could NOT copy existing FwdSlashRemoveAtPuncts.cct from setup's CC folder to user's _CCTABLE_INPUTS_OUTPUTS folder in the work folder.");
 					wxLogDebug(msg);
 					LogUserAction(msg);
 				}
