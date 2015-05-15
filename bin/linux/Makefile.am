@@ -30,7 +30,9 @@ install-adaptit-data: install-xmlDATA install-miscDATA \
 
 xmldir = $(pkgdatadir)
 xml_DATA = ../../xml/AI_USFM.xml ../../xml/AI_UserProfiles.xml \
-	../../xml/books.xml ../../xml/aiDefault.css
+	../../xml/books.xml ../../xml/aiDefault.css \
+	../../docs/CC/FwdSlashInsertAtPuncts.cct \
+	../../docs/CC/FwdSlashRemoveAtPuncts.cct
 miscdir = $(pkgdatadir)
 misc_DATA = ../../docs/iso639-3codes.txt \
         ../../docs/curl-ca-bundle.crt
