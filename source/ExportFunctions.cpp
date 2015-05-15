@@ -17379,6 +17379,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	source.Trim();
 	// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
 	//source << aSpace;
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
+	source = DoFwdSlashConsistentChanges(removeAtPunctuation, source);
+	source = FwdSlashtoZWSP(source);
+#endif
 
 	// update length
 	return source.Len();
@@ -17530,6 +17535,11 @@ wxString AddSpaceIfNotFFEorX(wxString str, CSourcePhrase* pSrcPhrase)
 // version called FormatMarkerBufferForOutput().
 // BEW created 10Aug09
 // BEW 9Apr10, updated for support of doc version 5 (changes were needed)
+// BEW 23Apr15 This function has been refactored to support the app's m_bUseSrcWordBreak flag.
+// Doing so means that the 23Apr15 feature which supports / as word delimiter, and words with
+// app's flag bool m_bFwdSlashDelimiter flag, is also supported. (This support is a bit rough
+// and ready, but should give good results for most situations. Check more carefully if users
+// come up with problems - which is unlikely as few if any use this feature.)
 int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 {
 	wxString str; // local wxString in which to build the 'glosses-as-text' substrings
@@ -17639,99 +17649,12 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			// without the population of the local wxString variable
  			if (!bMarkersOnPlaceholder)
 			{
-				// markers placement from a preceding placeholder is not pending, so from
-				// this placeholder gather any m_markers and m_endMarkers information - and
-				// set the flag
-				/* BEW removed 11Oct10
- 				if (bHasFilteredMaterial)
-				{
-					strPlaceholderMarkers = pSrcPhrase->GetFilteredInfo();
-					if (!strPlaceholderMarkers.IsEmpty())
-					{
-						strPlaceholderMarkers = pDoc->RemoveAnyFilterBracketsFromString(strPlaceholderMarkers);
-						bMarkersOnPlaceholder = TRUE;
-					}
-					if (!pSrcPhrase->m_markers.IsEmpty())
-					{
-						if (strPlaceholderMarkers.IsEmpty())
-						{
-							strPlaceholderMarkers = pSrcPhrase->m_markers;
-						}
-						else
-						{
-							strPlaceholderMarkers += aSpace + pSrcPhrase->m_markers;
-						}
-						bMarkersOnPlaceholder = TRUE;
-					}
-					if (!pSrcPhrase->GetEndMarkers().IsEmpty())
-					{
-						// while I've provided for storing any endmarkers on the placeholder,
-						// the only circumstance I can think of where this may be relevant is
-						// endmarkers earlier transferred to the end of a long retranslation
-						// which was padded with final placeholders; so I guess the thing to
-						// do is to 'place' any non-zero content in this string at the end of
-						// the source string, once a non-placeholder is encountered, and then
-						// clear the strPlaceholderEndMarkers string -- we'd have to do this
-						// much further below
-						strPlaceholderEndMarkers = pSrcPhrase->GetEndMarkers();
-						bMarkersOnPlaceholder = TRUE;
-					}
-				} // end of TRUE block for test: if (bHasFilteredMaterial)
-				*/
+				; // commented out code removed from here
 			}
 			continue; // ignore the rest of the current placeholder's information
 		}
 		else if (pSrcPhrase->m_nSrcWords > 1)
 		{
-			// it's a merged sourcephrase, so look at the sublist instead -- filtered
-			// information must be reclaimed from the merged sourcephrase itself (that was
-			// done above), and the first sourcephrase in the sublist can contribute only
-			// its m_gloss text string, but subsequent ones in the sublist must have their
-			// m_markers member examined and its contents restored to the exported
-			// information, likewise endmarkers.
-			//
-			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
-			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
-			// must be placed now on this CSourcePhrase instance (which will not itself
-			// have its m_markers member having content because its former content is now
-			// what we are attempting to replace by relocation from the preceding placeholder.
-			/* BEW removed 11Oct10
-			tempStr.Empty();
-			if (bMarkersOnPlaceholder)
-			{
-				// pSrcPhrase here is not a placeholder, so if any endmarkers on a
-				// preceding placeholder are stored ready for placement, they must be
-				// handled immediately before pSrcPhrase's information is dealt with
-				if (bMarkersOnPlaceholder && !strPlaceholderEndMarkers.IsEmpty())
-				{
-					tempStr += strPlaceholderEndMarkers;
-					strPlaceholderEndMarkers.Empty();
-				}
-
-				// filtered material and any m_markers content that got moved to a
-				// preceding placeholder, and now pending for placement, should be dealt
-				// with now (if we do something here, the above endmarker placement won't
-				// have happened, and vise versa - it will be one or the other)
-				if (bMarkersOnPlaceholder && !strPlaceholderMarkers.IsEmpty())
-				{
-					// relocate any non-endmarkers earlier moved to a preceding placeholder
-					if (tempStr.IsEmpty())
-					{
-						tempStr = strPlaceholderMarkers;
-					}
-					else
-					{
-						tempStr += aSpace + strPlaceholderMarkers;
-					}
-					strPlaceholderMarkers.Empty(); // ready for next encounter of a placeholder
-				}
-				// placeholder information transfer is done, so the flag can be cleared
-				bMarkersOnPlaceholder = FALSE; // clear to default FALSE value
-
-				glosses.Trim();
-				glosses << aSpace << tempStr;
-			} // end of TRUE block for test: if (bMarkersOnPlaceholder)
-			*/
 			tempStr.Empty();
 
 			// BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe
@@ -17758,20 +17681,24 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				{
 					// add an initial space if one is not already there, and it is not
 					// started by a marker for which we want no space insertion
-					wxASSERT(!str.IsEmpty()); // whm 11Jun12 added.
-					if (str.GetChar(0) != _T(' '))
+					if (!str.IsEmpty())
 					{
-						str = _T(" ") + str;
+						if (str.GetChar(0) != _T(' '))
+						{
+							str = _T(" ") + str;
+						}
 					}
 				}
 			}
 			else
 			{
 				// add an initial space if one is not already there
-				wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
-				if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
+				if (!str.IsEmpty())
 				{
-					str = _T(" ") + str;
+					if (str.GetChar(0) != _T(' '))
+					{
+						str = PutSrcWordBreak(pSrcPhrase) + str;
+					}
 				}
 			}
 			glosses += str;
@@ -17796,14 +17723,6 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				// New comment: when no phrase internal markers to be placed, just append
 				// any m_markers content, then the gloss, and endmarkers will be handled
 				// later below
-				/* BEW removed 11Oct10
-				if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
-				{
-					wxString filteredStuff = pSrcPhrase->GetFilteredInfo();
-					filteredStuff = pDoc->RemoveAnyFilterBracketsFromString(filteredStuff);
-					str << filteredStuff;
-				}
-				*/
 				if (!pSrcPhrase->m_markers.IsEmpty())
 				{
 					str.Trim();
@@ -17812,7 +17731,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				if (!pSrcPhrase->m_gloss.IsEmpty())
 				{
 					str.Trim();
-					str << aSpace << pSrcPhrase->m_gloss;
+					str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_gloss;
 				}
 			}
 
@@ -17823,10 +17742,12 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			}
 
 			// add an initial space if one is not already there
-			wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
-			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
+			if (!str.IsEmpty())
 			{
-				str = _T(" ") + str;
+				if (str.GetChar(0) != _T(' '))
+				{
+					str = PutSrcWordBreak(pSrcPhrase) + str;
+				}
 			}
 			// append the result to glosses string
 			glosses += str;
@@ -17876,7 +17797,7 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				bMarkersOnPlaceholder = FALSE; // clear to default FALSE value
 
 				glosses.Trim();
-				glosses << aSpace << tempStr;
+				glosses << PutSrcWordBreak(pSrcPhrase) << tempStr;
 			}
 			tempStr.Empty();
 
@@ -17903,45 +17824,40 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 				{
 					// add an initial space if one is not already there, and it is not
 					// started by a marker for which we want no space insertion
-					wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string.
-					if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
+					if (!str.IsEmpty())
 					{
-						str = _T(" ") + str;
+						if (str.GetChar(0) != _T(' '))
+						{
+							str = PutSrcWordBreak(pSrcPhrase) + str;
+						}
 					}
 				}
 			}
 			else
 			{
 				// add an initial space if one is not already there
-				//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string.
-				if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
+				if (!str.IsEmpty())
 				{
-					str = _T(" ") + str;
+					if (str.GetChar(0) != _T(' '))
+					{
+						str = PutSrcWordBreak(pSrcPhrase) + str;
+					}
 				}
 			}
 			glosses += str;
 			str.Empty();
 
-			/* BEW removed 11Oct10
-			// add any m_filteredInfo content with filter bracket markers removed
-			if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
-			{
-				wxString filteredStuff = pSrcPhrase->GetFilteredInfo();
-				filteredStuff = pDoc->RemoveAnyFilterBracketsFromString(filteredStuff);
-				str << filteredStuff;
-			}
-			*/
 			// add any m_markers content
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
 				str.Trim();
-				str << aSpace << pSrcPhrase->m_markers;
+				str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_markers;
 			}
 			// add the gloss, but only if it is non-empty
 			if (!pSrcPhrase->m_gloss.IsEmpty())
 			{
 				str.Trim();
-				str << aSpace << pSrcPhrase->m_gloss;
+				str << PutSrcWordBreak(pSrcPhrase) << pSrcPhrase->m_gloss;
 			}
 			// finally add any endmarkers
 			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
@@ -17950,17 +17866,23 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			}
 
 			// insert an initial space if one is not already there
-			//wxASSERT(!str.IsEmpty()); // whm 11Jun12 added. GetChar(0) should not be called on an empty string
-			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
+			if (!str.IsEmpty())
 			{
-				str = _T(" ") + str;
+				if (str.GetChar(0) != _T(' '))
+				{
+					str = PutSrcWordBreak(pSrcPhrase) + str;
+				}
 			}
 			// append the result to glosses string
 			glosses += str;
 			str.Empty();
 		} // end of block for a single CSourcePhrase instance
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
-
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
+	glosses = DoFwdSlashConsistentChanges(removeAtPunctuation, glosses);
+	glosses = FwdSlashtoZWSP(glosses);
+#endif
 	// update length
 	return glosses.Length();
 }
@@ -18209,15 +18131,41 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 				str << filteredStuff;
 			}
 			*/
+			wxString ZWSP = (wxChar)0x200B;
+
+			bool bHasMarkersHere = FALSE; // initialize
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
 				str.Trim();
 				str << aSpace << pSrcPhrase->m_markers;
+				bHasMarkersHere = TRUE; // use this to suppress the Trim() of str in next block, after marker insertion
 			}
 			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
 			{
-				str.Trim();
+#if defined(FWD_SLASH_DELIM)
+				// BEW added 23Apr15
+				// internally the following function tests for m_bFwdSlashDelimiter TRUE, & it
+				// returns FALSE if that flag is FALSE; it then tests m_srcWordBreak and if it
+				// contains a / it returns TRUE, if not, it returns FALSE
+				if (gpApp->m_bFwdSlashDelimiter && !bHasMarkersHere)
+				{
+					str.Trim(); // we don't want a final space trimmed off if a marker was just added
+						// otherwise we get verse numbers delimited from text only by ZWSP, which looks lousy
+				}
+				if (HasFwdSlashWordBreak(pSrcPhrase))
+				{
+					// Found / used as a word-breaking delimiter, so put ZWSP as the joiner here
+					wxString ZWSP = (wxChar)0x200B;
+					str << ZWSP << pSrcPhrase->GetFreeTrans();
+				}
+				else
+				{
+					str.Trim();
+					str << aSpace << pSrcPhrase->GetFreeTrans();
+				}
+#else
 				str << aSpace << pSrcPhrase->GetFreeTrans();
+#endif
 			}
 			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
 			{
@@ -18228,20 +18176,42 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 			// whm 9Jun12 added !str.IsEmpty() to the test below because wxWidgets 2.9.3
 			// asserts if str is empty and str.GetChar(0) is called - 0 is a bad index
 			// into an empty string!
+#if defined(FWD_SLASH_DELIM)
+			// BEW added 23Apr15 -- if ZWSP was inserted initially above, and
+			// gpApp->m_bFwdSlashDelimiter is TRUE, then don't add Latin space
+			if (gpApp->m_bFwdSlashDelimiter)
+			{
+				if (!str.IsEmpty() && str.GetChar(0) == (wxChar)0x200B)
+				{
+					; //do nothing
+				}
+			}
+			else
+			{
+				if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
+				{
+					str = _T(" ") + str;
+				}
+			}
+#else
 			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 			{
 				str = _T(" ") + str;
 			}
+#endif
 			// append the substring to the passed in freeTrans string
 			freeTrans += str;
 			str.Empty();
 		}
-
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
 
 	// remove any marker or end-marker which has textType of 'none'
 	RemoveMarkersOfType(none, freeTrans);
-
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
+	freeTrans = DoFwdSlashConsistentChanges(removeAtPunctuation, freeTrans);
+	freeTrans = FwdSlashtoZWSP(freeTrans);
+#endif
 	// update length
 	return freeTrans.Length();
 }
@@ -18582,6 +18552,11 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 	int textLen = targetstr.Length();
 	target = targetstr; // return all the text in one long wxString
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
+	target = DoFwdSlashConsistentChanges(removeAtPunctuation, target);
+	target = FwdSlashtoZWSP(target);
+#endif
 	return textLen;
 }// end of RebuildTargetText
 
@@ -18968,7 +18943,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 					{
 						// we are filtering both marker(s) and associated text
 						itemLen = ParseMarkerAndAnyAssociatedText(pOld, pBufStart, pEnd,
-													bareMarkerForLookup, wholeMarker,FALSE,FALSE);
+							bareMarkerForLookup, wholeMarker, FALSE, FALSE);
 						// 1st FALSE above means don't consider this text to be RTF text at this point
 						// because it won't be RTF compatible text until ApplyOutputFilterToText is done
 						// with it
@@ -18984,6 +18959,37 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						// removed, and if there was not a space before the begin marker, this
 						// makes a bogus coalescence of two words - so we need to retain at
 						// least one space
+						// BEW 23Apr15 added support for / being used as a word-break character.
+						// The problem here is that something being filtered out, doesn't get the
+						// latin space that was appended to markersPrefix string in the FromSingleMakeTstr()
+						// call in RebuildTargetText(), jumped over when m_bFwdSlashDelimiter is TRUE.
+						// That latin space then appears in the export, which is not wanted for ZWSP
+						// delimited text. So I've added code here to fix this. (The tweak is more
+						// complex than strictly necessary, because someone may un-#define 
+						// FWD_SLASH_DELIM, and without the #else block, that would break the app.
+#if defined(FWD_SLASH_DELIM)
+						if (gpApp->m_bFwdSlashDelimiter)
+						{
+							while (*pOld == _T(' ')) { pOld += 1L; }
+						}
+						else
+						{
+							// The legacy code, which leaves a single space or \n present in the output
+							if (*pOld == _T('\n') || *pOld == _T(' '))
+							{
+								// just copy the new line or one space and then advance over it
+								*pNew++ = *pOld++;
+							}
+							//else
+							// remove any additional spaces
+							if (*pOld == _T(' '))
+							{
+								itemLen = pDoc->ParseWhiteSpace(pOld);
+								pOld += itemLen;
+								// don't increment pNew here
+							}
+						}
+#else
 						if (*pOld == _T('\n') || *pOld == _T(' '))
 						{
 							// just copy the new line or one space and then advance over it
@@ -18997,6 +19003,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 							pOld += itemLen;
 							// don't increment pNew here
 						}
+#endif
 					}
 				}
 				else
@@ -20542,7 +20549,9 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				if (!pSrcPhrase->m_targetStr.IsEmpty())
 				{
 					Tstr.Trim();
-					Tstr << aSpace << pSrcPhrase->m_targetStr;
+					Tstr << PutTgtWordBreak(pSrcPhrase) << pSrcPhrase->m_targetStr; //BEW 13May15, exported tgt from retranslation
+									// from the retranslation was not getting the word delimiter from m_tgtWordBreak, but a space
+									// was unilaterally uses, so I've fixed it by putting PutTgtWordBreak() here		
 				}
 				// now build up the inner part of the source text word(s)
 				wxString s = pSrcPhrase->m_key;

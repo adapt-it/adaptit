@@ -719,6 +719,10 @@ void KBEditSearch::OnBnClickedFindNext(wxCommandEvent& WXUNUSED(event))
 {
 	// get the text in the edit control
 	wxString strSearch = m_pLocalSearchBox->GetValue();
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	strSearch = FwdSlashtoZWSP(strSearch);
+#endif
 
 	// get the currently selected position (if none, get the top of list position and show
 	// it selected -- searching starts with the element following current selection)
@@ -790,6 +794,10 @@ void KBEditSearch::OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(e
 		// there is currently one there for this respelled match item (we assume the user
 		// will re-edit and use the Update button to put a corrected entry back into the
 		// update list)
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		m_pCurKBMatchRec->strOriginal = ZWSPtoFwdSlash(m_pCurKBMatchRec->strOriginal);
+#endif
 		m_pEditBox->ChangeValue(m_pCurKBMatchRec->strOriginal);
 		if (m_pCurKBMatchRec->pUpdateRecord != NULL)
 		{
@@ -842,7 +850,7 @@ unsigned int KBEditSearch::GetUpdateListIndexFromDataPtr(KBUpdateRecord* pCurRec
 
 // if bUserClicked is TRUE, the user has clicked on a list item, and the call to
 // this function will be in an event handler, so this function does not have to
-// do the item selection itself, but if bUserClicked is FALSE, the we are using
+// do the item selection itself, but if bUserClicked is FALSE, then we are using
 // this function to programmatically set the selection to the passed in index, and so
 // internal code is required to make the list item selection be seen
 void KBEditSearch::SetMatchListSelection(int nSelectionIndex, bool bUserClicked)
@@ -875,6 +883,11 @@ void KBEditSearch::SetMatchListSelection(int nSelectionIndex, bool bUserClicked)
             // circumstance and the necessary index value may, by now, have been lost due
             // to user actions subsequent to the last .Add() call)
 			unsigned int index = GetUpdateListIndexFromDataPtr(m_pCurKBUpdateRec);
+#if defined(FWD_SLASH_DELIM)
+			// BEW added 23Apr15
+			textThatWasEdited = ZWSPtoFwdSlash(textThatWasEdited);
+#endif
+
 			m_pEditBox->ChangeValue(textThatWasEdited);
 			m_pUpdateListBox->SetSelection(index);
 			m_nCurUpdateListIndex = index;
@@ -893,6 +906,10 @@ void KBEditSearch::SetMatchListSelection(int nSelectionIndex, bool bUserClicked)
 			// to permit the user to change its spelling; use ChangeValue() in order not to
 			// generate a wxEVT_TEXT event; and clear the pointer to the current update record,
 			// and the index into the update list
+#if defined(FWD_SLASH_DELIM)
+			// BEW added 23Apr15
+			strLabel = ZWSPtoFwdSlash(strLabel);
+#endif
 			m_pEditBox->ChangeValue(strLabel);
 			m_pCurKBUpdateRec = NULL;
 			m_nCurUpdateListIndex = wxNOT_FOUND; // -1
@@ -905,6 +922,8 @@ void KBEditSearch::SetMatchListSelection(int nSelectionIndex, bool bUserClicked)
 		// that, the number of times the adaptation (or gloss) has so far been referenced
 		// within documents
 		m_strSourceText = m_pCurKBMatchRec->strMapKey;
+		// BEW 23Apr15, m_strSourceText, if / delimiter for word break is supported, it
+		// should have any / converted to ZWSP already, and so we should just leave it unchanged
 		m_pSrcPhraseBox->ChangeValue(m_strSourceText);
 		int nRefCount = m_pCurKBMatchRec->pRefString->m_refCount;
 		wxString strNum;
@@ -1042,13 +1061,17 @@ void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 		// the same index - but the former is easier
 		m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
 		m_pMatchListBox->SetSelection(m_nCurMatchListIndex);
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		strLabel = ZWSPtoFwdSlash(strLabel);
+#endif
 		m_pEditBox->ChangeValue(strLabel);
 
 		// show the source text word or phrase in the box under the left list, and below
 		// that, the number of times the adaptation (or gloss) has so far been referenced
 		// within documents
 		m_strSourceText = m_pCurKBMatchRec->strMapKey;
-		m_pSrcPhraseBox->ChangeValue(m_strSourceText);
+		m_pSrcPhraseBox->ChangeValue(m_strSourceText); // BEW 23Apr15 leave this unchanged if ZWSP already in m_strSourceText
 		int nRefCount = m_pCurKBMatchRec->pRefString->m_refCount;
 		wxString strNum;
 		strNum = strNum.Format(_T("%d"),nRefCount);

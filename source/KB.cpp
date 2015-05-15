@@ -719,6 +719,8 @@ wxString CKB::TransformToLowerCaseInitial(wxString& str, bool bIsSrcStr)
 // autocaps was on and the lowercase lookup failed to find a matching CTargetUnit
 // instance. This gives a more transparent management performance, in conjunction with some
 // changes of same date within StoreText() etc, of data entries in the KB maps.
+// BEW 23Apr15 changed to support / as a word-breaking whitespace char if m_bFwdSlashDelimiter
+// is TRUE
 bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
 	wxString saveKey;
@@ -726,6 +728,12 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 								 // before every first lookup
 	MapKeyStringToTgtUnit::iterator iter;
 
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
+	// to support lookups because we will have ZWSP rather than / in the KB
+	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+	keyStr = FwdSlashtoZWSP(keyStr);
+#endif
 
     // the test of gbCallerIsRemoveButton is to prevent a wrong change to lower case if
     // autocapitalization is on and the user clicked in the KB editor, or in Choose
@@ -851,9 +859,17 @@ a:		iter = pMap->find(keyStr);
 // database simply takes whatever is passed to it, and returns same when requested. A
 // failure to find an associated CTargetUnit instance for the passed in keyStr also results
 // in pTU being returned as NULL; otherwise.
+// BEW 23Apr15 changed to support using / as a word-breaking whitespace char if
+// app->m_bFwdSlashDelimiter is TRUE
 bool CKB::LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
-	//wxString saveKey;
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
+	// to support lookups because we will have ZWSP rather than / in the KB
+	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+	keyStr = FwdSlashtoZWSP(keyStr);
+#endif
+
 	MapKeyStringToTgtUnit::iterator iter;
 	iter = pMap->find(keyStr);
 	if (iter != pMap->end())
@@ -1926,6 +1942,9 @@ KbServer* CKB::GetMyKbServer()
 /// \remarks
 /// Encapsulates the making of a CRefString added because of a new entry from kbserver.
 /// We need this in more than one place, so made a function of it
+/// BEW 23Apr15, I think no change is needed for support of / as a word-breaker char,
+/// because what comes from the kbserver should have ZWSP as delimiters already if it
+/// was a phrase that originally had / as delimiter(s).
 void CKB::MakeAndStoreNewRefString(CTargetUnit* pTU, wxString& tgtPhrase,
 								   wxString& username, bool bDeletedFlag)
 {
@@ -3760,655 +3779,6 @@ void CKB::RestoreForceAskSettings(KPlusCList* pKeys)
 	pKeys->Clear(); // get rid of the now hanging pointers
 }
 
-// like StoreAdaption, but with different assumptions since we need to be able to move back
-// when either there is nothing in the current phraseBox (in which case no store need be
-// done), or when the user has finished typing the current srcPhrase's adaption (since it
-// will be saved to the KB when focus moves back.) TRUE if okay to go back, FALSE
-// otherwise. For glossing, pKB must point to the glossing KB, for adapting, to the normal
-// KB.
-// BEW 22Feb10 no changes needed for support of doc version 5
-// BEW 14May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
-// BEW 4Jun10, updated to support kbVersion 2
-// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps,
-// including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
-// map 1 rather than map 2.
-// BEW 29Jul11, removed a cause for duplicate entries to be formed in a CTargetUnit instance
-// BEW 14Sep11, updated to reflect the improved code in StoreText()
-// BEW 17Oct11, updated to turn off app flag m_bForceAsk before returning (but always
-// after having used the TRUE value if it's value on entry was TRUE)
-bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
-{
-	// determine the auto caps parameters, if the functionality is turned on
-	bool bNoError = TRUE;
-	wxString strNot = m_pApp->m_strNotInKB;
-	bool bStoringNotInKB = (strNot == tgtPhrase);
-
-	if (gbAutoCaps)
-	{
-		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
-	}
-
-	m_pApp->GetDocument()->Modify(TRUE);
-
-    // do not permit storage, when going back, if the source phrase has an empty key
-	if (pSrcPhrase->m_key.IsEmpty())
-	{
-		gbMatchedKB_UCentry = FALSE;
-		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
-		return TRUE; // this is not an error, just suppression of the store
-	}
-
-	gbByCopyOnly = FALSE; // restore default setting
-
-	// is the m_targetPhrase empty?
-	if (tgtPhrase.IsEmpty())
-	{
-		// it's empty, so we can go back without saving anything in the kb
-		m_pApp->m_bForceAsk = FALSE; // must ensure this flag is off, no forcing of
-						// Choose Translation dialog is required when moving back
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE;
-	}
-	// for safety, make this check first
- 	if (m_bGlossingKB)
-	{
-		if (pSrcPhrase->m_bHasGlossingKBEntry)
-		{
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		}
-	}
-	else
-	{
-		if (pSrcPhrase->m_bHasKBEntry)
-		{
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-		}
-	}
-   // It's not empty, so go ahead and re-store it as-is (but if auto capitalization has
-    // just been turned on, it will be stored as a lower case entry if it is an upper case
-    // one in the doc) first, remove any phrase final space characters
-	if (!tgtPhrase.IsEmpty())
-	{
-		tgtPhrase.Trim();
-	}
-
-	// always place a copy in the source phrase's m_adaption member, etc
-	if (m_bGlossingKB)
-	{
-		wxString s = tgtPhrase;
-		if (gbAutoCaps)
-		{
-			bool bNoError = TRUE;
-			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-			{
-				bNoError = m_pApp->GetDocument()->SetCaseParameters(s,FALSE);
-				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-				{
-					// change it to upper case
-					s.SetChar(0,gcharNonSrcUC);
-				}
-			}
-		}
-		pSrcPhrase->m_gloss = s;
-	}
-	else
-	{
-		if (tgtPhrase != strNot)
-		{
-      // BEW 29Jul11 added auto-caps code here so that m_adaption gets set in the
-      // same way that MakeTargetStringIncludingPunctuation() will do the
-      // capitalization for m_targetStr, formerly m_adaption was just set to
-      // tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
-      // because the view only shows m_targetStr)
-			wxString s = tgtPhrase;
-			if (gbAutoCaps)
-			{
-				bool bNoError = TRUE;
-				if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-				{
-					bNoError = m_pApp->GetDocument()->SetCaseParameters(s,FALSE); // FALSE is bIsSrcText
-					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-					{
-						// change it to upper case
-						s.SetChar(0,gcharNonSrcUC);
-					}
-				}
-				pSrcPhrase->m_adaption = s;
-			}
-			else
-			{
-				pSrcPhrase->m_adaption = tgtPhrase;
-			}
-			if (!gbInhibitMakeTargetStringCall)
-			{
-				// sets m_targetStr member too, and handles auto-capitalization
-				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
-			}
-		}
-	}
-
-    // if the user doesn't want a store done (he checked the dialog bar's control for this
-    // choice) then return without saving after setting the source phrase's m_bNotInKB flag
-    // to TRUE
-	int nMapIndex;
-	if (!m_bGlossingKB && !m_pApp->m_bSaveToKB)
-	{
-		pSrcPhrase->m_bNotInKB = TRUE;
-		m_pApp->m_bForceAsk = FALSE; // its a valid 'store op' so must turn this flag back off
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE; // we want the caller to think all is well
-	}
-	else // adapting or glossing
-	{
-		// BEW changed, 13Nov10, to support Bob Eaton's request for a 10map glossing KB
-		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
-		{
-			nMapIndex = 0;
-		}
-		else
-		{
-			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
-		}
-	}
-	// if there is a CTargetUnit associated with the current key, then get it; if not,
-	// create one and add it to the appropriate map
-
-  // if we have too many source words, then we cannot save to the KB, so detect this and
-  // warn the user that it will not be put in the KB, then return TRUE since all is
-  // otherwise okay; this check need be done only when adapting
-	//if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS) << BEW removed 13Nov10
-	if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
-	{
-		pSrcPhrase->m_bNotInKB = TRUE;
-		if (m_bGlossingKB)
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		else
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-		m_pApp->m_bForceAsk = FALSE; // make sure it is now turned off
-		wxMessageBox(_(
-"Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base.")
-		, _T(""), wxICON_INFORMATION | wxOK);
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE;
-	}
-
-	// continue the storage operation
-	wxString unchangedkey = pSrcPhrase->m_key; // this never has case change done to it
-											  // (need this for lookups)
-	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
-	CTargetUnit* pTU;
-	CRefString* pRefString;
-	if (m_pMap[nMapIndex]->empty())
-	{
-		pTU = new CTargetUnit;
-		wxASSERT(pTU != NULL);
-		pRefString = new CRefString(pTU); // also creates CRefStringMetadata with creation
-										  // datetime and m_whoCreated members set
-		wxASSERT(pRefString != NULL);
-
-		pRefString->m_refCount = 1; // set the count
-		// add the translation string, or gloss string
-		if (bNoError)
-		{
-			if (gbAutoCaps)
-			{
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
-			}
-			else
-			{
-				pRefString->m_translation = tgtPhrase;
-			}
-		}
-		else
-		{
-			// if something went wrong, just save as if gbAutoCaps was FALSE
-			pRefString->m_translation = tgtPhrase;
-		}
-
-#if defined(_KBSERVER)
-		// BEW added 5Oct12, here is a suitable place for kbserver support of
-		// CreateEntry(), since both the key and the translation (both possibly with a case
-		// adjustment for the first letter) are defined.
-		// Note: we can't reliably assume that the newly typed translation or gloss has not
-		// been, independently by some other user, added to the kbserver already, and also
-		// subsequently deleted by him before the present; therefore we must test for the
-		// absence of this src/tgt pair and only upload if the entry really is going to be
-		// a new one.
-		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-			||
-			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled() ))
-		{
-			KbServer* pKbSvr = GetMyKbServer();
-
-			// don't send to kbserver if it's a <Not In KB> entry
-			if (!bStoringNotInKB)
-			{
-				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-				// populate it's public members (it only has public ones anyway)
-				pCreateEntryThread->m_pKbSvr = pKbSvr;
-				pCreateEntryThread->m_source = key;
-				pCreateEntryThread->m_translation = pRefString->m_translation;
-				// now create the runnable thread with explicit stack size of 10KB
-				wxThreadError error =  pCreateEntryThread->Create(1024);
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					wxString msg;
-					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-						(int)error);
-					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-					//m_pApp->LogUserAction(msg);
-				}
-				else
-				{
-					// no error, so now run the thread (it will destroy itself when done)
-					error = pCreateEntryThread->Run();
-					if (error != wxTHREAD_NO_ERROR)
-					{
-					wxString msg;
-					msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-					  (int)error);
-					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-					//m_pApp->LogUserAction(msg);
-					}
-				}
-			}
-		}
-#endif
-		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-		if (m_pApp->m_bForceAsk)
-			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
-				// opportunity to add a new refString next time its matched
-		if (m_bGlossingKB)
-			pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-		else
-		{
-			if (bStoringNotInKB)
-			{
-				pSrcPhrase->m_bHasKBEntry = FALSE;
-				pSrcPhrase->m_bNotInKB = TRUE;
-			}
-			else
-			{
-				pSrcPhrase->m_bHasKBEntry = TRUE;
-			}
-		}
-		(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit instance in the map
-		if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
-		{
-			m_nMaxWords = pSrcPhrase->m_nSrcWords;
-		}
-	}
-	else // do next block when the map is not empty
-	{
-		// there might be a pre-existing association between this key and a CTargetUnit,
-		// so check it out
-		// BEW 29Jul11, the following function had changes made today too, I removed the
-		// alternate uppercase lookup which used to be done when auto-caps is ON and the
-		// lowercase lookup (tried first) failed
-		bool bFound = AutoCapsLookup(m_pMap[nMapIndex], pTU, unchangedkey);
-
-		// if not found, then create a targetUnit, and add the refString, etc, as above;
-		// but if one is found, then check whether we add a new refString or increment the
-		// refCount of an existing one
-		if(!bFound)
-		{
-			pTU = new CTargetUnit;
-			wxASSERT(pTU != NULL);
-			pRefString = new CRefString((CTargetUnit*)pTU); // also creates CRefStringMetadata
-									// with m_creationDateTime and m_whoCreated members set
-			wxASSERT(pRefString != NULL);
-
-			pRefString->m_refCount = 1; // set the count
-			if (gbAutoCaps)
-			{
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE); // FALSE
-								// is value of bIsSrc (auto-caps needs to know whether the
-								// string is source text versus adaptation (or gloss) text
-			}
-			else
-			{
-				pRefString->m_translation = tgtPhrase;
-			}
-
-#if defined(_KBSERVER)
-			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
-			// since both the key and the translation (both possibly with a case adjustment
-			// for the first letter) are defined.
-			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-				||
-				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
-			{
-				KbServer* pKbSvr = GetMyKbServer();
-
-				// don't send to kbserver if it's a <Not In KB> entry
-				if(!bStoringNotInKB)
-				{
-					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-					// populate it's public members (it only has public ones anyway)
-					pCreateEntryThread->m_pKbSvr = pKbSvr;
-					pCreateEntryThread->m_source = key;
-					pCreateEntryThread->m_translation = pRefString->m_translation;
-					// now create the runnable thread with explicit stack size of 10KB
-					wxThreadError error = pCreateEntryThread->Create(1024);
-					if (error != wxTHREAD_NO_ERROR)
-					{
-						wxString msg;
-						msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-							(int)error);
-						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-						//m_pApp->LogUserAction(msg);
-					}
-					else
-					{
-						// no error, so now run the thread (it will destroy itself when done)
-						error = pCreateEntryThread->Run();
-						if (error != wxTHREAD_NO_ERROR)
-						{
-						  wxString msg;
-						  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-							(int)error);
-						  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-						  //m_pApp->LogUserAction(msg);
-						}
-					}
-				}
-			}
-#endif
-			// continue with the store to the local KB
-			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-			if (m_pApp->m_bForceAsk)
-				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
-						// opportunity to add a new refString next time its matched
-			if (m_bGlossingKB)
-				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-			else
-			{
-				if (bStoringNotInKB)
-				{
-					pSrcPhrase->m_bNotInKB = TRUE;
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-				}
-				else
-				{
-					pSrcPhrase->m_bHasKBEntry = TRUE;
-				}
-			}
-			(*m_pMap[nMapIndex])[key] = pTU;// store the CTargetUnit instance in the map
-			// update the maxWords limit
-			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
-			{
-				m_nMaxWords = pSrcPhrase->m_nSrcWords;
-			}
-			// BEW 17Oct11, added next line (fixes bug in version 6, the checkbox, once set,
-			// was staying on at each new phrase box location, and should be off)
-			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
-			return TRUE;
-		}
-		else // we found one
-		{
-            // we have a pTU for this key, so check for a matching CRefString, if there is
-            // no match, then add a new one (note: no need to set m_nMaxWords for this
-            // case)
-			bool bMatched = FALSE;
-			pRefString = new CRefString(pTU);
-			wxASSERT(pRefString != NULL);
-			pRefString->m_refCount = 1; // set the count, assuming this will be stored
-										// (it may not be)
-		  // set its gloss or adaptation string; the fancy test is required because the
-		  // refStr entry may have been stored in the kb when auto-caps was off, and if
-		  // it was upper case for the source text's first letter, then it will have been
-		  // looked up only on the second attempt, for which gbMatchedKB_UCentry will
-		  // have been set TRUE, and which means the gloss or adaptation will not have
-		  // been made lower case - so we must allow for this possibility
-			if (gbAutoCaps)
-			{
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
-			}
-			else
-			{
-				pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
-			}
-
-			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-			while (pos != NULL)
-			{
-				CRefString* pRefStr = (CRefString*)pos->GetData();
-				pos = pos->GetNext();
-				wxASSERT(pRefStr != NULL);
-
-				// does it match?
-				if (*pRefStr == *pRefString) // TRUE if pRStr->m_translation ==
-											 //				pRefString->m_translation
-				{
-					// if we get a match, then increment ref count and point to this, etc
-					bMatched = TRUE;
-					if (pRefStr->m_bDeleted)
-					{
-						// we've matched a deleted entry, so we must undelete it
-						pRefStr->m_bDeleted = FALSE;
-						pRefStr->m_refCount = 1;
-						pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
-						pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
-						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
-						// in next call, param bool bOriginatedFromTheWeb is default FALSE
-						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
-#if defined(_KBSERVER)
-						// BEW added 18Oct12, we must first determine that an
-						// entry with the same src/tgt string is in the remote database,
-						// and that it's currently pseudo-deleted. If that's the case, we
-						// undelete it. If it's not in the remote database at all yet, then
-						// we add it instead as a normal entry. If it's in the remote
-						// database already as a normal entry, then we make no change.
-						// 
-						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
-						// and when user locally unticks the Save in KB checkbox to make
-						// that key have only <Not In KB> as the pseudo-adaptation, it
-						// makes any normal adaptations for that key become pseudo-deleted
-						// but we don't inform kbserver of that fact. Therefore, an
-						// attempt to undelete any of those pseudo-deleted entries needs
-						// to be stopped from sending anything to kbserver also. We want to
-						// keep use of <Not In KB> restricted to the particular user who
-						// wants to do that, and not propagate it and deletions /
-						// undeletions that may happen as part of it, to the kbserver.
-						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-							||
-							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
-						{
-							KbServer* pKbSvr = GetMyKbServer();
-
-							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
-							{
-								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
-								// populate it's public members (it only has public ones anyway)
-								pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
-								pPseudoUndeleteThread->m_source = key;
-								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
-								// now create the runnable thread with explicit stack size of 10KB
-								wxThreadError error =  pPseudoUndeleteThread->Create(1024);
-								if (error != wxTHREAD_NO_ERROR)
-								{
-									wxString msg;
-									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
-										(int)error);
-									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-									//m_pApp->LogUserAction(msg);
-								}
-								else
-								{
-									// no error, so now run the thread (it will destroy itself when done)
-									error = pPseudoUndeleteThread->Run();
-									if (error != wxTHREAD_NO_ERROR)
-									{
-									wxString msg;
-									msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
-									  (int)error);
-									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-									//m_pApp->LogUserAction(msg);
-									}
-								}
-							}
-						}
-#endif
-					}
-					else
-					{
-						pRefStr->m_refCount++;
-					}
-					if (m_bGlossingKB)
-						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-					else
-					{
-						if (bStoringNotInKB)
-						{
-							// storing <Not In KB>
-							pSrcPhrase->m_bHasKBEntry = FALSE;
-							pSrcPhrase->m_bNotInKB = TRUE;
-						}
-						else
-						{
-							pSrcPhrase->m_bHasKBEntry = TRUE;
-						}
-					}
-
-					// delete the just created pRefString as we won't use it
-					pRefString->DeleteRefString(); // also deletes its CMetadata
-					pRefString = (CRefString*)NULL;
-					// ensure the user's setting is retained for 'force choice for this item'
-					if (m_pApp->m_bForceAsk)
-					{
-						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
-								// ensure it gets set if that is what the user wants
-					}
-					break;
-				} // end of block for processing a matched CRefString entry
-			} // end of while loop
-            // if we get here with bMatched == FALSE, then there was no match, so we must
-            // add the new pRefString to the CTargetUnit instance
-			if (bMatched)
-			{
-				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
-				return TRUE;
-			}
-			else
-			{
-				// no match made in the above loop
-				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
-				CRefString* pRefStr = (CRefString*)tpos->GetData();
-				if (!m_bGlossingKB && pRefStr->m_translation == _T("<Not In KB>"))
-				{
-				  // keep it that way (the way to cancel this setting is with the toolbar
-				  // checkbox) But leave m_adaption and m_targetStr (or m_gloss) having
-				  // whatever the user may have typed
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-					pSrcPhrase->m_bNotInKB = TRUE;
-					pSrcPhrase->m_bBeginRetranslation = FALSE;
-					pSrcPhrase->m_bEndRetranslation = FALSE;
-					pRefString->DeleteRefString(); // don't leak memory
-					pRefString = (CRefString*)NULL;
-					m_pApp->m_bForceAsk = FALSE;
-					gbMatchedKB_UCentry = FALSE;
-					return TRUE; // all is well
-				}
-				else // either we are glossing, or we are adapting
-					 // and it's a normal adaptation or <Not In KB>
-				{
-					// is the m_targetPhrase empty?
-					if (tgtPhrase.IsEmpty())
-					{
-						// don't store if it is empty, and then return; but if not empty
-						// then go on to do the storage
-						if (!m_bGlossingKB)
-						{
-							pSrcPhrase->m_bBeginRetranslation = FALSE;
-							pSrcPhrase->m_bEndRetranslation = FALSE;
-						}
-						m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
-						pRefString->DeleteRefString(); // don't leak the memory
-						pRefString = (CRefString*)NULL;
-						gbMatchedKB_UCentry = FALSE;
-						return TRUE; // make caller think all is well
-					}
-
-					// recalculate the string to be stored
-					// BEW changed 29Jul11
-					if (gbAutoCaps)
-					{
-						pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
-					}
-					else
-					{
-						pRefString->m_translation = tgtPhrase;
-					}
-
-#if defined(_KBSERVER)
-				// BEW added 5Oct12, here is a suitable place for kbserver support of
-				// CreateEntry(), since both the key and the translation (both possibly
-				// with a case adjustment for the first letter) are defined.
-				if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
-					||
-					(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
-				{
-					KbServer* pKbSvr = GetMyKbServer();
-
-					if (!bStoringNotInKB)
-					{
-							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
-							// populate it's public members (it only has public ones anyway)
-							pCreateEntryThread->m_pKbSvr = pKbSvr;
-							pCreateEntryThread->m_source = key;
-							pCreateEntryThread->m_translation = pRefString->m_translation;
-							// now create the runnable thread with explicit stack size of 10KB
-							wxThreadError error =  pCreateEntryThread->Create(1024);
-							if (error != wxTHREAD_NO_ERROR)
-							{
-								wxString msg;
-								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
-									(int)error);
-								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
-								//m_pApp->LogUserAction(msg);
-							}
-							else
-							{
-							// no error, so now run the thread (it will destroy itself when done)
-							error = pCreateEntryThread->Run();
-							if (error != wxTHREAD_NO_ERROR)
-							{
-							  wxString msg;
-							  msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-								(int)error);
-							  wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
-							  //m_pApp->LogUserAction(msg);
-							}
-						}
-					}
-				}
-#endif
-					// continue with the store to the local KB
-					pTU->m_pTranslations->Append(pRefString);
-					if (m_bGlossingKB)
-						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-					else
-					{
-						if (bStoringNotInKB)
-						{
-							pSrcPhrase->m_bNotInKB = TRUE;
-							pSrcPhrase->m_bHasKBEntry = FALSE;
-						}
-						else
-						{
-							pSrcPhrase->m_bHasKBEntry = TRUE;
-						}
-					}
-				}
-			}
-		}
-	}
-	m_pApp->m_bForceAsk = FALSE; // must be turned off, as it applies
-							   // to one store operation only
-	gbMatchedKB_UCentry = FALSE;
-	return TRUE;
-}
 
 // return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE
 // value to block a move of the phraseBox to another pile) This function's behaviour was
@@ -4445,6 +3815,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 // BEW 17Oct11, updated to turn of the app flag, m_bForceAsk, if it was TRUE on entry
 // before returning, (but always after having used the TRUE value of course, if passed in
 // as TRUE)
+// BEW 23Apr15 additions to support / as a whitespace word-break char
 bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSupportNoAdaptationButton)
 {
 	// determine the auto caps parameters, if the functionality is turned on
@@ -4467,7 +3838,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
     // If the source word (or phrase) has not been previously encountered, then
     // m_bHasKBEntry (or the equiv flag if glossing is ON) will be false, which has to be
     // true for the StoreText call not to fail. BEW 05July2006: No! The m_bHasKBEntry (if
-    // adapting) or m_bHasGlossingKBEntry (f glossing) flags we are talking about declare,
+    // adapting) or m_bHasGlossingKBEntry (if glossing) flags we are talking about declare,
     // if FALSE, that that PARTICULAR instance in the DOCUMENT does, or does not, yet have
     // a KB entry. When the phrase box lands there, on the other hand, the relevant flag
     // may be TRUE. It then gets its KB entry removed (or ref count decremented) before a
@@ -4687,6 +4058,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				pSrcPhrase->m_adaption = tgtPhrase;
 			}
+#if defined(FWD_SLASH_DELIM)
+			// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
+			if (pSrcPhrase->m_nSrcWords > 1)
+			{
+				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
+			}
+#endif
 			if (!gbInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, also does auto-capitalization adjustments
@@ -4752,6 +4131,16 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 											   // to it (need this for lookups)
 	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be
 															// made lower case
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 at this point, we will use unchangedkey, key, and targetPhrase; if we
+	// are supporting / as a word-breaking pseudo whitespace character (and this is so only
+	// if app->m_bFwdSlashDelimiter is TRUE), then we don't want to store any / in the KB,
+	// so we unilaterally call FwdSlashtoZWSP() here to replace / with ZWSP if any / are
+	// present (which can only be the case if it is a merger we are storing for)
+	unchangedkey = FwdSlashtoZWSP(unchangedkey); // see helpers.cpp
+	key = FwdSlashtoZWSP(key);
+	tgtPhrase = FwdSlashtoZWSP(tgtPhrase);
+#endif
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefString =  NULL;
 	if (m_pMap[nMapIndex]->empty())
@@ -5413,6 +4802,676 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	gbMatchedKB_UCentry = FALSE;
 	return TRUE;
 }
+
+// like StoreAdaption, but with different assumptions since we need to be able to move back
+// when either there is nothing in the current phraseBox (in which case no store need be
+// done), or when the user has finished typing the current srcPhrase's adaption (since it
+// will be saved to the KB when focus moves back.) TRUE if okay to go back, FALSE
+// otherwise. For glossing, pKB must point to the glossing KB, for adapting, to the normal
+// KB.
+// BEW 22Feb10 no changes needed for support of doc version 5
+// BEW 14May10, moved to here from CAdapt_ItView class, and removed pKB param from signature
+// BEW 4Jun10, updated to support kbVersion 2
+// BEW 13Nov10, changes to support Bob Eaton's request for glosssing KB to use all maps,
+// including calling IsFixedSpaceSymbolWithin() to force ~ conjoinings to be stored in
+// map 1 rather than map 2.
+// BEW 29Jul11, removed a cause for duplicate entries to be formed in a CTargetUnit instance
+// BEW 14Sep11, updated to reflect the improved code in StoreText()
+// BEW 17Oct11, updated to turn off app flag m_bForceAsk before returning (but always
+// after having used the TRUE value if it's value on entry was TRUE)
+bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
+{
+	// determine the auto caps parameters, if the functionality is turned on
+	bool bNoError = TRUE;
+	wxString strNot = m_pApp->m_strNotInKB;
+	bool bStoringNotInKB = (strNot == tgtPhrase);
+
+	if (gbAutoCaps)
+	{
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
+	}
+
+	m_pApp->GetDocument()->Modify(TRUE);
+
+	// do not permit storage, when going back, if the source phrase has an empty key
+	if (pSrcPhrase->m_key.IsEmpty())
+	{
+		gbMatchedKB_UCentry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+		return TRUE; // this is not an error, just suppression of the store
+	}
+
+	gbByCopyOnly = FALSE; // restore default setting
+
+	// is the m_targetPhrase empty?
+	if (tgtPhrase.IsEmpty())
+	{
+		// it's empty, so we can go back without saving anything in the kb
+		m_pApp->m_bForceAsk = FALSE; // must ensure this flag is off, no forcing of
+		// Choose Translation dialog is required when moving back
+		gbMatchedKB_UCentry = FALSE;
+		return TRUE;
+	}
+	// for safety, make this check first
+	if (m_bGlossingKB)
+	{
+		if (pSrcPhrase->m_bHasGlossingKBEntry)
+		{
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		}
+	}
+	else
+	{
+		if (pSrcPhrase->m_bHasKBEntry)
+		{
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+		}
+	}
+	// It's not empty, so go ahead and re-store it as-is (but if auto capitalization has
+	// just been turned on, it will be stored as a lower case entry if it is an upper case
+	// one in the doc) first, remove any phrase final space characters
+	if (!tgtPhrase.IsEmpty())
+	{
+		tgtPhrase.Trim();
+	}
+
+	// always place a copy in the source phrase's m_adaption member, etc
+	if (m_bGlossingKB)
+	{
+		wxString s = tgtPhrase;
+		if (gbAutoCaps)
+		{
+			bool bNoError = TRUE;
+			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+			{
+				bNoError = m_pApp->GetDocument()->SetCaseParameters(s, FALSE);
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// change it to upper case
+					s.SetChar(0, gcharNonSrcUC);
+				}
+			}
+		}
+		pSrcPhrase->m_gloss = s;
+	}
+	else
+	{
+		if (tgtPhrase != strNot)
+		{
+			// BEW 29Jul11 added auto-caps code here so that m_adaption gets set in the
+			// same way that MakeTargetStringIncludingPunctuation() will do the
+			// capitalization for m_targetStr, formerly m_adaption was just set to
+			// tgtPhrase no matter whether auto-caps was on or off (and we didn't notice
+			// because the view only shows m_targetStr)
+			wxString s = tgtPhrase;
+			if (gbAutoCaps)
+			{
+				bool bNoError = TRUE;
+				if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+				{
+					bNoError = m_pApp->GetDocument()->SetCaseParameters(s, FALSE); // FALSE is bIsSrcText
+					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					{
+						// change it to upper case
+						s.SetChar(0, gcharNonSrcUC);
+					}
+				}
+				pSrcPhrase->m_adaption = s;
+			}
+			else
+			{
+				pSrcPhrase->m_adaption = tgtPhrase;
+			}
+#if defined(FWD_SLASH_DELIM)
+			// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
+			if (pSrcPhrase->m_nSrcWords > 1)
+			{
+				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
+				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
+			}
+#endif
+			if (!gbInhibitMakeTargetStringCall)
+			{
+				// sets m_targetStr member too, and handles auto-capitalization
+				m_pApp->GetView()->MakeTargetStringIncludingPunctuation(pSrcPhrase, tgtPhrase);
+			}
+		}
+	}
+
+	// if the user doesn't want a store done (he checked the dialog bar's control for this
+	// choice) then return without saving after setting the source phrase's m_bNotInKB flag
+	// to TRUE
+	int nMapIndex;
+	if (!m_bGlossingKB && !m_pApp->m_bSaveToKB)
+	{
+		pSrcPhrase->m_bNotInKB = TRUE;
+		m_pApp->m_bForceAsk = FALSE; // its a valid 'store op' so must turn this flag back off
+		pSrcPhrase->m_bHasKBEntry = FALSE;
+		gbMatchedKB_UCentry = FALSE;
+		return TRUE; // we want the caller to think all is well
+	}
+	else // adapting or glossing
+	{
+		// BEW changed, 13Nov10, to support Bob Eaton's request for a 10map glossing KB
+		if (IsFixedSpaceSymbolWithin(pSrcPhrase))
+		{
+			nMapIndex = 0;
+		}
+		else
+		{
+			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
+		}
+	}
+	// if there is a CTargetUnit associated with the current key, then get it; if not,
+	// create one and add it to the appropriate map
+
+	// if we have too many source words, then we cannot save to the KB, so detect this and
+	// warn the user that it will not be put in the KB, then return TRUE since all is
+	// otherwise okay; this check need be done only when adapting
+	//if (!m_bGlossingKB && pSrcPhrase->m_nSrcWords > MAX_WORDS) << BEW removed 13Nov10
+	if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
+	{
+		pSrcPhrase->m_bNotInKB = TRUE;
+		if (m_bGlossingKB)
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		else
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+		m_pApp->m_bForceAsk = FALSE; // make sure it is now turned off
+		wxMessageBox(_(
+			"Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base.")
+			, _T(""), wxICON_INFORMATION | wxOK);
+		gbMatchedKB_UCentry = FALSE;
+		return TRUE;
+	}
+
+	// continue the storage operation
+	wxString unchangedkey = pSrcPhrase->m_key; // this never has case change done to it
+	// (need this for lookups)
+	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
+
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 at this point, we will use unchangedkey, key, and targetPhrase; if we
+	// are supporting / as a word-breaking pseudo whitespace character (and this is so only
+	// if app->m_bFwdSlashDelimiter is TRUE), then we don't want to store any / in the KB,
+	// so we unilaterally call FwdSlashtoZWSP() here to replace / with ZWSP if any / are
+	// present (which can only be the case if it is a merger we are storing for)
+	unchangedkey = FwdSlashtoZWSP(unchangedkey); // see helpers.cpp
+	key = FwdSlashtoZWSP(key);
+	tgtPhrase = FwdSlashtoZWSP(tgtPhrase);
+#endif
+	CTargetUnit* pTU;
+	CRefString* pRefString;
+	if (m_pMap[nMapIndex]->empty())
+	{
+		pTU = new CTargetUnit;
+		wxASSERT(pTU != NULL);
+		pRefString = new CRefString(pTU); // also creates CRefStringMetadata with creation
+		// datetime and m_whoCreated members set
+		wxASSERT(pRefString != NULL);
+
+		pRefString->m_refCount = 1; // set the count
+		// add the translation string, or gloss string
+		if (bNoError)
+		{
+			if (gbAutoCaps)
+			{
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
+			}
+			else
+			{
+				pRefString->m_translation = tgtPhrase;
+			}
+		}
+		else
+		{
+			// if something went wrong, just save as if gbAutoCaps was FALSE
+			pRefString->m_translation = tgtPhrase;
+		}
+
+#if defined(_KBSERVER)
+		// BEW added 5Oct12, here is a suitable place for kbserver support of
+		// CreateEntry(), since both the key and the translation (both possibly with a case
+		// adjustment for the first letter) are defined.
+		// Note: we can't reliably assume that the newly typed translation or gloss has not
+		// been, independently by some other user, added to the kbserver already, and also
+		// subsequently deleted by him before the present; therefore we must test for the
+		// absence of this src/tgt pair and only upload if the entry really is going to be
+		// a new one.
+		if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+			||
+			(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+		{
+			KbServer* pKbSvr = GetMyKbServer();
+
+			// don't send to kbserver if it's a <Not In KB> entry
+			if (!bStoringNotInKB)
+			{
+				Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+				// populate it's public members (it only has public ones anyway)
+				pCreateEntryThread->m_pKbSvr = pKbSvr;
+				pCreateEntryThread->m_source = key;
+				pCreateEntryThread->m_translation = pRefString->m_translation;
+				// now create the runnable thread with explicit stack size of 10KB
+				wxThreadError error = pCreateEntryThread->Create(1024);
+				if (error != wxTHREAD_NO_ERROR)
+				{
+					wxString msg;
+					msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+						(int)error);
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					//m_pApp->LogUserAction(msg);
+				}
+				else
+				{
+					// no error, so now run the thread (it will destroy itself when done)
+					error = pCreateEntryThread->Run();
+					if (error != wxTHREAD_NO_ERROR)
+					{
+						wxString msg;
+						msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+							(int)error);
+						wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+						//m_pApp->LogUserAction(msg);
+					}
+				}
+			}
+		}
+#endif
+		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
+		if (m_pApp->m_bForceAsk)
+			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
+		// opportunity to add a new refString next time its matched
+		if (m_bGlossingKB)
+			pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+		else
+		{
+			if (bStoringNotInKB)
+			{
+				pSrcPhrase->m_bHasKBEntry = FALSE;
+				pSrcPhrase->m_bNotInKB = TRUE;
+			}
+			else
+			{
+				pSrcPhrase->m_bHasKBEntry = TRUE;
+			}
+		}
+		(*m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit instance in the map
+		if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+		{
+			m_nMaxWords = pSrcPhrase->m_nSrcWords;
+		}
+	}
+	else // do next block when the map is not empty
+	{
+		// there might be a pre-existing association between this key and a CTargetUnit,
+		// so check it out
+		// BEW 29Jul11, the following function had changes made today too, I removed the
+		// alternate uppercase lookup which used to be done when auto-caps is ON and the
+		// lowercase lookup (tried first) failed
+		bool bFound = AutoCapsLookup(m_pMap[nMapIndex], pTU, unchangedkey);
+
+		// if not found, then create a targetUnit, and add the refString, etc, as above;
+		// but if one is found, then check whether we add a new refString or increment the
+		// refCount of an existing one
+		if (!bFound)
+		{
+			pTU = new CTargetUnit;
+			wxASSERT(pTU != NULL);
+			pRefString = new CRefString((CTargetUnit*)pTU); // also creates CRefStringMetadata
+			// with m_creationDateTime and m_whoCreated members set
+			wxASSERT(pRefString != NULL);
+
+			pRefString->m_refCount = 1; // set the count
+			if (gbAutoCaps)
+			{
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE); // FALSE
+				// is value of bIsSrc (auto-caps needs to know whether the
+				// string is source text versus adaptation (or gloss) text
+			}
+			else
+			{
+				pRefString->m_translation = tgtPhrase;
+			}
+
+#if defined(_KBSERVER)
+			// BEW added 5Oct12, here is a suitable place for kbserver support of CreateEntry(),
+			// since both the key and the translation (both possibly with a case adjustment
+			// for the first letter) are defined.
+			if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+				||
+				(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+			{
+				KbServer* pKbSvr = GetMyKbServer();
+
+				// don't send to kbserver if it's a <Not In KB> entry
+				if (!bStoringNotInKB)
+				{
+					Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+					// populate it's public members (it only has public ones anyway)
+					pCreateEntryThread->m_pKbSvr = pKbSvr;
+					pCreateEntryThread->m_source = key;
+					pCreateEntryThread->m_translation = pRefString->m_translation;
+					// now create the runnable thread with explicit stack size of 10KB
+					wxThreadError error = pCreateEntryThread->Create(1024);
+					if (error != wxTHREAD_NO_ERROR)
+					{
+						wxString msg;
+						msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+							(int)error);
+						wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+						//m_pApp->LogUserAction(msg);
+					}
+					else
+					{
+						// no error, so now run the thread (it will destroy itself when done)
+						error = pCreateEntryThread->Run();
+						if (error != wxTHREAD_NO_ERROR)
+						{
+							wxString msg;
+							msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+								(int)error);
+							wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+							//m_pApp->LogUserAction(msg);
+						}
+					}
+				}
+			}
+#endif
+			// continue with the store to the local KB
+			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
+			if (m_pApp->m_bForceAsk)
+				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
+			// opportunity to add a new refString next time its matched
+			if (m_bGlossingKB)
+				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+			else
+			{
+				if (bStoringNotInKB)
+				{
+					pSrcPhrase->m_bNotInKB = TRUE;
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+				}
+				else
+				{
+					pSrcPhrase->m_bHasKBEntry = TRUE;
+				}
+			}
+			(*m_pMap[nMapIndex])[key] = pTU;// store the CTargetUnit instance in the map
+			// update the maxWords limit
+			if (pSrcPhrase->m_nSrcWords > m_nMaxWords)
+			{
+				m_nMaxWords = pSrcPhrase->m_nSrcWords;
+			}
+			// BEW 17Oct11, added next line (fixes bug in version 6, the checkbox, once set,
+			// was staying on at each new phrase box location, and should be off)
+			m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+			return TRUE;
+		}
+		else // we found one
+		{
+			// we have a pTU for this key, so check for a matching CRefString, if there is
+			// no match, then add a new one (note: no need to set m_nMaxWords for this
+			// case)
+			bool bMatched = FALSE;
+			pRefString = new CRefString(pTU);
+			wxASSERT(pRefString != NULL);
+			pRefString->m_refCount = 1; // set the count, assuming this will be stored
+			// (it may not be)
+			// set its gloss or adaptation string; the fancy test is required because the
+			// refStr entry may have been stored in the kb when auto-caps was off, and if
+			// it was upper case for the source text's first letter, then it will have been
+			// looked up only on the second attempt, for which gbMatchedKB_UCentry will
+			// have been set TRUE, and which means the gloss or adaptation will not have
+			// been made lower case - so we must allow for this possibility
+			if (gbAutoCaps)
+			{
+				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
+			}
+			else
+			{
+				pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
+			}
+
+			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
+			while (pos != NULL)
+			{
+				CRefString* pRefStr = (CRefString*)pos->GetData();
+				pos = pos->GetNext();
+				wxASSERT(pRefStr != NULL);
+
+				// does it match?
+				if (*pRefStr == *pRefString) // TRUE if pRStr->m_translation ==
+					//				pRefString->m_translation
+				{
+					// if we get a match, then increment ref count and point to this, etc
+					bMatched = TRUE;
+					if (pRefStr->m_bDeleted)
+					{
+						// we've matched a deleted entry, so we must undelete it
+						pRefStr->m_bDeleted = FALSE;
+						pRefStr->m_refCount = 1;
+						pRefStr->m_pRefStringMetadata->m_creationDateTime = GetDateTimeNow();
+						pRefStr->m_pRefStringMetadata->m_deletedDateTime.Empty();
+						pRefStr->m_pRefStringMetadata->m_modifiedDateTime.Empty();
+						// in next call, param bool bOriginatedFromTheWeb is default FALSE
+						pRefStr->m_pRefStringMetadata->m_whoCreated = SetWho();
+#if defined(_KBSERVER)
+						// BEW added 18Oct12, we must first determine that an
+						// entry with the same src/tgt string is in the remote database,
+						// and that it's currently pseudo-deleted. If that's the case, we
+						// undelete it. If it's not in the remote database at all yet, then
+						// we add it instead as a normal entry. If it's in the remote
+						// database already as a normal entry, then we make no change.
+						// 
+						// BEW 15Nov12, we don't store <Not In KB> as kbserver entries,
+						// and when user locally unticks the Save in KB checkbox to make
+						// that key have only <Not In KB> as the pseudo-adaptation, it
+						// makes any normal adaptations for that key become pseudo-deleted
+						// but we don't inform kbserver of that fact. Therefore, an
+						// attempt to undelete any of those pseudo-deleted entries needs
+						// to be stopped from sending anything to kbserver also. We want to
+						// keep use of <Not In KB> restricted to the particular user who
+						// wants to do that, and not propagate it and deletions /
+						// undeletions that may happen as part of it, to the kbserver.
+						if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+							||
+							(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+						{
+							KbServer* pKbSvr = GetMyKbServer();
+
+							if (!pTU->IsItNotInKB() || !bStoringNotInKB)
+							{
+								Thread_PseudoUndelete* pPseudoUndeleteThread = new Thread_PseudoUndelete;
+								// populate it's public members (it only has public ones anyway)
+								pPseudoUndeleteThread->m_pKbSvr = pKbSvr;
+								pPseudoUndeleteThread->m_source = key;
+								pPseudoUndeleteThread->m_translation = pRefString->m_translation;
+								// now create the runnable thread with explicit stack size of 10KB
+								wxThreadError error = pPseudoUndeleteThread->Create(1024);
+								if (error != wxTHREAD_NO_ERROR)
+								{
+									wxString msg;
+									msg = msg.Format(_T("Thread_PseudoUndelete(): thread creation failed, error number: %d"),
+										(int)error);
+									wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+									//m_pApp->LogUserAction(msg);
+								}
+								else
+								{
+									// no error, so now run the thread (it will destroy itself when done)
+									error = pPseudoUndeleteThread->Run();
+									if (error != wxTHREAD_NO_ERROR)
+									{
+										wxString msg;
+										msg = msg.Format(_T("PseudoUndelete, Thread_Run(): cannot make the thread run, error number: %d"),
+											(int)error);
+										wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+										//m_pApp->LogUserAction(msg);
+									}
+								}
+							}
+						}
+#endif
+					}
+					else
+					{
+						pRefStr->m_refCount++;
+					}
+					if (m_bGlossingKB)
+						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+					else
+					{
+						if (bStoringNotInKB)
+						{
+							// storing <Not In KB>
+							pSrcPhrase->m_bHasKBEntry = FALSE;
+							pSrcPhrase->m_bNotInKB = TRUE;
+						}
+						else
+						{
+							pSrcPhrase->m_bHasKBEntry = TRUE;
+						}
+					}
+
+					// delete the just created pRefString as we won't use it
+					pRefString->DeleteRefString(); // also deletes its CMetadata
+					pRefString = (CRefString*)NULL;
+					// ensure the user's setting is retained for 'force choice for this item'
+					if (m_pApp->m_bForceAsk)
+					{
+						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
+						// ensure it gets set if that is what the user wants
+					}
+					break;
+				} // end of block for processing a matched CRefString entry
+			} // end of while loop
+			// if we get here with bMatched == FALSE, then there was no match, so we must
+			// add the new pRefString to the CTargetUnit instance
+			if (bMatched)
+			{
+				m_pApp->m_bForceAsk = FALSE; // must be turned off before next location arrived at
+				return TRUE;
+			}
+			else
+			{
+				// no match made in the above loop
+				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
+				CRefString* pRefStr = (CRefString*)tpos->GetData();
+				if (!m_bGlossingKB && pRefStr->m_translation == _T("<Not In KB>"))
+				{
+					// keep it that way (the way to cancel this setting is with the toolbar
+					// checkbox) But leave m_adaption and m_targetStr (or m_gloss) having
+					// whatever the user may have typed
+					pSrcPhrase->m_bHasKBEntry = FALSE;
+					pSrcPhrase->m_bNotInKB = TRUE;
+					pSrcPhrase->m_bBeginRetranslation = FALSE;
+					pSrcPhrase->m_bEndRetranslation = FALSE;
+					pRefString->DeleteRefString(); // don't leak memory
+					pRefString = (CRefString*)NULL;
+					m_pApp->m_bForceAsk = FALSE;
+					gbMatchedKB_UCentry = FALSE;
+					return TRUE; // all is well
+				}
+				else // either we are glossing, or we are adapting
+					// and it's a normal adaptation or <Not In KB>
+				{
+					// is the m_targetPhrase empty?
+					if (tgtPhrase.IsEmpty())
+					{
+						// don't store if it is empty, and then return; but if not empty
+						// then go on to do the storage
+						if (!m_bGlossingKB)
+						{
+							pSrcPhrase->m_bBeginRetranslation = FALSE;
+							pSrcPhrase->m_bEndRetranslation = FALSE;
+						}
+						m_pApp->m_bForceAsk = FALSE; // make sure it's turned off
+						pRefString->DeleteRefString(); // don't leak the memory
+						pRefString = (CRefString*)NULL;
+						gbMatchedKB_UCentry = FALSE;
+						return TRUE; // make caller think all is well
+					}
+
+					// recalculate the string to be stored
+					// BEW changed 29Jul11
+					if (gbAutoCaps)
+					{
+						pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase, FALSE);
+					}
+					else
+					{
+						pRefString->m_translation = tgtPhrase;
+					}
+
+#if defined(_KBSERVER)
+					// BEW added 5Oct12, here is a suitable place for kbserver support of
+					// CreateEntry(), since both the key and the translation (both possibly
+					// with a case adjustment for the first letter) are defined.
+					if ((m_pApp->m_bIsKBServerProject && !m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled())
+						||
+						(m_pApp->m_bIsGlossingKBServerProject && m_bGlossingKB && GetMyKbServer()->IsKBSharingEnabled()))
+					{
+						KbServer* pKbSvr = GetMyKbServer();
+
+						if (!bStoringNotInKB)
+						{
+							Thread_CreateEntry* pCreateEntryThread = new Thread_CreateEntry;
+							// populate it's public members (it only has public ones anyway)
+							pCreateEntryThread->m_pKbSvr = pKbSvr;
+							pCreateEntryThread->m_source = key;
+							pCreateEntryThread->m_translation = pRefString->m_translation;
+							// now create the runnable thread with explicit stack size of 10KB
+							wxThreadError error = pCreateEntryThread->Create(1024);
+							if (error != wxTHREAD_NO_ERROR)
+							{
+								wxString msg;
+								msg = msg.Format(_T("Thread_CreateEntry(): thread creation failed, error number: %d"),
+									(int)error);
+								wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+								//m_pApp->LogUserAction(msg);
+							}
+							else
+							{
+								// no error, so now run the thread (it will destroy itself when done)
+								error = pCreateEntryThread->Run();
+								if (error != wxTHREAD_NO_ERROR)
+								{
+									wxString msg;
+									msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
+										(int)error);
+									wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+									//m_pApp->LogUserAction(msg);
+								}
+							}
+						}
+					}
+#endif
+					// continue with the store to the local KB
+					pTU->m_pTranslations->Append(pRefString);
+					if (m_bGlossingKB)
+						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+					else
+					{
+						if (bStoringNotInKB)
+						{
+							pSrcPhrase->m_bNotInKB = TRUE;
+							pSrcPhrase->m_bHasKBEntry = FALSE;
+						}
+						else
+						{
+							pSrcPhrase->m_bHasKBEntry = TRUE;
+						}
+					}
+				}
+			}
+		}
+	}
+	m_pApp->m_bForceAsk = FALSE; // must be turned off, as it applies
+	// to one store operation only
+	gbMatchedKB_UCentry = FALSE;
+	return TRUE;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

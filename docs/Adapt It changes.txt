@@ -1,4 +1,70 @@
 ----------------------------------------------
+Version 6.5.9 Pre-Release 15 May 2015
+----------------------------------------------
+----------------------------------------------
+Feature changes and new features in 6.5.9 Pre-Release
+----------------------------------------------
+* A new checkbox in the View tab of Preferences allows the
+user to turn on support for a forward slash (the solidus 
+character / ) to be used as a word-breaking delimiter
+character like other whitespace characters such as Latin
+space, ZWSP (zero width space), non-breaking space, and
+various others. But the / delimiter will appear only in
+text which is editable (that is, when displayed in an
+edit box); while when text is not editable (such as when
+stored in the KB or displayed in the interlinear layout)
+the application will automatically have converted the /
+instances to ZWSP. This feature is useful in certain
+east asian languages, where the Paratext team have 
+provided, within Paratext, support for / as a word-break
+character in Unformatted view, but by means of consistent
+changes, display it as ZWSP in Paratext's other views.
+This feature within Adapt It also relies on two
+consistent changes tables, with fixed names:
+FwdSlashInsertAtPuncts.cct and FwdSlashRemoveAtPuncts.cct
+which are distributed in the CC folder of the Adapt It
+installation, and when Adapt It runs are copied to the
+work folder's _CCTABLE_INPUT_OUTPUTS folder automatically,
+and used from there.
+The 'insert' table inserts a forward slash where it needs
+to go when wide-character punctuation occurs between words,
+and the 'remove' table removes it from punctuation
+environments when the text needs to be returned to having
+no solidus where such punctuation character(s) occur - because
+in Paratext the / is not used when wide-character punctuation
+occurs for the simple reason that the punctuation is sufficient
+by itself to indicate where the preceding word ends and the
+next starts. This interplay of / and ZWSP is supported also
+when collaborating with Paratext or Bibledit. To use this
+feature in Adapt It correctly, the user must remember to
+type a / between each word, whenever typing text which is
+intended to be displayed as if there were no word separations.
+* Support for ZWSP was (deliberately) omitted for exports
+of the glosses 'as if they were connected text'. But it
+has now been included. This means it will also work with
+the use of solidus (the / forward slash) as a word-break
+character.
+* It is unlikely that this Pre-Release version will be
+made available at http://adapt-it.org. It is intended to be
+distributed to only those intending to make use of this
+new feature. The next general release will include this
+new feature and it will be available to everyone from
+that time onwards.
+----------------------------------------------
+Bug fixes in 6.5.9 Pre-Release
+----------------------------------------------
+* In free translation mode, tabbing from button to button halted
+at the Remove button.
+* If there were two successive spans of filterable material, and both 
+were filtered, the first span was doubled in the filtering.
+* If working with an asian language where ZWSP is used for word
+delimitation (ie. word breaking, for m_bUseSrcWordBreak TRUE), then
+latin space was wrongly used to separate the individual words in an
+exported retranslation. Now it outputs whatever was the original
+retranslation text's saved word-breaking character, or whatever
+else the user may have used as the word separator due to his edits 
+within the retranslation dialog.
+----------------------------------------------
 Version 6.5.8 release 5 March 2015
 ----------------------------------------------
 ----------------------------------------------

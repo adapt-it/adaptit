@@ -29,8 +29,16 @@ class CBString;
 class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPList); macro 
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
-//class SPArray; // declared in MergeUpdatedSrc.h as a global type, defined in it's .cpp file
 
+#if defined(FWD_SLASH_DELIM)
+//class SPArray; // declared in MergeUpdatedSrc.h as a global type, defined in it's .cpp file
+//enum FwdSlashDelimiterSupport;
+enum FwdSlashDelimiterSupport
+{
+	insertAtPunctuation,
+	removeAtPunctuation
+};
+#endif
 /// An enum for return error-state from GetNewFile()
 enum getNewFileState
 {
@@ -562,6 +570,15 @@ bool	IsNestedMarkerOrMarkerTag(wxChar* ptrToMkr, wxString& tagOnly,
 #ifdef __WXMAC__
 // GDLC 6May11 Added to avoid trying to include the Mach OS headers inside the class CAdapt_ItApp
 wxMemorySize MacGetFreeMemory(void);
+#endif
+
+#if defined(FWD_SLASH_DELIM)
+// BEW added 23Apr15 for support of / as a word-breaker
+wxString ZWSPtoFwdSlash(wxString& str);
+wxString FwdSlashtoZWSP(wxString& str);
+wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, wxString& str);
+bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase); // return true if app's m_bFwdSlashDelimiter
+		// is TRUE, and CSourcePhrase's  m_srcWordBreak contains a / (solidus, or forward slash)
 #endif
 
 #endif	// helpers_h

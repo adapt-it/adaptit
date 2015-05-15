@@ -2569,6 +2569,7 @@ void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 // View Filtered Information dialog which uses a placeholding space)
 // BEW changed 7Dec10, to rectify a logic error which resulted in endmarker and \~FILTER*
 // not being added to the end of the content string
+// BEw 23Apr15, added support for / used as a word-breaking character
 void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
 					wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent,
 					bool bChangeSpaceToEmpty)
@@ -2587,8 +2588,13 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 	wxString aSpace = _T(" ");
 	for (index = 0; index < count; index++)
 	{
+		wxString strContent = pFilteredContent->Item(index);
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		strContent = FwdSlashtoZWSP(strContent);
+#endif
 		markersAndContent << filterMkr << aSpace << pFilteredMarkers->Item(index) \
-			<< aSpace << pFilteredContent->Item(index);
+			<< aSpace << strContent;
         // if there is an endmarker, insert it, but with no space before it - a space is
         // allowed, but in some publication scenarios punctuation might be wanted hard up
         // against the end of a preceding word and followed after the endmarker with a

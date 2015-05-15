@@ -5702,6 +5702,24 @@ wxString szAdminProjectConfiguration = _T("AI-AdminProjectConfiguration");
 /// but nothing happens if the checkbox is FALSE. Checkbox is in the View page of Preferences
 wxString szEnableZWSPinsertion = _T("Enable_ZWSP_Insertion");
 
+/// When its checkbox is TRUE, / (solidus, or 'forward slash') is supported
+/// as a word-break delimiter, along with other whitespace characters, between
+/// words. This applies to certain east asian languages where normally only
+/// ZWSP (zero width space) would be used - but the Paratext people have 
+/// provided certain users with this option, since the people have no mental concept
+/// of a "word". Paratext shows the / only in Unformatted view; other views
+/// show ZWSP (replaced by auto-calling a Consistent Changes table, and 
+/// converting back to the forward slash is auto-done by a different table).
+/// We have emulated this kind of support, and it is turned on by a checkbox
+/// in the ViewPage class, and the app flag is m_bFwdSlashDelimiter; code
+/// connected with this feature is wrapped in FWD_SLASH_DELIM conditional
+/// #ifdef .... #endif blocks; only to make it easy to locate the code
+/// fragments. The boolean we store in the project config file.
+/// BEW added 23Apr15
+#if defined(FWD_SLASH_DELIM)
+wxString szSolidusWordBreaker = _T("Support_Slash_As_Word_Separator");
+#endif
+
 /// The name that introduces the properties of the source font within both
 /// the basic and project configuration files.
 wxString szSourceFont = _T("SourceFont"); // don't need \n now
@@ -15285,6 +15303,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						  // done on se asian languages with ZWSP word delimiters, and
 						  // also in mergers for handling free trans, notes, collected
 						  // back translations - see PutSrcWordBreakFrTr() in helpers.cpp
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 support / as a word-breaking character for some asian languages during prepublication processing
+	//m_bFwdSlashDelimiter = TRUE; // forced to TRUE when experimenting (before GUI support added)
+	m_bFwdSlashDelimiter = FALSE; // default, only needed for a few languages
+#endif
 
 	m_nExtraPixelsForDiacritics = 0; // default, but Project config file may override it 
 									 // (see View page of Prefs, the slider control)
@@ -15540,7 +15563,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// nested markers in the USFM 2.4 standard, do not ever take + (ie. are not ever nested)
 	// and so no markers like \+f \+ft ... \+x etc do not occur
 	m_FootnoteMarkers = _T("\\f \\f* \\fe \\fe* \\fr \\fk \\fq \\fqa \\fl \\fp \\fv \\ft \\fdc \\fdc* \\fm \\fm* ");
-	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* \\xtSee \\xtSee* \\xtSeeAlso \\xtSeeAlso* ");
+	m_CrossReferenceMarkers = _T("\\x \\x* \\xo \\xk \\xq \\xt \\xot \\xot* \\xnt \\xnt* \\xdc \\xdc* ");
 
 	// whm 8Jul12 added these wxArrayString elements
 	m_crossRefMarkerSet.Add(_T("\\x ")); // include the parent cross reference marker
@@ -15551,8 +15574,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_crossRefMarkerSet.Add(_T("\\xot "));
 	m_crossRefMarkerSet.Add(_T("\\xnt "));
 	m_crossRefMarkerSet.Add(_T("\\xdc "));
-	m_crossRefMarkerSet.Add(_T("\\xtSee "));
-	m_crossRefMarkerSet.Add(_T("\\xtSeeAlso "));
 
 	// whm 8Jul12 added these wxArrayString elements
 	m_footnoteMarkerSet.Add(_T("\\f ")); // include the parent footnote marker
@@ -19990,6 +20011,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString AIusageLogFolderPath;
 	wxString AIpackedDocumentFolderPathOnly;
 	wxString AIccTableFolderPathOnly;
+#if defined(FWD_SLASH_DELIM)
+	wxString AIccTableInstallFolderPathOnly; // will point to m_xmlInstallPath\CC folder on Win,
+				// but /usr/share/adaptit/CC folder on Linux, or AdaptIt.app/Contents/Resources/CC
+				// folder on Mac (those Linux and Mac ones are each also m_xmlInstallPath...)
+#endif
 	wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
 	if (strUserID.IsEmpty())
 	{
@@ -20047,6 +20073,185 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
     // Now the user log file is set up, we can call git:
     m_DVCS_installed = ( m_pDVCS->DoDVCS (DVCS_CHECK, 0) == 0 );       // if this call returns an error, assume DVCS not installed
+
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15. The _CC_INPUTS_OUTPUTS folder now exists in the work folder. Path to
+	// it is:  m_ccTableInputsAndOutputsFolderPath, which will not be an empty string.
+	// The two CC table files, FwdSlashInsertAtPuncts.cct and FwdSlashRemoveAtPuncts.cct
+	// will be stored in the CC folder (with other .cct files) of the setup folder, which
+	// is the same path as in m_xmlInstallPath on all platforms. So we must set up a path
+	// to that CC folder; and check if those .cct table files are present etc. We'll
+	// eventually store the path in a new wxString, m_ccTableInstallPath
+	AIccTableInstallFolderPathOnly = m_xmlInstallPath + PathSeparator + _T("CC");
+	bool bCcInstallFolderExists = wxDirExists(AIccTableInstallFolderPathOnly);
+	bool bWorkCcFwdSlashInsertTableFileExists = FALSE; // initialize, assume it is not in 
+									// _CCTABLE_INPUTS_OUTPUTS until we confirm it is there
+	bool bWorkCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in 
+									// _CCTABLE_INPUTS_OUTPUTS until we confirm it is there
+	wxString pathToWorkFolderFwdSlashInsertCcFile;
+	wxString pathToWorkFolderFwdSlashRemoveCcFile;
+	pathToWorkFolderFwdSlashInsertCcFile = m_ccTableInputsAndOutputsFolderPath + PathSeparator + _T("FwdSlashInsertAtPuncts.cct");
+	pathToWorkFolderFwdSlashRemoveCcFile = m_ccTableInputsAndOutputsFolderPath + PathSeparator + _T("FwdSlashRemoveAtPuncts.cct");
+	// Check if these files are present in the m_ccTableInputsAndOutputsFolderPath folder. It 
+	// could be so by virtue of the user having manually placed them there earlier, even it
+	// not included in the most recent installer
+	bWorkCcFwdSlashInsertTableFileExists = wxFileExists(pathToWorkFolderFwdSlashInsertCcFile);
+	bWorkCcFwdSlashRemoveTableFileExists = wxFileExists(pathToWorkFolderFwdSlashRemoveCcFile);
+	wxString pathToFwdSlashInsertCcFileInCcFolder = _T("");
+	wxString pathToFwdSlashRemoveCcFileInCcFolder = _T("");
+	m_ccTableInstallPath = _T(""); // assume no valid path until we confirm it's present
+	bool bInstallFolderCcFwdSlashInsertTableFileExists = FALSE; // initialize, assume it is not in 
+								// CC folder of m_xmlInstallPath folder until we confirm it is there
+	bool bInstallFolderCcFwdSlashRemoveTableFileExists = FALSE; // initialize, assume it is not in 
+								// CC folder of m_xmlInstallPath folder until we confirm it is there
+	if (bCcInstallFolderExists)
+	{
+		m_ccTableInstallPath = AIccTableInstallFolderPathOnly; // the path to CC folder is valid
+		pathToFwdSlashInsertCcFileInCcFolder = m_ccTableInstallPath + PathSeparator + _T("FwdSlashInsertAtPuncts.cct");
+		pathToFwdSlashRemoveCcFileInCcFolder = m_ccTableInstallPath + PathSeparator + _T("FwdSlashRemoveAtPuncts.cct");
+		// Check if these files are also present in the CC folder within the setup folder
+		bInstallFolderCcFwdSlashInsertTableFileExists = wxFileExists(pathToFwdSlashInsertCcFileInCcFolder);
+		bInstallFolderCcFwdSlashRemoveTableFileExists = wxFileExists(pathToFwdSlashRemoveCcFileInCcFolder);
+		// If both the booleans of the previous two lines are TRUE, then we need to copy each
+		// .cct table file and move the copies to the _CCTABLE_INPUTS_OUTPUTS folder if they are 
+		// not already there. If there are already such files there, then we must instead
+		// check the modification dates... if the ones in the install folder's CC folder are
+		// datetimed later than the ones of same name in _CCTABLE_INPUTS_OUTPUTS folder, then we
+		// overwrite the ones in the latter location with the newer ones from the CC folder;
+		// otherwise, make no change if the ones in the _CCTABLE_INPUTS_OUTPUTS folder have later
+		// or the same modification dates. The following code block implements this logic; the
+		// logic is copied from the extensively commented similar logic for moving the AI_USFM.xml
+		// file a little further below in OnInit(), so I will not comment the code here much.
+		// I'll do two blocks of code; one for each .cct table file's potential movement
+		// because I can't rule out that one cct table file may be present, but not the other
+
+		if (!bWorkCcFwdSlashInsertTableFileExists) // Dealing with FwdSlashInsertAtPuncts.cpp
+		{
+			// It is not present in the _CCTABLE_INPUTS_OUTPUTS folder, so try copy it over
+			if (bInstallFolderCcFwdSlashInsertTableFileExists)
+			{
+				bool copyOK;
+				copyOK = wxCopyFile(pathToFwdSlashInsertCcFileInCcFolder, pathToWorkFolderFwdSlashInsertCcFile, TRUE); // TRUE = overwrite
+				if (copyOK)
+				{
+					bWorkCcFwdSlashInsertTableFileExists = TRUE;
+					//wxLogDebug(_T("Copying existing FwdSlashInsertAtPuncts.cpp from setup's CC folder to user's _CCTABLE_INPUTS_OUTPUTS folder in the work folder."));
+				}
+				else
+				{
+					bWorkCcFwdSlashInsertTableFileExists = FALSE;
+					wxString msg = _T("Could NOT copy existing FwdSlashInsertAtPuncts.cpp from setup's CC folder to user's _CCTABLE_INPUTS_OUTPUTS folder in the work folder.");
+					wxLogDebug(msg);
+					LogUserAction(msg);
+				}
+			}
+		}
+		else
+		{
+			// It is present already, so overwrite only if install folder's CC folder's version is newer
+			bool bSetupFolderHasNewerVersion = FALSE; // initialize
+			if (bInstallFolderCcFwdSlashInsertTableFileExists)
+			{
+				bSetupFolderHasNewerVersion = FileHasNewerModTime(pathToFwdSlashInsertCcFileInCcFolder, pathToWorkFolderFwdSlashInsertCcFile);
+			}
+			if (bSetupFolderHasNewerVersion)
+			{
+				if (!wxRemoveFile(pathToWorkFolderFwdSlashInsertCcFile))
+				{
+					wxString msg = _T("Could not remove the FwdSlashInsertAtPuncts.cct file from the work folder's _CCTABLE_INPUTS_OUTPUTS folder.");
+					wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+					LogUserAction(msg);
+				}
+				if (bInstallFolderCcFwdSlashInsertTableFileExists)
+				{
+					// copy the file to the work folder's _CCTABLE_INPUT_OUTPUT folder
+					bool copyOK;
+					copyOK = wxCopyFile(pathToFwdSlashInsertCcFileInCcFolder, pathToWorkFolderFwdSlashInsertCcFile, TRUE); // TRUE = overwrite
+					if (copyOK)
+					{
+						bWorkCcFwdSlashInsertTableFileExists = TRUE;
+						//wxLogDebug(_T("Copying newer version of FwdSlashInsertAtPuncts.cpp to user's work folder's _CCTABLE_INPUTS_OUTPUTS folder."));
+					}
+					else
+					{
+						bWorkCcFwdSlashInsertTableFileExists = FALSE;
+						wxString msg = _T("Could not copy newer version of FwdSlashInsertAtPuncts.cpp to user's work folder's _CCTABLE_INPUTS_OUTPUTS folder.");
+						wxLogDebug(msg);
+						LogUserAction(msg);
+					}
+				}
+			}
+		} // end of else block for test: if (!bWorkCcFwdSlashInsertTableFileExists)
+
+		// Now an identical logic, but for the FwdSlashRemoveAtPuncts.cct table file...
+
+		if (!bWorkCcFwdSlashRemoveTableFileExists) // Dealing with FwdSlashRemoveAtPuncts.cpp
+		{
+			// It is not present in the _CCTABLE_INPUTS_OUTPUTS folder, so try copy it over
+			if (bInstallFolderCcFwdSlashRemoveTableFileExists)
+			{
+				bool copyOK;
+				copyOK = wxCopyFile(pathToFwdSlashRemoveCcFileInCcFolder, pathToWorkFolderFwdSlashRemoveCcFile, TRUE); // TRUE = overwrite
+				if (copyOK)
+				{
+					bWorkCcFwdSlashRemoveTableFileExists = TRUE;
+					//wxLogDebug(_T("Copying existing FwdSlashRemoveAtPuncts.cpp from setup's CC folder to user's _CCTABLE_INPUTS_OUTPUTS folder in the work folder."));
+				}
+				else
+				{
+					bWorkCcFwdSlashRemoveTableFileExists = FALSE;
+					wxString msg = _T("Could NOT copy existing FwdSlashRemoveAtPuncts.cpp from setup's CC folder to user's _CCTABLE_INPUTS_OUTPUTS folder in the work folder.");
+					wxLogDebug(msg);
+					LogUserAction(msg);
+				}
+			}
+		}
+		else
+		{
+			// It is present already, so overwrite only if install folder's CC folder's version is newer
+			bool bSetupFolderHasNewerVersion = FALSE; // initialize
+			if (bInstallFolderCcFwdSlashRemoveTableFileExists)
+			{
+				bSetupFolderHasNewerVersion = FileHasNewerModTime(pathToFwdSlashRemoveCcFileInCcFolder, pathToWorkFolderFwdSlashRemoveCcFile);
+			}
+			if (bSetupFolderHasNewerVersion)
+			{
+				if (!wxRemoveFile(pathToWorkFolderFwdSlashRemoveCcFile))
+				{
+					wxString msg = _T("Could not remove the FwdSlashRemoveAtPuncts.cct file from the work folder's _CCTABLE_INPUTS_OUTPUTS folder.");
+					wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+					LogUserAction(msg);
+				}
+				if (bInstallFolderCcFwdSlashRemoveTableFileExists)
+				{
+					// copy the file to the work folder's _CCTABLE_INPUTS_OUTPUTS folder
+					bool copyOK;
+					copyOK = wxCopyFile(pathToFwdSlashRemoveCcFileInCcFolder, pathToWorkFolderFwdSlashRemoveCcFile, TRUE); // TRUE = overwrite
+					if (copyOK)
+					{
+						bWorkCcFwdSlashRemoveTableFileExists = TRUE;
+						//wxLogDebug(_T("Copying newer version of FwdSlashRemoveAtPuncts.cpp to user's work folder's _CCTABLE_INPUTS_OUTPUTS folder."));
+					}
+					else
+					{
+						bWorkCcFwdSlashRemoveTableFileExists = FALSE;
+						wxString msg = _T("Could not copy newer version of FwdSlashRemoveAtPuncts.cpp to user's work folder's _CCTABLE_INPUTS_OUTPUTS folder.");
+						wxLogDebug(msg);
+						LogUserAction(msg);
+					}
+				}
+			}
+		} // end of else block for test: if (!bWorkCcFwdSlashRemoveTableFileExists)
+
+	} // end of TRUE block for test: if (bCcInstallFolderExists)
+#endif
+
+	// test code
+	//CSourcePhrase sp;
+	//CSourcePhrase* psp = &sp;
+	//psp->SetSrcWordBreak(_T("/"));
+	//m_bFwdSlashDelimiter = TRUE;
+	//bool bHasOne = HasFwdSlashWordBreak(psp);
 
 	// Does AI_USFM.xml exist in the work folder
 	bool bWorkStyleFileExists = wxFileExists(AIstyleFileWorkFolderPath);
@@ -20108,7 +20313,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			else
 			{
 				bWorkStyleFileExists = FALSE;
-				wxLogDebug(_T("Could NOT copy existing AI_USFM.xml from m_xmlInstallPath to user's work folder."));
+				// BEW 23Apr15 changed to make this not localizable, it is better to put the English message up, and have
+				// it also in the usage log - so that the devs can potentially get the needed info 
+				wxString msg = _T("Could NOT copy the existing AI_USFM.xml from m_xmlInstallPath to user's work folder.");
+				wxLogDebug(msg);
+				LogUserAction(msg);
 			}
 		}
 	}
@@ -20134,8 +20343,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		{
 			if (!wxRemoveFile(AIstyleFileWorkFolderPath))
 			{
-				wxMessageBox(_("Could not remove the AI_USFM.xml file from the work folder."),
-					_T(""), wxICON_INFORMATION | wxOK);
+				// BEW 23Apr15 better handled this way, using LogUserAction, so devs can potentially learn what happened
+				wxString msg = _T("Could not remove the AI_USFM.xml file from the work folder.");
+				wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+				LogUserAction(msg);
 			}
 			if (bSetupStyleFileExists)
 			{
@@ -20169,7 +20380,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				else
 				{
 					bWorkStyleFileExists = FALSE;
-					wxLogDebug(_T("Could not copy newer version of AI_USFM.xml to user's work folder."));
+					// BEW 23Apr15 changed, better to not localize but get the info into the log
+					wxString msg = _T("Could not copy newer version of AI_USFM.xml to user's work folder.");
+					wxMessageBox(msg, _T(""), wxICON_INFORMATION | wxOK);
+					LogUserAction(msg);
 				}
 			}
 		}
@@ -22635,7 +22849,9 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
     // version 2.5.3 and later, so we use it here.
 
 	m_bEnableZWSPInsertion = FALSE; // initialize to FALSE, only project config can make it TRUE
-
+#if defined(FWD_SLASH_DELIM)
+	m_bFwdSlashDelimiter = FALSE; // initialize to FALSE, only project config can make it TRUE
+#endif
 	bool bReturn = FALSE;
 	bReturn = bReturn; // avoid GCC warning
 	bool bDoNormalStart = TRUE;
@@ -31324,8 +31540,12 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 		else if (name == szGapWidth)
 		{
 			num = wxAtoi(strValue);
-			if (num < 6 || num > 80)
-				num = 16;
+			// BEW 23Apr15 to support wordless languages where / is used as wordbreaker char
+			// we have new minimum of 0
+			//if (num < 6 || num > 80)
+			//	num = 16;
+			if (num < 0 || num > 80)
+				num = 8;
 			m_curGapWidth = num;
 		}
 		else if (name == szSuppressFirst)
@@ -32669,7 +32889,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	m_curLeading = 32;
 	m_curLMargin = 16;	// whm changed default to 16 for better visibility of any notes
 						// icon at left margin
-	m_curGapWidth = 16;
+	m_curGapWidth = 10; // BEW 23Apr15 changed from 16 to 10, config file will override though
 	m_bSuppressFirst = TRUE;
 	m_bSuppressLast = TRUE;
 	gnExpandBox = 8;
@@ -33401,6 +33621,12 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szEnableZWSPinsertion << tab << (int)m_bEnableZWSPInsertion;
 	pf->AddLine(data);
 
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	data.Empty();
+	data << szSolidusWordBreaker << tab << (int)m_bFwdSlashDelimiter;
+	pf->AddLine(data);
+#endif
 	// BEW added 13Mar13 and removed support for it on 30Jul13; we no longer
 	// write it, but we'll read it if it occurs in anyone's projecct config file
 	//data.Empty();
@@ -33974,6 +34200,19 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bEnableZWSPInsertion = FALSE;
 			}
 		}
+#if defined(FWD_SLASH_DELIM)
+		else if (name == szSolidusWordBreaker)
+		{
+			if (strValue == _T("1"))
+			{
+				m_bFwdSlashDelimiter = TRUE;
+			}
+			else
+			{
+				m_bFwdSlashDelimiter = FALSE;
+			}
+		}
+#endif
 		// BEW added 13Mar13 and removed support on 30Jul13, we'll read it
 		// if present in an older project config file, but not use it anywhere
 		else if (name == szDoLegacyLowerCaseLookup)
@@ -41992,8 +42231,6 @@ wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMark
 		AddFilterMarkerToString(markerStr, _T("\\xot "));
 		AddFilterMarkerToString(markerStr, _T("\\xnt "));
 		AddFilterMarkerToString(markerStr, _T("\\xdc "));
-		AddFilterMarkerToString(markerStr, _T("\\xtSee "));
-		AddFilterMarkerToString(markerStr, _T("\\xtSeeAlso "));
 	}
 	else
 	{
@@ -42006,8 +42243,6 @@ wxString CAdapt_ItApp::CleanupFilterMarkerOrphansInString(wxString strFilterMark
 		RemoveFilterMarkerFromString(markerStr, _T("\\xot "));
 		RemoveFilterMarkerFromString(markerStr, _T("\\xnt "));
 		RemoveFilterMarkerFromString(markerStr, _T("\\xdc "));
-		RemoveFilterMarkerFromString(markerStr, _T("\\xtSee "));
-		RemoveFilterMarkerFromString(markerStr, _T("\\xtSeeAlso "));
 	}
 	if (bFootNoteMkrExists || bEndNoteMkrExists)
 	{

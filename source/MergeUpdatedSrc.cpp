@@ -870,7 +870,9 @@ void MergeUpdatedSourceText(SPList& oldList, SPList& newList, SPList* pMergedLis
 // by the user's editing to any one place in the old (probably exported) source text; if
 // that condition is violated, it will not return all the data. I use a value of 80 for
 // limit, but for potentially large blocks of new material, -1 should be used & be
-// prepared for things to slow down! It's an N squared algorithm.
+// prepared for things to slow down! It's an N squared algorithm. (But for large lists
+// it automatically uses a faster regular sampling algorithm to find the largest span, 
+// and that keeps processing working at very acceptable fast speeds.)
 void MergeUpdatedSrcTextCore(SPArray& arrOld, SPArray& arrNew, SPList* pMergedList, int limit)
 {
 	int nStartingSequNum;

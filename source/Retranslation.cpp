@@ -379,7 +379,12 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 
 #else // _UNICODE version
 				// use UTF-8 encoding
-				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,oldText);
+#if defined(FWD_SLASH_DELIM)
+				// BEW added 23Apr15
+				oldText = FwdSlashtoZWSP(oldText);
+				newText = FwdSlashtoZWSP(newText);
+#endif
+				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8, pFile, oldText);
 				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,newText);
 				newText = endText; // get a blank line
 				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,newText); // write blank line
@@ -456,7 +461,11 @@ bool CRetranslation::IsEndInCurrentSelection()
 // everything else uses the new member, m_srcWordBreak). We use helper.cpp's
 // PutTgtWordBreak() to access the m_tgtWordBreak string (for docs created before docVersion
 // 9, it will return a normal latin space, since m_tgtWordBreak member doesn't exist on those)
-void CRetranslation::AccumulateText(SPList* pList,wxString& strSource,wxString& strAdapt)
+// pList is only those CSourcePhrase instances that were selected
+// strSource and strAdapt are for returning the accumlated source and target text strings to
+// the caller
+// BEW 23Apr15, added support for / being uses as a whitespace type of word-breaking delimiter
+void CRetranslation::AccumulateText(SPList* pList, wxString& strSource, wxString& strAdapt)
 {
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
@@ -505,6 +514,8 @@ void CRetranslation::AccumulateText(SPList* pList,wxString& strSource,wxString& 
 			{
 				if (!str.IsEmpty())
 					strAdapt += PutTgtWordBreak(pSrcPhrase) + str;
+				else
+					strAdapt += str;
 			}
 			// also accumulate the source language text (line 1), provided it 
 			// is not a null source phrase
@@ -522,8 +533,24 @@ void CRetranslation::AccumulateText(SPList* pList,wxString& strSource,wxString& 
 			}
 		}
 	}
+	// for retranslation support  - prepare adaptation text for editing
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 -- prepare any target text, for editability & / in-place where required
+	if (!strAdapt.IsEmpty())
+	{
+		strAdapt = ZWSPtoFwdSlash(strAdapt);
+		strAdapt = DoFwdSlashConsistentChanges(removeAtPunctuation, strAdapt);
+	}
+#endif
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15 -- prepare source text selected, for non-editable display
+	strSource = FwdSlashtoZWSP(strSource);
+#endif
+
 }
 
+// BEW 23Apr15, no changes, but the internal call of DoOneDocRepport has changes for
+// support of / as a whitespace word-breaking character
 void CRetranslation::DoRetranslationReport(CAdapt_ItDoc* pDoc,
 										   wxString& name, wxArrayString* pFileList,
 										   SPList* pList, wxFile* pFile,
@@ -686,6 +713,7 @@ void CRetranslation::ReplaceMatchedSubstring(wxString strSearch, wxString& strRe
 //
 // BEW 16Feb10, no changes needed for support of doc version 5
 // BEW 21Jul14 refactored for docVersion 9 (support of restoration of ZWSP in target text etc)
+// BEW 23Apr15, added support for / as a word-breaking whitespace
 void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 													 wxString& strSource, wxString& strAdapt)
 {
@@ -803,6 +831,15 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 			}
 		}
 	}
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15
+	strAdapt = ZWSPtoFwdSlash(strAdapt);
+	strAdapt = DoFwdSlashConsistentChanges(removeAtPunctuation, strAdapt);
+#endif
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	strSource = ZWSPtoFwdSlash(strSource);
+#endif
 }
 
 // pList is the list to be copied, pCopiedList contains the copies
@@ -1087,7 +1124,7 @@ void CRetranslation::BuildRetranslationSourcePhraseInstances(SPList* pRetransLis
 	}
 }
 
-/* BEW deprecatedd 9Mar11
+/* BEW deprecated 9Mar11
 // pList is a sublist of CSourcePhrase instances, from a reparse of a source text string
 // (typically from calling FromMergerMakeSstr() which re-generates the source of the
 // merger, including all markers and (if we request it, and we would have) all filtered
@@ -1620,9 +1657,10 @@ void CRetranslation::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& st
 {
 	bool bGotTranslation;
 	bool bNoError = TRUE;
+	wxString theKey = pSrcPhrase->m_key;
 	if (gbAutoCaps)
 	{
-		bNoError = m_pApp->GetDocument()->SetCaseParameters(pSrcPhrase->m_key);
+		bNoError = m_pApp->GetDocument()->SetCaseParameters(theKey);
 	}
 
     // although this function strictly speaking is not necessarily invoked in the context
@@ -1856,6 +1894,7 @@ void CRetranslation::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
 // two RecalcLayout() calls; the one at the end can safely use keep_strips_keep_piles.
 // If these changes were not make, then for a retranslation of mergers at 1st or second
 // strip, get a crash (an index bounds error, when OnDraw() is called).
+// BEW 23Apr15 added support for / used as a word-breaking whitespace character.
 void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 {
 	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
@@ -2197,7 +2236,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 
     // BEW addition 21Jul14, We are now thru all the checks, so since we are about to go
     // ahead, copy the m_srcWordBreak to m_tgtWordBreak for each CSourcePhrase in the list,
-    // as the m_tgtWordBreak contents ae used for forming the editable adaptation
+    // as the m_tgtWordBreak contents are used for forming the editable adaptation
 	size_t index;
 	size_t count = pList->GetCount();
 	for (index = 0; index < count; index++)
@@ -2265,7 +2304,13 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		// same. So I've used the alternative function which explicitly uses the target
 		// text punctuation (when the final param is TRUE)
 		//nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
-		nNewCount = m_pView->TokenizeTargetTextString(pRetransList,retrans,nSaveSequNum,TRUE);
+#if defined(FWD_SLASH_DELIM)
+		// BEW 23Apr15 - the user can be expected to have typed / between words, but not
+		// contiguous to punctuation; so we must ensure any / contiguous to punctuation get
+		// / inserted where the wordbreak should be located.
+		retrans = DoFwdSlashConsistentChanges(insertAtPunctuation, retrans);
+#endif
+		nNewCount = m_pView->TokenizeTargetTextString(pRetransList, retrans, nSaveSequNum, TRUE);
 
 		// augment the active sequ num if it lay after the selection
 		if (bActiveLocAfterSelection && nNewCount > nCount)
@@ -2598,6 +2643,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 // to an inevitable crash. Solution is to use create_strips_keep_piles. Also, changed the
 // code so that no document changes are done prior to the ShowModal() call, so that if the
 // user clicks the Cancel button, no restoration of a prior state of the doc is required.
+// BEW 23Apr15 added support for using / as a word-breaking whitespace character
 void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 {
 	m_lastNonPlaceholderSrcWordBreak.Empty(); // clear it ready for use
@@ -3037,7 +3083,13 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		// m_nSequNumber are set)
 		// nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
 		// the TRUE causes target text punctuation to be used in the parse - see OnButtonRetranslation()
-		nNewCount = m_pView->TokenizeTargetTextString(pRetransList,retrans,nSaveSequNum,TRUE);
+#if defined(FWD_SLASH_DELIM)
+		// BEW 23Apr15 - the user can be expected to have typed / between words, but not
+		// contiguous to punctuation; so we must ensure any / contiguous to punctuation get
+		// / inserted where the wordbreak should be located.
+		retrans = DoFwdSlashConsistentChanges(insertAtPunctuation, retrans);
+#endif
+		nNewCount = m_pView->TokenizeTargetTextString(pRetransList, retrans, nSaveSequNum, TRUE);
 
         // ensure any call to InsertNullSrcPhrase() will work right - that function saves
         // the m_pApp->m_nActiveSequNum value, and increments it by how many null source
@@ -3500,6 +3552,7 @@ void CRetranslation::RemoveRetranslation(SPList* pSPList, int first, int last, w
 // to avoid a crash due to m_stripArray having hanging pile pointers due to removal of
 // trailing placeholders. (OnButtonEditRetranslation() was also refactored, but more
 // extensively, for the same problem, and necessarily so.)
+// BEW 23Apr15, added support for using / as a whitepace word-breaking character
 void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 {
 	// Invalid function when glossing is ON, so it just returns.
@@ -3661,6 +3714,11 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 				strAdapt += PutTgtWordBreak(pSrcPhrase) + str2;
 		}
 	}
+#if defined(FWD_SLASH_DELIM)
+	// BEW 23Apr15 -- ensure there are no / instances contiguous to punctuation,
+	// but leave / between words visible
+	strAdapt = DoFwdSlashConsistentChanges(removeAtPunctuation, strAdapt);
+#endif
 
 	// put the text in the compose bar
 	CMainFrame* pMainFrm = m_pApp->GetMainFrame();
@@ -3910,6 +3968,9 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	m_bInsertingWithinFootnote = FALSE; // restore default value
 }
 
+// BEW 23Apr15 added support for using / as a whitespace word-breaking character -
+// actually, the support is only in the DoOneDocReport() which is within
+// DoRetranslationReport(), so OnRetransReport() itself has not been changed
 void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 {
 
@@ -4886,6 +4947,7 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 // into account whether there is a previous retranslation, or a following retranslation,
 // so as to use the correct Put...() call for the word delimiter between each word pair
 // Also, at same date, moved this to be in Retranslation.cpp
+// BEW 23Apr15 added support for / used as a wordbreaking whitespace char
 void CRetranslation::GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
 							   wxString& strFoll,wxString& strPreTgt, wxString& strFollTgt)
 {
@@ -4985,5 +5047,13 @@ void CRetranslation::GetContext(const int nStartSequNum,const int nEndSequNum,wx
 			}
 		}
 	}
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15
+	strPre = FwdSlashtoZWSP(strPre);
+	strFoll = FwdSlashtoZWSP(strFoll);
+	strPreTgt = FwdSlashtoZWSP(strPreTgt);
+	strFollTgt = FwdSlashtoZWSP(strFollTgt);
+#endif
+
 }
 

@@ -881,6 +881,13 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 								m_pMyListBox, NULL, gpApp->m_pDlgTgtFont);
 	#endif
 
+	// BEW 23Apr15, curKey ( a global wxString, set when the phrasebox lands at a location)
+	// is used here. In the event that it is a key for a merged phrase, it may contain ZWSP
+	// but we do not need to restore / for each such ZWSP in curKey, if we are currently
+	// supporting / as a word-breaking pseudo whitespace character, because the m_pSourcePhraseBox
+	// is read-only. (The user can copy from there though, which would copy any ZWSP unconverted,
+	// but we may not be able to do much about that.)
+
 	// set the "matched source text" edit box contents
 	m_pSourcePhraseBox->ChangeValue(curKey);
 
@@ -915,6 +922,11 @@ void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		}
 	}
 	*/
+	// BEW 23Apr15 - if supporting / as a word-breaking character currently, we don't convert
+	// any ZWSP to / in the list, because we don't edit the list directly. The m_pNewTranslationBox
+	// box needs to show / between words, but we don't populate the box by any list selection - only 
+	// by the user explicitly typing text there. If / is given this word-breaking status, then the
+	// user should type / explicitly between words when he types into that box.
 	PopulateList(pCurTargetUnit, 0, No);
 
 	// select the first string in the listbox by default
@@ -1100,6 +1112,15 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 		}
 	}
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
+
+#if defined(FWD_SLASH_DELIM)
+	// BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
+	// convert any / back to ZWSP, in case KB storage follows. If the string ends up in m_targetBox
+	// then the ChangeValue() call within CPhraseBox will convert the ZWSP instances back to forward
+	// slashes for display, in case the user does subsequent edits there
+	m_chosenTranslation = FwdSlashtoZWSP(m_chosenTranslation);
+#endif
+
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog
 }

@@ -355,6 +355,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		strMkr = _T("\\free");
 		strEndMkr = strMkr + _T("*");
 		strContent = pSrcPhrase->GetFreeTrans();
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		strContent = ZWSPtoFwdSlash(strContent);
+#endif
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -377,6 +381,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		strMkr = _T("\\note");
 		strEndMkr = strMkr + _T("*");
 		strContent = pSrcPhrase->GetNote();
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		strContent = ZWSPtoFwdSlash(strContent);
+#endif
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -397,6 +405,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		strMkr = _T("\\bt");
 		strEndMkr = _T(" ");
 		strContent = pSrcPhrase->GetCollectedBackTrans();
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		strContent = ZWSPtoFwdSlash(strContent);
+#endif
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -423,7 +435,12 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 				AllWholeMkrsArray.Add(strMkr);
 				strEndMkr = arrEndMkrs.Item(index);
 				AllEndMkrsArray.Add(strEndMkr);
-				assocTextArrayBeforeEdit.Add(arrTextContent.Item(index));
+				wxString strContent = arrTextContent.Item(index);
+#if defined(FWD_SLASH_DELIM)
+				// BEW added 23Apr15
+				strContent = ZWSPtoFwdSlash(strContent);
+#endif
+				assocTextArrayBeforeEdit.Add(strContent);
 
 				// add marker to left list box, then make it a bare marker for lookup & add to list
 				pMarkers->Append(strMkr);
@@ -608,6 +625,7 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd(wxCommandEvent& event
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
 // BEW 5Mar10, updated for support of doc version 5
+// BEW 23Apr15 added support for / used as a word-breaking character
 void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event)) 
 {
 	CAdapt_ItView* pView = gpApp->GetView();
@@ -680,6 +698,10 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			{
 				// there is a note present, so store it's possibly new value
 				strContent = assocTextArrayAfterEdit.Item(0);
+#if defined(FWD_SLASH_DELIM)
+				// BEW added 23Apr15
+				strContent = FwdSlashtoZWSP(strContent);
+#endif
 				pSrcPhrase->m_bHasNote = TRUE; // redundant, but ensures safety
 				pSrcPhrase->SetNote(strContent);
 
@@ -699,6 +721,10 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			{
 				// there is a collected back trans present, so store it's possibly new value
 				strContent = assocTextArrayAfterEdit.Item(0);
+#if defined(FWD_SLASH_DELIM)
+				// BEW added 23Apr15
+				strContent = FwdSlashtoZWSP(strContent);
+#endif
 				pSrcPhrase->SetCollectedBackTrans(strContent);
 
 				// shorten the arrays
@@ -714,6 +740,7 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			// more remains, anything else belongs in m_filteredInfo (in the call below,
 			// TRUE means that a placeholding space character in any item in the endmarkers
 			// list should be ignored, and an empty endmarker string assumed instead)
+			// BEW 23Apr15 support for / as word-breaking character built into the following function
 			pSrcPhrase->SetFilteredInfoFromArrays(&AllWholeMkrsArray, 
 							&AllEndMkrsArray, &assocTextArrayAfterEdit, TRUE);
 			assocTextArrayAfterEdit.Clear();
@@ -880,7 +907,11 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// change the text in the CEdit to correspond to the marker chosen by the
 		// currentMkrSelection value
 		wxString tempStr = assocTextArrayAfterEdit.Item(currentMkrSelection);
-        // whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate
+#if defined(FWD_SLASH_DELIM)
+		// BEW added 23Apr15
+		tempStr = ZWSPtoFwdSlash(tempStr);
+#endif
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate
         // the wxEVT_COMMAND_TEXT_UPDATED event, which now deprecated SetValue() generates.
 		pMkrTextEdit->ChangeValue(tempStr);
 

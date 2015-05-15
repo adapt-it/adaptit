@@ -140,10 +140,9 @@ void* Thread_DoEntireKbDeletion::Entry()
 #endif
 			// Copy it to the app member ready for display in main window at bottom
 			m_pApp->m_nIterationCounter = successCount;
-			if ((successCount/2)*2 == successCount)  // for initial testing, ask for feedback every 2nd deletion
-			//if ((successCount/10)*10 == successCount)
+			if ((successCount/20)*20 == successCount)
 			{
-                // Update the value every 10th iteration, otherwise more frequently may bog
+                // Update the value every 20th iteration, otherwise more frequently may bog
                 // the process down if latency is very low
 				wxCommandEvent eventCustom(wxEVT_KbDelete_Update_Progress);
 				wxPostEvent(m_pApp->GetMainFrame(), eventCustom); // custom event handlers are in CMainFrame
@@ -269,9 +268,6 @@ void* Thread_DoEntireKbDeletion::Entry()
 					pGUI->LoadDataForPage(1);
 				}
 			}
-
-
-
 			// ********* TODO ***********  Return the status bar to being one-field only (also do it
 			// above - twice)
 
@@ -286,7 +282,6 @@ void* Thread_DoEntireKbDeletion::Entry()
 	m_pApp->m_nonsrcLangCodeOfCurrentRemoval.Empty();
 	m_pApp->m_kbTypeOfCurrentRemoval = -1;
 	m_pApp->m_bKbSvrMgr_DeleteAllIsInProgress = FALSE;
-
 
 	return (void*)NULL;
 }

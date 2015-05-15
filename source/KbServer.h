@@ -61,7 +61,11 @@ struct KbServerEntry; // NOTE, omitting this forwards declaration and having the
 					  // in the .cpp file must be somewhere AFTER the #include "KbServer.h" line
 struct KbServerUser;  // ditto, for this one
 struct KbServerKb;	  // ditto again
+struct KbServerLanguage;
 
+// BEW note: the following declarations are only declarations. We get a 2001 linker error
+// if the implementation file does not have the needed definitions macros. They are located
+// KbServer.cpp at line 73 and following. E.g. WX_DEFINE_LIST(LanguagesList); etc
 WX_DECLARE_LIST(KbServerEntry, DownloadsQueue);
 WX_DECLARE_LIST(KbServerEntry, UploadsList); // we'll need such a list in the app instance
 		// because kbserver upload threads may not all be finished when the two kbserver
@@ -71,6 +75,11 @@ WX_DECLARE_LIST(KbServerUser, UsersList); // stores pointers to KbServerUser str
 										  // the ListUsers() client
 WX_DECLARE_LIST(KbServerKb, KbsList); // stores pointers to KbServerKb structs for 
 										  // the ListKbs() client
+WX_DECLARE_LIST(KbServerLanguage, LanguagesList); // stores pointers to KbServerLanguage structs for 
+// the ListLanguages() client (the latter's handler filters out ISO639 codes, leaving only custom codes)
+
+WX_DECLARE_LIST(KbServerLanguage, FilteredList); // stores pointers to KbServerLanguage structs 
+//  filtered from LanguagesList, so that only the structs for custom codes are in filteredList
 
 // need a hashmap for quick lookup of keys for find out which src-tgt pairs are in the
 // remote KB (scanning through downloaded data from the remote KB), so as not to upload
@@ -169,7 +178,9 @@ public:
 	// main thread before the containing thread is fired, and so the parameter accesses
 	// are synchronous and no mutex is required
 	
-	
+	// The functions in this next block do the actual calls to the remote kbserver, they are
+	// public access because KBSharingStatelessSetupDlg will need to use several of them, as
+	// do other classes
 	int		 BulkUpload(int threadIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
@@ -181,6 +192,7 @@ public:
 	void	 DownloadToKB(CKB* pKB, enum ClientAction action);
 	int		 ListKbs(wxString username, wxString password);
 	int		 ListUsers(wxString username, wxString password);
+	int		 ListLanguages(wxString username, wxString password);
 	int		 LookupEntryFields(wxString sourcePhrase, wxString targetPhrase);
 	int		 LookupSingleKb(wxString url, wxString username, wxString password, wxString srcLangCode,
 							wxString tgtLangCode, int kbType, bool& bMatchedKB);
@@ -192,8 +204,8 @@ public:
 	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin, 
 						KbServerUser* pEditedUserStruct, wxString password);
-	int		 UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
-						int kbType, KbServerKb* pEditedKbStruct);
+	//int		 UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
+	//					int kbType, KbServerKb* pEditedKbStruct); // deprecated, BEW 14Apr15
 	void	 UploadToKbServer();
 	int		 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode);
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
@@ -375,6 +387,9 @@ private:
 	UsersList       m_usersList;
 	// For use when listing all the kb definitions in the kbserver
 	KbsList         m_kbsList;
+	// For use when listing all the custom language definitions in the kbserver
+	LanguagesList   m_languagesList;
+
 
 	// a KbServerEntry struct, for use in downloading or uploading (via json) a
 	// single entry
@@ -429,6 +444,9 @@ public:
 	void			ClearKbsList(KbsList* pKbsList); // deletes from the heap all KbServerKb struct ptrs within
 
 	void			ClearUploadsMap(); // clears user data (wxStrings) from m_uploadsMap
+
+	LanguagesList*  GetLanguagesList();
+	void			ClearLanguagesList(LanguagesList* pLanguagesList);
 
 protected:
 

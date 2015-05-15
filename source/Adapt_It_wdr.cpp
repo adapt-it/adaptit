@@ -73,10 +73,10 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.8"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.9 Pre-Release"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("March 5, 2015"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("May 15, 2015"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( wxT("This date should be the same as the executable file") );
     item8->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -356,7 +356,7 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item11 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+    wxButton *item11 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->SetToolTip( _("Remove free translation") );
     item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -1970,7 +1970,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item10 = new wxStaticText( parent, STATIC_TEXT_V5, _("Width of the inter-pile gap (in pixels, min 16, max 80)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, STATIC_TEXT_V5, _("Width of the inter-pile gap (in pixels, min 0, max 80)"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("(Free translating gap is at least 40 pixels. Normal gap is restored on exit from that mode.)"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -2109,6 +2109,18 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item40->Add( item43, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item40, 0, wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxBoxSizer *item44 = new wxBoxSizer( wxVERTICAL );
+
+    item4->Add( item44, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item45 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item46 = new wxCheckBox( parent, ID_CHECKBOX_SOLIDUS_WDBREAK, _("Support slash ( / ) as a word separator, but displayed or stored text uses ZWSP"), wxDefaultPosition, wxDefaultSize, 0 );
+    item46->SetToolTip( _("When turned on, slash is word separator for editable text, but changed to ZWSP for displayed or stored text") );
+    item45->Add( item46, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item45, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
@@ -9518,7 +9530,7 @@ wxSizer *SharedKBManagerUsersPageFunc2( wxWindow *parent, bool call_fit, bool se
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Users of the shared databases on the server"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Users Of The Shared Databases On The Server"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
     item0->Add( item1, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
@@ -9684,18 +9696,22 @@ wxWindow *item6 = item7;
     SharedKBManager_CreateKbsPageFunc2( item9, FALSE );
     item7->AddPage( item9, _("Create, modify or delete shared databases") );
 
+    wxPanel *item10 = new wxPanel( item7, -1 );
+    SharedKBManager_CreateCodesPageFunc( item10, FALSE );
+    item7->AddPage( item10, _("Create or delete custom language codes") );
+
     item1->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item11 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->SetDefault();
-    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item12 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetDefault();
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item12 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item10, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -9791,10 +9807,10 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
 
     wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("  Using the two text boxes below, create a new (empty) shared database, or change one or both codes of an existing one."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("  Using the text boxes below, create an empty shared database. If you need to create a custom language code, first click Help for Adding Dialect Subtags... "), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("  (Data will be automatically added as the user works. Updating a language code is possible only for an empty database.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("  and follow the instructions there. Once a language code is created, it cannot be edited. But on the next page you can delete it and recreate it differently."), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -9833,17 +9849,13 @@ wxSizer *SharedKBManager_CreateKbsPageFunc2( wxWindow *parent, bool call_fit, bo
     item31->SetToolTip( _("Clear just the two text boxes, leave any list selection unchanged") );
     item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item30->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item30->Add( 60, 16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item32 = new wxButton( parent, ID_BUTTON_UPDATE_LANG_CODES, _("Update Selected Language Codes"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->SetToolTip( _("Replace the selected codes with those in the two text boxes. (This succeeds only if the database has no entries yet.)") );
+    item30->Add( 120, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Entire Selected Database And All Its Entries"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Deletion is very slow, maybe many hours. Shut down anytime and repeat it later. The two language codes get removed after their database becomes empty.") );
     item30->Add( item32, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item30->Add( 20, 16, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item33 = new wxButton( parent, ID_BUTTON_REMOVE_SELECTED_DEFINITION, _("Remove Entire Selected Database And All Its Entries"), wxDefaultPosition, wxDefaultSize, 0 );
-    item33->SetToolTip( _("Deletion is very slow, maybe many hours. Shut down anytime and repeat it later. The two language codes get removed after their database becomes empty.") );
-    item30->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item1->Add( item30, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
@@ -10446,6 +10458,288 @@ wxSizer *ClipboardAdaptBarFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     item1->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *SharedKBManager_CreateCodesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, _("Create Or Delete Custom Language Codes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetFont( wxFont( 12, wxSWISS, wxNORMAL, wxBOLD ) );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("  Only custom codes can be user-defined. They can be altered, but only provided a shared database defined with them does not yet own entries."), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("  Once a shared database owns entries, the only way to alter a custom code is to first remove the whole shared database that uses that code. "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("  ( If you need to first delete a shared database, the button for doing that is at the bottom of the previous page of this Manager dialog. )"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("  Then the custom code can be changed. To change it you must delete it, and then recreate it with the value you want. (Then recreate the database.)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item8, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("  A custom code begins with a 2- or 3-letter code from the ISO639 international standard, such as tbc (for Takia).   ISO639 codes do not change. "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item9, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("  To make a custom code, add -x- then add your custom name (maximum 8 letters). For example:  tbc-x-bagabag (for Bagabag dialect of Takia)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item10, 0, wxALIGN_CENTER_VERTICAL, 5 );
+
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    item3->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    item3->Add( item12, 0, wxALIGN_CENTER_VERTICAL, 0 );
+
+    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item16 = new wxStaticText( parent, ID_TEXT_EXISTING_KB_CODE_PAIRS, _("Existing custom language codes: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxString *strs17 = (wxString*) NULL;
+    wxListBox *item17 = new wxListBox( parent, ID_LISTBOX_CUSTOM_CODES, wxDefaultPosition, wxSize(280,120), 0, strs17, wxLB_SINGLE );
+    item17->SetToolTip( _("Lists custom language codes known to this kbserver instance") );
+    item15->Add( item17, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item14->Add( item15, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item14->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Creator of the selected code (read-only, do not type here):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("This user created the database. The username is not editable.") );
+    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXTCTRL_CREATOR, wxT(""), wxDefaultPosition, wxSize(260,-1), wxTE_READONLY );
+    item20->SetToolTip( _("Display the username of who originally created this custom language code") );
+    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_LOOKUP_THE_CODE, _("Lookup ISO639 Language Code..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("Find the language code. (Ethnologue code; from the ISO639 standard.)") );
+    item18->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item22 = new wxButton( parent, ID_BUTTON_ISO639, _("Help for Adding Dialect Subtags..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("View information explaining how to setup unique codes for dialects not in the Ethnologue. (Using the RFC5646 standard.)") );
+    item18->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item23 = new wxButton( parent, ID_BUTTON_CLEAR_LIST_SELECTION2, _("Clear List Selection"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Clears the selection in the list. The code remains unchanged.") );
+    item18->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item24 = new wxButton( parent, ID_BUTTON_CLEAR_BOXES2, _("Clear Both Text Boxes"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetToolTip( _("Clear just the custom code and description text boxes, leave any list selection unchanged") );
+    item18->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item14->Add( item18, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item13->Add( item14, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    item1->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Type your code in the left box.  Type a short description for it in the right box (for example, the language name, it can include spaces)."), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
+
+    item27->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Custom language code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item28, 0, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 5 );
+
+    wxTextCtrl *item29 = new wxTextCtrl( parent, ID_TEXTCTRL_CUSTOM_CODE, wxT(""), wxDefaultPosition, wxSize(116,-1), 0 );
+    item29->SetToolTip( _("Type a language code for the new source language") );
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item27->Add( 5, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item30 = new wxStaticText( parent, ID_TEXT, _("Description (your choice):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item27->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item31 = new wxTextCtrl( parent, ID_TEXTCTRL_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(180,-1), 0 );
+    item27->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item27->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_CREATE_CUSTOM_CODE, _("Create Custom Code"), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->SetToolTip( _("Create, on the server, a new custom language code and definition. The creator will be the logged in administrator.") );
+    item27->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
+
+    item33->Add( 16, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Remember: a language code, whether custom or not, may be used in more than one shared database."), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item33->Add( 66, 16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_DELETE_CUSTOM_CODE, _("Delete Custom Code"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Delete the selected custom code, provided nothing depends on it.") );
+    item33->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *SingleLanguageCodeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxFlexGridSizer *item1 = new wxFlexGridSizer( 1, 0, 0 );
+
+    wxStaticBox *item3 = new wxStaticBox( parent, -1, _("&List of Language Codes and Names:") );
+    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_STATICTEXT_SCROLL_LIST, _("Scroll &list and highlight language or search for language below"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("(The 2-letter codes are listed first followed by the 3-letter codes)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("The codes listed here are from the ISO639 international standard.  They are not editable."), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("( One of these must be the first part of the custom code you want to create. )"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxString *strs9 = (wxString*) NULL;
+    wxListBox *item9 = new wxListBox( parent, ID_LIST_LANGUAGE_CODES_NAMES, wxDefaultPosition, wxSize(400,220), 0, strs9, wxLB_SINGLE );
+    item9->SetToolTip( _("This is a list of languages and their 3-letter codes") );
+    item4->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item13 = new wxStaticText( parent, ID_STATICTEXT_SEARCH_FOR_LANG_NAME, _("Search for Language (&type code or Name):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH_LANG_NAME2, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
+    item14->SetToolTip( _("Enter a language name, or part of a name here") );
+    item12->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item11->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item16 = new wxButton( parent, ID_BUTTON_FIND_CODE2, _("&Find Code"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetToolTip( _("Use this button to find the next occurrence in list if it exists") );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item15->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item17 = new wxButton( parent, ID_BUTTON_FIND_LANGUAGE2, _("Find Language"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item11->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item10->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item10, 0, wxGROW|wxALL, 0 );
+
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticBox *item19 = new wxStaticBox( parent, -1, wxT("") );
+    wxStaticBoxSizer *item18 = new wxStaticBoxSizer( item19, wxVERTICAL );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT_CODES_MSG1, _("Enter a 2-letter or 3-letter language code to be the start of your custom code definition:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item20, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT_CODES_MSG2, _("If you know the 2-letter or 3-letter code enter it directly below, or search the list above"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxFlexGridSizer *item22 = new wxFlexGridSizer( 4, 0, 10 );
+
+    wxButton *item23 = new wxButton( parent, ID_BUTTON_USE_SEL_AS_CODE, _("Enter the &selected code into the text box"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->SetToolTip( _("Use this button to copy the 3-letter code of the selected language above to the Source Language Code box below") );
+    item22->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item22->Add( 14, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item24 = new wxStaticText( parent, ID_SRC_LANGUAGE_CODE, _("&The code:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item24, 0, wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_LANG_CODE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxNO_BORDER | wxGROW );
+    item25->SetToolTip( _("The 2-letter or 3-letter code for the Source Language goes here") );
+    item22->Add( item25, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item18->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item27 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetDefault();
+    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item26->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item28 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item26, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item1->AddGrowableCol( 0 );
+
+    item1->AddGrowableRow( 0 );
+
+    item1->AddGrowableRow( 1 );
+
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {

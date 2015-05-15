@@ -74,6 +74,8 @@ WX_DEFINE_LIST(UploadsList);  // for use by Thread_UploadMulti, for kbserver sup
 							  // (see member m_uploadsList)
 WX_DEFINE_LIST(UsersList);    // for use by the ListUsers() client, stores KbServerUser structs
 WX_DEFINE_LIST(KbsList);    // for use by the ListKbs() client, stores KbServerKb structs
+WX_DEFINE_LIST(LanguagesList);    // for use by the ListKbs() client, stores KbServerKb structs
+WX_DEFINE_LIST(FilteredList); // used in page 3 tab of Shared KB Manager, the LoadLanguagesListBox() call
 
 // for wxJson support
 #include "json_defs.h" // BEW tweaked to disable 64bit integers, else we get compile errors
@@ -1250,6 +1252,168 @@ void KbServer::DownloadToKB(CKB* pKB, enum ClientAction action)
 	s_DoGetAllMutex.Unlock();
 }
 
+// Note: before running ListLanguages(), ClearStrCURLbuffer() should be called,
+// and always remember to clear str_CURLbuffer before returning.
+// Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
+// be returned even when there is no entry in the database. It's the HTTP status codes we
+// need to get.
+// Returns 0 (CURLE_OK) if no error, or 22 (CURLE_HTTP_RETURNED_ERROR) if there was a
+// HTTP error - such as no matching entry, or a badly formed request
+int KbServer::ListLanguages(wxString username, wxString password)
+{
+	CURL *curl;
+	CURLcode result;
+	wxString aUrl; // convert to utf8 when constructed
+	wxString aPwd; // ditto
+	str_CURLbuffer.clear();
+	str_CURLheaders.clear();
+
+	CBString charUrl;
+	CBString charUserpwd;
+
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString container = _T("language");
+
+	aUrl = GetKBServerURL() + slash + container;
+	charUrl = ToUtf8(aUrl);
+	aPwd = username + colon + password;
+	charUserpwd = ToUtf8(aPwd);
+
+	curl = curl_easy_init();
+
+	if (curl) {
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback); // writes to str_CURLbuffer
+		// We want separate storage for headers to be returned, to get the HTTP status code
+		curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &curl_headers_callback);
+
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1L); // comment out when collecting
+		//headers separately
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG) //&& defined (__WXGTK__)
+		/* commented out to speed things up
+		CBString s2(str_CURLheaders.c_str());
+		wxString showit2 = ToUtf16(s2);
+		wxLogDebug(_T("ListLanguages(): Returned headers: %s"), showit2.c_str());
+
+		CBString s(str_CURLbuffer.c_str());
+		wxString showit = ToUtf16(s);
+		wxLogDebug(_T("ListLanguages() str_CURLbuffer has: %s    , The CURLcode is: %d"),
+			showit.c_str(), (unsigned int)result);
+		*/
+#endif
+		// Get the HTTP status code, and the English message
+		ExtractHttpStatusEtc(str_CURLheaders, m_httpStatusCode, m_httpStatusText);
+
+		// If the only error was a HTTP one, then result will contain CURLE_OK, in which
+		// case the next block is skipped
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("ListLanguages() result code: %d cURL Error: %s"),
+				result, error.c_str());
+			wxMessageBox(msg, _T("Error when listing custom language code definitions"), wxICON_EXCLAMATION | wxOK);
+
+			curl_easy_cleanup(curl);
+			return (int)result;
+		}
+	}
+	curl_easy_cleanup(curl);
+
+	// If there was a HTTP error (typically, it would be 404 Not Found, because the
+	// username is not in the entry table yet, but 100 Bad Request may also be possible I
+	// guess) then exit early, there won't be json data to handle if that was the case
+	if (m_httpStatusCode >= 400)
+	{
+		// whether 400 or 404, return CURLE_HTTP_RETURNED_ERROR (ie. 22) to the caller
+		ClearUserStruct();
+		str_CURLbuffer.clear();
+		str_CURLheaders.clear();
+		return CURLE_HTTP_RETURNED_ERROR; // 22
+	}
+
+	//  Make the json data accessible (result is CURLE_OK if control gets to here)
+	//  We requested separate headers callback be used, so str_CURLbuffer should only have
+	//  the json string for the constructed list of languages. All 8000+ are returned, we'll
+	//  filter out the unwanted ISO639 ones in the caller of ListLanguages(), since only
+	//  the custom code definitions are to be shown to the user of the KB Sharing Manager tabbed dlg
+	if (!str_CURLbuffer.empty())
+	{
+		wxString myArray = wxString::FromUTF8(str_CURLbuffer.c_str());
+		wxJSONValue jsonval;
+		wxJSONReader reader;
+		int numErrors = reader.Parse(myArray, &jsonval);
+		if (numErrors > 0)
+		{
+			// A non-localizable message will do, it's unlikely to happen (we hope)
+			wxMessageBox(_T("In ListLanguages(): json reader.Parse() failed. Unexpected bad data from server."),
+				_T("kbserver error"), wxICON_ERROR | wxOK);
+			str_CURLbuffer.clear(); // always clear it before returning
+			str_CURLheaders.clear();
+			return CURLE_HTTP_RETURNED_ERROR;
+		}
+		// We extract everything: id, desxcription, user, timestamp at which the language code was added 
+		// to the language table
+		ClearLanguagesList(&m_languagesList); // deletes from the heap any KbServerLanguage structs still in m_languageList
+		wxASSERT(m_languagesList.empty());
+		size_t arraySize = jsonval.Size();
+		wxASSERT(arraySize > 0);
+		size_t index;
+		wxString three = _T("-x-");
+		KbServerLanguage* pLanguageStruct = NULL; // initialize
+		wxString aCode;
+		for (index = 0; index < arraySize; index++)
+		{
+			aCode = jsonval[index][_T("id")].AsString();
+			if (aCode.Find(three) != wxNOT_FOUND)
+			{
+				// Contains -x- so we want this one
+				pLanguageStruct = new KbServerLanguage;
+				pLanguageStruct->code = aCode;
+				pLanguageStruct->username = jsonval[index][_T("user")].AsString();
+				pLanguageStruct->description = jsonval[index][_T("description")].AsString();
+				// Save time by ignoring timestamp, we don't use it or show it to the user
+				// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
+				// which is this (Caller should only use the adaptations instance of KbServer)
+				m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
+				// to get rid of these pointers once their job is done, if not, memory will be leaked
+			}
+			else
+				continue;
+
+			/* This is slow, 56 sec to handle 8000 entries from JM's server, try speed it up with code above
+			KbServerLanguage* pLanguageStruct = new KbServerLanguage;
+			// Extract the field values, store them in pLanguageStruct
+			pLanguageStruct->code = jsonval[index][_T("id")].AsString();
+			pLanguageStruct->username = jsonval[index][_T("user")].AsString();
+			pLanguageStruct->description = jsonval[index][_T("description")].AsString();
+			pLanguageStruct->timestamp = jsonval[index][_T("timestamp")].AsString();
+			// Add the pLanguageStruct to the m_languagesList stored in the KbServer instance
+			// which is this (Caller should only use the adaptations instance of KbServer)
+			m_languagesList.Append(pLanguageStruct); // Caller must later use ClearLanguagesList()
+			// to get rid of these pointers once their job is done, if not, memory will be leaked
+#if defined (_DEBUG)
+			// commented out, though it works, because it slows down the processing required to put the custom codes into the list box
+			wxLogDebug(_T("ListLanguages(): code = %s , description = %s , username = %s , timestamp = %s"),
+				pLanguageStruct->code.c_str(), pLanguageStruct->description.c_str(), pLanguageStruct->username.c_str(),
+				 pLanguageStruct->timestamp.c_str());
+#endif
+			*/
+		}
+
+		str_CURLbuffer.clear(); // always clear it before returning
+		str_CURLheaders.clear();
+	}
+	return 0;
+}
+
 // Note: before running ListUsers(), ClearStrCURLbuffer() should be called,
 // and always remember to clear str_CURLbuffer before returning.
 // Note 2: don't rely on CURLE_OK not being returned for a lookup failure, CURLE_OK will
@@ -1313,9 +1477,9 @@ int KbServer::ListUsers(wxString username, wxString password)
 			wxString msg;
 			CBString cbstr(curl_easy_strerror(result));
 			wxString error(ToUtf16(cbstr));
-			msg = msg.Format(_T("LookupUser() result code: %d cURL Error: %s"), 
+			msg = msg.Format(_T("ListUsers() result code: %d cURL Error: %s"), 
 				result, error.c_str());
-			wxMessageBox(msg, _T("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
+			wxMessageBox(msg, _T("Error when listing usernames"), wxICON_EXCLAMATION | wxOK);
 
 			curl_easy_cleanup(curl);
 			return (int)result;
@@ -2134,6 +2298,33 @@ KbServerUser KbServer::GetUserStruct()
 UsersList* KbServer::GetUsersList()
 {
 	return &m_usersList;
+}
+
+LanguagesList* KbServer::GetLanguagesList()
+{
+	return &m_languagesList;
+}
+
+// deletes from the heap all KbServerLanguage struct ptrs within m_languagesList
+void KbServer::ClearLanguagesList(LanguagesList* pLanguagesList)
+{
+	if (pLanguagesList == NULL || pLanguagesList->empty())
+		return;
+	LanguagesList::iterator iter;
+	LanguagesList::compatibility_iterator c_iter;
+	int anIndex = -1;
+	for (iter = pLanguagesList->begin(); iter != pLanguagesList->end(); ++iter)
+	{
+		anIndex++;
+		c_iter = pLanguagesList->Item((size_t)anIndex);
+		KbServerLanguage* pEntry = c_iter->GetData();
+		if (pEntry != NULL)
+		{
+			delete pEntry; // frees its memory block
+		}
+	}
+	// The list's stored pointers are now hanging, so clear them
+	pLanguagesList->clear();
 }
 
 // deletes from the heap all KbServerUser struct ptrs within m_usersList
@@ -2996,7 +3187,8 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 // Note: if this returns CURLcode CURLE_OK, and there's no HTTP error, then this function
 // should be followed up with a function that causes the code or codes to be updated in
 // the entries of the entry table -- or the php for this present function should do it
-// I'm awaiting a decision from Jonathan about this....
+// 
+/* Removed, updating codes within an existing definition is frought with problems. Use 3rd page etc.
 int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
 						int kbType, KbServerKb* pEditedKbStruct)
 {
@@ -3107,6 +3299,7 @@ int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNon
 	}
 	return 0;
 }
+*/
 
 // This one is like RemoveUser() and RemoveKb(), and http errors need to be checked for,
 // as it is the only way to know when the deletion loop has deleted all that need to be

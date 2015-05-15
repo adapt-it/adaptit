@@ -65,6 +65,7 @@
 #include "UsernameInput.h"
 #include "KbServer.h"
 #include "md5_SB.h"
+#include "ConsistentChanger.h"
 
 // GDLC 20OCT12 md5.h is not needed for compiling helpers.cpp
 //#include "md5.h"
@@ -1611,6 +1612,185 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 	}
 }
 */
+
+#if defined(FWD_SLASH_DELIM)
+
+wxString ZWSPtoFwdSlash(wxString& str)
+{
+	if (gpApp->m_bFwdSlashDelimiter)
+	{
+		wxString ZWSP = (wxChar)0x200B;
+		wxString slash = _T('/');
+		// Do the replacement only if support for / as word-break is enabled
+		str.Replace(ZWSP, slash); // ignore returned count of replacements
+	}
+	return str; // return by value, in case we want to assign it elsewhere
+}
+
+wxString FwdSlashtoZWSP(wxString& str)
+{
+	if (gpApp->m_bFwdSlashDelimiter)
+	{
+		wxString ZWSP = (wxChar)0x200B;
+		wxString slash = _T('/');
+		// Do the replacement only if support for / as word-break is enabled
+		str.Replace(slash, ZWSP); // ignore returned count of replacements
+	}
+	return str; // return by value, in case we want to assign it elsewhere
+}
+
+// the following function was tested in OnInit() at lines 20250-54 & works right
+bool HasFwdSlashWordBreak(CSourcePhrase* pSrcPhrase)
+{
+	if (gpApp->m_bFwdSlashDelimiter)
+	{
+		wxString slash = _T('/');
+		wxString wdBreakStr = pSrcPhrase->GetSrcWordBreak();
+		if (wdBreakStr.Find(slash) != wxNOT_FOUND)
+			return TRUE;
+	}
+	// If control gets to here, the answer is "no" so return FALSE
+	return FALSE;
+}
+
+/// \return			Return by value the output string resulting from the input string, str, being
+///					processed by the passed in CC table, pathToCCTable. Return the input string
+///					unchanged if the app's m_bFwdSlashDelimiter flag is FALSE (Dennis's feature is
+///					in OFF state whenever the Preferences setting for that flag is FALSE)
+/// \param	whichTable   ->		What table to use. It has to be the path to a cc table within the
+///								folder _CCTABLE_INPUTS_OUTPUTS, located in the Adapt It Unicode Work
+///								folder; that folder is pointed at by app->m_ccTableInputsAndOutputsFolderPath
+/// \param  str			  ->	The text string (source or target text) which is to have / delimiter
+///								either inserted at punctuation, or removed at punctuation, according
+///								two which cc table the calling function supplies. The function is
+///								not generic, so it cannot be used for processing any str with any 
+///								desired cc table; this is deliberate, so that no setup of table path
+///								needs to be done prior to calling. We use enum values to select the table.
+/// \remarks
+/// BEW created 23Apr15. For support of using / as a pseudo-whitespace word-breaking character. This
+/// feature is to be turned on or off by a checkbox in Preferences.
+/// There is no limit on str size - internally its length is computed and malloc used to set up
+/// processing buffer for input and output. The code is reused & tweaked from that in the view class's
+/// DoConsistentChanges() function
+wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, wxString& str)
+{
+	if (str.IsEmpty())
+		return _T("");
+	// If support is turned off, return a copy of the passed in string
+	if (!gpApp->m_bFwdSlashDelimiter)
+	{
+		return str;
+	}
+	// If control gets to here, the cc tables are to be used...
+	wxString outputStr = _T("");
+	wxString pathToCCTable = gpApp->m_ccTableInputsAndOutputsFolderPath;
+	wxASSERT(!pathToCCTable.IsEmpty());
+	wxString tableName = _T("");
+	switch (whichTable)
+	{
+	case insertAtPunctuation:
+		pathToCCTable += gpApp->PathSeparator + _T("FwdSlashInsertAtPuncts.cct");
+		break;
+	case removeAtPunctuation:
+		pathToCCTable += gpApp->PathSeparator + _T("FwdSlashRemoveAtPuncts.cct");
+		break;
+	}
+
+	// Next, test for the cct file being present. If it isn't, warn the user and just return 
+	// the unmodified input string
+	bool bFileExists = wxFileExists(pathToCCTable);
+	if (!bFileExists)
+	{
+		wxString title = _("No table file");
+		wxString msg;
+		msg = msg.Format(_("The consistent changes table file: %s , does not exist in the folder _CCTABLE_INPUTS_OUTPUTS"),
+			pathToCCTable.c_str());
+		wxMessageBox(msg, title, wxICON_WARNING | wxID_OK);
+		gpApp->LogUserAction(msg);
+		return str; // return the input string unchanged
+	}
+
+	// str will be a UTF-16 wxString. We have to convert to UTF8, run the
+	// resulting string through the CCProcessBuffer() function with a minimum of string copying
+	// to maximize speed, and then convert back to UTF-16 and return it to the caller as an LPTSTR;
+	// the strings stored in the buffers will be null delimited
+
+	// Uses the buffer-safe new conversion macros in VS 2003, which
+	// use malloc for buffer allocation of long string to be converted, etc.
+	int nInLength = 0;
+	int nOutLength = 0;
+
+	// For this implimentation, we get the input string as utf-8, and its length (in bytes)
+	// and use malloc to create a suitable output buffer - we don't know how much bloat
+	// the cc changes will cause when inserting / at punctuation locations, but since words 
+	// can be assumed to be at least an average of 6 bytes, and punctuation somewhat uncommon,
+	// we will make the output buffer just 20% larger than the input one. That ought to be 
+	// safe for large files; for small files, expand by a larger factor
+
+	// The wxString::mb_str() method returns a wxCharBuffer. The wxConvUTF8 is a predefined
+	// instance of the wxMBConvUTF8 class which converts between Unicode (UTF-16) and UTF-8.
+	wxCharBuffer tempBuf = str.mb_str(wxConvUTF8); 
+	CBString psz(tempBuf); // use this for the input buffer, with a (char*) cast
+	nInLength = strlen(psz) + 1; // + 1 for the null byte at the end
+	int anOutputLen = nInLength;
+	if (anOutputLen < 500)
+		anOutputLen += anOutputLen; // double
+	else if (anOutputLen < 2000)
+		anOutputLen = (anOutputLen * 3)/2; // 50% bigger
+	else
+		anOutputLen = (anOutputLen * 6)/5; // 20% bigger
+	char* pOutStr = (char*)malloc((size_t)anOutputLen);
+	memset(pOutStr, 0, (size_t)anOutputLen); // fill with nulls
+	nOutLength = anOutputLen; // utf8ProcessBuffer requires it to be set to the output buffer size (in bytes)
+
+	CConsistentChanger* pConsistentChanger = new CConsistentChanger;
+	wxString sError; // will be empty if loading proceded without error
+	wxString ccErrorStr;
+	sError = pConsistentChanger->loadTableFromFile(pathToCCTable);
+	if (!sError.IsEmpty())
+	{
+		// There was an error, tell the user and return the input string unchanged
+		wxString msg2;
+		msg2 = msg2.Format(_("  Warning: the consistent changes table: %s, was not successfully loaded."),
+			pathToCCTable.c_str());
+		sError += msg2;
+		wxMessageBox(sError, _("Table load failure"), wxICON_INFORMATION | wxOK);
+		gpApp->LogUserAction(sError);
+		free(pOutStr);
+		delete pConsistentChanger;
+		return str;
+	}
+	int iResult = 0;
+
+	// whm note: the following line is where consistent changes does its work
+	iResult = pConsistentChanger->utf8ProcessBuffer((char*)psz, nInLength, pOutStr, &nOutLength);
+
+	// if there was an error, just return the unaltered original string & warn user
+	if (iResult)
+	{
+		ccErrorStr.Format(_(" Processing the CC table failed, for table: %s   Error code: %d"),
+			pathToCCTable.c_str(), iResult);
+		wxMessageBox(ccErrorStr, _T(""), wxICON_EXCLAMATION | wxOK);
+		gpApp->LogUserAction(ccErrorStr);
+		free(pOutStr);
+		delete pConsistentChanger;
+		return str;
+	}
+
+	// convert back to UTF-16 and return the converted string
+	pOutStr[nOutLength] = '\0';	// ensure it is null terminated at the correct location
+	CBString tempBuff(pOutStr);
+	outputStr = gpApp->Convert8to16(tempBuff);
+
+	// make sure to free the malloc buffer before returning, and the pConsistentChanger instance
+	free(pOutStr);
+	delete pConsistentChanger;
+	return outputStr;
+}
+#endif
+
+// BEW 23Apr15 provisional support added for / being treated as a word-breaking 
+// character (as if it is whitespace) -- support certain east asian languages
 bool Is_NonEol_WhiteSpace(wxChar *pChar)
 {
 	// The standard white-space characters are the following: space 0x20, tab 0x09,
@@ -1645,6 +1825,14 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 	else
 	{
 #ifdef _UNICODE
+#if defined(FWD_SLASH_DELIM)
+		// BEW 23Apr15, support / as if a whitespace word-breaker
+		if (gpApp->m_bFwdSlashDelimiter)
+		{
+			if (*pChar == _T('/'))
+				return TRUE;
+		}
+#endif
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others
 		// BEW 4Aug11 changed the code to not test each individually, but just test if
@@ -1669,7 +1857,7 @@ int Parse_NonEol_WhiteSpace(wxChar *pChar)
 	// just return the default zero length for safety sake.
 	if (*ptr == _T('\0'))
 		return length;
-	while (Is_NonEol_WhiteSpace(ptr))
+	while (Is_NonEol_WhiteSpace(ptr)) // BEW 23Apr15 contains tweak for support of / as word-breaker
 	{
 		length++;
 		ptr++;
@@ -2892,7 +3080,7 @@ void AddFilterMarkerToString(wxString& filterMkrStr, wxString wholeMarker)
 	if (wholeMarker == _T("\\x "))
 	{
 		// Add the \x marker as well as its associated content markers: \xo \xk \xq \xt \xot \xnt \xdc
-		// \xtSee and \xtSeeAlso to the filterMkrStr.
+		// to the filterMkrStr.
 		// Use the wxArrayString m_crossRefMarkerSet which contains the cross reference marker
 		// plus all of the associated content markers; each includes the initial backslash and following
 		// space.
@@ -6441,6 +6629,8 @@ bool IsWhiteSpace(const wxChar *pChar)
 		return TRUE;
 }
 */
+// BEW 23Apr15 added provisional support for Dennis Walters request for / as a 
+// like-whitespace wordbreak; only in Unicode version
 bool IsWhiteSpace(const wxChar *pChar)
 {
 #ifdef _UNICODE
@@ -6459,6 +6649,14 @@ bool IsWhiteSpace(const wxChar *pChar)
 	else
 	{
 #ifdef _UNICODE
+#if defined(FWD_SLASH_DELIM)
+		// BEW 23Apr15, support / as if a whitespace word-breaker
+		if (gpApp->m_bFwdSlashDelimiter)
+		{
+			if (*pChar == _T('/'))
+				return TRUE;
+		}
+#endif
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others
 		// BEW 4Aug11 changed the code to not test each individually, but just test if

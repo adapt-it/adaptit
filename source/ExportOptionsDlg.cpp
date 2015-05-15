@@ -146,7 +146,7 @@ CExportOptionsDlg::CExportOptionsDlg(wxWindow* parent) // dialog constructor
 	// out; in the wx version they are simply omitted from the excludable list.
 	// I've modified the list to use embeddedWholeMkrs plus \id, \c and \v which
 	// are in addition to the embedded markers.
-	excludedWholeMkrs = _T("\\id \\c \\v ") + embeddedWholeMkrs; // + _T("\\c \\v \\fr \\fk \\fq \\fqa \\ft \\fdc \\fv \\fm \\xo \\xt \\xk \\xq \\xdc \\xtSee \\xtSeeAlso ");
+	excludedWholeMkrs = _T("\\id \\c \\v ") + embeddedWholeMkrs; // + _T("\\c \\v \\fr \\fk \\fq \\fqa \\ft \\fdc \\fv \\fm \\xo \\xt \\xk \\xq \\xdc ");
 
 }
 
