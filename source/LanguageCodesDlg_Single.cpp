@@ -15,7 +15,7 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-    #pragma implementation "CLanguageCodesDlg_Single.h"
+    #pragma implementation "LanguageCodesDlg_Single.h"
 #endif
 
 // For compilers that support precompilation, includes "wx.h".
