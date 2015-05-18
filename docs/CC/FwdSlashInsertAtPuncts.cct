@@ -24,6 +24,8 @@ c comments should be ascii characters
 "！”" > "！”/"
 "！”" > "！”/"
 "’”" > "’”/"
+"”’”" > "”’”/" c in case 3 levels of nesting end at the one location
+"’”’" > "’”’/" c unlikely, but present as a precaution
 "“‘" > "/“‘"
 "），" > "），/"
 "。）" > "。）/"
@@ -41,6 +43,8 @@ c The following set are the bleeding changes, for when the / is already present
 "！”/" > "！”/"
 "’”/" > "’”/"
 "/“‘" > "/“‘"
+"”’”/" > "”’”/"
+"’”’/" > "’”’/"
 "），/" > "），/"
 "。）/" > "。）/"
 "！）/" > "！/）"

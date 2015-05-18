@@ -20013,7 +20013,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString AIccTableFolderPathOnly;
 #if defined(FWD_SLASH_DELIM)
 	wxString AIccTableInstallFolderPathOnly; // will point to m_xmlInstallPath\CC folder on Win,
-				// but /usr/share/adaptit/CC folder on Linux, or AdaptIt.app/Contents/Resources/CC
+				// but /usr/share/adaptit folder on Linux, or AdaptIt.app/Contents/Resources
 				// folder on Mac (those Linux and Mac ones are each also m_xmlInstallPath...)
 #endif
 	wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
