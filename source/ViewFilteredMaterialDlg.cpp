@@ -355,10 +355,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		strMkr = _T("\\free");
 		strEndMkr = strMkr + _T("*");
 		strContent = pSrcPhrase->GetFreeTrans();
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		strContent = ZWSPtoFwdSlash(strContent);
-#endif
+//#endif
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -381,10 +381,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		strMkr = _T("\\note");
 		strEndMkr = strMkr + _T("*");
 		strContent = pSrcPhrase->GetNote();
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		strContent = ZWSPtoFwdSlash(strContent);
-#endif
+//#endif
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -405,10 +405,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		strMkr = _T("\\bt");
 		strEndMkr = _T(" ");
 		strContent = pSrcPhrase->GetCollectedBackTrans();
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		strContent = ZWSPtoFwdSlash(strContent);
-#endif
+//#endif
 		AllWholeMkrsArray.Add(strMkr);
 		AllEndMkrsArray.Add(strEndMkr);
 		assocTextArrayBeforeEdit.Add(strContent);
@@ -436,10 +436,10 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 				strEndMkr = arrEndMkrs.Item(index);
 				AllEndMkrsArray.Add(strEndMkr);
 				wxString strContent = arrTextContent.Item(index);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 				// BEW added 23Apr15
 				strContent = ZWSPtoFwdSlash(strContent);
-#endif
+//#endif
 				assocTextArrayBeforeEdit.Add(strContent);
 
 				// add marker to left list box, then make it a bare marker for lookup & add to list
@@ -698,10 +698,10 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			{
 				// there is a note present, so store it's possibly new value
 				strContent = assocTextArrayAfterEdit.Item(0);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 				// BEW added 23Apr15
 				strContent = FwdSlashtoZWSP(strContent);
-#endif
+//#endif
 				pSrcPhrase->m_bHasNote = TRUE; // redundant, but ensures safety
 				pSrcPhrase->SetNote(strContent);
 
@@ -721,10 +721,10 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			{
 				// there is a collected back trans present, so store it's possibly new value
 				strContent = assocTextArrayAfterEdit.Item(0);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 				// BEW added 23Apr15
 				strContent = FwdSlashtoZWSP(strContent);
-#endif
+//#endif
 				pSrcPhrase->SetCollectedBackTrans(strContent);
 
 				// shorten the arrays
@@ -907,10 +907,10 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// change the text in the CEdit to correspond to the marker chosen by the
 		// currentMkrSelection value
 		wxString tempStr = assocTextArrayAfterEdit.Item(currentMkrSelection);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		tempStr = ZWSPtoFwdSlash(tempStr);
-#endif
+//#endif
 		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate
         // the wxEVT_COMMAND_TEXT_UPDATED event, which now deprecated SetValue() generates.
 		pMkrTextEdit->ChangeValue(tempStr);

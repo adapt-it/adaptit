@@ -106,10 +106,10 @@ public:
 	void RemoveFinalSpaces(CPhraseBox* pBox,wxString* pStr);
 	void RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
 	void RestorePhraseBoxAtDocEndSafely(CAdapt_ItApp* pApp, CAdapt_ItView *pView);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	void ChangeValue(const wxString& value); // will replace all ZWSP with / if app->m_bFwdSlashDelimiter is TRUE
-#endif
+//#endif
 protected:
 	void OnChar(wxKeyEvent& event);
 	void OnSysKeyUp(wxKeyEvent& event);

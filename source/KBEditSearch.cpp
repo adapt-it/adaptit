@@ -719,10 +719,10 @@ void KBEditSearch::OnBnClickedFindNext(wxCommandEvent& WXUNUSED(event))
 {
 	// get the text in the edit control
 	wxString strSearch = m_pLocalSearchBox->GetValue();
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	strSearch = FwdSlashtoZWSP(strSearch);
-#endif
+//#endif
 
 	// get the currently selected position (if none, get the top of list position and show
 	// it selected -- searching starts with the element following current selection)
@@ -794,10 +794,10 @@ void KBEditSearch::OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(e
 		// there is currently one there for this respelled match item (we assume the user
 		// will re-edit and use the Update button to put a corrected entry back into the
 		// update list)
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		m_pCurKBMatchRec->strOriginal = ZWSPtoFwdSlash(m_pCurKBMatchRec->strOriginal);
-#endif
+//#endif
 		m_pEditBox->ChangeValue(m_pCurKBMatchRec->strOriginal);
 		if (m_pCurKBMatchRec->pUpdateRecord != NULL)
 		{
@@ -883,10 +883,10 @@ void KBEditSearch::SetMatchListSelection(int nSelectionIndex, bool bUserClicked)
             // circumstance and the necessary index value may, by now, have been lost due
             // to user actions subsequent to the last .Add() call)
 			unsigned int index = GetUpdateListIndexFromDataPtr(m_pCurKBUpdateRec);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW added 23Apr15
 			textThatWasEdited = ZWSPtoFwdSlash(textThatWasEdited);
-#endif
+//#endif
 
 			m_pEditBox->ChangeValue(textThatWasEdited);
 			m_pUpdateListBox->SetSelection(index);
@@ -906,10 +906,10 @@ void KBEditSearch::SetMatchListSelection(int nSelectionIndex, bool bUserClicked)
 			// to permit the user to change its spelling; use ChangeValue() in order not to
 			// generate a wxEVT_TEXT event; and clear the pointer to the current update record,
 			// and the index into the update list
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW added 23Apr15
 			strLabel = ZWSPtoFwdSlash(strLabel);
-#endif
+//#endif
 			m_pEditBox->ChangeValue(strLabel);
 			m_pCurKBUpdateRec = NULL;
 			m_nCurUpdateListIndex = wxNOT_FOUND; // -1
@@ -1061,10 +1061,10 @@ void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 		// the same index - but the former is easier
 		m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
 		m_pMatchListBox->SetSelection(m_nCurMatchListIndex);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		strLabel = ZWSPtoFwdSlash(strLabel);
-#endif
+//#endif
 		m_pEditBox->ChangeValue(strLabel);
 
 		// show the source text word or phrase in the box under the left list, and below

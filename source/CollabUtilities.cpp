@@ -1557,11 +1557,11 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 					return FALSE;
 				}
 				dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 				// BEW 23Apr15
 				dataBuffer = ZWSPtoFwdSlash(dataBuffer);
 				dataBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, dataBuffer);
-#endif
+//#endif
 				bOK = pTempFile->Write(dataBuffer);
 				if (!bOK)
 				{
@@ -1609,11 +1609,11 @@ bool CopyTextFromBibleditDataToTempFolder(wxString projectPath, wxString bookNam
 			return FALSE;
 		}
 		dataBuffer = GetTextFromFileInFolder(pathToChapterDataFolder);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15
 		dataBuffer = ZWSPtoFwdSlash(dataBuffer);
 		dataBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, dataBuffer);
-#endif
+//#endif
 		bOK = pTempFile->Write(dataBuffer);
 		if (!bOK)
 		{
@@ -2859,11 +2859,11 @@ bool OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrc
 							// instead, but wxWidgets did not use operator=() properly
 							// and it created a buffer full of unknown char symbols
 							// and no final null! Weird. But += works fine.
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15
 		buffer = ZWSPtoFwdSlash(buffer);
 		buffer = DoFwdSlashConsistentChanges(insertAtPunctuation, buffer);
-#endif
+//#endif
 		wxString* pBuffer = &buffer;
 
 		// Update for step 1 ChangeParatextPrivatesToCustomMarkers()
@@ -7583,11 +7583,11 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 		// the bookCode. The addition of an \id XXX line will always be needed when
 		// grabbing chapter-sized texts.
 		m_collab_sourceChapterBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName,bookCode);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15
 		m_collab_sourceChapterBuffer = ZWSPtoFwdSlash(m_collab_sourceChapterBuffer);
 		m_collab_sourceChapterBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_sourceChapterBuffer);
-#endif
+//#endif
 	}
 	else
 	{
@@ -7599,11 +7599,11 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 		// the bookCode. The addition of an \id XXX line will not normally be needed
 		// when grabbing whole books, but the check is made to be safe.
 		m_collab_sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName,bookCode);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15
 		m_collab_sourceWholeBookBuffer = ZWSPtoFwdSlash(m_collab_sourceWholeBookBuffer);
 		m_collab_sourceWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_sourceWholeBookBuffer);
-#endif
+//#endif
 	}
 	// Code for setting up the Adapt It project etc requires the following data be
 	// setup beforehand also
@@ -8070,11 +8070,11 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
         // which the post-edit translation will replace the one held in
         // m_targetTextBuffer_PreEdit
 		m_collab_targetChapterBuffer = ExportTargetText_For_Collab(pApp->m_pSourcePhrases);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15
 		m_collab_targetChapterBuffer = ZWSPtoFwdSlash(m_collab_targetChapterBuffer);
 		m_collab_targetChapterBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_targetChapterBuffer);
-#endif
+//#endif
 		pApp->StoreTargetText_PreEdit(m_collab_targetChapterBuffer);
 
 		// likewise, if free translation transfer is expected, we get the pre-edit free
@@ -8084,11 +8084,11 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 			// this might return an empty string, or USFMs only string, if no work has yet
 			// been done on the free translation
 			m_collab_freeTransChapterBuffer = ExportFreeTransText_For_Collab(pApp->m_pSourcePhrases);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15
 			m_collab_freeTransChapterBuffer = ZWSPtoFwdSlash(m_collab_freeTransChapterBuffer);
 			m_collab_freeTransChapterBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_freeTransChapterBuffer);
-#endif
+//#endif
 			pApp->StoreFreeTransText_PreEdit(m_collab_freeTransChapterBuffer);
 		}
 	}
@@ -8096,11 +8096,11 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 	{
 		// we are working with a "whole book"
 		m_collab_targetWholeBookBuffer = ExportTargetText_For_Collab(pApp->m_pSourcePhrases);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15
 		m_collab_targetWholeBookBuffer = ZWSPtoFwdSlash(m_collab_targetWholeBookBuffer);
 		m_collab_targetWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_targetWholeBookBuffer);
-#endif
+//#endif
 		pApp->StoreTargetText_PreEdit(m_collab_targetWholeBookBuffer);
 
 		if (pApp->m_bCollaborationExpectsFreeTrans)
@@ -8108,11 +8108,11 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
 			// this might return an empty string, or USFMs only string, if no work has yet
 			// been done on the free translation
 			m_collab_freeTransWholeBookBuffer = ExportFreeTransText_For_Collab(pApp->m_pSourcePhrases);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15
 			m_collab_freeTransWholeBookBuffer = ZWSPtoFwdSlash(m_collab_freeTransWholeBookBuffer);
 			m_collab_freeTransWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, m_collab_freeTransWholeBookBuffer);
-#endif
+//#endif
 #if defined (_DEBUG)
 			//wxLogDebug(_T("OnOK() of GetSourceTextFromEditor(), for Free Translation transfer - the preEdit text\n"));
 			//wxLogDebug(_T("%s\n"), freeTransWholeBookBuffer.c_str());

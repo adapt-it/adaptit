@@ -100,9 +100,9 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 	m_pRadioBox = (wxRadioBox*)FindWindowById(ID_RADIOBOX_SCROLL_INTO_VIEW);
 	m_pCheckboxEnableInsertZWSP = (wxCheckBox*)FindWindowById(ID_CHECKBOX_ENABLE_INSERT_ZWSP);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	m_pCheckboxSolidusSupport = (wxCheckBox*)FindWindowById(ID_CHECKBOX_SOLIDUS_WDBREAK);
-#endif
+//#endif
 	m_pExtraPixelsSlider = (wxSlider*)FindWindowById(ID_DIACRITICS_SLIDER);
 }
 
@@ -161,7 +161,7 @@ void CViewPage::OnCheckboxEnableInsertZWSP(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 void CViewPage::OnCheckboxSolidusWordBreak(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -176,7 +176,7 @@ void CViewPage::OnCheckboxSolidusWordBreak(wxCommandEvent& WXUNUSED(event))
 		pApp->m_bFwdSlashDelimiter = TRUE;
 	}
 }
-#endif
+//#endif
 
 void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
@@ -372,9 +372,9 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	m_pRadioBox->SetSelection(nRadioBoxSelection);
 	// BEW added 9Jul14
 	m_pCheckboxEnableInsertZWSP->SetValue(pApp->m_bEnableZWSPInsertion);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	m_pCheckboxSolidusSupport->SetValue(pApp->m_bFwdSlashDelimiter);
-#endif
+//#endif
 	// BEW added 15Dec14
 	tempExtraPixelsHeight = pApp->m_nExtraPixelsForDiacritics; // current value, most likely from Project config file
 	m_pExtraPixelsSlider->SetValue(tempExtraPixelsHeight);

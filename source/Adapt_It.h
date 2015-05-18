@@ -125,7 +125,7 @@ const int ID_MENU_SHOW_KBSERVER_SETUP_DLG	= 9998; // was 979, then was wxNewId()
 // Code wrapped with this conditional compile directive is to be a user-choosable permanent feature
 // if this experimental support works well (BEW 23Apr15) - it does, but keep this #define because
 // it locates all code throughout the app which implements the support for this feature
-#define FWD_SLASH_DELIM
+//#define FWD_SLASH_DELIM
 
 
 /////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
@@ -3177,7 +3177,7 @@ public:
 	wxString	m_ccTableInputsAndOutputsFolderPath; // always a child of folder that m_workFolderPath
 										// or m_customWorkFolderPath points to; the path is defined in
 										// OnInit()
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	wxString	m_ccTableInstallPath;   // Set in OnInit(). Two .cct table files are required for support
 										// of / as a word-breaking (pseudo) whitespace character, for some
 										// east asian languages. When Adapt It is installed, they are stored
@@ -3185,7 +3185,7 @@ public:
 										// is, on all platforms, the contents of m_xmlInstallPath member.
 										// Code in OnInit() will copy these two to the _CCTABLE_INPUTS_OUTPUTS
 										// folder, or update what is there if the ones here are newer
-#endif
+//#endif
 	bool		m_bProtectReportsOutputsFolder;
 	wxString	m_reportsOutputsFolderName; // in OnInit() we set to "_REPORTS_OUTPUTS"
 	wxString	m_reportsOutputsFolderPath; // always a child of folder that m_curProjectPath
@@ -4541,7 +4541,7 @@ public:
 	bool m_bZWSPinDoc;
 	bool IsZWSPinDoc(SPList* pList); // use to set of clear m_bZWSPinDoc at doc load
 									 // or tfer from PT or BE
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 support / as a word-breaking character for some asian languages during
 	// prepublication processing
 	bool m_bFwdSlashDelimiter; // public access
@@ -4559,7 +4559,7 @@ public:
 		removeAtPunctuation
 	}; // same definition is in helpers.h, because the compiler did not pick it up from here
 	   // but we'll leave it here too, for when other files besides helpers.cpp need it
-#endif
+//#endif
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12

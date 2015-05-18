@@ -288,7 +288,7 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 		}
 
 	}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15, the word breaks restored above will be (probably) / (fwd slash)
 	// from the source text earlier parse; this is likely to be what is wanted, because
 	// to base a free translation on target or gloss text is probably meaning it is not
@@ -297,7 +297,7 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 	// supporting / used as a word-breaker character). So it just remains to call
 	// ZWSPtoFwdSlash() to convert to / any remaining ZWSP in the string (such as in mergers)
 	str = ZWSPtoFwdSlash(str);
-#endif
+//#endif
 	return str; // if neither flag was on, an empty string is returned
 }
 
@@ -1267,10 +1267,10 @@ void CFreeTrans::GetFreeTransPileSetsForPage(CLayout* pLayout, wxArrayPtrVoid& a
 											// being delineated
 		pSrcPhrase = pPile->GetSrcPhrase(); // anchor pile's CSourcePhrase instance
 		wxString strFreeTrans = pSrcPhrase->GetFreeTrans();
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		strFreeTrans = FwdSlashtoZWSP(strFreeTrans);
-#endif
+//#endif
 		arrFreeTranslations.Add(strFreeTrans); // preserve the free translation text
 		arrPileSets.Add(pPileSetArray); // preserve the wxArrayPtrVoid* which will be
 										// populated with the section's CPile pointers
@@ -3255,10 +3255,10 @@ void CFreeTrans::DrawFreeTranslationsAtAnchor(wxDC* pDC, CLayout* pLayout)
     // calculations now; first, get the free translation text
 	pSrcPhrase = m_pFirstPile->GetSrcPhrase();
 	ftStr = pSrcPhrase->GetFreeTrans();
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	ftStr = FwdSlashtoZWSP(ftStr);
-#endif
+//#endif
 
     // Compare the width of the text to the total horizontal extent of the rectangle(s).
     // Also determine the number of rectangles we are to write this section into, and
@@ -5489,10 +5489,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 	// whm 24Aug06 removed gFreeTranslationStr global here and below
 	wxString tempStr;
 	tempStr = pEdit->GetValue(); // set tempStr to whatever is in the box
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	tempStr = ZWSPtoFwdSlash(tempStr);
-#endif
+//#endif
 
 	m_pCurFreeTransSectionPileArray->Clear(); // start with an empty array
 #ifdef _DEBUG
@@ -5507,10 +5507,10 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		// it already has a free translation stored in the sourcephrase
 		pile = m_pApp->m_pActivePile;
 		tempStr = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		tempStr = ZWSPtoFwdSlash(tempStr);
-#endif
+//#endif
 		pEdit->ChangeValue(tempStr);	// show it in the ComposeBar's edit box, but
 				// don't have it selected - too easy for user to mistakenly lose it
 
@@ -5939,10 +5939,10 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
             //  passing in the rest; but just in case I miss some location, do it again
 			wxString s = storeStr;
 			s.Trim(); // trims from right by default
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW added 23Apr15
 			s = FwdSlashtoZWSP(s);
-#endif
+//#endif
 			pFirstPile->GetSrcPhrase()->SetFreeTrans(s);
 
 			// BEW 27Feb12 block added, for m_bSectionByVerse support

@@ -2589,10 +2589,10 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
 	for (index = 0; index < count; index++)
 	{
 		wxString strContent = pFilteredContent->Item(index);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15
 		strContent = FwdSlashtoZWSP(strContent);
-#endif
+//#endif
 		markersAndContent << filterMkr << aSpace << pFilteredMarkers->Item(index) \
 			<< aSpace << strContent;
         // if there is an endmarker, insert it, but with no space before it - a space is

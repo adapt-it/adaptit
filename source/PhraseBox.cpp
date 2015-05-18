@@ -381,7 +381,7 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 		else
 		{
 			phrases[index] = phrases[index - 1] + PutSrcWordBreak(pSrcPhrase) + pSrcPhrase->m_key;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 			if (pApp->m_bFwdSlashDelimiter)
 			{
@@ -390,7 +390,7 @@ int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSou
 				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 				phrases[index] = FwdSlashtoZWSP(phrases[index]);
 			}
-#endif
+//#endif
 			counter++;
 			if (pSrcPhrase->m_bBoundary || nNewSequNum + counter > nMaxIndex)
 				break;
@@ -5943,7 +5943,7 @@ void CPhraseBox::RemoveFinalSpaces(wxString& rStr)
 		return;
 	}
 }
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 // BEW 23Apr15 functions for support of / as word-breaking whitespace, with
 // conversion to ZWSP in strings not accessible to user editing, and replacement
 // of ZWSP with / for those strings which are user editable; that is, when
@@ -5966,5 +5966,5 @@ void CPhraseBox::ChangeValue(const wxString& value)
 //	return s;
 //}
 
-#endif
+//#endif
 

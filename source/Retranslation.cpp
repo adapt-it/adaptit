@@ -379,11 +379,11 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 
 #else // _UNICODE version
 				// use UTF-8 encoding
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 				// BEW added 23Apr15
 				oldText = FwdSlashtoZWSP(oldText);
 				newText = FwdSlashtoZWSP(newText);
-#endif
+//#endif
 				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8, pFile, oldText);
 				m_pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,newText);
 				newText = endText; // get a blank line
@@ -534,18 +534,18 @@ void CRetranslation::AccumulateText(SPList* pList, wxString& strSource, wxString
 		}
 	}
 	// for retranslation support  - prepare adaptation text for editing
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 -- prepare any target text, for editability & / in-place where required
 	if (!strAdapt.IsEmpty())
 	{
 		strAdapt = ZWSPtoFwdSlash(strAdapt);
 		strAdapt = DoFwdSlashConsistentChanges(removeAtPunctuation, strAdapt);
 	}
-#endif
-#if defined(FWD_SLASH_DELIM)
+//#endif
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 -- prepare source text selected, for non-editable display
 	strSource = FwdSlashtoZWSP(strSource);
-#endif
+//#endif
 
 }
 
@@ -831,15 +831,15 @@ void CRetranslation::GetSelectedSourcePhraseInstances(SPList*& pList,
 			}
 		}
 	}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15
 	strAdapt = ZWSPtoFwdSlash(strAdapt);
 	strAdapt = DoFwdSlashConsistentChanges(removeAtPunctuation, strAdapt);
-#endif
-#if defined(FWD_SLASH_DELIM)
+//#endif
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	strSource = ZWSPtoFwdSlash(strSource);
-#endif
+//#endif
 }
 
 // pList is the list to be copied, pCopiedList contains the copies
@@ -2304,12 +2304,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		// same. So I've used the alternative function which explicitly uses the target
 		// text punctuation (when the final param is TRUE)
 		//nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15 - the user can be expected to have typed / between words, but not
 		// contiguous to punctuation; so we must ensure any / contiguous to punctuation get
 		// / inserted where the wordbreak should be located.
 		retrans = DoFwdSlashConsistentChanges(insertAtPunctuation, retrans);
-#endif
+//#endif
 		nNewCount = m_pView->TokenizeTargetTextString(pRetransList, retrans, nSaveSequNum, TRUE);
 
 		// augment the active sequ num if it lay after the selection
@@ -3083,12 +3083,12 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		// m_nSequNumber are set)
 		// nNewCount = m_pView->TokenizeTextString(pRetransList,retrans,nSaveSequNum);
 		// the TRUE causes target text punctuation to be used in the parse - see OnButtonRetranslation()
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15 - the user can be expected to have typed / between words, but not
 		// contiguous to punctuation; so we must ensure any / contiguous to punctuation get
 		// / inserted where the wordbreak should be located.
 		retrans = DoFwdSlashConsistentChanges(insertAtPunctuation, retrans);
-#endif
+//#endif
 		nNewCount = m_pView->TokenizeTargetTextString(pRetransList, retrans, nSaveSequNum, TRUE);
 
         // ensure any call to InsertNullSrcPhrase() will work right - that function saves
@@ -3714,11 +3714,11 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 				strAdapt += PutTgtWordBreak(pSrcPhrase) + str2;
 		}
 	}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 -- ensure there are no / instances contiguous to punctuation,
 	// but leave / between words visible
 	strAdapt = DoFwdSlashConsistentChanges(removeAtPunctuation, strAdapt);
-#endif
+//#endif
 
 	// put the text in the compose bar
 	CMainFrame* pMainFrm = m_pApp->GetMainFrame();
@@ -5047,13 +5047,13 @@ void CRetranslation::GetContext(const int nStartSequNum,const int nEndSequNum,wx
 			}
 		}
 	}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	strPre = FwdSlashtoZWSP(strPre);
 	strFoll = FwdSlashtoZWSP(strFoll);
 	strPreTgt = FwdSlashtoZWSP(strPreTgt);
 	strFollTgt = FwdSlashtoZWSP(strFollTgt);
-#endif
+//#endif
 
 }
 

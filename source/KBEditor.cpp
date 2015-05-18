@@ -360,14 +360,14 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	}
 
 	m_pEditRefCount->SetValue(m_refCountStr);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 Punctuation should not get into the KB, so we'll not expect to
 	// have to remove punctuation contiguous to / character, but the user may want to edit
 	// a returned phrase, so / used as word delimiter must be visible as such - so convert
 	// any ZWSP instances back to / for display in the text box. (Add or Update buttons must
 	// later reconvert any / back to ZWSP)
 	m_edTransStr = ZWSPtoFwdSlash(m_edTransStr);
-#endif
+//#endif
 	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
 	UpdateButtons();
 }
@@ -414,14 +414,14 @@ void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(eve
 		m_edTransStr = _T("");
 	}
 	m_pEditRefCount->SetValue(m_refCountStr);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 Punctuation should not get into the KB, so we'll not expect to
 	// have to remove punctuation contiguous to / character, but the user may want to edit
 	// a returned phrase, so / used as word delimiter must be visible as such - so convert
 	// any ZWSP instances back to / for display in the text box. (Add or Update buttons must
 	// later reconvert any / back to ZWSP)
 	m_edTransStr = ZWSPtoFwdSlash(m_edTransStr);
-#endif
+//#endif
 	m_pEditOrAddTranslationBox->SetValue(m_edTransStr);
 	UpdateButtons();
 }
@@ -450,11 +450,11 @@ void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event)
 	// the selection
 	if (m_srcKeyStr.IsEmpty())
 		return;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 The user can be expected to manually type / delimiters here, so
 	// for the lookup we need to convert them to ZWSP
 	m_srcKeyStr = FwdSlashtoZWSP(m_srcKeyStr);
-#endif
+//#endif
     //m_flagSetting, m_entryCountStr and m_refCountStr don't need to come from window to
     //the variables wx version note: wxListBox::FindString doesn't have a second parameter
     //to find from a certain position in the list. We'll do it differently and use our own
@@ -550,13 +550,13 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		if (value != wxYES)
 			return;
 	}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 Punctuation should not get into the KB, so we'll not expect to
 	// have to restore punctuation contiguous to / character, but the user may have edited
 	// the box contents, so any visible / used as word delimiter there must be converted to
 	// a ZWSP instance for storage.
 	newText = FwdSlashtoZWSP(newText);
-#endif
+//#endif
 	// Ensure we are not duplicating an undeleted translation already in the list box
 	// 
 	// BEW changed from here on, 24Jan13, because with kbVersion 2 deletions are present
@@ -1011,13 +1011,13 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		if (value == wxNO)
 			return;
 	}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 Punctuation should not get into the KB, so we'll not expect to
 	// have to restore punctuation contiguous to / character, but the user may have edited
 	// the box contents, so any visible / used as word delimiter there must be converted to
 	// a ZWSP instance for storage.
 	newText = FwdSlashtoZWSP(newText);
-#endif
+//#endif
 
 	// BEW 22Jun10, for kbVersion 2, we must allow the user to manually try to add a
 	// translation (or gloss, in glossing mode) string which has been deleted from the KB
@@ -1153,7 +1153,7 @@ void CKBEditor::DoRetain()
 	long numSearchStrings = 0L;
 	numSearchStrings = SmartTokenize(delims, contents, gpApp->m_arrSearches,
 		bStoreEmptyStringsToo);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	if (gpApp->m_bFwdSlashDelimiter)
 	{
 		long i;
@@ -1167,7 +1167,7 @@ void CKBEditor::DoRetain()
 			gpApp->m_arrSearches.Insert(itemStr, (size_t)i);
 		}
 	}
-#endif
+//#endif
 	// check what we got
 #ifdef _DEBUG
 	long index;

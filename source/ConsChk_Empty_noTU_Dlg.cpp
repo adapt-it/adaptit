@@ -111,10 +111,10 @@ void ConsChk_Empty_noTU_Dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_1);
 	wxASSERT(m_pTextCtrlSrcText != NULL);
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	m_sourcePhrase = FwdSlashtoZWSP(m_sourcePhrase); // not editable for the user, so use ZWSP delimiters
-#endif
+//#endif
 
 	// put the passed in source phrase value into the wxTextCtrl, then make it read only
 	m_pTextCtrlSrcText->ChangeValue(m_sourcePhrase);

@@ -5716,9 +5716,9 @@ wxString szEnableZWSPinsertion = _T("Enable_ZWSP_Insertion");
 /// #ifdef .... #endif blocks; only to make it easy to locate the code
 /// fragments. The boolean we store in the project config file.
 /// BEW added 23Apr15
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 wxString szSolidusWordBreaker = _T("Support_Slash_As_Word_Separator");
-#endif
+//#endif
 
 /// The name that introduces the properties of the source font within both
 /// the basic and project configuration files.
@@ -15303,11 +15303,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 						  // done on se asian languages with ZWSP word delimiters, and
 						  // also in mergers for handling free trans, notes, collected
 						  // back translations - see PutSrcWordBreakFrTr() in helpers.cpp
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 support / as a word-breaking character for some asian languages during prepublication processing
 	//m_bFwdSlashDelimiter = TRUE; // forced to TRUE when experimenting (before GUI support added)
 	m_bFwdSlashDelimiter = FALSE; // default, only needed for a few languages
-#endif
+//#endif
 
 	m_nExtraPixelsForDiacritics = 0; // default, but Project config file may override it 
 									 // (see View page of Prefs, the slider control)
@@ -20011,11 +20011,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString AIusageLogFolderPath;
 	wxString AIpackedDocumentFolderPathOnly;
 	wxString AIccTableFolderPathOnly;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	wxString AIccTableInstallFolderPathOnly; // will point to m_xmlInstallPath\CC folder on Win,
 				// but /usr/share/adaptit folder on Linux, or AdaptIt.app/Contents/Resources
 				// folder on Mac (those Linux and Mac ones are each also m_xmlInstallPath...)
-#endif
+//#endif
 	wxString strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
 	if (strUserID.IsEmpty())
 	{
@@ -20074,7 +20074,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Now the user log file is set up, we can call git:
     m_DVCS_installed = ( m_pDVCS->DoDVCS (DVCS_CHECK, 0) == 0 );       // if this call returns an error, assume DVCS not installed
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15. The _CC_INPUTS_OUTPUTS folder now exists in the work folder. Path to
 	// it is:  m_ccTableInputsAndOutputsFolderPath, which will not be an empty string.
 	// whm: 15May15 corrected the value to be stored in AIccTableInstallFolderPathOnly 
@@ -20251,7 +20251,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		} // end of else block for test: if (!bWorkCcFwdSlashRemoveTableFileExists)
 
 	} // end of TRUE block for test: if (bCcInstallFolderExists)
-#endif
+//#endif
 
 	// test code
 	//CSourcePhrase sp;
@@ -22856,9 +22856,9 @@ bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to r
     // version 2.5.3 and later, so we use it here.
 
 	m_bEnableZWSPInsertion = FALSE; // initialize to FALSE, only project config can make it TRUE
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	m_bFwdSlashDelimiter = FALSE; // initialize to FALSE, only project config can make it TRUE
-#endif
+//#endif
 	bool bReturn = FALSE;
 	bReturn = bReturn; // avoid GCC warning
 	bool bDoNormalStart = TRUE;
@@ -33628,12 +33628,12 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szEnableZWSPinsertion << tab << (int)m_bEnableZWSPInsertion;
 	pf->AddLine(data);
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	data.Empty();
 	data << szSolidusWordBreaker << tab << (int)m_bFwdSlashDelimiter;
 	pf->AddLine(data);
-#endif
+//#endif
 	// BEW added 13Mar13 and removed support for it on 30Jul13; we no longer
 	// write it, but we'll read it if it occurs in anyone's projecct config file
 	//data.Empty();
@@ -34207,7 +34207,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bEnableZWSPInsertion = FALSE;
 			}
 		}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		else if (name == szSolidusWordBreaker)
 		{
 			if (strValue == _T("1"))
@@ -34219,7 +34219,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_bFwdSlashDelimiter = FALSE;
 			}
 		}
-#endif
+//#endif
 		// BEW added 13Mar13 and removed support on 30Jul13, we'll read it
 		// if present in an older project config file, but not use it anywhere
 		else if (name == szDoLegacyLowerCaseLookup)

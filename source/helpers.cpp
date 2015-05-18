@@ -1613,7 +1613,7 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 }
 */
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 
 wxString ZWSPtoFwdSlash(wxString& str)
 {
@@ -1787,7 +1787,7 @@ wxString DoFwdSlashConsistentChanges(enum FwdSlashDelimiterSupport whichTable, w
 	delete pConsistentChanger;
 	return outputStr;
 }
-#endif
+//#endif
 
 // BEW 23Apr15 provisional support added for / being treated as a word-breaking
 // character (as if it is whitespace) -- support certain east asian languages
@@ -1825,14 +1825,14 @@ bool Is_NonEol_WhiteSpace(wxChar *pChar)
 	else
 	{
 #ifdef _UNICODE
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15, support / as if a whitespace word-breaker
 		if (gpApp->m_bFwdSlashDelimiter)
 		{
 			if (*pChar == _T('/'))
 				return TRUE;
 		}
-#endif
+//#endif
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others
 		// BEW 4Aug11 changed the code to not test each individually, but just test if
@@ -6649,14 +6649,14 @@ bool IsWhiteSpace(const wxChar *pChar)
 	else
 	{
 #ifdef _UNICODE
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15, support / as if a whitespace word-breaker
 		if (gpApp->m_bFwdSlashDelimiter)
 		{
 			if (*pChar == _T('/'))
 				return TRUE;
 		}
-#endif
+//#endif
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others
 		// BEW 4Aug11 changed the code to not test each individually, but just test if

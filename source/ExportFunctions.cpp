@@ -17379,11 +17379,11 @@ int RebuildSourceText(wxString& source, SPList* pUseThisList)
 	source.Trim();
 	// BEW 21Jul14 we put in the word delimiter before the word, at top of loop now
 	//source << aSpace;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	source = DoFwdSlashConsistentChanges(removeAtPunctuation, source);
 	source = FwdSlashtoZWSP(source);
-#endif
+//#endif
 
 	// update length
 	return source.Len();
@@ -17878,11 +17878,11 @@ int RebuildGlossesText(wxString& glosses, SPList* pUseThisList)
 			str.Empty();
 		} // end of block for a single CSourcePhrase instance
 	}// end of while (pos != NULL) for scanning whole document's CSourcePhrase instances
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	glosses = DoFwdSlashConsistentChanges(removeAtPunctuation, glosses);
 	glosses = FwdSlashtoZWSP(glosses);
-#endif
+//#endif
 	// update length
 	return glosses.Length();
 }
@@ -18142,7 +18142,7 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 			}
 			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
 			{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 				// BEW added 23Apr15
 				// internally the following function tests for m_bFwdSlashDelimiter TRUE, & it
 				// returns FALSE if that flag is FALSE; it then tests m_srcWordBreak and if it
@@ -18163,9 +18163,11 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 					str.Trim();
 					str << aSpace << pSrcPhrase->GetFreeTrans();
 				}
-#else
+//#else
+/*
 				str << aSpace << pSrcPhrase->GetFreeTrans();
 #endif
+*/
 			}
 			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
 			{
@@ -18176,7 +18178,7 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 			// whm 9Jun12 added !str.IsEmpty() to the test below because wxWidgets 2.9.3
 			// asserts if str is empty and str.GetChar(0) is called - 0 is a bad index
 			// into an empty string!
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW added 23Apr15 -- if ZWSP was inserted initially above, and
 			// gpApp->m_bFwdSlashDelimiter is TRUE, then don't add Latin space
 			if (gpApp->m_bFwdSlashDelimiter)
@@ -18193,12 +18195,13 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 					str = _T(" ") + str;
 				}
 			}
-#else
+//#else
+/*
 			if (!str.IsEmpty() && str.GetChar(0) != _T(' '))
 			{
 				str = _T(" ") + str;
 			}
-#endif
+#endif */
 			// append the substring to the passed in freeTrans string
 			freeTrans += str;
 			str.Empty();
@@ -18207,11 +18210,11 @@ int RebuildFreeTransText(wxString& freeTrans, SPList* pUseThisList)
 
 	// remove any marker or end-marker which has textType of 'none'
 	RemoveMarkersOfType(none, freeTrans);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	freeTrans = DoFwdSlashConsistentChanges(removeAtPunctuation, freeTrans);
 	freeTrans = FwdSlashtoZWSP(freeTrans);
-#endif
+//#endif
 	// update length
 	return freeTrans.Length();
 }
@@ -18552,11 +18555,11 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 
 	int textLen = targetstr.Length();
 	target = targetstr; // return all the text in one long wxString
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 make it like what is seen in PT's views other than Unformatted
 	target = DoFwdSlashConsistentChanges(removeAtPunctuation, target);
 	target = FwdSlashtoZWSP(target);
-#endif
+//#endif
 	return textLen;
 }// end of RebuildTargetText
 
@@ -18967,7 +18970,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 						// delimited text. So I've added code here to fix this. (The tweak is more
 						// complex than strictly necessary, because someone may un-#define 
 						// FWD_SLASH_DELIM, and without the #else block, that would break the app.
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 						if (gpApp->m_bFwdSlashDelimiter)
 						{
 							while (*pOld == _T(' ')) { pOld += 1L; }
@@ -18989,7 +18992,8 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 								// don't increment pNew here
 							}
 						}
-#else
+//#else
+/*
 						if (*pOld == _T('\n') || *pOld == _T(' '))
 						{
 							// just copy the new line or one space and then advance over it
@@ -19003,7 +19007,7 @@ wxString ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 							pOld += itemLen;
 							// don't increment pNew here
 						}
-#endif
+#endif */
 					}
 				}
 				else

@@ -784,11 +784,11 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// would use if the whole book is used for collaboration, so we should
 	// do the check here too just to be safe.
 	sourceWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(sourceTempFileName,bookCode);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15
 	sourceWholeBookBuffer = ZWSPtoFwdSlash(sourceWholeBookBuffer);
 	sourceWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, sourceWholeBookBuffer);
-#endif
+//#endif
 
 	// whm 21Sep11 Note: When grabbing the target text, we don't need to add
 	// an \id XXX line at the beginning of the text, therefore the second 
@@ -800,11 +800,11 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	// is also the main call that stores the text in the .temp folder which the 
 	// app would use if the whole book is used for collaboration.
 	targetWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(targetTempFileName,wxEmptyString);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15
 	targetWholeBookBuffer = ZWSPtoFwdSlash(targetWholeBookBuffer);
 	targetWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, targetWholeBookBuffer);
-#endif
+//#endif
 
 	SourceTextUsfmStructureAndExtentArray.Clear();
 	SourceTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(sourceWholeBookBuffer);
@@ -815,11 +815,11 @@ void CGetSourceTextFromEditorDlg::OnLBBookSelected(wxCommandEvent& WXUNUSED(even
 	if (m_bTempCollaborationExpectsFreeTrans)
 	{
 		freeTransWholeBookBuffer = GetTextFromAbsolutePathAndRemoveBOM(freeTransTempFileName,wxEmptyString);
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15
 		freeTransWholeBookBuffer = ZWSPtoFwdSlash(freeTransWholeBookBuffer);
 		freeTransWholeBookBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, freeTransWholeBookBuffer);
-#endif
+//#endif
 		FreeTransTextUsfmStructureAndExtentArray.Clear();
 		FreeTransTextUsfmStructureAndExtentArray = GetUsfmStructureAndExtent(freeTransWholeBookBuffer); 
 	}

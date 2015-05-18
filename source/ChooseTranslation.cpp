@@ -1113,13 +1113,13 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 	}
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15 - in case the user typed a translation manually (with / as word-delimiter)
 	// convert any / back to ZWSP, in case KB storage follows. If the string ends up in m_targetBox
 	// then the ChangeValue() call within CPhraseBox will convert the ZWSP instances back to forward
 	// slashes for display, in case the user does subsequent edits there
 	m_chosenTranslation = FwdSlashtoZWSP(m_chosenTranslation);
-#endif
+//#endif
 
 
 	event.Skip(); //EndModal(wxID_OK); //AIModalDialog::OnOK(event); // not virtual in wxDialog

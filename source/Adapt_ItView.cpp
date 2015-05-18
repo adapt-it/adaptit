@@ -10790,7 +10790,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	Invalidate();
 	GetLayout()->PlaceBox();
 	gbMergeSucceeded = TRUE;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15, on pFirstSrcPhrase change both src and both tgt strings to have no /
 	// but ZWSP instead, if m_bFwdSlashDelimiter is TRUE and / is in the merged strings
 	// so that user won't see the forward slashes in the layout (see helpers.cpp for def'n)
@@ -10798,7 +10798,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	pFirstSrcPhrase->m_key = FwdSlashtoZWSP(pFirstSrcPhrase->m_key);
 	pFirstSrcPhrase->m_adaption = FwdSlashtoZWSP(pFirstSrcPhrase->m_adaption);
 	pFirstSrcPhrase->m_targetStr = FwdSlashtoZWSP(pFirstSrcPhrase->m_targetStr);
-#endif
+//#endif
 //#define MP_MM_BUG
 #ifdef MP_MM_BUG
 #ifdef _DEBUG
@@ -12896,7 +12896,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		// update ptr to point at next part of string to be parsed
 		ptr += itemLen;
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW added 23Apr15, because when supporting / as a word-breaking 
 		// character for certain east asian languages, / will be the first
 		// whitespace and we want to store that; if any other whitespace
@@ -12941,8 +12941,8 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 			wxString wdbrkStr(lastWhiteSpaceChar);
 			pSrcPhrase->SetSrcWordBreak(wdbrkStr);
 	}
-#else
-
+//#else
+/*
 		// BEW 21Jul14 changed to use IsWhiteSpace() for the test
 		//while (*ptr == _T(' ')) { ptr++; } // skip initial whitespace
 		lastWhiteSpaceChar.Empty(); // initialize to an empty string
@@ -12956,6 +12956,7 @@ void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nI
 		wxString wdbrkStr(lastWhiteSpaceChar);
 		pSrcPhrase->SetSrcWordBreak(wdbrkStr);
 #endif
+*/
 
 		if (strFinal.IsEmpty())
 		{
@@ -14717,14 +14718,14 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				// do housekeeping (for explanation, see end of the function's comment)
 				pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 					// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 					if (pSrcPhrase->m_nSrcWords > 1)
 					{
 						// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 						pSrcPhrase->m_targetStr = FwdSlashtoZWSP(pSrcPhrase->m_targetStr);
 					}
-#endif
+//#endif
 				return;
 			}
 			else // *Do* copy the source punctuation
@@ -14750,14 +14751,14 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					// is reset to 0 at the end of CLayout::Draw(), and at the same place the
 					// m_nCurSequNum_ForPlacementDialog is reset to default -1
 					pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 					// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 					if (pSrcPhrase->m_nSrcWords > 1)
 					{
 						// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 						pSrcPhrase->m_targetStr = FwdSlashtoZWSP(pSrcPhrase->m_targetStr);
 					}
-#endif
+//#endif
 					return;
 				}
 
@@ -14929,14 +14930,14 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 					str.c_str(), pSrcPhrase->m_targetStr.c_str());
 #endif */
 				pSrcPhrase->m_targetStr = str;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 				// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 				if (pSrcPhrase->m_nSrcWords > 1)
 				{
 					// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 					pSrcPhrase->m_targetStr = FwdSlashtoZWSP(pSrcPhrase->m_targetStr);
 				}
-#endif
+//#endif
 
 /* #if defined(_DEBUG)
 				// In case the RossJones m_targetStr not sticking bug comes from here
@@ -15204,14 +15205,14 @@ void CAdapt_ItView::MakeTargetStringIncludingPunctuation(CSourcePhrase *pSrcPhra
 				// best we can do in this circumstance is just use targetStr 'as is'
 				pSrcPhrase->m_targetStr = targetStr;
 			}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 			if (pSrcPhrase->m_nSrcWords > 1)
 			{
 				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 				pSrcPhrase->m_targetStr = FwdSlashtoZWSP(pSrcPhrase->m_targetStr);
 			}
-#endif
+//#endif
 
 		} // end of else block for test: if (!IsFixedSpaceSymbolWithin(pSrcPhrase))
 	}

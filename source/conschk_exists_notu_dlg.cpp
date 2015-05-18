@@ -118,10 +118,10 @@ void conschk_exists_notu_dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	m_pTextCtrlSrcText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PHRASE_2);
 	wxASSERT(m_pTextCtrlSrcText != NULL);
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	m_sourcePhrase = FwdSlashtoZWSP(m_sourcePhrase); // not editable to user, so display with ZWSP
-#endif
+//#endif
 	// put the passed in source phrase value into the wxTextCtrl, then make it read only
 	m_pTextCtrlSrcText->ChangeValue(m_sourcePhrase);
 	m_pTextCtrlSrcText->SetEditable(FALSE); // now it's read-only
@@ -129,10 +129,10 @@ void conschk_exists_notu_dlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	m_pTextCtrlTgtText = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TARGET_PHRASE_2);
 	wxASSERT(m_pTextCtrlTgtText != NULL);
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW added 23Apr15
 	m_targetPhrase = ZWSPtoFwdSlash(m_targetPhrase); // is editable to user, so display with any / shown
-#endif
+//#endif
 	// put the passed in source phrase value into the wxTextCtrl, then make it read only
 	m_pTextCtrlTgtText->ChangeValue(m_targetPhrase);
 	m_pTextCtrlTgtText->SetEditable(FALSE); // now it's read-only

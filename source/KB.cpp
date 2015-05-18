@@ -728,12 +728,12 @@ bool CKB::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxStrin
 								 // before every first lookup
 	MapKeyStringToTgtUnit::iterator iter;
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
 	// to support lookups because we will have ZWSP rather than / in the KB
 	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 	keyStr = FwdSlashtoZWSP(keyStr);
-#endif
+//#endif
 
     // the test of gbCallerIsRemoveButton is to prevent a wrong change to lower case if
     // autocapitalization is on and the user clicked in the KB editor, or in Choose
@@ -863,12 +863,12 @@ a:		iter = pMap->find(keyStr);
 // app->m_bFwdSlashDelimiter is TRUE
 bool CKB::LookupForKbSharing(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU, wxString keyStr)
 {
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the source text
 	// to support lookups because we will have ZWSP rather than / in the KB
 	// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 	keyStr = FwdSlashtoZWSP(keyStr);
-#endif
+//#endif
 
 	MapKeyStringToTgtUnit::iterator iter;
 	iter = pMap->find(keyStr);
@@ -4058,14 +4058,14 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 			{
 				pSrcPhrase->m_adaption = tgtPhrase;
 			}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 			if (pSrcPhrase->m_nSrcWords > 1)
 			{
 				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
 			}
-#endif
+//#endif
 			if (!gbInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, also does auto-capitalization adjustments
@@ -4131,7 +4131,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 											   // to it (need this for lookups)
 	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be
 															// made lower case
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 at this point, we will use unchangedkey, key, and targetPhrase; if we
 	// are supporting / as a word-breaking pseudo whitespace character (and this is so only
 	// if app->m_bFwdSlashDelimiter is TRUE), then we don't want to store any / in the KB,
@@ -4140,7 +4140,7 @@ bool CKB::StoreText(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, bool bSuppor
 	unchangedkey = FwdSlashtoZWSP(unchangedkey); // see helpers.cpp
 	key = FwdSlashtoZWSP(key);
 	tgtPhrase = FwdSlashtoZWSP(tgtPhrase);
-#endif
+//#endif
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefString =  NULL;
 	if (m_pMap[nMapIndex]->empty())
@@ -4922,14 +4922,14 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 			{
 				pSrcPhrase->m_adaption = tgtPhrase;
 			}
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15 if in a merger, we want / converted to ZWSP for the target text
 			if (pSrcPhrase->m_nSrcWords > 1)
 			{
 				// No changes are made if app->m_bFwdSlashDelimiter is FALSE
 				pSrcPhrase->m_adaption = FwdSlashtoZWSP(pSrcPhrase->m_adaption);
 			}
-#endif
+//#endif
 			if (!gbInhibitMakeTargetStringCall)
 			{
 				// sets m_targetStr member too, and handles auto-capitalization
@@ -4989,7 +4989,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	// (need this for lookups)
 	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 	// BEW 23Apr15 at this point, we will use unchangedkey, key, and targetPhrase; if we
 	// are supporting / as a word-breaking pseudo whitespace character (and this is so only
 	// if app->m_bFwdSlashDelimiter is TRUE), then we don't want to store any / in the KB,
@@ -4998,7 +4998,7 @@ bool CKB::StoreTextGoingBack(CSourcePhrase *pSrcPhrase, wxString &tgtPhrase)
 	unchangedkey = FwdSlashtoZWSP(unchangedkey); // see helpers.cpp
 	key = FwdSlashtoZWSP(key);
 	tgtPhrase = FwdSlashtoZWSP(tgtPhrase);
-#endif
+//#endif
 	CTargetUnit* pTU;
 	CRefString* pRefString;
 	if (m_pMap[nMapIndex]->empty())

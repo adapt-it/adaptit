@@ -1088,21 +1088,21 @@ bool CAdapt_ItDoc::OnNewDocument()
 				gpApp->gCurrentSfmSet = gpApp->gProjectSfmSetForConfig;
 			}
 
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 			// BEW 23Apr15, if supporting / as a whitespace word-breaking character, preprocess
 			// the input text to have no ZWSP in it, and to insert / at the correct places where
 			// there is punctuation (since the users do not type it in such locations, so we do
 			// it using CC table processing)
 			*pApp->m_pBuffer = ZWSPtoFwdSlash(*pApp->m_pBuffer);
 			*pApp->m_pBuffer = DoFwdSlashConsistentChanges(insertAtPunctuation, *pApp->m_pBuffer);
-#endif
+//#endif
 
 			// parse the input file
 			int nHowMany;
 			nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,
 									(int)pApp->m_nInputFileLength);
 			nHowMany = nHowMany; // avoid warning
-#if defined(_DEBUG) && defined(FWD_SLASH_DELIM)
+#if defined(_DEBUG) //&& defined(FWD_SLASH_DELIM)
 			if (pApp->m_bFwdSlashDelimiter)
 			{
 				SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
@@ -9298,14 +9298,14 @@ bool CAdapt_ItDoc::IsWhiteSpace(wxChar *pChar)
 	else
 	{
 #ifdef _UNICODE
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 		// BEW 23Apr15, support / as if a whitespace word-breaker
 		if (gpApp->m_bFwdSlashDelimiter)
 		{
 			if (*pChar == _T('/'))
 				return TRUE;
 		}
-#endif
+//#endif
 		// BEW 3Aug11, support ZWSP (zero-width space character, U+200B) as well, and from
 		// Dennis Drescher's email of 3Aug11, also various others - more common exotic ones
 		// tried first, and if not those then the less common ones
@@ -25039,10 +25039,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case store_empty_meaning:
 								{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 									// make a <no adaptation> entry in pKB (but not in
                                     // pKBCopy, because we need to be able to find
                                     // subsequent errors that may exist -- same below, when
@@ -25087,10 +25087,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								break;
 							case store_nonempty_meaning:
 								{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 									// just requires a simple store operation ( and no store
 									// in pKCopy should be done)
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
@@ -25127,10 +25127,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 							case store_nonempty_meaning:
 								{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 									// make a normal entry of it in pKB (but not pKBCopy)
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation, TRUE);
 								}
@@ -25185,10 +25185,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							if (tempStr != pApp->m_strNotInKB)
 							{
 								// the user chose a normal adaptation or empty string
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 								tempStr = FwdSlashtoZWSP(tempStr);
-#endif
+//#endif
 
 								// the following call is now done internally in StoreText()
 								//pApp->GetView()->RemovePunctuation(this, &tempStr, from_target_text);
@@ -25266,10 +25266,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							{
 							case store_nonempty_meaning:
 								{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 									// make a normal entry of it in pKB (leave pKBCopy unchanged)
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
 
@@ -25408,10 +25408,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							if (dlg.actionTaken == store_nonempty_meaning)
 							{
 								pAutoFixRec->finalAdaptation = dlg.m_aorgTextCtrlStr;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 								pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 							}
 
 							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
@@ -25492,10 +25492,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 								{
 									// just requires a simple store operation ( and no store
 									// in pKCopy should be done)
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
 									pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 									pKB->StoreText(pSrcPhrase, pAutoFixRec->finalAdaptation);
 
 									// check if it has also a non-deleted <Not In KB>
@@ -25560,10 +25560,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// get and store the FixItAction
 							pAutoFixRec->fixAction = dlg.actionTaken;
 							//pAutoFixRec->finalAdaptation is already set
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 							// BEW added 23Apr15
 							pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 
 							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
 							// subsequent use
@@ -25678,13 +25678,13 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// restore_meaning_to_doc); also get the user's final string
 							pAutoFixRec->fixAction = dlg.actionTaken;
 							pAutoFixRec->finalAdaptation = dlg.m_finalAdaptation; // could be "<Not In KB>"
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 							if (pAutoFixRec->finalAdaptation != pApp->m_strNotInKB)
 							{
 								// BEW added 23Apr15
 								pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
 							}
-#endif
+//#endif
 							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
 							// subsequent use
 							if (dlg.m_bDoAutoFix)
@@ -25819,10 +25819,10 @@ bool CAdapt_ItDoc::DoConsistencyCheck(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCopy
 							// get and store the FixItAction
 							pAutoFixRec->fixAction = dlg.actionTaken;
 							//pAutoFixRec->finalAdaptation is already set
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 							// BEW added 23Apr15
 							pAutoFixRec->finalAdaptation = FwdSlashtoZWSP(pAutoFixRec->finalAdaptation);
-#endif
+//#endif
 
 							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
 							// subsequent use
@@ -26454,10 +26454,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 								break;
 							case store_nonempty_meaning:
 								{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
 									pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
-#endif
+//#endif
 									// just requires a simple store operation ( and no store
 									// in pKCopy should be done)
 									pKB->StoreText(pSrcPhrase, pAutoFixGRec->finalGloss);
@@ -26502,10 +26502,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							}
 							else
 							{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 								tempStr = FwdSlashtoZWSP(tempStr);
-#endif
+//#endif
 								pKB->StoreText(pSrcPhrase, tempStr);
 							}
 							/* StoreText() does this now
@@ -26589,10 +26589,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							if (dlg.actionTaken == store_nonempty_meaning)
 							{
 								pAutoFixGRec->finalGloss = dlg.m_aorgTextCtrlStr;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 								pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
-#endif
+//#endif
 							}
 
 							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
@@ -26621,10 +26621,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 								{
 									// just requires a simple store operation ( and no store
 									// in pKCopy should be done)
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 									// BEW added 23Apr15
 									pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
-#endif
+//#endif
 									pKB->StoreText(pSrcPhrase, pAutoFixGRec->finalGloss);
 								}
 								break;
@@ -26707,10 +26707,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							// restore_meaning_to_doc); also get the user's final string
 								pAutoFixGRec->fixAction = dlg.actionTaken;
 								pAutoFixGRec->finalGloss = dlg.m_finalAdaptation;
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 								pAutoFixGRec->finalGloss = FwdSlashtoZWSP(pAutoFixGRec->finalGloss);
-#endif
+//#endif
 							// if the m_bDoAutoFix flag is set, add this 'fix' to a list for
 							// subsequent use
 							if (dlg.m_bDoAutoFix)
@@ -26735,10 +26735,10 @@ bool CAdapt_ItDoc::DoConsistencyCheckG(CAdapt_ItApp* pApp, CKB* pKB, CKB* pKBCop
 							}
 							else
 							{
-#if defined(FWD_SLASH_DELIM)
+//#if defined(FWD_SLASH_DELIM)
 								// BEW added 23Apr15
 								tempStr = FwdSlashtoZWSP(tempStr);
-#endif								
+//#endif								
 								// glossing store can have punctuation in it
 								pKB->StoreText(pSrcPhrase, tempStr);
 									// StoreText() sets m_gloss for glossing KB
