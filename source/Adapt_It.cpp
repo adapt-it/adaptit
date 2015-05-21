@@ -6182,6 +6182,11 @@ wxString szMinPileWidth = _T("MinimumPileWidth");
 // Uses the flag m_bNoFootnotesInCollabToPTorBE, which is default FALSE
 wxString szNoFootnotesToPTorBE = _T("SendNoFootnotesToParatextOrBibledit");
 
+// Default is this feature is Off. If turned on at the Backups & Misc tab of Preferences,
+// then a series of auto-inserts will start with a freeze of the canvas, and after every 7th
+// OnPass() call there will be a thaw & a 1/3 second delay.
+wxString szSupportFreezeAndThaw = _T("SupportFreezeAndThawInAutoInserts");
+
 /// The label that identifies the following string encoded number as the application's
 /// "InterpileGapWidth". This value is written in the "Settings" part of the basic configuration
 /// file. Adapt It stores this path in the App's m_curGapWidth member  variable.
@@ -15301,6 +15306,15 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	// BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
+	// of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
+	// as well (currently 8)
+	m_bIsFrozen = FALSE;
+	m_bDoFreeze = FALSE;
+	m_bDoThaw = FALSE;
+	m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
+	m_nInsertCount = 0;
+
     //bool bMain = wxThread::IsMain(); // yep, correctly returns true
     m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = FALSE; // used to relocate the
 		// phrasebox to the active pile's hole when free trans mode is exited. (Because
@@ -30102,6 +30116,14 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szNoFootnotesToPTorBE << tab << number;
 	pf->AddLine(data);
 
+	if (m_bSupportFreeze)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szSupportFreezeAndThaw << tab << number;
+	pf->AddLine(data);
+
 	if (m_bSuppressFirst)
 		number = _T("1");
 	else
@@ -31603,6 +31625,16 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 				m_bNoFootnotesInCollabToPTorBE = FALSE;
 			else
 				m_bNoFootnotesInCollabToPTorBE = TRUE;
+		}
+		else if (name == szSupportFreezeAndThaw)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0; // default should be FALSE
+			if (num == 0)
+				m_bSupportFreeze = FALSE;
+			else
+				m_bSupportFreeze = TRUE;
 		}
 		else if (name == szSuppressFirst)
 		{

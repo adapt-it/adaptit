@@ -1110,6 +1110,9 @@ bool CPhraseBox::MoveToNextPile(CPile* pCurPile)
             pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 			if (!pApp->m_bSingleStep)
 			{
+				// This call internally sets m_bAutoInsert to FALSE at its first line, but
+				// if in cc mode and m_bAcceptDefaults is true, then cc keeps the box moving
+				// forward by resetting m_bAutoInsert to TRUE before it returns
 				HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(
 						pApp, pView, pNewPile, m_bCancelAndSelectButtonPressed, bWantSelect);
 			}
@@ -4305,6 +4308,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 // failing in the LookAhead function (such as when there was no match); otherwise, return
 // FALSE so as to be able to exit from the caller's loop
 // BEW 13Apr10, no changes needed for support of doc version 5
+// BEW 21May15 added freeze/thaw support
+
 bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 {
 	#ifdef _FIND_DELAY
@@ -4315,7 +4320,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 	CLayout* pLayout = GetLayout();
 	//CSourcePhrase* pOldActiveSrcPhrase = NULL; // set but not used
-	int nActiveSequNum= pApp->m_nActiveSequNum;
+	int nActiveSequNum = pApp->m_nActiveSequNum;
 	if (nActiveSequNum < 0)
 		return FALSE;
 	//else
@@ -4326,6 +4331,66 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	gnOldSequNum = nActiveSequNum;
 	gbByCopyOnly = FALSE; // restore default setting
 
+	// BEW 21May15 add here support for freezing the canvas for a NUMINSERTS number
+	// of consecutive auto-inserts from the KB; the matching thaw calls are done
+	// later below, before returning FALSE, or returning TRUE. The actual Freeze()
+	// and Thaw() calls are within CLayout's Redraw() and Draw() functions, and are
+	// managed by booleans m_bDoFreeze and m_bDoThaw. Recall that OnePass() is called
+	// from only one place in the whole app - from OnIdle(), and even then only when
+	// several flags have certain values consistent with automatic insertions being
+	// currently permitted. So the logic for doing a freeze and doing it's matching
+	// thaw, is encapsulated within this one OnePass() function, except for an added
+	// else block in OnIdle() where the m_nInsertCount value is defaulted to 0 whenever
+	// m_bAutoInsert is FALSE.
+	if (pApp->m_bSupportFreeze)
+	{
+		if (pApp->m_nInsertCount == 0 || (pApp->m_nInsertCount % (int)NUMINSERTS == 0))
+		{
+			// Make the freeze happen only when the felicity conditions are satisfied
+			if (
+				!pApp->m_bIsFrozen      // canvas must not currently be frozen
+				&& pApp->m_bDrafting    // the GUI is in drafting mode (only then are auto-inserts possible)
+				&& (pApp->m_bAutoInsert || !pApp->m_bSingleStep) // one or both of these conditions apply
+				)
+			{
+				// Ask for the freeze
+				pApp->m_bDoFreeze = TRUE;
+				// Count this call of OnePass()
+				pApp->m_nInsertCount = 1;
+				// Do a half-second delay, if that was set to 201 ticks
+				if (pApp->m_nCurDelay == 31)
+				{
+					// DoDelay() at the doc end causes DoDelay() to never exit, so
+					// protect from calling near the app end
+					int maxSN = pApp->m_pSourcePhrases->GetCount() - 1;
+					int safeLocSN = maxSN - (int)NUMINSERTS;
+					if (safeLocSN < 0)
+					{
+						safeLocSN = 0;
+					}
+					if (maxSN > 0 && nActiveSequNum <= safeLocSN)
+					{
+						DoDelay(); // see helpers.cpp
+						pApp->m_nCurDelay = 0; // restore to zero, we want it only the once
+						// at the start of each subsection of inserts
+					}
+				}
+			}
+			else
+			{
+				// Ensure it's not asked for
+				pApp->m_bDoFreeze = FALSE;
+			}
+		}
+		else if (pApp->m_bIsFrozen && pApp->m_nInsertCount < (int)NUMINSERTS)
+		{
+			// The canvas is frozen, and we've not yet halted the auto-inserts, nor
+			// have we reached the final OnePass() call of this subsequence, so
+			// increment the count (the final call of a subsequence should be done
+			// with the canvas having just been thawed)
+			pApp->m_nInsertCount++;
+		}
+	}
 	int bSuccessful;
 	if (pApp->m_bTransliterationMode && !gbIsGlossing)
 	{
@@ -4374,6 +4439,22 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
             // namely, the loss of highlighting when the doc is reached by auto-inserting)
             // now fixed.
 
+			// BEW 21May13, first place for doing a thaw...
+			if (pApp->m_bSupportFreeze && pApp->m_bIsFrozen)
+			{
+				// We want Thaw() done, and the next call of OnPass() will then get the view 
+				// redrawn, and the one after that (if the sequence has not halted) will start
+				// a new subsequence of calls where the canvas has been re-frozen 
+				pApp->m_nInsertCount = 0;
+				pView->canvas->Thaw();
+				pApp->m_bIsFrozen = FALSE;
+				pApp->m_bDoThaw = FALSE; // only a single call allowed
+				// don't need a delay here
+				if (pApp->m_nCurDelay == 31)
+				{
+					pApp->m_nCurDelay = 0; // set back to zero
+				}
+			}
 			// remove highlight before MessageBox call below
 			//pView->Invalidate();
 			pLayout->Redraw(); // bFirstClear is default TRUE
@@ -4427,6 +4508,24 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			pApp->m_pTargetBox->SetFocus();
 			pLayout->m_docEditOperationType = no_edit_op; // is this correct for here?
 		}
+
+		// BEW 21May15, this is the second of three places in OnePass() where a Thaw() call
+		// must be initiated when conditions are right; control passes through here when the
+		// sequence of auto-inserts is just coming to a halt location - we want a Thaw() done
+		// in that circumstance, regardless of the m_nInsertCount value, and the latter
+		// reset to default zero
+		if (pApp->m_bSupportFreeze && pApp->m_bIsFrozen)
+		{
+			pApp->m_nInsertCount = 0;
+			pView->canvas->Thaw();
+			pApp->m_bIsFrozen = FALSE;
+			pApp->m_bDoThaw = FALSE; // only a single call allowed
+			// Don't need a third-of-a-second delay 
+			if (pApp->m_nCurDelay == 31)
+			{
+				pApp->m_nCurDelay = 0; // set back to zero
+			}
+		}
 		translation.Empty(); // clear the static string storage for the translation (or gloss)
 		// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
 		gSaveTargetPhrase = pApp->m_targetPhrase;
@@ -4446,6 +4545,33 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		wxLogDebug(_T("7. After ScrollIntoView"));
 	#endif
 
+	// BEW 21May15, this is the final of the three places in OnePass() where a Thaw() call
+	// must be initiated when conditions are right; control passes through here when the
+	// sequence of auto-inserts has not yet come to a halt location - we want a Thaw() if
+	// periodically, breaking up the auto-insert sequence with a single redraw when
+	// m_nInsertCount reaches the NUMINSERTS value for each subsequence
+	if (pApp->m_bSupportFreeze && pApp->m_bIsFrozen)
+	{
+		// Are we at the penultimate OnePass() call being completed? If so, we want the
+		// Thaw() done, and the next call of OnPass() will then get the view redrawn, and
+		// the one after that (if the sequence has not halted) will start a new subsequence
+		// of calls where the canvas has been re-frozen 
+		if (pApp->m_nInsertCount > 0 && ((pApp->m_nInsertCount + 1) % (int)NUMINSERTS == 0))
+		{
+			// Ask for the thaw of the canvas window
+			pApp->m_nInsertCount = 0;
+			pView->canvas->Thaw();
+			pApp->m_bIsFrozen = FALSE;
+			pApp->m_bDoThaw = FALSE; // only a single call allowed
+			// Give user a 1-second delay in order to get user visually acquainted with the inserted words
+			if (pApp->m_nCurDelay == 0)
+			{
+				// set delay of 31 ticks, it's unlikely to be accidently set to that value;
+				// it's 31/100 of a second
+				pApp->m_nCurDelay = 31; 
+			}
+		}
+	}
 	pLayout->m_docEditOperationType = relocate_box_op;
 	gbEnterTyped = TRUE; // keep it continuing to use the faster GetSrcPhras BuildPhrases()
 	pView->Invalidate(); // added 1Apr09, since we return at next line
@@ -5120,6 +5246,23 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 	wxASSERT(pView->IsKindOf(CLASSINFO(wxView)));
 	CPile* pActivePile = pView->GetPile(pApp->m_nActiveSequNum); // doesn't rely on m_pActivePile
 																 // having been set
+	// BEW added 21May15, if user wants canvas freezing/unfreezing to suppress blinking, then
+	// control can get to hear with the canvas frozen - so test, and if so, unfreeze (and redraw
+	// if necessary - but appears to not be necessary) so the user can see the dialog against 
+	// the document as background context
+	if (pApp->m_bSupportFreeze && pApp->m_bIsFrozen)
+	{
+		pApp->m_nInsertCount = 0;
+		pView->canvas->Thaw();
+		pApp->m_bIsFrozen = FALSE;
+		pApp->m_bDoThaw = FALSE; // only a single call allowed
+		// don't need a delay here
+		if (pApp->m_nCurDelay == 31)
+		{
+			pApp->m_nCurDelay = 0; // set back to zero
+		}
+	}
+
 	CChooseTranslation dlg(pApp->GetMainFrame());
 	dlg.Centre();
 

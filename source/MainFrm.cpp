@@ -4280,7 +4280,12 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 		bool bSuccessfulInsertAndMove =  pBox->OnePass(pView); // whm note: This is
 											// the only place OnePass() is called
-
+#if defined(_DEBUG)
+		if (pApp->m_bSupportFreeze)
+		{
+			wxLogDebug(_T("Supporting freeze/thaw: m_nInsertCount = %d   ;  m_bIsFrozen = %d "), (int)pApp->m_nInsertCount, (int)pApp->m_bIsFrozen);
+		}
+#endif
 		// whm added 20Nov10 reset the m_bIsGuess flag below. Can't do it in PlaceBox()
 		// because PlaceBox() is called in OnePass via the MoveToNextPile() call near the beginning
 		// of OnePass, then again near the end of OnePass - twice in the normal course of
@@ -4297,6 +4302,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			// but continue to enable OnIdle calls
 			pApp->m_bAutoInsert = FALSE;
 		}
+	}
+	else // BEW 21May15, added, to get the freeze count back to 0 when not auto-inserting
+	{
+		pApp->m_nInsertCount = 0;
 	}
 
 	// BEW 2Dec2014 Alan Buseman's Guesser - support for hiding the GuesserUpdate() calls

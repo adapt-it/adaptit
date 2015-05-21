@@ -98,6 +98,7 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	tempBackupDocument = FALSE;
 	tempAdaptBeforeGloss = TRUE;
 	tempNotLegacySourceTextCopy = FALSE;
+	bTempFreezeAndThaw = FALSE;
 	tempSrcName = _T("");
 	tempTgtName = _T("");
 	tempGlsName = _T("");
@@ -125,6 +126,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 
 	m_pCheckNoFootnotesSent = (wxCheckBox*)FindWindowById(ID_CHECKBOX_NO_FOOTNOTES_IN_COLLAB);
 	wxASSERT(m_pCheckNoFootnotesSent != NULL);
+
+	m_pCheckFreezeAndThaw = (wxCheckBox*)FindWindowById(ID_CHECKBOX_FREEZE_THAW);
+	wxASSERT(m_pCheckFreezeAndThaw != NULL);
 
 	m_pCheckBkupWhenClosing = (wxCheckBox*)FindWindowById(IDC_CHECK_BAKUP_DOC);
 	wxASSERT(m_pCheckBkupWhenClosing != NULL);
@@ -309,6 +313,10 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	bTempNoFootnotesSent = m_pCheckNoFootnotesSent->GetValue();
 	pApp->m_bNoFootnotesInCollabToPTorBE = bTempNoFootnotesSent;
 
+	// Get checkbox value for the support of freeze &  thaw
+	bTempFreezeAndThaw = m_pCheckFreezeAndThaw->GetValue();
+	pApp->m_bSupportFreeze = bTempFreezeAndThaw;
+
 	if (strSaveSrcName != tempSrcName || strSaveTgtName != tempTgtName)
 	{
 		// user updated the names, so fix the KB saved copies accordingly (this can
@@ -373,6 +381,9 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	// BEW 20May15 added next two lines
 	bTempNoFootnotesSent = pApp->m_bNoFootnotesInCollabToPTorBE;
 	m_pCheckNoFootnotesSent->SetValue(bTempNoFootnotesSent);
+	// BEW 21May15 added next two lines
+	bTempFreezeAndThaw = pApp->m_bSupportFreeze;
+	m_pCheckFreezeAndThaw->SetValue(bTempFreezeAndThaw);
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);

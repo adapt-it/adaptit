@@ -292,6 +292,7 @@ bool CLayout::GetScrollingFlag()
 }
 #endif
 
+// BEW 21May15 added freeze/thaw support
 void CLayout::Draw(wxDC* pDC)
 {
 	if (m_bInhibitDraw)
@@ -300,17 +301,16 @@ void CLayout::Draw(wxDC* pDC)
         // not in a consistent state that would allow it
 		return;
 	}
-
-	// a last minute enforcment of RTL layout doesn't fix the Macaulay quotes & comma Arabic
-	// puntuation bug which happens only on the Windows build, so comment it out
-//#ifdef __WXMSW__
-//#ifdef _RTL_FLAGS
-//	if (m_pApp->m_bSrcRTL || m_pApp->m_bTgtRTL || m_pApp->m_bNavTextRTL)
-//	{
-//		pDC->SetLayoutDirection(wxLayout_RightToLeft);
-//	}
-//#endif
-//#endif
+	// BEW 21May15 added
+	if (m_pApp->m_bSupportFreeze)
+	{
+		if (!m_pApp->m_bIsFrozen && m_pApp->m_bDoFreeze)
+		{
+			m_pCanvas->Freeze();
+			m_pApp->m_bDoFreeze = FALSE; // only a single call allowed
+			m_pApp->m_bIsFrozen = TRUE;
+		}
+	}
 
     // BEW 23Jun09 - tried moving the placement of the phrase box to Invalidate() so as to
     // support clipping, but that was too early in the flow of events, and the box was not
@@ -459,8 +459,19 @@ void CLayout::Draw(wxDC* pDC)
 // (we could call Invalidate() on the view, but with Redraw() we potentially have more control)
 // bFirstClear is default TRUE; if TRUE it causes aDC to paint the client area with background
 // colour (white); assumes the redraw is to be based on an unchanged active location
+// BEW 21May15 added freeze/thaw support
 void CLayout::Redraw(bool bFirstClear)
 {
+	// BEW 21May15 added
+	if (m_pApp->m_bSupportFreeze)
+	{
+		if (!m_pApp->m_bIsFrozen && m_pApp->m_bDoFreeze)
+		{
+			m_pCanvas->Freeze();
+			m_pApp->m_bDoFreeze = FALSE; // only a single call allowed
+			m_pApp->m_bIsFrozen = TRUE;
+		}
+	}
 	wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
 	m_pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
 	wxClientDC* pDC = &aDC;

@@ -53,6 +53,7 @@ public:
 	wxCheckBox* m_pCheckBkupWhenClosing;
 	wxCheckBox* m_pCheckLegacySourceTextCopy;
 	wxCheckBox* m_pCheckNoFootnotesSent;
+	wxCheckBox* m_pCheckFreezeAndThaw;
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* m_pEditGlsName;
@@ -79,6 +80,7 @@ public:
 	bool		tempBackupDocument;
 	bool		bTempUseSrcWordBreak;
 	bool		bTempNoFootnotesSent;
+	bool		bTempFreezeAndThaw;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
 	wxString	tempGlsName;

@@ -4563,6 +4563,16 @@ public:
 	}; // same definition is in helpers.h, because the compiler did not pick it up from here
 	   // but we'll leave it here too, for when other files besides helpers.cpp need it
 //#endif
+	// BEW 21May15 variables used for the support of freezing/unfreezing the canvas window
+	// when a series of auto-inserts is happening. NUMINSERTS is #defined in AdaptitConstants.h
+	// (currently is set at 8) Other booleans which are already defined and which will help to
+	// support this feature are: m_bAutoInsert, m_bSingleStep, m_bDrafting. This feature will
+	// appear first in 6.5.9 Pre-Release version (limited distribution)
+	bool m_bIsFrozen;
+	bool m_bDoFreeze;
+	bool m_bDoThaw;
+	bool m_bSupportFreeze;
+	int  m_nInsertCount;
 
 #if defined(SCROLLPOS) && defined(__WXGTK__)
     // BEW added 10Dec12
