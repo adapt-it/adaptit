@@ -53,6 +53,7 @@ public:
 	wxTextCtrl*		m_pEditLeading;
 	wxTextCtrl*		m_pEditGapWidth;
 	wxTextCtrl*		m_pEditLeftMargin;
+	wxTextCtrl*		m_pEditMinPileWidth;
 	wxTextCtrl*		m_pEditMultiplier;
 	wxTextCtrl*		m_pEditDlgFontSize;
 	wxCheckBox*		m_pCheckWelcomeVisible;
@@ -72,6 +73,7 @@ public:
 	int		tempLeading;
 	int		tempGapWidth;
 	int		tempLMargin;
+	int		tempMinPileWidth;
 	int		tempExtraPixelsHeight;
 	short	tempMultiplier;
 	int		tempDlgFontSize;

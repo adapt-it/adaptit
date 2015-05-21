@@ -123,6 +123,9 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 	m_pCheckDisableAutoBkups = (wxCheckBox*)FindWindowById(IDC_CHECK_KB_BACKUP);
 	wxASSERT(m_pCheckDisableAutoBkups != NULL);
 
+	m_pCheckNoFootnotesSent = (wxCheckBox*)FindWindowById(ID_CHECKBOX_NO_FOOTNOTES_IN_COLLAB);
+	wxASSERT(m_pCheckNoFootnotesSent != NULL);
+
 	m_pCheckBkupWhenClosing = (wxCheckBox*)FindWindowById(IDC_CHECK_BAKUP_DOC);
 	wxASSERT(m_pCheckBkupWhenClosing != NULL);
 
@@ -301,6 +304,11 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	// should do in gloss mode, or adaptations mode, respectively (BEW added 16July08)
 	gbLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
 
+	// Get the checkbox value for the no sending of footnotes to PT or BE
+	// and set the app boolean (value gets to be stored in basic config file)
+	bTempNoFootnotesSent = m_pCheckNoFootnotesSent->GetValue();
+	pApp->m_bNoFootnotesInCollabToPTorBE = bTempNoFootnotesSent;
+
 	if (strSaveSrcName != tempSrcName || strSaveTgtName != tempTgtName)
 	{
 		// user updated the names, so fix the KB saved copies accordingly (this can
@@ -362,6 +370,9 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	tempFreeTransLangCode = pApp->m_freeTransLanguageCode;
 	// BEW added 21Jul14, the next two
 	bTempUseSrcWordBreak = pApp->m_bUseSrcWordBreak;
+	// BEW 20May15 added next two lines
+	bTempNoFootnotesSent = pApp->m_bNoFootnotesInCollabToPTorBE;
+	m_pCheckNoFootnotesSent->SetValue(bTempNoFootnotesSent);
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);

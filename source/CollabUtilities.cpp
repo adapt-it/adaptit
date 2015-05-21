@@ -5461,7 +5461,20 @@ wxString ExportTargetText_For_Collab(SPList* pDocList)
 		if (index != wxNOT_FOUND)
 		{
 			// Remove the content from all footnote markers; they all begin with "\f"
-			RemoveContentFromFootnotes(&text);
+			// BEW added 20May15, but if the flag is TRUE, then also remove the footnote
+			// markers as well
+			if (gpApp->m_bNoFootnotesInCollabToPTorBE)
+			{
+				// 2nd param is boolean bAlsoRemoveTheMarkers; Ross Jones needs this option
+				// because he doesn't want footnote markers to be transferred in collab mode
+				RemoveContentFromFootnotes(&text, TRUE);
+			}
+			else
+			{
+				// This is the default in collab mode for \f stuff, the markers are left
+				// in the export, and any text content is removed
+				RemoveContentFromFootnotes(&text); // 2nd param is default FALSE
+			}
 		}
 	}
 
@@ -5900,7 +5913,20 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 			if (index != wxNOT_FOUND)
 			{
 				// Remove the content from all footnote markers; they all begin with "\f"
-				RemoveContentFromFootnotes(&text);
+				// BEW added 20May15, but if the flag is TRUE, then also remove the footnote
+				// markers as well
+				if (gpApp->m_bNoFootnotesInCollabToPTorBE)
+				{
+					// 2nd param is boolean bAlsoRemoveTheMarkers; Ross Jones needs this option
+					// because he doesn't want footnote markers to be transferred in collab mode
+					RemoveContentFromFootnotes(&text, TRUE);
+				}
+				else
+				{
+					// This is the default in collab mode for \f stuff, the markers are left
+					// in the export, and any text content is removed
+					RemoveContentFromFootnotes(&text); // 2nd param is default FALSE
+				}
 			}
 		}
 		// ensure there is no initial \id or 3-letter code lurking in it, if it's a

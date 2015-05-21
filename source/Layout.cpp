@@ -3175,7 +3175,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			// m_nMinWidth which is based on the max width of the text in the cells
 			// DebugIndexMismatch(111, 106);
 			int sequNumOfBoundingPile = pAfterPile->m_pSrcPhrase->m_nSequNumber;
-			int pileWidth = 40; // default
+			int pileWidth = m_pApp->m_nMinPileWidth+10;  // was 40; BEW changed 19May15
 			if (sequNumOfBoundingPile == m_pApp->m_nActiveSequNum)
 			{
 				// this is the active location, so get the phrase box's "gap with" instead

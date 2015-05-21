@@ -674,7 +674,7 @@ wxString GetCleanExportedUSFMBaseText(ExportType exportType)
 	return text;
 }
 
-void RemoveContentFromFootnotes(wxString* pText)
+void RemoveContentFromFootnotes(wxString* pText, bool bAlsoRemoveTheMarkers)
 {
 	// Make a copy which we will manipulate
 	wxString text = *pText;
@@ -695,85 +695,96 @@ void RemoveContentFromFootnotes(wxString* pText)
 	// At this point we have delineated the span of the text from the first \f at offset1
 	// to the matching endmarker \f* at offset2; set up a do loop what repeats so long as
 	// we keep matching a new pair of \f followed by \f*
-	do {
-		left += text.Left((size_t)offset1 + 3); // include the begin-marker's following space
-		right = text.Mid((size_t)offset2); // leave \f* in the remainder
-
-		// Get the intervening part between the offsets, it typically contains some markers and
-		// their content, which we want to reduce to just markers followed by a space for each;
-		// and we'll do that here, then join up all the bits to form a new value for text, then
-		// go search for the next footnote, and iterate if successful in the find
-		wxString middle = text.Mid((size_t)offset1 + 3, (size_t)offset2 - ((size_t)offset1 + 3));
-		wxString accum; accum.Empty();
-		int offset3 = middle.Find(base);
-		if (offset3 == wxNOT_FOUND)
+	do
+	{
+		if (bAlsoRemoveTheMarkers)
 		{
-			// We are done with the middle bit, so put together the results - accum has nothing
-			// we need, so text is shortened to be just right for the next iteration
-			text = right;
+			// We don't want the markers, so advance over the \f* and assign the remainder
+			// (the contents of right) to the string variable: text
+			left += text.Left((size_t)offset1); // exclude the begin-marker, \f
+			right = text.Mid((size_t)offset2 + (size_t)3); // this excludes \f* from the right string
+			text = right; // text may still have more footnotes in it, so we loop until there are none
 		}
 		else
-		{
-			// We found a marker - deal with it
-			middle = middle.Mid((size_t)offset3 + 2); // Get everything after the matched \f
-			accum += base; // add the matched \f
-			// inner loop processes middle
-			do { 
-				// Now accumulate over addition characters of the marker until either space
-				// or asterisk (at end of endmarker) is matched
-				while (!middle.IsEmpty() && (middle.GetChar(0) != space && middle.GetChar(0) != asterisk))
-				{
-					accum += middle.GetChar(0);
-					middle = middle.Mid(1); 
-				}
-				// At this point, middle might be empty, or we have reached the * of an endmarker, or
-				// the space following a begin marker - deal with these possibilities
-				if (middle.IsEmpty())
-				{
-					// We are done, stitch together the parts and assign to text
-					left += accum;
-					text = right;
-					break; // from inner loop which processes middle
-				}
-				else
-				{
-					// We have reached a space or an asterisk
-					if (middle.GetChar(0) == space)
+		{ 
+			left += text.Left((size_t)offset1 + 3); // include the begin-marker's following space
+			right = text.Mid((size_t)offset2); // leave \f* in the remainder
+
+			// Get the intervening part between the offsets, it typically contains some markers and
+			// their content, which we want to reduce to just markers followed by a space for each;
+			// and we'll do that here, then join up all the bits to form a new value for text, then
+			// go search for the next footnote, and iterate if successful in the find
+			wxString middle = text.Mid((size_t)offset1 + 3, (size_t)offset2 - ((size_t)offset1 + 3));
+			wxString accum; accum.Empty();
+			int offset3 = middle.Find(base);
+			if (offset3 == wxNOT_FOUND)
+			{
+				// We are done with the middle bit, so put together the results - accum has nothing
+				// we need, so text is shortened to be just right for the next iteration
+				text = right;
+			}
+			else
+			{
+				// We found a marker - deal with it
+				middle = middle.Mid((size_t)offset3 + 2); // Get everything after the matched \f
+				accum += base; // add the matched \f
+				// inner loop processes middle
+				do {
+					// Now accumulate over addition characters of the marker until either space
+					// or asterisk (at end of endmarker) is matched
+					while (!middle.IsEmpty() && (middle.GetChar(0) != space && middle.GetChar(0) != asterisk))
 					{
-						// Matched a space
-						accum += space;
-						middle = middle.Mid(1); 
+						accum += middle.GetChar(0);
+						middle = middle.Mid(1);
+					}
+					// At this point, middle might be empty, or we have reached the * of an endmarker, or
+					// the space following a begin marker - deal with these possibilities
+					if (middle.IsEmpty())
+					{
+						// We are done, stitch together the parts and assign to text
+						left += accum;
+						text = right;
+						break; // from inner loop which processes middle
 					}
 					else
 					{
-						// It was an asterisk that got matched
-						accum += asterisk;
-						middle = middle.Mid(1);
-						accum += space; // add a space as delimiter before any subsequent marker
-										// of if none, it will precede the final \f* at start of right
+						// We have reached a space or an asterisk
+						if (middle.GetChar(0) == space)
+						{
+							// Matched a space
+							accum += space;
+							middle = middle.Mid(1);
+						}
+						else
+						{
+							// It was an asterisk that got matched
+							accum += asterisk;
+							middle = middle.Mid(1);
+							accum += space; // add a space as delimiter before any subsequent marker
+							// of if none, it will precede the final \f* at start of right
+						}
 					}
-				}
-				// Prepare for iterating the inner loop because middle is not yet consumed
-				offset3 = middle.Find(base);
-				if (offset3 == wxNOT_FOUND)
-				{
-					// We are done with middle, no more \f-like markers in it
-					left += accum; // add what we've accumulated
-					text = right; // text is now whatever remains, that is, \f* and what follows it
-					break;// from inner loop
-				}
-				else
-				{
-					// We have found another \f-like marker within the shortened middle, prepare
-					// and then iterate to deal with it
-					left += accum;
-					accum.Empty();
-					middle = middle.Mid((size_t)offset3 + 2); // Get everything after the matched \f
-					accum += base; // add the matched \f
-				}
-			} while (!middle.IsEmpty()); // end of inner loop
+					// Prepare for iterating the inner loop because middle is not yet consumed
+					offset3 = middle.Find(base);
+					if (offset3 == wxNOT_FOUND)
+					{
+						// We are done with middle, no more \f-like markers in it
+						left += accum; // add what we've accumulated
+						text = right; // text is now whatever remains, that is, \f* and what follows it
+						break;// from inner loop
+					}
+					else
+					{
+						// We have found another \f-like marker within the shortened middle, prepare
+						// and then iterate to deal with it
+						left += accum;
+						accum.Empty();
+						middle = middle.Mid((size_t)offset3 + 2); // Get everything after the matched \f
+						accum += base; // add the matched \f
+					}
+				} while (!middle.IsEmpty()); // end of inner loop
+			}
 		}
-
 		// Setup for next match, or break out if there is none
 		offset1 = text.Find(footnote);
 		if (offset1 == wxNOT_FOUND)
@@ -789,7 +800,8 @@ void RemoveContentFromFootnotes(wxString* pText)
 		}
 	} while (offset1 != wxNOT_FOUND && offset2 != wxNOT_FOUND);
 	// restore the caller's string to what we now have, which lacks footnote contents
-	// but retains their markers
+	// but retains their markers; or if the second input param was TRUE, then neither
+	// the footnote markers nor their contents are in the exported data
 	(*pText) = text;
 }
 

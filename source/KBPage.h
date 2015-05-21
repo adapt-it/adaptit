@@ -52,6 +52,7 @@ public:
 	wxCheckBox* m_pCheckDisableAutoBkups;
 	wxCheckBox* m_pCheckBkupWhenClosing;
 	wxCheckBox* m_pCheckLegacySourceTextCopy;
+	wxCheckBox* m_pCheckNoFootnotesSent;
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* m_pEditGlsName;
@@ -76,7 +77,8 @@ public:
 	bool		tempAdaptBeforeGloss;
 	bool		tempNotLegacySourceTextCopy;
 	bool		tempBackupDocument;
-	bool		bTempUseSrcWordBreak; 
+	bool		bTempUseSrcWordBreak;
+	bool		bTempNoFootnotesSent;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
 	wxString	tempGlsName;

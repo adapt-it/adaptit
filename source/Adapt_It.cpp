@@ -6156,20 +6156,31 @@ wxString szMinPrecContext = _T("MinPrecedingContext");
 
 /// The label that identifies the following string encoded number as the application's
 /// "MinFollowingContext". This value is written in the "Settings" part of the basic
-/// configuration file. Adapt It stores this path in the App's m_nFollowingContext member
+/// configuration file. Adapt It stores this value in the App's m_nFollowingContext member
 /// variable.
 /// Jul 09 deprecated: retained for config file backwards compatibility
 wxString szMinFollContext = _T("MinFollowingContext");
 
 /// The label that identifies the following string encoded number as the application's
 /// "Leading". This value is written in the "Settings" part of the basic configuration
-/// file. Adapt It stores this path in the App's m_curLeading member variable.
+/// file. Adapt It stores this value in the App's m_curLeading member variable.
 wxString szLeading = _T("Leading");
 
 /// The label that identifies the following string encoded number as the application's
 /// "LeftMargin". This value is written in the "Settings" part of the basic configuration
-/// file. Adapt It stores this path in the App's m_curLMargin member  variable.
+/// file. Adapt It stores this value in the App's m_curLMargin member  variable.
 wxString szLeftMargin = _T("LeftMargin");
+
+/// The label that identifies the following string encoded number as the application's
+/// "MinimumPileWidth". This value is written in the basic configuration
+/// file. Adapt It stores this value in the App's m_nMinPileWidth member variable.
+wxString szMinPileWidth = _T("MinimumPileWidth");
+
+/// Forces all \f .... \f* information, including the markers, to be excluded from
+/// a transfer of adaptation or free translation to to either external editor when
+/// in collaboration mode. Has no effect when not in collaboration mode.
+// Uses the flag m_bNoFootnotesInCollabToPTorBE, which is default FALSE
+wxString szNoFootnotesToPTorBE = _T("SendNoFootnotesToParatextOrBibledit");
 
 /// The label that identifies the following string encoded number as the application's
 /// "InterpileGapWidth". This value is written in the "Settings" part of the basic configuration
@@ -15294,7 +15305,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_bRestorePhraseBoxToActiveLocAfterFreeTransExited = FALSE; // used to relocate the
 		// phrasebox to the active pile's hole when free trans mode is exited. (Because
 		// it stubbornly stayed at old anchor location on the screen)
-
+	m_nMinPileWidth = 20; // BEW added 19May15, a safe default (basic config file may override)
 	m_preGuesserStr.Empty();
 	m_bZWSPinDoc = FALSE; // set default value; each loaded doc will be checked for
 						  // presence of ZWSP, and if present, this flag is set TRUE
@@ -15308,6 +15319,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//m_bFwdSlashDelimiter = TRUE; // forced to TRUE when experimenting (before GUI support added)
 	m_bFwdSlashDelimiter = FALSE; // default, only needed for a few languages
 //#endif
+	m_bNoFootnotesInCollabToPTorBE = FALSE; // BEW 20May15 default is FALSE (i.e. PT or BE will
+							// get sent the footnote markers with no content). Basic config
+							// file may change this to TRUE; Backups and Misc in Preferences
+							// is where the user can tick a checkbox to make this TRUE
 
 	m_nExtraPixelsForDiacritics = 0; // default, but Project config file may override it 
 									 // (see View page of Prefs, the slider control)
@@ -21063,10 +21078,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #endif
 
 	// **** test code fragments here ****
-
-// GDLC 24OCT12 testing the new wxUUID class
-	wxString test_UUID = GetUuid();
 /*
+	// GDLC 24OCT12 testing the new wxUUID class
+	wxString test_UUID = GetUuid();
+
+	wxString tst2 = _T("start\\f + \\fr 1.1: \\ft Various commentators agree that \\fq the Son of God \\ft is vital to spiritual vitality.\\f* second \\f + \\fr 1.1: \\ft Some manuscripts do not have \\fq the Son of God.\\f*third.");
+	RemoveContentFromFootnotes(&tst2, TRUE);
+	int stop_here = 1;
+
 #if defined (_KBSERVER)
 	// test KbServer API functions
     SetupForKBServer(1);
@@ -30068,7 +30087,19 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szMinPileWidth << tab << m_nMinPileWidth;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szGapWidth << tab << m_curGapWidth;
+	pf->AddLine(data);
+
+	if (m_bNoFootnotesInCollabToPTorBE)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szNoFootnotesToPTorBE << tab << number;
 	pf->AddLine(data);
 
 	if (m_bSuppressFirst)
@@ -31544,6 +31575,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 				num = 16;
 			m_curLMargin = num;
 		}
+		else if (name == szMinPileWidth)
+		{
+			// BEW 19May15
+			num = wxAtoi(strValue);
+			if (num < 5 || num > 40)
+				num = 20;
+			m_nMinPileWidth = num;
+		}
 		else if (name == szGapWidth)
 		{
 			num = wxAtoi(strValue);
@@ -31554,6 +31593,16 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf, bool& bBasicCon
 			if (num < 0 || num > 80)
 				num = 8;
 			m_curGapWidth = num;
+		}
+		else if (name == szNoFootnotesToPTorBE)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 0; // default should be FALSE
+			if (num == 0)
+				m_bNoFootnotesInCollabToPTorBE = FALSE;
+			else
+				m_bNoFootnotesInCollabToPTorBE = TRUE;
 		}
 		else if (name == szSuppressFirst)
 		{
@@ -32896,6 +32945,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 	m_curLeading = 32;
 	m_curLMargin = 16;	// whm changed default to 16 for better visibility of any notes
 						// icon at left margin
+	m_nMinPileWidth = 20; // BEW 19May15, added, basic config file will override
 	m_curGapWidth = 10; // BEW 23Apr15 changed from 16 to 10, config file will override though
 	m_bSuppressFirst = TRUE;
 	m_bSuppressLast = TRUE;

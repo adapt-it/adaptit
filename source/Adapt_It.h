@@ -2481,6 +2481,7 @@ public:
 	int	m_nFollowingContext; // ditto, for following context
 	int	m_curLeading;	 // the between-strips leading value
 	int	m_curLMargin;	 // if user wants a left margin, he can set this
+	int m_nMinPileWidth; // BEW added 19May15, user-settable from View tab of Preferences; in basic config file
 	int	m_curGapWidth;	 // inter-pile gap, measured in pixels (follows a pile)
 	int m_saveCurGapWidth; // put normal width in here when free translating (which uses different gap)
 
@@ -2507,6 +2508,8 @@ public:
 	bool m_bStatusBarVisible;
 	bool m_bToolBarVisible;
 	bool m_bModeBarVisible;
+	// BEW added 20May15
+	bool m_bNoFootnotesInCollabToPTorBE;
 
 	CNotes* m_pNotes;
 	CNotes* GetNotes();

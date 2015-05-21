@@ -80,6 +80,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempLeading = 0;
 	tempGapWidth = 0;
 	tempLMargin = 0;
+	tempMinPileWidth = 20;
 	tempMultiplier = gnExpandBox;
 	tempDlgFontSize = 12;
 	tempSuppressFirst = FALSE;
@@ -91,6 +92,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pEditLeading = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEADING);
 	m_pEditGapWidth = (wxTextCtrl*)FindWindowById(IDC_EDIT_GAP_WIDTH);
 	m_pEditLeftMargin = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEFTMARGIN);
+	m_pEditMinPileWidth = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MIN_PILE_WIDTH);
 	m_pEditMultiplier = (wxTextCtrl*)FindWindowById(IDC_EDIT_MULTIPLIER);
 	m_pEditDlgFontSize = (wxTextCtrl*)FindWindowById(IDC_EDIT_DIALOGFONTSIZE);
 
@@ -289,7 +291,7 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	nVal = wxAtoi(strTemp);
 	pApp->m_nPrecedingContext = nVal;
 	*/
-	pApp->m_nPrecedingContext = 30; // arbitrary const value, we no longer use it
+	pApp->m_nPrecedingContext = 29; // arbitrary const value, we no longer use it
 
 	/* refactored 22Mar09, this value no longer needed now we have no bundles
 	// so set it to a value which we can output in the config file safely but not use
@@ -297,7 +299,7 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	nVal = wxAtoi(strTemp);
 	pApp->m_nFollowingContext = nVal;
 	*/
-	pApp->m_nFollowingContext = 40; // arbitrary const value, we no longer use it
+	pApp->m_nFollowingContext = 39; // arbitrary const value, we no longer use it
 
 	// BEW added 4Jun09; various lines and tests for refactored view layout support
 	CLayout* pLayout = pApp->m_pLayout;
@@ -335,6 +337,12 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 		pLayout->m_bViewParamsChanged = TRUE;
 	pApp->m_curLMargin = nVal;
 
+	strTemp = m_pEditMinPileWidth->GetValue();
+	nVal = wxAtoi(strTemp);
+	if (nVal != pApp->m_nMinPileWidth)
+		pLayout->m_bViewParamsChanged = TRUE;
+	pApp->m_nMinPileWidth = nVal;
+
 	strTemp = m_pEditMultiplier->GetValue();
 	nVal = wxAtoi(strTemp);
 	if (nVal != gnExpandBox)
@@ -362,6 +370,7 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	tempLeading = pApp->m_curLeading;
 	tempGapWidth = pApp->m_curGapWidth;
 	tempLMargin = pApp->m_curLMargin;
+	tempMinPileWidth = pApp->m_nMinPileWidth;
 	tempMultiplier = gnExpandBox;
 	tempDlgFontSize = pApp->m_dialogFontSize; // added missed initialization
 	tempMakeWelcomeVisible = !pApp->m_bSuppressWelcome;
@@ -394,6 +403,10 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	strTemp.Empty();
 	strTemp << tempLMargin;
 	m_pEditLeftMargin->SetValue(strTemp);
+
+	strTemp.Empty();
+	strTemp << tempMinPileWidth;
+	m_pEditMinPileWidth->SetValue(strTemp);
 
 	strTemp.Empty();
 	strTemp << tempMultiplier;

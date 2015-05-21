@@ -1927,7 +1927,11 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item2->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item2, 1, wxGROW|wxLEFT|wxRIGHT|wxBOTTOM, 10 );
+    wxCheckBox *item38 = new wxCheckBox( parent, ID_CHECKBOX_NO_FOOTNOTES_IN_COLLAB, _("When collaborating, send no footnotes to Paratext or Bibledit"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetToolTip( _("Completely remove footnote markers and their contents before transferring the text to Paratext or Bibledit") );
+    item2->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item0->Add( item2, 1, wxLEFT|wxRIGHT|wxBOTTOM, 10 );
 
     if (set_sizer)
     {
@@ -2003,124 +2007,139 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item19 = new wxStaticText( parent, STATIC_TEXT_V7, _("Phrase Box white space slop and expansion multiplier (min 5, max 30)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item19 = new wxStaticText( parent, STATIC_TEXT_V8, _("Minimum pile width (in pixels, min 5, max 40)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item19, 0, wxALIGN_CENTER, 5 );
 
-    item4->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, IDC_EDIT_MULTIPLIER, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item21->SetToolTip( _("Try higher number (15 or more) if Keyman doesn't interpret special characters properly") );
-    item20->Add( item21, 0, wxGROW|wxALL, 0 );
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_MIN_PILE_WIDTH, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_CENTRE );
+    item21->SetToolTip( _("When the text is narrow the pile must not be of less width than this many pixels") );
+    item20->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item4->Add( item20, 0, wxGROW|wxALL, 0 );
+    item4->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT, _("Font size for dialogs  (min 10, max 24)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item23 = new wxStaticText( parent, STATIC_TEXT_V7, _("Phrase Box white space slop and expansion multiplier (min 5, max 30)"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, IDC_EDIT_DIALOGFONTSIZE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item25->SetToolTip( _("Higher numbers show larger font size in some dialogs") );
-    item24->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item25 = new wxTextCtrl( parent, IDC_EDIT_MULTIPLIER, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
+    item25->SetToolTip( _("Try higher number (15 or more) if Keyman doesn't interpret special characters properly") );
+    item24->Add( item25, 0, wxGROW|wxALL, 0 );
 
     item4->Add( item24, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item27 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
-    item26->Add( item27, 0, wxALIGN_CENTER, 5 );
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("Font size for dialogs  (min 10, max 24)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item26, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item28 = new wxBoxSizer( wxVERTICAL );
 
+    wxTextCtrl *item29 = new wxTextCtrl( parent, IDC_EDIT_DIALOGFONTSIZE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
+    item29->SetToolTip( _("Higher numbers show larger font size in some dialogs") );
+    item28->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
     item4->Add( item28, 0, wxGROW|wxALL, 0 );
 
-    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item30 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
-    item29->Add( item30, 0, wxALIGN_CENTER, 5 );
+    wxCheckBox *item31 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
+    item30->Add( item31, 0, wxALIGN_CENTER, 5 );
 
-    item29->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item4->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxPanel *item31 = new wxPanel( parent, ID_PANEL_AUTO_INSERT_COLOR, wxDefaultPosition, wxSize(20,20), 0 );
-    item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item32 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
-    item29->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item32, 0, wxGROW|wxALL, 0 );
 
-    item4->Add( item29, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
+    wxCheckBox *item34 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
+    item33->Add( item34, 0, wxALIGN_CENTER, 5 );
 
-    item4->Add( item33, 0, wxGROW|wxALL, 0 );
+    item33->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
+    wxPanel *item35 = new wxPanel( parent, ID_PANEL_AUTO_INSERT_COLOR, wxDefaultPosition, wxSize(20,20), 0 );
+    item33->Add( item35, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxCheckBox *item35 = new wxCheckBox( parent, IDC_CHECK_SHOW_ADMIN_MENU, _("Show Administrator Menu (Password protected)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetToolTip( _("Password protected. When ticked, Administrator menu shows") );
-    item34->Add( item35, 0, wxALIGN_CENTER, 5 );
+    wxButton *item36 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    item33->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item36 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item37 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item36, 0, wxGROW|wxALL, 5 );
+    item4->Add( item37, 0, wxGROW|wxALL, 0 );
 
-    wxBoxSizer *item37 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item38 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxString strs38[] = 
+    wxCheckBox *item39 = new wxCheckBox( parent, IDC_CHECK_SHOW_ADMIN_MENU, _("Show Administrator Menu (Password protected)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->SetToolTip( _("Password protected. When ticked, Administrator menu shows") );
+    item38->Add( item39, 0, wxALIGN_CENTER, 5 );
+
+    item4->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item40 = new wxBoxSizer( wxVERTICAL );
+
+    item4->Add( item40, 0, wxGROW|wxALL, 5 );
+
+    wxBoxSizer *item41 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxString strs42[] = 
     {
         _("Keep phrase box approximately mid-screen (strips move relative to the box)"), 
         _("Keep strips stationary until a scroll happens (phrase box moves down)")
     };
-    wxRadioBox *item38 = new wxRadioBox( parent, ID_RADIOBOX_SCROLL_INTO_VIEW, _("Options for Scroll Into View"), wxDefaultPosition, wxSize(20,-1), 2, strs38, 2, wxRA_SPECIFY_ROWS );
-    item38->SetToolTip( _("Choose whether you want the strips to move vertically, or the phrase box, while working") );
-    item37->Add( item38, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxRadioBox *item42 = new wxRadioBox( parent, ID_RADIOBOX_SCROLL_INTO_VIEW, _("Options for Scroll Into View"), wxDefaultPosition, wxSize(20,-1), 2, strs42, 2, wxRA_SPECIFY_ROWS );
+    item42->SetToolTip( _("Choose whether you want the strips to move vertically, or the phrase box, while working") );
+    item41->Add( item42, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item4->Add( item37, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    item4->Add( item41, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxBoxSizer *item39 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item43 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item39, 0, wxGROW|wxALL, 5 );
+    item4->Add( item43, 0, wxGROW|wxALL, 5 );
 
-    wxBoxSizer *item40 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item44 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_ENABLE_INSERT_ZWSP, _("Enable ZWSP insertion by Shift+Ctrl+spacebar"), wxDefaultPosition, wxDefaultSize, 0 );
-    item41->SetToolTip( _("Turns on or off the ability to insert a zero width space, using Ctrl-Shift-spacebar key combination") );
-    item40->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item45 = new wxCheckBox( parent, ID_CHECKBOX_ENABLE_INSERT_ZWSP, _("Enable ZWSP insertion by Shift+Ctrl+spacebar"), wxDefaultPosition, wxDefaultSize, 0 );
+    item45->SetToolTip( _("Turns on or off the ability to insert a zero width space, using Ctrl-Shift-spacebar key combination") );
+    item44->Add( item45, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item40->Add( 20, 16, 0, wxALIGN_CENTER, 5 );
+    item44->Add( 20, 16, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("More Diacritics Space: "), wxDefaultPosition, wxDefaultSize, 0 );
-    item40->Add( item42, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item46 = new wxStaticText( parent, ID_TEXT, _("More Diacritics Space: "), wxDefaultPosition, wxDefaultSize, 0 );
+    item44->Add( item46, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSlider *item43 = new wxSlider( parent, ID_DIACRITICS_SLIDER, 0, 0, 6, wxDefaultPosition, wxSize(100,-1), wxSL_HORIZONTAL|wxSL_LABELS );
-    item43->SetToolTip( _("Drag to right, to add from 1 to 6 pixels to target text cell height ") );
-    item40->Add( item43, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxSlider *item47 = new wxSlider( parent, ID_DIACRITICS_SLIDER, 0, 0, 6, wxDefaultPosition, wxSize(100,-1), wxSL_HORIZONTAL|wxSL_LABELS );
+    item47->SetToolTip( _("Drag to right, to add from 1 to 6 pixels to target text cell height ") );
+    item44->Add( item47, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item40, 0, wxALIGN_CENTER_VERTICAL, 0 );
+    item4->Add( item44, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item44 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item48 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item44, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item4->Add( item48, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item45 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item49 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item46 = new wxCheckBox( parent, ID_CHECKBOX_SOLIDUS_WDBREAK, _("Support slash ( / ) as a word separator, but displayed or stored text uses ZWSP"), wxDefaultPosition, wxDefaultSize, 0 );
-    item46->SetToolTip( _("When turned on, slash is word separator for editable text, but changed to ZWSP for displayed or stored text") );
-    item45->Add( item46, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxCheckBox *item50 = new wxCheckBox( parent, ID_CHECKBOX_SOLIDUS_WDBREAK, _("Support slash ( / ) as a word separator, but displayed or stored text uses ZWSP"), wxDefaultPosition, wxDefaultSize, 0 );
+    item50->SetToolTip( _("When turned on, slash is word separator for editable text, but changed to ZWSP for displayed or stored text") );
+    item49->Add( item50, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    item4->Add( item45, 0, wxALIGN_CENTER_VERTICAL, 5 );
+    item4->Add( item49, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 

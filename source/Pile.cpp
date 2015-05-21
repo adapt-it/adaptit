@@ -163,7 +163,8 @@ CPile::CPile()
 	m_pLayout = (CLayout*)NULL;
 	m_pOwningStrip = (CStrip*)NULL;
 	m_nWidth = 20;
-	m_nMinWidth = 40;
+	m_nMinWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15
+	//m_nMinWidth = 40;
 	m_nPile = -1; // I don't belong in any strip yet
 }
 
@@ -176,8 +177,10 @@ CPile::CPile(CLayout* pLayout)  // use this one, it sets m_pLayout
 	m_pSrcPhrase = (CSourcePhrase*)NULL;
 	m_pLayout = (CLayout*)NULL;
 	m_pOwningStrip = (CStrip*)NULL;
+	//m_nWidth = gpApp->m_nMinPileWidth; // was 20; BEW changed 19May15
 	m_nWidth = 20;
-	m_nMinWidth = 40;
+	m_nMinWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15
+	//m_nMinWidth = 40;
 	m_nPile = -1; // I don't belong in any strip yet
 }
 
@@ -385,7 +388,7 @@ int	CPile::GetPhraseBoxGapWidth()
 // checked.
 int CPile::CalcPileWidth()
 {
-	int pileWidth = 40; // ensure we never get a pileWidth of zero
+	int pileWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15 // was 40; // ensure we never get a pileWidth of zero
 
 	// get a device context for the canvas on the stack (wont' accept uncasted definition)
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
@@ -417,8 +420,11 @@ int CPile::CalcPileWidth()
 	// BEW added next two lines, 14Jul11, supposedly they aren't necessary, but if
 	// m_srcPhrase and m_targetStr and m_gloss are each empty, pileWidth somehow ends up
 	// with a value of 0, and so this fixes that
-	if (pileWidth < 40)
-		pileWidth = 40;
+	// BEW changed 19May15
+	if (pileWidth < gpApp->m_nMinPileWidth) // was40)
+		pileWidth = gpApp->m_nMinPileWidth; // was 40; BEW changed 19May15
+	//if (pileWidth < 40)
+	//	pileWidth = 40;
 	return pileWidth;
 }
 
