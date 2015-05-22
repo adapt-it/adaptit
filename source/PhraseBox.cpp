@@ -4334,8 +4334,8 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	// BEW 21May15 add here support for freezing the canvas for a NUMINSERTS number
 	// of consecutive auto-inserts from the KB; the matching thaw calls are done
 	// later below, before returning FALSE, or returning TRUE. The actual Freeze()
-	// and Thaw() calls are within CLayout's Redraw() and Draw() functions, and are
-	// managed by booleans m_bDoFreeze and m_bDoThaw. Recall that OnePass() is called
+	// call is within CLayout's Redraw() and Draw() functions, and is managed by
+	// the boolean m_bDoFreeze. Recall that OnePass() is called
 	// from only one place in the whole app - from OnIdle(), and even then only when
 	// several flags have certain values consistent with automatic insertions being
 	// currently permitted. So the logic for doing a freeze and doing it's matching
@@ -4448,7 +4448,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 				pApp->m_nInsertCount = 0;
 				pView->canvas->Thaw();
 				pApp->m_bIsFrozen = FALSE;
-				pApp->m_bDoThaw = FALSE; // only a single call allowed
 				// don't need a delay here
 				if (pApp->m_nCurDelay == 31)
 				{
@@ -4519,7 +4518,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			pApp->m_nInsertCount = 0;
 			pView->canvas->Thaw();
 			pApp->m_bIsFrozen = FALSE;
-			pApp->m_bDoThaw = FALSE; // only a single call allowed
 			// Don't need a third-of-a-second delay 
 			if (pApp->m_nCurDelay == 31)
 			{
@@ -4562,7 +4560,6 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			pApp->m_nInsertCount = 0;
 			pView->canvas->Thaw();
 			pApp->m_bIsFrozen = FALSE;
-			pApp->m_bDoThaw = FALSE; // only a single call allowed
 			// Give user a 1-second delay in order to get user visually acquainted with the inserted words
 			if (pApp->m_nCurDelay == 0)
 			{
@@ -5255,7 +5252,6 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 		pApp->m_nInsertCount = 0;
 		pView->canvas->Thaw();
 		pApp->m_bIsFrozen = FALSE;
-		pApp->m_bDoThaw = FALSE; // only a single call allowed
 		// don't need a delay here
 		if (pApp->m_nCurDelay == 31)
 		{

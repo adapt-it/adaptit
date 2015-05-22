@@ -4570,7 +4570,6 @@ public:
 	// appear first in 6.5.9 Pre-Release version (limited distribution)
 	bool m_bIsFrozen;
 	bool m_bDoFreeze;
-	bool m_bDoThaw;
 	bool m_bSupportFreeze;
 	int  m_nInsertCount;
 

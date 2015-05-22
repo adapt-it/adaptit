@@ -15291,7 +15291,6 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 }
 #endif
 
-
 //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all goes well, FALSE if there was something that causes premature exit
 /// \remarks
@@ -15311,7 +15310,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// as well (currently 8)
 	m_bIsFrozen = FALSE;
 	m_bDoFreeze = FALSE;
-	m_bDoThaw = FALSE;
 	m_bSupportFreeze = FALSE; // set FALSE once the GUI checkbox has been added to the app
 	m_nInsertCount = 0;
 

@@ -1931,7 +1931,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item38->SetToolTip( _("Completely remove footnote markers and their contents before transferring the text to Paratext or Bibledit") );
     item2->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_FREEZE_THAW, _("Reduce \\\"blinking\\\" effect when doing automatic insertions"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_FREEZE_THAW, _("Reduce \"blinking\" effect when doing automatic insertions"), wxDefaultPosition, wxDefaultSize, 0 );
     item39->SetToolTip( _("This works by freezing the window, but periodically unfreezing it after several insertions are done") );
     item2->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
