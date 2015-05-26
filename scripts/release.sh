@@ -7,6 +7,7 @@
 # Author: Jonathan Marsden <jmarsden@fastmail.fm>
 # Date: 2012-10-03
 # Revised 2015-01-21 by Bill Martin to include "utopic"
+# Revised 2015-05-26 by Bill Martin to remove non-empty .git dirs from sources
 
 PBUILDFOLDER=${PBUILDFOLDER:-~/pbuilder}
 OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic sid"}
@@ -167,8 +168,10 @@ mv ./adaptit ./adaptit-${RELEASE}
 #find adaptit-${RELEASE} -type f -iname "*.hhc" -delete
 find adaptit-${RELEASE} -type f -iname "*.dll" -delete
 find adaptit-${RELEASE} -type f -iname "*.exe" -delete
-find adaptit-${RELEASE} -type d -iname ".git" -delete
 find adaptit-${RELEASE} -type f -iname "bin2c" -delete
+
+# Delete unwanted non-source directory using find
+find adaptit-${RELEASE} -type d -iname ".git" -exec rm -rf {} \;
 
 # Tar it up and create symlink for .orig.bz2
 tar jcf adaptit-${RELEASE}.tar.bz2 adaptit-${RELEASE} || exit 3
