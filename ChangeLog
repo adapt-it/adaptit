@@ -44,6 +44,50 @@ of the glosses 'as if they were connected text'. But it
 has now been included. This means it will also work with
 the use of solidus (the / forward slash) as a word-break
 character.
+* The View tab of Preferences had a new interlinear display
+configuration item:
+"Minimum pile width (in pixes, min5, max 40)" and a textbox
+in which the user's choice of minimum pile width can be typed.
+This was formerly not user settable, and defaulted to 40 pixels.
+That was unacceptable for isolating languages where a word may
+be just a single character - because it left blank gaps between
+words that made the text harder to read. Now the user can
+set the minimum as low as 5 pixels, so that isolating 
+languages, especially those that use ZWSP to separate words
+look much more natural in the interlinear display.
+* The Backups and Misc tab of Preferences has two new
+checkboxes.
+(1) "When collaborating, send no footnotes to Paratext or
+Bibledit". When turned off, if footnotes are filtered in
+collaboration mode, the target text sent to Paratext or to
+Bibledit defaults to having just the footnote markers, but
+no text content, transferred to the external editor.
+This was unacceptable to a user, who wanted no footnote
+information to be transferred - neither footnote markers
+nor their contents. So ticking this checkbox will override
+the default behavior, and footnote information will then
+be exluded from the transfer.
+(2) The new feature where solidus (the / forward slash) is
+supported as a word delimiter character involves a lot of
+extra code being run, and this slows the responsiveness of
+the update of the interlinear layout - resulting in an
+ugly "blinking" effect until the phrasebox halts. To reduce
+this to more acceptable proportions, a new checkbox:
+'Reduce "blinking" effect when doing automatic insertions'
+has been added. If this option is ticked, then when a series
+of consecutive automatic insertions from the knowledge base
+is taking place, the window is frozen until seven insertions
+have occured, then it is unfrozen for one insertion and
+a normal update of the view, then refrozen for another seven,
+and so forth. When automatic insertions halt for any reason
+(whether seven or fewer have occurred) the window is thawed
+and stays that way until a new series of automatic insertions
+takes place. When the thaw happens, a 1/3 second delay takes
+place which gives the user time to visually tune in to the
+progress of the automatic insertions. Background highlighting
+is not removed by the occasional thaws and refreezings.
+The settings for both these new checkbox are preserved in
+the basic configuration file, AI-BasicConfiguration.aic.
 * It is unlikely that this Pre-Release version will be
 made available at http://adapt-it.org. It is intended to be
 distributed to only those intending to make use of this
