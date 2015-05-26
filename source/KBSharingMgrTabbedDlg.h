@@ -46,7 +46,7 @@ protected:
 	wxListBox*     m_pUsersListBox;
 
 	wxTextCtrl*	   m_pConnectedTo;
-	wxTextCtrl*    m_pTheUsername; 
+	wxTextCtrl*    m_pTheUsername;
 	wxTextCtrl*    m_pEditInformalUsername;
 	wxTextCtrl*    m_pEditPersonalPassword;
 	wxTextCtrl*    m_pEditPasswordTwo;
@@ -60,7 +60,7 @@ protected:
 
 
 	// For Create KB Definitions page
-	
+
 	wxRadioButton* m_pRadioKBType1;
 	wxRadioButton* m_pRadioKBType2;
 	wxListBox*     m_pKbsListBox;
@@ -76,7 +76,7 @@ protected:
 	wxButton*      m_pBtnLookupLanguageCodes;
 	wxButton*      m_pBtnRemoveSelectedKBDefinition;
 	//wxButton*      m_pBtnUpdateSelectedKBDefinition; // BEW 14Apr15 removed
-	wxButton*	   m_pBtnClearListSelection;	
+	wxButton*	   m_pBtnClearListSelection;
 
 	// For Create or Delete Custom Codes page
 
@@ -128,6 +128,7 @@ protected:
 	bool		  AreBothPasswordsEmpty(wxString password1, wxString password2);
 	wxString	  GetEarliestUseradmin(UsersList* pUsersList);
 	KbServerUser* GetThisUsersStructPtr(wxString& username, UsersList* pUsersList);
+	KbServerLanguage* GetLanguageStructFromList(LanguagesList* pLanguagesList, size_t index);
 
 	// event handlers - Users page
 	void		  OnButtonUserPageClearControls(wxCommandEvent& WXUNUSED(event));
@@ -148,10 +149,10 @@ protected:
 							wxListBox* pListBox);
 	bool		  MatchExistingKBDefinition(wxListBox* pKbsList,
 							wxString& srcLangCodeStr, wxString& nonsrcLangCodeStr);
-	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList, 
+	void		  SeparateKbServerKbStructsByType(KbsList* pAllKbStructsList,
 							KbsList* pKbStructs_TgtList, KbsList* pKbStructs_GlsList);
 	bool		  IsAKbDefinitionAltered(wxArrayString* pBeforeArr, wxArrayString* pAfterArr);
-		
+
 	// event handlers - Create KB Definitions page
 	void		  OnRadioButton1KbsPageType1(wxCommandEvent& WXUNUSED(event));
 	void		  OnRadioButton2KbsPageType2(wxCommandEvent& WXUNUSED(event));
@@ -221,7 +222,7 @@ private:
 								   // a kb entry's pair of language codes, etc
 	KbServerKb*		  m_pOriginalKbStruct; // performs the same service for m_pKbStruct that
 									 // m_pOriginalUserStruct does for m_pUserStruct
-									 
+
 	KbServerLanguage* m_pLanguageStruct; // scratch variable to hold a returned value for
 										 // a custom code etc
 	KbServerLanguage* m_pOriginalLanguageStruct; // performs the same service for m_pLanguageStruct
@@ -236,9 +237,9 @@ private:
 	bool m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
 	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code:"
 	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glossing language code:"
-	wxString m_tgtListLabel; // InitDialog() sets it to 
+	wxString m_tgtListLabel; // InitDialog() sets it to
 				// "Existing shared databases (as   source,target   comma delimited code pairs):"
-	wxString m_glsListLabel; // InitDialog() sets it to 
+	wxString m_glsListLabel; // InitDialog() sets it to
 				// "Existing shared databases (as   source,glossing   comma delimited code pairs):"
 	wxString m_sourceLangCode;
 	wxString m_targetLangCode;
