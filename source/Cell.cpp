@@ -818,8 +818,47 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 	// permanent change to the stored text string. Here we remove any / contiguous to
 	// punctuation, and then any remaining / characters present get changed to ZWSP
 	// Check if this produces slow draws - if so, probably the first call can not be done
-	*pPhrase = DoFwdSlashConsistentChanges(removeAtPunctuation, *pPhrase);
-	*pPhrase = FwdSlashtoZWSP(*pPhrase);
+	//
+	// BEW 27May15 - yes, calling DoFwdSlashConsistentChanges() *does* slow down the layout
+	// drawing excessively, to the point that the writing of individual strips in top to
+	// bottom order is followable by eye. So there are two optimizations which I can do here:
+	// a) comment out the DoFwdSlashConsistentChanges() call, which is safe to do since we
+	// are operating with *pPhrase being a temporary copy of the text to be drawn, and so
+	// if a / or two or few is/are left in place contiguous to punctuation, then they will
+	// be changed to ZWSP by the next call anyway, and so the text will still look correct
+	// b) any non-merger does not need / changed to ZWSP because the source text is just a
+	// single word; but the target text adaptation might involve two or more words, so we
+	// would have to check for presence of / and if present, then call FwdSlashtoZWSP() to
+	// get the / -> ZWSP replacement done - but only for target or gloss text. Such 
+	// situations are likely to be uncommon for any one window draw, mostly a single source 
+	// word is adapted by a single target word - and when that is the case, no 
+	// FwdSlashtoZWSP() call is required.
+	// So I'll test doing these tweaks and find out what effect they have...
+	// Yes - commenting the first call restored near-normal draw speed in debug mode (and 
+	// debug mode is a bit slow anyway. So now add tweak b). This second tweak is hard to
+	// evalulate from a visual check in debug mode; I had the impression of a very marginal
+	// speed increase, so I'll leave the tests as they are below. If there were to be 
+	// removed, then they would be replaced by an always-attempted call of
+	// FwdSlashtoZWSP() here just the once.
+	//*pPhrase = DoFwdSlashConsistentChanges(removeAtPunctuation, *pPhrase);
+	if (m_nCell == SrcIndex && m_pOwningPile->m_pSrcPhrase->m_nSrcWords > 1)
+	{
+		// For a CCell instance which has source text, only do the / to ZWSP replacements
+		// provided the cell is a merger (if it's not a merger, it will not have / in it)
+		*pPhrase = FwdSlashtoZWSP(*pPhrase);
+	}
+	else if (m_pLayout->m_pApp->m_bFwdSlashDelimiter && m_nCell == BoxLineIndex &&
+		(*pPhrase).Find(_T('/')) != wxNOT_FOUND)
+	{
+		// Call FwdSlashtoZWSP() only provided app's m_bFwdSlashDelimiter is TRUE (this
+		// is the flag that, when TRUE, turns on support for the / <-> ZWSP feature; the
+		// same test is within FwdSlashtoZWSP() itself, but that is too late for our needs
+		// here, we want a FALSE value to exclude the replacement attempt as speedily as
+		// possible), AND the line must be the phrasebox line (index = 1, so adaptation
+		// line when not glossing, but glossing line when in glossing mode), AND only
+		// provided we have searched and found that there is at least one / in the string
+		*pPhrase = FwdSlashtoZWSP(*pPhrase);
+	}
 //#endif
 	wxRect enclosingRect; // the rect where the text will be drawn
 	GetCellRect(enclosingRect); // set it
