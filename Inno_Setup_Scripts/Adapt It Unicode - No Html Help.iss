@@ -162,7 +162,7 @@ Name: "{group}\CC\CC Debug Document"; Filename: {app}\CC\CCDebug.doc; WorkingDir
 
 ; edb 11 Oct 2013: Code changes to download / install Git
 [Code]
-const GitSetupURL = 'http://msysgit.googlecode.com/files/Git-1.8.4-preview20130916.exe';
+const GitSetupURL = 'https://github.com/msysgit/msysgit/releases/download/Git-1.9.5-preview20150319/Git-1.9.5-preview20150319.exe';
 var GitInstalled: Boolean;  // Is Git installed?
 var ShouldInstallGit: Boolean; // should the installer download and run the Git installer?
 var tmpResult: Integer;     
