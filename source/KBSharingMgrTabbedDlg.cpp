@@ -1228,6 +1228,7 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageClearBoxes(wxCommandEvent& WXUN
 	m_pCustomCodesListBox->SetSelection(wxNOT_FOUND);
 	m_pEditCustomCode->ChangeValue(emptyStr);
 	m_pEditDescription->ChangeValue(emptyStr);
+	m_pCustomCodeDefinitionCreator->ChangeValue(emptyStr);
 }
 
 bool KBSharingMgrTabbedDlg::AreBothPasswordsEmpty(wxString password1, wxString password2)
@@ -1475,7 +1476,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 			if (result == CURLE_OK)
 			{
 				// Check that the passed in language code is identical to what got returned in the JSON
-				wxString thecode =  m_pKbServer->GetLanguageStruct().code; // RHS has just be filled out from the returned JSON
+				wxString thecode =  m_pKbServer->GetLanguageStruct().code; // RHS has just been filled out from the returned JSON
 				if (thecode != textCtrl_SrcLangCode)
 				{
 					// Don't expect an inequality, so an English message will suffice
@@ -1490,8 +1491,14 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 			else
 			{
 				// Error, which we'll assume is a 404 error - in which case, this
-				// language code needs to be created & stored in the language table
-				;
+				// language code needs to be created & stored in the language table,
+				// so tell the user and return  (this message must be localizable)
+				wxString aMsg = _("The source language code does not yet exist in the server's language database. First use the Create Or Delete Custom Language Codes page to create the needed code, then return to this page and try again.");
+				// developers need an English message
+				wxString aMsgEnglish = _T("The source language code does not yet exist in the server's language database. First use the Create Or Delete Custom Language Codes page to create the needed code, then return to this page and try again.");
+				m_pApp->LogUserAction(aMsgEnglish);
+				wxMessageBox(aMsg, _("KB Sharing Manager error"), wxICON_EXCLAMATION | wxOK);
+				return;
 			}
 			// Now check for the non-source language code being already present in the language table
 			m_pKbServer->ClearLanguageStruct();
@@ -1514,96 +1521,62 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 			else
 			{
 				// Error, which we'll assume is a 404 error - in which case, this
-				// language code needs to be created & stored in the language table
-				;
+				// language code needs to be created & stored in the language table,
+				// so tell the user and return  (this message must be localizable)
+				wxString aMsg = _("The adaptation (or gloss) language code does not yet exist in the server's language database. First use the Create Or Delete Custom Language Codes page to create the needed code, then return to this page and try again.");
+				// developers need an English message
+				wxString aMsgEnglish = _T("The adaptation (or gloss) language code does not yet exist in the server's language database. First use the Create Or Delete Custom Language Codes page to create the needed code, then return to this page and try again.");
+				m_pApp->LogUserAction(aMsgEnglish);
+				wxMessageBox(aMsg, _("KB Sharing Manager error"), wxICON_EXCLAMATION | wxOK);
+				return;
 			}
 		}
 		else
 		{
-			// Don't username or password to be empty, so an English message will suffice
+			// Don't expect username or password to be empty, so an English message will suffice
 			wxMessageBox(_T("ReadLanguage() authentication error, at create KBs page, either the password or username string was empty. Fix this."),
 				_T("ReadLanguage() athentication error"), wxICON_WARNING | wxOK);
 			return;
 		}
 		m_pKbServer->ClearLanguageStruct();
-		// Now do any necessary language code creations -- this will require typing in a description
-		// we'll need to ask user via a dialog, called here..
-
-		wxString description_default = _("Unknown name");
-		wxString langDescription; // to receive typed description
-		wxString theMsg;
-		wxString caption = _("Type a suitable language description");
-		if (!bSrcLangCodeExistsInDB)
-		{
-			// Create it...
-			//First, ask user or administrator for a suitable language description (e.g. language name)
-			theMsg = theMsg.Format(_("Remove'Unknown name' and type a language description that suits this code:\n                  %s\nA suitable language description would be its commonly used name.\nThe name can be more than one word, but try keep it short."),
-				textCtrl_SrcLangCode.c_str());
-			langDescription = wxGetTextFromUser(theMsg, caption, description_default, this);
-			// Pass the langDescription to the CreateLanguage() call
-			result = (CURLcode)m_pKbServer->CreateLanguage(url, username, password, textCtrl_SrcLangCode, langDescription);
-			if (result != CURLE_OK)
-			{
-				// Don't expect an error of this kind, so an English message will suffice
-				wxString msg;
-				msg = msg.Format(_T("ReadLanguage() error (in create KBs page): CreateLanguage() failed, for new source language code: %s with description: %s"),
-					textCtrl_SrcLangCode.c_str(), langDescription.c_str());
-				wxMessageBox(msg, _T("KB Sharing Manager language code error"), wxICON_WARNING | wxOK);
-				return;
-			}
-		}
-		if (!bNonSrcLangCodeExistsInDB)
-		{
-			// Create it...
-			//First, ask user or administrator for a suitable language description (e.g. language name)
-			theMsg = theMsg.Format(_("Remove'Unknown name' and type a language description that suits this code:\n                  %s\nA suitable language description would be its commonly used name.\nThe name can be more than one word, but try keep it short."),
-				textCtrl_NonSrcLangCode.c_str());
-			langDescription = wxGetTextFromUser(theMsg, caption, description_default, this);
-			// Pass the langDescription to the CreateLanguage() call
-			result = (CURLcode)m_pKbServer->CreateLanguage(url, username, password, textCtrl_NonSrcLangCode, langDescription);
-			if (result != CURLE_OK)
-			{
-				// Don't expect an error of this kind, so an English message will suffice
-				wxString msg;
-				msg = msg.Format(_T("ReadLanguage() error (in create KBs page): CreateLanguage() failed, for new non-source language code: %s with description: %s"),
-					textCtrl_NonSrcLangCode.c_str(), langDescription.c_str());
-				wxMessageBox(msg, _T("KB Sharing Manager language code error"), wxICON_WARNING | wxOK);
-				return;
-			}
-		}
 
 		// If control gets to here, we've verified the needed source and non-source language codes are in
-		// the language table already, or have just been created there successfully - so we can progress to
-		// the CreateKb() attempt.
-
+		// the language table already, so we can progress to the CreateKb() attempt.
 		// The CreateKb() call here will work only provided that the language table of the remote database
 		// contains at this point in time an existing language code for each of the src and non-src
 		// languages in this new definition.
-		result = (CURLcode)m_pKbServer->CreateKb(textCtrl_SrcLangCode, textCtrl_NonSrcLangCode, m_bKBisType1);
-		// Update the page if we had success, if no success, just clear the controls
-		if (result == CURLE_OK)
+		if (bSrcLangCodeExistsInDB && bNonSrcLangCodeExistsInDB)
 		{
-			// Add a KbServerKb struct to m_pKbsAddedInSession so that we can test for
-			// which ones have been added in the tabbed dialog's session (not all fields
-			// of the struct will be filled out) -- Remove Selected Definition button will
-			// use this list
-			KbServerKb* pAddedKbDef = new KbServerKb;
-			pAddedKbDef->sourceLanguageCode = textCtrl_SrcLangCode;
-			pAddedKbDef->targetLanguageCode = textCtrl_NonSrcLangCode;
-			int itsType = m_bKBisType1 ? 1 : 2;
-			pAddedKbDef->kbType = itsType;
-			m_pKbsAddedInSession->Append(pAddedKbDef);
+			result = (CURLcode)m_pKbServer->CreateKb(textCtrl_SrcLangCode, textCtrl_NonSrcLangCode, m_bKBisType1);
+			// Update the page if we had success, if no success, just clear the controls
+			if (result == CURLE_OK)
+			{
+				// Add a KbServerKb struct to m_pKbsAddedInSession so that we can test for
+				// which ones have been added in the tabbed dialog's session (not all fields
+				// of the struct will be filled out) -- Remove Selected Definition button will
+				// use this list
+				KbServerKb* pAddedKbDef = new KbServerKb;
+				pAddedKbDef->sourceLanguageCode = textCtrl_SrcLangCode;
+				pAddedKbDef->targetLanguageCode = textCtrl_NonSrcLangCode;
+				int itsType = m_bKBisType1 ? 1 : 2;
+				pAddedKbDef->kbType = itsType;
+				m_pKbsAddedInSession->Append(pAddedKbDef);
 
-			// Update the page to show what has happened
-			LoadDataForPage(m_nCurPage);
+				// Update the page to show what has happened
+				LoadDataForPage(m_nCurPage);
+			}
+			else
+			{
+				// The creation did not succeed -- an error message will have been shown
+				// from within the above CreateKb() call
+				wxCommandEvent dummy;
+				OnButtonKbsPageClearListSelection(dummy);
+				OnButtonKbsPageClearBoxes(dummy);
+			}
 		}
 		else
 		{
-			// The creation did not succeed -- an error message will have been shown
-			// from within the above CreateUser() call
-			wxCommandEvent dummy;
-			OnButtonKbsPageClearListSelection(dummy);
-			OnButtonKbsPageClearBoxes(dummy);
+			wxBell(); // control should never get here, so a bell will suffice
 		}
 	}
 	DeleteClonedKbServerKbStruct();
@@ -1611,6 +1584,7 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 
 void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent& WXUNUSED(event))
 {
+	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
 	wxString code = m_pEditCustomCode->GetValue();
 	wxString description = m_pEditDescription->GetValue();
 	wxString strX = _T("-x-");
@@ -1656,12 +1630,11 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent
     // to ensure that it is not already listed in the custom codes list box
     KbServerLanguage* pLanguageStruct = NULL;
     wxString aCode;
-    bool bDuplicate = FALSE;
     unsigned int count = m_pCustomCodesListBox->GetCount();
     unsigned int i;
     for (i = 0; i < count; i++)
     {
-        pLanguageStruct = (KbServerLanguage*)m_pCustomCodesListBox->GetClientData();
+        pLanguageStruct = (KbServerLanguage*)m_pCustomCodesListBox->GetClientData(i);
         aCode = pLanguageStruct->code;
         if (code == aCode)
         {
@@ -1670,44 +1643,78 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent
             wxMessageBox(msg_dup, title, wxICON_WARNING | wxOK);
             return;
         }
-
-
-
-
     }
+	// If control gets to here, we can go ahead with creating the new custom code entry
+	// in the remote server's language table. (We'll assume that no other user has sneeked a
+	// competing identical custom code into the language table in the brief interval between
+	// the populating of the wxListBox here, and the typing of the code and subsequent button
+	// press here to have it added to the language table in the remote server.)
+	//
+	// Note: KB Sharing Manager uses a stateless setup of the KbServer class. That means that
+	// the Manager's class instance's m_pKbServer instance points at a stateless instance, and that
+	// the url, username and password stored within it are separate from any used by the user for
+	// a kbserver access as stored in the project config file; so the following calls will not clobber
+	// any of the user's authentication credentials. Any person with relevant permissions and valid
+	// credentials can use the KB Sharing Manager from anyone's computer, with complete safety.
+	wxString username = m_pKbServer->GetKBServerUsername(); // for authentication & same is used for
+												// the creator of this particular custom language code
+	wxString password = m_pKbServer->GetKBServerPassword(); // for authentication
+	wxString url = m_pKbServer->GetKBServerURL(); // for authentication to this server's url
+	CURLcode result = CURLE_OK;
+	result = (CURLcode)m_pKbServer->CreateLanguage(url, username, password, code, description);
+	if (result != CURLE_OK)
+	{
+		// Don't expect an error of this kind, but probably a good idea to make it localizable
+		// but the developers need an English message
+		wxString msg;
+		msg = msg.Format(_T("Creating the custom code definition in the server failed, for custom language code: %s with description: %s and username: %s"),
+			code.c_str(), description.c_str(), username.c_str());
+		wxString msgEnglish;
+		msgEnglish = msgEnglish.Format(_T("CreateLanguage() call failed, for custom language code: %s with description: %s and username: %s  curlCode: %d"),
+			code.c_str(), description.c_str(), username.c_str(), result);
+		m_pApp->LogUserAction(msgEnglish);
+		wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
+		return;
+	}
+	else
+	{
+		// Success, re-populate the list, and clear the text controls
+		LoadDataForPage(m_nCurPage);
 
-
-
-
-//KbServerLanguage* KBSharingMgrTabbedDlg::GetLanguageStructFromList(LanguagesList* pLanguagesList, size_t index)
-
-	KbServerLanguage* pKbServerLanguage = new KbServerLanguage;
-/*
-   MyList::iterator iter;
-    for (iter = list.begin(); iter != list.end(); ++iter)
-    {
-        MyListElement *current = *iter;
-
-        ...process the current element...
-    }
-*/
-
-
-
-
-
-
-
+		wxCommandEvent dummy;
+		OnButtonLanguagesPageClearBoxes(dummy);
+	}
+	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
 }
 
 void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent& WXUNUSED(event))
 {
+	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
+	// Deleting a custom language code is not simply a matter of removing it from the list of 
+	// language codes. It cannot be deleted if the code is part of the definition of one or
+	// more shared knowledge base definitions - whether as the source language, or as the target
+	// or gloss language. Therefore, all the shared kb definitions would have to be deleted first,
+	// and each of those cannot be deleted without first deleting any kb entries stored in each
+	// such shared kbs' entry tables. So a custom language code should be carefully defined, to
+	// avoid having to try change it after a lot of user work has been done using it.
+	//
+	// Out approach here is just to get all the KbServerKb structs, and find as many as have the
+	// code to be deleted in either their source language part of the definition, or the non-source
+	// part of the definition, and count however many there are that are detected. Then we'll 
+	// message the user to tell him to find those using the tabbed dialog's 2nd page, and delete
+	// each first. Then he can come to the languages page and delete the unwanted or misspelled
+	// language definition, and if it's a mispelling issue, after that he can recreate it with
+	// a correct spelling. Of course, if no shared kb definition uses a given custom code, it
+	// can be deleted immediately without any fuss.
 
 
 
 
 
 
+
+
+	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
 }
 
 
