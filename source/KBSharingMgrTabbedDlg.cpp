@@ -1690,6 +1690,7 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent
 void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent& WXUNUSED(event))
 {
 	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
+	m_pKbServer->ClearKbsList(m_pKbServer->GetKbsList());
 	// Deleting a custom language code is not simply a matter of removing it from the list of 
 	// language codes. It cannot be deleted if the code is part of the definition of one or
 	// more shared knowledge base definitions - whether as the source language, or as the target
@@ -1697,24 +1698,92 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 	// and each of those cannot be deleted without first deleting any kb entries stored in each
 	// such shared kbs' entry tables. So a custom language code should be carefully defined, to
 	// avoid having to try change it after a lot of user work has been done using it.
-	//
+	wxArrayString kbDefsList; // populate with "[srccode:nonsrccode]" structured strings
 	// Out approach here is just to get all the KbServerKb structs, and find as many as have the
 	// code to be deleted in either their source language part of the definition, or the non-source
 	// part of the definition, and count however many there are that are detected. Then we'll 
 	// message the user to tell him to find those using the tabbed dialog's 2nd page, and delete
-	// each first. Then he can come to the languages page and delete the unwanted or misspelled
+	// each first. They can be listed in format [srccode1:nonsrccode1],[srccode2:tgtcode2],etc...
+	// Then he can come to the languages page and delete the unwanted or misspelled
 	// language definition, and if it's a mispelling issue, after that he can recreate it with
 	// a correct spelling. Of course, if no shared kb definition uses a given custom code, it
 	// can be deleted immediately without any fuss.
+	wxString code = m_pEditCustomCode->GetValue(); // the code we are trying to delete
+	wxASSERT(!code.IsEmpty());
+	wxString title = _("Error");
+	wxString msg = _("There was an error in the https transmission. Perhaps try again later.");
+	// Next one for the developers... if the user log is sent to them
+	wxString msg_Eng = _T("There was an error in the https transmission for ListKbs() in OnButtonLanguagesPageDeleteCustomCode(), error returned will be 22 regardless of the actual error.");
+	bool bNoUsingDefinitions = TRUE; // initialize to there being no shared kb
+									 // definitions using this particular custom code
+	// List the current definitions
+	CURLcode result = (CURLcode)m_pKbServer->ListKbs(m_pKbServer->GetKBServerUsername(),
+										   m_pKbServer->GetKBServerPassword());
+	if (result > CURLE_OK) // CURLE_OK is 0
+	{
+		// There was an error in the http transmission; let the user try again
+		// later on, so warn him and leave the page unchanged
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
+		m_pApp->LogUserAction(msg_Eng);
+		m_pKbServer->ClearKbsList(m_pKbServer->GetKbsList()); // don't leak memory
+		return;
+	}
+	else
+	{
+		// No error - the current list of shared kb definitions is in m_kbsList.
+		// These are in the form of KbServerKb struct pointers on the heap, so
+		// we must be sure to delete them after we've finished with them.
+		KbsList* pKbsList = NULL;
+		pKbsList = m_pKbServer->GetKbsList();
+		// There may be no kb definitions done yet, or there could be one or more
+		wxASSERT(pKbsList != NULL && pKbsList->GetCount() >= 0);
+		size_t count = pKbsList->GetCount();
+		if (count == 0)
+		{
+			// No kb definitions yet, so the custom code can be deleted
+			;
+		}
+		else
+		{
+			// There is at least a single kb definition, so more processing
+			// is required - get the ones which contain the code into a
+			// string list; if the result is an empty list, then the code
+			// has not yet been used in a shared kb definition, in which case
+			// we can go ahead and delete it further below.
+
+
+			// bNoUsingDefinitions = FALSE; <- will be in one block here
+
+		}
+	}
+
+	if (!bNoUsingDefinitions)
+	{
+		// There is at least one shared kb definition which uses the code
+		// which is to be deleted, so we cannot permit deletion (until all
+		// such shared kb definitions, and their kb entries also, are
+		// deleted; because MySQL will not allow the custom code to be
+		// removed while something depending on it exists. We have to tell
+		// this to the user, and clear the text boxes and the selection. 
+		// Also, tell the user which shared definition(s) are the offending
+		// ones.
 
 
 
 
+	}
+	else
+	{
+		// Go ahead and do the deletion
+		
 
 
 
+
+	}
 
 	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
+	m_pKbServer->ClearKbsList(m_pKbServer->GetKbsList());
 }
 
 
