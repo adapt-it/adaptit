@@ -1320,7 +1320,7 @@ int KbServer::ListLanguages(wxString username, wxString password)
 			msg = msg.Format(_T("ListLanguages() result code: %d cURL Error: %s"),
 				result, error.c_str());
 			wxMessageBox(msg, _T("Error when listing custom language code definitions"), wxICON_EXCLAMATION | wxOK);
-
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
@@ -1480,7 +1480,7 @@ int KbServer::ListUsers(wxString username, wxString password)
 			msg = msg.Format(_T("ListUsers() result code: %d cURL Error: %s"), 
 				result, error.c_str());
 			wxMessageBox(msg, _T("Error when listing usernames"), wxICON_EXCLAMATION | wxOK);
-
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
@@ -1622,7 +1622,7 @@ int KbServer::ListKbs(wxString username, wxString password)
 			msg = msg.Format(_T("ListKbs() result code: %d cURL Error: %s"), 
 				result, error.c_str());
 			wxMessageBox(msg, _T("Error looking up a shared KB definition"), wxICON_EXCLAMATION | wxOK);
-
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
@@ -1778,8 +1778,8 @@ int KbServer::LookupUser(wxString url, wxString username, wxString password, wxS
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("LookupUser() result code: %d cURL Error: %s"), 
 				result, error.c_str());
-			wxMessageBox(msg, _T("Error when looking up a username"), wxICON_EXCLAMATION | wxOK);
-
+			wxMessageBox(msg, _T("Error when looking up a username, using LookupUser()"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			//curl_free(encodeduser);
 			return (int)result;
@@ -1914,7 +1914,7 @@ int KbServer::LookupSingleKb(wxString url, wxString username, wxString password,
 			msg = msg.Format(_("Error when looking up a KB definition in the kb table. Result code: %d cURL error: %s"), 
 				result, error.c_str());
 			wxMessageBox(msg, _("cURL error"), wxICON_EXCLAMATION | wxOK);
-
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			return (int)result;
 		}
@@ -2162,8 +2162,8 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("LookupEntryFields() result code: %d Error: %s"), 
 				result, error.c_str());
-			wxMessageBox(msg, _T("Error when looking up an entry"), wxICON_EXCLAMATION | wxOK);
-
+			wxMessageBox(msg, _T("Error when looking up an entry, using LookupEntryFields"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
 			curl_free(encodedsource);
 			curl_free(encodedtarget);
 			curl_easy_cleanup(curl);
@@ -2869,8 +2869,8 @@ int KbServer::ReadLanguage(wxString url, wxString username, wxString password, w
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("ReadLanguage() result code: %d cURL Error: %s"),
 				result, error.c_str());
-			wxMessageBox(msg, _T("Error when reading the language table to get a language definition"), wxICON_EXCLAMATION | wxOK);
-
+			wxMessageBox(msg, _T("Error when reading the language table to get a language definition, using ReadLanguage()"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			//curl_free(encodeduser);
 			return (int)result;
@@ -3452,6 +3452,7 @@ int KbServer::RemoveUser(int userID)
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("RemoveUser() result code: %d Error: %s"), result, error.c_str());
 			wxMessageBox(msg, _T("Error when deleting a user"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			str_CURLbuffer.clear();
 			return result;
@@ -3534,6 +3535,7 @@ int KbServer::RemoveKb(int kbID)
 			wxString error(ToUtf16(cbstr));
 			msg = msg.Format(_T("RemoveKb() result code: %d Error: %s"), result, error.c_str());
 			wxMessageBox(msg, _T("Error when deleting a KB definition"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
 			curl_easy_cleanup(curl);
 			str_CURLbuffer.clear();
 			return result;
@@ -3553,6 +3555,89 @@ int KbServer::RemoveKb(int kbID)
 	}
 	return (CURLcode)0; // no error
 }
+
+int KbServer::RemoveCustomLanguage(wxString langID)
+{
+	CURL *curl;
+	CURLcode result; // result code
+	struct curl_slist* headers = NULL;
+	wxString slash(_T('/'));
+	wxString colon(_T(':'));
+	wxString container = _T("language");
+	wxString aUrl, aPwd;
+
+	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
+
+	CBString charUrl; // use for curl options
+	CBString charUserpwd; // ditto
+
+	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
+	charUserpwd = ToUtf8(aPwd);
+
+	aUrl = GetKBServerURL() + slash + container + slash + langID;
+	charUrl = ToUtf8(aUrl);
+
+	// prepare curl
+	curl = curl_easy_init();
+
+	if (curl)
+	{
+		// add headers
+		headers = curl_slist_append(headers, "Accept: application/json");
+		headers = curl_slist_append(headers, "Content-Type: application/json");
+		// set data
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
+		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+		// get the headers stuff this way when no json is expected back...
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
+		//curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+
+		result = curl_easy_perform(curl);
+
+#if defined (_DEBUG)
+		CBString s(str_CURLbuffer.c_str());
+		wxString showit = ToUtf16(s);
+		wxLogDebug(_T("\n\n *** RemoveCustomLanguage() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
+#endif
+		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
+		// (400 or higher)
+		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
+
+		curl_slist_free_all(headers);
+		if (result) {
+			wxString msg;
+			CBString cbstr(curl_easy_strerror(result));
+			wxString error(ToUtf16(cbstr));
+			msg = msg.Format(_T("RemoveCustomLanguage() result code: %d Error: %s"), result, error.c_str());
+			wxMessageBox(msg, _T("Error when deleting a custom language definition"), wxICON_EXCLAMATION | wxOK);
+			m_pApp->LogUserAction(msg);
+			curl_easy_cleanup(curl);
+			str_CURLbuffer.clear();
+			return result;
+		}
+	}
+	curl_easy_cleanup(curl);
+	str_CURLbuffer.clear();
+
+	// handle any HTTP error code, if one was returned
+	if (m_httpStatusCode >= 400)
+	{
+		// We may get 400 "Bad Request" or 404 Not Found (both should be unlikely)
+		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
+		// status codes which are returned, to determine what to do, and then manually
+		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
+		return CURLE_HTTP_RETURNED_ERROR;
+	}
+	return (CURLcode)0; // no error
+}
+
 
 // Return 0 (CURLE_OK) if no error, a CURLcode error code if there was an error
 int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum op)
@@ -3643,10 +3728,12 @@ int KbServer::PseudoDeleteOrUndeleteEntry(int entryID, enum DeleteOrUndeleteEnum
 			if (op == doDelete)
 			{
 				wxMessageBox(msg, _T("Error when trying to delete an entry"), wxICON_EXCLAMATION | wxOK);
+				m_pApp->LogUserAction(_T("Deleting...") + msg);
 			}
 			else
 			{
 				wxMessageBox(msg, _T("Error when trying to undelete an entry"), wxICON_EXCLAMATION | wxOK);
+				m_pApp->LogUserAction(_T("Undeleting...") + msg);
 			}
 			curl_easy_cleanup(curl);
 			str_CURLbuffer.clear();

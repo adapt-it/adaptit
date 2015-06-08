@@ -1584,7 +1584,6 @@ void KBSharingMgrTabbedDlg::OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNU
 
 void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent& WXUNUSED(event))
 {
-	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
 	wxString code = m_pEditCustomCode->GetValue();
 	wxString description = m_pEditDescription->GetValue();
 	wxString strX = _T("-x-");
@@ -1678,19 +1677,25 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageCreateCustomCode(wxCommandEvent
 	}
 	else
 	{
-		// Success, re-populate the list, and clear the text controls
+		// Success, re-populate the list, and clear the text controls; after first
+		// clearing out the KbServerLanguage struct pointers being managed for the
+		// last population of the list box.
+		m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
 		LoadDataForPage(m_nCurPage);
 
 		wxCommandEvent dummy;
 		OnButtonLanguagesPageClearBoxes(dummy);
 	}
-	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
 }
 
 void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent& WXUNUSED(event))
 {
-	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
-	m_pKbServer->ClearKbsList(m_pKbServer->GetKbsList());
+	m_pKbServer->ClearKbsList(m_pKbServer->GetKbsList()); // we need to re-get them below
+	wxString code = m_pEditCustomCode->GetValue(); // the code we are trying to delete
+	wxASSERT(!code.IsEmpty());
+	wxArrayString kbDefsArray; // store in here all representations of any kb definitions
+							   // that use the code intended for deletion
+	wxString compositeDefsStr; // construct a list of using definitions here, in format [src:tgt],[src:tgt]...
 	// Deleting a custom language code is not simply a matter of removing it from the list of 
 	// language codes. It cannot be deleted if the code is part of the definition of one or
 	// more shared knowledge base definitions - whether as the source language, or as the target
@@ -1708,8 +1713,6 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 	// language definition, and if it's a mispelling issue, after that he can recreate it with
 	// a correct spelling. Of course, if no shared kb definition uses a given custom code, it
 	// can be deleted immediately without any fuss.
-	wxString code = m_pEditCustomCode->GetValue(); // the code we are trying to delete
-	wxASSERT(!code.IsEmpty());
 	wxString title = _("Error");
 	wxString msg = _("There was an error in the https transmission. Perhaps try again later.");
 	// Next one for the developers... if the user log is sent to them
@@ -1725,7 +1728,6 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 		// later on, so warn him and leave the page unchanged
 		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		m_pApp->LogUserAction(msg_Eng);
-		m_pKbServer->ClearKbsList(m_pKbServer->GetKbsList()); // don't leak memory
 		return;
 	}
 	else
@@ -1733,6 +1735,7 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 		// No error - the current list of shared kb definitions is in m_kbsList.
 		// These are in the form of KbServerKb struct pointers on the heap, so
 		// we must be sure to delete them after we've finished with them.
+		wxString aDefinition;
 		KbsList* pKbsList = NULL;
 		pKbsList = m_pKbServer->GetKbsList();
 		// There may be no kb definitions done yet, or there could be one or more
@@ -1750,12 +1753,37 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 			// string list; if the result is an empty list, then the code
 			// has not yet been used in a shared kb definition, in which case
 			// we can go ahead and delete it further below.
-
-
-			// bNoUsingDefinitions = FALSE; <- will be in one block here
-
+			KbServerKb* pItem = NULL;
+			KbsList::iterator iter;
+			KbsList::compatibility_iterator c_iter;
+			wxString srccode;
+			wxString nonsrccode;
+			int indx = -1;
+			for (iter = pKbsList->begin(); iter != pKbsList->end(); ++iter)
+			{
+				indx++;
+				c_iter = pKbsList->Item((size_t)indx);
+				pItem = c_iter->GetData();
+				srccode = pItem->sourceLanguageCode;
+				nonsrccode = pItem->targetLanguageCode;
+				if (code == srccode || code == nonsrccode)
+				{
+					// Collect this definition, as it contains the code we want to delete
+					aDefinition.Empty();
+					aDefinition << _T('[');
+					aDefinition << srccode;
+					aDefinition << _T(':');
+					aDefinition << nonsrccode;
+					aDefinition << _T(']');
+					kbDefsArray.Add(aDefinition);
+					bNoUsingDefinitions = FALSE;
+				}
+			}
 		}
 	}
+
+	// TEMPORARY, for testing the code for the warning which follows
+	//bNoUsingDefinitions = FALSE;
 
 	if (!bNoUsingDefinitions)
 	{
@@ -1767,22 +1795,70 @@ void KBSharingMgrTabbedDlg::OnButtonLanguagesPageDeleteCustomCode(wxCommandEvent
 		// this to the user, and clear the text boxes and the selection. 
 		// Also, tell the user which shared definition(s) are the offending
 		// ones.
-
-
-
-
+		// Compute compositeDefsStr from the array of stored using definitions
+		compositeDefsStr.Empty();
+		size_t mySize = kbDefsArray.size();
+		size_t i;
+		for (i = 0; i < mySize; i++)
+		{
+			wxString aDef = kbDefsArray.Item(i);
+			if (!compositeDefsStr.IsEmpty())
+			{
+				compositeDefsStr << _T(',');
+			}
+			compositeDefsStr << aDef;
+		}
+		wxString myMsg;
+		if (mySize > 1)
+		{
+			myMsg = myMsg.Format(_("Knowledge bases are depending on the code %s which you want to delete.\nYou first need to delete the shared knowledge bases which use it (which also deletes all their entries from the server).\n These ones use the code: %s"),
+				code.c_str(), compositeDefsStr.c_str());
+		}
+		else
+		{
+			myMsg = myMsg.Format(_("A knowledge base is depending on the code %s which you want to delete.\nYou first need to delete the shared knowledge base which uses it (which also deletes all its entries from the server).\n This one uses the code: %s"),
+				code.c_str(), compositeDefsStr.c_str());
+		}
+		wxString title = _("Warning: Unable to delete");
+		wxMessageBox(myMsg, title, wxICON_WARNING | wxOK);
+		return;
 	}
 	else
 	{
-		// Go ahead and do the deletion
-		
+		// Go ahead and do the deletion of the custom language code...
+		// Note: KB Sharing Manager uses a stateless setup of the KbServer class. That means that
+		// the Manager's class instance's m_pKbServer instance points at a stateless instance, and that
+		// the url, username and password stored within it are separate from any used by the user for
+		// a kbserver access as stored in the project config file; so the following calls will not clobber
+		// any of the user's authentication credentials. Any person with relevant permissions and valid
+		// credentials can use the KB Sharing Manager from anyone's computer, with complete safety.
+		CURLcode result = CURLE_OK;
+		result = (CURLcode)m_pKbServer->RemoveCustomLanguage(code);
+		if (result != CURLE_OK)
+		{
+			// Don't expect an error of this kind, but probably a good idea to make it localizable
+			// but the developers need an English message
+			wxString msg;
+			msg = msg.Format(_("Deleting the custom code definition in the server failed, for custom language code: %s"), code.c_str());
+			wxString msgEnglish;
+			msgEnglish = msgEnglish.Format(_T("Deleting the custom code definition in the server failed, for custom language code: %s CURLcode %d"),
+				code.c_str(), (unsigned int)result);
+			m_pApp->LogUserAction(msgEnglish);
+			wxMessageBox(msg, _T("KB Sharing Manager error"), wxICON_WARNING | wxOK);
+			return;
+		}
+		else
+		{
+			// Success, re-populate the list, and clear the text controls, after
+			// first removing from the heap the existing KbServerLanguage structs
+			// stored as Data() members for the listbox entries
+			m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
+			LoadDataForPage(m_nCurPage);
 
-
-
-
+			wxCommandEvent dummy;
+			OnButtonLanguagesPageClearBoxes(dummy);
+		}
 	}
-
-	m_pKbServer->ClearLanguagesList(m_pKbServer->GetLanguagesList());
 	m_pKbServer->ClearKbsList(m_pKbServer->GetKbsList());
 }
 

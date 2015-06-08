@@ -201,6 +201,7 @@ public:
 	int		 DeleteSingleKbEntry(int entryID);
 	int		 RemoveUser(int userID);
 	int		 RemoveKb(int kbID);
+	int		 RemoveCustomLanguage(wxString langID);
 	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin, 
 						KbServerUser* pEditedUserStruct, wxString password);
