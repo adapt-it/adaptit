@@ -94,6 +94,14 @@ distributed to only those intending to make use of this
 new feature. The next general release will include this
 new feature and it will be available to everyone from
 that time onwards.
+* In earlier versions, the Add button and Update button,
+and also the source text box below the list, all these
+in the Knowledge Base Editor tabbed pages, did not consider
+auto-capitalization settings. Now they do. (That is, if
+automatic capitalization is turned on, they will store lower
+case entries unchanged, but entries beginning with a
+capital letter, will have the initial capital changed to a
+lower case equivalent letter.)
 ----------------------------------------------
 Bug fixes in 6.5.9 Pre-Release
 ----------------------------------------------

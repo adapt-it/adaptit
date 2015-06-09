@@ -248,6 +248,10 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	}
 	wxString str;
 	str = m_pListBoxKeys->GetStringSelection();
+	// BEW 9Jun15, if the user clicked an entry in the list, the m_pTypeSourceBox
+	// below the list should reflect the choice; but before now it didn't. This 
+	// next line fixes it.
+	m_pTypeSourceBox->ChangeValue(str);
 	int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
 	wxASSERT(nNewSel != -1);
 	pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
@@ -555,7 +559,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	// have to restore punctuation contiguous to / character, but the user may have edited
 	// the box contents, so any visible / used as word delimiter there must be converted to
 	// a ZWSP instance for storage.
-	newText = FwdSlashtoZWSP(newText);
+	newText = FwdSlashtoZWSP(newText);// m_bFwdSlashDelimiter is checked internally
 //#endif
 	// Ensure we are not duplicating an undeleted translation already in the list box
 	// 
@@ -729,6 +733,27 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 	CRefString* pEditedRefString = new CRefString(*pCurRefString, pCurTgtUnit); // CRefStringMetadata
 																	// is copy-created automatically
 	// add the new data values to it
+	// BEW 9Jun15, the old one we can leave unmodified by any auto-caps ON setting, since
+	// presumably the matchups above needed to be with the unmodified contents; but for the
+	// newText, if gbAutoCaps is TRUE, then we should store a lower case entry only
+	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+	// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
+	bool bNoError = TRUE;
+	if (gbAutoCaps)
+	{
+		//bNoError = pApp->GetDocument()->SetCaseParameters(m_curKey); // for source word or phrase
+		//if (bNoError)
+		//{
+		//	m_srcKeyStr = pKB->AutoCapsMakeStorageString(m_srcKeyStr); // might be returned as lower case initial
+		//}
+		// Now do the calcs for the non-src text (either target, or gloss when in glossing mode), for
+		// this we must set the 2nd param, bool bIsSrcText, explicitly to FALSE
+		bNoError = pApp->GetDocument()->SetCaseParameters(newText, FALSE);
+		if (bNoError)
+		{
+			newText = pKB->AutoCapsMakeStorageString(newText); // might be returned as lower case initial
+		}
+	}
 	pEditedRefString->m_translation = newText; // could be an empty string
 	pEditedRefString->m_refCount = 1; // give it a minimal legal ref count value
 	// the old creation date should be left unchanged, but change the modification
@@ -774,8 +799,8 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 			// populate it's public members (it only has public ones anyway)
 			pKbEditorUpdateBtnThread->m_pKbSvr = pKbSvr;
 			pKbEditorUpdateBtnThread->m_source = m_curKey;
-			pKbEditorUpdateBtnThread->m_oldTranslation = oldText;
-			pKbEditorUpdateBtnThread->m_newTranslation = newText;
+			pKbEditorUpdateBtnThread->m_oldTranslation = oldText; // has no auto-caps modification to first letter
+			pKbEditorUpdateBtnThread->m_newTranslation = newText; // may have an auto-caps modification to first letter
 			// now create the runnable thread with explicit stack size of 1KB
 			wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240); // was wxThreadError error =  pKbEditorUpdateBtnThread->Create(10240);
 			if (error != wxTHREAD_NO_ERROR)
@@ -1016,7 +1041,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	// have to restore punctuation contiguous to / character, but the user may have edited
 	// the box contents, so any visible / used as word delimiter there must be converted to
 	// a ZWSP instance for storage.
-	newText = FwdSlashtoZWSP(newText);
+	newText = FwdSlashtoZWSP(newText); // m_bFwdSlashDelimiter flag is tested internally
 //#endif
 
 	// BEW 22Jun10, for kbVersion 2, we must allow the user to manually try to add a
@@ -1029,6 +1054,26 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 	m_edTransStr = m_pEditOrAddTranslationBox->GetValue(); // keep showing the editable version
 	m_srcKeyStr = m_pTypeSourceBox->GetValue();
 	wxASSERT(pCurTgtUnit != 0);
+
+	// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+	// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
+	bool bNoError = TRUE;
+	if (gbAutoCaps)
+	{
+		bNoError = pApp->GetDocument()->SetCaseParameters(m_srcKeyStr); // for source word or phrase
+		if (bNoError)
+		{
+			m_srcKeyStr = pKB->AutoCapsMakeStorageString(m_srcKeyStr); // might be returned as lower case initial
+		}
+		// Now do the calcs for the non-src text (either target, or gloss when in glossing mode), for
+		// this we must set the 2nd param, bool bIsSrcText, explicitly to FALSE
+		bNoError = pApp->GetDocument()->SetCaseParameters(newText, FALSE);
+		if (bNoError)
+		{
+			newText = pKB->AutoCapsMakeStorageString(newText); // might be returned as lower case initial
+		}
+	}
+	
 	bOK = AddRefString(pCurTgtUnit,newText); // if 'undelete' happens, AddRefString() will
 				// have repositioned the undeleted CRefString to the end of the CTargetUnit
 				// instance's list, so that the Append() call on the list box done below
@@ -2545,15 +2590,24 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
             // him If successful this will change the initial selection passed in the 3rd
             // parameter
 			//
-            // whm revision for wx: We'll do a case insensitive find of the desired word or
-            // phrase since that would be better than failing because of an entry existing
-            // but not being found because of a mere case difference.
+            // BEW 9Jun15, changed from a case insensitive search to a case sensitive one,
+			// as that is the only way to be consistent with the auto-capitalization feature.
             // Note: The View's OnToolsKBEditor() sets the tab page num before ShowModal()
             // is called.
 
 			m_srcKeyStr = m_TheSelectedKey;
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr,
-													caseInsensitive, subString);
+			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
+			bool bNoError = TRUE;
+			if (gbAutoCaps)
+			{
+				bNoError = pApp->GetDocument()->SetCaseParameters(m_srcKeyStr); // for source word or phrase
+				if (bNoError)
+				{
+					m_srcKeyStr = pKB->AutoCapsMakeStorageString(m_srcKeyStr); // might be returned as lower case initial
+				}
+			}
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseSensitive, subString);
 			if (nNewSel == -1) // LB_ERR
 			{
 				nNewSel = 0; // if not found, default to the first in the list
@@ -2572,7 +2626,19 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			// get the key for the source phrase at the active location
 			wxString srcKey;
 			srcKey = gpApp->m_pActivePile->GetSrcPhrase()->m_key;
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKey, caseInsensitive, subString);
+			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
+			bool bNoError = TRUE;
+			if (gbAutoCaps)
+			{
+				bNoError = pApp->GetDocument()->SetCaseParameters(srcKey); // for source word or phrase
+				if (bNoError)
+				{
+					srcKey = pKB->AutoCapsMakeStorageString(srcKey); // might be returned as lower case initial
+				}
+			}
+			m_srcKeyStr = srcKey;
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKey, caseSensitive, subString);
 			if (nNewSel == -1) // LB_ERR
 			{
 				nNewSel = 0; // if not found, default to the first in the list
@@ -2587,7 +2653,19 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		{
 			m_pListBoxKeys->SetSelection(nStartingSelection);
 			wxString str = m_pListBoxKeys->GetString(nStartingSelection);
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
+			// BEW 9Jun15, looking at what goes into kbserver, I noticed that no adjustment to 
+			// initial capital letter is done when gbAutoCaps is TRUE. Fix this.
+			bool bNoError = TRUE;
+			if (gbAutoCaps)
+			{
+				bNoError = pApp->GetDocument()->SetCaseParameters(str); // for source word or phrase
+				if (bNoError)
+				{
+					str = pKB->AutoCapsMakeStorageString(str); // might be returned as lower case initial
+				}
+			}
+			m_srcKeyStr = str;
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, str, caseSensitive, exactString);
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 		}

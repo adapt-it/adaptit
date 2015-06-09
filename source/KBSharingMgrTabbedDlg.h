@@ -75,15 +75,10 @@ protected:
 	wxButton*      m_pBtnClearBothLangCodeBoxes;
 	wxButton*      m_pBtnLookupLanguageCodes;
 	wxButton*      m_pBtnRemoveSelectedKBDefinition;
-	//wxButton*      m_pBtnUpdateSelectedKBDefinition; // BEW 14Apr15 removed
 	wxButton*	   m_pBtnClearListSelection;
 
 	// For Create or Delete Custom Codes page
-
 	wxListBox*     m_pCustomCodesListBox;
-	//wxStaticText*  m_pNonSrcLabel;
-	//wxStaticText*  m_pAboveListBoxLabel;
-
 	wxTextCtrl*    m_pEditCustomCode;
 	wxTextCtrl*    m_pEditDescription;
 	wxTextCtrl*    m_pCustomCodeDefinitionCreator; // this one is read-only
@@ -108,26 +103,26 @@ protected:
 	bool			m_bGlossKbsListBoxBeingCleared;
 #endif
 
-	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void OnOK(wxCommandEvent& event);
-	void OnCancel(wxCommandEvent& event);
+	void			InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	void			OnOK(wxCommandEvent& event);
+	void			OnCancel(wxCommandEvent& event);
 public:
-	void LoadDataForPage(int pageNumSelected);
+	void			LoadDataForPage(int pageNumSelected);
 protected:
-	void DisplayRFC5646Message();
-	void OnTabPageChanged(wxNotebookEvent& event);
+	void			DisplayRFC5646Message();
+	void			OnTabPageChanged(wxNotebookEvent& event);
 
 
 	// Functions needed by the Users page
-	KbServerUser* GetUserStructFromList(UsersList* pUsersList, size_t index);
-	void          LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList);
-	void		  CopyUsersList(UsersList* pSrcList, UsersList* pDestList);
-	KbServerUser* CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct);
-	void		  DeleteClonedKbServerUserStruct();
-	bool		  CheckThatPasswordsMatch(wxString password1, wxString password2);
-	bool		  AreBothPasswordsEmpty(wxString password1, wxString password2);
-	wxString	  GetEarliestUseradmin(UsersList* pUsersList);
-	KbServerUser* GetThisUsersStructPtr(wxString& username, UsersList* pUsersList);
+	KbServerUser*	GetUserStructFromList(UsersList* pUsersList, size_t index);
+	void			LoadUsersListBox(wxListBox* pListBox, size_t count, UsersList* pUsersList);
+	void			CopyUsersList(UsersList* pSrcList, UsersList* pDestList);
+	KbServerUser*	CloneACopyOfKbServerUserStruct(KbServerUser* pExistingStruct);
+	void			DeleteClonedKbServerUserStruct();
+	bool			CheckThatPasswordsMatch(wxString password1, wxString password2);
+	bool			AreBothPasswordsEmpty(wxString password1, wxString password2);
+	wxString		GetEarliestUseradmin(UsersList* pUsersList);
+	KbServerUser*	GetThisUsersStructPtr(wxString& username, UsersList* pUsersList);
 	KbServerLanguage* GetLanguageStructFromList(LanguagesList* pLanguagesList, size_t index);
 
 	// event handlers - Users page
@@ -163,14 +158,10 @@ protected:
 	void		  OnButtonKbsPageAddKBDefinition(wxCommandEvent& WXUNUSED(event));
 	void		  OnSelchangeKBsList(wxCommandEvent& WXUNUSED(event));
 	void		  OnButtonKbsPageRemoveKb(wxCommandEvent& WXUNUSED(event));
-	//void		  OnButtonKbsPageUpdateKBDefinition(wxCommandEvent& WXUNUSED(event)); // BEW 14Apr15 removed
 
 	// Functions needed by the Create or Delete Custom Codes (3rd) page
-	//void		  DeleteClonedKbServerLanguageStruct(); <<-- unneeded
-	//void		  CopyLanguagesList(LanguagesList* pSrcList, LanguagesList* pDestList); <<-- unneeded
 	void          LoadLanguagesListBox(wxListBox* pListBox, LanguagesList* pLanguagesList);
 	KbServerLanguage* GetThisLanguageStructPtr(wxString& customCode, LanguagesList* pLanguagesList);
-
 
 	// event handlers - Create or Delete Custom Codes page
 	void		  OnBtnLanguagesPageLookupCode(wxCommandEvent& WXUNUSED(event));
@@ -182,7 +173,7 @@ protected:
 	void		  OnSelchangeLanguagesList(wxCommandEvent& WXUNUSED(event));
 
 private:
-	// All the lists, users or kbs, are SORTED.
+	// All the lists, users, kbs and custom language definitions, are SORTED.
 	CAdapt_ItApp*     m_pApp;
 	int				  m_nSel; // index value (0 based) for selection in the the listbox of one
 							  // of the pages, and has value wxNOT_FOUND when nothing is selected
@@ -207,8 +198,6 @@ private:
 	CodesList*		  m_pCustomCodesList; // initialize in InitDialog() as the KbServer instance has the list
 	CodesList*		  m_pOriginalCustomCodesList; // store copies of KbServerLanguage structs at entry,
 										// for comparison with final list after edits or additions are done
-
-
 	KbServer*         m_pKbServer; // we'll assign the stateless one to this pointer
 	KbServerUser*     m_pUserStruct; // scratch variable to get at returned values
 								     // for a user entry's fields
@@ -229,25 +218,22 @@ private:
 										 // that m_pOriginalUserStruct does for m_pUserStruct
 	LanguagesList*	  m_pLanguagesList;
 	FilteredList*	  m_pFilteredList;
-	//LanguagesList*    m_pOriginalLanguagesList; // store copies of KbServerLanguage structs at
-	//			// entry, for comparison with final list after the removals and additions are done
-
 
 	// Next members are additional ones needed for the kbs page
-	bool m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
-	wxString m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code:"
-	wxString m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glossing language code:"
-	wxString m_tgtListLabel; // InitDialog() sets it to
-				// "Existing shared databases (as   source,target   comma delimited code pairs):"
-	wxString m_glsListLabel; // InitDialog() sets it to
-				// "Existing shared databases (as   source,glossing   comma delimited code pairs):"
-	wxString m_sourceLangCode;
-	wxString m_targetLangCode;
-	wxString m_glossLangCode;
+	bool		m_bKBisType1; // TRUE for adaptations KB definition, FALSE for a glosses KB definition
+	wxString	m_tgtLanguageCodeLabel; // InitDialog() sets it to "Target language code:"
+	wxString	m_glossesLanguageCodeLabel; // InitDialog() sets it to "Glossing language code:"
+	wxString	m_tgtListLabel; // InitDialog() sets it to
+					// "Existing shared databases (as   source,target   comma delimited code pairs):"
+	wxString	m_glsListLabel; // InitDialog() sets it to
+					// "Existing shared databases (as   source,glossing   comma delimited code pairs):"
+	wxString	m_sourceLangCode;
+	wxString	m_targetLangCode;
+	wxString	m_glossLangCode;
 	// Next members are additional ones needed for the custom language codes page
-	wxString m_customLangCode;
-	wxString m_description;
-	wxString m_creator;
+	wxString	m_customLangCode;
+	wxString	m_description;
+	wxString	m_creator;
 
 
 	// Support for showing informative message when user attempts to alter one or both
@@ -255,9 +241,9 @@ private:
 	// the attmept will fail without giving any feedback to the administrator unless we
 	// compare the before and after values for the codes being changed, and give the
 	// helpful message when they have not changed as expected.
-	bool m_bUpdateTried;
-	wxArrayString m_listBeforeUpdate;
-	wxArrayString m_listAfterUpdate;
+	bool			m_bUpdateTried;
+	wxArrayString	m_listBeforeUpdate;
+	wxArrayString	m_listAfterUpdate;
 
 	// Support for prevention of the Manager user trying to remove a kb definition for the
 	// project which is currently the active project and it is set up to be sharing to the
@@ -270,11 +256,11 @@ private:
 	//  which preserve the code values which a deletion is in progress, so we can ensure
 	//  that nonone sets up a sharing to the old kb definition while the removal is in
 	//  progress.)
-	wxString m_srcLangCodeOfDeletion;
-	wxString m_nonsrcLangCodeOfDeletion;
-	int		 m_kbTypeOfDeletion; //1, 2, or undefined (-1)
+	wxString		m_srcLangCodeOfDeletion;
+	wxString		m_nonsrcLangCodeOfDeletion;
+	int				m_kbTypeOfDeletion; //1, 2, or undefined (-1)
 
-	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
+	DECLARE_EVENT_TABLE()
 };
 #endif
 #endif /* KBSharingMgrTabbedDlg_h */
