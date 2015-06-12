@@ -1078,6 +1078,7 @@ int KbServer::ChangedSince(wxString timeStamp)
             }
 #endif
             size_t index;
+			wxString noform = _T("<noform>");
             for (index = 0; index < arraySize; index++)
             {
                 // We can extract id, source phrase, target phrase, deleted flag value,
@@ -1087,7 +1088,13 @@ int KbServer::ChangedSince(wxString timeStamp)
                 // BEW changed 16Jan13, to have the username included in the arrays, so that we
                 // can track who originated each of the entries in the group's various local KBs
                 m_arrSource.Add(jsonval[index][_T("source")].AsString());
-                m_arrTarget.Add(jsonval[index][_T("target")].AsString());
+				// BEW 11Jun15 restore <noform> to an empty string
+				wxString aTgt = jsonval[index][_T("target")].AsString();
+				if (aTgt == noform)
+				{
+					aTgt.Empty();
+				}
+				m_arrTarget.Add(aTgt);
                 m_arrDeleted.Add(jsonval[index][_T("deleted")].AsInt());
                 //m_arrID.Add(jsonval[index][_T("id")].AsLong());
                 m_arrUsername.Add(jsonval[index][_T("user")].AsString());
@@ -2080,7 +2087,14 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 	wxString aPwd; // ditto
 	str_CURLbuffer.clear();
 	str_CURLheaders.clear();
-
+	// BEW 11Jun15 support "<noform>" as a standin for an empty adaptation or gloss
+	wxString noform = _T("<noform>");
+	if (targetPhrase.IsEmpty())
+	{
+		targetPhrase = noform; // this ensures uniqueness, because if left as an
+							   // empty string, the lookup returns all rows which
+							   // match the source field
+	}
 	CBString charUrl;
 	CBString charUserpwd;
 	// Try a CBString solution for url-encoding, and using curl_easy_encode() etc
@@ -2214,10 +2228,15 @@ int KbServer::LookupEntryFields(wxString sourcePhrase, wxString targetPhrase)
 		m_entryStruct.id = jsonval[_T("id")].AsLong(); // needed, as there may be a
 					// subsequent pseudo-delete or undelete, and those are id-based
 		m_entryStruct.source = jsonval[_T("source")].AsString();
-		m_entryStruct.translation = jsonval[_T("target")].AsString();
+		// BEW 11Jun15 restore <noform> to an empty string
+		wxString aTgt = jsonval[_T("target")].AsString();
+		if (aTgt == noform)
+		{
+			aTgt.Empty();
+		}
+		m_entryStruct.translation = aTgt;
 		m_entryStruct.username = jsonval[_T("user")].AsString();
 		m_entryStruct.deleted = jsonval[_T("deleted")].AsInt();
-
 		curl_free(encodedsource);
 		curl_free(encodedtarget);
 		str_CURLbuffer.clear(); // always clear it before returning
@@ -2376,86 +2395,6 @@ void KbServer::ClearKbsList(KbsList* pKbsList)
 	pKbsList->clear();
 }
 
-
-
-/* Not used, commented out by BEW 5Jun13
-// Same as CreateEntry(), but with anything related to failure stripped out - we want this
-// to succeed as quickly as possible, and we'll ignore failures
-// Note: we pass in, by value, everything the function needs, so that it calls nothing
-// external to itself. This makes it safe to use in a thread without a mutex being needed
-// - provided the thread has public variables for those in the signature below, & those in
-// the thread get set after the thread is created and before it is run
-int KbServer::CreateEntry_Minimal(	KbServerEntry& entry,
-									wxString& kbType,
-									wxString& password,
-									wxString& username,
-									wxString& srcLangCode,
-									wxString& translnLangCode, // tgt code or gloss code
-									wxString& url)
-{
-	CURL *curl;
-	CURLcode result = CURLE_OK; // initialize result code
-	struct curl_slist* headers = NULL;
-	wxString slash(_T('/'));
-	wxString colon(_T(':'));
-	wxJSONValue jsonval; // construct JSON object
-	CBString strVal; // to store wxString form of the jsonval object, for curl
-	wxString container = _T("entry");
-	wxString aUrl, aPwd;
-
-	CBString charUrl; // use for curl options
-	CBString charUserpwd; // ditto
-
-	aPwd = username + colon + password;
-	charUserpwd = ToUtf8(aPwd);
-
-	// populate the JSON object
-	jsonval[_T("sourcelanguage")] = srcLangCode;
-	jsonval[_T("targetlanguage")] = translnLangCode;
-	jsonval[_T("source")] = entry.source;
-	jsonval[_T("target")] = entry.translation;
-	jsonval[_T("user")] = username;
-	jsonval[_T("type")] = kbType;
-	jsonval[_T("deleted")] = (long)0; // i.e. a normal entry
-
-	// convert it to string form
-	wxJSONWriter writer; wxString str;
-	writer.Write(jsonval, str);
-	// convert it to utf-8 stored in CBString
-	strVal = ToUtf8(str);
-
-	aUrl = url + slash + container + slash;
-	charUrl = ToUtf8(aUrl);
-
-	// prepare curl
-	curl = curl_easy_init();
-
-	if (curl)
-	{
-		// add headers
-		headers = curl_slist_append(headers, "Content-Type: application/json");
-		headers = curl_slist_append(headers, "Accept: application/json");
-		// set data & options
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
-		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
-		curl_easy_setopt(curl, CURLOPT_POST, 1L);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
-		// transmit
-		result = curl_easy_perform(curl);		
-		curl_slist_free_all(headers);
-	}
-	curl_easy_cleanup(curl);
-//#if defined(_DEBUG)
-//	wxLogDebug(_T("CreateEntry_Minimal(): src= %s  tgt= %s  result= %d"),
-//		entry.source, entry.translation, result);
-//#endif
-	return result;
-}
-*/
 int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 {
 	// entries are always created as "normal" entries, that is, not pseudo-deleted
@@ -2482,6 +2421,12 @@ int KbServer::CreateEntry(wxString srcPhrase, wxString tgtPhrase)
 	jsonval[_T("sourcelanguage")] = GetSourceLanguageCode();
 	jsonval[_T("targetlanguage")] = GetTargetLanguageCode();
 	jsonval[_T("source")] = srcPhrase;
+	// BEW 11Jun15 support <noform> as standin for empty string
+	wxString noform = _T("<noform>");
+	if (tgtPhrase.IsEmpty())
+	{
+		tgtPhrase = noform;
+	}
 	jsonval[_T("target")] = tgtPhrase;
 	jsonval[_T("user")] = GetKBServerUsername();
 	jsonval[_T("type")] = kbType;
@@ -3174,133 +3119,6 @@ int KbServer::UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName,
 	return 0;
 }
 
-// Returns a CURLcode. The only fields we allow to be updated are sourcelanguage (code)
-// and targetlanguage (code). We don't allow changing of the type. (However, it is
-// possible to effect this in a round-about way, using the Adapt It gui - using the
-// Advanced menu item "Transform adaptations into glosses..." - this takes a src-tgt
-// project and makes the tgt adaptations become glosses in a new project, and it
-// transforms the adapting KB in the original project into the glossing KB in the new
-// project. Then if the user is authorized to make the new project a shared one and does
-// so, he can do a bulk upload from the new project, and thereby populate the remote
-// shared KB with adaptations-now-turned-into-glosses). 
-// 
-// Note: if this returns CURLcode CURLE_OK, and there's no HTTP error, then this function
-// should be followed up with a function that causes the code or codes to be updated in
-// the entries of the entry table -- or the php for this present function should do it
-// 
-/* Removed, updating codes within an existing definition is frought with problems. Use 3rd page etc.
-int KbServer::UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
-						int kbType, KbServerKb* pEditedKbStruct)
-{
-	CURLcode result = CURLE_OK;
-	wxString kbIDStr;
-	wxItoa(kbID, kbIDStr);
-	CURL *curl;
-	struct curl_slist* headers = NULL;
-	wxString slash(_T('/'));
-	wxString colon(_T(':'));
-	wxString kbTypeStr; // we don't actually need it, but no harm in passing in the kbType
-	wxItoa(kbType,kbTypeStr);
-	wxJSONValue jsonval; // construct JSON object
-	CBString strVal; // to store wxString form of the jsonval object, for curl
-	wxString container = _T("kb");
-	wxString aUrl, aPwd;
-
-	str_CURLbuffer.clear(); // use for headers return when there's no json to be returned
-
-	CBString charUrl; // use for curl options
-	CBString charUserpwd; // ditto
-
-	aPwd = GetKBServerUsername() + colon + GetKBServerPassword();
-	charUserpwd = ToUtf8(aPwd);
-
-	// populate the JSON object
-	if (bUpdateSourceLanguageCode)
-	{
-		jsonval[_T("sourcelanguage")] = pEditedKbStruct->sourceLanguageCode;
-#if defined(_DEBUG)
-		wxLogDebug(_T("  UpdateKb(): updating sourcelanguage code to:  %s  ,  kbType %s"),
-			pEditedKbStruct->sourceLanguageCode.c_str(), kbTypeStr.c_str()); 
-#endif
-	}
-	if (bUpdateNonSourceLanguageCode)
-	{
-		jsonval[_T("targetlanguage")] = pEditedKbStruct->targetLanguageCode;
-#if defined(_DEBUG)
-		wxLogDebug(_T("  UpdateKb(): updating non-sourcelanguage code to:  %s  ,  kbType %s"),
-			pEditedKbStruct->targetLanguageCode.c_str(), kbTypeStr.c_str()); 
-#endif
-	}
-	// convert it to string form
-	wxJSONWriter writer; wxString str;
-	writer.Write(jsonval, str);
-	// convert it to utf-8 stored in CBString
-	strVal = ToUtf8(str);
-
-	aUrl = GetKBServerURL() + slash + container + slash + kbIDStr;
-	charUrl = ToUtf8(aUrl);
-
-	// prepare curl
-	curl = curl_easy_init();
-
-	if (curl)
-	{
-		// add headers
-		headers = curl_slist_append(headers, "Accept: application/json");
-		headers = curl_slist_append(headers, "Content-Type: application/json");
-		// set data
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-		curl_easy_setopt(curl, CURLOPT_URL, (char*)charUrl);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-		curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
-		curl_easy_setopt(curl, CURLOPT_USERPWD, (char*)charUserpwd);
-		curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT"); // this way avoids turning on file processing
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)strVal);
-		//curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-		curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
-		// get the headers stuff this way when no json is expected back...
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_read_data_callback);
-
-		result = curl_easy_perform(curl);
-
-#if defined (_DEBUG) // && defined (__WXGTK__)
-        CBString s(str_CURLbuffer.c_str());
-        wxString showit = ToUtf16(s);
-        wxLogDebug(_T("\n\n *** UpdateKb() Returned: %s    CURLcode %d"), showit.c_str(), (unsigned int)result);
-#endif
-		// The kind of error we are looking for isn't a CURLcode one, but a HTTP one 
-		// (400 or higher)
-		ExtractHttpStatusEtc(str_CURLbuffer, m_httpStatusCode, m_httpStatusText);
-
-		curl_slist_free_all(headers);
-		if (result) {
-			wxString msg;
-			CBString cbstr(curl_easy_strerror(result));
-			wxString error(ToUtf16(cbstr));
-			msg = msg.Format(_T("UpdateKb() result code: %d Error: %s"), result, error.c_str());
-			wxMessageBox(msg, _T("Error when trying to update a KB entry"), wxICON_EXCLAMATION | wxOK);
-			curl_easy_cleanup(curl);
-			str_CURLbuffer.clear();
-			return result;
-		}
-	}
-	curl_easy_cleanup(curl);
-	str_CURLbuffer.clear();
-
-	// handle any HTTP error code, if one was returned
-	if (m_httpStatusCode >= 400)
-	{
-		// We may get 400 "Bad Request" or 404 Not Found (both should be unlikely)
-		// Rather than use CURLOPT_FAILONERROR in the curl request, I'll use the HTTP
-		// status codes which are returned, to determine what to do, and then manually
-		// return 22 i.e. CURLE_HTTP_RETURNED_ERROR, to pass back to the caller
-		return CURLE_HTTP_RETURNED_ERROR; 
-	}
-	return 0;
-}
-*/
-
 // This one is like RemoveUser() and RemoveKb(), and http errors need to be checked for,
 // as it is the only way to know when the deletion loop has deleted all that need to be
 // deleted
@@ -3841,36 +3659,6 @@ void KbServer::DoGetAll(bool bUpdateTimestampOnSuccess)
 	}
 }
 
-/*  we probably won't use this for a bulk upload
-void KbServer::UploadToKbServerThreaded()
-{
-	// Here's where I'll test doing this on a thread
-	Thread_UploadToKBServer* pUploadToKBServerThread = new Thread_UploadToKBServer;
-	pUploadToKBServerThread->m_pKbSvr = this;
-
-	// now create the runnable thread with explicit stack size of 10KB
-	wxThreadError error =  pUploadToKBServerThread->Create(1024);  // was wxThreadError error =  pUploadToKBServerThread->Create(10240);
-	if (error != wxTHREAD_NO_ERROR)
-	{
-		wxString msg;
-		msg = msg.Format(_T("Thread_UploadToKBServer(): thread creation failed, error number: %d"),
-			(int)error);
-		wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxOK);
-		m_pApp->LogUserAction(msg);
-	}
-	// now run the thread (it will destroy itself when done)
-	error = pUploadToKBServerThread->Run();
-	if (error != wxTHREAD_NO_ERROR)
-	{
-		wxString msg;
-		msg = msg.Format(_T("Thread_Run(): cannot make the thread run, error number: %d"),
-			(int)error);
-		wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxOK);
-		m_pApp->LogUserAction(msg);
-	}
-}
-*/
-
 // clears user data (wxArrayString instances on the heap, and their contents) 
 // from m_uploadsMap
 void KbServer::ClearUploadsMap()
@@ -4295,6 +4083,7 @@ void KbServer::UploadToKbServer()
 
 		// Outer loop loops over all the KbServerEntry structs, to get src/transln pairs
 		// (ie. either src/tgt pairs, or src/gloss pairs, depending on which kbType we are)
+		wxString noform = _T("<noform>");
 		for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
 		{
 			++entryIndex;
@@ -4317,6 +4106,11 @@ void KbServer::UploadToKbServer()
 												 // depending on kbserver type
 			// Build the next array of the JSON object
 			int i = entryCount - 1;
+			// BEW 11Jun15, support <noform> string as a stand in for an empty nonsrc string
+			if (transln.IsEmpty())
+			{
+				transln = noform; // "<noform>"
+			}
 			(*jsonvalPtr)[i][_T("target")] = transln;
 			(*jsonvalPtr)[i][_T("source")] = source;
 			(*jsonvalPtr)[i][_T("type")] = kbType;
@@ -4606,6 +4400,7 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
             }
 #endif
             unsigned int index;
+			wxString noform = _T("<noform>");
 			KbServerEntry* pEntryStruct = NULL;
             for (index = 0; index < listSize; index++)
             {
@@ -4617,7 +4412,13 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
                 pEntryStruct = new KbServerEntry;
 				pEntryStruct->id = jsonval[index][_T("id")].AsLong();
 				pEntryStruct->source = jsonval[index][_T("source")].AsString();
-				pEntryStruct->translation = jsonval[index][_T("target")].AsString();
+				// BEW 11Jun15 restore <noform> to an empty string
+				wxString aTgt = jsonval[index][_T("target")].AsString();
+				if (aTgt == noform)
+				{
+					aTgt.Empty();
+				}
+				pEntryStruct->translation = aTgt;
 				pEntryStruct->deleted = jsonval[index][_T("deleted")].AsInt();
 				pEntryStruct->username = jsonval[index][_T("user")].AsString();
 

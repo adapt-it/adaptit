@@ -7,7 +7,7 @@
 /// \copyright		2013 Bruce Waters, Bill Martin, Erik Brommers, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the RemoveSomeTgtEntries class. 
-/// The RemoveSomeTgtEntries class provides a handler for the "Remove Some Translations..."
+/// The RemoveSomeTgtEntries class provides a handler for the "Remove Some Entries or Save List..."
 /// button in the KB Editor. It provides a wxListCtrl with each line being the target text
 /// adaptation, the source text for that adaptation, and a reference count - displayed in 4
 /// columns, column 0 being a picture of either an empty checkbox, or a ticked checkbox.
@@ -59,6 +59,7 @@
 #include "BString.h"
 #include "KbServer.h"
 #include <wx/imaglist.h> // for wxImageList
+#include "Thread_PseudoDelete.h"
 #include "RemoveSomeTgtEntries.h"
 
 extern bool gbIsGlossing;
@@ -358,9 +359,6 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
 				return; // stay in the dialog
 			}
-
-// **** TODO **** finish glossing kbserver support when I know whether or not Jonathan will give me
-// php loops at the server end, to speed up bulk deleting
 		} // end of TRUE block for test: if (m_pApp->m_bIsGlossingKBServerProject)
 #endif
 		// We can go ahead with the present bulk removal
@@ -404,9 +402,6 @@ void RemoveSomeTgtEntries::OnOK(wxCommandEvent& event)
 				wxMessageBox(msg, _("Operation not completed"), wxICON_INFORMATION | wxOK);
 				return; // stay in the dialog
 			}
-
-// **** TODO **** finish kbserver support when I know whether or not Jonathan will give me
-// php loops at the server end, to speed up bulk deleting
 		} // end of TRUE block for test: if (m_pApp->m_bIsKBServerProject)
 #endif
 		// We can go ahead with the present bulk removal
@@ -466,9 +461,9 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 	size_t i;
 	for (i = 0; i < count; ++i)
 	{
-		// Get the next source phrase / target phrase pair to be pseudo-deleted
+		// Get the next source phrase / target or gloss word/phrase pair to be pseudo-deleted
 		wxString src = m_pApp->m_arrSourcesForPseudoDeletion.Item(i);
-		wxString tgt = m_pApp->m_arrTargetsForPseudoDeletion.Item(i);
+		wxString nonsrc = m_pApp->m_arrTargetsForPseudoDeletion.Item(i);
 
 		// Get the CTargetUnit instance which stores this pair
 		int numSrcWords = CountSpaceDelimitedWords(src); // this is a helper.cpp function
@@ -499,11 +494,64 @@ void RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool bIsGlossingKB)
 		}
 		else
 		{
+		// BEW added 22Oct12 for kbserver support
+#if defined(_KBSERVER)
+			int kbServerType = 1; // default, for an adapting kb (2 is for a glossing one)
+			if (bIsGlossingKB)
+			{
+				kbServerType = 2;
+			}
+			// We don't have to check for sharing being currently enabled as that was
+			// done in the caller, because we don't allow a bulk local deletion if
+			// the project is a KB Sharing one and sharing is temporarily disabled
+			// (so that we keep the local and remote KB contents synced)
+			if (m_pApp->m_bIsKBServerProject || m_pApp->m_bIsGlossingKBServerProject)
+			{
+			KbServer* pKbSvr = m_pApp->GetKbServer(kbServerType);
+
+			// create the thread and fire it off
+			if (!pTU->IsItNotInKB()) // must not be a <Not In KB> entry
+			{
+				Thread_PseudoDelete* pPseudoDeleteThread = new Thread_PseudoDelete;
+				// populate it's public members (it only has public ones anyway)
+				pPseudoDeleteThread->m_pKbSvr = pKbSvr;
+				pPseudoDeleteThread->m_source = src;
+				pPseudoDeleteThread->m_translation = nonsrc;
+				// now create the runnable thread with explicit stack size of 1KB
+				wxThreadError error =  pPseudoDeleteThread->Create(1024); // was wxThreadError error =  pPseudoDeleteThread->Create(10240);
+				if (error != wxTHREAD_NO_ERROR)
+				{
+					// We don't expect an error, so use English mesage, and put it also in
+					// the log
+					wxString msg;
+					msg = msg.Format(_T("Thread_PseudoDelete in RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool): thread creation failed, error number: %d  For src = %s , non_src = %s"),
+						(int)error, src.c_str(), nonsrc.c_str());
+					wxMessageBox(msg, _T("Thread creation error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+				}
+				else
+				{
+					// no error, so now run the thread (it will destroy itself when done)
+					error = pPseudoDeleteThread->Run();
+					if (error != wxTHREAD_NO_ERROR)
+					{
+					// We don't expect an error, so use English mesage, and put it also in
+					// the log
+					wxString msg;
+					msg = msg.Format(_T("Thread_PseudoDelete in RemoveSomeTgtEntries::DoLocalBulkKbPseudoDeletions(bool), Thread_Run(): cannot make the thread run, error number: %d  For src = %s , non_src = %s"),
+					  (int)error, src.c_str(), nonsrc.c_str());
+					wxMessageBox(msg, _T("Thread start error"), wxICON_EXCLAMATION | wxID_OK);
+					m_pApp->LogUserAction(msg);
+					}
+				}
+			}
+			}
+#endif
 			// pTU points the CTargetUnit instance we want, so next we get the
 			// CRefString instance which stores the adaption (or gloss if in
 			// glossing mode)
 			CRefString* pRefString = NULL;
-			pRefString = pTU->FindRefStringUndeleted(tgt);
+			pRefString = pTU->FindRefStringUndeleted(nonsrc);
 			if (pRefString == NULL)
 			{
 				// no match, so it's not an undeleted one in CTargetUnit instance, so

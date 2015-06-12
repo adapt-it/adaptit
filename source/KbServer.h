@@ -205,21 +205,11 @@ public:
 	int		 UpdateUser(int userID, bool bUpdateUsername, bool bUpdateFullName, 
 						bool bUpdatePassword, bool bUpdateKbadmin, bool bUpdateUseradmin, 
 						KbServerUser* pEditedUserStruct, wxString password);
-	//int		 UpdateKb(int kbID, bool bUpdateSourceLanguageCode, bool bUpdateNonSourceLanguageCode,  
-	//					int kbType, KbServerKb* pEditedKbStruct); // deprecated, BEW 14Apr15
 	void	 UploadToKbServer();
 	int		 ReadLanguage(wxString url, wxString username, wxString password, wxString languageCode);
 	//int	 LookupEntriesForSourcePhrase( wxString wxStr_SourceEntry ); <<-- currently unused,
 	// it gets all tgt words and phrases for a given source text word or phrase
-	/* deprecated by BEW 5Jun13
-	int		 CreateEntry_Minimal(	KbServerEntry& entry,
-									wxString& kbType,
-									wxString& password,
-									wxString& username,
-									wxString& srcLangCode,
-									wxString& tgtLangCode,
-									wxString& url);
-	*/
+	
 	// Functions we'll want to be able to call programmatically... (button handlers
 	// for these will be in KBSharing.cpp)
 	void		DoChangedSince();

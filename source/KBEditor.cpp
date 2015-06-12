@@ -751,7 +751,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 		bNoError = pApp->GetDocument()->SetCaseParameters(newText, FALSE);
 		if (bNoError)
 		{
-			newText = pKB->AutoCapsMakeStorageString(newText); // might be returned as lower case initial
+			newText = pKB->AutoCapsMakeStorageString(newText, FALSE); // might be returned as lower case initial
 		}
 	}
 	pEditedRefString->m_translation = newText; // could be an empty string
@@ -1070,7 +1070,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		bNoError = pApp->GetDocument()->SetCaseParameters(newText, FALSE);
 		if (bNoError)
 		{
-			newText = pKB->AutoCapsMakeStorageString(newText); // might be returned as lower case initial
+			newText = pKB->AutoCapsMakeStorageString(newText, FALSE); // might be returned as lower case initial
 		}
 	}
 	
