@@ -286,6 +286,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou are unable to turn on sharing until this is fixed.\nPerhaps ask your server administrator to help you. Click Cancel to continue working.\nYou can use the Edit menu item Change Username... to set a different one.");
 				msg = msg.Format(msg, m_saveOldUsernameStr.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
+				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				return; // to the dialog
 			}
 		}
@@ -293,12 +294,15 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 		{
 			// Password was empty. Tell user and return to the active dialog for a retry
 			// of OnOK()
-			wxMessageBox(msg_empty, title_empty, wxICON_WARNING | wxOK);
+			this->Show(TRUE); // make the dialog visible again
+			wxMessageBox(msg_empty, title_empty, wxICON_WARNING | wxOK); // warn about the empty password (the 
+											// dialog has a Cancel button to allow bailing out from there)
 			return; // to the dialog
 		}
 	}
 	else
 	{
+		// Somebody is authenticating to the KB Sharing Manager tabbed dialog, since we are running stateless
 		if (!pwd.IsEmpty())
 		{
 			m_strStatelessPassword = pwd; // store it publicly only in this class's instance
@@ -324,6 +328,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 				wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou are not permitted to access the Knowledge Base Sharing Manager dialog.\nAsk your kbserver administrator to do it for you. Click Cancel to continue working.");
 				msg = msg.Format(msg, m_strStatelessUsername.c_str());
 				wxMessageBox(msg, _("Unknown username"), wxICON_WARNING | wxOK);
+				this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 				return;
 			}
 			else
@@ -346,6 +351,7 @@ void KBSharingStatelessSetupDlg::OnOK(wxCommandEvent& myevent)
 			// Password was empty. Tell user and return to the active dialog for a retry
 			// of OnOK()
 			wxMessageBox(msg_empty, title_empty, wxICON_WARNING | wxOK);
+			this->Show(TRUE); // make the dialog visible again, we aren't done with it yet
 			return; // to the dialog
 		}
 	} // end of TRUE block for test: if (m_bStateless)

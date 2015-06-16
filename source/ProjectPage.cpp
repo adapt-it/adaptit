@@ -1458,9 +1458,16 @@ _("A reminder: backing up of the knowledge base is currently turned off.\nTo tur
 				}
 				else
 				{
-					wxString msg = _("No password was typed. Knowledge base sharing setup is cancelled.\nUse the command on the Advanced menu to setup manually; but you must first find out your correct password. Ask your kbserver administrator.");
-					pApp->m_bIsKBServerProject = FALSE; // no option but to turn it off
-					pApp->m_bIsGlossingKBServerProject = FALSE; // no option but to turn it off
+					wxString msg = _("No password was typed. The knowledge base sharing setup for this project is now cancelled.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your kbserver administrator.");
+					// We have no option in this circumstance but to turn off any previous kb sharing setup; 
+					// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
+					// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
+					// the pointer to the relevant kbserver type is set to NULL. If already NULL, the Release...
+					// calls do nothing.
+					pApp->ReleaseKBServer(1); 
+					pApp->ReleaseKBServer(2);
+					pApp->m_bIsKBServerProject = FALSE;
+					pApp->m_bIsGlossingKBServerProject = FALSE;
 					wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
 					pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed"));
 				}

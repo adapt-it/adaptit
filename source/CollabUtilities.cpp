@@ -2056,9 +2056,14 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 				{
                     // Access is denied to this user, so turn off the setting which says
                     // that this project is one for sharing, and tell the user
-					pApp->LogUserAction(_T("Kbserver user is invalid; in HookUpToExistingAIProject() in CollabUtilities.cpp"));
-					pApp->ReleaseKBServer(1); // the adapting one, but should not yet be instantiated
-					pApp->ReleaseKBServer(2); // the glossing one, but should not yet be instantiated
+					pApp->LogUserAction(_T("Kbserver user is invalid; in HookUpToExistingAIProject() in CollabUtilities.cpp, so any kb sharing setups are now cleared."));
+					// We have no option in this circumstance but to turn off any previous kb sharing setup; 
+					// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
+					// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
+					// the pointer to the relevant kbserver type is set to NULL. If already NULL, the Release...
+					// calls do nothing.
+					pApp->ReleaseKBServer(1);
+					pApp->ReleaseKBServer(2);
 					pApp->m_bIsKBServerProject = FALSE;
 					pApp->m_bIsGlossingKBServerProject = FALSE;
 					wxString msg = _("The username ( %s ) is not in the list of users for this knowledge base server.\nYou may continue working; but for you, knowledge base sharing is turned off.\nIf you need to share the knowledge base, ask your kbserver administrator to add your username to the server's list.\n(To change the username, use the Change Username item in the Edit menu.");
@@ -2142,6 +2147,22 @@ bool HookUpToExistingAIProject(CAdapt_ItApp* pApp, wxString* pProjectName, wxStr
 					}
 				} // end of else block for test: if (!bUserIsValid)
 			} // end of TRUE block for test: if (!pwd.IsEmpty())
+			else
+			{
+				// The password submitted was just an empty string...
+				wxString msg = _("No password was typed. So knowledge base sharing setup is now cancelled for this project.\nUse the command on the Advanced menu to setup again if you wish; but you must first find out your correct password.\nAsk your kbserver administrator.");
+				// We have no option in this circumstance but to turn off any previous kb sharing setup; 
+				// which setup types exist could be adapting, or glossing, or both; so we just turn both off.
+				// The Release calls, if a server is setup, will call DeleteKbserver() which will ensure
+				// the pointer to the relevant kbserver type is set to NULL. If already NULL, the Release...
+				// calls do nothing.
+				pApp->ReleaseKBServer(1);
+				pApp->ReleaseKBServer(2);
+				pApp->m_bIsKBServerProject = FALSE;
+				pApp->m_bIsGlossingKBServerProject = FALSE;
+				wxMessageBox(msg, _("No Password Typed"), wxICON_WARNING | wxOK);
+				pApp->LogUserAction(_T("OnWizardPageChanging(): no kbserver password typed; so any kb sharing setup is now cancelled; but collaboration continues"));
+			}
 		} // end of else block for test: if (!bUserDidNotCancel)
 	} // end of TRUE block for test: if (pApp->m_bIsKBServerProject || pApp->m_bIsGlossingKBServerProject)
 #endif

@@ -132,7 +132,7 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 	{
 		wxString title = _("Warning: nothing is shared");
 		wxString msg = _("Neither checkbox was turned on, so neither the adaptations knowledge base, nor the glossing one, has been chosen for sharing.\nMake a choice now. Or Cancel, which will restore the earlier settings.");
-		wxMessageBox(msg,title,wxICON_WARNING | wxOK);
+		wxMessageBox(msg, title, wxICON_WARNING | wxOK);
 		return; // go back to the active dialog window
 	}
 
@@ -140,15 +140,17 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 	// typed, which particular kbserver we connect to - there may be more than one available
 	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	bool bUserAuthenticating = TRUE; // when true, url is stored in app class, & pwd in the MainFrm class
-	KBSharingStatelessSetupDlg dlg(pFrame,bUserAuthenticating);// bUserAuthenticating
-                                //  should be set FALSE only when someone who may not
-                                //  be the user is authenticating to the KB Sharing Manager
-                                //  tabbed dialog gui
+	KBSharingStatelessSetupDlg dlg(pFrame, bUserAuthenticating);// bUserAuthenticating
+	//  should be set FALSE only when someone who may not
+	//  be the user is authenticating to the KB Sharing Manager
+	//  tabbed dialog gui
 	dlg.Center();
-	if (dlg.ShowModal() == wxID_OK)
+	int dlgReturnCode;
+here:	dlgReturnCode = dlg.ShowModal();
+	if (dlgReturnCode == wxID_OK)
 	{
 		// Since KBSharingSetup.cpp uses the aboove KBSharingstatelessSetupDlg, we have to
-		// ensure that the app's m_
+		// ensure that MainFrms's m_kbserverPassword member is set. Also...
         // Check that needed language codes are defined for source, target, and if a
         // glossing kb share is also wanted, that source and glosses codes are set too. Get
         // them set up if not so. If user cancels, don't go ahead with the setup, and in
@@ -232,7 +234,7 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		// whatever password the manager person is using
 		if (!bUserAuthenticating)
 		{
-		pFrame->SetKBSvrPassword(dlg.m_strStatelessPassword);
+			pFrame->SetKBSvrPassword(dlg.m_strStatelessPassword);
 		}
 
 		// Do the setup or setups
@@ -276,18 +278,26 @@ void KbSharingSetup::OnOK(wxCommandEvent& myevent)
 		{
 			m_pApp->GetKbServer(2)->EnableKBSharing(TRUE);
 		}
+		myevent.Skip(); // the dialog will be exited now
 	} // end of TRUE block for test: if (dlg.ShowModal() == wxID_OK)
-	else
+	else if (dlgReturnCode == wxID_CANCEL)
 	{
-        // User Cancelled the authentication, so the old url, username and password have
-        // been restored to their storage in the app and frame window instance; so it
-        // remains only to restore the old flag values
+		// User Cancelled the authentication, so the old url, username and password have
+		// been restored to their storage in the app and frame window instance; so it
+		// remains only to restore the old flag values
 		m_pApp->m_bIsKBServerProject = m_saveSharingAdaptationsFlag;
 		m_pApp->m_bIsGlossingKBServerProject = m_saveSharingGlossesFlag;
 		myevent.Skip(); // the dialog will be exited now
 		return;
 	}
-	myevent.Skip(); // the dialog will be exited now
+	else
+	{
+        // User click OK but in the OnOK() handler, premature return was asked for
+		// most likely due to an empty password submitted  or a Cancel from within
+		// one of the lower level calls, so allow retry, or a change to the settings,
+		// or a Cancel button press at this level instead
+		goto here; 
+	}
 }
 
 void KbSharingSetup::OnCancel(wxCommandEvent& myevent)

@@ -2741,9 +2741,12 @@ wxString CMainFrame::GetKBSvrPasswordFromUser()
 	}
 	else
 	{
-		// invalid password - turn the checkbox back off, beep also
-		::wxBell();
-		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered."));
+		// No password - go back to the previous dialog where the url & username are 
+		// entered, so the user can either Cancel from there, or change url, or change 
+		// the username
+		gpApp->LogUserAction(_T("GetPasswordFromUser(): No password was entered; returning to previous dialog where use can change url or username, or cancel the setup"));
+
+
 	}
 	return password;
 }
