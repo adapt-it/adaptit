@@ -128,7 +128,7 @@ adaptit_SOURCES = \
 	../../source/Thread_ChangedSince.cpp ../../source/Thread_CreateEntry.cpp \
 	../../source/Thread_DoEntireKbDeletion.cpp \
 	../../source/Thread_KbEditorUpdateButton.cpp ../../source/Thread_PseudoDelete.cpp \
-	../../source/Thread_PseudoUndelete.cpp ../../source/Thread_UploadMulti.cpp \
+	../../source/Thread_PseudoUndelete.cpp \
 	../../source/Timer_KbServerChangedSince.cpp \
 	../../source/ToolbarPage.cpp ../../source/TransformToGlossesDlg.cpp \
 	../../source/UsernameInput.cpp ../../source/UsfmFilterPage.cpp \
