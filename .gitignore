@@ -13,6 +13,11 @@
 /bin/win32/Unicode Release/
 /bin/linux/build_debug/
 /bin/linux/build_release/
+/bin/linux/adaptit.depend
+/bin/linux/bin/
+/bin/linux/obj/
+/bin/source/
+/bin/linux/adaptit.layout
 /setup Unicode/
 /setup Unicode - Minimal/
 /setup Unicode - No Html Help/
