@@ -7,7 +7,7 @@ noinst_HEADERS = $(wildcard $(srcdir)/../../source/*.h)
 
 # whm added the following due to "warning: source file '../../source/*.cpp' is in a subdirectory,
 # ...but option 'subdir-objects' is disabled"
-AUTOMAKE_OPTIONS = subdir-objects
+#AUTOMAKE_OPTIONS = subdir-objects
 
 # this is the program that gets installed.  it's name is used for all
 # of the other Makefile.am variables
