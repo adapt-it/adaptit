@@ -181,7 +181,7 @@ public:
 	// The functions in this next block do the actual calls to the remote kbserver, they are
 	// public access because KBSharingStatelessSetupDlg will need to use several of them, as
 	// do other classes
-	int		 BulkUpload(int threadIndex, // use for choosing which buffer to return results in
+	int		 BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
 					wxString url, wxString username, wxString password, CBString jsonUtf8Str);
 	int		 ChangedSince(wxString timeStamp);
 	int		 ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate = TRUE);
