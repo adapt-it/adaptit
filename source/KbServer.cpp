@@ -4123,14 +4123,14 @@ void KbServer::UploadToKbServer()
 			{
 				// We've collected all we need for this thread, OR, we have collected all
 				// that remain for uploading when collecting for the last thread
-				
+				++threadIndex; // creating a thread so update the index, first will have index = 0
 				// Write out the JSON string form of this jsonval object, and then to 
 				// UTF8, ready for passing in to the thread
 				wxJSONWriter writer;
 				writer.Write((*jsonvalPtr), jsonStr);
 #if defined(_DEBUG)
-				wxLogDebug(_T("Data to BulkUpload() for thread with index %d of total threads %d\n Data is....\n%s\n"),
-					threadIndex, numThreadsNeeded, jsonStr.c_str());
+				wxLogDebug(_T("Data to BulkUpload() for thread number %d of total threads %d\n Data is....\n%s\n"),
+					threadIndex + 1, numThreadsNeeded, jsonStr.c_str());
 #endif
 				// convert it to utf-8 stored in CBString
 				jsonUtf8Str = ToUtf8(jsonStr);
@@ -4151,7 +4151,6 @@ void KbServer::UploadToKbServer()
 				else
 				{
 					// successful instantiation, now fill its members
-					threadIndex++; // update the index for this thread
 					pThread->m_pKbSvr = this;
 					pThread->m_threadIndex = threadIndex;
 					pThread->m_password = password;
