@@ -9,6 +9,11 @@
 echo "Seting up AID Tools..."
 
 WAIT=60
+AID_DEV_TOOLS="codeblocks gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
+  gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
+  libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
+  libwxgtk2.8-dev wx-common wx2.8-headers wx2.8-i18n subversion"
+# Removed libgnomeprintui2.2-dev from AID_DEV_TOOLS list above (it's not in 14.04)
 supportedDistIDs="LinuxMint Ubuntu"
 supportedCodenames="maya qiana rebecca precise trusty utopic vivid wily"
 SILKEYURL="http://packages.sil.org/sil.gpg"
