@@ -8,6 +8,7 @@
 # Setup AID development tools
 echo "Seting up AID Tools..."
 
+PROJECT_DIR=${1:-~/projects}	# AIM development file location, default ~/projects/
 WAIT=60
 AID_GITURL=https://github.com/adapt-it/adaptit.git
 AID_DEV_TOOLS="codeblocks gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
@@ -88,6 +89,7 @@ fi
 
 echo -e "\nRefresh apt lists via apt-get update"
 sudo apt-get -q update
+
 # Install tools for development work focusing on Adapt It Desktop (AID)
 echo -e "\nInstalling AIM development tools..."
 sudo apt-get install $AID_DEV_TOOLS -y
@@ -95,12 +97,12 @@ sudo apt-get install $AID_DEV_TOOLS -y
 # Ask user if we should get the Adapt It sources from Github
 # Provide a 60 second countdown for response. If no response assume "yes" response
 echo -e "\nSetup can get the latest Adapt It Desktop (AID) sources from Github"
-echo "The AID sources will be located in an ~/adaptit/ dir in your Home dir."
-if [ -f ~/adaptit/.git/config ]; then
-  echo "Do you want to Pull down any recent changes to ~/adaptit/? [y/n]?"
+echo "The AID sources will be located in $PROJECT_DIR/adaptit/"
+if [ -f $PROJECT_DIR/adaptit/.git/config ]; then
+  echo "Do you want to Pull down any changes to $PROJECT_DIR/adaptit/? [y/n]?"
   # The git pull command is done in the case statement below
 else
-  echo "Do you want to Clone AID to ~/adaptit/? [y/n]"
+  echo "Do you want to Clone AID to $PROJECT_DIR/adaptit/? [y/n]"
   # The git clone command is done in the case statement below
 fi
 for (( i=$WAIT; i>0; i--)); do
@@ -119,14 +121,15 @@ echo -e "\nYour choice was $response1"
 case $response1 in
   [yY][eE][sS]|[yY]) 
     # Check for an existing local adaptit repo
-    if [ -f ~/adaptit/.git/config ]; then
-      echo -e "\nPulling in any adaptit changes to ~/adaptit/..."
-      cd ~/adaptit
+    if [ -f $PROJECT_DIR/adaptit/.git/config ]; then
+      echo -e "\nPulling in any adaptit changes to $PROJECT_DIR/adaptit/..."
+      cd $PROJECT_DIR/adaptit
       git pull
     else
-      echo -e "\nCloning the Adapt It Desktop (AID) sources to ~/adaptit/..."
-      cd
-      git clone $AID_GITURL
+      echo -e "\nCloning the Adapt It Desktop (AID) sources to $PROJECT_DIR/adaptit/..."
+      mkdir -p "${PROJECT_DIR}"
+      cd ${PROJECT_DIR}
+      [ -d adaptit ] || git clone $AID_GITURL
     fi
 
     # Check for an existing git user.name and user.email
@@ -189,41 +192,47 @@ case $response1 in
       [yY][eE][sS]|[yY]) 
         echo -e "\nBuilding the Adapt It Desktop (AID) project..."
       # Build adaptit
-      cd ~/adaptit/bin/linux/
+      cd $PROJECT_DIR/adaptit/bin/linux/
       mkdir -p build_debug build_release
-      echo -e "\n  Building the debug version..."
+      echo -e "\n************************************"
+      echo      "**  Building the debug version... **"
+      echo      "************************************"
       sleep 1
       (cd build_debug && ../configure --prefix=/usr --enable-debug && make)
-      echo -e "\n  Building the release version..."
+      echo -e "\n**************************************"
+      echo      "**  Building the release version... **"
+      echo      "**************************************"
       sleep 1
       (cd build_release && ../configure --prefix=/usr && make)
 
       # Explain how to run it
       echo -e "\n**Adapt It Desktop Developer Information**"
-      echo "After building with make:"
-      [ -f build_debug/adaptit ] && echo -e "\n   To run debug version type: ~/adaptit/bin/linux/build_debug/adaptit &"
-      [ -f build_release/adaptit ] && echo "   To run release version type: ~/adaptit/bin/linux/build_release/adaptit &"
+      echo "After building with make you can run the debug or release version:"
+      [ -f build_debug/adaptit ] && echo -e "\n   Type: $PROJECT_DIR/adaptit/bin/linux/build_debug/adaptit &"
+      [ -f build_release/adaptit ] && echo    "or Type: $PROJECT_DIR/adaptit/bin/linux/build_release/adaptit &"
 
       ;;
      *)
         echo -e "\nBuilding the Adapt It Desktop (AID) sources was skipped."
+        echo -e "\n**Adapt It Desktop Developer Information**"
         echo "If you want to build the AID sources you can and do:"
-        echo "  cd ~/adaptit/bin/linux/"
-        echo "  mkdir -p build_debug build_release"
-        echo "Then, to build the debug version:"
-        echo "  cd ~/adaptit/bin/linux/build_debug"
-        echo "  ../configure --prefix=/usr --enable-debug"
-        echo "  make"
-        echo "Or, to build the release version:"
-        echo "  cd ~/adaptit/bin/linux/build_release"
-        echo "  ../configure --prefix=/usr"
-        echo "  make"
-        echo "After building run the release version (while in build_release dir):"
-        echo "   ./adaptit &"
-        echo "Or, run the debug version (while in the build_debug dir):"
-        echo "   ./adaptit &"
-        echo "From elsewhere run release version: ~/adaptit/bin/linux/build_release/adaptit &"
-        echo "From elsewhere run debug version: ~/adaptit/bin/linux/build_debug/adaptit &"
+        echo "    cd $PROJECT_DIR/adaptit/bin/linux/"
+        echo "    mkdir -p build_debug build_release"
+        echo "  Then, to build the debug version:"
+        echo "    cd $PROJECT_DIR/adaptit/bin/linux/build_debug"
+        echo "    ../configure --prefix=/usr --enable-debug"
+        echo "    make"
+        echo "  or, to build the release version:"
+        echo "    cd $PROJECT_DIR/adaptit/bin/linux/build_release"
+        echo "    ../configure --prefix=/usr"
+        echo "    make"
+        echo "  After building run the release version (while in build_release dir):"
+        echo "     ./adaptit &"
+        echo "  or, run the debug version (while in the build_debug dir):"
+        echo "     ./adaptit &"
+        echo "  Run the debug or release application from elsewhere:"
+        echo "     type: $PROJECT_DIR/adaptit/bin/linux/build_release/adaptit &"
+        echo "  or type: $PROJECT_DIR/adaptit/bin/linux/build_debug/adaptit &"
         ;;
     esac
     ;;
