@@ -9,6 +9,7 @@
 echo "Seting up AID Tools..."
 
 WAIT=60
+AID_GITURL=https://github.com/adapt-it/adaptit.git
 AID_DEV_TOOLS="codeblocks gnome-common libgtk2.0-0-dbg libgtk2.0-dev \
   gcc-multilib uuid-dev curl libcurl4-gnutls-dev \
   libwxbase2.8-0 libwxbase2.8-dbg libwxbase2.8-dev libwxgtk2.8-0 libwxgtk2.8-dbg \
