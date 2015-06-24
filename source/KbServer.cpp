@@ -64,7 +64,6 @@ wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used some
 #include "Xhtml.h"
 #include "MainFrm.h"
 #include "StatusBar.h"
-//#include "Thread_UploadToKBServer.h"
 #include "KbServer.h"
 #include "md5_SB.h"
 
