@@ -742,6 +742,15 @@ enum ConfigFileType
     projectConfigFile
 };
 
+/// An enum for selecting which kind of text to generate in order to send it back to the external
+/// editor (PT or BE), whether target text, or a free translation. Used in ExportFunctions.cpp
+/// and in CollabUtilities.cpp
+enum SendBackTextType
+{
+	makeTargetText = 1,
+	makeFreeTransText
+};
+
 // whm NOTE 21Sep10: Moved this TopLevelMenu enum to become a private member of the
 // App because its enumerations should not be accessed directly, but only through
 // the GetTopLevelMenuName(TopLevelMenu topLevelMenu) function. We may decide at

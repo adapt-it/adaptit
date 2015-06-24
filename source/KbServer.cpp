@@ -65,7 +65,6 @@ wxMutex s_BulkDeleteMutex; // Because PseudoDeleteOrUndeleteEntry() is used some
 #include "MainFrm.h"
 #include "StatusBar.h"
 //#include "Thread_UploadToKBServer.h"
-#include "Thread_UploadMulti.h"
 #include "KbServer.h"
 #include "md5_SB.h"
 
@@ -769,12 +768,12 @@ size_t curl_read_data_callback2(void *ptr, size_t size, size_t nmemb, void *user
 {
 	int threadIndex = *(int*)userdata; 
 	str_CURLbuff[threadIndex].append((char*)ptr, size*nmemb);
-#if defined(_DEBUG)
-	wxString msg;
-	msg = msg.Format(_T("In curl_read_data_callback2: sending %d bytes, threadIndex = %d"),
-						(size*nmemb), threadIndex);
-	wxLogDebug(msg);
-#endif
+//#if defined(_DEBUG)
+//	wxString msg;
+//	msg = msg.Format(_T("In curl_read_data_callback2: sending %d bytes, threadIndex = %d"),
+//						(size*nmemb), threadIndex);
+//	wxLogDebug(msg);
+//#endif
 	return size*nmemb;
 }
 
@@ -3915,6 +3914,26 @@ void KbServer::ClearReturnedCurlCodes()
 	}
 }
 
+#if defined(_DEBUG)
+wxString KbServer::ShowReturnedCurlCodes()
+{
+	wxString str; str.Empty();
+	int i;
+	for (i = 0; i < 50; i++)
+	{
+		if (m_returnedCurlCodes[i] == 0)
+		{
+			str += _T("0");
+		}
+		else
+		{
+			str += _T("1");
+		}
+	}
+	return str;
+}
+#endif
+
 // returns TRUE if all entries in m_returnedCurlCodes array are CURLE_OK; 
 // FALSE if at least one is some other value
 // (the current implementation permits only CURLE_HTTP_RETURNED_ERROR
@@ -3932,7 +3951,6 @@ bool KbServer::AllEntriesGotEnteredInDB()
 	}
 	return TRUE;
 }
-
 
 // The upload function - we do it by multiple threads (50 of them), each thread having
 // approx 1/50th of the inventory of normal entries which qualify for uploading, as payload
@@ -4121,7 +4139,7 @@ void KbServer::UploadToKbServer()
 			(*jsonvalPtr)[i][_T("sourcelanguage")] = srcLangCode;
 			(*jsonvalPtr)[i][_T("targetlanguage")] = translnLangCode;
 
-			if ((entryCount == numEntriesPerChunk) || (entryCount == iTotalEntries))
+			if (entryCount == numEntriesPerChunk)
 			{
 				// We've collected all we need for this chunk, OR, we have collected all
 				// that remain for uploading when collecting for the last chunk
@@ -4140,214 +4158,52 @@ void KbServer::UploadToKbServer()
 				// Call BulkUpdate() to get the data entered to the remote kbserver
 				//pKbSvr = m_pApp->GetKbServer(m_pApp->GetKBTypeForServer());
 				rv = (int)pKbSvr->BulkUpload(chunkIndex, url, username, password, jsonUtf8Str);
-				m_returnedCurlCodes[chunkIndex] = rv; // if successful BulkUpload() rv will be 0, but 22 if an error
+				
 				if (rv != (int)CURLE_OK)
 				{
-					wxMessageBox(_("Warning: Some of the entries were not uploaded.\nUp to two automatic retries will be attempted.\nEach retry has fewer entries and more chance of success."));
-					DeleteUploadEntries();
-					ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
-					delete jsonvalPtr; // don't leak memory
-					return;
+					// m_returnedCurlCodes is 0 for every array item by default, so non-zero values
+					// only need to be inserted at the correct places, so this next line only needs
+					// to be here in this block
+					m_returnedCurlCodes[chunkIndex] = rv;
+#if defined(_DEBUG)
+					wxLogDebug(_T("***  UploadToKBServer() chunk error for chunk with index %d  ***"), chunkIndex);
+#endif
 				}
 				// No error, so delete this JSON object from the heap & zero the 
 				// entryCount ready for the next chunk's creation
 				delete jsonvalPtr;
 				entryCount = 0;
-			}
+			} // end of TRUE block for test: if ((entryCount == numEntriesPerChunk) || (entryCount == iTotalEntries))
 		} // end of for loop:
 		  // for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
-/* 
-// Deprecated, the old way used fire & forget threads. This meant the check for errors happened earlier 
-// before many threads were processed, leading to bogus repeat calls of UploadToKbServer(). The correct
-// way to do it is synchronously - so that the array of errors is finished only after all chunks of JSON
-// have been uploaded & the server has returned the result code for each part uploaded. So move threading.
-// This makes the final code that replaces this section a lot simpler, and Thread_UploadMulti.h & .cpp
-// is not needed.
-		// Generate and fire off the 50 threads, fewer if the entry count is not large; we
-		// will use 10 entries per thread, if there are <= 500 entries to send. If more
-		// than that, we'll apportion however many there are between the max of 50 threads
-		// we will send
-		int min_per_thread = 10;
-		int numThreadsNeeded = 1; // initialize
-		int numEntriesPerThread = min_per_thread; // initialize
-		if (iTotalEntries <= 500)
-		{
-			// carve up into <= 50 threads, with 10 entries each, except the last may have
-			// fewer
-			numThreadsNeeded = iTotalEntries / min_per_thread;
-			if (iTotalEntries % min_per_thread > 0)
-			{
-				// add an extra thread for the remainder of the entries
-				numThreadsNeeded++;
-			}
-		}
-		else
-		{
-			// use 50 threads, put as many entries in each as we need to cover the total
-			// which need to be sent
-			numThreadsNeeded = 50;
-			numEntriesPerThread = iTotalEntries / numThreadsNeeded;
-			if (iTotalEntries % numThreadsNeeded)
-			{
-				// add an extra entry, due to the modulo calc
-				numEntriesPerThread++;
-			}
-		}
-		// The following are copies of parameters we need to upload in the curl calls, we
-		// will pass a copy of each of these into each thread, so that the thread is
-		// completely autonomous and no mutex is then needed; we'll get source and
-		// translation strings from the kbServerEntry structs
-		//KbServer*	pKbSvr = this;
-		wxString	kbType; // set it with next line
-		wxItoa(this->m_kbServerType, kbType);
-		wxString	password = GetKBServerPassword();
-		wxString	username = GetKBServerUsername();
-		wxString	srcLangCode = GetSourceLanguageCode();
-		wxString	translnLangCode; // set it with next test
-		if (this->m_kbServerType == 1)
-		{
-			translnLangCode = GetTargetLanguageCode();
-		}
-		else
-		{
-			translnLangCode = GetGlossLanguageCode();
-		}
-		wxString	url = GetKBServerURL();
-		wxString	source;
-		wxString	transln; // either a target text translation, or a gloss
-		wxString	jsonStr; // the wxString containing the JSON object written as a string
-		CBString	jsonUtf8Str; // we'll convert jsonStr to UTF-8 and store it here, 
-								 // ready for passing in to the bulk upload API function
-		// Iterate across the m_uploadsList of KbServerEntry structs, which are to have
-		// their src/tgt pairs uploaded in one or more threads. NumThreadsNeeded tells us
-		// how many threads we need to create as we divide up the entries, max of 50, and
-		// numEntriesPerThread is what we count off to form each subset of entries to be
-		// bulk uploaded
-		int entryIndex = -1;
-		int threadIndex = -1;
-		int entryCount = 0; // counting 1 to numEntriesPerThread for EACH thread
-		KbServerEntry* pEntryStruct = NULL;
-		Thread_UploadMulti* pThread = NULL;
-		UploadsList::iterator listIter;
-		UploadsList::compatibility_iterator anIter;
-		wxThreadError error = wxTHREAD_NO_ERROR;
-		wxJSONValue* jsonvalPtr = NULL;
 
-		// Outer loop loops over all the KbServerEntry structs, to get src/transln pairs
-		// (ie. either src/tgt pairs, or src/gloss pairs, depending on which kbType we are)
-		wxString noform = _T("<noform>");
-		for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
-		{
-			++entryIndex;
-
-			// Prepare to build a JSON object
-			if (entryCount == 0)
-			{
-				jsonvalPtr = new wxJSONValue;
-			}
-			++entryCount; // DO NOT put this line above the above entryCount == 0 test!
-
-			// collect the entries for one bulk-uploading thread		
-			// (this many: numEntriesPerThread)			
-
-			// Get the KbServerEntry struct & extract the src and transln strings
-			anIter = m_uploadsList.Item((size_t)entryIndex);
-			pEntryStruct = anIter->GetData();
-			source = pEntryStruct->source;
-			transln = pEntryStruct->translation; // an adaptation, or gloss, 
-												 // depending on kbserver type
-			// Build the next array of the JSON object
-			int i = entryCount - 1;
-			// BEW 11Jun15, support <noform> string as a stand in for an empty nonsrc string
-			if (transln.IsEmpty())
-			{
-				transln = noform; // "<noform>"
-			}
-			(*jsonvalPtr)[i][_T("target")] = transln;
-			(*jsonvalPtr)[i][_T("source")] = source;
-			(*jsonvalPtr)[i][_T("type")] = kbType;
-			(*jsonvalPtr)[i][_T("user")] = username;
-			(*jsonvalPtr)[i][_T("deleted")] = (long)0; 
-			(*jsonvalPtr)[i][_T("sourcelanguage")] = srcLangCode;
-			(*jsonvalPtr)[i][_T("targetlanguage")] = translnLangCode;
-
-			if ((entryCount == numEntriesPerThread) || (entryCount == iTotalEntries))
-			{
-				// We've collected all we need for this thread, OR, we have collected all
-				// that remain for uploading when collecting for the last thread
-				++threadIndex; // creating a thread so update the index, first will have index = 0
-				// Write out the JSON string form of this jsonval object, and then to 
-				// UTF8, ready for passing in to the thread
-				wxJSONWriter writer;
-				writer.Write((*jsonvalPtr), jsonStr);
+		// At the end of the loop, the last group has to be processed here...
+		++chunkIndex;
+		jsonvalPtr = new wxJSONValue;
+		wxJSONWriter writer;
+		writer.Write((*jsonvalPtr), jsonStr);
 #if defined(_DEBUG)
-				wxLogDebug(_T("Data to BulkUpload() for thread number %d of total threads %d\n Data is....\n%s\n"),
-					threadIndex + 1, numThreadsNeeded, jsonStr.c_str());
+		wxLogDebug(_T("Data to BulkUpload() synchronously, for chunk number %d of total chunks %d\n Data follows....\n%s\n"),
+			chunkIndex + 1, numChunksNeeded, jsonStr.c_str());
 #endif
-				// convert it to utf-8 stored in CBString
-				jsonUtf8Str = ToUtf8(jsonStr);
+		jsonUtf8Str = ToUtf8(jsonStr);
+		rv = (int)pKbSvr->BulkUpload(chunkIndex, url, username, password, jsonUtf8Str);
+		if (rv != (int)CURLE_OK)
+		{
+			m_returnedCurlCodes[chunkIndex] = rv;
+#if defined(_DEBUG)
+			wxLogDebug(_T("***  UploadToKBServer() chunk error for chunk with index %d  ***"), chunkIndex);
+#endif
+		}
+		// It's done, so delete this JSON object from the heap
+		delete jsonvalPtr;
 
-				// Make the thread and populate its members -- make its stack 4KB to 
-				// be safe
-				pThread = new Thread_UploadMulti;
-				error = pThread->Create(4096); // play safe with stack sizes, give it 4kb
-											   // (half that would probably still be safe)
-				if (error != wxTHREAD_NO_ERROR)
-				{
-					// do something, we don't expect it to fail
-					wxMessageBox(_T("Error: could not create an instance of Thread_UploadMulti.\nSome of the bulk upload was not uploaded. Try again."));
-					DeleteUploadEntries();
-					ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
-					return;
-				}
-				else
-				{
-					// successful instantiation, now fill its members
-					pThread->m_pKbSvr = this;
-					pThread->m_threadIndex = threadIndex;
-					pThread->m_password = password;
-					pThread->m_username = username;
-					pThread->m_url = url;
-					pThread->m_jsonUtf8Str = jsonUtf8Str;
-				
-					// run the thread
-					error = pThread->Run(); // ignore error
-					//wxASSERT(error == wxTHREAD_NO_ERROR); // can't assume someone else won't cause an error
-					if (error != wxTHREAD_NO_ERROR)
-					{
-						wxMessageBox(_T("Error: an instance of Thread_UploadMulti failed to run.\nSome of the bulk upload was not uploaded. Try again."));
-						DeleteUploadEntries();
-						ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
-						return;
-					}
-					// No thread error, but there may have been a curl error - find out what the
-					// curlCode returned was; we expect CURLE_OK if the entries got uploaded successfully,
-					// but if CURLE_HTTP_RETURNED_ERROR was returned (I have that returned for any http
-					// error of 400 or above) we want to be able to recover the fact that a curl error
-					// happened, so we can cause recursion (up to two times) of UploadToKbServer()
-					m_returnedCurlCodes[threadIndex] = pThread->rv; // there will be numThreadsNeeded of these
-
-					// delete this JSON object from the heap & zero the entryCount ready
-					// for the next thread's creation
-					delete jsonvalPtr;
-					entryCount = 0;
-
-					// TODO complete the code here, prepare for next iteration
-					// (at the moment, I think we are done)
-				}
-
-			} // end of TRUE block for test: if (entryCount == numEntriesPerThread)
-
-		} // end of for loop:
-		  // for (listIter = m_uploadsList.begin(); listIter != m_uploadsList.end(); ++listIter)
-*/
 		DeleteUploadEntries();
 		ClearAllStrCURLbuffers2(); // clears all 50 of the str_CURLbuff[] buffers
-
 	} // end of TRUE block for test: 	
-	//  if ((m_pApp->m_bIsKBServerProject && (this->m_kbServerType == 1) && this->IsKBSharingEnabled())
-	//	||
-	//	(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
+	  //  if ((m_pApp->m_bIsKBServerProject && (this->m_kbServerType == 1) && this->IsKBSharingEnabled())
+	  //	||
+	  //	(m_pApp->m_bIsGlossingKBServerProject && (this->m_kbServerType == 2) && this->IsKBSharingEnabled()))
 
 #if defined(_DEBUG)
 	now = wxDateTime::Now();
@@ -4644,14 +4500,6 @@ int KbServer::ChangedSince_Queued(wxString timeStamp, bool bDoTimestampUpdate)
 	return (int)CURLE_OK;
 }
 
-
-/* params for BulkUpload() refactored
-CBString		m_jsonUtf8Str;
-wxString		m_password;
-wxString		m_username;
-wxString		m_url;
-*/
-
 int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to return results in
 						 wxString url, wxString username, wxString password, 
 						 CBString jsonUtf8Str)
@@ -4675,8 +4523,8 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 	// try do this without a mutex - it's temporary and I may get away with it, if not
 	// delete it; same for the one at the end below
 	wxDateTime now = wxDateTime::Now();
-	wxLogDebug(_T("UploadToKBServer() thread %d , start time: %s\n"), 
-		chunkIndex, now.Format(_T("%c"), wxDateTime::WET).c_str());
+	wxLogDebug(_T("BulkUpload() 1-based chunk number %d , start time: %s\n"), 
+		chunkIndex + 1, now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
 	aUrl = url + slash + container + slash;
 	charUrl = ToUtf8(aUrl);
@@ -4710,7 +4558,7 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 #if defined (_DEBUG) // && defined (__WXGTK__)
         CBString s(str_CURLbuff[chunkIndex].c_str());
         wxString showit = ToUtf16(s);
-        wxLogDebug(_T("UploadToKbServer() chunk %d , Returned: %s    CURLcode %d"), 
+        wxLogDebug(_T("BulkUpload() chunk %d , Returned: %s    CURLcode %d"), 
 			chunkIndex, showit.c_str(), (unsigned int)result);
 #endif
 		// The kind of error we are looking for isn't a CURLcode one, but aHTTP one 
@@ -4740,8 +4588,8 @@ int KbServer::BulkUpload(int chunkIndex, // use for choosing which buffer to ret
 
 #if defined(_DEBUG)
 	now = wxDateTime::Now();
-	wxLogDebug(_T("UploadToKBServer() chunk %d , finish time: %s\n"), 
-		chunkIndex, now.Format(_T("%c"), wxDateTime::WET).c_str());
+	wxLogDebug(_T("BulkUpload() 1-based chunk %d , finish time: %s\n"), 
+		chunkIndex + 1, now.Format(_T("%c"), wxDateTime::WET).c_str());
 #endif
 
 	// Work out what to return, depending on whether or not a HTTP error happened, and

@@ -38,13 +38,7 @@ struct VerseAnalysis {
 	wxString			strEndingVerse; // string version of the verse number or final verse number of a range
 	wxChar				charEndingVerseSuffix; // for the a in something like 15-17a
 };
-/// An enum for selecting which kind of text to generate in order to send it back to the external
-/// editor (PT or BE), whether target text, or a free translation
-enum SendBackTextType
-{
-	makeTargetText = 1,
-	makeFreeTransText
-};
+// enum SendBackType has been moved to Adapt_It.h, because it is not needed in ExportFunctions.cpp
 enum DoFor 
 {
 	collab_source_text,
@@ -150,12 +144,21 @@ class CSourcePhrase;
 		const wxArrayPtrVoid& postEditVerseArr, // the temporary array of VerseInf structs for postEdit data
 		const wxArrayPtrVoid& fromEditorVerseArr); // the temporary array of VerseInf structs for fromEditor data
 
+	// BEW added 22Jun15 to support preEdit data being structurally different due to things like filtering
+	bool FindPreEditMatchingVerseInf(
+		VerseInf*   matchThisOne, // the struct instance for what a matchup is being tried in the being-scanned preEditVerseArr
+		int&		atIndex, // the index into the being-scanned VerseInf array at which the matchup succeeded
+		const wxArrayPtrVoid& preEditVerseArr); // the temporary array of VerseInf structs for preEdit data
+
 	bool GetMatchedChunksUsingVerseInfArrays(int postEditStart, // index of non-matched verse md5 line in postEditMd5Arr
 		int   fromEditorStart, // index of non-matched verse md5 line in fromEditorMd5Arr
+		int   preEditStart, // index of equivalent-to-postEdit verse md5 line in preEditMd5Arr
 		const wxArrayString& postEditMd5Arr, // full md5 lines array for AI postEdit text
 		const wxArrayString& fromEditorMd5Arr, // full md5 lines array for PT fromEditor text
+		const wxArrayString& preEditMd5Arr, // full md5 lines array for AI preEdit text
 		int&  postEditEnd,     // points at index in the md5 array of last postEdit field in the matched chunk
-		int&  fromEditorEnd	); // points at index into the md5 array of last fromEditor field in the matched chunk
+		int&  fromEditorEnd,   // points at index into the md5 array of last fromEditor field in the matched chunk
+		int&  preEditEnd);     // points at index in the md5 array of last preEdit field in the matched chunk
 
 	bool HasInfoChanged(
 		int preEditIndex, // index of current preEdit text verse md5 line in preEditMd5Arr

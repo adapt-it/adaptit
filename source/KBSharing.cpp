@@ -317,12 +317,16 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// dismissed (which to the user will be interpretted as full success)
 
 	// First iteration - it should succeed in all but very rare circumstances - see above
-	pKbServer->ClearReturnedCurlCodes();
+	pKbServer->ClearReturnedCurlCodes(); // sets the array to 50 zeros
 	pKbServer->UploadToKbServer();
 
 	// Check for an error, if there was one, redo the upload
 	if (!pKbServer->AllEntriesGotEnteredInDB())
 	{
+#if defined(_DEBUG)
+		wxLogDebug(_T("\nOnBtnSendAll(): UploadToKbServer() had one or more chunk errors. Calling it second time to upload any not sent.\n%s"),
+			(pKbServer->ShowReturnedCurlCodes()).c_str());
+#endif
 		// Have a second try - far fewer entries should be involved in a second try
 		pKbServer->ClearReturnedCurlCodes();
 		pKbServer->UploadToKbServer();
@@ -331,6 +335,10 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 		// if there was one, redo the upload
 		if (!pKbServer->AllEntriesGotEnteredInDB())
 		{
+#if defined(_DEBUG)
+			wxLogDebug(_T("\n\nOnBtnSendAll(): UploadToKbServer() second try had one or more chunk errors. Calling it a third and last time to upload any not sent.\n%s"),
+				(pKbServer->ShowReturnedCurlCodes()).c_str());
+#endif
 			// A third try - even fewer entries should be involved this time
 			pKbServer->ClearReturnedCurlCodes();
 			pKbServer->UploadToKbServer();

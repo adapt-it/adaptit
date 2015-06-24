@@ -341,20 +341,53 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	// check the KBs are clobbered, if not so, do so
 	UnloadKBs(m_pApp);
 
+	// BEW 22Jun15, the earlier logic down to the wxASSERT only worked provided \c 1 was in the target
+	// text book (Paratext does put \c  1 in 2JN 3JN & JUD but a user may decide to edit them out, and
+	// that would produce a crash here). For those short books the code needs to work whether the \c 1 is 
+	// retained or removed. So I've added extra code to handle either option (Note: chSel is not really
+	// a chapter selection, it's a list index variable; so interpretting it as 1 less than the actual
+	// chapter number only works when \c 1 is present in the book. When \c 1 is absent, the temp
+	// variable m_TempCollabChapterSelected is an empty string, so passing it to the function
+	// GetBareChFromLBChSelection() in a "by chapters only" collaboration scenario will also return _T("0"),
+	// -- so that value in this circumstance must NOT be interpretted as meaning we are in a "by whole book"
+	// collaboration; hence the code additions below to make this bit of stuff safe
 	int chSel = pListCtrlChapterNumberAndStatus->GetNextItem(-1,wxLIST_NEXT_ALL,wxLIST_STATE_SELECTED);
-	if (chSel != wxNOT_FOUND)
+	// The above call returns wxNOT_FOUND if the mode is 'by whole book', but it when in 'by chapter only'
+	// mode it will return 0 even if \c 1 is not present, because the user must select something - and for
+	// a chapterless book, there is only one item in the list control to select, but it has no associated
+	// chapter number. Hence the danger in the legacy code's interpretation of what chSel means here.
+
+	// If a short book (without any \c marker) was chosen, then m_TempCollabChapterSelected will at
+	// this point, even if m_bTempCollabByChapterOnly is TRUE, be an empty string (otherwise, it would
+	// a value one less than the chapter number of the selected wxListCtrl's line). So we must test for
+	// that scenario to give an alternate program counter path here when it is the case
+	if (m_bTempCollabByChapterOnly && m_TempCollabChapterSelected.IsEmpty())
 	{
-		chSel++; // the chapter number is one greater than the selected lb index
+		// It's a chapterless book, so one of 2JN or 3JN or JUD. If no \c marker is present
+		// the safe thing to do is, I think, assign a chapter value of _T("0") (unsure of
+		// this as yet, I've more testing to do)
+		m_collab_bareChapterSelectedStr = _T("0");
 	}
 	else
 	{
-		chSel = 0; // indicates we're dealing with Whole Book 
+		// This is the legacy code; it works when m_TempCollabChapterSelected has a
+		// chapter number stored in it; or when m_bTempCollabByChapterOnly is FALSE;
+		// the intent is to set m_collab_bareChapterSelectedStr to the correct selected
+		// chapter's chapter number
+		if (chSel != wxNOT_FOUND)
+		{
+			chSel++; // the chapter number is one greater than the selected lb index
+		}
+		else
+		{
+			chSel = 0; // indicates we're dealing with Whole Book 
+		}
+		// if chSel is 0, the string returned to derivedChStr will be _T("0")
+		m_collab_bareChapterSelectedStr.Empty();
+		m_collab_bareChapterSelectedStr << chSel;
+		wxString derivedChStr = GetBareChFromLBChSelection(m_TempCollabChapterSelected);
+		wxASSERT(m_collab_bareChapterSelectedStr == derivedChStr);
 	}
-	// if chSel is 0, the string returned to derivedChStr will be _T("0")
-	m_collab_bareChapterSelectedStr.Empty();
-	m_collab_bareChapterSelectedStr << chSel;
-	wxString derivedChStr = GetBareChFromLBChSelection(m_TempCollabChapterSelected);
-	wxASSERT(m_collab_bareChapterSelectedStr == derivedChStr);
 
 	// do sanity check on AI project name and source and target language names
 	m_pApp->GetSrcAndTgtLanguageNamesFromProjectName(m_TempCollabAIProjectName, m_TempCollabSourceProjLangName, m_TempCollabTargetProjLangName);

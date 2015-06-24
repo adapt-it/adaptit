@@ -5804,12 +5804,13 @@ void DoExportInterlinearRTF()
 		// pSrcPhrase had any internal markers the CPlaceInterMarkers dialog is called to sort
 		// their positions out in the substring.
 		//
+		// BEW 22Jun15, filtered material should NOT be included in a target text export! This
+		// may conflict with the legacy comments below.
 		// Notes:
 		// 1. While examining m_markers we will encounter material which is bracketed by \~FILTER
 		//    and \~FILTER* markers. Ordinary filtered material will have no adaptations/target
 		//    text associated with it, but, by design, the source representation of such filtered
-		//    material needs to be echoed to the output both for the source text and for the target
-		//    text.
+		//    material needs to be echoed to the output - but only for the source text.
 		//    We also have an interest in the three special markers \bt..., \free, and \note which
 		//    are always filtered. Although these do not have single source phrases that they
 		//    wholly associate/coordinate with, they do have some bearing on a stretch of text
@@ -16701,9 +16702,9 @@ wxString AppendSrcPhraseEndingInfo(wxString appendHere, CSourcePhrase* pSrcPhras
 }
 
 // BEW created 11Oct10
-wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr,
-	wxString markersStr, wxString xrefStr,
-	bool bAttachFilteredInfo, bool bAttach_m_markers)
+// BEW 22Jun15, refactored so that it returns no filtered information
+wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr, wxString markersStr,
+				wxString xrefStr, bool bAttachFilteredInfo, bool bAttach_m_markers)
 {
 	// prefixStr was defined just before this function was called, and it was
 	// not initialized and so is empty, so the next line just results in
@@ -16714,26 +16715,32 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr,
 	{
 		if (bAttach_m_markers)
 		{
-			// any content in m_markers is to be in the returned source text string
+			// any content in m_markers is to be in the returned string
 			if (!markersStr.IsEmpty())
 			{
 				markersPrefix.Trim();
 				markersPrefix += aSpace + markersStr;
 			}
+		}
+	}
+	wxUnusedVar(bAttachFilteredInfo);
+	// BEW 22Jun15, do not return filtered info
+	/*
 			if (!xrefStr.IsEmpty()  && bAttachFilteredInfo)
 			{
-				// a xref follows a verse number, so make sure there is an intervening
-				// space
-				markersPrefix.Trim();
-				markersPrefix += aSpace + xrefStr;
+			// a xref follows a verse number, so make sure there is an intervening
+			// space
+			markersPrefix.Trim();
+			markersPrefix += aSpace + xrefStr;
 			}
+			
 		}
 		else
 		{
 			if (!xrefStr.IsEmpty() && bAttachFilteredInfo)
 			{
-				markersPrefix.Trim();
-				markersPrefix += aSpace + xrefStr;
+			markersPrefix.Trim();
+			markersPrefix += aSpace + xrefStr;
 			}
 		} // end of else block for test: if (bAttach_m_markers)
 	}
@@ -16746,6 +16753,7 @@ wxString GetUnfilteredCrossRefsAndMMarkers(wxString prefixStr,
 			markersPrefix += aSpace + xrefStr;
 		}
 	}
+	*/
 	return markersPrefix;
 }
 
@@ -16828,31 +16836,6 @@ wxString GetUnfilteredInfoMinusMMarkersAndCrossRefs(CSourcePhrase* pSrcPhrase,
 	// others in that section of text
 	if (!noteStr.IsEmpty() || pSrcPhrase->m_bHasNote)
 	{
-/*
-		// BEW removed 15Jun11, because OXES's status is unclear, so we'll not support it
-		// until it is needed
-		// BEW 19May12 leave it commented out, because our Oxes v1 support will not
-		// support inclusion of Adapt It notes, (probably never, but if we change our
-		// minds then reinstate this later)
-		if (gpApp->m_bOxesExportInProgress)
-		{
-			// 'numberOfChars' is not the number of characters in the note itself, but
-			// rather the number of characters in the words of the adaptation phrase in the
-			// m_targetStr member of this merged CSourcePhrase (oxes needs this info)
-			int numberOfChars = pSrcPhrase->m_targetStr.Len(); // no space at end
-			wxString numStr;
-			numStr = numStr.Format(_T("%d"),numberOfChars);
-			numStr = _T("@#") + numStr;
-			numStr += _T(':'); // divider
-			numStr += pSrcPhrase->m_targetStr;
-			numStr += _T("#@");
-			noteStr = numStr + noteStr;
-			// the oxes parser must detect this @#nnn#@ substring and remove it, convert
-			// it to int, and use it to count the phrase's length to which the note applies
-			// so that the endOffset in the relevant NoteDetails struct can be set
-			// correctly, and put the word after the colon into its wordsInSpan member
-		}
-*/
 		markersPrefix.Trim();
 		markersPrefix += aSpace + noteMkr;
 		if (noteStr.IsEmpty())
@@ -18402,6 +18385,16 @@ void RemoveMarkersOfType(enum TextType theTextType, wxString& text)
 
 // BEW revised 31Oct05
 // BEW 7Apr10, updated for doc version 5 (changes were needed)
+// BEW 22Jun15 refactored to ignore filtered information. See reason in the comment following.
+// Up to 22Jun15, the default export option was "all markers". This, however, was wrongly
+// interpretted by me so as to include "unfilter any filtered information (which is only source
+// language text by definition, it can never be target language text), insert it into the data
+// at the current location (ie. preceding the pile on which it is stored), and worse than that,
+// interpret it as target text - which, of course, it isn't!! I must have had a mental block of
+// mamoth proportions, as that algorithm is just plain stupid! The correct algorithm is: output
+// all target text with markers replaced as appropriate, but totally ignore any filtered information
+// because, by definition, it is source text information and does not belong in a target text
+// export. So my refactoring now will be to make it behave like it should have long long ago.
 int RebuildTargetText(wxString& target, SPList* pUseThisList)
 {
 	// BEW 21Jul14, I need the EnableLogging() call, because this function refuses to
@@ -18471,13 +18464,6 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 		{
 			targetstr += aBreak;
 		}
-
-//#if defined(_DEBUG)
-//		if (pSrcPhrase->m_nSequNumber == 4223)
-//		{
-//			int break_here = 1;
-//		}
-//#endif
 		if (pSrcPhrase->m_bRetranslation)
 		{
 			// in the following call, str gets assigned internal markers
@@ -18486,7 +18472,7 @@ int RebuildTargetText(wxString& target, SPList* pUseThisList)
 			// we then, still within the function, call the Placement dialog for any
 			// medial markers needing placement, and then set savePos to be the Node*
 			// immediately after the retranslation, or NULL if at end of doc
-			pos = DoPlacementOfMarkersInRetranslation(savePos,pList,str);
+			pos = DoPlacementOfMarkersInRetranslation(savePos, pList, str);
 		}
 		else
 		{
@@ -19931,36 +19917,36 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // pSrcPhrase instances in m_pSourcePhrases untouched, except for changing the
 // m_targetStr value as explained in the previous sentence.
 // BEW 11Oct10, changed for support of additional docV5 storage in CSourcePhrase
+// BEW 22Jun15, refactored - filtered information does NOT belong in a target text
+// export, ever! Such info is either source text, or different text affiliated with
+// the target text (such as a note or backtranslation or free translation) but is
+// not ever to be considered as embeddable within the target text. Refactored to 
+// effect this understanding.
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
-									SPList* pSrcPhrases, wxString& Tstr)
+	SPList* pSrcPhrases, wxString& Tstr)
 {
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	SPList::Node* pos = firstPos;
 	wxASSERT(pos != 0);
 	bool bHasInternalMarkers = FALSE; // assume none for default
 	SPList::Node* savePos = NULL; // whm initialized to NULL
-
-	// undo what Bill did, they are not used
 	wxString Sstr; // needed only for the placement dialog, not for returning to caller
-	//wxString Gstr; // unused, so we can remove this
-	//wxString Nstr; // ditto
 
-	// markers needed, since doc version 5 doesn't store some filtered
-	// stuff using them
-	wxString freeMkr(_T("\\free"));
-	wxString freeEndMkr = freeMkr + _T("*");
-	wxString noteMkr(_T("\\note"));
-	wxString noteEndMkr = noteMkr + _T("*");
-	wxString backTransMkr(_T("\\bt"));
-	// prefixStr is a place where we'll temporarily store any filtered information from the
-	// first CSourcePhrase of the retranslation, and withhold it from the placement dialog,
-	// as the user doesn't need to see any of that filtered stuff when doing the medial
-	// marker placements. Any retranslation-internal filtered stuff has to be put "in
-	// place" within the target text being composed, however, and so will get shown in the
-	// placement dialog (but in nearly all circumstances there will never be any such stuff
-	// in a retranslation, so no big deal)
-	wxString markersPrefix; // hide initial filtered and markers stuff in this
-							// temporarily and prefix them after the dialog closes
+	// BEW 22Jun15, avoid compiler warnings for the following which are no longer used
+	wxUnusedVar(pSrcPhrases);
+
+	// markers now no longer needed
+	//wxString freeMkr(_T("\\free"));
+	//wxString freeEndMkr = freeMkr + _T("*");
+	//wxString noteMkr(_T("\\note"));
+	//wxString noteEndMkr = noteMkr + _T("*");
+	//wxString backTransMkr(_T("\\bt"));
+
+	// BEW 22Jun15, we don't want filtered stuff, so prefixStr is only to be used for
+	// restoration of initial USFM markers, provided they are not from filtered data stored
+	// in the retranslation
+	wxString markersPrefix; // hide initial  markers stuff in this temporarily and prefix
+							// the resulting string to the rest after the dialog closes
 	markersPrefix.Empty();
 	wxArrayString markersToPlaceArray; // accumulate marker strings here, for transfer to dialog
 	markersToPlaceArray.Empty();
@@ -19971,6 +19957,15 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	wxString aSpace = _T(" ");
 	wxString markersStr;
 	wxString endMarkersStr;
+	 
+	// These no longer, as of 22Jun15, belong in an export, and for an export of
+	// the free translation text the present function is not called. I'll retain
+	// these because they are passed to function calls below, but in those functions
+	// I'll return any contents for these five local variables, but then clear the
+	// ones which should not be in a target text export. The functions below are
+	// called in various types of exports, some of which will want some or all of
+	// these strings computed. So clearing the unwanted ones herin will not interfere
+	// with calls using them made in other export functions.
 	wxString freeTransStr;
 	wxString noteStr;
 	wxString collBackTransStr;
@@ -19986,14 +19981,6 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 	{
 		savePos = pos; // savePos is what we return to the caller
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-/*
-#ifdef _DEBUG
-		if (pSrcPhrase->m_nSequNumber == 367)
-		{
-			int halt_here = 1;
-		}
-#endif
-*/
 		pos = pos->GetNext();
 		// break out of the loop if we reach the end of the retranslation, or if we reach
 		// the beginning of an immediately following (but different) retranslation
@@ -20004,22 +19991,32 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 		}
 		else
 		{
-			// empty the scratch strings
+			// empty the scratch strings (guarantees each is an empty string)
 			EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
 											collBackTransStr, filteredInfoStr);
 			// get the other string information we want, putting it in the scratch strings
+			// BEW 22Jun15, only markersStr and endMarkersStr are wanted in a target text
+			// export
 			GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
 							freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
-			// remove any filter bracketing markers if filteredInfoStr has content
-			if (!filteredInfoStr.IsEmpty())
 			{
-				filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+				// BEW 22Jun15 refactoring, we just empty these of any content - no filtered 
+				// data should be in the export
+				freeTransStr.Empty(); noteStr.Empty(); collBackTransStr.Empty(); filteredInfoStr.Empty();
 			}
+			// remove any filter bracketing markers if filteredInfoStr has content
+			// BEW 22Jun15, the following call is no longer needed
+			//if (!filteredInfoStr.IsEmpty())
+			//{
+			//	filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+			//}
 
 			// BEW added 22Feb11, \x ... \x* material should follow anything in m_markers,
 			// so extract it from filteredInfoStr (if present) and put it in a separate
 			// crossRefs string, for later placement (we append it to markersStr so that
 			// when the latter is placed in location, the crossrefs go with it)
+			// BEW 22Jun15, the following blocks are unneeded
+			/*
 			wxString crossRefs; crossRefs.Empty();
 			wxString tempStr1;
 			wxString tempStr2;
@@ -20046,10 +20043,10 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 			{
 				markersStr += crossRefs;
 			}
+			*/
 
 			// we compose the pre-user-edit form of the target string, and the source
-			// string, and the gloss and nav strings, even though the app doesn't yet use
-			// the latter two
+			// string
 			if (bFirst)
 			{
 				bFirst = FALSE; // prevent this block from being re-entered
@@ -20064,6 +20061,8 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// list as it helps for the user to see all such & handle matched
 				// beginmarker & endmarker pairs the same way)
 				// remove LHS whitespace when done
+				// BEW refactored 22Jun15, we don't want filtered info
+				/*
 				if (!filteredInfoStr.IsEmpty())
 				{
 					// this data has any markers and endmarkers already 'in place'
@@ -20115,35 +20114,11 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				{
 					markersPrefix.Trim();
 					markersPrefix += aSpace + noteMkr;
-/*
-					// BEW 15Jun11, removed OXES support until it is needed somewhere
-					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
-					// word for the note stored here
-					// BEW 19May12, reinstated OXES support, but not with support of \note
-					// so leave this commented out (until such time as we changes our minds)
-					if (gpApp->m_bOxesExportInProgress)
-					{
-						// 'numberOfChars' is not the number of characters in the note itself, but
-						// rather the number of characters in the words of the adaptation phrase in the
-						// m_targetStr member of this merged CSourcePhrase (oxes needs this info)
-						int numberOfChars = pSrcPhrase->m_targetStr.Len(); // no space at end
-						wxString numStr;
-						numStr = numStr.Format(_T("%d"),numberOfChars);
-						numStr = _T("@#") + numStr;
-						numStr += _T(':'); // divider
-						numStr += pSrcPhrase->m_targetStr;
-						numStr += _T("#@");
-						noteStr = numStr + noteStr;
-						// the oxes parser must detect this @#nnn#@ substring and remove it, convert
-						// it to int, and use it to count the phrase's length to which the note applies
-						// so that the endOffset in the relevant NoteDetails struct can be set
-						// correctly, and put the word after the colon into its wordsInSpan member
-					}
-*/
 					markersPrefix += aSpace + noteStr;
 					markersPrefix += noteEndMkr; // don't need space too
 				}
 				// BEW 23Feb11 moved filtered into from here to be before coll back trans
+				*/
 				markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
 
 				if (!markersStr.IsEmpty())
@@ -20162,8 +20137,6 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					// and there is no real need to show markersStr anyway because it will
 					// never contain a beginmarker which requires a matching later
 					// endmarker, so we'll instead just store it in markersPrefix
-					//Sstr = markersStr;
-					//Tstr = markersStr;
 					markersPrefix += markersStr;
 				}
 
@@ -20354,6 +20327,8 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				// BEW 11Oct10, additions to the code below to support m_follOuterPunct
 				// and the inline markers from the 4 extra wxString members added to
 				// CSourcePhrase in order to fully support USFM markup standards
+				// BEW 22Jun15, we no longer want filtered information in the export
+				/*
 				if (!filteredInfoStr.IsEmpty())
 				{
 					// this data has any markers and endmarkers already 'in place'
@@ -20389,31 +20364,6 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				{
 					unfilteredStr.Trim();
 					unfilteredStr += aSpace + noteMkr;
-/*
-					// BEW 15Jun11, removed OXES support until it is needed somewhere
-					// BEW 17Sep10, provide oxes with the m_targetStr as the referenced
-					// word for the note stored here
-					// BEW 19May12, reinstated OXES support, but not support for \note,
-					// so leave this commented out (unlesss we later change our minds)
-					if (gpApp->m_bOxesExportInProgress)
-					{
-						// 'numberOfChars' is not the number of characters in the note itself, but
-						// rather the number of characters in the word(s) of the adaptation phrase in the
-						// m_targetStr member of this CSourcePhrase (oxes needs this info)
-						int numberOfChars = pSrcPhrase->m_targetStr.Len(); // no space at end
-						wxString numStr;
-						numStr = numStr.Format(_T("%d"),numberOfChars);
-						numStr = _T("@#") + numStr;
-						numStr += _T(':'); // divider
-						numStr += pSrcPhrase->m_targetStr;
-						numStr += _T("#@");
-						noteStr = numStr + noteStr;
-						// the oxes parser must detect this @#nnn#@ substring and remove it, convert
-						// it to int, and use it to count the phrase's length to which the note applies
-						// so that the endOffset in the relevant NoteDetails struct can be set
-						// correctly, and put the word after the colon into its wordsInSpan member
-					}
-*/
 					unfilteredStr += aSpace + noteStr;
 					unfilteredStr += noteEndMkr; // don't need space too
 				}
@@ -20429,6 +20379,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					Sstr.Trim();
 					Sstr << aSpace << unfilteredStr;
 				}
+				*/
 
 				// m_markers material, however, belongs in the list for later placement in
 				// Tstr, but for Sstr we must place it automatically because its position
