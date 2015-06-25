@@ -6439,9 +6439,9 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-        wxUnusedVar(pDoc); // whm added 25Jun2015 to avoid gcc "unused" warning
+        wxUnusedVar(pDoc); // whm added 25Jun2015 to avoid gcc "not used" warning
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
-        wxUnusedVar(pSrcPhrases); // whm added 25Jun2015 to avoid gcc "unused" warning
+        wxUnusedVar(pSrcPhrases); // whm added 25Jun2015 to avoid gcc "not used" warning
 
 	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
 	// space symbol ~  ?
