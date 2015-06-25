@@ -12,6 +12,16 @@
     #pragma implementation "jsonreader.cpp"
 #endif
 
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 //#include <wx/jsonreader.h>
 
 #include <wx/mstream.h>
@@ -172,9 +182,10 @@
 // trace messages by setting the:
 // WXTRACE=traceReader StoreComment
 // environment variable
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
 static const wxChar* traceMask = _T("traceReader");
 static const wxChar* storeTraceMask = _T("StoreComment");
-
+#endif
 
 //! Ctor
 /*!

@@ -13,6 +13,16 @@
 #endif
 
 
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
@@ -33,10 +43,11 @@ WX_DEFINE_OBJARRAY( wxJSONInternalArray );
 
 // the trace mask used in wxLogTrace() function
 // static const wxChar* traceMask = _T("jsonval");
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
 static const wxChar* traceMask = _T("jsonval");
 static const wxChar* compareTraceMask = _T("sameas");
 static const wxChar* cowTraceMask = _T("traceCOW" );
-
+#endif
 
 
 /*******************************************************************
@@ -3054,6 +3065,7 @@ wxJSONValue::COW()
     wxJSONRefData* data = GetRefData();
     wxLogTrace( cowTraceMask, _T("(%s) COW() START data=%p data->m_count=%d"),
              __PRETTY_FUNCTION__, data, data->GetRefCount());
+    wxUnusedVar(data); // whm added 25Jun2015 to avoid gcc "not used" warning in release builds
     UnShare();
     data = GetRefData();
     wxLogTrace( cowTraceMask, _T("(%s) COW() END data=%p data->m_count=%d"),

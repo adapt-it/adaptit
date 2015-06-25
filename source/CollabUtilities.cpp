@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			CollabUtilities.h
+/// \file			CollabUtilities.cpp
 /// \author			Bruce Waters, from code taken from SetupEditorCollaboration.h by Bill Martin
 /// \date_created	27 July 2011
 /// \rcs_id $Id$
 /// \copyright		2011 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is a header file containing some utility functions used by Adapt It's
+/// \description	This is implementation file containing some utility functions used by Adapt It's
 ///                 collaboration feature - collaborating with either Paratext or Bibledit.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -14,6 +14,17 @@
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "CollabUtilities.h"
 #endif
+
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
@@ -6930,6 +6941,7 @@ wxString GetUpdatedText_UsfmsChanged(
 	wxString substring; // scratch variable
 	bool bOK = FALSE; // initialize
 	bool bFoundVerse = FALSE; // initialize
+        wxUnusedVar(bFoundVerse); // whm added 25Jun2015 to avoid gcc "not used" warning
 	wxString emptyStr = _T("");
 
 	// BEW 22Jun15, refactored to remove unneeded complexity. Since I intend to unilaterally
@@ -7370,6 +7382,9 @@ bool HasInfoChanged(
 	bIsFromEditorVerseLine = IsVerseLine(fromEditorMd5Arr, fromEditorIndex);
 	bIsPreEditVerseLine = IsVerseLine(preEditMd5Arr, preEditIndex);
 	wxASSERT(bIsPostEditVerseLine == bIsFromEditorVerseLine && bIsFromEditorVerseLine == TRUE);
+        wxUnusedVar(bIsPostEditVerseLine); // whm added 25Jun2015 to avoid gcc "not used" warning
+        wxUnusedVar(bIsFromEditorVerseLine); // whm added 25Jun2015 to avoid gcc "not used" warning
+	wxUnusedVar(bIsPreEditVerseLine); // whm added 25Jun2015 to avoid gcc "not used" warning
 
 	// Get the next md5 verse line in each array - that will be the upper bound
 	// (non-inclusive) for the material to be dealt with in this invocation; we have to

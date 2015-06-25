@@ -15,6 +15,16 @@
     #pragma implementation "helpers.h"
 #endif
 
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
@@ -6429,7 +6439,9 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+        wxUnusedVar(pDoc); // whm added 25Jun2015 to avoid gcc "unused" warning
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+        wxUnusedVar(pSrcPhrases); // whm added 25Jun2015 to avoid gcc "unused" warning
 
 	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
 	// space symbol ~  ?

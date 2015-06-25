@@ -12,6 +12,16 @@
     #pragma implementation "jsonwriter.cpp"
 #endif
 
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 
 //#include <wx/jsonwriter.h>
 
@@ -23,7 +33,9 @@
 #include "jsonwriter.h"
 
 
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
 static const wxChar* writerTraceMask = _T("traceWriter");
+#endif
 
 /*! \class wxJSONWriter
  \brief The JSON document writer
