@@ -58,7 +58,12 @@ case $distCodename in
   ;;
 esac
 echo -e "\nAdding 'deb http://packages.sil.org/ubuntu $distCodename main' to software sources"
-sudo add-apt-repository "deb http://packages.sil.org/ubuntu $distCodename main"
+# whm Note: the add-apt-repository command below is resulting in duplicates being added to
+# the software sources list(s) on trusty. The sudo bash grep command below should do the job 
+# without resulting in duplicates.
+#sudo add-apt-repository "deb http://packages.sil.org/ubuntu $distCodename main"
+grep -q -F 'deb http://packages.sil.org/ubuntu $distCodename main' /etc/apt/sources.list \
+  || echo 'deb http://packages.sil.org/ubuntu $distCodename main' | sudo tee -a /etc/apt/sources.list
 
 echo -e "\nEnsuring the sil.gpg key is installed for the packages.sil.org repository..."
 # Ensure sil.gpg key is installed
@@ -136,7 +141,7 @@ case $response1 in
     echo -e "\nTo help with AID development you should have a GitHub user.name and user.email."
     echo "Checking for previous configuration of git user name and git user email..."
     # work from the adaptit repo
-    cd ~/adaptit
+    cd ${PROJECT_DIR}/adaptit
     gitUserName=`git config user.name`
     gitUserEmail=`git config user.email`
     if [ -z  "$gitUserName" ]; then
