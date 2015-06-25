@@ -23,8 +23,8 @@ AS_IF([test "x$enable_debug" != xno],
                [Define for KBServer builds])
     ])
 
-CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -g -fexceptions"
-CXXFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -g -fexceptions"
+CPPFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -Wno-sizeof-pointer-memaccess -g -fexceptions"
+CXXFLAGS="$CPPFLAGS -Wall -Wno-sign-compare -Wno-write-strings -Wno-unused-local-typedefs -Wno-sizeof-pointer-memaccess -g -fexceptions"
 
 WXCONFIG=wx-config
 AC_ARG_WITH(wx-config,
