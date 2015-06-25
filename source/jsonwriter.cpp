@@ -858,8 +858,10 @@ wxJSONWriter::WriteStringValue( wxOutputStream& os, const wxString& str )
 int
 wxJSONWriter::WriteString( wxOutputStream& os, const wxString& str )
 {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( writerTraceMask, _T("(%s) string to write=%s"),
                   __PRETTY_FUNCTION__, str.c_str() );
+#endif
     int lastChar = 0;
     char* writeBuff = 0;
 
@@ -893,8 +895,10 @@ wxJSONWriter::WriteString( wxOutputStream& os, const wxString& str )
         return -1;
     }
 
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( writerTraceMask, _T("(%s) result=%d"),
                   __PRETTY_FUNCTION__, lastChar );
+#endif
     return lastChar;
 }
 
@@ -1079,8 +1083,10 @@ wxJSONWriter::WriteBoolValue( wxOutputStream& os, const wxJSONValue& value )
 int
 wxJSONWriter::WriteKey( wxOutputStream& os, const wxString& key )
 {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( writerTraceMask, _T("(%s) key write=%s"),
                   __PRETTY_FUNCTION__, key.c_str() );
+#endif
 
     int lastChar = WriteStringValue( os, key );
     os.Write( " : ", 3 );
