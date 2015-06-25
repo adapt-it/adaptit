@@ -57,13 +57,14 @@ case $distCodename in
   distCodename="trusty"
   ;;
 esac
-echo -e "\nAdding 'deb http://packages.sil.org/ubuntu $distCodename main' to software sources"
+PSO_URL="deb http://packages.sil.org/ubuntu $distCodename main"
+echo -e "\nAdding '$PSO_URL' to software sources"
 # whm Note: the add-apt-repository command below is resulting in duplicates being added to
 # the software sources list(s) on trusty. The sudo bash grep command below should do the job 
 # without resulting in duplicates.
 #sudo add-apt-repository "deb http://packages.sil.org/ubuntu $distCodename main"
-grep -q -F 'deb http://packages.sil.org/ubuntu $distCodename main' /etc/apt/sources.list \
-  || echo 'deb http://packages.sil.org/ubuntu $distCodename main' | sudo tee -a /etc/apt/sources.list
+grep -q "$PSO_URL" /etc/apt/sources.list \
+  || echo "$PSO_URL" | sudo tee -a /etc/apt/sources.list
 
 echo -e "\nEnsuring the sil.gpg key is installed for the packages.sil.org repository..."
 # Ensure sil.gpg key is installed
