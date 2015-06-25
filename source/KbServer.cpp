@@ -38,7 +38,7 @@ static wxMutex s_DoGetAllMutex; // UploadToKbServer() calls DoGetAll() which
 			// fills the 7 parallel arrays with remote DB data; but a manual
 			// ChangedSince() or DoChangedSince() call also fill the same
 			// arrays - so we have to enforce sequentiality on the use of
-			// these arrays
+			// these arrays; and threaded ChangedSince() also uses them, so protect that
 wxMutex KBAccessMutex; // ChangedSince() may be entering entries into
 			// the local KB while UploadToKbServer() is looping over it's entries
 			// to work out which need to be sent to the remote DB

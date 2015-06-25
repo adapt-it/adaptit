@@ -316,7 +316,22 @@ void KBSharing::OnBtnSendAll(wxCommandEvent& WXUNUSED(event))
 	// won't change the adaptation experience in any significant way, and let the dialog be
 	// dismissed (which to the user will be interpretted as full success)
 
-	// First iteration - it should succeed in all but very rare circumstances - see above
+	// BEW Note, 25Jun15. Even though care is taken to avoid uploading an entry which is
+	// already in the remote server, my debug logging indicates that a few such do happen.
+	// For example, my most recent out-of-kb-sharing-mode adaptations resulted in 145 new
+	// pairs waiting for upload. When I uploaded them, there were 4 duplicates. However,
+	// my code is done in such a way that this type of HTTP error, 400 Bad Request, returns
+	// a CURLcode value of 0, because we don't want the user to have to see such occasional
+	// errors - they do no harm to the remote kb, and no harm to to the client either, so
+	// we simply ignore them. The bulk upload, similarly, therefore ignores them. Hence
+	// this type of error will not cause a repeat try of the UploadToKbServer() call.
+
+	// First iteration - it should succeed in all but rare circumstances - see above
+	//
+	// Timing feedback: the UploadToKbServer() call took 13 seconds, for 145 entries, in
+	// my debug build (Release build would be quicker); most of the time is taken in the
+	// bulk download and comparison of local versus remote data to find out what to upload.
+	// I was uploading to a kbserver in VBox VM on the same computer - my XPS Win7 machine.
 	pKbServer->ClearReturnedCurlCodes(); // sets the array to 50 zeros
 	pKbServer->UploadToKbServer();
 

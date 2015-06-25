@@ -364,9 +364,27 @@ void CGetSourceTextFromEditorDlg::OnOK(wxCommandEvent& event)
 	if (m_bTempCollabByChapterOnly && m_TempCollabChapterSelected.IsEmpty())
 	{
 		// It's a chapterless book, so one of 2JN or 3JN or JUD. If no \c marker is present
-		// the safe thing to do is, I think, assign a chapter value of _T("0") (unsure of
-		// this as yet, I've more testing to do)
-		m_collab_bareChapterSelectedStr = _T("0");
+		// the safe thing to do is, I think, assign a chapter value of _T("1"). Yes, this
+		// is correct decision for the following experiential reason - since I earlier had zero
+		// as the chapter number. What happened:
+		// I got 3John ready for adapting in PT. The empty tgt project has, as PT does, \c 1.
+		// I adapted some of 3John, and saved it in collab mode. 3John in src PT project has no
+		// chapter number - so the File > Save wiped out the \c 1 anyway, and while the collab
+		// document was correctly saved as _Collab_45_3JN_CH01.xml, there was a problem lurking
+		// for the next time I opened that doc (because it no longer had a chapter number in it).
+		// So when I next used the GetSourceTextFromEditor dialog, and selected 3 John from
+		// the list, the dialog's code checks in the document text grabbed by AI to form the 
+		// document again at next choice of the right hand list box's single item, there is no
+		// chapter number there. So I had a default below of "0" - what happened from that was
+		// the following. AI constructed a document name of _Collab_45_3JN_CH00.xml, but such
+		// a document does not exist. So it created a new document of that name using the grabbed
+		// source text all over again. Me, as the user, was dumbfounded - there was my source text
+		// with all the adaptations I'd formerly done gone entirely!!!! Imagine what a user would
+		// think! Then I noticed the title bar had the filename _Collab_45_3JN_CH00 and the penny
+		// dropped. The loss of the \c 1 was important for getting the filename right. If no
+		// chapter is present, then "1" has to be assumed - not "0", or the app puts up an empty 
+		// doc and the user will not have a clue what has gone wrong.
+		m_collab_bareChapterSelectedStr = _T("1");
 	}
 	else
 	{
