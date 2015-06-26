@@ -6,6 +6,7 @@
 # dh-make output file, you may use that output file without restriction.
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
+# whm modified 26Jun2015 dh_clean -k is deprecated, using dh_prep instead
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
@@ -38,7 +39,7 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep 
 	dh_installdirs
 
 	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit \
