@@ -1,8 +1,8 @@
 ----------------------------------------------
-Version 6.5.9 Pre-Release 15 May 2015
+Version 6.5.9 release 2 July 2015
 ----------------------------------------------
 ----------------------------------------------
-Feature changes and new features in 6.5.9 Pre-Release
+Feature changes and new features in 6.5.9
 ----------------------------------------------
 * A new checkbox in the View tab of Preferences allows the
 user to turn on support for a forward slash (the solidus 
@@ -122,7 +122,7 @@ within Adapt It, while collaboration mode is in effect.
 was no collaboration in effect. Now that flexibility
 is supported in collaboration mode.)
 ----------------------------------------------
-Bug fixes in 6.5.9 Pre-Release
+Bug fixes in 6.5.9 release 2 July 2015
 ----------------------------------------------
 * In free translation mode, tabbing from button to button halted
 at the Remove button.
