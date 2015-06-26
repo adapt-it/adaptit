@@ -30,7 +30,7 @@ then
   echo -e "\nScript was called without parameters."
   echo "Script Usage:"
   echo "  ./release.sh <tagged-release-number> \"<distro-names>\""
-  echo "for example:  ./release 6.5.9 \"precise trusty vivid\""
+  echo "for example:  ./release.sh 6.5.9 \"precise trusty vivid\""
   echo "Notes: The tagged release number must be a valid up-to-date git tag in the repo"
   echo "       You can use the tagretag.sh script to create a current git tag if needed"
   echo "       Use quotes on distro names string if more than one distro is given"
