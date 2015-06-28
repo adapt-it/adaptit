@@ -10,7 +10,8 @@ echo "Seting up Packaging Tools..."
 
 WAIT=60
 PACKAGING_TOOLS="apt-file build-essential autoconf automake libtool quilt gnupg \
-  devscripts lintian fakeroot lsb-release pbuilder dephelper dh-make dput git"
+  devscripts lintian fakeroot lsb-release pbuilder dephelper dh-make dput git \
+  libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
 
 # Setup packaging tools
 echo "Seting up Packaging tools for AIM and Wasta..."

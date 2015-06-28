@@ -1,5 +1,5 @@
 #!/bin/bash
-# retag.sh -- Tag the adaptit git repository for adaptit version provided as parameter
+# tagretag.sh -- Tag the adaptit git repository for adaptit version provided as parameter
 #             if the version number already exists it retags repository to the same version.
 #          -- Assumes the current directory is the local active adaptit git repository.
 #
