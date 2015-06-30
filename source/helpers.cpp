@@ -6428,8 +6428,10 @@ wxString FromSingleMakeSstr(CSourcePhrase* pSingleSrcPhrase, bool bAttachFiltere
 				bool bAttach_m_markers, wxString& mMarkersStr, wxString& xrefStr,
 				wxString& filteredInfoStr, bool bDoCount, bool bCountInTargetText)
 {
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	wxUnusedVar(bCountInTargetText); // BEW added 22Jun15
+	wxUnusedVar(bDoCount); // BEW added 22Jun15
 
 	// is it normal instance, or one which stores a word pair conjoined with USFM fixed
 	// space symbol ~  ?

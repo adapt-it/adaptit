@@ -3752,6 +3752,13 @@ void KbServer::PopulateUploadList(KbServer* pKbSvr, bool bRemoteDBContentDownloa
 							// accept only the ones which aren't already in the 
 							// remote DB
 							tgtPhrase = pRefString->m_translation; // might be empty
+#if defined(_DEBUG)
+							//if (tgtPhrase == _T("will not") || tgtPhrase == _T("might not") || tgtPhrase == _T("ross"))
+							if (tgtPhrase == _T("could not") || tgtPhrase == _T("can not"))
+							{
+								int break_here = 1;
+							}
+#endif
 							if (tgtPhrase.IsEmpty())
 							{
 								// use this instead for the search
@@ -3860,6 +3867,11 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 	wxString tgt;
 	wxString empty = _T("<empty>");
 	size_t count = pKbSvr->m_arrSource.GetCount(); // the source array of the 7 accepting downloaded fields
+#if defined(_DEBUG)
+	wxLogDebug(_T("\nPopulateUploadsMap() commences ..... m_arrSource.GetCount() value = %d  (all 7 arrays have this count value)"),
+		count);
+	int counter = 0;
+#endif
 	size_t i;
 	wxArrayString* pMyTranslations = NULL;
 	UploadsMap::iterator iter;
@@ -3875,13 +3887,19 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 		// If we don't change empty translation strings to something non-empty, we may
 		// end up excluding those unwittingly, so use _T("<empty>") for them and change
 		// the latter back to an empty string when necessary
+#if defined(_DEBUG)
+		counter++;
+		wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  src: %s  tgt: %s       <<-- key & value for map"),
+			counter, src.c_str(), tgt.c_str());
+#endif
 		if (tgt.IsEmpty())
 		{
 			tgt = empty;
 		}
 		// Find this key in the map; if not there, create on the heap another
 		// wxArrayString, and store tgt as it's first item; if there, we can be certain no
-		// other value has the same string, so just add it to the array
+		// other value has the same string (because the MySql database does not store
+		// entry duplicates), so just add it to the array
 		iter = m_uploadsMap.find(src);
 		if (iter == m_uploadsMap.end())
 		{
@@ -3889,19 +3907,49 @@ void KbServer::PopulateUploadsMap(KbServer* pKbSvr)
 			// store tgt within it
 			pMyTranslations = new wxArrayString;
 			m_uploadsMap[src] = pMyTranslations;
+			pMyTranslations->Add(tgt);
+#if defined(_DEBUG)
+			int numInArray = pMyTranslations->GetCount();
+			wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  key is NOT IN MAP, so adding tgt: %s  entry #: %d Values: %s"),
+				counter, tgt.c_str(), numInArray, (ReturnStrings(pMyTranslations)).c_str());
+#endif
 		}
 		else
 		{
 			// this key is in the map, so we've got another translation string to
 			// associate with it - add it to the array
 			pMyTranslations = iter->second;
+			pMyTranslations->Add(tgt);
+#if defined(_DEBUG)
+			int numInArray = pMyTranslations->GetCount();
+			wxLogDebug(_T("\nPopulateUploadsMap() loop: counter = %d  key IS IN MAP, so adding tgt: %s  entry #: %d  Values: %s"),
+				counter, tgt.c_str(), numInArray, (ReturnStrings(pMyTranslations)).c_str());
+#endif
 		}
-		pMyTranslations->Add(tgt);
 	}
 	// The only reason we populate this map is because once the local KB gets large, say
 	// over a thousand entries, it will be much quicker to determine a give src-tgt pair
 	// from the local KB is not in the map, than to do the same check with an array or list
+#if defined(_DEBUG)
+	wxLogDebug(_T("\nPopulateUploadsMap() loop has ended\n"));
+#endif
 }
+
+#if defined(_DEBUG)
+wxString KbServer::ReturnStrings(wxArrayString* pArr)
+{
+	int count = (int)pArr->GetCount();
+	int i;
+	wxString s;
+	for (i = 0; i < count; i++)
+	{
+		s += _T("[");
+		s += pArr->Item((size_t)i);
+		s += _T("] ");
+	}
+	return s;
+}
+#endif
 
 // sets all 50 of the array of int to CURLE_OK
 void KbServer::ClearReturnedCurlCodes()

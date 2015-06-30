@@ -409,6 +409,7 @@ public:
 
 #if defined(_DEBUG)
 	wxString		ShowReturnedCurlCodes();
+	wxString		ReturnStrings(wxArrayString* pArr);
 #endif
 	int				m_returnedCurlCodes[50]; // to track the up to 50 returned error codes,
 											 // most or all should be CURLE_OK, for a
