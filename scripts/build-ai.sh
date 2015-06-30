@@ -2,6 +2,9 @@
 # build-ai.sh -- builds AdaptIt on Ubuntu
 # Builds the UnicodeDebug and UnicodeRelease configurations for the continuous 
 # builds on TeamCity. No packaging is performed.
+# whm revised 30Jun2015. Travis CI release build failing due to trying to link against debug .o files, so I
+#    added the removal of the UnicodeRelease dir in the first part of script (which was only removing the
+#    UnicodeDebug dir.
 
 DIR=$( cd "$( dirname "$0" )" && pwd )
 TRUNK=$DIR/..
@@ -20,6 +23,13 @@ rm -rf $TRUNK/bin/linux/UnicodeDebug
 if [ $? -ne 0 ]
 then
   echo "Unable to remove UnicodeDebug directory: $?"
+  exit 1
+fi
+
+rm -rf $TRUNK/bin/linux/UnicodeRelease
+if [ $? -ne 0 ]
+then
+  echo "Unable to remove UnicodeRelease directory: $?"
   exit 1
 fi
 
