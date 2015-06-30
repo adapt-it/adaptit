@@ -56,16 +56,12 @@
     #pragma implementation "CCModule.h"
 #endif
 
-// whm added 12Aug12 for builds using gcc turn off deprecated warnings since
-// the old CC code has many that can't be fixed without a major rewrite.
-// whm added 7Oct12 two additional pragma declarations to turn off
-// "sign-compare" and "write-strings" warnings.
-// Note: This pragma should only apply to CCModule.cpp and versions of
-// gcc >= 4.2, but the wxCHECK_GCC_VERSION(4, 2) macro produces compile
-// errors on either the Mac or Linux for some unknown reason. The remaining
-// conditional compile directive below should be sufficient since we are using
-// at least gcc 4.2 in current builds.
-#if defined(__GNUG__)
+#include <wx/defs.h>
+
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
 	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 	#pragma GCC diagnostic ignored "-Wsign-compare"
 	#pragma GCC diagnostic ignored "-Wwrite-strings"

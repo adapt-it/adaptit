@@ -1,8 +1,8 @@
 ----------------------------------------------
-Version 6.5.9 Pre-Release 15 May 2015
+Version 6.5.9 release 2 July 2015
 ----------------------------------------------
 ----------------------------------------------
-Feature changes and new features in 6.5.9 Pre-Release
+Feature changes and new features in 6.5.9
 ----------------------------------------------
 * A new checkbox in the View tab of Preferences allows the
 user to turn on support for a forward slash (the solidus 
@@ -94,8 +94,35 @@ distributed to only those intending to make use of this
 new feature. The next general release will include this
 new feature and it will be available to everyone from
 that time onwards.
+* In earlier versions, the Add button and Update button,
+and also the source text box below the list, all these
+in the Knowledge Base Editor tabbed pages, did not consider
+auto-capitalization settings. Now they do. (That is, if
+automatic capitalization is turned on, they will store lower
+case entries unchanged, but entries beginning with a
+capital letter, will have the initial capital changed to a
+lower case equivalent letter.)
+* Source text exports, and target text exports are changed.
+The old way would unfilter any filtered information and 
+insert it into the filtered text. But filtered information
+is only source text information, and putting that into a
+target text export resulted not just in unwanted data being
+present, but a mixing of source and target text words.
+The new behaviour is simply to refrain from automatic
+unfiltering of filtered information. So if something is
+filtered out, it does not get put into the export.
+(Exports of free translations, or glosses as text, did
+not unfilter and insert information in the export, so
+those exports did not need any changes.)
+* Collaboration behaviours (with Paratext or Bibledit) 
+are enhanced. Adapt It now robustly supports filtering
+out, or unfiltering of filtered information, at any time
+within Adapt It, while collaboration mode is in effect.
+(It has always been possible to do either when there
+was no collaboration in effect. Now that flexibility
+is supported in collaboration mode.)
 ----------------------------------------------
-Bug fixes in 6.5.9 Pre-Release
+Bug fixes in 6.5.9 release 2 July 2015
 ----------------------------------------------
 * In free translation mode, tabbing from button to button halted
 at the Remove button.

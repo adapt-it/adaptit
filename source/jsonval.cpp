@@ -13,6 +13,16 @@
 #endif
 
 
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
@@ -33,10 +43,11 @@ WX_DEFINE_OBJARRAY( wxJSONInternalArray );
 
 // the trace mask used in wxLogTrace() function
 // static const wxChar* traceMask = _T("jsonval");
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
 static const wxChar* traceMask = _T("jsonval");
 static const wxChar* compareTraceMask = _T("sameas");
 static const wxChar* cowTraceMask = _T("traceCOW" );
-
+#endif
 
 
 /*******************************************************************
@@ -1815,8 +1826,10 @@ wxJSONValue::Item( unsigned index )
 wxJSONValue&
 wxJSONValue::Item( const wxString& key )
 {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( traceMask, _T("(%s) searched key=\'%s\'"), __PRETTY_FUNCTION__, key.c_str());
     wxLogTrace( traceMask, _T("(%s) actual object: %s"), __PRETTY_FUNCTION__, GetInfo().c_str());
+#endif
 
     wxJSONRefData* data = COW();
     wxJSON_ASSERT( data );
@@ -1826,8 +1839,10 @@ wxJSONValue::Item( const wxString& key )
         data = SetType( wxJSONTYPE_OBJECT );
         return data->m_valMap[key];
     }
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( traceMask, _T("(%s) searching key \'%s' in the actual object"),
                  __PRETTY_FUNCTION__, key.c_str() );
+#endif
     return data->m_valMap[key];
 }
 
@@ -1864,8 +1879,10 @@ wxJSONValue::ItemAt( unsigned index ) const
 wxJSONValue
 wxJSONValue::ItemAt( const wxString& key ) const
 {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( traceMask, _T("(%s) searched key=\'%s\'"), __PRETTY_FUNCTION__, key.c_str());
     wxLogTrace( traceMask, _T("(%s) actual object: %s"), __PRETTY_FUNCTION__, GetInfo().c_str());
+#endif
 
     wxJSONRefData* data = GetRefData();
     wxJSON_ASSERT( data );
@@ -2383,8 +2400,10 @@ wxJSONValue::IsSameAs( const wxJSONValue& other ) const
     wxJSONRefData* otherData = other.GetRefData();
 
     if ( data == otherData ) {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
         wxLogTrace( compareTraceMask, _T("(%s) objects share the same referenced data - r=TRUE"),
              __PRETTY_FUNCTION__ );
+#endif
     return true;
     }
 
@@ -2513,19 +2532,25 @@ wxJSONValue::IsSameAs( const wxJSONValue& other ) const
             break;
         case wxJSONTYPE_ARRAY :
             size = Size();
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
             wxLogTrace( compareTraceMask, _T("(%s) Comparing an array object - size=%d"),
                     __PRETTY_FUNCTION__, size );
+#endif
 
             if ( size != other.Size() )  {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
                 wxLogTrace( compareTraceMask, _T("(%s) Sizes does not match"),
                         __PRETTY_FUNCTION__ );
+#endif
                 return false;
             }
             // compares every element in this object with the element of
             // the same index in the 'other' object
             for ( int i = 0; i < size; i++ )  {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
                 wxLogTrace( compareTraceMask, _T("(%s) Comparing array element=%d"),
                         __PRETTY_FUNCTION__, i );
+#endif
                 wxJSONValue v1 = ItemAt( i );
                 wxJSONValue v2 = other.ItemAt( i );
 
@@ -2536,25 +2561,33 @@ wxJSONValue::IsSameAs( const wxJSONValue& other ) const
             break;
         case wxJSONTYPE_OBJECT :
             size = Size();
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
             wxLogTrace( compareTraceMask, _T("(%s) Comparing a map obejct - size=%d"),
                         __PRETTY_FUNCTION__, size );
+#endif
 
             if ( size != other.Size() )  {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
                 wxLogTrace( compareTraceMask, _T("(%s) Comparison failed - sizes does not match"),
                                 __PRETTY_FUNCTION__ );
+#endif
                 return false;
             }
             // for every key calls itself on the value found in
             // the other object. if 'key' does no exist, returns FALSE
             for ( it = data->m_valMap.begin(); it != data->m_valMap.end(); it++ )  {
                 wxString key = it->first;
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
                 wxLogTrace( compareTraceMask, _T("(%s) Comparing map object - key=%s"),
                                 __PRETTY_FUNCTION__, key.c_str() );
+#endif
                 wxJSONValue otherVal = other.ItemAt( key );
                 bool isSame = it->second.IsSameAs( otherVal );
                 if ( !isSame )  {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
                     wxLogTrace( compareTraceMask, _T("(%s) Comparison failed for the last object"),
                                     __PRETTY_FUNCTION__ );
+#endif
                     return false;
                 }
             }
@@ -2598,24 +2631,34 @@ wxJSONValue::AddComment( const wxString& str, int position )
     wxJSONRefData* data = COW();
     wxJSON_ASSERT( data );
 
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( traceMask, _T("(%s) comment=%s"), __PRETTY_FUNCTION__, str.c_str() );
+#endif
     int r = -1;
     int len = str.length();
     if ( len < 2 )  {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
         wxLogTrace( traceMask, _T("     error: len < 2") );
+#endif
         return -1;
     }
     if ( str[0] != '/' )  {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
         wxLogTrace( traceMask, _T("     error: does not start with\'/\'") );
+#endif
         return -1;
     }
     if ( str[1] == '/' )  {       // a C++ comment: check that it ends with '\n'
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
         wxLogTrace( traceMask, _T("     C++ comment" ));
+#endif
         if ( str.GetChar(len - 1) != '\n' )  {
             wxString temp( str );
             temp.append( 1, '\n' );
             data->m_comments.Add( temp );
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
             wxLogTrace( traceMask, _T("     C++ comment: LF added") );
+#endif
         }
         else  {
             data->m_comments.Add( str );
@@ -2623,7 +2666,9 @@ wxJSONValue::AddComment( const wxString& str, int position )
         r = data->m_comments.size();
     }
     else if ( str[1] == '*' )  {  // a C-style comment: check that it ends with '*/'
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
         wxLogTrace( traceMask, _T("     C-style comment") );
+#endif
         int lastPos = len - 1;
         wxChar ch = str.GetChar( lastPos );
         // skip leading whitespaces
@@ -2637,7 +2682,9 @@ wxJSONValue::AddComment( const wxString& str, int position )
         }
     }
     else  {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
         wxLogTrace( traceMask, _T("     error: is not a valid comment string") );
+#endif
         r = -1;
     }
     // if the comment was stored, store the position
@@ -2701,7 +2748,9 @@ wxJSONValue::GetCommentCount() const
     wxJSON_ASSERT( data );
 
     int d = data->m_comments.GetCount();
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( traceMask, _T("(%s) comment count=%d"), __PRETTY_FUNCTION__, d );
+#endif
     return d;
 }
 
@@ -3018,8 +3067,10 @@ wxJSONValue::CloneRefData( const wxJSONRefData* otherData ) const
         }
     }
 
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( cowTraceMask, _T("(%s) CloneRefData() PROGR: other=%d data=%d"),
             __PRETTY_FUNCTION__, other->GetRefCount(), data->GetRefCount() );
+#endif
 
     return data;
 }
@@ -3052,12 +3103,17 @@ wxJSONRefData*
 wxJSONValue::COW()
 {
     wxJSONRefData* data = GetRefData();
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( cowTraceMask, _T("(%s) COW() START data=%p data->m_count=%d"),
              __PRETTY_FUNCTION__, data, data->GetRefCount());
+#endif
+    wxUnusedVar(data); // whm added 25Jun2015 to avoid gcc "not used" warning in release builds
     UnShare();
     data = GetRefData();
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( cowTraceMask, _T("(%s) COW() END data=%p data->m_count=%d"),
              __PRETTY_FUNCTION__, data, data->GetRefCount());
+#endif
     return GetRefData();
 }
 

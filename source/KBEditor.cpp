@@ -25,6 +25,16 @@
     #pragma implementation "KBEditor.h"
 #endif
 
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
@@ -180,6 +190,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 
 	bool bOK = false;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+        wxUnusedVar(bOK); // whm added 25Jun2015 to avoid gcc "not used" warning
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 
@@ -1701,6 +1712,7 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 		int keysCount = 0;
 		keysCount = m_pListBoxKeys->GetCount();
 		wxASSERT(nNewKeySel < keysCount);
+                wxUnusedVar(keysCount); // whm added 25Jun2015 to avoid gcc "not used" warning (release build)
 		m_pListBoxKeys->Delete(nNewKeySel);
 		// set nNewKeySel to be the previous item in listbox unless it already
 		// is the first item
@@ -1748,6 +1760,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	int count = 0;
 	count = m_pListBoxExistingTranslations->GetCount();
 	wxASSERT(nSel < count);
+        wxUnusedVar(count); // whm added 25Jun2015 to avoid gcc "not used" warning (release build)
 	if (nSel > 0)
 	{
 		nSel--;
@@ -2534,6 +2547,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				// there is at least one non-deleted element, so put this one in the list
 				// box
 				index = m_pListBoxKeys->Append(srcKeyStr,(void*)pCurTgtUnit);
+                                wxUnusedVar(index); // whm added 25Jun2015 to avoid gcc "not used" warning
 			}
 		}
 		// BEW 27May13, the loop has finished; remove any bad entries that were skipped over
@@ -2738,6 +2752,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	if (pCurTgtUnit != NULL)
 	{
 		int countNonDeleted = 0;
+                wxUnusedVar(countNonDeleted); // whm added 25Jun2015 to avoid gcc "unused" warning
 		countNonDeleted = pCurTgtUnit->CountNonDeletedRefStringInstances();
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);

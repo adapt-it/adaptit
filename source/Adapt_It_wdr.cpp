@@ -73,7 +73,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_LABEL, _("WX Version"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.9 Pre-Release"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("6.5.9"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("May 15, 2015"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -1911,7 +1911,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_LEGACY_SRC_TEXT_COPY, _("Copy the default phrase box contents from adaptation or gloss, depending on the mode"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( 20, 4, 0, wxALIGN_CENTER|wxTOP, 5 );
+    item2->Add( 20, 4, 0, wxALIGN_CENTER|wxTOP, 0 );
 
     wxStaticBox *item35 = new wxStaticBox( parent, -1, _("Choose the top option to support copy of source text zero width spaces into the adaptation") );
     wxStaticBoxSizer *item34 = new wxStaticBoxSizer( item35, wxVERTICAL );
@@ -1929,11 +1929,11 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxCheckBox *item38 = new wxCheckBox( parent, ID_CHECKBOX_NO_FOOTNOTES_IN_COLLAB, _("When collaborating, send no footnotes to Paratext or Bibledit"), wxDefaultPosition, wxDefaultSize, 0 );
     item38->SetToolTip( _("Completely remove footnote markers and their contents before transferring the text to Paratext or Bibledit") );
-    item2->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item39 = new wxCheckBox( parent, ID_CHECKBOX_FREEZE_THAW, _("Reduce \"blinking\" effect when doing automatic insertions"), wxDefaultPosition, wxDefaultSize, 0 );
     item39->SetToolTip( _("This works by freezing the window, but periodically unfreezing it after several insertions are done") );
-    item2->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item2, 1, wxLEFT|wxRIGHT|wxBOTTOM, 10 );
 
@@ -2070,7 +2070,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxCheckBox *item34 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
     item34->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
-    item33->Add( item34, 0, wxALIGN_CENTER, 5 );
+    item33->Add( item34, 0, wxALIGN_CENTER, 0 );
 
     item33->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -2079,7 +2079,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item36 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
     item36->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
-    item33->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+    item33->Add( item36, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item4->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -2110,11 +2110,11 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item42->SetToolTip( _("Choose whether you want the strips to move vertically, or the phrase box, while working") );
     item41->Add( item42, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item4->Add( item41, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    item4->Add( item41, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
     wxBoxSizer *item43 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item43, 0, wxGROW|wxALL, 5 );
+    item4->Add( item43, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item44 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -2129,7 +2129,7 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxSlider *item47 = new wxSlider( parent, ID_DIACRITICS_SLIDER, 0, 0, 6, wxDefaultPosition, wxSize(100,-1), wxSL_HORIZONTAL|wxSL_LABELS );
     item47->SetToolTip( _("Drag to right, to add from 1 to 6 pixels to target text cell height ") );
-    item44->Add( item47, 0, wxALIGN_CENTER|wxALL, 5 );
+    item44->Add( item47, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item4->Add( item44, 0, wxALIGN_CENTER_VERTICAL, 0 );
 

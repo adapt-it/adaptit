@@ -1,20 +1,9 @@
-adaptit (6.5.9-3) unstable; urgency=low
-
-  * pull in updates
-
- -- Bill Martin <bill_martin@sil.org>  Wed, 27 May 2015 16:00:00 -0500
-
-adaptit (6.5.9-2) unstable; urgency=low
-
-  * pull in updates
-
- -- Bill Martin <bill_martin@sil.org>  Mon, 25 May 2015 16:00:00 -0500
-
 adaptit (6.5.9-1) unstable; urgency=low
 
-  * pull in updates
+  * debian/rules
+    - Modified to use dh_prep in place of the deprecated dh_clean -k
 
- -- Bill Martin <bill_martin@sil.org>  Mon, 15 May 2015 16:00:00 -0600
+ -- Bill Martin <bill_martin@sil.org>  Thu, 2 Jul 2015 16:00:00 -0600
 
 adaptit (6.5.8-1) unstable; urgency=low
 

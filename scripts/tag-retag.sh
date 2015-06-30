@@ -1,13 +1,13 @@
 #!/bin/bash
-# retag.sh -- Tag the adaptit git repository for adaptit version provided as parameter
+# tag-retag.sh -- Tag the adaptit git repository for adaptit version provided as parameter
 #             if the version number already exists it retags repository to the same version.
 #          -- Assumes the current directory is the local active adaptit git repository.
 #
 # Author: Bill Martin <bill_martin@sil.org>
-#
 # Date: 2015-05-27
+# Revised 2015-06-28 renamed script from tagretag.sh to tag-retag.sh
 
-TAGRETAGSCRIPT="tagretag.sh"
+TAGRETAGSCRIPT="tag-retag.sh"
 WAIT=60
 
 # A bash function to verify a git tag
@@ -42,7 +42,7 @@ case $# in
     0) 
       echo "The $TAGRETAGSCRIPT script was invoked without any parameters:"
       echo "Usage: Call with one parameter representing the git tag, i.e.,"
-      echo "  ./tagretag.sh adaptit-6.5.8"
+      echo "  ./$TAGRETAGSCRIPT adaptit-6.5.8"
       exit 1
         ;;
     1) 
@@ -52,7 +52,7 @@ case $# in
     *)
       echo "Unrecognized parameters used with script."
       echo "Usage: Call with one parameter representing the git tag, i.e.,"
-      echo "  ./tagretag.sh adaptit-6.5.8"
+      echo "  ./$TAGRETAGSCRIPT adaptit-6.5.8"
       exit 1
         ;;
 esac
@@ -70,22 +70,13 @@ else
     exit 1
 fi
 
-#echo "Debug Breakpoint - next: call git pull"
-#exit 0
-
 # Next execute a git pull to be sure our git repo is up-to-date
 echo "Executing git pull..."
 git pull
 
-#echo "Debug Breakpoint - next: call verify_git_tag()"
-#exit 0
-
 if verify_git_tag "$1" ; then
     # The input tag name-version was found
     echo "Git tag \"$1\" already exists..."
-
-#echo "Debug Breakpoint - next: delete existing tag $1"
-#exit 0
 
     # Delete the existing tag
     echo -e "\nDelete the existing tag: \"$1\"? [y/n]"
@@ -108,8 +99,6 @@ if verify_git_tag "$1" ; then
           git tag -d "$1" 
           git push origin :refs/tags/"$1"
 
-#echo "Debug Breakpoint - next: retag the repo with the tag $1"
-#exit 0
           echo -e "\nTag the git repository with the new tag: \"$1\"? [y/n]"
           for (( i=$WAIT; i>0; i--)); do
               printf "\rPlease press the y or n key, or hit any key to abort - countdown $i "
@@ -145,9 +134,6 @@ if verify_git_tag "$1" ; then
 else
     # The input tag name-version was not found
     echo "The \"$1\" tag is not in the repository."
-
-#echo "Debug Breakpoint - next: tag the repo with the new tag $1"
-#exit 0
 
     echo -e "\nTag the git repository with the new tag: \"$1\"? [y/n]"
     for (( i=$WAIT; i>0; i--)); do

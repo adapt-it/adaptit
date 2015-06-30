@@ -12,6 +12,16 @@
     #pragma implementation "jsonwriter.cpp"
 #endif
 
+// whm 25Jun2015 added the following wxCHECK_GCC_VERSION() statement to prevent
+//"unrecognized command line options" when compiling with GCC version 4.8 or earlier
+#include <wx/defs.h>
+#if defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 6)
+	#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+	#pragma GCC diagnostic ignored "-Wsign-compare"
+	#pragma GCC diagnostic ignored "-Wwrite-strings"
+	#pragma GCC diagnostic ignored "-Wsizeof-pointer-memaccess"
+#endif
+
 
 //#include <wx/jsonwriter.h>
 
@@ -23,7 +33,9 @@
 #include "jsonwriter.h"
 
 
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
 static const wxChar* writerTraceMask = _T("traceWriter");
+#endif
 
 /*! \class wxJSONWriter
  \brief The JSON document writer
@@ -846,8 +858,10 @@ wxJSONWriter::WriteStringValue( wxOutputStream& os, const wxString& str )
 int
 wxJSONWriter::WriteString( wxOutputStream& os, const wxString& str )
 {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( writerTraceMask, _T("(%s) string to write=%s"),
                   __PRETTY_FUNCTION__, str.c_str() );
+#endif
     int lastChar = 0;
     char* writeBuff = 0;
 
@@ -881,8 +895,10 @@ wxJSONWriter::WriteString( wxOutputStream& os, const wxString& str )
         return -1;
     }
 
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( writerTraceMask, _T("(%s) result=%d"),
                   __PRETTY_FUNCTION__, lastChar );
+#endif
     return lastChar;
 }
 
@@ -1067,8 +1083,10 @@ wxJSONWriter::WriteBoolValue( wxOutputStream& os, const wxJSONValue& value )
 int
 wxJSONWriter::WriteKey( wxOutputStream& os, const wxString& key )
 {
+#if defined(_DEBUG)  // whm added 25Jun2015 _DEBUG check to avoid gcc "not used" warning
     wxLogTrace( writerTraceMask, _T("(%s) key write=%s"),
                   __PRETTY_FUNCTION__, key.c_str() );
+#endif
 
     int lastChar = WriteStringValue( os, key );
     os.Write( " : ", 3 );
