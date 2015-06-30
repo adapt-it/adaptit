@@ -55,7 +55,7 @@ then
 fi
 
 #($CONFIG/UnicodeDebug/make)
-(cd UnicodeDebug && make)
+(cd UnicodeDebug && make clean && make)
 if [ $? -ne 0 ]
 then
   echo "Error building Adapt It Unicode Debug: $?"
@@ -73,7 +73,7 @@ then
 fi
 
 #($CONFIG/UnicodeRelease/make)
-(cd UnicodeRelease && make)
+(cd UnicodeRelease && make clean && make)
 if [ $? -ne 0 ]
 then
   echo "Error building Adapt It Unicode Release: $?"
