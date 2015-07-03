@@ -18,9 +18,20 @@
 #   - Add cases to recognize LinuxMint DIST aliases
 #   - When pbuilder hooks file A05suffix needs to be created added queries to obtain
 #        user's debian packaging DEBFULLNAME and DEBEMAIL to use in the A05suffix file.
-#   - Added echo statements throughout to better track building process
+#   - Added echo statements throughout to better track building process.
+# Revised 2015-06-30 by Bill Martin
+#   - Assigned the appropriate URL to AID_GITURL which had gone missing.
+#   - Revised the handling of the ~/packaging dir contents. The script now retains any
+#        previously cloned git repository, so that on subsequent runs, the script just
+#        updates the repo with 'git pull' before the git checkout call. This saves 
+#        having to clone the whole remote git repo for subsequent runs of the script.
+#   - Added 'git stash' before the 'git checkout -b ...' call and 'git stash apply' 
+#     afterwards to handle any uncommitted changes existing in the repo at packaging time.
 
-PBUILDFOLDER=${PBUILDFOLDER:-~/pbuilder}
+AID_GITURL="https://github.com/adapt-it/adaptit.git"
+PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
+PROJECTS_DIR="$HOME/projects"	# AID development default file location for the adaptit repo
+PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy of the adaptit repo
 OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid sid"}
 DEVTOOLS="ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
@@ -42,7 +53,7 @@ sudo apt-get update && sudo apt-get upgrade -y
 sudo apt-get install $DEVTOOLS -y
 
 # Install ~/.pbuilderrc unless there already is one
-[ -f ~/.pbuilderrc ] || cat >~/.pbuilderrc <<"EOF"
+[ -f $HOME/.pbuilderrc ] || cat >$HOME/.pbuilderrc <<"EOF"
 # Codenames for Debian suites according to their alias.
 UNSTABLE_CODENAME="sid"
 TESTING_CODENAME="stretch"
@@ -224,34 +235,85 @@ sudo apt-get install $BUILDDEPS -y
 # whm 2015-06-24 modified to do the release packaging in ~/packaging
 # otherwise the packaging related stuff will go into the dir from which
 # release.sh is being called from (the ~/projects/adaptit/scripts/ dir).
-echo -e "\nCloning the adaptit repository to ~/packaging/adaptit"
-mkdir -p ~/packaging
+echo -e "\nPreparing an adaptit repository at $PACKAGING_DIR/adaptit"
+mkdir -p $PACKAGING_DIR
 
-# Remove any previous adaptit* in ~/packaging dir for fresh start
-if ls ~/packaging/* 1> /dev/null 2>&1; then
-  echo -e "\nRemoving previous packaging files in ~/packaging/"
-  rm -rf ~/packaging/*
+# whm - Modified 2015-06-30 Check for an existing adaptit git repo on the current machine
+# first at ~/packaging/adaptit from previous packaging efforts, and if not there, check 
+# at ~/projects/adaptit. If the repo is found at one of these locations, we can use it for
+# packaging the current release.
+# There should be a working copy of the repo at ~/projects/adaptit (particularly if the 
+# aid-dev-setup.sh script was used to set up the developer environment for AID on that machine). 
+# If the git repo exists there, that working adaptit repo will probably be more current than
+# a repo contained in ~/packages/, and we should copy/sync that one over to ~/packages/adaptit.
+# If no get repo exists at ~/projects/adaptit, we'll use any we find at ~/packaging/adaptit.
+# In either case we execute a 'git pull' on the repo now located at ~/packaging/adaptit before
+# continuing with the packaging process. Copying the repo from another location on the same 
+# machine and doing 'git pull' is always faster than starting from scratch doing a 'git clone'.
+# If no adaptit repo exits that we can reuse, we just do the git clone operation.
+cd $PACKAGING_DIR
+echo -e "\nChecking for a git repo at: $PROJECTS_DIR/adaptit"
+if [ -f "$PROJECTS_DIR/adaptit/.git/config" ]; then
+  # The rsync options are:
+  #   -a archive mode (recurses thru dirs, preserves symlinks, permissions, times, group, owner)
+  #   -q quiet mode
+  #   --delete delete extraneous files from the destination dirs
+  #   --exclude="..." exclude these directories/files from the copy/sync process
+  echo -e "\nCopying/Syncing repo..."
+  echo      "  from $PROJECTS_DIR/adaptit"
+  echo      "  to $PACKAGING_DIR/adaptit"
+  rsync -aq --delete --exclude="build_*" $PROJECTS_DIR/adaptit/ $PACKAGING_DIR/adaptit/ 
+  echo -e "\nPulling in any new changes to $PACKAGING_DIR/adaptit/..."
+  cd adaptit
+  git pull
 else
-  echo -e "\nNo previous packaging files in ~/packaging/ dir"
+  # Check for a git 'adaptit' repo in ~/packaging/ that we might be able to update and use.
+  echo -e "\nChecking for a git repo at: $PACKAGING_DIR/adaptit"
+  if [ -f "$PACKAGING_DIR/adaptit/.git/config" ]; then
+    echo -e "\nPulling in any new changes to $PACKAGING_DIR/adaptit/..."
+    git pull
+  else
+    echo -e "\nCloning the Adapt It Desktop (AID) sources..."
+    echo      "  from: $AID_GITURL"
+    echo      "  to $PACKAGING_DIR/adaptit"
+    [ -d adaptit ] || git clone $AID_GITURL
+  fi
 fi
-cd ~/packaging
-git clone https://github.com/adapt-it/adaptit.git
 
 # Figure out which release to build -- default is latest numbered release
-cd adaptit
+cd $PACKAGING_DIR/adaptit
 RELEASE=${1:-$(git describe --tags $(git rev-list --tags --max-count=1))}
 
 RELEASE=${RELEASE#adaptit-}    # Remove any leading adaptit- prefix
 
 # Check out the desired release from git
-echo -e "\nCreate new branch name and start at: adaptit-${RELEASE}"
+echo -e "\nCreate new git branch name and start at: adaptit-${RELEASE}"
+# In case we've gotten some uncommitted changes in the git repo we'll
+# stash them before doing the checkout below, then 'stash apply' them
+# after the checkout.
+git stash
 #git checkout tags/${RELEASE} -b ${RELEASE} || exit 1
 git checkout -b ${RELEASE} adaptit-${RELEASE} || exit 1
+git stash apply
 
+# whm modified 2015-06-30 to not just rename the adaptit dir to adaptit-${RELEASE} 
+# but to copy/sync the adaptit dir to adaptit-${RELEASE}. This leaves a copy of
+# the adaptit repo in ~/packaging/ that can be used for future release packaging
+# if there is no current repo at ~/projects/adaptit/ to draw from.
+# 
 # rename the release directory, ready for creating a source tarball
-echo -e "\nRename the release dir from adaptit to adaptit-${RELEASE}"
+#echo -e "\nRename the release dir from adaptit to adaptit-${RELEASE}"
 cd ..
-mv ./adaptit ./adaptit-${RELEASE}
+# Remove any existing adaptit-${RELEASE} if it already exists
+if [ -d "$PACKAGING_DIR/adaptit-${RELEASE}" ]; then
+  echo -e "\nRemoving existing repo at: $PACKAGING_DIR/adaptit-${RELEASE}"
+  rm -rf $PACKAGING_DIR/adaptit-${RELEASE}
+fi
+#mv ./adaptit ./adaptit-${RELEASE}
+echo -e "\nSyncing repo with rsync..."
+echo      "  from $PACKAGING_DIR/adaptit/"
+echo      "  to $PACKAGING_DIR/adaptit-${RELEASE}/"
+rsync -aq --delete --exclude="build_*" $PACKAGING_DIR/adaptit/ $PACKAGING_DIR/adaptit-${RELEASE}/
 
 # Delete unwanted non-source files here using find
 echo -e "\nRemoving unwanted non-source files from adaptit-${RELEASE}"
@@ -259,14 +321,23 @@ echo -e "\nRemoving unwanted non-source files from adaptit-${RELEASE}"
 find adaptit-${RELEASE} -type f -iname "*.dll" -delete
 find adaptit-${RELEASE} -type f -iname "*.exe" -delete
 find adaptit-${RELEASE} -type f -iname "bin2c" -delete
+rm -rf adaptit-${RELEASE}/.git
+rm -rf adaptit-${RELEASE}/bin/source
+rm adaptit-${RELEASE}/.gitignore
+rm adaptit-${RELEASE}/.travis.yml
 
 # Delete unwanted non-source directory using find
-find adaptit-${RELEASE} -type d -iname ".git" -exec rm -rf {} \;
+#find adaptit-${RELEASE} -type d -iname ".git" -exec rm -rf {} \;
 
 # Tar it up and create symlink for .orig.bz2
 echo -e "\nTar up the release and create symlink for .orig.bz2"
 tar jcf adaptit-${RELEASE}.tar.bz2 adaptit-${RELEASE} || exit 3
-ln -s adaptit-${RELEASE}.tar.bz2 adaptit_${RELEASE}.orig.tar.bz2
+if [ -h adaptit_${RELEASE}.orig.tar.bz2 ]; then
+  echo "Link: adaptit_${RELEASE}.orig.tar.bz2 already exists"
+else
+  echo "Creating link to target: adaptit_${RELEASE}.orig.tar.bz2"
+  ln -s adaptit-${RELEASE}.tar.bz2 adaptit_${RELEASE}.orig.tar.bz2
+fi
 
 # Do an initial unsigned source build in host OS environment
 echo -e "\nDo initial unsigned source build in host OS environment"
