@@ -47245,6 +47245,15 @@ wxArrayString CAdapt_ItApp::GetListOfPTProjects()
 					if (lineStr.Find(tagName) != wxNOT_FOUND)
 					{
 						booksPresentFlags = GetStringBetweenXMLTags(&f,lineStr, tagName, endTagName);
+//#if defined(_DEBUG)
+//                      // BEW fixed 3July15, added else block in the above function
+//						// The failure of collaboration in 2014 &15 was due to structure
+//						// changes at end of .ssf files making <BooksPresent> tag not line
+//						// initial, resulting in GetStingBetweenXMLTags() returning empty
+//						// string - which then clobbered progressing in the collab setup dlg
+//						wxLogDebug(_T("GetListOfPTProjects(): File: %s  booksPresentFlags:  %s"), 
+//							str.c_str(), booksPresentFlags.c_str());
+//#endif
 						pPTInfo->booksPresentFlags = booksPresentFlags;
 					}
 
@@ -47911,6 +47920,24 @@ wxString CAdapt_ItApp::GetStringBetweenXMLTags(wxTextFile* f, wxString lineStr, 
 			// <tag>PCDATA</endtag>
 			// and doesn't have a nested <value>...</value> set of tags
 			tempStr = lineStr.Mid(beginTag.Length(),nEndTagPos - beginTag.Length());
+		}
+	}
+	else
+	{
+		// BEW 3Jul15 added this block because recent .ssf files for settings for
+		// Paratext projects have not been storing the <BooksPresent> element at
+		// the start of its own line preceded only by whitespace (two spaces), but
+		// rather, immediately after </Directory> endtag at the file end. That 
+		// resulted in the legacy block above being skipped, and the user can't
+		// setup the collaboration because the gets the error message that "This
+		// Paratext project has no books. ...." This else block fixes the problem
+		int nEndTagPos;
+		nEndTagPos = lineStr.Find(endTag);
+		if (nEndTagPos != wxNOT_FOUND)
+		{
+			// The endtag is in the line, so this is a Paratext .ssf file
+			size_t start = (size_t)nTagPos + beginTag.Len();
+			tempStr = lineStr.Mid(start,nEndTagPos - start);
 		}
 	}
 	return tempStr;
