@@ -428,7 +428,7 @@ for i in $OSRELEASES; do
       cd $PACKAGING_DIR
     else
       cd ${PBUILDFOLDER}
-      echo -e "\nRenaming the ${DIST}_result dir to ${DIST}_result"
+      echo -e "\nRenaming the ${DIST}_result dir to ${DIST}-amd64_result"
       mv "${DIST}_result" "${DIST}-amd64_result"
       cd $PACKAGING_DIR
     fi
