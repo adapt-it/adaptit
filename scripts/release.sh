@@ -380,7 +380,7 @@ LINTIAN_PROFILE=ubuntu debuild -eLINTIAN_PROFILE -S -sa -us -uc || exit 4
 buildSuffix=`dpkg-parsechangelog | awk '/^Version: / {print $2}' | cut -d '-' -f2`
 echo -e "\nBuild Suffix: $buildSuffix"
 
-cd ..
+cd $PACKAGING_DIR
 
 for i in $OSRELEASES; do
   export DIST=$i	# $DIST is used in .pbuilderrc
@@ -409,18 +409,31 @@ for i in $OSRELEASES; do
   echo "  pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc"
   pbuilder-$i-i386 build --binary-arch adaptit_${RELEASE}-$buildSuffix.dsc
 
-  # Copy the resulting .deb files to a results folder under the current directory
-  # No longer done 2012-10-05 JM
-  #mkdir -p adaptit-debs-${RELEASE}
+  # mkfit -p adaptit-debs-${RELEASE}
   #mv -v $(find ${PBUILDFOLDER}/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
-done
 
-# TODO: If there is already a $DIST-amd64_result folder, copy any new content from
-# the corresponding $DIST_result folder to the $DIST-amd64_result folder, then delete
-# the $DIST_result folder. If a particular $DIST-amd64_result folder doesn't exits,
-# just rename the corresponding $DIST_result folder to $DIST-amd64_result.
-# Rename the $DIST_result folders to $DIST-amd64_result for more clarity
-find ${PBUILDFOLDER}/$DIST_result -type d -exec mv {} ${PBUILDFOLDER}/$DIST-amd64_result \;
+  # whm changed 2015-07-03 If $DIST-amd64_result dir exists, copy new amd64 packages there from $DIST_result,
+  # and remove the $DIST_result dir. If $DIST-amd64_result dir doesn't yet exist, just rename the $DIST_result
+  # folder to $DIST-amd64_result. Having amd64 package files in a dir with amd64 in its name has more clarity.
+  if [ -d "${PBUILDFOLDER}/${DIST}_result" ]; then
+    if [ -d "${PBUILDFOLDER}/${DIST}-amd64_result" ]; then
+      echo -e "\nThe ${DIST}-amd64_result already exists."
+      echo "Copying/Syncing package files from ${DIST}_result to ${DIST}-amd64_result..."
+      cd ${PBUILDFOLDER}
+      rsync -aq --update "${DIST}_result/" "${DIST}-amd64_result"
+      if [ "$?" -eq 0 ]; then
+        echo "and removing the ${DIST}_result dir."
+        rm -rf "${DIST}_result"
+      fi
+      cd $PACKAGING_DIR
+    else
+      cd ${PBUILDFOLDER}
+      echo -e "\nRenaming the ${DIST}_result dir to ${DIST}_result"
+      mv "${DIST}_result" "${DIST}-amd64_result"
+      cd $PACKAGING_DIR
+    fi
+  fi
+done
 
 echo -e "\n"
 echo -e "$0: Completed. Adaptit version ${RELEASE} package files may be found in:"
