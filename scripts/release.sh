@@ -25,8 +25,10 @@
 #        previously cloned git repository, so that on subsequent runs, the script just
 #        updates the repo with 'git pull' before the git checkout call. This saves 
 #        having to clone the whole remote git repo for subsequent runs of the script.
-#   - Added 'git stash' before the 'git checkout -b ...' call and 'git stash apply' 
-#     afterwards to handle any uncommitted changes existing in the repo at packaging time.
+#   - Added command to rename the $DIST_result folders to $DIST-amd64_result to add 
+#     clarity to the naming of the amd64 result folders.
+#   - Added test at beginning for 64 bit machine. Building 64-bit packages requires a
+#     64 bit machine.
 
 AID_GITURL="https://github.com/adapt-it/adaptit.git"
 PBUILDFOLDER=${PBUILDFOLDER:-$HOME/pbuilder}
@@ -35,6 +37,18 @@ PACKAGING_DIR="$HOME/packaging"      # default location for the packaging copy o
 OSRELEASES=${2:-"lucid maverick natty oneiric precise quantal raring saucy trusty utopic vivid sid"}
 DEVTOOLS="ubuntu-dev-tools debhelper pbuilder libtool quilt git subversion"
 BUILDDEPS="libwxgtk2.8-dev zip uuid-dev libcurl3-gnutls-dev"
+
+# The building of 64 bit packages requires that we are using a 64-bit architecture machine
+Arch=`dpkg --print-architecture`
+if [ x"$Arch" = x"amd64" ]; then
+  echo -e "\nArchitecture of this machine is 64-bit ( $Arch )\n"
+else
+  echo -e "\nThe architecture of this machine is NOT 64-bit ( $Arch )"
+  echo "Building Adapt It packages requires a 64 bit (amd64) machine in order to"
+  echo "build both 32 bit (i386) and 64 bit (amd64) packages."
+  echo "This $0 script can only be used on a 64 bit machine. Aborting..."
+  exit 1
+fi
 
 if [ -z "$1" ]
 then
@@ -241,36 +255,61 @@ mkdir -p $PACKAGING_DIR
 # whm - Modified 2015-06-30 Check for an existing adaptit git repo on the current machine
 # first at ~/packaging/adaptit from previous packaging efforts, and if not there, check 
 # at ~/projects/adaptit. If the repo is found at one of these locations, we can use it for
-# packaging the current release.
+# packaging the current release, giving preference to any repo at ~/projects/adaptit.
 # There should be a working copy of the repo at ~/projects/adaptit (particularly if the 
 # aid-dev-setup.sh script was used to set up the developer environment for AID on that machine). 
 # If the git repo exists there, that working adaptit repo will probably be more current than
-# a repo contained in ~/packages/, and we should copy/sync that one over to ~/packages/adaptit.
+# a repo contained in ~/packaging/, and we should copy/sync that one over to ~/packaging/adaptit
+# totally replacing the one at ~/packaging/adaptit.
 # If no get repo exists at ~/projects/adaptit, we'll use any we find at ~/packaging/adaptit.
 # In either case we execute a 'git pull' on the repo now located at ~/packaging/adaptit before
 # continuing with the packaging process. Copying the repo from another location on the same 
 # machine and doing 'git pull' is always faster than starting from scratch doing a 'git clone'.
 # If no adaptit repo exits that we can reuse, we just do the git clone operation.
 cd $PACKAGING_DIR
-echo -e "\nChecking for a git repo at: $PROJECTS_DIR/adaptit"
+echo -e "\nChecking for a development git repo at: $PROJECTS_DIR/adaptit"
 if [ -f "$PROJECTS_DIR/adaptit/.git/config" ]; then
-  # The rsync options are:
-  #   -a archive mode (recurses thru dirs, preserves symlinks, permissions, times, group, owner)
-  #   -q quiet mode
-  #   --delete delete extraneous files from the destination dirs
-  #   --exclude="..." exclude these directories/files from the copy/sync process
-  echo -e "\nCopying/Syncing repo..."
-  echo      "  from $PROJECTS_DIR/adaptit"
-  echo      "  to $PACKAGING_DIR/adaptit"
-  rsync -aq --delete --exclude="build_*" $PROJECTS_DIR/adaptit/ $PACKAGING_DIR/adaptit/ 
-  echo -e "\nPulling in any new changes to $PACKAGING_DIR/adaptit/..."
-  cd adaptit
-  git pull
+  echo "Development git repo exists at: $PROJECTS_DIR/adaptit"
+  echo -e "\nChecking for existing repo at: $PACKAGING_DIR/adaptit ..."
+  if [ -f "$PACKAGING_DIR/adaptit/.git/config" ]; then
+    echo "A repo was found at: $PACKAGING_DIR/adaptit"
+    cd $PACKAGING_DIR/adaptit
+    echo "Doing 'git reset --hard' on the repo"
+    git reset --hard
+    echo "Doing 'git pull' on the repo"
+    git pull
+  else
+    echo "No repo found at: $PACKAGING_DIR/adaptit"
+    # The rsync options are:
+    #   -a archive mode (recurses thru dirs, preserves symlinks, permissions, times, group, owner)
+    #   -q quiet mode
+    #   --delete delete extraneous files from the destination dirs
+    #   --ignore-times (turns of quick check of file size and time stamp, causing all files to be 
+    #     updated. This is needed because it is possible for destination to have a newer time stamp
+    #     but out of date contents compared to the source location's files)
+    #   --checksum (compare a 128-bit checksum for each file that has a matching size)
+    #   --exclude="..." exclude these directories/files from the copy/sync process
+    echo -e "\nCopying/Syncing repo..."
+    echo      "  from $PROJECTS_DIR/adaptit/"
+    echo      "  to $PACKAGING_DIR/adaptit"
+    rsync -aq --delete --ignore-times --checksum --exclude="build_*" $PROJECTS_DIR/adaptit/ $PACKAGING_DIR/adaptit
+
+    cd $PACKAGING_DIR/adaptit
+    echo "Doing 'git reset --hard' on the repo"
+    git reset --hard
+    echo "Doing 'git pull' on the repo"
+    git pull
+  fi
 else
+    echo "No repo found at: $PROJECTS_DIR/adaptit"
   # Check for a git 'adaptit' repo in ~/packaging/ that we might be able to update and use.
   echo -e "\nChecking for a git repo at: $PACKAGING_DIR/adaptit"
   if [ -f "$PACKAGING_DIR/adaptit/.git/config" ]; then
-    echo -e "\nPulling in any new changes to $PACKAGING_DIR/adaptit/..."
+    echo "A repo was found at: $PACKAGING_DIR/adaptit"
+    cd $PACKAGING_DIR/adaptit
+    echo "Doing 'git reset --hard' on the repo"
+    git reset --hard
+    echo "Doing 'git pull' on the repo"
     git pull
   else
     echo -e "\nCloning the Adapt It Desktop (AID) sources..."
@@ -280,54 +319,47 @@ else
   fi
 fi
 
-# Figure out which release to build -- default is latest numbered release
+# Remove any existing adaptit-<tag> packaging repos if any already exist
+echo -e "\nRemoving any existing packaging repos at: $PACKAGING_DIR/adaptit-*"
+rm -rf $PACKAGING_DIR/adaptit-*
+
+# At this point there should be an up-to-date repo at ~/packaging/adaptit
+# It will function as our backup repo for packaging purposes. We'll make
+# a copy of this repo, renaming it with the desired tag as a suffix which
+# will function as our new branch for the git checkout command below.
+# First, figure out which release to build -- default is latest numbered release
 cd $PACKAGING_DIR/adaptit
 RELEASE=${1:-$(git describe --tags $(git rev-list --tags --max-count=1))}
-
 RELEASE=${RELEASE#adaptit-}    # Remove any leading adaptit- prefix
+echo -e "\nThe tag we're using for packaging is: $RELEASE"
 
-# Check out the desired release from git
-echo -e "\nCreate new git branch name and start at: adaptit-${RELEASE}"
-# In case we've gotten some uncommitted changes in the git repo we'll
-# stash them before doing the checkout below, then 'stash apply' them
-# after the checkout.
-git stash
-#git checkout tags/${RELEASE} -b ${RELEASE} || exit 1
-git checkout -b ${RELEASE} adaptit-${RELEASE} || exit 1
-git stash apply
-
-# whm modified 2015-06-30 to not just rename the adaptit dir to adaptit-${RELEASE} 
+# whm modified 2015-07-03 to not just rename the adaptit dir to adaptit-${RELEASE} 
 # but to copy/sync the adaptit dir to adaptit-${RELEASE}. This leaves a copy of
 # the adaptit repo in ~/packaging/ that can be used for future release packaging
 # if there is no current repo at ~/projects/adaptit/ to draw from.
-# 
-# rename the release directory, ready for creating a source tarball
-#echo -e "\nRename the release dir from adaptit to adaptit-${RELEASE}"
-cd ..
-# Remove any existing adaptit-${RELEASE} if it already exists
-if [ -d "$PACKAGING_DIR/adaptit-${RELEASE}" ]; then
-  echo -e "\nRemoving existing repo at: $PACKAGING_DIR/adaptit-${RELEASE}"
-  rm -rf $PACKAGING_DIR/adaptit-${RELEASE}
-fi
-#mv ./adaptit ./adaptit-${RELEASE}
 echo -e "\nSyncing repo with rsync..."
 echo      "  from $PACKAGING_DIR/adaptit/"
-echo      "  to $PACKAGING_DIR/adaptit-${RELEASE}/"
-rsync -aq --delete --exclude="build_*" $PACKAGING_DIR/adaptit/ $PACKAGING_DIR/adaptit-${RELEASE}/
+echo      "  to $PACKAGING_DIR/adaptit-${RELEASE}"
+rsync -aq --delete --ignore-times --checksum --exclude="build_*" $PACKAGING_DIR/adaptit/ $PACKAGING_DIR/adaptit-${RELEASE}
 
-# Delete unwanted non-source files here using find
+# Check out the desired release from git
+echo -e "\nCreate new git branch name and start at: adaptit-${RELEASE}"
+cd $PACKAGING_DIR/adaptit-${RELEASE}
+#git checkout tags/${RELEASE} -b ${RELEASE} || exit 1
+git checkout -b ${RELEASE} adaptit-${RELEASE} || exit 1
+
+cd ..
+
+# Delete unwanted non-source files here
 echo -e "\nRemoving unwanted non-source files from adaptit-${RELEASE}"
 #find adaptit-${RELEASE} -type f -iname "*.hhc" -delete
 find adaptit-${RELEASE} -type f -iname "*.dll" -delete
 find adaptit-${RELEASE} -type f -iname "*.exe" -delete
 find adaptit-${RELEASE} -type f -iname "bin2c" -delete
-rm -rf adaptit-${RELEASE}/.git
-rm -rf adaptit-${RELEASE}/bin/source
-rm adaptit-${RELEASE}/.gitignore
-rm adaptit-${RELEASE}/.travis.yml
-
-# Delete unwanted non-source directory using find
-#find adaptit-${RELEASE} -type d -iname ".git" -exec rm -rf {} \;
+if [ -d adaptit-${RELEASE}/.git ]; then rm -rf adaptit-${RELEASE}/.git; fi
+if [ -d adaptit-${RELEASE}/bin/source ]; then rm -rf adaptit-${RELEASE}/bin/source; fi
+if [ -f adaptit-${RELEASE}/.gitignore ]; then rm adaptit-${RELEASE}/.gitignore; fi
+if [ -f adaptit-${RELEASE}/.travis.yml ]; then rm adaptit-${RELEASE}/.travis.yml; fi
 
 # Tar it up and create symlink for .orig.bz2
 echo -e "\nTar up the release and create symlink for .orig.bz2"
@@ -383,4 +415,13 @@ for i in $OSRELEASES; do
   #mv -v $(find ${PBUILDFOLDER}/*_result -name "adaptit*${RELEASE}*${DIST}*.deb") adaptit-debs-${RELEASE}/
 done
 
-echo "$0: Completed.  Adaptit version ${RELEASE} package files are in " ${PBUILDFOLDER}/*_result
+# TODO: If there is already a $DIST-amd64_result folder, copy any new content from
+# the corresponding $DIST_result folder to the $DIST-amd64_result folder, then delete
+# the $DIST_result folder. If a particular $DIST-amd64_result folder doesn't exits,
+# just rename the corresponding $DIST_result folder to $DIST-amd64_result.
+# Rename the $DIST_result folders to $DIST-amd64_result for more clarity
+find ${PBUILDFOLDER}/$DIST_result -type d -exec mv {} ${PBUILDFOLDER}/$DIST-amd64_result \;
+
+echo -e "\n"
+echo -e "$0: Completed. Adaptit version ${RELEASE} package files may be found in:"
+find ${PBUILDFOLDER}/*_result -type d
