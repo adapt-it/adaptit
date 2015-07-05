@@ -74,12 +74,13 @@ TESTING_CODENAME="stretch"
 STABLE_CODENAME="jessie"
 
 # List of Debian suites.
-DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME
+DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME \
     "experimental" "unstable" "testing" "stable")
 
 # List of Ubuntu suites. Update these when needed.
-UBUNTU_SUITES=("vivid" "utopic" "trusty" "saucy" "raring" "quantal" "precise" "oneiric" "natty" "maverick" "lucid"
-     "karmic" "jaunty" "intrepid" "hardy" "gutsy")
+UBUNTU_SUITES=("vivid" "utopic" "trusty" "saucy" "raring" "quantal" \
+    "precise" "oneiric" "natty" "maverick" "lucid" "karmic" "jaunty" \
+    "intrepid" "hardy" "gutsy")
 
 # Mirrors to use. Update these to your preferred mirror.
 DEBIAN_MIRROR="ftp.us.debian.org"
@@ -119,7 +120,7 @@ case "$DIST" in
         DIST="trusty"
         ;;
 esac
-echo -e\nDistribution DIST Codename is: $DIST"
+echo -e "\nDistribution DIST Codename is: $DIST"
 
 # Optionally set the architecture to the host architecture if none set. Note
 # that you can set your own default (i.e. ${ARCH:="i386"}).
