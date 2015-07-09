@@ -168,18 +168,18 @@ class CSourcePhrase;
 		const wxArrayString& postEditMd5Arr, // full one-chapter md5 lines array for AI postEdit text
 		const wxArrayString& fromEditorMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
 		int&  preEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
-						  // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		// or if no next verse, the last md5 line (it may not be a verse line) in the array
 		int&  postEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
-						   // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		// or if no next verse, the last md5 line (it may not be a verse line) in the array
 		int&  fromEditorEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
-						     // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		// or if no next verse, the last md5 line (it may not be a verse line) in the array
 		wxArrayPtrVoid& postEditOffsetsArr, // needed so we can grab the postEdit verse's text
 		wxArrayPtrVoid& fromEditorOffsetsArr, // needed so we can grab the fromEditor verse's text
 		const wxChar* pPostEditBuffer, // start of the postEdit text buffer
-		wxChar* pPostEditEnd,   // end of the postEdit text buffer
+		wxChar* pPostEditEnd,          // end of the postEdit text buffer
 		const wxChar* pFromEditorBuffer, // start of the fromEditor text buffer
-		wxChar* pFromEditorEnd);    // end of the fromEditor text buffer
-
+		wxChar* pFromEditorEnd,          // end of the fromEditor text buffer
+		wxString fromEditorMD5Sum);      // we use a 0 value to cause unilateral AI verse content transfer
 
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);

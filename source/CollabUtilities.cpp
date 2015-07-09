@@ -7177,10 +7177,23 @@ wxString GetUpdatedText_UsfmsChanged(
 			// chapter, in which case the "next" verse line does not exist - so take this
 			// possibility into account too. The next call makes the tests needed, and
 			// also updates the indices giving us the chunk ends in the last 3 params
+#if defined(_DEBUG)
+			//if (postEditVerseNumStr == _T("11"))
+			//{
+			//	int break_here = 1;
+			//}
+#endif
+			// BEW 8July15 added next line, so that a fromEditorMD5Sum value of _T("0")
+			// can be used in the HasInfoChanged() call to return TRUE if the PT or BE
+			// verse has no content, causing AI to unilaterally transfer whatever it has
+			// for that verse - even if only an empty string
+			fromEditorMD5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
+
 			bStructureOrTextHasChanged = HasInfoChanged(preEditStart, postEditStart,
 				fromEditorStart, preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
 				preEditEnd, postEditEnd, fromEditorEnd, postEditOffsetsArr, fromEditorOffsetsArr,
-				pPostEditBuffer, pPostEditEnd, pFromEditorBuffer, pFromEditorEnd);
+				pPostEditBuffer, pPostEditEnd, pFromEditorBuffer, pFromEditorEnd,
+				fromEditorMD5Sum);
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxString val = bStructureOrTextHasChanged ? _T("TRUE") : _T("FALSE");
 		wxLogDebug(_T("HasInfoChanged() returned %s  at verses matching for value = %s"),
@@ -7361,7 +7374,9 @@ bool HasInfoChanged(
 	const wxChar* pPostEditBuffer,    // start of the postEdit text buffer
 	wxChar* pPostEditEnd,             // end of the postEdit text buffer
 	const wxChar* pFromEditorBuffer,  // start of the fromEditor text buffer
-	wxChar* pFromEditorEnd)           // end of the fromEditor text buffer
+	wxChar* pFromEditorEnd,           // end of the fromEditor text buffer
+	wxString fromEditorMD5Sum)        // we are interested in this only when the value is zero 
+									  // (it is used to cause unilateral AI verse transfer)
 {
 	int preEditArrCount;
 	int postEditArrCount;
@@ -7434,10 +7449,18 @@ bool HasInfoChanged(
 	postEditEnd = postEditNextVerseLine;
 	fromEditorEnd = fromEditorNextVerseLine;
 
-	// Now do the analysis of what lies within the matched chunks of data. First, there
-	// will have been a USFM structure change if the difference between postEditIndex and
-	// postEditEnd is different from the difference between fromEditorEnd and
-	// fromEditorIndex. Evaluate, and return TRUE if so; else continue with other checks
+	// Now do the analysis of what lies within the matched chunks of data. First, if the
+	// value of the md5sum for the fromEditor line is _T("0"), that means the PT or BE
+	// verse is empty, and in that circumstance we unilaterally transfer whatever is in
+	// the AI verse - even if the AI verse has no content yet
+	if (fromEditorMD5Sum == _T("0"))
+	{
+		return TRUE;
+	}
+	// Next, check for USFM structure changes. There will have been a USFM structure change
+	// if the difference between postEditIndex and postEditEnd is different from the 
+	// difference between fromEditorEnd and fromEditorIndex. Evaluate, and return TRUE if
+	// so; else continue with other checks
 	wxASSERT(postEditEnd >= postEditIndex);
 	wxASSERT(fromEditorEnd >= fromEditorIndex);
 	if ((postEditEnd - postEditIndex) != (fromEditorEnd - fromEditorIndex))

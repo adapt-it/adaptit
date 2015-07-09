@@ -1,9 +1,44 @@
 ----------------------------------------------
-Version 6.5.9 release 2 July 2015
+Version 6.5.9 release 4 July 2015
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.5.9
 ----------------------------------------------
+* Collaboration behaviours (with Paratext or Bibledit) 
+are enhanced. Adapt It now robustly supports filtering
+out, or unfiltering of filtered information, at any time
+within Adapt It, while collaboration mode is in effect.
+(It has always been possible to do either when there
+was no collaboration in effect. Now that flexibility
+is robustly supported in collaboration mode.)
+* A collaboration failure at setup time has been fixed -
+see below.
+* Exports for source text and target text have been changed.
+Formerly, a USFM export of the source or target text always
+would unfilter any filtered out markers and their content and
+include that data in the export. This worked against the
+intention of the user - filtering out should make the 
+filtered data inaccessible to the export. So that change
+has been made. If something is filtered, it is not included
+in either of those exports. (A side effect of this has been
+that it made possible a robust collaboration with Paratext
+or Bibledit even when the Adapt It user filters or unfilters
+markers and their content. Previously, the well-formedness
+of the collaboration data was not guaranteed after a filtering
+or unfiltering was done.)
+* The dialog for the command "Setup Or Remove Collaboration"
+formerly had three buttons each with the same label which 
+was "Select From List". User's found it easy to mistake
+which was for source text, which for target text. Now they
+are changed to make it clear what they are for. From the
+top down they are:
+Select Source Project From List
+Select Target Project From List
+Select Free Translation Project From List.
+* In the dialog for "Setup Or Remove Collaboration", the 
+two radio buttons for the choice "by chapter" versus 
+"whole book" which formerly were arrange horizontally have
+been reordered to be vertical, with an "or" between them.
 * A new checkbox in the View tab of Preferences allows the
 user to turn on support for a forward slash (the solidus 
 character / ) to be used as a word-breaking delimiter
@@ -88,12 +123,6 @@ progress of the automatic insertions. Background highlighting
 is not removed by the occasional thaws and refreezings.
 The settings for both these new checkbox are preserved in
 the basic configuration file, AI-BasicConfiguration.aic.
-* It is unlikely that this Pre-Release version will be
-made available at http://adapt-it.org. It is intended to be
-distributed to only those intending to make use of this
-new feature. The next general release will include this
-new feature and it will be available to everyone from
-that time onwards.
 * In earlier versions, the Add button and Update button,
 and also the source text box below the list, all these
 in the Knowledge Base Editor tabbed pages, did not consider
@@ -114,16 +143,18 @@ filtered out, it does not get put into the export.
 (Exports of free translations, or glosses as text, did
 not unfilter and insert information in the export, so
 those exports did not need any changes.)
-* Collaboration behaviours (with Paratext or Bibledit) 
-are enhanced. Adapt It now robustly supports filtering
-out, or unfiltering of filtered information, at any time
-within Adapt It, while collaboration mode is in effect.
-(It has always been possible to do either when there
-was no collaboration in effect. Now that flexibility
-is supported in collaboration mode.)
+
 ----------------------------------------------
-Bug fixes in 6.5.9 release 2 July 2015
+Bug fixes in 6.5.9 release 4 July 2015
 ----------------------------------------------
+* In the past year or so, some people reported that an attempt
+to setup a collaboration with Paratext would fail, with an
+error message that says: "This Paratext project contains no books..."
+This has been fixed. (The error happened because recent Paratext
+versions did not put the <BooksPresent> tag in Paratext .ssf files
+at the start of a new line, with or without whitespace preceding.
+AdaptIt now no longer relies on the .ssf data being prettily
+structured when reading the XML tags, etc.)
 * In free translation mode, tabbing from button to button halted
 at the Remove button.
 * If there were two successive spans of filterable material, and both 
@@ -135,6 +166,10 @@ exported retranslation. Now it outputs whatever was the original
 retranslation text's saved word-breaking character, or whatever
 else the user may have used as the word separator due to his edits 
 within the retranslation dialog.
+* When collaborating, if the Paratext (or Bibledit) verse is empty,
+Adapt It unilaterally should send the Adapt It form of the verse to
+PT (or BE). In some circumstances this didn't happen in versions
+for the last year or two. This is now fixed.
 ----------------------------------------------
 Version 6.5.8 release 5 March 2015
 ----------------------------------------------
