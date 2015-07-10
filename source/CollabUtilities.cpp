@@ -6650,6 +6650,23 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			}
 #endif
 		}
+		else if (postEditMD5Sum == zeroStr)
+		{
+			// In this case, we don't want an empty bit of content in the AI document to
+			// wipe out possibly good content in PT or BE, so let the external editor's
+			// content remain untouched. BEW added 10Jul15
+			pFromEditorOffsets = (MD5Map*)fromEditorOffsetsArr.Item(index);
+			wxString fragmentStr = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+				pFromEditorOffsets->startOffset, pFromEditorOffsets->endOffset);
+			newText += fragmentStr;
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
+			if (index >= 23 && index <= 32)
+			{
+				wxLogDebug(_T("AI version of the text bit is empty: index = %d  , postEdit  %s  , Keeping PT, Substring: %s"),
+					index, postEditMD5Sum.c_str(), fragmentStr.c_str());
+			}
+#endif
+		}
 		else
 		{
 			// the MD5 checksum for the external editor's marker contents for this
@@ -7186,14 +7203,41 @@ wxString GetUpdatedText_UsfmsChanged(
 			// BEW 8July15 added next line, so that a fromEditorMD5Sum value of _T("0")
 			// can be used in the HasInfoChanged() call to return TRUE if the PT or BE
 			// verse has no content, causing AI to unilaterally transfer whatever it has
-			// for that verse - even if only an empty string
+			// for that verse - provided AI's version is not also empty
 			fromEditorMD5Sum = GetFinalMD5FromStructExtentString(fromEditorMd5Line);
-
-			bStructureOrTextHasChanged = HasInfoChanged(preEditStart, postEditStart,
-				fromEditorStart, preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-				preEditEnd, postEditEnd, fromEditorEnd, postEditOffsetsArr, fromEditorOffsetsArr,
-				pPostEditBuffer, pPostEditEnd, pFromEditorBuffer, pFromEditorEnd,
-				fromEditorMD5Sum);
+			postEditMD5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
+			if (fromEditorMD5Sum == _T("0") && postEditMD5Sum != _T("0"))
+			{
+				bStructureOrTextHasChanged = TRUE;
+			}
+			else if (postEditMD5Sum == _T("0"))
+			{
+				// BEW 10Jul15, we want the user to be able to establish a collaboration
+				// with, say, a drafted book, and be able to selectively edit some verses
+				// of some chapters, knowing that any of the verses he's left untranslated
+				// in the AI document, are not going to wipe out the contents of those verses
+				// in the PT equivalent chapter(s). 
+				// This protocol should work well in the  GetUpdatedText_UsfmsUnchanged() 
+				// function; but here, it is flawed. 
+				// Here it will work if following the \v and it's verse number there is nothing
+				// except maybe some whitespace prior to the next \v marker. But it only takes
+				// as little as one non-white space character, such as a \p marker even if that
+				// has no content, to make the verse look like it has content as far as an
+				// MD5sum is concerned, in which case the PT verse would get wiped. 
+				// I'll leave this block here though, it will certainly protect some PT verses.
+				// What helps is the likelihood that in most scenarios this present function
+				// won't get called, and if it is called, usually there will be no PT verse
+				// content to preserve anyway.
+				bStructureOrTextHasChanged = FALSE; // triggers retaining the PT version
+			}
+			else
+			{
+				// In other circumstances, careful testing is required...
+				bStructureOrTextHasChanged = HasInfoChanged(preEditStart, postEditStart,
+					fromEditorStart, preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
+					preEditEnd, postEditEnd, fromEditorEnd, postEditOffsetsArr, fromEditorOffsetsArr,
+					pPostEditBuffer, pPostEditEnd, pFromEditorBuffer, pFromEditorEnd);
+			}
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxString val = bStructureOrTextHasChanged ? _T("TRUE") : _T("FALSE");
 		wxLogDebug(_T("HasInfoChanged() returned %s  at verses matching for value = %s"),
@@ -7374,9 +7418,7 @@ bool HasInfoChanged(
 	const wxChar* pPostEditBuffer,    // start of the postEdit text buffer
 	wxChar* pPostEditEnd,             // end of the postEdit text buffer
 	const wxChar* pFromEditorBuffer,  // start of the fromEditor text buffer
-	wxChar* pFromEditorEnd,           // end of the fromEditor text buffer
-	wxString fromEditorMD5Sum)        // we are interested in this only when the value is zero 
-									  // (it is used to cause unilateral AI verse transfer)
+	wxChar* pFromEditorEnd)           // end of the fromEditor text buffer
 {
 	int preEditArrCount;
 	int postEditArrCount;
@@ -7449,15 +7491,7 @@ bool HasInfoChanged(
 	postEditEnd = postEditNextVerseLine;
 	fromEditorEnd = fromEditorNextVerseLine;
 
-	// Now do the analysis of what lies within the matched chunks of data. First, if the
-	// value of the md5sum for the fromEditor line is _T("0"), that means the PT or BE
-	// verse is empty, and in that circumstance we unilaterally transfer whatever is in
-	// the AI verse - even if the AI verse has no content yet
-	if (fromEditorMD5Sum == _T("0"))
-	{
-		return TRUE;
-	}
-	// Next, check for USFM structure changes. There will have been a USFM structure change
+	// Analysis, check for USFM structure changes. There will have been a USFM structure change
 	// if the difference between postEditIndex and postEditEnd is different from the 
 	// difference between fromEditorEnd and fromEditorIndex. Evaluate, and return TRUE if
 	// so; else continue with other checks

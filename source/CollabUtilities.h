@@ -178,8 +178,7 @@ class CSourcePhrase;
 		const wxChar* pPostEditBuffer, // start of the postEdit text buffer
 		wxChar* pPostEditEnd,          // end of the postEdit text buffer
 		const wxChar* pFromEditorBuffer, // start of the fromEditor text buffer
-		wxChar* pFromEditorEnd,          // end of the fromEditor text buffer
-		wxString fromEditorMD5Sum);      // we use a 0 value to cause unilateral AI verse content transfer
+		wxChar* pFromEditorEnd);          // end of the fromEditor text buffer
 
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
