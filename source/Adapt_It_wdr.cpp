@@ -10781,6 +10781,135 @@ wxSizer *SingleLanguageCodeDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
+wxSizer *AI-PT-ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("One or more verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Adapt It needs your help to choose which version of each of the listed verses is the best to have in Paratext."), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_INFO_1, _("Highlight a verse reference in the list to see its source text and the conflicting versions of the verse."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_INFO_2, _("Put a tick in the check box if you want to transfer the Adapt It version. It will then replace the Paratext version."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT_INFO_3, _("Leave the check box empty if you want to retain the Paratext version."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_INFO_4, _("After you have finished making your choices, click the \"Transfer Selected Verses\" button."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
+
+    wxFlexGridSizer *item7 = new wxFlexGridSizer( 2, 0, 0 );
+
+    wxListCtrl *item8 = new wxListCtrl( parent, ID_LISTCTRL_VERSE_CONFLICTS, wxDefaultPosition, wxSize(150,-1), wxLC_REPORT|wxSUNKEN_BORDER );
+    item7->Add( item8, 1, wxGROW, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item11 = new wxStaticText( parent, ID_TEXT, _("Source text of verse selected at left"), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(400,40), wxTE_MULTILINE|wxTE_READONLY );
+    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticLine *item13 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
+    item10->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item9->Add( item10, 2, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Translation of verse in Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item18 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_AI_VERSION, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    item16->Add( item18, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    wxRadioButton *item19 = new wxRadioButton( parent, ID_RADIOBUTTON, _("Use this Adapt It version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item15->Add( item16, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT_STATIC_PT_VS_TITLE, _("Translation of verse in Paratext"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_PT_VERSION, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    item21->Add( item23, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    wxRadioButton *item24 = new wxRadioButton( parent, ID_RADIOBUTTON_PT_BUTTON_TEXT, _("Retain this Paratext version"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    item14->Add( item20, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    item9->Add( item14, 3, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item7->Add( item9, 2, wxGROW|wxALIGN_CENTER_HORIZONTAL, 0 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_SELECT_ALL_VS, _("Select All Verses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("Save the current form of the list to a text file") );
+    item25->Add( item26, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_UNSELECT_ALL_VS, _("Un-Select All Verses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetToolTip( _("Save the current form of the list to a text file") );
+    item25->Add( item27, 0, wxALIGN_CENTER, 5 );
+
+    item7->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item29 = new wxButton( parent, wxID_OK, _("Transfer Selected Verses"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetDefault();
+    item29->SetToolTip( _("Removes the entries which are ticked, and closes the dialog") );
+    item28->Add( item29, 0, wxALIGN_CENTER, 5 );
+
+    item28->Add( 20, 12, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item30 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Ignore any selections made, just Cancel the dialog") );
+    item28->Add( item30, 0, wxALIGN_CENTER, 5 );
+
+    item7->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item7->AddGrowableCol( 1 );
+
+    item7->AddGrowableRow( 0 );
+
+    item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, _("You can resize this dialog by dragging the bottom right corner."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
