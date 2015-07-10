@@ -1097,7 +1097,7 @@ const int ID_TEXTCTRL_READONLY_PT_VERSION = 10838;
 const int ID_RADIOBUTTON_PT_BUTTON_TEXT = 10839;
 const int ID_BUTTON_SELECT_ALL_VS = 10840;
 const int ID_BUTTON_UNSELECT_ALL_VS = 10841;
-wxSizer *AI-PT-ConflictingVersesFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
+wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit = true, bool set_sizer = true );
 
 // Declare menubar functions
 

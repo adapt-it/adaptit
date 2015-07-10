@@ -10781,7 +10781,7 @@ wxSizer *SingleLanguageCodeDlgFunc( wxWindow *parent, bool call_fit, bool set_si
     return item0;
 }
 
-wxSizer *AI-PT-ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
