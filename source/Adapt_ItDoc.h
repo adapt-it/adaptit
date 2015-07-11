@@ -470,6 +470,13 @@ protected:
 	// Generated message map functions (from MFC version) ... most of these should not be
 	// public!!! (BEW 17May10)
 public:
+
+	// whm added 10Jul2015 for temporary testing of the CCollabVerseConflictDlg dialog
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	void OnVerseConflictDlg(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateVerseConflictDlg(wxUpdateUIEvent& event);
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
 	void DocChangedExternally();

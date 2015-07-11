@@ -1,25 +1,31 @@
-// Implementation Template Notes: 
-// 1. Cut and paste this file into a new class implementation .cpp file
-// 2. Find and Replace ClassName with the name of the actual class (less the C prefix)
-// 3. After doing 1-2 above delete these Implementation Template Notes from the new .cpp file
+// Implementation Template Instructions and Notes:
+// 1. To create a new dialog class (using Visual Studio): 
+// Use the Visual Studio Project > Add Class... wizard. Select the C++
+// "Category" and "Add" button. Enter the ClassName in the "Class name:" edit
+// box. The .h and .cpp edit boxes will prefix the ClassName with a 'C'.
+// Prefix the .h name with ../../source/ and the .cpp name with ../../source/
+// Put AIModal as the "Base class:" edit box, and tick the "Virtual destructor"
+// check box and finally click "Finish". Visual Studio adds ClassName.h and
+// ClassName.cpp stub source files to the project (located in the adaptit/source/ dir).
+// 2. Open the new .cpp file and copy and paste the entire contents of this 
+// template text into the new class implementation .cpp file.
+// 3. Find and Replace ClassName with the name of the actual class (less the C prefix)
+// Note: In the Find and Replace dialog untick the "Match whole word" option.
+// 4. Change the \author name as appropriate.
+// 5. Fill in the \description for the "The CClassName class(does what)" part.
+// 6. Implement the details of the new class.
+// 7. After doing 2-6 above delete these Implementation Template Notes from the new .cpp file
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			ClassName.cpp
 /// \author			Bill Martin
-/// \date_created	10 November 2006
-/// \date_revised	15 January 2008
-/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \date_created	10 July 2015
+/// \rcs_id $Id$
+/// \copyright		2015 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CClassName class. 
 /// The CClassName class (does what)
 /// \derivation		The CClassName class is derived from AIModalDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ClassName.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -40,8 +46,8 @@
 #endif
 
 // other includes
-#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
-#include <wx/valgen.h> // for wxGenericValidator
+//#include <wx/docview.h> // needed for classes that reference wxView or wxDocument
+//#include <wx/valgen.h> // for wxGenericValidator
 //#include <wx/valtext.h> // for wxTextValidator
 #include "Adapt_It.h"
 #include "ClassName.h"

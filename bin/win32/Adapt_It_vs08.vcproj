@@ -545,6 +545,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\CollabVerseConflictDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\CollectBacktranslations.cpp"
 				>
 			</File>
@@ -1143,6 +1147,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\CollabUtilities.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\CollabVerseConflictDlg.h"
 				>
 			</File>
 			<File
