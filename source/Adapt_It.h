@@ -4154,11 +4154,14 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 private:
 	wxString m_targetTextBuffer_PreEdit;
 	wxString m_freeTransTextBuffer_PreEdit;
+	wxString m_sourceTextBuffer_PostEdit; // export the source text, in collaboration, to here
 public:
 	void     StoreTargetText_PreEdit(wxString s);
 	void     StoreFreeTransText_PreEdit(wxString s);
+	void	 StoreSourceText_PostEdit(wxString s); // accessor for storing the src text
 	wxString GetStoredTargetText_PreEdit();
 	wxString GetStoredFreeTransText_PreEdit();
+	wxString GetStoredSourceText_PostEdit(); // accessor for getting the src text
 	// end of collaboration declarations
 
 	// BEW added 6Aug2012 for maintaining a book name (user defined, although a suggestion

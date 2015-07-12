@@ -48670,7 +48670,7 @@ wxArrayString CAdapt_ItApp::GetBooksArrayFromBookFlagsString(wxString bookFlagsS
 }
 
 // BEW 10Jul11, for collaborating with external editor..., for
-// temporary storage and retieval of "pre-edit" USFM text for
+// temporary storage and retrieval of "pre-edit" USFM text for
 // the current active document
 
 //setters
@@ -48682,6 +48682,10 @@ void CAdapt_ItApp::StoreFreeTransText_PreEdit(wxString s)
 {
 	m_freeTransTextBuffer_PreEdit = s;
 }
+void CAdapt_ItApp::StoreSourceText_PostEdit(wxString s)
+{
+	m_sourceTextBuffer_PostEdit = s;
+}
 // getters
 wxString CAdapt_ItApp::GetStoredTargetText_PreEdit()
 {
@@ -48690,6 +48694,10 @@ wxString CAdapt_ItApp::GetStoredTargetText_PreEdit()
 wxString CAdapt_ItApp::GetStoredFreeTransText_PreEdit()
 {
 	return m_freeTransTextBuffer_PreEdit;
+}
+wxString CAdapt_ItApp::GetStoredSourceText_PostEdit()
+{
+	return m_sourceTextBuffer_PostEdit;
 }
 
 // support for saving and restoring the selection, and clearing saved selection members

@@ -10787,7 +10787,7 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("One or more verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Adapt It needs your help to choose which version of each of the listed verses is the best to have in Paratext."), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_TOP, _("One or more verses are different when comparing the Adapt It verse contents with the Paratext verse contents. Adapt It needs your help to choose which version of each of the listed verses is the best to have in Paratext."), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_INFO_1, _("Highlight a verse reference in the list to see its source text and the conflicting versions of the verse."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -10822,7 +10822,8 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Source text of verse selected at left"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(500,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(500,54), wxTE_MULTILINE|wxTE_READONLY );
+    item14->SetFont( wxFont( 11, wxROMAN, wxNORMAL, wxNORMAL ) );
     item12->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item15 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
@@ -10839,7 +10840,8 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Translation of verse in Adapt It"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->Add( item19, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_AI_VERSION, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item20 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_AI_VERSION, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item20->SetFont( wxFont( 11, wxROMAN, wxNORMAL, wxNORMAL ) );
     item18->Add( item20, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     wxRadioButton *item21 = new wxRadioButton( parent, ID_RADIOBUTTON_USE_AI_VERSION, _("Use this Adapt It version"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -10856,7 +10858,8 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_STATIC_PT_VS_TITLE, _("Translation of verse in Paratext"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->Add( item24, 0, wxALIGN_CENTER, 5 );
 
-    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_PT_VERSION, wxT(""), wxDefaultPosition, wxSize(80,40), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_READONLY_PT_VERSION, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_MULTILINE|wxTE_READONLY );
+    item25->SetFont( wxFont( 11, wxROMAN, wxNORMAL, wxNORMAL ) );
     item23->Add( item25, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
     wxRadioButton *item26 = new wxRadioButton( parent, ID_RADIOBUTTON_RETAIN_PT_VERSION, _("Retain this Paratext version"), wxDefaultPosition, wxDefaultSize, 0 );

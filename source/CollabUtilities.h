@@ -209,6 +209,9 @@ class CSourcePhrase;
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
 							wxArrayPtrVoid& fromEditorOffsetsArr);
+	// BEW 10Jul15, next one needed for conflict resolution dialog
+	wxString		MakeSourceTextForCollabConflictResDlg();
+
 	////////////////// end of those for analysis of texts //////////////////////////
 
 

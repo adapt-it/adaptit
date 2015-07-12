@@ -110,9 +110,9 @@ extern bool gbDoingInitialSetup;
 	// disappear before source text is grabbed from the external editor and especially
 	// before a target text export is done to form the preEdit chapter text - since the
 	// latter could put up a Place Medial Markers dialog, and we don't want to see it
-	// until the dialog has disappear. Doing this requires moving some class variables to
+	// until the dialog has disappeared. Doing this requires moving some class variables to
 	// become global variables here, since the delayed handler function parts will become
-	// gloabl functions of CollabUtilities.cpp - all this stuff is immediately below. We'll
+	// global functions of CollabUtilities.cpp - all this stuff is immediately below. We'll
 	// add a prefix  m_collab_<old name> to keep it clear which they are
 	bool m_collab_bTextOrPunctsChanged;
 	bool m_collab_bUsfmStructureChanged;
@@ -4190,9 +4190,9 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 
 		lastMarkerNumericAugment.Empty();
 	}
-#if defined(_DEBUG) && defined(LIST_MD5LINES)
+#if defined(_DEBUG) //&& defined(LIST_MD5LINES)
 	// This version shows the whole list, or just the bits we want if the gbShowFreeTransLogsOnly flag is not commented out
-	if (gbShowFreeTransLogsOnly)
+/*	if (gbShowFreeTransLogsOnly)
 	{
 		// show range of indices from 22 to 25
 		int ct;
@@ -4206,15 +4206,16 @@ wxArrayString GetUsfmStructureAndExtent(wxString& fileBuffer)
 	}
 	else
 	{
-/*		int ct;
+*/
+		int ct;
 		int aCount = (int)UsfmStructureAndExtentArray.GetCount();
 		for (ct = 0; ct < aCount ; ct++)
 		{
 			wxString str = UsfmStructureAndExtentArray.Item(ct);
 			wxLogDebug(str.c_str());
 		}
+/*	}
 */
-	}
 #endif
 /*
 #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
@@ -5812,6 +5813,9 @@ wxString ExportFreeTransText_For_Collab(SPList* pDocList)
 /// are done at the one File / Save -- first the adaptation is sent, and then if free
 /// translation is expected to be be sent, it is sent after the adaptation is sent,
 /// automatically.
+/// BEW 10Jul15, added wxString MakeSourceTextForCollabConflictResDlg() call, etc, to get
+/// the source text, make md5sums for it, map it's text extents, etc, for use of the source
+/// text in the new conflict resolution dialog Bill and I are currently building.
 ///////////////////////////////////////////////////////////////////////////////////////
 wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextType makeTextType,
 										   wxString& postEditText)
@@ -5886,6 +5890,11 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		}
 	}
 ******** */
+
+	// BEW 10Jul15, get the USFM source text - if the conflict resolution dialog
+	// were to be shown, this will be needed (and more processing of the export
+	// will be done below). The store is done in app variable m_sourceTextBuffer_PostEdit
+	gpApp->StoreSourceText_PostEdit(MakeSourceTextForCollabConflictResDlg());
     
 	wxString bookCode;
 	bookCode = gpApp->GetBookCodeFromBookName(gpApp->m_CollabBookSelected);
@@ -6158,8 +6167,10 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		}
 		break;
 	}
+	// BEW 10Jul15 need this for our new conflict resolution dlg
+	wxString sourceText = gpApp->GetStoredSourceText_PostEdit();
 
-	// abandon any wxChars which precede first marker in text, for each of the 3 texts, so
+	// Abandon any wxChars which precede first marker in text, for each of the 3 texts, so
 	// that we make sure each text we compare starts with a marker
 	// (RemoveIDMarkerAndCode() will have done this already, but this is insurance because
 	// if there was no \id marker, it won't have removed anything)
@@ -6177,6 +6188,11 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	if (offset != wxNOT_FOUND && offset > 0)
 	{
 		fromEditorText = fromEditorText.Mid(offset); // guarantees fromEditorText starts with a marker
+	}
+	offset = sourceText.Find(_T('\\'));
+	if (offset != wxNOT_FOUND && offset > 0)
+	{
+		sourceText = sourceText.Mid(offset); // guarantees sourceText starts with a marker
 	}
 
     // If the user changes the USFM structure for the text within Paratext or Bibledit,
@@ -6201,20 +6217,34 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// To determine whether or not the USFM structure has changed we must now calculate the
 	// UsfmStructure&Extents arrays for each of the 3 text variants, then test if the USFM
 	// in the post-edit text is any different from the USFM in the grabbed text.
-	// (The pre-edit text is ALWAYS the same in USFM structure as the post-edit text,
-	// because editing of the source text is not allowed when in collaboration mode.)
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+	// BEW 10Jul15, In the early versions of this functionality, the following was true:
+	// The pre-edit text is ALWAYS the same in USFM structure as the post-edit text,
+	// because editing of the source text is not allowed when in collaboration mode.
+	// But in recent versions - say later than about 6.5.4, this began to be violated, and
+	// I refactored to allow more freedoom. Finally, with 6.5.9, the usfm structure can be
+	// changed during collaboration due to a filtering or unfiltering, and robustly. To
+	// cater for this additional flexibility, it became necessary to track the preEditText
+	// as closes as both the postEditText and the fromEditorText. And still in 6.5.9, we
+	// are including source text tracking, so that we can have a conflict resolution
+	// mechanism where the user can eyeball conflicting verse versions, and also see what
+	// the source text there is.
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("\nStructureAndExtent, for preEdit "));
 #endif
 	wxArrayString preEditMd5Arr = GetUsfmStructureAndExtent(preEditText);
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("StructureAndExtent, for postEdit "));
 #endif
 	wxArrayString postEditMd5Arr = GetUsfmStructureAndExtent(postEditText);;
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-			wxLogDebug(_T("StructureAndExtent, for fromEditor "));
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("StructureAndExtent, for fromEditor "));
 #endif
 	wxArrayString fromEditorMd5Arr = GetUsfmStructureAndExtent(fromEditorText);
+// BEW 10Jul15 add the sourceText which has been exported... need it for conflict resolution dlg
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("StructureAndExtent, for sourceText "));
+#endif
+	wxArrayString sourceTextMd5Arr = GetUsfmStructureAndExtent(sourceText);
 
 	#if defined(_DEBUG) && defined(WXGTK)
 	// in this block, wxLogDebug the last 5 Md5Arr lines for the postEditText from the array
@@ -6237,11 +6267,12 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	size_t countPre = preEditMd5Arr.GetCount();
 	wxArrayPtrVoid preEditOffsetsArr;
 	preEditOffsetsArr.Alloc(countPre); // pre-allocate sufficient space
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+#if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
 			wxLogDebug(_T("\n\nMapping Extents, for preEdit "));
 #endif
 	MapMd5ArrayToItsText(preEditText, preEditOffsetsArr, preEditMd5Arr);
 
+	// This one, for the postEdit array
 	size_t countPost = postEditMd5Arr.GetCount();
 	wxArrayPtrVoid postEditOffsetsArr;
 	postEditOffsetsArr.Alloc(countPost); // pre-allocate sufficient space
@@ -6283,6 +6314,16 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	}
 	#endif
 
+	// BEW 10Jul15 do the same, for the source text md5 structure & extents array
+	size_t countSrc = sourceTextMd5Arr.GetCount();
+	wxArrayPtrVoid sourceTextOffsetsArr;
+	sourceTextOffsetsArr.Alloc(countSrc); // pre-allocate sufficient space
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+	wxLogDebug(_T("\n\nMapping Extents, for sourceText "));
+#endif
+	MapMd5ArrayToItsText(sourceText, sourceTextOffsetsArr, sourceTextMd5Arr);
+
+	// Now the fromEditor one
 	size_t countFrom = fromEditorMd5Arr.GetCount();
 	wxArrayPtrVoid fromEditorOffsetsArr;
 	fromEditorOffsetsArr.Alloc(countFrom); // pre-allocate sufficient space
@@ -6746,13 +6787,13 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 	wxChar* pStrBegin = NULL;
 #endif
 #endif
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
 	wxChar* pStrBegin = NULL;
 #endif
 
 
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-		wxString aSubrange = _T("Indices 22 to 25 inclusive");
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+	wxString aSubrange = _T("Indices 0 to the end, inclusive");
 		wxLogDebug(_T("MapMd5ArrayToItsText(), a subrange logged:\n%s"),aSubrange.c_str());
 #endif
 
@@ -6777,8 +6818,8 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		pStrBegin = ptr;
 #endif
 #endif
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-		if (lineIndex >= 22 && lineIndex <= 25)
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+		if (lineIndex >= 0 && lineIndex < md5ArrayCount)
 		{
 			pStrBegin = ptr;
 		}
@@ -6827,8 +6868,8 @@ void MapMd5ArrayToItsText(wxString& text, wxArrayPtrVoid& mappingsArr, wxArraySt
 		wxLogDebug(_T("MapMd5ArrayToItsText(), map index = %d: nSpan = %d, textSpan = %s"),lineIndex, nSpan, str.c_str());
 #endif
 #endif
-#if defined(OUT_OF_SYNC_BUG) && defined(_DEBUG)
-		if (lineIndex >= 22 && lineIndex <= 25)
+#if defined(_DEBUG) //&& defined(OUT_OF_SYNC_BUG)
+		if (lineIndex >= 0 && lineIndex < md5ArrayCount)
 		{
 			// show what the subspan of text is
 			unsigned int nSpan = (unsigned int)((pStart + pMapStruct->endOffset) - pStrBegin);
@@ -8449,5 +8490,25 @@ long OK_btn_delayedHandler_GetSourceTextFromEditor(CAdapt_ItApp* pApp)
     // pre-edit wxString on the app. It won't ever be put in the _FREETRANS_OUTPUTS folder.
     // Only non-collaboration free translation exports will go there.
     return resultSrc;
+}
+
+// BEW 10Jul15, since this was created after my refactoring of the export functions to
+// not obligatorily unfilter and include any filtered text, no internal extra calls should
+// need to be made (I hope)
+wxString MakeSourceTextForCollabConflictResDlg()
+{
+	wxString srcText = _T("");
+	int textLen = RebuildSourceText(srcText); // NULL for 2nd param, means m_pSourcePhrases SPList* is used
+	wxUnusedVar(textLen);
+	srcText = RemoveMultipleSpaces(srcText);
+
+	// Note: ZWSP restoration is automatically done, if flag TRUE, in RebuildSourceText(), similarly, if the
+	// flag for Forward Slash Delimitation alternating with ZWSP (Dennis Walters requested) is TRUE, then
+	// in RebuildSourceText() the calls DoFwdSlashConsistentChanges(removeAtPunctuation, target) and
+	// followed by FwdSlashtoZWSP(target) are made, so neither is need here
+#if defined(_DEBUG)
+	wxLogDebug(_T("MakeSourceTextForCollabConflictResDlg(): Text Length:  %d\n%s"), textLen, srcText.c_str());
+#endif
+	return srcText;
 }
 
