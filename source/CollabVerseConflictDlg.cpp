@@ -204,44 +204,45 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	verseRefsArray.Add(_T("ROM 3:12"));
 	
 	// Note: back slash characters \ need to be escaped as \\ within the string elements.
-	sourceTextVsArray.Add(_T("\\v 1 What advantage, then, is there in being a Jew, or what value is there in circumcision?"));
-	sourceTextVsArray.Add(_T("\\v 2 Much in every way! First of all, they have been entrusted with the very words of God."));
-	sourceTextVsArray.Add(_T("\\p\\v 3 What if some did not have faith? Will their lack of faith nullify God's faithfulness?"));
-	sourceTextVsArray.Add(_T("\\v 4 Not at all! Let God be true, and every man a liar. As it is written:\\q1 “So that you may be proved right when you speak\\q2 and prevail when you judge.”\\f + \\fr 3.4 \\ft PSA 51.4\\f*"));
-	sourceTextVsArray.Add(_T("\\p\\v 5 But if our unrighteousness brings out God's righteousness more clearly, what shall we say? That God is unjust in bringing his wrath on us? (I am using a human argument.)"));
-	sourceTextVsArray.Add(_T("\\v 6 Certainly not! If that were so, how could God judge the world?"));
-	sourceTextVsArray.Add(_T("\\v 7 Someone might argue, “If my falsehood enhances God's truthfulness and so increases his glory, why am I still condemned as a sinner?”"));
-	sourceTextVsArray.Add(_T("\\v 8 Why not say–as we are being slanderously reported as saying and as some claim that we say–“Let us do evil that good may result”? Their condemnation is deserved.\\s1 No One is Righteous"));
-	sourceTextVsArray.Add(_T("\\p\\v 9 What shall we conclude then? Are we any better\\f + \\fr 3.9 \\ft Or \\fq worse\\f*? Not at all! We have already made the charge that Jews and Gentiles alike are all under sin."));
-	sourceTextVsArray.Add(_T("\\v 10 As it is written:\\q1 “There is no one righteous, not even one;"));
-	sourceTextVsArray.Add(_T("\\q2\\v 11 there is no one who understands,\\q2 no one who seeks God."));
-	sourceTextVsArray.Add(_T("\\q1\\v 12 All have turned away,\\q2 they have together become worthless;\\q1 there is no one who does good,\\q2 not even one.”\\f + \\fr 3.12 \\ft PSA 14.1-3; PSA 53.1-3; ECC 7.20\\f*"));
+	// Note: back slash characters \ need to be escaped as \\ within the string elements.
+	sourceTextVsArray.Add(_T("\\v 1 What advantage, then, is there in being a Jew, or what value is there in circumcision?"));
+	sourceTextVsArray.Add(_T("\\v 2 Much in every way! First of all, they have been entrusted with the very words of God."));
+	sourceTextVsArray.Add(_T("\\p\\v 3 What if some did not have faith? Will their lack of faith nullify God's faithfulness?"));
+	sourceTextVsArray.Add(_T("\\v 4 Not at all! Let God be true, and every man a liar. As it is written:\\q1 <<So that you may be proved right when you speak\\q2 and prevail when you judge.>>\\f + \\fr 3.4 \\ft PSA 51.4\\f*"));
+	sourceTextVsArray.Add(_T("\\p\\v 5 But if our unrighteousness brings out God's righteousness more clearly, what shall we say? That God is unjust in bringing his wrath on us? (I am using a human argument.)"));
+	sourceTextVsArray.Add(_T("\\v 6 Certainly not! If that were so, how could God judge the world?"));
+	sourceTextVsArray.Add(_T("\\v 7 Someone might argue, <<If my falsehood enhances God's truthfulness and so increases his glory, why am I still condemned as a sinner?>>"));
+	sourceTextVsArray.Add(_T("\\v 8 Why not say-as we are being slanderously reported as saying and as some claim that we say-<<Let us do evil that good may result>>? Their condemnation is deserved.\\s1 No One is Righteous"));
+	sourceTextVsArray.Add(_T("\\p\\v 9 What shall we conclude then? Are we any better\\f + \\fr 3.9 \\ft Or \\fq worse\\f*? Not at all! We have already made the charge that Jews and Gentiles alike are all under sin."));
+	sourceTextVsArray.Add(_T("\\v 10 As it is written:\\q1 <<There is no one righteous, not even one;"));
+	sourceTextVsArray.Add(_T("\\q2\\v 11 there is no one who understands,\\q2 no one who seeks God."));
+	sourceTextVsArray.Add(_T("\\q1\\v 12 All have turned away,\\q2 they have together become worthless;\\q1 there is no one who does good,\\q2 not even one.>>\\f + \\fr 3.12 \\ft PSA 14.1-3; PSA 53.1-3; ECC 7.20\\f*"));
 	
-	aiTargetTextVsArray.Add(_T("\\v 1 Sapos dispela tok mi bin raitim yupela i tru, ol lain Ju i winim ol arapela manmeri olsem wanem? Pasin bilong katim skin na kamap lain Ju i save helpim ol manmeri o nogat a?"));
-	aiTargetTextVsArray.Add(_T("\\v 2 Olaman! I gat kain kain gutpela helpim bilong en ia! Nambawan em i olsem: God em i bin givim tok bilong en long ol lain Ju long lukautim (na helpim ol manmeri i ken save long ol tok bilong en.)"));
-	aiTargetTextVsArray.Add(_T("\\v 3 Tru, sampela ol i no bin bilip na bihainim dispela tok. Tasol yupela i ting wanem? Ating dispela pasin nogut ol i bihainim bai i mekim God i (senisim tingting bilong en na) lusim tok bilong en a?"));
-	aiTargetTextVsArray.Add(_T("\\v 4 Nogat tru! Sapos olgeta man i mas mekim pasin bilong giaman, God wanpela tasol nogat! Bai em i save tok tru oltaim, olsem buk Sam i tok:\\q<<Olgeta manmeri i ken save tok bilong yu i stret tumas na sapos ol i kotim yu, bai yu winim kot tru.>>"));
-	aiTargetTextVsArray.Add(_T("\\p\\v 5 Orait, yupela i ting mi tok wanem a? Sapos pasin nogut yumi save mekim em i soim olgeta manmeri stretpela pasin bilong God, bai yumi tok wanem? God em i save bekim pe bilong sin long yumi, ating pasin bilong God em i no stret a? (Mi bihainim tingting bilong yumi man tasol na mi mekim dispela tok.)"));
-	aiTargetTextVsArray.Add(_T("\\v 6 (Yupela ting mi tok olsem a?) Nogat tru! Sapos God em i no stretpela, olsem wanem bai em i skelim pasin bilong olgeta manmeri? Em i no inap ia?"));
-	aiTargetTextVsArray.Add(_T("\\v 7 (Orait i gat narapela askim.) Sapos tok giaman bilong mi i helpim ol manmeri i save tok tru bilong God. Na sapos dispela i mekim biknem bilong en i kamap moa yet, orait, bilong wanem em i kolim mi man nogut i gat sin na i bekim pe nogut long mi?"));
-	aiTargetTextVsArray.Add(_T("\\v 8 Sapos dispela kain tok i tru, mobeta yumi tok olsem, <<Goan,yumi mekim pasin nogut, long wanem, gutpela pasin i ken kamaplong dispela samting.>> Ating pasin olsem em i orait a? Nogat tru! Tasol sampela manmeri i tok, <<Yes, tok bilong Pol i olsem tasol.>> Em i stret bai God i bekim pe nogut long ol dispelamanmeri.\\s I no gat wanpela man o meri i stretpela long tingting bilong God"));
-	aiTargetTextVsArray.Add(_T("\\p\\v 9 Orait bai yumi tok wanem? Ating yumi ol lain Ju i winim ol (lain) arapela manmeri? Ating nogat ia? Long wanem, yumi tok pinis, sin i karamapim yumi olgeta lain Ju wantaim ol arapela lain."));
-	aiTargetTextVsArray.Add(_T("\\v 10 Dispela tok em i tru. Long wanem, buk Sam bilong Olpela Testamen (o Baibel) i tok olsem:\\q<<I no gat wanpela stretpela man i stap. Nogat tru."));
-	aiTargetTextVsArray.Add(_T("\\q\\v 11 I no gat wanpela man i gat save. I no gat wanpela i wok long painim God."));
-	aiTargetTextVsArray.Add(_T("\\q\\v 12 Olgeta i bin lusim rot. Olgeta i bin kamap man nogut tru.\\qI no gat man i save mekim gutpela pasin. Yes, i no gat wanpela."));
+	aiTargetTextVsArray.Add(_T("\\v 1 Sapos dispela tok mi bin raitim yupela i tru, ol lain Ju i winim ol arapela manmeri olsem wanem? Pasin bilong katim skin na kamap lain Ju i save helpim ol manmeri o nogat a?"));
+	aiTargetTextVsArray.Add(_T("\\v 2 Olaman! I gat kain kain gutpela helpim bilong en ia! Nambawan em i olsem: God em i bin givim tok bilong en long ol lain Ju long lukautim (na helpim ol manmeri i ken save long ol tok bilong en.)"));
+	aiTargetTextVsArray.Add(_T("\\v 3 Tru, sampela ol i no bin bilip na bihainim dispela tok. Tasol yupela i ting wanem? Ating dispela pasin nogut ol i bihainim bai i mekim God i (senisim tingting bilong en na) lusim tok bilong en a?"));
+	aiTargetTextVsArray.Add(_T("\\v 4 Nogat tru! Sapos olgeta man i mas mekim pasin bilong giaman, God wanpela tasol nogat! Bai em i save tok tru oltaim, olsem buk Sam i tok:\\q<<Olgeta manmeri i ken save tok bilong yu i stret tumas na sapos ol i kotim yu, bai yu winim kot tru.>>"));
+	aiTargetTextVsArray.Add(_T("\\p\\v 5 Orait, yupela i ting mi tok wanem a? Sapos pasin nogut yumi save mekim em i soim olgeta manmeri stretpela pasin bilong God, bai yumi tok wanem? God em i save bekim pe bilong sin long yumi, ating pasin bilong God em i no stret a? (Mi bihainim tingting bilong yumi man tasol na mi mekim dispela tok.)"));
+	aiTargetTextVsArray.Add(_T("\\v 6 (Yupela ting mi tok olsem a?) Nogat tru! Sapos God em i no stretpela, olsem wanem bai em i skelim pasin bilong olgeta manmeri? Em i no inap ia?"));
+	aiTargetTextVsArray.Add(_T("\\v 7 (Orait i gat narapela askim.) Sapos tok giaman bilong mi i helpim ol manmeri i save tok tru bilong God. Na sapos dispela i mekim biknem bilong en i kamap moa yet, orait, bilong wanem em i kolim mi man nogut i gat sin na i bekim pe nogut long mi?"));
+	aiTargetTextVsArray.Add(_T("\\v 8 Sapos dispela kain tok i tru, mobeta yumi tok olsem, <<Goan,yumi mekim pasin nogut, long wanem, gutpela pasin i ken kamaplong dispela samting.>> Ating pasin olsem em i orait a? Nogat tru! Tasol sampela manmeri i tok, <<Yes, tok bilong Pol i olsem tasol.>> Em i stret bai God i bekim pe nogut long ol dispelamanmeri.\\s I no gat wanpela man o meri i stretpela long tingting bilong God"));
+	aiTargetTextVsArray.Add(_T("\\p\\v 9 Orait bai yumi tok wanem? Ating yumi ol lain Ju i winim ol (lain) arapela manmeri? Ating nogat ia? Long wanem, yumi tok pinis, sin i karamapim yumi olgeta lain Ju wantaim ol arapela lain."));
+	aiTargetTextVsArray.Add(_T("\\v 10 Dispela tok em i tru. Long wanem, buk Sam bilong Olpela Testamen (o Baibel) i tok olsem:\\q<<I no gat wanpela stretpela man i stap. Nogat tru."));
+	aiTargetTextVsArray.Add(_T("\\q\\v 11 I no gat wanpela man i gat save. I no gat wanpela i wok long painim God."));
+	aiTargetTextVsArray.Add(_T("\\q\\v 12 Olgeta i bin lusim rot. Olgeta i bin kamap man nogut tru.\\qI no gat man i save mekim gutpela pasin. Yes, i no gat wanpela."));
 	
-	ptTargetTextVsArray.Add(_T("\\v 1 Sapos pasin bilong katim skin em i no samting bilong bodi tasol, orait ol Juda i winim ol arapela man olsem wanem? Wanem gutpela samting i save kamap long pasin bilong katim skin?"));
-	ptTargetTextVsArray.Add(_T("\\v 2 Olaman! God i givim ol kain kain gutpela samting long ol Juda. Namba wan em i olsem. God i bin givim tok bilong en long ol Juda bilong lukautim."));
-	ptTargetTextVsArray.Add(_T("\\v 3 Tru, sampela i no bin bihainim dispela tok. Tasol olsem wanem? Sapos ol i no bilip, ating dispela bai i mekim God i no bihainim tok bilong em?"));
-	ptTargetTextVsArray.Add(_T("\\v 4 Nogat tru. Olgeta man i save giaman, tasol God wanpela i save mekim tok tru oltaim. Olsem buk bilong God i tok,\\q1 <<God, yu mekim\\q3 stretpela pasin tasol\\q2 na yu kotim mi.\\q1 Na sapos ol i ting long kotim yu,\\q2 bai yu winim kot tru.>>"));
-	ptTargetTextVsArray.Add(_T("\\p\\v 5-6 Orait olsem wanem? Sapos pasin nogut bilong yumi em i kamapim ples klia stretpela pasin bilong God, bai yumi tok wanem? Taim God i bekim pe nogut bilong sin bilong yumi, ating em i mekim pasin i no stret, a? Nogat tru. Sapos God i no bihainim stretpela pasin oltaim, olsem wanem bai em inap skelim pasin bilong olgeta manmeri? Dispela kain tingting em i tingting bilong yumi man tasol."));
+	ptTargetTextVsArray.Add(_T("\\v 1 Sapos pasin bilong katim skin em i no samting bilong bodi tasol, orait ol Juda i winim ol arapela man olsem wanem? Wanem gutpela samting i save kamap long pasin bilong katim skin?"));
+	ptTargetTextVsArray.Add(_T("\\v 2 Olaman! God i givim ol kain kain gutpela samting long ol Juda. Namba wan em i olsem. God i bin givim tok bilong en long ol Juda bilong lukautim."));
+	ptTargetTextVsArray.Add(_T("\\v 3 Tru, sampela i no bin bihainim dispela tok. Tasol olsem wanem? Sapos ol i no bilip, ating dispela bai i mekim God i no bihainim tok bilong em?"));
+	ptTargetTextVsArray.Add(_T("\\v 4 Nogat tru. Olgeta man i save giaman, tasol God wanpela i save mekim tok tru oltaim. Olsem buk bilong God i tok,\\q1 <<God, yu mekim\\q3 stretpela pasin tasol\\q2 na yu kotim mi.\\q1 Na sapos ol i ting long kotim yu,\\q2 bai yu winim kot tru.>>"));
+	ptTargetTextVsArray.Add(_T("\\p\\v 5-6 Orait olsem wanem? Sapos pasin nogut bilong yumi em i kamapim ples klia stretpela pasin bilong God, bai yumi tok wanem? Taim God i bekim pe nogut bilong sin bilong yumi, ating em i mekim pasin i no stret, a? Nogat tru. Sapos God i no bihainim stretpela pasin oltaim, olsem wanem bai em inap skelim pasin bilong olgeta manmeri? Dispela kain tingting em i tingting bilong yumi man tasol."));
 	ptTargetTextVsArray.Add(_T(""));
-	ptTargetTextVsArray.Add(_T("\\v 7 Em i wankain olsem tingting bilong man i tok olsem, <<Sapos tok giaman bilong mi i mekim tok tru bilong God i kamap ples klia, na dispela i mekim biknem bilong en i kamap moa yet, orait olsem wanem na em i kolim mi man bilong mekim sin, na em i bekim pe nogut long mi?>>"));
-	ptTargetTextVsArray.Add(_T("\\v 8 Na em i wankain olsem dispela rabis tok, <<Goan, yumi mekim pasin nogut, na long dispela rot gutpela pasin bai i kamap.>> Sampela man i save sutim tok long mi na tok olsem, tok mi yet mi save autim em i wankain olsem dispela rabis tok. God bai i kotim ol dispela man na bekim pe nogut long ol inap long pasin ol i bin mekim.\\s I no gat wanpela man i save mekim stretpela pasin"));
-	ptTargetTextVsArray.Add(_T("\\p\\v 9 Orait olsem wanem? Ating yumi Juda i winim ol arapela man? Nogat tru. Yumi tok pinis, sin i karamapim yumi olgeta, yumi Juda na Grik wantaim."));
-	ptTargetTextVsArray.Add(_T("\\v 10 Buk bilong God i gat tok long dispela olsem,\\q1 <<I no gat wanpela man\\q2 i save mekim stretpela pasin.\\q1 Nogat tru."));
-	ptTargetTextVsArray.Add(_T("\\q1\\v 11 I no gat wanpela man\\q2 i gat gutpela save.\\q1 I no gat wanpela\\q2 i wok long painim God."));
-	ptTargetTextVsArray.Add(_T("\\q1\\v 12 Olgeta i lusim gutpela rot pinis.\\q1 Olgeta i wankain tasol,\\q2 ol i man nogut tru.\\q1 I no gat wanpela bilong ol\\q2 i save mekim gutpela pasin.\\q1 Nogat tru."));
+	ptTargetTextVsArray.Add(_T("\\v 7 Em i wankain olsem tingting bilong man i tok olsem, <<Sapos tok giaman bilong mi i mekim tok tru bilong God i kamap ples klia, na dispela i mekim biknem bilong en i kamap moa yet, orait olsem wanem na em i kolim mi man bilong mekim sin, na em i bekim pe nogut long mi?>>"));
+	ptTargetTextVsArray.Add(_T("\\v 8 Na em i wankain olsem dispela rabis tok, <<Goan, yumi mekim pasin nogut, na long dispela rot gutpela pasin bai i kamap.>> Sampela man i save sutim tok long mi na tok olsem, tok mi yet mi save autim em i wankain olsem dispela rabis tok. God bai i kotim ol dispela man na bekim pe nogut long ol inap long pasin ol i bin mekim.\\s I no gat wanpela man i save mekim stretpela pasin"));
+	ptTargetTextVsArray.Add(_T("\\p\\v 9 Orait olsem wanem? Ating yumi Juda i winim ol arapela man? Nogat tru. Yumi tok pinis, sin i karamapim yumi olgeta, yumi Juda na Grik wantaim."));
+	ptTargetTextVsArray.Add(_T("\\v 10 Buk bilong God i gat tok long dispela olsem,\\q1 <<I no gat wanpela man\\q2 i save mekim stretpela pasin.\\q1 Nogat tru."));
+	ptTargetTextVsArray.Add(_T("\\q1\\v 11 I no gat wanpela man\\q2 i gat gutpela save.\\q1 I no gat wanpela\\q2 i wok long painim God."));
+	ptTargetTextVsArray.Add(_T("\\q1\\v 12 Olgeta i lusim gutpela rot pinis.\\q1 Olgeta i wankain tasol,\\q2 ol i man nogut tru.\\q1 I no gat wanpela bilong ol\\q2 i save mekim gutpela pasin.\\q1 Nogat tru."));
 
 	// Set font and directionality for the three edit boxes
 	// For the "Source text of verse selected at left" edit box:
