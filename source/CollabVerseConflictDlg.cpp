@@ -204,7 +204,6 @@ void CCollabVerseConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // 
 	verseRefsArray.Add(_T("ROM 3:12"));
 	
 	// Note: back slash characters \ need to be escaped as \\ within the string elements.
-	// Note: back slash characters \ need to be escaped as \\ within the string elements.
 	sourceTextVsArray.Add(_T("\\v 1 What advantage, then, is there in being a Jew, or what value is there in circumcision?"));
 	sourceTextVsArray.Add(_T("\\v 2 Much in every way! First of all, they have been entrusted with the very words of God."));
 	sourceTextVsArray.Add(_T("\\p\\v 3 What if some did not have faith? Will their lack of faith nullify God's faithfulness?"));
