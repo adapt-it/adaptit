@@ -202,13 +202,15 @@ class CSourcePhrase;
 	bool			OpenDocWithMerger(CAdapt_ItApp* pApp, wxString& pathToDoc, wxString& newSrcText, 
 						    bool bDoMerger, bool bDoLayout, bool bCopySourceWanted);
 	wxString		GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
+							wxString& sourceText, wxArrayString& sourceTextMd5Arr,
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr,wxArrayPtrVoid& postEditOffsetsArr, 
-							wxArrayPtrVoid& fromEditorOffsetsArr);
-	wxString		GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText, 
+							wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr);
+	wxString		GetUpdatedText_UsfmsChanged(wxString& postEditText, wxString& fromEditorText,
+							wxString& sourceText, wxArrayString& sourceTextMd5Arr,
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
-							wxArrayPtrVoid& fromEditorOffsetsArr);
+							wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr);
 	// BEW 10Jul15, next one needed for conflict resolution dialog
 	wxString		MakeSourceTextForCollabConflictResDlg();
 

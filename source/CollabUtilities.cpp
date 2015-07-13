@@ -6224,7 +6224,7 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	// I refactored to allow more freedoom. Finally, with 6.5.9, the usfm structure can be
 	// changed during collaboration due to a filtering or unfiltering, and robustly. To
 	// cater for this additional flexibility, it became necessary to track the preEditText
-	// as closes as both the postEditText and the fromEditorText. And still in 6.5.9, we
+	// as closes as both the postEditText and the fromEditorText. And for 6.6.0, we
 	// are including source text tracking, so that we can have a conflict resolution
 	// mechanism where the user can eyeball conflicting verse versions, and also see what
 	// the source text there is.
@@ -6359,8 +6359,9 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 	{
 		// usfm markers same in each, so do the simple line-by-line algorithm
 		text = GetUpdatedText_UsfmsUnchanged(postEditText, fromEditorText,
-					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr);
+				sourceText, sourceTextMd5Arr, preEditMd5Arr, postEditMd5Arr, 
+				fromEditorMd5Arr, postEditOffsetsArr, fromEditorOffsetsArr, 
+				sourceTextOffsetsArr);
 	}
 	else
 	{
@@ -6419,9 +6420,9 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		wxLogDebug(_T("\n\n** ABOUT TO CALL GetUpdatedText_UsfmsChanged()  **"));
 
 #endif
-		text = GetUpdatedText_UsfmsChanged(postEditText, fromEditorText,
-					preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
-					postEditOffsetsArr, fromEditorOffsetsArr);
+		text = GetUpdatedText_UsfmsChanged(postEditText, fromEditorText, sourceText,
+				sourceTextMd5Arr, preEditMd5Arr, postEditMd5Arr, fromEditorMd5Arr,
+ 				postEditOffsetsArr, fromEditorOffsetsArr, sourceTextOffsetsArr);
 
     #if defined(_DEBUG) && defined(OUT_OF_SYNC_BUG)
     {
@@ -6565,15 +6566,21 @@ void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
 // with the external editor's chunk, or whether the user edited something in AI from that
 // chunk; it is just unilaterally sent to the external editor to overwrite whatever the
 // external editor's matching chunk may happen to have been.
+// BEW refactored 10Jul15 for support of conflict resolution
 wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
+		    wxString& sourceText, wxArrayString& sourceTextMd5Arr,
 			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr,
 			wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
-			wxArrayPtrVoid& fromEditorOffsetsArr)
+			wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
-    // each text variant's MD5 structure&extents array has exactly the same USFMs in the
-    // same order -- verify before beginning
+	// The postEditOffsetsArr, fromEditorOffsetsArr, and sourceTextOffsetsArr, store
+	// MD5Map* instances, these are instances of struct pointer - defining where where
+	// the text substrings start by locating the pointer to their start, and a count
+	// for where each ends.
+    // Each text variant's MD5 structure&extents array has exactly the same USFMs in the
+    // same order -- verify before beginning...
 	size_t preEditMd5Arr_Count;
 	preEditMd5Arr_Count = preEditMd5Arr.GetCount();
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();
@@ -6581,20 +6588,91 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
 	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count &&
 			  preEditMd5Arr_Count == fromEditorMd5Arr_Count);
-	preEditMd5Arr_Count = preEditMd5Arr_Count; // avoid warning
-	fromEditorMd5Arr_Count = fromEditorMd5Arr_Count; // avoid warning
+	// BEW added next two lines 10Jul15
+	size_t sourceTextMd5Arr_Count = sourceTextMd5Arr.GetCount();
+	wxASSERT( postEditMd5Arr_Count == sourceTextMd5Arr_Count);
+	wxUnusedVar(preEditMd5Arr_Count); // avoid compiler warning
+	wxUnusedVar(fromEditorMd5Arr_Count); // avoid compiler warning
 	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
 	MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
+	// BEW added next line 10Jul15
+	MD5Map* pSourceTextOffsets = NULL; // stores ptr of MD5Map from sourceTextOffsetsArr
 	wxString preEditMd5Line;
 	wxString postEditMd5Line;
 	wxString fromEditorMd5Line;
 	wxString preEditMD5Sum;
 	wxString postEditMD5Sum;
 	wxString fromEditorMD5Sum;
+	// BEW added following 10 locals on 10Jul15 ...
+	wxString sourceTextMd5Line;
+	wxString sourceTextMD5Sum;
+	// ... and for tracking where each verse starts and ends. Strictly speaking
+	// only one pair of _Start and _End indices need to be tracked, the postEditVerse
+	// ones, because the other three pairs have same index values due to the fact
+	// that the UFSM structure is identical in AI and PT or BE. However, having
+	// the different variables better documents what is going on in the code.
+	int		postEditVerse_Start;
+	int		postEditVerse_End;
+	int		preEditVerse_Start;
+	int		preEditVerse_End;
+	int		fromEditorVerse_Start;
+	int		fromEditorVerse_End;
+	int		sourceTextVerse_Start;
+	int		sourceTextVerse_End;
+	// ... and now we need to track the various indices, since aggregation means that
+	// each subsequent verse is not always just at the old index + 1 value any more
+	int preEditIndex = 0; // indexing into the MD5 array for preEdit adaptation text from AI
+	int postEditIndex = 0; // indexing into the MD5 array for postEdit adaptation text from AI
+	int fromEditorIndex = 0;  // indexing into the MD5 array for text from PT or BE chapter
+	int preEditEnd = 0; // index of last md5 line of the current chunk from preEdit array
+	int postEditEnd = 0; // index of last md5 line of the current chunk from postEdit array
+	int fromEditorEnd = 0; // index of last md5 line of the current chunk from fromEditor array
+	// Note: user as of 6.5.9 can edit source text in AI in collaboration mode (e.g. do a
+	// filtering or unfiltering), so preEditIndex and postEditIndex won't necessarily stay
+	// in sync from that version onwards; and fromEditIndex can come to differ from these.
+	int preEditStart = 0; // starting when searching forwards
+	int postEditStart = 0; // ditto
+	int fromEditorStart = 0;  // ditto
 
-	// work with wxChar pointers for each of the postEditText and fromEditorText texts (we
+	// BEW 10Jul15 refactored. In order to support conflict resolution in a verse-based
+	// way across both this function, and GetUpdatedText_UsfmsChanged() which is already
+	// verse-based with a pre-verse 1 chunking that obligatorily transfers to PT or BE
+	// the AI pre-verse-1 chunk, we have to impose the same verse-based protocol here in
+	// the GetUpdatedText_UsfmsUnchanged() function. One major difference here is that
+	// there will be no usfm-difference-based "chunking" in this function, because this
+	// one is called only when it's been established that there are no usfm differences
+	// in the chapter, or whole book, which is to be transferred to the external editor.
+	// So the approach here is to chunk and obligatorily send to PT or BE any pre-verse-1
+	// material, then iterate from verse to verse md5sum lines, and for each gather however
+	// many USFM fields comprise each verse. There will be, in general, n markers per verse
+	// where the first will be the \v marker, and others up to but not including the next
+	// \v line, or the document end, will contain zero or more other USFM markers - such
+	// as \q markers, \li markers, \f ... \f* possibly, and so forth.
+	// The other major change here is that the former per-line testing for empty content
+	// or edits or differences between the AI marker content and what PT or BE have in the
+	// identical (matched) USFM marker, become the same tests but done over a series of
+	// n markers, where n >= 1. So all must be empty in AI' verse, or all empty in PT's
+	// verse, or any one of them must have AI user edits in them, or all aggregated are
+	// identical in markers and their content with what PT or BE has for the same matching
+	// set of markers and their content, or there is a conflict of content and no detection
+	// of user edits done in the verse. So first I will impose these new protocols and
+	// build some functions for doing the necessary marker + content aggregations, and
+	// testings. When that is working, I'll refactor again to build in the conflict
+	// resolution tests and dialogs, etc, and the adding of an outer loop for a two-pass
+	// traverse of the legacy loop: the outer loop to do what the legacy loop did but to
+	// store data in structs for use in the second pass of the loop, after the user's
+	// choice of conflict resolution has been made in response to a dialog shown him.
+	// That dialog will have 3 choices - 1. legacy way, 2. force AI verse each time, 3.
+	// choose via a further dialog of listed conflicted verses, shown once at end of first
+	// traverse of the outer loop. We'll also need a new wxArrayPtrVoid to store the
+	// structs which will perserve the stored intermediate data from the first traverse
+	// of the loop, for use in the second traverse, so we don't double up on all the
+	// complex testing for each traverse of the loop.
+
+	// Work with wxChar pointers for each of the postEditText, fromEditorText texts (we
 	// don't need a block like this for the preEditText because we don't access it's data
-	// directly in this function)
+	// directly in this function) and SourceText (BEW added 10Jul15) as well, to support
+	// grabbing source text for conflicted verses to put in the conflict resolution dlg
 	const wxChar* pPostEditBuffer = postEditText.GetData();
 	int nPostEditBufLen = postEditText.Len();
 	wxChar* pPostEditStart = (wxChar*)pPostEditBuffer;
@@ -6606,6 +6684,16 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxChar* pFromEditorStart = (wxChar*)pFromEditorBuffer;
 	wxChar* pFromEditorEnd = pFromEditorStart + nFromEditorBufLen;
 	wxASSERT(*pFromEditorEnd == '\0');
+
+	const wxChar* pSourceTextBuffer = sourceText.GetData();
+	int nSourceTextBufLen = sourceText.Len();
+	wxChar* pSourceTextStart = (wxChar*)pSourceTextBuffer;
+	wxChar* pSourceTextEnd = pSourceTextStart + nSourceTextBufLen;
+	wxASSERT(*pSourceTextEnd == '\0');
+
+	// FIRST - the pre-verse-1 chunking. Copy from GetUpdatedText_UsfmsChanged()
+
+
 
 	size_t index;
 	for (index = 0; index < postEditMd5Arr_Count; index++)
@@ -6934,18 +7022,22 @@ wxArrayString ObtainSubarray(const wxArrayString arr, size_t nStart, size_t nFin
 // That should help explain the complexities in the code below, and why they are there.
 // BEW 22Jun15, refactored, simplified, comments expanded, and now supporting filtering
 // or unfiltering on the fly.
+// BEW refactored 10Jul15 for support of conflict resolution
 wxString GetUpdatedText_UsfmsChanged(
-	wxString& postEditText,   // the same text, but after editing, at the time when File / Save was requested
-	wxString& fromEditorText, // the version of the same chapter or book that PT or BE has at the time that
-							  // File / Save was requested
-	wxArrayString& preEditMd5Arr,	 // the array of MD5sum values & their markers, obtained from preEditText
-	wxArrayString& postEditMd5Arr,   // ditto, but obtained from postEditText at File / Save time
-	wxArrayString& fromEditorMd5Arr, // ditto, but obtained from fromEditorText, at File / Save time
-
+	wxString& postEditText,    // the same text, but after editing, at the time when File / Save was requested
+	wxString& fromEditorText,  // the version of the same chapter or book that PT or BE has at the time that
+							   // File / Save was requested				
+	wxString& sourceText,      // the source text (at time of File > Save exported from the AI document)
+	wxArrayString& sourceTextMd5Arr,  // the array of MD5sum values & their markers, obtained from sourceText				
+	wxArrayString& preEditMd5Arr,     // the array of MD5sum values & their markers, obtained from preEditText
+	wxArrayString& postEditMd5Arr,	  // ditto, but obtained from postEditText at File / Save time	
+	wxArrayString& fromEditorMd5Arr,  // ditto, but obtained from fromEditorText, at File / Save time
 	wxArrayPtrVoid& postEditOffsetsArr,   // array of MD5Map structs which index the span of text in postEditText
 										  // which corresponds to a single line of info from postEditMd5Arr
-	wxArrayPtrVoid& fromEditorOffsetsArr) // array of MD5Map structs which index the span of text in fromEditorText
+	wxArrayPtrVoid& fromEditorOffsetsArr, // array of MD5Map structs which index the span of text in fromEditorText
 										  // which corresponds to a single line of info from fromEditorMd5Arr
+	wxArrayPtrVoid& sourceTextOffsetsArr)  // array of MD5Map structs which index the span of text in sourceText
+										  // which corresponds to a single line of info from sourceTextMd5Arr
 {
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
@@ -6989,8 +7081,9 @@ wxString GetUpdatedText_UsfmsChanged(
 	int preEditEnd = 0; // index of last md5 line of the current chunk from preEdit array
 	int postEditEnd = 0; // index of last md5 line of the current chunk from postEdit array
 	int fromEditorEnd = 0; // index of last md5 line of the current chunk from fromEditor array
-	// Note: user cannot edit source text in AI in collaboration mode, so preEditIndex and
-	// postEditIndex stay in sync; fromEditIndex can come to differ from these.
+	// Note: user as of 6.5.9 can edit source text in AI in collaboration mode (e.g. do a
+	// filtering or unfiltering), so preEditIndex and postEditIndex won't necessarily stay
+	// in sync from that version onwards; and fromEditIndex can come to differ from these.
 	int preEditStart = 0; // starting when searching forwards
 	int postEditStart = 0; // ditto
 	int fromEditorStart = 0;  // ditto

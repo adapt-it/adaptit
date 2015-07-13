@@ -734,6 +734,13 @@ enum DelayedFreeTransOperations
 	split_it
 };
 
+enum CollabConflictResAction
+{
+	legacy_keep_PTorBE_verse,
+	force_AI_verse_transfer,
+	user_choice_via_dialog
+};
+
 /// An enum for selecting which configuration file type in GetConfigurationFile()
 /// whether basic configuration file, or project configuration file.
 enum ConfigFileType
