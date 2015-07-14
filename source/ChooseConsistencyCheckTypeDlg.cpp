@@ -127,10 +127,14 @@ void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(even
     // which may be scripture ones, and potentially make changes, would have them become
     // out of sync with what's in PT or BE. We should avoid situations where the result of
     // allowing something has the potential to make unwelcome hassles arise consequentially.
-	if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
-	{
-		pRadioAll->Hide();
-		pTextCtrlMsg->Hide();
-	}
+    // BEW 6.5.9 (unreleased, but released as 6.6.0) we allow all docs to be consistency checked
+    // in collab mode, because now we have detection of conflicts (and untransferred AI doc edits
+    // will be seen to be conflicts) and the possibility of getting them safely transferred, so
+    // comment this restriction out
+	//if (gpApp->m_bCollaboratingWithParatext || gpApp->m_bCollaboratingWithBibledit)
+	//{
+	//	pRadioAll->Hide();
+	//	pTextCtrlMsg->Hide();
+	//}
 }
 

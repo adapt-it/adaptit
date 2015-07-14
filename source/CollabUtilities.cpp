@@ -5379,6 +5379,100 @@ bool GetMatchedChunksUsingVerseInfArrays(
 	return FALSE;
 }
 
+// BEW 10Jul15 a function for imposing a by-verse advancing scan in the loop within
+// the GetUpdatedText_UsfmsUnchanged() function, used in collaborating with PT or BE
+// This function will call GetAnotherVerseOrChapterLine(), and so is similar in some
+// respects to the internals of GetRemainingMd5VerseLines() except that it does not
+// try to create structs to store parameter; we here want only the starting and ending
+// indices for those USFM lines which belong to a single verse, or complex verse (ie.
+// a bridging or part verse, so long as it has a \v initially), where the \v marker
+// is at the nStart index. We will, however, return an array of int which are the
+// index values for the md5 lines that comprise this verse.
+// Return FALSE if nStart is referring to an md5line beyond the end of the array,
+// or not pointing at a \v line. Return TRUE if we are within bounds and starting 
+// from a \v md5 line. 
+// The value of nEnd will end up the same as nStart if nStart refers to the
+// last md5line in the array, or the last one prior to a \c line.
+// It is the caller's responsibility to ensure that nStart is referencing a \v line.
+bool DelineateThisVerse(const wxArrayString& md5Arr, int& nStart, int& nEnd, 
+						wxArrayInt* lineIndicesArr)
+{
+	wxString lineStr;
+	lineIndicesArr->Clear();
+	int nBoundingIndex = md5Arr.GetCount() - nStart; // since we begin at nStart
+	if (nBoundingIndex == 0)
+	{
+		// we are beyond the array end
+		return FALSE;
+	}
+	int index = nStart;
+	wxString chapterStr; chapterStr.Empty();
+	bool bIsChapterLine = IsChapterLine(md5Arr, index, chapterStr);
+	if (bIsChapterLine)
+	{
+		return FALSE;
+	}
+	bool bIsVerseLine = IsVerseLine(md5Arr, nStart);
+	if (!bIsVerseLine)
+	{
+		return FALSE;
+	}
+	// If we haven't returned FALSE, then nStart is a verse md5 line, and so we can start
+	// looking ahead for the rest, after storing its index in the wxArrayInt
+	lineIndicesArr->Add(nStart);
+
+	// That handles the line pointed at on entry, now collect md5 lines from
+	// what lies ahead of that, until we come to \c, or end of array, neither of
+	// which are to be included in the indices we return to the caller
+	bool bGotAnotherVerseOrChapterLine = FALSE;
+	// Next call starts at the current line, and starts looking by getting
+	// the next line after index's line, and keeps iterating until it
+	// finds either a \c line a \v verse line - returning TRUE for either,
+	// and in the case of a chapter line, returns the chapterStr wxString
+	// chapter number - else an empty chapterStr if at a \v line, and if it
+	// finds neither before the end of array is reached, it returns FALSE
+	bGotAnotherVerseOrChapterLine = GetAnotherVerseOrChapterLine(md5Arr, index, chapterStr);
+	if (bGotAnotherVerseOrChapterLine)
+	{
+		lineStr = md5Arr.Item(index);
+		// is it a chapter line, or a verse line?
+		if (chapterStr.IsEmpty())
+		{
+			// it's a \v line 
+			wxASSERT(chapterStr.IsEmpty());
+			nEnd = index - 1; // last within-the-verse marker line preceding this next verse's line
+			// We possibly jumped over several nonverse marker lines, so add the
+			// indices for those to the array; there will be one or more only if
+			// nEnd is greater than nStart
+			if (nEnd > nStart)
+			{
+				int i;
+				for (i = nStart + 1; i <= nEnd; i++)
+				{
+					lineIndicesArr->Add(i);
+				}
+			}
+			return TRUE;
+		}
+		else
+		{
+			// we got to a \c line, so this must be the start of a following chapter,
+			// so don't include it in the array (BEW changed to not include it, 13May14)
+			// (This is what makes our chapter-based algorithms work correctly within a
+			// whole book collaboration)
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Did not get a verse or chapter line, so nEnd must be set same as nStart
+		// plus however many indices are stored in lineIndicesArr (since the verse may end 
+		// with \q or other non-verse markers) less 1
+		nEnd = nStart -1 + lineIndicesArr->GetCount();
+	}
+	return TRUE;
+}
+
 // When processing comes, when comparing lines in two md5Array instances (one for
 // postEditText the other for fromEditorText) to a line pair which don't match in the
 // initial USFM markers, we have to delineate (from that point onwards) how many markers
@@ -6099,6 +6193,9 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 		return text;
 	}
 
+	// BEW 10Jul15 need this for our new conflict resolution dlg
+	wxString sourceText = gpApp->GetStoredSourceText_PostEdit();
+
 	// if control gets here, then we've 3 text variants to manage & compare; pre-edit,
 	// post-edit, and fromEditor; we've not yet got the post-edit text from the document,
 	// so do it now
@@ -6129,6 +6226,8 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 					&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
 				{
 					postEditText = RemoveIDMarkerAndCode(postEditText);
+					sourceText = RemoveIDMarkerAndCode(sourceText); // must do this one too!! or they won't be in sync
+
 				}
 			}
 		}
@@ -6162,13 +6261,12 @@ wxString MakeUpdatedTextForExternalEditor(SPList* pDocList, enum SendBackTextTyp
 					&& (gpApp->m_CollabChapterSelected != _T("1") && gpApp->m_CollabChapterSelected != _T("0"))))
 				{
 					postEditText = RemoveIDMarkerAndCode(postEditText);
+					sourceText = RemoveIDMarkerAndCode(sourceText); // must do this one too!! or they won't be in sync
 				}
 			}
 		}
 		break;
 	}
-	// BEW 10Jul15 need this for our new conflict resolution dlg
-	wxString sourceText = gpApp->GetStoredSourceText_PostEdit();
 
 	// Abandon any wxChars which precede first marker in text, for each of the 3 texts, so
 	// that we make sure each text we compare starts with a marker
@@ -6568,10 +6666,10 @@ void DeleteMD5MapStructs(wxArrayPtrVoid& structsArr)
 // external editor's matching chunk may happen to have been.
 // BEW refactored 10Jul15 for support of conflict resolution
 wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEditorText,
-		    wxString& sourceText, wxArrayString& sourceTextMd5Arr,
-			wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr,
-			wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
-			wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
+	wxString& sourceText, wxArrayString& sourceTextMd5Arr,
+	wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr,
+	wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr,
+	wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr)
 {
 	wxString newText; newText.Empty();
 	wxString zeroStr = _T("0");
@@ -6579,24 +6677,24 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	// MD5Map* instances, these are instances of struct pointer - defining where where
 	// the text substrings start by locating the pointer to their start, and a count
 	// for where each ends.
-    // Each text variant's MD5 structure&extents array has exactly the same USFMs in the
-    // same order -- verify before beginning...
+	// Each text variant's MD5 structure&extents array has exactly the same USFMs in the
+	// same order -- verify before beginning...
 	size_t preEditMd5Arr_Count;
 	preEditMd5Arr_Count = preEditMd5Arr.GetCount();
 	size_t postEditMd5Arr_Count = postEditMd5Arr.GetCount();
 	size_t fromEditorMd5Arr_Count;
 	fromEditorMd5Arr_Count = fromEditorMd5Arr.GetCount();
-	wxASSERT( preEditMd5Arr_Count == postEditMd5Arr_Count &&
-			  preEditMd5Arr_Count == fromEditorMd5Arr_Count);
+	wxASSERT(preEditMd5Arr_Count == postEditMd5Arr_Count &&
+		preEditMd5Arr_Count == fromEditorMd5Arr_Count);
 	// BEW added next two lines 10Jul15
 	size_t sourceTextMd5Arr_Count = sourceTextMd5Arr.GetCount();
-	wxASSERT( postEditMd5Arr_Count == sourceTextMd5Arr_Count);
+	wxASSERT(postEditMd5Arr_Count == sourceTextMd5Arr_Count);
 	wxUnusedVar(preEditMd5Arr_Count); // avoid compiler warning
 	wxUnusedVar(fromEditorMd5Arr_Count); // avoid compiler warning
-	MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
-	MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
+	//MD5Map* pPostEditOffsets = NULL; // stores ptr of MD5Map from postEditOffsetsArr
+	//MD5Map* pFromEditorOffsets = NULL; // stores ptr of MD5Map from fromEditorOffsetsArr
 	// BEW added next line 10Jul15
-	MD5Map* pSourceTextOffsets = NULL; // stores ptr of MD5Map from sourceTextOffsetsArr
+	//MD5Map* pSourceTextOffsets = NULL; // stores ptr of MD5Map from sourceTextOffsetsArr
 	wxString preEditMd5Line;
 	wxString postEditMd5Line;
 	wxString fromEditorMd5Line;
@@ -6607,20 +6705,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxString sourceTextMd5Line;
 	wxString sourceTextMD5Sum;
 	// ... and for tracking where each verse starts and ends. Strictly speaking
-	// only one pair of _Start and _End indices need to be tracked, the postEditVerse
+	// only one pair of ...Start and ...End indices need to be tracked, the postEditVerse
 	// ones, because the other three pairs have same index values due to the fact
 	// that the UFSM structure is identical in AI and PT or BE. However, having
 	// the different variables better documents what is going on in the code.
-	int		postEditVerse_Start;
-	int		postEditVerse_End;
-	int		preEditVerse_Start;
-	int		preEditVerse_End;
-	int		fromEditorVerse_Start;
-	int		fromEditorVerse_End;
-	int		sourceTextVerse_Start;
-	int		sourceTextVerse_End;
-	// ... and now we need to track the various indices, since aggregation means that
-	// each subsequent verse is not always just at the old index + 1 value any more
 	int preEditIndex = 0; // indexing into the MD5 array for preEdit adaptation text from AI
 	int postEditIndex = 0; // indexing into the MD5 array for postEdit adaptation text from AI
 	int fromEditorIndex = 0;  // indexing into the MD5 array for text from PT or BE chapter
@@ -6633,6 +6721,10 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	int preEditStart = 0; // starting when searching forwards
 	int postEditStart = 0; // ditto
 	int fromEditorStart = 0;  // ditto
+	// ... and for the source text, per-USFM indices
+	int sourceTextStart = 0;
+	int sourceTextIndex = 0;
+	int sourceTextEnd = 0;
 
 	// BEW 10Jul15 refactored. In order to support conflict resolution in a verse-based
 	// way across both this function, and GetUpdatedText_UsfmsChanged() which is already
@@ -6658,16 +6750,17 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	// of user edits done in the verse. So first I will impose these new protocols and
 	// build some functions for doing the necessary marker + content aggregations, and
 	// testings. When that is working, I'll refactor again to build in the conflict
-	// resolution tests and dialogs, etc, and the adding of an outer loop for a two-pass
-	// traverse of the legacy loop: the outer loop to do what the legacy loop did but to
-	// store data in structs for use in the second pass of the loop, after the user's
-	// choice of conflict resolution has been made in response to a dialog shown him.
-	// That dialog will have 3 choices - 1. legacy way, 2. force AI verse each time, 3.
-	// choose via a further dialog of listed conflicted verses, shown once at end of first
-	// traverse of the outer loop. We'll also need a new wxArrayPtrVoid to store the
-	// structs which will perserve the stored intermediate data from the first traverse
-	// of the loop, for use in the second traverse, so we don't double up on all the
-	// complex testing for each traverse of the loop.
+	// resolution tests and dialogs, etc. the legacy loop will be refactored to collect
+	// data and test results in structs. If the conflict resolution dialog is to be shown
+	// (the user can request it), then his choices are transferred from there to the 
+	// relevant structs. At that point, the accumulated structs have all the info needed
+	// for creating the output text - so a loop over those structs does that. Job done.
+	// The user's choice of conflict resolution will be made in response to a dialog shown
+	// at the first detection of a conflict.That dialog will have 3 choices - 1. legacy way,
+	// 2. force AI verse each time, 3.choose via a further dialog of listed conflicted 
+	// verses, shown once at end of the traverse of the refactored loop. 
+	// We'll also need a new wxArrayPtrVoid to store the structs which will perserve the
+	// stored data from the loop traverse.
 
 	// Work with wxChar pointers for each of the postEditText, fromEditorText texts (we
 	// don't need a block like this for the preEditText because we don't access it's data
@@ -6691,11 +6784,228 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	wxChar* pSourceTextEnd = pSourceTextStart + nSourceTextBufLen;
 	wxASSERT(*pSourceTextEnd == '\0');
 
-	// FIRST - the pre-verse-1 chunking. Copy from GetUpdatedText_UsfmsChanged()
+	// The text data usually starts with the \c marker information for each of preEdit,
+	// postEdit and fromEditor texts. However, some books (e.g. 2John, 3John) do not have
+	// \c markers, so we will do some pre-loop processing to get control to the first \v
+	// marker in each text; from that point on, we go verse by verse. Also, chapter 1 is
+	// often preceded by a number of markers only occuring book initially - such as 
+	// introductory material, main title, secondary title, running header, and the like.
+	// So we deal with such material as a chunk, and send it to the external editor.
+	wxString substring; // scratch variable
+	bool bOK = FALSE; // initialize
+	bool bFoundVerse = FALSE; // initialize
+	wxUnusedVar(bFoundVerse); // whm added 25Jun2015 to avoid gcc "not used" warning
+	wxString emptyStr = _T("");
+	// Setup starting indices at first of the md5sum lines - each starts with a USFM
+	bool bIsPostEditVerseLine = IsVerseLine(postEditMd5Arr, postEditStart);
+	bool bIsFromEditorVerseLine = IsVerseLine(fromEditorMd5Arr, fromEditorStart);
+	bool bIsPreEditVerseLine = IsVerseLine(preEditMd5Arr, preEditStart);
+	bool bIsSourceTextVerseLine = IsVerseLine(sourceTextMd5Arr, sourceTextStart);
+
+	// Since all 4 indices will stay in sync as we advance, we can use any of them to
+	// advance with - so we will use postEditIndex
+	// Find out if the md5 line at index 0 is a verse one, if so, deal with that; if
+	// not, then there are USFMs prior to \v 1, if so, chunk for those until the \v 1
+	// line is found, but don't include that in the chunk
+	if (bIsPostEditVerseLine)
+	{
+		// First marker is \v, this is very unusual and not likely, but allow for it
+		postEditIndex = postEditStart; // = 0
+		postEditEnd = postEditStart; // = 0
+		// Next ones have to be so, since USFM structure is same in AI and PT or BE
+		preEditIndex = preEditStart;
+		preEditEnd = preEditStart;
+		fromEditorIndex = fromEditorStart;
+		fromEditorEnd = fromEditorStart;
+		sourceTextIndex = sourceTextStart;
+		sourceTextEnd = sourceTextStart;
+	}
+	else
+	{
+		// First line is not a verse line, so there are prior markers; so find where
+		// the first \v line (the one for \v 1) actually is
+		postEditIndex = postEditStart + 1; // index passed into GetNextVerse() must be for
+		// the first line line which potentially may be a verse line, so add 1 to 
+		// postEditStart's 0 value. If a verse is found, TRUE is returned in the
+		// following call, and the signature returns the index to the verse's line
+		bFoundVerse = GetNextVerseLine(postEditMd5Arr, postEditIndex);
+		// We are collaborating with a scripture edit, and USFM scripture must have verse 
+		// markers, so -1 should never be returned - check
+		wxASSERT(postEditIndex != wxNOT_FOUND && bFoundVerse == TRUE);
+		// The end of the chunk is the index of whatever marker immediately precedes the
+		// verse marker that was found
+		postEditEnd = postEditIndex - 1;
+		// Now we know the other index values...
+		preEditIndex = postEditIndex;
+		preEditEnd = postEditEnd;
+		fromEditorIndex = postEditIndex;
+		fromEditorEnd = postEditEnd;
+		sourceTextIndex = postEditIndex;
+		sourceTextEnd = postEditEnd;
+	}
+	// The indices are not indices to verses, since the postEditOffsetsArr array
+	// stores the indices to all markers, typically only some are verse ones,
+	// so to extract the text we have to aggregate maps of offsets to the start and
+	// end of each marker's text content, for later use by Extract Substring().
+	// We get the postEditText we want to send to PT or BE, so we are not here
+	// interested in the fromEditor data content (which will be replaced by what
+	// is transferred)
+	MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+	MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+	substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+		pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+	newText += substring; // The pre-verse-1 chunk has been constructed & added to newText
+
+	// *** Set the indices for where to start from next, for preEdit, postEdit, fromEditor 
+	// & source text; the scanning loop needs correct indices for when it commences,
+	// and since we advance now by verses, we need to start the loop with the indices
+	// pointing to the first verse ***
+	// postEditIndex, preEditIndex, fromEditorIndex, and sourceTextIndex are all currently
+	// referencing the \v 1 line in their respective Md5sum structure & extents arrays.
+	postEditStart = postEditIndex; // the \v 1 md5 line in postEditMd5Arr
+	postEditEnd = wxNOT_FOUND;
+
+	preEditStart = preEditIndex; // the \v 1 md5 line in preEditMd5Arr
+	preEditEnd = wxNOT_FOUND; // we don't use it, but no harm in doing this
+
+	fromEditorStart = fromEditorIndex; // the \v 1 md5 line in fromEditorMd5Arr
+	fromEditorEnd = wxNOT_FOUND;
+
+	sourceTextStart = sourceTextIndex; // the \v 1 md5 line in sourceTextMd5Arr
+	sourceTextEnd = wxNOT_FOUND;
+
+	// LOOP STARTS - advance by md5 lines until the one for next verse is encountered.
+	// Since the USFM structure is identical in each text version, the postEdit
+	// text's verse string will be the same as what would be extracted from the
+	// other three texts, so we'll not bother to extract those
+	//wxString postEditVerseNumStr;
 
 
 
-	size_t index;
+
+
+	// lineIndicesArr holds the subset of indices into the postEditMd5Arr array for marker
+	// fields belonging in the verse being delineated - the first index in the array must
+	// refer to the \v marker line which commences each verse being so delineated
+	wxArrayInt lineIndicesArr; lineIndicesArr.Clear();
+	int index = postEditIndex;
+	wxASSERT(IsVerseLine(postEditMd5Arr, postEditIndex)); // must start at \v 1
+
+	while (index < (int)postEditMd5Arr_Count)
+	{
+		// Delineate the verse
+		postEditStart = index; // index will change, so preserve what the index is for the verse's start
+		bFoundVerse = DelineateThisVerse(postEditMd5Arr, index, postEditEnd, &lineIndicesArr);
+		if (bFoundVerse)
+		{
+			// Not yet at the end of the chapter. Handle the verse just delineated. The index value
+			// returned should point at the next line if there is one, but the safest way to get
+			// a next line's index is to do index = postEditEnd + 1, and let the while loop's test
+			// check if it is valid
+			wxASSERT(lineIndicesArr.GetCount() > 0);
+
+#if defined(_DEBUG)
+			// Verify we get the right groupings of md5 lines
+			wxString aLine;
+			wxString aVerseNum;
+			int aCount;
+			aLine = postEditMd5Arr.Item(postEditStart);
+			aCount = lineIndicesArr.GetCount();
+			aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
+			if (aVerseNum == _T("22"))
+			{
+				int break_here = 1; // 23 is last verse of Matt ch2, so check why loop doesn't terminate
+			}
+			wxLogDebug(_T("\nGet...UsfmsUnchanged(): Line grouping for verse:  %s   Number of lines: %d  postEditStart %d  postEditEnd %d"), 
+				aVerseNum.c_str(), aCount, postEditStart, postEditEnd);
+			int anIndex;
+			for (anIndex = 0; anIndex < aCount; anIndex++)
+			{
+				int offsetIndex = anIndex + postEditStart;
+				wxLogDebug(_T("Md5Line:  %s"), postEditMd5Arr.Item(offsetIndex).c_str());
+			}
+#endif
+			// Get the other indices updated
+			preEditStart = postEditStart;
+			preEditEnd = postEditEnd;
+			fromEditorStart = postEditStart;
+			fromEditorEnd = postEditEnd;
+			sourceTextStart = postEditStart;
+			sourceTextEnd = postEditEnd;
+			
+			// First check - is the PT (or BE) verse empty?
+			bool bUserEditedVerseInAI = FALSE; // initialize
+			bool bAI_verse_is_empty = FALSE; // initialize
+			bool bPTorBE_verse_is_empty = IsPTorBEverseEmpty(fromEditorMd5Arr, lineIndicesArr);
+			if (bPTorBE_verse_is_empty)
+			{
+				// When the PT or BE verse is empty, obligatorily transfer what the AI verse has
+				MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+				MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+				substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+					pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+				newText += substring;
+			}
+			else
+			{
+				// PTorBE verse has content, so next check is to see if the AI verse is empty;
+				// if it is, we let the PTorBE form of the verse stand unchanged, and so we
+				// then send copy of the PTorBE verse back to PTorBE
+				bAI_verse_is_empty = IsAIverseEmpty(postEditMd5Arr, lineIndicesArr);
+				if (bAI_verse_is_empty)
+				{
+					// Return's PTorBE's verse to PTorBE
+					MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+					MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+					substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+						pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+					newText += substring;
+				}
+				else
+				{
+					// Next check the preEditMd5Sum and postEditMd5Sum - if they are different, then
+					// the user has done some editing of this verse in AI, and so it must be transferred
+					// to PTorBE; if they are the same, the user did no detectable edits, and so we will
+					// let the PTorBE form of the verse remain unchanged (that is, send if back to the 
+					// external editor). The catch here is that we have aggregated possibly more than one
+					// md5 line in order to generate the verse; so we have to call a function here that looks
+					// for at least one difference in the internal md5 sums between the PTorBE verse and
+					// the AI verse
+					bUserEditedVerseInAI = DidUserEditVerseInAI(preEditMd5Arr, postEditMd5Arr, lineIndicesArr);
+					if (bUserEditedVerseInAI)
+					{
+						// User edits done in AI were detected for this verse, so it must be
+						// transferred to PTorBE
+
+//TODO
+					}
+					else
+					{
+
+
+						// TODO -- whatever should go here
+					}
+				}
+			}
+
+			// Prepare for iteration
+			lineIndicesArr.Clear();
+			index = postEditEnd + 1; // could be a verse line's index, or a \c line's index, 
+									   // or beyond the array's bound
+		}
+		else
+		{
+			// Didn't find a verse - either we are beyond postEditMd5Arr bound, or the passed
+			// in index was the index to the \c line at the start of a next chapter, or the
+			// index passed in was to a marker's line which was not a verse line. Whichever
+			// is the case, the only safe thing to do is to exit the loop here
+			break;
+		}
+	}
+	int break_here = 1;
+
+// LEGACY LOOP
+/*
 	for (index = 0; index < postEditMd5Arr_Count; index++)
 	{
 		// get the next line from each of the MD5 structure&extents arrays
@@ -6736,7 +7046,7 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 		}
 		// now check for MD5 checksum of "0" in fromEditorMD5Sum,
 		// and if so, the copy the span over from postEditText unilaterally (marker and
-		// text, or marker an no text, as the case may be - doesn't matter since the
+		// text, or marker and no text, as the case may be - doesn't matter since the
 		// fromEditorText's marker had no content anyway)
 		else if (fromEditorMD5Sum == zeroStr)
 		{
@@ -6837,7 +7147,121 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			}
 		}
 	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
+
+*/
 	return newText;
+}
+
+bool DidUserEditVerseInAI(const wxArrayString& preEditMd5Arr, const wxArrayString& postEditMd5Arr,
+						wxArrayInt& lineIndices)
+{
+	int i;
+	int count = (int)lineIndices.GetCount();
+	wxASSERT(count > 0);
+	// The caller has guaranteed that each line index is a valid index into the md5Arr array
+	// so we don't need to check for bounds errors here.
+	int md5LineIndex;
+	wxString preEditMd5Line;
+	wxString preEditMd5Sum;
+	wxString postEditMd5Line;
+	wxString postEditMd5Sum;
+	for (i = 0; i < count; i++)
+	{
+		md5LineIndex = lineIndices.Item(i);
+		preEditMd5Line = preEditMd5Arr.Item(md5LineIndex);
+		postEditMd5Line = postEditMd5Arr.Item(md5LineIndex);
+		preEditMd5Sum = GetFinalMD5FromStructExtentString(preEditMd5Line);
+		postEditMd5Sum = GetFinalMD5FromStructExtentString(postEditMd5Line);
+		if (preEditMd5Sum != postEditMd5Sum)
+		{
+			return TRUE; // there's at least one user edit found
+		}
+	}
+	// If control gets here, no detectable user edit was encountered
+	return FALSE;
+}
+
+bool IsAIverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices)
+{
+	int i;
+	int count = (int)lineIndices.GetCount();
+	wxASSERT(count > 0);
+	// The caller has guaranteed that each line index is a valid index into the md5Arr array
+	// so we don't need to check for bounds errors here.
+	int md5LineIndex;
+	wxString md5Line;
+	wxString md5Sum;
+	for (i = 0; i < count; i++)
+	{
+		md5LineIndex = lineIndices.Item(i);
+		md5Line = md5Arr.Item(md5LineIndex);
+		md5Sum = GetFinalMD5FromStructExtentString(md5Line);
+		if (md5Sum != _T("0"))
+		{
+			return FALSE;
+		}
+	}
+	// If control gets to here, all md5 lines have a zero string for the md5sum
+	return TRUE;
+}
+
+
+
+// Return TRUE if each of the md5 lines in this verse has an md5sum string value of _T("0")
+// Note: Bibledit has a period after the \v <number><space>. of the last verse of the last
+// chapter of a book. Bummer. It servers no useful purpose, but it causes the otherwise empty
+// verse to have a non-0 md5 sum. So, like in the legacy form of GetUpdatedText_UsfmsUnchanged() 
+// where we did a check for this, and if found we still declared that verse "empty", we must
+// do similarly here too. We could dispense with a BE running check, just checking for an
+// extents value of 1 (. is a single character) is sufficient, because no verse in PT that
+// has any meaningful content is only going to be comprised of a single character.
+// The index values stored in lineIndices array are into the relevant part of the md5Arr array,
+// and so the first is not usually going to be 0
+bool IsPTorBEverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices)
+{
+	int i;
+	int count = (int)lineIndices.GetCount();
+	wxASSERT(count > 0);
+	// The caller has guaranteed that each line index is a valid index into the md5Arr array
+	// so we don't need to check for bounds errors here. The first index should always be to
+	// a verse (\v ) md5 line, so that's where we'll also check for a Bibledit unwanted . (period)
+	int md5LineIndex;
+	wxString md5Line;
+	wxString md5Sum;
+	for (i = 0; i < count; i++)
+	{
+		md5LineIndex = lineIndices.Item(i);
+		md5Line = md5Arr.Item(md5LineIndex);
+		if (i == 0)
+		{
+			wxASSERT(IsVerseLine(md5Arr, md5LineIndex));
+			md5Sum = GetFinalMD5FromStructExtentString(md5Line);
+			if (md5Sum != _T("0"))
+			{
+				// We need to check for the Bibledit rogue period (.) now
+				int numChars = GetCharCountFromStructExtentString(md5Line);
+				if (numChars > 1)
+				{
+					return FALSE; // it's not a single character only, so has real content
+				}
+				// Otherwise, it's a single character so must be that pesky period, so
+				// all's well - continue looping
+			}
+		}
+		else
+		{
+			// Non-verse md5 lines...
+			md5Sum = GetFinalMD5FromStructExtentString(md5Line);
+			if (md5Sum != _T("0"))
+			{
+				return FALSE;
+			}
+		}
+	}
+	// If control gets to here, all md5 lines have a zero string for the md5sum,
+	// and if Bibledit's verse final . (period) was found, it has been counted as
+	// an empty verse too
+	return TRUE;
 }
 
 // on invocation, the caller will have ensured that a USFM marker is the first character of
@@ -7191,8 +7615,8 @@ wxString GetUpdatedText_UsfmsChanged(
 		// The end of the chunk is the index of whatever marker immediately precedes the
 		// verse marker that was found
 		postEditEnd = postEditIndex - 1;
-		// The verse indices are not indices into the postEditOffsetsArr array, as the
-		// latter stores the indices to all markers, typically only some are verse ones,
+		// The indices are not indices to verses, since the postEditOffsetsArr array
+		// stores the indices to all markers, typically only some are verse ones,
 		// so to extract the text we have to aggregate maps of offsets to the start and
 		// end of each marker's text content, for later use by Extract Substring()
 		MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);

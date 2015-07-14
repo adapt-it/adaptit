@@ -698,14 +698,6 @@ struct PageOffsets
 	int nLastStrip; // 0-based index of the last strip to appear on the current page
 };
 
-// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
-struct EthnologueCodePair {
-	wxString srcLangCode;
-	wxString tgtLangCode;
-	wxString projectFolderName;
-	wxString projectFolderPath;
-};
-
 /// wxList declaration and partial implementation of the POList class being
 /// a list of pointers to PageOffsets objects
 WX_DECLARE_LIST(PageOffsets, POList); // see list definition macro in .cpp file
@@ -732,13 +724,6 @@ enum DelayedFreeTransOperations
 	join_with_next,
 	join_with_previous,
 	split_it
-};
-
-enum CollabConflictResAction
-{
-	legacy_keep_PTorBE_verse,
-	force_AI_verse_transfer,
-	user_choice_via_dialog
 };
 
 /// An enum for selecting which configuration file type in GetConfigurationFile()
@@ -1121,6 +1106,34 @@ enum AiProjectCollabStatus
 	collabProjExistsAndIsValid,
 	collabProjExistsButIsInvalid,
 	collabProjNotConfigured,
+};
+
+/// a struct for use in collaboration with Paratext or Bibledit (BEW added 22Jun11)
+struct EthnologueCodePair {
+	wxString srcLangCode;
+	wxString tgtLangCode;
+	wxString projectFolderName;
+	wxString projectFolderPath;
+};
+
+/// a struct for use in collaboration conflict resolution dialog
+struct CollabAction  {
+	int			indexToSelf;          // may not need this
+	wxString	sourceText;           // empty except for a conflicted verse instance
+	wxString	AI_verse_version;     // this or the next may be empty, depending on action
+	wxString	PTorBE_verse_version; // to be taken; for a conflict, both are non-empty
+	bool		bPTorBE_verse_empty;  // TRUE if the md5sum(s) for the PTorBE verse are all empty
+	bool		bAI_verse_empty;      // TRUE if the md5sum(s) for the AI verse are all empty
+	bool		bVerseVersionsDiffer; // AI version differs from PTorBE version
+	bool		bUserEditsDetected;   // TRUE if preEdit and postEdit versions differ
+	bool		bConflictedVerses;	  // TRUE if bUserEditsDetected is FALSE and
+									  // bVerseVersionsDiffer is TRUE (and also neither
+									  // version is an empty string)
+	bool		bRetainPTorBEversion; // TRUE if first radio button chosen (legacy protocol)
+	bool		bForceAIversion;	  // TRUE if second radio button chosen, and 
+									  // Conflict Res dlg shows if this is FALSE
+	bool		bUserChoseAIversion;  // TRUE if in Conflict Res dlg user ticked checkbox
+									  // but if checkbox unticked, User wants PTorBE version
 };
 
 // An enum for specifying the program mode for use in the
@@ -4032,6 +4045,11 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char *data, int length) {
 	bool m_bCollaborationDocHasFreeTrans;
 	bool m_bSaveCopySourceFlag_For_Collaboration; // save value so it can be
 												  // later restored in File / Close
+	// BEW added 10Jul15 for support of conflict resolution in collaboration mode
+	bool m_bRetainPTorBEversion;
+	bool m_bForceAIversion;
+	bool m_bUseConflictResolutionDlg;
+
 	// whm 27Mar12 Note:
 	// If Paratext is installed (either on Windows or Linux) we give priority to
 	// it as the installed external Scripture editor for collaboration. If neither

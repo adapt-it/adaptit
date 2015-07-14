@@ -15305,6 +15305,11 @@ bool CAdapt_ItApp::GetAdjustScrollPosFlag()
 
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	// initialize these collaboration variables, which are relevant to conflict resolution
+	m_bRetainPTorBEversion = FALSE;
+	m_bForceAIversion = FALSE;
+	m_bUseConflictResolutionDlg = FALSE;
+
 	// BEW 21May15 added next five, for support of the freeze/thaw optimization for a sequence
 	// of consecutive auto-inserts from the KB, see AdaptitConstants.h for NUMINSERTS value
 	// as well (currently 8)

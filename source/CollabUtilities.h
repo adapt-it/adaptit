@@ -211,8 +211,15 @@ class CSourcePhrase;
 							wxArrayString& preEditMd5Arr, wxArrayString& postEditMd5Arr, 
 							wxArrayString& fromEditorMd5Arr, wxArrayPtrVoid& postEditOffsetsArr, 
 							wxArrayPtrVoid& fromEditorOffsetsArr, wxArrayPtrVoid& sourceTextOffsetsArr);
-	// BEW 10Jul15, next one needed for conflict resolution dialog
+	// BEW 10Jul15, next ones needed for conflict resolution dialog, and imposing verse-based advances
+    // on the former marker-based advancing in the loop in GetUpdatedText_UsfmsUnchanged() function
 	wxString		MakeSourceTextForCollabConflictResDlg();
+	bool            DelineateThisVerse(const wxArrayString& md5Arr, int& nStart, int& nEnd, 
+		                            wxArrayInt* lineIndicesArr);
+	bool			IsPTorBEverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
+	bool			IsAIverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
+	bool			DidUserEditVerseInAI(const wxArrayString& preEditMd5Arr, const wxArrayString& postEditMd5Arr,
+									wxArrayInt& lineIndices);
 
 	////////////////// end of those for analysis of texts //////////////////////////
 
