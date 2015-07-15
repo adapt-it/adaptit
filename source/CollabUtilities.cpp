@@ -6792,14 +6792,15 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 	// introductory material, main title, secondary title, running header, and the like.
 	// So we deal with such material as a chunk, and send it to the external editor.
 	wxString substring; // scratch variable
-	bool bOK = FALSE; // initialize
 	bool bFoundVerse = FALSE; // initialize
 	wxUnusedVar(bFoundVerse); // whm added 25Jun2015 to avoid gcc "not used" warning
 	wxString emptyStr = _T("");
 	// Setup starting indices at first of the md5sum lines - each starts with a USFM
 	bool bIsPostEditVerseLine = IsVerseLine(postEditMd5Arr, postEditStart);
 	bool bIsFromEditorVerseLine = IsVerseLine(fromEditorMd5Arr, fromEditorStart);
+	wxUnusedVar(bIsFromEditorVerseLine);
 	bool bIsPreEditVerseLine = IsVerseLine(preEditMd5Arr, preEditStart);
+	wxUnusedVar(bIsPreEditVerseLine);
 	bool bIsSourceTextVerseLine = IsVerseLine(sourceTextMd5Arr, sourceTextStart);
 
 	// Since all 4 indices will stay in sync as we advance, we can use any of them to
@@ -6912,10 +6913,11 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			aLine = postEditMd5Arr.Item(postEditStart);
 			aCount = lineIndicesArr.GetCount();
 			aVerseNum = GetNumberFromChapterOrVerseStr(aLine);
-			if (aVerseNum == _T("22"))
-			{
-				int break_here = 1; // 23 is last verse of Matt ch2, so check why loop doesn't terminate
-			}
+			//if (aVerseNum == _T("22"))
+			//{
+			//  // 23 is last verse of Matt ch2, so check why loop didn't terminate (now fixed)
+			//	int break_here = 1; 
+			//}
 			wxLogDebug(_T("\nGet...UsfmsUnchanged(): Line grouping for verse:  %s   Number of lines: %d  postEditStart %d  postEditEnd %d"), 
 				aVerseNum.c_str(), aCount, postEditStart, postEditEnd);
 			int anIndex;
@@ -6976,14 +6978,21 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 					{
 						// User edits done in AI were detected for this verse, so it must be
 						// transferred to PTorBE
-
-//TODO
+						MD5Map* pPostEditArr_StartMap = (MD5Map*)postEditOffsetsArr.Item(postEditStart);
+						MD5Map* pPostEditArr_LastMap = (MD5Map*)postEditOffsetsArr.Item(postEditEnd);
+						substring = ExtractSubstring(pPostEditBuffer, pPostEditEnd,
+							pPostEditArr_StartMap->startOffset, pPostEditArr_LastMap->endOffset);
+						newText += substring;
 					}
 					else
 					{
-
-
-						// TODO -- whatever should go here
+						// User edits were not detected, so send the PTorBE verse back to
+						// the external edit
+						MD5Map* pFromEditorArr_StartMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorStart);
+						MD5Map* pFromEditorArr_LastMap = (MD5Map*)fromEditorOffsetsArr.Item(fromEditorEnd);
+						substring = ExtractSubstring(pFromEditorBuffer, pFromEditorEnd,
+							pFromEditorArr_StartMap->startOffset, pFromEditorArr_LastMap->endOffset);
+						newText += substring;
 					}
 				}
 			}
@@ -6998,13 +7007,18 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			// Didn't find a verse - either we are beyond postEditMd5Arr bound, or the passed
 			// in index was the index to the \c line at the start of a next chapter, or the
 			// index passed in was to a marker's line which was not a verse line. Whichever
-			// is the case, the only safe thing to do is to exit the loop here
+			// is the case, the only safe thing to do is to exit the loop here; and perhaps
+			// ringing the bell might help to warn that something is seriously amiss
+			wxBell();
 			break;
 		}
 	}
+#if defined(_DEBUG)
 	int break_here = 1;
+#endif
+	return newText;
 
-// LEGACY LOOP
+// LEGACY LOOP -- delete once everything is working right
 /*
 	for (index = 0; index < postEditMd5Arr_Count; index++)
 	{
@@ -7147,9 +7161,8 @@ wxString GetUpdatedText_UsfmsUnchanged(wxString& postEditText, wxString& fromEdi
 			}
 		}
 	} // end of loop: for (index = 0; index < postEditMd5Arr_Count; index++)
-
-*/
 	return newText;
+*/
 }
 
 bool DidUserEditVerseInAI(const wxArrayString& preEditMd5Arr, const wxArrayString& postEditMd5Arr,
