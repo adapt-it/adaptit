@@ -215,11 +215,12 @@ class CSourcePhrase;
     // on the former marker-based advancing in the loop in GetUpdatedText_UsfmsUnchanged() function
 	wxString		MakeSourceTextForCollabConflictResDlg();
 	bool            DelineateThisVerse(const wxArrayString& md5Arr, int& nStart, int& nEnd, 
-		                            wxArrayInt* lineIndicesArr);
+		                            wxArrayInt* lineIndicesArr, wxString& chapNumReached);
 	bool			IsPTorBEverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
 	bool			IsAIverseEmpty(const wxArrayString& md5Arr, wxArrayInt& lineIndices);
-	bool			DidUserEditVerseInAI(const wxArrayString& preEditMd5Arr, const wxArrayString& postEditMd5Arr,
-									wxArrayInt& lineIndices);
+	bool			AreTheseTwoTextVersionsDifferent(const wxArrayString& preEditMd5Arr, 
+						const wxArrayString& postEditMd5Arr, wxArrayInt& lineIndices);
+	void			SetCollabActionDefaults(CollabAction* p);
 
 	////////////////// end of those for analysis of texts //////////////////////////
 

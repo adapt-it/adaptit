@@ -10921,48 +10921,56 @@ wxSizer *AI_PT_ConflictingVersesFunc( wxWindow *parent, bool call_fit, bool set_
     return item0;
 }
 
+wxSizer *CollabActionDlgSizer;
+wxSizer *TopStaticSizer;
+wxSizer *MiddleStaticSizer;
+wxSizer *BottomStaticSizer;
 wxSizer *ConflictResolutionActionFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+    CollabActionDlgSizer = item1;
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Retain the %s version of the verse") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
+    TopStaticSizer = item2;
 
-    wxRadioButton *item4 = new wxRadioButton( parent, ID_RADIOBUTTON_PTorBE_RETAIN, _("Retain the %s form of the verse unchanged, for each identified conflict"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item4 = new wxRadioButton( parent, ID_RADIOBUTTON_PTorBE_RETAIN, _("Retain the %s form of the verse unchanged, for each identified conflict (this is the default option)"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->SetValue( TRUE );
     item4->SetToolTip( _("This choice keeps the external editor's verse unchanged, the Adapt It version of this verse is not transferred") );
     item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL, _("For Adapt It versions earlier than 6.6.0, this was the only action available.  If there are no user editing changes (within Adapt It) for conflicting verses, then the %s forms of those verses are retained unchanged. The Adapt It forms of those conflicting verses will never be transferred unless you make further editing changes in them. (If this is unsatisfactory, tick one of the lower buttons. The bottom button gives best control, but requires you to interact with another dialog.)"), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
-    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxTextCtrl *item5 = new wxTextCtrl( parent, ID_TEXTCTRL_TOP, _("For Adapt It versions earlier than 6.6.0, this was the only action available.  If there are no user editing changes (within Adapt It) for conflicting verses, then the %s forms of those verses are retained unchanged. The Adapt It forms of those conflicting verses will never be transferred unless you make further editing changes in them. (If this is unsatisfactory, tick one of the lower buttons. The bottom button gives best control, but requires you to interact with another dialog.)"), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
+    item2->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Transfer the Adapt It version of the verse") );
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, _("Transfer the %s version of the verse") );
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxVERTICAL );
+    MiddleStaticSizer = item6;
 
     wxRadioButton *item8 = new wxRadioButton( parent, ID_RADIOBUTTON_FORCE_AI_VERSE_TRANSFER, _("Force the Adapt It verse contents to be transferred to %s, for each identified conflict"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->SetToolTip( _("Every time a conflict happens, we want the Adapt It form of the verse to be transferred") );
     item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL, _("You see this dialog when the first verse conflict occurs. A verse conflict is a difference between what is in the Adapt It form of the verse, compared with what %s has.  It you choose this radio button, no additional dialog appears. Instead, Adapt It, every time it finds a verse conflict, will automatically choose the Adapt It form of the verse, and transfer it to %s. This will permanently erase the content of that verse in %s, replacing it with what is transferred from Adapt It. (If you need more control, choose the button below.) "), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
-    item6->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_MIDDLE, _("This dialog opens when the first verse conflict occurs. A verse conflict is a difference between the Adapt It form of the verse, compared with what %s has for that verse.  It you choose this radio button, no additional dialog appears. Instead, Adapt It, every time it finds a verse conflict, will automatically choose the Adapt It form of the verse, and transfer it to %s. This will permanently erase the content of that verse in %s, replacing it with what is transferred from Adapt It. (If you need more control, choose the button below.) "), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
+    item6->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticBox *item11 = new wxStaticBox( parent, -1, _("Show a dialog with a list, comparing the two versions of each verse") );
     wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
+    BottomStaticSizer = item10;
 
     wxRadioButton *item12 = new wxRadioButton( parent, ID_RADIOBUTTON_USER_CHOICE_FOR_CONFLICT_RESOLUTION, _("You want to see the conflicting verses, and manually choose which versions to accept"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->SetToolTip( _("Compiles a list, shows the conflicts in a dialog, you can choose which version of each is best, the source text is also shown") );
     item10->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL, _("For this Save operation, all the identified verse conflicts will be shown to you in a dialog which appears just once. The conflicting verses are listed. Clicking the verse reference in the list, shows the Adapt It and %s versions of that verse, and you can choose the best one. (No editing allowed.) The versions are displayed side by side; the source text is above. You can choose the best version using radio buttons, or by clicking a checkbox to cause the Adapt It form of the verse to be chosen and transferred."), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
-    item10->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_BOTTOM, _("For this Save operation, all the identified verse conflicts will be shown to you in a dialog which appears just once. The conflicting verses are listed. Clicking the verse reference in the list, shows the Adapt It and %s versions of that verse, and you can choose the best one. (No editing allowed.) The versions are displayed side by side; the source text is above. You can choose the best version using radio buttons, or by clicking a checkbox to cause the Adapt It form of the verse to be chosen and transferred."), wxDefaultPosition, wxSize(80,80), wxTE_MULTILINE|wxTE_READONLY );
+    item10->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item1->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -10978,7 +10986,7 @@ wxSizer *ConflictResolutionActionFunc( wxWindow *parent, bool call_fit, bool set
 
     item1->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

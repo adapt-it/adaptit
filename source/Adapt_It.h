@@ -1118,22 +1118,15 @@ struct EthnologueCodePair {
 
 /// a struct for use in collaboration conflict resolution dialog
 struct CollabAction  {
-	int			indexToSelf;          // may not need this
+	wxString	preVerseOneText;      // the \c and any other pre-verse-1 information
 	wxString	sourceText;           // empty except for a conflicted verse instance
 	wxString	AI_verse_version;     // this or the next may be empty, depending on action
 	wxString	PTorBE_verse_version; // to be taken; for a conflict, both are non-empty
+	bool		bIsPreVerseOne;		  // TRUE when this struct just has the preVerseOneText for obligatory transfer
 	bool		bPTorBE_verse_empty;  // TRUE if the md5sum(s) for the PTorBE verse are all empty
 	bool		bAI_verse_empty;      // TRUE if the md5sum(s) for the AI verse are all empty
-	bool		bVerseVersionsDiffer; // AI version differs from PTorBE version
 	bool		bUserEditsDetected;   // TRUE if preEdit and postEdit versions differ
-	bool		bConflictedVerses;	  // TRUE if bUserEditsDetected is FALSE and
-									  // bVerseVersionsDiffer is TRUE (and also neither
-									  // version is an empty string)
-	bool		bRetainPTorBEversion; // TRUE if first radio button chosen (legacy protocol)
-	bool		bForceAIversion;	  // TRUE if second radio button chosen, and 
-									  // Conflict Res dlg shows if this is FALSE
-	bool		bUserChoseAIversion;  // TRUE if in Conflict Res dlg user ticked checkbox
-									  // but if checkbox unticked, User wants PTorBE version
+	bool		bConflictedVerses;	  // TRUE if the Conflict Resolution dlg needs to be used
 };
 
 // An enum for specifying the program mode for use in the
