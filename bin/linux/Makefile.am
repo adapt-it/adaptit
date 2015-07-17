@@ -86,7 +86,7 @@ adaptit_SOURCES = \
 	../../source/ChooseTranslation.cpp ../../source/ClientServerConnection.cpp \
 	../../source/CollabVerseConflictDlg.cpp ../../source/CollectBacktranslations.cpp \
 	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
-	../../source/ConflictResActionDlg.cpp ../../source/ConflictResActionDlg.cpp \
+	../../source/ConflictResActionDlg.cpp \
 	../../source/ConsistentChanger.cpp ../../source/convauto.cpp \
 	../../source/CorGuess.cpp ../../source/CreateNewAIProjForCollab.cpp \
 	../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
