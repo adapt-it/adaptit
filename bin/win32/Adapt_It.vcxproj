@@ -635,6 +635,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClCompile Include="..\..\source\CollabVerseConflictDlg.cpp" />
     <ClCompile Include="..\..\source\CollectBacktranslations.cpp" />
     <ClCompile Include="..\..\source\ComposeBarEditBox.cpp" />
+    <ClCompile Include="..\..\source\ConflictResActionDlg.cpp" />
     <ClCompile Include="..\..\source\ConsChk_Empty_noTU_Dlg.cpp" />
     <ClCompile Include="..\..\source\conschk_exists_notu_dlg.cpp" />
     <ClCompile Include="..\..\source\ConsistencyCheckDlg.cpp" />
@@ -796,6 +797,7 @@ copy "..\..\po\default.po" "Unicode Release\Languages\default.po"
     <ClInclude Include="..\..\source\CollabVerseConflictDlg.h" />
     <ClInclude Include="..\..\source\CollectBacktranslations.h" />
     <ClInclude Include="..\..\source\ComposeBarEditBox.h" />
+    <ClInclude Include="..\..\source\ConflictResActionDlg.h" />
     <ClInclude Include="..\..\source\ConsChk_Empty_noTU_Dlg.h" />
     <ClInclude Include="..\..\source\conschk_exists_notu_dlg.h" />
     <ClInclude Include="..\..\source\ConsistencyCheckDlg.h" />
