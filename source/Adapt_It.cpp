@@ -15346,37 +15346,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Used when collaborating with PT or BE
     m_bPunctChangesDetectedInSourceTextMerge = FALSE; // BEW 21May14
-	// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
-	// edited source text has spelling changes which are to be interpretted as simple
-	// orthography changes and typos fixed and so forth - with no actual meaning changes,
-	// that is, the words changed are changed to remain themselves in their current places
-	// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
-	// target text when the smart merge from Paratext's source text project is done back
-	// to the Adapt It Document
-	//*********************************************************************************************************************
-    // The -srcRespell switch had a problem - it lost data if a respelling was in a merger.
-    // If there were mergers in the AI text, and in PT src project the first word of what
-    // is to be that phrasal group again after the smart merge is done, is edited to be
-    // different - then the whole group drops out of the AI document. Same if done outside
-    // of collab mode. Reason? Because the algorithms which decide what goes into
-    // beforeSpan and afterSpan look for which words differ - and if the group of words
-    // spans that boundary (e.g. first word (changed in PT src proj) is in beforeSpan but
-    // the rest of the words to be in the merger are in the following commonSpan, then the
-	// attempt to rebuild the merger fails - the whole merger disappears. Ditto if the
-	// merger is across the boundary between commonSpan and the following afterSpan. 
-	// Since it's only mergers that give the potential for this data loss, the feature can
-	// be supported only for smart mergers of edited source text to an AI document which
-	// has no mergers. So that's what I've done. MergeUpdatedSourceText() tests for a
-	// merger and if the document contains one, it turns the flag
-	// m_bKeepAdaptationsForSrcRespellings back to FALSE, and gives the user a message
-	// telling him that the legacy smart merge will be done instead. 
-	// I've tested this, and tested with starting the app from a shortcut with the switch,
-	// and it works as it should. So this -srcRespell switch can now be released in 6.5.4
-	//*********************************************************************************************************************
-	m_bKeepAdaptationsForSrcRespellings = FALSE; // -srcRespell switch sets it to TRUE
-#if defined (_DEBUG)
-	//m_bKeepAdaptationsForSrcRespellings = TRUE; // for testing in debug mode, comment out when done testing
-#endif
 
 	// BEW added 17Jul14 in support of languages like Lao, Kmer, etc
 	m_bUseSrcWordBreak = true; // default until the project config file is read
@@ -17674,18 +17643,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			// using the Programs menu or desktop shortcuts, etc, should not use this switch
 			// because it would turn off important functionality irrevokably on every launch
 			m_bForce_Review_Mode = TRUE;
-		}
-
-		if (m_pParser->Found(_T("srcRespell")))
-		{
-			// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
-			// edited source text has spelling changes which are to be interpretted as simple
-			// orthography changes and typos fixed and so forth - with no actual meaning changes,
-			// that is, the words changed are changed to remain themselves in their current places
-			// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
-			// target text when the smart merge from Paratext's source text project is done back
-			// to the Adapt It Document. See MergeOldAndNew() in MergeUpdatedSrc.cpp
-			m_bKeepAdaptationsForSrcRespellings = TRUE;
 		}
 
 		//m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for

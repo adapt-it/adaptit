@@ -1,9 +1,58 @@
 ----------------------------------------------
+Version 6.6.0 release ?? July 2015
+----------------------------------------------
+
+----------------------------------------------
+Feature changes and new features in 6.6.0
+----------------------------------------------
+* Legacy collaboration mode behaviours did not support
+the following: (a) Making editing changes in Adapt It
+after ending the collaboration, and then later setting
+up the collaboration again. The edits done outside of
+collaboration mode never could be transferred to
+Paratext by a File > Save. (b) If a verse or verses
+differed in their content between what Adapt It had, 
+and what Paratext had, and no user edits had been
+done in those verses within Adapt It, there was no way
+to view such conflicts and choose which version of 
+each such verse to retain in Paratext or Bibledit.
+So version 6.6.0 adds support for conflict resolution
+for these scenarios. A dialog shows if a conflict is
+encountered. The dialog gives three options, by means
+of radio button choices. It works the same for 
+Bibledit as for Paratext... The legacy "keep the Paratext
+version of the verse", or, "force Paratext to receive
+the Adapt It version of the verse, or "show the user
+a dialog with the conflicting verses side by side, with
+source text shown above as well, and let him decide
+which version is best. The user's choice is acted on
+immediately, but is remembered only while the current
+File > Save is in progress. So each new document can
+be given a different level of conflict resolution 
+according to what the user deems to be most helpful.
+
+----------------------------------------------
+Bug fixes in 6.6.0 release ?? July 2015
+----------------------------------------------
+* "Improvements" added to the functions for calculating the text
+to send to Paratext or Bibledit at a File > Save done in collaboration
+mode, worked only provided collaboration was "by chapter". If the
+collaboration mode was by "whole book" then the File > Save crashed
+at the point where the transfer of data to Paratext or Bibledit
+commenced. (The Adapt It document was not damaged or unsaved though.)
+This is now fixed.
+
+----------------------------------------------
 Version 6.5.9 release 4 July 2015
 ----------------------------------------------
 ----------------------------------------------
 Feature changes and new features in 6.5.9
 ----------------------------------------------
+* 6.5.9 was not formally released. A few field users 
+obtained private releases for specific problem fixes
+only. Because so much new code is in 6.5.9, we decided
+to release it with some further improvements and bug
+fixes, as 6.6.0.
 * Collaboration behaviours (with Paratext or Bibledit) 
 are enhanced. Adapt It now robustly supports filtering
 out, or unfiltering of filtered information, at any time
@@ -143,7 +192,11 @@ filtered out, it does not get put into the export.
 (Exports of free translations, or glosses as text, did
 not unfilter and insert information in the export, so
 those exports did not need any changes.)
-
+* Support for the command line switch -srcRespell within
+a merger of externally edited source text to an existing
+document, or in collaboration mode, has been removed. No
+one used it, and it was of very limited value anyway,
+and somewhat risky.
 ----------------------------------------------
 Bug fixes in 6.5.9 release 4 July 2015
 ----------------------------------------------

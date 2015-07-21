@@ -117,7 +117,8 @@ class CSourcePhrase;
 	// is simple
 	bool			DoVerseAnalysis(VerseAnalysis& refVAnal, const wxArrayString& md5Array, size_t lineIndex);
 	void			DeleteAllVerseInfStructs(wxArrayPtrVoid& arr);
-	bool			GetNextVerseLine(const wxArrayString& usfmText, int& index);
+	bool			GetNextVerseLine(const wxArrayString& usfmText, int& index, bool bOrTestForChapterLine = FALSE);
+	int				EndOfVerse(const wxArrayString& usfmMd5LinesArr, int nVerseStart); // deprecated 20Jul15
 	bool			GetAnotherVerseOrChapterLine(const wxArrayString& usfmText, int& index, wxString& chapterStr);
 	wxString		GetInitialUsfmMarkerFromStructExtentString(const wxString str);
 	wxString		GetStrictUsfmMarkerFromStructExtentString(const wxString str);
@@ -145,40 +146,50 @@ class CSourcePhrase;
 		const wxArrayPtrVoid& fromEditorVerseArr); // the temporary array of VerseInf structs for fromEditor data
 
 	// BEW added 22Jun15 to support preEdit data being structurally different due to things like filtering
-	bool FindPreEditMatchingVerseInf(
+	// BEW 10Jul15 changed parameter names a bit so it can be reused with different text's array
+	bool FindAMatchingVerseInf(
 		VerseInf*   matchThisOne, // the struct instance for what a matchup is being tried in the being-scanned preEditVerseArr
 		int&		atIndex, // the index into the being-scanned VerseInf array at which the matchup succeeded
-		const wxArrayPtrVoid& preEditVerseArr); // the temporary array of VerseInf structs for preEdit data
-
+		const wxArrayPtrVoid& inWhichVerseArr); // the temporary array of VerseInf structs, 
+												// will be either preEdit data or sourceText data
 	bool GetMatchedChunksUsingVerseInfArrays(int postEditStart, // index of non-matched verse md5 line in postEditMd5Arr
 		int   fromEditorStart, // index of non-matched verse md5 line in fromEditorMd5Arr
 		int   preEditStart, // index of equivalent-to-postEdit verse md5 line in preEditMd5Arr
+		int   sourceTextStart, // index of equivalent-to-postEdit verse md5 line in sourceTextMd5Arr
 		const wxArrayString& postEditMd5Arr, // full md5 lines array for AI postEdit text
 		const wxArrayString& fromEditorMd5Arr, // full md5 lines array for PT fromEditor text
 		const wxArrayString& preEditMd5Arr, // full md5 lines array for AI preEdit text
+		const wxArrayString& sourceTextMd5Arr, // full md5 lines array for sourceText AS IN ADAPT IT (it may
+		// have had changes done due to filterings, making it permanently different
+		// in USFM structure than the source text which is in Paratext or BE;
+		// there is no feedback mechanism for filterings to change the PT or BE
+		// structure of the source text in either of those editors
 		int&  postEditEnd,     // points at index in the md5 array of last postEdit field in the matched chunk
 		int&  fromEditorEnd,   // points at index into the md5 array of last fromEditor field in the matched chunk
-		int&  preEditEnd);     // points at index in the md5 array of last preEdit field in the matched chunk
+		int&  preEditEnd,      // points at index in the md5 array of last preEdit field in the matched chunk
+		int&  sourceTextEnd);  // points at index in the md5 array of last sourceText field in the matched chunk
 
 	bool HasInfoChanged(
-		int preEditIndex, // index of current preEdit text verse md5 line in preEditMd5Arr
-		int postEditIndex, // index of current postEdit text verse md5 line in postEditMd5Arr
+		int preEditIndex,    // index of current preEdit text verse md5 line in preEditMd5Arr
+		int postEditIndex,   // index of current postEdit text verse md5 line in postEditMd5Arr
 		int fromEditorIndex, // index of current fromEditor verse md5 line in fromEditorMd5Arr
+		int sourceTextIndex, // index of current sourceText verse md5 line in sourceTextMd5Arr
 		const wxArrayString& preEditMd5Arr, // full one-chapter md5 lines array for AI preEdit text
 		const wxArrayString& postEditMd5Arr, // full one-chapter md5 lines array for AI postEdit text
 		const wxArrayString& fromEditorMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
-		int&  preEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
-		// or if no next verse, the last md5 line (it may not be a verse line) in the array
-		int&  postEditEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
-		// or if no next verse, the last md5 line (it may not be a verse line) in the array
-		int&  fromEditorEnd, // return index of the last md5 line of preEdit text immediately prior to next verse
-		// or if no next verse, the last md5 line (it may not be a verse line) in the array
-		wxArrayPtrVoid& postEditOffsetsArr, // needed so we can grab the postEdit verse's text
-		wxArrayPtrVoid& fromEditorOffsetsArr, // needed so we can grab the fromEditor verse's text
-		const wxChar* pPostEditBuffer, // start of the postEdit text buffer
-		wxChar* pPostEditEnd,          // end of the postEdit text buffer
-		const wxChar* pFromEditorBuffer, // start of the fromEditor text buffer
-		wxChar* pFromEditorEnd);          // end of the fromEditor text buffer
+		const wxArrayString& sourceTextMd5Arr, // full one-Chapter md5 lines array for PT or BE fromEditor text
+		int  preEditEnd, // index of the last md5 line of preEdit text immediately prior to next verse
+						  // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		int  postEditEnd, // index of the last md5 line of preEdit text immediately prior to next verse
+						   // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		int  fromEditorEnd, // index of the last md5 line of preEdit text immediately prior to next verse
+							 // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		int  sourceTextEnd, // index of the last md5 line of sourceText immediately prior to next verse
+							 // or if no next verse, the last md5 line (it may not be a verse line) in the array
+		bool&	bTheTwoTextsDiffer	// return FALSE if there was no detected punctuation difference AND
+									// no detected overall text difference; but TRUE if either kind of
+									// difference was detected (BEW added 10Jul15, for conflict res support)
+		);        
 
 	int				FindExactVerseNum(const wxArrayString& md5Arr, int nStart, const wxString& verseNum);
 	int				FindNextChapterLine(const wxArrayString& md5Arr, int nStartAt, bool& bBeforeChapterOne);
@@ -221,6 +232,14 @@ class CSourcePhrase;
 	bool			AreTheseTwoTextVersionsDifferent(const wxArrayString& preEditMd5Arr, 
 						const wxArrayString& postEditMd5Arr, wxArrayInt& lineIndices);
 	void			SetCollabActionDefaults(CollabAction* p);
+	// Next one used in GetUpdatedText_UsfmsChanged(), 'chunk' here could be a chunk defined
+	// by a group of md5 lines which have a structural change within, or by a verse matchup
+	// which has no structural change but potentially may have other verse-internal usfms; we
+	// pass in starting and ending indices into the md5 array because we'll have calculated
+	// those parameters prior to making these calls; nEnd refers to the last md5 line within
+	// the chunk being examined. We use this function for testing postEditMd5Arr or
+	// fromEditorMd5Arr since these govern our data transfer protocol
+	bool			IsThisChunkEmpty(const wxArrayString& md5Arr, int nStart, int nEnd);
 
 	////////////////// end of those for analysis of texts //////////////////////////
 

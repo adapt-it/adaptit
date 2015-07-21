@@ -98,45 +98,59 @@ void CConflictResActionDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pRadioForceAI->SetValue(FALSE);
 	pRadioConflictResDlg->SetValue(FALSE);
 
-		// The three wxStaticBoxSizer instances have non-localized text, so we have
-	// to reset the text of their labels with localizable ones
-	wxString topStr = _("Retain the %s version of the verse");
-	wxString middleStr = _("Transfer the %s version of the verse");
-	wxString bottomStr = _("Show a dialog with a list, comparing the two versions of each verse");
-	wxStaticBox* pTopStatic = pTopStaticSizer->GetStaticBox();
-	wxStaticBox* pMiddleStatic = pMiddleStaticSizer->GetStaticBox();
-	wxStaticBox* pBottomStatic = pBottomStaticSizer->GetStaticBox();
-	appNameStr = _T("Adapt It");
-	topStr = topStr.Format(topStr, m_collabEditorName.c_str());
-	middleStr = middleStr.Format(middleStr, appNameStr.c_str());
-	pTopStatic->SetLabel(topStr);
-	pMiddleStatic->SetLabel(middleStr);
-	pBottomStatic->SetLabel(bottomStr);
+	// Set the static strings in controls that need to distinguish external editor string "Paratext" or "Bibledit"
+	wxASSERT(!gpApp->m_collaborationEditor.IsEmpty());
+	wxASSERT(gpApp->m_collaborationEditor == _T("Paratext") || gpApp->m_collaborationEditor == _T("Bibledit"));
+	// The wxDesigner resource already has "Paratext" in its string resources,
+	// we need only change those to "Bibledit" if we're using Bibledit
+	if (gpApp->m_collaborationEditor == _T("Bibledit"))
+	{
+		// Get the wxStatisBox control associated with each wxStaticBoxSizer
+		wxStaticBox* pTopStatic = pTopStaticSizer->GetStaticBox();
+		wxStaticBox* pMiddleStatic = pMiddleStaticSizer->GetStaticBox();
+		wxStaticBox* pBottomStatic = pBottomStaticSizer->GetStaticBox();
 
-	// Localize the 3 radio button labels
-	wxString topRadioLabel = _("Retain the %s form of the verse unchanged, for each identified conflict (this is the default option)");
-	topRadioLabel = topRadioLabel.Format(topRadioLabel, m_collabEditorName.c_str());
-	pRadioRetainPT->SetLabel(topRadioLabel);
-	wxString middleRadioLabel = _("Force the Adapt It verse contents to be transferred to %s, for each identified conflict");
-	middleRadioLabel = middleRadioLabel.Format(middleRadioLabel, m_collabEditorName.c_str());
-	pRadioForceAI->SetLabel(middleRadioLabel);
-	wxString bottomRadioLabel = _("You want to see the conflicting verses, and manually choose which versions to accept");
-	pRadioConflictResDlg->SetLabel(bottomRadioLabel);
+		wxString tempStr;
+		tempStr = pTopStatic->GetLabel();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		pTopStatic->SetLabel(tempStr);
 
-	// Localize the 3 text box messages
-	wxString topTextBoxStr = _("For Adapt It versions earlier than 6.6.0, this was the only action available.  If there are no user editing changes (within Adapt It) for conflicting verses, then the Paratext forms of those verses are retained unchanged. The Adapt It forms of those conflicting verses will never be transferred unless you make further editing changes in them. (If this is unsatisfactory, tick one of the lower buttons. The bottom button gives best control, but requires you to interact with another dialog.)");
-	wxString middleTextBoxStr = _("This dialog opens at the first verse conflict encountered. A verse conflict means that the Adapt It form of the verse differs from the same verse in Paratext. If you choose this radio button, no additional dialog appears. Instead, every time Adapt It finds a verse conflict, it will automatically choose the Adapt It form of the verse, and transfer that to Paratext. This will permanently erase the content of that verse in Paratext, replacing it with what was transferred from Adapt It. (If you need more control, choose the button below.)");
-	wxString bottomTextBoxStr = _("For this Save operation, all the identified verse conflicts will be shown to you in a dialog which appears just once. The conflicting verses are listed. Clicking a verse reference in the list, shows the Adapt It and Paratext versions of that verse, and you can choose the best version. (No editing allowed.) The versions are displayed side by side; the source text is above. Make your choice either using radio buttons, or choose the Adapt It version by clicking the checkbox beside it. Leaving the checkbox empty chooses the Paratext version.");
-	topBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TOP);
-	middleBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MIDDLE);
-	bottomBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_BOTTOM);
-	topTextBoxStr = topTextBoxStr.Format(topTextBoxStr, m_collabEditorName.c_str());
-	middleTextBoxStr = middleTextBoxStr.Format(middleTextBoxStr, m_collabEditorName.c_str(),
-								m_collabEditorName.c_str(), m_collabEditorName.c_str());
-	bottomTextBoxStr = bottomTextBoxStr.Format(bottomTextBoxStr, m_collabEditorName.c_str());
-	topBox->ChangeValue(topTextBoxStr);
-	middleBox->ChangeValue(middleTextBoxStr);
-	bottomBox->ChangeValue(bottomTextBoxStr);
+		tempStr = pMiddleStatic->GetLabel();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		pMiddleStatic->SetLabel(tempStr);
+
+		tempStr = pBottomStatic->GetLabel();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		pBottomStatic->SetLabel(tempStr);
+
+		tempStr = pRadioRetainPT->GetLabel();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		pRadioRetainPT->SetLabel(tempStr);
+
+		tempStr = pRadioForceAI->GetLabel();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		pRadioForceAI->SetLabel(tempStr);
+
+		tempStr = pRadioConflictResDlg->GetLabel();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		pRadioConflictResDlg->SetLabel(tempStr);
+
+		topBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_TOP);
+		middleBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_MIDDLE);
+		bottomBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_BOTTOM);
+
+		tempStr = topBox->GetValue();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		topBox->ChangeValue(tempStr);
+
+		tempStr = middleBox->GetValue();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		middleBox->ChangeValue(tempStr);
+
+		tempStr = bottomBox->GetValue();
+		tempStr.Replace(_T("Paratext"), _T("Bibledit"));
+		bottomBox->ChangeValue(tempStr);
+	}
 
 	pWholeDlgSizer->Layout(); // get all resized because of the string replacements done
 }

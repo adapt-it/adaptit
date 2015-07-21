@@ -2421,16 +2421,6 @@ public:
                 // empty source phrase every time the user finishes editing something &
                 // hits RETURN) This flag's functionality is the same for adapting and for
                 // glossing.
-    bool m_bKeepAdaptationsForSrcRespellings; // default is FALSE, only -srcRespell turns it on
-				// BEW added 21Jul14 to support not dropping adaptations in collaboration mode when
-				// edited source text has spelling changes which are to be interpretted as simple
-				// orthography changes and typos fixed and so forth - with no actual meaning changes,
-				// that is, the words changed are changed to remain themselves in their current places
-				// - in such a scenario, MergeOldAndNew() in MergeUpdatedSrc.cpp should retain the
-				// target text when the smart merge from Paratext's source text project is done back
-	            // to the Adapt It Document (associates with -srcRespell command line
-	            // switch)
-
 	bool m_bForce_Review_Mode; // added by BEW, 23Oct09, to support Bob Eaton's wish for
 				// shell opening to add a frm switch to have the document opened be opened
 				// in a launched app where review mode radio button is obligatory on, and
